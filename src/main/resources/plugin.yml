@@ -9,5 +9,6 @@ api-version: 1.19
 commands:
   mcttest:
     description: Test the command
+    usage: "/mctest"
     permission: mctmanager.mcttest
     permission-message: "You do not have permission to use this command"
