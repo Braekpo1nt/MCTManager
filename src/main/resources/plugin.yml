@@ -12,3 +12,9 @@ commands:
     usage: "/mctest"
     permission: mctmanager.mcttest
     permission-message: "You do not have permission to use this command"
+  mctmvtest:
+    description: Test the multiverse world integration
+    usage: "/mctmvtest"
+    permission: mctmanager.mctmvtest
+    permission-message: "You do not have permission to use this command"
+  
