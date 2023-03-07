@@ -1,0 +1,8 @@
+name: MCTManager
+version: '${version}'
+main: org.braekpo1nt.mctmanager.MCTManager
+api-version: 1.19
+
+commands:
+  test:
+    description: Test the command
