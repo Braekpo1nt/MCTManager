@@ -23,6 +23,10 @@ repositories {
 
 dependencies {
     compileOnly "io.papermc.paper:paper-api:1.19.3-R0.1-SNAPSHOT"
+    
+//    Multiverse-Core API: 
+//    https://github.com/Multiverse/Multiverse-Core/wiki/Developer-API-Starter
+//    http://ci.onarandombox.com/job/Multiverse-Core/javadoc/
     compileOnly 'com.onarandombox.multiversecore:Multiverse-Core:4.3.1'
 }
 
