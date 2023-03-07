@@ -1,8 +1,13 @@
 name: MCTManager
 version: '${version}'
-main: org.braekpo1nt.mctmanager.MCTManager
+main: org.braekpo1nt.mctmanager.Main
+description: The plugin that manages MCT
+author: Braekpo1nt
 api-version: 1.19
 
+
 commands:
-  test:
+  mcttest:
     description: Test the command
+    permission: mctmanager.mcttest
+    permission-message: "You do not have permission to use this command"
