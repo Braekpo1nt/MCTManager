@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.commands;
 
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.games.FootRaceGame;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
@@ -10,7 +11,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 public class MCTStartGameCommand implements TabExecutor {
 
@@ -29,7 +29,8 @@ public class MCTStartGameCommand implements TabExecutor {
     public void printGameNumber(String gameName, Player player) {
         switch (gameName) {
             case "foot-race":
-                player.sendMessage("1");
+                FootRaceGame footRace = new FootRaceGame();
+                footRace.start(player);
                 break;
             case "mecha":
                 player.sendMessage("2");
