@@ -32,24 +32,24 @@ public class MCTStartGameCommand implements TabExecutor {
                 FootRaceGame footRace = new FootRaceGame();
                 footRace.start(player);
                 break;
-            case "mecha":
-                player.sendMessage("2");
-                break;
-            case "bedwars":
-                player.sendMessage("3");
-                break;
-            case "capture-the-flag":
-                player.sendMessage("4");
-                break;
-            case "dodgeball":
-                player.sendMessage("5");
-                break;
-            case "spleef":
-                player.sendMessage("6");
-                break;
-            case "parkour-pathway":
-                player.sendMessage("7");
-                break;
+//            case "mecha":
+//                player.sendMessage("2");
+//                break;
+//            case "bedwars":
+//                player.sendMessage("3");
+//                break;
+//            case "capture-the-flag":
+//                player.sendMessage("4");
+//                break;
+//            case "dodgeball":
+//                player.sendMessage("5");
+//                break;
+//            case "spleef":
+//                player.sendMessage("6");
+//                break;
+//            case "parkour-pathway":
+//                player.sendMessage("7");
+//                break;
             default:
                 player.sendMessage("Unknown game: " + gameName);
                 break;
@@ -59,7 +59,8 @@ public class MCTStartGameCommand implements TabExecutor {
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length == 1) {
-            return Arrays.asList("foot-race", "mecha", "bedwars", "dodgeball", "capture-the-flag", "spleef", "parkour-pathway").stream().sorted().toList();
+//            return Arrays.asList("foot-race", "mecha", "bedwars", "dodgeball", "capture-the-flag", "spleef", "parkour-pathway").stream().sorted().toList();
+            return Arrays.asList("foot-race");
         }
         return null;
     }
