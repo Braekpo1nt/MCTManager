@@ -7,6 +7,11 @@ api-version: 1.19
 
 
 commands:
+  mctstartgame:
+    description: Start the specified game
+    usage: "/mctstartgame <game>"
+    permission: mctmanager.mctstartgame
+    permission-message: "You do not have permission to use this command"
   mctmvtest:
     description: Test the multiverse world integration
     usage: "/mctmvtest"
