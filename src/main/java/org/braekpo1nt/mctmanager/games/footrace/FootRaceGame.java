@@ -35,7 +35,7 @@ public class FootRaceGame implements Listener {
         if (gameActive) {
             Player player = event.getPlayer();
             if (player.getWorld().equals(footRaceWorld)) {
-                BoundingBox finishLine = new BoundingBox(2396, 80, 295, 2404, 82, 297);
+                BoundingBox finishLine = new BoundingBox(2396, 80, 295, 2404, 79, 308);
                 if (finishLine.contains(player.getLocation().toVector())) {
                     player.sendMessage("You crossed the finish line!");
                 }
