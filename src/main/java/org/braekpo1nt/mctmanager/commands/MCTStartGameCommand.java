@@ -1,7 +1,7 @@
 package org.braekpo1nt.mctmanager.commands;
 
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.games.FootRaceGame;
+import org.braekpo1nt.mctmanager.games.GameManager;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
@@ -13,8 +13,11 @@ import java.util.Arrays;
 import java.util.List;
 
 public class MCTStartGameCommand implements TabExecutor {
-
-    public MCTStartGameCommand(Main plugin) {
+    
+    private final GameManager gameManager;
+    
+    public MCTStartGameCommand(Main plugin, GameManager gameManager) {
+        this.gameManager = gameManager;
         plugin.getCommand("mctstartgame").setExecutor(this);
     }
     
@@ -25,12 +28,11 @@ public class MCTStartGameCommand implements TabExecutor {
         }
         return true;
     }
-
+    
     public void printGameNumber(String gameName, Player player) {
         switch (gameName) {
             case "foot-race":
-                FootRaceGame footRace = new FootRaceGame();
-                footRace.start(player);
+                gameManager.startFootRace();
                 break;
 //            case "mecha":
 //                player.sendMessage("2");
