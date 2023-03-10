@@ -24,38 +24,9 @@ public class MCTStartGameCommand implements TabExecutor {
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length == 1 && sender instanceof Player) {
-            printGameNumber(args[0], ((Player) sender));
+            gameManager.startGame(args[0], ((Player) sender));
         }
         return true;
-    }
-    
-    public void printGameNumber(String gameName, Player player) {
-        switch (gameName) {
-            case "foot-race":
-                gameManager.startFootRace();
-                break;
-//            case "mecha":
-//                player.sendMessage("2");
-//                break;
-//            case "bedwars":
-//                player.sendMessage("3");
-//                break;
-//            case "capture-the-flag":
-//                player.sendMessage("4");
-//                break;
-//            case "dodgeball":
-//                player.sendMessage("5");
-//                break;
-//            case "spleef":
-//                player.sendMessage("6");
-//                break;
-//            case "parkour-pathway":
-//                player.sendMessage("7");
-//                break;
-            default:
-                player.sendMessage("Unknown game: " + gameName);
-                break;
-        }
     }
 
     @Override

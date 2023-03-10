@@ -24,12 +24,12 @@ public class FootRaceGame implements Listener {
      * Holds the Foot Race world
      */
     private final World footRaceWorld;
-    private final Map<String, Integer> laps;
+    private final Map<String, Long> cooldowns = new HashMap<>();
     
     public FootRaceGame(Main plugin, List<Player> participants) {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
-        
-        laps = participants.stream().collect(Collectors.toMap(participant -> participant.getName(), key -> 1));
+
+//        cooldowns = participants.stream().collect(Collectors.toMap(participant -> participant.getName(), key -> 0L));
         
         Plugin multiversePlugin = Bukkit.getPluginManager().getPlugin("Multiverse-Core");
         MultiverseCore multiverseCore = ((MultiverseCore) multiversePlugin);
@@ -48,9 +48,21 @@ public class FootRaceGame implements Listener {
             if (player.getWorld().equals(footRaceWorld)) {
                 BoundingBox finishLine = new BoundingBox(2396, 80, 295, 2404, 79, 308);
                 if (finishLine.contains(player.getLocation().toVector())) {
-                    player.sendMessage("You crossed the finish line! You're on lap " + laps.get(player.getName()));
-                    // Increment the lap counter
-                    laps.put(player.getName(), laps.get(player.getName()) + 1);
+
+                    String name = player.getName();
+                    if (cooldowns.containsKey(name)) {
+                        long lastMoveTime = cooldowns.get(name);
+                        long currentTime = System.currentTimeMillis();
+                        long coolDownTime = 1000L;
+                        if (currentTime - lastMoveTime < coolDownTime) {
+                            //Not enough time has elapsed, return without doing anything
+                            return;
+                        }
+                    }
+                    cooldowns.put(name, System.currentTimeMillis());
+
+                    player.sendMessage("You crossed the finish line!");
+                    
                 }
             }
         }
