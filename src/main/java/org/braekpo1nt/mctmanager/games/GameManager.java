@@ -6,6 +6,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * Responsible for overall game management. 
@@ -13,10 +14,12 @@ import java.util.Arrays;
  */
 public class GameManager {
     
+    private final List<Player> participants;
     private final FootRaceGame footRaceGame;
     
     public GameManager(Main plugin) {
-        this.footRaceGame = new FootRaceGame(plugin, Arrays.asList(Bukkit.getPlayer("Braekpo1nt")));
+        participants = Arrays.asList(Bukkit.getPlayer("Braekpo1nt"));
+        this.footRaceGame = new FootRaceGame(plugin, participants);
     }
 
     public void startGame(String gameName, Player sender) {
