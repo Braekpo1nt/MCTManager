@@ -23,12 +23,12 @@ public class FootRaceGame implements Listener {
      * Holds the Foot Race world
      */
     private final World footRaceWorld;
-    private final Map<String, Long> lapCooldowns;
+    private final Map<Player, Long> lapCooldowns;
     
     public FootRaceGame(Main plugin, List<Player> participants) {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         
-        lapCooldowns = participants.stream().collect(Collectors.toMap(participant -> participant.getName(), key -> System.currentTimeMillis()));
+        lapCooldowns = participants.stream().collect(Collectors.toMap(participant -> participant, key -> System.currentTimeMillis()));
         
         Plugin multiversePlugin = Bukkit.getPluginManager().getPlugin("Multiverse-Core");
         MultiverseCore multiverseCore = ((MultiverseCore) multiversePlugin);
@@ -47,11 +47,10 @@ public class FootRaceGame implements Listener {
             if (player.getWorld().equals(footRaceWorld)) {
                 BoundingBox finishLine = new BoundingBox(2396, 80, 295, 2404, 79, 308);
                 if (finishLine.contains(player.getLocation().toVector())) {
-
-                    String name = player.getName();
+                    
                     // if this player is a participant
-                    if (lapCooldowns.containsKey(name)) {
-                        long lastMoveTime = lapCooldowns.get(name);
+                    if (lapCooldowns.containsKey(player)) {
+                        long lastMoveTime = lapCooldowns.get(player);
                         long currentTime = System.currentTimeMillis();
                         long coolDownTime = 3000L; // 3 second
                         if (currentTime - lastMoveTime < coolDownTime) {
@@ -59,7 +58,7 @@ public class FootRaceGame implements Listener {
                             return;
                         }
                     }
-                    lapCooldowns.put(name, System.currentTimeMillis());
+                    lapCooldowns.put(player, System.currentTimeMillis());
 
                     player.sendMessage("You crossed the finish line!");
                     
