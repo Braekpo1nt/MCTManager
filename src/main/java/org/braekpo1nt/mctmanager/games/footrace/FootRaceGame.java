@@ -53,7 +53,7 @@ public class FootRaceGame implements Listener {
                     if (cooldowns.containsKey(name)) {
                         long lastMoveTime = cooldowns.get(name);
                         long currentTime = System.currentTimeMillis();
-                        long coolDownTime = 1000L;
+                        long coolDownTime = 3000L; // 3 second
                         if (currentTime - lastMoveTime < coolDownTime) {
                             //Not enough time has elapsed, return without doing anything
                             return;
