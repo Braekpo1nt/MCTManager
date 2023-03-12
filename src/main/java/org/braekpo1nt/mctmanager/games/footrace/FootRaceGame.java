@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 
 public class FootRaceGame implements Listener {
 
-    private boolean gameActive = true;
+    private boolean gameActive = false;
     /**
      * Holds the Foot Race world
      */
@@ -34,7 +34,7 @@ public class FootRaceGame implements Listener {
         
         lapCooldowns = participants.stream().collect(
                 Collectors.toMap(participant -> participant, key -> System.currentTimeMillis()));
-        laps = participants.stream().collect(Collectors.toMap(participant -> participant, key -> 0));
+        laps = participants.stream().collect(Collectors.toMap(participant -> participant, key -> 1));
         
         Plugin multiversePlugin = Bukkit.getPluginManager().getPlugin("Multiverse-Core");
         MultiverseCore multiverseCore = ((MultiverseCore) multiversePlugin);
@@ -62,7 +62,8 @@ public class FootRaceGame implements Listener {
             if (!player.getWorld().equals(footRaceWorld)) {
                 return;
             }
-            if (finishLine.contains(player.getLocation().toVector())) {
+            
+            if (isInFinishLineBoundingBox(player)) {
                 long lastMoveTime = lapCooldowns.get(player);
                 long currentTime = System.currentTimeMillis();
                 long coolDownTime = 3000L; // 3 second
@@ -71,16 +72,26 @@ public class FootRaceGame implements Listener {
                     return;
                 }
                 lapCooldowns.put(player, System.currentTimeMillis());
-                int lastLap = laps.get(player);
-                int currentLap = lastLap + 1;
-                if (currentLap < 3) {
-                    laps.put(player, currentLap);
-                    player.sendMessage("Lap " + currentLap);
+                
+                int currentLap = laps.get(player);
+                Bukkit.getLogger().info(String.format("currentLap: %s", currentLap));
+                if (currentLap <= 2) {
+                    int newLap = currentLap + 1;
+                    player.sendMessage("Lap " + newLap);
+                    laps.put(player, newLap);
                     return;
                 }
-                player.sendMessage("You finished all 3 laps!");
+                int finalLap = 3;
+                if (currentLap == finalLap) {
+                    laps.put(player, currentLap + 1);
+                    player.sendMessage("You finished all 3 laps!");
+                }
             }
         }
+    }
+
+    private boolean isInFinishLineBoundingBox(Player player) {
+        return finishLine.contains(player.getLocation().toVector());
     }
 
     public boolean isGameActive() {
