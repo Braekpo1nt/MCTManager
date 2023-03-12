@@ -9,15 +9,15 @@ depend: [Multiverse-Core]
 
 
 commands:
+  mct:
+    description: The command for managing Minecraft Tournament (MCT)
+    usage: "/mct <option>"
+    permission: mctmanager.  mct
+    permission-message: "You do not have permission to use this command"
   mctdebug:
     description: Debug command
     usage: "/debug <args>"
     permission: mctmanager.mctdebug
-    permission-message: "You do not have permission to use this command"
-  mctstartgame:
-    description: Start the specified game
-    usage: "/mctstartgame <game>"
-    permission: mctmanager.mctstartgame
     permission-message: "You do not have permission to use this command"
   mctmvtest:
     description: Test the multiverse world integration
