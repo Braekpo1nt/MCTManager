@@ -1,15 +1,18 @@
-package org.braekpo1nt.mctmanager.games.footrace;
+ package org.braekpo1nt.mctmanager.games.footrace;
 
 import com.onarandombox.MultiverseCore.MultiverseCore;
 import com.onarandombox.MultiverseCore.api.MVWorldManager;
+import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.scoreboard.*;
 import org.bukkit.util.BoundingBox;
 
 import java.util.List;
@@ -44,12 +47,33 @@ public class FootRaceGame implements Listener {
     
     public void start() {
         gameActive = true;
+        
+        ScoreboardManager manager = Bukkit.getScoreboardManager();
+        Scoreboard scoreboard = manager.getNewScoreboard();
+        
+        Objective objective = scoreboard.registerNewObjective("test", Criteria.DUMMY, Component.text(ChatColor.BLUE + "Title"));
+        objective.setDisplaySlot(DisplaySlot.SIDEBAR);
+        
+        Score score = objective.getScore(ChatColor.GOLD + "Money: $" + ChatColor.GREEN + 1);
+        score.setScore(3);
+
+        for (Player participant :  participants) {
+            participant.setScoreboard(scoreboard);
+        }
+        
         Bukkit.getLogger().info("Starting Foot Race game");
     }
-
+    
     public void stop() {
         gameActive = false;
+        hideScoreboard();
         Bukkit.getLogger().info("Stopping Foot Race game");
+    }
+    
+    private void hideScoreboard() {
+        for (Player participant :  participants) {
+            participant.setScoreboard(Bukkit.getScoreboardManager().getMainScoreboard());
+        }
     }
 
     @EventHandler
