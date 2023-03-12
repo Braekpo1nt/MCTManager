@@ -40,11 +40,12 @@ public class MCTCommand implements TabExecutor {
             return subCommandNames;
         }
         if (args.length > 1) {
-            if (!subCommands.containsKey(args[0])) {
+            String subCommandName = args[0];
+            if (!subCommands.containsKey(subCommandName)) {
                 return null;
             }
-            CommandExecutor subCommand = subCommands.get(args[0]);
-            if (subCommands instanceof TabExecutor) {
+            CommandExecutor subCommand = subCommands.get(subCommandName);
+            if (subCommand instanceof TabExecutor) {
                 TabExecutor subTabCommand = ((TabExecutor) subCommand);
                 return subTabCommand.onTabComplete(sender, command, label, Arrays.copyOfRange(args, 1, args.length));
             }
