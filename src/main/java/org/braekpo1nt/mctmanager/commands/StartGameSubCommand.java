@@ -1,6 +1,5 @@
 package org.braekpo1nt.mctmanager.commands;
 
-import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -12,11 +11,11 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Arrays;
 import java.util.List;
 
-public class StartGameCommand implements TabExecutor {
+public class StartGameSubCommand implements TabExecutor {
     
     private final GameManager gameManager;
     
-    public StartGameCommand(GameManager gameManager) {
+    public StartGameSubCommand(GameManager gameManager) {
         this.gameManager = gameManager;
     }
     

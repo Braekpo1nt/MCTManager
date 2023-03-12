@@ -17,7 +17,7 @@ public class MCTCommand implements TabExecutor {
     
     public MCTCommand(Main plugin, GameManager gameManager) {
         plugin.getCommand("mct").setExecutor(this);
-        subCommands.put("startgame", new StartGameCommand(gameManager));
+        subCommands.put("startgame", new StartGameSubCommand(gameManager));
     }
     
     @Override
