@@ -44,8 +44,14 @@ public class FootRaceGame implements Listener {
     
     public void start() {
         gameActive = true;
+        Bukkit.getLogger().info("Starting Foot Race game");
     }
-    
+
+    public void stop() {
+        gameActive = false;
+        Bukkit.getLogger().info("Stopping Foot Race game");
+    }
+
     @EventHandler
     public void onPlayerCrossFinishLine(PlayerMoveEvent event) {
         if (gameActive) {
@@ -76,5 +82,8 @@ public class FootRaceGame implements Listener {
             }
         }
     }
-    
+
+    public boolean isGameActive() {
+        return gameActive;
+    }
 }

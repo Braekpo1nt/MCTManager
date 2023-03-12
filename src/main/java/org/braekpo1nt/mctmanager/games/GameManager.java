@@ -51,4 +51,13 @@ public class GameManager {
                 break;
         }
     }
+
+    /**
+     * If a game is currently going on, stops the game
+     */
+    public void stopGame() {
+        if (footRaceGame.isGameActive()) {
+            footRaceGame.stop();
+        }
+    }
 }
