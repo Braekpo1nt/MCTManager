@@ -36,8 +36,7 @@ public class MCTCommand implements TabExecutor {
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length == 1) {
-            List<String> subCommandNames = subCommands.keySet().stream().toList();
-            subCommandNames.sort(Comparator.naturalOrder());
+            List<String> subCommandNames = subCommands.keySet().stream().sorted().toList();
             return subCommandNames;
         }
         if (args.length > 1) {
