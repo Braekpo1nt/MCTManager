@@ -7,18 +7,23 @@ import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.listeners.HubBoundaryListener;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.io.File;
+
 public final class Main extends JavaPlugin {
     
     @Override
     public void onEnable() {
         GameManager gameManager = new GameManager(this);
+
+        // Listeners
+        HubBoundaryListener hubBoundaryListener = new HubBoundaryListener(this);
         
         // Commands
         new MCTDebugCommand(this);
-        new MCTCommand(this, gameManager);
+        new MCTCommand(this, gameManager, hubBoundaryListener);
         new MCTMVTestCommand(this);
         
-        // Listeners
-        new HubBoundaryListener(this);
+
+        File dataFolder = getDataFolder();
     }
 }
