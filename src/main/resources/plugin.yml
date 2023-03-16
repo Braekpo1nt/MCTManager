@@ -12,7 +12,7 @@ commands:
   mct:
     description: The command for managing Minecraft Tournament (MCT)
     usage: "/mct <option>"
-    permission: mctmanager.  mct
+    permission: mctmanager.mct
     permission-message: "You do not have permission to use this command"
   mctdebug:
     description: Debug command

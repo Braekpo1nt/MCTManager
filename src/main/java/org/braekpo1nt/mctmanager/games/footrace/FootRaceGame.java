@@ -47,23 +47,27 @@ public class FootRaceGame implements Listener {
     
     public void start() {
         gameActive = true;
-        
+
+        setupScoreboard();
+
+        Bukkit.getLogger().info("Starting Foot Race game");
+    }
+
+    private void setupScoreboard() {
         ScoreboardManager manager = Bukkit.getScoreboardManager();
         Scoreboard scoreboard = manager.getNewScoreboard();
-        
+
         Objective objective = scoreboard.registerNewObjective("test", Criteria.DUMMY, Component.text(ChatColor.BLUE + "Title"));
         objective.setDisplaySlot(DisplaySlot.SIDEBAR);
-        
+
         Score score = objective.getScore(ChatColor.GOLD + "Money: $" + ChatColor.GREEN + 1);
         score.setScore(3);
 
         for (Player participant :  participants) {
             participant.setScoreboard(scoreboard);
         }
-        
-        Bukkit.getLogger().info("Starting Foot Race game");
     }
-    
+
     public void stop() {
         gameActive = false;
         hideScoreboard();

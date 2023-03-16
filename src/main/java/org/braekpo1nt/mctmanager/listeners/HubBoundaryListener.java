@@ -3,11 +3,9 @@ package org.braekpo1nt.mctmanager.listeners;
 import com.onarandombox.MultiverseCore.MultiverseCore;
 import com.onarandombox.MultiverseCore.api.MVWorldManager;
 import com.onarandombox.MultiverseCore.api.MultiverseWorld;
-import com.onarandombox.MultiverseCore.utils.AnchorManager;
 import org.braekpo1nt.mctmanager.Main;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -21,7 +19,7 @@ public class HubBoundaryListener implements Listener {
     public HubBoundaryListener(Main plugin) {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
-
+    
     /**
      * Detects when the player moves out of bounds of the hub, and teleports them back to the starting place
      * @param event A player move event
