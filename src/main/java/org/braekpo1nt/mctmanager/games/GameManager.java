@@ -14,19 +14,19 @@ import java.util.List;
  */
 public class GameManager {
     
-    private final List<Player> participants;
     private final FootRaceGame footRaceGame;
     
     public GameManager(Main plugin) {
-        participants = Arrays.asList(Bukkit.getPlayer("Braekpo1nt"));
-        this.footRaceGame = new FootRaceGame(plugin, participants);
+        this.footRaceGame = new FootRaceGame(plugin);
     }
     
     public void startGame(String gameName, Player sender) {
+    
+        List<Player> participants = Arrays.asList(Bukkit.getPlayer("Braekpo1nt"));
         
         switch (gameName) {
             case "foot-race":
-                footRaceGame.start();
+                footRaceGame.start(participants);
                 break;
 //            case "mecha":
 //                player.sendMessage("2");

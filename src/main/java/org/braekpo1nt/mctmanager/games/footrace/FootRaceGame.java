@@ -20,55 +20,58 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class FootRaceGame implements Listener {
-
+    
+    private final int MAX_LAPS = 3;
+    
     private boolean gameActive = false;
     /**
      * Holds the Foot Race world
      */
     private final World footRaceWorld;
     private final BoundingBox finishLine = new BoundingBox(2396, 80, 295, 2404, 79, 308);
-    private final List<Player> participants;
-    private final Map<Player, Long> lapCooldowns;
-    private final Map<Player, Integer> laps;
+    private List<Player> participants;
+    private Map<Player, Long> lapCooldowns;
+    private Map<Player, Integer> laps;
+    private final ScoreboardManager scoreboardManager;
     
-    public FootRaceGame(Main plugin, List<Player> participants) {
+    public FootRaceGame(Main plugin) {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
-        this.participants = participants;
-        
-        lapCooldowns = participants.stream().collect(
-                Collectors.toMap(participant -> participant, key -> System.currentTimeMillis()));
-        laps = participants.stream().collect(Collectors.toMap(participant -> participant, key -> 1));
-        
+    
+        scoreboardManager = Bukkit.getScoreboardManager();
         Plugin multiversePlugin = Bukkit.getPluginManager().getPlugin("Multiverse-Core");
         MultiverseCore multiverseCore = ((MultiverseCore) multiversePlugin);
         MVWorldManager worldManager = multiverseCore.getMVWorldManager();
         this.footRaceWorld = worldManager.getMVWorld("NT").getCBWorld();
     }
     
-    public void start() {
+    public void start(List<Player> participants) {
         gameActive = true;
-
+        this.participants = participants;
+        
+        lapCooldowns = participants.stream().collect(
+                Collectors.toMap(participant -> participant, key -> System.currentTimeMillis()));
+        laps = participants.stream().collect(Collectors.toMap(participant -> participant, key -> 1));
         setupScoreboard();
-
+        
         Bukkit.getLogger().info("Starting Foot Race game");
     }
 
     private void setupScoreboard() {
-        ScoreboardManager manager = Bukkit.getScoreboardManager();
         
         for (Player participant :  participants) {
-            setupParticipantScoreboard(manager, participant);
+            updateParticipantScoreboard(participant);
         }
     }
     
-    private void setupParticipantScoreboard(ScoreboardManager manager, Player participant) {
-        Scoreboard scoreboard = manager.getNewScoreboard();
+    private void updateParticipantScoreboard(Player participant) {
+        Scoreboard scoreboard = scoreboardManager.getNewScoreboard();
         Objective objective = scoreboard.registerNewObjective("footrace", Criteria.DUMMY, Component.text(ChatColor.BLUE + "Foot Race"));
         objective.setDisplaySlot(DisplaySlot.SIDEBAR);
-    
-        Score score = objective.getScore(String.format("Lap: %d/%d", 1, 3));
+        
+        Score score = objective.getScore(String.format("Lap: %d/%d", laps.get(participant), MAX_LAPS));
+        
         score.setScore(1);
-    
+        
         participant.setScoreboard(scoreboard);
     }
 
@@ -80,7 +83,7 @@ public class FootRaceGame implements Listener {
     
     private void hideScoreboard() {
         for (Player participant :  participants) {
-            participant.setScoreboard(Bukkit.getScoreboardManager().getMainScoreboard());
+            participant.setScoreboard(scoreboardManager.getMainScoreboard());
         }
     }
 
@@ -109,8 +112,9 @@ public class FootRaceGame implements Listener {
                 Bukkit.getLogger().info(String.format("currentLap: %s", currentLap));
                 if (currentLap <= 2) {
                     int newLap = currentLap + 1;
-                    player.sendMessage("Lap " + newLap);
                     laps.put(player, newLap);
+                    updateParticipantScoreboard(player);
+                    player.sendMessage("Lap " + newLap);
                     return;
                 }
                 int finalLap = 3;
