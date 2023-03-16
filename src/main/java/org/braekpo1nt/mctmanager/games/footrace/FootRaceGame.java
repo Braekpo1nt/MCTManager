@@ -69,7 +69,6 @@ public class FootRaceGame implements Listener {
         objective.setDisplaySlot(DisplaySlot.SIDEBAR);
         
         Score score = objective.getScore(String.format("Lap: %d/%d", laps.get(participant), MAX_LAPS));
-        
         score.setScore(1);
         
         participant.setScoreboard(scoreboard);

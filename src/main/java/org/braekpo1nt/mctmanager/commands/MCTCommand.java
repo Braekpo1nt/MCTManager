@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.commands;
 
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.listeners.BlockEffectsListener;
 import org.braekpo1nt.mctmanager.listeners.HubBoundaryListener;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -19,11 +20,11 @@ public class MCTCommand implements TabExecutor {
 
     Map<String, CommandExecutor> subCommands = new HashMap<>();
     
-    public MCTCommand(Main plugin, GameManager gameManager, HubBoundaryListener hubBoundaryListener) {
+    public MCTCommand(Main plugin, GameManager gameManager, HubBoundaryListener hubBoundaryListener, BlockEffectsListener blockEffectsListener) {
         plugin.getCommand("mct").setExecutor(this);
         subCommands.put("startgame", new StartGameSubCommand(gameManager));
         subCommands.put("stopgame", new StopGameSubCommand(gameManager));
-        subCommands.put("hub", new HubSubCommand(hubBoundaryListener));
+        subCommands.put("option", new HubSubCommand(hubBoundaryListener, blockEffectsListener));
     }
     
     @Override
