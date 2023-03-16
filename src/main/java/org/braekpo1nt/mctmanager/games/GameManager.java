@@ -21,7 +21,7 @@ public class GameManager {
         participants = Arrays.asList(Bukkit.getPlayer("Braekpo1nt"));
         this.footRaceGame = new FootRaceGame(plugin, participants);
     }
-
+    
     public void startGame(String gameName, Player sender) {
         
         switch (gameName) {
