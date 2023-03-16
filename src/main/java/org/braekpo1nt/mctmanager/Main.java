@@ -17,11 +17,11 @@ import java.io.File;
 
 public final class Main extends JavaPlugin {
     
-    private final static PotionEffect RESISTANCE = new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 70, 200, true, false, false);
-    private final static PotionEffect REGENERATION = new PotionEffect(PotionEffectType.REGENERATION, 70, 200, true, false, false);
-    private final static PotionEffect NIGHT_VISION = new PotionEffect(PotionEffectType.NIGHT_VISION, 70, 3, true, false, false);
-    private final static PotionEffect FIRE_RESISTANCE = new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 70, 1, true, false, false);
-    private final static PotionEffect SATURATION = new PotionEffect(PotionEffectType.SATURATION, 70, 250, true, false, false);
+    private final static PotionEffect RESISTANCE = new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 1000000, 200, true, false, false);
+    private final static PotionEffect REGENERATION = new PotionEffect(PotionEffectType.REGENERATION, 1000000, 200, true, false, false);
+    private final static PotionEffect NIGHT_VISION = new PotionEffect(PotionEffectType.NIGHT_VISION, 1000000, 3, true, false, false);
+    private final static PotionEffect FIRE_RESISTANCE = new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 1000000, 1, true, false, false);
+    private final static PotionEffect SATURATION = new PotionEffect(PotionEffectType.SATURATION, 1000000, 250, true, false, false);
     
     @Override
     public void onEnable() {
@@ -58,6 +58,6 @@ public final class Main extends JavaPlugin {
                     giveAmbientStatusEffects(player);
                 }
             }
-        }, 0L, 50L);
+        }, 0L, 60L);
     }
 }
