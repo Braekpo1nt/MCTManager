@@ -24,7 +24,8 @@ public class HubSubCommand implements TabExecutor {
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length < 1) {
-            sender.sendMessage("Usage: /mct hub <options>");
+            sender.sendMessage("Usage: /mct option <options>");
+            return false;
         }
         
         switch (args[0]) {
@@ -36,8 +37,10 @@ public class HubSubCommand implements TabExecutor {
                 break;
             case "disableblockeffects":
                 blockEffectsListener.disableBlockEffects();
+                break;
             case "enableblockeffects":
                 blockEffectsListener.enableBlockEffects();
+                break;
             default:
                 sender.sendMessage(String.format("Unrecognized option %s", args[0]));
         }
