@@ -33,7 +33,8 @@ public class BlockEffectsListener implements Listener {
                 player.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, 140, 4, true, false, false));
                 break;
             case BEDROCK:
-                player.getActivePotionEffects().stream().forEach(potionEffect -> player.removePotionEffect(potionEffect.getType()));
+                player.removePotionEffect(PotionEffectType.JUMP);
+                player.removePotionEffect(PotionEffectType.SPEED);
                 break;
         }
     }
