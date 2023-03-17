@@ -30,7 +30,7 @@ public class BlockEffectsListener implements Listener {
                 player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 80, 7, true, false, false));
                 break;
             case LIME_GLAZED_TERRACOTTA:
-                player.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, 140, 4, true, false, false));
+                player.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, 140, 7, true, false, false));
                 break;
             case BEDROCK:
                 player.removePotionEffect(PotionEffectType.JUMP);
