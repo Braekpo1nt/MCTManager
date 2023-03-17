@@ -37,8 +37,11 @@ import java.util.stream.Collectors;
     private Map<Player, Long> lapCooldowns;
     private Map<Player, Integer> laps;
     private final ScoreboardManager scoreboardManager;
+    private final Main plugin;
+     private int startCountDownTaskID;
     
-    public FootRaceGame(Main plugin) {
+     public FootRaceGame(Main plugin) {
+        this.plugin = plugin;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     
         scoreboardManager = Bukkit.getScoreboardManager();
@@ -59,7 +62,35 @@ import java.util.stream.Collectors;
         
         teleportPlayersToStartingPositions();
         
+        startCountdown();
+        
         Bukkit.getLogger().info("Starting Foot Race game");
+    }
+    
+    private void startCountdown() {
+        this.startCountDownTaskID = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
+            private int count = 10;
+    
+            @Override
+            public void run() {
+                for (Player participant : participants) {
+                    if (count <= 0) {
+                        participant.sendMessage(Component.text("Go!"));
+                    } else {
+                        participant.sendMessage(Component.text(count));
+                    }
+                }
+                if (count <= 0) {
+                    stopCountDown();
+                    return;
+                }
+                count--;
+            }
+        }, 0L, 20L);
+    }
+    
+    private void stopCountDown() {
+         Bukkit.getScheduler().cancelTask(startCountDownTaskID);
     }
     
      private void teleportPlayersToStartingPositions() {
