@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager;
 
+import com.onarandombox.MultiverseCore.MultiverseCore;
 import org.braekpo1nt.mctmanager.commands.MCTCommand;
 import org.braekpo1nt.mctmanager.commands.MCTDebugCommand;
 import org.braekpo1nt.mctmanager.commands.MCTMVTestCommand;
@@ -9,6 +10,8 @@ import org.braekpo1nt.mctmanager.listeners.HubBoundaryListener;
 import org.braekpo1nt.mctmanager.listeners.PlayerJoinListener;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.PluginBase;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -16,6 +19,8 @@ import org.bukkit.potion.PotionEffectType;
 import java.io.File;
 
 public final class Main extends JavaPlugin {
+    
+    public static MultiverseCore multiverseCore;
     
     private final static PotionEffect RESISTANCE = new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 1000000, 200, true, false, false);
     private final static PotionEffect REGENERATION = new PotionEffect(PotionEffectType.REGENERATION, 1000000, 200, true, false, false);
@@ -25,8 +30,16 @@ public final class Main extends JavaPlugin {
     
     @Override
     public void onEnable() {
+        Plugin multiversePlugin = Bukkit.getPluginManager().getPlugin("Multiverse-Core");
+        if (multiversePlugin == null) {
+            Bukkit.getLogger().severe("[MCTManager] Cannot find Multiverse-Core. [MCTManager] depends on it and cannot proceed without it.");
+            Bukkit.getPluginManager().disablePlugin(this);
+            return;
+        }
+        Main.multiverseCore = ((MultiverseCore) multiversePlugin);
+        
         GameManager gameManager = new GameManager(this);
-
+        
         // Listeners
         HubBoundaryListener hubBoundaryListener = new HubBoundaryListener(this);
         BlockEffectsListener blockEffectsListener = new BlockEffectsListener(this);
