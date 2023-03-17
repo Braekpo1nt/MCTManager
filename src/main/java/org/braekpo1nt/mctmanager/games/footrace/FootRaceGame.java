@@ -64,7 +64,7 @@ import java.util.stream.Collectors;
     
      private void teleportPlayersToStartingPositions() {
          MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
-         MultiverseWorld HTworld = worldManager.getMVWorld("HT");
+         MultiverseWorld HTworld = worldManager.getMVWorld("NT");
          for (Player participant : participants) {
              participant.sendMessage("Teleporting to Foot Race");
              participant.teleport(HTworld.getSpawnLocation());
