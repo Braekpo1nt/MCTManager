@@ -98,7 +98,7 @@ import java.util.stream.Collectors;
          MultiverseWorld HTworld = worldManager.getMVWorld("NT");
          for (Player participant : participants) {
              participant.sendMessage("Teleporting to Foot Race");
-             participant.teleport(HTworld.getSpawnLocation());
+             participant.teleport(HTworld.getSpawnLocation().add(0, 1, 0));
          }
      }
     
