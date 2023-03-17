@@ -12,6 +12,9 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.plugin.Plugin;
 
+/**
+ * Handles keeping players from walking off the side of the hub to their deaths
+ */
 public class HubBoundaryListener implements Listener {
     
     private boolean boundaryEnabled = true;

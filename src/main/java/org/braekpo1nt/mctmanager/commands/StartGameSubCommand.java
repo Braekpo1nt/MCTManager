@@ -11,6 +11,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Handles starting games
+ */
 public class StartGameSubCommand implements TabExecutor {
     
     private final GameManager gameManager;

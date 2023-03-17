@@ -7,6 +7,9 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 
+/**
+ * All logic that should be run when a player joins the server
+ */
 public class PlayerJoinListener implements Listener {
     
     public PlayerJoinListener(Main plugin) {

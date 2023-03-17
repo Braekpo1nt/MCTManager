@@ -6,6 +6,9 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Handles stopping the current game
+ */
 public class StopGameSubCommand implements CommandExecutor {
     
     private final GameManager gameManager;

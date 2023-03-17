@@ -10,6 +10,9 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
+/**
+ * Handles listening for players to walk on special blocks and giving them appropriate status effects. 
+ */
 public class BlockEffectsListener implements Listener {
     
     private boolean blockEffectsEnabled = true;

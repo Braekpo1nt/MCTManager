@@ -16,6 +16,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * The super command for all MCT related commands. 
+ * Everything should start with /mct _____, where _____ is a sub command
+ */
 public class MCTCommand implements TabExecutor {
 
     Map<String, CommandExecutor> subCommands = new HashMap<>();
@@ -24,7 +28,7 @@ public class MCTCommand implements TabExecutor {
         plugin.getCommand("mct").setExecutor(this);
         subCommands.put("startgame", new StartGameSubCommand(gameManager));
         subCommands.put("stopgame", new StopGameSubCommand(gameManager));
-        subCommands.put("option", new HubSubCommand(hubBoundaryListener, blockEffectsListener));
+        subCommands.put("option", new OptionSubCommand(hubBoundaryListener, blockEffectsListener));
     }
     
     @Override

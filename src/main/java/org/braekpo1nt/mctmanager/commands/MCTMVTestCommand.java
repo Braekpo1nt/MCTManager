@@ -12,6 +12,10 @@ import org.bukkit.plugin.Plugin;
 import com.onarandombox.MultiverseCore.MultiverseCore;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Delete me. This is an example of how to use the multiverse-core plugin to teleport players to a specific 
+ * world or anchor or destination
+ */
 public class MCTMVTestCommand implements CommandExecutor {
     
     public MCTMVTestCommand(Main plugin) {

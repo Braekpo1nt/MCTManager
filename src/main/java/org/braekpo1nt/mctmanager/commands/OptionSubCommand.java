@@ -11,12 +11,15 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Arrays;
 import java.util.List;
 
-public class HubSubCommand implements TabExecutor {
+/**
+ * Handles toggling various options for MCT. Sort of like /gamerule. Mostly used for debugging.
+ */
+public class OptionSubCommand implements TabExecutor {
     
     private final HubBoundaryListener hubBoundaryListener;
     private final BlockEffectsListener blockEffectsListener;
 
-    public HubSubCommand(HubBoundaryListener hubBoundaryListener, BlockEffectsListener blockEffectsListener) {
+    public OptionSubCommand(HubBoundaryListener hubBoundaryListener, BlockEffectsListener blockEffectsListener) {
         this.hubBoundaryListener = hubBoundaryListener;
         this.blockEffectsListener = blockEffectsListener;
     }

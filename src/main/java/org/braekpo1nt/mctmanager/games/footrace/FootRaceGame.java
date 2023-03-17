@@ -19,7 +19,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class FootRaceGame implements Listener {
+ /**
+  * Handles all the Foot Race game logic. 
+  */
+ public class FootRaceGame implements Listener {
     
     private final int MAX_LAPS = 3;
     
