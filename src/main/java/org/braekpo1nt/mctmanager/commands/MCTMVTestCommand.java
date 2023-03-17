@@ -28,9 +28,7 @@ public class MCTMVTestCommand implements CommandExecutor {
             Player player = ((Player) sender);
             player.sendMessage("Multiverse Teleport engaged with MCTManager");
             
-            Plugin multiversePlugin = Bukkit.getPluginManager().getPlugin("Multiverse-Core");
-            MultiverseCore multiverseCore = ((MultiverseCore) multiversePlugin);
-            MVWorldManager worldManager = multiverseCore.getMVWorldManager();
+            MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
             MultiverseWorld FTworld = worldManager.getMVWorld("FT");
             player.teleport(FTworld.getSpawnLocation());
         }

@@ -2,6 +2,7 @@
 
 import com.onarandombox.MultiverseCore.MultiverseCore;
 import com.onarandombox.MultiverseCore.api.MVWorldManager;
+import com.onarandombox.MultiverseCore.api.MultiverseWorld;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.bukkit.Bukkit;
@@ -56,10 +57,21 @@ import java.util.stream.Collectors;
         laps = participants.stream().collect(Collectors.toMap(participant -> participant, key -> 1));
         setupScoreboard();
         
+        teleportPlayersToStartingPositions();
+        
         Bukkit.getLogger().info("Starting Foot Race game");
     }
-
-    private void setupScoreboard() {
+    
+     private void teleportPlayersToStartingPositions() {
+         MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
+         MultiverseWorld HTworld = worldManager.getMVWorld("HT");
+         for (Player participant : participants) {
+             participant.sendMessage("Teleporting to Foot Race");
+             participant.teleport(HTworld.getSpawnLocation());
+         }
+     }
+    
+     private void setupScoreboard() {
         
         for (Player participant :  participants) {
             updateParticipantScoreboard(participant);
