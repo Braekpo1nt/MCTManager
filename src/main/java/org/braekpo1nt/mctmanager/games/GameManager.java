@@ -14,6 +14,7 @@ import java.util.List;
  */
 public class GameManager {
     
+    private MCTGame activeGame = null;
     private final FootRaceGame footRaceGame;
     
     public GameManager(Main plugin) {
@@ -22,11 +23,17 @@ public class GameManager {
     
     public void startGame(String gameName, Player sender) {
     
+        if (activeGame != null) {
+            sender.sendMessage("There is already a game running. You must stop the game before you start a new one.");
+            return;
+        }
+        
         List<Player> participants = Arrays.asList(Bukkit.getPlayer("Braekpo1nt"));
         
         switch (gameName) {
             case "foot-race":
                 footRaceGame.start(participants);
+                activeGame = footRaceGame;
                 break;
 //            case "mecha":
 //                player.sendMessage("2");
@@ -55,9 +62,11 @@ public class GameManager {
     /**
      * If a game is currently going on, stops the game
      */
-    public void stopGame() {
-        if (footRaceGame.isGameActive()) {
-            footRaceGame.stop();
+    public void stopGame(Player sender) {
+        if (activeGame == null) {
+            sender.sendMessage("No game is running.");
+            return;
         }
+        ((FootRaceGame) activeGame).stop();
     }
 }

@@ -5,6 +5,7 @@ import com.onarandombox.MultiverseCore.api.MVWorldManager;
 import com.onarandombox.MultiverseCore.api.MultiverseWorld;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.games.MCTGame;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.World;
@@ -23,7 +24,7 @@ import java.util.stream.Collectors;
  /**
   * Handles all the Foot Race game logic. 
   */
- public class FootRaceGame implements Listener {
+ public class FootRaceGame implements Listener, MCTGame {
     
     private final int MAX_LAPS = 3;
     
@@ -33,12 +34,12 @@ import java.util.stream.Collectors;
      */
     private final World footRaceWorld;
     private final BoundingBox finishLine = new BoundingBox(2396, 80, 295, 2404, 79, 308);
-    private List<Player> participants;
-    private Map<Player, Long> lapCooldowns;
-    private Map<Player, Integer> laps;
-    private final ScoreboardManager scoreboardManager;
-    private final Main plugin;
+     private final ScoreboardManager scoreboardManager;
+     private final Main plugin;
      private int startCountDownTaskID;
+     private List<Player> participants;
+     private Map<Player, Long> lapCooldowns;
+     private Map<Player, Integer> laps;
     
      public FootRaceGame(Main plugin) {
         this.plugin = plugin;
@@ -52,18 +53,18 @@ import java.util.stream.Collectors;
     }
     
     public void start(List<Player> participants) {
-        gameActive = true;
         this.participants = participants;
-        
+    
         lapCooldowns = participants.stream().collect(
                 Collectors.toMap(participant -> participant, key -> System.currentTimeMillis()));
         laps = participants.stream().collect(Collectors.toMap(participant -> participant, key -> 1));
-        setupScoreboard();
-        
+        initializeScoreboard();
+    
         teleportPlayersToStartingPositions();
-        
+    
         startCountdown();
-        
+    
+        gameActive = true;
         Bukkit.getLogger().info("Starting Foot Race game");
     }
     
@@ -95,15 +96,23 @@ import java.util.stream.Collectors;
     
      private void teleportPlayersToStartingPositions() {
          MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
-         MultiverseWorld HTworld = worldManager.getMVWorld("NT");
+         MultiverseWorld htWorld = worldManager.getMVWorld("NT");
          for (Player participant : participants) {
              participant.sendMessage("Teleporting to Foot Race");
-             participant.teleport(HTworld.getSpawnLocation().add(0, 1, 0));
+             participant.teleport(htWorld.getSpawnLocation().add(0, 1, 0));
+         }
+     }
+     
+     private void teleportPlayersToHub() {
+         MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
+         MultiverseWorld hubWorld = worldManager.getMVWorld("Hub");
+         for (Player participant : participants) {
+             participant.sendMessage("Teleporting to Hub");
+             participant.teleport(hubWorld.getSpawnLocation());
          }
      }
     
-     private void setupScoreboard() {
-        
+     private void initializeScoreboard() {
         for (Player participant :  participants) {
             updateParticipantScoreboard(participant);
         }
@@ -121,8 +130,10 @@ import java.util.stream.Collectors;
     }
 
     public void stop() {
-        gameActive = false;
         hideScoreboard();
+        teleportPlayersToHub();
+        
+        gameActive = false;
         Bukkit.getLogger().info("Stopping Foot Race game");
     }
     
@@ -154,7 +165,6 @@ import java.util.stream.Collectors;
                 lapCooldowns.put(player, System.currentTimeMillis());
                 
                 int currentLap = laps.get(player);
-                Bukkit.getLogger().info(String.format("currentLap: %s", currentLap));
                 if (currentLap <= 2) {
                     int newLap = currentLap + 1;
                     laps.put(player, newLap);
