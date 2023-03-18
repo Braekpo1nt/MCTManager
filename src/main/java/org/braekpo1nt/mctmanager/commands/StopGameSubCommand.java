@@ -4,6 +4,7 @@ import org.braekpo1nt.mctmanager.games.GameManager;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -19,7 +20,11 @@ public class StopGameSubCommand implements CommandExecutor {
     
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        gameManager.stopGame();
+        if (!(sender instanceof Player)) {
+            sender.sendMessage("Only a Player can run this command.");
+            return true;
+        }
+        gameManager.stopGame(((Player) sender));
         return true;
     }
 }

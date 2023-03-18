@@ -68,5 +68,6 @@ public class GameManager {
             return;
         }
         ((FootRaceGame) activeGame).stop();
+        activeGame = null;
     }
 }
