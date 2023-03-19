@@ -29,6 +29,7 @@ public class MCTCommand implements TabExecutor {
         subCommands.put("startgame", new StartGameSubCommand(gameManager));
         subCommands.put("stopgame", new StopGameSubCommand(gameManager));
         subCommands.put("option", new OptionSubCommand(hubBoundaryListener, blockEffectsListener));
+        subCommands.put("participants", new ParticipantsSubCoommand(gameManager));
     }
     
     @Override
