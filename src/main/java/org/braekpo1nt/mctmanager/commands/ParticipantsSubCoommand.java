@@ -21,9 +21,13 @@ public class ParticipantsSubCoommand implements TabExecutor {
     public ParticipantsSubCoommand(GameManager gameManager) {
         this.gameManager = gameManager;
     }
-
+    
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+        return false;
+    }
+    
+    private static boolean createTestTeam(@NotNull CommandSender sender) {
         Scoreboard scoreboard = Bukkit.getScoreboardManager().getMainScoreboard();
         if (scoreboard.getTeam("testteam") != null) {
             sender.sendMessage("Team already created");
@@ -34,7 +38,7 @@ public class ParticipantsSubCoommand implements TabExecutor {
         testTeam.color(NamedTextColor.GREEN);
         return true;
     }
-
+    
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         return null;
