@@ -13,14 +13,20 @@ import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.Main;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.NamespacedKey;
+import org.bukkit.World;
+import org.bukkit.block.structure.Mirror;
+import org.bukkit.block.structure.StructureRotation;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.plugin.Plugin;
+import org.bukkit.structure.Structure;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Duration;
+import java.util.Random;
 
 /**
  * A utility command for testing various things, so I don't have to create a new command. 
@@ -40,13 +46,18 @@ public class MCTDebugCommand implements CommandExecutor {
             sender.sendMessage("This command can only be run by a player.");
             return true;
         }
+        Player player = ((Player) sender).getPlayer();
         
-        Component mainTitle = Component.text("Main title");
-        Component subTitle = Component.text("Subtitle");
-    
-        Title.Times times = Title.Times.times(Duration.ofMillis(500), Duration.ofSeconds(3), Duration.ofMillis(500));
-        Title title = Title.title(mainTitle, subTitle, times);
-        sender.showTitle(title);
+        World world = player.getWorld();
+        Structure structure = Bukkit.getStructureManager().loadStructure(new NamespacedKey("mctstructures", "footracegate"));
+        structure.place(new Location(world, 2397, 76, 317), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
+        
+//        Component mainTitle = Component.text("Main title");
+//        Component subTitle = Component.text("Subtitle");
+//    
+//        Title.Times times = Title.Times.times(Duration.ofMillis(500), Duration.ofSeconds(3), Duration.ofMillis(500));
+//        Title title = Title.title(mainTitle, subTitle, times);
+//        sender.showTitle(title);
         
         return true;
     }
