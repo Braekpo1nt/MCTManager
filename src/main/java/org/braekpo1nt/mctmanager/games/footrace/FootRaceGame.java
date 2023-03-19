@@ -3,15 +3,15 @@ package org.braekpo1nt.mctmanager.games.footrace;
 import com.onarandombox.MultiverseCore.MultiverseCore;
 import com.onarandombox.MultiverseCore.api.MVWorldManager;
 import com.onarandombox.MultiverseCore.api.MultiverseWorld;
+import com.onarandombox.MultiverseCore.utils.AnchorManager;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.MCTGame;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Color;
-import org.bukkit.World;
+import org.bukkit.*;
+import org.bukkit.block.structure.Mirror;
+import org.bukkit.block.structure.StructureRotation;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -23,6 +23,7 @@ import org.bukkit.util.BoundingBox;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 /**
@@ -86,6 +87,7 @@ public class FootRaceGame implements Listener, MCTGame {
                     }
                 }
                 if (count <= 0) {
+                    openGlassBarrier();
                     stopCountDown();
                     return;
                 }
@@ -94,16 +96,26 @@ public class FootRaceGame implements Listener, MCTGame {
         }, 0L, 20L);
     }
     
+    private void openGlassBarrier() {
+        Structure structure = Bukkit.getStructureManager().loadStructure(new NamespacedKey("mctstructures", "footrace/gateopen"));
+        structure.place(new Location(footRaceWorld, 2397, 76, 317), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
+    }
+    
+    private void closeGlassBarrier() {
+        Structure structure = Bukkit.getStructureManager().loadStructure(new NamespacedKey("mctstructures", "footrace/gateclosed"));
+        structure.place(new Location(footRaceWorld, 2397, 76, 317), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
+    }
+    
     private void stopCountDown() {
         Bukkit.getScheduler().cancelTask(startCountDownTaskID);
     }
     
     private void teleportPlayersToStartingPositions() {
-        MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
-        MultiverseWorld htWorld = worldManager.getMVWorld("NT");
+        AnchorManager anchorManager = Main.multiverseCore.getAnchorManager();
+        Location anchorLocation = anchorManager.getAnchorLocation("foot-race");
         for (Player participant : participants) {
             participant.sendMessage("Teleporting to Foot Race");
-            participant.teleport(htWorld.getSpawnLocation().add(0, 1, 0));
+            participant.teleport(anchorLocation);
         }
     }
     
@@ -150,6 +162,7 @@ public class FootRaceGame implements Listener, MCTGame {
     }
     
     public void stop() {
+        closeGlassBarrier();
         hideScoreboard();
         teleportPlayersToHub();
         stopCountDown();
