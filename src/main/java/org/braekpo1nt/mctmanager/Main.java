@@ -30,6 +30,14 @@ public final class Main extends JavaPlugin {
     
     @Override
     public void onEnable() {
+        
+        GameStateStorageUtil storageUtil = new GameStateStorageUtil();
+        try {
+            storageUtil.saveGameState(this);
+            storageUtil.loadGameState(this);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     
         Plugin multiversePlugin = Bukkit.getPluginManager().getPlugin("Multiverse-Core");
         if (multiversePlugin == null) {
@@ -38,8 +46,6 @@ public final class Main extends JavaPlugin {
             return;
         }
         Main.multiverseCore = ((MultiverseCore) multiversePlugin);
-        
-        Bukkit.getLogger().info(String.format("%s -- %s", Bukkit.getVersion(), Bukkit.getBukkitVersion()));
         
         GameManager gameManager = new GameManager(this);
         

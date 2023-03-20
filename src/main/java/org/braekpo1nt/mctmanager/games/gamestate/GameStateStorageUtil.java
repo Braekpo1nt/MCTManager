@@ -5,6 +5,8 @@ import org.braekpo1nt.mctmanager.Main;
 import org.bukkit.Bukkit;
 
 import java.io.*;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Handles the CRUD operations for storing GameState objects
@@ -25,10 +27,13 @@ public class GameStateStorageUtil {
      * - converting the game state to json
      */
     public void saveGameState(Main plugin) throws IOException {
+        Gson gson = new Gson();
         File gameStateFile = getGameStateFile(plugin.getDataFolder().getAbsoluteFile());
         Writer writer = new FileWriter(gameStateFile, false);
-        Gson gson = new Gson();
         gson.toJson(this.gameState, writer);
+        writer.flush();
+        writer.close();
+        Bukkit.getLogger().info("Saved game state " + gameStateFile.getAbsolutePath().toString());
     }
     
     /**
@@ -40,12 +45,13 @@ public class GameStateStorageUtil {
      * - parsing the game state from json
      */
     public void loadGameState(Main plugin) throws IOException {
+        Gson gson = new Gson();
         File gameStateFile = getGameStateFile(plugin.getDataFolder().getAbsoluteFile());
         Reader reader = new FileReader(gameStateFile);
-        Gson gson = new Gson();
         GameState newGameState = gson.fromJson(reader, GameState.class);
+        reader.close();
         this.gameState = newGameState;
-        Bukkit.getLogger().info("Successfully loaded same state.");
+        Bukkit.getLogger().info("Loaded game state. \n" + gameState.toString());
     }
     
     /**
