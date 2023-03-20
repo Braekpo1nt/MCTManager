@@ -14,54 +14,59 @@ import java.util.List;
 public class GameStateStorageUtil {
     
     private static final String GAME_STATE_FILE_NAME = "gameState.json";
-    private GameState gameState = new GameState();
+    private final File gameStateDirectory;
+    private GameState gameState;
     
-    //TODO: addPlayer and addTeam
+    public GameStateStorageUtil(Main plugin) {
+        this.gameStateDirectory = plugin.getDataFolder().getAbsoluteFile();
+    }
     
     /**
      * Save the GameState to storage
-     * @param plugin The main plugin instance
      * @throws IOException if there is a problem
      * - creating a new game state file
      * - writing to the game state file
      * - converting the game state to json
+     * @throws IllegalStateException if the game state is invalid (i.e. null). 
      */
-    public void saveGameState(Main plugin) throws IOException {
+    public void saveGameState() throws IOException, IllegalStateException {
+        if (gameState == null) {
+            Bukkit.getLogger().severe("Invalid game state. Skipping save game.");
+            throw new IllegalStateException("Game state is null when trying to save game state.");
+        }
         Gson gson = new Gson();
-        File gameStateFile = getGameStateFile(plugin.getDataFolder().getAbsoluteFile());
+        File gameStateFile = getGameStateFile();
         Writer writer = new FileWriter(gameStateFile, false);
         gson.toJson(this.gameState, writer);
         writer.flush();
         writer.close();
-        Bukkit.getLogger().info("Saved game state " + gameStateFile.getAbsolutePath().toString());
+        Bukkit.getLogger().info("Saved game state.");
     }
     
     /**
      * Load the GameState from storage
-     * @param plugin The main plugin instance
      * @throws IOException if there is a problem 
      * - creating a new game state file
      * - reading the existing game state file
      * - parsing the game state from json
      */
-    public void loadGameState(Main plugin) throws IOException {
+    public void loadGameState() throws IOException {
         Gson gson = new Gson();
-        File gameStateFile = getGameStateFile(plugin.getDataFolder().getAbsoluteFile());
+        File gameStateFile = getGameStateFile();
         Reader reader = new FileReader(gameStateFile);
         GameState newGameState = gson.fromJson(reader, GameState.class);
         reader.close();
         this.gameState = newGameState;
-        Bukkit.getLogger().info("Loaded game state. \n" + gameState.toString());
+        Bukkit.getLogger().info("Loaded game state.");
     }
     
     /**
      * Get the game state file from the given game state directory. Creates the file
-     * if one doesn't already exist. 
-     * @param gameStateDirectory
+     * if one doesn't already exist.
      * @return The game state file
      * @throws IOException if there is an error creating a new game state file
      */
-    private File getGameStateFile(File gameStateDirectory) throws IOException {
+    private File getGameStateFile() throws IOException {
         File gameStateFile = new File(gameStateDirectory.getAbsolutePath(), this.GAME_STATE_FILE_NAME);
         if (!gameStateFile.exists()) {
             if (!gameStateDirectory.exists()) {

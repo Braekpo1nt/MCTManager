@@ -27,16 +27,18 @@ public final class Main extends JavaPlugin {
     private final static PotionEffect NIGHT_VISION = new PotionEffect(PotionEffectType.NIGHT_VISION, 1000000, 3, true, false, false);
     private final static PotionEffect FIRE_RESISTANCE = new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 1000000, 1, true, false, false);
     private final static PotionEffect SATURATION = new PotionEffect(PotionEffectType.SATURATION, 1000000, 250, true, false, false);
+    private GameManager gameManager;
     
     @Override
     public void onEnable() {
-        
-        GameStateStorageUtil storageUtil = new GameStateStorageUtil();
+    
+        gameManager = new GameManager(this);
         try {
-            storageUtil.saveGameState(this);
-            storageUtil.loadGameState(this);
+            gameManager.loadGameState();
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            Bukkit.getLogger().severe("[MCTManager] Could not load game state from memory. Printing stack trace below. Disabling plugin");
+            e.printStackTrace();
+            Bukkit.getPluginManager().disablePlugin(this);
         }
     
         Plugin multiversePlugin = Bukkit.getPluginManager().getPlugin("Multiverse-Core");
@@ -47,7 +49,6 @@ public final class Main extends JavaPlugin {
         }
         Main.multiverseCore = ((MultiverseCore) multiversePlugin);
         
-        GameManager gameManager = new GameManager(this);
         
         // Listeners
         HubBoundaryListener hubBoundaryListener = new HubBoundaryListener(this);
@@ -60,6 +61,16 @@ public final class Main extends JavaPlugin {
 
         File dataFolder = getDataFolder();
         initializeStatusEffectScheduler();
+    }
+    
+    @Override
+    public void onDisable() {
+        try {
+            gameManager.saveGameState();
+        } catch (IOException e) {
+            Bukkit.getLogger().severe("[MCTManager] Could not save game state. Printing stack trace below.");
+            e.printStackTrace();
+        }
     }
     
     public static void giveAmbientStatusEffects(Player player) {

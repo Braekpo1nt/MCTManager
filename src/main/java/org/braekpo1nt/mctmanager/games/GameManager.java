@@ -2,9 +2,11 @@ package org.braekpo1nt.mctmanager.games;
 
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.footrace.FootRaceGame;
+import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -16,9 +18,19 @@ public class GameManager {
     
     private MCTGame activeGame = null;
     private final FootRaceGame footRaceGame;
+    private final GameStateStorageUtil gameStateStorageUtil;
     
     public GameManager(Main plugin) {
+        gameStateStorageUtil = new GameStateStorageUtil(plugin);
         this.footRaceGame = new FootRaceGame(plugin);
+    }
+    
+    public void loadGameState() throws IOException {
+        gameStateStorageUtil.loadGameState();
+    }
+    
+    public void saveGameState() throws IOException, IllegalStateException {
+        gameStateStorageUtil.saveGameState();
     }
     
     public void startGame(String gameName, Player sender) {
