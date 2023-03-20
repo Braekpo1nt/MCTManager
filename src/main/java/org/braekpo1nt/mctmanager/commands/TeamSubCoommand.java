@@ -52,6 +52,9 @@ public class TeamSubCoommand implements TabExecutor {
                     throw new RuntimeException(e);
                 }
                 break;
+            default:
+                sender.sendMessage("Unrecognized option " + args[0]);
+                break;
         }
         
         return true;

@@ -98,12 +98,10 @@ public class GameManager {
         if (mctTeamExistsAlready) {
             Scoreboard scoreboard = Bukkit.getScoreboardManager().getMainScoreboard();
             Team minecraftTeam = scoreboard.getTeam(teamName);
-            if (minecraftTeam != null) {
-                boolean minecraftTeamExistsAlready = !createMinecraftTeam(teamName, teamDisplayName);
-                if (minecraftTeamExistsAlready) {
-                    Bukkit.getLogger().info("Team exists in game state but not in minecraft scoreboard. Creating team in scoreboard to match the game state team.");
-                    return false;
-                }
+            if (minecraftTeam == null) {
+                createMinecraftTeam(teamName, teamDisplayName);
+                Bukkit.getLogger().info("Team exists in game state but not in minecraft scoreboard. Creating team in scoreboard to match the game state team.");
+                return false;
             }
             return false;
         }
