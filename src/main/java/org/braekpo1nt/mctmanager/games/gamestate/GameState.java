@@ -3,6 +3,9 @@ package org.braekpo1nt.mctmanager.games.gamestate;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Represents the state of the game for saving and loading from disk. 
+ */
 public class GameState {
     private List<MCTPlayer> players;
     private List<MCTTeam> teams;

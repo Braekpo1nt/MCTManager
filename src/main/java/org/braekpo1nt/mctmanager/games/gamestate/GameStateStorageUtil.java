@@ -15,7 +15,7 @@ public class GameStateStorageUtil {
     
     private static final String GAME_STATE_FILE_NAME = "gameState.json";
     private final File gameStateDirectory;
-    private GameState gameState;
+    private GameState gameState = new GameState();
     
     public GameStateStorageUtil(Main plugin) {
         this.gameStateDirectory = plugin.getDataFolder().getAbsoluteFile();
@@ -27,13 +27,8 @@ public class GameStateStorageUtil {
      * - creating a new game state file
      * - writing to the game state file
      * - converting the game state to json
-     * @throws IllegalStateException if the game state is invalid (i.e. null). 
      */
-    public void saveGameState() throws IOException, IllegalStateException {
-        if (gameState == null) {
-            Bukkit.getLogger().severe("Invalid game state. Skipping save game.");
-            throw new IllegalStateException("Game state is null when trying to save game state.");
-        }
+    public void saveGameState() throws IOException {
         Gson gson = new Gson();
         File gameStateFile = getGameStateFile();
         Writer writer = new FileWriter(gameStateFile, false);

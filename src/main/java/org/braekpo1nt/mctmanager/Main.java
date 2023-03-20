@@ -4,7 +4,6 @@ import com.onarandombox.MultiverseCore.MultiverseCore;
 import org.braekpo1nt.mctmanager.commands.MCTCommand;
 import org.braekpo1nt.mctmanager.commands.MCTDebugCommand;
 import org.braekpo1nt.mctmanager.games.GameManager;
-import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
 import org.braekpo1nt.mctmanager.listeners.BlockEffectsListener;
 import org.braekpo1nt.mctmanager.listeners.HubBoundaryListener;
 import org.braekpo1nt.mctmanager.listeners.PlayerJoinListener;
@@ -28,19 +27,21 @@ public final class Main extends JavaPlugin {
     private final static PotionEffect FIRE_RESISTANCE = new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 1000000, 1, true, false, false);
     private final static PotionEffect SATURATION = new PotionEffect(PotionEffectType.SATURATION, 1000000, 250, true, false, false);
     private GameManager gameManager;
+    private boolean saveGameStateOnDisable = true;
     
     @Override
     public void onEnable() {
-    
+        
         gameManager = new GameManager(this);
         try {
             gameManager.loadGameState();
         } catch (IOException e) {
-            Bukkit.getLogger().severe("[MCTManager] Could not load game state from memory. Printing stack trace below. Disabling plugin");
+            Bukkit.getLogger().severe("[MCTManager] Could not load game state from memory. Printing stack trace below. Disabling plugin.");
             e.printStackTrace();
+            saveGameStateOnDisable = false;
             Bukkit.getPluginManager().disablePlugin(this);
         }
-    
+        
         Plugin multiversePlugin = Bukkit.getPluginManager().getPlugin("Multiverse-Core");
         if (multiversePlugin == null) {
             Bukkit.getLogger().severe("[MCTManager] Cannot find Multiverse-Core. [MCTManager] depends on it and cannot proceed without it.");
@@ -48,7 +49,6 @@ public final class Main extends JavaPlugin {
             return;
         }
         Main.multiverseCore = ((MultiverseCore) multiversePlugin);
-        
         
         // Listeners
         HubBoundaryListener hubBoundaryListener = new HubBoundaryListener(this);
@@ -58,18 +58,22 @@ public final class Main extends JavaPlugin {
         // Commands
         new MCTDebugCommand(this);
         new MCTCommand(this, gameManager, hubBoundaryListener, blockEffectsListener);
-
+        
         File dataFolder = getDataFolder();
         initializeStatusEffectScheduler();
     }
     
     @Override
     public void onDisable() {
-        try {
-            gameManager.saveGameState();
-        } catch (IOException e) {
-            Bukkit.getLogger().severe("[MCTManager] Could not save game state. Printing stack trace below.");
-            e.printStackTrace();
+        if (saveGameStateOnDisable) {
+            try {
+                gameManager.saveGameState();
+            } catch (IOException e) {
+                Bukkit.getLogger().severe("[MCTManager] Could not save game state. Printing stack trace below.");
+                e.printStackTrace();
+            }
+        } else {
+            Bukkit.getLogger().info("[MCTManager] Skipping save game state.");
         }
     }
     

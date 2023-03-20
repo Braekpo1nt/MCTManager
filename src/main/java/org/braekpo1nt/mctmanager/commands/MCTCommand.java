@@ -4,6 +4,7 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.listeners.BlockEffectsListener;
 import org.braekpo1nt.mctmanager.listeners.HubBoundaryListener;
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -11,6 +12,7 @@ import org.bukkit.command.TabExecutor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -30,6 +32,24 @@ public class MCTCommand implements TabExecutor {
         subCommands.put("stopgame", new StopGameSubCommand(gameManager));
         subCommands.put("option", new OptionSubCommand(hubBoundaryListener, blockEffectsListener));
         subCommands.put("participants", new ParticipantsSubCoommand(gameManager));
+        subCommands.put("save", (sender, command, label, args) -> {
+            try {
+                gameManager.saveGameState();
+            } catch (IOException e) {
+                Bukkit.getLogger().severe("[MCTManager] Unable to save game state.");
+                throw new RuntimeException(e);
+            }
+            return true;
+        });
+        subCommands.put("load", (sender, command, label, args) -> {
+            try {
+                gameManager.loadGameState();
+            } catch (IOException e) {
+                Bukkit.getLogger().severe("[MCTManager] Unable to load game state.");
+                throw new RuntimeException(e);
+            }
+            return true;
+        });
     }
     
     @Override
