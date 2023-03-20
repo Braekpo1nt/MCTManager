@@ -1,10 +1,13 @@
 package org.braekpo1nt.mctmanager.games;
 
+import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.footrace.FootRaceGame;
 import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.Team;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -81,5 +84,40 @@ public class GameManager {
         }
         ((FootRaceGame) activeGame).stop();
         activeGame = null;
+    }
+    
+    /**
+     * Add a team to the game.
+     * @param teamName The internal name of the team.
+     * @param teamDisplayName The display name of the team.
+     * @return True if the team was successfully created. False if the team already exists.
+     * @throws IOException If there was a problem saving the game state with the new team.
+     */
+    public boolean addTeam(String teamName, String teamDisplayName) throws IOException {
+        boolean teamExistsAlready = !gameStateStorageUtil.addTeam(teamName, teamDisplayName);
+        if (teamExistsAlready) {
+            return false;
+        }
+        boolean minecraftTeamExistsAlready = !createMinecraftTeam(teamName, teamDisplayName);
+        if (minecraftTeamExistsAlready) {
+            return false;
+        }
+        return true;
+    }
+    
+    /**
+     * Create a minecraft scoreboard team with the given teamName and displayName.
+     * @param teamName The internal team name.
+     * @param teamDisplayName The display name of the team.
+     * @return True if the team was successfully created, false if the team already exists
+     */
+    private boolean createMinecraftTeam(String teamName, String teamDisplayName) {
+        Scoreboard scoreboard = Bukkit.getScoreboardManager().getMainScoreboard();
+        if (scoreboard.getTeam(teamName) != null) {
+            return false;
+        }
+        Team newTeam = scoreboard.registerNewTeam(teamName);
+        newTeam.displayName(Component.text(teamDisplayName));
+        return true;
     }
 }

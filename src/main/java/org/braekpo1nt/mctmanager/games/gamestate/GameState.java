@@ -38,4 +38,23 @@ public class GameState {
                 ", teams=" + teams +
                 '}';
     }
+    
+    /**
+     * Checks if the team with the given team name exists in the game state.
+     * @param teamName The name of the team to search for
+     * @return True if the team exists in the game state, false if not
+     */
+    public boolean hasTeam(String teamName) {
+        for (MCTTeam team : teams) {
+            if (team.getName().equals(teamName)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    public void addTeam(String teamName, String teamDisplayName) {
+        MCTTeam newTeam = new MCTTeam(teamName, teamDisplayName, 0);
+        teams.add(newTeam);
+    }
 }

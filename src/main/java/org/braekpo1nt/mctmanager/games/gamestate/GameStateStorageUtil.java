@@ -51,6 +51,9 @@ public class GameStateStorageUtil {
         Reader reader = new FileReader(gameStateFile);
         GameState newGameState = gson.fromJson(reader, GameState.class);
         reader.close();
+        if (newGameState == null) {
+            newGameState = new GameState();
+        }
         this.gameState = newGameState;
         Bukkit.getLogger().info("[MCTManager] Loaded game state.");
     }
@@ -72,4 +75,20 @@ public class GameStateStorageUtil {
         return gameStateFile;
     }
     
+    /**
+     * Add a team to the game state.
+     * @param teamName The internal name of the team.
+     * @param teamDisplayName The display name of the team.
+     * @return True if the team was created successfully, false if a team with that
+     * teamName already exists in the game state. 
+     * @throws IOException If there is an error saving the game state while adding a new team.
+     */
+    public boolean addTeam(String teamName, String teamDisplayName) throws IOException {
+        if (gameState.hasTeam(teamName)) {
+            return false;
+        }
+        gameState.addTeam(teamName, teamDisplayName);
+        saveGameState();
+        return true;
+    }
 }
