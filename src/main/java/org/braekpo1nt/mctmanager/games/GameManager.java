@@ -94,8 +94,17 @@ public class GameManager {
      * @throws IOException If there was a problem saving the game state with the new team.
      */
     public boolean addTeam(String teamName, String teamDisplayName) throws IOException {
-        boolean teamExistsAlready = !gameStateStorageUtil.addTeam(teamName, teamDisplayName);
-        if (teamExistsAlready) {
+        boolean mctTeamExistsAlready = !gameStateStorageUtil.addTeam(teamName, teamDisplayName);
+        if (mctTeamExistsAlready) {
+            Scoreboard scoreboard = Bukkit.getScoreboardManager().getMainScoreboard();
+            Team minecraftTeam = scoreboard.getTeam(teamName);
+            if (minecraftTeam != null) {
+                boolean minecraftTeamExistsAlready = !createMinecraftTeam(teamName, teamDisplayName);
+                if (minecraftTeamExistsAlready) {
+                    Bukkit.getLogger().info("Team exists in game state but not in minecraft scoreboard. Creating team in scoreboard to match the game state team.");
+                    return false;
+                }
+            }
             return false;
         }
         boolean minecraftTeamExistsAlready = !createMinecraftTeam(teamName, teamDisplayName);
