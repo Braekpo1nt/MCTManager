@@ -22,8 +22,15 @@ public class GameManager {
     private MCTGame activeGame = null;
     private final FootRaceGame footRaceGame;
     private final GameStateStorageUtil gameStateStorageUtil;
+    /**
+     * Scoreboard for holding the teams. This private scoreboard can't be
+     * modified using the normal /team command, and thus can't be unsynced
+     * with the game state.
+     */
+    private final Scoreboard teamScoreboard;
     
     public GameManager(Main plugin) {
+        teamScoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
         gameStateStorageUtil = new GameStateStorageUtil(plugin);
         this.footRaceGame = new FootRaceGame(plugin);
     }
@@ -96,17 +103,10 @@ public class GameManager {
     public boolean addTeam(String teamName, String teamDisplayName) throws IOException {
         boolean mctTeamExistsAlready = !gameStateStorageUtil.addTeam(teamName, teamDisplayName);
         if (mctTeamExistsAlready) {
-            Scoreboard scoreboard = Bukkit.getScoreboardManager().getMainScoreboard();
-            Team minecraftTeam = scoreboard.getTeam(teamName);
-            if (minecraftTeam == null) {
-                createMinecraftTeam(teamName, teamDisplayName);
-                Bukkit.getLogger().info("Team exists in game state but not in minecraft scoreboard. Creating team in scoreboard to match the game state team.");
-                return false;
-            }
             return false;
         }
-        boolean minecraftTeamExistsAlready = !createMinecraftTeam(teamName, teamDisplayName);
-        if (minecraftTeamExistsAlready) {
+        boolean scoreboardTeamExistsAlready = !createScoreboardTeam(teamName, teamDisplayName);
+        if (scoreboardTeamExistsAlready) {
             return false;
         }
         return true;
@@ -118,12 +118,11 @@ public class GameManager {
      * @param teamDisplayName The display name of the team.
      * @return True if the team was successfully created, false if the team already exists
      */
-    private boolean createMinecraftTeam(String teamName, String teamDisplayName) {
-        Scoreboard scoreboard = Bukkit.getScoreboardManager().getMainScoreboard();
-        if (scoreboard.getTeam(teamName) != null) {
+    private boolean createScoreboardTeam(String teamName, String teamDisplayName) {
+        if (teamScoreboard.getTeam(teamName) != null) {
             return false;
         }
-        Team newTeam = scoreboard.registerNewTeam(teamName);
+        Team newTeam = teamScoreboard.registerNewTeam(teamName);
         newTeam.displayName(Component.text(teamDisplayName));
         return true;
     }
