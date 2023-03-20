@@ -40,7 +40,7 @@ public class GameStateStorageUtil {
         gson.toJson(this.gameState, writer);
         writer.flush();
         writer.close();
-        Bukkit.getLogger().info("Saved game state.");
+        Bukkit.getLogger().info("[MCTManager] Saved game state.");
     }
     
     /**
@@ -57,7 +57,7 @@ public class GameStateStorageUtil {
         GameState newGameState = gson.fromJson(reader, GameState.class);
         reader.close();
         this.gameState = newGameState;
-        Bukkit.getLogger().info("Loaded game state.");
+        Bukkit.getLogger().info("[MCTManager] Loaded game state.");
     }
     
     /**
