@@ -1,13 +1,16 @@
 package org.braekpo1nt.mctmanager.games;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.color.ColorMap;
 import org.braekpo1nt.mctmanager.games.footrace.FootRaceGame;
 import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
@@ -15,7 +18,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -57,18 +59,26 @@ public class GameManager {
         gameStateStorageUtil.saveGameState();
     }
     
-    public void startGame(String gameName, Player sender) {
+    public void startGame(String gameName, @NotNull CommandSender sender) {
         
         if (activeGame != null) {
             sender.sendMessage("There is already a game running. You must stop the game before you start a new one.");
             return;
         }
         
-        List<Player> participants = Arrays.asList(Bukkit.getPlayer("Braekpo1nt"));
+        List<Player> onlineParticipants = this.getOnlineParticipants();
+        if (onlineParticipants.isEmpty()) {
+            sender.sendMessage(Component.text("There are no online participants. You can add participants using the ")
+                    .append(Component.text("/mct team join")
+                            .decorate(TextDecoration.BOLD)
+                            .clickEvent(ClickEvent.suggestCommand("/mct team join ")))
+                    .append(Component.text(" command.")));
+            return;
+        }
         
         switch (gameName) {
             case "foot-race":
-                footRaceGame.start(participants);
+                footRaceGame.start(onlineParticipants);
                 activeGame = footRaceGame;
                 break;
 //            case "mecha":
@@ -94,7 +104,23 @@ public class GameManager {
                 break;
         }
     }
-
+    
+    /**
+     * gets a list of the online participants
+     * @return a list of all online participants
+     */
+    private List<Player> getOnlineParticipants() {
+        List<Player> onlinePlayers = new ArrayList<>();
+        List<UUID> playerUniqueIds = gameStateStorageUtil.getPlayerUniqueIds();
+        for (UUID playerUniqueId : playerUniqueIds) {
+            Player player = Bukkit.getPlayer(playerUniqueId);
+            if (player.isOnline()) {
+                onlinePlayers.add(player);
+            }
+        }
+        return onlinePlayers;
+    }
+    
     /**
      * If a game is currently going on, stops the game
      */

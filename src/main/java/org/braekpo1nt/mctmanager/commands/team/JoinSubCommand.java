@@ -35,6 +35,7 @@ public class JoinSubCommand implements TabExecutor {
         Player playerToJoin = Bukkit.getPlayer(playerName);
         if (playerToJoin == null) {
             sender.sendMessage(String.format("Player \"%s\" is not online.", playerName));
+            return true;
         }
         try {
             gameManager.joinPlayerToTeam(playerToJoin.getUniqueId(), teamName);

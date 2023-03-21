@@ -172,6 +172,14 @@ public class GameStateStorageUtil {
         return playersOnTeam;
     }
     
+    public List<UUID> getPlayerUniqueIds() {
+        List<UUID> playerUniqueIds = new ArrayList<>();
+        for (MCTPlayer mctPlayer : gameState.getPlayers()) {
+            playerUniqueIds.add(mctPlayer.getUniqueId());
+        }
+        return playerUniqueIds;
+    }
+    
     public void leavePlayer(UUID playerUniqueId) throws IOException {
         gameState.removePlayer(playerUniqueId);
         saveGameState();
