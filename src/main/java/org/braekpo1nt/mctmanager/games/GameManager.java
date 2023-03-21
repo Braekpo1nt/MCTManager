@@ -137,4 +137,13 @@ public class GameManager {
         newTeam.color(color);
         return true;
     }
+    
+    /**
+     * A list of all the teams in the game
+     * @return A list containing the internal names of all the teams in the game, 
+     * or null if there are no teams
+     */
+    public List<String> getTeamNames() {
+        return gameStateStorageUtil.getTeamNames();
+    }
 }
