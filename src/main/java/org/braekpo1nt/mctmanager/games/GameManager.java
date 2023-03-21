@@ -54,7 +54,7 @@ public class GameManager {
     }
     
     public void startGame(String gameName, Player sender) {
-    
+        
         if (activeGame != null) {
             sender.sendMessage("There is already a game running. You must stop the game before you start a new one.");
             return;
