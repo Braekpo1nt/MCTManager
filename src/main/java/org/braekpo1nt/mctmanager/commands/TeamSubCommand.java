@@ -39,7 +39,7 @@ public class TeamSubCommand implements TabExecutor {
                     sender.sendMessage("Usage: /mct team add <team> <displayName> <color>");
                     return true;
                 }
-                String teamName = args[1];
+                String newTeamName = args[1];
                 String teamDisplayName = args[2];
                 String colorString = args[3];
                 if (!ColorMap.hasColor(colorString)) {
@@ -48,15 +48,34 @@ public class TeamSubCommand implements TabExecutor {
                 }
                 NamedTextColor color = ColorMap.getColor(colorString);
                 try {
-                    boolean teamExists = !gameManager.addTeam(teamName, teamDisplayName, color);
+                    boolean teamExists = !gameManager.addTeam(newTeamName, teamDisplayName, color);
                     if (teamExists) {
-                        sender.sendMessage(Component.text(String.format("A team already exists with teamName \"%s\"", teamName)));
+                        sender.sendMessage(Component.text(String.format("A team already exists with teamName \"%s\"", newTeamName)));
                         return true;
                     }
-                    sender.sendMessage(String.format("Created team \"%s\" with display name \"%s\"", teamName, teamDisplayName));
+                    sender.sendMessage(String.format("Created team \"%s\" with display name \"%s\"", newTeamName, teamDisplayName));
                 } catch (IOException e) {
                     sender.sendMessage("Error creating team. See log for error message.");
                     Bukkit.getLogger().severe("Error saving game state while creating new team.");
+                    throw new RuntimeException(e);
+                }
+                break;
+            case "remove":
+                if (args.length < 2) {
+                    sender.sendMessage("Usage: /mct team remove <team>");
+                    return true;
+                }
+                String removeTeamName = args[1];
+                try {
+                    boolean teamExists = gameManager.removeTeam(removeTeamName);
+                    if (!teamExists) {
+                        sender.sendMessage(String.format("Team \"%s\" does not exist", removeTeamName));
+                        return true;
+                    }
+                    sender.sendMessage(String.format("Removed team \"%s\".", removeTeamName));
+                } catch (IOException e) {
+                    sender.sendMessage("Error removing team. See log for error message.");
+                    Bukkit.getLogger().severe("Error saving game state while removing team.");
                     throw new RuntimeException(e);
                 }
                 break;

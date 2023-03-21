@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.color.ColorMap;
 import org.bukkit.Bukkit;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
@@ -79,24 +78,31 @@ public class GameStateStorageUtil {
     }
     
     /**
+     * Checks if the game state contains a team with the given name
+     * @param teamName The internal name of the team to check for
+     * @return True if the team exists in the game state, false otherwise
+     */
+    public boolean containsTeam(String teamName) {
+        return gameState.containsTeam(teamName);
+    }
+    
+    /**
      * Add a team to the game state.
-     *
-     * @param teamName        The internal name of the team.
+     * @param teamName The internal name of the team.
      * @param teamDisplayName The display name of the team.
-     * @param color
-     * @return True if the team was created successfully, false if a team with that
-     * teamName already exists in the game state.
+     * @param color The color of the team
      * @throws IOException If there is an error saving the game state while adding a new team.
      */
-    public boolean addTeam(String teamName, String teamDisplayName, NamedTextColor color) throws IOException {
-        if (gameState.hasTeam(teamName)) {
-            return false;
-        }
+    public void addTeam(String teamName, String teamDisplayName, NamedTextColor color) throws IOException {
         gameState.addTeam(teamName, teamDisplayName, color);
         saveGameState();
-        return true;
     }
-
+    
+    public void removeTeam(String teamName) throws IOException {
+        gameState.removeTeam(teamName);
+        saveGameState();
+    }
+    
     /**
      * Registers all teams in the game state with the given scoreboard
      * @param scoreboard The scoreboard to register the teams for

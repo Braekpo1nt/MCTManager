@@ -46,7 +46,7 @@ public class GameState {
      * @param teamName The name of the team to search for
      * @return True if the team exists in the game state, false if not
      */
-    public boolean hasTeam(String teamName) {
+    public boolean containsTeam(String teamName) {
         for (MCTTeam team : teams) {
             if (team.getName().equals(teamName)) {
                 return true;
@@ -55,8 +55,31 @@ public class GameState {
         return false;
     }
     
+    /**
+     * Add a new team to the game state
+     * @param teamName The internal name of the team
+     * @param teamDisplayName The display name of the team
+     * @param color The color of the team
+     */
     public void addTeam(String teamName, String teamDisplayName, NamedTextColor color) {
         MCTTeam newTeam = new MCTTeam(teamName, teamDisplayName, 0, color);
         teams.add(newTeam);
+    }
+    
+    
+    /**
+     * Removes the team with the given name from the game states, if it exists
+     * @param teamName The internal name of the team to remove
+     * @return True if the team was successfully deleted, 
+     * false if the team did not exist in the first place.
+     */
+    public boolean removeTeam(String teamName) {
+        for (MCTTeam team : teams) {
+            if (team.getName().equals(teamName)) {
+                teams.remove(team);
+                return true;
+            }
+        }
+        return false;
     }
 }

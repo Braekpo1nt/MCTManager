@@ -103,6 +103,22 @@ public class GameManager {
     }
     
     /**
+     * Remove the given team from the game
+     * @param teamName The internal name of the team to remove
+     * @return True if the team was successfully removed, false if the team did not exist
+     * @throws IOException If there is a problem saving the game state while removing the team
+     */
+    public boolean removeTeam(String teamName) throws IOException {
+        if (!gameStateStorageUtil.containsTeam(teamName)) {
+            return false;
+        }
+        gameStateStorageUtil.removeTeam(teamName);
+        Team team = teamScoreboard.getTeam(teamName);
+        team.unregister();
+        return true;
+    }
+    
+    /**
      * Add a team to the game.
      * @param teamName The internal name of the team.
      * @param teamDisplayName The display name of the team.
@@ -110,27 +126,10 @@ public class GameManager {
      * @throws IOException If there was a problem saving the game state with the new team.
      */
     public boolean addTeam(String teamName, String teamDisplayName, NamedTextColor color) throws IOException {
-        boolean mctTeamExistsAlready = !gameStateStorageUtil.addTeam(teamName, teamDisplayName, color);
-        if (mctTeamExistsAlready) {
+        if (gameStateStorageUtil.containsTeam(teamName)) {
             return false;
         }
-        boolean scoreboardTeamExistsAlready = !createScoreboardTeam(teamName, teamDisplayName, color);
-        if (scoreboardTeamExistsAlready) {
-            return false;
-        }
-        return true;
-    }
-    
-    /**
-     * Create a minecraft scoreboard team with the given teamName and displayName.
-     * @param teamName The internal team name.
-     * @param teamDisplayName The display name of the team.
-     * @return True if the team was successfully created, false if the team already exists
-     */
-    private boolean createScoreboardTeam(String teamName, String teamDisplayName, NamedTextColor color) {
-        if (teamScoreboard.getTeam(teamName) != null) {
-            return false;
-        }
+        gameStateStorageUtil.addTeam(teamName, teamDisplayName, color);
         Team newTeam = teamScoreboard.registerNewTeam(teamName);
         newTeam.displayName(Component.text(teamDisplayName));
         newTeam.color(color);
