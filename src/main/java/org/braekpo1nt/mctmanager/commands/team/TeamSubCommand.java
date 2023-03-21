@@ -1,21 +1,13 @@
 package org.braekpo1nt.mctmanager.commands.team;
 
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
-import org.braekpo1nt.mctmanager.color.ColorMap;
 import org.braekpo1nt.mctmanager.games.GameManager;
-import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
-import org.bukkit.scoreboard.Score;
-import org.bukkit.scoreboard.Scoreboard;
-import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -28,7 +20,7 @@ public class TeamSubCommand implements TabExecutor {
     
     public TeamSubCommand(GameManager gameManager) {
         this.gameManager = gameManager;
-        subCommands.put("add", new AddSubScommand(gameManager));
+        subCommands.put("add", new AddSubCommand(gameManager));
         subCommands.put("remove", new RemoveSubCommand(gameManager));
     }
     

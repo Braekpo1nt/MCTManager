@@ -11,10 +11,10 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 
-public class AddSubScommand implements CommandExecutor {
+public class AddSubCommand implements CommandExecutor {
     private final GameManager gameManager;
     
-    public AddSubScommand(GameManager gameManager) {
+    public AddSubCommand(GameManager gameManager) {
         this.gameManager = gameManager;
     }
     
