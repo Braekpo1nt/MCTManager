@@ -48,4 +48,8 @@ public class MCTTeam {
                 ", score=" + score +
                 '}';
     }
+
+    public NamedTextColor getColor() {
+        return color;
+    }
 }

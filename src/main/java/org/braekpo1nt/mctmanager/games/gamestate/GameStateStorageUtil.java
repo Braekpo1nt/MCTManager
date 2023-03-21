@@ -1,9 +1,13 @@
 package org.braekpo1nt.mctmanager.games.gamestate;
 
 import com.google.gson.Gson;
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.color.ColorMap;
 import org.bukkit.Bukkit;
+import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.Team;
 
 import java.io.*;
 
@@ -91,5 +95,17 @@ public class GameStateStorageUtil {
         gameState.addTeam(teamName, teamDisplayName, color);
         saveGameState();
         return true;
+    }
+
+    /**
+     * Registers all teams in the game state with the given scoreboard
+     * @param scoreboard The scoreboard to register the teams for
+     */
+    public void registerTeams(Scoreboard scoreboard) {
+        for (MCTTeam mctTeam : gameState.getTeams()) {
+            Team team = scoreboard.registerNewTeam(mctTeam.getName());
+            team.displayName(Component.text(mctTeam.getDisplayName()));
+            team.color(mctTeam.getColor());
+        }
     }
 }

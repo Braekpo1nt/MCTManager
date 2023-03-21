@@ -38,8 +38,16 @@ public class GameManager {
     
     public void loadGameState() throws IOException {
         gameStateStorageUtil.loadGameState();
+        unregisterAllTeams();
+        gameStateStorageUtil.registerTeams(teamScoreboard);
     }
-    
+
+    private void unregisterAllTeams() {
+        for (Team team : teamScoreboard.getTeams()) {
+            team.unregister();
+        }
+    }
+
     public void saveGameState() throws IOException, IllegalStateException {
         gameStateStorageUtil.saveGameState();
     }
