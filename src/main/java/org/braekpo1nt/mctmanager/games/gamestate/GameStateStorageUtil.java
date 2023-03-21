@@ -123,12 +123,9 @@ public class GameStateStorageUtil {
     
     /**
      * Gets a list of the internal names of all the teams in the game state
-     * @return A list of all the teams, or null if there are no teams
+     * @return A list of all the teams. Empty list if there are no teams.
      */
     public List<String> getTeamNames() {
-        if (gameState.getTeams() == null || gameState.getTeams().size() == 0) {
-            return null;
-        }
         List<String> teamNames = new ArrayList<>();
         for (MCTTeam mctTeam : gameState.getTeams()) {
             teamNames.add(mctTeam.getName());
