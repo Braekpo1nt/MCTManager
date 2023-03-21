@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.color.ColorMap;
 import org.bukkit.Bukkit;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
@@ -93,7 +94,7 @@ public class GameStateStorageUtil {
      * @param color The color of the team
      * @throws IOException If there is an error saving the game state while adding a new team.
      */
-    public void addTeam(String teamName, String teamDisplayName, NamedTextColor color) throws IOException {
+    public void addTeam(String teamName, String teamDisplayName, String color) throws IOException {
         gameState.addTeam(teamName, teamDisplayName, color);
         saveGameState();
     }
@@ -111,7 +112,10 @@ public class GameStateStorageUtil {
         for (MCTTeam mctTeam : gameState.getTeams()) {
             Team team = scoreboard.registerNewTeam(mctTeam.getName());
             team.displayName(Component.text(mctTeam.getDisplayName()));
-            team.color(mctTeam.getColor());
+            if (ColorMap.hasColor(mctTeam.getColor())) {
+                NamedTextColor namedTextColor = ColorMap.getColor(mctTeam.getColor());
+                team.color(namedTextColor);
+            }
         }
     }
 }

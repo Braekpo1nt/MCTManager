@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.color.ColorMap;
 import org.braekpo1nt.mctmanager.games.footrace.FootRaceGame;
 import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
 import org.bukkit.Bukkit;
@@ -125,13 +126,14 @@ public class GameManager {
      * @return True if the team was successfully created. False if the team already exists.
      * @throws IOException If there was a problem saving the game state with the new team.
      */
-    public boolean addTeam(String teamName, String teamDisplayName, NamedTextColor color) throws IOException {
+    public boolean addTeam(String teamName, String teamDisplayName, String colorString) throws IOException {
         if (gameStateStorageUtil.containsTeam(teamName)) {
             return false;
         }
-        gameStateStorageUtil.addTeam(teamName, teamDisplayName, color);
+        gameStateStorageUtil.addTeam(teamName, teamDisplayName, colorString);
         Team newTeam = teamScoreboard.registerNewTeam(teamName);
         newTeam.displayName(Component.text(teamDisplayName));
+        NamedTextColor color = ColorMap.getColor(colorString);
         newTeam.color(color);
         return true;
     }

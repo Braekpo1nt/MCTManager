@@ -61,7 +61,7 @@ public class GameState {
      * @param teamDisplayName The display name of the team
      * @param color The color of the team
      */
-    public void addTeam(String teamName, String teamDisplayName, NamedTextColor color) {
+    public void addTeam(String teamName, String teamDisplayName, String color) {
         MCTTeam newTeam = new MCTTeam(teamName, teamDisplayName, 0, color);
         teams.add(newTeam);
     }

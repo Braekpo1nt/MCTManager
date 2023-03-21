@@ -8,9 +8,9 @@ public class MCTTeam {
     private String name;
     private String displayName;
     private int score;
-    private NamedTextColor color;
+    private String color;
     
-    public MCTTeam(String name, String displayName, int score, NamedTextColor color) {
+    public MCTTeam(String name, String displayName, int score, String color) {
         this.name = name;
         this.displayName = displayName;
         this.score = score;
@@ -41,15 +41,21 @@ public class MCTTeam {
         this.score = score;
     }
     
+    public String getColor() {
+        return color;
+    }
+    
+    public void setColor(String color) {
+        this.color = color;
+    }
+    
     @Override
     public String toString() {
         return "MCTTeam{" +
                 "name='" + name + '\'' +
+                ", displayName='" + displayName + '\'' +
                 ", score=" + score +
+                ", color='" + color + '\'' +
                 '}';
-    }
-
-    public NamedTextColor getColor() {
-        return color;
     }
 }

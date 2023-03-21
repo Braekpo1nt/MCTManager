@@ -46,9 +46,8 @@ public class TeamSubCommand implements TabExecutor {
                     sender.sendMessage(String.format("\"%s\" is not a recognized color.", colorString));
                     return true;
                 }
-                NamedTextColor color = ColorMap.getColor(colorString);
                 try {
-                    boolean teamExists = !gameManager.addTeam(newTeamName, teamDisplayName, color);
+                    boolean teamExists = !gameManager.addTeam(newTeamName, teamDisplayName, colorString);
                     if (teamExists) {
                         sender.sendMessage(Component.text(String.format("A team already exists with teamName \"%s\"", newTeamName)));
                         return true;
