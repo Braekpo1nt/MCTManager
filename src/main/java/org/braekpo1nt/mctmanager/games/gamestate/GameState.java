@@ -116,4 +116,14 @@ public class GameState {
         }
         return null;
     }
+    
+    public void removePlayer(UUID playerUniqueId) {
+        for (MCTPlayer mctPlayer : players) {
+            if (mctPlayer.getUniqueId().equals(playerUniqueId)) {
+                players.remove(mctPlayer);
+                return;
+            }
+        }
+        
+    }
 }

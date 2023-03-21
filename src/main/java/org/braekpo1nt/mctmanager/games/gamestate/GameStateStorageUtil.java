@@ -171,4 +171,9 @@ public class GameStateStorageUtil {
         }
         return playersOnTeam;
     }
+    
+    public void leavePlayer(UUID playerUniqueId) throws IOException {
+        gameState.removePlayer(playerUniqueId);
+        saveGameState();
+    }
 }

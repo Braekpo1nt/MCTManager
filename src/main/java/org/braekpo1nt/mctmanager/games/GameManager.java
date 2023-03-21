@@ -11,6 +11,7 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -200,5 +201,17 @@ public class GameManager {
             playersNamesOnTeam.add(playerOnTeam.getName());
         }
         return playersNamesOnTeam;
+    }
+    
+    public boolean hasPlayer(UUID playerUniqueId) {
+        return gameStateStorageUtil.containsPlayer(playerUniqueId);
+    }
+    
+    public void leavePlayer(UUID playerUniqueId) throws IOException {
+        gameStateStorageUtil.leavePlayer(playerUniqueId);
+    }
+    
+    public String getTeamName(UUID playerUniqueId) {
+        return gameStateStorageUtil.getPlayerTeamName(playerUniqueId);
     }
 }
