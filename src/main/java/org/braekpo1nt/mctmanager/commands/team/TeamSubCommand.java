@@ -23,6 +23,7 @@ public class TeamSubCommand implements TabExecutor {
         subCommands.put("add", new AddSubCommand(gameManager));
         subCommands.put("remove", new RemoveSubCommand(gameManager));
         subCommands.put("join", new JoinSubCommand(gameManager));
+        subCommands.put("list", new ListSubCommand(gameManager));
     }
     
     @Override

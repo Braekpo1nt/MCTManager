@@ -161,4 +161,14 @@ public class GameStateStorageUtil {
     public void setPlayerTeamName(UUID playerUniqueId, String teamName) {
         gameState.getPlayer(playerUniqueId).setTeamName(teamName);
     }
+    
+    public List<UUID> getPlayerUniqueIdsOnTeam(String teamName) {
+        List<UUID> playersOnTeam = new ArrayList<>();
+        for (MCTPlayer mctPlayer : gameState.getPlayers()) {
+            if (mctPlayer.getTeamName().equals(teamName)) {
+                playersOnTeam.add(mctPlayer.getUniqueId());
+            }
+        }
+        return playersOnTeam;
+    }
 }

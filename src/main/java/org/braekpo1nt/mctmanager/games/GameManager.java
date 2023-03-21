@@ -13,6 +13,7 @@ import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -189,5 +190,15 @@ public class GameManager {
         oldTeam.removePlayer(player);
         Team newTeam = teamScoreboard.getTeam(newTeamName);
         newTeam.addPlayer(player);
+    }
+    
+    public List<String> getPlayerNamesOnTeam(String teamName) {
+        List<UUID> playerUniqueIds = gameStateStorageUtil.getPlayerUniqueIdsOnTeam(teamName);
+        List<String> playersNamesOnTeam = new ArrayList<>();
+        for (UUID playerUniqueId : playerUniqueIds) {
+            OfflinePlayer playerOnTeam = Bukkit.getOfflinePlayer(playerUniqueId);
+            playersNamesOnTeam.add(playerOnTeam.getName());
+        }
+        return playersNamesOnTeam;
     }
 }
