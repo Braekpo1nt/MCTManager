@@ -17,6 +17,8 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scoreboard.*;
 import org.bukkit.structure.Structure;
 import org.bukkit.util.BoundingBox;
@@ -64,13 +66,28 @@ public class FootRaceGame implements Listener, MCTGame {
                 Collectors.toMap(participant -> participant, key -> System.currentTimeMillis()));
         laps = participants.stream().collect(Collectors.toMap(participant -> participant, key -> 1));
         initializeScoreboard();
-        
         teleportPlayersToStartingPositions();
-        
+        giveParticipantsStatusEffects();
         startCountdown();
         
         gameActive = true;
         Bukkit.getLogger().info("Starting Foot Race game");
+    }
+    
+    private void giveParticipantsStatusEffects() {
+        PotionEffect speed = new PotionEffect(PotionEffectType.SPEED, 10000, 8, true, false, false);
+        PotionEffect invisibility = new PotionEffect(PotionEffectType.INVISIBILITY, 10000, 1, true, false, false);
+        for (Player participant : participants) {
+            participant.addPotionEffect(speed);
+            participant.addPotionEffect(invisibility);
+        }
+    }
+    
+    private void removeParticipantStatusEffects() {
+        for (Player participant : participants) {
+            participant.removePotionEffect(PotionEffectType.SPEED);
+            participant.removePotionEffect(PotionEffectType.INVISIBILITY);
+        }
     }
     
     private void startCountdown() {
@@ -164,6 +181,7 @@ public class FootRaceGame implements Listener, MCTGame {
     public void stop() {
         closeGlassBarrier();
         hideScoreboard();
+        removeParticipantStatusEffects();
         teleportPlayersToHub();
         stopCountDown();
         gameActive = false;
