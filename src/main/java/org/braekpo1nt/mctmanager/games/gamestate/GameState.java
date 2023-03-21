@@ -1,5 +1,7 @@
 package org.braekpo1nt.mctmanager.games.gamestate;
 
+import net.kyori.adventure.text.format.NamedTextColor;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -53,8 +55,8 @@ public class GameState {
         return false;
     }
     
-    public void addTeam(String teamName, String teamDisplayName) {
-        MCTTeam newTeam = new MCTTeam(teamName, teamDisplayName, 0);
+    public void addTeam(String teamName, String teamDisplayName, NamedTextColor color) {
+        MCTTeam newTeam = new MCTTeam(teamName, teamDisplayName, 0, color);
         teams.add(newTeam);
     }
 }

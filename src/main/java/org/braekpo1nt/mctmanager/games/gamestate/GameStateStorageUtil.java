@@ -1,12 +1,11 @@
 package org.braekpo1nt.mctmanager.games.gamestate;
 
 import com.google.gson.Gson;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.bukkit.Bukkit;
 
 import java.io.*;
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * Handles the CRUD operations for storing GameState objects
@@ -77,17 +76,19 @@ public class GameStateStorageUtil {
     
     /**
      * Add a team to the game state.
-     * @param teamName The internal name of the team.
+     *
+     * @param teamName        The internal name of the team.
      * @param teamDisplayName The display name of the team.
+     * @param color
      * @return True if the team was created successfully, false if a team with that
-     * teamName already exists in the game state. 
+     * teamName already exists in the game state.
      * @throws IOException If there is an error saving the game state while adding a new team.
      */
-    public boolean addTeam(String teamName, String teamDisplayName) throws IOException {
+    public boolean addTeam(String teamName, String teamDisplayName, NamedTextColor color) throws IOException {
         if (gameState.hasTeam(teamName)) {
             return false;
         }
-        gameState.addTeam(teamName, teamDisplayName);
+        gameState.addTeam(teamName, teamDisplayName, color);
         saveGameState();
         return true;
     }

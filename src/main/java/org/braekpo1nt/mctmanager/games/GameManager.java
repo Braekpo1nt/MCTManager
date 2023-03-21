@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.games;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.footrace.FootRaceGame;
 import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
@@ -100,12 +101,12 @@ public class GameManager {
      * @return True if the team was successfully created. False if the team already exists.
      * @throws IOException If there was a problem saving the game state with the new team.
      */
-    public boolean addTeam(String teamName, String teamDisplayName) throws IOException {
-        boolean mctTeamExistsAlready = !gameStateStorageUtil.addTeam(teamName, teamDisplayName);
+    public boolean addTeam(String teamName, String teamDisplayName, NamedTextColor color) throws IOException {
+        boolean mctTeamExistsAlready = !gameStateStorageUtil.addTeam(teamName, teamDisplayName, color);
         if (mctTeamExistsAlready) {
             return false;
         }
-        boolean scoreboardTeamExistsAlready = !createScoreboardTeam(teamName, teamDisplayName);
+        boolean scoreboardTeamExistsAlready = !createScoreboardTeam(teamName, teamDisplayName, color);
         if (scoreboardTeamExistsAlready) {
             return false;
         }
@@ -118,12 +119,13 @@ public class GameManager {
      * @param teamDisplayName The display name of the team.
      * @return True if the team was successfully created, false if the team already exists
      */
-    private boolean createScoreboardTeam(String teamName, String teamDisplayName) {
+    private boolean createScoreboardTeam(String teamName, String teamDisplayName, NamedTextColor color) {
         if (teamScoreboard.getTeam(teamName) != null) {
             return false;
         }
         Team newTeam = teamScoreboard.registerNewTeam(teamName);
         newTeam.displayName(Component.text(teamDisplayName));
+        newTeam.color(color);
         return true;
     }
 }
