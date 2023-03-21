@@ -7,11 +7,15 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabExecutor;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
 
-public class AddSubCommand implements CommandExecutor {
+public class AddSubCommand implements TabExecutor {
     private final GameManager gameManager;
     
     public AddSubCommand(GameManager gameManager) {
@@ -44,5 +48,14 @@ public class AddSubCommand implements CommandExecutor {
             throw new RuntimeException(e);
         }
         return true;
+    }
+    
+    @Override
+    public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+        if (args.length == 3) {
+            String colorString = args[2];
+            return ColorMap.getPartiallyMatchingColorStrings(colorString);
+        }
+        return Collections.emptyList();
     }
 }

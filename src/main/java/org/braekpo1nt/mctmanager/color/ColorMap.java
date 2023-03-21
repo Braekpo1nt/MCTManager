@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.color;
 
+import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -7,7 +8,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 public class ColorMap {
 
     private static final Map<String, NamedTextColor> COLOR_MAP = new HashMap<>();
-
+    
     static {
         COLOR_MAP.put("black", NamedTextColor.BLACK);
         COLOR_MAP.put("dark_blue", NamedTextColor.DARK_BLUE);
@@ -26,13 +27,20 @@ public class ColorMap {
         COLOR_MAP.put("yellow", NamedTextColor.YELLOW);
         COLOR_MAP.put("white", NamedTextColor.WHITE);
     }
-
+    
     public static NamedTextColor getColor(String colorString) {
         NamedTextColor color = COLOR_MAP.get(colorString.toLowerCase());
         return color != null ? color : NamedTextColor.WHITE;
     }
-
+    
     public static boolean hasColor(String colorString) {
         return COLOR_MAP.containsKey(colorString);
+    }
+    
+    public static List<String> getPartiallyMatchingColorStrings(String colorString) {
+        return COLOR_MAP.keySet().stream()
+                .filter(color -> color.startsWith(colorString))
+                .sorted()
+                .toList();
     }
 }
