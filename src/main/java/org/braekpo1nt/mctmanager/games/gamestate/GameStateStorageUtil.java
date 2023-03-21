@@ -12,6 +12,7 @@ import org.bukkit.scoreboard.Team;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Handles the CRUD operations for storing GameState objects
@@ -131,5 +132,33 @@ public class GameStateStorageUtil {
             teamNames.add(mctTeam.getName());
         }
         return teamNames;
+    }
+    
+    
+    public void addNewPlayer(UUID playerToJoin, String teamName) throws IOException {
+        gameState.addPlayer(playerToJoin, teamName);
+        saveGameState();
+    }
+    
+    public boolean containsPlayer(UUID playerUniqueId) {
+        return gameState.containsPlayer(playerUniqueId);
+    }
+    
+    /**
+     * Gets the internal team name of the player with the given UUID
+     * @param playerUniqueId The UUID of the player to find the team of
+     * @return The internal team name of the player with the given UUID
+     */
+    public String getPlayerTeamName(UUID playerUniqueId) {
+        return gameState.getPlayer(playerUniqueId).getTeamName();
+    }
+    
+    /**
+     * Sets the team name of the player with the given UUID
+     * @param playerUniqueId The UUID of the player to set the team name of
+     * @param teamName The team name
+     */
+    public void setPlayerTeamName(UUID playerUniqueId, String teamName) {
+        gameState.getPlayer(playerUniqueId).setTeamName(teamName);
     }
 }

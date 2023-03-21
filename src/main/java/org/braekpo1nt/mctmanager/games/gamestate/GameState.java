@@ -4,6 +4,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Represents the state of the game for saving and loading from disk. 
@@ -81,5 +82,38 @@ public class GameState {
             }
         }
         return false;
+    }
+    
+    public void addPlayer(UUID playerUniqueId, String teamName) {
+        MCTPlayer newPlayer = new MCTPlayer(playerUniqueId, 0, teamName);
+        players.add(newPlayer);
+    }
+    
+    /**
+     * Checks if the game state contains the given player
+     * @param playerUniqueId The UUID of the player to check for
+     * @return True if the player with the given UUID exists, false otherwise 
+     */
+    public boolean containsPlayer(UUID playerUniqueId) {
+        for (MCTPlayer mctPlayer : players) {
+            if (mctPlayer.getUniqueId().equals(playerUniqueId)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    /**
+     * Returns the player with the given UUID
+     * @param playerUniqueId The UUID of the player to get
+     * @return The player with the given UUID, null if the player does not exist.
+     */
+    public MCTPlayer getPlayer(UUID playerUniqueId) {
+        for (MCTPlayer mctPlayer : players) {
+            if (mctPlayer.getUniqueId().equals(playerUniqueId)) {
+                return mctPlayer;
+            }
+        }
+        return null;
     }
 }

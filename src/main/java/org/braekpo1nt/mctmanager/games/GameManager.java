@@ -7,6 +7,7 @@ import org.braekpo1nt.mctmanager.color.ColorMap;
 import org.braekpo1nt.mctmanager.games.footrace.FootRaceGame;
 import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
@@ -14,6 +15,7 @@ import org.bukkit.scoreboard.Team;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Responsible for overall game management. 
@@ -145,5 +147,47 @@ public class GameManager {
      */
     public List<String> getTeamNames() {
         return gameStateStorageUtil.getTeamNames();
+    }
+    
+    /**
+     * Checks if the team exists in the game
+     * @param teamName The team to look for
+     * @return true if the team with the given teamName exists, false otherwise.
+     */
+    public boolean hasTeam(String teamName) {
+        return gameStateStorageUtil.containsTeam(teamName);
+    }
+    
+    /**
+     * Joins the player with the given UUID to the team with the given teamName
+     * @param playerUniqueId The UUID of the player to join to the given team
+     * @param teamName The internal teamName of the team to join the player to. 
+     *                 This method assumes the team exists, and will throw a 
+     *                 null pointer exception if it doesn't.
+     */
+    public void joinPlayerToTeam(UUID playerUniqueId, String teamName) throws IOException {
+        if (gameStateStorageUtil.containsPlayer(playerUniqueId)) {
+            movePlayerToTeam(playerUniqueId, teamName);
+            return;
+        }
+        addNewPlayer(playerUniqueId, teamName);
+    }
+    
+    private void addNewPlayer(UUID playerUniqueId, String teamName) throws IOException {
+        gameStateStorageUtil.addNewPlayer(playerUniqueId, teamName);
+        Team team = teamScoreboard.getTeam(teamName);
+        OfflinePlayer newPlayer = Bukkit.getOfflinePlayer(playerUniqueId);
+        team.addPlayer(newPlayer);
+    }
+    
+    private void movePlayerToTeam(UUID playerUniqueId, String newTeamName) {
+        String oldTeamName = gameStateStorageUtil.getPlayerTeamName(playerUniqueId);
+        gameStateStorageUtil.setPlayerTeamName(playerUniqueId, newTeamName);
+    
+        OfflinePlayer player = Bukkit.getOfflinePlayer(playerUniqueId);
+        Team oldTeam = teamScoreboard.getTeam(oldTeamName);
+        oldTeam.removePlayer(player);
+        Team newTeam = teamScoreboard.getTeam(newTeamName);
+        newTeam.addPlayer(player);
     }
 }
