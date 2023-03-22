@@ -54,11 +54,8 @@ public class FootRaceGame implements Listener, MCTGame {
     public FootRaceGame(Main plugin) {
         this.plugin = plugin;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
-        
         scoreboardManager = Bukkit.getScoreboardManager();
-        Plugin multiversePlugin = Bukkit.getPluginManager().getPlugin("Multiverse-Core");
-        MultiverseCore multiverseCore = ((MultiverseCore) multiversePlugin);
-        MVWorldManager worldManager = multiverseCore.getMVWorldManager();
+        MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
         this.footRaceWorld = worldManager.getMVWorld("NT").getCBWorld();
     }
     
