@@ -40,7 +40,7 @@ public class GameManager {
     public GameManager(Main plugin) {
         teamScoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
         gameStateStorageUtil = new GameStateStorageUtil(plugin);
-        this.footRaceGame = new FootRaceGame(plugin);
+        this.footRaceGame = new FootRaceGame(plugin, this);
     }
     
     public void loadGameState() throws IOException {

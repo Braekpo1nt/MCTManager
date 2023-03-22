@@ -1,12 +1,12 @@
 package org.braekpo1nt.mctmanager.games.footrace;
 
-import com.onarandombox.MultiverseCore.MultiverseCore;
 import com.onarandombox.MultiverseCore.api.MVWorldManager;
 import com.onarandombox.MultiverseCore.api.MultiverseWorld;
 import com.onarandombox.MultiverseCore.utils.AnchorManager;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.MCTGame;
 import org.bukkit.*;
 import org.bukkit.block.structure.Mirror;
@@ -15,7 +15,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scoreboard.*;
@@ -43,16 +42,18 @@ public class FootRaceGame implements Listener, MCTGame {
     private final BoundingBox finishLine = new BoundingBox(2396, 80, 295, 2404, 79, 308);
     private final ScoreboardManager scoreboardManager;
     private final Main plugin;
+    private final GameManager gameManager;
     private int startCountDownTaskID;
     private List<Player> participants;
     private Map<Player, Long> lapCooldowns;
     private Map<Player, Integer> laps;
-    private ArrayList<Player> placement;
+    private ArrayList<Player> placements;
     private boolean raceHasStarted = false;
     private long raceStartTime;
     
-    public FootRaceGame(Main plugin) {
+    public FootRaceGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
+        this.gameManager = gameManager;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         scoreboardManager = Bukkit.getScoreboardManager();
         MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
@@ -65,7 +66,7 @@ public class FootRaceGame implements Listener, MCTGame {
         lapCooldowns = participants.stream().collect(
                 Collectors.toMap(participant -> participant, key -> System.currentTimeMillis()));
         laps = participants.stream().collect(Collectors.toMap(participant -> participant, key -> 1));
-        placement = new ArrayList<>();
+        placements = new ArrayList<>();
         initializeScoreboard();
         teleportPlayersToStartingPositions();
         giveParticipantsStatusEffects();
@@ -235,14 +236,39 @@ public class FootRaceGame implements Listener, MCTGame {
                 laps.put(player, newLap);
                 updateParticipantScoreboard(player);
                 player.sendMessage("Lap " + newLap);
-                player.sendMessage(String.format("It has been %dms", elapsedTime));
+                player.sendMessage(String.format("It has been %d seconds", elapsedTime/1000));
                 return;
             }
             if (currentLap == MAX_LAPS) {
                 laps.put(player, currentLap + 1);
-                placement.add(player);
+                placements.add(player);
                 displayRaceCompletedScoreboard(player);
-                player.sendMessage(String.format("You finished %s! It took you %dms", placement.indexOf(player) + 1, elapsedTime));
+                int placement = placements.indexOf(player) + 1;
+                String placementTitle = getPlacementTitle(placement);
+                player.sendMessage(String.format("You finished %s! It took you %d seconds", placementTitle, elapsedTime/1000));
+            }
+        }
+    }
+    
+    /**
+     * Returns the formal placement title of the given place. 
+     * 1 gives 1st, 2 gives second, 11 gives 11th, 103 gives 103rd.
+     * @param placement A number representing the placement
+     * @return The placement number with the appropriate postfix (st, nd, rd, th)
+     */
+    public static String getPlacementTitle(int placement) {
+        if (placement % 100 >= 11 && placement % 100 <= 13) {
+            return placement + "th";
+        } else {
+            switch (placement % 10) {
+                case 1:
+                    return placement + "st";
+                case 2:
+                    return placement + "nd";
+                case 3:
+                    return placement + "rd";
+                default:
+                    return placement + "th";
             }
         }
     }
