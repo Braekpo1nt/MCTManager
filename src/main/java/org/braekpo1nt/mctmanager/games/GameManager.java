@@ -68,11 +68,10 @@ public class GameManager {
         
         List<Player> onlineParticipants = this.getOnlineParticipants();
         if (onlineParticipants.isEmpty()) {
-            sender.sendMessage(Component.text("There are no online participants. You can add participants using the ")
-                    .append(Component.text("/mct team join")
+            sender.sendMessage(Component.text("There are no online participants. You can add participants using:\n")
+                    .append(Component.text("/mct team join <team> <member>")
                             .decorate(TextDecoration.BOLD)
-                            .clickEvent(ClickEvent.suggestCommand("/mct team join ")))
-                    .append(Component.text(" command.")));
+                            .clickEvent(ClickEvent.suggestCommand("/mct team join "))));
             return;
         }
         
@@ -255,8 +254,8 @@ public class GameManager {
         gameStateStorageUtil.addPointsToPlayer(playerUniqueId, points);
         player.sendMessage(Component.text("+")
                 .append(Component.text(points))
-                .append(Component.text(" points")
-                        .decorate(TextDecoration.BOLD)
-                        .color(NamedTextColor.GOLD)));
+                .append(Component.text(" points"))
+                .decorate(TextDecoration.BOLD)
+                .color(NamedTextColor.GOLD));
     }
 }

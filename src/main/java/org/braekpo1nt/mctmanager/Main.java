@@ -32,6 +32,14 @@ public final class Main extends JavaPlugin {
     @Override
     public void onEnable() {
         
+        Plugin multiversePlugin = Bukkit.getPluginManager().getPlugin("Multiverse-Core");
+        if (multiversePlugin == null) {
+            Bukkit.getLogger().severe("[MCTManager] Cannot find Multiverse-Core. [MCTManager] depends on it and cannot proceed without it.");
+            Bukkit.getPluginManager().disablePlugin(this);
+            return;
+        }
+        Main.multiverseCore = ((MultiverseCore) multiversePlugin);
+        
         gameManager = new GameManager(this);
         try {
             gameManager.loadGameState();
@@ -41,14 +49,6 @@ public final class Main extends JavaPlugin {
             saveGameStateOnDisable = false;
             Bukkit.getPluginManager().disablePlugin(this);
         }
-        
-        Plugin multiversePlugin = Bukkit.getPluginManager().getPlugin("Multiverse-Core");
-        if (multiversePlugin == null) {
-            Bukkit.getLogger().severe("[MCTManager] Cannot find Multiverse-Core. [MCTManager] depends on it and cannot proceed without it.");
-            Bukkit.getPluginManager().disablePlugin(this);
-            return;
-        }
-        Main.multiverseCore = ((MultiverseCore) multiversePlugin);
         
         // Listeners
         HubBoundaryListener hubBoundaryListener = new HubBoundaryListener(this);
@@ -65,7 +65,7 @@ public final class Main extends JavaPlugin {
     
     @Override
     public void onDisable() {
-        if (saveGameStateOnDisable) {
+        if (saveGameStateOnDisable && gameManager != null) {
             try {
                 gameManager.saveGameState();
             } catch (IOException e) {
