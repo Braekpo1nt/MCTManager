@@ -126,4 +126,13 @@ public class GameState {
         }
         
     }
+    
+    public MCTTeam getTeam(String teamName) {
+        for (MCTTeam mctTeam : teams) {
+            if (mctTeam.getName().equals(teamName)) {
+                return mctTeam;
+            }
+        }
+        return null;
+    }
 }

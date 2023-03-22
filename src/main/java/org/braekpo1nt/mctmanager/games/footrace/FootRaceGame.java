@@ -5,6 +5,7 @@ import com.onarandombox.MultiverseCore.api.MultiverseWorld;
 import com.onarandombox.MultiverseCore.utils.AnchorManager;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.MCTGame;
@@ -21,6 +22,7 @@ import org.bukkit.scoreboard.*;
 import org.bukkit.structure.Structure;
 import org.bukkit.util.BoundingBox;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -228,10 +230,10 @@ public class FootRaceGame implements Listener, MCTGame {
                 return;
             }
             lapCooldowns.put(player, System.currentTimeMillis());
-        
+            
             int currentLap = laps.get(player);
-            long elapsedTime = System.currentTimeMillis() - raceStartTime;
             if (currentLap < MAX_LAPS) {
+                long elapsedTime = System.currentTimeMillis() - raceStartTime;
                 int newLap = currentLap + 1;
                 laps.put(player, newLap);
                 updateParticipantScoreboard(player);
@@ -241,12 +243,51 @@ public class FootRaceGame implements Listener, MCTGame {
             }
             if (currentLap == MAX_LAPS) {
                 laps.put(player, currentLap + 1);
-                placements.add(player);
-                displayRaceCompletedScoreboard(player);
-                int placement = placements.indexOf(player) + 1;
-                String placementTitle = getPlacementTitle(placement);
-                player.sendMessage(String.format("You finished %s! It took you %d seconds", placementTitle, elapsedTime/1000));
+                onPlayerFinishedRace(player);
             }
+        }
+    }
+    
+    /**
+     * Code to run when a single player crosses the finish line for the last time
+     * @param player The player who crossed the finish line
+     */
+    private void onPlayerFinishedRace(Player player) {
+        long elapsedTime = System.currentTimeMillis() - raceStartTime;
+        placements.add(player);
+        displayRaceCompletedScoreboard(player);
+        int placement = placements.indexOf(player) + 1;
+        int points = calculatePointsForPlacement(placement);
+        try {
+            gameManager.awardPointsToPlayer(player, points);
+            String placementTitle = getPlacementTitle(placement);
+            player.sendMessage(String.format("You finished %s! It took you %d seconds", placementTitle, elapsedTime /1000));
+        } catch (IOException e) {
+            player.sendMessage(
+                    Component.text("Critical error occurred. Please notify an admin to check the logs.")
+                    .color(NamedTextColor.RED)
+                    .decorate(TextDecoration.BOLD));
+            Bukkit.getLogger().severe("Error while adding points to player. See log for error message.");
+            throw new RuntimeException(e);
+        }
+    }
+    
+    private int calculatePointsForPlacement(int placement) {
+        switch (placement) {
+            case 1:
+                return 350;
+            case 2:
+                return 275;
+            case 3:
+                return 200;
+            case 4:
+                return 150;
+            case 5:
+                return 100;
+            default:
+                int previousPoints = calculatePointsForPlacement(placement - 1);
+                int points = previousPoints - 10;
+                return Math.max(points, 0);
         }
     }
     
@@ -256,7 +297,7 @@ public class FootRaceGame implements Listener, MCTGame {
      * @param placement A number representing the placement
      * @return The placement number with the appropriate postfix (st, nd, rd, th)
      */
-    public static String getPlacementTitle(int placement) {
+    private String getPlacementTitle(int placement) {
         if (placement % 100 >= 11 && placement % 100 <= 13) {
             return placement + "th";
         } else {

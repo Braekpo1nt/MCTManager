@@ -240,4 +240,18 @@ public class GameManager {
     public String getTeamName(UUID playerUniqueId) {
         return gameStateStorageUtil.getPlayerTeamName(playerUniqueId);
     }
+    
+    public int awardPointsToPlayer(Player player, int points) throws IOException {
+        UUID playerUniqueId = player.getUniqueId();
+        if (!gameStateStorageUtil.containsPlayer(playerUniqueId)) {
+            return -1;
+        }
+        int teamPoints = gameStateStorageUtil.addPointsToPlayer(playerUniqueId, points);
+        player.sendMessage(Component.text("+")
+                .append(Component.text(points))
+                .append(Component.text(" points")
+                        .decorate(TextDecoration.BOLD)
+                        .color(NamedTextColor.GOLD)));
+        return teamPoints;
+    }
 }
