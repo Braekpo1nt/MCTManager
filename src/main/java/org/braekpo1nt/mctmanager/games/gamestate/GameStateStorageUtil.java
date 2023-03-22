@@ -6,6 +6,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.color.ColorMap;
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 
@@ -108,10 +109,33 @@ public class GameStateStorageUtil {
     }
     
     /**
+     * Set up the scoreboard from the game state. 
+     * - Add teams to the scoreboard
+     * - configure team options
+     * - add the players to those teams
+     * @param scoreboard The scoreboard to set up
+     */
+    public void setupScoreboard(Scoreboard scoreboard) {
+        unregisterAllTeams(scoreboard);
+        registerTeams(scoreboard);
+        joinPlayersToTeams(scoreboard);
+    }
+    
+    /**
+     * Unregister all teams from the scoreboard
+     * @param scoreboard The scoreboard to unregister teams from
+     */
+    private void unregisterAllTeams(Scoreboard scoreboard) {
+        for (Team team : scoreboard.getTeams()) {
+            team.unregister();
+        }
+    }
+    
+    /**
      * Registers all teams in the game state with the given scoreboard
      * @param scoreboard The scoreboard to register the teams for
      */
-    public void registerTeams(Scoreboard scoreboard) {
+    private void registerTeams(Scoreboard scoreboard) {
         for (MCTTeam mctTeam : gameState.getTeams()) {
             Team team = scoreboard.registerNewTeam(mctTeam.getName());
             team.displayName(Component.text(mctTeam.getDisplayName()));
@@ -119,6 +143,18 @@ public class GameStateStorageUtil {
                 NamedTextColor namedTextColor = ColorMap.getColor(mctTeam.getColor());
                 team.color(namedTextColor);
             }
+        }
+    }
+    
+    /**
+     * Joins all players in the game state to their respective teams on the given scoreboard
+     * @param scoreboard The scoreboard with the teams to join players to
+     */
+    private void joinPlayersToTeams(Scoreboard scoreboard) {
+        for (MCTPlayer mctPlayer : gameState.getPlayers()) {
+            Team team = scoreboard.getTeam(mctPlayer.getTeamName());
+            OfflinePlayer player = Bukkit.getOfflinePlayer(mctPlayer.getUniqueId());
+            team.addPlayer(player);
         }
     }
     
