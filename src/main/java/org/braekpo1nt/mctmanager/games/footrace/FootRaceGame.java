@@ -6,7 +6,6 @@ import com.onarandombox.MultiverseCore.api.MultiverseWorld;
 import com.onarandombox.MultiverseCore.utils.AnchorManager;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.MCTGame;
 import org.bukkit.*;
@@ -23,6 +22,7 @@ import org.bukkit.scoreboard.*;
 import org.bukkit.structure.Structure;
 import org.bukkit.util.BoundingBox;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -47,6 +47,9 @@ public class FootRaceGame implements Listener, MCTGame {
     private List<Player> participants;
     private Map<Player, Long> lapCooldowns;
     private Map<Player, Integer> laps;
+    private ArrayList<Player> placement;
+    private boolean raceHasStarted = false;
+    private long raceStartTime;
     
     public FootRaceGame(Main plugin) {
         this.plugin = plugin;
@@ -65,6 +68,7 @@ public class FootRaceGame implements Listener, MCTGame {
         lapCooldowns = participants.stream().collect(
                 Collectors.toMap(participant -> participant, key -> System.currentTimeMillis()));
         laps = participants.stream().collect(Collectors.toMap(participant -> participant, key -> 1));
+        placement = new ArrayList<>();
         initializeScoreboard();
         teleportPlayersToStartingPositions();
         giveParticipantsStatusEffects();
@@ -72,6 +76,17 @@ public class FootRaceGame implements Listener, MCTGame {
         
         gameActive = true;
         Bukkit.getLogger().info("Starting Foot Race game");
+    }
+    
+    public void stop() {
+        closeGlassBarrier();
+        hideScoreboard();
+        removeParticipantStatusEffects();
+        teleportPlayersToHub();
+        stopCountDown();
+        raceHasStarted = false;
+        gameActive = false;
+        Bukkit.getLogger().info("Stopping Foot Race game");
     }
     
     private void giveParticipantsStatusEffects() {
@@ -99,18 +114,25 @@ public class FootRaceGame implements Listener, MCTGame {
                 for (Player participant : participants) {
                     if (count <= 0) {
                         participant.sendMessage(Component.text("Go!"));
+                        
                     } else {
                         participant.sendMessage(Component.text(count));
                     }
                 }
                 if (count <= 0) {
-                    openGlassBarrier();
-                    stopCountDown();
+                    startRace();
                     return;
                 }
                 count--;
             }
         }, 0L, 20L);
+    }
+    
+    private void startRace() {
+        openGlassBarrier();
+        stopCountDown();
+        raceStartTime = System.currentTimeMillis();
+        raceHasStarted = true;
     }
     
     private void openGlassBarrier() {
@@ -165,7 +187,6 @@ public class FootRaceGame implements Listener, MCTGame {
     }
     
     private void displayRaceCompletedScoreboard(Player participant) {
-        Bukkit.getLogger().info("displayRaceCompletedScoreboard");
         Scoreboard scoreboard = scoreboardManager.getNewScoreboard();
         Objective objective = scoreboard.registerNewObjective("footrace", Criteria.DUMMY,
                 Component.text("Foot Race")
@@ -178,16 +199,6 @@ public class FootRaceGame implements Listener, MCTGame {
         participant.setScoreboard(scoreboard);
     }
     
-    public void stop() {
-        closeGlassBarrier();
-        hideScoreboard();
-        removeParticipantStatusEffects();
-        teleportPlayersToHub();
-        stopCountDown();
-        gameActive = false;
-        Bukkit.getLogger().info("Stopping Foot Race game");
-    }
-    
     private void hideScoreboard() {
         for (Player participant : participants) {
             participant.setScoreboard(scoreboardManager.getMainScoreboard());
@@ -196,38 +207,45 @@ public class FootRaceGame implements Listener, MCTGame {
     
     @EventHandler
     public void onPlayerCrossFinishLine(PlayerMoveEvent event) {
-        if (gameActive) {
-            Player player = event.getPlayer();
-            if (!participants.contains(player)) {
+        if (!gameActive) {
+            return;
+        }
+        if (!raceHasStarted) {
+            return;
+        }
+        Player player = event.getPlayer();
+        if (!participants.contains(player)) {
+            return;
+        }
+        if (!player.getWorld().equals(footRaceWorld)) {
+            return;
+        }
+        
+        if (isInFinishLineBoundingBox(player)) {
+            long lastMoveTime = lapCooldowns.get(player);
+            long currentTime = System.currentTimeMillis();
+            long coolDownTime = 3000L; // 3 second
+            if (currentTime - lastMoveTime < coolDownTime) {
+                //Not enough time has elapsed, return without doing anything
                 return;
             }
-            if (!player.getWorld().equals(footRaceWorld)) {
+            lapCooldowns.put(player, System.currentTimeMillis());
+        
+            int currentLap = laps.get(player);
+            long elapsedTime = System.currentTimeMillis() - raceStartTime;
+            if (currentLap < MAX_LAPS) {
+                int newLap = currentLap + 1;
+                laps.put(player, newLap);
+                updateParticipantScoreboard(player);
+                player.sendMessage("Lap " + newLap);
+                player.sendMessage(String.format("It has been %dms", elapsedTime));
                 return;
             }
-            
-            if (isInFinishLineBoundingBox(player)) {
-                long lastMoveTime = lapCooldowns.get(player);
-                long currentTime = System.currentTimeMillis();
-                long coolDownTime = 3000L; // 3 second
-                if (currentTime - lastMoveTime < coolDownTime) {
-                    //Not enough time has elapsed, return without doing anything
-                    return;
-                }
-                lapCooldowns.put(player, System.currentTimeMillis());
-                
-                int currentLap = laps.get(player);
-                if (currentLap < MAX_LAPS) {
-                    int newLap = currentLap + 1;
-                    laps.put(player, newLap);
-                    updateParticipantScoreboard(player);
-                    player.sendMessage("Lap " + newLap);
-                    return;
-                }
-                if (currentLap >= MAX_LAPS) {
-                    laps.put(player, currentLap + 1);
-                    displayRaceCompletedScoreboard(player);
-                    player.sendMessage("You finished all 3 laps!");
-                }
+            if (currentLap == MAX_LAPS) {
+                laps.put(player, currentLap + 1);
+                placement.add(player);
+                displayRaceCompletedScoreboard(player);
+                player.sendMessage(String.format("You finished %s! It took you %dms", placement.indexOf(player) + 1, elapsedTime));
             }
         }
     }

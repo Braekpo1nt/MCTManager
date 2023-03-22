@@ -18,7 +18,7 @@ public class OptionSubCommand implements TabExecutor {
     
     private final HubBoundaryListener hubBoundaryListener;
     private final BlockEffectsListener blockEffectsListener;
-
+    
     public OptionSubCommand(HubBoundaryListener hubBoundaryListener, BlockEffectsListener blockEffectsListener) {
         this.hubBoundaryListener = hubBoundaryListener;
         this.blockEffectsListener = blockEffectsListener;
