@@ -35,17 +35,20 @@ public class GameManager {
      * modified using the normal /team command, and thus can't be unsynced
      * with the game state.
      */
-    private final Scoreboard teamScoreboard;
+    private final Scoreboard mctScoreboard;
     
-    public GameManager(Main plugin) {
-        teamScoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
+    public GameManager(Main plugin, Scoreboard mctScoreboard) {
+        this.mctScoreboard = mctScoreboard;
         gameStateStorageUtil = new GameStateStorageUtil(plugin);
         this.footRaceGame = new FootRaceGame(plugin, this);
     }
     
     public void loadGameState() throws IOException {
         gameStateStorageUtil.loadGameState();
-        gameStateStorageUtil.setupScoreboard(teamScoreboard);
+        gameStateStorageUtil.setupScoreboard(mctScoreboard);
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            player.setScoreboard(mctScoreboard);
+        }
     }
 
     public void saveGameState() throws IOException, IllegalStateException {
@@ -136,7 +139,7 @@ public class GameManager {
             return false;
         }
         gameStateStorageUtil.removeTeam(teamName);
-        Team team = teamScoreboard.getTeam(teamName);
+        Team team = mctScoreboard.getTeam(teamName);
         team.unregister();
         return true;
     }
@@ -153,7 +156,7 @@ public class GameManager {
             return false;
         }
         gameStateStorageUtil.addTeam(teamName, teamDisplayName, colorString);
-        Team newTeam = teamScoreboard.registerNewTeam(teamName);
+        Team newTeam = mctScoreboard.registerNewTeam(teamName);
         newTeam.displayName(Component.text(teamDisplayName));
         NamedTextColor color = ColorMap.getColor(colorString);
         newTeam.color(color);
@@ -195,7 +198,7 @@ public class GameManager {
     
     private void addNewPlayer(UUID playerUniqueId, String teamName) throws IOException {
         gameStateStorageUtil.addNewPlayer(playerUniqueId, teamName);
-        Team team = teamScoreboard.getTeam(teamName);
+        Team team = mctScoreboard.getTeam(teamName);
         OfflinePlayer newPlayer = Bukkit.getOfflinePlayer(playerUniqueId);
         team.addPlayer(newPlayer);
     }
@@ -205,9 +208,9 @@ public class GameManager {
         gameStateStorageUtil.setPlayerTeamName(playerUniqueId, newTeamName);
     
         OfflinePlayer player = Bukkit.getOfflinePlayer(playerUniqueId);
-        Team oldTeam = teamScoreboard.getTeam(oldTeamName);
+        Team oldTeam = mctScoreboard.getTeam(oldTeamName);
         oldTeam.removePlayer(player);
-        Team newTeam = teamScoreboard.getTeam(newTeamName);
+        Team newTeam = mctScoreboard.getTeam(newTeamName);
         newTeam.addPlayer(player);
     }
     

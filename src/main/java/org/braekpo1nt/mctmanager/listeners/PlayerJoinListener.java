@@ -6,13 +6,17 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.scoreboard.Scoreboard;
 
 /**
  * All logic that should be run when a player joins the server
  */
 public class PlayerJoinListener implements Listener {
     
-    public PlayerJoinListener(Main plugin) {
+    private final Scoreboard mctScoreboard;
+    
+    public PlayerJoinListener(Main plugin, Scoreboard mctScoreboard) {
+        this.mctScoreboard = mctScoreboard;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
     
@@ -20,6 +24,7 @@ public class PlayerJoinListener implements Listener {
     public void onPlayerJoin(PlayerJoinEvent event) {
         Bukkit.getLogger().info("[MCTManager]: Initializing player");
         Player player = event.getPlayer();
+        player.setScoreboard(mctScoreboard);
         Main.giveAmbientStatusEffects(player);
     }
     

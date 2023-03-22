@@ -13,6 +13,7 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.scoreboard.Scoreboard;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,6 +27,7 @@ public final class Main extends JavaPlugin {
     private final static PotionEffect NIGHT_VISION = new PotionEffect(PotionEffectType.NIGHT_VISION, 1000000, 3, true, false, false);
     private final static PotionEffect FIRE_RESISTANCE = new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 1000000, 1, true, false, false);
     private final static PotionEffect SATURATION = new PotionEffect(PotionEffectType.SATURATION, 1000000, 250, true, false, false);
+    private Scoreboard mctScoreboard;
     private GameManager gameManager;
     private boolean saveGameStateOnDisable = true;
     
@@ -40,7 +42,9 @@ public final class Main extends JavaPlugin {
         }
         Main.multiverseCore = ((MultiverseCore) multiversePlugin);
         
-        gameManager = new GameManager(this);
+        mctScoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
+        
+        gameManager = new GameManager(this, mctScoreboard);
         try {
             gameManager.loadGameState();
         } catch (IOException e) {
@@ -53,7 +57,7 @@ public final class Main extends JavaPlugin {
         // Listeners
         HubBoundaryListener hubBoundaryListener = new HubBoundaryListener(this);
         BlockEffectsListener blockEffectsListener = new BlockEffectsListener(this);
-        new PlayerJoinListener(this);
+        new PlayerJoinListener(this, mctScoreboard);
         
         // Commands
         new MCTDebugCommand(this);
