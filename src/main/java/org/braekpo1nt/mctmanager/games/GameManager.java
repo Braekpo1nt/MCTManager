@@ -50,7 +50,7 @@ public class GameManager {
             player.setScoreboard(mctScoreboard);
         }
     }
-
+    
     public void saveGameState() throws IOException, IllegalStateException {
         gameStateStorageUtil.saveGameState();
     }
@@ -237,7 +237,7 @@ public class GameManager {
     }
     
     /**
-     * Awards points to the player and their team
+     * Awards points to the player and their team. If the player does not exist, nothing happens.
      * @param player The player to award points to
      * @param points The points to award to the player
      * @throws IOException If an error occurs saving the game state
