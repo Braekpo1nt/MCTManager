@@ -12,6 +12,7 @@ import org.bukkit.scoreboard.Team;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 
@@ -105,6 +106,13 @@ public class GameStateStorageUtil {
     
     public void removeTeam(String teamName) throws IOException {
         gameState.removeTeam(teamName);
+        Iterator<MCTPlayer> iterator = gameState.getPlayers().iterator();
+        while (iterator.hasNext()) {
+            MCTPlayer mctPlayer = iterator.next();
+            if (mctPlayer.getTeamName().equals(teamName)) {
+                iterator.remove();
+            }
+        }
         saveGameState();
     }
     
