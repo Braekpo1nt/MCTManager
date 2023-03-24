@@ -64,6 +64,7 @@ public class MCTCommand implements TabExecutor {
         String subCommandName = args[0];
         if (!subCommands.containsKey(subCommandName)) {
             sender.sendMessage(String.format("Argument %s is not recognized.", subCommandName));
+            return true;
         }
         
         return subCommands.get(subCommandName).onCommand(sender, command, label, Arrays.copyOfRange(args, 1, args.length));

@@ -24,6 +24,7 @@ import org.bukkit.structure.Structure;
 import org.bukkit.util.BoundingBox;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -45,9 +46,9 @@ public class FootRaceGame implements Listener, MCTGame {
     private final GameManager gameManager;
     private int startCountDownTaskID;
     private List<Player> participants;
-    private Map<Player, Long> lapCooldowns;
-    private Map<Player, Integer> laps;
-    private ArrayList<Player> placements;
+    private Map<UUID, Long> lapCooldowns;
+    private Map<UUID, Integer> laps;
+    private ArrayList<UUID> placements;
     private boolean raceHasStarted = false;
     private long raceStartTime;
     private final Map<UUID, FastBoard> boards = new HashMap<>();
@@ -65,8 +66,8 @@ public class FootRaceGame implements Listener, MCTGame {
         this.participants = participants;
         
         lapCooldowns = participants.stream().collect(
-                Collectors.toMap(participant -> participant, key -> System.currentTimeMillis()));
-        laps = participants.stream().collect(Collectors.toMap(participant -> participant, key -> 1));
+                Collectors.toMap(participant -> participant.getUniqueId(), key -> System.currentTimeMillis()));
+        laps = participants.stream().collect(Collectors.toMap(participant -> participant.getUniqueId(), key -> 1));
         placements = new ArrayList<>();
         initializeFastBoards();
         teleportPlayersToStartingPositions();
@@ -171,8 +172,9 @@ public class FootRaceGame implements Listener, MCTGame {
             FastBoard board = new FastBoard(participant);
             board.updateTitle(ChatColor.BLUE+"Foot Race");
             board.updateLines(
+                    "00:00:000",
                     "",
-                    String.format("Lap: %d/%d", laps.get(participant), MAX_LAPS),
+                    String.format("Lap: %d/%d", laps.get(participant.getUniqueId()), MAX_LAPS),
                     ""
             );
             boards.put(participant.getUniqueId(), board);
@@ -185,6 +187,29 @@ public class FootRaceGame implements Listener, MCTGame {
         }
     }
     
+    private void updateFastBoard(UUID playerUniqueId) {
+        FastBoard board = boards.get(playerUniqueId);
+        long elapsedTime = System.currentTimeMillis() - raceStartTime;
+        board.updateLines(
+                getTimeString(elapsedTime),
+                "",
+                String.format("Lap: %d/%d", laps.get(playerUniqueId), MAX_LAPS),
+                ""
+        );
+    }
+    
+    private void showRaceCompleteFastBoard(Player player) {
+        FastBoard board = boards.get(player.getUniqueId());
+        long elapsedTime = System.currentTimeMillis() - raceStartTime;
+        board.updateLines(
+                getTimeString(elapsedTime),
+                "",
+                "Race Complete!",
+                getPlacementTitle(placements.indexOf(player.getUniqueId()) + 1),
+                ""
+        );
+    }
+    
     @EventHandler
     public void onPlayerCrossFinishLine(PlayerMoveEvent event) {
         if (!gameActive) {
@@ -194,6 +219,7 @@ public class FootRaceGame implements Listener, MCTGame {
             return;
         }
         Player player = event.getPlayer();
+        UUID playerUUID = player.getUniqueId();
         if (!participants.contains(player)) {
             return;
         }
@@ -202,48 +228,44 @@ public class FootRaceGame implements Listener, MCTGame {
         }
         
         if (isInFinishLineBoundingBox(player)) {
-            long lastMoveTime = lapCooldowns.get(player);
+            long lastMoveTime = lapCooldowns.get(playerUUID);
             long currentTime = System.currentTimeMillis();
             long coolDownTime = 3000L; // 3 second
             if (currentTime - lastMoveTime < coolDownTime) {
                 //Not enough time has elapsed, return without doing anything
                 return;
             }
-            lapCooldowns.put(player, System.currentTimeMillis());
+            lapCooldowns.put(playerUUID, System.currentTimeMillis());
             
-            int currentLap = laps.get(player);
+            int currentLap = laps.get(playerUUID);
             if (currentLap < MAX_LAPS) {
                 long elapsedTime = System.currentTimeMillis() - raceStartTime;
                 int newLap = currentLap + 1;
-                laps.put(player, newLap);
-                updateFastBoard(player);
+                laps.put(playerUUID, newLap);
+                updateFastBoard(playerUUID);
                 player.sendMessage("Lap " + newLap);
-                player.sendMessage(String.format("It has been %d seconds", elapsedTime/1000));
+                player.sendMessage(String.format("Finished lap %d in %s", currentLap, getTimeString(elapsedTime)));
                 return;
             }
             if (currentLap == MAX_LAPS) {
-                laps.put(player, currentLap + 1);
+                laps.put(playerUUID, currentLap + 1);
                 onPlayerFinishedRace(player);
             }
         }
     }
     
-    private void updateFastBoard(Player player) {
-        FastBoard board = boards.get(player.getUniqueId());
-        board.updateLines(
-                "",
-                String.format("Lap: %d/%d", laps.get(player), MAX_LAPS),
-                ""
-        );
-    }
-    
-    private void showRaceCompleteFastBoard(Player player) {
-        FastBoard board = boards.get(player.getUniqueId());
-        board.updateLines(
-                "",
-                "Race Complete!",
-                ""
-        );
+    /**
+     * Returns the given milliseconds as a string representing time in the format
+     * MM:ss:mmm (or minutes:seconds:milliseconds)
+     * @param timeMilis The time in milliseconds
+     * @return Time string MM:ss:mmm
+     */
+    private String getTimeString(long timeMilis) {
+        Duration duration = Duration.ofMillis(timeMilis);
+        long minutes = duration.toMinutes();
+        long seconds = duration.minusMinutes(minutes).getSeconds();
+        long millis = duration.minusMinutes(minutes).minusSeconds(seconds).toMillis();
+        return String.format("%d:%02d:%03d", minutes, seconds, millis);
     }
     
     /**
@@ -252,14 +274,14 @@ public class FootRaceGame implements Listener, MCTGame {
      */
     private void onPlayerFinishedRace(Player player) {
         long elapsedTime = System.currentTimeMillis() - raceStartTime;
-        placements.add(player);
+        placements.add(player.getUniqueId());
         showRaceCompleteFastBoard(player);
-        int placement = placements.indexOf(player) + 1;
+        int placement = placements.indexOf(player.getUniqueId()) + 1;
         int points = calculatePointsForPlacement(placement);
         try {
             gameManager.awardPointsToPlayer(player, points);
             String placementTitle = getPlacementTitle(placement);
-            player.sendMessage(String.format("You finished %s! It took you %d seconds", placementTitle, elapsedTime /1000));
+            player.sendMessage(String.format("You finished %s! It took you %d", placementTitle, getTimeString(elapsedTime)));
         } catch (IOException e) {
             player.sendMessage(
                     Component.text("Critical error occurred. Please notify an admin to check the logs.")
