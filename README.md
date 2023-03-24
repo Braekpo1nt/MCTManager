@@ -10,13 +10,13 @@ In order to host an event, you need to [add participants](#adding-a-new-particip
 ### Starting a game
 You can start a game with the following command:
 
-- `/mct startgame <game>`
+- `/mct game start <game>`
   - `<game>` the game to start. Must be a valid game name in the event. See [list of games](#games-list)
 
 ### Stopping a game
 If a game is running, you can manually stop a game with the following command:
 
-- `/mct stopgame`
+- `/mct game stop`
 
 This will stop the game, and return all players to the beginning. As of the time of writing this, the points for playing the game will be retained. 
 
@@ -40,7 +40,7 @@ To add a new participant, use the following command:
   - `<member>` the name of the player to add. Must be an online player.
 
 ## Games List
-This is a list of the currently implemented games
+This is a list of the currently implemented games. See above for how to [start a game](#starting-a-game)
 
 - Foot Race
   - Start game with `/mct startgame foot-race`

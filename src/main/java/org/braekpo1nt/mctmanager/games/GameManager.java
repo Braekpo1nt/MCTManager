@@ -122,9 +122,9 @@ public class GameManager {
     }
     
     /**
-     * If a game is currently going on, stops the game
+     * If a game is currently going on, manually stops the game. 
      */
-    public void manuallyStopGame(Player sender) {
+    public void manuallyStopGame(CommandSender sender) {
         if (activeGame == null) {
             sender.sendMessage("No game is running.");
             return;

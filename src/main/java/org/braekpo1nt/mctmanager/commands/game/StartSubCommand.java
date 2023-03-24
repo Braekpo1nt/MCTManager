@@ -1,10 +1,9 @@
-package org.braekpo1nt.mctmanager.commands;
+package org.braekpo1nt.mctmanager.commands.game;
 
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -14,11 +13,11 @@ import java.util.List;
 /**
  * Handles starting games
  */
-public class StartGameSubCommand implements TabExecutor {
+public class StartSubCommand implements TabExecutor {
     
     private final GameManager gameManager;
     
-    public StartGameSubCommand(GameManager gameManager) {
+    public StartSubCommand(GameManager gameManager) {
         this.gameManager = gameManager;
     }
     
