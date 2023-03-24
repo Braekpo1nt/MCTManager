@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.footrace;
 import com.onarandombox.MultiverseCore.api.MVWorldManager;
 import com.onarandombox.MultiverseCore.api.MultiverseWorld;
 import com.onarandombox.MultiverseCore.utils.AnchorManager;
+import fr.mrmicky.fastboard.FastBoard;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -23,10 +24,7 @@ import org.bukkit.structure.Structure;
 import org.bukkit.util.BoundingBox;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -52,6 +50,7 @@ public class FootRaceGame implements Listener, MCTGame {
     private ArrayList<Player> placements;
     private boolean raceHasStarted = false;
     private long raceStartTime;
+    private final Map<UUID, FastBoard> boards = new HashMap<>();
     
     public FootRaceGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
@@ -69,7 +68,7 @@ public class FootRaceGame implements Listener, MCTGame {
                 Collectors.toMap(participant -> participant, key -> System.currentTimeMillis()));
         laps = participants.stream().collect(Collectors.toMap(participant -> participant, key -> 1));
         placements = new ArrayList<>();
-        initializeScoreboard();
+        initializeFastBoards();
         teleportPlayersToStartingPositions();
         giveParticipantsStatusEffects();
         startCountdown();
@@ -80,7 +79,7 @@ public class FootRaceGame implements Listener, MCTGame {
     
     public void stop() {
         closeGlassBarrier();
-        hideScoreboard();
+        hideFastBoards();
         removeParticipantStatusEffects();
         teleportPlayersToHub();
         stopCountDown();
@@ -167,41 +166,22 @@ public class FootRaceGame implements Listener, MCTGame {
         }
     }
     
-    private void initializeScoreboard() {
+    private void initializeFastBoards() {
         for (Player participant : participants) {
-            updateParticipantScoreboard(participant);
+            FastBoard board = new FastBoard(participant);
+            board.updateTitle(ChatColor.BLUE+"Foot Race");
+            board.updateLines(
+                    "",
+                    String.format("Lap: %d/%d", laps.get(participant), MAX_LAPS),
+                    ""
+            );
+            boards.put(participant.getUniqueId(), board);
         }
     }
     
-    private void updateParticipantScoreboard(Player participant) {
-        Scoreboard scoreboard = scoreboardManager.getNewScoreboard();
-        Objective objective = scoreboard.registerNewObjective("footrace", Criteria.DUMMY,
-                Component.text("Foot Race")
-                        .color(NamedTextColor.BLUE));
-        objective.setDisplaySlot(DisplaySlot.SIDEBAR);
-        
-        Score score = objective.getScore(String.format("Lap: %d/%d", laps.get(participant), MAX_LAPS));
-        score.setScore(1);
-        
-        participant.setScoreboard(scoreboard);
-    }
-    
-    private void displayRaceCompletedScoreboard(Player participant) {
-        Scoreboard scoreboard = scoreboardManager.getNewScoreboard();
-        Objective objective = scoreboard.registerNewObjective("footrace", Criteria.DUMMY,
-                Component.text("Foot Race")
-                        .color(NamedTextColor.BLUE));
-        objective.setDisplaySlot(DisplaySlot.SIDEBAR);
-        
-        Score score = objective.getScore("Race Complete!");
-        score.setScore(1);
-        
-        participant.setScoreboard(scoreboard);
-    }
-    
-    private void hideScoreboard() {
-        for (Player participant : participants) {
-            participant.setScoreboard(scoreboardManager.getMainScoreboard());
+    private void hideFastBoards() {
+        for (FastBoard board : boards.values()) {
+            board.delete();
         }
     }
     
@@ -236,7 +216,7 @@ public class FootRaceGame implements Listener, MCTGame {
                 long elapsedTime = System.currentTimeMillis() - raceStartTime;
                 int newLap = currentLap + 1;
                 laps.put(player, newLap);
-                updateParticipantScoreboard(player);
+                updateFastBoard(player);
                 player.sendMessage("Lap " + newLap);
                 player.sendMessage(String.format("It has been %d seconds", elapsedTime/1000));
                 return;
@@ -248,6 +228,24 @@ public class FootRaceGame implements Listener, MCTGame {
         }
     }
     
+    private void updateFastBoard(Player player) {
+        FastBoard board = boards.get(player.getUniqueId());
+        board.updateLines(
+                "",
+                String.format("Lap: %d/%d", laps.get(player), MAX_LAPS),
+                ""
+        );
+    }
+    
+    private void showRaceCompleteFastBoard(Player player) {
+        FastBoard board = boards.get(player.getUniqueId());
+        board.updateLines(
+                "",
+                "Race Complete!",
+                ""
+        );
+    }
+    
     /**
      * Code to run when a single player crosses the finish line for the last time
      * @param player The player who crossed the finish line
@@ -255,7 +253,7 @@ public class FootRaceGame implements Listener, MCTGame {
     private void onPlayerFinishedRace(Player player) {
         long elapsedTime = System.currentTimeMillis() - raceStartTime;
         placements.add(player);
-        displayRaceCompletedScoreboard(player);
+        showRaceCompleteFastBoard(player);
         int placement = placements.indexOf(player) + 1;
         int points = calculatePointsForPlacement(placement);
         try {
