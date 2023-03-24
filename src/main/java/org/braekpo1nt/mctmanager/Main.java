@@ -42,8 +42,6 @@ public final class Main extends JavaPlugin {
             return;
         }
         Main.multiverseCore = ((MultiverseCore) multiversePlugin);
-        FastBoard fastBoard = new FastBoard(Bukkit.getPlayer("Braekpo1nt"));
-        fastBoard.delete();
         
         mctScoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
         
