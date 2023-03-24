@@ -51,7 +51,7 @@ public class JoinSubCommand implements TabExecutor {
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length == 1) {
-            return gameManager.getTeamNames();
+            return gameManager.getTeamNames().stream().sorted().toList();
         }
         if (args.length == 2) {
             return null;

@@ -19,9 +19,7 @@ import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Responsible for overall game management. 
@@ -110,15 +108,13 @@ public class GameManager {
      * @return a list of all online participants
      */
     private List<Player> getOnlineParticipants() {
-        List<Player> onlinePlayers = new ArrayList<>();
-        List<UUID> playerUniqueIds = gameStateStorageUtil.getPlayerUniqueIds();
-        for (UUID playerUniqueId : playerUniqueIds) {
-            Player player = Bukkit.getPlayer(playerUniqueId);
-            if (player.isOnline()) {
-                onlinePlayers.add(player);
+        List<Player> onlineParticipants = new ArrayList<>();
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            if (gameStateStorageUtil.containsPlayer(player.getUniqueId())) {
+                onlineParticipants.add(player);
             }
         }
-        return onlinePlayers;
+        return onlineParticipants;
     }
     
     /**
@@ -213,7 +209,7 @@ public class GameManager {
      * @return A list containing the internal names of all the teams in the game. 
      * Empty list if there are no teams
      */
-    public List<String> getTeamNames() {
+    public Set<String> getTeamNames() {
         return gameStateStorageUtil.getTeamNames();
     }
     

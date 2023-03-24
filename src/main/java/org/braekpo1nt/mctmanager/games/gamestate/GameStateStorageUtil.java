@@ -11,10 +11,7 @@ import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Handles the CRUD operations for storing GameState objects
@@ -106,7 +103,7 @@ public class GameStateStorageUtil {
     
     public void removeTeam(String teamName) throws IOException {
         gameState.removeTeam(teamName);
-        Iterator<MCTPlayer> iterator = gameState.getPlayers().iterator();
+        Iterator<MCTPlayer> iterator = gameState.getPlayers().values().iterator();
         while (iterator.hasNext()) {
             MCTPlayer mctPlayer = iterator.next();
             if (mctPlayer.getTeamName().equals(teamName)) {
@@ -144,7 +141,7 @@ public class GameStateStorageUtil {
      * @param scoreboard The scoreboard to register the teams for
      */
     private void registerTeams(Scoreboard scoreboard) {
-        for (MCTTeam mctTeam : gameState.getTeams()) {
+        for (MCTTeam mctTeam : gameState.getTeams().values()) {
             Team team = scoreboard.registerNewTeam(mctTeam.getName());
             team.displayName(Component.text(mctTeam.getDisplayName()));
             if (ColorMap.hasColor(mctTeam.getColor())) {
@@ -159,23 +156,20 @@ public class GameStateStorageUtil {
      * @param scoreboard The scoreboard with the teams to join players to
      */
     private void joinPlayersToTeams(Scoreboard scoreboard) {
-        for (MCTPlayer mctPlayer : gameState.getPlayers()) {
+        for (MCTPlayer mctPlayer : gameState.getPlayers().values()) {
             Team team = scoreboard.getTeam(mctPlayer.getTeamName());
             OfflinePlayer player = Bukkit.getOfflinePlayer(mctPlayer.getUniqueId());
             team.addPlayer(player);
         }
+        
     }
     
     /**
      * Gets a list of the internal names of all the teams in the game state
      * @return A list of all the teams. Empty list if there are no teams.
      */
-    public List<String> getTeamNames() {
-        List<String> teamNames = new ArrayList<>();
-        for (MCTTeam mctTeam : gameState.getTeams()) {
-            teamNames.add(mctTeam.getName());
-        }
-        return teamNames;
+    public Set<String> getTeamNames() {
+        return gameState.getTeams().keySet();
     }
     
     
@@ -207,21 +201,10 @@ public class GameStateStorageUtil {
     }
     
     public List<UUID> getPlayerUniqueIdsOnTeam(String teamName) {
-        List<UUID> playersOnTeam = new ArrayList<>();
-        for (MCTPlayer mctPlayer : gameState.getPlayers()) {
-            if (mctPlayer.getTeamName().equals(teamName)) {
-                playersOnTeam.add(mctPlayer.getUniqueId());
-            }
-        }
-        return playersOnTeam;
-    }
-    
-    public List<UUID> getPlayerUniqueIds() {
-        List<UUID> playerUniqueIds = new ArrayList<>();
-        for (MCTPlayer mctPlayer : gameState.getPlayers()) {
-            playerUniqueIds.add(mctPlayer.getUniqueId());
-        }
-        return playerUniqueIds;
+        return gameState.getPlayers().entrySet().stream()
+                .filter(mctPlayer -> mctPlayer.getValue().getTeamName().equals(teamName))
+                .map(Map.Entry::getKey)
+                .toList();
     }
     
     public void leavePlayer(UUID playerUniqueId) throws IOException {

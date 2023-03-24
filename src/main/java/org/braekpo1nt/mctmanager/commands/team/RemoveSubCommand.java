@@ -43,6 +43,6 @@ public class RemoveSubCommand implements TabExecutor {
     
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        return gameManager.getTeamNames();
+        return gameManager.getTeamNames().stream().sorted().toList();
     }
 }

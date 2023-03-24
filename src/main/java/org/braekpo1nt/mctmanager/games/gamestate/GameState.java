@@ -2,44 +2,18 @@ package org.braekpo1nt.mctmanager.games.gamestate;
 
 import net.kyori.adventure.text.format.NamedTextColor;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Represents the state of the game for saving and loading from disk. 
  */
 public class GameState {
-    private List<MCTPlayer> players;
-    private List<MCTTeam> teams;
+    private Map<UUID, MCTPlayer> players;
+    private Map<String, MCTTeam> teams;
     
     public GameState() {
-        this.players = new ArrayList<>();
-        this.teams = new ArrayList<>();
-    }
-    
-    public List<MCTPlayer> getPlayers() {
-        return players;
-    }
-    
-    public void setPlayers(List<MCTPlayer> players) {
-        this.players = players;
-    }
-    
-    public List<MCTTeam> getTeams() {
-        return teams;
-    }
-    
-    public void setTeams(List<MCTTeam> teams) {
-        this.teams = teams;
-    }
-    
-    @Override
-    public String toString() {
-        return "GameState{" +
-                "players=" + players +
-                ", teams=" + teams +
-                '}';
+        this.players = new HashMap<>();
+        this.teams = new HashMap<>();
     }
     
     /**
@@ -48,12 +22,7 @@ public class GameState {
      * @return True if the team exists in the game state, false if not
      */
     public boolean containsTeam(String teamName) {
-        for (MCTTeam team : teams) {
-            if (team.getName().equals(teamName)) {
-                return true;
-            }
-        }
-        return false;
+        return teams.containsKey(teamName);
     }
     
     /**
@@ -64,29 +33,22 @@ public class GameState {
      */
     public void addTeam(String teamName, String teamDisplayName, String color) {
         MCTTeam newTeam = new MCTTeam(teamName, teamDisplayName, 0, color);
-        teams.add(newTeam);
+        teams.put(teamName, newTeam);
     }
     
     
     /**
-     * Removes the team with the given name from the game states, if it exists
+     * Removes the team with the given name from the game states, if it exists.
+     * If the team does not exist, nothing happens.
      * @param teamName The internal name of the team to remove
-     * @return True if the team was successfully deleted, 
-     * false if the team did not exist in the first place.
      */
-    public boolean removeTeam(String teamName) {
-        for (MCTTeam team : teams) {
-            if (team.getName().equals(teamName)) {
-                teams.remove(team);
-                return true;
-            }
-        }
-        return false;
+    public void removeTeam(String teamName) {
+        teams.remove(teamName);
     }
     
     public void addPlayer(UUID playerUniqueId, String teamName) {
         MCTPlayer newPlayer = new MCTPlayer(playerUniqueId, 0, teamName);
-        players.add(newPlayer);
+        players.put(playerUniqueId, newPlayer);
     }
     
     /**
@@ -95,12 +57,7 @@ public class GameState {
      * @return True if the player with the given UUID exists, false otherwise 
      */
     public boolean containsPlayer(UUID playerUniqueId) {
-        for (MCTPlayer mctPlayer : players) {
-            if (mctPlayer.getUniqueId().equals(playerUniqueId)) {
-                return true;
-            }
-        }
-        return false;
+        return players.containsKey(playerUniqueId);
     }
     
     /**
@@ -109,30 +66,35 @@ public class GameState {
      * @return The player with the given UUID, null if the player does not exist.
      */
     public MCTPlayer getPlayer(UUID playerUniqueId) {
-        for (MCTPlayer mctPlayer : players) {
-            if (mctPlayer.getUniqueId().equals(playerUniqueId)) {
-                return mctPlayer;
-            }
-        }
-        return null;
+        return players.get(playerUniqueId);
     }
     
+    /**
+     * Removes the player with the given UUID from the game state, if it exists.
+     * If the player did not exist, nothing happens. 
+     * @param playerUniqueId The UUID for the player
+     */
     public void removePlayer(UUID playerUniqueId) {
-        for (MCTPlayer mctPlayer : players) {
-            if (mctPlayer.getUniqueId().equals(playerUniqueId)) {
-                players.remove(mctPlayer);
-                return;
-            }
-        }
-        
+        players.remove(playerUniqueId);
     }
     
     public MCTTeam getTeam(String teamName) {
-        for (MCTTeam mctTeam : teams) {
-            if (mctTeam.getName().equals(teamName)) {
-                return mctTeam;
-            }
-        }
-        return null;
+        return teams.get(teamName);
+    }
+    
+    public Map<UUID, MCTPlayer> getPlayers() {
+        return players;
+    }
+    
+    public void setPlayers(Map<UUID, MCTPlayer> players) {
+        this.players = players;
+    }
+    
+    public Map<String, MCTTeam> getTeams() {
+        return teams;
+    }
+    
+    public void setTeams(Map<String, MCTTeam> teams) {
+        this.teams = teams;
     }
 }
