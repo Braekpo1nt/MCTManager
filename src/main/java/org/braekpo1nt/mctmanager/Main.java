@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager;
 
 import com.onarandombox.MultiverseCore.MultiverseCore;
+import fr.mrmicky.fastboard.FastBoard;
 import org.braekpo1nt.mctmanager.commands.MCTCommand;
 import org.braekpo1nt.mctmanager.commands.MCTDebugCommand;
 import org.braekpo1nt.mctmanager.games.GameManager;
@@ -41,6 +42,8 @@ public final class Main extends JavaPlugin {
             return;
         }
         Main.multiverseCore = ((MultiverseCore) multiversePlugin);
+        FastBoard fastBoard = new FastBoard(Bukkit.getPlayer("Braekpo1nt"));
+        fastBoard.delete();
         
         mctScoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
         

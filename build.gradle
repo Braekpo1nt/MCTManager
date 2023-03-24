@@ -1,5 +1,6 @@
 plugins {
     id 'java'
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
 }
 
 group = 'org.braekpo1nt'
@@ -29,7 +30,16 @@ dependencies {
 //    http://ci.onarandombox.com/job/Multiverse-Core/javadoc/
     compileOnly 'com.onarandombox.multiversecore:Multiverse-Core:4.3.1'
     
+//    FastBoard
+//    https://github.com/MrMicky-FR/FastBoard
+    implementation 'fr.mrmicky:fastboard:1.2.1'
+    
     implementation 'com.google.code.gson:gson:2.10.1'
+}
+
+shadowJar {
+
+    relocate 'fr.mrmicky.fastboard', 'org.braekpo1nt.mctmanager'
 }
 
 def targetJavaVersion = 17
