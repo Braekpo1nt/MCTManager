@@ -24,7 +24,7 @@ public class StopGameSubCommand implements CommandExecutor {
             sender.sendMessage("Only a Player can run this command.");
             return true;
         }
-        gameManager.stopGame(((Player) sender));
+        gameManager.manuallyStopGame(((Player) sender));
         return true;
     }
 }

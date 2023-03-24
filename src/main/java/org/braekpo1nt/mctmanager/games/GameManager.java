@@ -1,5 +1,7 @@
 package org.braekpo1nt.mctmanager.games;
 
+import com.onarandombox.MultiverseCore.api.MVWorldManager;
+import com.onarandombox.MultiverseCore.api.MultiverseWorld;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -36,8 +38,11 @@ public class GameManager {
      * with the game state.
      */
     private final Scoreboard mctScoreboard;
+    private final Main plugin;
+    private int teleportPlayersToHubTaskId;
     
     public GameManager(Main plugin, Scoreboard mctScoreboard) {
+        this.plugin = plugin;
         this.mctScoreboard = mctScoreboard;
         gameStateStorageUtil = new GameStateStorageUtil(plugin);
         this.footRaceGame = new FootRaceGame(plugin, this);
@@ -119,13 +124,53 @@ public class GameManager {
     /**
      * If a game is currently going on, stops the game
      */
-    public void stopGame(Player sender) {
+    public void manuallyStopGame(Player sender) {
         if (activeGame == null) {
             sender.sendMessage("No game is running.");
             return;
         }
         ((FootRaceGame) activeGame).stop();
         activeGame = null;
+    }
+    
+    /**
+     * Meant to be called by the active game when the game is over.
+     */
+    public void gameIsOver() {
+        activeGame = null;
+        startDelayedTeleportToHubTask();
+    }
+    
+    private void startDelayedTeleportToHubTask() {
+        this.teleportPlayersToHubTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
+            private int count = 10;
+            @Override
+            public void run() {
+                if (count <= 0) {
+                    teleportPlayersToHub();
+                    cancelDelayedTeleportToHubTask();
+                    return;
+                }
+                for (Player player : getOnlineParticipants()) {
+                    player.sendMessage(Component.text("Teleporting to hub in ")
+                            .append(Component.text(count)));
+                }
+                count--;
+            }
+        }, 0, 20);
+    }
+    
+    private void cancelDelayedTeleportToHubTask() {
+        Bukkit.getScheduler().cancelTask(teleportPlayersToHubTaskId);
+    }
+    
+    private void teleportPlayersToHub() {
+        MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
+        MultiverseWorld hubWorld = worldManager.getMVWorld("Hub");
+        for (Player participant : getOnlineParticipants()) {
+            participant.sendMessage("Teleporting to Hub");
+            participant.teleport(hubWorld.getSpawnLocation());
+        }
     }
     
     /**

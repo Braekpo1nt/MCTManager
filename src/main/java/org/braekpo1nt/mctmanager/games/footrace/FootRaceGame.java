@@ -45,6 +45,7 @@ public class FootRaceGame implements Listener, MCTGame {
     private final Main plugin;
     private final GameManager gameManager;
     private int startCountDownTaskID;
+    private int endRaceCountDownId;
     private int timerRefreshTaskId;
     private List<Player> participants;
     private Map<UUID, Long> lapCooldowns;
@@ -85,10 +86,12 @@ public class FootRaceGame implements Listener, MCTGame {
         closeGlassBarrier();
         hideFastBoards();
         removeParticipantStatusEffects();
-        teleportPlayersToHub();
         cancelStartRaceCountDownTask();
+        cancelEndRaceCountDownTask();
+        cancelTimerRefreshTask();
         raceHasStarted = false;
         gameActive = false;
+        gameManager.gameIsOver();
         Bukkit.getLogger().info("Stopping Foot Race game");
     }
     
@@ -135,6 +138,32 @@ public class FootRaceGame implements Listener, MCTGame {
         Bukkit.getScheduler().cancelTask(startCountDownTaskID);
     }
     
+    private void startEndRaceCountDown() {
+        this.endRaceCountDownId = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
+            private int count = 30;
+            @Override
+            public void run() {
+                if (count <= 0) {
+                    cancelEndRaceCountDownTask();
+                    stop();
+                    return;
+                }
+                for (Player participant : participants) {
+                    if (count > 0) {
+                        if (count <= 10) {
+                            participant.sendMessage(Component.text(count));
+                        }
+                    }
+                }
+                count--;
+            }
+        }, 0, 20);
+    }
+    
+    private void cancelEndRaceCountDownTask() {
+        Bukkit.getScheduler().cancelTask(endRaceCountDownId);
+    }
+    
     private void startTimerRefreshTask() {
         this.timerRefreshTaskId = Bukkit.getServer().getScheduler().runTaskTimer(plugin, () -> {
             long elapsedTime = System.currentTimeMillis() - raceStartTime;
@@ -177,15 +206,6 @@ public class FootRaceGame implements Listener, MCTGame {
         for (Player participant : participants) {
             participant.sendMessage("Teleporting to Foot Race");
             participant.teleport(anchorLocation);
-        }
-    }
-    
-    private void teleportPlayersToHub() {
-        MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
-        MultiverseWorld hubWorld = worldManager.getMVWorld("Hub");
-        for (Player participant : participants) {
-            participant.sendMessage("Teleporting to Hub");
-            participant.teleport(hubWorld.getSpawnLocation());
         }
     }
     
@@ -311,6 +331,13 @@ public class FootRaceGame implements Listener, MCTGame {
                     .decorate(TextDecoration.BOLD));
             Bukkit.getLogger().severe("Error while adding points to player. See log for error message.");
             throw new RuntimeException(e);
+        }
+        if (placements.size() == 1) {
+            for (Player participant : participants) {
+                participant.sendMessage(Component.text(player.getName())
+                        .append(Component.text(" finished 1st! Only 30 seconds remain!")));
+            }
+            startEndRaceCountDown();
         }
     }
     
