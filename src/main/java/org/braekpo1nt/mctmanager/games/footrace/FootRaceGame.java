@@ -317,8 +317,4 @@ public class FootRaceGame implements Listener, MCTGame {
     private boolean isInFinishLineBoundingBox(Player player) {
         return finishLine.contains(player.getLocation().toVector());
     }
-    
-    public boolean isGameActive() {
-        return gameActive;
-    }
 }

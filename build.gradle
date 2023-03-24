@@ -19,6 +19,9 @@ repositories {
         name = "onarandombox"
         url = "https://repo.onarandombox.com/content/groups/public/"
     }
+    maven {
+        url = 'https://repo.extendedclip.com/content/repositories/placeholderapi/'
+    }
 }
 
 dependencies {
@@ -28,6 +31,9 @@ dependencies {
 //    https://github.com/Multiverse/Multiverse-Core/wiki/Developer-API-Starter
 //    http://ci.onarandombox.com/job/Multiverse-Core/javadoc/
     compileOnly 'com.onarandombox.multiversecore:Multiverse-Core:4.3.1'
+//    PlaceholderAPI
+//    https://github.com/PlaceholderAPI/PlaceholderAPI/wiki/Hook-into-PlaceholderAPI
+    compileOnly 'me.clip:placeholderapi:2.11.3'
     
     implementation 'com.google.code.gson:gson:2.10.1'
 }

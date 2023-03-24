@@ -254,4 +254,8 @@ public class GameManager {
                 .decorate(TextDecoration.BOLD)
                 .color(NamedTextColor.GOLD));
     }
+    
+    public int getPlayerScore(UUID playerUniqueId) {
+        return gameStateStorageUtil.getPlayerScore(playerUniqueId);
+    }
 }

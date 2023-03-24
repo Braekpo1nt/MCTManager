@@ -228,4 +228,8 @@ public class GameStateStorageUtil {
         mctTeam.setScore(mctTeam.getScore() + points);
         saveGameState();
     }
+    
+    public int getPlayerScore(UUID playerUniqueId) {
+        return gameState.getPlayer(playerUniqueId).getScore();
+    }
 }
