@@ -45,6 +45,7 @@ public class FootRaceGame implements Listener, MCTGame {
     private final Main plugin;
     private final GameManager gameManager;
     private int startCountDownTaskID;
+    private int timerRefreshTaskId;
     private List<Player> participants;
     private Map<UUID, Long> lapCooldowns;
     private Map<UUID, Integer> laps;
@@ -70,20 +71,22 @@ public class FootRaceGame implements Listener, MCTGame {
         laps = participants.stream().collect(Collectors.toMap(participant -> participant.getUniqueId(), key -> 1));
         placements = new ArrayList<>();
         initializeFastBoards();
+        closeGlassBarrier();
         teleportPlayersToStartingPositions();
         giveParticipantsStatusEffects();
-        startCountdown();
+        startStartRaceCountdownTask();
         
         gameActive = true;
         Bukkit.getLogger().info("Starting Foot Race game");
     }
     
     public void stop() {
+        cancelTimerRefreshTask();
         closeGlassBarrier();
         hideFastBoards();
         removeParticipantStatusEffects();
         teleportPlayersToHub();
-        stopCountDown();
+        cancelStartRaceCountDownTask();
         raceHasStarted = false;
         gameActive = false;
         Bukkit.getLogger().info("Stopping Foot Race game");
@@ -105,7 +108,7 @@ public class FootRaceGame implements Listener, MCTGame {
         }
     }
     
-    private void startCountdown() {
+    private void startStartRaceCountdownTask() {
         this.startCountDownTaskID = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
             private int count = 10;
             
@@ -128,11 +131,34 @@ public class FootRaceGame implements Listener, MCTGame {
         }, 0L, 20L);
     }
     
+    private void cancelStartRaceCountDownTask() {
+        Bukkit.getScheduler().cancelTask(startCountDownTaskID);
+    }
+    
+    private void startTimerRefreshTask() {
+        this.timerRefreshTaskId = Bukkit.getServer().getScheduler().runTaskTimer(plugin, () -> {
+            long elapsedTime = System.currentTimeMillis() - raceStartTime;
+            String timeString = getTimeString(elapsedTime);
+            for (Player participant : participants) {
+                if (!placements.contains(participant.getUniqueId())) {
+                    FastBoard board = boards.get(participant.getUniqueId());
+                    if (board != null) {
+                        board.updateLine(0, timeString);
+                    }
+                }
+            }
+        }, 0, 1).getTaskId();
+    }
+    private void cancelTimerRefreshTask() {
+        Bukkit.getScheduler().cancelTask(timerRefreshTaskId);
+    }
+    
     private void startRace() {
         openGlassBarrier();
-        stopCountDown();
+        cancelStartRaceCountDownTask();
         raceStartTime = System.currentTimeMillis();
         raceHasStarted = true;
+        startTimerRefreshTask();
     }
     
     private void openGlassBarrier() {
@@ -143,10 +169,6 @@ public class FootRaceGame implements Listener, MCTGame {
     private void closeGlassBarrier() {
         Structure structure = Bukkit.getStructureManager().loadStructure(new NamespacedKey("mctstructures", "footrace/gateclosed"));
         structure.place(new Location(footRaceWorld, 2397, 76, 317), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
-    }
-    
-    private void stopCountDown() {
-        Bukkit.getScheduler().cancelTask(startCountDownTaskID);
     }
     
     private void teleportPlayersToStartingPositions() {
@@ -281,7 +303,7 @@ public class FootRaceGame implements Listener, MCTGame {
         try {
             gameManager.awardPointsToPlayer(player, points);
             String placementTitle = getPlacementTitle(placement);
-            player.sendMessage(String.format("You finished %s! It took you %d", placementTitle, getTimeString(elapsedTime)));
+            player.sendMessage(String.format("You finished %s! It took you %s", placementTitle, getTimeString(elapsedTime)));
         } catch (IOException e) {
             player.sendMessage(
                     Component.text("Critical error occurred. Please notify an admin to check the logs.")
