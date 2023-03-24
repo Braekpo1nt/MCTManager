@@ -7,7 +7,6 @@ import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.listeners.BlockEffectsListener;
 import org.braekpo1nt.mctmanager.listeners.HubBoundaryListener;
 import org.braekpo1nt.mctmanager.listeners.PlayerJoinListener;
-import org.braekpo1nt.mctmanager.placeholder.ScoreExpansion;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -42,12 +41,6 @@ public final class Main extends JavaPlugin {
             return;
         }
         Main.multiverseCore = ((MultiverseCore) multiversePlugin);
-        Plugin placeholderApi = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
-        if (placeholderApi == null) {
-            Bukkit.getLogger().severe("[MCTManager] Cannot find PlaceholderAPI. [MCTManager] depends on it and cannot proceed without it.");
-            Bukkit.getPluginManager().disablePlugin(this);
-            return;
-        }
         
         mctScoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
         
@@ -60,9 +53,6 @@ public final class Main extends JavaPlugin {
             saveGameStateOnDisable = false;
             Bukkit.getPluginManager().disablePlugin(this);
         }
-        
-        // PlaceholderExpansions
-        new ScoreExpansion(gameManager).register();
         
         // Listeners
         HubBoundaryListener hubBoundaryListener = new HubBoundaryListener(this);
