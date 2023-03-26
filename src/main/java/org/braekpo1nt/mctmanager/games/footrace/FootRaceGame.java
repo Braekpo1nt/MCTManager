@@ -64,6 +64,7 @@ public class FootRaceGame implements Listener, MCTGame {
         this.footRaceWorld = worldManager.getMVWorld("NT").getCBWorld();
     }
     
+    @Override
     public void start(List<Player> participants) {
         this.participants = participants;
         
@@ -81,6 +82,7 @@ public class FootRaceGame implements Listener, MCTGame {
         Bukkit.getLogger().info("Starting Foot Race game");
     }
     
+    @Override
     public void stop() {
         cancelTimerRefreshTask();
         closeGlassBarrier();

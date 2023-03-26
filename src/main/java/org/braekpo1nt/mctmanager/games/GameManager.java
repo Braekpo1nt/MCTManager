@@ -10,6 +10,7 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.color.ColorMap;
 import org.braekpo1nt.mctmanager.games.footrace.FootRaceGame;
 import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
+import org.braekpo1nt.mctmanager.games.mecha.MechaGame;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
@@ -29,6 +30,7 @@ public class GameManager {
     
     private MCTGame activeGame = null;
     private final FootRaceGame footRaceGame;
+    private final MechaGame mechaGame;
     private final GameStateStorageUtil gameStateStorageUtil;
     /**
      * Scoreboard for holding the teams. This private scoreboard can't be
@@ -44,6 +46,7 @@ public class GameManager {
         this.mctScoreboard = mctScoreboard;
         gameStateStorageUtil = new GameStateStorageUtil(plugin);
         this.footRaceGame = new FootRaceGame(plugin, this);
+        this.mechaGame = new MechaGame(plugin, this);
     }
     
     public void loadGameState() throws IOException {
@@ -79,9 +82,10 @@ public class GameManager {
                 footRaceGame.start(onlineParticipants);
                 activeGame = footRaceGame;
                 break;
-//            case "mecha":
-//                player.sendMessage("2");
-//                break;
+            case "mecha":
+                mechaGame.start(onlineParticipants);
+                activeGame = mechaGame;
+                break;
 //            case "bedwars":
 //                player.sendMessage("3");
 //                break;
@@ -125,7 +129,7 @@ public class GameManager {
             sender.sendMessage("No game is running.");
             return;
         }
-        ((FootRaceGame) activeGame).stop();
+        activeGame.stop();
         activeGame = null;
     }
     
