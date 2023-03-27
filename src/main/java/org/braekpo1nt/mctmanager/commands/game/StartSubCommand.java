@@ -24,7 +24,7 @@ public class StartSubCommand implements TabExecutor {
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length < 1) {
-            sender.sendMessage("Usage: /mct startgame <game>");
+            sender.sendMessage("Usage: /mct game start <game>");
             return true;
         }
         if (args.length == 1) {

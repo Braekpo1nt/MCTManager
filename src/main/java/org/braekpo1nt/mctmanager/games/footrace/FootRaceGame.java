@@ -227,7 +227,9 @@ public class FootRaceGame implements Listener, MCTGame {
     
     private void hideFastBoards() {
         for (FastBoard board : boards.values()) {
-            board.delete();
+            if (!board.isDeleted()) {
+                board.delete();
+            }
         }
     }
     
