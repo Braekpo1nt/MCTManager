@@ -46,10 +46,8 @@ public class MCTDebugCommand implements CommandExecutor {
         Block block = location.getBlock();
         block.setType(Material.CHEST);
         Chest chest = (Chest) block.getState();
-//        Inventory chestInventory = chest.getInventory();
-        
         LootTable lootTable = Bukkit.getLootTable(new NamespacedKey("mctdatapack", "mecha/spawn-chest"));
-        chest.setLootTable(lootTable, new Random().nextLong());
+        chest.setLootTable(lootTable);
         chest.update();
         
 //        if (args.length < 1) {
