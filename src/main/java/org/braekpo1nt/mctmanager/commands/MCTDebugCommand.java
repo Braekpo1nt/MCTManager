@@ -5,16 +5,17 @@ import com.onarandombox.MultiverseCore.api.MultiverseWorld;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.Main;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.NamespacedKey;
-import org.bukkit.World;
+import org.bukkit.*;
+import org.bukkit.block.Block;
+import org.bukkit.block.Chest;
 import org.bukkit.block.structure.Mirror;
 import org.bukkit.block.structure.StructureRotation;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.loot.LootTable;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.structure.Structure;
 import org.jetbrains.annotations.NotNull;
@@ -41,25 +42,20 @@ public class MCTDebugCommand implements CommandExecutor {
             return true;
         }
         Player player = ((Player) sender).getPlayer();
+        Location location = player.getLocation();
+        Block block = location.getBlock();
+        block.setType(Material.CHEST);
+        Chest chest = (Chest) block.getState();
+//        Inventory chestInventory = chest.getInventory();
+        
+        LootTable lootTable = Bukkit.getLootTable(new NamespacedKey("mctdatapack", "mecha/spawn-chest"));
+        chest.setLootTable(lootTable, new Random().nextLong());
+        chest.update();
+        
 //        if (args.length < 1) {
 //            sender.sendMessage("usage: /mctdebug [on|off]");
 //            return true;
 //        }
-        
-        new BukkitRunnable() {
-            int count = 10;
-            @Override
-            public void run() {
-                if (count == 0) {
-                    this.cancel();
-                    return;
-                }
-                
-                sender.sendMessage(Component.text(count));
-                count--;
-            }
-        }.runTaskTimer(plugin, 0L, 20L);
-        
 //        Component mainTitle = Component.text("Main title");
 //        Component subTitle = Component.text("Subtitle");
 //

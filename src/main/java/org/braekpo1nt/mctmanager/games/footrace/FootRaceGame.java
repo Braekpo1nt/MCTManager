@@ -193,7 +193,7 @@ public class FootRaceGame implements Listener, MCTGame {
     }
     
     private void openGlassBarrier() {
-        Structure structure = Bukkit.getStructureManager().loadStructure(new NamespacedKey("mctstructures", "footrace/gateopen"));
+        Structure structure = Bukkit.getStructureManager().loadStructure(new NamespacedKey("mctdatapack", "footrace/gateopen"));
         structure.place(new Location(footRaceWorld, 2397, 76, 317), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
     }
     
