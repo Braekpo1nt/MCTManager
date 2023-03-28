@@ -50,6 +50,7 @@ public class MCTDebugCommand implements CommandExecutor {
         chest.setLootTable(lootTable);
         chest.update();
         
+        
 //        if (args.length < 1) {
 //            sender.sendMessage("usage: /mctdebug [on|off]");
 //            return true;
