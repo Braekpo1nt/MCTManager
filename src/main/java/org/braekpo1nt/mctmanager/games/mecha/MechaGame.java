@@ -3,7 +3,7 @@ package org.braekpo1nt.mctmanager.games.mecha;
 import com.onarandombox.MultiverseCore.api.MVWorldManager;
 import com.onarandombox.MultiverseCore.utils.AnchorManager;
 import fr.mrmicky.fastboard.FastBoard;
-import it.unimi.dsi.fastutil.Function;
+import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.MCTGame;
@@ -11,6 +11,7 @@ import org.bukkit.*;
 import org.bukkit.block.structure.Mirror;
 import org.bukkit.block.structure.StructureRotation;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.structure.Structure;
 
 import java.util.*;
@@ -23,6 +24,7 @@ public class MechaGame implements MCTGame {
     private List<Player> participants;
     private final World mechaWorld;
     private Map<UUID, FastBoard> boards = new HashMap<>();
+    private int startMechaTaskId;
     
     public MechaGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
@@ -38,6 +40,7 @@ public class MechaGame implements MCTGame {
         placePlatforms();
         teleportPlayersToStartingPositions();
         initializeFastboards();
+        startStartMechaCountdownTask();
         gameActive = true;
         Bukkit.getLogger().info("Started mecha");
     }
@@ -45,9 +48,40 @@ public class MechaGame implements MCTGame {
     @Override
     public void stop() {
         hideFastBoards();
+        cancelTasks();
         gameActive = false;
         gameManager.gameIsOver();
         Bukkit.getLogger().info("Stopped mecha");
+    }
+    
+    private void cancelTasks() {
+        Bukkit.getScheduler().cancelTask(startMechaTaskId);
+    }
+    
+    private void startStartMechaCountdownTask() {
+        startMechaTaskId = new BukkitRunnable() {
+            int count = 10;
+            
+            @Override
+            public void run() {
+                if (count <= 0) {
+                    startMecha();
+                    this.cancel();
+                    return;
+                }
+                for (Player participant : participants) {
+                    participant.sendMessage(Component.text(count));
+                }
+                count--;
+            }
+        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+    }
+    
+    private void startMecha() {
+        removePlatforms();
+        for (Player participant : participants) {
+            participant.sendMessage(Component.text("Go!"));
+        }
     }
     
     private void initializeFastboards() {
@@ -89,6 +123,8 @@ public class MechaGame implements MCTGame {
             participant.teleport(teamLocation);
         }
     }
+    
+    
     
     private void placePlatforms() {
         Structure structure = Bukkit.getStructureManager().loadStructure(new NamespacedKey("mctdatapack", "mecha/platforms"));
