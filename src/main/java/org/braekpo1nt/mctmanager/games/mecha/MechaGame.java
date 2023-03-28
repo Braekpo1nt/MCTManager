@@ -21,7 +21,7 @@ public class MechaGame implements MCTGame {
     private final Main plugin;
     private final GameManager gameManager;
     private List<Player> participants;
-    private Map<UUID, FastBoard> boards;
+    private Map<UUID, FastBoard> boards = new HashMap<>();
     
     public MechaGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
@@ -47,10 +47,10 @@ public class MechaGame implements MCTGame {
             FastBoard board = new FastBoard(participant);
             board.updateTitle(ChatColor.BLUE+"MECHA");
             board.updateLines(
+                    "",
                     ChatColor.RED+"Kills: 0",
                     "",
-                    ChatColor.DARK_PURPLE+"Boarder: 00:00",
-                    ""
+                    ChatColor.DARK_PURPLE+"Boarder: 00:00"
             );
             boards.put(participant.getUniqueId(), board);
         }
