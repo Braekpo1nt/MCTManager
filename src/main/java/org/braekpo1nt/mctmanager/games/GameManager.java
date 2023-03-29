@@ -40,6 +40,7 @@ public class GameManager {
     private final Scoreboard mctScoreboard;
     private final Main plugin;
     private int teleportPlayersToHubTaskId;
+    private boolean shouldTeleportToHub = true;
     
     public GameManager(Main plugin, Scoreboard mctScoreboard) {
         this.plugin = plugin;
@@ -124,11 +125,12 @@ public class GameManager {
     /**
      * If a game is currently going on, manually stops the game. 
      */
-    public void manuallyStopGame(CommandSender sender) {
+    public void manuallyStopGame(CommandSender sender, boolean shouldTeleportToHub) {
         if (activeGame == null) {
             sender.sendMessage("No game is running.");
             return;
         }
+        this.shouldTeleportToHub = shouldTeleportToHub;
         activeGame.stop();
         activeGame = null;
     }
@@ -138,6 +140,10 @@ public class GameManager {
      */
     public void gameIsOver() {
         activeGame = null;
+        if (!shouldTeleportToHub) {
+            shouldTeleportToHub = true;
+            return;
+        }
         startDelayedTeleportToHubTask();
     }
     
