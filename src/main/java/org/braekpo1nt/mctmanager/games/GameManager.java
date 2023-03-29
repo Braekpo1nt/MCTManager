@@ -12,6 +12,7 @@ import org.braekpo1nt.mctmanager.games.footrace.FootRaceGame;
 import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
 import org.braekpo1nt.mctmanager.games.mecha.MechaGame;
 import org.bukkit.Bukkit;
+import org.bukkit.Color;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -209,7 +210,7 @@ public class GameManager {
         gameStateStorageUtil.addTeam(teamName, teamDisplayName, colorString);
         Team newTeam = mctScoreboard.registerNewTeam(teamName);
         newTeam.displayName(Component.text(teamDisplayName));
-        NamedTextColor color = ColorMap.getColor(colorString);
+        NamedTextColor color = ColorMap.getNamedTextColor(colorString);
         newTeam.color(color);
         return true;
     }
@@ -316,5 +317,9 @@ public class GameManager {
     
     public int getPlayerScore(UUID playerUniqueId) {
         return gameStateStorageUtil.getPlayerScore(playerUniqueId);
+    }
+    
+    public Color getTeamColor(UUID playerUniqueId) {
+        return gameStateStorageUtil.getTeamColor(playerUniqueId);
     }
 }
