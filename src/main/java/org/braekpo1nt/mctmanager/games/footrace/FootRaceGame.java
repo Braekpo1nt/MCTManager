@@ -139,6 +139,8 @@ public class FootRaceGame implements Listener, MCTGame {
             ItemStack boots = new ItemStack(Material.LEATHER_BOOTS);
             LeatherArmorMeta meta = (LeatherArmorMeta) boots.getItemMeta();
             meta.setColor(teamColor);
+            boots.setItemMeta(meta);
+            participant.getInventory().setBoots(boots);
         }
     }
     
