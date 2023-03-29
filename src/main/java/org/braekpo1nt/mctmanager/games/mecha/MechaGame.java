@@ -63,6 +63,7 @@ public class MechaGame implements MCTGame {
         placePlatforms();
         fillAllChests();
         teleportPlayersToStartingPositions();
+        setPlayersToAdventure();
         initializeFastboards();
         startStartMechaCountdownTask();
         gameActive = true;
@@ -149,7 +150,11 @@ public class MechaGame implements MCTGame {
         }
     }
     
-    
+    private void setPlayersToAdventure() {
+        for (Player participant : participants) {
+            participant.setGameMode(GameMode.ADVENTURE);
+        }
+    }
     
     private void placePlatforms() {
         Structure structure = Bukkit.getStructureManager().loadStructure(new NamespacedKey("mctdatapack", "mecha/platforms"));
