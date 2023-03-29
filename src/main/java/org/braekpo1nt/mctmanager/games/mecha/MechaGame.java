@@ -39,9 +39,10 @@ public class MechaGame implements MCTGame {
      */
     private List<Vector> spawnChestCoords;
     /**
-     * Holds the mecha loot tables from the mctdatapack, not including the spawn loot
+     * Holds the mecha loot tables from the mctdatapack, not including the spawn loot.
+     * Each loot table is paired with a weight for random selection. 
      */
-    private List<LootTable> mechaLootTables;
+    private Map<Integer, LootTable> mechaLootTables;
     /**
      * Holds the mecha spawn loot table from the mctdatapack
      */
@@ -200,9 +201,19 @@ public class MechaGame implements MCTGame {
      * @return A loot table for a chest
      */
     private LootTable getRandomLootTable() {
-        Random random = new Random();
-        int randomIndex = random.nextInt(this.mechaLootTables.size());
-        return this.mechaLootTables.get(randomIndex);
+        int totalWeight = 0;
+        for (int weight : mechaLootTables.keySet()) {
+            totalWeight += weight;
+        }
+        int randomWeight = (int) (Math.random() * totalWeight) + 1;
+        for (Map.Entry<Integer, LootTable> entry : mechaLootTables.entrySet()) {
+            randomWeight -= entry.getKey();
+            if (randomWeight <= 0) {
+                return entry.getValue();
+            }
+        }
+        
+        return null;
     }
     
     private void setChestCoordsAndLootTables() {
@@ -237,7 +248,7 @@ public class MechaGame implements MCTGame {
         mapChestCoords.add(new Vector(-10, -38, 43));
         mapChestCoords.add(new Vector(-22, -30, 56));
         mapChestCoords.add(new Vector(-9, -31, 34));
-        mapChestCoords.add(new Vector(37, -44, 19));
+        mapChestCoords.add(new Vector(35, -44, 19));
         mapChestCoords.add(new Vector(24, -51, 3));
         mapChestCoords.add(new Vector(38, -51, 23));
         mapChestCoords.add(new Vector(23, -51, 58));
@@ -283,14 +294,17 @@ public class MechaGame implements MCTGame {
         mapChestCoords.add(new Vector(-52, -27, -71));
         mapChestCoords.add(new Vector(-67, -51, -83));
         mapChestCoords.add(new Vector(-89, -50, -113));
-        
-        this.mechaLootTables = new ArrayList<>();
-        String[] lootTableNames = new String[]{"mecha/poor-chest", "mecha/good-chest", "mecha/better-chest", "mecha/excellent-chest"};
-        for (String lootTableName : lootTableNames) {
-            LootTable lootTable = Bukkit.getLootTable(new NamespacedKey("mctdatapack", lootTableName));
-            mechaLootTables.add(lootTable);
-        }
-        
+    
         this.spawnLootTable = Bukkit.getLootTable(new NamespacedKey("mctdatapack", "mecha/spawn-chest"));
+        
+        this.mechaLootTables = new HashMap<>();
+        LootTable poor = Bukkit.getLootTable(new NamespacedKey("mctdatapack", "mecha/poor-chest"));
+        mechaLootTables.put(3, poor);
+        LootTable good = Bukkit.getLootTable(new NamespacedKey("mctdatapack", "mecha/good-chest"));
+        mechaLootTables.put(3, good);
+        LootTable better = Bukkit.getLootTable(new NamespacedKey("mctdatapack", "mecha/better-chest"));
+        mechaLootTables.put(2, better);
+        LootTable excellent = Bukkit.getLootTable(new NamespacedKey("mctdatapack", "mecha/excellent-chest"));
+        mechaLootTables.put(1, excellent);
     }
 }
