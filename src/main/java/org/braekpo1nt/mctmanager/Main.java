@@ -9,11 +9,8 @@ import org.braekpo1nt.mctmanager.listeners.BlockEffectsListener;
 import org.braekpo1nt.mctmanager.hub.HubBoundaryListener;
 import org.braekpo1nt.mctmanager.listeners.PlayerJoinListener;
 import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scoreboard.Scoreboard;
 
 import java.io.File;
@@ -69,6 +66,9 @@ public final class Main extends JavaPlugin {
         if (saveGameStateOnDisable && gameManager != null) {
             try {
                 gameManager.saveGameState();
+                if (gameManager.gameIsRunning()) {
+                    gameManager.manuallyStopGame(false);
+                }
             } catch (IOException e) {
                 Bukkit.getLogger().severe("[MCTManager] Could not save game state. Printing stack trace below.");
                 e.printStackTrace();

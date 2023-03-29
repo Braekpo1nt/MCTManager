@@ -24,18 +24,22 @@ public class StopSubCommand implements TabExecutor {
     
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+        if (!gameManager.gameIsRunning()) {
+            sender.sendMessage("No game is running.");
+            return true;
+        }
         if (args.length == 0) {
-            gameManager.manuallyStopGame(sender, true);
+            gameManager.manuallyStopGame(true);
         }
         if (args.length == 1) {
             String shouldTeleport = args[0];
             switch (shouldTeleport) {
                 case "true":
-                    gameManager.manuallyStopGame(sender, true);
+                    gameManager.manuallyStopGame(true);
                     return true;
                 case "false":
                     sender.sendMessage("Skipping teleport to hub.");
-                    gameManager.manuallyStopGame(sender, false);
+                    gameManager.manuallyStopGame(false);
                     return true;
                 default:
                     sender.sendMessage(String.format("%s is not a recognized option"));

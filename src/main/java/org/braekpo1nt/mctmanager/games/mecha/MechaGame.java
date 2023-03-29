@@ -165,7 +165,7 @@ public class MechaGame implements MCTGame, Listener {
     }
     
     @EventHandler
-    public void onPlayerKillPlayer(PlayerDeathEvent event) {
+    public void onPlayerDeath(PlayerDeathEvent event) {
         if (!gameActive) {
             return;
         }
@@ -173,6 +173,9 @@ public class MechaGame implements MCTGame, Listener {
             return;
         }
         Player killed = event.getPlayer();
+        killed.setGameMode(GameMode.SPECTATOR);
+        event.setCancelled(true);
+        Bukkit.getServer().sendMessage(event.deathMessage());
         if (!participants.contains(killed)) {
             return;
         }
@@ -186,12 +189,6 @@ public class MechaGame implements MCTGame, Listener {
         if (!participants.contains(killer)) {
             return;
         }
-        
-        // handle killed
-        killed.setGameMode(GameMode.SPECTATOR);
-        Bukkit.getServer().sendMessage(event.deathMessage());
-        event.setCancelled(true);
-        // handle killer
         addKill(killer.getUniqueId());
         gameManager.awardPointsToPlayer(killer, 40);
     }

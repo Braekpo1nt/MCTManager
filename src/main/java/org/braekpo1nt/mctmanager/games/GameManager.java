@@ -124,16 +124,22 @@ public class GameManager {
     }
     
     /**
-     * If a game is currently going on, manually stops the game. 
+     * If a game is currently going on, manually stops the game.
+     * @throws NullPointerException if no game is currently running. 
+     * Check if a game is running with isGameRunning()
      */
-    public void manuallyStopGame(CommandSender sender, boolean shouldTeleportToHub) {
-        if (activeGame == null) {
-            sender.sendMessage("No game is running.");
-            return;
-        }
+    public void manuallyStopGame(boolean shouldTeleportToHub) {
         this.shouldTeleportToHub = shouldTeleportToHub;
         activeGame.stop();
         activeGame = null;
+    }
+    
+    /**
+     * Checks if a game is currently running
+     * @return True if a game is running, false if not
+     */
+    public boolean gameIsRunning() {
+        return activeGame != null;
     }
     
     /**
