@@ -291,14 +291,22 @@ public class GameManager {
      * Awards points to the player and their team. If the player does not exist, nothing happens.
      * @param player The player to award points to
      * @param points The points to award to the player
-     * @throws IOException If an error occurs saving the game state
      */
-    public void awardPointsToPlayer(Player player, int points) throws IOException {
+    public void awardPointsToPlayer(Player player, int points) {
         UUID playerUniqueId = player.getUniqueId();
         if (!gameStateStorageUtil.containsPlayer(playerUniqueId)) {
             return;
         }
-        gameStateStorageUtil.addPointsToPlayer(playerUniqueId, points);
+        try {
+            gameStateStorageUtil.addPointsToPlayer(playerUniqueId, points);
+        } catch (IOException e) {
+            player.sendMessage(
+                    Component.text("Critical error occurred. Please notify an admin to check the logs.")
+                            .color(NamedTextColor.RED)
+                            .decorate(TextDecoration.BOLD));
+            Bukkit.getLogger().severe("Error while adding points to player. See log for error message.");
+            throw new RuntimeException(e);
+        }
         player.sendMessage(Component.text("+")
                 .append(Component.text(points))
                 .append(Component.text(" points"))

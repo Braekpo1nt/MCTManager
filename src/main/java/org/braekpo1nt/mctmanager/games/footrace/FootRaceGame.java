@@ -324,18 +324,9 @@ public class FootRaceGame implements Listener, MCTGame {
         showRaceCompleteFastBoard(player);
         int placement = placements.indexOf(player.getUniqueId()) + 1;
         int points = calculatePointsForPlacement(placement);
-        try {
-            gameManager.awardPointsToPlayer(player, points);
-            String placementTitle = getPlacementTitle(placement);
-            player.sendMessage(String.format("You finished %s! It took you %s", placementTitle, getTimeString(elapsedTime)));
-        } catch (IOException e) {
-            player.sendMessage(
-                    Component.text("Critical error occurred. Please notify an admin to check the logs.")
-                    .color(NamedTextColor.RED)
-                    .decorate(TextDecoration.BOLD));
-            Bukkit.getLogger().severe("Error while adding points to player. See log for error message.");
-            throw new RuntimeException(e);
-        }
+        gameManager.awardPointsToPlayer(player, points);
+        String placementTitle = getPlacementTitle(placement);
+        player.sendMessage(String.format("You finished %s! It took you %s", placementTitle, getTimeString(elapsedTime)));
         if (placements.size() == 1) {
             for (Player participant : participants) {
                 participant.sendMessage(Component.text(player.getName())
