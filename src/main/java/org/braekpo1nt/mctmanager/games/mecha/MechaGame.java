@@ -25,6 +25,7 @@ public class MechaGame implements MCTGame {
     private final Main plugin;
     private final GameManager gameManager;
     private boolean gameActive = false;
+    private boolean mechaHasStarted = false;
     private List<Player> participants;
     private final World mechaWorld;
     private Map<UUID, FastBoard> boards = new HashMap<>();
@@ -33,16 +34,19 @@ public class MechaGame implements MCTGame {
      * The coordinates of all the chests in the open world, not including spawn chests
      */
     private List<Vector> chestCoords;
+    /**
+     * Holds the mecha loot tables from the mctdatapack, not including the spawn loot
+     */
+    private List<LootTable> mechaLootTables;
     
     public MechaGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
         this.gameManager = gameManager;
-        setChestCoords();
+        setChestCoordsAndLootTables();
         MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
         this.mechaWorld = worldManager.getMVWorld("FT").getCBWorld();
     }
-
-
+    
     @Override
     public void start(List<Player> participants) {
         this.participants = participants;
@@ -88,6 +92,7 @@ public class MechaGame implements MCTGame {
     }
     
     private void startMecha() {
+        this.mechaHasStarted = true;
         removePlatforms();
         for (Player participant : participants) {
             participant.sendMessage(Component.text("Go!"));
@@ -154,11 +159,27 @@ public class MechaGame implements MCTGame {
         }
     }
     
+    /**
+     * Fills the given chest with a random loot table
+     * @param chest The chest to fill
+     */
     private void fillChest(Chest chest) {
-        //randomly select a loot table from poor, good, better, excellent
+        LootTable lootTable = getRandomLootTable();
+        chest.setLootTable(lootTable);
+        chest.update();
     }
     
-    private void setChestCoords() {
+    /**
+     * Gets a random loot table from the MECHA loot table selection
+     * @return A loot table for a chest
+     */
+    private LootTable getRandomLootTable() {
+        Random random = new Random();
+        int randomIndex = random.nextInt(this.mechaLootTables.size());
+        return this.mechaLootTables.get(randomIndex);
+    }
+    
+    private void setChestCoordsAndLootTables() {
         this.chestCoords = new ArrayList<>(62);
         chestCoords.add(new Vector(-18, -45, -15));
         chestCoords.add(new Vector(-10, -37, -17));
@@ -222,5 +243,12 @@ public class MechaGame implements MCTGame {
         chestCoords.add(new Vector(-52, -27, -71));
         chestCoords.add(new Vector(-67, -51, -83));
         chestCoords.add(new Vector(-89, -50, -113));
+        
+        this.mechaLootTables = new ArrayList<>();
+        String[] lootTableNames = new String[]{"mecha/poor-chest", "mecha/good-chest", "mecha/better-chest", "mecha/excellent-chest"};
+        for (String lootTableName : lootTableNames) {
+            LootTable lootTable = Bukkit.getLootTable(new NamespacedKey("mctdatapack", lootTableName));
+            mechaLootTables.add(lootTable);
+        }
     }
 }

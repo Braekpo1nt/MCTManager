@@ -36,6 +36,7 @@ public class FootRaceGame implements Listener, MCTGame {
     private final int MAX_LAPS = 3;
         
     private boolean gameActive = false;
+    private boolean raceHasStarted = false;
     /**
      * Holds the Foot Race world
      */
@@ -51,7 +52,6 @@ public class FootRaceGame implements Listener, MCTGame {
     private Map<UUID, Long> lapCooldowns;
     private Map<UUID, Integer> laps;
     private ArrayList<UUID> placements;
-    private boolean raceHasStarted = false;
     private long raceStartTime;
     private final Map<UUID, FastBoard> boards = new HashMap<>();
     
