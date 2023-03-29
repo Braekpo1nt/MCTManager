@@ -38,8 +38,10 @@ public final class Main extends JavaPlugin {
         Main.multiverseCore = ((MultiverseCore) multiversePlugin);
         
         mctScoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
+    
+        HubManager hubManager = new HubManager(this);
         
-        gameManager = new GameManager(this, mctScoreboard);
+        gameManager = new GameManager(this, mctScoreboard, hubManager);
         try {
             gameManager.loadGameState();
         } catch (IOException e) {
@@ -49,7 +51,6 @@ public final class Main extends JavaPlugin {
             Bukkit.getPluginManager().disablePlugin(this);
         }
         
-        new HubManager(this);
         
         // Listeners
         HubBoundaryListener hubBoundaryListener = new HubBoundaryListener(this);
