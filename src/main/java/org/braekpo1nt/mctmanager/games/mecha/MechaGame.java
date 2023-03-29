@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.games.mecha;
 
 import com.onarandombox.MultiverseCore.api.MVWorldManager;
+import com.onarandombox.MultiverseCore.api.MultiverseWorld;
 import com.onarandombox.MultiverseCore.utils.AnchorManager;
 import fr.mrmicky.fastboard.FastBoard;
 import net.kyori.adventure.text.Component;
@@ -35,6 +36,11 @@ public class MechaGame implements MCTGame, Listener {
     private List<Player> participants;
     private Map<UUID, Integer> killCounts;
     private final World mechaWorld;
+    private final MultiverseWorld mvMechaWorld;
+    /**
+     * Stores the default game mode for the multiverse world
+     */
+    private GameMode oldMVGameMode;
     private Map<UUID, FastBoard> boards = new HashMap<>();
     private int startMechaTaskId;
     /**
@@ -62,7 +68,8 @@ public class MechaGame implements MCTGame, Listener {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         setChestCoordsAndLootTables();
         MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
-        this.mechaWorld = worldManager.getMVWorld("FT").getCBWorld();
+        this.mvMechaWorld = worldManager.getMVWorld("FT");
+        this.mechaWorld = mvMechaWorld.getCBWorld();
     }
     
     @Override
@@ -72,6 +79,8 @@ public class MechaGame implements MCTGame, Listener {
         placePlatforms();
         fillAllChests();
         teleportPlayersToStartingPositions();
+        this.oldMVGameMode = mvMechaWorld.getGameMode();
+        mvMechaWorld.setGameMode(GameMode.ADVENTURE);
         setPlayersToAdventure();
         initializeFastboards();
         startStartMechaCountdownTask();
@@ -85,6 +94,7 @@ public class MechaGame implements MCTGame, Listener {
         cancelTasks();
         gameActive = false;
         gameManager.gameIsOver();
+        this.mvMechaWorld.setGameMode(oldMVGameMode);
         Bukkit.getLogger().info("Stopped mecha");
     }
     
