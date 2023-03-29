@@ -64,7 +64,7 @@ public class MechaGame implements MCTGame, Listener {
      * Holds the mecha spawn loot table from the mctdatapack
      */
     private LootTable spawnLootTable;
-    private final PotionEffect NIGHT_VISION = new PotionEffect(PotionEffectType.NIGHT_VISION, 70, 3, true, false, false);
+    private final PotionEffect NIGHT_VISION = new PotionEffect(PotionEffectType.NIGHT_VISION, 300, 3, true, false, false);
     
     public MechaGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
@@ -100,7 +100,6 @@ public class MechaGame implements MCTGame, Listener {
         hideFastBoards();
         cancelAllTasks();
         clearInventories();
-        clearStatusEffects();
         gameActive = false;
         mechaHasStarted = false;
         gameManager.gameIsOver();

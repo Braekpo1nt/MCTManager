@@ -58,7 +58,7 @@ public class FootRaceGame implements Listener, MCTGame {
     private final Map<UUID, FastBoard> boards = new HashMap<>();
     private final PotionEffect SPEED = new PotionEffect(PotionEffectType.SPEED, 10000, 8, true, false, false);
     private final PotionEffect INVISIBILITY = new PotionEffect(PotionEffectType.INVISIBILITY, 10000, 1, true, false, false);
-    private final PotionEffect NIGHT_VISION = new PotionEffect(PotionEffectType.NIGHT_VISION, 70, 3, true, false, false);
+    private final PotionEffect NIGHT_VISION = new PotionEffect(PotionEffectType.NIGHT_VISION, 300, 3, true, false, false);
     private final PotionEffect RESISTANCE = new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 70, 200, true, false, false);
     private final PotionEffect REGENERATION = new PotionEffect(PotionEffectType.REGENERATION, 70, 200, true, false, false);
     private final PotionEffect FIRE_RESISTANCE = new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 70, 1, true, false, false);
@@ -100,7 +100,6 @@ public class FootRaceGame implements Listener, MCTGame {
         hideFastBoards();
         cancelAllTasks();
         clearInventories();
-        clearStatusEffects();
         raceHasStarted = false;
         gameActive = false;
         gameManager.gameIsOver();
