@@ -34,6 +34,7 @@ public class StopSubCommand implements TabExecutor {
                     gameManager.manuallyStopGame(sender, true);
                     return true;
                 case "false":
+                    sender.sendMessage("Skipping teleport to hub.");
                     gameManager.manuallyStopGame(sender, false);
                     return true;
                 default:
