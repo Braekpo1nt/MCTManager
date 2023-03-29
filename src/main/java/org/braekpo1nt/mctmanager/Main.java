@@ -26,7 +26,7 @@ public final class Main extends JavaPlugin {
     private Scoreboard mctScoreboard;
     private GameManager gameManager;
     private boolean saveGameStateOnDisable = true;
-    private final PotionEffect NIGHT_VISION = new PotionEffect(PotionEffectType.NIGHT_VISION, 300, 3, true, false, false);
+    public final static PotionEffect NIGHT_VISION = new PotionEffect(PotionEffectType.NIGHT_VISION, 300, 3, true, false, false);
     
     @Override
     public void onEnable() {
@@ -52,7 +52,6 @@ public final class Main extends JavaPlugin {
             saveGameStateOnDisable = false;
             Bukkit.getPluginManager().disablePlugin(this);
         }
-        
         
         // Listeners
         HubBoundaryListener hubBoundaryListener = new HubBoundaryListener(this);

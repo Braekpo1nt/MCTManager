@@ -23,6 +23,7 @@ public class PlayerJoinListener implements Listener {
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         player.setScoreboard(mctScoreboard);
+        player.addPotionEffect(Main.NIGHT_VISION);
     }
     
 }

@@ -45,7 +45,6 @@ public class MechaGame implements MCTGame, Listener {
     private GameMode oldMVGameMode;
     private Map<UUID, FastBoard> boards = new HashMap<>();
     private int startMechaTaskId;
-    private int statusEffectsTaskId;
     /**
      * The coordinates of all the chests in the open world, not including spawn chests
      */
@@ -64,7 +63,6 @@ public class MechaGame implements MCTGame, Listener {
      * Holds the mecha spawn loot table from the mctdatapack
      */
     private LootTable spawnLootTable;
-    private final PotionEffect NIGHT_VISION = new PotionEffect(PotionEffectType.NIGHT_VISION, 300, 3, true, false, false);
     
     public MechaGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
@@ -88,7 +86,6 @@ public class MechaGame implements MCTGame, Listener {
         setPlayersToAdventure();
         clearInventories();
         clearStatusEffects();
-        startStatusEffectsTask();
         initializeFastboards();
         startStartMechaCountdownTask();
         gameActive = true;
@@ -109,7 +106,6 @@ public class MechaGame implements MCTGame, Listener {
     
     private void cancelAllTasks() {
         Bukkit.getScheduler().cancelTask(startMechaTaskId);
-        Bukkit.getScheduler().cancelTask(statusEffectsTaskId);
     }
     
     private void startStartMechaCountdownTask() {
@@ -135,17 +131,6 @@ public class MechaGame implements MCTGame, Listener {
         for (Player participant : participants) {
             participant.getInventory().clear();
         }
-    }
-    
-    private void startStatusEffectsTask() {
-        this.statusEffectsTaskId = new BukkitRunnable() {
-            @Override
-            public void run() {
-                for (Player participant : participants) {
-                    participant.addPotionEffect(NIGHT_VISION);
-                }
-            }
-        }.runTaskTimer(plugin, 0L, 60L).getTaskId();
     }
     
     private void clearStatusEffects() {
