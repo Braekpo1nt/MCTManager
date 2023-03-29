@@ -33,11 +33,19 @@ public class MechaGame implements MCTGame {
     /**
      * The coordinates of all the chests in the open world, not including spawn chests
      */
-    private List<Vector> chestCoords;
+    private List<Vector> mapChestCoords;
+    /**
+     * The coordinates of all the spawn chests
+     */
+    private List<Vector> spawnChestCoords;
     /**
      * Holds the mecha loot tables from the mctdatapack, not including the spawn loot
      */
     private List<LootTable> mechaLootTables;
+    /**
+     * Holds the mecha spawn loot table from the mctdatapack
+     */
+    private LootTable spawnLootTable;
     
     public MechaGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
@@ -51,7 +59,7 @@ public class MechaGame implements MCTGame {
     public void start(List<Player> participants) {
         this.participants = participants;
         placePlatforms();
-        fillChests();
+        fillAllChests();
         teleportPlayersToStartingPositions();
         initializeFastboards();
         startStartMechaCountdownTask();
@@ -151,11 +159,29 @@ public class MechaGame implements MCTGame {
         structure.place(new Location(this.mechaWorld, -13, -43, -13), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
     }
     
-    private void fillChests() {
-        for (Vector coords : chestCoords) {
+    /**
+     * Fill all chests in the mecha world, map chests and spawn chests
+     */
+    private void fillAllChests() {
+        fillSpawnChests();
+        fillMapChests();
+    }
+    
+    private void fillSpawnChests() {
+        for (Vector coords : spawnChestCoords) {
             Block block = mechaWorld.getBlockAt(coords.getBlockX(), coords.getBlockY(), coords.getBlockZ());
             block.setType(Material.CHEST);
-            fillChest(((Chest) block.getState()));
+            Chest chest = (Chest) block.getState();
+            chest.setLootTable(spawnLootTable);
+            chest.update();
+        }
+    }
+    
+    private void fillMapChests() {
+        for (Vector coords : mapChestCoords) {
+            Block block = mechaWorld.getBlockAt(coords.getBlockX(), coords.getBlockY(), coords.getBlockZ());
+            block.setType(Material.CHEST);
+            fillMapChest(((Chest) block.getState()));
         }
     }
     
@@ -163,7 +189,7 @@ public class MechaGame implements MCTGame {
      * Fills the given chest with a random loot table
      * @param chest The chest to fill
      */
-    private void fillChest(Chest chest) {
+    private void fillMapChest(Chest chest) {
         LootTable lootTable = getRandomLootTable();
         chest.setLootTable(lootTable);
         chest.update();
@@ -180,69 +206,83 @@ public class MechaGame implements MCTGame {
     }
     
     private void setChestCoordsAndLootTables() {
-        this.chestCoords = new ArrayList<>(62);
-        chestCoords.add(new Vector(-18, -45, -15));
-        chestCoords.add(new Vector(-10, -37, -17));
-        chestCoords.add(new Vector(-10, -31, -18));
-        chestCoords.add(new Vector(-15, -28, -28));
-        chestCoords.add(new Vector(-13, -28, -28));
-        chestCoords.add(new Vector(-13, -34, -36));
-        chestCoords.add(new Vector(-21, -34, -30));
-        chestCoords.add(new Vector(-21, -40, -27));
-        chestCoords.add(new Vector(-23, -45, -33));
-        chestCoords.add(new Vector(-23, -45, 20));
-        chestCoords.add(new Vector(-25, -44, 9));
-        chestCoords.add(new Vector(-10, -45, 41));
-        chestCoords.add(new Vector(-26, -44, 52));
-        chestCoords.add(new Vector(-10, -38, 43));
-        chestCoords.add(new Vector(-22, -30, 56));
-        chestCoords.add(new Vector(-9, -31, 34));
-        chestCoords.add(new Vector(37, -44, 19));
-        chestCoords.add(new Vector(24, -51, 3));
-        chestCoords.add(new Vector(38, -51, 23));
-        chestCoords.add(new Vector(23, -51, 58));
-        chestCoords.add(new Vector(-52, -51, 65));
-        chestCoords.add(new Vector(-58, -51, -11));
-        chestCoords.add(new Vector(-27, -45, -12));
-        chestCoords.add(new Vector(-38, -39, -10));
-        chestCoords.add(new Vector(-31, -33, -10));
-        chestCoords.add(new Vector(-46, -43, 17));
-        chestCoords.add(new Vector(-65, -42, 19));
-        chestCoords.add(new Vector(-60, -43, 30));
-        chestCoords.add(new Vector(-83, -43, 63));
-        chestCoords.add(new Vector(-61, -43, 64));
-        chestCoords.add(new Vector(-50, -43, 33));
-        chestCoords.add(new Vector(22, -45, -23));
-        chestCoords.add(new Vector(16, -45, -10));
-        chestCoords.add(new Vector(30, -45, -44));
-        chestCoords.add(new Vector(34, -43, -31));
-        chestCoords.add(new Vector(22, -37, -45));
-        chestCoords.add(new Vector(9, -27, -44));
-        chestCoords.add(new Vector(16, -28, -13));
-        chestCoords.add(new Vector(22, -40, -70));
-        chestCoords.add(new Vector(8, -40, -81));
-        chestCoords.add(new Vector(26, -45, 24));
-        chestCoords.add(new Vector(-14, -45, -57));
-        chestCoords.add(new Vector(-29, -45, -56));
-        chestCoords.add(new Vector(-10, -51, -52));
-        chestCoords.add(new Vector(-36, -51, -66));
-        chestCoords.add(new Vector(-16, -39, -57));
-        chestCoords.add(new Vector(-12, -33, -68));
-        chestCoords.add(new Vector(-66, -45, -26));
-        chestCoords.add(new Vector(-52, -48, -30));
-        chestCoords.add(new Vector(-70, -27, -40));
-        chestCoords.add(new Vector(-74, -44, -37));
-        chestCoords.add(new Vector(-98, -45, -43));
-        chestCoords.add(new Vector(-94, -40, -50));
-        chestCoords.add(new Vector(-93, -44, -27));
-        chestCoords.add(new Vector(-93, -39, -30));
-        chestCoords.add(new Vector(-93, -34, -34));
-        chestCoords.add(new Vector(-42, -45, -58));
-        chestCoords.add(new Vector(-36, -39, -61));
-        chestCoords.add(new Vector(-52, -33, -69));
-        chestCoords.add(new Vector(-52, -27, -71));
-        chestCoords.add(new Vector(-67, -51, -83));
-        chestCoords.add(new Vector(-89, -50, -113));
+        this.spawnChestCoords = new ArrayList<>(12);
+        spawnChestCoords.add(new Vector(-1, -45, 1));
+        spawnChestCoords.add(new Vector(0, -45, 1));
+        spawnChestCoords.add(new Vector(-2, -45, 0));
+        spawnChestCoords.add(new Vector(-1, -44, 0));
+        spawnChestCoords.add(new Vector(0, -44, 0));
+        spawnChestCoords.add(new Vector(1, -45, 0));
+        spawnChestCoords.add(new Vector(-2, -45, -1));
+        spawnChestCoords.add(new Vector(-1, -44, -1));
+        spawnChestCoords.add(new Vector(0, -44, -1));
+        spawnChestCoords.add(new Vector(1, -45, -1));
+        spawnChestCoords.add(new Vector(-1, -45, -2));
+        spawnChestCoords.add(new Vector(0, -45, -2));
+        
+        this.mapChestCoords = new ArrayList<>(62);
+        mapChestCoords.add(new Vector(-18, -45, -15));
+        mapChestCoords.add(new Vector(-10, -37, -17));
+        mapChestCoords.add(new Vector(-10, -31, -18));
+        mapChestCoords.add(new Vector(-15, -28, -28));
+        mapChestCoords.add(new Vector(-13, -28, -28));
+        mapChestCoords.add(new Vector(-13, -34, -36));
+        mapChestCoords.add(new Vector(-21, -34, -30));
+        mapChestCoords.add(new Vector(-21, -40, -27));
+        mapChestCoords.add(new Vector(-23, -45, -33));
+        mapChestCoords.add(new Vector(-23, -45, 20));
+        mapChestCoords.add(new Vector(-25, -44, 9));
+        mapChestCoords.add(new Vector(-10, -45, 41));
+        mapChestCoords.add(new Vector(-26, -44, 52));
+        mapChestCoords.add(new Vector(-10, -38, 43));
+        mapChestCoords.add(new Vector(-22, -30, 56));
+        mapChestCoords.add(new Vector(-9, -31, 34));
+        mapChestCoords.add(new Vector(37, -44, 19));
+        mapChestCoords.add(new Vector(24, -51, 3));
+        mapChestCoords.add(new Vector(38, -51, 23));
+        mapChestCoords.add(new Vector(23, -51, 58));
+        mapChestCoords.add(new Vector(-52, -51, 65));
+        mapChestCoords.add(new Vector(-58, -51, -11));
+        mapChestCoords.add(new Vector(-27, -45, -12));
+        mapChestCoords.add(new Vector(-38, -39, -10));
+        mapChestCoords.add(new Vector(-31, -33, -10));
+        mapChestCoords.add(new Vector(-46, -43, 17));
+        mapChestCoords.add(new Vector(-65, -42, 19));
+        mapChestCoords.add(new Vector(-60, -43, 30));
+        mapChestCoords.add(new Vector(-83, -43, 63));
+        mapChestCoords.add(new Vector(-61, -43, 64));
+        mapChestCoords.add(new Vector(-50, -43, 33));
+        mapChestCoords.add(new Vector(22, -45, -23));
+        mapChestCoords.add(new Vector(16, -45, -10));
+        mapChestCoords.add(new Vector(30, -45, -44));
+        mapChestCoords.add(new Vector(34, -43, -31));
+        mapChestCoords.add(new Vector(22, -37, -45));
+        mapChestCoords.add(new Vector(9, -27, -44));
+        mapChestCoords.add(new Vector(16, -28, -13));
+        mapChestCoords.add(new Vector(22, -40, -70));
+        mapChestCoords.add(new Vector(8, -40, -81));
+        mapChestCoords.add(new Vector(26, -45, 24));
+        mapChestCoords.add(new Vector(-14, -45, -57));
+        mapChestCoords.add(new Vector(-29, -45, -56));
+        mapChestCoords.add(new Vector(-10, -51, -52));
+        mapChestCoords.add(new Vector(-36, -51, -66));
+        mapChestCoords.add(new Vector(-16, -39, -57));
+        mapChestCoords.add(new Vector(-12, -33, -68));
+        mapChestCoords.add(new Vector(-66, -45, -26));
+        mapChestCoords.add(new Vector(-52, -48, -30));
+        mapChestCoords.add(new Vector(-70, -27, -40));
+        mapChestCoords.add(new Vector(-74, -44, -37));
+        mapChestCoords.add(new Vector(-98, -45, -43));
+        mapChestCoords.add(new Vector(-94, -40, -50));
+        mapChestCoords.add(new Vector(-93, -44, -27));
+        mapChestCoords.add(new Vector(-93, -39, -30));
+        mapChestCoords.add(new Vector(-93, -34, -34));
+        mapChestCoords.add(new Vector(-42, -45, -58));
+        mapChestCoords.add(new Vector(-36, -39, -61));
+        mapChestCoords.add(new Vector(-52, -33, -69));
+        mapChestCoords.add(new Vector(-52, -27, -71));
+        mapChestCoords.add(new Vector(-67, -51, -83));
+        mapChestCoords.add(new Vector(-89, -50, -113));
         
         this.mechaLootTables = new ArrayList<>();
         String[] lootTableNames = new String[]{"mecha/poor-chest", "mecha/good-chest", "mecha/better-chest", "mecha/excellent-chest"};
@@ -250,5 +290,7 @@ public class MechaGame implements MCTGame {
             LootTable lootTable = Bukkit.getLootTable(new NamespacedKey("mctdatapack", lootTableName));
             mechaLootTables.add(lootTable);
         }
+        
+        this.spawnLootTable = Bukkit.getLootTable(new NamespacedKey("mctdatapack", "mecha/spawn-chest"));
     }
 }
