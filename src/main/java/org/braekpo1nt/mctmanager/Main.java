@@ -1,7 +1,6 @@
 package org.braekpo1nt.mctmanager;
 
 import com.onarandombox.MultiverseCore.MultiverseCore;
-import fr.mrmicky.fastboard.FastBoard;
 import org.braekpo1nt.mctmanager.commands.MCTCommand;
 import org.braekpo1nt.mctmanager.commands.MCTDebugCommand;
 import org.braekpo1nt.mctmanager.games.GameManager;

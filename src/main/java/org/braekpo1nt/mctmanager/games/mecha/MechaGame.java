@@ -4,6 +4,7 @@ import com.onarandombox.MultiverseCore.api.MVWorldManager;
 import com.onarandombox.MultiverseCore.utils.AnchorManager;
 import fr.mrmicky.fastboard.FastBoard;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.MCTGame;
@@ -12,21 +13,27 @@ import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
 import org.bukkit.block.structure.Mirror;
 import org.bukkit.block.structure.StructureRotation;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.loot.LootTable;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.structure.Structure;
 import org.bukkit.util.Vector;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
-public class MechaGame implements MCTGame {
+public class MechaGame implements MCTGame, Listener {
     
     private final Main plugin;
     private final GameManager gameManager;
     private boolean gameActive = false;
     private boolean mechaHasStarted = false;
     private List<Player> participants;
+    private Map<UUID, Integer> killCounts;
     private final World mechaWorld;
     private Map<UUID, FastBoard> boards = new HashMap<>();
     private int startMechaTaskId;
@@ -60,6 +67,7 @@ public class MechaGame implements MCTGame {
     @Override
     public void start(List<Player> participants) {
         this.participants = participants;
+        this.killCounts = participants.stream().collect(Collectors.toMap(Entity::getUniqueId, value -> 0));
         placePlatforms();
         fillAllChests();
         teleportPlayersToStartingPositions();
@@ -108,6 +116,49 @@ public class MechaGame implements MCTGame {
         for (Player participant : participants) {
             participant.sendMessage(Component.text("Go!"));
         }
+    }
+    
+    @EventHandler
+    public void onPlayerKillPlayer(PlayerDeathEvent event) {
+        if (!gameActive) {
+            return;
+        }
+        if (!mechaHasStarted) {
+            return;
+        }
+        Player killed = event.getPlayer();
+        if (!participants.contains(killed)) {
+            return;
+        }
+        if (killed.getKiller() == null) {
+            return;
+        }
+        if (!(killed.getKiller() instanceof Player)) {
+            return;
+        }
+        Player killer = killed.getKiller();
+        if (!participants.contains(killer)) {
+            return;
+        }
+        
+        // handle killed
+        killed.setGameMode(GameMode.SPECTATOR);
+        Bukkit.getServer().sendMessage(event.deathMessage());
+        event.setCancelled(true);
+        // handle killer
+        addKill(killer.getUniqueId());
+        gameManager.awardPointsToPlayer(killer, 40);
+    }
+    
+    private void addKill(UUID killerUniqueId) {
+        FastBoard board = boards.get(killerUniqueId);
+        int oldKillCount = killCounts.get(killerUniqueId);
+        int newKillCount = oldKillCount + 1;
+        killCounts.put(killerUniqueId, newKillCount);
+        board.updateLine(1, Component.text("Kills: ")
+                .append(Component.text(newKillCount))
+                .color(NamedTextColor.RED)
+                .toString());
     }
     
     private void initializeFastboards() {

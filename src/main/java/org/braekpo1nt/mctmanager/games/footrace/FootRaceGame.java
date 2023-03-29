@@ -13,6 +13,7 @@ import org.braekpo1nt.mctmanager.games.MCTGame;
 import org.bukkit.*;
 import org.bukkit.block.structure.Mirror;
 import org.bukkit.block.structure.StructureRotation;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -69,8 +70,8 @@ public class FootRaceGame implements Listener, MCTGame {
         this.participants = participants;
         
         lapCooldowns = participants.stream().collect(
-                Collectors.toMap(participant -> participant.getUniqueId(), key -> System.currentTimeMillis()));
-        laps = participants.stream().collect(Collectors.toMap(participant -> participant.getUniqueId(), key -> 1));
+                Collectors.toMap(Entity::getUniqueId, value -> System.currentTimeMillis()));
+        laps = participants.stream().collect(Collectors.toMap(Entity::getUniqueId, value -> 1));
         placements = new ArrayList<>();
         initializeFastBoards();
         closeGlassBarrier();
