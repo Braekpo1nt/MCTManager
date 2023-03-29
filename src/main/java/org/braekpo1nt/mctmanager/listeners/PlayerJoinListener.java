@@ -1,7 +1,6 @@
 package org.braekpo1nt.mctmanager.listeners;
 
 import org.braekpo1nt.mctmanager.Main;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -22,10 +21,8 @@ public class PlayerJoinListener implements Listener {
     
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
-        Bukkit.getLogger().info("[MCTManager]: Initializing player");
         Player player = event.getPlayer();
         player.setScoreboard(mctScoreboard);
-        Main.giveAmbientStatusEffects(player);
     }
     
 }

@@ -1,4 +1,4 @@
-package org.braekpo1nt.mctmanager.listeners;
+package org.braekpo1nt.mctmanager.hub;
 
 import com.onarandombox.MultiverseCore.MultiverseCore;
 import com.onarandombox.MultiverseCore.api.MVWorldManager;
