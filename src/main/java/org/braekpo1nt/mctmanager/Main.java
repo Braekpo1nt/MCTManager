@@ -9,8 +9,12 @@ import org.braekpo1nt.mctmanager.listeners.BlockEffectsListener;
 import org.braekpo1nt.mctmanager.hub.HubBoundaryListener;
 import org.braekpo1nt.mctmanager.listeners.PlayerJoinListener;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 
 import java.io.File;
@@ -22,6 +26,7 @@ public final class Main extends JavaPlugin {
     private Scoreboard mctScoreboard;
     private GameManager gameManager;
     private boolean saveGameStateOnDisable = true;
+    private final PotionEffect NIGHT_VISION = new PotionEffect(PotionEffectType.NIGHT_VISION, 300, 3, true, false, false);
     
     @Override
     public void onEnable() {
@@ -57,8 +62,20 @@ public final class Main extends JavaPlugin {
         // Commands
         new MCTDebugCommand(this);
         new MCTCommand(this, gameManager, hubBoundaryListener, blockEffectsListener);
-        
-        File dataFolder = getDataFolder();
+    
+        alwaysGiveNightVision();
+    }
+    
+    private void alwaysGiveNightVision() {
+        Bukkit.getLogger().info("[MCTManager] Night vision activated");
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    player.addPotionEffect(NIGHT_VISION);
+                }
+            }
+        }.runTaskTimer(this, 0L, 60L);
     }
     
     @Override
