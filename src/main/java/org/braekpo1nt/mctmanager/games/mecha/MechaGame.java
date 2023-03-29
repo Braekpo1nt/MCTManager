@@ -147,6 +147,7 @@ public class MechaGame implements MCTGame, Listener {
     
     private void startMecha() {
         this.mechaHasStarted = true;
+        kickOffBoarderShrinking();
         removePlatforms();
         for (Player participant : participants) {
             participant.sendMessage(Component.text("Go!"));
@@ -196,6 +197,13 @@ public class MechaGame implements MCTGame, Listener {
     private void initializeWorldBoarder() {
         worldBorder.setCenter(0, 0);
         worldBorder.setSize(248);
+    }
+    
+    private void kickOffBoarderShrinking() {
+        int[] sizes = new int[]{248, 180, 150, 100, 50, 25, 2};
+        int[] delays = new int[]{90, 70, 60, 80, 60, 30};
+        int[] durations = new int[]{25, 20, 20 , 15, 15, 30};
+        //start with the first size. wait the next delay. move to the next size over the next duration. Repeat.
     }
     
     private void initializeFastboards() {
