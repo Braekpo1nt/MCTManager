@@ -42,7 +42,8 @@ public class MechaGame implements MCTGame {
      * Holds the mecha loot tables from the mctdatapack, not including the spawn loot.
      * Each loot table is paired with a weight for random selection. 
      */
-    private Map<Integer, LootTable> mechaLootTables;
+    private List<LootTable> mechaLootTables;
+    private List<Integer> mechaLootTableWeights;
     /**
      * Holds the mecha spawn loot table from the mctdatapack
      */
@@ -191,7 +192,7 @@ public class MechaGame implements MCTGame {
      * @param chest The chest to fill
      */
     private void fillMapChest(Chest chest) {
-        LootTable lootTable = getRandomLootTable();
+        LootTable lootTable = getRandomLootTable(mechaLootTableWeights, mechaLootTables);
         chest.setLootTable(lootTable);
         chest.update();
     }
@@ -200,19 +201,19 @@ public class MechaGame implements MCTGame {
      * Gets a random loot table from the MECHA loot table selection
      * @return A loot table for a chest
      */
-    private LootTable getRandomLootTable() {
+    private LootTable getRandomLootTable(List<Integer> weights, List<LootTable> loots) {
         int totalWeight = 0;
-        for (int weight : mechaLootTables.keySet()) {
+        for (int weight : weights) {
             totalWeight += weight;
         }
-        int randomWeight = (int) (Math.random() * totalWeight) + 1;
-        for (Map.Entry<Integer, LootTable> entry : mechaLootTables.entrySet()) {
-            randomWeight -= entry.getKey();
-            if (randomWeight <= 0) {
-                return entry.getValue();
+        int randomIndex = (int) (Math.random() * totalWeight);
+        int weightSum = 0;
+        for (int i = 0; i < weights.size(); i++) {
+            weightSum += weights.get(i);
+            if (randomIndex < weightSum) {
+                return loots.get(i);
             }
         }
-        
         return null;
     }
     
@@ -297,14 +298,23 @@ public class MechaGame implements MCTGame {
     
         this.spawnLootTable = Bukkit.getLootTable(new NamespacedKey("mctdatapack", "mecha/spawn-chest"));
         
-        this.mechaLootTables = new HashMap<>();
+        this.mechaLootTables = new ArrayList<>(4);
+        this.mechaLootTableWeights = new ArrayList<>();
         LootTable poor = Bukkit.getLootTable(new NamespacedKey("mctdatapack", "mecha/poor-chest"));
-        mechaLootTables.put(3, poor);
+        mechaLootTables.add(poor);
+        mechaLootTableWeights.add(3);
+        
         LootTable good = Bukkit.getLootTable(new NamespacedKey("mctdatapack", "mecha/good-chest"));
-        mechaLootTables.put(3, good);
+        mechaLootTables.add(good);
+        mechaLootTableWeights.add(3);
+        
         LootTable better = Bukkit.getLootTable(new NamespacedKey("mctdatapack", "mecha/better-chest"));
-        mechaLootTables.put(2, better);
+        mechaLootTables.add(better);
+        mechaLootTableWeights.add(2);
+        
         LootTable excellent = Bukkit.getLootTable(new NamespacedKey("mctdatapack", "mecha/excellent-chest"));
-        mechaLootTables.put(1, excellent);
+        mechaLootTables.add(excellent);
+        mechaLootTableWeights.add(1);
+        
     }
 }
