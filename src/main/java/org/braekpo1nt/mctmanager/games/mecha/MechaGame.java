@@ -59,6 +59,7 @@ public class MechaGame implements MCTGame, Listener {
     public MechaGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
         this.gameManager = gameManager;
+        plugin.getServer().getPluginManager().registerEvents(this, plugin);
         setChestCoordsAndLootTables();
         MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
         this.mechaWorld = worldManager.getMVWorld("FT").getCBWorld();
