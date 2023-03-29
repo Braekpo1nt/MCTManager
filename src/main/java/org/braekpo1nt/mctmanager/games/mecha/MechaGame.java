@@ -21,7 +21,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.loot.LootTable;
 import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.structure.Structure;
 import org.bukkit.util.Vector;
@@ -63,6 +62,7 @@ public class MechaGame implements MCTGame, Listener {
      * Holds the mecha spawn loot table from the mctdatapack
      */
     private LootTable spawnLootTable;
+    private final WorldBorder worldBorder;
     
     public MechaGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
@@ -72,6 +72,7 @@ public class MechaGame implements MCTGame, Listener {
         MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
         this.mvMechaWorld = worldManager.getMVWorld("FT");
         this.mechaWorld = mvMechaWorld.getCBWorld();
+        this.worldBorder = mechaWorld.getWorldBorder();
     }
     
     @Override
@@ -88,6 +89,7 @@ public class MechaGame implements MCTGame, Listener {
         clearStatusEffects();
         initializeFastboards();
         startStartMechaCountdownTask();
+        initializeWorldBoarder();
         gameActive = true;
         Bukkit.getLogger().info("Started mecha");
     }
@@ -97,6 +99,8 @@ public class MechaGame implements MCTGame, Listener {
         hideFastBoards();
         cancelAllTasks();
         clearInventories();
+        placePlatforms();
+        worldBorder.reset();
         gameActive = false;
         mechaHasStarted = false;
         gameManager.gameIsOver();
@@ -187,6 +191,11 @@ public class MechaGame implements MCTGame, Listener {
                 .append(Component.text(newKillCount))
                 .color(NamedTextColor.RED)
                 .toString());
+    }
+    
+    private void initializeWorldBoarder() {
+        worldBorder.setCenter(0, 0);
+        worldBorder.setSize(248);
     }
     
     private void initializeFastboards() {
