@@ -1,7 +1,5 @@
 package org.braekpo1nt.mctmanager.games;
 
-import com.onarandombox.MultiverseCore.api.MVWorldManager;
-import com.onarandombox.MultiverseCore.api.MultiverseWorld;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -11,6 +9,7 @@ import org.braekpo1nt.mctmanager.color.ColorMap;
 import org.braekpo1nt.mctmanager.games.footrace.FootRaceGame;
 import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
 import org.braekpo1nt.mctmanager.games.mecha.MechaGame;
+import org.braekpo1nt.mctmanager.hub.HubManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.OfflinePlayer;
@@ -32,6 +31,7 @@ public class GameManager {
     private MCTGame activeGame = null;
     private final FootRaceGame footRaceGame;
     private final MechaGame mechaGame;
+    private final HubManager hubManager;
     private final GameStateStorageUtil gameStateStorageUtil;
     /**
      * Scoreboard for holding the teams. This private scoreboard can't be
@@ -40,15 +40,15 @@ public class GameManager {
      */
     private final Scoreboard mctScoreboard;
     private final Main plugin;
-    private int teleportPlayersToHubTaskId;
     private boolean shouldTeleportToHub = true;
     
-    public GameManager(Main plugin, Scoreboard mctScoreboard) {
+    public GameManager(Main plugin, Scoreboard mctScoreboard, HubManager hubManager) {
         this.plugin = plugin;
         this.mctScoreboard = mctScoreboard;
         gameStateStorageUtil = new GameStateStorageUtil(plugin);
         this.footRaceGame = new FootRaceGame(plugin, this);
         this.mechaGame = new MechaGame(plugin, this);
+        this.hubManager = hubManager;
     }
     
     public void loadGameState() throws IOException {
@@ -145,39 +145,7 @@ public class GameManager {
             shouldTeleportToHub = true;
             return;
         }
-        startDelayedTeleportToHubTask();
-    }
-    
-    private void startDelayedTeleportToHubTask() {
-        this.teleportPlayersToHubTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
-            private int count = 10;
-            @Override
-            public void run() {
-                if (count <= 0) {
-                    teleportPlayersToHub();
-                    cancelDelayedTeleportToHubTask();
-                    return;
-                }
-                for (Player player : getOnlineParticipants()) {
-                    player.sendMessage(Component.text("Teleporting to hub in ")
-                            .append(Component.text(count)));
-                }
-                count--;
-            }
-        }, 0, 20);
-    }
-    
-    private void cancelDelayedTeleportToHubTask() {
-        Bukkit.getScheduler().cancelTask(teleportPlayersToHubTaskId);
-    }
-    
-    private void teleportPlayersToHub() {
-        MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
-        MultiverseWorld hubWorld = worldManager.getMVWorld("Hub");
-        for (Player participant : getOnlineParticipants()) {
-            participant.sendMessage("Teleporting to Hub");
-            participant.teleport(hubWorld.getSpawnLocation());
-        }
+        hubManager.startReturnToHub(getOnlineParticipants());
     }
     
     /**

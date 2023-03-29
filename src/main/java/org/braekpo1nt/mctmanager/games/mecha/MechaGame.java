@@ -20,6 +20,8 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.loot.LootTable;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.structure.Structure;
 import org.bukkit.util.Vector;
@@ -43,6 +45,7 @@ public class MechaGame implements MCTGame, Listener {
     private GameMode oldMVGameMode;
     private Map<UUID, FastBoard> boards = new HashMap<>();
     private int startMechaTaskId;
+    private int statusEffectsTaskId;
     /**
      * The coordinates of all the chests in the open world, not including spawn chests
      */
@@ -61,6 +64,7 @@ public class MechaGame implements MCTGame, Listener {
      * Holds the mecha spawn loot table from the mctdatapack
      */
     private LootTable spawnLootTable;
+    private final PotionEffect NIGHT_VISION = new PotionEffect(PotionEffectType.NIGHT_VISION, 70, 3, true, false, false);
     
     public MechaGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
@@ -82,24 +86,31 @@ public class MechaGame implements MCTGame, Listener {
         this.oldMVGameMode = mvMechaWorld.getGameMode();
         mvMechaWorld.setGameMode(GameMode.ADVENTURE);
         setPlayersToAdventure();
+        clearInventories();
+        clearStatusEffects();
+        startStatusEffectsTask();
         initializeFastboards();
         startStartMechaCountdownTask();
         gameActive = true;
         Bukkit.getLogger().info("Started mecha");
     }
-
+    
     @Override
     public void stop() {
         hideFastBoards();
-        cancelTasks();
+        cancelAllTasks();
+        clearInventories();
+        clearStatusEffects();
         gameActive = false;
+        mechaHasStarted = false;
         gameManager.gameIsOver();
         this.mvMechaWorld.setGameMode(oldMVGameMode);
         Bukkit.getLogger().info("Stopped mecha");
     }
     
-    private void cancelTasks() {
+    private void cancelAllTasks() {
         Bukkit.getScheduler().cancelTask(startMechaTaskId);
+        Bukkit.getScheduler().cancelTask(statusEffectsTaskId);
     }
     
     private void startStartMechaCountdownTask() {
@@ -119,6 +130,31 @@ public class MechaGame implements MCTGame, Listener {
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+    }
+    
+    private void clearInventories() {
+        for (Player participant : participants) {
+            participant.getInventory().clear();
+        }
+    }
+    
+    private void startStatusEffectsTask() {
+        this.statusEffectsTaskId = new BukkitRunnable() {
+            @Override
+            public void run() {
+                for (Player participant : participants) {
+                    participant.addPotionEffect(NIGHT_VISION);
+                }
+            }
+        }.runTaskTimer(plugin, 0L, 60L).getTaskId();
+    }
+    
+    private void clearStatusEffects() {
+        for (Player participant : participants) {
+            for (PotionEffect effect : participant.getActivePotionEffects()) {
+                participant.removePotionEffect(effect.getType());
+            }
+        }
     }
     
     private void startMecha() {

@@ -84,8 +84,9 @@ public class FootRaceGame implements Listener, MCTGame {
         initializeFastBoards();
         closeGlassBarrier();
         teleportPlayersToStartingPositions();
-        giveParticipantsStatusEffects();
         giveBoots();
+        clearInventories();
+        clearStatusEffects();
         startStatusEffectsTask();
         startStartRaceCountdownTask();
         
@@ -97,9 +98,9 @@ public class FootRaceGame implements Listener, MCTGame {
     public void stop() {
         closeGlassBarrier();
         hideFastBoards();
-        removeParticipantStatusEffects();
         cancelAllTasks();
         clearInventories();
+        clearStatusEffects();
         raceHasStarted = false;
         gameActive = false;
         gameManager.gameIsOver();
@@ -111,26 +112,6 @@ public class FootRaceGame implements Listener, MCTGame {
         Bukkit.getScheduler().cancelTask(endRaceCountDownId);
         Bukkit.getScheduler().cancelTask(timerRefreshTaskId);
         Bukkit.getScheduler().cancelTask(statusEffectsTaskId);
-    }
-    
-    private void giveParticipantsStatusEffects() {
-        for (Player participant : participants) {
-            participant.addPotionEffect(SPEED);
-            participant.addPotionEffect(INVISIBILITY);
-            participant.addPotionEffect(NIGHT_VISION);
-            participant.addPotionEffect(RESISTANCE);
-            participant.addPotionEffect(REGENERATION);
-            participant.addPotionEffect(FIRE_RESISTANCE);
-            participant.addPotionEffect(SATURATION);
-        }
-    }
-    
-    private void removeParticipantStatusEffects() {
-        for (Player participant : participants) {
-            for (PotionEffect effect : participant.getActivePotionEffects()){
-                participant.removePotionEffect(effect.getType());
-            }
-        }
     }
     
     private void giveBoots() {
@@ -150,11 +131,27 @@ public class FootRaceGame implements Listener, MCTGame {
         }
     }
     
+    private void clearStatusEffects() {
+        for (Player participant : participants) {
+            for (PotionEffect effect : participant.getActivePotionEffects()) {
+                participant.removePotionEffect(effect.getType());
+            }
+        }
+    }
+    
     private void startStatusEffectsTask() {
         this.statusEffectsTaskId = new BukkitRunnable(){
             @Override
             public void run() {
-                giveParticipantsStatusEffects();
+                for (Player participant : participants) {
+                    participant.addPotionEffect(SPEED);
+                    participant.addPotionEffect(INVISIBILITY);
+                    participant.addPotionEffect(NIGHT_VISION);
+                    participant.addPotionEffect(RESISTANCE);
+                    participant.addPotionEffect(REGENERATION);
+                    participant.addPotionEffect(FIRE_RESISTANCE);
+                    participant.addPotionEffect(SATURATION);
+                }
             }
         }.runTaskTimer(plugin, 0L, 60L).getTaskId();
     }
