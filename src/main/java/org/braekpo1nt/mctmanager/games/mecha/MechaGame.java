@@ -19,6 +19,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.loot.LootTable;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -227,6 +228,7 @@ public class MechaGame implements MCTGame, Listener {
         killed.setGameMode(GameMode.SPECTATOR);
         removePlayerFromLivingTeams(killed.getUniqueId());
         event.setCancelled(true);
+        dropInventory(killed);
         Component deathMessage = event.deathMessage();
         if (deathMessage != null) {
             Bukkit.getServer().sendMessage(deathMessage);
@@ -238,6 +240,15 @@ public class MechaGame implements MCTGame, Listener {
         if (winningTeam != null) {
             onTeamWin(winningTeam);
         }
+    }
+    
+    private void dropInventory(Player killed) {
+        for (ItemStack item : killed.getInventory().getContents()) {
+            if (item != null){
+                mechaWorld.dropItemNaturally(killed.getLocation(), item);
+            }
+        }
+        killed.getInventory().clear();
     }
     
     private void onPlayerGetKill(Player killed) {

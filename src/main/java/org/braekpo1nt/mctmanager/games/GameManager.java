@@ -86,8 +86,12 @@ public class GameManager {
                 break;
             case "mecha":
                 if (onlineParticipants.size() < 2) {
-                    sender.sendMessage("MECHA needs at least 2 online participants");
-                    return;
+                    sender.sendMessage("MECHA needs at least 2 online participants to run correctly. Running anyway. Use '/mct game stop' to stop the game.");
+                    sender.sendMessage(Component.text("MECHA doesn't end correctly unless there are 2 or more players. use ")
+                            .append(Component.text("/mct game stop")
+                                    .clickEvent(ClickEvent.suggestCommand("/mct game stop"))
+                                    .decorate(TextDecoration.BOLD))
+                            .append(Component.text(" to stop the game.")));
                 }
                 mechaGame.start(onlineParticipants);
                 activeGame = mechaGame;
