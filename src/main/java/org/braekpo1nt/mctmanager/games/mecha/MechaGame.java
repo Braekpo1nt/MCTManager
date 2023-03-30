@@ -181,28 +181,31 @@ public class MechaGame implements MCTGame, Listener {
             return;
         }
         Player killed = event.getPlayer();
-        killed.setGameMode(GameMode.SPECTATOR);
-        event.setCancelled(true);
-        Bukkit.getServer().sendMessage(event.deathMessage());
         if (!participants.contains(killed)) {
             return;
         }
-        if (killed.getKiller() == null) {
-            return;
+        killed.setGameMode(GameMode.SPECTATOR);
+        event.setCancelled(true);
+        Component deathMessage = event.deathMessage();
+        if (deathMessage != null) {
+            Bukkit.getServer().sendMessage(deathMessage);
         }
-        if (!(killed.getKiller() instanceof Player)) {
-            return;
+        if (killed.getKiller() != null) {
+            onPlayerGetKill(killed);
         }
+        String lastTeamALive = getLastTeamALive();
+        if (lastTeamALive == null) {
+            onTeamWin(lastTeamALive);
+        }
+    }
+    
+    private void onPlayerGetKill(Player killed) {
         Player killer = killed.getKiller();
         if (!participants.contains(killer)) {
             return;
         }
         addKill(killer.getUniqueId());
         gameManager.awardPointsToPlayer(killer, 40);
-        String lastTeamALive = getLastTeamALive();
-        if (lastTeamALive == null) {
-            onTeamWin(lastTeamALive);
-        }
     }
     
     /**
