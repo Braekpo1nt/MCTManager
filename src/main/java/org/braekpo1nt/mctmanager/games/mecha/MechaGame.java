@@ -101,6 +101,7 @@ public class MechaGame implements MCTGame, Listener {
         cancelAllTasks();
         clearInventories();
         placePlatforms();
+        clearAllChests();
         worldBorder.reset();
         gameActive = false;
         mechaHasStarted = false;
@@ -443,6 +444,17 @@ public class MechaGame implements MCTGame, Listener {
     private void fillAllChests() {
         fillSpawnChests();
         fillMapChests();
+    }
+    
+    private void clearAllChests() {
+        List<Vector> allChestCoords = new ArrayList<>(spawnChestCoords);
+        allChestCoords.addAll(mapChestCoords);
+        for (Vector coords : allChestCoords) {
+            Block block = mechaWorld.getBlockAt(coords.getBlockX(), coords.getBlockY(), coords.getBlockZ());
+            block.setType(Material.CHEST);
+            Chest chest = (Chest) block.getState();
+            chest.getBlockInventory().clear();
+        }
     }
     
     private void fillSpawnChests() {
