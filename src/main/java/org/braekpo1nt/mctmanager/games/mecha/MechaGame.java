@@ -9,6 +9,7 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.MCTGame;
 import org.bukkit.*;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
 import org.bukkit.block.structure.Mirror;
@@ -64,6 +65,7 @@ public class MechaGame implements MCTGame, Listener {
     private LootTable spawnLootTable;
     private final WorldBorder worldBorder;
     private int borderShrinkingTaskId;
+    private Map<String, List<UUID>> livingTeams;
     
     public MechaGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
@@ -79,6 +81,7 @@ public class MechaGame implements MCTGame, Listener {
     @Override
     public void start(List<Player> participants) {
         this.participants = participants;
+        initializeLivingTeams();
         this.killCounts = participants.stream().collect(Collectors.toMap(Entity::getUniqueId, value -> 0));
         placePlatforms();
         fillAllChests();
@@ -87,6 +90,7 @@ public class MechaGame implements MCTGame, Listener {
         mvMechaWorld.setGameMode(GameMode.ADVENTURE);
         setPlayersToAdventure();
         clearInventories();
+        resetHealthAndHunger();
         clearStatusEffects();
         initializeFastboards();
         startStartMechaCountdownTask();
@@ -134,9 +138,45 @@ public class MechaGame implements MCTGame, Listener {
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
     }
     
+    private void initializeLivingTeams() {
+        livingTeams = new HashMap<>();
+        for (Player participant : participants) {
+            String teamName = gameManager.getTeamName(participant.getUniqueId());
+            if (!livingTeams.containsKey(teamName)) {
+                livingTeams.put(teamName, new ArrayList<>());
+            }
+            List<UUID> teamMates = livingTeams.get(teamName);
+            teamMates.add(participant.getUniqueId());
+        }
+    }
+    
+    /**
+     * Removes the player with the given UUID from the living teams map.
+     * If that player was the last to be removed from their team, this
+     * also removes the team from the map.
+     * @param playerUniqueId The UUID of the player to remove from the team
+     * @throws NullPointerException if the team of the player with the given UUID is not in the
+     * list of living teams
+     */
+    private void removePlayerFromLivingTeams(UUID playerUniqueId) {
+        String teamName = gameManager.getTeamName(playerUniqueId);
+        List<UUID> teamMates = livingTeams.get(teamName);
+        teamMates.remove(playerUniqueId);
+        if (teamMates.size() == 0) {
+            livingTeams.remove(teamName);
+        }
+    }
+    
     private void clearInventories() {
         for (Player participant : participants) {
             participant.getInventory().clear();
+        }
+    }
+    
+    private void resetHealthAndHunger() {
+        for (Player participant : participants) {
+            participant.setHealth(participant.getAttribute(Attribute.GENERIC_MAX_HEALTH).getDefaultValue());
+            participant.setSaturation(20);
         }
     }
     
@@ -185,6 +225,7 @@ public class MechaGame implements MCTGame, Listener {
             return;
         }
         killed.setGameMode(GameMode.SPECTATOR);
+        removePlayerFromLivingTeams(killed.getUniqueId());
         event.setCancelled(true);
         Component deathMessage = event.deathMessage();
         if (deathMessage != null) {
@@ -193,10 +234,10 @@ public class MechaGame implements MCTGame, Listener {
         if (killed.getKiller() != null) {
             onPlayerGetKill(killed);
         }
-//        String lastTeamALive = getLastTeamALive();
-//        if (lastTeamALive == null) {
-//            onTeamWin(lastTeamALive);
-//        }
+        String winningTeam = getWinningTeam();
+        if (winningTeam != null) {
+            onTeamWin(winningTeam);
+        }
     }
     
     private void onPlayerGetKill(Player killed) {
@@ -209,26 +250,15 @@ public class MechaGame implements MCTGame, Listener {
     }
     
     /**
-     * Returns the name of the last team left alive
-     * @return Returns a string containing the name of the last team left alive,
-     * or null if there is more than one team left alive
+     * Returns the winning team if there is one
+     * @return The team name of the winning team, or null if there is no winning team
      */
-    private String getLastTeamALive() {
-        Player firstParticipant = participants.get(0);
-        String teamLeftAlive = gameManager.getTeamName(firstParticipant.getUniqueId());
-        for (Player participant : participants) {
-            if (participantIsAlive(participant)){
-                String team = gameManager.getTeamName(participant.getUniqueId());
-                if (!team.equals(teamLeftAlive)) {
-                    return null;
-                }
-            }
+    public String getWinningTeam() {
+        if (livingTeams.size() == 1) {
+            String winningTeam = livingTeams.keySet().iterator().next();
+            return winningTeam;
         }
-        return teamLeftAlive;
-    }
-    
-    private boolean participantIsAlive(Player participant) {
-        return participant.getGameMode() != GameMode.SPECTATOR;
+        return null;
     }
     
     private void addKill(UUID killerUniqueId) {
@@ -261,7 +291,6 @@ public class MechaGame implements MCTGame, Listener {
             @Override
             public void run() {
                 if (onDelay) {
-                    Bukkit.getLogger().info(String.format("Delaying %d/%d", delay, delays[sceneIndex]));
                     displayBorderDelayFor(delay);
                     if (delay <= 1) {
                         onDelay = false;
@@ -274,7 +303,6 @@ public class MechaGame implements MCTGame, Listener {
                     }
                     delay--;
                 } else if (onDuration) {
-                    Bukkit.getLogger().info(String.format("Shrinking to %d, %d/%d", sizes[sceneIndex], duration, durations[sceneIndex]));
                     displayBorderShrinkingFor(duration);
                     if (duration <= 1) {
                         onDuration = false;

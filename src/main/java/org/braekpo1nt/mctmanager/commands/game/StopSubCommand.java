@@ -30,6 +30,7 @@ public class StopSubCommand implements TabExecutor {
         }
         if (args.length == 0) {
             gameManager.manuallyStopGame(true);
+            return true;
         }
         if (args.length == 1) {
             String shouldTeleport = args[0];
