@@ -200,10 +200,45 @@ public class MechaGame implements MCTGame, Listener {
     }
     
     private void kickOffBoarderShrinking() {
-        int[] sizes = new int[]{248, 180, 150, 100, 50, 25, 2};
+        int[] sizes = new int[]{180, 150, 100, 50, 25, 2};
         int[] delays = new int[]{90, 70, 60, 80, 60, 30};
         int[] durations = new int[]{25, 20, 20 , 15, 15, 30};
         //start with the first size. wait the next delay. move to the next size over the next duration. Repeat.
+        new BukkitRunnable() {
+            int delay = 0;
+            int duration = 0;
+            boolean onDelay = false;
+            boolean onDuration = false;
+            int sceneIndex = 0;
+            @Override
+            public void run() {
+                if (sceneIndex >= sizes.length) {
+                    this.cancel();
+                }
+                if (onDelay) {
+                    if (delay <= 0) {
+                        onDelay = false;
+                        onDuration = true;
+                        duration = durations[sceneIndex];
+                        int size = sizes[sceneIndex];
+                        worldBorder.setSize(size, duration);
+                    }
+                    delay--;
+                } else if (onDuration) {
+                    if (duration <= 0) {
+                        onDuration = false;
+                        onDelay = true;
+                        delay = delays[sceneIndex];
+                        sceneIndex++;
+                    }
+                    duration--;
+                } else {
+                    //initialize
+                    onDelay = true;
+                    delay = delays[0];
+                }
+            }
+        }.runTaskTimer(plugin, 0L, 20L);
     }
     
     private void initializeFastboards() {
