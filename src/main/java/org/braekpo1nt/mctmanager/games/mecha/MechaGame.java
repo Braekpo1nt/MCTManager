@@ -201,7 +201,7 @@ public class MechaGame implements MCTGame, Listener {
         gameManager.awardPointsToPlayer(killer, 40);
         String lastTeamALive = getLastTeamALive();
         if (lastTeamALive == null) {
-            onTeamWin();
+            onTeamWin(lastTeamALive);
         }
     }
     
