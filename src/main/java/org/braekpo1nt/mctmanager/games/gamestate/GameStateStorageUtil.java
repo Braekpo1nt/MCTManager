@@ -228,9 +228,19 @@ public class GameStateStorageUtil {
      * @param playerUniqueId The UUID of the player to find the team color for
      * @return The color of the player's team
      */
-    public Color getTeamColor(UUID playerUniqueId) {
+    public Color getTeamNamedTextColor(UUID playerUniqueId) {
         String teamName = this.getPlayerTeamName(playerUniqueId);
         String teamColor = gameState.getTeam(teamName).getColor();
         return ColorMap.getColor(teamColor);
+    }
+    
+    public NamedTextColor getTeamNamedTextColor(String teamName) {
+        String colorString = gameState.getTeam(teamName).getColor();
+        return ColorMap.getNamedTextColor(colorString);
+    }
+    
+    public String getTeamDisplayName(String teamName) {
+        MCTTeam team = gameState.getTeam(teamName);
+        return team.getDisplayName();
     }
 }

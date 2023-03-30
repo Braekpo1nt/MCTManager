@@ -294,6 +294,18 @@ public class GameManager {
     }
     
     public Color getTeamColor(UUID playerUniqueId) {
-        return gameStateStorageUtil.getTeamColor(playerUniqueId);
+        return gameStateStorageUtil.getTeamNamedTextColor(playerUniqueId);
+    }
+    
+    /**
+     * Gets the team's display name as a Component with the team's text color
+     * and in bold
+     * @param teamName The internal name of the team
+     * @return A Component with the formatted team dislay name
+     */
+    public Component getFormattedTeamDisplayName(String teamName) {
+        String displayName = gameStateStorageUtil.getTeamDisplayName(teamName);
+        NamedTextColor teamColor = gameStateStorageUtil.getTeamNamedTextColor(teamName);
+        return Component.text(displayName).color(teamColor).decorate(TextDecoration.BOLD);
     }
 }

@@ -157,8 +157,11 @@ public class MechaGame implements MCTGame, Listener {
         }
     }
     
-    private void stopMecha() {
-        Bukkit.getServer().sendMessage(Component.text("Mecha is over!"));
+    private void onTeamWin(String winningTeamName) {
+        Component displayNameComponent = gameManager.getFormattedTeamDisplayName(winningTeamName);
+        Bukkit.getServer().sendMessage(Component.text("Team ")
+                .append(displayNameComponent)
+                .append(Component.text(" wins!")));
         stop();
     }
     
@@ -198,7 +201,7 @@ public class MechaGame implements MCTGame, Listener {
         gameManager.awardPointsToPlayer(killer, 40);
         String lastTeamALive = getLastTeamALive();
         if (lastTeamALive == null) {
-            stopMecha();
+            onTeamWin();
         }
     }
     
