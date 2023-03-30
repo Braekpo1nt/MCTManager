@@ -289,10 +289,6 @@ public class GameManager {
                 .color(NamedTextColor.GOLD));
     }
     
-    public int getPlayerScore(UUID playerUniqueId) {
-        return gameStateStorageUtil.getPlayerScore(playerUniqueId);
-    }
-    
     public Color getTeamColor(UUID playerUniqueId) {
         return gameStateStorageUtil.getTeamNamedTextColor(playerUniqueId);
     }

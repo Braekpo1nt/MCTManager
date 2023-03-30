@@ -193,10 +193,10 @@ public class MechaGame implements MCTGame, Listener {
         if (killed.getKiller() != null) {
             onPlayerGetKill(killed);
         }
-        String lastTeamALive = getLastTeamALive();
-        if (lastTeamALive == null) {
-            onTeamWin(lastTeamALive);
-        }
+//        String lastTeamALive = getLastTeamALive();
+//        if (lastTeamALive == null) {
+//            onTeamWin(lastTeamALive);
+//        }
     }
     
     private void onPlayerGetKill(Player killed) {
@@ -236,10 +236,11 @@ public class MechaGame implements MCTGame, Listener {
         int oldKillCount = killCounts.get(killerUniqueId);
         int newKillCount = oldKillCount + 1;
         killCounts.put(killerUniqueId, newKillCount);
-        board.updateLine(1, Component.text("Kills: ")
-                .append(Component.text(newKillCount))
-                .color(NamedTextColor.RED)
-                .toString());
+//        board.updateLine(1, Component.text("Kills: ")
+//                .append(Component.text(newKillCount))
+//                .color(NamedTextColor.RED)
+//                .toString());
+        board.updateLine(1, "Kills: " + newKillCount);
     }
     
     private void initializeWorldBoarder() {
@@ -248,12 +249,9 @@ public class MechaGame implements MCTGame, Listener {
     }
     
     private void kickOffBoarderShrinking() {
-//        int[] sizes = new int[]{180, 150, 100, 50, 25, 2};
-//        int[] delays = new int[]{90, 70, 60, 80, 60, 30};
-//        int[] durations = new int[]{25, 20, 20 , 15, 15, 30};
-        int[] sizes = new int[]{100, 50, 25};
-        int[] delays = new int[]{11, 10, 9};
-        int[] durations = new int[]{15, 10, 5};
+        int[] sizes = new int[]{180, 150, 100, 50, 25, 2};
+        int[] delays = new int[]{90, 70, 60, 80, 60, 30};
+        int[] durations = new int[]{25, 20, 20 , 15, 15, 30};
         this.boarderShrinkingTaskId = new BukkitRunnable() {
             int delay = 0;
             int duration = 0;
@@ -310,7 +308,7 @@ public class MechaGame implements MCTGame, Listener {
                     "",
                     ChatColor.RED+"Kills: 0",
                     "",
-                    ChatColor.LIGHT_PURPLE+"Boarder shrinks in",
+                    ChatColor.LIGHT_PURPLE+"Boarder",
                     ChatColor.LIGHT_PURPLE+"0:00"
             );
             boards.put(participant.getUniqueId(), board);

@@ -42,7 +42,7 @@ public class StopSubCommand implements TabExecutor {
                     gameManager.manuallyStopGame(false);
                     return true;
                 default:
-                    sender.sendMessage(String.format("%s is not a recognized option"));
+                    sender.sendMessage(String.format("%s is not a recognized option", shouldTeleport));
                     return true;
             }
         }
