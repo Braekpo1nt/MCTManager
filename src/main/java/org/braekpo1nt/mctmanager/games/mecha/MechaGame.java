@@ -25,6 +25,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.structure.Structure;
 import org.bukkit.util.Vector;
 
+import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -63,6 +64,7 @@ public class MechaGame implements MCTGame, Listener {
      */
     private LootTable spawnLootTable;
     private final WorldBorder worldBorder;
+    private int boarderShrinkingTaskId;
     
     public MechaGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
@@ -110,6 +112,7 @@ public class MechaGame implements MCTGame, Listener {
     
     private void cancelAllTasks() {
         Bukkit.getScheduler().cancelTask(startMechaTaskId);
+        Bukkit.getScheduler().cancelTask(boarderShrinkingTaskId);
     }
     
     private void startStartMechaCountdownTask() {
@@ -154,6 +157,18 @@ public class MechaGame implements MCTGame, Listener {
         }
     }
     
+    private void stopMecha() {
+        Bukkit.getServer().sendMessage(Component.text("Mecha is over!"));
+        stop();
+    }
+    
+    private void startSuddenDeath() {
+        displaySuddenDeath();
+        for (Player participant : participants) {
+            participant.sendMessage(Component.text("Sudden death!"));
+        }
+    }
+    
     @EventHandler
     public void onPlayerDeath(PlayerDeathEvent event) {
         if (!gameActive) {
@@ -181,6 +196,33 @@ public class MechaGame implements MCTGame, Listener {
         }
         addKill(killer.getUniqueId());
         gameManager.awardPointsToPlayer(killer, 40);
+        String lastTeamALive = getLastTeamALive();
+        if (lastTeamALive == null) {
+            stopMecha();
+        }
+    }
+    
+    /**
+     * Returns the name of the last team left alive
+     * @return Returns a string containing the name of the last team left alive,
+     * or null if there is more than one team left alive
+     */
+    private String getLastTeamALive() {
+        Player firstParticipant = participants.get(0);
+        String teamLeftAlive = gameManager.getTeamName(firstParticipant.getUniqueId());
+        for (Player participant : participants) {
+            if (participantIsAlive(participant)){
+                String team = gameManager.getTeamName(participant.getUniqueId());
+                if (!team.equals(teamLeftAlive)) {
+                    return null;
+                }
+            }
+        }
+        return teamLeftAlive;
+    }
+    
+    private boolean participantIsAlive(Player participant) {
+        return participant.getGameMode() != GameMode.SPECTATOR;
     }
     
     private void addKill(UUID killerUniqueId) {
@@ -200,11 +242,13 @@ public class MechaGame implements MCTGame, Listener {
     }
     
     private void kickOffBoarderShrinking() {
-        int[] sizes = new int[]{180, 150, 100, 50, 25, 2};
-        int[] delays = new int[]{90, 70, 60, 80, 60, 30};
-        int[] durations = new int[]{25, 20, 20 , 15, 15, 30};
-        //start with the first size. wait the next delay. move to the next size over the next duration. Repeat.
-        new BukkitRunnable() {
+//        int[] sizes = new int[]{180, 150, 100, 50, 25, 2};
+//        int[] delays = new int[]{90, 70, 60, 80, 60, 30};
+//        int[] durations = new int[]{25, 20, 20 , 15, 15, 30};
+        int[] sizes = new int[]{100, 50, 25};
+        int[] delays = new int[]{11, 10, 9};
+        int[] durations = new int[]{15, 10, 5};
+        this.boarderShrinkingTaskId = new BukkitRunnable() {
             int delay = 0;
             int duration = 0;
             boolean onDelay = false;
@@ -212,24 +256,35 @@ public class MechaGame implements MCTGame, Listener {
             int sceneIndex = 0;
             @Override
             public void run() {
-                if (sceneIndex >= sizes.length) {
-                    this.cancel();
-                }
                 if (onDelay) {
-                    if (delay <= 0) {
+                    Bukkit.getLogger().info(String.format("Delaying %d/%d", delay, delays[sceneIndex]));
+                    displayBoarderDelayFor(delay);
+                    if (delay <= 1) {
                         onDelay = false;
                         onDuration = true;
                         duration = durations[sceneIndex];
                         int size = sizes[sceneIndex];
                         worldBorder.setSize(size, duration);
+                        sendBoarderShrinkAnouncement(duration, size);
+                        return;
                     }
                     delay--;
                 } else if (onDuration) {
-                    if (duration <= 0) {
+                    Bukkit.getLogger().info(String.format("Shrinking to %d, %d/%d", sizes[sceneIndex], duration, durations[sceneIndex]));
+                    displayBoarderShrinkingFor(duration);
+                    if (duration <= 1) {
                         onDuration = false;
                         onDelay = true;
-                        delay = delays[sceneIndex];
                         sceneIndex++;
+                        if (sceneIndex >= delays.length) {
+                            startSuddenDeath();
+                            Bukkit.getLogger().info("Boarder is in final position.");
+                            this.cancel();
+                            return;
+                        }
+                        delay = delays[sceneIndex];
+                        sendBoarderDelayAnouncement(delay);
+                        return;
                     }
                     duration--;
                 } else {
@@ -238,7 +293,7 @@ public class MechaGame implements MCTGame, Listener {
                     delay = delays[0];
                 }
             }
-        }.runTaskTimer(plugin, 0L, 20L);
+        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
     }
     
     private void initializeFastboards() {
@@ -249,7 +304,8 @@ public class MechaGame implements MCTGame, Listener {
                     "",
                     ChatColor.RED+"Kills: 0",
                     "",
-                    ChatColor.DARK_PURPLE+"Boarder: 00:00"
+                    ChatColor.LIGHT_PURPLE+"Boarder shrinks in",
+                    ChatColor.LIGHT_PURPLE+"0:00"
             );
             boards.put(participant.getUniqueId(), board);
         }
@@ -261,6 +317,87 @@ public class MechaGame implements MCTGame, Listener {
                 board.delete();
             }
         }
+    }
+    
+    /**
+     * Sends a chat message to all participants saying the boarder is delaying
+     * @param delay The delay in seconds
+     */
+    private void sendBoarderDelayAnouncement(int delay) {
+        String timeString = getTimeString(delay);
+        String message = "Boarder will not shrink for "+timeString;
+        for (Player participant : participants) {
+            participant.sendMessage(message);
+        }
+    }
+    
+    /**
+     * Sends a chat message to all participants saying the boarder is shrinking
+     * @param duration The duration of the shrink in seconds
+     * @param size The size of the boarder in blocks
+     */
+    private void sendBoarderShrinkAnouncement(int duration, int size) {
+        String timeString = getTimeString(duration);
+        String message = String.format("Boarder shrinking to %d for %s", size, timeString);
+        for (Player participant : participants) {
+            participant.sendMessage(message);
+        }
+    }
+    
+    /**
+     * Displays the time left for the boarder shrink to the participants on the FastBoards
+     * @param duration The seconds left in the boarder shrink
+     */
+    private void displayBoarderShrinkingFor(int duration) {
+        String timeString = getTimeString(duration);
+        String line3 = ChatColor.RED+"Shrinking";
+        String line4 = ChatColor.RED+timeString;
+        for (Player participant : participants) {
+            FastBoard board = boards.get(participant.getUniqueId());
+            board.updateLine(3, line3);
+            board.updateLine(4, line4);
+        }
+    }
+    
+    /**
+     * Displays the time left till the boarder shrinks again on the FastBoards
+     * @param delay The seconds left till the boarder shrinks
+     */
+    private void displayBoarderDelayFor(int delay) {
+        String timeString = getTimeString(delay);
+        String line3 = ChatColor.LIGHT_PURPLE+"Boarder";
+        String line4 = ChatColor.LIGHT_PURPLE+timeString;
+        for (Player participant : participants) {
+            FastBoard board = boards.get(participant.getUniqueId());
+            board.updateLine(3, line3);
+            board.updateLine(4, line4);
+        }
+    }
+    
+    /**
+     * Displays the sudden death message on the FastBoards
+     */
+    private void displaySuddenDeath() {
+        String line3 = ChatColor.RED+"Sudden death";
+        String line4 = "";
+        for (Player participant : participants) {
+            FastBoard board = boards.get(participant.getUniqueId());
+            board.updateLine(3, line3);
+            board.updateLine(4, line4);
+        }
+    }
+    
+    /**
+     * Returns the given seconds as a string representing time in the format
+     * MM:ss (or minutes:seconds)
+     * @param timeSeconds The time in seconds
+     * @return Time string MM:ss
+     */
+    private String getTimeString(long timeSeconds) {
+        Duration duration = Duration.ofSeconds(timeSeconds);
+        long minutes = duration.toMinutes();
+        long seconds = duration.minusMinutes(minutes).getSeconds();
+        return String.format("%d:%02d", minutes, seconds);
     }
     
     private void teleportPlayersToStartingPositions() {
