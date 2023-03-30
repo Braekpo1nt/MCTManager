@@ -85,6 +85,10 @@ public class GameManager {
                 activeGame = footRaceGame;
                 break;
             case "mecha":
+                if (onlineParticipants.size() < 2) {
+                    sender.sendMessage("MECHA needs at least 2 online participants");
+                    return;
+                }
                 mechaGame.start(onlineParticipants);
                 activeGame = mechaGame;
                 break;
