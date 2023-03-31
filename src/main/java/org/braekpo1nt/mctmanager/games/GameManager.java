@@ -11,6 +11,7 @@ import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
 import org.braekpo1nt.mctmanager.games.mecha.MechaGame;
 import org.braekpo1nt.mctmanager.hub.HubManager;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
@@ -312,7 +313,11 @@ public class GameManager {
     }
     
     public Color getTeamColor(UUID playerUniqueId) {
-        return gameStateStorageUtil.getTeamNamedTextColor(playerUniqueId);
+        return gameStateStorageUtil.getTeamColor(playerUniqueId);
+    }
+    
+    public ChatColor getTeamChatColor(String teamName) {
+        return gameStateStorageUtil.getTeamChatColor(teamName);
     }
     
     /**
@@ -327,8 +332,11 @@ public class GameManager {
         return Component.text(displayName).color(teamColor).decorate(TextDecoration.BOLD);
     }
     
-    public Component getFormattedTeamDisplayName(UUID playerUniqueId) {
-        String teamName = gameStateStorageUtil.getPlayerTeamName(playerUniqueId);
-        return getFormattedTeamDisplayName(teamName);
+    public int getPlayerScore(UUID playerUniqueId) {
+        return gameStateStorageUtil.getPlayerScore(playerUniqueId);
+    }
+    
+    public String getTeamDisplayName(String teamName) {
+        return gameStateStorageUtil.getTeamDisplayName(teamName);
     }
 }
