@@ -4,7 +4,6 @@ import com.onarandombox.MultiverseCore.api.MVWorldManager;
 import com.onarandombox.MultiverseCore.utils.AnchorManager;
 import fr.mrmicky.fastboard.FastBoard;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.MCTGame;
@@ -21,7 +20,6 @@ import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.scoreboard.*;
 import org.bukkit.structure.Structure;
 import org.bukkit.util.BoundingBox;
@@ -44,7 +42,6 @@ public class FootRaceGame implements Listener, MCTGame {
      */
     private final World footRaceWorld;
     private final BoundingBox finishLine = new BoundingBox(2396, 80, 295, 2404, 79, 308);
-    private final ScoreboardManager scoreboardManager;
     private final Main plugin;
     private final GameManager gameManager;
     private int startCountDownTaskID;
@@ -68,7 +65,6 @@ public class FootRaceGame implements Listener, MCTGame {
         this.plugin = plugin;
         this.gameManager = gameManager;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
-        scoreboardManager = Bukkit.getScoreboardManager();
         MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
         this.footRaceWorld = worldManager.getMVWorld("NT").getCBWorld();
     }
@@ -90,7 +86,6 @@ public class FootRaceGame implements Listener, MCTGame {
         startStatusEffectsTask();
         startStartRaceCountdownTask();
         setupTeamOptions();
-        
         gameActive = true;
         Bukkit.getLogger().info("Starting Foot Race game");
     }
