@@ -1,12 +1,12 @@
 package org.braekpo1nt.mctmanager;
 
 import com.onarandombox.MultiverseCore.MultiverseCore;
-import fr.mrmicky.fastboard.FastBoard;
 import org.braekpo1nt.mctmanager.commands.MCTCommand;
 import org.braekpo1nt.mctmanager.commands.MCTDebugCommand;
 import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.hub.HubManager;
 import org.braekpo1nt.mctmanager.listeners.BlockEffectsListener;
-import org.braekpo1nt.mctmanager.listeners.HubBoundaryListener;
+import org.braekpo1nt.mctmanager.hub.HubBoundaryListener;
 import org.braekpo1nt.mctmanager.listeners.PlayerJoinListener;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -14,23 +14,17 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 
-import java.io.File;
 import java.io.IOException;
 
 public final class Main extends JavaPlugin {
     
     public static MultiverseCore multiverseCore;
-    
-    private final static PotionEffect RESISTANCE = new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 1000000, 200, true, false, false);
-    private final static PotionEffect REGENERATION = new PotionEffect(PotionEffectType.REGENERATION, 1000000, 200, true, false, false);
-    private final static PotionEffect NIGHT_VISION = new PotionEffect(PotionEffectType.NIGHT_VISION, 1000000, 3, true, false, false);
-    private final static PotionEffect FIRE_RESISTANCE = new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 1000000, 1, true, false, false);
-    private final static PotionEffect SATURATION = new PotionEffect(PotionEffectType.SATURATION, 1000000, 250, true, false, false);
-    private Scoreboard mctScoreboard;
     private GameManager gameManager;
     private boolean saveGameStateOnDisable = true;
+    public final static PotionEffect NIGHT_VISION = new PotionEffect(PotionEffectType.NIGHT_VISION, 300, 3, true, false, false);
     
     @Override
     public void onEnable() {
@@ -42,10 +36,12 @@ public final class Main extends JavaPlugin {
             return;
         }
         Main.multiverseCore = ((MultiverseCore) multiversePlugin);
+    
+        Scoreboard mctScoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
+    
+        HubManager hubManager = new HubManager(this);
         
-        mctScoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
-        
-        gameManager = new GameManager(this, mctScoreboard);
+        gameManager = new GameManager(this, mctScoreboard, hubManager);
         try {
             gameManager.loadGameState();
         } catch (IOException e) {
@@ -63,9 +59,20 @@ public final class Main extends JavaPlugin {
         // Commands
         new MCTDebugCommand(this);
         new MCTCommand(this, gameManager, hubBoundaryListener, blockEffectsListener);
-        
-        File dataFolder = getDataFolder();
-        initializeStatusEffectScheduler();
+    
+        alwaysGiveNightVision();
+    }
+    
+    private void alwaysGiveNightVision() {
+        Bukkit.getLogger().info("[MCTManager] Night vision activated");
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    player.addPotionEffect(NIGHT_VISION);
+                }
+            }
+        }.runTaskTimer(this, 0L, 60L);
     }
     
     @Override
@@ -73,6 +80,9 @@ public final class Main extends JavaPlugin {
         if (saveGameStateOnDisable && gameManager != null) {
             try {
                 gameManager.saveGameState();
+                if (gameManager.gameIsRunning()) {
+                    gameManager.manuallyStopGame(false);
+                }
             } catch (IOException e) {
                 Bukkit.getLogger().severe("[MCTManager] Could not save game state. Printing stack trace below.");
                 e.printStackTrace();
@@ -80,24 +90,5 @@ public final class Main extends JavaPlugin {
         } else {
             Bukkit.getLogger().info("[MCTManager] Skipping save game state.");
         }
-    }
-    
-    public static void giveAmbientStatusEffects(Player player) {
-        player.addPotionEffect(RESISTANCE);
-        player.addPotionEffect(REGENERATION);
-        player.addPotionEffect(NIGHT_VISION);
-        player.addPotionEffect(FIRE_RESISTANCE);
-        player.addPotionEffect(SATURATION);
-    }
-    
-    private void initializeStatusEffectScheduler() {
-        Bukkit.getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
-            @Override
-            public void run() {
-                for (Player player : Bukkit.getOnlinePlayers()) {
-                    giveAmbientStatusEffects(player);
-                }
-            }
-        }, 0L, 60L);
     }
 }

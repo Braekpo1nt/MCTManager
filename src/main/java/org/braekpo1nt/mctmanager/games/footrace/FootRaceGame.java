@@ -1,29 +1,31 @@
 package org.braekpo1nt.mctmanager.games.footrace;
 
 import com.onarandombox.MultiverseCore.api.MVWorldManager;
-import com.onarandombox.MultiverseCore.api.MultiverseWorld;
 import com.onarandombox.MultiverseCore.utils.AnchorManager;
 import fr.mrmicky.fastboard.FastBoard;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.MCTGame;
 import org.bukkit.*;
 import org.bukkit.block.structure.Mirror;
 import org.bukkit.block.structure.StructureRotation;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.scoreboard.*;
 import org.bukkit.structure.Structure;
 import org.bukkit.util.BoundingBox;
 
-import java.io.IOException;
 import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -36,6 +38,7 @@ public class FootRaceGame implements Listener, MCTGame {
     private final int MAX_LAPS = 3;
         
     private boolean gameActive = false;
+    private boolean raceHasStarted = false;
     /**
      * Holds the Foot Race world
      */
@@ -51,9 +54,15 @@ public class FootRaceGame implements Listener, MCTGame {
     private Map<UUID, Long> lapCooldowns;
     private Map<UUID, Integer> laps;
     private ArrayList<UUID> placements;
-    private boolean raceHasStarted = false;
     private long raceStartTime;
     private final Map<UUID, FastBoard> boards = new HashMap<>();
+    private final PotionEffect SPEED = new PotionEffect(PotionEffectType.SPEED, 10000, 8, true, false, false);
+    private final PotionEffect INVISIBILITY = new PotionEffect(PotionEffectType.INVISIBILITY, 10000, 1, true, false, false);
+    private final PotionEffect RESISTANCE = new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 70, 200, true, false, false);
+    private final PotionEffect REGENERATION = new PotionEffect(PotionEffectType.REGENERATION, 70, 200, true, false, false);
+    private final PotionEffect FIRE_RESISTANCE = new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 70, 1, true, false, false);
+    private final PotionEffect SATURATION = new PotionEffect(PotionEffectType.SATURATION, 70, 250, true, false, false);
+    private int statusEffectsTaskId;
     
     public FootRaceGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
@@ -67,15 +76,18 @@ public class FootRaceGame implements Listener, MCTGame {
     @Override
     public void start(List<Player> participants) {
         this.participants = participants;
-        
         lapCooldowns = participants.stream().collect(
-                Collectors.toMap(participant -> participant.getUniqueId(), key -> System.currentTimeMillis()));
-        laps = participants.stream().collect(Collectors.toMap(participant -> participant.getUniqueId(), key -> 1));
+                Collectors.toMap(Entity::getUniqueId, value -> System.currentTimeMillis()));
+        laps = participants.stream().collect(Collectors.toMap(Entity::getUniqueId, value -> 1));
         placements = new ArrayList<>();
         initializeFastBoards();
         closeGlassBarrier();
         teleportPlayersToStartingPositions();
-        giveParticipantsStatusEffects();
+        giveBoots();
+        clearInventories();
+        setPlayersToAdventure();
+        clearStatusEffects();
+        startStatusEffectsTask();
         startStartRaceCountdownTask();
         
         gameActive = true;
@@ -84,37 +96,72 @@ public class FootRaceGame implements Listener, MCTGame {
     
     @Override
     public void stop() {
-        cancelTimerRefreshTask();
         closeGlassBarrier();
         hideFastBoards();
-        removeParticipantStatusEffects();
-        cancelStartRaceCountDownTask();
-        cancelEndRaceCountDownTask();
-        cancelTimerRefreshTask();
+        cancelAllTasks();
+        clearInventories();
         raceHasStarted = false;
         gameActive = false;
         gameManager.gameIsOver();
         Bukkit.getLogger().info("Stopping Foot Race game");
     }
     
-    private void giveParticipantsStatusEffects() {
-        PotionEffect speed = new PotionEffect(PotionEffectType.SPEED, 10000, 8, true, false, false);
-        PotionEffect invisibility = new PotionEffect(PotionEffectType.INVISIBILITY, 10000, 1, true, false, false);
+    private void setPlayersToAdventure() {
         for (Player participant : participants) {
-            participant.addPotionEffect(speed);
-            participant.addPotionEffect(invisibility);
+            participant.setGameMode(GameMode.ADVENTURE);
         }
     }
     
-    private void removeParticipantStatusEffects() {
+    private void cancelAllTasks() {
+        Bukkit.getScheduler().cancelTask(startCountDownTaskID);
+        Bukkit.getScheduler().cancelTask(endRaceCountDownId);
+        Bukkit.getScheduler().cancelTask(timerRefreshTaskId);
+        Bukkit.getScheduler().cancelTask(statusEffectsTaskId);
+    }
+    
+    private void giveBoots() {
         for (Player participant : participants) {
-            participant.removePotionEffect(PotionEffectType.SPEED);
-            participant.removePotionEffect(PotionEffectType.INVISIBILITY);
+            Color teamColor = gameManager.getTeamColor(participant.getUniqueId());
+            ItemStack boots = new ItemStack(Material.LEATHER_BOOTS);
+            LeatherArmorMeta meta = (LeatherArmorMeta) boots.getItemMeta();
+            meta.setColor(teamColor);
+            boots.setItemMeta(meta);
+            participant.getInventory().setBoots(boots);
         }
+    }
+    
+    private void clearInventories() {
+        for (Player participant : participants) {
+            participant.getInventory().clear();
+        }
+    }
+    
+    private void clearStatusEffects() {
+        for (Player participant : participants) {
+            for (PotionEffect effect : participant.getActivePotionEffects()) {
+                participant.removePotionEffect(effect.getType());
+            }
+        }
+    }
+    
+    private void startStatusEffectsTask() {
+        this.statusEffectsTaskId = new BukkitRunnable(){
+            @Override
+            public void run() {
+                for (Player participant : participants) {
+                    participant.addPotionEffect(SPEED);
+                    participant.addPotionEffect(INVISIBILITY);
+                    participant.addPotionEffect(RESISTANCE);
+                    participant.addPotionEffect(REGENERATION);
+                    participant.addPotionEffect(FIRE_RESISTANCE);
+                    participant.addPotionEffect(SATURATION);
+                }
+            }
+        }.runTaskTimer(plugin, 0L, 60L).getTaskId();
     }
     
     private void startStartRaceCountdownTask() {
-        this.startCountDownTaskID = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
+        this.startCountDownTaskID = new BukkitRunnable() {
             private int count = 10;
             
             @Override
@@ -129,24 +176,21 @@ public class FootRaceGame implements Listener, MCTGame {
                 }
                 if (count <= 0) {
                     startRace();
+                    this.cancel();
                     return;
                 }
                 count--;
             }
-        }, 0L, 20L);
-    }
-    
-    private void cancelStartRaceCountDownTask() {
-        Bukkit.getScheduler().cancelTask(startCountDownTaskID);
+        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
     }
     
     private void startEndRaceCountDown() {
-        this.endRaceCountDownId = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
+        this.endRaceCountDownId = new BukkitRunnable() {
             private int count = 30;
             @Override
             public void run() {
                 if (count <= 0) {
-                    cancelEndRaceCountDownTask();
+                    this.cancel();
                     stop();
                     return;
                 }
@@ -159,34 +203,29 @@ public class FootRaceGame implements Listener, MCTGame {
                 }
                 count--;
             }
-        }, 0, 20);
-    }
-    
-    private void cancelEndRaceCountDownTask() {
-        Bukkit.getScheduler().cancelTask(endRaceCountDownId);
+        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
     }
     
     private void startTimerRefreshTask() {
-        this.timerRefreshTaskId = Bukkit.getServer().getScheduler().runTaskTimer(plugin, () -> {
-            long elapsedTime = System.currentTimeMillis() - raceStartTime;
-            String timeString = getTimeString(elapsedTime);
-            for (Player participant : participants) {
-                if (!placements.contains(participant.getUniqueId())) {
-                    FastBoard board = boards.get(participant.getUniqueId());
-                    if (board != null) {
-                        board.updateLine(0, timeString);
+        this.timerRefreshTaskId = new BukkitRunnable(){
+            @Override
+            public void run() {
+                long elapsedTime = System.currentTimeMillis() - raceStartTime;
+                String timeString = getTimeString(elapsedTime);
+                for (Player participant : participants) {
+                    if (!placements.contains(participant.getUniqueId())) {
+                        FastBoard board = boards.get(participant.getUniqueId());
+                        if (board != null) {
+                            board.updateLine(0, timeString);
+                        }
                     }
                 }
             }
-        }, 0, 1).getTaskId();
-    }
-    private void cancelTimerRefreshTask() {
-        Bukkit.getScheduler().cancelTask(timerRefreshTaskId);
+        }.runTaskTimer(plugin, 0, 1).getTaskId();
     }
     
     private void startRace() {
         openGlassBarrier();
-        cancelStartRaceCountDownTask();
         raceStartTime = System.currentTimeMillis();
         raceHasStarted = true;
         startTimerRefreshTask();
@@ -324,18 +363,9 @@ public class FootRaceGame implements Listener, MCTGame {
         showRaceCompleteFastBoard(player);
         int placement = placements.indexOf(player.getUniqueId()) + 1;
         int points = calculatePointsForPlacement(placement);
-        try {
-            gameManager.awardPointsToPlayer(player, points);
-            String placementTitle = getPlacementTitle(placement);
-            player.sendMessage(String.format("You finished %s! It took you %s", placementTitle, getTimeString(elapsedTime)));
-        } catch (IOException e) {
-            player.sendMessage(
-                    Component.text("Critical error occurred. Please notify an admin to check the logs.")
-                    .color(NamedTextColor.RED)
-                    .decorate(TextDecoration.BOLD));
-            Bukkit.getLogger().severe("Error while adding points to player. See log for error message.");
-            throw new RuntimeException(e);
-        }
+        gameManager.awardPointsToPlayer(player, points);
+        String placementTitle = getPlacementTitle(placement);
+        player.sendMessage(String.format("You finished %s! It took you %s", placementTitle, getTimeString(elapsedTime)));
         if (placements.size() == 1) {
             for (Player participant : participants) {
                 participant.sendMessage(Component.text(player.getName())

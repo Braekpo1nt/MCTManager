@@ -5,7 +5,7 @@ import org.braekpo1nt.mctmanager.commands.game.GameSubCommand;
 import org.braekpo1nt.mctmanager.commands.team.TeamSubCommand;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.listeners.BlockEffectsListener;
-import org.braekpo1nt.mctmanager.listeners.HubBoundaryListener;
+import org.braekpo1nt.mctmanager.hub.HubBoundaryListener;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;

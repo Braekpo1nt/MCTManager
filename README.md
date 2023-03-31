@@ -1,6 +1,13 @@
 # Dependencies
+Dependencies that are require to run this plugin
 
-This plugin depends on [Multiverse-Core v4.3.1](https://github.com/Multiverse/Multiverse-Core/releases/tag/v4.3.1)
+## Data Packs
+As of release `v0.1.1-alpha`, this plugin expects the following data packs in the server's `world/datapacks/` directory:
+- [mctdatapack](https://github.com/Braekpo1nt/mctdatapack)
+
+## Plugins
+- This plugin depends on [Multiverse-Core v4.3.1](https://github.com/Multiverse/Multiverse-Core/releases/tag/v4.3.1)
+
 
 # Running the event
 

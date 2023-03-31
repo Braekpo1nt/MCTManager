@@ -4,7 +4,7 @@ plugins {
 }
 
 group = 'org.braekpo1nt'
-version = 'v0.1.1-alpha'
+version = '0.2.0-alpha'
 
 repositories {
     mavenCentral()

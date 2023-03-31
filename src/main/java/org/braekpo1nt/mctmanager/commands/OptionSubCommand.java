@@ -1,7 +1,7 @@
 package org.braekpo1nt.mctmanager.commands;
 
 import org.braekpo1nt.mctmanager.listeners.BlockEffectsListener;
-import org.braekpo1nt.mctmanager.listeners.HubBoundaryListener;
+import org.braekpo1nt.mctmanager.hub.HubBoundaryListener;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;

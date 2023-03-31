@@ -1,7 +1,5 @@
 package org.braekpo1nt.mctmanager.games;
 
-import com.onarandombox.MultiverseCore.api.MVWorldManager;
-import com.onarandombox.MultiverseCore.api.MultiverseWorld;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -11,7 +9,9 @@ import org.braekpo1nt.mctmanager.color.ColorMap;
 import org.braekpo1nt.mctmanager.games.footrace.FootRaceGame;
 import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
 import org.braekpo1nt.mctmanager.games.mecha.MechaGame;
+import org.braekpo1nt.mctmanager.hub.HubManager;
 import org.bukkit.Bukkit;
+import org.bukkit.Color;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -31,6 +31,7 @@ public class GameManager {
     private MCTGame activeGame = null;
     private final FootRaceGame footRaceGame;
     private final MechaGame mechaGame;
+    private final HubManager hubManager;
     private final GameStateStorageUtil gameStateStorageUtil;
     /**
      * Scoreboard for holding the teams. This private scoreboard can't be
@@ -39,14 +40,15 @@ public class GameManager {
      */
     private final Scoreboard mctScoreboard;
     private final Main plugin;
-    private int teleportPlayersToHubTaskId;
+    private boolean shouldTeleportToHub = true;
     
-    public GameManager(Main plugin, Scoreboard mctScoreboard) {
+    public GameManager(Main plugin, Scoreboard mctScoreboard, HubManager hubManager) {
         this.plugin = plugin;
         this.mctScoreboard = mctScoreboard;
         gameStateStorageUtil = new GameStateStorageUtil(plugin);
         this.footRaceGame = new FootRaceGame(plugin, this);
         this.mechaGame = new MechaGame(plugin, this);
+        this.hubManager = hubManager;
     }
     
     public void loadGameState() throws IOException {
@@ -83,6 +85,15 @@ public class GameManager {
                 activeGame = footRaceGame;
                 break;
             case "mecha":
+                if (onlineParticipants.size() < 2) {
+                    sender.sendMessage("MECHA needs at least 2 online participants to run correctly. Running anyway. Use '/mct game stop' to stop the game.");
+                    sender.sendMessage(Component.text("MECHA doesn't end correctly unless there are 2 or more players. use ")
+                            .append(Component.text("/mct game stop")
+                                    .clickEvent(ClickEvent.suggestCommand("/mct game stop"))
+                                    .decorate(TextDecoration.BOLD))
+                            .append(Component.text(" to stop the game."))
+                            .color(NamedTextColor.RED));
+                }
                 mechaGame.start(onlineParticipants);
                 activeGame = mechaGame;
                 break;
@@ -122,15 +133,22 @@ public class GameManager {
     }
     
     /**
-     * If a game is currently going on, manually stops the game. 
+     * If a game is currently going on, manually stops the game.
+     * @throws NullPointerException if no game is currently running. 
+     * Check if a game is running with isGameRunning()
      */
-    public void manuallyStopGame(CommandSender sender) {
-        if (activeGame == null) {
-            sender.sendMessage("No game is running.");
-            return;
-        }
+    public void manuallyStopGame(boolean shouldTeleportToHub) {
+        this.shouldTeleportToHub = shouldTeleportToHub;
         activeGame.stop();
         activeGame = null;
+    }
+    
+    /**
+     * Checks if a game is currently running
+     * @return True if a game is running, false if not
+     */
+    public boolean gameIsRunning() {
+        return activeGame != null;
     }
     
     /**
@@ -138,39 +156,11 @@ public class GameManager {
      */
     public void gameIsOver() {
         activeGame = null;
-        startDelayedTeleportToHubTask();
-    }
-    
-    private void startDelayedTeleportToHubTask() {
-        this.teleportPlayersToHubTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
-            private int count = 10;
-            @Override
-            public void run() {
-                if (count <= 0) {
-                    teleportPlayersToHub();
-                    cancelDelayedTeleportToHubTask();
-                    return;
-                }
-                for (Player player : getOnlineParticipants()) {
-                    player.sendMessage(Component.text("Teleporting to hub in ")
-                            .append(Component.text(count)));
-                }
-                count--;
-            }
-        }, 0, 20);
-    }
-    
-    private void cancelDelayedTeleportToHubTask() {
-        Bukkit.getScheduler().cancelTask(teleportPlayersToHubTaskId);
-    }
-    
-    private void teleportPlayersToHub() {
-        MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
-        MultiverseWorld hubWorld = worldManager.getMVWorld("Hub");
-        for (Player participant : getOnlineParticipants()) {
-            participant.sendMessage("Teleporting to Hub");
-            participant.teleport(hubWorld.getSpawnLocation());
+        if (!shouldTeleportToHub) {
+            shouldTeleportToHub = true;
+            return;
         }
+        hubManager.startReturnToHub(getOnlineParticipants());
     }
     
     /**
@@ -203,7 +193,7 @@ public class GameManager {
         gameStateStorageUtil.addTeam(teamName, teamDisplayName, colorString);
         Team newTeam = mctScoreboard.registerNewTeam(teamName);
         newTeam.displayName(Component.text(teamDisplayName));
-        NamedTextColor color = ColorMap.getColor(colorString);
+        NamedTextColor color = ColorMap.getNamedTextColor(colorString);
         newTeam.color(color);
         return true;
     }
@@ -285,14 +275,22 @@ public class GameManager {
      * Awards points to the player and their team. If the player does not exist, nothing happens.
      * @param player The player to award points to
      * @param points The points to award to the player
-     * @throws IOException If an error occurs saving the game state
      */
-    public void awardPointsToPlayer(Player player, int points) throws IOException {
+    public void awardPointsToPlayer(Player player, int points) {
         UUID playerUniqueId = player.getUniqueId();
         if (!gameStateStorageUtil.containsPlayer(playerUniqueId)) {
             return;
         }
-        gameStateStorageUtil.addPointsToPlayer(playerUniqueId, points);
+        try {
+            gameStateStorageUtil.addPointsToPlayer(playerUniqueId, points);
+        } catch (IOException e) {
+            player.sendMessage(
+                    Component.text("Critical error occurred. Please notify an admin to check the logs.")
+                            .color(NamedTextColor.RED)
+                            .decorate(TextDecoration.BOLD));
+            Bukkit.getLogger().severe("Error while adding points to player. See log for error message.");
+            throw new RuntimeException(e);
+        }
         player.sendMessage(Component.text("+")
                 .append(Component.text(points))
                 .append(Component.text(" points"))
@@ -300,7 +298,19 @@ public class GameManager {
                 .color(NamedTextColor.GOLD));
     }
     
-    public int getPlayerScore(UUID playerUniqueId) {
-        return gameStateStorageUtil.getPlayerScore(playerUniqueId);
+    public Color getTeamColor(UUID playerUniqueId) {
+        return gameStateStorageUtil.getTeamNamedTextColor(playerUniqueId);
+    }
+    
+    /**
+     * Gets the team's display name as a Component with the team's text color
+     * and in bold
+     * @param teamName The internal name of the team
+     * @return A Component with the formatted team dislay name
+     */
+    public Component getFormattedTeamDisplayName(String teamName) {
+        String displayName = gameStateStorageUtil.getTeamDisplayName(teamName);
+        NamedTextColor teamColor = gameStateStorageUtil.getTeamNamedTextColor(teamName);
+        return Component.text(displayName).color(teamColor).decorate(TextDecoration.BOLD);
     }
 }
