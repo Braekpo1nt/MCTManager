@@ -48,7 +48,7 @@ public class ColorMap {
         return color != null ? color : Color.WHITE;
     }
     
-    public static boolean hasColor(String colorString) {
+    public static boolean hasNamedTextColor(String colorString) {
         return NAMED_TEXT_COLOR_MAP.containsKey(colorString);
     }
     
