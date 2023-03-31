@@ -52,8 +52,6 @@ public final class Main extends JavaPlugin {
             Bukkit.getPluginManager().disablePlugin(this);
         }
         
-        new FastBoardManager(this, gameManager);
-        
         // Listeners
         HubBoundaryListener hubBoundaryListener = new HubBoundaryListener(this);
         BlockEffectsListener blockEffectsListener = new BlockEffectsListener(this);

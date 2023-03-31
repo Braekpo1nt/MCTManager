@@ -10,12 +10,14 @@ import org.braekpo1nt.mctmanager.games.footrace.FootRaceGame;
 import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
 import org.braekpo1nt.mctmanager.games.mecha.MechaGame;
 import org.braekpo1nt.mctmanager.hub.HubManager;
+import org.braekpo1nt.mctmanager.ui.FastBoardManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.NotNull;
@@ -33,6 +35,7 @@ public class GameManager {
     private final FootRaceGame footRaceGame;
     private final MechaGame mechaGame;
     private final HubManager hubManager;
+    private final FastBoardManager fastBoardManager;
     private final GameStateStorageUtil gameStateStorageUtil;
     /**
      * Scoreboard for holding the teams. This private scoreboard can't be
@@ -46,10 +49,22 @@ public class GameManager {
     public GameManager(Main plugin, Scoreboard mctScoreboard, HubManager hubManager) {
         this.plugin = plugin;
         this.mctScoreboard = mctScoreboard;
-        gameStateStorageUtil = new GameStateStorageUtil(plugin);
+        this.gameStateStorageUtil = new GameStateStorageUtil(plugin);
         this.footRaceGame = new FootRaceGame(plugin, this);
         this.mechaGame = new MechaGame(plugin, this);
         this.hubManager = hubManager;
+        this.fastBoardManager = new FastBoardManager(plugin, gameStateStorageUtil);
+        kickOffFastBoardManager();
+    }
+    
+    private void kickOffFastBoardManager() {
+        
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                fastBoardManager.updateMainBoard();
+            }
+        }.runTaskTimer(plugin, 0L, 20L);
     }
     
     public Scoreboard getMctScoreboard() {
