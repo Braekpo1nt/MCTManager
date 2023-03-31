@@ -83,8 +83,8 @@ public class FootRaceGame implements Listener, MCTGame {
         initializeFastBoards();
         closeGlassBarrier();
         teleportPlayersToStartingPositions();
-        giveBoots();
         clearInventories();
+        giveBoots();
         setPlayersToAdventure();
         clearStatusEffects();
         startStatusEffectsTask();
@@ -127,7 +127,7 @@ public class FootRaceGame implements Listener, MCTGame {
             LeatherArmorMeta meta = (LeatherArmorMeta) boots.getItemMeta();
             meta.setColor(teamColor);
             boots.setItemMeta(meta);
-            participant.getInventory().setBoots(boots);
+            participant.getEquipment().setBoots(boots);
         }
     }
     
