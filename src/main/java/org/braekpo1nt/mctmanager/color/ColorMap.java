@@ -10,22 +10,22 @@ public class ColorMap {
 
     private static final Map<String, NamedTextColor> NAMED_TEXT_COLOR_MAP = new HashMap<>();
     static {
+        NAMED_TEXT_COLOR_MAP.put("aqua", NamedTextColor.AQUA);
         NAMED_TEXT_COLOR_MAP.put("black", NamedTextColor.BLACK);
-        NAMED_TEXT_COLOR_MAP.put("dark_blue", NamedTextColor.DARK_BLUE);
-        NAMED_TEXT_COLOR_MAP.put("dark_green", NamedTextColor.DARK_GREEN);
+        NAMED_TEXT_COLOR_MAP.put("blue", NamedTextColor.BLUE);
         NAMED_TEXT_COLOR_MAP.put("dark_aqua", NamedTextColor.DARK_AQUA);
-        NAMED_TEXT_COLOR_MAP.put("dark_red", NamedTextColor.DARK_RED);
+        NAMED_TEXT_COLOR_MAP.put("dark_blue", NamedTextColor.DARK_BLUE);
+        NAMED_TEXT_COLOR_MAP.put("dark_gray", NamedTextColor.DARK_GRAY);
+        NAMED_TEXT_COLOR_MAP.put("dark_green", NamedTextColor.DARK_GREEN);
         NAMED_TEXT_COLOR_MAP.put("dark_purple", NamedTextColor.DARK_PURPLE);
+        NAMED_TEXT_COLOR_MAP.put("dark_red", NamedTextColor.DARK_RED);
         NAMED_TEXT_COLOR_MAP.put("gold", NamedTextColor.GOLD);
         NAMED_TEXT_COLOR_MAP.put("gray", NamedTextColor.GRAY);
-        NAMED_TEXT_COLOR_MAP.put("dark_gray", NamedTextColor.DARK_GRAY);
-        NAMED_TEXT_COLOR_MAP.put("blue", NamedTextColor.BLUE);
         NAMED_TEXT_COLOR_MAP.put("green", NamedTextColor.GREEN);
-        NAMED_TEXT_COLOR_MAP.put("aqua", NamedTextColor.AQUA);
-        NAMED_TEXT_COLOR_MAP.put("red", NamedTextColor.RED);
         NAMED_TEXT_COLOR_MAP.put("light_purple", NamedTextColor.LIGHT_PURPLE);
-        NAMED_TEXT_COLOR_MAP.put("yellow", NamedTextColor.YELLOW);
+        NAMED_TEXT_COLOR_MAP.put("red", NamedTextColor.RED);
         NAMED_TEXT_COLOR_MAP.put("white", NamedTextColor.WHITE);
+        NAMED_TEXT_COLOR_MAP.put("yellow", NamedTextColor.YELLOW);
     }
     
     private static final Map<String, Color> COLOR_MAP = new HashMap<>();
@@ -48,7 +48,7 @@ public class ColorMap {
         return color != null ? color : Color.WHITE;
     }
     
-    public static boolean hasColor(String colorString) {
+    public static boolean hasNamedTextColor(String colorString) {
         return NAMED_TEXT_COLOR_MAP.containsKey(colorString);
     }
     
