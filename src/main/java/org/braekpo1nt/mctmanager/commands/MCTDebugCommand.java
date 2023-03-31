@@ -9,15 +9,12 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Arrays;
-
 /**
  * A utility command for testing various things, so I don't have to create a new command. 
  */
 public class MCTDebugCommand implements CommandExecutor {
     
     private final Main plugin;
-    private int boarderShrinkingTaskId;
     private final WorldBorder worldBorder;
     
     public MCTDebugCommand(Main plugin) {
@@ -34,7 +31,6 @@ public class MCTDebugCommand implements CommandExecutor {
             sender.sendMessage("This command can only be run by a player.");
             return true;
         }
-        
 //        Player player = ((Player) sender).getPlayer();
 //        Component mainTitle = Component.text("Main title");
 //        Component subTitle = Component.text("Subtitle");
