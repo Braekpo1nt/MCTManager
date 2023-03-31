@@ -5,6 +5,7 @@ import com.onarandombox.MultiverseCore.api.MultiverseWorld;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -58,6 +59,7 @@ public class HubManager implements Listener {
     
     private void returnToHub(List<Player> players) {
         clearStatusEffects(players);
+        setGamemode(players);
         teleportPlayersToHub(players);
         clearInventories(players);
         for (Player player : players) {
@@ -68,6 +70,12 @@ public class HubManager implements Listener {
     private void clearInventories(List<Player> players) {
         for (Player participant : players) {
             participant.getInventory().clear();
+        }
+    }
+    
+    private void setGamemode(List<Player> players) {
+        for (Player participant : players) {
+            participant.setGameMode(GameMode.ADVENTURE);
         }
     }
     

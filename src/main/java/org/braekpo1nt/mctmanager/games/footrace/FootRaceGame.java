@@ -85,6 +85,7 @@ public class FootRaceGame implements Listener, MCTGame {
         teleportPlayersToStartingPositions();
         giveBoots();
         clearInventories();
+        setPlayersToAdventure();
         clearStatusEffects();
         startStatusEffectsTask();
         startStartRaceCountdownTask();
@@ -103,6 +104,12 @@ public class FootRaceGame implements Listener, MCTGame {
         gameActive = false;
         gameManager.gameIsOver();
         Bukkit.getLogger().info("Stopping Foot Race game");
+    }
+    
+    private void setPlayersToAdventure() {
+        for (Player participant : participants) {
+            participant.setGameMode(GameMode.ADVENTURE);
+        }
     }
     
     private void cancelAllTasks() {
