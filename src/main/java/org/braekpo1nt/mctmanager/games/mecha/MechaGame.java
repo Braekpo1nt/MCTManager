@@ -24,6 +24,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.loot.LootTable;
 import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.structure.Structure;
 import org.bukkit.util.BoundingBox;
@@ -204,8 +205,17 @@ public class MechaGame implements MCTGame, Listener {
         this.mechaHasStarted = true;
         kickOffBorderShrinking();
         removePlatforms();
+        giveInvulnerabilityForTenSeconds();
         for (Player participant : participants) {
             participant.sendMessage(Component.text("Go!"));
+        }
+    }
+    
+    private void giveInvulnerabilityForTenSeconds() {
+        PotionEffect resisitance = new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 200, 200, true, false, true);
+        for (Player participant : participants) {
+            participant.addPotionEffect(resisitance);
+            participant.sendMessage("Invulnerable for 10 seconds!");
         }
     }
     
