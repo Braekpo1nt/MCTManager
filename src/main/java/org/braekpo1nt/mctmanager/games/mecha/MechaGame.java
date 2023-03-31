@@ -48,6 +48,7 @@ public class MechaGame implements MCTGame, Listener {
     private final MultiverseWorld mvMechaWorld;
     private Map<UUID, FastBoard> boards = new HashMap<>();
     private int startMechaTaskId;
+    private int stopMechaCountdownTaskId;
     /**
      * The coordinates of all the chests in the open world, not including spawn chests
      */
@@ -112,8 +113,8 @@ public class MechaGame implements MCTGame, Listener {
         placePlatforms();
         clearAllChests();
         worldBorder.reset();
-        gameActive = false;
         mechaHasStarted = false;
+        gameActive = false;
         gameManager.gameIsOver();
         Bukkit.getLogger().info("Stopped mecha");
     }
@@ -132,6 +133,7 @@ public class MechaGame implements MCTGame, Listener {
     private void cancelAllTasks() {
         Bukkit.getScheduler().cancelTask(startMechaTaskId);
         Bukkit.getScheduler().cancelTask(borderShrinkingTaskId);
+        Bukkit.getScheduler().cancelTask(stopMechaCountdownTaskId);
     }
     
     private void startStartMechaCountdownTask() {
@@ -147,6 +149,31 @@ public class MechaGame implements MCTGame, Listener {
                 }
                 for (Player participant : participants) {
                     participant.sendMessage(Component.text(count));
+                }
+                count--;
+            }
+        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+    }
+    
+    private void startStopMechaCountdownTask() {
+        for (Player participant : participants) {
+            participant.sendMessage(Component.text("Game ending in 10 seconds..."));
+        }
+        stopMechaCountdownTaskId = new BukkitRunnable() {
+            int count = 10;
+            
+            @Override
+            public void run() {
+                if (count <= 0) {
+                    stop();
+                    this.cancel();
+                    return;
+                }
+                if (count <= 3) {
+                    for (Player participant : participants) {
+                        participant.sendMessage(Component.text("Game ending in ")
+                                .append(Component.text(count)));
+                    }
                 }
                 count--;
             }
@@ -222,7 +249,7 @@ public class MechaGame implements MCTGame, Listener {
         Bukkit.getServer().sendMessage(Component.text("Team ")
                 .append(displayNameComponent)
                 .append(Component.text(" wins!")));
-        stop();
+        startStopMechaCountdownTask();
     }
     
     private void startSuddenDeath() {
