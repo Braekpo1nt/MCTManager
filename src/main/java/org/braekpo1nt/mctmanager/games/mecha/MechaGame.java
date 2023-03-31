@@ -205,10 +205,10 @@ public class MechaGame implements MCTGame, Listener {
         this.mechaHasStarted = true;
         kickOffBorderShrinking();
         removePlatforms();
-        giveInvulnerabilityForTenSeconds();
         for (Player participant : participants) {
             participant.sendMessage(Component.text("Go!"));
         }
+        giveInvulnerabilityForTenSeconds();
     }
     
     private void giveInvulnerabilityForTenSeconds() {
