@@ -31,7 +31,7 @@ public class LeaveSubCommand implements CommandExecutor {
         }
         String teamName = gameManager.getTeamName(playerToLeave.getUniqueId());
         try {
-            gameManager.leavePlayer(playerToLeave.getUniqueId());
+            gameManager.leavePlayer(playerToLeave);
             sender.sendMessage(String.format("Removed %s from team %s", playerName, teamName));
         } catch (IOException e) {
             sender.sendMessage("Error while trying to leave the player. See console for error message.");

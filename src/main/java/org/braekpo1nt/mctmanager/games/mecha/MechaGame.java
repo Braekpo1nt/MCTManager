@@ -26,6 +26,8 @@ import org.bukkit.loot.LootTable;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.Team;
 import org.bukkit.structure.Structure;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
@@ -96,6 +98,7 @@ public class MechaGame implements MCTGame, Listener {
         initializeFastboards();
         startStartMechaCountdownTask();
         initializeWorldBorder();
+        setUpTeamOptions();
         gameActive = true;
         Bukkit.getLogger().info("Started mecha");
     }
@@ -113,6 +116,17 @@ public class MechaGame implements MCTGame, Listener {
         mechaHasStarted = false;
         gameManager.gameIsOver();
         Bukkit.getLogger().info("Stopped mecha");
+    }
+    
+    private void setUpTeamOptions() {
+        Scoreboard mctScoreboard = gameManager.getMctScoreboard();
+        for (Team team : mctScoreboard.getTeams()) {
+            team.setAllowFriendlyFire(false);
+            team.setCanSeeFriendlyInvisibles(true);
+            team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.FOR_OTHER_TEAMS);
+            team.setOption(Team.Option.DEATH_MESSAGE_VISIBILITY, Team.OptionStatus.ALWAYS);
+            team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.ALWAYS);
+        }
     }
     
     private void cancelAllTasks() {

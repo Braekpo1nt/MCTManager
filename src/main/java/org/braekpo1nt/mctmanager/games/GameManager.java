@@ -51,6 +51,10 @@ public class GameManager {
         this.hubManager = hubManager;
     }
     
+    public Scoreboard getMctScoreboard() {
+        return mctScoreboard;
+    }
+    
     public void loadGameState() throws IOException {
         gameStateStorageUtil.loadGameState();
         gameStateStorageUtil.setupScoreboard(mctScoreboard);
@@ -263,8 +267,17 @@ public class GameManager {
         return gameStateStorageUtil.containsPlayer(playerUniqueId);
     }
     
-    public void leavePlayer(UUID playerUniqueId) throws IOException {
+    /**
+     * 
+     * @param player Player
+     * @throws IOException If there is an issue saving the game state when removing the player
+     */
+    public void leavePlayer(OfflinePlayer player) throws IOException {
+        UUID playerUniqueId = player.getUniqueId();
+        String teamName = gameStateStorageUtil.getPlayerTeamName(playerUniqueId);
         gameStateStorageUtil.leavePlayer(playerUniqueId);
+        Team team = mctScoreboard.getTeam(teamName);
+        team.removePlayer(player);
     }
     
     public String getTeamName(UUID playerUniqueId) {

@@ -89,6 +89,7 @@ public class FootRaceGame implements Listener, MCTGame {
         clearStatusEffects();
         startStatusEffectsTask();
         startStartRaceCountdownTask();
+        setupTeamOptions();
         
         gameActive = true;
         Bukkit.getLogger().info("Starting Foot Race game");
@@ -127,6 +128,17 @@ public class FootRaceGame implements Listener, MCTGame {
             meta.setColor(teamColor);
             boots.setItemMeta(meta);
             participant.getInventory().setBoots(boots);
+        }
+    }
+    
+    private void setupTeamOptions() {
+        Scoreboard mctScoreboard = gameManager.getMctScoreboard();
+        for (Team team : mctScoreboard.getTeams()) {
+            team.setAllowFriendlyFire(false);
+            team.setCanSeeFriendlyInvisibles(true);
+            team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.ALWAYS);
+            team.setOption(Team.Option.DEATH_MESSAGE_VISIBILITY, Team.OptionStatus.ALWAYS);
+            team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER);
         }
     }
     
