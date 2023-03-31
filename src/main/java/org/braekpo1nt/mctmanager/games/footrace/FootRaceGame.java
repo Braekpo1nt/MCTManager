@@ -83,8 +83,8 @@ public class FootRaceGame implements Listener, MCTGame {
         initializeFastBoards();
         closeGlassBarrier();
         teleportPlayersToStartingPositions();
-        clearInventories();
         giveBoots();
+        clearInventories();
         setPlayersToAdventure();
         clearStatusEffects();
         startStatusEffectsTask();
