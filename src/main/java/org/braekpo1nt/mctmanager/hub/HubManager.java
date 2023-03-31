@@ -14,6 +14,8 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.Team;
 
 import java.util.List;
 
@@ -25,9 +27,11 @@ public class HubManager implements Listener {
     private final PotionEffect SATURATION = new PotionEffect(PotionEffectType.SATURATION, 70, 250, true, false, false);
     private final World hubWorld;
     private final Main plugin;
+    private final Scoreboard mctScoreboard;
     
-    public HubManager(Main plugin) {
+    public HubManager(Main plugin, Scoreboard mctScoreboard) {
         this.plugin = plugin;
+        this.mctScoreboard = mctScoreboard;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
         this.hubWorld = worldManager.getMVWorld("Hub").getCBWorld();
@@ -62,8 +66,19 @@ public class HubManager implements Listener {
         setGamemode(players);
         teleportPlayersToHub(players);
         clearInventories(players);
+        setupTeamOptions();
         for (Player player : players) {
             giveAmbientStatusEffects(player);
+        }
+    }
+    
+    private void setupTeamOptions() {
+        for (Team team : mctScoreboard.getTeams()) {
+            team.setAllowFriendlyFire(false);
+            team.setCanSeeFriendlyInvisibles(true);
+            team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.ALWAYS);
+            team.setOption(Team.Option.DEATH_MESSAGE_VISIBILITY, Team.OptionStatus.ALWAYS);
+            team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.ALWAYS);
         }
     }
     

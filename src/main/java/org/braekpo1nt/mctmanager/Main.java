@@ -39,7 +39,7 @@ public final class Main extends JavaPlugin {
     
         Scoreboard mctScoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
     
-        HubManager hubManager = new HubManager(this);
+        HubManager hubManager = new HubManager(this, mctScoreboard);
         
         gameManager = new GameManager(this, mctScoreboard, hubManager);
         try {

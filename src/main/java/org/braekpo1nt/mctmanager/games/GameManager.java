@@ -51,6 +51,10 @@ public class GameManager {
         this.hubManager = hubManager;
     }
     
+    public Scoreboard getMctScoreboard() {
+        return mctScoreboard;
+    }
+    
     public void loadGameState() throws IOException {
         gameStateStorageUtil.loadGameState();
         gameStateStorageUtil.setupScoreboard(mctScoreboard);
