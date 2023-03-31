@@ -17,13 +17,11 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 
-import java.io.File;
 import java.io.IOException;
 
 public final class Main extends JavaPlugin {
     
     public static MultiverseCore multiverseCore;
-    private Scoreboard mctScoreboard;
     private GameManager gameManager;
     private boolean saveGameStateOnDisable = true;
     public final static PotionEffect NIGHT_VISION = new PotionEffect(PotionEffectType.NIGHT_VISION, 300, 3, true, false, false);
@@ -38,8 +36,8 @@ public final class Main extends JavaPlugin {
             return;
         }
         Main.multiverseCore = ((MultiverseCore) multiversePlugin);
-        
-        mctScoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
+    
+        Scoreboard mctScoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
     
         HubManager hubManager = new HubManager(this);
         

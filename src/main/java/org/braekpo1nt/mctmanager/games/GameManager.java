@@ -91,7 +91,8 @@ public class GameManager {
                             .append(Component.text("/mct game stop")
                                     .clickEvent(ClickEvent.suggestCommand("/mct game stop"))
                                     .decorate(TextDecoration.BOLD))
-                            .append(Component.text(" to stop the game.")));
+                            .append(Component.text(" to stop the game."))
+                            .color(NamedTextColor.RED));
                 }
                 mechaGame.start(onlineParticipants);
                 activeGame = mechaGame;

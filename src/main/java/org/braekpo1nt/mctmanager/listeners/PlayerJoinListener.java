@@ -13,8 +13,10 @@ import org.bukkit.scoreboard.Scoreboard;
 public class PlayerJoinListener implements Listener {
     
     private final Scoreboard mctScoreboard;
+    private final Main plugin;
     
     public PlayerJoinListener(Main plugin, Scoreboard mctScoreboard) {
+        this.plugin = plugin;
         this.mctScoreboard = mctScoreboard;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
@@ -24,6 +26,9 @@ public class PlayerJoinListener implements Listener {
         Player player = event.getPlayer();
         player.setScoreboard(mctScoreboard);
         player.addPotionEffect(Main.NIGHT_VISION);
+        
+//        player.addAttachment(plugin, "mv.bypass.gamemode.*", false);
+        
     }
     
 }

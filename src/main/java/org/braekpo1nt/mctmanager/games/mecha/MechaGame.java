@@ -15,15 +15,18 @@ import org.bukkit.block.Chest;
 import org.bukkit.block.structure.Mirror;
 import org.bukkit.block.structure.StructureRotation;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.loot.LootTable;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.structure.Structure;
+import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
 import java.time.Duration;
@@ -40,10 +43,6 @@ public class MechaGame implements MCTGame, Listener {
     private Map<UUID, Integer> killCounts;
     private final World mechaWorld;
     private final MultiverseWorld mvMechaWorld;
-    /**
-     * Stores the default game mode for the multiverse world
-     */
-    private GameMode oldMVGameMode;
     private Map<UUID, FastBoard> boards = new HashMap<>();
     private int startMechaTaskId;
     /**
@@ -67,6 +66,7 @@ public class MechaGame implements MCTGame, Listener {
     private final WorldBorder worldBorder;
     private int borderShrinkingTaskId;
     private Map<String, List<UUID>> livingTeams;
+    private List<UUID> deadPlayers;
     
     public MechaGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
@@ -83,12 +83,11 @@ public class MechaGame implements MCTGame, Listener {
     public void start(List<Player> participants) {
         this.participants = participants;
         initializeLivingTeams();
+        deadPlayers = new ArrayList<>();
         this.killCounts = participants.stream().collect(Collectors.toMap(Entity::getUniqueId, value -> 0));
         placePlatforms();
         fillAllChests();
         teleportPlayersToStartingPositions();
-        this.oldMVGameMode = mvMechaWorld.getGameMode();
-        mvMechaWorld.setGameMode(GameMode.ADVENTURE);
         setPlayersToAdventure();
         clearInventories();
         resetHealthAndHunger();
@@ -104,6 +103,7 @@ public class MechaGame implements MCTGame, Listener {
     public void stop() {
         hideFastBoards();
         cancelAllTasks();
+        clearFloorItems();
         clearInventories();
         placePlatforms();
         clearAllChests();
@@ -111,7 +111,6 @@ public class MechaGame implements MCTGame, Listener {
         gameActive = false;
         mechaHasStarted = false;
         gameManager.gameIsOver();
-        this.mvMechaWorld.setGameMode(oldMVGameMode);
         Bukkit.getLogger().info("Stopped mecha");
     }
     
@@ -159,12 +158,24 @@ public class MechaGame implements MCTGame, Listener {
      * @throws NullPointerException if the team of the player with the given UUID is not in the
      * list of living teams
      */
-    private void removePlayerFromLivingTeams(UUID playerUniqueId) {
+    private void removePlayerFromLivingTeamsAndAddToDeadPlayers(UUID playerUniqueId) {
         String teamName = gameManager.getTeamName(playerUniqueId);
         List<UUID> teamMates = livingTeams.get(teamName);
         teamMates.remove(playerUniqueId);
         if (teamMates.size() == 0) {
             livingTeams.remove(teamName);
+        }
+        deadPlayers.add(playerUniqueId);
+    }
+    
+    private void clearFloorItems() {
+        Location min = new Location(mechaWorld, -130, -64, -130);
+        Location max = new Location(mechaWorld, 130, 325, 130);
+        BoundingBox removeArea = BoundingBox.of(min, max);
+        for (Item item : mechaWorld.getEntitiesByClass(Item.class)) {
+            if (removeArea.contains(item.getLocation().toVector())) {
+                item.remove();
+            }
         }
     }
     
@@ -226,9 +237,9 @@ public class MechaGame implements MCTGame, Listener {
             return;
         }
         killed.setGameMode(GameMode.SPECTATOR);
-        removePlayerFromLivingTeams(killed.getUniqueId());
+        removePlayerFromLivingTeamsAndAddToDeadPlayers(killed.getUniqueId());
         event.setCancelled(true);
-        dropInventory(killed);
+        dropInventory(killed, event.getDrops());
         Component deathMessage = event.deathMessage();
         if (deathMessage != null) {
             Bukkit.getServer().sendMessage(deathMessage);
@@ -242,11 +253,36 @@ public class MechaGame implements MCTGame, Listener {
         }
     }
     
-    private void dropInventory(Player killed) {
-        for (ItemStack item : killed.getInventory().getContents()) {
-            if (item != null){
-                mechaWorld.dropItemNaturally(killed.getLocation(), item);
-            }
+    @EventHandler
+    public void onPlayerQuit(PlayerQuitEvent event) {
+        if (!gameActive) {
+            return;
+        }
+        if (!mechaHasStarted) {
+            return;
+        }
+        Player player = event.getPlayer();
+        if (!participants.contains(player)) {
+            return;
+        }
+        List<ItemStack> drops = Arrays.stream(player.getInventory().getContents())
+                .filter(Objects::nonNull)
+                .toList();
+        int droppedExp = calculateExpPoints(player.getLevel());
+        Component deathMessage = Component.text(player.getName())
+                .append(Component.text(" disconnected. Their life is forfeit."));
+        PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(player, drops, droppedExp, deathMessage);
+        Bukkit.getServer().getPluginManager().callEvent(fakeDeathEvent);
+    }
+    
+    private int calculateExpPoints(int level) {
+        int maxExpPoints = level > 7 ? 100 : level * 7;
+        return maxExpPoints / 10;
+    }
+    
+    private void dropInventory(Player killed, List<ItemStack> drops) {
+        for (ItemStack item : drops) {
+            mechaWorld.dropItemNaturally(killed.getLocation(), item);
         }
         killed.getInventory().clear();
     }
