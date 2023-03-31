@@ -68,7 +68,7 @@ public class MechaGame implements MCTGame, Listener {
     private LootTable spawnLootTable;
     private final WorldBorder worldBorder;
     private int borderShrinkingTaskId;
-    private Map<String, List<UUID>> livingTeams;
+    private List<UUID> livingPlayers;
     private List<UUID> deadPlayers;
     
     public MechaGame(Main plugin, GameManager gameManager) {
@@ -85,7 +85,7 @@ public class MechaGame implements MCTGame, Listener {
     @Override
     public void start(List<Player> participants) {
         this.participants = participants;
-        initializeLivingTeams();
+        initializeLivingPlayers();
         deadPlayers = new ArrayList<>();
         this.killCounts = participants.stream().collect(Collectors.toMap(Entity::getUniqueId, value -> 0));
         placePlatforms();
@@ -153,33 +153,17 @@ public class MechaGame implements MCTGame, Listener {
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
     }
     
-    private void initializeLivingTeams() {
-        livingTeams = new HashMap<>();
+    private void initializeLivingPlayers() {
+        livingPlayers = new ArrayList<>();
         for (Player participant : participants) {
-            String teamName = gameManager.getTeamName(participant.getUniqueId());
-            if (!livingTeams.containsKey(teamName)) {
-                livingTeams.put(teamName, new ArrayList<>());
+            if (!livingPlayers.contains(participant.getUniqueId())) {
+                livingPlayers.add(participant.getUniqueId());
             }
-            List<UUID> teamMates = livingTeams.get(teamName);
-            teamMates.add(participant.getUniqueId());
         }
     }
     
-    /**
-     * Removes the player with the given UUID from the living teams map.
-     * If that player was the last to be removed from their team, this
-     * also removes the team from the map.
-     * @param playerUniqueId The UUID of the player to remove from the team
-     * @throws NullPointerException if the team of the player with the given UUID is not in the
-     * list of living teams
-     */
-    private void removePlayerFromLivingTeamsAndAddToDeadPlayers(UUID playerUniqueId) {
-        String teamName = gameManager.getTeamName(playerUniqueId);
-        List<UUID> teamMates = livingTeams.get(teamName);
-        teamMates.remove(playerUniqueId);
-        if (teamMates.size() == 0) {
-            livingTeams.remove(teamName);
-        }
+    private void switchPlayerFromLivingToDead(UUID playerUniqueId) {
+        livingPlayers.remove(playerUniqueId);
         deadPlayers.add(playerUniqueId);
     }
     
@@ -261,7 +245,7 @@ public class MechaGame implements MCTGame, Listener {
             return;
         }
         killed.setGameMode(GameMode.SPECTATOR);
-        removePlayerFromLivingTeamsAndAddToDeadPlayers(killed.getUniqueId());
+        switchPlayerFromLivingToDead(killed.getUniqueId());
         event.setCancelled(true);
         dropInventory(killed, event.getDrops());
         Component deathMessage = event.deathMessage();
@@ -325,11 +309,32 @@ public class MechaGame implements MCTGame, Listener {
      * @return The team name of the winning team, or null if there is no winning team
      */
     public String getWinningTeam() {
-        if (livingTeams.size() == 1) {
-            String winningTeam = livingTeams.keySet().iterator().next();
+        if (allLivingPlayersAreOnOneTeam()) {
+            UUID winningPlayerUniqueId = livingPlayers.get(0);
+            String winningTeam = gameManager.getTeamName(winningPlayerUniqueId);
             return winningTeam;
         }
         return null;
+    }
+    
+    /**
+     * Check if all the living players belong to a single team.
+     * @return True if all living players are on a single team (or there are no living players). False otherwise.
+     */
+    private boolean allLivingPlayersAreOnOneTeam() {
+        if (livingPlayers.size() <= 1) {
+            return true;
+        }
+        UUID firstPlayerUUID = livingPlayers.get(0);
+        String firstTeam = gameManager.getTeamName(firstPlayerUUID);
+        for (int i = 1; i < livingPlayers.size(); i++) {
+            UUID nextPlayerUUID = livingPlayers.get(i);
+            String nextTeam = gameManager.getTeamName(nextPlayerUUID);
+            if (!nextTeam.equals(firstTeam)) {
+                return false;
+            }
+        }
+        return true;
     }
     
     private void addKill(UUID killerUniqueId) {
@@ -337,10 +342,6 @@ public class MechaGame implements MCTGame, Listener {
         int oldKillCount = killCounts.get(killerUniqueId);
         int newKillCount = oldKillCount + 1;
         killCounts.put(killerUniqueId, newKillCount);
-//        board.updateLine(1, Component.text("Kills: ")
-//                .append(Component.text(newKillCount))
-//                .color(NamedTextColor.RED)
-//                .toString());
         board.updateLine(1, "Kills: " + newKillCount);
     }
     
