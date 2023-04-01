@@ -119,12 +119,12 @@ public class MechaGame implements MCTGame, Listener {
     }
     
     @Override
-    public void onPlayerJoin(Player player) {
+    public void onParticipantJoin(Player player) {
         
     }
     
     @Override
-    public void onPlayerQuit(Player player) {
+    public void onParticipantQuit(Player player) {
         
     }
     

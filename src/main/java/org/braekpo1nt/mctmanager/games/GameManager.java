@@ -82,17 +82,21 @@ public class GameManager implements Listener {
         Player player = event.getPlayer();
         fastBoardManager.removeBoard(player.getUniqueId());
         if (gameIsRunning()) {
-            activeGame.onPlayerQuit(player);
+            activeGame.onParticipantQuit(player);
         }
     }
     
     @EventHandler
     public void playerJoinEvent(PlayerJoinEvent event) {
-        fastBoardManager.updateMainBoard();
-        if (gameIsRunning()) {
-            Player player = event.getPlayer();
-            activeGame.onPlayerJoin(player);
+        Player player = event.getPlayer();
+        if (!hasPlayer(player.getUniqueId())) {
+            return;
         }
+        fastBoardManager.updateMainBoard();
+        if (!gameIsRunning()) {
+            return;
+        }
+        activeGame.onParticipantJoin(player);
     }
     
     public Scoreboard getMctScoreboard() {
