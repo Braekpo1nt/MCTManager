@@ -134,6 +134,11 @@ public class FootRaceGame implements Listener, MCTGame {
      */
     private void onParticipantRejoin(Player participant) {
         participant.sendMessage(ChatColor.GREEN+"You have rejoined Foot Race");
+        UUID uniqueId = participant.getUniqueId();
+        if (placements.contains(uniqueId)) {
+            showRaceCompleteFastBoard(uniqueId);
+            return;
+        }
         initializeFastBoard(participant);
     }
 
