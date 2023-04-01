@@ -17,6 +17,9 @@ public class BlockEffectsListener implements Listener {
     
     private boolean blockEffectsEnabled = true;
     
+    private final PotionEffect SPEED = new PotionEffect(PotionEffectType.SPEED, 80, 5, true, false, false);
+    private final PotionEffect JUMP = new PotionEffect(PotionEffectType.JUMP, 140, 7, true, false, false);
+    
     public BlockEffectsListener(Main plugin) {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
@@ -30,10 +33,10 @@ public class BlockEffectsListener implements Listener {
         Material standingBlock = player.getLocation().add(0, -1, 0).getBlock().getType();
         switch (standingBlock) {
             case MAGENTA_GLAZED_TERRACOTTA:
-                player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 80, 7, true, false, false));
+                player.addPotionEffect(SPEED);
                 break;
             case LIME_GLAZED_TERRACOTTA:
-                player.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, 140, 7, true, false, false));
+                player.addPotionEffect(JUMP);
                 break;
             case BEDROCK:
                 player.removePotionEffect(PotionEffectType.JUMP);
