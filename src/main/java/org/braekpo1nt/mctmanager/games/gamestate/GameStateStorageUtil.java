@@ -103,17 +103,6 @@ public class GameStateStorageUtil {
         saveGameState();
     }
     
-    
-//    public void removePlayersOnTeam(String teamName) {
-//        Iterator<MCTPlayer> iterator = gameState.getPlayers().values().iterator();
-//        while (iterator.hasNext()) {
-//            MCTPlayer mctPlayer = iterator.next();
-//            if (mctPlayer.getTeamName().equals(teamName)) {
-//                iterator.remove();
-//            }
-//        }
-//    }
-    
     public void removeTeam(String teamName) throws IOException {
         gameState.removeTeam(teamName);
         saveGameState();
