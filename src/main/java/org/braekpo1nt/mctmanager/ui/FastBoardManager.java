@@ -61,9 +61,7 @@ public class FastBoardManager {
             if (gameStateStorageUtil.containsPlayer(playerUniqueId)) {
                 addBoard(player);
                 return true;
-            } else {
             }
-        } else {
         }
         return false;
     }
