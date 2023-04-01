@@ -59,6 +59,7 @@ public class FootRaceGame implements Listener, MCTGame {
     private final PotionEffect SATURATION = new PotionEffect(PotionEffectType.SATURATION, 70, 250, true, false, false);
     private int statusEffectsTaskId;
     private final String title = ChatColor.BLUE+"Foot Race";
+    private Location footRaceStartAnchor;
     
     public FootRaceGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
@@ -75,18 +76,26 @@ public class FootRaceGame implements Listener, MCTGame {
                 Collectors.toMap(Entity::getUniqueId, value -> System.currentTimeMillis()));
         laps = participants.stream().collect(Collectors.toMap(Entity::getUniqueId, value -> 1));
         placements = new ArrayList<>();
-        initializeFastBoards();
         closeGlassBarrier();
-        teleportPlayersToStartingPositions();
-        clearInventories();
-        giveBoots();
-        setPlayersToAdventure();
+        for (Player participant : participants) {
+            initializeParticipant(participant);
+        }
+        AnchorManager anchorManager = Main.multiverseCore.getAnchorManager();
+        this.footRaceStartAnchor = anchorManager.getAnchorLocation("foot-race");
         clearStatusEffects();
         startStatusEffectsTask();
         startStartRaceCountdownTask();
         setupTeamOptions();
         gameActive = true;
         Bukkit.getLogger().info("Starting Foot Race game");
+    }
+    
+    private void initializeParticipant(Player participant) {
+        initializeFastBoard(participant);
+        teleportPlayerToStartingPosition(participant);
+        giveBoots(participant);
+        participant.getInventory().clear();
+        participant.setGameMode(GameMode.ADVENTURE);
     }
     
     @Override
@@ -101,10 +110,24 @@ public class FootRaceGame implements Listener, MCTGame {
         Bukkit.getLogger().info("Stopping Foot Race game");
     }
     
-    private void setPlayersToAdventure() {
-        for (Player participant : participants) {
-            participant.setGameMode(GameMode.ADVENTURE);
+    @Override
+    public void onPlayerJoin(Player player) {
+        if (gameManager.hasPlayer(player.getUniqueId())) {
+            participants.add(player);
+            if (!raceHasStarted) {
+                teleportPlayerToStartingPosition(player);
+                player.getInventory().clear();
+                
+            }
+            if (placements.contains(player.getUniqueId())) {
+                return;
+            }
         }
+    }
+    
+    @Override
+    public void onPlayerQuit(Player player) {
+        participants.remove(player);
     }
     
     private void cancelAllTasks() {
@@ -114,15 +137,13 @@ public class FootRaceGame implements Listener, MCTGame {
         Bukkit.getScheduler().cancelTask(statusEffectsTaskId);
     }
     
-    private void giveBoots() {
-        for (Player participant : participants) {
-            Color teamColor = gameManager.getTeamColor(participant.getUniqueId());
-            ItemStack boots = new ItemStack(Material.LEATHER_BOOTS);
-            LeatherArmorMeta meta = (LeatherArmorMeta) boots.getItemMeta();
-            meta.setColor(teamColor);
-            boots.setItemMeta(meta);
-            participant.getEquipment().setBoots(boots);
-        }
+    private void giveBoots(Player participant) {
+        Color teamColor = gameManager.getTeamColor(participant.getUniqueId());
+        ItemStack boots = new ItemStack(Material.LEATHER_BOOTS);
+        LeatherArmorMeta meta = (LeatherArmorMeta) boots.getItemMeta();
+        meta.setColor(teamColor);
+        boots.setItemMeta(meta);
+        participant.getEquipment().setBoots(boots);
     }
     
     private void setupTeamOptions() {
@@ -133,12 +154,6 @@ public class FootRaceGame implements Listener, MCTGame {
             team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.ALWAYS);
             team.setOption(Team.Option.DEATH_MESSAGE_VISIBILITY, Team.OptionStatus.ALWAYS);
             team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER);
-        }
-    }
-    
-    private void clearInventories() {
-        for (Player participant : participants) {
-            participant.getInventory().clear();
         }
     }
     
@@ -248,26 +263,20 @@ public class FootRaceGame implements Listener, MCTGame {
         structure.place(new Location(footRaceWorld, 2397, 76, 317), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
     }
     
-    private void teleportPlayersToStartingPositions() {
-        AnchorManager anchorManager = Main.multiverseCore.getAnchorManager();
-        Location anchorLocation = anchorManager.getAnchorLocation("foot-race");
-        for (Player participant : participants) {
-            participant.sendMessage("Teleporting to Foot Race");
-            participant.teleport(anchorLocation);
-        }
+    private void teleportPlayerToStartingPosition(Player player) {
+        player.sendMessage("Teleporting to Foot Race");
+        player.teleport(footRaceStartAnchor);
     }
     
-    private void initializeFastBoards() {
-        for (Player participant : participants) {
-            gameManager.getFastBoardManager().updateLines(
-                    participant.getUniqueId(),
-                    title,
-                    "00:00:000",
-                    "",
-                    String.format("Lap: %d/%d", laps.get(participant.getUniqueId()), MAX_LAPS),
-                    ""
-            );
-        }
+    private void initializeFastBoard(Player participant) {
+        gameManager.getFastBoardManager().updateLines(
+                participant.getUniqueId(),
+                title,
+                "00:00:000",
+                "",
+                String.format("Lap: %d/%d", laps.get(participant.getUniqueId()), MAX_LAPS),
+                ""
+        );
     }
     
     private void hideFastBoards() {

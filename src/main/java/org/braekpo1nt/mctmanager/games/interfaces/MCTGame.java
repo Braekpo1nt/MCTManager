@@ -10,4 +10,6 @@ import java.util.List;
 public interface MCTGame {
     void start(List<Player> participants);
     void stop();
+    void onPlayerJoin(Player player);
+    void onPlayerQuit(Player player);
 }

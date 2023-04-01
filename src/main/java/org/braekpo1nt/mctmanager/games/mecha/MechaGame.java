@@ -118,6 +118,16 @@ public class MechaGame implements MCTGame, Listener {
         Bukkit.getLogger().info("Stopped mecha");
     }
     
+    @Override
+    public void onPlayerJoin(Player player) {
+        
+    }
+    
+    @Override
+    public void onPlayerQuit(Player player) {
+        
+    }
+    
     private void setUpTeamOptions() {
         Scoreboard mctScoreboard = gameManager.getMctScoreboard();
         for (Team team : mctScoreboard.getTeams()) {
