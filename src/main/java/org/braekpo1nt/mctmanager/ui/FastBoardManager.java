@@ -31,18 +31,22 @@ public class FastBoardManager {
     
     public synchronized void updateMainBoard() {
         for (Player player : Bukkit.getOnlinePlayers()) {
-            boolean playerGotBoard = givePlayerBoardIfAbsent(player);
-            if (!playerGotBoard) {
-                return;
-            }
-            UUID playerUniqueId = player.getUniqueId();
-            FastBoard board = boards.get(playerUniqueId);
-            String[] mainLines = getMainLines(playerUniqueId);
-            String teamLine = mainLines[0];
-            String scoreLine = mainLines[1];
-            board.updateLine(0, teamLine);
-            board.updateLine(1, scoreLine);
+            updateMainBoardForPlayer(player);
         }
+    }
+    
+    private void updateMainBoardForPlayer(Player player) {
+        boolean playerGotBoard = givePlayerBoardIfAbsent(player);
+        if (!playerGotBoard) {
+            return;
+        }
+        UUID playerUniqueId = player.getUniqueId();
+        FastBoard board = boards.get(playerUniqueId);
+        String[] mainLines = getMainLines(playerUniqueId);
+        String teamLine = mainLines[0];
+        String scoreLine = mainLines[1];
+        board.updateLine(0, teamLine);
+        board.updateLine(1, scoreLine);
     }
     
     /**
@@ -57,7 +61,9 @@ public class FastBoardManager {
             if (gameStateStorageUtil.containsPlayer(playerUniqueId)) {
                 addBoard(player);
                 return true;
+            } else {
             }
+        } else {
         }
         return false;
     }
