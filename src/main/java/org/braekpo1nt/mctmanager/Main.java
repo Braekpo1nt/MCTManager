@@ -8,6 +8,7 @@ import org.braekpo1nt.mctmanager.hub.HubManager;
 import org.braekpo1nt.mctmanager.listeners.BlockEffectsListener;
 import org.braekpo1nt.mctmanager.hub.HubBoundaryListener;
 import org.braekpo1nt.mctmanager.listeners.PlayerJoinListener;
+import org.braekpo1nt.mctmanager.ui.FastBoardManager;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -78,6 +79,7 @@ public final class Main extends JavaPlugin {
     @Override
     public void onDisable() {
         if (saveGameStateOnDisable && gameManager != null) {
+            gameManager.cancelFastBoardManager();
             try {
                 gameManager.saveGameState();
                 if (gameManager.gameIsRunning()) {
