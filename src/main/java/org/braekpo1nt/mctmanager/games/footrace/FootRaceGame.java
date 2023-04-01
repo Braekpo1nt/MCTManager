@@ -52,7 +52,6 @@ public class FootRaceGame implements Listener, MCTGame {
     private Map<UUID, Integer> laps;
     private ArrayList<UUID> placements;
     private long raceStartTime;
-    private final Map<UUID, FastBoard> boards = new HashMap<>();
     private final PotionEffect SPEED = new PotionEffect(PotionEffectType.SPEED, 10000, 8, true, false, false);
     private final PotionEffect INVISIBILITY = new PotionEffect(PotionEffectType.INVISIBILITY, 10000, 1, true, false, false);
     private final PotionEffect RESISTANCE = new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 70, 200, true, false, false);
@@ -60,6 +59,7 @@ public class FootRaceGame implements Listener, MCTGame {
     private final PotionEffect FIRE_RESISTANCE = new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 70, 1, true, false, false);
     private final PotionEffect SATURATION = new PotionEffect(PotionEffectType.SATURATION, 70, 250, true, false, false);
     private int statusEffectsTaskId;
+    private final String title = ChatColor.BLUE+"Foot Race";
     
     public FootRaceGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
@@ -221,10 +221,11 @@ public class FootRaceGame implements Listener, MCTGame {
                 String timeString = getTimeString(elapsedTime);
                 for (Player participant : participants) {
                     if (!placements.contains(participant.getUniqueId())) {
-                        FastBoard board = boards.get(participant.getUniqueId());
-                        if (board != null) {
-                            board.updateLine(0, timeString);
-                        }
+                        gameManager.getFastBoardManager().updateLine(
+                                participant.getUniqueId(),
+                                1,
+                                timeString
+                        );
                     }
                 }
             }
@@ -259,30 +260,30 @@ public class FootRaceGame implements Listener, MCTGame {
     
     private void initializeFastBoards() {
         for (Player participant : participants) {
-            FastBoard board = new FastBoard(participant);
-            board.updateTitle(ChatColor.BLUE+"Foot Race");
-            board.updateLines(
+            gameManager.getFastBoardManager().updateLines(
+                    participant.getUniqueId(),
+                    title,
                     "00:00:000",
                     "",
                     String.format("Lap: %d/%d", laps.get(participant.getUniqueId()), MAX_LAPS),
                     ""
             );
-            boards.put(participant.getUniqueId(), board);
         }
     }
     
     private void hideFastBoards() {
-        for (FastBoard board : boards.values()) {
-            if (!board.isDeleted()) {
-                board.delete();
-            }
+        for (Player participant : participants) {
+            gameManager.getFastBoardManager().updateLines(
+                    participant.getUniqueId()
+            );
         }
     }
     
     private void updateFastBoard(UUID playerUniqueId) {
-        FastBoard board = boards.get(playerUniqueId);
         long elapsedTime = System.currentTimeMillis() - raceStartTime;
-        board.updateLines(
+        gameManager.getFastBoardManager().updateLines(
+                playerUniqueId,
+                title,
                 getTimeString(elapsedTime),
                 "",
                 String.format("Lap: %d/%d", laps.get(playerUniqueId), MAX_LAPS),
@@ -291,9 +292,10 @@ public class FootRaceGame implements Listener, MCTGame {
     }
     
     private void showRaceCompleteFastBoard(Player player) {
-        FastBoard board = boards.get(player.getUniqueId());
         long elapsedTime = System.currentTimeMillis() - raceStartTime;
-        board.updateLines(
+        gameManager.getFastBoardManager().updateLines(
+                player.getUniqueId(),
+                title,
                 getTimeString(elapsedTime),
                 "",
                 "Race Complete!",

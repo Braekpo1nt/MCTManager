@@ -12,11 +12,14 @@ import org.braekpo1nt.mctmanager.games.mecha.MechaGame;
 import org.braekpo1nt.mctmanager.hub.HubManager;
 import org.braekpo1nt.mctmanager.ui.FastBoardManager;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
@@ -29,7 +32,7 @@ import java.util.*;
  * Responsible for overall game management. 
  * Creating new game instances, starting/stopping games, and handling game events.
  */
-public class GameManager {
+public class GameManager implements Listener {
     
     private MCTGame activeGame = null;
     private final FootRaceGame footRaceGame;
@@ -45,30 +48,55 @@ public class GameManager {
     private final Scoreboard mctScoreboard;
     private final Main plugin;
     private boolean shouldTeleportToHub = true;
+    private int fastBoardUpdaterTaskId;
     
     public GameManager(Main plugin, Scoreboard mctScoreboard, HubManager hubManager) {
         this.plugin = plugin;
+        plugin.getServer().getPluginManager().registerEvents(this, plugin);
         this.mctScoreboard = mctScoreboard;
         this.gameStateStorageUtil = new GameStateStorageUtil(plugin);
         this.footRaceGame = new FootRaceGame(plugin, this);
         this.mechaGame = new MechaGame(plugin, this);
         this.hubManager = hubManager;
-        this.fastBoardManager = new FastBoardManager(plugin, gameStateStorageUtil);
+        this.fastBoardManager = new FastBoardManager(gameStateStorageUtil);
         kickOffFastBoardManager();
     }
     
     private void kickOffFastBoardManager() {
-        
-        new BukkitRunnable() {
+        this.fastBoardUpdaterTaskId = new BukkitRunnable() {
             @Override
             public void run() {
                 fastBoardManager.updateMainBoard();
             }
-        }.runTaskTimer(plugin, 0L, 20L);
+        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+    }
+    
+    public void cancelFastBoardManager() {
+        Bukkit.getScheduler().cancelTask(this.fastBoardUpdaterTaskId);
+        fastBoardManager.removeAllBoards();
+    }
+    
+    @EventHandler
+    public void playerQuitEvent(PlayerQuitEvent event) {
+        Player player = event.getPlayer();
+        fastBoardManager.removeBoard(player.getUniqueId());
+    }
+    
+    @EventHandler
+    public void playerJoinEvent(PlayerJoinEvent event) {
+        Player player = event.getPlayer();
+        if (!gameStateStorageUtil.containsPlayer(player.getUniqueId())) {
+            return;
+        }
+        fastBoardManager.addBoard(player);
     }
     
     public Scoreboard getMctScoreboard() {
         return mctScoreboard;
+    }
+    
+    public FastBoardManager getFastBoardManager() {
+        return fastBoardManager;
     }
     
     public void loadGameState() throws IOException {
@@ -331,10 +359,6 @@ public class GameManager {
         return gameStateStorageUtil.getTeamColor(playerUniqueId);
     }
     
-    public ChatColor getTeamChatColor(String teamName) {
-        return gameStateStorageUtil.getTeamChatColor(teamName);
-    }
-    
     /**
      * Gets the team's display name as a Component with the team's text color
      * and in bold
@@ -345,13 +369,5 @@ public class GameManager {
         String displayName = gameStateStorageUtil.getTeamDisplayName(teamName);
         NamedTextColor teamColor = gameStateStorageUtil.getTeamNamedTextColor(teamName);
         return Component.text(displayName).color(teamColor).decorate(TextDecoration.BOLD);
-    }
-    
-    public int getPlayerScore(UUID playerUniqueId) {
-        return gameStateStorageUtil.getPlayerScore(playerUniqueId);
-    }
-    
-    public String getTeamDisplayName(String teamName) {
-        return gameStateStorageUtil.getTeamDisplayName(teamName);
     }
 }

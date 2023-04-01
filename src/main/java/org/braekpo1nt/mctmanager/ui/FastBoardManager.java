@@ -20,41 +20,72 @@ import java.util.concurrent.ConcurrentHashMap;
  * Responsible for displaying the MCT sidebar FastBoard
  * Utilizes the <a href="https://github.com/MrMicky-FR/FastBoard">FastBoard api</a>
  */
-public class FastBoardManager implements Listener {
+public class FastBoardManager {
     
     private final ConcurrentHashMap<UUID, FastBoard> boards = new ConcurrentHashMap<>();
     private final GameStateStorageUtil gameStateStorageUtil;
     
-    public FastBoardManager(Main plugin, GameStateStorageUtil gameStateStorageUtil) {
+    public FastBoardManager(GameStateStorageUtil gameStateStorageUtil) {
         this.gameStateStorageUtil = gameStateStorageUtil;
-        plugin.getServer().getPluginManager().registerEvents(this, plugin);
-        giveBoardsToAllOnlinePlayers();
     }
     
-    public void updateMainBoard(String... mainLines) {
-        Iterator<Map.Entry<UUID, FastBoard>> iterator = boards.entrySet().iterator();
-        while (iterator.hasNext()) {
-            Map.Entry<UUID, FastBoard> entry = iterator.next();
-            UUID playerUniqueId = entry.getKey();
-            FastBoard board = entry.getValue();
-            String teamName = gameStateStorageUtil.getPlayerTeamName(playerUniqueId);
-            String teamDisplayName = gameStateStorageUtil.getTeamDisplayName(teamName);
-            ChatColor teamChatColor = gameStateStorageUtil.getTeamChatColor(teamName);
-            int score = gameStateStorageUtil.getPlayerScore(playerUniqueId);
-            board.updateLine(0, teamChatColor+teamDisplayName);
-            board.updateLine(1, ChatColor.GOLD+"Score: "+score);
-        }
-    }
-    
-    private void giveBoardsToAllOnlinePlayers() {
+    public synchronized void updateMainBoard() {
         for (Player player : Bukkit.getOnlinePlayers()) {
-            if (gameStateStorageUtil.containsPlayer(player.getUniqueId())) {
-                addBoard(player);
+            UUID playerUniqueId = player.getUniqueId();
+            if (!boards.containsKey(playerUniqueId)) {
+                if (gameStateStorageUtil.containsPlayer(playerUniqueId)) {
+                    addBoard(player);
+                }
             }
+            FastBoard board = boards.get(playerUniqueId);
+            String[] mainLines = getMainLines(playerUniqueId);
+            String teamLine = mainLines[0];
+            String scoreLine = mainLines[1];
+            board.updateLine(0, teamLine);
+            board.updateLine(1, scoreLine);
         }
     }
     
-    private void addBoard(Player player) {
+    private String[] getMainLines(UUID playerUniqueId) {
+        String teamName = gameStateStorageUtil.getPlayerTeamName(playerUniqueId);
+        String teamDisplayName = gameStateStorageUtil.getTeamDisplayName(teamName);
+        ChatColor teamChatColor = gameStateStorageUtil.getTeamChatColor(teamName);
+        int score = gameStateStorageUtil.getPlayerScore(playerUniqueId);
+        String teamLine = teamChatColor+teamDisplayName;
+        String scoreLine = ChatColor.GOLD+"Score: "+score;
+        return new String[]{teamLine, scoreLine};
+    }
+    
+    /**
+     * Updates the sub-board lines (after the main lines) for the given player
+     * using the given lines. Provide no lines arguments to clear. 
+     * @param playerUniqueId The player's UUID
+     * @param lines The lines to update the sub-board to
+     */
+    public synchronized void updateLines(UUID playerUniqueId, String... lines) {
+        FastBoard board = boards.get(playerUniqueId);
+        String[] mainLines = getMainLines(playerUniqueId);
+        String[] linesPlusMainLines = new String[lines.length + 2];
+        linesPlusMainLines[0] = mainLines[0];
+        linesPlusMainLines[1] = mainLines[1];
+        System.arraycopy(lines, 0, linesPlusMainLines, 2, lines.length);
+        board.updateLines(linesPlusMainLines);
+    }
+    
+    /**
+     * Updates the sub-board line (after the main lines) for the given player
+     * using the given text.
+     * @param playerUniqueId The unique id of the player
+     * @param line The line selection of the sub-lines (0 being the first)
+     * @param text The text to update the line with
+     */
+    public synchronized void updateLine(UUID playerUniqueId, int line, String text) {
+        FastBoard board = boards.get(playerUniqueId);
+        int subLine = line + 2;
+        board.updateLine(subLine, text);
+    }
+    
+    public synchronized void addBoard(Player player) {
         FastBoard newBoard = new FastBoard(player);
         newBoard.updateTitle(ChatColor.BOLD+""+ChatColor.DARK_RED+"MCT Alpha");
         newBoard.updateLines(
@@ -64,26 +95,23 @@ public class FastBoardManager implements Listener {
         boards.put(player.getUniqueId(), newBoard);
     }
     
-    private void removeBoard(UUID playerUniqueId) {
+    public synchronized void removeBoard(UUID playerUniqueId) {
         FastBoard board = boards.remove(playerUniqueId);
         if (board != null && !board.isDeleted()) {
             board.delete();
         }
     }
     
-    @EventHandler
-    public void playerQuitEvent(PlayerQuitEvent event) {
-        Player player = event.getPlayer();
-        removeBoard(player.getUniqueId());
-    }
-    
-    @EventHandler
-    public void playerJoinEvent(PlayerJoinEvent event) {
-        Player player = event.getPlayer();
-        if (!gameStateStorageUtil.containsPlayer(player.getUniqueId())) {
-            return;
+    public synchronized void removeAllBoards() {
+        Iterator<Map.Entry<UUID, FastBoard>> iterator = boards.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<UUID, FastBoard> entry = iterator.next();
+            FastBoard board = entry.getValue();
+            if (!board.isDeleted()) {
+                board.delete();
+            }
+            iterator.remove();
         }
-        addBoard(player);
     }
     
 }

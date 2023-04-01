@@ -79,6 +79,7 @@ public final class Main extends JavaPlugin {
     @Override
     public void onDisable() {
         if (saveGameStateOnDisable && gameManager != null) {
+            gameManager.cancelFastBoardManager();
             try {
                 gameManager.saveGameState();
                 if (gameManager.gameIsRunning()) {
