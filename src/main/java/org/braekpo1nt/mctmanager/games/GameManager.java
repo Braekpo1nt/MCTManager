@@ -88,7 +88,7 @@ public class GameManager implements Listener {
         if (!gameStateStorageUtil.containsPlayer(player.getUniqueId())) {
             return;
         }
-        fastBoardManager.addBoard(player);
+        fastBoardManager.givePlayerBoardIfAbsent(player);
     }
     
     public Scoreboard getMctScoreboard() {
@@ -221,6 +221,7 @@ public class GameManager implements Listener {
         if (!gameStateStorageUtil.containsTeam(teamName)) {
             return false;
         }
+        this.leavePlayersOnTeam(teamName);
         gameStateStorageUtil.removeTeam(teamName);
         Team team = mctScoreboard.getTeam(teamName);
         team.unregister();
@@ -320,8 +321,17 @@ public class GameManager implements Listener {
         UUID playerUniqueId = player.getUniqueId();
         String teamName = gameStateStorageUtil.getPlayerTeamName(playerUniqueId);
         gameStateStorageUtil.leavePlayer(playerUniqueId);
+        fastBoardManager.removeBoard(playerUniqueId);
         Team team = mctScoreboard.getTeam(teamName);
         team.removePlayer(player);
+    }
+    
+    private void leavePlayersOnTeam(String teamName) throws IOException {
+        List<UUID> playerUniqueIds = gameStateStorageUtil.getPlayerUniqueIdsOnTeam(teamName);
+        for (UUID playerUniqueId : playerUniqueIds) {
+            OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(playerUniqueId);
+            leavePlayer(offlinePlayer);
+        }
     }
     
     public String getTeamName(UUID playerUniqueId) {

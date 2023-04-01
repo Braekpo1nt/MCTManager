@@ -222,7 +222,7 @@ public class FootRaceGame implements Listener, MCTGame {
                 for (Player participant : participants) {
                     if (!placements.contains(participant.getUniqueId())) {
                         gameManager.getFastBoardManager().updateLine(
-                                participant.getUniqueId(),
+                                participant,
                                 1,
                                 timeString
                         );
@@ -261,7 +261,7 @@ public class FootRaceGame implements Listener, MCTGame {
     private void initializeFastBoards() {
         for (Player participant : participants) {
             gameManager.getFastBoardManager().updateLines(
-                    participant.getUniqueId(),
+                    participant,
                     title,
                     "00:00:000",
                     "",
@@ -274,19 +274,19 @@ public class FootRaceGame implements Listener, MCTGame {
     private void hideFastBoards() {
         for (Player participant : participants) {
             gameManager.getFastBoardManager().updateLines(
-                    participant.getUniqueId()
+                    participant
             );
         }
     }
     
-    private void updateFastBoard(UUID playerUniqueId) {
+    private void updateFastBoard(Player player) {
         long elapsedTime = System.currentTimeMillis() - raceStartTime;
         gameManager.getFastBoardManager().updateLines(
-                playerUniqueId,
+                player,
                 title,
                 getTimeString(elapsedTime),
                 "",
-                String.format("Lap: %d/%d", laps.get(playerUniqueId), MAX_LAPS),
+                String.format("Lap: %d/%d", laps.get(player.getUniqueId()), MAX_LAPS),
                 ""
         );
     }
@@ -294,7 +294,7 @@ public class FootRaceGame implements Listener, MCTGame {
     private void showRaceCompleteFastBoard(Player player) {
         long elapsedTime = System.currentTimeMillis() - raceStartTime;
         gameManager.getFastBoardManager().updateLines(
-                player.getUniqueId(),
+                player,
                 title,
                 getTimeString(elapsedTime),
                 "",
@@ -336,7 +336,7 @@ public class FootRaceGame implements Listener, MCTGame {
                 long elapsedTime = System.currentTimeMillis() - raceStartTime;
                 int newLap = currentLap + 1;
                 laps.put(playerUUID, newLap);
-                updateFastBoard(playerUUID);
+                updateFastBoard(player);
                 player.sendMessage("Lap " + newLap);
                 player.sendMessage(String.format("Finished lap %d in %s", currentLap, getTimeString(elapsedTime)));
                 return;

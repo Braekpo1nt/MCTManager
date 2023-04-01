@@ -31,12 +31,10 @@ public class FastBoardManager {
     
     public synchronized void updateMainBoard() {
         for (Player player : Bukkit.getOnlinePlayers()) {
-            UUID playerUniqueId = player.getUniqueId();
-            if (!boards.containsKey(playerUniqueId)) {
-                if (gameStateStorageUtil.containsPlayer(playerUniqueId)) {
-                    addBoard(player);
-                }
+            if (!givePlayerBoardIfAbsent(player)) {
+                return;
             }
+            UUID playerUniqueId = player.getUniqueId();
             FastBoard board = boards.get(playerUniqueId);
             String[] mainLines = getMainLines(playerUniqueId);
             String teamLine = mainLines[0];
@@ -44,6 +42,23 @@ public class FastBoardManager {
             board.updateLine(0, teamLine);
             board.updateLine(1, scoreLine);
         }
+    }
+    
+    /**
+     * Gives the player a FastBoard if the player doesn't already have one,
+     * and the player is in the gameStateStorageUtil
+     * @param player The player
+     * @return true if the player got a board, false if not
+     */
+    public synchronized boolean givePlayerBoardIfAbsent(Player player) {
+        UUID playerUniqueId = player.getUniqueId();
+        if (!boards.containsKey(playerUniqueId)) {
+            if (gameStateStorageUtil.containsPlayer(playerUniqueId)) {
+                addBoard(player);
+                return true;
+            }
+        }
+        return false;
     }
     
     private String[] getMainLines(UUID playerUniqueId) {
@@ -59,10 +74,14 @@ public class FastBoardManager {
     /**
      * Updates the sub-board lines (after the main lines) for the given player
      * using the given lines. Provide no lines arguments to clear. 
-     * @param playerUniqueId The player's UUID
+     * @param player The player to update the sub-board for
      * @param lines The lines to update the sub-board to
      */
-    public synchronized void updateLines(UUID playerUniqueId, String... lines) {
+    public synchronized void updateLines(Player player, String... lines) {
+        if (!givePlayerBoardIfAbsent(player)) {
+            return;
+        }
+        UUID playerUniqueId = player.getUniqueId();
         FastBoard board = boards.get(playerUniqueId);
         String[] mainLines = getMainLines(playerUniqueId);
         String[] linesPlusMainLines = new String[lines.length + 2];
@@ -75,17 +94,21 @@ public class FastBoardManager {
     /**
      * Updates the sub-board line (after the main lines) for the given player
      * using the given text.
-     * @param playerUniqueId The unique id of the player
-     * @param line The line selection of the sub-lines (0 being the first)
+     * @param player The player to update the sub-line for
+     * @param line The line index of the sub-line (0 being the first)
      * @param text The text to update the line with
      */
-    public synchronized void updateLine(UUID playerUniqueId, int line, String text) {
+    public synchronized void updateLine(Player player, int line, String text) {
+        if (!givePlayerBoardIfAbsent(player)) {
+            return;
+        }
+        UUID playerUniqueId = player.getUniqueId();
         FastBoard board = boards.get(playerUniqueId);
         int subLine = line + 2;
         board.updateLine(subLine, text);
     }
     
-    public synchronized void addBoard(Player player) {
+    private synchronized void addBoard(Player player) {
         FastBoard newBoard = new FastBoard(player);
         newBoard.updateTitle(ChatColor.BOLD+""+ChatColor.DARK_RED+"MCT Alpha");
         newBoard.updateLines(
