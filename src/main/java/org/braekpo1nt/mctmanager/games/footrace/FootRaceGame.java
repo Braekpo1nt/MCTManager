@@ -2,11 +2,10 @@ package org.braekpo1nt.mctmanager.games.footrace;
 
 import com.onarandombox.MultiverseCore.api.MVWorldManager;
 import com.onarandombox.MultiverseCore.utils.AnchorManager;
-import fr.mrmicky.fastboard.FastBoard;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
-import org.braekpo1nt.mctmanager.games.MCTGame;
+import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
 import org.bukkit.*;
 import org.bukkit.block.structure.Mirror;
 import org.bukkit.block.structure.StructureRotation;

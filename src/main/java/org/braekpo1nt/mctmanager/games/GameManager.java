@@ -8,6 +8,7 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.color.ColorMap;
 import org.braekpo1nt.mctmanager.games.footrace.FootRaceGame;
 import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
+import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.mecha.MechaGame;
 import org.braekpo1nt.mctmanager.hub.HubManager;
 import org.braekpo1nt.mctmanager.ui.FastBoardManager;

@@ -1,4 +1,4 @@
-package org.braekpo1nt.mctmanager.games;
+package org.braekpo1nt.mctmanager.games.interfaces;
 
 import org.bukkit.entity.Player;
 
