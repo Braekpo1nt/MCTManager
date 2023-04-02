@@ -156,18 +156,14 @@ public class MechaGame implements MCTGame, Listener {
                     this.cancel();
                     return;
                 }
-                for (Player participant : participants) {
-                    participant.sendMessage(Component.text(count));
-                }
+                messageAllParticipants(Component.text(count));
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
     }
     
     private void startStopMechaCountdownTask() {
-        for (Player participant : participants) {
-            participant.sendMessage(Component.text("Game ending in 10 seconds..."));
-        }
+        messageAllParticipants(Component.text("Game ending in 10 seconds..."));
         stopMechaCountdownTaskId = new BukkitRunnable() {
             int count = 10;
             
@@ -179,10 +175,8 @@ public class MechaGame implements MCTGame, Listener {
                     return;
                 }
                 if (count <= 3) {
-                    for (Player participant : participants) {
-                        participant.sendMessage(Component.text("Game ending in ")
-                                .append(Component.text(count)));
-                    }
+                    messageAllParticipants(Component.text("Game ending in ")
+                            .append(Component.text(count)));
                 }
                 count--;
             }
@@ -239,9 +233,7 @@ public class MechaGame implements MCTGame, Listener {
         this.mechaHasStarted = true;
         kickOffBorderShrinking();
         removePlatforms();
-        for (Player participant : participants) {
-            participant.sendMessage(Component.text("Go!"));
-        }
+        messageAllParticipants(Component.text("Go!"));
         giveInvulnerabilityForTenSeconds();
     }
     
@@ -249,8 +241,8 @@ public class MechaGame implements MCTGame, Listener {
         PotionEffect resisitance = new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 200, 200, true, false, true);
         for (Player participant : participants) {
             participant.addPotionEffect(resisitance);
-            participant.sendMessage("Invulnerable for 10 seconds!");
         }
+        messageAllParticipants(Component.text("Invulnerable for 10 seconds!"));
     }
     
     private void onTeamWin(String winningTeamName) {
@@ -263,9 +255,7 @@ public class MechaGame implements MCTGame, Listener {
     
     private void startSuddenDeath() {
         displaySuddenDeath();
-        for (Player participant : participants) {
-            participant.sendMessage(Component.text("Sudden death!"));
-        }
+        messageAllParticipants(Component.text("Sudden death!"));
     }
     
     @EventHandler
@@ -466,10 +456,7 @@ public class MechaGame implements MCTGame, Listener {
      */
     private void sendBorderDelayAnouncement(int delay) {
         String timeString = getTimeString(delay);
-        String message = "Border will not shrink for "+timeString;
-        for (Player participant : participants) {
-            participant.sendMessage(message);
-        }
+        messageAllParticipants(Component.text("Border will not shrink for "+timeString));
     }
     
     /**
@@ -479,10 +466,10 @@ public class MechaGame implements MCTGame, Listener {
      */
     private void sendBorderShrinkAnouncement(int duration, int size) {
         String timeString = getTimeString(duration);
-        String message = String.format("Border shrinking to %d for %s", size, timeString);
-        for (Player participant : participants) {
-            participant.sendMessage(message);
-        }
+        messageAllParticipants(Component.text("Border shrinking to ")
+                .append(Component.text(size))
+                .append(Component.text(" for "))
+                .append(Component.text(timeString)));
     }
     
     /**
@@ -645,6 +632,12 @@ public class MechaGame implements MCTGame, Listener {
             }
         }
         return null;
+    }
+    
+    private void messageAllParticipants(Component message) {
+        for (Player participant : participants) {
+            participant.sendMessage(message);
+        }
     }
     
     private void setChestCoordsAndLootTables() {
