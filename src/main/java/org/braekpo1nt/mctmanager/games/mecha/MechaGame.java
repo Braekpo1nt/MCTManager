@@ -13,7 +13,6 @@ import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
 import org.bukkit.block.structure.Mirror;
 import org.bukkit.block.structure.StructureRotation;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -33,7 +32,6 @@ import org.bukkit.util.Vector;
 
 import java.time.Duration;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class MechaGame implements MCTGame, Listener {
     
@@ -70,6 +68,7 @@ public class MechaGame implements MCTGame, Listener {
     private List<UUID> livingPlayers;
     private List<UUID> deadPlayers;
     private final String title = ChatColor.BLUE+"MECHA";
+    private Map<String, Location> teamLocations;
     
     public MechaGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
@@ -83,24 +82,34 @@ public class MechaGame implements MCTGame, Listener {
     }
     
     @Override
-    public void start(List<Player> participants) {
-        this.participants = participants;
-        initializeLivingPlayers();
+    public void start(List<Player> newParticipants) {
+        this.participants = new ArrayList<>(newParticipants.size());
+        livingPlayers = new ArrayList<>(newParticipants.size());
         deadPlayers = new ArrayList<>();
-        this.killCounts = participants.stream().collect(Collectors.toMap(Entity::getUniqueId, value -> 0));
+        this.killCounts = new HashMap<>(newParticipants.size());
         placePlatforms();
         fillAllChests();
-        teleportPlayersToStartingPositions();
-        setPlayersToAdventure();
-        clearInventories();
-        resetHealthAndHunger();
-        clearStatusEffects();
-        initializeFastboards();
-        startStartMechaCountdownTask();
-        initializeWorldBorder();
+        initializeTeamLocations();
+        for (Player participant : newParticipants) {
+            initializeParticipant(participant);
+        }
         setUpTeamOptions();
+        initializeWorldBorder();
+        startStartMechaCountdownTask();
         gameActive = true;
         Bukkit.getLogger().info("Started mecha");
+    }
+    
+    private void initializeParticipant(Player participant) {
+        participants.add(participant);
+        UUID participantUniqueId = participant.getUniqueId();
+        livingPlayers.add(participantUniqueId);
+        teleportParticipantToStartingPosition(participant);
+        participant.setGameMode(GameMode.ADVENTURE);
+        participant.getInventory().clear();
+        resetHealthAndHunger(participant);
+        clearStatusEffects(participant);
+        initializeFastBoard(participant);
     }
     
     @Override
@@ -183,15 +192,6 @@ public class MechaGame implements MCTGame, Listener {
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
     }
     
-    private void initializeLivingPlayers() {
-        livingPlayers = new ArrayList<>();
-        for (Player participant : participants) {
-            if (!livingPlayers.contains(participant.getUniqueId())) {
-                livingPlayers.add(participant.getUniqueId());
-            }
-        }
-    }
-    
     private void switchPlayerFromLivingToDead(UUID playerUniqueId) {
         livingPlayers.remove(playerUniqueId);
         deadPlayers.add(playerUniqueId);
@@ -208,24 +208,14 @@ public class MechaGame implements MCTGame, Listener {
         }
     }
     
-    private void clearInventories() {
-        for (Player participant : participants) {
-            participant.getInventory().clear();
-        }
+    private void resetHealthAndHunger(Player participant) {
+        participant.setHealth(participant.getAttribute(Attribute.GENERIC_MAX_HEALTH).getDefaultValue());
+        participant.setSaturation(20);
     }
     
-    private void resetHealthAndHunger() {
-        for (Player participant : participants) {
-            participant.setHealth(participant.getAttribute(Attribute.GENERIC_MAX_HEALTH).getDefaultValue());
-            participant.setSaturation(20);
-        }
-    }
-    
-    private void clearStatusEffects() {
-        for (Player participant : participants) {
-            for (PotionEffect effect : participant.getActivePotionEffects()) {
-                participant.removePotionEffect(effect.getType());
-            }
+    private void clearStatusEffects(Player participant) {
+        for (PotionEffect effect : participant.getActivePotionEffects()) {
+            participant.removePotionEffect(effect.getType());
         }
     }
     
@@ -428,18 +418,16 @@ public class MechaGame implements MCTGame, Listener {
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
     }
     
-    private void initializeFastboards() {
-        for (Player participant : participants) {
-            gameManager.getFastBoardManager().updateLines(
-                    participant.getUniqueId(),
-                    title,
-                    "",
-                    ChatColor.RED+"Kills: 0",
-                    "",
-                    ChatColor.LIGHT_PURPLE+"Border",
-                    ChatColor.LIGHT_PURPLE+"0:00"
-            );
-        }
+    private void initializeFastBoard(Player participant) {
+        gameManager.getFastBoardManager().updateLines(
+                participant.getUniqueId(),
+                title,
+                "",
+                ChatColor.RED+"Kills: 0",
+                "",
+                ChatColor.LIGHT_PURPLE+"Border",
+                ChatColor.LIGHT_PURPLE+"0:00"
+        );
     }
     
     private void hideFastBoards() {
@@ -533,28 +521,10 @@ public class MechaGame implements MCTGame, Listener {
         return String.format("%d:%02d", minutes, seconds);
     }
     
-    private void teleportPlayersToStartingPositions() {
-        AnchorManager anchorManager = Main.multiverseCore.getAnchorManager();
-        Map<String, Location> teamLocations = new HashMap<>();
-        teamLocations.put("orange", anchorManager.getAnchorLocation("mecha-orange"));
-        teamLocations.put("yellow", anchorManager.getAnchorLocation("mecha-yellow"));
-        teamLocations.put("green", anchorManager.getAnchorLocation("mecha-green"));
-        teamLocations.put("dark-green", anchorManager.getAnchorLocation("mecha-dark-green"));
-        teamLocations.put("cyan", anchorManager.getAnchorLocation("mecha-cyan"));
-        teamLocations.put("blue", anchorManager.getAnchorLocation("mecha-blue"));
-        teamLocations.put("purple", anchorManager.getAnchorLocation("mecha-purple"));
-        teamLocations.put("red", anchorManager.getAnchorLocation("mecha-red"));
-        for (Player participant : participants) {
-            String team = gameManager.getTeamName(participant.getUniqueId());
-            Location teamLocation = teamLocations.getOrDefault(team, teamLocations.get("yellow"));
-            participant.teleport(teamLocation);
-        }
-    }
-    
-    private void setPlayersToAdventure() {
-        for (Player participant : participants) {
-            participant.setGameMode(GameMode.ADVENTURE);
-        }
+    private void teleportParticipantToStartingPosition(Player participant) {
+        String team = gameManager.getTeamName(participant.getUniqueId());
+        Location teamLocation = teamLocations.getOrDefault(team, teamLocations.get("yellow"));
+        participant.teleport(teamLocation);
     }
     
     private void placePlatforms() {
@@ -638,6 +608,19 @@ public class MechaGame implements MCTGame, Listener {
         for (Player participant : participants) {
             participant.sendMessage(message);
         }
+    }
+    
+    private void initializeTeamLocations() {
+        AnchorManager anchorManager = Main.multiverseCore.getAnchorManager();
+        teamLocations = new HashMap<>();
+        teamLocations.put("orange", anchorManager.getAnchorLocation("mecha-orange"));
+        teamLocations.put("yellow", anchorManager.getAnchorLocation("mecha-yellow"));
+        teamLocations.put("green", anchorManager.getAnchorLocation("mecha-green"));
+        teamLocations.put("dark-green", anchorManager.getAnchorLocation("mecha-dark-green"));
+        teamLocations.put("cyan", anchorManager.getAnchorLocation("mecha-cyan"));
+        teamLocations.put("blue", anchorManager.getAnchorLocation("mecha-blue"));
+        teamLocations.put("purple", anchorManager.getAnchorLocation("mecha-purple"));
+        teamLocations.put("red", anchorManager.getAnchorLocation("mecha-red"));
     }
     
     private void setChestCoordsAndLootTables() {

@@ -69,7 +69,7 @@ public class FootRaceGame implements Listener, MCTGame {
     }
     
     @Override
-    public void start(List<Player> participants) {
+    public void start(List<Player> newParticipants) {
         this.participants = new ArrayList<>();
         lapCooldowns = new HashMap<>();
         laps = new HashMap<>();
@@ -77,7 +77,7 @@ public class FootRaceGame implements Listener, MCTGame {
         AnchorManager anchorManager = Main.multiverseCore.getAnchorManager();
         this.footRaceStartAnchor = anchorManager.getAnchorLocation("foot-race");
         closeGlassBarrier();
-        for (Player participant : participants) {
+        for (Player participant : newParticipants) {
             initializeParticipant(participant);
         }
         startStatusEffectsTask();
