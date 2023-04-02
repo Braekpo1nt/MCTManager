@@ -117,7 +117,6 @@ public class FootRaceGame implements Listener, MCTGame {
     private void resetParticipant(Player participant) {
         participants.remove(participant);
         participant.getInventory().clear();
-        clearStatusEffects(participant);
     }
     
     @Override

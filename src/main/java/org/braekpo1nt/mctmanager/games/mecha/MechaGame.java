@@ -117,14 +117,21 @@ public class MechaGame implements MCTGame, Listener {
         hideFastBoards();
         cancelAllTasks();
         clearFloorItems();
-        clearInventories();
         placePlatforms();
         clearAllChests();
         worldBorder.reset();
+        for (Player participant : participants) {
+            resetParticipant(participant);
+        }
         mechaHasStarted = false;
         gameActive = false;
         gameManager.gameIsOver();
         Bukkit.getLogger().info("Stopped mecha");
+    }
+    
+    private void resetParticipant(Player participant) {
+        participants.remove(participant);
+        participant.getInventory().clear();
     }
     
     @Override
