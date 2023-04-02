@@ -102,10 +102,11 @@ public class MechaGame implements MCTGame, Listener {
         Bukkit.getLogger().info("Started mecha");
     }
     
-    private void initializeParticipant(Player participant) {
+    private synchronized void initializeParticipant(Player participant) {
         participants.add(participant);
         UUID participantUniqueId = participant.getUniqueId();
         livingPlayers.add(participantUniqueId);
+        killCounts.put(participantUniqueId, 0);
         teleportParticipantToStartingPosition(participant);
         participant.setGameMode(GameMode.ADVENTURE);
         participant.getInventory().clear();
@@ -115,7 +116,7 @@ public class MechaGame implements MCTGame, Listener {
     }
     
     @Override
-    public void stop() {
+    public synchronized void stop() {
         hideFastBoards();
         cancelAllTasks();
         clearFloorItems();
@@ -131,7 +132,7 @@ public class MechaGame implements MCTGame, Listener {
         Bukkit.getLogger().info("Stopped mecha");
     }
     
-    private void resetParticipant(Player participant) {
+    private synchronized void resetParticipant(Player participant) {
         participants.remove(participant);
         participant.getInventory().clear();
     }
@@ -148,7 +149,7 @@ public class MechaGame implements MCTGame, Listener {
         }
     }
     
-    private void rejoinParticipant(Player participant) {
+    private synchronized void rejoinParticipant(Player participant) {
         participant.sendMessage(ChatColor.YELLOW + "You have rejoined MECHA");
         participants.add(participant);
         initializeFastBoard(participant);
