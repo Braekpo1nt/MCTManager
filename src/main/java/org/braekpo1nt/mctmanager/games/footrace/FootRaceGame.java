@@ -3,7 +3,6 @@ package org.braekpo1nt.mctmanager.games.footrace;
 import com.onarandombox.MultiverseCore.api.MVWorldManager;
 import com.onarandombox.MultiverseCore.utils.AnchorManager;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
@@ -123,7 +122,7 @@ public class FootRaceGame implements Listener, MCTGame {
     @Override
     public void onParticipantJoin(Player participant) {
         if (participantShouldRejoin(participant)) {
-            onParticipantRejoin(participant);
+            rejoinParticipant(participant);
         } else {
             messageAllParticipants(Component.text(participant.getName())
                     .append(Component.text(" is joining the game!"))
@@ -136,7 +135,8 @@ public class FootRaceGame implements Listener, MCTGame {
      * Run for a participant who was in the event, left, then rejoined.
      * @param participant The participant who is rejoining
      */
-    private void onParticipantRejoin(Player participant) {
+    private void rejoinParticipant(Player participant) {
+        participants.add(participant);
         participant.sendMessage(ChatColor.GREEN + "You have rejoined Foot Race");
         messageAllParticipants(Component.text(participant.getName())
                 .append(Component.text(" is rejoining the game!"))
@@ -314,7 +314,6 @@ public class FootRaceGame implements Listener, MCTGame {
                 String.format("Lap: %d/%d", laps.get(participant.getUniqueId()), MAX_LAPS),
                 ""
         );
-        Bukkit.getLogger().info("initialized fastboard for " + participant.getName());
     }
     
     private void hideFastBoards() {
