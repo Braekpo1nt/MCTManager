@@ -1,4 +1,4 @@
-package org.braekpo1nt.mctmanager.games;
+package org.braekpo1nt.mctmanager.games.interfaces;
 
 import org.bukkit.entity.Player;
 
@@ -10,4 +10,6 @@ import java.util.List;
 public interface MCTGame {
     void start(List<Player> participants);
     void stop();
+    void onParticipantJoin(Player participant);
+    void onParticipantQuit(Player participant);
 }

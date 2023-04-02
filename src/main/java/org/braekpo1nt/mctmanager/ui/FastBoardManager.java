@@ -1,15 +1,10 @@
 package org.braekpo1nt.mctmanager.ui;
 
 import fr.mrmicky.fastboard.FastBoard;
-import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
 
 import java.util.Iterator;
 import java.util.Map;
@@ -29,15 +24,15 @@ public class FastBoardManager {
         this.gameStateStorageUtil = gameStateStorageUtil;
     }
     
-    public synchronized void updateMainBoard() {
+    public synchronized void updateMainBoards() {
         for (Player player : Bukkit.getOnlinePlayers()) {
             updateMainBoardForPlayer(player);
         }
     }
     
-    private void updateMainBoardForPlayer(Player player) {
-        boolean playerGotBoard = givePlayerBoardIfAbsent(player);
-        if (!playerGotBoard) {
+    private synchronized void updateMainBoardForPlayer(Player player) {
+        boolean playerHasBoard = givePlayerBoardIfAbsent(player);
+        if (!playerHasBoard) {
             return;
         }
         UUID playerUniqueId = player.getUniqueId();
@@ -53,15 +48,16 @@ public class FastBoardManager {
      * Gives the player a FastBoard if the player doesn't already have one,
      * and the player is in the gameStateStorageUtil
      * @param player The player
-     * @return true if the player got a board, false if not
+     * @return true if the player got a board or already has a board, false if not
      */
     public synchronized boolean givePlayerBoardIfAbsent(Player player) {
         UUID playerUniqueId = player.getUniqueId();
-        if (!boards.containsKey(playerUniqueId)) {
-            if (gameStateStorageUtil.containsPlayer(playerUniqueId)) {
-                addBoard(player);
-                return true;
-            }
+        if (boards.containsKey(playerUniqueId)) {
+            return true;
+        }
+        if (gameStateStorageUtil.containsPlayer(playerUniqueId)) {
+            addBoard(player);
+            return true;
         }
         return false;
     }

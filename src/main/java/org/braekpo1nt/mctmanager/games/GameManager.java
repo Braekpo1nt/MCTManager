@@ -8,6 +8,7 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.color.ColorMap;
 import org.braekpo1nt.mctmanager.games.footrace.FootRaceGame;
 import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
+import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.mecha.MechaGame;
 import org.braekpo1nt.mctmanager.hub.HubManager;
 import org.braekpo1nt.mctmanager.ui.FastBoardManager;
@@ -66,7 +67,7 @@ public class GameManager implements Listener {
         this.fastBoardUpdaterTaskId = new BukkitRunnable() {
             @Override
             public void run() {
-                fastBoardManager.updateMainBoard();
+                fastBoardManager.updateMainBoards();
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
     }
@@ -79,12 +80,50 @@ public class GameManager implements Listener {
     @EventHandler
     public void playerQuitEvent(PlayerQuitEvent event) {
         Player player = event.getPlayer();
-        fastBoardManager.removeBoard(player.getUniqueId());
+        if (!isParticipant(player.getUniqueId())) {
+            return;
+        }
+        onParticipantLeave(player);
+    }
+    
+    /**
+     * Handles when a participant leaves the event.
+     * Should be called when the player disconnects from the server 
+     * (see {@link GameManager#playerQuitEvent(PlayerQuitEvent)}),
+     * or when they are removed from the participants list
+     * (see {@link GameManager#leavePlayer(OfflinePlayer)})
+     * @param participant The participant who left the event
+     */
+    private void onParticipantLeave(Player participant) {
+        fastBoardManager.removeBoard(participant.getUniqueId());
+        if (gameIsRunning()) {
+            activeGame.onParticipantQuit(participant);
+        }
     }
     
     @EventHandler
     public void playerJoinEvent(PlayerJoinEvent event) {
-        fastBoardManager.updateMainBoard();
+        Player player = event.getPlayer();
+        if (!isParticipant(player.getUniqueId())) {
+            return;
+        }
+        onParticipantJoin(player);
+    }
+    
+    /**
+     * Handles when a participant joins the event. 
+     * Should be called when an existing participant joins the server
+     * (see {@link GameManager#playerJoinEvent(PlayerJoinEvent)})
+     * or when a new participant is online and added to the participants list
+     * (see {@link GameManager#addNewPlayer(UUID, String)})
+     * @param participant
+     */
+    private void onParticipantJoin(Player participant) {
+        fastBoardManager.updateMainBoards();
+        if (!gameIsRunning()) {
+            return;
+        }
+        activeGame.onParticipantJoin(participant);
     }
     
     public Scoreboard getMctScoreboard() {
@@ -262,7 +301,8 @@ public class GameManager implements Listener {
     }
     
     /**
-     * Joins the player with the given UUID to the team with the given teamName
+     * Joins the player with the given UUID to the team with the given teamName, and adds them
+     * to the game state.
      * @param playerUniqueId The UUID of the player to join to the given team
      * @param teamName The internal teamName of the team to join the player to. 
      *                 This method assumes the team exists, and will throw a 
@@ -274,13 +314,6 @@ public class GameManager implements Listener {
             return;
         }
         addNewPlayer(playerUniqueId, teamName);
-    }
-    
-    private void addNewPlayer(UUID playerUniqueId, String teamName) throws IOException {
-        gameStateStorageUtil.addNewPlayer(playerUniqueId, teamName);
-        Team team = mctScoreboard.getTeam(teamName);
-        OfflinePlayer newPlayer = Bukkit.getOfflinePlayer(playerUniqueId);
-        team.addPlayer(newPlayer);
     }
     
     private void movePlayerToTeam(UUID playerUniqueId, String newTeamName) {
@@ -304,22 +337,45 @@ public class GameManager implements Listener {
         return playersNamesOnTeam;
     }
     
-    public boolean hasPlayer(UUID playerUniqueId) {
+    public boolean isParticipant(UUID playerUniqueId) {
         return gameStateStorageUtil.containsPlayer(playerUniqueId);
     }
     
     /**
-     * 
-     * @param player Player
+     * Adds the new player to the game state and joins them the given team. 
+     * If a game is running, and the player is online, joins the player to that game.  
+     * @param playerUniqueId The UUID of the player to add
+     * @param teamName The name of the team to join the new player to
+     * @throws IOException If there is an issue saving the game state when adding the player
+     */
+    private void addNewPlayer(UUID playerUniqueId, String teamName) throws IOException {
+        gameStateStorageUtil.addNewPlayer(playerUniqueId, teamName);
+        Team team = mctScoreboard.getTeam(teamName);
+        OfflinePlayer newPlayer = Bukkit.getOfflinePlayer(playerUniqueId);
+        team.addPlayer(newPlayer);
+        if (newPlayer.isOnline()) {
+            Player onlineNewPlayer = newPlayer.getPlayer();
+            onParticipantJoin(onlineNewPlayer);
+        }
+    }
+    
+    /**
+     * Leaves the player from the team and removes them from the game state.
+     * If a game is running, and the player is online, removes that player from the game as well. 
+     * @param offlinePlayer The player to remove from the team
      * @throws IOException If there is an issue saving the game state when removing the player
      */
-    public void leavePlayer(OfflinePlayer player) throws IOException {
-        UUID playerUniqueId = player.getUniqueId();
+    public void leavePlayer(OfflinePlayer offlinePlayer) throws IOException {
+        if (offlinePlayer.isOnline()) {
+            Player onlinePlayer = offlinePlayer.getPlayer();
+            onParticipantLeave(onlinePlayer);
+        }
+        UUID playerUniqueId = offlinePlayer.getUniqueId();
         String teamName = gameStateStorageUtil.getPlayerTeamName(playerUniqueId);
         gameStateStorageUtil.leavePlayer(playerUniqueId);
-        fastBoardManager.removeBoard(playerUniqueId);
         Team team = mctScoreboard.getTeam(teamName);
-        team.removePlayer(player);
+        team.removePlayer(offlinePlayer);
+        fastBoardManager.removeBoard(playerUniqueId);
     }
     
     private void leavePlayersOnTeam(String teamName) throws IOException {

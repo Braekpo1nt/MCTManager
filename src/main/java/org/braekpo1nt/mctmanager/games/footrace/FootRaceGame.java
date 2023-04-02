@@ -2,15 +2,14 @@ package org.braekpo1nt.mctmanager.games.footrace;
 
 import com.onarandombox.MultiverseCore.api.MVWorldManager;
 import com.onarandombox.MultiverseCore.utils.AnchorManager;
-import fr.mrmicky.fastboard.FastBoard;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
-import org.braekpo1nt.mctmanager.games.MCTGame;
+import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
 import org.bukkit.*;
 import org.bukkit.block.structure.Mirror;
 import org.bukkit.block.structure.StructureRotation;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -26,7 +25,6 @@ import org.bukkit.util.BoundingBox;
 
 import java.time.Duration;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Handles all the Foot Race game logic.
@@ -60,6 +58,7 @@ public class FootRaceGame implements Listener, MCTGame {
     private final PotionEffect SATURATION = new PotionEffect(PotionEffectType.SATURATION, 70, 250, true, false, false);
     private int statusEffectsTaskId;
     private final String title = ChatColor.BLUE+"Foot Race";
+    private Location footRaceStartAnchor;
     
     public FootRaceGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
@@ -71,18 +70,16 @@ public class FootRaceGame implements Listener, MCTGame {
     
     @Override
     public void start(List<Player> participants) {
-        this.participants = participants;
-        lapCooldowns = participants.stream().collect(
-                Collectors.toMap(Entity::getUniqueId, value -> System.currentTimeMillis()));
-        laps = participants.stream().collect(Collectors.toMap(Entity::getUniqueId, value -> 1));
+        this.participants = new ArrayList<>();
+        lapCooldowns = new HashMap<>();
+        laps = new HashMap<>();
         placements = new ArrayList<>();
-        initializeFastBoards();
+        AnchorManager anchorManager = Main.multiverseCore.getAnchorManager();
+        this.footRaceStartAnchor = anchorManager.getAnchorLocation("foot-race");
         closeGlassBarrier();
-        teleportPlayersToStartingPositions();
-        clearInventories();
-        giveBoots();
-        setPlayersToAdventure();
-        clearStatusEffects();
+        for (Player participant : participants) {
+            initializeParticipant(participant);
+        }
         startStatusEffectsTask();
         startStartRaceCountdownTask();
         setupTeamOptions();
@@ -90,22 +87,87 @@ public class FootRaceGame implements Listener, MCTGame {
         Bukkit.getLogger().info("Starting Foot Race game");
     }
     
+    private void initializeParticipant(Player participant) {
+        UUID participantUniqueId = participant.getUniqueId();
+        participants.add(participant);
+        lapCooldowns.put(participantUniqueId, System.currentTimeMillis());
+        laps.put(participantUniqueId, 1);
+        initializeFastBoard(participant);
+        teleportPlayerToStartingPosition(participant);
+        participant.getInventory().clear();
+        giveBoots(participant);
+        participant.setGameMode(GameMode.ADVENTURE);
+        clearStatusEffects(participant);
+    }
+    
     @Override
     public void stop() {
         closeGlassBarrier();
         hideFastBoards();
         cancelAllTasks();
-        clearInventories();
+        for (Player participant : participants) {
+            resetParticipant(participant);
+        }
         raceHasStarted = false;
         gameActive = false;
         gameManager.gameIsOver();
         Bukkit.getLogger().info("Stopping Foot Race game");
     }
     
-    private void setPlayersToAdventure() {
-        for (Player participant : participants) {
-            participant.setGameMode(GameMode.ADVENTURE);
+    private void resetParticipant(Player participant) {
+        participants.remove(participant);
+        participant.getInventory().clear();
+        clearStatusEffects(participant);
+    }
+    
+    @Override
+    public void onParticipantJoin(Player participant) {
+        if (participantShouldRejoin(participant)) {
+            rejoinParticipant(participant);
+        } else {
+            messageAllParticipants(Component.text(participant.getName())
+                    .append(Component.text(" is joining the game!"))
+                    .color(NamedTextColor.YELLOW));
+            initializeParticipant(participant);
         }
+    }
+    
+    /**
+     * Run for a participant who was in the event, left, then rejoined.
+     * @param participant The participant who is rejoining
+     */
+    private void rejoinParticipant(Player participant) {
+        participant.sendMessage(ChatColor.YELLOW + "You have rejoined Foot Race");
+        messageAllParticipants(Component.text(participant.getName())
+                .append(Component.text(" is rejoining the game!"))
+                .color(NamedTextColor.YELLOW));
+        participants.add(participant);
+        UUID uniqueId = participant.getUniqueId();
+        if (placements.contains(uniqueId)) {
+            showRaceCompleteFastBoard(uniqueId);
+            return;
+        }
+        initializeFastBoard(participant);
+        giveBoots(participant);
+    }
+    
+    /**
+     * Checks if the participant was previously in the game, and should thus rejoin
+     * @param participant The participant to check
+     * @return True if the participant was in the game before, and should rejoin. False
+     * if the participant wasn't in the game before. 
+     */
+    private boolean participantShouldRejoin(Player participant) {
+        UUID uniqueId = participant.getUniqueId();
+        return placements.contains(uniqueId) || laps.containsKey(uniqueId);
+    }
+    
+    @Override
+    public void onParticipantQuit(Player participant) {
+        messageAllParticipants(Component.text(participant.getName())
+                .append(Component.text(" has left the game!"))
+                .color(NamedTextColor.YELLOW));
+        resetParticipant(participant);
     }
     
     private void cancelAllTasks() {
@@ -115,15 +177,13 @@ public class FootRaceGame implements Listener, MCTGame {
         Bukkit.getScheduler().cancelTask(statusEffectsTaskId);
     }
     
-    private void giveBoots() {
-        for (Player participant : participants) {
-            Color teamColor = gameManager.getTeamColor(participant.getUniqueId());
-            ItemStack boots = new ItemStack(Material.LEATHER_BOOTS);
-            LeatherArmorMeta meta = (LeatherArmorMeta) boots.getItemMeta();
-            meta.setColor(teamColor);
-            boots.setItemMeta(meta);
-            participant.getEquipment().setBoots(boots);
-        }
+    private void giveBoots(Player participant) {
+        Color teamColor = gameManager.getTeamColor(participant.getUniqueId());
+        ItemStack boots = new ItemStack(Material.LEATHER_BOOTS);
+        LeatherArmorMeta meta = (LeatherArmorMeta) boots.getItemMeta();
+        meta.setColor(teamColor);
+        boots.setItemMeta(meta);
+        participant.getEquipment().setBoots(boots);
     }
     
     private void setupTeamOptions() {
@@ -137,17 +197,9 @@ public class FootRaceGame implements Listener, MCTGame {
         }
     }
     
-    private void clearInventories() {
-        for (Player participant : participants) {
-            participant.getInventory().clear();
-        }
-    }
-    
-    private void clearStatusEffects() {
-        for (Player participant : participants) {
-            for (PotionEffect effect : participant.getActivePotionEffects()) {
-                participant.removePotionEffect(effect.getType());
-            }
+    private void clearStatusEffects(Player participant) {
+        for (PotionEffect effect : participant.getActivePotionEffects()) {
+            participant.removePotionEffect(effect.getType());
         }
     }
     
@@ -249,26 +301,20 @@ public class FootRaceGame implements Listener, MCTGame {
         structure.place(new Location(footRaceWorld, 2397, 76, 317), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
     }
     
-    private void teleportPlayersToStartingPositions() {
-        AnchorManager anchorManager = Main.multiverseCore.getAnchorManager();
-        Location anchorLocation = anchorManager.getAnchorLocation("foot-race");
-        for (Player participant : participants) {
-            participant.sendMessage("Teleporting to Foot Race");
-            participant.teleport(anchorLocation);
-        }
+    private void teleportPlayerToStartingPosition(Player player) {
+        player.sendMessage("Teleporting to Foot Race");
+        player.teleport(footRaceStartAnchor);
     }
     
-    private void initializeFastBoards() {
-        for (Player participant : participants) {
-            gameManager.getFastBoardManager().updateLines(
-                    participant.getUniqueId(),
-                    title,
-                    "00:00:000",
-                    "",
-                    String.format("Lap: %d/%d", laps.get(participant.getUniqueId()), MAX_LAPS),
-                    ""
-            );
-        }
+    private void initializeFastBoard(Player participant) {
+        gameManager.getFastBoardManager().updateLines(
+                participant.getUniqueId(),
+                title,
+                "00:00:000",
+                "",
+                String.format("Lap: %d/%d", laps.get(participant.getUniqueId()), MAX_LAPS),
+                ""
+        );
     }
     
     private void hideFastBoards() {
@@ -374,13 +420,25 @@ public class FootRaceGame implements Listener, MCTGame {
         int points = calculatePointsForPlacement(placement);
         gameManager.awardPointsToPlayer(player, points);
         String placementTitle = getPlacementTitle(placement);
-        player.sendMessage(String.format("You finished %s! It took you %s", placementTitle, getTimeString(elapsedTime)));
+        String timeString = getTimeString(elapsedTime);
         if (placements.size() == 1) {
-            for (Player participant : participants) {
-                participant.sendMessage(Component.text(player.getName())
-                        .append(Component.text(" finished 1st! Only 30 seconds remain!")));
-            }
+            messageAllParticipants(Component.text(player.getName())
+                    .append(Component.text(" finished 1st in "))
+                    .append(Component.text(timeString))
+                    .append(Component.text("! Only 30 seconds remain!")));
             startEndRaceCountDown();
+            return;
+        }
+        messageAllParticipants(Component.text(player.getName())
+                .append(Component.text(" finished "))
+                .append(Component.text(placementTitle))
+                .append(Component.text(" in "))
+                .append(Component.text(timeString)));
+    }
+    
+    private void messageAllParticipants(Component message) {
+        for (Player participant : participants) {
+            participant.sendMessage(message);
         }
     }
     

@@ -25,7 +25,7 @@ public class LeaveSubCommand implements CommandExecutor {
         }
         String playerName = args[0];
         OfflinePlayer playerToLeave = Bukkit.getOfflinePlayer(playerName);
-        if (!gameManager.hasPlayer(playerToLeave.getUniqueId())) {
+        if (!gameManager.isParticipant(playerToLeave.getUniqueId())) {
             sender.sendMessage(String.format("Player %s is not on a team.", playerName));
             return true;
         }
