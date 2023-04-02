@@ -117,6 +117,7 @@ public class FootRaceGame implements Listener, MCTGame {
     private void resetParticipant(Player participant) {
         participants.remove(participant);
         participant.getInventory().clear();
+        clearStatusEffects(participant);
     }
     
     @Override
@@ -126,7 +127,7 @@ public class FootRaceGame implements Listener, MCTGame {
         } else {
             messageAllParticipants(Component.text(participant.getName())
                     .append(Component.text(" is joining the game!"))
-                    .color(NamedTextColor.GREEN));
+                    .color(NamedTextColor.YELLOW));
             initializeParticipant(participant);
         }
     }
@@ -136,11 +137,11 @@ public class FootRaceGame implements Listener, MCTGame {
      * @param participant The participant who is rejoining
      */
     private void rejoinParticipant(Player participant) {
-        participants.add(participant);
-        participant.sendMessage(ChatColor.GREEN + "You have rejoined Foot Race");
+        participant.sendMessage(ChatColor.YELLOW + "You have rejoined Foot Race");
         messageAllParticipants(Component.text(participant.getName())
                 .append(Component.text(" is rejoining the game!"))
-                .color(NamedTextColor.GREEN));
+                .color(NamedTextColor.YELLOW));
+        participants.add(participant);
         UUID uniqueId = participant.getUniqueId();
         if (placements.contains(uniqueId)) {
             showRaceCompleteFastBoard(uniqueId);
@@ -165,7 +166,7 @@ public class FootRaceGame implements Listener, MCTGame {
     public void onParticipantQuit(Player participant) {
         messageAllParticipants(Component.text(participant.getName())
                 .append(Component.text(" has left the game!"))
-                .color(NamedTextColor.DARK_RED));
+                .color(NamedTextColor.YELLOW));
         resetParticipant(participant);
     }
     
