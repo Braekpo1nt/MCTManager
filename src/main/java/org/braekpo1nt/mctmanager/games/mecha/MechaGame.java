@@ -4,6 +4,7 @@ import com.onarandombox.MultiverseCore.api.MVWorldManager;
 import com.onarandombox.MultiverseCore.api.MultiverseWorld;
 import com.onarandombox.MultiverseCore.utils.AnchorManager;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
@@ -19,6 +20,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.loot.LootTable;
 import org.bukkit.potion.PotionEffect;
@@ -135,13 +137,48 @@ public class MechaGame implements MCTGame, Listener {
     }
     
     @Override
-    public void onParticipantJoin(Player player) {
-        
+    public void onParticipantJoin(Player participant) {
+        if (participantShouldRejoin(participant)) {
+            rejoinParticipant(participant);
+        } else {
+            messageAllParticipants(Component.text(participant.getName())
+                    .append(Component.text(" is joining MECHA!"))
+                    .color(NamedTextColor.YELLOW));
+            initializeParticipant(participant);
+        }
+    }
+    
+    private void rejoinParticipant(Player participant) {
+        participant.sendMessage(ChatColor.YELLOW + "You have rejoined MECHA");
+        participants.add(participant);
+        initializeFastBoard(participant);
+        participant.setGameMode(GameMode.SPECTATOR);
+    }
+    
+    /**
+     * Checks if the participant was previously in the game, and should thus rejoin
+     * @param participant The participant to check
+     * @return True if the participant was in the game before, and should rejoin. False
+     * if the participant wasn't in the game before. 
+     */
+    private boolean participantShouldRejoin(Player participant) {
+        return deadPlayers.contains(participant.getUniqueId());
     }
     
     @Override
-    public void onParticipantQuit(Player player) {
-        
+    public void onParticipantQuit(Player participant) {
+        if (!mechaHasStarted) {
+            return;
+        }
+        List<ItemStack> drops = Arrays.stream(participant.getInventory().getContents())
+                .filter(Objects::nonNull)
+                .toList();
+        int droppedExp = calculateExpPoints(participant.getLevel());
+        Component deathMessage = Component.text(participant.getName())
+                .append(Component.text(" left early. Their life is forfeit."));
+        PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(participant, drops, droppedExp, deathMessage);
+        Bukkit.getServer().getPluginManager().callEvent(fakeDeathEvent);
+        resetParticipant(participant);
     }
     
     private void setUpTeamOptions() {
@@ -217,7 +254,8 @@ public class MechaGame implements MCTGame, Listener {
     
     private void resetHealthAndHunger(Player participant) {
         participant.setHealth(participant.getAttribute(Attribute.GENERIC_MAX_HEALTH).getDefaultValue());
-        participant.setSaturation(20);
+        participant.setFoodLevel(20);
+        participant.setSaturation(5);
     }
     
     private void clearStatusEffects(Player participant) {
@@ -284,28 +322,6 @@ public class MechaGame implements MCTGame, Listener {
         }
     }
     
-    @EventHandler
-    public void onPlayerQuit(PlayerQuitEvent event) {
-        if (!gameActive) {
-            return;
-        }
-        if (!mechaHasStarted) {
-            return;
-        }
-        Player player = event.getPlayer();
-        if (!participants.contains(player)) {
-            return;
-        }
-        List<ItemStack> drops = Arrays.stream(player.getInventory().getContents())
-                .filter(Objects::nonNull)
-                .toList();
-        int droppedExp = calculateExpPoints(player.getLevel());
-        Component deathMessage = Component.text(player.getName())
-                .append(Component.text(" disconnected. Their life is forfeit."));
-        PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(player, drops, droppedExp, deathMessage);
-        Bukkit.getServer().getPluginManager().callEvent(fakeDeathEvent);
-    }
-    
     private int calculateExpPoints(int level) {
         int maxExpPoints = level > 7 ? 100 : level * 7;
         return maxExpPoints / 10;
@@ -367,7 +383,7 @@ public class MechaGame implements MCTGame, Listener {
         gameManager.getFastBoardManager().updateLine(
                 killerUniqueId,
                 1, 
-                "Kills: " + newKillCount);
+                ChatColor.RED+"Kills: " + newKillCount);
     }
     
     private void initializeWorldBorder() {
@@ -426,11 +442,12 @@ public class MechaGame implements MCTGame, Listener {
     }
     
     private void initializeFastBoard(Player participant) {
+        int killCount = killCounts.get(participant.getUniqueId());
         gameManager.getFastBoardManager().updateLines(
                 participant.getUniqueId(),
                 title,
                 "",
-                ChatColor.RED+"Kills: 0",
+                ChatColor.RED+"Kills: "+killCount,
                 "",
                 ChatColor.LIGHT_PURPLE+"Border",
                 ChatColor.LIGHT_PURPLE+"0:00"

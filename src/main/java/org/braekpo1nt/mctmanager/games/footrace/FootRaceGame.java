@@ -8,6 +8,7 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
 import org.bukkit.*;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.block.structure.Mirror;
 import org.bukkit.block.structure.StructureRotation;
 import org.bukkit.entity.Player;
@@ -98,6 +99,7 @@ public class FootRaceGame implements Listener, MCTGame {
         giveBoots(participant);
         participant.setGameMode(GameMode.ADVENTURE);
         clearStatusEffects(participant);
+        resetHealthAndHunger(participant);
     }
     
     @Override
@@ -125,7 +127,7 @@ public class FootRaceGame implements Listener, MCTGame {
             rejoinParticipant(participant);
         } else {
             messageAllParticipants(Component.text(participant.getName())
-                    .append(Component.text(" is joining the game!"))
+                    .append(Component.text(" is joining Foot Race!"))
                     .color(NamedTextColor.YELLOW));
             initializeParticipant(participant);
         }
@@ -200,6 +202,12 @@ public class FootRaceGame implements Listener, MCTGame {
         for (PotionEffect effect : participant.getActivePotionEffects()) {
             participant.removePotionEffect(effect.getType());
         }
+    }
+    
+    private void resetHealthAndHunger(Player participant) {
+        participant.setHealth(participant.getAttribute(Attribute.GENERIC_MAX_HEALTH).getDefaultValue());
+        participant.setFoodLevel(20);
+        participant.setSaturation(5);
     }
     
     private void startStatusEffectsTask() {
