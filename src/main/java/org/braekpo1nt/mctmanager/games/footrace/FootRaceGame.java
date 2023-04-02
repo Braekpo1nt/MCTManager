@@ -3,13 +3,14 @@ package org.braekpo1nt.mctmanager.games.footrace;
 import com.onarandombox.MultiverseCore.api.MVWorldManager;
 import com.onarandombox.MultiverseCore.utils.AnchorManager;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
 import org.bukkit.*;
 import org.bukkit.block.structure.Mirror;
 import org.bukkit.block.structure.StructureRotation;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -25,7 +26,6 @@ import org.bukkit.util.BoundingBox;
 
 import java.time.Duration;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Handles all the Foot Race game logic.
@@ -71,10 +71,9 @@ public class FootRaceGame implements Listener, MCTGame {
     
     @Override
     public void start(List<Player> participants) {
-        this.participants = participants;
-        lapCooldowns = participants.stream().collect(
-                Collectors.toMap(Entity::getUniqueId, value -> System.currentTimeMillis()));
-        laps = participants.stream().collect(Collectors.toMap(Entity::getUniqueId, value -> 1));
+        this.participants = new ArrayList<>();
+        lapCooldowns = new HashMap<>();
+        laps = new HashMap<>();
         placements = new ArrayList<>();
         AnchorManager anchorManager = Main.multiverseCore.getAnchorManager();
         this.footRaceStartAnchor = anchorManager.getAnchorLocation("foot-race");
@@ -90,6 +89,10 @@ public class FootRaceGame implements Listener, MCTGame {
     }
     
     private void initializeParticipant(Player participant) {
+        UUID participantUniqueId = participant.getUniqueId();
+        participants.add(participant);
+        lapCooldowns.put(participantUniqueId, System.currentTimeMillis());
+        laps.put(participantUniqueId, 1);
         initializeFastBoard(participant);
         teleportPlayerToStartingPosition(participant);
         participant.getInventory().clear();
@@ -113,35 +116,40 @@ public class FootRaceGame implements Listener, MCTGame {
     }
     
     private void resetParticipant(Player participant) {
+        participants.remove(participant);
         participant.getInventory().clear();
     }
     
     @Override
     public void onParticipantJoin(Player participant) {
-        participants.add(participant);
-        if (!raceHasStarted) {
-            initializeParticipant(participant);
-            return;
-        }
         if (participantShouldRejoin(participant)) {
             onParticipantRejoin(participant);
+        } else {
+            messageAllParticipants(Component.text(participant.getName())
+                    .append(Component.text(" is joining the game!"))
+                    .color(NamedTextColor.GREEN));
+            initializeParticipant(participant);
         }
     }
     
     /**
      * Run for a participant who was in the event, left, then rejoined.
-     * @param participant The participant
+     * @param participant The participant who is rejoining
      */
     private void onParticipantRejoin(Player participant) {
-        participant.sendMessage(ChatColor.GREEN+"You have rejoined Foot Race");
+        participant.sendMessage(ChatColor.GREEN + "You have rejoined Foot Race");
+        messageAllParticipants(Component.text(participant.getName())
+                .append(Component.text(" is rejoining the game!"))
+                .color(NamedTextColor.GREEN));
         UUID uniqueId = participant.getUniqueId();
         if (placements.contains(uniqueId)) {
             showRaceCompleteFastBoard(uniqueId);
             return;
         }
         initializeFastBoard(participant);
+        giveBoots(participant);
     }
-
+    
     /**
      * Checks if the participant was previously in the game, and should thus rejoin
      * @param participant The participant to check
@@ -152,10 +160,12 @@ public class FootRaceGame implements Listener, MCTGame {
         UUID uniqueId = participant.getUniqueId();
         return placements.contains(uniqueId) || laps.containsKey(uniqueId);
     }
-
+    
     @Override
     public void onParticipantQuit(Player participant) {
-        participants.remove(participant);
+        messageAllParticipants(Component.text(participant.getName())
+                .append(Component.text(" has left the game!"))
+                .color(NamedTextColor.DARK_RED));
         resetParticipant(participant);
     }
     
@@ -410,13 +420,25 @@ public class FootRaceGame implements Listener, MCTGame {
         int points = calculatePointsForPlacement(placement);
         gameManager.awardPointsToPlayer(player, points);
         String placementTitle = getPlacementTitle(placement);
-        player.sendMessage(String.format("You finished %s! It took you %s", placementTitle, getTimeString(elapsedTime)));
+        String timeString = getTimeString(elapsedTime);
         if (placements.size() == 1) {
-            for (Player participant : participants) {
-                participant.sendMessage(Component.text(player.getName())
-                        .append(Component.text(" finished 1st! Only 30 seconds remain!")));
-            }
+            messageAllParticipants(Component.text(player.getName())
+                    .append(Component.text(" finished 1st in "))
+                    .append(Component.text(timeString))
+                    .append(Component.text("! Only 30 seconds remain!")));
             startEndRaceCountDown();
+            return;
+        }
+        messageAllParticipants(Component.text(player.getName())
+                .append(Component.text(" finished "))
+                .append(Component.text(placementTitle))
+                .append(Component.text(" in "))
+                .append(Component.text(timeString)));
+    }
+    
+    private void messageAllParticipants(Component message) {
+        for (Player participant : participants) {
+            participant.sendMessage(message);
         }
     }
     
