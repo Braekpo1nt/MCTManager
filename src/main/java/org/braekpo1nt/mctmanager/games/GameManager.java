@@ -67,7 +67,7 @@ public class GameManager implements Listener {
         this.fastBoardUpdaterTaskId = new BukkitRunnable() {
             @Override
             public void run() {
-                fastBoardManager.updateMainBoard();
+                fastBoardManager.updateMainBoards();
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
     }
@@ -92,7 +92,7 @@ public class GameManager implements Listener {
         if (!hasPlayer(player.getUniqueId())) {
             return;
         }
-        fastBoardManager.updateMainBoard();
+        fastBoardManager.updateMainBoards();
         if (!gameIsRunning()) {
             return;
         }

@@ -127,7 +127,7 @@ public class FootRaceGame implements Listener, MCTGame {
             onParticipantRejoin(participant);
         }
     }
-
+    
     /**
      * Run for a participant who was in the event, left, then rejoined.
      * @param participant The participant
