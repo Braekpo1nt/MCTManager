@@ -103,7 +103,6 @@ public class MechaGame implements MCTGame, Listener {
     
     private void initializeParticipant(Player participant) {
         participants.add(participant);
-        Bukkit.getLogger().info("participants.size() = " + participants.size());
         UUID participantUniqueId = participant.getUniqueId();
         livingPlayers.add(participantUniqueId);
         killCounts.put(participantUniqueId, 0);
@@ -317,20 +316,56 @@ public class MechaGame implements MCTGame, Listener {
             return;
         }
         killed.setGameMode(GameMode.SPECTATOR);
-        switchPlayerFromLivingToDead(killed.getUniqueId());
-        event.setCancelled(true);
         dropInventory(killed, event.getDrops());
+        event.setCancelled(true);
         Component deathMessage = event.deathMessage();
         if (deathMessage != null) {
             Bukkit.getServer().sendMessage(deathMessage);
         }
+        onParticipantDeath(killed);
         if (killed.getKiller() != null) {
-            onPlayerGetKill(killed);
+            onParticipantGetKill(killed);
         }
         String winningTeam = getWinningTeam();
         if (winningTeam != null) {
             onTeamWin(winningTeam);
         }
+    }
+    
+    private void onParticipantDeath(Player killed) {
+        UUID killedUniqueId = killed.getUniqueId();
+        switchPlayerFromLivingToDead(killedUniqueId);
+        String teamName = gameManager.getTeamName(killedUniqueId);
+        if (teamIsAllDead(teamName)) {
+            onTeamDeath(teamName);
+        }
+    }
+    
+    private void onTeamDeath(String teamName) {
+        Component formattedTeamDisplayName = gameManager.getFormattedTeamDisplayName(teamName);
+        messageAllParticipants(Component.empty()
+                .append(formattedTeamDisplayName)
+                .append(Component.text(" has been eliminated.")));
+        for (Player participant : participants) {
+            if (livingPlayers.contains(participant.getUniqueId())) {
+                gameManager.awardPointsToPlayer(participant, 40);
+            }
+        }
+    }
+    
+    /**
+     * Checks if the given team name is all dead
+     * @param teamName The team to check
+     * @return True if the given team is entirely dead (no living players left), false otherwise
+     */
+    private boolean teamIsAllDead(String teamName) {
+        for (UUID livingPlayerUniqueId : livingPlayers) {
+            String livingTeam = gameManager.getTeamName(livingPlayerUniqueId);
+            if (teamName.equals(livingTeam)) {
+                return false;
+            }
+        }
+        return true;
     }
     
     private int calculateExpPoints(int level) {
@@ -345,7 +380,7 @@ public class MechaGame implements MCTGame, Listener {
         killed.getInventory().clear();
     }
     
-    private void onPlayerGetKill(Player killed) {
+    private void onParticipantGetKill(Player killed) {
         Player killer = killed.getKiller();
         if (!participants.contains(killer)) {
             return;
@@ -361,8 +396,7 @@ public class MechaGame implements MCTGame, Listener {
     public String getWinningTeam() {
         if (allLivingPlayersAreOnOneTeam()) {
             UUID winningPlayerUniqueId = livingPlayers.get(0);
-            String winningTeam = gameManager.getTeamName(winningPlayerUniqueId);
-            return winningTeam;
+            return gameManager.getTeamName(winningPlayerUniqueId);
         }
         return null;
     }
