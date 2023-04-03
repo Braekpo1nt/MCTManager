@@ -19,8 +19,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.loot.LootTable;
 import org.bukkit.potion.PotionEffect;
@@ -71,6 +69,7 @@ public class MechaGame implements MCTGame, Listener {
     private List<UUID> deadPlayers;
     private final String title = ChatColor.BLUE+"MECHA";
     private Map<String, Location> teamLocations;
+    private final PotionEffect RESISTANCE = new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 200, 200, true, false, true);
     
     public MechaGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
@@ -102,7 +101,7 @@ public class MechaGame implements MCTGame, Listener {
         Bukkit.getLogger().info("Started mecha");
     }
     
-    private synchronized void initializeParticipant(Player participant) {
+    private void initializeParticipant(Player participant) {
         participants.add(participant);
         UUID participantUniqueId = participant.getUniqueId();
         livingPlayers.add(participantUniqueId);
@@ -116,7 +115,7 @@ public class MechaGame implements MCTGame, Listener {
     }
     
     @Override
-    public synchronized void stop() {
+    public void stop() {
         hideFastBoards();
         cancelAllTasks();
         clearFloorItems();
@@ -126,14 +125,14 @@ public class MechaGame implements MCTGame, Listener {
         for (Player participant : participants) {
             resetParticipant(participant);
         }
+        participants.clear();
         mechaHasStarted = false;
         gameActive = false;
         gameManager.gameIsOver();
         Bukkit.getLogger().info("Stopped mecha");
     }
     
-    private synchronized void resetParticipant(Player participant) {
-        participants.remove(participant);
+    private void resetParticipant(Player participant) {
         participant.getInventory().clear();
     }
     
@@ -149,7 +148,7 @@ public class MechaGame implements MCTGame, Listener {
         }
     }
     
-    private synchronized void rejoinParticipant(Player participant) {
+    private void rejoinParticipant(Player participant) {
         participant.sendMessage(ChatColor.YELLOW + "You have rejoined MECHA");
         participants.add(participant);
         initializeFastBoard(participant);
@@ -180,6 +179,7 @@ public class MechaGame implements MCTGame, Listener {
         PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(participant, drops, droppedExp, deathMessage);
         Bukkit.getServer().getPluginManager().callEvent(fakeDeathEvent);
         resetParticipant(participant);
+        participants.remove(participant);
     }
     
     private void setUpTeamOptions() {
@@ -274,9 +274,8 @@ public class MechaGame implements MCTGame, Listener {
     }
     
     private void giveInvulnerabilityForTenSeconds() {
-        PotionEffect resisitance = new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 200, 200, true, false, true);
         for (Player participant : participants) {
-            participant.addPotionEffect(resisitance);
+            participant.addPotionEffect(RESISTANCE);
         }
         messageAllParticipants(Component.text("Invulnerable for 10 seconds!"));
     }

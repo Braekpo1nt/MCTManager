@@ -110,6 +110,7 @@ public class FootRaceGame implements Listener, MCTGame {
         for (Player participant : participants) {
             resetParticipant(participant);
         }
+        participants.clear();
         raceHasStarted = false;
         gameActive = false;
         gameManager.gameIsOver();
@@ -117,7 +118,6 @@ public class FootRaceGame implements Listener, MCTGame {
     }
     
     private void resetParticipant(Player participant) {
-        participants.remove(participant);
         participant.getInventory().clear();
     }
     
@@ -169,6 +169,7 @@ public class FootRaceGame implements Listener, MCTGame {
                 .append(Component.text(" has left the game!"))
                 .color(NamedTextColor.YELLOW));
         resetParticipant(participant);
+        participants.remove(participant);
     }
     
     private void cancelAllTasks() {
