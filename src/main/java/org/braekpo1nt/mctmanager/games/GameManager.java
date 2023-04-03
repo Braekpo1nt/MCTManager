@@ -50,6 +50,7 @@ public class GameManager implements Listener {
     private final Main plugin;
     private boolean shouldTeleportToHub = true;
     private int fastBoardUpdaterTaskId;
+    private final List<UUID> participantsWhoLeftMidGame = new ArrayList<>();
     
     public GameManager(Main plugin, Scoreboard mctScoreboard, HubManager hubManager) {
         this.plugin = plugin;
@@ -98,6 +99,7 @@ public class GameManager implements Listener {
         fastBoardManager.removeBoard(participant.getUniqueId());
         if (gameIsRunning()) {
             activeGame.onParticipantQuit(participant);
+            participantsWhoLeftMidGame.add(participant.getUniqueId());
         }
     }
     
@@ -121,6 +123,10 @@ public class GameManager implements Listener {
     private void onParticipantJoin(Player participant) {
         fastBoardManager.updateMainBoards();
         if (!gameIsRunning()) {
+            if (participantsWhoLeftMidGame.contains(participant.getUniqueId())) {
+                participantsWhoLeftMidGame.remove(participant.getUniqueId());
+                hubManager.returnParticipantToHub(participant);
+            }
             return;
         }
         activeGame.onParticipantJoin(participant);
@@ -243,7 +249,7 @@ public class GameManager implements Listener {
             shouldTeleportToHub = true;
             return;
         }
-        hubManager.startReturnToHub(getOnlineParticipants());
+        hubManager.returnParticipantsToHubWithDelay(getOnlineParticipants());
     }
     
     /**

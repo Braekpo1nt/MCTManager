@@ -1,7 +1,6 @@
 package org.braekpo1nt.mctmanager.hub;
 
 import com.onarandombox.MultiverseCore.api.MVWorldManager;
-import com.onarandombox.MultiverseCore.api.MultiverseWorld;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.bukkit.Bukkit;
@@ -38,22 +37,21 @@ public class HubManager implements Listener {
         initializedStatusEffectLoop();
     }
     
-    public void startReturnToHub(List<Player> players) {
-        startDelayedReturnToHubTask(players);
-    }
-    
-    private void startDelayedReturnToHubTask(List<Player> players) {
+    public void returnParticipantsToHubWithDelay(List<Player> participants) {
+        setupTeamOptions();
        new BukkitRunnable() {
             private int count = 10;
             @Override
             public void run() {
                 if (count <= 0) {
-                    returnToHub(players);
+                    for (Player participant : participants) {
+                        returnParticipantToHub(participant);
+                    }
                     this.cancel();
                     return;
                 }
-                for (Player player : players) {
-                    player.sendMessage(Component.text("Teleporting to hub in ")
+                for (Player participant : participants) {
+                    participant.sendMessage(Component.text("Teleporting to hub in ")
                             .append(Component.text(count)));
                 }
                 count--;
@@ -61,15 +59,12 @@ public class HubManager implements Listener {
         }.runTaskTimer(plugin, 0L, 20L);
     }
     
-    private void returnToHub(List<Player> players) {
-        clearStatusEffects(players);
-        setGamemode(players);
-        teleportPlayersToHub(players);
-        clearInventories(players);
-        setupTeamOptions();
-        for (Player player : players) {
-            giveAmbientStatusEffects(player);
-        }
+    public void returnParticipantToHub(Player participant) {
+        clearStatusEffects(participant);
+        participant.setGameMode(GameMode.ADVENTURE);
+        teleportPlayerToHub(participant);
+        participant.getInventory().clear();
+        giveAmbientStatusEffects(participant);
     }
     
     private void setupTeamOptions() {
@@ -82,32 +77,14 @@ public class HubManager implements Listener {
         }
     }
     
-    private void clearInventories(List<Player> players) {
-        for (Player participant : players) {
-            participant.getInventory().clear();
-        }
+    private void teleportPlayerToHub(Player participant) {
+        participant.sendMessage("Teleporting to Hub");
+        participant.teleport(hubWorld.getSpawnLocation());
     }
     
-    private void setGamemode(List<Player> players) {
-        for (Player participant : players) {
-            participant.setGameMode(GameMode.ADVENTURE);
-        }
-    }
-    
-    private void teleportPlayersToHub(List<Player> players) {
-        MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
-        MultiverseWorld hubWorld = worldManager.getMVWorld("Hub");
-        for (Player participant : players) {
-            participant.sendMessage("Teleporting to Hub");
-            participant.teleport(hubWorld.getSpawnLocation());
-        }
-    }
-    
-    private void clearStatusEffects(List<Player> players) {
-        for(Player participant : players) {
-            for (PotionEffect effect : participant.getActivePotionEffects()) {
-                participant.removePotionEffect(effect.getType());
-            }
+    private void clearStatusEffects(Player participant) {
+        for (PotionEffect effect : participant.getActivePotionEffects()) {
+            participant.removePotionEffect(effect.getType());
         }
     }
     
