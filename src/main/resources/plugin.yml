@@ -6,6 +6,7 @@ author: Braekpo1nt
 api-version: 1.19
 
 depend: [Multiverse-Core]
+softdepend: [LuckPerms]
 
 commands:
   mct:

@@ -1,7 +1,6 @@
 package org.braekpo1nt.mctmanager.hub;
 
 import com.onarandombox.MultiverseCore.api.MVWorldManager;
-import com.onarandombox.MultiverseCore.api.MultiverseWorld;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.bukkit.Bukkit;
@@ -14,6 +13,8 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.Team;
 
 import java.util.List;
 
@@ -25,31 +26,32 @@ public class HubManager implements Listener {
     private final PotionEffect SATURATION = new PotionEffect(PotionEffectType.SATURATION, 70, 250, true, false, false);
     private final World hubWorld;
     private final Main plugin;
+    private final Scoreboard mctScoreboard;
     
-    public HubManager(Main plugin) {
+    public HubManager(Main plugin, Scoreboard mctScoreboard) {
         this.plugin = plugin;
+        this.mctScoreboard = mctScoreboard;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
         this.hubWorld = worldManager.getMVWorld("Hub").getCBWorld();
         initializedStatusEffectLoop();
     }
     
-    public void startReturnToHub(List<Player> players) {
-        startDelayedReturnToHubTask(players);
-    }
-    
-    private void startDelayedReturnToHubTask(List<Player> players) {
+    public void returnParticipantsToHubWithDelay(List<Player> participants) {
+        setupTeamOptions();
        new BukkitRunnable() {
             private int count = 10;
             @Override
             public void run() {
                 if (count <= 0) {
-                    returnToHub(players);
+                    for (Player participant : participants) {
+                        returnParticipantToHub(participant);
+                    }
                     this.cancel();
                     return;
                 }
-                for (Player player : players) {
-                    player.sendMessage(Component.text("Teleporting to hub in ")
+                for (Player participant : participants) {
+                    participant.sendMessage(Component.text("Teleporting to hub in ")
                             .append(Component.text(count)));
                 }
                 count--;
@@ -57,42 +59,32 @@ public class HubManager implements Listener {
         }.runTaskTimer(plugin, 0L, 20L);
     }
     
-    private void returnToHub(List<Player> players) {
-        clearStatusEffects(players);
-        setGamemode(players);
-        teleportPlayersToHub(players);
-        clearInventories(players);
-        for (Player player : players) {
-            giveAmbientStatusEffects(player);
+    public void returnParticipantToHub(Player participant) {
+        clearStatusEffects(participant);
+        participant.setGameMode(GameMode.ADVENTURE);
+        teleportPlayerToHub(participant);
+        participant.getInventory().clear();
+        giveAmbientStatusEffects(participant);
+    }
+    
+    private void setupTeamOptions() {
+        for (Team team : mctScoreboard.getTeams()) {
+            team.setAllowFriendlyFire(false);
+            team.setCanSeeFriendlyInvisibles(true);
+            team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.ALWAYS);
+            team.setOption(Team.Option.DEATH_MESSAGE_VISIBILITY, Team.OptionStatus.ALWAYS);
+            team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.ALWAYS);
         }
     }
     
-    private void clearInventories(List<Player> players) {
-        for (Player participant : players) {
-            participant.getInventory().clear();
-        }
+    private void teleportPlayerToHub(Player participant) {
+        participant.sendMessage("Teleporting to Hub");
+        participant.teleport(hubWorld.getSpawnLocation());
     }
     
-    private void setGamemode(List<Player> players) {
-        for (Player participant : players) {
-            participant.setGameMode(GameMode.ADVENTURE);
-        }
-    }
-    
-    private void teleportPlayersToHub(List<Player> players) {
-        MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
-        MultiverseWorld hubWorld = worldManager.getMVWorld("Hub");
-        for (Player participant : players) {
-            participant.sendMessage("Teleporting to Hub");
-            participant.teleport(hubWorld.getSpawnLocation());
-        }
-    }
-    
-    private void clearStatusEffects(List<Player> players) {
-        for(Player participant : players) {
-            for (PotionEffect effect : participant.getActivePotionEffects()) {
-                participant.removePotionEffect(effect.getType());
-            }
+    private void clearStatusEffects(Player participant) {
+        for (PotionEffect effect : participant.getActivePotionEffects()) {
+            participant.removePotionEffect(effect.getType());
         }
     }
     

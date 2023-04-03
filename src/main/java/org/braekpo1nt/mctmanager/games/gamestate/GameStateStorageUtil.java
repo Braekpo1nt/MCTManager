@@ -6,6 +6,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.color.ColorMap;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.scoreboard.Scoreboard;
@@ -104,13 +105,6 @@ public class GameStateStorageUtil {
     
     public void removeTeam(String teamName) throws IOException {
         gameState.removeTeam(teamName);
-        Iterator<MCTPlayer> iterator = gameState.getPlayers().values().iterator();
-        while (iterator.hasNext()) {
-            MCTPlayer mctPlayer = iterator.next();
-            if (mctPlayer.getTeamName().equals(teamName)) {
-                iterator.remove();
-            }
-        }
         saveGameState();
     }
     
@@ -228,7 +222,7 @@ public class GameStateStorageUtil {
      * @param playerUniqueId The UUID of the player to find the team color for
      * @return The color of the player's team
      */
-    public Color getTeamNamedTextColor(UUID playerUniqueId) {
+    public Color getTeamColor(UUID playerUniqueId) {
         String teamName = this.getPlayerTeamName(playerUniqueId);
         String teamColor = gameState.getTeam(teamName).getColor();
         return ColorMap.getColor(teamColor);
@@ -242,5 +236,10 @@ public class GameStateStorageUtil {
     public String getTeamDisplayName(String teamName) {
         MCTTeam team = gameState.getTeam(teamName);
         return team.getDisplayName();
+    }
+    
+    public ChatColor getTeamChatColor(String teamName) {
+        String teamColor = gameState.getTeam(teamName).getColor();
+        return ColorMap.getChatColor(teamColor);
     }
 }
