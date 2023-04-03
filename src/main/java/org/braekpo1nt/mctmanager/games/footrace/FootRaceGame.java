@@ -393,8 +393,11 @@ public class FootRaceGame implements Listener, MCTGame {
                 int newLap = currentLap + 1;
                 laps.put(playerUUID, newLap);
                 updateFastBoard(player);
-                player.sendMessage("Lap " + newLap);
-                player.sendMessage(String.format("Finished lap %d in %s", currentLap, getTimeString(elapsedTime)));
+                messageAllParticipants(Component.text(player.getName())
+                        .append(Component.text(" finished lap "))
+                        .append(Component.text(currentLap))
+                        .append(Component.text(" in "))
+                        .append(Component.text(getTimeString(elapsedTime))));
                 return;
             }
             if (currentLap == MAX_LAPS) {
