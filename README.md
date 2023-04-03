@@ -1,8 +1,21 @@
+# MCTManager
+
+This plugin manages the logic and games for Minecraft Tournament (MCT). 
+
+Check out [MCT Official on YouTube](https://www.youtube.com/channel/UCDHWFMl0D8vREh7aKzJjzow)!
+
+## Authors
+- This plugin was programmed by Braekpo1nt. Find him on [YouTube](https://www.youtube.com/@braekpo1nt), [twitter](https://twitter.com/braekpo1nt), [facebook](https://www.facebook.com/Braekpo1nt/), or [instagram](https://www.instagram.com/braekpo1nt/).
+- The event this plugin supports was created by SgtShotgun. Find them on [YouTube](https://www.youtube.com/@SgtShotgun) and [twitter](https://twitter.com/SgtShotgun1)
+
+## Discord
+Ask the authors for access to the discord
+
 # Dependencies
 Dependencies that are require to run this plugin
 
 ## Data Packs
-As of release `v0.1.1-alpha`, this plugin expects the following data packs in the server's `world/datapacks/` directory:
+As of release `v0.3.0-alpha`, this plugin expects the following data packs in the server's `world/datapacks/` directory:
 - [mctdatapack](https://github.com/Braekpo1nt/mctdatapack)
 
 ## Plugins
@@ -28,19 +41,21 @@ You can start a game with the following command:
 ### Stopping a game
 If a game is running, you can manually stop a game with the following command:
 
-- `/mct game stop`
+- `/mct game stop [true|false]`
 
 This will stop the game, and return all players to the beginning. As of the time of writing this, the points for playing the game will be retained. 
+- `[true|false]` This is an optional argument (defaults to true). If you provide false, the teleport to the hub will be cancelled. This is a debugging feature, and players will often not be reset properly after a game ends. 
 
 ### Adding a new team
 Every participant must be on a team, so you must first have at least one team. To add a new team, use the following command:
 
-- `/mct team add <team> <displayname> <color>`
-    - `<team>` the internal name of the team (All lowercase)
-    - `<displayname>` the display name of the team
+- `/mct team add <team> <"displayname"> <color>`
+    - `<team>` the internal name of the team. Must match requirements of Minecraft team names. Can only be made up of these characters: `-`, `+`, `.`, `_`, `A-Z`, `a-z`, and `0-9`.
+    - `<"displayname">` the display name of the team. Must be a quoted string.
     - `<color>` the color of the team
 
-
+### Removing a team
+You can remove a team entirely. Points are lost and team members are removed, also losing their points, as if you [removed them manually](#removing-a-participant)
 
 ### Adding a new participant
 Participants must be on a team, so you must first [add a new team](#adding-a-new-team)
@@ -51,14 +66,27 @@ To add a new participant, use the following command:
   - `<team>` the internal name of the team. The team must already exist.
   - `<member>` the name of the player to add. Must be an online player.
 
+If you add a new participant while a game is going on, they will be sent to that game as a participant. 
+
+### Removing a participant
+The only way to remove a participant is to leave them from their team:
+
+- `/mct team leave <member>`
+
+Note: This will delete a participants points, but as of right now doesn't remove those points from the team they used to be on
+
 ## Games List
-This is a list of the currently implemented games. See above for how to [start a game](#starting-a-game)
+This is a list of the currently implemented games. See above for how to [start a game](#starting-a-game) or [stop a game](#stopping-a-game)
 
 - Foot Race
-  - Start game with `/mct startgame foot-race`
+  - Start game with `/mct game start foot-race`
+- MECHA
+  - Start game with `/mct game start mecha`
 
 
 # Development/Contributions
+
+To participate, reach out to Braekpo1nt on [YouTube](https://www.youtube.com/@braekpo1nt), [twitter](https://twitter.com/braekpo1nt), [facebook](https://www.facebook.com/Braekpo1nt/), or [instagram](https://www.instagram.com/braekpo1nt/). 
 
 **Important note about building the project:**
 The dependency `fr.mrmicky:fastboard:1.2.1` from [FastBoard](https://github.com/MrMicky-FR/FastBoard) needs to be included in the jar file with *Shadow Jar*. 
