@@ -8,7 +8,7 @@ import java.util.List;
  * An MCT game. 
  */
 public interface MCTGame {
-    void start(List<Player> participants);
+    void start(List<Player> newParticipants);
     void stop();
     void onParticipantJoin(Player participant);
     void onParticipantQuit(Player participant);

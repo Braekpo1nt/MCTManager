@@ -8,6 +8,7 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
 import org.bukkit.*;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.block.structure.Mirror;
 import org.bukkit.block.structure.StructureRotation;
 import org.bukkit.entity.Player;
@@ -69,7 +70,7 @@ public class FootRaceGame implements Listener, MCTGame {
     }
     
     @Override
-    public void start(List<Player> participants) {
+    public void start(List<Player> newParticipants) {
         this.participants = new ArrayList<>();
         lapCooldowns = new HashMap<>();
         laps = new HashMap<>();
@@ -77,7 +78,7 @@ public class FootRaceGame implements Listener, MCTGame {
         AnchorManager anchorManager = Main.multiverseCore.getAnchorManager();
         this.footRaceStartAnchor = anchorManager.getAnchorLocation("foot-race");
         closeGlassBarrier();
-        for (Player participant : participants) {
+        for (Player participant : newParticipants) {
             initializeParticipant(participant);
         }
         startStatusEffectsTask();
@@ -98,6 +99,7 @@ public class FootRaceGame implements Listener, MCTGame {
         giveBoots(participant);
         participant.setGameMode(GameMode.ADVENTURE);
         clearStatusEffects(participant);
+        resetHealthAndHunger(participant);
     }
     
     @Override
@@ -108,6 +110,7 @@ public class FootRaceGame implements Listener, MCTGame {
         for (Player participant : participants) {
             resetParticipant(participant);
         }
+        participants.clear();
         raceHasStarted = false;
         gameActive = false;
         gameManager.gameIsOver();
@@ -115,9 +118,7 @@ public class FootRaceGame implements Listener, MCTGame {
     }
     
     private void resetParticipant(Player participant) {
-        participants.remove(participant);
         participant.getInventory().clear();
-        clearStatusEffects(participant);
     }
     
     @Override
@@ -126,7 +127,7 @@ public class FootRaceGame implements Listener, MCTGame {
             rejoinParticipant(participant);
         } else {
             messageAllParticipants(Component.text(participant.getName())
-                    .append(Component.text(" is joining the game!"))
+                    .append(Component.text(" is joining Foot Race!"))
                     .color(NamedTextColor.YELLOW));
             initializeParticipant(participant);
         }
@@ -159,6 +160,9 @@ public class FootRaceGame implements Listener, MCTGame {
      */
     private boolean participantShouldRejoin(Player participant) {
         UUID uniqueId = participant.getUniqueId();
+        if (!raceHasStarted) {
+            return false;
+        }
         return placements.contains(uniqueId) || laps.containsKey(uniqueId);
     }
     
@@ -168,6 +172,7 @@ public class FootRaceGame implements Listener, MCTGame {
                 .append(Component.text(" has left the game!"))
                 .color(NamedTextColor.YELLOW));
         resetParticipant(participant);
+        participants.remove(participant);
     }
     
     private void cancelAllTasks() {
@@ -201,6 +206,12 @@ public class FootRaceGame implements Listener, MCTGame {
         for (PotionEffect effect : participant.getActivePotionEffects()) {
             participant.removePotionEffect(effect.getType());
         }
+    }
+    
+    private void resetHealthAndHunger(Player participant) {
+        participant.setHealth(participant.getAttribute(Attribute.GENERIC_MAX_HEALTH).getDefaultValue());
+        participant.setFoodLevel(20);
+        participant.setSaturation(5);
     }
     
     private void startStatusEffectsTask() {

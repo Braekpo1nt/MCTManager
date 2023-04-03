@@ -4,6 +4,7 @@ import com.onarandombox.MultiverseCore.api.MVWorldManager;
 import com.onarandombox.MultiverseCore.api.MultiverseWorld;
 import com.onarandombox.MultiverseCore.utils.AnchorManager;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
@@ -13,13 +14,11 @@ import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
 import org.bukkit.block.structure.Mirror;
 import org.bukkit.block.structure.StructureRotation;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.loot.LootTable;
 import org.bukkit.potion.PotionEffect;
@@ -33,7 +32,6 @@ import org.bukkit.util.Vector;
 
 import java.time.Duration;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class MechaGame implements MCTGame, Listener {
     
@@ -70,6 +68,8 @@ public class MechaGame implements MCTGame, Listener {
     private List<UUID> livingPlayers;
     private List<UUID> deadPlayers;
     private final String title = ChatColor.BLUE+"MECHA";
+    private Map<String, Location> teamLocations;
+    private final PotionEffect RESISTANCE = new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 200, 200, true, false, true);
     
     public MechaGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
@@ -83,24 +83,36 @@ public class MechaGame implements MCTGame, Listener {
     }
     
     @Override
-    public void start(List<Player> participants) {
-        this.participants = participants;
-        initializeLivingPlayers();
+    public void start(List<Player> newParticipants) {
+        this.participants = new ArrayList<>(newParticipants.size());
+        livingPlayers = new ArrayList<>(newParticipants.size());
         deadPlayers = new ArrayList<>();
-        this.killCounts = participants.stream().collect(Collectors.toMap(Entity::getUniqueId, value -> 0));
+        this.killCounts = new HashMap<>(newParticipants.size());
         placePlatforms();
         fillAllChests();
-        teleportPlayersToStartingPositions();
-        setPlayersToAdventure();
-        clearInventories();
-        resetHealthAndHunger();
-        clearStatusEffects();
-        initializeFastboards();
-        startStartMechaCountdownTask();
-        initializeWorldBorder();
+        initializeTeamLocations();
+        for (Player participant : newParticipants) {
+            initializeParticipant(participant);
+        }
         setUpTeamOptions();
+        initializeWorldBorder();
+        startStartMechaCountdownTask();
         gameActive = true;
         Bukkit.getLogger().info("Started mecha");
+    }
+    
+    private void initializeParticipant(Player participant) {
+        participants.add(participant);
+        Bukkit.getLogger().info("participants.size() = " + participants.size());
+        UUID participantUniqueId = participant.getUniqueId();
+        livingPlayers.add(participantUniqueId);
+        killCounts.put(participantUniqueId, 0);
+        teleportParticipantToStartingPosition(participant);
+        participant.setGameMode(GameMode.ADVENTURE);
+        participant.getInventory().clear();
+        resetHealthAndHunger(participant);
+        clearStatusEffects(participant);
+        initializeFastBoard(participant);
     }
     
     @Override
@@ -108,24 +120,77 @@ public class MechaGame implements MCTGame, Listener {
         hideFastBoards();
         cancelAllTasks();
         clearFloorItems();
-        clearInventories();
         placePlatforms();
         clearAllChests();
         worldBorder.reset();
+        for (Player participant : participants) {
+            resetParticipant(participant);
+        }
+        participants.clear();
         mechaHasStarted = false;
         gameActive = false;
         gameManager.gameIsOver();
         Bukkit.getLogger().info("Stopped mecha");
     }
     
-    @Override
-    public void onParticipantJoin(Player player) {
-        
+    private void resetParticipant(Player participant) {
+        participant.getInventory().clear();
     }
     
     @Override
-    public void onParticipantQuit(Player player) {
-        
+    public void onParticipantJoin(Player participant) {
+        if (participantShouldRejoin(participant)) {
+            messageAllParticipants(Component.text(participant.getName())
+                    .append(Component.text(" is rejoining MECHA!"))
+                    .color(NamedTextColor.YELLOW));
+            rejoinParticipant(participant);
+            return;
+        }
+        messageAllParticipants(Component.text(participant.getName())
+                .append(Component.text(" is joining MECHA!"))
+                .color(NamedTextColor.YELLOW));
+        initializeParticipant(participant);
+    }
+    
+    private void rejoinParticipant(Player participant) {
+        participant.sendMessage(ChatColor.YELLOW + "You have rejoined MECHA");
+        participants.add(participant);
+        initializeFastBoard(participant);
+        participant.setGameMode(GameMode.SPECTATOR);
+    }
+    
+    /**
+     * Checks if the participant was previously in the game, and should thus rejoin
+     * @param participant The participant to check
+     * @return True if the participant was in the game before, and should rejoin. False
+     * if the participant wasn't in the game before. 
+     */
+    private boolean participantShouldRejoin(Player participant) {
+        if (!mechaHasStarted) {
+            return false;
+        }
+        return deadPlayers.contains(participant.getUniqueId());
+    }
+    
+    @Override
+    public void onParticipantQuit(Player participant) {
+        if (!mechaHasStarted) {
+            participants.remove(participant);
+            UUID participantUniqueId = participant.getUniqueId();
+            livingPlayers.remove(participantUniqueId);
+            killCounts.remove(participantUniqueId);
+            return;
+        }
+        List<ItemStack> drops = Arrays.stream(participant.getInventory().getContents())
+                .filter(Objects::nonNull)
+                .toList();
+        int droppedExp = calculateExpPoints(participant.getLevel());
+        Component deathMessage = Component.text(participant.getName())
+                .append(Component.text(" left early. Their life is forfeit."));
+        PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(participant, drops, droppedExp, deathMessage);
+        Bukkit.getServer().getPluginManager().callEvent(fakeDeathEvent);
+        resetParticipant(participant);
+        participants.remove(participant);
     }
     
     private void setUpTeamOptions() {
@@ -156,18 +221,14 @@ public class MechaGame implements MCTGame, Listener {
                     this.cancel();
                     return;
                 }
-                for (Player participant : participants) {
-                    participant.sendMessage(Component.text(count));
-                }
+                messageAllParticipants(Component.text(count));
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
     }
     
     private void startStopMechaCountdownTask() {
-        for (Player participant : participants) {
-            participant.sendMessage(Component.text("Game ending in 10 seconds..."));
-        }
+        messageAllParticipants(Component.text("Game ending in 10 seconds..."));
         stopMechaCountdownTaskId = new BukkitRunnable() {
             int count = 10;
             
@@ -179,23 +240,12 @@ public class MechaGame implements MCTGame, Listener {
                     return;
                 }
                 if (count <= 3) {
-                    for (Player participant : participants) {
-                        participant.sendMessage(Component.text("Game ending in ")
-                                .append(Component.text(count)));
-                    }
+                    messageAllParticipants(Component.text("Game ending in ")
+                            .append(Component.text(count)));
                 }
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
-    }
-    
-    private void initializeLivingPlayers() {
-        livingPlayers = new ArrayList<>();
-        for (Player participant : participants) {
-            if (!livingPlayers.contains(participant.getUniqueId())) {
-                livingPlayers.add(participant.getUniqueId());
-            }
-        }
     }
     
     private void switchPlayerFromLivingToDead(UUID playerUniqueId) {
@@ -214,24 +264,15 @@ public class MechaGame implements MCTGame, Listener {
         }
     }
     
-    private void clearInventories() {
-        for (Player participant : participants) {
-            participant.getInventory().clear();
-        }
+    private void resetHealthAndHunger(Player participant) {
+        participant.setHealth(participant.getAttribute(Attribute.GENERIC_MAX_HEALTH).getDefaultValue());
+        participant.setFoodLevel(20);
+        participant.setSaturation(5);
     }
     
-    private void resetHealthAndHunger() {
-        for (Player participant : participants) {
-            participant.setHealth(participant.getAttribute(Attribute.GENERIC_MAX_HEALTH).getDefaultValue());
-            participant.setSaturation(20);
-        }
-    }
-    
-    private void clearStatusEffects() {
-        for (Player participant : participants) {
-            for (PotionEffect effect : participant.getActivePotionEffects()) {
-                participant.removePotionEffect(effect.getType());
-            }
+    private void clearStatusEffects(Player participant) {
+        for (PotionEffect effect : participant.getActivePotionEffects()) {
+            participant.removePotionEffect(effect.getType());
         }
     }
     
@@ -239,18 +280,15 @@ public class MechaGame implements MCTGame, Listener {
         this.mechaHasStarted = true;
         kickOffBorderShrinking();
         removePlatforms();
-        for (Player participant : participants) {
-            participant.sendMessage(Component.text("Go!"));
-        }
+        messageAllParticipants(Component.text("Go!"));
         giveInvulnerabilityForTenSeconds();
     }
     
     private void giveInvulnerabilityForTenSeconds() {
-        PotionEffect resisitance = new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 200, 200, true, false, true);
         for (Player participant : participants) {
-            participant.addPotionEffect(resisitance);
-            participant.sendMessage("Invulnerable for 10 seconds!");
+            participant.addPotionEffect(RESISTANCE);
         }
+        messageAllParticipants(Component.text("Invulnerable for 10 seconds!"));
     }
     
     private void onTeamWin(String winningTeamName) {
@@ -263,9 +301,7 @@ public class MechaGame implements MCTGame, Listener {
     
     private void startSuddenDeath() {
         displaySuddenDeath();
-        for (Player participant : participants) {
-            participant.sendMessage(Component.text("Sudden death!"));
-        }
+        messageAllParticipants(Component.text("Sudden death!"));
     }
     
     @EventHandler
@@ -295,28 +331,6 @@ public class MechaGame implements MCTGame, Listener {
         if (winningTeam != null) {
             onTeamWin(winningTeam);
         }
-    }
-    
-    @EventHandler
-    public void onPlayerQuit(PlayerQuitEvent event) {
-        if (!gameActive) {
-            return;
-        }
-        if (!mechaHasStarted) {
-            return;
-        }
-        Player player = event.getPlayer();
-        if (!participants.contains(player)) {
-            return;
-        }
-        List<ItemStack> drops = Arrays.stream(player.getInventory().getContents())
-                .filter(Objects::nonNull)
-                .toList();
-        int droppedExp = calculateExpPoints(player.getLevel());
-        Component deathMessage = Component.text(player.getName())
-                .append(Component.text(" disconnected. Their life is forfeit."));
-        PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(player, drops, droppedExp, deathMessage);
-        Bukkit.getServer().getPluginManager().callEvent(fakeDeathEvent);
     }
     
     private int calculateExpPoints(int level) {
@@ -379,8 +393,8 @@ public class MechaGame implements MCTGame, Listener {
         killCounts.put(killerUniqueId, newKillCount);
         gameManager.getFastBoardManager().updateLine(
                 killerUniqueId,
-                1, 
-                "Kills: " + newKillCount);
+                2, 
+                ChatColor.RED+"Kills: " + newKillCount);
     }
     
     private void initializeWorldBorder() {
@@ -438,18 +452,17 @@ public class MechaGame implements MCTGame, Listener {
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
     }
     
-    private void initializeFastboards() {
-        for (Player participant : participants) {
-            gameManager.getFastBoardManager().updateLines(
-                    participant.getUniqueId(),
-                    title,
-                    "",
-                    ChatColor.RED+"Kills: 0",
-                    "",
-                    ChatColor.LIGHT_PURPLE+"Border",
-                    ChatColor.LIGHT_PURPLE+"0:00"
-            );
-        }
+    private void initializeFastBoard(Player participant) {
+        int killCount = killCounts.get(participant.getUniqueId());
+        gameManager.getFastBoardManager().updateLines(
+                participant.getUniqueId(),
+                title,
+                "",
+                ChatColor.RED+"Kills: "+killCount,
+                "",
+                ChatColor.LIGHT_PURPLE+"Border",
+                ChatColor.LIGHT_PURPLE+"0:00"
+        );
     }
     
     private void hideFastBoards() {
@@ -466,10 +479,7 @@ public class MechaGame implements MCTGame, Listener {
      */
     private void sendBorderDelayAnouncement(int delay) {
         String timeString = getTimeString(delay);
-        String message = "Border will not shrink for "+timeString;
-        for (Player participant : participants) {
-            participant.sendMessage(message);
-        }
+        messageAllParticipants(Component.text("Border will not shrink for "+timeString));
     }
     
     /**
@@ -479,10 +489,10 @@ public class MechaGame implements MCTGame, Listener {
      */
     private void sendBorderShrinkAnouncement(int duration, int size) {
         String timeString = getTimeString(duration);
-        String message = String.format("Border shrinking to %d for %s", size, timeString);
-        for (Player participant : participants) {
-            participant.sendMessage(message);
-        }
+        messageAllParticipants(Component.text("Border shrinking to ")
+                .append(Component.text(size))
+                .append(Component.text(" for "))
+                .append(Component.text(timeString)));
     }
     
     /**
@@ -546,28 +556,10 @@ public class MechaGame implements MCTGame, Listener {
         return String.format("%d:%02d", minutes, seconds);
     }
     
-    private void teleportPlayersToStartingPositions() {
-        AnchorManager anchorManager = Main.multiverseCore.getAnchorManager();
-        Map<String, Location> teamLocations = new HashMap<>();
-        teamLocations.put("orange", anchorManager.getAnchorLocation("mecha-orange"));
-        teamLocations.put("yellow", anchorManager.getAnchorLocation("mecha-yellow"));
-        teamLocations.put("green", anchorManager.getAnchorLocation("mecha-green"));
-        teamLocations.put("dark-green", anchorManager.getAnchorLocation("mecha-dark-green"));
-        teamLocations.put("cyan", anchorManager.getAnchorLocation("mecha-cyan"));
-        teamLocations.put("blue", anchorManager.getAnchorLocation("mecha-blue"));
-        teamLocations.put("purple", anchorManager.getAnchorLocation("mecha-purple"));
-        teamLocations.put("red", anchorManager.getAnchorLocation("mecha-red"));
-        for (Player participant : participants) {
-            String team = gameManager.getTeamName(participant.getUniqueId());
-            Location teamLocation = teamLocations.getOrDefault(team, teamLocations.get("yellow"));
-            participant.teleport(teamLocation);
-        }
-    }
-    
-    private void setPlayersToAdventure() {
-        for (Player participant : participants) {
-            participant.setGameMode(GameMode.ADVENTURE);
-        }
+    private void teleportParticipantToStartingPosition(Player participant) {
+        String team = gameManager.getTeamName(participant.getUniqueId());
+        Location teamLocation = teamLocations.getOrDefault(team, teamLocations.get("yellow"));
+        participant.teleport(teamLocation);
     }
     
     private void placePlatforms() {
@@ -645,6 +637,25 @@ public class MechaGame implements MCTGame, Listener {
             }
         }
         return null;
+    }
+    
+    private void messageAllParticipants(Component message) {
+        for (Player participant : participants) {
+            participant.sendMessage(message);
+        }
+    }
+    
+    private void initializeTeamLocations() {
+        AnchorManager anchorManager = Main.multiverseCore.getAnchorManager();
+        teamLocations = new HashMap<>();
+        teamLocations.put("orange", anchorManager.getAnchorLocation("mecha-orange"));
+        teamLocations.put("yellow", anchorManager.getAnchorLocation("mecha-yellow"));
+        teamLocations.put("green", anchorManager.getAnchorLocation("mecha-green"));
+        teamLocations.put("dark-green", anchorManager.getAnchorLocation("mecha-dark-green"));
+        teamLocations.put("cyan", anchorManager.getAnchorLocation("mecha-cyan"));
+        teamLocations.put("blue", anchorManager.getAnchorLocation("mecha-blue"));
+        teamLocations.put("purple", anchorManager.getAnchorLocation("mecha-purple"));
+        teamLocations.put("red", anchorManager.getAnchorLocation("mecha-red"));
     }
     
     private void setChestCoordsAndLootTables() {
