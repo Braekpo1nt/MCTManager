@@ -438,7 +438,9 @@ public class FootRaceGame implements Listener, MCTGame {
             messageAllParticipants(Component.text(player.getName())
                     .append(Component.text(" finished 1st in "))
                     .append(Component.text(timeString))
-                    .append(Component.text("! Only 1 minute remains!")));
+                    .append(Component.text("! Only 1 minute remains!")
+                            .color(NamedTextColor.RED))
+                    .color(NamedTextColor.GREEN));
             startEndRaceCountDown();
             return;
         }
