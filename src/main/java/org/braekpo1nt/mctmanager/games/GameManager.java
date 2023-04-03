@@ -6,6 +6,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.color.ColorMap;
+import org.braekpo1nt.mctmanager.games.capturetheflag.CaptureTheFlagGame;
 import org.braekpo1nt.mctmanager.games.footrace.FootRaceGame;
 import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
 import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
@@ -38,6 +39,7 @@ public class GameManager implements Listener {
     private MCTGame activeGame = null;
     private final FootRaceGame footRaceGame;
     private final MechaGame mechaGame;
+    private final CaptureTheFlagGame captureTheFlagGame;
     private final HubManager hubManager;
     private final FastBoardManager fastBoardManager;
     private final GameStateStorageUtil gameStateStorageUtil;
@@ -59,6 +61,7 @@ public class GameManager implements Listener {
         this.gameStateStorageUtil = new GameStateStorageUtil(plugin);
         this.footRaceGame = new FootRaceGame(plugin, this);
         this.mechaGame = new MechaGame(plugin, this);
+        this.captureTheFlagGame = new CaptureTheFlagGame(plugin, this);
         this.hubManager = hubManager;
         this.fastBoardManager = new FastBoardManager(gameStateStorageUtil);
         kickOffFastBoardManager();
@@ -186,11 +189,12 @@ public class GameManager implements Listener {
                 mechaGame.start(onlineParticipants);
                 activeGame = mechaGame;
                 break;
+            case "capture-the-flag":
+                captureTheFlagGame.start(onlineParticipants);
+                activeGame = captureTheFlagGame;
+                break;
 //            case "bedwars":
 //                player.sendMessage("3");
-//                break;
-//            case "capture-the-flag":
-//                player.sendMessage("4");
 //                break;
 //            case "dodgeball":
 //                player.sendMessage("5");
