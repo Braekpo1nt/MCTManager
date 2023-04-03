@@ -256,7 +256,7 @@ public class FootRaceGame implements Listener, MCTGame {
     
     private void startEndRaceCountDown() {
         this.endRaceCountDownId = new BukkitRunnable() {
-            private int count = 30;
+            private int count = 60;
             @Override
             public void run() {
                 if (count <= 0) {
@@ -264,11 +264,10 @@ public class FootRaceGame implements Listener, MCTGame {
                     stop();
                     return;
                 }
-                for (Player participant : participants) {
-                    if (count > 0) {
-                        if (count <= 10) {
-                            participant.sendMessage(Component.text(count));
-                        }
+                if (count > 0) {
+                    if (count <= 10) {
+                        messageAllParticipants(Component.text("Ending in ")
+                                .append(Component.text(count)));
                     }
                 }
                 count--;
@@ -436,7 +435,7 @@ public class FootRaceGame implements Listener, MCTGame {
             messageAllParticipants(Component.text(player.getName())
                     .append(Component.text(" finished 1st in "))
                     .append(Component.text(timeString))
-                    .append(Component.text("! Only 30 seconds remain!")));
+                    .append(Component.text("! Only 1 minute remains!")));
             startEndRaceCountDown();
             return;
         }
