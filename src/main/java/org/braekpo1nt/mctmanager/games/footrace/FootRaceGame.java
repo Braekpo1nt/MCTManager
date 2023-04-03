@@ -160,6 +160,9 @@ public class FootRaceGame implements Listener, MCTGame {
      */
     private boolean participantShouldRejoin(Player participant) {
         UUID uniqueId = participant.getUniqueId();
+        if (!raceHasStarted) {
+            return false;
+        }
         return placements.contains(uniqueId) || laps.containsKey(uniqueId);
     }
     

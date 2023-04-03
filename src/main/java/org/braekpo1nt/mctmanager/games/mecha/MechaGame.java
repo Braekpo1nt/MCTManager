@@ -103,6 +103,7 @@ public class MechaGame implements MCTGame, Listener {
     
     private void initializeParticipant(Player participant) {
         participants.add(participant);
+        Bukkit.getLogger().info("participants.size() = " + participants.size());
         UUID participantUniqueId = participant.getUniqueId();
         livingPlayers.add(participantUniqueId);
         killCounts.put(participantUniqueId, 0);
@@ -139,13 +140,16 @@ public class MechaGame implements MCTGame, Listener {
     @Override
     public void onParticipantJoin(Player participant) {
         if (participantShouldRejoin(participant)) {
-            rejoinParticipant(participant);
-        } else {
             messageAllParticipants(Component.text(participant.getName())
-                    .append(Component.text(" is joining MECHA!"))
+                    .append(Component.text(" is rejoining MECHA!"))
                     .color(NamedTextColor.YELLOW));
-            initializeParticipant(participant);
+            rejoinParticipant(participant);
+            return;
         }
+        messageAllParticipants(Component.text(participant.getName())
+                .append(Component.text(" is joining MECHA!"))
+                .color(NamedTextColor.YELLOW));
+        initializeParticipant(participant);
     }
     
     private void rejoinParticipant(Player participant) {
@@ -162,12 +166,19 @@ public class MechaGame implements MCTGame, Listener {
      * if the participant wasn't in the game before. 
      */
     private boolean participantShouldRejoin(Player participant) {
+        if (!mechaHasStarted) {
+            return false;
+        }
         return deadPlayers.contains(participant.getUniqueId());
     }
     
     @Override
     public void onParticipantQuit(Player participant) {
         if (!mechaHasStarted) {
+            participants.remove(participant);
+            UUID participantUniqueId = participant.getUniqueId();
+            livingPlayers.remove(participantUniqueId);
+            killCounts.remove(participantUniqueId);
             return;
         }
         List<ItemStack> drops = Arrays.stream(participant.getInventory().getContents())
@@ -382,7 +393,7 @@ public class MechaGame implements MCTGame, Listener {
         killCounts.put(killerUniqueId, newKillCount);
         gameManager.getFastBoardManager().updateLine(
                 killerUniqueId,
-                1, 
+                2, 
                 ChatColor.RED+"Kills: " + newKillCount);
     }
     
