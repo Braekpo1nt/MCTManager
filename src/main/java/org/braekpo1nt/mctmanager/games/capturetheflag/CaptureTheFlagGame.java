@@ -27,6 +27,12 @@ public class CaptureTheFlagGame implements MCTGame {
         this.gameManager = gameManager;
     }
     
+    /**
+     * Starts a new Capture the Flag game with the provided participants.
+     * Assumes that the provided list of participants collectively belong
+     * to at least 2 teams, and at most 8 teams. 
+     * @param newParticipants
+     */
     @Override
     public void start(List<Player> newParticipants) {
         this.participants = new ArrayList<>(newParticipants.size());
@@ -35,6 +41,7 @@ public class CaptureTheFlagGame implements MCTGame {
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
         }
+        startRound();
         Bukkit.getLogger().info("Started Capture the Flag");
     }
     
@@ -44,7 +51,7 @@ public class CaptureTheFlagGame implements MCTGame {
      * @return A list containing unique pairs of teams for the roster
      */
     public List<List<String>> generateRoster(List<Player> newParticipants) {
-        List<String> teamNames = getTeamNames(newParticipants);
+        List<String> teamNames = gameManager.getTeamNames(newParticipants);
         List<List<String>> newRoster = new ArrayList<>();
         int n = teamNames.size();
         // Generate all possible combinations of indices
@@ -57,22 +64,6 @@ public class CaptureTheFlagGame implements MCTGame {
             }
         }
         return newRoster;
-    }
-    
-    /**
-     * Gets a list of all the team names of the participants
-     * @param newParticipants The list of participants to get the team names of
-     * @return A list of all unique team names which the participants belong to.
-     */
-    private List<String> getTeamNames(List<Player> newParticipants) {
-        List<String> teamNames = new ArrayList<>();
-        for (Player participant : newParticipants) {
-            String teamName = gameManager.getTeamName(participant.getUniqueId());
-            if (!teamNames.contains(teamName)){
-                teamNames.add(teamName);
-            }
-        }
-        return teamNames;
     }
     
     private void initializeParticipant(Player participant) {
