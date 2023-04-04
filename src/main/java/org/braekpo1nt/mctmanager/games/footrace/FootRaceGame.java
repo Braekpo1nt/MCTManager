@@ -105,7 +105,6 @@ public class FootRaceGame implements Listener, MCTGame {
     @Override
     public void stop() {
         closeGlassBarrier();
-        hideFastBoards();
         cancelAllTasks();
         for (Player participant : participants) {
             resetParticipant(participant);
@@ -119,6 +118,7 @@ public class FootRaceGame implements Listener, MCTGame {
     
     private void resetParticipant(Player participant) {
         participant.getInventory().clear();
+        hideFastBoard(participant);
     }
     
     @Override
@@ -327,12 +327,10 @@ public class FootRaceGame implements Listener, MCTGame {
         );
     }
     
-    private void hideFastBoards() {
-        for (Player participant : participants) {
-            gameManager.getFastBoardManager().updateLines(
-                    participant.getUniqueId()
-            );
-        }
+    private void hideFastBoard(Player participant) {
+        gameManager.getFastBoardManager().updateLines(
+                participant.getUniqueId()
+        );
     }
     
     private void updateFastBoard(Player participant) {
