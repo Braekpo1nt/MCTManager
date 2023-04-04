@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.capturetheflag;
 import com.onarandombox.MultiverseCore.api.MVWorldManager;
 import com.onarandombox.MultiverseCore.api.MultiverseWorld;
 import com.onarandombox.MultiverseCore.utils.AnchorManager;
+import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
@@ -77,7 +78,6 @@ public class CaptureTheFlagGame implements MCTGame {
         participant.getInventory().clear();
         resetHealthAndHunger(participant);
         clearStatusEffects(participant);
-        initializeFastBoard(participant);
     }
     
     private void initializeParticipantForRound(Player participant) {
@@ -106,7 +106,7 @@ public class CaptureTheFlagGame implements MCTGame {
     }
     
     private void startClassSelectionPeriod() {
-        throw new UnsupportedOperationException("Need to implement startClassSelectionPeriod");
+        messageAllParticipants(Component.text("Choose your class (placeholder)"));
     }
     
     /**
@@ -124,7 +124,7 @@ public class CaptureTheFlagGame implements MCTGame {
             // A list of 1-4 TeamPairings
             List<TeamPairing> singleRoundPairingGroup = new ArrayList<>();
             int j = 0;
-            while (j < 4) {
+            while (j < 4 && pairingIndex < teamPairings.size()) {
                 singleRoundPairingGroup.add(teamPairings.get(pairingIndex));
                 pairingIndex++;
                 j++;
@@ -219,6 +219,12 @@ public class CaptureTheFlagGame implements MCTGame {
                 "",
                 "Round: " + currentRound + "/" + maxRounds
         );
+    }
+    
+    private void messageAllParticipants(Component message) {
+        for (Player participant : participants) {
+            participant.sendMessage(message);
+        }
     }
     
     private void initializeArenas() {
