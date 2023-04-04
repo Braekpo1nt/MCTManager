@@ -81,6 +81,9 @@ public class CaptureTheFlagGame implements MCTGame {
         for (Player participant : participants) {
             resetParticipant(participant);
         }
+        participants.clear();
+        gameActive = false;
+        gameManager.gameIsOver();
         Bukkit.getLogger().info("Stopped Capture the Flag");
     }
     
