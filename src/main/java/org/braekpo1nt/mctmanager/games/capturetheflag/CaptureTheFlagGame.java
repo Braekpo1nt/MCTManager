@@ -25,17 +25,16 @@ public class CaptureTheFlagGame implements MCTGame {
     private List<List<Location>> flagLocations;
     private List<Player> participants;
     /**
-     * a list of round paring groups from the participants.
-     * A "round pairing group" is a list of 1-4 "round pairings". They represent the "round pairings" that will fight each round (there can only be a max of 4 because there are 4 arenas)
-     * A "round pairing" is a list of two team names, which will have to fight each other.
+     * a list of lists of TeamPairings. Each element is a list of 1-4 TeamPairings.
      * Each index corresponds to a round.
      */
-    private List<List<List<String>>> allRoundPairingGroups;
+    private List<List<TeamPairing>> allRoundTeamPairings;
     /**
-     * Contains the 1-4 "round pairings" that will fight in the current round. See {@link CaptureTheFlagGame#allRoundPairingGroups}.
+     * Contains the 1-4 TeamPairings for the current round. 
+     * See {@link CaptureTheFlagGame#allRoundTeamPairings}.
      * Each index corresponds to a pair of teams to fight in their own arena. 
      */
-    private List<List<String>> currentRoundParingGroup;
+    private List<TeamPairing> currentRoundTeamParings;
     private int currentRound = 0;
     private int maxRounds = 0;
     private List<UUID> livingPlayers;
@@ -62,8 +61,8 @@ public class CaptureTheFlagGame implements MCTGame {
     public void start(List<Player> newParticipants) {
         this.participants = new ArrayList<>(newParticipants.size());
         currentRound = 0;
-        this.allRoundPairingGroups = generateRoundPairingGroups(newParticipants);
-        maxRounds = allRoundPairingGroups.size();
+        this.allRoundTeamPairings = generateAllRoundTeamPairings(newParticipants);
+        maxRounds = allRoundTeamPairings.size();
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
         }
@@ -105,46 +104,48 @@ public class CaptureTheFlagGame implements MCTGame {
         Bukkit.getLogger().info("Starting round " + currentRound);
     }
     
+    private void startClassSelectionPeriod() {
+        throw new UnsupportedOperationException("Need to implement startClassSelectionPeriod");
+    }
+    
     /**
-     * Create a list of "round paring groups" from the participants' teams.
-     * See {@link CaptureTheFlagGame#allRoundPairingGroups}
+     * See {@link CaptureTheFlagGame#allRoundTeamPairings}
      * @param newParticipants The participants whose teams will be used to create the pairings
-     * @return A new "round pairing groups" list. See {@link CaptureTheFlagGame#allRoundPairingGroups}
+     * @return A new list of lists of 1-4 TeamPairings. See {@link CaptureTheFlagGame#allRoundTeamPairings}
      */
-    public List<List<List<String>>> generateRoundPairingGroups(List<Player> newParticipants) {
+    public List<List<TeamPairing>> generateAllRoundTeamPairings(List<Player> newParticipants) {
         List<String> teamNames = gameManager.getTeamNames(newParticipants);
-        List<List<String>> allPairings = generateAllPairings(teamNames);
-        // A list of round pairing groups, each of which is a group of 1-4 round pairings
-        List<List<List<String>>> newRoundPairingGroups = new ArrayList<>();
+        List<TeamPairing> teamPairings = generateAllPairings(teamNames);
+        // A list of lists of 1-4 TeamPairings
+        List<List<TeamPairing>> newAllRoundTeamPairings = new ArrayList<>();
         int pairingIndex = 0;
-        while (pairingIndex < allPairings.size()) {
-            // A list of 1-4 round pairings
-            List<List<String>> singleRoundPairingGroup = new ArrayList<>();
+        while (pairingIndex < teamPairings.size()) {
+            // A list of 1-4 TeamPairings
+            List<TeamPairing> singleRoundPairingGroup = new ArrayList<>();
             int j = 0;
             while (j < 4) {
-                singleRoundPairingGroup.add(allPairings.get(pairingIndex));
+                singleRoundPairingGroup.add(teamPairings.get(pairingIndex));
                 pairingIndex++;
                 j++;
             }
-            newRoundPairingGroups.add(singleRoundPairingGroup);
+            newAllRoundTeamPairings.add(singleRoundPairingGroup);
         }
-        return newRoundPairingGroups;
+        return newAllRoundTeamPairings;
     }
     
-    @NotNull
-    private static List<List<String>> generateAllPairings(List<String> teamNames) {
-        List<List<String>> pairings = new ArrayList<>();
+    private static List<TeamPairing> generateAllPairings(List<String> teamNames) {
+        List<TeamPairing> teamPairings = new ArrayList<>();
         int n = teamNames.size();
         // Generate all possible combinations of indices
         for (int i = 0; i < n; i++) {
             for (int j = i + 1; j < n; j++) {
-                List<String> combination = new ArrayList<>(2);
-                combination.add(teamNames.get(i));
-                combination.add(teamNames.get(j));
-                pairings.add(combination);
+                TeamPairing teamPairing = new TeamPairing();
+                teamPairing.teamA = teamNames.get(i);
+                teamPairing.teamB = teamNames.get(j);
+                teamPairings.add(teamPairing);
             }
         }
-        return pairings;
+        return teamPairings;
     }
     
     @Override
