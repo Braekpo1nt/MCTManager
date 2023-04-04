@@ -76,6 +76,27 @@ public class CaptureTheFlagGame implements MCTGame {
         Bukkit.getLogger().info("Started Capture the Flag");
     }
     
+    @Override
+    public void stop() {
+        for (Player participant : participants) {
+            resetParticipant(participant);
+        }
+        participants.clear();
+        gameActive = false;
+        gameManager.gameIsOver();
+        Bukkit.getLogger().info("Stopped Capture the Flag");
+    }
+    
+    @Override
+    public void onParticipantJoin(Player participant) {
+        
+    }
+    
+    @Override
+    public void onParticipantQuit(Player participant) {
+        
+    }
+    
     private void initializeParticipant(Player participant) {
         participants.add(participant);
         teleportParticipantToSpawnObservatory(participant);
@@ -83,6 +104,11 @@ public class CaptureTheFlagGame implements MCTGame {
         participant.getInventory().clear();
         resetHealthAndHunger(participant);
         clearStatusEffects(participant);
+    }
+    
+    private void resetParticipant(Player participant) {
+        participant.getInventory().clear();
+        hideFastBoard(participant);
     }
     
     private void initializeParticipantForRound(Player participant) {
@@ -154,21 +180,6 @@ public class CaptureTheFlagGame implements MCTGame {
         return teamPairings;
     }
     
-    @Override
-    public void stop() {
-        Bukkit.getLogger().info("Stopped Capture the Flag");
-    }
-    
-    @Override
-    public void onParticipantJoin(Player participant) {
-        
-    }
-    
-    @Override
-    public void onParticipantQuit(Player participant) {
-        
-    }
-    
     private void teleportParticipantToSpawnObservatory(Player participant) {
         participant.teleport(spawnObservatory);
     }
@@ -223,6 +234,12 @@ public class CaptureTheFlagGame implements MCTGame {
                 "3:00",
                 "",
                 "Round: " + currentRound + "/" + maxRounds
+        );
+    }
+    
+    private void hideFastBoard(Player participant) {
+        gameManager.getFastBoardManager().updateLines(
+                participant.getUniqueId()
         );
     }
     

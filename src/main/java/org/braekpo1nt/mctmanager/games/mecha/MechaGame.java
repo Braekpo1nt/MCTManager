@@ -116,7 +116,6 @@ public class MechaGame implements MCTGame, Listener {
     
     @Override
     public void stop() {
-        hideFastBoards();
         cancelAllTasks();
         clearFloorItems();
         placePlatforms();
@@ -134,6 +133,7 @@ public class MechaGame implements MCTGame, Listener {
     
     private void resetParticipant(Player participant) {
         participant.getInventory().clear();
+        hideFastBoard(participant);
     }
     
     @Override
@@ -499,14 +499,11 @@ public class MechaGame implements MCTGame, Listener {
         );
     }
     
-    private void hideFastBoards() {
-        for (Player participant : participants) {
-            gameManager.getFastBoardManager().updateLines(
-                    participant.getUniqueId()
-            );
-        }
+    private void hideFastBoard(Player participant) {
+        gameManager.getFastBoardManager().updateLines(
+                participant.getUniqueId()
+        );
     }
-    
     /**
      * Sends a chat message to all participants saying the border is delaying
      * @param delay The delay in seconds
