@@ -11,6 +11,8 @@ import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
+import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.Team;
 
 import java.util.*;
 
@@ -18,6 +20,7 @@ public class CaptureTheFlagGame implements MCTGame {
     
     private final Main plugin;
     private final GameManager gameManager;
+    private boolean gameActive = false;
     private final String title = ChatColor.BLUE+"Capture the Flag";
     private final World captureTheFlagWorld;
     private Location spawnObservatory;
@@ -67,7 +70,9 @@ public class CaptureTheFlagGame implements MCTGame {
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
         }
+        setUpTeamOptions();
         startNextRound();
+        gameActive = true;
         Bukkit.getLogger().info("Started Capture the Flag");
     }
     
@@ -219,6 +224,17 @@ public class CaptureTheFlagGame implements MCTGame {
                 "",
                 "Round: " + currentRound + "/" + maxRounds
         );
+    }
+    
+    private void setUpTeamOptions() {
+        Scoreboard mctScoreboard = gameManager.getMctScoreboard();
+        for (Team team : mctScoreboard.getTeams()) {
+            team.setAllowFriendlyFire(false);
+            team.setCanSeeFriendlyInvisibles(true);
+            team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.ALWAYS);
+            team.setOption(Team.Option.DEATH_MESSAGE_VISIBILITY, Team.OptionStatus.ALWAYS);
+            team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.ALWAYS);
+        }
     }
     
     private void messageAllParticipants(Component message) {
