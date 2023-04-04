@@ -40,7 +40,6 @@ public class MechaGame implements MCTGame, Listener {
     private boolean gameActive = false;
     private boolean mechaHasStarted = false;
     private List<Player> participants;
-    private Map<UUID, Integer> killCounts;
     private final World mechaWorld;
     private final MultiverseWorld mvMechaWorld;
     private int startMechaTaskId;
@@ -67,6 +66,7 @@ public class MechaGame implements MCTGame, Listener {
     private int borderShrinkingTaskId;
     private List<UUID> livingPlayers;
     private List<UUID> deadPlayers;
+    private Map<UUID, Integer> killCounts;
     private final String title = ChatColor.BLUE+"MECHA";
     private Map<String, Location> teamLocations;
     private final PotionEffect RESISTANCE = new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 200, 200, true, false, true);

@@ -6,6 +6,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.color.ColorMap;
+import org.braekpo1nt.mctmanager.games.capturetheflag.CaptureTheFlagGame;
 import org.braekpo1nt.mctmanager.games.footrace.FootRaceGame;
 import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
 import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
@@ -13,6 +14,7 @@ import org.braekpo1nt.mctmanager.games.mecha.MechaGame;
 import org.braekpo1nt.mctmanager.hub.HubManager;
 import org.braekpo1nt.mctmanager.ui.FastBoardManager;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
@@ -38,6 +40,7 @@ public class GameManager implements Listener {
     private MCTGame activeGame = null;
     private final FootRaceGame footRaceGame;
     private final MechaGame mechaGame;
+    private final CaptureTheFlagGame captureTheFlagGame;
     private final HubManager hubManager;
     private final FastBoardManager fastBoardManager;
     private final GameStateStorageUtil gameStateStorageUtil;
@@ -59,6 +62,7 @@ public class GameManager implements Listener {
         this.gameStateStorageUtil = new GameStateStorageUtil(plugin);
         this.footRaceGame = new FootRaceGame(plugin, this);
         this.mechaGame = new MechaGame(plugin, this);
+        this.captureTheFlagGame = new CaptureTheFlagGame(plugin, this);
         this.hubManager = hubManager;
         this.fastBoardManager = new FastBoardManager(gameStateStorageUtil);
         kickOffFastBoardManager();
@@ -167,6 +171,8 @@ public class GameManager implements Listener {
                             .clickEvent(ClickEvent.suggestCommand("/mct team join "))));
             return;
         }
+    
+        List<String> onlineTeamNames = this.getTeamNames(onlineParticipants);
         
         switch (gameName) {
             case "foot-race":
@@ -174,9 +180,8 @@ public class GameManager implements Listener {
                 activeGame = footRaceGame;
                 break;
             case "mecha":
-                if (onlineParticipants.size() < 2) {
-                    sender.sendMessage("MECHA needs at least 2 online participants to run correctly. Running anyway. Use '/mct game stop' to stop the game.");
-                    sender.sendMessage(Component.text("MECHA doesn't end correctly unless there are 2 or more players. use ")
+                if (onlineTeamNames.size() < 2) {
+                    sender.sendMessage(Component.text("MECHA doesn't end correctly unless there are 2 or more teams online. use ")
                             .append(Component.text("/mct game stop")
                                     .clickEvent(ClickEvent.suggestCommand("/mct game stop"))
                                     .decorate(TextDecoration.BOLD))
@@ -186,11 +191,16 @@ public class GameManager implements Listener {
                 mechaGame.start(onlineParticipants);
                 activeGame = mechaGame;
                 break;
+            case "capture-the-flag":
+                if (onlineTeamNames.size() < 2 || 8 < onlineTeamNames.size()) {
+                    sender.sendMessage(Component.text("Capture the Flag needs at least 2 and at most 8 teams online to play."));
+                    return;
+                }
+                captureTheFlagGame.start(onlineParticipants);
+                activeGame = captureTheFlagGame;
+                break;
 //            case "bedwars":
 //                player.sendMessage("3");
-//                break;
-//            case "capture-the-flag":
-//                player.sendMessage("4");
 //                break;
 //            case "dodgeball":
 //                player.sendMessage("5");
@@ -295,6 +305,22 @@ public class GameManager implements Listener {
      */
     public Set<String> getTeamNames() {
         return gameStateStorageUtil.getTeamNames();
+    }
+    
+    /**
+     * Gets a list of all the team names of the players
+     * @param players The list of players to get the team names of
+     * @return A list of all unique team names which the players belong to.
+     */
+    public List<String> getTeamNames(List<Player> players) {
+        List<String> teamNames = new ArrayList<>();
+        for (Player player : players) {
+            String teamName = getTeamName(player.getUniqueId());
+            if (!teamNames.contains(teamName)){
+                teamNames.add(teamName);
+            }
+        }
+        return teamNames;
     }
     
     /**

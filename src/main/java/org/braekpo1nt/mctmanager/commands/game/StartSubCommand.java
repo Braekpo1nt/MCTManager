@@ -38,7 +38,7 @@ public class StartSubCommand implements TabExecutor {
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length == 1) {
 //            return Arrays.asList("foot-race", "mecha", "bedwars", "dodgeball", "capture-the-flag", "spleef", "parkour-pathway").stream().sorted().toList();
-            return Arrays.asList("foot-race", "mecha");
+            return Arrays.asList("foot-race", "mecha", "capture-the-flag");
         }
         return null;
     }
