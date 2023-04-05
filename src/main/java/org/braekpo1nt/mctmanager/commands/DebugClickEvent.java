@@ -6,6 +6,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
@@ -19,32 +20,54 @@ public class DebugClickEvent implements Listener {
     }
     
     @EventHandler
-    public void clickEvent(InventoryClickEvent e) {
-        if (e.getClickedInventory() == null) {
+    public void clickEvent(InventoryClickEvent event) {
+        if (event.getClickedInventory() == null) {
             return;
         }
-        Inventory clickedInventory = e.getClickedInventory();
+        Inventory clickedInventory = event.getClickedInventory();
         if (!clickedInventory.equals(gui)) {
             return;
         }
-        Player player = ((Player) e.getWhoClicked());
-        if (e.getCurrentItem() == null) {
+        Player player = ((Player) event.getWhoClicked());
+        if (event.getCurrentItem() == null) {
             return;
         }
-        Material clickedItem = e.getCurrentItem().getType();
+        Material clickedItem = event.getCurrentItem().getType();
         switch (clickedItem) {
-            case BREAD:
-                player.setFoodLevel(Math.min(player.getFoodLevel()+1, 20));
-                player.sendMessage("Yum");
+            case STONE_SWORD:
+                player.getInventory().clear();
+                player.getEquipment().setChestplate(new ItemStack(Material.LEATHER_CHESTPLATE));
+                player.getEquipment().setBoots(new ItemStack(Material.LEATHER_BOOTS));
+                player.getInventory().addItem(new ItemStack(Material.STONE_SWORD));
+                player.sendMessage("Selected Knight");
                 break;
-            case DIAMOND_SWORD:
-                player.getInventory().addItem(new ItemStack(Material.DIAMOND_SWORD));
-                player.sendMessage("Don't slice yourself");
+            case BOW:
+                player.getInventory().clear();
+                player.getEquipment().setChestplate(new ItemStack(Material.LEATHER_CHESTPLATE));
+                player.getEquipment().setBoots(new ItemStack(Material.LEATHER_BOOTS));
+                player.getInventory().addItem(new ItemStack(Material.BOW));
+                player.getInventory().addItem(new ItemStack(Material.ARROW, 16));
+                player.getInventory().addItem(new ItemStack(Material.WOODEN_SWORD));
+                player.sendMessage("Selected Archer");
                 break;
+            case IRON_SWORD:
+                player.getInventory().clear();
+                player.getInventory().addItem(new ItemStack(Material.IRON_SWORD));
+                player.sendMessage("Selected Assassin");
+                break;
+            case LEATHER_CHESTPLATE:
+                player.getInventory().clear();
+                player.getEquipment().setChestplate(new ItemStack(Material.LEATHER_CHESTPLATE));
+                player.getEquipment().setLeggings(new ItemStack(Material.LEATHER_LEGGINGS));
+                player.getEquipment().setBoots(new ItemStack(Material.LEATHER_BOOTS));
+                player.sendMessage("Selected Tank");
+                break;
+            default:
+                return;
         }
         clickedInventory.close();
         
-        e.setCancelled(true);
+        event.setCancelled(true);
     }
     
 }

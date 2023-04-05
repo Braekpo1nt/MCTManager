@@ -2,7 +2,6 @@ package org.braekpo1nt.mctmanager.commands;
 
 import com.onarandombox.MultiverseCore.api.MVWorldManager;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.bukkit.*;
 import org.bukkit.command.Command;
@@ -15,7 +14,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
-import java.util.Collections;
 
 /**
  * A utility command for testing various things, so I don't have to create a new command. 
@@ -24,7 +22,7 @@ public class MCTDebugCommand implements CommandExecutor {
     
     private final Main plugin;
     private final WorldBorder worldBorder;
-    private Inventory gui;
+    private final Inventory gui;
     
     public MCTDebugCommand(Main plugin) {
         this.plugin = plugin;
@@ -32,7 +30,7 @@ public class MCTDebugCommand implements CommandExecutor {
         MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
         World mechaWorld = worldManager.getMVWorld("FT").getCBWorld();
         this.worldBorder = mechaWorld.getWorldBorder();
-        gui = Bukkit.createInventory(null, 9*6, Component.text(ChatColor.AQUA+"Custom GUI"));
+        gui = createGui();
         new DebugClickEvent(plugin, gui);
     }
     
@@ -42,25 +40,10 @@ public class MCTDebugCommand implements CommandExecutor {
             sender.sendMessage("This command can only be run by a player.");
             return true;
         }
-        Player player = ((Player) sender).getPlayer();
-        
-        ItemStack feed = new ItemStack(Material.BREAD);
-        ItemStack sword = new ItemStack(Material.DIAMOND_SWORD);
-    
-        ItemMeta feedMeta = feed.getItemMeta();
-        feedMeta.displayName(Component.text("Feed").color(NamedTextColor.DARK_GREEN));
-        feedMeta.lore(Collections.singletonList(Component.text("Hunger no more.")));
-        feed.setItemMeta(feedMeta);
-    
-        ItemMeta swordMeta = sword.getItemMeta();
-        swordMeta.displayName(Component.text("Sword").color(NamedTextColor.LIGHT_PURPLE));
-        swordMeta.lore(Collections.singletonList(Component.text("Get a sword.")));
-        sword.setItemMeta(swordMeta);
-        
-        gui.setItem(getSlotIndex(2,3), feed);
-        gui.setItem(getSlotIndex(3,8), sword);
-        player.openInventory(gui);
-    
+//        Player player = ((Player) sender).getPlayer();
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            player.openInventory(gui);
+        }
         
 //        Component mainTitle = Component.text("Main title");
 //        Component subTitle = Component.text("Subtitle");
@@ -69,6 +52,55 @@ public class MCTDebugCommand implements CommandExecutor {
 //        Title title = Title.title(mainTitle, subTitle, times);
 //        sender.showTitle(title);
         return true;
+    }
+    
+    private Inventory createGui() {
+        ItemStack knight = new ItemStack(Material.STONE_SWORD);
+        ItemStack archer = new ItemStack(Material.BOW);
+        ItemStack assassin = new ItemStack(Material.IRON_SWORD);
+        ItemStack tank = new ItemStack(Material.LEATHER_CHESTPLATE);
+    
+        ItemMeta knightMeta = knight.getItemMeta();
+        knightMeta.displayName(Component.text("Knight"));
+        knightMeta.lore(Arrays.asList(
+                Component.text("- Stone Sword"),
+                Component.text("- Chest Plate"),
+                Component.text("- Boots")
+        ));
+        knight.setItemMeta(knightMeta);
+    
+        ItemMeta archerMeta = archer.getItemMeta();
+        archerMeta.displayName(Component.text("Archer"));
+        archerMeta.lore(Arrays.asList(
+                Component.text("- Bow"),
+                Component.text("- 16 Arrows"),
+                Component.text("- Wooden Sword"),
+                Component.text("- Chest Plate"),
+                Component.text("- Boots")
+        ));
+        archer.setItemMeta(archerMeta);
+    
+        ItemMeta assassinMeta = assassin.getItemMeta();
+        assassinMeta.displayName(Component.text("Assassin"));
+        assassinMeta.lore(Arrays.asList(
+                Component.text("- Iron Sword"),
+                Component.text("- No Armor")
+        ));
+        assassin.setItemMeta(assassinMeta);
+        
+        ItemMeta tankMeta = tank.getItemMeta();
+        tankMeta.displayName(Component.text("Tank"));
+        tankMeta.lore(Arrays.asList(
+                Component.text("Comes with:"),
+                Component.text("- Full Leather Armor"),
+                Component.text("- No Sword")
+        ));
+        tank.setItemMeta(tankMeta);
+    
+        ItemStack[] menuItems = {knight, archer, assassin, tank};
+        Inventory newGui = Bukkit.createInventory(null, 9, Component.text(ChatColor.BOLD+"Select a Class"));
+        newGui.setContents(menuItems);
+        return newGui;
     }
     
     
