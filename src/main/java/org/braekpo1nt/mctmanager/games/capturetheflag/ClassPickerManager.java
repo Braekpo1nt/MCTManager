@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.games.capturetheflag;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.bukkit.Bukkit;
@@ -9,6 +10,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -17,8 +19,13 @@ import java.util.*;
 
 public class ClassPickerManager implements Listener {
     
-    public static final Component TITLE = Component.text("Choose your Class");
+    public static final Component TITLE = Component.empty()
+            .append(Component.text("Pick a Class")
+                    .color(NamedTextColor.DARK_GRAY))
+            .append(Component.text(" (One per team)")
+                    .color(NamedTextColor.GRAY));
     private final Map<String, List<BattleClass>> classTracker = new HashMap<>();
+    private final List<UUID> participantsWhoPickedClasses = new ArrayList<>();
     private final GameManager gameManager;
     
     public ClassPickerManager(Main plugin, GameManager gameManager) {
@@ -37,11 +44,11 @@ public class ClassPickerManager implements Listener {
         if (event.getCurrentItem() == null) {
             return;
         }
-        Player player = ((Player) event.getWhoClicked());
-        if (!gameManager.isParticipant(player.getUniqueId())) {
+        Player participant = ((Player) event.getWhoClicked());
+        if (!gameManager.isParticipant(participant.getUniqueId())) {
             return;
         }
-        String teamName = gameManager.getTeamName(player.getUniqueId());
+        String teamName = gameManager.getTeamName(participant.getUniqueId());
         if (!classTracker.containsKey(teamName)) {
             classTracker.put(teamName, new ArrayList<>());
         }
@@ -51,60 +58,102 @@ public class ClassPickerManager implements Listener {
         switch (clickedItem) {
             case STONE_SWORD:
                 if (teamClasses.contains(BattleClass.KNIGHT)) {
-                    player.sendMessage(Component.text("Someone on your team already selected Knight"));
+                    participant.sendMessage(Component.text("Someone on your team already selected Knight").color(NamedTextColor.RED));
                     return;
                 }
                 teamClasses.add(BattleClass.KNIGHT);
-                player.getInventory().clear();
-                player.getEquipment().setChestplate(new ItemStack(Material.LEATHER_CHESTPLATE));
-                player.getEquipment().setBoots(new ItemStack(Material.LEATHER_BOOTS));
-                player.getInventory().addItem(new ItemStack(Material.STONE_SWORD));
-                player.sendMessage("Selected Knight");
+                assignClass(participant, BattleClass.KNIGHT);
                 break;
             case BOW:
                 if (teamClasses.contains(BattleClass.ARCHER)) {
-                    player.sendMessage(Component.text("Someone on your team already selected Archer"));
+                    participant.sendMessage(Component.text("Someone on your team already selected Archer").color(NamedTextColor.RED));
                     return;
                 }
                 teamClasses.add(BattleClass.ARCHER);
-                player.getInventory().clear();
-                player.getEquipment().setChestplate(new ItemStack(Material.LEATHER_CHESTPLATE));
-                player.getEquipment().setBoots(new ItemStack(Material.LEATHER_BOOTS));
-                player.getInventory().addItem(new ItemStack(Material.BOW));
-                player.getInventory().addItem(new ItemStack(Material.ARROW, 16));
-                player.getInventory().addItem(new ItemStack(Material.WOODEN_SWORD));
-                player.sendMessage("Selected Archer");
+                assignClass(participant, BattleClass.ARCHER);
                 break;
             case IRON_SWORD:
                 if (teamClasses.contains(BattleClass.ASSASSIN)) {
-                    player.sendMessage(Component.text("Someone on your team already selected Assassin"));
+                    participant.sendMessage(Component.text("Someone on your team already selected Assassin").color(NamedTextColor.RED));
                     return;
                 }
                 teamClasses.add(BattleClass.ASSASSIN);
-                player.getInventory().clear();
-                player.getInventory().addItem(new ItemStack(Material.IRON_SWORD));
-                player.sendMessage("Selected Assassin");
+                assignClass(participant, BattleClass.ASSASSIN);
                 break;
             case LEATHER_CHESTPLATE:
                 if (teamClasses.contains(BattleClass.TANK)) {
-                    player.sendMessage(Component.text("Someone on your team already selected Tank"));
+                    participant.sendMessage(Component.text("Someone on your team already selected Tank").color(NamedTextColor.RED));
                     return;
                 }
                 teamClasses.add(BattleClass.TANK);
-                player.getInventory().clear();
-                player.getEquipment().setChestplate(new ItemStack(Material.LEATHER_CHESTPLATE));
-                player.getEquipment().setLeggings(new ItemStack(Material.LEATHER_LEGGINGS));
-                player.getEquipment().setBoots(new ItemStack(Material.LEATHER_BOOTS));
-                player.sendMessage("Selected Tank");
+                assignClass(participant, BattleClass.TANK);
                 break;
             default:
                 return;
         }
-        player.closeInventory();
+        participantsWhoPickedClasses.add(participant.getUniqueId());
+        participant.closeInventory();
+    }
+    
+    /**
+     * Assign the given class to the given participant. Setting their inventory
+     * and armor to the appropriate items. 
+     * @param participant the participant to assign a class to
+     * @param battleClass the class to assign
+     */
+    public void assignClass(Player participant, BattleClass battleClass) {
+        switch (battleClass) {
+            case KNIGHT -> {
+                participant.getInventory().clear();
+                participant.getEquipment().setChestplate(new ItemStack(Material.LEATHER_CHESTPLATE));
+                participant.getEquipment().setBoots(new ItemStack(Material.LEATHER_BOOTS));
+                participant.getInventory().addItem(new ItemStack(Material.STONE_SWORD));
+                participant.sendMessage("Selected Knight");
+            }
+            case ARCHER -> {
+                participant.getInventory().clear();
+                participant.getEquipment().setChestplate(new ItemStack(Material.LEATHER_CHESTPLATE));
+                participant.getEquipment().setBoots(new ItemStack(Material.LEATHER_BOOTS));
+                participant.getInventory().addItem(new ItemStack(Material.BOW));
+                participant.getInventory().addItem(new ItemStack(Material.ARROW, 16));
+                participant.getInventory().addItem(new ItemStack(Material.WOODEN_SWORD));
+                participant.sendMessage("Selected Archer");
+            }
+            case ASSASSIN -> {
+                participant.getInventory().clear();
+                participant.getInventory().addItem(new ItemStack(Material.IRON_SWORD));
+                participant.sendMessage("Selected Assassin");
+            }
+            case TANK -> {
+                participant.getInventory().clear();
+                participant.getEquipment().setChestplate(new ItemStack(Material.LEATHER_CHESTPLATE));
+                participant.getEquipment().setLeggings(new ItemStack(Material.LEATHER_LEGGINGS));
+                participant.getEquipment().setBoots(new ItemStack(Material.LEATHER_BOOTS));
+                participant.sendMessage("Selected Tank");
+            }
+        }
+    }
+    
+    
+    
+    @EventHandler
+    public void inventoryCloseEvent(InventoryCloseEvent event) {
+        if (!event.getView().title().equals(TITLE)) {
+            return;
+        }
+        Player participant = ((Player) event.getPlayer());
+        if (!gameManager.isParticipant(participant.getUniqueId())) {
+            return;
+        }
+        if (participantsWhoPickedClasses.contains(participant.getUniqueId())) {
+            return;
+        }
+        participant.sendMessage(Component.text("You didn't pick a class. Your class will be randomly selected.").color(NamedTextColor.RED));
     }
     
     public void resetClassPickerTracker() {
         this.classTracker.clear();
+        this.participantsWhoPickedClasses.clear();
     }
     
     /**
