@@ -20,6 +20,7 @@ public class CaptureTheFlagGame implements MCTGame {
     
     private final Main plugin;
     private final GameManager gameManager;
+    private final ClassPickerManager classPickerManager;
     private boolean gameActive = false;
     private final String title = ChatColor.BLUE+"Capture the Flag";
     private final World captureTheFlagWorld;
@@ -47,6 +48,7 @@ public class CaptureTheFlagGame implements MCTGame {
     public CaptureTheFlagGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
         this.gameManager = gameManager;
+        this.classPickerManager = new ClassPickerManager(plugin);
         MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
         MultiverseWorld mvCaptureTheFlagWorld = worldManager.getMVWorld("FT");
         this.captureTheFlagWorld = mvCaptureTheFlagWorld.getCBWorld();
@@ -137,7 +139,10 @@ public class CaptureTheFlagGame implements MCTGame {
     }
     
     private void startClassSelectionPeriod() {
-        messageAllParticipants(Component.text("Choose your class (placeholder)"));
+        messageAllParticipants(Component.text("Choose your class"));
+        for (Player participant : participants) {
+            classPickerManager.showClassPickerGui(participant);
+        }
     }
     
     /**

@@ -17,10 +17,9 @@ import java.util.Arrays;
 
 public class ClassPickerManager implements Listener {
     
-    private final Inventory gui;
+    public static final Component TITLE = Component.text("Choose your Class");
     
     public ClassPickerManager(Main plugin) {
-        this.gui = createGui();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
     
@@ -29,14 +28,14 @@ public class ClassPickerManager implements Listener {
         if (event.getClickedInventory() == null) {
             return;
         }
-        Inventory clickedInventory = event.getClickedInventory();
-        if (!clickedInventory.equals(gui)) {
+        if (!event.getView().title().equals(TITLE)) {
             return;
         }
         Player player = ((Player) event.getWhoClicked());
         if (event.getCurrentItem() == null) {
             return;
         }
+        Bukkit.getLogger().info("current item");
         Material clickedItem = event.getCurrentItem().getType();
         switch (clickedItem) {
             case STONE_SWORD:
@@ -70,12 +69,16 @@ public class ClassPickerManager implements Listener {
             default:
                 return;
         }
-        clickedInventory.close();
+        player.closeInventory();
         
         event.setCancelled(true);
     }
     
-    private Inventory createGui() {
+    /**
+     * Shows the given participant the Class Picker gui
+     * @param participant The participant to show the gui to
+     */
+    public void showClassPickerGui(Player participant) {
         ItemStack knight = new ItemStack(Material.STONE_SWORD);
         ItemStack archer = new ItemStack(Material.BOW);
         ItemStack assassin = new ItemStack(Material.IRON_SWORD);
@@ -119,9 +122,9 @@ public class ClassPickerManager implements Listener {
         tank.setItemMeta(tankMeta);
         
         ItemStack[] menuItems = {knight, archer, assassin, tank};
-        Inventory newGui = Bukkit.createInventory(null, 9, Component.text(ChatColor.BOLD+"Select a Class"));
+        Inventory newGui = Bukkit.createInventory(null, 9, TITLE);
         newGui.setContents(menuItems);
-        return newGui;
+        participant.openInventory(newGui);
     }
     
 }
