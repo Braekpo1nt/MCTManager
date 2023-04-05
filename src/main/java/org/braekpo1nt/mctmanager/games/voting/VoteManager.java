@@ -45,7 +45,7 @@ public class VoteManager implements Listener {
     @EventHandler
     private void clickEvent(InventoryClickEvent event) {
         if (!voting) {
-            
+            return;
         }
         if (event.getClickedInventory() == null) {
             return;
@@ -104,6 +104,8 @@ public class VoteManager implements Listener {
             String game = getVotedGame();
             Bukkit.getLogger().info("Game voted for:  " + game);
             gameManager.startGame(game, null);
+            votes.clear();
+            voters.clear();
             voting = false;
         }
     }

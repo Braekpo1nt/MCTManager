@@ -26,7 +26,7 @@ public class CaptureTheFlagGame implements MCTGame {
     private boolean gameActive = false;
     private final String title = ChatColor.BLUE+"Capture the Flag";
     private final World captureTheFlagWorld;
-    private Location spawnObservatory;
+    private final Location spawnObservatory;
     private List<Arena> arenas;
     private List<Player> participants;
     /**
@@ -146,9 +146,7 @@ public class CaptureTheFlagGame implements MCTGame {
     
     private void startClassSelectionPeriod() {
         messageAllParticipants(Component.text("Choose your class"));
-        for (Player participant : participants) {
-            classPickerManager.showClassPickerGui(participant);
-        }
+        classPickerManager.startClassPicking(participants);
         this.classSelectionCountdownTaskIt = new BukkitRunnable() {
             private int count = 20;
             

@@ -27,6 +27,7 @@ public class ClassPickerManager implements Listener {
     private final Map<String, List<BattleClass>> classTracker = new HashMap<>();
     private final List<UUID> participantsWhoPickedClasses = new ArrayList<>();
     private final GameManager gameManager;
+    private boolean picking = false;
     
     public ClassPickerManager(Main plugin, GameManager gameManager) {
         this.gameManager = gameManager;
@@ -35,6 +36,9 @@ public class ClassPickerManager implements Listener {
     
     @EventHandler
     public void clickEvent(InventoryClickEvent event) {
+        if (!picking) {
+            return;
+        }
         if (event.getClickedInventory() == null) {
             return;
         }
@@ -95,6 +99,24 @@ public class ClassPickerManager implements Listener {
         participant.closeInventory();
     }
     
+    @EventHandler
+    public void inventoryCloseEvent(InventoryCloseEvent event) {
+        if (!picking) {
+            return;
+        }
+        if (!event.getView().title().equals(TITLE)) {
+            return;
+        }
+        Player participant = ((Player) event.getPlayer());
+        if (!gameManager.isParticipant(participant.getUniqueId())) {
+            return;
+        }
+        if (participantsWhoPickedClasses.contains(participant.getUniqueId())) {
+            return;
+        }
+        participant.sendMessage(Component.text("You didn't pick a class. Your class will be randomly selected.").color(NamedTextColor.RED));
+    }
+    
     /**
      * Assign the given class to the given participant. Setting their inventory
      * and armor to the appropriate items. 
@@ -132,23 +154,6 @@ public class ClassPickerManager implements Listener {
                 participant.sendMessage("Selected Tank");
             }
         }
-    }
-    
-    
-    
-    @EventHandler
-    public void inventoryCloseEvent(InventoryCloseEvent event) {
-        if (!event.getView().title().equals(TITLE)) {
-            return;
-        }
-        Player participant = ((Player) event.getPlayer());
-        if (!gameManager.isParticipant(participant.getUniqueId())) {
-            return;
-        }
-        if (participantsWhoPickedClasses.contains(participant.getUniqueId())) {
-            return;
-        }
-        participant.sendMessage(Component.text("You didn't pick a class. Your class will be randomly selected.").color(NamedTextColor.RED));
     }
     
     /**
@@ -193,11 +198,22 @@ public class ClassPickerManager implements Listener {
         this.participantsWhoPickedClasses.clear();
     }
     
+    public void startClassPicking(List<Player> participants) {
+        picking = true;
+        for (Player participant : participants) {
+            showClassPickerGui(participant);
+        }
+    }
+    
+    private void stopClassPicking() {
+        picking = false;
+    }
+    
     /**
      * Shows the given participant the Class Picker gui
      * @param participant The participant to show the gui to
      */
-    public void showClassPickerGui(Player participant) {
+    private void showClassPickerGui(Player participant) {
         ItemStack knight = new ItemStack(Material.STONE_SWORD);
         ItemStack archer = new ItemStack(Material.BOW);
         ItemStack assassin = new ItemStack(Material.IRON_SWORD);
