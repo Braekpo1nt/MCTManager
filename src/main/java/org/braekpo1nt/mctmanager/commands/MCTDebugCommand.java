@@ -22,7 +22,6 @@ public class MCTDebugCommand implements CommandExecutor {
     
     private final Main plugin;
     private final WorldBorder worldBorder;
-    private final Inventory gui;
     
     public MCTDebugCommand(Main plugin) {
         this.plugin = plugin;
@@ -30,8 +29,7 @@ public class MCTDebugCommand implements CommandExecutor {
         MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
         World mechaWorld = worldManager.getMVWorld("FT").getCBWorld();
         this.worldBorder = mechaWorld.getWorldBorder();
-        gui = createGui();
-        new DebugClickEvent(plugin, gui);
+        new DebugClickEvent(plugin);
     }
     
     @Override
@@ -42,7 +40,7 @@ public class MCTDebugCommand implements CommandExecutor {
         }
 //        Player player = ((Player) sender).getPlayer();
         for (Player player : Bukkit.getOnlinePlayers()) {
-            player.openInventory(gui);
+            player.openInventory(createGui());
         }
         
 //        Component mainTitle = Component.text("Main title");
@@ -98,7 +96,7 @@ public class MCTDebugCommand implements CommandExecutor {
         tank.setItemMeta(tankMeta);
     
         ItemStack[] menuItems = {knight, archer, assassin, tank};
-        Inventory newGui = Bukkit.createInventory(null, 9, Component.text(ChatColor.BOLD+"Select a Class"));
+        Inventory newGui = Bukkit.createInventory(null, 9, DebugClickEvent.TITLE);
         newGui.setContents(menuItems);
         return newGui;
     }
