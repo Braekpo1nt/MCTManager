@@ -179,6 +179,7 @@ public class GameStateStorageUtil {
      * Gets the internal team name of the player with the given UUID
      * @param playerUniqueId The UUID of the player to find the team of
      * @return The internal team name of the player with the given UUID
+     * @throws NullPointerException if the game state doesn't contain the player's UUID
      */
     public String getPlayerTeamName(UUID playerUniqueId) {
         return gameState.getPlayer(playerUniqueId).getTeamName();

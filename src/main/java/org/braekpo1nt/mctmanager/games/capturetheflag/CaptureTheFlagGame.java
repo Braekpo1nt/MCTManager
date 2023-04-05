@@ -11,15 +11,18 @@ import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 
+import java.time.Duration;
 import java.util.*;
 
 public class CaptureTheFlagGame implements MCTGame {
     
     private final Main plugin;
     private final GameManager gameManager;
+    private final ClassPickerManager classPickerManager;
     private boolean gameActive = false;
     private final String title = ChatColor.BLUE+"Capture the Flag";
     private final World captureTheFlagWorld;
@@ -42,11 +45,13 @@ public class CaptureTheFlagGame implements MCTGame {
     private List<UUID> livingPlayers;
     private List<UUID> deadPlayers;
     private Map<UUID, Integer> killCounts;
+    private int classSelectionCountdownTaskIt;
     
     
     public CaptureTheFlagGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
         this.gameManager = gameManager;
+        this.classPickerManager = new ClassPickerManager(plugin, gameManager);
         MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
         MultiverseWorld mvCaptureTheFlagWorld = worldManager.getMVWorld("FT");
         this.captureTheFlagWorld = mvCaptureTheFlagWorld.getCBWorld();
@@ -59,7 +64,7 @@ public class CaptureTheFlagGame implements MCTGame {
      * Starts a new Capture the Flag game with the provided participants.
      * Assumes that the provided list of participants collectively belong
      * to at least 2 teams, and at most 8 teams. 
-     * @param newParticipants
+     * @param newParticipants 
      */
     @Override
     public void start(List<Player> newParticipants) {
@@ -82,6 +87,8 @@ public class CaptureTheFlagGame implements MCTGame {
             resetParticipant(participant);
         }
         participants.clear();
+        this.classPickerManager.resetClassPickerTracker();
+        cancelAllTasks();
         gameActive = false;
         gameManager.gameIsOver();
         Bukkit.getLogger().info("Stopped Capture the Flag");
@@ -127,6 +134,7 @@ public class CaptureTheFlagGame implements MCTGame {
         this.livingPlayers = new ArrayList<>();
         this.deadPlayers = new ArrayList<>();
         this.killCounts = new HashMap<>();
+        this.classPickerManager.resetClassPickerTracker();
         currentRoundTeamParings = allRoundTeamPairings.get(currentRound-1);
         for (Player participant : participants){
             initializeParticipantForRound(participant);
@@ -137,7 +145,35 @@ public class CaptureTheFlagGame implements MCTGame {
     }
     
     private void startClassSelectionPeriod() {
-        messageAllParticipants(Component.text("Choose your class (placeholder)"));
+        messageAllParticipants(Component.text("Choose your class"));
+        for (Player participant : participants) {
+            classPickerManager.showClassPickerGui(participant);
+        }
+        this.classSelectionCountdownTaskIt = new BukkitRunnable() {
+            private int count = 20;
+            
+            @Override
+            public void run() {
+                if (count <= 0) {
+                    messageAllParticipants(Component.text("Class selection is over"));
+                } else {
+                    for (Player participant : participants) {
+                        String timeString = getTimeString(count);
+                        updateClassSelectionFastBoardTimer(participant, timeString);
+                    }
+                }
+                if (count <= 0) {
+                    startCaptureTheFlagRound();
+                    this.cancel();
+                    return;
+                }
+                count--;
+            }
+        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+    }
+    
+    private void startCaptureTheFlagRound() {
+        classPickerManager.assignClassesToParticipantsWithoutClasses(participants);
     }
     
     /**
@@ -210,6 +246,10 @@ public class CaptureTheFlagGame implements MCTGame {
         }
     }
     
+    private void cancelAllTasks() {
+        Bukkit.getScheduler().cancelTask(classSelectionCountdownTaskIt);
+    }
+    
     private void resetHealthAndHunger(Player participant) {
         participant.setHealth(participant.getAttribute(Attribute.GENERIC_MAX_HEALTH).getDefaultValue());
         participant.setFoodLevel(20);
@@ -220,6 +260,21 @@ public class CaptureTheFlagGame implements MCTGame {
         for (PotionEffect effect : participant.getActivePotionEffects()) {
             participant.removePotionEffect(effect.getType());
         }
+    }
+    
+    private void updateClassSelectionFastBoardTimer(Player participant, String timerString) {
+        int killCount = killCounts.get(participant.getUniqueId());
+        gameManager.getFastBoardManager().updateLines(
+                participant.getUniqueId(),
+                title,
+                "",
+                ChatColor.RED+"Kills: "+killCount,
+                "",
+                "Class selection:",
+                timerString,
+                "",
+                "Round: " + currentRound + "/" + maxRounds
+        );
     }
     
     private void initializeFastBoard(Player participant) {
@@ -241,6 +296,19 @@ public class CaptureTheFlagGame implements MCTGame {
         gameManager.getFastBoardManager().updateLines(
                 participant.getUniqueId()
         );
+    }
+    
+    /**
+     * Returns the given seconds as a string representing time in the format
+     * MM:ss (or minutes:seconds)
+     * @param timeSeconds The time in seconds
+     * @return Time string MM:ss
+     */
+    private String getTimeString(long timeSeconds) {
+        Duration duration = Duration.ofSeconds(timeSeconds);
+        long minutes = duration.toMinutes();
+        long seconds = duration.minusMinutes(minutes).getSeconds();
+        return String.format("%d:%02d", minutes, seconds);
     }
     
     private void setUpTeamOptions() {
