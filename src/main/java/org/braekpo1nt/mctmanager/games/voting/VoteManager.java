@@ -102,11 +102,11 @@ public class VoteManager implements Listener {
         }
         if (allPlayersHaveVoted()) {
             String game = getVotedGame();
-            Bukkit.getLogger().info("Game voted for:  " + game);
-            gameManager.startGame(game, null);
             votes.clear();
             voters.clear();
             voting = false;
+            Bukkit.getLogger().info("Game voted for:  " + game);
+            gameManager.startGame(game, null);
         }
     }
     
