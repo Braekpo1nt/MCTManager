@@ -151,6 +151,40 @@ public class ClassPickerManager implements Listener {
         participant.sendMessage(Component.text("You didn't pick a class. Your class will be randomly selected.").color(NamedTextColor.RED));
     }
     
+    /**
+     * Goes through all given participants and assigns a class to any that don't
+     * already have one. It will assign classes from the pool of unpicked classes
+     * for that team. 
+     * @param participants The list of participants to check for a class
+     *                     and assign if absent. 
+     */
+    public void assignClassesToParticipantsWithoutClasses(List<Player> participants) {
+        for (Player participant : participants) {
+            if (!this.participantsWhoPickedClasses.contains(participant.getUniqueId())) {
+                randomlyAssignClass(participant);
+            }
+        }
+    }
+    
+    /**
+     * Randomly assign a class to the given participant from the pool of classes
+     * that are left (classes that other players on their team didn't pick).
+     * If there are no classes left unpicked to assign, this method does nothing.
+     * @param participant the participant to assign a class to
+     * @throws NullPointerException if the participant is not in the game state
+     */
+    private void randomlyAssignClass(Player participant) {
+        String teamName = gameManager.getTeamName(participant.getUniqueId());
+        List<BattleClass> pickedBattleClasses = this.classTracker.get(teamName);
+        for (BattleClass battleClass : BattleClass.values()) {
+            if (!pickedBattleClasses.contains(battleClass)) {
+                pickedBattleClasses.add(battleClass);
+                assignClass(participant, battleClass);
+                return;
+            }
+        }
+    }
+    
     public void resetClassPickerTracker() {
         this.classTracker.clear();
         this.participantsWhoPickedClasses.clear();
