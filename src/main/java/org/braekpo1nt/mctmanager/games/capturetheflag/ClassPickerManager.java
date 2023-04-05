@@ -205,8 +205,12 @@ public class ClassPickerManager implements Listener {
         }
     }
     
-    private void stopClassPicking() {
+    public void stopClassPicking(List<Player> participants) {
         picking = false;
+        resetClassPickerTracker();
+        for (Player participant : participants) {
+            participant.closeInventory();
+        }
     }
     
     /**

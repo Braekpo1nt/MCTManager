@@ -76,8 +76,13 @@ public class CaptureTheFlagGame implements MCTGame {
             initializeParticipant(participant);
         }
         setUpTeamOptions();
-        startNextRound();
         gameActive = true;
+        new BukkitRunnable(){
+            @Override
+            public void run() {
+                startNextRound();
+            }
+        }.runTaskLater(plugin, 5*20L);
         Bukkit.getLogger().info("Started Capture the Flag");
     }
     
@@ -87,7 +92,7 @@ public class CaptureTheFlagGame implements MCTGame {
             resetParticipant(participant);
         }
         participants.clear();
-        this.classPickerManager.resetClassPickerTracker();
+        classPickerManager.stopClassPicking(participants);
         cancelAllTasks();
         gameActive = false;
         gameManager.gameIsOver();
@@ -161,6 +166,7 @@ public class CaptureTheFlagGame implements MCTGame {
                     }
                 }
                 if (count <= 0) {
+                    classPickerManager.stopClassPicking(participants);
                     startCaptureTheFlagRound();
                     this.cancel();
                     return;
