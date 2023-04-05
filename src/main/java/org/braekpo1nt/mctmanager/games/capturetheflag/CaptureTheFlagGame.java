@@ -48,7 +48,7 @@ public class CaptureTheFlagGame implements MCTGame {
     public CaptureTheFlagGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
         this.gameManager = gameManager;
-        this.classPickerManager = new ClassPickerManager(plugin);
+        this.classPickerManager = new ClassPickerManager(plugin, gameManager);
         MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
         MultiverseWorld mvCaptureTheFlagWorld = worldManager.getMVWorld("FT");
         this.captureTheFlagWorld = mvCaptureTheFlagWorld.getCBWorld();
@@ -84,6 +84,7 @@ public class CaptureTheFlagGame implements MCTGame {
             resetParticipant(participant);
         }
         participants.clear();
+        this.classPickerManager.resetClassPickerTracker();
         gameActive = false;
         gameManager.gameIsOver();
         Bukkit.getLogger().info("Stopped Capture the Flag");
@@ -129,6 +130,7 @@ public class CaptureTheFlagGame implements MCTGame {
         this.livingPlayers = new ArrayList<>();
         this.deadPlayers = new ArrayList<>();
         this.killCounts = new HashMap<>();
+        this.classPickerManager.resetClassPickerTracker();
         currentRoundTeamParings = allRoundTeamPairings.get(currentRound-1);
         for (Player participant : participants){
             initializeParticipantForRound(participant);

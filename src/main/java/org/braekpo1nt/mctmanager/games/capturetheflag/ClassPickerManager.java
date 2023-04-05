@@ -2,8 +2,8 @@ package org.braekpo1nt.mctmanager.games.capturetheflag;
 
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.games.GameManager;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -13,13 +13,16 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import java.util.Arrays;
+import java.util.*;
 
 public class ClassPickerManager implements Listener {
     
     public static final Component TITLE = Component.text("Choose your Class");
+    private final Map<String, List<BattleClass>> classTracker = new HashMap<>();
+    private final GameManager gameManager;
     
-    public ClassPickerManager(Main plugin) {
+    public ClassPickerManager(Main plugin, GameManager gameManager) {
+        this.gameManager = gameManager;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
     
@@ -31,14 +34,27 @@ public class ClassPickerManager implements Listener {
         if (!event.getView().title().equals(TITLE)) {
             return;
         }
-        Player player = ((Player) event.getWhoClicked());
         if (event.getCurrentItem() == null) {
             return;
         }
-        Bukkit.getLogger().info("current item");
+        Player player = ((Player) event.getWhoClicked());
+        if (!gameManager.isParticipant(player.getUniqueId())) {
+            return;
+        }
+        String teamName = gameManager.getTeamName(player.getUniqueId());
+        if (!classTracker.containsKey(teamName)) {
+            classTracker.put(teamName, new ArrayList<>());
+        }
+        event.setCancelled(true);
+        List<BattleClass> teamClasses = classTracker.get(teamName);
         Material clickedItem = event.getCurrentItem().getType();
         switch (clickedItem) {
             case STONE_SWORD:
+                if (teamClasses.contains(BattleClass.KNIGHT)) {
+                    player.sendMessage(Component.text("Someone on your team already selected Knight"));
+                    return;
+                }
+                teamClasses.add(BattleClass.KNIGHT);
                 player.getInventory().clear();
                 player.getEquipment().setChestplate(new ItemStack(Material.LEATHER_CHESTPLATE));
                 player.getEquipment().setBoots(new ItemStack(Material.LEATHER_BOOTS));
@@ -46,6 +62,11 @@ public class ClassPickerManager implements Listener {
                 player.sendMessage("Selected Knight");
                 break;
             case BOW:
+                if (teamClasses.contains(BattleClass.ARCHER)) {
+                    player.sendMessage(Component.text("Someone on your team already selected Archer"));
+                    return;
+                }
+                teamClasses.add(BattleClass.ARCHER);
                 player.getInventory().clear();
                 player.getEquipment().setChestplate(new ItemStack(Material.LEATHER_CHESTPLATE));
                 player.getEquipment().setBoots(new ItemStack(Material.LEATHER_BOOTS));
@@ -55,11 +76,21 @@ public class ClassPickerManager implements Listener {
                 player.sendMessage("Selected Archer");
                 break;
             case IRON_SWORD:
+                if (teamClasses.contains(BattleClass.ASSASSIN)) {
+                    player.sendMessage(Component.text("Someone on your team already selected Assassin"));
+                    return;
+                }
+                teamClasses.add(BattleClass.ASSASSIN);
                 player.getInventory().clear();
                 player.getInventory().addItem(new ItemStack(Material.IRON_SWORD));
                 player.sendMessage("Selected Assassin");
                 break;
             case LEATHER_CHESTPLATE:
+                if (teamClasses.contains(BattleClass.TANK)) {
+                    player.sendMessage(Component.text("Someone on your team already selected Tank"));
+                    return;
+                }
+                teamClasses.add(BattleClass.TANK);
                 player.getInventory().clear();
                 player.getEquipment().setChestplate(new ItemStack(Material.LEATHER_CHESTPLATE));
                 player.getEquipment().setLeggings(new ItemStack(Material.LEATHER_LEGGINGS));
@@ -70,8 +101,10 @@ public class ClassPickerManager implements Listener {
                 return;
         }
         player.closeInventory();
-        
-        event.setCancelled(true);
+    }
+    
+    public void resetClassPickerTracker() {
+        this.classTracker.clear();
     }
     
     /**
@@ -121,10 +154,17 @@ public class ClassPickerManager implements Listener {
         ));
         tank.setItemMeta(tankMeta);
         
-        ItemStack[] menuItems = {knight, archer, assassin, tank};
         Inventory newGui = Bukkit.createInventory(null, 9, TITLE);
-        newGui.setContents(menuItems);
+        newGui.setItem(getSlotIndex(1, 1), knight);
+        newGui.setItem(getSlotIndex(1, 2), archer);
+        newGui.setItem(getSlotIndex(1, 3), assassin);
+        newGui.setItem(getSlotIndex(1, 4), tank);
         participant.openInventory(newGui);
+    }
+    
+    public static int getSlotIndex(int line, int column) {
+        int slotIndex = (line - 1) * 9 + (column - 1);
+        return slotIndex;
     }
     
 }

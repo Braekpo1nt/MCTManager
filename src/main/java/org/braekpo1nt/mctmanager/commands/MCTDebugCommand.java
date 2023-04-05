@@ -45,11 +45,5 @@ public class MCTDebugCommand implements CommandExecutor {
     }
     
     
-    public static int getSlotIndex(int line, int column) {
-        int slotIndex = (line - 1) * 9 + (column - 1);
-        return slotIndex;
-    }
-    
-    
     
 }
