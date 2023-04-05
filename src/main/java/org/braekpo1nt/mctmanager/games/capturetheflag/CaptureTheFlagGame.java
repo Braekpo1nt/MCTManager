@@ -11,9 +11,11 @@ import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 
+import java.time.Duration;
 import java.util.*;
 
 public class CaptureTheFlagGame implements MCTGame {
@@ -43,6 +45,7 @@ public class CaptureTheFlagGame implements MCTGame {
     private List<UUID> livingPlayers;
     private List<UUID> deadPlayers;
     private Map<UUID, Integer> killCounts;
+    private int classSelectionCountdownTaskIt;
     
     
     public CaptureTheFlagGame(Main plugin, GameManager gameManager) {
@@ -85,6 +88,7 @@ public class CaptureTheFlagGame implements MCTGame {
         }
         participants.clear();
         this.classPickerManager.resetClassPickerTracker();
+        cancelAllTasks();
         gameActive = false;
         gameManager.gameIsOver();
         Bukkit.getLogger().info("Stopped Capture the Flag");
@@ -145,6 +149,59 @@ public class CaptureTheFlagGame implements MCTGame {
         for (Player participant : participants) {
             classPickerManager.showClassPickerGui(participant);
         }
+        this.classSelectionCountdownTaskIt = new BukkitRunnable() {
+            private int count = 20;
+            
+            @Override
+            public void run() {
+                if (count <= 0) {
+                    messageAllParticipants(Component.text("Class selection is over"));
+                } else {
+                    for (Player participant : participants) {
+                        String timeString = getTimeString(count);
+                        updateClassSelectionTimer(participant, timeString);
+                    }
+                }
+                if (count <= 0) {
+                    startCaptureTheFlagRound();
+                    this.cancel();
+                    return;
+                }
+                count--;
+            }
+        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+    }
+    
+    private void startCaptureTheFlagRound() {
+        classPickerManager.assignClassesToParticipantsWithoutClasses(participants);
+    }
+    
+    /**
+     * Returns the given seconds as a string representing time in the format
+     * MM:ss (or minutes:seconds)
+     * @param timeSeconds The time in seconds
+     * @return Time string MM:ss
+     */
+    private String getTimeString(long timeSeconds) {
+        Duration duration = Duration.ofSeconds(timeSeconds);
+        long minutes = duration.toMinutes();
+        long seconds = duration.minusMinutes(minutes).getSeconds();
+        return String.format("%d:%02d", minutes, seconds);
+    }
+    
+    private void updateClassSelectionTimer(Player participant, String timerString) {
+        int killCount = killCounts.get(participant.getUniqueId());
+        gameManager.getFastBoardManager().updateLines(
+                participant.getUniqueId(),
+                title,
+                "",
+                ChatColor.RED+"Kills: "+killCount,
+                "",
+                "Class selection:",
+                timerString,
+                "",
+                "Round: " + currentRound + "/" + maxRounds
+        );
     }
     
     /**
@@ -215,6 +272,10 @@ public class CaptureTheFlagGame implements MCTGame {
                 participant.teleport(arena.getSouthSpawn());
             }
         }
+    }
+    
+    private void cancelAllTasks() {
+        Bukkit.getScheduler().cancelTask(classSelectionCountdownTaskIt);
     }
     
     private void resetHealthAndHunger(Player participant) {

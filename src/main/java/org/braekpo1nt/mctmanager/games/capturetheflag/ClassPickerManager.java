@@ -175,6 +175,9 @@ public class ClassPickerManager implements Listener {
      */
     private void randomlyAssignClass(Player participant) {
         String teamName = gameManager.getTeamName(participant.getUniqueId());
+        if (!classTracker.containsKey(teamName)) {
+            classTracker.put(teamName, new ArrayList<>());
+        }
         List<BattleClass> pickedBattleClasses = this.classTracker.get(teamName);
         for (BattleClass battleClass : BattleClass.values()) {
             if (!pickedBattleClasses.contains(battleClass)) {
