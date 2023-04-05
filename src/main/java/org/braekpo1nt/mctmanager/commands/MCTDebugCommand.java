@@ -32,7 +32,7 @@ public class MCTDebugCommand implements CommandExecutor {
         MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
         World mechaWorld = worldManager.getMVWorld("FT").getCBWorld();
         this.worldBorder = mechaWorld.getWorldBorder();
-        gui = Bukkit.createInventory(null, 9, Component.text(ChatColor.AQUA+"Custom GUI"));
+        gui = Bukkit.createInventory(null, 9*6, Component.text(ChatColor.AQUA+"Custom GUI"));
         new DebugClickEvent(plugin, gui);
     }
     
@@ -44,14 +44,8 @@ public class MCTDebugCommand implements CommandExecutor {
         }
         Player player = ((Player) sender).getPlayer();
         
-        ItemStack suicide = new ItemStack(Material.TNT);
         ItemStack feed = new ItemStack(Material.BREAD);
         ItemStack sword = new ItemStack(Material.DIAMOND_SWORD);
-    
-        ItemMeta suicideMeta = suicide.getItemMeta();
-        suicideMeta.displayName(Component.text("Suicide").color(NamedTextColor.RED));
-        suicideMeta.lore(Collections.singletonList(Component.text("/kill")));
-        suicide.setItemMeta(suicideMeta);
     
         ItemMeta feedMeta = feed.getItemMeta();
         feedMeta.displayName(Component.text("Feed").color(NamedTextColor.DARK_GREEN));
@@ -63,8 +57,8 @@ public class MCTDebugCommand implements CommandExecutor {
         swordMeta.lore(Collections.singletonList(Component.text("Get a sword.")));
         sword.setItemMeta(swordMeta);
         
-        ItemStack[] menuItems = {suicide, feed, sword};
-        gui.setContents(menuItems);
+        gui.setItem(getSlotIndex(2,3), feed);
+        gui.setItem(getSlotIndex(3,8), sword);
         player.openInventory(gui);
     
         
@@ -78,6 +72,10 @@ public class MCTDebugCommand implements CommandExecutor {
     }
     
     
+    public static int getSlotIndex(int line, int column) {
+        int slotIndex = (line - 1) * 9 + (column - 1);
+        return slotIndex;
+    }
     
     
     
