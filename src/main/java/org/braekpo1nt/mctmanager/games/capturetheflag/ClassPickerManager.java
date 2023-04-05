@@ -248,7 +248,7 @@ public class ClassPickerManager implements Listener {
         participant.openInventory(newGui);
     }
     
-    public static int getSlotIndex(int line, int column) {
+    public int getSlotIndex(int line, int column) {
         int slotIndex = (line - 1) * 9 + (column - 1);
         return slotIndex;
     }

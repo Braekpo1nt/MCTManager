@@ -11,10 +11,10 @@ import org.braekpo1nt.mctmanager.games.footrace.FootRaceGame;
 import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
 import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.mecha.MechaGame;
+import org.braekpo1nt.mctmanager.games.voting.VoteManager;
 import org.braekpo1nt.mctmanager.hub.HubManager;
 import org.braekpo1nt.mctmanager.ui.FastBoardManager;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
@@ -54,12 +54,14 @@ public class GameManager implements Listener {
     private boolean shouldTeleportToHub = true;
     private int fastBoardUpdaterTaskId;
     private final List<UUID> participantsWhoLeftMidGame = new ArrayList<>();
+    private final VoteManager voteManager;
     
     public GameManager(Main plugin, Scoreboard mctScoreboard, HubManager hubManager) {
         this.plugin = plugin;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         this.mctScoreboard = mctScoreboard;
         this.gameStateStorageUtil = new GameStateStorageUtil(plugin);
+        this.voteManager = new VoteManager(this, plugin);
         this.footRaceGame = new FootRaceGame(plugin, this);
         this.mechaGame = new MechaGame(plugin, this);
         this.captureTheFlagGame = new CaptureTheFlagGame(plugin, this);
@@ -155,6 +157,19 @@ public class GameManager implements Listener {
     public void saveGameState() throws IOException, IllegalStateException {
         gameStateStorageUtil.saveGameState();
     }
+    
+    public void startVote(@NotNull CommandSender sender) {
+        List<Player> onlineParticipants = this.getOnlineParticipants();
+        if (onlineParticipants.isEmpty()) {
+            sender.sendMessage(Component.text("There are no online participants. You can add participants using:\n")
+                    .append(Component.text("/mct team join <team> <member>")
+                            .decorate(TextDecoration.BOLD)
+                            .clickEvent(ClickEvent.suggestCommand("/mct team join "))));
+            return;
+        }
+        voteManager.startVote(onlineParticipants);
+    }
+    
     
     public void startGame(String gameName, @NotNull CommandSender sender) {
         
