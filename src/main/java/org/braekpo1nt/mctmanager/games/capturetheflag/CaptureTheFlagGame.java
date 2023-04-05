@@ -64,7 +64,7 @@ public class CaptureTheFlagGame implements MCTGame {
      * Starts a new Capture the Flag game with the provided participants.
      * Assumes that the provided list of participants collectively belong
      * to at least 2 teams, and at most 8 teams. 
-     * @param newParticipants 
+     * @param newParticipants The new participants list
      */
     @Override
     public void start(List<Player> newParticipants) {
