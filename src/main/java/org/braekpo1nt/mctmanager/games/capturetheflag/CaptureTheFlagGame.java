@@ -159,7 +159,7 @@ public class CaptureTheFlagGame implements MCTGame {
                 } else {
                     for (Player participant : participants) {
                         String timeString = getTimeString(count);
-                        updateClassSelectionTimer(participant, timeString);
+                        updateClassSelectionFastBoardTimer(participant, timeString);
                     }
                 }
                 if (count <= 0) {
@@ -174,34 +174,6 @@ public class CaptureTheFlagGame implements MCTGame {
     
     private void startCaptureTheFlagRound() {
         classPickerManager.assignClassesToParticipantsWithoutClasses(participants);
-    }
-    
-    /**
-     * Returns the given seconds as a string representing time in the format
-     * MM:ss (or minutes:seconds)
-     * @param timeSeconds The time in seconds
-     * @return Time string MM:ss
-     */
-    private String getTimeString(long timeSeconds) {
-        Duration duration = Duration.ofSeconds(timeSeconds);
-        long minutes = duration.toMinutes();
-        long seconds = duration.minusMinutes(minutes).getSeconds();
-        return String.format("%d:%02d", minutes, seconds);
-    }
-    
-    private void updateClassSelectionTimer(Player participant, String timerString) {
-        int killCount = killCounts.get(participant.getUniqueId());
-        gameManager.getFastBoardManager().updateLines(
-                participant.getUniqueId(),
-                title,
-                "",
-                ChatColor.RED+"Kills: "+killCount,
-                "",
-                "Class selection:",
-                timerString,
-                "",
-                "Round: " + currentRound + "/" + maxRounds
-        );
     }
     
     /**
@@ -290,6 +262,21 @@ public class CaptureTheFlagGame implements MCTGame {
         }
     }
     
+    private void updateClassSelectionFastBoardTimer(Player participant, String timerString) {
+        int killCount = killCounts.get(participant.getUniqueId());
+        gameManager.getFastBoardManager().updateLines(
+                participant.getUniqueId(),
+                title,
+                "",
+                ChatColor.RED+"Kills: "+killCount,
+                "",
+                "Class selection:",
+                timerString,
+                "",
+                "Round: " + currentRound + "/" + maxRounds
+        );
+    }
+    
     private void initializeFastBoard(Player participant) {
         int killCount = killCounts.get(participant.getUniqueId());
         gameManager.getFastBoardManager().updateLines(
@@ -309,6 +296,19 @@ public class CaptureTheFlagGame implements MCTGame {
         gameManager.getFastBoardManager().updateLines(
                 participant.getUniqueId()
         );
+    }
+    
+    /**
+     * Returns the given seconds as a string representing time in the format
+     * MM:ss (or minutes:seconds)
+     * @param timeSeconds The time in seconds
+     * @return Time string MM:ss
+     */
+    private String getTimeString(long timeSeconds) {
+        Duration duration = Duration.ofSeconds(timeSeconds);
+        long minutes = duration.toMinutes();
+        long seconds = duration.minusMinutes(minutes).getSeconds();
+        return String.format("%d:%02d", minutes, seconds);
     }
     
     private void setUpTeamOptions() {
