@@ -12,11 +12,18 @@ public class Arena {
     private final Location northFlag;
     private final Location southFlag;
     
-    public Arena(Location northSpawn, Location southSpawn, Location northFlag, Location southFlag) {
+    private final Location northBarrier;
+    private final Location southBarrier;
+    
+    public Arena(Location northSpawn, Location southSpawn, 
+                 Location northFlag, Location southFlag,
+                 Location northBarrier, Location southBarrier) {
         this.northSpawn = northSpawn;
         this.southSpawn = southSpawn;
         this.northFlag = northFlag;
         this.southFlag = southFlag;
+        this.northBarrier = northBarrier;
+        this.southBarrier = southBarrier;
     }
     
     public Location getNorthSpawn() {
@@ -33,5 +40,13 @@ public class Arena {
     
     public Location getSouthFlag() {
         return southFlag;
+    }
+    
+    public Location getNorthBarrier() {
+        return northBarrier;
+    }
+    
+    public Location getSouthBarrier() {
+        return southBarrier;
     }
 }
