@@ -4,6 +4,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.MCTGames;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -25,7 +26,7 @@ public class VoteManager implements Listener {
     private final Component TITLE = Component.text("Vote for a Game");
     
     private final GameManager gameManager;
-    private final Map<UUID, String> votes = new HashMap<>();
+    private final Map<UUID, MCTGames> votes = new HashMap<>();
     private final Main plugin;
     private List<Player> voters = new ArrayList<>();
     private boolean voting = false;
@@ -110,9 +111,8 @@ public class VoteManager implements Listener {
         }
         event.setCancelled(true);
         if (participantVoted(participant)) {
-            String vote = votes.get(participant.getUniqueId());
-            participant.sendMessage(Component.text("You already voted for ")
-                    .append(Component.text(vote)));
+            participant.sendMessage(Component.text("You already voted.")
+                    .color(NamedTextColor.GREEN));
             return;
         }
         if (participantAbstained(participant)) {
@@ -121,17 +121,17 @@ public class VoteManager implements Listener {
         Material clickedItem = event.getCurrentItem().getType();
         switch (clickedItem) {
             case FEATHER:
-                votes.put(participant.getUniqueId(), "foot-race");
+                votes.put(participant.getUniqueId(), MCTGames.FOOT_RACE);
                 participant.sendMessage(Component.text("Voted for Foot Race")
                         .color(NamedTextColor.GREEN));
                 break;
             case IRON_SWORD:
-                votes.put(participant.getUniqueId(), "mecha");
+                votes.put(participant.getUniqueId(), MCTGames.MECHA);
                 participant.sendMessage(Component.text("Voted for MECHA")
                         .color(NamedTextColor.GREEN));
                 break;
             case GRAY_BANNER:
-                votes.put(participant.getUniqueId(), "capture-the-flag");
+                votes.put(participant.getUniqueId(), MCTGames.CAPTURE_THE_FLAG);
                 participant.sendMessage(Component.text("Voted for Capture the Flag")
                         .color(NamedTextColor.GREEN));
                 break;
@@ -224,10 +224,10 @@ public class VoteManager implements Listener {
             voter.getInventory().clear();
             hideFastBoard(voter);
         }
-        String game = getVotedGame();
+        MCTGames mctGame = getVotedGame();
         votes.clear();
         voters.clear();
-        gameManager.startGame(game, Bukkit.getConsoleSender());
+        gameManager.startGame(mctGame, Bukkit.getConsoleSender());
     }
     
     @EventHandler
@@ -251,9 +251,7 @@ public class VoteManager implements Listener {
             voters.add(participant);
         }
         if (participantVoted(participant)) {
-            String vote = votes.get(participant.getUniqueId());
-            participant.sendMessage(Component.text("You already voted for ")
-                    .append(Component.text(vote))
+            participant.sendMessage(Component.text("You already voted.")
                     .color(NamedTextColor.GREEN));
             return;
         }
@@ -261,17 +259,17 @@ public class VoteManager implements Listener {
         showVoteGui(participant);
     }
     
-    private String getVotedGame() {
+    private MCTGames getVotedGame() {
         Random random = new Random();
-        Map<String, Integer> voteCount = new HashMap<>();
+        Map<MCTGames, Integer> voteCount = new HashMap<>();
     
         if (votes.isEmpty()) {
             int randomGameIndex = random.nextInt(3);
-            return Arrays.asList("foot-race", "mecha", "capture-the-flag").get(randomGameIndex);
+            return Arrays.asList(MCTGames.FOOT_RACE, MCTGames.MECHA, MCTGames.CAPTURE_THE_FLAG).get(randomGameIndex);
         }
     
         // Count the number of occurrences of each string in the list
-        for (String vote : votes.values()) {
+        for (MCTGames vote : votes.values()) {
             if (vote != null) {
                 int count = voteCount.getOrDefault(vote, 0);
                 voteCount.put(vote, count + 1);
@@ -287,8 +285,8 @@ public class VoteManager implements Listener {
         }
     
         // Get all strings with the maximum number of occurrences
-        List<String> winners = new ArrayList<>();
-        for (Map.Entry<String, Integer> entry : voteCount.entrySet()) {
+        List<MCTGames> winners = new ArrayList<>();
+        for (Map.Entry<MCTGames, Integer> entry : voteCount.entrySet()) {
             if (entry.getValue() == maxCount) {
                 winners.add(entry.getKey());
             }

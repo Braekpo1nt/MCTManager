@@ -178,7 +178,7 @@ public class GameManager implements Listener {
     }
     
     
-    public void startGame(String gameName, @NotNull CommandSender sender) {
+    public void startGame(MCTGames mctGame, @NotNull CommandSender sender) {
         
         if (activeGame != null) {
             sender.sendMessage("There is already a game running. You must stop the game before you start a new one.");
@@ -193,15 +193,15 @@ public class GameManager implements Listener {
                             .clickEvent(ClickEvent.suggestCommand("/mct team join "))));
             return;
         }
-    
+        
         List<String> onlineTeamNames = this.getTeamNames(onlineParticipants);
         
-        switch (gameName) {
-            case "foot-race":
+        switch (mctGame) {
+            case FOOT_RACE -> {
                 footRaceGame.start(onlineParticipants);
                 activeGame = footRaceGame;
-                break;
-            case "mecha":
+            }
+            case MECHA -> {
                 if (onlineTeamNames.size() < 2) {
                     sender.sendMessage(Component.text("MECHA doesn't end correctly unless there are 2 or more teams online. use ")
                             .append(Component.text("/mct game stop")
@@ -212,30 +212,17 @@ public class GameManager implements Listener {
                 }
                 mechaGame.start(onlineParticipants);
                 activeGame = mechaGame;
-                break;
-            case "capture-the-flag":
+            }
+            case CAPTURE_THE_FLAG -> {
                 if (onlineTeamNames.size() < 2 || 8 < onlineTeamNames.size()) {
                     sender.sendMessage(Component.text("Capture the Flag needs at least 2 and at most 8 teams online to play."));
                     return;
                 }
                 captureTheFlagGame.start(onlineParticipants);
                 activeGame = captureTheFlagGame;
-                break;
-//            case "bedwars":
-//                player.sendMessage("3");
-//                break;
-//            case "dodgeball":
-//                player.sendMessage("5");
-//                break;
-//            case "spleef":
-//                player.sendMessage("6");
-//                break;
-//            case "parkour-pathway":
-//                player.sendMessage("7");
-//                break;
-            default:
-                sender.sendMessage("Unknown game: " + gameName);
-                break;
+            }
+            default -> {
+            }
         }
     }
     
