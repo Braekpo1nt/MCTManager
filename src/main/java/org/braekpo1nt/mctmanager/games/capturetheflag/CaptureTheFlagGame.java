@@ -145,35 +145,6 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
         return livingPlayers.isEmpty();
     }
     
-    /**
-     * Checks if all participants in the given team pairing are dead
-     * @param teamPairing The team pairing
-     * @return True if all participants on the team pairing are dead, false
-     * if even one is alive. 
-     */
-    private boolean allParticipantsInTeamPairingAreDead(TeamPairing teamPairing) {
-        for (Player participant : participants) {
-            String teamName = gameManager.getTeamName(participant.getUniqueId());
-            if (teamPairing.containsTeam(teamName)) {
-                if (livingPlayers.contains(participant.getUniqueId())) {
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-    
-    
-    private TeamPairing getTeamPairingForParticipant(Player killed) {
-        String teamName = gameManager.getTeamName(killed.getUniqueId());
-        for (TeamPairing teamPairing : currentRoundTeamParings) {
-            if (teamPairing.containsTeam(teamName)) {
-                return teamPairing;
-            }
-        }
-        return null;
-    }
-    
     
     private void onParticipantDeath(Player killed) {
         UUID killedUniqueId = killed.getUniqueId();
