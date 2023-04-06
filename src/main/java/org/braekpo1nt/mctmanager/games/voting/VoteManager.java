@@ -69,6 +69,9 @@ public class VoteManager implements Listener {
                     .append(Component.text(vote)));
             return;
         }
+        if (participantAbstained(participant)) {
+            votes.remove(participant.getUniqueId());
+        }
         Material clickedItem = event.getCurrentItem().getType();
         switch (clickedItem) {
             case FEATHER:
@@ -133,7 +136,7 @@ public class VoteManager implements Listener {
             votes.clear();
             voters.clear();
             voting = false;
-            gameManager.startGame(game, null);
+            gameManager.startGame(game, Bukkit.getConsoleSender());
         } else {
             if (participantVoted(participant)) {
                 return;
@@ -183,8 +186,10 @@ public class VoteManager implements Listener {
         
         // Count the number of occurrences of each string in the list
         for (String vote : votes.values()) {
-            int count = voteCount.getOrDefault(vote, 0);
-            voteCount.put(vote, count + 1);
+            if (vote != null) {
+                int count = voteCount.getOrDefault(vote, 0);
+                voteCount.put(vote, count + 1);
+            }
         }
         
         // Find the maximum number of occurrences
@@ -211,8 +216,8 @@ public class VoteManager implements Listener {
     
     private boolean allPlayersHaveVoted() {
         for (Player participant : voters) {
-            if (!participantVoted(participant)) {
-                return participantAbstained(participant);
+            if (!participantVoted(participant) && !participantAbstained(participant)) {
+                return false;
             }
         }
         return true;
