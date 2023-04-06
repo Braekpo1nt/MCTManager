@@ -12,6 +12,9 @@ import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
@@ -19,12 +22,13 @@ import org.bukkit.scoreboard.Team;
 
 import java.util.*;
 
-public class CaptureTheFlagGame implements MCTGame {
+public class CaptureTheFlagGame implements MCTGame, Listener {
     
     private final Main plugin;
     private final GameManager gameManager;
     private final ClassPickerManager classPickerManager;
     private boolean gameActive = false;
+    private boolean roundHasStarted = false;
     private final String title = ChatColor.BLUE+"Capture the Flag";
     private final World captureTheFlagWorld;
     private final Location spawnObservatory;
@@ -51,6 +55,7 @@ public class CaptureTheFlagGame implements MCTGame {
     
     public CaptureTheFlagGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
+        plugin.getServer().getPluginManager().registerEvents(this, plugin);
         this.gameManager = gameManager;
         this.classPickerManager = new ClassPickerManager(plugin, gameManager);
         MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
@@ -98,6 +103,7 @@ public class CaptureTheFlagGame implements MCTGame {
         cancelAllTasks();
         openGlassBarriers();
         gameActive = false;
+        roundHasStarted = false;
         gameManager.gameIsOver();
         Bukkit.getLogger().info("Stopped Capture the Flag");
     }
@@ -110,6 +116,56 @@ public class CaptureTheFlagGame implements MCTGame {
     @Override
     public void onParticipantQuit(Player participant) {
         
+    }
+    
+    @EventHandler
+    public void onPlayerDeath(PlayerDeathEvent event) {
+        if (!gameActive) {
+            return;
+        }
+        if (!roundHasStarted) {
+            return;
+        }
+        Player killed = event.getPlayer();
+        if (!participants.contains(killed)) {
+            return;
+        }
+        event.setCancelled(true);
+        Component deathMessage = event.deathMessage();
+        if (deathMessage != null) {
+            Bukkit.getServer().sendMessage(deathMessage);
+        }
+        onParticipantDeath(killed);
+        if (killed.getKiller() != null) {
+            onParticipantGetKill(killed);
+        }
+    }
+    
+    private void onParticipantDeath(Player killed) {
+        UUID killedUniqueId = killed.getUniqueId();
+        switchPlayerFromLivingToDead(killedUniqueId);
+        resetHealthAndHunger(killed);
+        killed.getInventory().clear();
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                teleportParticipantToSpawnObservatory(killed);
+            }
+        }.runTaskLater(plugin, 1L);
+    }
+    
+    private void onParticipantGetKill(Player killed) {
+        Player killer = killed.getKiller();
+        if (!participants.contains(killer)) {
+            return;
+        }
+        addKill(killer.getUniqueId());
+        gameManager.awardPointsToPlayer(killer, 20);
+    }
+    
+    private void switchPlayerFromLivingToDead(UUID killedUniqueId) {
+        livingPlayers.remove(killedUniqueId);
+        livingPlayers.add(killedUniqueId);
     }
     
     private void initializeParticipant(Player participant) {
@@ -142,13 +198,13 @@ public class CaptureTheFlagGame implements MCTGame {
         this.livingPlayers = new ArrayList<>();
         this.deadPlayers = new ArrayList<>();
         this.killCounts = new HashMap<>();
-        this.classPickerManager.resetClassPickerTracker();
         currentRoundTeamParings = allRoundTeamPairings.get(currentRound-1);
         closeGlassBarriers();
         for (Player participant : participants){
             initializeParticipantForRound(participant);
         }
         teleportTeamPairingsToArenas();
+        roundHasStarted = true;
         startClassSelectionPeriod();
         Bukkit.getLogger().info("Starting round " + currentRound);
     }
@@ -168,6 +224,7 @@ public class CaptureTheFlagGame implements MCTGame {
     }
     
     private void startClassSelectionPeriod() {
+        this.classPickerManager.resetClassPickerTracker();
         messageAllParticipants(Component.text("Choose your class"));
         classPickerManager.startClassPicking(participants);
         this.classSelectionCountdownTaskIt = new BukkitRunnable() {
@@ -183,7 +240,6 @@ public class CaptureTheFlagGame implements MCTGame {
                     }
                 }
                 if (count <= 0) {
-                    classPickerManager.stopClassPicking(participants);
                     startCaptureTheFlagRound();
                     this.cancel();
                     return;
@@ -195,6 +251,7 @@ public class CaptureTheFlagGame implements MCTGame {
     
     private void startCaptureTheFlagRound() {
         classPickerManager.assignClassesToParticipantsWithoutClasses(participants);
+        classPickerManager.stopClassPicking(participants);
         openGlassBarriers();
     }
     
@@ -239,6 +296,7 @@ public class CaptureTheFlagGame implements MCTGame {
     }
     
     private void teleportParticipantToSpawnObservatory(Player participant) {
+        Bukkit.getLogger().info("teleporting " + participant.getName() + " to spawn observatory");
         participant.teleport(spawnObservatory);
     }
     
@@ -311,6 +369,17 @@ public class CaptureTheFlagGame implements MCTGame {
                 "3:00",
                 "",
                 "Round: " + currentRound + "/" + maxRounds
+        );
+    }
+    
+    private void addKill(UUID killerUniqueId) {
+        int oldKillCount = killCounts.get(killerUniqueId);
+        int newKillCount = oldKillCount + 1;
+        killCounts.put(killerUniqueId, newKillCount);
+        gameManager.getFastBoardManager().updateLine(
+                killerUniqueId,
+                2,
+                ChatColor.RED+"Kills: " + newKillCount
         );
     }
     
