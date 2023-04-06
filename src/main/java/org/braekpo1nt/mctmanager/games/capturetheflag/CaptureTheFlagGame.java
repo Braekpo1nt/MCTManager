@@ -8,6 +8,7 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
+import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
@@ -76,6 +77,7 @@ public class CaptureTheFlagGame implements MCTGame {
             initializeParticipant(participant);
         }
         setUpTeamOptions();
+        closeGlassBarriers();
         gameActive = true;
         new BukkitRunnable(){
             @Override
@@ -94,6 +96,7 @@ public class CaptureTheFlagGame implements MCTGame {
         participants.clear();
         classPickerManager.stopClassPicking(participants);
         cancelAllTasks();
+        openGlassBarriers();
         gameActive = false;
         gameManager.gameIsOver();
         Bukkit.getLogger().info("Stopped Capture the Flag");
@@ -141,12 +144,27 @@ public class CaptureTheFlagGame implements MCTGame {
         this.killCounts = new HashMap<>();
         this.classPickerManager.resetClassPickerTracker();
         currentRoundTeamParings = allRoundTeamPairings.get(currentRound-1);
+        closeGlassBarriers();
         for (Player participant : participants){
             initializeParticipantForRound(participant);
         }
         teleportTeamPairingsToArenas();
         startClassSelectionPeriod();
         Bukkit.getLogger().info("Starting round " + currentRound);
+    }
+    
+    private void closeGlassBarriers() {
+        for (Arena arena : arenas) {
+            BlockPlacementUtils.createCube(arena.getNorthBarrier(), 5, 4, 1, Material.GLASS_PANE);
+            BlockPlacementUtils.createCube(arena.getSouthBarrier(), 5, 4, 1, Material.GLASS_PANE);
+        }
+    }
+    
+    private void openGlassBarriers() {
+        for (Arena arena : arenas) {
+            BlockPlacementUtils.createCube(arena.getNorthBarrier(), 5, 4, 1, Material.AIR);
+            BlockPlacementUtils.createCube(arena.getSouthBarrier(), 5, 4, 1, Material.AIR);
+        }
     }
     
     private void startClassSelectionPeriod() {
@@ -177,6 +195,7 @@ public class CaptureTheFlagGame implements MCTGame {
     
     private void startCaptureTheFlagRound() {
         classPickerManager.assignClassesToParticipantsWithoutClasses(participants);
+        openGlassBarriers();
     }
     
     /**
@@ -322,31 +341,40 @@ public class CaptureTheFlagGame implements MCTGame {
         this.arenas = new ArrayList<>(4);
         //NorthWest
         arenas.add(new Arena(
-                new Location(captureTheFlagWorld, -15, -16, -1043), // North
-                new Location(captureTheFlagWorld, -15, -16, -1003), // South
-                new Location(captureTheFlagWorld, -6, -13, -1040), // North
-                new Location(captureTheFlagWorld, -24, -13, -1006) // South
+                new Location(captureTheFlagWorld, -15, -16, -1043), // North spawn
+                new Location(captureTheFlagWorld, -15, -16, -1003), // South spawn
+                new Location(captureTheFlagWorld, -6, -13, -1040), // North flag 
+                new Location(captureTheFlagWorld, -24, -13, -1006), // South flag 
+                new Location(captureTheFlagWorld, -17, -16, -1042), // North barrier
+                new Location(captureTheFlagWorld, -17, -16, -1004) // South barrier 
+                
         ));
         //NorthEast
         arenas.add(new Arena(
-                new Location(captureTheFlagWorld, 15, -16, -1043), // North
-                new Location(captureTheFlagWorld, 15, -16, -1003), // South
-                new Location(captureTheFlagWorld, 24, -13, -1040), // North
-                new Location(captureTheFlagWorld, 6, -13, -1006) // South
+                new Location(captureTheFlagWorld, 15, -16, -1043), // North spawn
+                new Location(captureTheFlagWorld, 15, -16, -1003), // South spawn
+                new Location(captureTheFlagWorld, 24, -13, -1040), // North flag 
+                new Location(captureTheFlagWorld, 6, -13, -1006), // South flag 
+                new Location(captureTheFlagWorld, 13, -16, -1042), // North barrier
+                new Location(captureTheFlagWorld, 13, -16, -1004) // South barrier 
         ));
         //SouthWest
         arenas.add(new Arena(
-                new Location(captureTheFlagWorld, -15, -16, -997), // North
-                new Location(captureTheFlagWorld, -15, -16, -957), // South
-                new Location(captureTheFlagWorld, -6, -13, -994), // North
-                new Location(captureTheFlagWorld, -24, -13, -960) // South
+                new Location(captureTheFlagWorld, -15, -16, -997), // North spawn
+                new Location(captureTheFlagWorld, -15, -16, -957), // South spawn
+                new Location(captureTheFlagWorld, -6, -13, -994), // North flag 
+                new Location(captureTheFlagWorld, -24, -13, -960), // South flag 
+                new Location(captureTheFlagWorld, -17, -16, -996), // North barrier
+                new Location(captureTheFlagWorld, -17, -16, -958) // South barrier 
         ));
         //SouthEast
         arenas.add(new Arena(
-                new Location(captureTheFlagWorld, 15, -16, -997), // North
-                new Location(captureTheFlagWorld, 15, -16, -957), // South
-                new Location(captureTheFlagWorld, 24, -13, -994), // North
-                new Location(captureTheFlagWorld, 6, -13, -960) // South
+                new Location(captureTheFlagWorld, 15, -16, -997), // North spawn
+                new Location(captureTheFlagWorld, 15, -16, -957), // South spawn
+                new Location(captureTheFlagWorld, 24, -13, -994), // North flag 
+                new Location(captureTheFlagWorld, 6, -13, -960), // South flag 
+                new Location(captureTheFlagWorld, 13, -16, -996), // North barrier
+                new Location(captureTheFlagWorld, 13, -16, -958) // South barrier 
         ));
     }
 }
