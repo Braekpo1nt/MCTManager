@@ -15,7 +15,6 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 
@@ -110,7 +109,6 @@ public class HubManager implements Listener {
     }
     
     private void teleportPlayerToHub(Player participant) {
-        participant.sendMessage("Teleporting to Hub");
         participant.teleport(hubWorld.getSpawnLocation());
     }
     
