@@ -11,10 +11,10 @@ import org.braekpo1nt.mctmanager.games.footrace.FootRaceGame;
 import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
 import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.mecha.MechaGame;
+import org.braekpo1nt.mctmanager.games.voting.VoteManager;
 import org.braekpo1nt.mctmanager.hub.HubManager;
 import org.braekpo1nt.mctmanager.ui.FastBoardManager;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
@@ -54,17 +54,19 @@ public class GameManager implements Listener {
     private boolean shouldTeleportToHub = true;
     private int fastBoardUpdaterTaskId;
     private final List<UUID> participantsWhoLeftMidGame = new ArrayList<>();
+    private final VoteManager voteManager;
     
-    public GameManager(Main plugin, Scoreboard mctScoreboard, HubManager hubManager) {
+    public GameManager(Main plugin, Scoreboard mctScoreboard) {
         this.plugin = plugin;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         this.mctScoreboard = mctScoreboard;
         this.gameStateStorageUtil = new GameStateStorageUtil(plugin);
+        this.voteManager = new VoteManager(this, plugin);
         this.footRaceGame = new FootRaceGame(plugin, this);
         this.mechaGame = new MechaGame(plugin, this);
         this.captureTheFlagGame = new CaptureTheFlagGame(plugin, this);
-        this.hubManager = hubManager;
         this.fastBoardManager = new FastBoardManager(gameStateStorageUtil);
+        this.hubManager = new HubManager(plugin, mctScoreboard, fastBoardManager);
         kickOffFastBoardManager();
     }
     
@@ -156,7 +158,34 @@ public class GameManager implements Listener {
         gameStateStorageUtil.saveGameState();
     }
     
-    public void startGame(String gameName, @NotNull CommandSender sender) {
+    public void startVote(@NotNull CommandSender sender) {
+        List<Player> onlineParticipants = this.getOnlineParticipants();
+        if (onlineParticipants.isEmpty()) {
+            sender.sendMessage(Component.text("There are no online participants. You can add participants using:\n")
+                    .append(Component.text("/mct team join <team> <member>")
+                            .decorate(TextDecoration.BOLD)
+                            .clickEvent(ClickEvent.suggestCommand("/mct team join "))));
+            return;
+        }
+        voteManager.startVote(onlineParticipants);
+    }
+    
+    /**
+     * Cancel the vote if a vote is in progress
+     */
+    public void cancelVote() {
+        voteManager.cancelVote();
+    }
+    
+    /**
+     * Cancel the return to hub if it's in progress
+     */
+    public void cancelReturnToHub() {
+        hubManager.cancelReturnToHub();
+    }
+    
+    
+    public void startGame(MCTGames mctGame, @NotNull CommandSender sender) {
         
         if (activeGame != null) {
             sender.sendMessage("There is already a game running. You must stop the game before you start a new one.");
@@ -171,15 +200,15 @@ public class GameManager implements Listener {
                             .clickEvent(ClickEvent.suggestCommand("/mct team join "))));
             return;
         }
-    
+        
         List<String> onlineTeamNames = this.getTeamNames(onlineParticipants);
         
-        switch (gameName) {
-            case "foot-race":
+        switch (mctGame) {
+            case FOOT_RACE -> {
                 footRaceGame.start(onlineParticipants);
                 activeGame = footRaceGame;
-                break;
-            case "mecha":
+            }
+            case MECHA -> {
                 if (onlineTeamNames.size() < 2) {
                     sender.sendMessage(Component.text("MECHA doesn't end correctly unless there are 2 or more teams online. use ")
                             .append(Component.text("/mct game stop")
@@ -190,30 +219,17 @@ public class GameManager implements Listener {
                 }
                 mechaGame.start(onlineParticipants);
                 activeGame = mechaGame;
-                break;
-            case "capture-the-flag":
+            }
+            case CAPTURE_THE_FLAG -> {
                 if (onlineTeamNames.size() < 2 || 8 < onlineTeamNames.size()) {
                     sender.sendMessage(Component.text("Capture the Flag needs at least 2 and at most 8 teams online to play."));
                     return;
                 }
                 captureTheFlagGame.start(onlineParticipants);
                 activeGame = captureTheFlagGame;
-                break;
-//            case "bedwars":
-//                player.sendMessage("3");
-//                break;
-//            case "dodgeball":
-//                player.sendMessage("5");
-//                break;
-//            case "spleef":
-//                player.sendMessage("6");
-//                break;
-//            case "parkour-pathway":
-//                player.sendMessage("7");
-//                break;
-            default:
-                sender.sendMessage("Unknown game: " + gameName);
-                break;
+            }
+            default -> {
+            }
         }
     }
     

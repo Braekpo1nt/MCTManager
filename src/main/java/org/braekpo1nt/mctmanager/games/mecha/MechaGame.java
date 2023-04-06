@@ -8,6 +8,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
+import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Block;
@@ -30,7 +31,6 @@ import org.bukkit.structure.Structure;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
-import java.time.Duration;
 import java.util.*;
 
 public class MechaGame implements MCTGame, Listener {
@@ -64,6 +64,7 @@ public class MechaGame implements MCTGame, Listener {
     private LootTable spawnLootTable;
     private final WorldBorder worldBorder;
     private int borderShrinkingTaskId;
+    private String lastKilledTeam;
     private List<UUID> livingPlayers;
     private List<UUID> deadPlayers;
     private Map<UUID, Integer> killCounts;
@@ -87,6 +88,7 @@ public class MechaGame implements MCTGame, Listener {
         this.participants = new ArrayList<>(newParticipants.size());
         livingPlayers = new ArrayList<>(newParticipants.size());
         deadPlayers = new ArrayList<>();
+        lastKilledTeam = null;
         this.killCounts = new HashMap<>(newParticipants.size());
         placePlatforms();
         fillAllChests();
@@ -120,6 +122,7 @@ public class MechaGame implements MCTGame, Listener {
         clearFloorItems();
         placePlatforms();
         clearAllChests();
+        lastKilledTeam = null;
         worldBorder.reset();
         for (Player participant : participants) {
             resetParticipant(participant);
@@ -230,7 +233,6 @@ public class MechaGame implements MCTGame, Listener {
         messageAllParticipants(Component.text("Game ending in 10 seconds..."));
         stopMechaCountdownTaskId = new BukkitRunnable() {
             int count = 10;
-            
             @Override
             public void run() {
                 if (count <= 0) {
@@ -339,6 +341,7 @@ public class MechaGame implements MCTGame, Listener {
         if (teamIsAllDead(teamName)) {
             onTeamDeath(teamName);
         }
+        lastKilledTeam = teamName;
     }
     
     private void onTeamDeath(String teamName) {
@@ -398,15 +401,31 @@ public class MechaGame implements MCTGame, Listener {
             UUID winningPlayerUniqueId = livingPlayers.get(0);
             return gameManager.getTeamName(winningPlayerUniqueId);
         }
+        if (allPlayersAreDead()) {
+            return lastKilledTeam;
+        }
         return null;
     }
     
     /**
+     * Checks if there are no living players anymore
+     * @return True if all players are dead, false if not
+     */
+    private boolean allPlayersAreDead() {
+        return livingPlayers.isEmpty();
+    }
+    
+    /**
      * Check if all the living players belong to a single team.
-     * @return True if all living players are on a single team (or there are no living players). False otherwise.
+     * @return True if all living players are on a single team. False if there
+     * are at least two players alive on different teams, or there are no
+     * living players.
      */
     private boolean allLivingPlayersAreOnOneTeam() {
-        if (livingPlayers.size() <= 1) {
+        if (livingPlayers.size() == 0) {
+            return false;
+        }
+        if (livingPlayers.size() == 1) {
             return true;
         }
         UUID firstPlayerUUID = livingPlayers.get(0);
@@ -509,7 +528,7 @@ public class MechaGame implements MCTGame, Listener {
      * @param delay The delay in seconds
      */
     private void sendBorderDelayAnouncement(int delay) {
-        String timeString = getTimeString(delay);
+        String timeString = TimeStringUtils.getTimeString(delay);
         messageAllParticipants(Component.text("Border will not shrink for "+timeString));
     }
     
@@ -519,7 +538,7 @@ public class MechaGame implements MCTGame, Listener {
      * @param size The size of the border in blocks
      */
     private void sendBorderShrinkAnouncement(int duration, int size) {
-        String timeString = getTimeString(duration);
+        String timeString = TimeStringUtils.getTimeString(duration);
         messageAllParticipants(Component.text("Border shrinking to ")
                 .append(Component.text(size))
                 .append(Component.text(" for "))
@@ -531,7 +550,7 @@ public class MechaGame implements MCTGame, Listener {
      * @param duration The seconds left in the border shrink
      */
     private void displayBorderShrinkingFor(int duration) {
-        String timeString = getTimeString(duration);
+        String timeString = TimeStringUtils.getTimeString(duration);
         String borderPhase = ChatColor.RED+"Shrinking";
         String shrinkDuration = ChatColor.RED+timeString;
         for (Player participant : participants) {
@@ -548,7 +567,7 @@ public class MechaGame implements MCTGame, Listener {
      * @param delay The seconds left till the border shrinks
      */
     private void displayBorderDelayFor(int delay) {
-        String timeString = getTimeString(delay);
+        String timeString = TimeStringUtils.getTimeString(delay);
         String borderPhase = ChatColor.LIGHT_PURPLE+"Border";
         String boardDelay = ChatColor.LIGHT_PURPLE+timeString;
         for (Player participant : participants) {
@@ -572,19 +591,6 @@ public class MechaGame implements MCTGame, Listener {
             gameManager.getFastBoardManager().updateLine(playerUniqueId,
                     5, "");
         }
-    }
-    
-    /**
-     * Returns the given seconds as a string representing time in the format
-     * MM:ss (or minutes:seconds)
-     * @param timeSeconds The time in seconds
-     * @return Time string MM:ss
-     */
-    private String getTimeString(long timeSeconds) {
-        Duration duration = Duration.ofSeconds(timeSeconds);
-        long minutes = duration.toMinutes();
-        long seconds = duration.minusMinutes(minutes).getSeconds();
-        return String.format("%d:%02d", minutes, seconds);
     }
     
     private void teleportParticipantToStartingPosition(Player participant) {

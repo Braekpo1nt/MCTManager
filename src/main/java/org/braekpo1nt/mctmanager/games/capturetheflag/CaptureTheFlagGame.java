@@ -7,6 +7,7 @@ import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
+import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
@@ -15,7 +16,6 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 
-import java.time.Duration;
 import java.util.*;
 
 public class CaptureTheFlagGame implements MCTGame {
@@ -26,7 +26,7 @@ public class CaptureTheFlagGame implements MCTGame {
     private boolean gameActive = false;
     private final String title = ChatColor.BLUE+"Capture the Flag";
     private final World captureTheFlagWorld;
-    private Location spawnObservatory;
+    private final Location spawnObservatory;
     private List<Arena> arenas;
     private List<Player> participants;
     /**
@@ -64,7 +64,7 @@ public class CaptureTheFlagGame implements MCTGame {
      * Starts a new Capture the Flag game with the provided participants.
      * Assumes that the provided list of participants collectively belong
      * to at least 2 teams, and at most 8 teams. 
-     * @param newParticipants 
+     * @param newParticipants The new participants list
      */
     @Override
     public void start(List<Player> newParticipants) {
@@ -76,8 +76,13 @@ public class CaptureTheFlagGame implements MCTGame {
             initializeParticipant(participant);
         }
         setUpTeamOptions();
-        startNextRound();
         gameActive = true;
+        new BukkitRunnable(){
+            @Override
+            public void run() {
+                startNextRound();
+            }
+        }.runTaskLater(plugin, 5*20L);
         Bukkit.getLogger().info("Started Capture the Flag");
     }
     
@@ -87,7 +92,7 @@ public class CaptureTheFlagGame implements MCTGame {
             resetParticipant(participant);
         }
         participants.clear();
-        this.classPickerManager.resetClassPickerTracker();
+        classPickerManager.stopClassPicking(participants);
         cancelAllTasks();
         gameActive = false;
         gameManager.gameIsOver();
@@ -146,23 +151,21 @@ public class CaptureTheFlagGame implements MCTGame {
     
     private void startClassSelectionPeriod() {
         messageAllParticipants(Component.text("Choose your class"));
-        for (Player participant : participants) {
-            classPickerManager.showClassPickerGui(participant);
-        }
+        classPickerManager.startClassPicking(participants);
         this.classSelectionCountdownTaskIt = new BukkitRunnable() {
             private int count = 20;
-            
             @Override
             public void run() {
                 if (count <= 0) {
                     messageAllParticipants(Component.text("Class selection is over"));
                 } else {
                     for (Player participant : participants) {
-                        String timeString = getTimeString(count);
+                        String timeString = TimeStringUtils.getTimeString(count);
                         updateClassSelectionFastBoardTimer(participant, timeString);
                     }
                 }
                 if (count <= 0) {
+                    classPickerManager.stopClassPicking(participants);
                     startCaptureTheFlagRound();
                     this.cancel();
                     return;
@@ -296,19 +299,6 @@ public class CaptureTheFlagGame implements MCTGame {
         gameManager.getFastBoardManager().updateLines(
                 participant.getUniqueId()
         );
-    }
-    
-    /**
-     * Returns the given seconds as a string representing time in the format
-     * MM:ss (or minutes:seconds)
-     * @param timeSeconds The time in seconds
-     * @return Time string MM:ss
-     */
-    private String getTimeString(long timeSeconds) {
-        Duration duration = Duration.ofSeconds(timeSeconds);
-        long minutes = duration.toMinutes();
-        long seconds = duration.minusMinutes(minutes).getSeconds();
-        return String.format("%d:%02d", minutes, seconds);
     }
     
     private void setUpTeamOptions() {

@@ -27,6 +27,7 @@ public class ClassPickerManager implements Listener {
     private final Map<String, List<BattleClass>> classTracker = new HashMap<>();
     private final List<UUID> participantsWhoPickedClasses = new ArrayList<>();
     private final GameManager gameManager;
+    private boolean picking = false;
     
     public ClassPickerManager(Main plugin, GameManager gameManager) {
         this.gameManager = gameManager;
@@ -35,6 +36,9 @@ public class ClassPickerManager implements Listener {
     
     @EventHandler
     public void clickEvent(InventoryClickEvent event) {
+        if (!picking) {
+            return;
+        }
         if (event.getClickedInventory() == null) {
             return;
         }
@@ -58,7 +62,7 @@ public class ClassPickerManager implements Listener {
         switch (clickedItem) {
             case STONE_SWORD:
                 if (teamClasses.contains(BattleClass.KNIGHT)) {
-                    participant.sendMessage(Component.text("Someone on your team already selected Knight").color(NamedTextColor.RED));
+                    participant.sendMessage(Component.text("Someone on your team already selected Knight").color(NamedTextColor.DARK_RED));
                     return;
                 }
                 teamClasses.add(BattleClass.KNIGHT);
@@ -66,7 +70,7 @@ public class ClassPickerManager implements Listener {
                 break;
             case BOW:
                 if (teamClasses.contains(BattleClass.ARCHER)) {
-                    participant.sendMessage(Component.text("Someone on your team already selected Archer").color(NamedTextColor.RED));
+                    participant.sendMessage(Component.text("Someone on your team already selected Archer").color(NamedTextColor.DARK_RED));
                     return;
                 }
                 teamClasses.add(BattleClass.ARCHER);
@@ -74,7 +78,7 @@ public class ClassPickerManager implements Listener {
                 break;
             case IRON_SWORD:
                 if (teamClasses.contains(BattleClass.ASSASSIN)) {
-                    participant.sendMessage(Component.text("Someone on your team already selected Assassin").color(NamedTextColor.RED));
+                    participant.sendMessage(Component.text("Someone on your team already selected Assassin").color(NamedTextColor.DARK_RED));
                     return;
                 }
                 teamClasses.add(BattleClass.ASSASSIN);
@@ -82,7 +86,7 @@ public class ClassPickerManager implements Listener {
                 break;
             case LEATHER_CHESTPLATE:
                 if (teamClasses.contains(BattleClass.TANK)) {
-                    participant.sendMessage(Component.text("Someone on your team already selected Tank").color(NamedTextColor.RED));
+                    participant.sendMessage(Component.text("Someone on your team already selected Tank").color(NamedTextColor.DARK_RED));
                     return;
                 }
                 teamClasses.add(BattleClass.TANK);
@@ -93,6 +97,24 @@ public class ClassPickerManager implements Listener {
         }
         participantsWhoPickedClasses.add(participant.getUniqueId());
         participant.closeInventory();
+    }
+    
+    @EventHandler
+    public void inventoryCloseEvent(InventoryCloseEvent event) {
+        if (!picking) {
+            return;
+        }
+        if (!event.getView().title().equals(TITLE)) {
+            return;
+        }
+        Player participant = ((Player) event.getPlayer());
+        if (!gameManager.isParticipant(participant.getUniqueId())) {
+            return;
+        }
+        if (participantsWhoPickedClasses.contains(participant.getUniqueId())) {
+            return;
+        }
+        participant.sendMessage(Component.text("You didn't pick a class. Your class will be randomly selected.").color(NamedTextColor.DARK_RED));
     }
     
     /**
@@ -132,23 +154,6 @@ public class ClassPickerManager implements Listener {
                 participant.sendMessage("Selected Tank");
             }
         }
-    }
-    
-    
-    
-    @EventHandler
-    public void inventoryCloseEvent(InventoryCloseEvent event) {
-        if (!event.getView().title().equals(TITLE)) {
-            return;
-        }
-        Player participant = ((Player) event.getPlayer());
-        if (!gameManager.isParticipant(participant.getUniqueId())) {
-            return;
-        }
-        if (participantsWhoPickedClasses.contains(participant.getUniqueId())) {
-            return;
-        }
-        participant.sendMessage(Component.text("You didn't pick a class. Your class will be randomly selected.").color(NamedTextColor.RED));
     }
     
     /**
@@ -193,11 +198,26 @@ public class ClassPickerManager implements Listener {
         this.participantsWhoPickedClasses.clear();
     }
     
+    public void startClassPicking(List<Player> participants) {
+        picking = true;
+        for (Player participant : participants) {
+            showClassPickerGui(participant);
+        }
+    }
+    
+    public void stopClassPicking(List<Player> participants) {
+        picking = false;
+        resetClassPickerTracker();
+        for (Player participant : participants) {
+            participant.closeInventory();
+        }
+    }
+    
     /**
      * Shows the given participant the Class Picker gui
      * @param participant The participant to show the gui to
      */
-    public void showClassPickerGui(Player participant) {
+    private void showClassPickerGui(Player participant) {
         ItemStack knight = new ItemStack(Material.STONE_SWORD);
         ItemStack archer = new ItemStack(Material.BOW);
         ItemStack assassin = new ItemStack(Material.IRON_SWORD);
@@ -248,7 +268,7 @@ public class ClassPickerManager implements Listener {
         participant.openInventory(newGui);
     }
     
-    public static int getSlotIndex(int line, int column) {
+    public int getSlotIndex(int line, int column) {
         int slotIndex = (line - 1) * 9 + (column - 1);
         return slotIndex;
     }

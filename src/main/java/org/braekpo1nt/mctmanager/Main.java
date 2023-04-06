@@ -39,10 +39,8 @@ public final class Main extends JavaPlugin {
         Main.multiverseCore = ((MultiverseCore) multiversePlugin);
     
         Scoreboard mctScoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
-    
-        HubManager hubManager = new HubManager(this, mctScoreboard);
         
-        gameManager = new GameManager(this, mctScoreboard, hubManager);
+        gameManager = new GameManager(this, mctScoreboard);
         try {
             gameManager.loadGameState();
         } catch (IOException e) {
@@ -80,6 +78,8 @@ public final class Main extends JavaPlugin {
     public void onDisable() {
         if (saveGameStateOnDisable && gameManager != null) {
             gameManager.cancelFastBoardManager();
+            gameManager.cancelVote();
+            gameManager.cancelReturnToHub();
             try {
                 gameManager.saveGameState();
                 if (gameManager.gameIsRunning()) {
