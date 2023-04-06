@@ -63,7 +63,7 @@ public class VoteManager implements Listener {
             return;
         }
         event.setCancelled(true);
-        if (votes.containsKey(participant.getUniqueId())) {
+        if (participantVoted(participant)) {
             String vote = votes.get(participant.getUniqueId());
             participant.sendMessage(Component.text("You already voted for ")
                     .append(Component.text(vote)));
@@ -88,13 +88,21 @@ public class VoteManager implements Listener {
         }
         participant.closeInventory();
     }
-    
+
+    /**
+     * Checks if the participant submitted a vote already
+     * @param participant the participant to check
+     * @return True of the participant voted, false if they haven't yet
+     */
+    private boolean participantVoted(Player participant) {
+        return votes.containsKey(participant.getUniqueId());
+    }
+
     @EventHandler
     private void menuClose(InventoryCloseEvent event) {
         if (!voting) {
             return;
         }
-        Bukkit.getLogger().info("menu close event " + event.getPlayer().getName());
         if (!event.getView().title().equals(TITLE)) {
             return;
         }
@@ -107,14 +115,17 @@ public class VoteManager implements Listener {
             votes.clear();
             voters.clear();
             voting = false;
-            Bukkit.getLogger().info("Game voted for:  " + game);
             gameManager.startGame(game, null);
         } else {
+            if (participantVoted(participant)) {
+                return;
+            }
             ItemStack netherStar = new ItemStack(Material.NETHER_STAR);
             ItemMeta netherStarMeta = netherStar.getItemMeta();
             netherStarMeta.displayName(NETHER_STAR_NAME);
             netherStar.setItemMeta(netherStarMeta);
             participant.getInventory().addItem(netherStar);
+            participant.sendMessage(Component.text("You didn't vote for a game. Use the nether star to vote."));
         }
     }
     
@@ -132,18 +143,19 @@ public class VoteManager implements Listener {
             return;
         }
         ItemMeta netherStarMeta = item.getItemMeta();
-        if (netherStarMeta == null || !netherStarMeta.hasDisplayName() || !netherStarMeta.displayName().equals("Vote")) {
+        if (netherStarMeta == null || !netherStarMeta.hasDisplayName() || !netherStarMeta.displayName().equals(NETHER_STAR_NAME)) {
             return;
         }
         if (!voters.contains(participant)) {
             voters.add(participant);
         }
-        if (votes.containsKey(participant.getUniqueId())) {
+        if (participantVoted(participant)) {
             String vote = votes.get(participant.getUniqueId());
             participant.sendMessage(Component.text("You already voted for ")
                     .append(Component.text(vote)));
             return;
         }
+        participant.getInventory().clear();
         showVoteGui(participant);
     }
     
@@ -181,7 +193,7 @@ public class VoteManager implements Listener {
     private boolean allPlayersHaveVoted() {
         Bukkit.getLogger().info("Have all players voted?");
         for (Player voter : voters) {
-            if (!votes.containsKey(voter.getUniqueId())) {
+            if (!participantVoted(voter)) {
                 return false;
             }
         }
