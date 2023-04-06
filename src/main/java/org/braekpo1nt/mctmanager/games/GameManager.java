@@ -390,6 +390,24 @@ public class GameManager implements Listener {
         return playersNamesOnTeam;
     }
     
+    /**
+     * Gets the online players who are on the given team. 
+     * @param teamName The internal name of the team
+     * @return A list of all online players on that team, 
+     * or empty list if there are no players on that team or the team doesn't exist.
+     */
+    public List<Player> getOnlinePlayersOnTeam(String teamName) {
+        List<UUID> playerUniqueIds = gameStateStorageUtil.getPlayerUniqueIdsOnTeam(teamName);
+        List<Player> onlinePlayersOnTeam = new ArrayList<>();
+        for (UUID playerUniqueId : playerUniqueIds) {
+            Player player = Bukkit.getPlayer(playerUniqueId);
+            if (player != null && player.isOnline()) {
+                onlinePlayersOnTeam.add(player);
+            }
+        }
+        return onlinePlayersOnTeam;
+    }
+    
     public boolean isParticipant(UUID playerUniqueId) {
         return gameStateStorageUtil.containsPlayer(playerUniqueId);
     }
@@ -485,4 +503,6 @@ public class GameManager implements Listener {
         NamedTextColor teamColor = gameStateStorageUtil.getTeamNamedTextColor(teamName);
         return Component.text(displayName).color(teamColor).decorate(TextDecoration.BOLD);
     }
+    
+    
 }

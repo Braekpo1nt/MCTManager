@@ -194,7 +194,15 @@ public class GameStateStorageUtil {
         gameState.getPlayer(playerUniqueId).setTeamName(teamName);
     }
     
+    /**
+     * Gets the UUIDs of the players on the given team
+     * @param teamName The internal name of the team
+     * @return Empty list if no players are on that team, or if the team doesn't exist
+     */
     public List<UUID> getPlayerUniqueIdsOnTeam(String teamName) {
+        if (!gameState.containsTeam(teamName)) {
+            return Collections.emptyList();
+        }
         return gameState.getPlayers().entrySet().stream()
                 .filter(mctPlayer -> mctPlayer.getValue().getTeamName().equals(teamName))
                 .map(Map.Entry::getKey)
