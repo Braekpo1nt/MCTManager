@@ -360,12 +360,7 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
             }
             newAllRoundTeamPairings.add(singleRoundPairingGroup);
         }
-        List<List<TeamPairing>> doubleTeamPairings = new ArrayList<>();
-        for (List<TeamPairing> roundTeamPairing : newAllRoundTeamPairings) {
-            doubleTeamPairings.add(roundTeamPairing);
-            doubleTeamPairings.add(roundTeamPairing);
-        }
-        return doubleTeamPairings;
+        return newAllRoundTeamPairings;
     }
     
     private static List<TeamPairing> generateAllPairings(List<String> teamNames) {
