@@ -93,9 +93,27 @@ public class VoteManager implements Listener {
      * Checks if the participant submitted a vote already
      * @param participant the participant to check
      * @return True of the participant voted, false if they haven't yet
+     * or if they have abstained (see {@link VoteManager#participantAbstained(Player)})
      */
     private boolean participantVoted(Player participant) {
-        return votes.containsKey(participant.getUniqueId());
+        if (!votes.containsKey(participant.getUniqueId())) {
+            return false;
+        }
+        return votes.get(participant.getUniqueId()) != null;
+    }
+
+    /**
+     * Checks if the participant abstained from voting
+     * @param participant the participant
+     * @return True if the participant abstained from voting,
+     * false if they voted or didn't vote or abstain yet (i.e. still
+     * in the voting gui)
+     */
+    private boolean participantAbstained(Player participant) {
+        if (!votes.containsKey(participant.getUniqueId())) {
+            return false;
+        }
+        return votes.get(participant.getUniqueId()) == null;
     }
 
     @EventHandler
@@ -126,6 +144,7 @@ public class VoteManager implements Listener {
             netherStar.setItemMeta(netherStarMeta);
             participant.getInventory().addItem(netherStar);
             participant.sendMessage(Component.text("You didn't vote for a game. Use the nether star to vote."));
+            votes.put(participant.getUniqueId(), null);
         }
     }
     
@@ -191,13 +210,11 @@ public class VoteManager implements Listener {
     }
     
     private boolean allPlayersHaveVoted() {
-        Bukkit.getLogger().info("Have all players voted?");
-        for (Player voter : voters) {
-            if (!participantVoted(voter)) {
-                return false;
+        for (Player participant : voters) {
+            if (!participantVoted(participant)) {
+                return participantAbstained(participant);
             }
         }
-        Bukkit.getLogger().info("yes");
         return true;
     }
     
