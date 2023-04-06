@@ -351,17 +351,22 @@ public class GameManager implements Listener {
     /**
      * Joins the player with the given UUID to the team with the given teamName, and adds them
      * to the game state.
-     * @param playerUniqueId The UUID of the player to join to the given team
+     * @param player The player to join to the given team
      * @param teamName The internal teamName of the team to join the player to. 
      *                 This method assumes the team exists, and will throw a 
      *                 null pointer exception if it doesn't.
      */
-    public void joinPlayerToTeam(UUID playerUniqueId, String teamName) throws IOException {
+    public void joinPlayerToTeam(Player player, String teamName) throws IOException {
+        UUID playerUniqueId = player.getUniqueId();
         if (gameStateStorageUtil.containsPlayer(playerUniqueId)) {
             movePlayerToTeam(playerUniqueId, teamName);
+            player.sendMessage(Component.text("You've been moved to ")
+                    .append(getFormattedTeamDisplayName(teamName)));
             return;
         }
         addNewPlayer(playerUniqueId, teamName);
+        player.sendMessage(Component.text("You've been joined to ")
+                .append(getFormattedTeamDisplayName(teamName)));
     }
     
     private void movePlayerToTeam(UUID playerUniqueId, String newTeamName) {

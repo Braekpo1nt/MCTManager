@@ -38,7 +38,7 @@ public class JoinSubCommand implements TabExecutor {
             return true;
         }
         try {
-            gameManager.joinPlayerToTeam(playerToJoin.getUniqueId(), teamName);
+            gameManager.joinPlayerToTeam(playerToJoin, teamName);
             sender.sendMessage(String.format("Joined %s to team %s", playerName, teamName));
         } catch (IOException e) {
             sender.sendMessage("Error adding player to team. See log for error message.");
