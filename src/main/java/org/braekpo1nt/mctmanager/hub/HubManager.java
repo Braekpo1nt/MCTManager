@@ -3,6 +3,8 @@ package org.braekpo1nt.mctmanager.hub;
 import com.onarandombox.MultiverseCore.api.MVWorldManager;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.ui.FastBoardManager;
+import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.World;
@@ -13,6 +15,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 
@@ -27,10 +30,13 @@ public class HubManager implements Listener {
     private final World hubWorld;
     private final Main plugin;
     private final Scoreboard mctScoreboard;
+    private final FastBoardManager fastBoardManager;
+    private int returnToHubTaskId;
     
-    public HubManager(Main plugin, Scoreboard mctScoreboard) {
+    public HubManager(Main plugin, Scoreboard mctScoreboard, FastBoardManager fastBoardManager) {
         this.plugin = plugin;
         this.mctScoreboard = mctScoreboard;
+        this.fastBoardManager = fastBoardManager;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
         this.hubWorld = worldManager.getMVWorld("Hub").getCBWorld();
@@ -38,28 +44,54 @@ public class HubManager implements Listener {
     }
     
     public void returnParticipantsToHubWithDelay(List<Player> participants) {
-        setupTeamOptions();
-       new BukkitRunnable() {
+        this.returnToHubTaskId = new BukkitRunnable() {
             private int count = 10;
             @Override
             public void run() {
                 if (count <= 0) {
+                    for (Player participant : participants){
+                        participant.sendMessage(Component.text("Returning to hub"));
+                    }
+                } else {
+                    String timeString = TimeStringUtils.getTimeString(count);
+                    for (Player participant : participants) {
+                        updateReturnToHubTimerFastBoard(participant, timeString);
+                    }
+                }
+                if (count <= 0) {
                     for (Player participant : participants) {
                         returnParticipantToHub(participant);
                     }
+                    setupTeamOptions();
                     this.cancel();
                     return;
                 }
-                for (Player participant : participants) {
-                    participant.sendMessage(Component.text("Teleporting to hub in ")
-                            .append(Component.text(count)));
-                }
                 count--;
             }
-        }.runTaskTimer(plugin, 0L, 20L);
+        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+    }
+    
+    public void cancelReturnToHub() {
+        Bukkit.getScheduler().cancelTask(returnToHubTaskId);
+    }
+    
+    private void updateReturnToHubTimerFastBoard(Player participant, String timeString) {
+        fastBoardManager.updateLines(
+                participant.getUniqueId(),
+                "",
+                "Back to Hub:",
+                timeString
+        );
+    }
+    
+    private void hideFastBoard(Player participant) {
+        fastBoardManager.updateLines(
+                participant.getUniqueId()
+        );
     }
     
     public void returnParticipantToHub(Player participant) {
+        hideFastBoard(participant);
         clearStatusEffects(participant);
         participant.setGameMode(GameMode.ADVENTURE);
         teleportPlayerToHub(participant);
@@ -116,5 +148,4 @@ public class HubManager implements Listener {
             }
         }.runTaskTimer(plugin, 0L, 60L);
     }
-    
 }

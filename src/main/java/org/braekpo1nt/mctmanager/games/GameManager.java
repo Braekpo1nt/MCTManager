@@ -56,7 +56,7 @@ public class GameManager implements Listener {
     private final List<UUID> participantsWhoLeftMidGame = new ArrayList<>();
     private final VoteManager voteManager;
     
-    public GameManager(Main plugin, Scoreboard mctScoreboard, HubManager hubManager) {
+    public GameManager(Main plugin, Scoreboard mctScoreboard) {
         this.plugin = plugin;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         this.mctScoreboard = mctScoreboard;
@@ -65,8 +65,8 @@ public class GameManager implements Listener {
         this.footRaceGame = new FootRaceGame(plugin, this);
         this.mechaGame = new MechaGame(plugin, this);
         this.captureTheFlagGame = new CaptureTheFlagGame(plugin, this);
-        this.hubManager = hubManager;
         this.fastBoardManager = new FastBoardManager(gameStateStorageUtil);
+        this.hubManager = new HubManager(plugin, mctScoreboard, fastBoardManager);
         kickOffFastBoardManager();
     }
     
@@ -175,6 +175,13 @@ public class GameManager implements Listener {
      */
     public void cancelVote() {
         voteManager.cancelVote();
+    }
+    
+    /**
+     * Cancel the return to hub if it's in progress
+     */
+    public void cancelReturnToHub() {
+        hubManager.cancelReturnToHub();
     }
     
     
