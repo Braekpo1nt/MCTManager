@@ -417,10 +417,15 @@ public class MechaGame implements MCTGame, Listener {
     
     /**
      * Check if all the living players belong to a single team.
-     * @return True if all living players are on a single team (or there are no living players). False otherwise.
+     * @return True if all living players are on a single team. False if there
+     * are at least two players alive on different teams, or there are no
+     * living players.
      */
     private boolean allLivingPlayersAreOnOneTeam() {
-        if (livingPlayers.size() <= 1) {
+        if (livingPlayers.size() == 0) {
+            return false;
+        }
+        if (livingPlayers.size() == 1) {
             return true;
         }
         UUID firstPlayerUUID = livingPlayers.get(0);
