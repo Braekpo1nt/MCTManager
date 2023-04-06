@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.voting;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -14,6 +15,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
 
@@ -23,24 +25,66 @@ public class VoteManager implements Listener {
     
     private final GameManager gameManager;
     private final Map<UUID, String> votes = new HashMap<>();
+    private final Main plugin;
     private List<Player> voters = new ArrayList<>();
     private boolean voting = false;
     private final Component NETHER_STAR_NAME = Component.text("Vote");
+    private int voteCountDownTaskId;
     
     public VoteManager(GameManager gameManager, Main plugin) {
         this.gameManager = gameManager;
+        this.plugin = plugin;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
     
     public void startVote(List<Player> participants) {
         voting = true;
         votes.clear();
-        this.voters.clear();
+        voters.clear();
         for (Player participant : participants) {
             showVoteGui(participant);
             this.voters.add(participant);
             participant.sendMessage(Component.text("Vote for the game you want to play"));
         }
+        startVoteCountDown();
+    }
+    
+    private void startVoteCountDown() {
+        this.voteCountDownTaskId = new BukkitRunnable() {
+            private int count = 20;
+            @Override
+            public void run() {
+                if (count <= 0) {
+                    messageAllVoters(Component.text("Class selection is over"));
+                } else {
+                    for (Player participant : voters) {
+                        String timeString = TimeStringUtils.getTimeString(count);
+                        updateVoteTimerFastBoard(participant, timeString);
+                    }
+                }
+                if (count <= 0) {
+                    executeVote();
+                    this.cancel();
+                    return;
+                }
+                count--;
+            }
+        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+    }
+    
+    private void updateVoteTimerFastBoard(Player participant, String timeString) {
+        gameManager.getFastBoardManager().updateLines(
+                participant.getUniqueId(),
+                "",
+                "Voting:",
+                timeString
+        );
+    }
+    
+    private void hideFastBoard(Player participant) {
+        gameManager.getFastBoardManager().updateLines(
+                participant.getUniqueId()
+        );
     }
     
     
@@ -132,11 +176,7 @@ public class VoteManager implements Listener {
             return;
         }
         if (allPlayersHaveVoted()) {
-            String game = getVotedGame();
-            votes.clear();
-            voters.clear();
-            voting = false;
-            gameManager.startGame(game, Bukkit.getConsoleSender());
+            executeVote();
         } else {
             if (participantVoted(participant)) {
                 return;
@@ -149,6 +189,39 @@ public class VoteManager implements Listener {
             participant.sendMessage(Component.text("You didn't vote for a game. Use the nether star to vote."));
             votes.put(participant.getUniqueId(), null);
         }
+    }
+    
+    /**
+     * Cancel the vote if a vote is in progress
+     */
+    public void cancelVote() {
+        if (!voting) {
+            return;
+        }
+        voting = false;
+        Bukkit.getScheduler().cancelTask(voteCountDownTaskId);
+        for (Player voter : voters) {
+            voter.closeInventory();
+            voter.getInventory().clear();
+            hideFastBoard(voter);
+        }
+        messageAllVoters(Component.text("Cancelling vote"));
+        votes.clear();
+        voters.clear();
+    }
+    
+    private void executeVote() {
+        voting = false;
+        Bukkit.getScheduler().cancelTask(voteCountDownTaskId);
+        for (Player voter : voters) {
+            voter.closeInventory();
+            voter.getInventory().clear();
+            hideFastBoard(voter);
+        }
+        String game = getVotedGame();
+        votes.clear();
+        voters.clear();
+        gameManager.startGame(game, Bukkit.getConsoleSender());
     }
     
     @EventHandler
@@ -253,6 +326,12 @@ public class VoteManager implements Listener {
         ItemStack[] contents = {footRace, mecha, captureTheFlag};
         newGui.setContents(contents);
         participant.openInventory(newGui);
+    }
+    
+    private void messageAllVoters(Component message) {
+        for (Player voter : voters) {
+            voter.sendMessage(message);
+        }
     }
     
 }

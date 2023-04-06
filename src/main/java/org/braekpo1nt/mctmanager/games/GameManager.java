@@ -170,6 +170,13 @@ public class GameManager implements Listener {
         voteManager.startVote(onlineParticipants);
     }
     
+    /**
+     * Cancel the vote if a vote is in progress
+     */
+    public void cancelVote() {
+        voteManager.cancelVote();
+    }
+    
     
     public void startGame(String gameName, @NotNull CommandSender sender) {
         

@@ -7,6 +7,7 @@ import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
+import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
@@ -15,7 +16,6 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 
-import java.time.Duration;
 import java.util.*;
 
 public class CaptureTheFlagGame implements MCTGame {
@@ -154,14 +154,13 @@ public class CaptureTheFlagGame implements MCTGame {
         classPickerManager.startClassPicking(participants);
         this.classSelectionCountdownTaskIt = new BukkitRunnable() {
             private int count = 20;
-            
             @Override
             public void run() {
                 if (count <= 0) {
                     messageAllParticipants(Component.text("Class selection is over"));
                 } else {
                     for (Player participant : participants) {
-                        String timeString = getTimeString(count);
+                        String timeString = TimeStringUtils.getTimeString(count);
                         updateClassSelectionFastBoardTimer(participant, timeString);
                     }
                 }
@@ -300,19 +299,6 @@ public class CaptureTheFlagGame implements MCTGame {
         gameManager.getFastBoardManager().updateLines(
                 participant.getUniqueId()
         );
-    }
-    
-    /**
-     * Returns the given seconds as a string representing time in the format
-     * MM:ss (or minutes:seconds)
-     * @param timeSeconds The time in seconds
-     * @return Time string MM:ss
-     */
-    private String getTimeString(long timeSeconds) {
-        Duration duration = Duration.ofSeconds(timeSeconds);
-        long minutes = duration.toMinutes();
-        long seconds = duration.minusMinutes(minutes).getSeconds();
-        return String.format("%d:%02d", minutes, seconds);
     }
     
     private void setUpTeamOptions() {

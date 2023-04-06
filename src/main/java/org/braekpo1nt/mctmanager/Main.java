@@ -80,6 +80,7 @@ public final class Main extends JavaPlugin {
     public void onDisable() {
         if (saveGameStateOnDisable && gameManager != null) {
             gameManager.cancelFastBoardManager();
+            gameManager.cancelVote();
             try {
                 gameManager.saveGameState();
                 if (gameManager.gameIsRunning()) {

@@ -8,6 +8,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
+import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Block;
@@ -30,7 +31,6 @@ import org.bukkit.structure.Structure;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
-import java.time.Duration;
 import java.util.*;
 
 public class MechaGame implements MCTGame, Listener {
@@ -509,7 +509,7 @@ public class MechaGame implements MCTGame, Listener {
      * @param delay The delay in seconds
      */
     private void sendBorderDelayAnouncement(int delay) {
-        String timeString = getTimeString(delay);
+        String timeString = TimeStringUtils.getTimeString(delay);
         messageAllParticipants(Component.text("Border will not shrink for "+timeString));
     }
     
@@ -519,7 +519,7 @@ public class MechaGame implements MCTGame, Listener {
      * @param size The size of the border in blocks
      */
     private void sendBorderShrinkAnouncement(int duration, int size) {
-        String timeString = getTimeString(duration);
+        String timeString = TimeStringUtils.getTimeString(duration);
         messageAllParticipants(Component.text("Border shrinking to ")
                 .append(Component.text(size))
                 .append(Component.text(" for "))
@@ -531,7 +531,7 @@ public class MechaGame implements MCTGame, Listener {
      * @param duration The seconds left in the border shrink
      */
     private void displayBorderShrinkingFor(int duration) {
-        String timeString = getTimeString(duration);
+        String timeString = TimeStringUtils.getTimeString(duration);
         String borderPhase = ChatColor.RED+"Shrinking";
         String shrinkDuration = ChatColor.RED+timeString;
         for (Player participant : participants) {
@@ -548,7 +548,7 @@ public class MechaGame implements MCTGame, Listener {
      * @param delay The seconds left till the border shrinks
      */
     private void displayBorderDelayFor(int delay) {
-        String timeString = getTimeString(delay);
+        String timeString = TimeStringUtils.getTimeString(delay);
         String borderPhase = ChatColor.LIGHT_PURPLE+"Border";
         String boardDelay = ChatColor.LIGHT_PURPLE+timeString;
         for (Player participant : participants) {
@@ -572,19 +572,6 @@ public class MechaGame implements MCTGame, Listener {
             gameManager.getFastBoardManager().updateLine(playerUniqueId,
                     5, "");
         }
-    }
-    
-    /**
-     * Returns the given seconds as a string representing time in the format
-     * MM:ss (or minutes:seconds)
-     * @param timeSeconds The time in seconds
-     * @return Time string MM:ss
-     */
-    private String getTimeString(long timeSeconds) {
-        Duration duration = Duration.ofSeconds(timeSeconds);
-        long minutes = duration.toMinutes();
-        long seconds = duration.minusMinutes(minutes).getSeconds();
-        return String.format("%d:%02d", minutes, seconds);
     }
     
     private void teleportParticipantToStartingPosition(Player participant) {
