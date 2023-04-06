@@ -62,7 +62,7 @@ public class ClassPickerManager implements Listener {
         switch (clickedItem) {
             case STONE_SWORD:
                 if (teamClasses.contains(BattleClass.KNIGHT)) {
-                    participant.sendMessage(Component.text("Someone on your team already selected Knight").color(NamedTextColor.RED));
+                    participant.sendMessage(Component.text("Someone on your team already selected Knight").color(NamedTextColor.DARK_RED));
                     return;
                 }
                 teamClasses.add(BattleClass.KNIGHT);
@@ -70,7 +70,7 @@ public class ClassPickerManager implements Listener {
                 break;
             case BOW:
                 if (teamClasses.contains(BattleClass.ARCHER)) {
-                    participant.sendMessage(Component.text("Someone on your team already selected Archer").color(NamedTextColor.RED));
+                    participant.sendMessage(Component.text("Someone on your team already selected Archer").color(NamedTextColor.DARK_RED));
                     return;
                 }
                 teamClasses.add(BattleClass.ARCHER);
@@ -78,7 +78,7 @@ public class ClassPickerManager implements Listener {
                 break;
             case IRON_SWORD:
                 if (teamClasses.contains(BattleClass.ASSASSIN)) {
-                    participant.sendMessage(Component.text("Someone on your team already selected Assassin").color(NamedTextColor.RED));
+                    participant.sendMessage(Component.text("Someone on your team already selected Assassin").color(NamedTextColor.DARK_RED));
                     return;
                 }
                 teamClasses.add(BattleClass.ASSASSIN);
@@ -86,7 +86,7 @@ public class ClassPickerManager implements Listener {
                 break;
             case LEATHER_CHESTPLATE:
                 if (teamClasses.contains(BattleClass.TANK)) {
-                    participant.sendMessage(Component.text("Someone on your team already selected Tank").color(NamedTextColor.RED));
+                    participant.sendMessage(Component.text("Someone on your team already selected Tank").color(NamedTextColor.DARK_RED));
                     return;
                 }
                 teamClasses.add(BattleClass.TANK);
@@ -114,7 +114,7 @@ public class ClassPickerManager implements Listener {
         if (participantsWhoPickedClasses.contains(participant.getUniqueId())) {
             return;
         }
-        participant.sendMessage(Component.text("You didn't pick a class. Your class will be randomly selected.").color(NamedTextColor.RED));
+        participant.sendMessage(Component.text("You didn't pick a class. Your class will be randomly selected.").color(NamedTextColor.DARK_RED));
     }
     
     /**

@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.games.voting;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
@@ -44,18 +45,19 @@ public class VoteManager implements Listener {
         for (Player participant : participants) {
             showVoteGui(participant);
             this.voters.add(participant);
-            participant.sendMessage(Component.text("Vote for the game you want to play"));
+            participant.sendMessage(Component.text("Vote for the game you want to play")
+                    .color(NamedTextColor.GREEN));
         }
         startVoteCountDown();
     }
     
     private void startVoteCountDown() {
         this.voteCountDownTaskId = new BukkitRunnable() {
-            private int count = 30;
+            private int count = 60;
             @Override
             public void run() {
                 if (count <= 0) {
-                    messageAllVoters(Component.text("Time to vote has run out"));
+                    messageAllVoters(Component.text("Voting is over"));
                 } else {
                     for (Player participant : voters) {
                         String timeString = TimeStringUtils.getTimeString(count);
@@ -120,15 +122,18 @@ public class VoteManager implements Listener {
         switch (clickedItem) {
             case FEATHER:
                 votes.put(participant.getUniqueId(), "foot-race");
-                participant.sendMessage(Component.text("Voted for Foot Race"));
+                participant.sendMessage(Component.text("Voted for Foot Race")
+                        .color(NamedTextColor.GREEN));
                 break;
             case IRON_SWORD:
                 votes.put(participant.getUniqueId(), "mecha");
-                participant.sendMessage(Component.text("Voted for MECHA"));
+                participant.sendMessage(Component.text("Voted for MECHA")
+                        .color(NamedTextColor.GREEN));
                 break;
             case GRAY_BANNER:
                 votes.put(participant.getUniqueId(), "capture-the-flag");
-                participant.sendMessage(Component.text("Voted for Capture the Flag"));
+                participant.sendMessage(Component.text("Voted for Capture the Flag")
+                        .color(NamedTextColor.GREEN));
                 break;
             default:
                 return;
@@ -186,7 +191,8 @@ public class VoteManager implements Listener {
             netherStarMeta.displayName(NETHER_STAR_NAME);
             netherStar.setItemMeta(netherStarMeta);
             participant.getInventory().addItem(netherStar);
-            participant.sendMessage(Component.text("You didn't vote for a game. Use the nether star to vote."));
+            participant.sendMessage(Component.text("You didn't vote for a game. Use the nether star to vote.")
+                    .color(NamedTextColor.DARK_RED));
             votes.put(participant.getUniqueId(), null);
         }
     }
@@ -247,7 +253,8 @@ public class VoteManager implements Listener {
         if (participantVoted(participant)) {
             String vote = votes.get(participant.getUniqueId());
             participant.sendMessage(Component.text("You already voted for ")
-                    .append(Component.text(vote)));
+                    .append(Component.text(vote))
+                    .color(NamedTextColor.GREEN));
             return;
         }
         participant.getInventory().clear();
