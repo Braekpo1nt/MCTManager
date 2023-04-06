@@ -10,6 +10,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -24,6 +25,7 @@ public class VoteManager implements Listener {
     private final Map<UUID, String> votes = new HashMap<>();
     private List<Player> voters = new ArrayList<>();
     private boolean voting = false;
+    private final Component NETHER_STAR_NAME = Component.text("Vote");
     
     public VoteManager(GameManager gameManager, Main plugin) {
         this.gameManager = gameManager;
@@ -107,7 +109,42 @@ public class VoteManager implements Listener {
             voting = false;
             Bukkit.getLogger().info("Game voted for:  " + game);
             gameManager.startGame(game, null);
+        } else {
+            ItemStack netherStar = new ItemStack(Material.NETHER_STAR);
+            ItemMeta netherStarMeta = netherStar.getItemMeta();
+            netherStarMeta.displayName(NETHER_STAR_NAME);
+            netherStar.setItemMeta(netherStarMeta);
+            participant.getInventory().addItem(netherStar);
         }
+    }
+    
+    @EventHandler
+    public void onClickNetherStar(PlayerInteractEvent event) {
+        if (!voting) {
+            return;
+        }
+        Player participant = event.getPlayer();
+        if (!gameManager.isParticipant(participant.getUniqueId())) {
+            return;
+        }
+        ItemStack item = participant.getInventory().getItemInMainHand();
+        if (item.getType() != Material.NETHER_STAR) {
+            return;
+        }
+        ItemMeta netherStarMeta = item.getItemMeta();
+        if (netherStarMeta == null || !netherStarMeta.hasDisplayName() || !netherStarMeta.displayName().equals("Vote")) {
+            return;
+        }
+        if (!voters.contains(participant)) {
+            voters.add(participant);
+        }
+        if (votes.containsKey(participant.getUniqueId())) {
+            String vote = votes.get(participant.getUniqueId());
+            participant.sendMessage(Component.text("You already voted for ")
+                    .append(Component.text(vote)));
+            return;
+        }
+        showVoteGui(participant);
     }
     
     private String getVotedGame() {
