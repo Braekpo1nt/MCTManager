@@ -169,7 +169,7 @@ public class VoteManager implements Listener {
     }
 
     @EventHandler
-    private void menuClose(InventoryCloseEvent event) {
+    private void onCloseMenu(InventoryCloseEvent event) {
         if (!voting) {
             return;
         }
@@ -239,7 +239,10 @@ public class VoteManager implements Listener {
         if (!gameManager.isParticipant(participant.getUniqueId())) {
             return;
         }
-        ItemStack item = participant.getInventory().getItemInMainHand();
+        ItemStack item = event.getItem();
+        if (item == null) {
+            return;
+        }
         if (item.getType() != Material.NETHER_STAR) {
             return;
         }
@@ -255,7 +258,7 @@ public class VoteManager implements Listener {
                     .color(NamedTextColor.GREEN));
             return;
         }
-        participant.getInventory().clear();
+        participant.getInventory().remove(item);
         showVoteGui(participant);
     }
     

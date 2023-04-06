@@ -11,6 +11,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -24,6 +25,7 @@ public class ClassPickerManager implements Listener {
                     .color(NamedTextColor.DARK_GRAY))
             .append(Component.text(" (One per team)")
                     .color(NamedTextColor.GRAY));
+    private final Component NETHER_STAR_NAME = Component.text("Vote");
     private final Map<String, List<BattleClass>> classTracker = new HashMap<>();
     private final List<UUID> participantsWhoPickedClasses = new ArrayList<>();
     private final GameManager gameManager;
@@ -100,7 +102,7 @@ public class ClassPickerManager implements Listener {
     }
     
     @EventHandler
-    public void inventoryCloseEvent(InventoryCloseEvent event) {
+    public void onCloseMenu(InventoryCloseEvent event) {
         if (!picking) {
             return;
         }
@@ -114,7 +116,36 @@ public class ClassPickerManager implements Listener {
         if (participantsWhoPickedClasses.contains(participant.getUniqueId())) {
             return;
         }
-        participant.sendMessage(Component.text("You didn't pick a class. Your class will be randomly selected.").color(NamedTextColor.DARK_RED));
+        ItemStack netherStar = new ItemStack(Material.NETHER_STAR);
+        ItemMeta netherStarMeta = netherStar.getItemMeta();
+        netherStarMeta.displayName(NETHER_STAR_NAME);
+        netherStar.setItemMeta(netherStarMeta);
+        participant.getInventory().addItem(netherStar);
+        participant.sendMessage(Component.text("You didn't pick a class. Use the nether star to pick.").color(NamedTextColor.DARK_RED));
+    }
+    
+    @EventHandler
+    public void onClickNetherStar(PlayerInteractEvent event) {
+        if (!picking) {
+            return;
+        }
+        Player participant = event.getPlayer();
+        if (!gameManager.isParticipant(participant.getUniqueId())) {
+            return;
+        }
+        ItemStack item = event.getItem();
+        if (item == null) {
+            return;
+        }
+        if (item.getType() != Material.NETHER_STAR) {
+            return;
+        }
+        ItemMeta netherStarMeta = item.getItemMeta();
+        if (netherStarMeta == null || !netherStarMeta.hasDisplayName() || !netherStarMeta.displayName().equals(NETHER_STAR_NAME)) {
+            return;
+        }
+        participant.getInventory().remove(item);
+        showClassPickerGui(participant);
     }
     
     /**
