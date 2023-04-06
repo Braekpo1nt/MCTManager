@@ -136,23 +136,13 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
         if (killed.getKiller() != null) {
             onParticipantGetKill(killed);
         }
-        if (allParticipantsInAllTeamPairingAreDead()) {
+        if (allPlayersAreDead()) {
             endCurrentRound();
         }
     }
     
-    /**
-     * Checks whether all participants in all team pairings are dead
-     * @return True if all participants in all team pairings for the current round
-     * are dead, false if even one is alive
-     */
-    private boolean allParticipantsInAllTeamPairingAreDead() {
-        for (TeamPairing teamPairing : currentRoundTeamParings) {
-            if (!allParticipantsInTeamPairingAreDead(teamPairing)) {
-                return false;
-            }
-        }
-        return true;
+    private boolean allPlayersAreDead() {
+        return livingPlayers.isEmpty();
     }
     
     /**
@@ -370,7 +360,12 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
             }
             newAllRoundTeamPairings.add(singleRoundPairingGroup);
         }
-        return newAllRoundTeamPairings;
+        List<List<TeamPairing>> doubleTeamPairings = new ArrayList<>();
+        for (List<TeamPairing> roundTeamPairing : newAllRoundTeamPairings) {
+            doubleTeamPairings.add(roundTeamPairing);
+            doubleTeamPairings.add(roundTeamPairing);
+        }
+        return doubleTeamPairings;
     }
     
     private static List<TeamPairing> generateAllPairings(List<String> teamNames) {
