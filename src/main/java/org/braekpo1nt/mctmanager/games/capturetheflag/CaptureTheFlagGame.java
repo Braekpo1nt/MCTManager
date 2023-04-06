@@ -51,6 +51,7 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
     private List<UUID> deadPlayers;
     private Map<UUID, Integer> killCounts;
     private int classSelectionCountdownTaskIt;
+    private int startNextRoundTimerTaskId;
     
     
     public CaptureTheFlagGame(Main plugin, GameManager gameManager) {
@@ -83,13 +84,9 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
         }
         setUpTeamOptions();
         closeGlassBarriers();
+        killCounts = new HashMap<>();
         gameActive = true;
-        new BukkitRunnable(){
-            @Override
-            public void run() {
-                startNextRound();
-            }
-        }.runTaskLater(plugin, 5*20L);
+        startStartNextRoundTimer();
         Bukkit.getLogger().info("Started Capture the Flag");
     }
     
@@ -139,7 +136,54 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
         if (killed.getKiller() != null) {
             onParticipantGetKill(killed);
         }
+        if (allParticipantsInAllTeamPairingAreDead()) {
+            endCurrentRound();
+        }
     }
+    
+    /**
+     * Checks whether all participants in all team pairings are dead
+     * @return True if all participants in all team pairings for the current round
+     * are dead, false if even one is alive
+     */
+    private boolean allParticipantsInAllTeamPairingAreDead() {
+        for (TeamPairing teamPairing : currentRoundTeamParings) {
+            if (!allParticipantsInTeamPairingAreDead(teamPairing)) {
+                return false;
+            }
+        }
+        return true;
+    }
+    
+    /**
+     * Checks if all participants in the given team pairing are dead
+     * @param teamPairing The team pairing
+     * @return True if all participants on the team pairing are dead, false
+     * if even one is alive. 
+     */
+    private boolean allParticipantsInTeamPairingAreDead(TeamPairing teamPairing) {
+        for (Player participant : participants) {
+            String teamName = gameManager.getTeamName(participant.getUniqueId());
+            if (teamPairing.containsTeam(teamName)) {
+                if (livingPlayers.contains(participant.getUniqueId())) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+    
+    
+    private TeamPairing getTeamPairingForParticipant(Player killed) {
+        String teamName = gameManager.getTeamName(killed.getUniqueId());
+        for (TeamPairing teamPairing : currentRoundTeamParings) {
+            if (teamPairing.containsTeam(teamName)) {
+                return teamPairing;
+            }
+        }
+        return null;
+    }
+    
     
     private void onParticipantDeath(Player killed) {
         UUID killedUniqueId = killed.getUniqueId();
@@ -180,6 +224,15 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
     private void resetParticipant(Player participant) {
         participant.getInventory().clear();
         hideFastBoard(participant);
+        resetHealthAndHunger(participant);
+    }
+    
+    private void resetParticipantForRoundEnd(Player participant) {
+        participant.getInventory().clear();
+        teleportParticipantToSpawnObservatory(participant);
+        killCounts.put(participant.getUniqueId(), 0);
+        resetHealthAndHunger(participant);
+        participant.setGameMode(GameMode.ADVENTURE);
     }
     
     private void initializeParticipantForRound(Player participant) {
@@ -192,12 +245,29 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
         initializeFastBoard(participant);
     }
     
+    private void startStartNextRoundTimer() {
+        this.startNextRoundTimerTaskId = new BukkitRunnable() {
+            int count = 10;
+            @Override
+            public void run() {
+                if (count <= 0) {
+                    startNextRound();
+                    this.cancel();
+                    return;
+                }
+                String timeString = TimeStringUtils.getTimeString(count);
+                for (Player participant : participants){
+                    updateNextRoundFastBoardTimer(participant, timeString);
+                }
+                count--;
+            }
+        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+    }
     
     private void startNextRound() {
         this.currentRound++;
         this.livingPlayers = new ArrayList<>();
         this.deadPlayers = new ArrayList<>();
-        this.killCounts = new HashMap<>();
         currentRoundTeamParings = allRoundTeamPairings.get(currentRound-1);
         closeGlassBarriers();
         for (Player participant : participants){
@@ -207,6 +277,29 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
         roundHasStarted = true;
         startClassSelectionPeriod();
         Bukkit.getLogger().info("Starting round " + currentRound);
+    }
+    
+    private void endCurrentRound() {
+        livingPlayers.clear();
+        deadPlayers.clear();
+        openGlassBarriers();
+        for(Player participant : participants) {
+            resetParticipantForRoundEnd(participant);
+        }
+        roundHasStarted = false;
+        Bukkit.getLogger().info("Ending round " + currentRound);
+        if (!hasNextRound()) {
+            stop();
+        }
+        startStartNextRoundTimer();
+    }
+    
+    /**
+     * Checks if there is a next round in the game
+     * @return True if the current round is not the last round
+     */
+    private boolean hasNextRound() {
+        return currentRound < maxRounds;
     }
     
     private void closeGlassBarriers() {
@@ -328,6 +421,7 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
     
     private void cancelAllTasks() {
         Bukkit.getScheduler().cancelTask(classSelectionCountdownTaskIt);
+        Bukkit.getScheduler().cancelTask(startNextRoundTimerTaskId);
     }
     
     private void resetHealthAndHunger(Player participant) {
@@ -343,7 +437,7 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
     }
     
     private void updateClassSelectionFastBoardTimer(Player participant, String timerString) {
-        int killCount = killCounts.get(participant.getUniqueId());
+        int killCount = killCounts.getOrDefault(participant.getUniqueId(), 0);
         gameManager.getFastBoardManager().updateLines(
                 participant.getUniqueId(),
                 title,
@@ -357,8 +451,23 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
         );
     }
     
+    private void updateNextRoundFastBoardTimer(Player participant, String timerString) {
+        int killCount = killCounts.getOrDefault(participant.getUniqueId(), 0);
+        gameManager.getFastBoardManager().updateLines(
+                participant.getUniqueId(),
+                title,
+                "",
+                ChatColor.RED+"Kills: "+killCount,
+                "",
+                "Next round:",
+                timerString,
+                "",
+                "Round: " + currentRound + "/" + maxRounds
+        );
+    }
+    
     private void initializeFastBoard(Player participant) {
-        int killCount = killCounts.get(participant.getUniqueId());
+        int killCount = killCounts.getOrDefault(participant.getUniqueId(), 0);
         gameManager.getFastBoardManager().updateLines(
                 participant.getUniqueId(),
                 title,
