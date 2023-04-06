@@ -64,6 +64,7 @@ public class MechaGame implements MCTGame, Listener {
     private LootTable spawnLootTable;
     private final WorldBorder worldBorder;
     private int borderShrinkingTaskId;
+    private String lastKilledTeam;
     private List<UUID> livingPlayers;
     private List<UUID> deadPlayers;
     private Map<UUID, Integer> killCounts;
@@ -87,6 +88,7 @@ public class MechaGame implements MCTGame, Listener {
         this.participants = new ArrayList<>(newParticipants.size());
         livingPlayers = new ArrayList<>(newParticipants.size());
         deadPlayers = new ArrayList<>();
+        lastKilledTeam = null;
         this.killCounts = new HashMap<>(newParticipants.size());
         placePlatforms();
         fillAllChests();
@@ -120,6 +122,7 @@ public class MechaGame implements MCTGame, Listener {
         clearFloorItems();
         placePlatforms();
         clearAllChests();
+        lastKilledTeam = null;
         worldBorder.reset();
         for (Player participant : participants) {
             resetParticipant(participant);
@@ -230,7 +233,6 @@ public class MechaGame implements MCTGame, Listener {
         messageAllParticipants(Component.text("Game ending in 10 seconds..."));
         stopMechaCountdownTaskId = new BukkitRunnable() {
             int count = 10;
-            
             @Override
             public void run() {
                 if (count <= 0) {
@@ -339,6 +341,7 @@ public class MechaGame implements MCTGame, Listener {
         if (teamIsAllDead(teamName)) {
             onTeamDeath(teamName);
         }
+        lastKilledTeam = teamName;
     }
     
     private void onTeamDeath(String teamName) {
@@ -398,7 +401,18 @@ public class MechaGame implements MCTGame, Listener {
             UUID winningPlayerUniqueId = livingPlayers.get(0);
             return gameManager.getTeamName(winningPlayerUniqueId);
         }
+        if (allPlayersAreDead()) {
+            return lastKilledTeam;
+        }
         return null;
+    }
+    
+    /**
+     * Checks if there are no living players anymore
+     * @return True if all players are dead, false if not
+     */
+    private boolean allPlayersAreDead() {
+        return livingPlayers.isEmpty();
     }
     
     /**
