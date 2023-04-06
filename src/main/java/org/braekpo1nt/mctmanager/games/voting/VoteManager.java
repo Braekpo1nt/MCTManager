@@ -51,11 +51,11 @@ public class VoteManager implements Listener {
     
     private void startVoteCountDown() {
         this.voteCountDownTaskId = new BukkitRunnable() {
-            private int count = 20;
+            private int count = 30;
             @Override
             public void run() {
                 if (count <= 0) {
-                    messageAllVoters(Component.text("Class selection is over"));
+                    messageAllVoters(Component.text("Time to vote has run out"));
                 } else {
                     for (Player participant : voters) {
                         String timeString = TimeStringUtils.getTimeString(count);
@@ -255,8 +255,14 @@ public class VoteManager implements Listener {
     }
     
     private String getVotedGame() {
+        Random random = new Random();
         Map<String, Integer> voteCount = new HashMap<>();
-        
+    
+        if (votes.isEmpty()) {
+            int randomGameIndex = random.nextInt(3);
+            return Arrays.asList("foot-race", "mecha", "capture-the-flag").get(randomGameIndex);
+        }
+    
         // Count the number of occurrences of each string in the list
         for (String vote : votes.values()) {
             if (vote != null) {
@@ -264,7 +270,7 @@ public class VoteManager implements Listener {
                 voteCount.put(vote, count + 1);
             }
         }
-        
+    
         // Find the maximum number of occurrences
         int maxCount = 0;
         for (Integer count : voteCount.values()) {
@@ -272,7 +278,7 @@ public class VoteManager implements Listener {
                 maxCount = count;
             }
         }
-        
+    
         // Get all strings with the maximum number of occurrences
         List<String> winners = new ArrayList<>();
         for (Map.Entry<String, Integer> entry : voteCount.entrySet()) {
@@ -280,9 +286,8 @@ public class VoteManager implements Listener {
                 winners.add(entry.getKey());
             }
         }
-        
+    
         // Randomly select a winner from the list of strings with the maximum number of occurrences
-        Random random = new Random();
         int index = random.nextInt(winners.size());
         return winners.get(index);
     }
