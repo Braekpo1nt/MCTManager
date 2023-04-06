@@ -52,6 +52,7 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
     private Map<UUID, Integer> killCounts;
     private int classSelectionCountdownTaskIt;
     private int startNextRoundTimerTaskId;
+    private int currentRoundTimerTaskId;
     
     
     public CaptureTheFlagGame(Main plugin, GameManager gameManager) {
@@ -92,13 +93,13 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
     
     @Override
     public void stop() {
+        cancelAllTasks();
+        openGlassBarriers();
         for (Player participant : participants) {
             resetParticipant(participant);
         }
         participants.clear();
         classPickerManager.stopClassPicking(participants);
-        cancelAllTasks();
-        openGlassBarriers();
         gameActive = false;
         roundHasStarted = false;
         gameManager.gameIsOver();
@@ -127,8 +128,8 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
         if (!participants.contains(killed)) {
             return;
         }
-        event.setCancelled(true);
         Component deathMessage = event.deathMessage();
+        event.setCancelled(true);
         if (deathMessage != null) {
             Bukkit.getServer().sendMessage(deathMessage);
         }
@@ -225,6 +226,25 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
     }
     
+    private void startCurrentRoundTimer() {
+        this.currentRoundTimerTaskId = new BukkitRunnable() {
+            int count = 3*60; //3 minutes
+            @Override
+            public void run() {
+                if (count <= 0) {
+                    endCurrentRound();
+                    this.cancel();
+                    return;
+                }
+                String timeString = TimeStringUtils.getTimeString(count);
+                for (Player participant : participants){
+                    updateCurrentRoundFastBoardTimer(participant, timeString);
+                }
+                count--;
+            }
+        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+    }
+    
     private void startNextRound() {
         this.currentRound++;
         this.livingPlayers = new ArrayList<>();
@@ -306,7 +326,9 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
     private void startCaptureTheFlagRound() {
         classPickerManager.assignClassesToParticipantsWithoutClasses(participants);
         classPickerManager.stopClassPicking(participants);
+        messageAllParticipants(Component.text("Capture the flag!"));
         openGlassBarriers();
+        startCurrentRoundTimer();
     }
     
     /**
@@ -421,6 +443,21 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
                 ChatColor.RED+"Kills: "+killCount,
                 "",
                 "Next round:",
+                timerString,
+                "",
+                "Round: " + currentRound + "/" + maxRounds
+        );
+    }
+    
+    private void updateCurrentRoundFastBoardTimer(Player participant, String timerString) {
+        int killCount = killCounts.getOrDefault(participant.getUniqueId(), 0);
+        gameManager.getFastBoardManager().updateLines(
+                participant.getUniqueId(),
+                title,
+                "",
+                ChatColor.RED+"Kills: "+killCount,
+                "",
+                "Time:",
                 timerString,
                 "",
                 "Round: " + currentRound + "/" + maxRounds
