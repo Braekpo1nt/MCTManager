@@ -10,7 +10,6 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -64,25 +63,33 @@ public class ListSubCommand implements TabExecutor {
         
         for (String teamName : teamNames) {
             int teamScore = gameManager.getScore(teamName);
-            messageBuilder.append(gameManager.getFormattedTeamDisplayName(teamName)
+            NamedTextColor teamNamedTextColor = gameManager.getTeamNamedTextColor(teamName);
+            messageBuilder.append(Component.empty()
+                            .append(gameManager.getFormattedTeamDisplayName(teamName))
                             .append(Component.text(" - "))
-                            .append(Component.text(teamScore))
+                            .append(Component.text(teamScore)
+                                    .decorate(TextDecoration.BOLD)
+                                    .color(NamedTextColor.GOLD))
                     .append(Component.text(":\n")));
             for (OfflinePlayer offlinePlayer : offlinePlayers) {
                 String playerTeam = gameManager.getTeamName(offlinePlayer.getUniqueId());
-                int score = gameManager.getScore(offlinePlayer.getUniqueId());
+                int playerScore = gameManager.getScore(offlinePlayer.getUniqueId());
+                if (offlinePlayer.getName() == null) {
+                    continue;
+                }
                 if (playerTeam.equals(teamName)) {
                     messageBuilder.append(Component.empty()
                             .append(Component.text("  "))
-                            .append(Component.text(offlinePlayer.getName()))
+                            .append(Component.text(offlinePlayer.getName())
+                                    .color(teamNamedTextColor))
                             .append(Component.text(" - "))
-                            .append(Component.text(score))
+                            .append(Component.text(playerScore)
+                                    .decorate(TextDecoration.BOLD)
+                                    .color(NamedTextColor.GOLD))
                             .append(Component.text("\n")));
                 }
             }
         }
-        
-        
         
         return messageBuilder.build();
     }

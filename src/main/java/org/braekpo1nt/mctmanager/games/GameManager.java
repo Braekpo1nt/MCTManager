@@ -497,6 +497,10 @@ public class GameManager implements Listener {
         return gameStateStorageUtil.getTeamColor(playerUniqueId);
     }
     
+    public NamedTextColor getTeamNamedTextColor(String teamName) {
+        return gameStateStorageUtil.getTeamNamedTextColor(teamName);
+    }
+    
     /**
      * Gets the team's display name as a Component with the team's text color
      * and in bold
