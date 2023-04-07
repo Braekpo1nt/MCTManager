@@ -37,10 +37,6 @@ public class ScoreAddTeamSubCommand implements TabExecutor {
         String scoreString = args[1];
         try {
             int score = Integer.parseInt(scoreString);
-            if (score < 0) {
-                sender.sendMessage(Component.text("value must be positive"));
-                return true;
-            }
             gameManager.addScore(teamName, score);
         } catch (NumberFormatException e) {
             sender.sendMessage(Component.text(scoreString)

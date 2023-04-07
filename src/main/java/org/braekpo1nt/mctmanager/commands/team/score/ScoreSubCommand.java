@@ -17,7 +17,7 @@ import java.util.Map;
 public class ScoreSubCommand extends CommandManager {
     private final GameManager gameManager;
     private final Map<String, CommandExecutor> subCommands = new HashMap<>();
-
+    
     public ScoreSubCommand(GameManager gameManager) {
         this.gameManager = gameManager;
         subCommands.put("add", new ScoreAddSubCommand(gameManager));
