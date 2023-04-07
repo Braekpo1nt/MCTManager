@@ -7,6 +7,7 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
 import org.bukkit.*;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.block.structure.Mirror;
 import org.bukkit.block.structure.StructureRotation;
 import org.bukkit.enchantments.Enchantment;
@@ -34,6 +35,7 @@ public class SpleefGame implements MCTGame, Listener {
     private final PotionEffect SATURATION = new PotionEffect(PotionEffectType.SATURATION, 70, 250, true, false, false);
     private int statusEffectsTaskId;
     private int startCountDownTaskID;
+    private final String title = ChatColor.BLUE+"Spleef";
 
     public SpleefGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
@@ -64,7 +66,12 @@ public class SpleefGame implements MCTGame, Listener {
         UUID participantUniqueId = participant.getUniqueId();
         participants.add(participant);
         participantsAlive.put(participantUniqueId, true);
-        
+        initializeFastBoard(participant);
+        teleportPlayerToStartingPosition(participant);
+        participant.getInventory().clear();
+        participant.setGameMode(GameMode.ADVENTURE);
+        clearStatusEffects(participant);
+        resetHealthAndHunger(participant);
     }
 
     @Override
@@ -157,5 +164,30 @@ public class SpleefGame implements MCTGame, Listener {
             team.setOption(Team.Option.DEATH_MESSAGE_VISIBILITY, Team.OptionStatus.ALWAYS);
             team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER);
         }
+    }
+
+    private void initializeFastBoard(Player participant) {
+        gameManager.getFastBoardManager().updateLines(
+                participant.getUniqueId(),
+                title,
+                ""
+        );
+    }
+
+    private void teleportPlayerToStartingPosition(Player player) {
+        player.sendMessage("Teleporting to Spleef");
+        player.teleport(spleefStartAnchor);
+    }
+
+    private void clearStatusEffects(Player participant) {
+        for (PotionEffect effect : participant.getActivePotionEffects()) {
+            participant.removePotionEffect(effect.getType());
+        }
+    }
+
+    private void resetHealthAndHunger(Player participant) {
+        participant.setHealth(participant.getAttribute(Attribute.GENERIC_MAX_HEALTH).getDefaultValue());
+        participant.setFoodLevel(20);
+        participant.setSaturation(5);
     }
 }
