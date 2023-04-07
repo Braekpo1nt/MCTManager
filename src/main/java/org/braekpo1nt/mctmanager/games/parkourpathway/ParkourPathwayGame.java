@@ -212,6 +212,31 @@ public class ParkourPathwayGame implements MCTGame, Listener {
         List<CheckPoint> newCheckpoints = new ArrayList<>();
         
         newCheckpoints.add(new CheckPoint(
+                8,
+                new BoundingBox(1016, 10, 6, 1020, 7, 3),
+                new Location(parkourPathwayWorld, 1017, 8, 5)
+        )); // 1 r
+        newCheckpoints.add(new CheckPoint(
+                8,
+                new BoundingBox(1021, 10, -6, 1016, 8, -6),
+                new Location(parkourPathwayWorld, 1017, 8, -5)
+        )); // 1 l
+        newCheckpoints.add(new CheckPoint(
+                5,
+                new BoundingBox(1048, 8, 3 ,1046, 11, 1),
+                new Location(parkourPathwayWorld, 1046 ,8 ,2)
+        )); //2 r
+        newCheckpoints.add(new CheckPoint(
+                5,
+                new BoundingBox(1046, 11, -1, 1048, 8, -3),
+                new Location(parkourPathwayWorld, 1046, 8, -2)
+        )); // 2 l 
+        newCheckpoints.add(new CheckPoint(
+                9,
+                new BoundingBox(1074, 9, -3, 1077, 13, 4),
+                new Location(parkourPathwayWorld, 1076 ,9 ,0)
+        )); // 3
+        newCheckpoints.add(new CheckPoint(
                 ,
                 new BoundingBox(),
                 new Location(parkourPathwayWorld, )
@@ -221,8 +246,21 @@ public class ParkourPathwayGame implements MCTGame, Listener {
                 new BoundingBox(),
                 new Location(parkourPathwayWorld, )
         ));
-        
-        
+        newCheckpoints.add(new CheckPoint(
+                ,
+                new BoundingBox(),
+                new Location(parkourPathwayWorld, )
+        ));
+        newCheckpoints.add(new CheckPoint(
+                ,
+                new BoundingBox(),
+                new Location(parkourPathwayWorld, )
+        ));
+        newCheckpoints.add(new CheckPoint(
+                ,
+                new BoundingBox(),
+                new Location(parkourPathwayWorld, )
+        ));
         
         return newCheckpoints;
     }
