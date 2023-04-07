@@ -11,6 +11,7 @@ import org.braekpo1nt.mctmanager.games.footrace.FootRaceGame;
 import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
 import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.mecha.MechaGame;
+import org.braekpo1nt.mctmanager.games.parkourpathway.ParkourPathwayGame;
 import org.braekpo1nt.mctmanager.games.spleef.SpleefGame;
 import org.braekpo1nt.mctmanager.games.voting.VoteManager;
 import org.braekpo1nt.mctmanager.hub.HubManager;
@@ -41,7 +42,8 @@ public class GameManager implements Listener {
     private MCTGame activeGame = null;
     private final FootRaceGame footRaceGame;
     private final MechaGame mechaGame;
-    private final SpleefGame spleef;
+    private final SpleefGame spleefGame;
+    private final ParkourPathwayGame parkourPathwayGame;
     private final CaptureTheFlagGame captureTheFlagGame;
     private final HubManager hubManager;
     private final FastBoardManager fastBoardManager;
@@ -66,7 +68,8 @@ public class GameManager implements Listener {
         this.voteManager = new VoteManager(this, plugin);
         this.footRaceGame = new FootRaceGame(plugin, this);
         this.mechaGame = new MechaGame(plugin, this);
-        this.spleef = new SpleefGame(plugin, this);
+        this.spleefGame = new SpleefGame(plugin, this);
+        this.parkourPathwayGame = new ParkourPathwayGame(plugin, this);
         this.captureTheFlagGame = new CaptureTheFlagGame(plugin, this);
         this.fastBoardManager = new FastBoardManager(gameStateStorageUtil);
         this.hubManager = new HubManager(plugin, mctScoreboard, fastBoardManager);
@@ -232,8 +235,12 @@ public class GameManager implements Listener {
                 activeGame = captureTheFlagGame;
             }
             case SPLEEF -> {
-                spleef.start(onlineParticipants);
-                activeGame = spleef;
+                spleefGame.start(onlineParticipants);
+                activeGame = spleefGame;
+            }
+            case PARKOUR_PATHWAY -> {
+                parkourPathwayGame.start(onlineParticipants);
+                activeGame = parkourPathwayGame;
             }
         }
     }
