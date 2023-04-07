@@ -69,7 +69,7 @@ public class SpleefGame implements MCTGame, Listener {
         initializeFastBoard(participant);
         teleportPlayerToStartingPosition(participant);
         participant.getInventory().clear();
-        participant.setGameMode(GameMode.ADVENTURE);
+        participant.setGameMode(GameMode.SURVIVAL);
         clearStatusEffects(participant);
         resetHealthAndHunger(participant);
     }
