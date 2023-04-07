@@ -8,14 +8,17 @@ import org.braekpo1nt.mctmanager.games.GameManager;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
-public class ListSubCommand implements CommandExecutor {
+public class ListSubCommand implements TabExecutor {
     private final GameManager gameManager;
     
     public ListSubCommand(GameManager gameManager) {
@@ -24,15 +27,36 @@ public class ListSubCommand implements CommandExecutor {
     
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (args.length > 0) {
-            sender.sendMessage("Usage: /mct team list");
+        if (args.length > 1) {
+            sender.sendMessage("Usage: /mct team list [true|false]");
             return true;
         }
-        displayTeams(sender);
+        Component teamDisplay = getTeamDisplay(sender);
+        if (args.length == 0) {
+            sender.sendMessage(teamDisplay);
+            return true;
+        }
+        String displayToAll = args[0];
+        switch (displayToAll) {
+            case "true" -> {
+                Bukkit.getServer().sendMessage(teamDisplay);
+            }
+            case "false" -> {
+                sender.sendMessage(teamDisplay);
+            }
+            default -> {
+                sender.sendMessage(Component.empty()
+                        .append(Component.text(displayToAll)
+                                .decorate(TextDecoration.BOLD))
+                        .append(Component.text(" is not a recognized option"))
+                        .color(NamedTextColor.RED));
+            }
+        }
+
         return true;
     }
     
-    private void displayTeams(CommandSender sender) {
+    private Component getTeamDisplay(CommandSender sender) {
         TextComponent.Builder messageBuilder = Component.text().append(Component.text("TEAMS\n")
                     .decorate(TextDecoration.BOLD));
         List<OfflinePlayer> offlinePlayers = gameManager.getOfflinePlayers();
@@ -58,7 +82,16 @@ public class ListSubCommand implements CommandExecutor {
             }
         }
         
-        Component message = messageBuilder.build();
-        sender.sendMessage(message);
+        
+        
+        return messageBuilder.build();
+    }
+
+    @Override
+    public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+        if (args.length == 1) {
+            return Arrays.asList("true", "false");
+        }
+        return Collections.emptyList();
     }
 }
