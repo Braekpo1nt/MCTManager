@@ -349,7 +349,7 @@ public class VoteManager implements Listener {
         spleef.setItemMeta(spleefMeta);
     
         Inventory newGui = Bukkit.createInventory(null, 9, TITLE);
-        ItemStack[] contents = {footRace, mecha, captureTheFlag};
+        ItemStack[] contents = {footRace, mecha, captureTheFlag, spleef};
         newGui.setContents(contents);
         participant.openInventory(newGui);
     }
