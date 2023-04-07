@@ -9,12 +9,15 @@ import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
+import org.bukkit.util.BoundingBox;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,6 +39,7 @@ public class ParkourPathwayGame implements MCTGame, Listener {
     private boolean gameActive = false;
     private List<Player> participants;
     private Location parkourPathwayStartAnchor;
+    private final List<CheckPoint> checkpoints;
 
     public ParkourPathwayGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
@@ -43,6 +47,7 @@ public class ParkourPathwayGame implements MCTGame, Listener {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
         this.parkourPathwayWorld = worldManager.getMVWorld("FT").getCBWorld();
+        this.checkpoints = createCheckpoints();
     }
     
     @Override
@@ -97,6 +102,19 @@ public class ParkourPathwayGame implements MCTGame, Listener {
 
     }
     
+    @EventHandler
+    public void onPlayerMove(PlayerMoveEvent event) {
+        if (!gameActive) {
+            return;
+        }
+        Player player = event.getPlayer();
+        UUID playerUUID = player.getUniqueId();
+        if (!participants.contains(player)) {
+            return;
+        }
+        
+    }
+    
     private void startParkourPathwayTimer() {
         this.startNextRoundTimerTaskId = new BukkitRunnable() {
             int count = 7*60;
@@ -115,7 +133,7 @@ public class ParkourPathwayGame implements MCTGame, Listener {
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
     }
-
+    
     private void startStatusEffectsTask() {
         this.statusEffectsTaskId = new BukkitRunnable(){
             @Override
@@ -188,5 +206,24 @@ public class ParkourPathwayGame implements MCTGame, Listener {
         gameManager.getFastBoardManager().updateLines(
                 participant.getUniqueId()
         );
+    }
+    
+    private List<CheckPoint> createCheckpoints() {
+        List<CheckPoint> newCheckpoints = new ArrayList<>();
+        
+        newCheckpoints.add(new CheckPoint(
+                ,
+                new BoundingBox(),
+                new Location(parkourPathwayWorld, )
+        ));
+        newCheckpoints.add(new CheckPoint(
+                ,
+                new BoundingBox(),
+                new Location(parkourPathwayWorld, )
+        ));
+        
+        
+        
+        return newCheckpoints;
     }
 }
