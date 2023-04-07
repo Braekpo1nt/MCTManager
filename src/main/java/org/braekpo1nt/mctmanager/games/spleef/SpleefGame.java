@@ -8,11 +8,14 @@ import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
+import org.bukkit.block.Block;
 import org.bukkit.block.structure.Mirror;
 import org.bukkit.block.structure.StructureRotation;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -20,6 +23,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 import org.bukkit.structure.Structure;
+import org.bukkit.util.BoundingBox;
 
 import java.util.*;
 
@@ -36,6 +40,7 @@ public class SpleefGame implements MCTGame, Listener {
     private int statusEffectsTaskId;
     private int startCountDownTaskID;
     private final String title = ChatColor.BLUE+"Spleef";
+    private final BoundingBox spleefArea = new BoundingBox(-20, 25, -1981, 21, 0, -2021);;
 
     public SpleefGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
@@ -157,6 +162,30 @@ public class SpleefGame implements MCTGame, Listener {
         layer4.place(new Location(spleefWorld, -15, 6, -2015), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
     }
 
+    @EventHandler
+    public void onBlockBreak(BlockBreakEvent event) {
+        if (!gameActive) {
+            return;
+        }
+        Block block = event.getBlock();
+        if (!isSpleefBlock(block)) {
+            return;
+        }
+        // cancel the event and drop nothing
+        event.setCancelled(true);
+        block.setType(Material.AIR);
+    }
+
+    private boolean isSpleefBlock(Block block) {
+        if (spleefArea.contains(block.getLocation().toVector())) {
+            if (block.getType().equals(Material.DIRT)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
     private void startStatusEffectsTask() {
         this.statusEffectsTaskId = new BukkitRunnable(){
             @Override
@@ -214,4 +243,5 @@ public class SpleefGame implements MCTGame, Listener {
         Bukkit.getScheduler().cancelTask(startCountDownTaskID);
         Bukkit.getScheduler().cancelTask(statusEffectsTaskId);
     }
+    
 }
