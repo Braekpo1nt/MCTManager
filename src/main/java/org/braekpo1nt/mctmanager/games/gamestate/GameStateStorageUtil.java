@@ -194,7 +194,15 @@ public class GameStateStorageUtil {
         gameState.getPlayer(playerUniqueId).setTeamName(teamName);
     }
     
+    /**
+     * Gets the UUIDs of the players on the given team
+     * @param teamName The internal name of the team
+     * @return Empty list if no players are on that team, or if the team doesn't exist
+     */
     public List<UUID> getPlayerUniqueIdsOnTeam(String teamName) {
+        if (!gameState.containsTeam(teamName)) {
+            return Collections.emptyList();
+        }
         return gameState.getPlayers().entrySet().stream()
                 .filter(mctPlayer -> mctPlayer.getValue().getTeamName().equals(teamName))
                 .map(Map.Entry::getKey)
@@ -242,5 +250,37 @@ public class GameStateStorageUtil {
     public ChatColor getTeamChatColor(String teamName) {
         String teamColor = gameState.getTeam(teamName).getColor();
         return ColorMap.getChatColor(teamColor);
+    }
+    
+    public List<UUID> getPlayerUniqueIds() {
+        return gameState.getPlayers().keySet().stream().toList();
+    }
+    
+    public void addScore(UUID uniqueId, int score) throws IOException {
+        MCTPlayer player = gameState.getPlayers().get(uniqueId);
+        player.setScore(player.getScore() + score);
+        saveGameState();
+    }
+    
+    public void addScore(String teamName, int score) throws IOException {
+        MCTTeam team = gameState.getTeams().get(teamName);
+        team.setScore(team.getScore() + score);
+        saveGameState();
+    }
+
+    public void setScore(UUID uniqueId, int score) throws IOException {
+        MCTPlayer player = gameState.getPlayers().get(uniqueId);
+        player.setScore(score);
+        saveGameState();
+    }
+
+    public void setScore(String teamName, int score) throws IOException {
+        MCTTeam team = gameState.getTeams().get(teamName);
+        team.setScore(score);
+        saveGameState();
+    }
+
+    public int getTeamScore(String teamName) {
+        return gameState.getTeam(teamName).getScore();
     }
 }

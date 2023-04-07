@@ -20,4 +20,7 @@ public class TeamPairing {
         return southTeam;
     }
     
+    public boolean containsTeam(String teamName) {
+        return northTeam.equals(teamName) || southTeam.equals(teamName);
+    }
 }

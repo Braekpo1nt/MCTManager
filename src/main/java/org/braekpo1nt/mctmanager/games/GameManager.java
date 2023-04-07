@@ -390,6 +390,24 @@ public class GameManager implements Listener {
         return playersNamesOnTeam;
     }
     
+    /**
+     * Gets the online players who are on the given team. 
+     * @param teamName The internal name of the team
+     * @return A list of all online players on that team, 
+     * or empty list if there are no players on that team or the team doesn't exist.
+     */
+    public List<Player> getOnlinePlayersOnTeam(String teamName) {
+        List<UUID> playerUniqueIds = gameStateStorageUtil.getPlayerUniqueIdsOnTeam(teamName);
+        List<Player> onlinePlayersOnTeam = new ArrayList<>();
+        for (UUID playerUniqueId : playerUniqueIds) {
+            Player player = Bukkit.getPlayer(playerUniqueId);
+            if (player != null && player.isOnline()) {
+                onlinePlayersOnTeam.add(player);
+            }
+        }
+        return onlinePlayersOnTeam;
+    }
+    
     public boolean isParticipant(UUID playerUniqueId) {
         return gameStateStorageUtil.containsPlayer(playerUniqueId);
     }
@@ -484,5 +502,70 @@ public class GameManager implements Listener {
         String displayName = gameStateStorageUtil.getTeamDisplayName(teamName);
         NamedTextColor teamColor = gameStateStorageUtil.getTeamNamedTextColor(teamName);
         return Component.text(displayName).color(teamColor).decorate(TextDecoration.BOLD);
+    }
+
+
+    public List<String> getOnlinePlayerNames() {
+        List<Player> onlinePlayers = getOnlinePlayers();
+        List<String> names = new ArrayList<>();
+        for (Player player : onlinePlayers) {
+            names.add(player.getName());
+        }
+        return names;
+    }
+    
+    private List<Player> getOnlinePlayers() {
+        List<OfflinePlayer> offlinePlayers = getOfflinePlayers();
+        List<Player> players = new ArrayList<>();
+        for (OfflinePlayer offlinePlayer : offlinePlayers) {
+            if (offlinePlayer.isOnline()) {
+                players.add(offlinePlayer.getPlayer());
+            }
+        }
+        return players;
+    }
+    
+    public List<String> getOfflinePlayerNames() {
+        List<OfflinePlayer> offlinePlayers = getOfflinePlayers();
+        List<String> playerNames = new ArrayList<>();
+        for (OfflinePlayer offlinePlayer : offlinePlayers) {
+            String name = offlinePlayer.getName();
+            playerNames.add(name);
+        }
+        return playerNames;
+    }
+    
+    private List<OfflinePlayer> getOfflinePlayers() {
+        List<UUID> uniqueIds = gameStateStorageUtil.getPlayerUniqueIds();
+        List<OfflinePlayer> offlinePlayers = new ArrayList<>();
+        for (UUID uniqueId : uniqueIds) {
+            OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(uniqueId);
+            offlinePlayers.add(offlinePlayer);
+        }
+        return offlinePlayers;
+    }
+    
+    public void addScore(UUID uniqueId, int score) throws IOException {
+        gameStateStorageUtil.addScore(uniqueId, score);
+    }
+    
+    public void addScore(String teamName, int score) throws IOException {
+        gameStateStorageUtil.addScore(teamName, score);
+    }
+    
+    public void setScore(UUID uniqueId, int score) throws IOException {
+        gameStateStorageUtil.setScore(uniqueId, score);
+    }
+    
+    public void setScore(String teamName, int score) throws IOException {
+        gameStateStorageUtil.setScore(teamName, score);
+    }
+
+    public int getScore(String teamName) {
+        return gameStateStorageUtil.getTeamScore(teamName);
+    }
+    
+    public int getScore(UUID uniqueId) {
+        return gameStateStorageUtil.getPlayerScore(uniqueId);
     }
 }

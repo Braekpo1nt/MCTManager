@@ -1,7 +1,9 @@
-package org.braekpo1nt.mctmanager.commands.team;
+package org.braekpo1nt.mctmanager.commands;
 
-import org.braekpo1nt.mctmanager.commands.team.score.ScoreSubCommand;
-import org.braekpo1nt.mctmanager.games.GameManager;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -14,33 +16,33 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class TeamSubCommand implements TabExecutor {
+/**
+ * A command that has other sub commands.
+ * Add CommandExecutor implementing methods to the {@link CommandManager#subCommands} map to add executable sub commands. 
+ * Implement TabExecutor in your sub command to provide tab completion
+ */
+public abstract class CommandManager implements TabExecutor {
+
+    protected final Map<String, CommandExecutor> subCommands = new HashMap<>();
     
-    private final GameManager gameManager;
-    private final Map<String, CommandExecutor> subCommands = new HashMap<>();
-    
-    public TeamSubCommand(GameManager gameManager) {
-        this.gameManager = gameManager;
-        subCommands.put("add", new AddSubCommand(gameManager));
-        subCommands.put("join", new JoinSubCommand(gameManager));
-        subCommands.put("leave", new LeaveSubCommand(gameManager));
-        subCommands.put("list", new ListSubCommand(gameManager));
-        subCommands.put("remove", new RemoveSubCommand(gameManager));
-        subCommands.put("score", new ScoreSubCommand(gameManager));
-    }
+    protected abstract Component getUsageMessage();
     
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length < 1) {
-            sender.sendMessage("Usage: /mct team <options>");
+            sender.sendMessage(getUsageMessage());
             return true;
         }
         String subCommandName = args[0];
         if (!subCommands.containsKey(subCommandName)) {
-            sender.sendMessage(String.format("Argument %s is not recognized.", subCommandName));
+            sender.sendMessage(Component.text("Argument ")
+                    .append(Component.text(subCommandName)
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(" is not recognized."))
+                    .color(NamedTextColor.RED));
             return true;
         }
-        
+
         return subCommands.get(subCommandName).onCommand(sender, command, label, Arrays.copyOfRange(args, 1, args.length));
     }
     
