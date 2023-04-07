@@ -544,16 +544,20 @@ public class GameManager implements Listener {
         }
         return offlinePlayers;
     }
-
+    
     public void addScore(UUID uniqueId, int score) throws IOException {
         gameStateStorageUtil.addScore(uniqueId, score);
     }
-
+    
     public void addScore(String teamName, int score) throws IOException {
         gameStateStorageUtil.addScore(teamName, score);
     }
-
+    
     public void setScore(UUID uniqueId, int score) throws IOException {
         gameStateStorageUtil.setScore(uniqueId, score);
+    }
+    
+    public void setScore(String teamName, int score) throws IOException {
+        gameStateStorageUtil.setScore(teamName, score);
     }
 }
