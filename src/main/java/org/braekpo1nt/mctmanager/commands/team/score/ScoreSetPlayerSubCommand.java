@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.commands.team.score;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -29,16 +30,11 @@ public class ScoreSetPlayerSubCommand implements TabExecutor {
             return true;
         }
         String playerName = args[0];
-        Player player = Bukkit.getPlayer(playerName);
-        if (player == null || !player.isOnline()) {
+        OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(playerName);
+        
+        if (!gameManager.isParticipant(offlinePlayer.getUniqueId())) {
             sender.sendMessage(Component.text(playerName)
-                    .append(Component.text(" is not online")));
-            return true;
-        }
-
-        if (!gameManager.isParticipant(player.getUniqueId())) {
-            sender.sendMessage(Component.text(playerName)
-                    .append(Component.text(" is not on a team")));
+                    .append(Component.text(" is not a participant")));
             return true;
         }
         String scoreString = args[1];
@@ -48,8 +44,8 @@ public class ScoreSetPlayerSubCommand implements TabExecutor {
                 sender.sendMessage(Component.text("Value must be positive"));
                 return true;
             }
-            gameManager.setScore(player.getUniqueId(), score);
-            int newScore = gameManager.getScore(player.getUniqueId());
+            gameManager.setScore(offlinePlayer.getUniqueId(), score);
+            int newScore = gameManager.getScore(offlinePlayer.getUniqueId());
             sender.sendMessage(Component.empty()
                     .append(Component.text(playerName))
                     .append(Component.text(" score is now "))
