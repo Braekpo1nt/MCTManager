@@ -46,8 +46,14 @@ public class ScoreSetPlayerSubCommand implements TabExecutor {
             int score = Integer.parseInt(scoreString);
             if (score < 0) {
                 sender.sendMessage(Component.text("Value must be positive"));
+                return true;
             }
             gameManager.setScore(player.getUniqueId(), score);
+            int newScore = gameManager.getScore(player.getUniqueId());
+            sender.sendMessage(Component.empty()
+                    .append(Component.text(playerName))
+                    .append(Component.text(" score is now "))
+                    .append(Component.text(newScore)));
         } catch (NumberFormatException e) {
             sender.sendMessage(Component.text(scoreString)
                     .append(Component.text(" is not an integer")));

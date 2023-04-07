@@ -17,11 +17,11 @@ import java.util.List;
 
 public class ScoreAddTeamSubCommand implements TabExecutor {
     private final GameManager gameManager;
-
+    
     public ScoreAddTeamSubCommand(GameManager gameManager) {
         this.gameManager = gameManager;
     }
-
+    
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length < 2) {
@@ -38,6 +38,11 @@ public class ScoreAddTeamSubCommand implements TabExecutor {
         try {
             int score = Integer.parseInt(scoreString);
             gameManager.addScore(teamName, score);
+            int newScore = gameManager.getScore(teamName);
+            sender.sendMessage(Component.empty()
+                    .append(gameManager.getFormattedTeamDisplayName(teamName))
+                    .append(Component.text(" score is now "))
+                    .append(Component.text(newScore)));
         } catch (NumberFormatException e) {
             sender.sendMessage(Component.text(scoreString)
                     .append(Component.text(" is not an integer")));

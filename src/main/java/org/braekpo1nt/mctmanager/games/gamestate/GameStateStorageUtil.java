@@ -279,4 +279,8 @@ public class GameStateStorageUtil {
         team.setScore(score);
         saveGameState();
     }
+
+    public int getTeamScore(String teamName) {
+        return gameState.getTeam(teamName).getScore();
+    }
 }

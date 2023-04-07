@@ -38,8 +38,14 @@ public class ScoreSetTeamSubCommand implements TabExecutor {
             int score = Integer.parseInt(scoreString);
             if (score < 0) {
                 sender.sendMessage(Component.text("Value must be positive"));
+                return true;
             }
             gameManager.setScore(teamName, score);
+            int newScore = gameManager.getScore(teamName);
+            sender.sendMessage(Component.empty()
+                    .append(gameManager.getFormattedTeamDisplayName(teamName))
+                    .append(Component.text(" score is now "))
+                    .append(Component.text(newScore)));
         } catch (NumberFormatException e) {
             sender.sendMessage(Component.text(scoreString)
                     .append(Component.text(" is not an integer")));

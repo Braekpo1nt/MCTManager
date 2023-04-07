@@ -10,7 +10,7 @@ public class ScoreSetSubCommand extends CommandManager {
         subCommands.put("player", new ScoreSetPlayerSubCommand(gameManager));
         subCommands.put("team", new ScoreSetTeamSubCommand(gameManager));
     }
-
+    
     @Override
     protected Component getUsageMessage() {
         return Component.text("/mct team score set <player|team>");

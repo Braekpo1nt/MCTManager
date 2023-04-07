@@ -560,4 +560,12 @@ public class GameManager implements Listener {
     public void setScore(String teamName, int score) throws IOException {
         gameStateStorageUtil.setScore(teamName, score);
     }
+
+    public int getScore(String teamName) {
+        return gameStateStorageUtil.getTeamScore(teamName);
+    }
+    
+    public int getScore(UUID uniqueId) {
+        return gameStateStorageUtil.getPlayerScore(uniqueId);
+    }
 }
