@@ -532,6 +532,7 @@ public class GameManager implements Listener {
             String name = offlinePlayer.getName();
             playerNames.add(name);
         }
+        return playerNames;
     }
     
     private List<OfflinePlayer> getOfflinePlayers() {
@@ -544,7 +545,11 @@ public class GameManager implements Listener {
         return offlinePlayers;
     }
 
-    public void addScore(UUID uniqueId, int score) {
+    public void addScore(UUID uniqueId, int score) throws IOException {
         gameStateStorageUtil.addScore(uniqueId, score);
+    }
+
+    public void addScore(String teamName, int score) throws IOException {
+        gameStateStorageUtil.addScore(teamName, score);
     }
 }

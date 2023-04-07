@@ -251,14 +251,26 @@ public class GameStateStorageUtil {
         String teamColor = gameState.getTeam(teamName).getColor();
         return ColorMap.getChatColor(teamColor);
     }
-
+    
     public List<UUID> getPlayerUniqueIds() {
         return gameState.getPlayers().keySet().stream().toList();
     }
-
-    public void addScore(UUID uniqueId, int score) {
+    
+    public void addScore(UUID uniqueId, int score) throws IOException {
         MCTPlayer player = gameState.getPlayers().get(uniqueId);
         player.setScore(player.getScore() + score);
+        saveGameState();
+    }
+
+    /**
+     * Add the score to the team
+     * @param teamName
+     * @param score
+     * @throws IOException
+     */
+    public void addScore(String teamName, int score) throws IOException {
+        MCTTeam team = gameState.getTeams().get(teamName);
+        team.setScore(team.getScore() + score);
         saveGameState();
     }
 }
