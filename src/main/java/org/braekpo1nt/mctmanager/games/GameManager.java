@@ -503,6 +503,48 @@ public class GameManager implements Listener {
         NamedTextColor teamColor = gameStateStorageUtil.getTeamNamedTextColor(teamName);
         return Component.text(displayName).color(teamColor).decorate(TextDecoration.BOLD);
     }
+
+
+    public List<String> getOnlinePlayerNames() {
+        List<Player> onlinePlayers = getOnlinePlayers();
+        List<String> names = new ArrayList<>();
+        for (Player player : onlinePlayers) {
+            names.add(player.getName());
+        }
+        return names;
+    }
     
+    private List<Player> getOnlinePlayers() {
+        List<OfflinePlayer> offlinePlayers = getOfflinePlayers();
+        List<Player> players = new ArrayList<>();
+        for (OfflinePlayer offlinePlayer : offlinePlayers) {
+            if (offlinePlayer.isOnline()) {
+                players.add(offlinePlayer.getPlayer());
+            }
+        }
+        return players;
+    }
     
+    public List<String> getOfflinePlayerNames() {
+        List<OfflinePlayer> offlinePlayers = getOfflinePlayers();
+        List<String> playerNames = new ArrayList<>();
+        for (OfflinePlayer offlinePlayer : offlinePlayers) {
+            String name = offlinePlayer.getName();
+            playerNames.add(name);
+        }
+    }
+    
+    private List<OfflinePlayer> getOfflinePlayers() {
+        List<UUID> uniqueIds = gameStateStorageUtil.getPlayerUniqueIds();
+        List<OfflinePlayer> offlinePlayers = new ArrayList<>();
+        for (UUID uniqueId : uniqueIds) {
+            OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(uniqueId);
+            offlinePlayers.add(offlinePlayer);
+        }
+        return offlinePlayers;
+    }
+
+    public void addScore(UUID uniqueId, int score) {
+        gameStateStorageUtil.addScore(uniqueId, score);
+    }
 }
