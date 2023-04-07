@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.spleef;
 import com.onarandombox.MultiverseCore.api.MVWorldManager;
 import com.onarandombox.MultiverseCore.utils.AnchorManager;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
@@ -16,6 +17,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -100,14 +103,74 @@ public class SpleefGame implements MCTGame, Listener {
 
     @Override
     public void onParticipantJoin(Player participant) {
-
+        if (!gameActive) {
+            return;
+        }
+        messageAllParticipants(Component.text(participant.getName())
+                .append(Component.text(" is joining Spleef!"))
+                .color(NamedTextColor.YELLOW));
+        initializeParticipant(participant);
     }
 
     @Override
     public void onParticipantQuit(Player participant) {
-
+        
     }
     
+    @EventHandler
+    public void onPlayerDamage(EntityDamageEvent event) {
+        if (!gameActive) {
+            return;
+        }
+        if (!event.getCause().equals(EntityDamageEvent.DamageCause.LAVA)
+        || event.getCause().equals(EntityDamageEvent.DamageCause.FIRE)) {
+            event.setCancelled(true);
+        }
+    }
+    
+    @EventHandler
+    public void onPlayerDeath(PlayerDeathEvent event) {
+        if (!gameActive) {
+            return;
+        }
+        Player killed = event.getPlayer();
+        if (!participants.contains(killed)) {
+            return;
+        }
+        killed.setGameMode(GameMode.SPECTATOR);
+        killed.getInventory().clear();
+        event.setCancelled(true);
+        Component deathMessage = event.deathMessage();
+        if (deathMessage != null) {
+            Bukkit.getServer().sendMessage(deathMessage);
+        }
+        onParticipantDeath(killed);
+        if (lessThanTwoPlayersAlive()) {
+            stop();
+        }
+    }
+
+    private boolean lessThanTwoPlayersAlive() {
+        int aliveCount = 0;
+        Iterator<Boolean> isAlives = participantsAlive.values().iterator();
+        while (isAlives.hasNext()) {
+            boolean isAlive = isAlives.next();
+            if (isAlive) {
+                aliveCount += 1;
+            }
+        }
+        return aliveCount < 2;
+    }
+
+    private void onParticipantDeath(Player killed) {
+        participantsAlive.put(killed.getUniqueId(), false);
+        for (Player participant : participants) {
+            if (!participant.getUniqueId().equals(killed.getUniqueId())) {
+                gameManager.awardPointsToPlayer(participant, 10);
+            }
+        }
+    }
+
     private void startSpleef() {
         placeLayers();
         givePlayersShovels();
@@ -243,5 +306,10 @@ public class SpleefGame implements MCTGame, Listener {
         Bukkit.getScheduler().cancelTask(startCountDownTaskID);
         Bukkit.getScheduler().cancelTask(statusEffectsTaskId);
     }
-    
+
+    private void messageAllParticipants(Component message) {
+        for (Player participant : participants) {
+            participant.sendMessage(message);
+        }
+    }
 }

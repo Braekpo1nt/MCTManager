@@ -123,6 +123,9 @@ public class FootRaceGame implements Listener, MCTGame {
     
     @Override
     public void onParticipantJoin(Player participant) {
+        if (!gameActive) {
+            return;
+        }
         if (participantShouldRejoin(participant)) {
             rejoinParticipant(participant);
         } else {
@@ -168,6 +171,9 @@ public class FootRaceGame implements Listener, MCTGame {
     
     @Override
     public void onParticipantQuit(Player participant) {
+        if (!gameActive) {
+            return;
+        }
         messageAllParticipants(Component.text(participant.getName())
                 .append(Component.text(" has left the game!"))
                 .color(NamedTextColor.YELLOW));
