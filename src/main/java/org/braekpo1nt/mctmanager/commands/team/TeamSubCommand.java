@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.commands.team;
 
+import org.braekpo1nt.mctmanager.commands.team.score.ScoreSubCommand;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -25,6 +26,7 @@ public class TeamSubCommand implements TabExecutor {
         subCommands.put("leave", new LeaveSubCommand(gameManager));
         subCommands.put("list", new ListSubCommand(gameManager));
         subCommands.put("remove", new RemoveSubCommand(gameManager));
+        subCommands.put("score", new ScoreSubCommand(gameManager));
     }
     
     @Override

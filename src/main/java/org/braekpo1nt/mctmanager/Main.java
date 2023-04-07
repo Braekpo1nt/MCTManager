@@ -4,11 +4,10 @@ import com.onarandombox.MultiverseCore.MultiverseCore;
 import org.braekpo1nt.mctmanager.commands.MCTCommand;
 import org.braekpo1nt.mctmanager.commands.MCTDebugCommand;
 import org.braekpo1nt.mctmanager.games.GameManager;
-import org.braekpo1nt.mctmanager.hub.HubManager;
 import org.braekpo1nt.mctmanager.listeners.BlockEffectsListener;
 import org.braekpo1nt.mctmanager.hub.HubBoundaryListener;
+import org.braekpo1nt.mctmanager.listeners.MCTDebugListener;
 import org.braekpo1nt.mctmanager.listeners.PlayerJoinListener;
-import org.braekpo1nt.mctmanager.ui.FastBoardManager;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -54,6 +53,7 @@ public final class Main extends JavaPlugin {
         HubBoundaryListener hubBoundaryListener = new HubBoundaryListener(this);
         BlockEffectsListener blockEffectsListener = new BlockEffectsListener(this);
         new PlayerJoinListener(this, mctScoreboard);
+        new MCTDebugListener(this);
         
         // Commands
         new MCTDebugCommand(this);
