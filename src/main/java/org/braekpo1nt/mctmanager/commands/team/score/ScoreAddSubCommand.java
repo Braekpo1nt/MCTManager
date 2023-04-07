@@ -11,8 +11,8 @@ import java.util.Map;
 public class ScoreAddSubCommand extends CommandManager {
 
     public ScoreAddSubCommand(GameManager gameManager) {
-        subCommands.put("player", new ScoreAddPlayerSubCommand(gameManager));
-        subCommands.put("team", new ScoreAddTeamSubCommand(gameManager));
+        subCommands.put("player", new ScoreAddPlayerSubCommand(gameManager, false));
+        subCommands.put("team", new ScoreAddTeamSubCommand(gameManager, false));
     }
     
     @Override

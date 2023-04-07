@@ -8,8 +8,8 @@ import org.bukkit.command.CommandExecutor;
 public class ScoreSubtractSubCommand extends CommandManager {
 
     public ScoreSubtractSubCommand(GameManager gameManager) {
-        subCommands.put("player", new ScoreAddPlayerSubCommand(gameManager));
-        subCommands.put("team", new ScoreAddTeamSubCommand(gameManager));
+        subCommands.put("player", new ScoreAddPlayerSubCommand(gameManager, true));
+        subCommands.put("team", new ScoreAddTeamSubCommand(gameManager, true));
     }
 
     @Override

@@ -18,9 +18,11 @@ import java.util.List;
 
 public class ScoreAddPlayerSubCommand implements TabExecutor {
     private final GameManager gameManager;
+    private final boolean invert;
 
-    public ScoreAddPlayerSubCommand(GameManager gameManager) {
+    public ScoreAddPlayerSubCommand(GameManager gameManager, boolean invert) {
         this.gameManager = gameManager;
+        this.invert = invert;
     }
 
 
@@ -41,6 +43,9 @@ public class ScoreAddPlayerSubCommand implements TabExecutor {
         String scoreString = args[1];
         try {
             int score = Integer.parseInt(scoreString);
+            if (invert) {
+                score = -score;
+            }
             gameManager.addScore(offlinePlayer.getUniqueId(), score);
             int newScore = gameManager.getScore(offlinePlayer.getUniqueId());
             sender.sendMessage(Component.empty()
