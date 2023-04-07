@@ -5,6 +5,7 @@ import com.onarandombox.MultiverseCore.utils.AnchorManager;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
+import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
@@ -31,6 +32,7 @@ public class ParkourPathwayGame implements MCTGame, Listener {
     private final PotionEffect SATURATION = new PotionEffect(PotionEffectType.SATURATION, 70, 250, true, false, false);
     private final World parkourPathwayWorld;
     private int statusEffectsTaskId;
+    private int startNextRoundTimerTaskId;
     private boolean gameActive = false;
     private List<Player> participants;
     private Location parkourPathwayStartAnchor;
@@ -94,6 +96,25 @@ public class ParkourPathwayGame implements MCTGame, Listener {
     public void onParticipantQuit(Player participant) {
 
     }
+    
+    private void startParkourPathwayTimer() {
+        this.startNextRoundTimerTaskId = new BukkitRunnable() {
+            int count = 7*60;
+            @Override
+            public void run() {
+                if (count <= 0) {
+                    stop();
+                    this.cancel();
+                    return;
+                }
+                String timeString = TimeStringUtils.getTimeString(count);
+                for (Player participant : participants){
+                    updateParkourPathwayFastBoardTimer(participant, timeString);
+                }
+                count--;
+            }
+        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+    }
 
     private void startStatusEffectsTask() {
         this.statusEffectsTaskId = new BukkitRunnable(){
@@ -140,15 +161,24 @@ public class ParkourPathwayGame implements MCTGame, Listener {
 
     private void cancelAllTasks() {
         Bukkit.getScheduler().cancelTask(statusEffectsTaskId);
+        Bukkit.getScheduler().cancelTask(startNextRoundTimerTaskId);
     }
 
     private void initializeFastBoard(Player participant) {
         gameManager.getFastBoardManager().updateLines(
                 participant.getUniqueId(),
                 title,
-                "00:00:000",
-                "",
                 "7:00",
+                "",
+                ""
+        );
+    }
+    
+    private void updateParkourPathwayFastBoardTimer(Player participant, String timerString) {
+        gameManager.getFastBoardManager().updateLines(
+                participant.getUniqueId(),
+                title,
+                timerString,
                 "",
                 ""
         );
