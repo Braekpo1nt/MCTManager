@@ -29,6 +29,7 @@ public class StartSubCommand implements TabExecutor {
         mctGames.put("mecha", MCTGames.MECHA);
         mctGames.put("capture-the-flag", MCTGames.CAPTURE_THE_FLAG);
         mctGames.put("spleef", MCTGames.SPLEEF);
+        mctGames.put("parkour-pathway", MCTGames.PARKOUR_PATHWAY);
     }
     
     @Override
