@@ -176,6 +176,9 @@ public class MechaGame implements MCTGame, Listener {
     
     @Override
     public void onParticipantQuit(Player participant) {
+        if (!gameActive) {
+            return;
+        }
         if (!mechaHasStarted) {
             participants.remove(participant);
             UUID participantUniqueId = participant.getUniqueId();

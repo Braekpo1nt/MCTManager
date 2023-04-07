@@ -81,6 +81,13 @@ public class SpleefGame implements MCTGame, Listener {
         clearStatusEffects(participant);
         resetHealthAndHunger(participant);
     }
+    
+    private void rejoinParticipant(Player participant) {
+        participant.sendMessage(ChatColor.YELLOW + "You have rejoined Spleef");
+        participants.add(participant);
+        initializeFastBoard(participant);
+        participant.setGameMode(GameMode.SPECTATOR);
+    }
 
     private void resetParticipant(Player participant) {
         participant.getInventory().clear();
@@ -95,6 +102,7 @@ public class SpleefGame implements MCTGame, Listener {
             resetParticipant(participant);
         }
         participants.clear();
+        participantsAlive.clear();
         gameActive = false;
         spleefStarted = false;
         gameManager.gameIsOver();
@@ -106,15 +114,40 @@ public class SpleefGame implements MCTGame, Listener {
         if (!gameActive) {
             return;
         }
+        if (participantShouldRejoin(participant)) {
+            messageAllParticipants(Component.text(participant.getName())
+                    .append(Component.text(" is rejoining Spleef!"))
+                    .color(NamedTextColor.YELLOW));
+            rejoinParticipant(participant);
+            return;
+        }
         messageAllParticipants(Component.text(participant.getName())
                 .append(Component.text(" is joining Spleef!"))
                 .color(NamedTextColor.YELLOW));
         initializeParticipant(participant);
     }
 
+    private boolean participantShouldRejoin(Player participant) {
+        if (!gameActive) {
+            return false;
+        }
+        return participantsAlive.containsKey(participant.getUniqueId());
+    }
+
     @Override
     public void onParticipantQuit(Player participant) {
-        
+        if (!gameActive) {
+            return;
+        }
+        List<ItemStack> drops = Arrays.stream(participant.getInventory().getContents())
+                .filter(Objects::nonNull)
+                .toList();
+        int droppedExp = calculateExpPoints(participant.getLevel());
+        Component deathMessage = Component.text(participant.getName())
+                .append(Component.text(" left early. Their life is forfeit."));
+        PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(participant, drops, droppedExp, deathMessage);
+        Bukkit.getServer().getPluginManager().callEvent(fakeDeathEvent);
+        participants.remove(participant);
     }
     
     @EventHandler
@@ -311,5 +344,10 @@ public class SpleefGame implements MCTGame, Listener {
         for (Player participant : participants) {
             participant.sendMessage(message);
         }
+    }
+
+    private int calculateExpPoints(int level) {
+        int maxExpPoints = level > 7 ? 100 : level * 7;
+        return maxExpPoints / 10;
     }
 }
