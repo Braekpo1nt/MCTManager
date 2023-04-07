@@ -39,7 +39,10 @@ public class ListSubCommand implements CommandExecutor {
         List<String> teamNames = gameManager.getTeamNames().stream().toList();
         
         for (String teamName : teamNames) {
+            int teamScore = gameManager.getScore(teamName);
             messageBuilder.append(gameManager.getFormattedTeamDisplayName(teamName)
+                            .append(Component.text(" - "))
+                            .append(Component.text(teamScore))
                     .append(Component.text(":\n")));
             for (OfflinePlayer offlinePlayer : offlinePlayers) {
                 String playerTeam = gameManager.getTeamName(offlinePlayer.getUniqueId());
