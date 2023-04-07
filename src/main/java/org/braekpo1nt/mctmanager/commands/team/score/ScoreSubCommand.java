@@ -15,17 +15,13 @@ import java.util.List;
 import java.util.Map;
 
 public class ScoreSubCommand extends CommandManager {
-    private final GameManager gameManager;
-    private final Map<String, CommandExecutor> subCommands = new HashMap<>();
     
     public ScoreSubCommand(GameManager gameManager) {
-        this.gameManager = gameManager;
         subCommands.put("add", new ScoreAddSubCommand(gameManager));
         subCommands.put("subtract", new ScoreSubtractSubCommand(gameManager));
         subCommands.put("set", new ScoreSetSubCommand(gameManager));
     }
-
-
+    
     @Override
     protected Component getUsageMessage() {
         return Component.text("/mct team score <options>");

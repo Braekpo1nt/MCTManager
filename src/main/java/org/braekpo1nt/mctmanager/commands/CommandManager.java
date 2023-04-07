@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.commands;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -34,7 +35,6 @@ public abstract class CommandManager implements TabExecutor {
         }
         String subCommandName = args[0];
         if (!subCommands.containsKey(subCommandName)) {
-            sender.sendMessage(String.format("Argument %s is not recognized.", subCommandName));
             sender.sendMessage(Component.text("Argument ")
                     .append(Component.text(subCommandName)
                             .decorate(TextDecoration.BOLD))
