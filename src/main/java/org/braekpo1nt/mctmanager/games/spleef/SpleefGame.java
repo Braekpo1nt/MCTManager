@@ -74,10 +74,23 @@ public class SpleefGame implements MCTGame, Listener {
         resetHealthAndHunger(participant);
     }
 
+    private void resetParticipant(Player participant) {
+        participant.getInventory().clear();
+        hideFastBoard(participant);
+    }
+
     @Override
     public void stop() {
+        placeLayers();
+        cancelAllTasks();
+        for (Player participant : participants) {
+            resetParticipant(participant);
+        }
+        participants.clear();
         gameActive = false;
         spleefStarted = false;
+        gameManager.gameIsOver();
+        Bukkit.getLogger().info("Stopping Spleef game");
     }
 
     @Override
@@ -174,6 +187,12 @@ public class SpleefGame implements MCTGame, Listener {
         );
     }
 
+    private void hideFastBoard(Player participant) {
+        gameManager.getFastBoardManager().updateLines(
+                participant.getUniqueId()
+        );
+    }
+
     private void teleportPlayerToStartingPosition(Player player) {
         player.sendMessage("Teleporting to Spleef");
         player.teleport(spleefStartAnchor);
@@ -189,5 +208,10 @@ public class SpleefGame implements MCTGame, Listener {
         participant.setHealth(participant.getAttribute(Attribute.GENERIC_MAX_HEALTH).getDefaultValue());
         participant.setFoodLevel(20);
         participant.setSaturation(5);
+    }
+
+    private void cancelAllTasks() {
+        Bukkit.getScheduler().cancelTask(startCountDownTaskID);
+        Bukkit.getScheduler().cancelTask(statusEffectsTaskId);
     }
 }
