@@ -552,4 +552,8 @@ public class GameManager implements Listener {
     public void addScore(String teamName, int score) throws IOException {
         gameStateStorageUtil.addScore(teamName, score);
     }
+
+    public void setScore(UUID uniqueId, int score) throws IOException {
+        gameStateStorageUtil.setScore(uniqueId, score);
+    }
 }
