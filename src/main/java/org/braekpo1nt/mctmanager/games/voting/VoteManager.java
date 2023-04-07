@@ -135,6 +135,11 @@ public class VoteManager implements Listener {
                 participant.sendMessage(Component.text("Voted for Capture the Flag")
                         .color(NamedTextColor.GREEN));
                 break;
+            case DIAMOND_SHOVEL:
+                votes.put(participant.getUniqueId(), MCTGames.SPLEEF);
+                participant.sendMessage(Component.text("Voted for Spleef")
+                        .color(NamedTextColor.GREEN));
+                break;
             default:
                 return;
         }
@@ -268,7 +273,7 @@ public class VoteManager implements Listener {
     
         if (votes.isEmpty()) {
             int randomGameIndex = random.nextInt(3);
-            return Arrays.asList(MCTGames.FOOT_RACE, MCTGames.MECHA, MCTGames.CAPTURE_THE_FLAG).get(randomGameIndex);
+            return Arrays.asList(MCTGames.FOOT_RACE, MCTGames.MECHA, MCTGames.CAPTURE_THE_FLAG, MCTGames.SPLEEF).get(randomGameIndex);
         }
     
         // Count the number of occurrences of each string in the list
@@ -311,29 +316,37 @@ public class VoteManager implements Listener {
     
     private void showVoteGui(Player participant) {
         ItemStack footRace = new ItemStack(Material.FEATHER);
-        ItemStack mecha = new ItemStack(Material.IRON_SWORD);
-        ItemStack captureTheFlag = new ItemStack(Material.GRAY_BANNER);
-    
+
         ItemMeta footRaceMeta = footRace.getItemMeta();
         footRaceMeta.displayName(Component.text("Foot Race"));
         footRaceMeta.lore(Arrays.asList(
                 Component.text("A racing game")
         ));
         footRace.setItemMeta(footRaceMeta);
-    
+
+        ItemStack mecha = new ItemStack(Material.IRON_SWORD);
         ItemMeta mechaMeta = mecha.getItemMeta();
         mechaMeta.displayName(Component.text("MECHA"));
         mechaMeta.lore(Arrays.asList(
                 Component.text("A fighting game")
         ));
         mecha.setItemMeta(mechaMeta);
-    
+
+        ItemStack captureTheFlag = new ItemStack(Material.GRAY_BANNER);
         ItemMeta captureTheFlagMeta = captureTheFlag.getItemMeta();
         captureTheFlagMeta.displayName(Component.text("Capture the Flag"));
         captureTheFlagMeta.lore(Arrays.asList(
                 Component.text("A team capture the flag game")
         ));
         captureTheFlag.setItemMeta(captureTheFlagMeta);
+
+        ItemStack spleef = new ItemStack(Material.DIAMOND_SHOVEL);
+        ItemMeta spleefMeta = spleef.getItemMeta();
+        spleefMeta.displayName(Component.text("Spleef"));
+        spleefMeta.lore(Arrays.asList(
+                Component.text("A falling game")
+        ));
+        spleef.setItemMeta(spleefMeta);
     
         Inventory newGui = Bukkit.createInventory(null, 9, TITLE);
         ItemStack[] contents = {footRace, mecha, captureTheFlag};

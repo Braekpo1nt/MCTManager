@@ -11,6 +11,7 @@ import org.braekpo1nt.mctmanager.games.footrace.FootRaceGame;
 import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
 import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.mecha.MechaGame;
+import org.braekpo1nt.mctmanager.games.spleef.SpleefGame;
 import org.braekpo1nt.mctmanager.games.voting.VoteManager;
 import org.braekpo1nt.mctmanager.hub.HubManager;
 import org.braekpo1nt.mctmanager.ui.FastBoardManager;
@@ -40,6 +41,7 @@ public class GameManager implements Listener {
     private MCTGame activeGame = null;
     private final FootRaceGame footRaceGame;
     private final MechaGame mechaGame;
+    private final SpleefGame spleef;
     private final CaptureTheFlagGame captureTheFlagGame;
     private final HubManager hubManager;
     private final FastBoardManager fastBoardManager;
@@ -64,6 +66,7 @@ public class GameManager implements Listener {
         this.voteManager = new VoteManager(this, plugin);
         this.footRaceGame = new FootRaceGame(plugin, this);
         this.mechaGame = new MechaGame(plugin, this);
+        this.spleef = new SpleefGame(plugin, this);
         this.captureTheFlagGame = new CaptureTheFlagGame(plugin, this);
         this.fastBoardManager = new FastBoardManager(gameStateStorageUtil);
         this.hubManager = new HubManager(plugin, mctScoreboard, fastBoardManager);
@@ -228,7 +231,9 @@ public class GameManager implements Listener {
                 captureTheFlagGame.start(onlineParticipants);
                 activeGame = captureTheFlagGame;
             }
-            default -> {
+            case SPLEEF -> {
+                spleef.start(onlineParticipants);
+                activeGame = spleef;
             }
         }
     }
