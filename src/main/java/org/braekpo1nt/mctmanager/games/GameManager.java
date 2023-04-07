@@ -497,6 +497,10 @@ public class GameManager implements Listener {
         return gameStateStorageUtil.getTeamColor(playerUniqueId);
     }
     
+    public NamedTextColor getTeamNamedTextColor(String teamName) {
+        return gameStateStorageUtil.getTeamNamedTextColor(teamName);
+    }
+    
     /**
      * Gets the team's display name as a Component with the team's text color
      * and in bold
@@ -540,7 +544,7 @@ public class GameManager implements Listener {
         return playerNames;
     }
     
-    private List<OfflinePlayer> getOfflinePlayers() {
+    public List<OfflinePlayer> getOfflinePlayers() {
         List<UUID> uniqueIds = gameStateStorageUtil.getPlayerUniqueIds();
         List<OfflinePlayer> offlinePlayers = new ArrayList<>();
         for (UUID uniqueId : uniqueIds) {
