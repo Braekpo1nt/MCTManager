@@ -7,6 +7,7 @@ import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.MCTGames;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.bukkit.Bukkit;
+import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -17,6 +18,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
@@ -138,6 +140,11 @@ public class VoteManager implements Listener {
             case DIAMOND_SHOVEL:
                 votes.put(participant.getUniqueId(), MCTGames.SPLEEF);
                 participant.sendMessage(Component.text("Voted for Spleef")
+                        .color(NamedTextColor.GREEN));
+                break;
+            case LEATHER_BOOTS:
+                votes.put(participant.getUniqueId(), MCTGames.PARKOUR_PATHWAY);
+                participant.sendMessage(Component.text("Voted for Parkour Pathway")
                         .color(NamedTextColor.GREEN));
                 break;
             default:
@@ -273,7 +280,13 @@ public class VoteManager implements Listener {
     
         if (votes.isEmpty()) {
             int randomGameIndex = random.nextInt(3);
-            return Arrays.asList(MCTGames.FOOT_RACE, MCTGames.MECHA, MCTGames.CAPTURE_THE_FLAG, MCTGames.SPLEEF).get(randomGameIndex);
+            return Arrays.asList(
+                    MCTGames.FOOT_RACE, 
+                    MCTGames.MECHA, 
+                    MCTGames.CAPTURE_THE_FLAG, 
+                    MCTGames.SPLEEF, 
+                    MCTGames.PARKOUR_PATHWAY
+            ).get(randomGameIndex);
         }
     
         // Count the number of occurrences of each string in the list
@@ -340,6 +353,16 @@ public class VoteManager implements Listener {
         ));
         captureTheFlag.setItemMeta(captureTheFlagMeta);
 
+        ItemStack parkourPathway = new ItemStack(Material.LEATHER_BOOTS);
+        ItemMeta parkourPathwayMeta = parkourPathway.getItemMeta();
+        parkourPathwayMeta.displayName(Component.text("Parkour Pathway"));
+        parkourPathwayMeta.lore(Arrays.asList(
+                Component.text("A jumping game")
+        ));
+        LeatherArmorMeta parkourPathwayLeatherArmorMeta = ((LeatherArmorMeta) parkourPathwayMeta);
+        parkourPathwayLeatherArmorMeta.setColor(Color.WHITE);
+        parkourPathway.setItemMeta(parkourPathwayMeta);
+
         ItemStack spleef = new ItemStack(Material.DIAMOND_SHOVEL);
         ItemMeta spleefMeta = spleef.getItemMeta();
         spleefMeta.displayName(Component.text("Spleef"));
@@ -349,7 +372,13 @@ public class VoteManager implements Listener {
         spleef.setItemMeta(spleefMeta);
     
         Inventory newGui = Bukkit.createInventory(null, 9, TITLE);
-        ItemStack[] contents = {footRace, mecha, captureTheFlag, spleef};
+        ItemStack[] contents = {
+                footRace, 
+                mecha, 
+                captureTheFlag, 
+                spleef,
+                parkourPathway
+        };
         newGui.setContents(contents);
         participant.openInventory(newGui);
     }
