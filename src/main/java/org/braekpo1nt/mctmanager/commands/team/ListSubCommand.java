@@ -5,9 +5,12 @@ import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.games.GameManager;
+import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -32,18 +35,26 @@ public class ListSubCommand implements CommandExecutor {
     private void displayTeams(CommandSender sender) {
         TextComponent.Builder messageBuilder = Component.text().append(Component.text("TEAMS\n")
                     .decorate(TextDecoration.BOLD));
+        List<OfflinePlayer> offlinePlayers = gameManager.getOfflinePlayers();
+        List<String> teamNames = gameManager.getTeamNames().stream().toList();
         
-        for (String teamName : gameManager.getTeamNames()) {
-            TextComponent.Builder teamBuilder = Component.text().append(Component.text("- " + teamName + ": "));
-            List<String> playersInTeam = gameManager.getPlayerNamesOnTeam(teamName);
-            if (playersInTeam.isEmpty()) {
-                teamBuilder.append(Component.text("(none)\n")
-                        .color(NamedTextColor.GRAY));
-            } else {
-                teamBuilder.append(Component.text(String.join(", ", playersInTeam) + "\n"));
+        for (String teamName : teamNames) {
+            messageBuilder.append(gameManager.getFormattedTeamDisplayName(teamName)
+                    .append(Component.text(":\n")));
+            for (OfflinePlayer offlinePlayer : offlinePlayers) {
+                String playerTeam = gameManager.getTeamName(offlinePlayer.getUniqueId());
+                int score = gameManager.getScore(offlinePlayer.getUniqueId());
+                if (playerTeam.equals(teamName)) {
+                    messageBuilder.append(Component.empty()
+                            .append(Component.text("  "))
+                            .append(Component.text(offlinePlayer.getName()))
+                            .append(Component.text(" - "))
+                            .append(Component.text(score))
+                            .append(Component.text("\n")));
+                }
             }
-            messageBuilder.append(teamBuilder.build());
         }
+        
         Component message = messageBuilder.build();
         sender.sendMessage(message);
     }

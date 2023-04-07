@@ -540,7 +540,7 @@ public class GameManager implements Listener {
         return playerNames;
     }
     
-    private List<OfflinePlayer> getOfflinePlayers() {
+    public List<OfflinePlayer> getOfflinePlayers() {
         List<UUID> uniqueIds = gameStateStorageUtil.getPlayerUniqueIds();
         List<OfflinePlayer> offlinePlayers = new ArrayList<>();
         for (UUID uniqueId : uniqueIds) {
