@@ -58,7 +58,7 @@ public class FinalGame implements MCTGame, Listener {
     }
 
     private void setUpTeamSpawns(List<Player> newParticipants) {
-        AnchorManager anchorManager = Main.multiverseCore.getAnchorManager();
+//        AnchorManager anchorManager = Main.multiverseCore.getAnchorManager();
         List<String> teams = new ArrayList<>();
         for (Player participant : newParticipants) {
             String team = gameManager.getTeamName(participant.getUniqueId());
@@ -67,8 +67,11 @@ public class FinalGame implements MCTGame, Listener {
             }
         }
         teamSpawns = new HashMap<>();
-        teamSpawns.put(teams.get(0), anchorManager.getAnchorLocation("final-game-a"));
-        teamSpawns.put(teams.get(1), anchorManager.getAnchorLocation("final-game-b"));
+//        teamSpawns.put(teams.get(0), anchorManager.getAnchorLocation("final-game-a"));
+//        teamSpawns.put(teams.get(1), anchorManager.getAnchorLocation("final-game-b"));
+        teamSpawns.put(teams.get(0), new Location(finalGameWorld, -999, 2, 22, 179, 0));
+        teamSpawns.put(teams.get(1), new Location(finalGameWorld, -999, 2, -21, 0, 0));
+        
     }
 
     private void initializeParticipant(Player participant) {
