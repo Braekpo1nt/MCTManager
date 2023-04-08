@@ -61,7 +61,9 @@ public class GameManager implements Listener {
     private int fastBoardUpdaterTaskId;
     private final List<UUID> participantsWhoLeftMidGame = new ArrayList<>();
     private final VoteManager voteManager;
-    
+    private String finalGameTeamA;
+    private String finalGameTeamB;
+
     public GameManager(Main plugin, Scoreboard mctScoreboard) {
         this.plugin = plugin;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
@@ -246,7 +248,15 @@ public class GameManager implements Listener {
                 activeGame = parkourPathwayGame;
             }
             case FINAL_GAME -> {
-                finalGame.start(onlineParticipants);
+                if (finalGameTeamA == null || finalGameTeamB == null) {
+                    sender.sendMessage(Component.text("Final game teams not set. Use /mct game finalgame <teamA> <teamB>")
+                            .color(NamedTextColor.RED));
+                    return;
+                }
+                List<Player> finalGameParticipants = new ArrayList<>();
+                finalGameParticipants.addAll(getOnlinePlayersOnTeam(finalGameTeamA));
+                finalGameParticipants.addAll(getOnlinePlayersOnTeam(finalGameTeamB));
+                finalGame.start(finalGameParticipants);
                 activeGame = finalGame;
             }
         }
@@ -590,5 +600,10 @@ public class GameManager implements Listener {
     
     public int getScore(UUID uniqueId) {
         return gameStateStorageUtil.getPlayerScore(uniqueId);
+    }
+
+    public void setFinalGameTeams(String teamA, String teamB) {
+        this.finalGameTeamA = teamA;
+        this.finalGameTeamB = teamB;
     }
 }

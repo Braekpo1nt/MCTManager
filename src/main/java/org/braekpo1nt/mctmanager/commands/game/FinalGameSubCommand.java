@@ -51,6 +51,7 @@ public class FinalGameSubCommand implements TabExecutor {
                     .color(NamedTextColor.RED));
             return true;
         }
+        gameManager.setFinalGameTeams(teamA, teamB);
         gameManager.startGame(MCTGames.FINAL_GAME, sender);
         return true;
     }
