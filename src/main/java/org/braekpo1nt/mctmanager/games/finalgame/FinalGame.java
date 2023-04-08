@@ -142,7 +142,8 @@ public class FinalGame implements MCTGame, Listener {
     @Override
     public void stop() {
         cancelAllTasks();
-        replaceSandGates();
+        replaceSandGateA(teamA);
+        replaceSandGateB(teamB);
         for (Player participant : participants) {
             resetParticipant(participant);
         }
@@ -192,6 +193,16 @@ public class FinalGame implements MCTGame, Listener {
             finishFinalGame(teamWith3Kills);
         }
     }
+    
+    private void finishFinalGame(String winningTeam) {
+        NamedTextColor teamColor = gameManager.getTeamNamedTextColor(winningTeam);
+        Bukkit.getServer().sendMessage(Component.empty()
+                .append(gameManager.getFormattedTeamDisplayName(winningTeam))
+                .append(Component.text(" wins MCT #1!"))
+                .color(teamColor)
+                .decorate(TextDecoration.BOLD));
+        stop();
+    }
 
     /**
      * returns the team with 3 or more kills, or null if no team has 3 kills
@@ -220,7 +231,7 @@ public class FinalGame implements MCTGame, Listener {
         int newKillCount = oldKillCount + 1;
         teamKillCounts.put(killerTeam, newKillCount);
         Component displayName = gameManager.getFormattedTeamDisplayName(killerTeam);
-        messageAllParticipants(Component.empty()
+        Bukkit.getServer().sendMessage(Component.empty()
                 .append(displayName)
                 .append(Component.text(" has "))
                 .append(Component.text(newKillCount))
@@ -308,6 +319,12 @@ public class FinalGame implements MCTGame, Listener {
                 "",
                 ChatColor.RED+"Kills: "+teamKillCount+"/"+MAX_KILLS,
                 ""
+        );
+    }
+    
+    private void hideFastBoard(Player participant) {
+        gameManager.getFastBoardManager().updateLines(
+                participant.getUniqueId()
         );
     }
 }
