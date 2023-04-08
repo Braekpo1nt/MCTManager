@@ -136,10 +136,13 @@ public class ParkourPathwayGame implements MCTGame, Listener {
                     .append(Component.text(" reached checkpoint "))
                     .append(Component.text(nextCheckpointIndex))
                     .append(Component.text("/"))
-                    .append(Component.text(checkpoints.size())));
+                    .append(Component.text(checkpoints.size()-1)));
             updateCheckpointFastBoard(player);
             int points = calculatePointsForCheckpoint(playerUUID);
             gameManager.awardPointsToPlayer(player, points);
+            if (allPlayersHaveFinished()) {
+                stop();
+            }
             return;
         }
         CheckPoint currentCheckpoint = checkpoints.get(currentCheckpointIndex);
@@ -148,6 +151,18 @@ public class ParkourPathwayGame implements MCTGame, Listener {
             // Player fell, and must be teleported to checkpoint spawn
             player.teleport(currentCheckpoint.getRespawn());
         }
+    }
+
+    private boolean allPlayersHaveFinished() {
+        for (Player participant : participants) {
+            int currentCheckpoint = currentCheckpoints.get(participant.getUniqueId());
+            if (currentCheckpoint < checkpoints.size() - 1) {
+                //at least one player is still playing
+                return false;
+            }
+        }
+        //all players are at finish line
+        return true;
     }
 
     private int calculatePointsForCheckpoint(UUID playerUUID) {
