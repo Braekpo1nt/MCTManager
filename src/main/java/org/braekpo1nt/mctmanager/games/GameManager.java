@@ -346,7 +346,9 @@ public class GameManager implements Listener {
         this.leavePlayersOnTeam(teamName);
         gameStateStorageUtil.removeTeam(teamName);
         Team team = mctScoreboard.getTeam(teamName);
-        team.unregister();
+        if (team != null){
+            team.unregister();
+        }
         return true;
     }
     
