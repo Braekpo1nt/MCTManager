@@ -21,6 +21,7 @@ import org.bukkit.util.BoundingBox;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 public class ParkourPathwayGame implements MCTGame, Listener {
@@ -40,7 +41,8 @@ public class ParkourPathwayGame implements MCTGame, Listener {
     private List<Player> participants;
     private Location parkourPathwayStartAnchor;
     private final List<CheckPoint> checkpoints;
-
+    private Map<UUID, Integer> currentCheckpoint;
+    
     public ParkourPathwayGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
         this.gameManager = gameManager;
@@ -211,6 +213,11 @@ public class ParkourPathwayGame implements MCTGame, Listener {
     private List<CheckPoint> createCheckpoints() {
         List<CheckPoint> newCheckpoints = new ArrayList<>();
         
+        newCheckpoints.add(new CheckPoint(
+                0,
+                new BoundingBox(998, 5, -8, 1007, -1, 8),
+                new Location(parkourPathwayWorld, 1003, 0, 0)
+        )); // spawn
         newCheckpoints.add(new CheckPoint(
                 8,
                 new BoundingBox(1016, 10, 6, 1020, 7, 3),
