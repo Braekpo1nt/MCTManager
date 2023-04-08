@@ -164,7 +164,7 @@ public class GameManager implements Listener {
         gameStateStorageUtil.saveGameState();
     }
     
-    public void startVote(@NotNull CommandSender sender) {
+    public void startVote(@NotNull CommandSender sender, List<MCTGames> votingPool) {
         List<Player> onlineParticipants = this.getOnlineParticipants();
         if (onlineParticipants.isEmpty()) {
             sender.sendMessage(Component.text("There are no online participants. You can add participants using:\n")
@@ -173,7 +173,7 @@ public class GameManager implements Listener {
                             .clickEvent(ClickEvent.suggestCommand("/mct team join "))));
             return;
         }
-        voteManager.startVote(onlineParticipants);
+        voteManager.startVote(onlineParticipants, votingPool);
     }
     
     /**
