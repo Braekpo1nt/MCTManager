@@ -8,6 +8,7 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
@@ -15,8 +16,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class FinalGame implements MCTGame, Listener {
 
@@ -26,6 +26,7 @@ public class FinalGame implements MCTGame, Listener {
     private boolean gameActive = false;
     private List<Player> participants;
     private int finalGameCountDownTaskId;
+    private Map<UUID, Integer> killCounts;
 
     public FinalGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
@@ -38,6 +39,7 @@ public class FinalGame implements MCTGame, Listener {
     @Override
     public void start(List<Player> newParticipants) {
         this.participants = new ArrayList<>(newParticipants.size());
+        this.killCounts = new HashMap<>(newParticipants.size());
         replaceSandGate();
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
@@ -46,6 +48,18 @@ public class FinalGame implements MCTGame, Listener {
         startFinalGameCountDownTask();
         gameActive = true;
         Bukkit.getLogger().info("Started final game");
+    }
+
+    private void initializeParticipant(Player participant) {
+        participants.add(participant);
+        UUID participantUniqueId = participant.getUniqueId();
+        killCounts.put(participantUniqueId, 0);
+        teleportParticipantToStartingPosition(participant);
+        participant.setGameMode(GameMode.ADVENTURE);
+        participant.getInventory().clear();
+        resetHealthAndHunger(participant);
+        clearStatusEffects(participant);
+        initializeFastBoard(participant);
     }
 
     @Override
@@ -59,6 +73,11 @@ public class FinalGame implements MCTGame, Listener {
         gameActive = false;
         gameManager.gameIsOver();
         Bukkit.getLogger().info("Stopping final game");
+    }
+
+    private void resetParticipant(Player participant) {
+        participant.getInventory().clear();
+        hideFastBoard(participant);
     }
 
     @Override
