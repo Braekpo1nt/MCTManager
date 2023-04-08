@@ -17,10 +17,7 @@ import org.braekpo1nt.mctmanager.games.spleef.SpleefGame;
 import org.braekpo1nt.mctmanager.games.voting.VoteManager;
 import org.braekpo1nt.mctmanager.hub.HubManager;
 import org.braekpo1nt.mctmanager.ui.FastBoardManager;
-import org.bukkit.Bukkit;
-import org.bukkit.Color;
-import org.bukkit.Material;
-import org.bukkit.OfflinePlayer;
+import org.bukkit.*;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -320,6 +317,20 @@ public class GameManager implements Listener {
             return;
         }
         hubManager.returnParticipantsToHubWithDelay(getOnlineParticipants());
+    }
+    
+    public void finalGameIsOver(String winningTeam) {
+        activeGame = null;
+        List<Player> winningTeamParticipants = getOnlinePlayersOnTeam(winningTeam);
+        String colorString = gameStateStorageUtil.getTeamColorString(winningTeam);
+        ChatColor chatColor = ColorMap.getChatColor(colorString);
+        List<Player> otherParticipants = new ArrayList<>();
+        for (Player player : getOnlineParticipants()) {
+            if (!winningTeamParticipants.contains(player)) {
+                otherParticipants.add(player);
+            }
+        }
+        hubManager.pedestalTeleport(winningTeamParticipants, winningTeam, chatColor, otherParticipants);
     }
     
     /**

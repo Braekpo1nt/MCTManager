@@ -1,13 +1,12 @@
 package org.braekpo1nt.mctmanager.hub;
 
 import com.onarandombox.MultiverseCore.api.MVWorldManager;
+import com.onarandombox.MultiverseCore.utils.AnchorManager;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.ui.FastBoardManager;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
-import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -31,7 +30,9 @@ public class HubManager implements Listener {
     private final Scoreboard mctScoreboard;
     private final FastBoardManager fastBoardManager;
     private int returnToHubTaskId;
-    
+    private final Location observePedestalLocation;
+    private final Location pedestalLocation;
+
     public HubManager(Main plugin, Scoreboard mctScoreboard, FastBoardManager fastBoardManager) {
         this.plugin = plugin;
         this.mctScoreboard = mctScoreboard;
@@ -39,6 +40,9 @@ public class HubManager implements Listener {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
         this.hubWorld = worldManager.getMVWorld("Hub").getCBWorld();
+        AnchorManager anchorManager = Main.multiverseCore.getAnchorManager();
+        observePedestalLocation = anchorManager.getAnchorLocation("pedestal-view");
+        pedestalLocation = anchorManager.getAnchorLocation("pedestal");
         initializedStatusEffectLoop();
     }
     
@@ -69,6 +73,26 @@ public class HubManager implements Listener {
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
     }
+
+    public void pedestalTeleport(List<Player> winningTeamParticipants, String winningTeam, ChatColor winningChatColor, List<Player> otherParticipants) {
+        setupTeamOptions();
+        for (Player participant : otherParticipants) {
+            showWinningFastBoard(participant, winningTeam, winningChatColor);
+            clearStatusEffects(participant);
+            participant.setGameMode(GameMode.ADVENTURE);
+            participant.getInventory().clear();
+            giveAmbientStatusEffects(participant);
+            participant.teleport(this.observePedestalLocation);
+        }
+        for (Player winningParticipant : winningTeamParticipants) {
+            showWinningFastBoard(winningParticipant, winningTeam, winningChatColor);
+            clearStatusEffects(winningParticipant);
+            winningParticipant.setGameMode(GameMode.ADVENTURE);
+            winningParticipant.getInventory().clear();
+            giveAmbientStatusEffects(winningParticipant);
+            winningParticipant.teleport(this.pedestalLocation);
+        }
+    }
     
     public void cancelReturnToHub() {
         Bukkit.getScheduler().cancelTask(returnToHubTaskId);
@@ -80,6 +104,15 @@ public class HubManager implements Listener {
                 "",
                 "Back to Hub:",
                 timeString
+        );
+    }
+    
+    private void showWinningFastBoard(Player participant, String winningTeam, ChatColor chatColor) {
+        fastBoardManager.updateLines(
+                participant.getUniqueId(),
+                "",
+                chatColor+"Winners:",
+                chatColor+winningTeam
         );
     }
     
@@ -111,6 +144,8 @@ public class HubManager implements Listener {
     private void teleportPlayerToHub(Player participant) {
         participant.teleport(hubWorld.getSpawnLocation());
     }
+    
+    
     
     private void clearStatusEffects(Player participant) {
         for (PotionEffect effect : participant.getActivePotionEffects()) {

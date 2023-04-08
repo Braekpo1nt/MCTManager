@@ -152,6 +152,19 @@ public class FinalGame implements MCTGame, Listener {
         gameManager.gameIsOver();
         Bukkit.getLogger().info("Stopping final game");
     }
+    
+    private void stop(String winningTeam) {
+        cancelAllTasks();
+        replaceSandGateA(teamA);
+        replaceSandGateB(teamB);
+        for (Player participant : participants) {
+            resetParticipant(participant);
+        }
+        participants.clear();
+        gameActive = false;
+        gameManager.finalGameIsOver(winningTeam);
+        Bukkit.getLogger().info(winningTeam + " won the final game");
+    }
 
     private void resetParticipant(Player participant) {
         participant.getInventory().clear();
