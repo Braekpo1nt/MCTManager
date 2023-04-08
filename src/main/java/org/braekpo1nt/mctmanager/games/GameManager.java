@@ -254,8 +254,22 @@ public class GameManager implements Listener {
                     return;
                 }
                 List<Player> finalGameParticipants = new ArrayList<>();
-                finalGameParticipants.addAll(getOnlinePlayersOnTeam(finalGameTeamA));
-                finalGameParticipants.addAll(getOnlinePlayersOnTeam(finalGameTeamB));
+                List<Player> onlinePlayersOnTeamA = getOnlinePlayersOnTeam(finalGameTeamA);
+                if (onlinePlayersOnTeamA.size() == 0) {
+                    sender.sendMessage(Component.empty()
+                            .append(Component.text("There are no players online from team "))
+                            .append(Component.text(finalGameTeamA)));
+                    return;
+                }
+                List<Player> onlinePlayersOnTeamB = getOnlinePlayersOnTeam(finalGameTeamB);
+                if (onlinePlayersOnTeamB.size() == 0) {
+                    sender.sendMessage(Component.empty()
+                            .append(Component.text("There are no players online from team "))
+                            .append(Component.text(finalGameTeamB)));
+                    return;
+                }
+                finalGameParticipants.addAll(onlinePlayersOnTeamA);
+                finalGameParticipants.addAll(onlinePlayersOnTeamB);
                 finalGame.start(finalGameParticipants);
                 activeGame = finalGame;
             }
