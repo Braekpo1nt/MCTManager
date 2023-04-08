@@ -7,6 +7,7 @@ import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.color.ColorMap;
 import org.braekpo1nt.mctmanager.games.capturetheflag.CaptureTheFlagGame;
+import org.braekpo1nt.mctmanager.games.finalgame.FinalGame;
 import org.braekpo1nt.mctmanager.games.footrace.FootRaceGame;
 import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
 import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
@@ -16,9 +17,7 @@ import org.braekpo1nt.mctmanager.games.spleef.SpleefGame;
 import org.braekpo1nt.mctmanager.games.voting.VoteManager;
 import org.braekpo1nt.mctmanager.hub.HubManager;
 import org.braekpo1nt.mctmanager.ui.FastBoardManager;
-import org.bukkit.Bukkit;
-import org.bukkit.Color;
-import org.bukkit.OfflinePlayer;
+import org.bukkit.*;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -44,6 +43,7 @@ public class GameManager implements Listener {
     private final MechaGame mechaGame;
     private final SpleefGame spleefGame;
     private final ParkourPathwayGame parkourPathwayGame;
+    private final FinalGame finalGame;
     private final CaptureTheFlagGame captureTheFlagGame;
     private final HubManager hubManager;
     private final FastBoardManager fastBoardManager;
@@ -59,7 +59,9 @@ public class GameManager implements Listener {
     private int fastBoardUpdaterTaskId;
     private final List<UUID> participantsWhoLeftMidGame = new ArrayList<>();
     private final VoteManager voteManager;
-    
+    private String finalGameTeamA;
+    private String finalGameTeamB;
+
     public GameManager(Main plugin, Scoreboard mctScoreboard) {
         this.plugin = plugin;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
@@ -71,6 +73,7 @@ public class GameManager implements Listener {
         this.spleefGame = new SpleefGame(plugin, this);
         this.parkourPathwayGame = new ParkourPathwayGame(plugin, this);
         this.captureTheFlagGame = new CaptureTheFlagGame(plugin, this);
+        this.finalGame = new FinalGame(plugin, this);
         this.fastBoardManager = new FastBoardManager(gameStateStorageUtil);
         this.hubManager = new HubManager(plugin, mctScoreboard, fastBoardManager);
         kickOffFastBoardManager();
@@ -242,6 +245,41 @@ public class GameManager implements Listener {
                 parkourPathwayGame.start(onlineParticipants);
                 activeGame = parkourPathwayGame;
             }
+            case FINAL_GAME -> {
+                if (finalGameTeamA == null || finalGameTeamB == null) {
+                    sender.sendMessage(Component.text("Final game teams not set. Use /mct game finalgame <teamA> <teamB>")
+                            .color(NamedTextColor.RED));
+                    return;
+                }
+                List<Player> finalGameParticipants = new ArrayList<>();
+                List<Player> onlinePlayersOnTeamA = getOnlinePlayersOnTeam(finalGameTeamA);
+                if (onlinePlayersOnTeamA.size() == 0) {
+                    sender.sendMessage(Component.empty()
+                            .append(Component.text("There are no players online from team "))
+                            .append(Component.text(finalGameTeamA)));
+                    return;
+                }
+                List<Player> onlinePlayersOnTeamB = getOnlinePlayersOnTeam(finalGameTeamB);
+                if (onlinePlayersOnTeamB.size() == 0) {
+                    sender.sendMessage(Component.empty()
+                            .append(Component.text("There are no players online from team "))
+                            .append(Component.text(finalGameTeamB)));
+                    return;
+                }
+                finalGameParticipants.addAll(onlinePlayersOnTeamA);
+                finalGameParticipants.addAll(onlinePlayersOnTeamB);
+                
+                List<Player> otherParticipants = new ArrayList<>();
+                for (Player player : getOnlineParticipants()) {
+                    if (!finalGameParticipants.contains(player)) {
+                        otherParticipants.add(player);
+                    }
+                }
+                finalGame.teleportViewers(otherParticipants);
+                
+                finalGame.start(finalGameParticipants);
+                activeGame = finalGame;
+            }
         }
     }
     
@@ -290,6 +328,20 @@ public class GameManager implements Listener {
         hubManager.returnParticipantsToHubWithDelay(getOnlineParticipants());
     }
     
+    public void finalGameIsOver(String winningTeam) {
+        activeGame = null;
+        List<Player> winningTeamParticipants = getOnlinePlayersOnTeam(winningTeam);
+        String colorString = gameStateStorageUtil.getTeamColorString(winningTeam);
+        ChatColor chatColor = ColorMap.getChatColor(colorString);
+        List<Player> otherParticipants = new ArrayList<>();
+        for (Player player : getOnlineParticipants()) {
+            if (!winningTeamParticipants.contains(player)) {
+                otherParticipants.add(player);
+            }
+        }
+        hubManager.pedestalTeleport(winningTeamParticipants, winningTeam, chatColor, otherParticipants);
+    }
+    
     /**
      * Remove the given team from the game
      * @param teamName The internal name of the team to remove
@@ -303,7 +355,9 @@ public class GameManager implements Listener {
         this.leavePlayersOnTeam(teamName);
         gameStateStorageUtil.removeTeam(teamName);
         Team team = mctScoreboard.getTeam(teamName);
-        team.unregister();
+        if (team != null){
+            team.unregister();
+        }
         return true;
     }
     
@@ -583,5 +637,15 @@ public class GameManager implements Listener {
     
     public int getScore(UUID uniqueId) {
         return gameStateStorageUtil.getPlayerScore(uniqueId);
+    }
+
+    public void setFinalGameTeams(String teamA, String teamB) {
+        this.finalGameTeamA = teamA;
+        this.finalGameTeamB = teamB;
+    }
+    
+    public Material getTeamPowderColor(String teamName) {
+        String colorString = gameStateStorageUtil.getTeamColorString(teamName);
+        return ColorMap.getConcretePowderColor(colorString);
     }
 }

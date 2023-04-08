@@ -1,11 +1,13 @@
 package org.braekpo1nt.mctmanager.color;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
+import org.bukkit.Material;
 
 public class ColorMap {
 
@@ -60,6 +62,26 @@ public class ColorMap {
         CHAT_COLOR_MAP.put("yellow", ChatColor.YELLOW);
     }
     
+    private static final Map<String, Material> POWDER_TYPE_MAP = new HashMap<>();
+    static {
+        POWDER_TYPE_MAP.put("aqua", Material.LIGHT_BLUE_CONCRETE_POWDER);
+        POWDER_TYPE_MAP.put("black", Material.BLACK_CONCRETE_POWDER);
+        POWDER_TYPE_MAP.put("dark_aqua", Material.CYAN_CONCRETE_POWDER);
+        POWDER_TYPE_MAP.put("dark_blue", Material.BLUE_CONCRETE_POWDER);
+        POWDER_TYPE_MAP.put("dark_gray", Material.GRAY_CONCRETE_POWDER);
+        POWDER_TYPE_MAP.put("dark_green", Material.GREEN_CONCRETE_POWDER);
+        POWDER_TYPE_MAP.put("dark_purple", Material.PURPLE_CONCRETE_POWDER);
+        POWDER_TYPE_MAP.put("dark_red", Material.RED_CONCRETE_POWDER);
+        POWDER_TYPE_MAP.put("gold", Material.ORANGE_CONCRETE_POWDER);
+        POWDER_TYPE_MAP.put("gray", Material.LIGHT_GRAY_CONCRETE_POWDER);
+        POWDER_TYPE_MAP.put("green", Material.LIME_CONCRETE_POWDER);
+        POWDER_TYPE_MAP.put("light_purple", Material.PINK_CONCRETE_POWDER);
+        POWDER_TYPE_MAP.put("red", Material.MAGENTA_CONCRETE_POWDER);
+        POWDER_TYPE_MAP.put("white", Material.WHITE_CONCRETE_POWDER);
+        POWDER_TYPE_MAP.put("blue", Material.BROWN_CONCRETE_POWDER);
+        POWDER_TYPE_MAP.put("yellow", Material.YELLOW_CONCRETE_POWDER);
+    }
+    
     public static NamedTextColor getNamedTextColor(String colorString) {
         NamedTextColor color = NAMED_TEXT_COLOR_MAP.get(colorString.toLowerCase());
         return color != null ? color : NamedTextColor.WHITE;
@@ -84,5 +106,13 @@ public class ColorMap {
     public static ChatColor getChatColor(String colorString) {
         ChatColor color = CHAT_COLOR_MAP.get(colorString.toLowerCase());
         return color != null ? color : ChatColor.WHITE;
+    }
+    
+    public static List<Material> getAllConcretePowderColors() {
+        return POWDER_TYPE_MAP.values().stream().toList();
+    }
+    
+    public static Material getConcretePowderColor(String colorString) {
+        return POWDER_TYPE_MAP.getOrDefault(colorString, Material.WHITE_CONCRETE_POWDER);
     }
 }
