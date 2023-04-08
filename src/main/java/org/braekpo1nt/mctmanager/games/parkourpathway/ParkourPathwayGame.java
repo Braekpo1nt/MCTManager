@@ -222,24 +222,14 @@ public class ParkourPathwayGame implements MCTGame, Listener {
         )); // spawn
         newCheckpoints.add(new CheckPoint(
                 8,
-                new BoundingBox(1016, 10, 6, 1020, 7, 3),
-                new Location(parkourPathwayWorld, 1017, 8, 5)
-        )); // 1 r
-        newCheckpoints.add(new CheckPoint(
-                8,
-                new BoundingBox(1021, 10, -6, 1016, 8, -6),
-                new Location(parkourPathwayWorld, 1017, 8, -5)
-        )); // 1 l
+                new BoundingBox(1017, 10, 6, 1020, 7, -6),
+                new Location(parkourPathwayWorld, 1017, 8, 4)
+        )); // 1
         newCheckpoints.add(new CheckPoint(
                 5,
-                new BoundingBox(1048, 8, 3 ,1046, 11, 1),
+                new BoundingBox(1048, 7, -4, 1046, 11, 3),
                 new Location(parkourPathwayWorld, 1046 ,8 ,2)
-        )); //2 r
-        newCheckpoints.add(new CheckPoint(
-                5,
-                new BoundingBox(1046, 11, -1, 1048, 8, -3),
-                new Location(parkourPathwayWorld, 1046, 8, -2)
-        )); // 2 l 
+        )); //2
         newCheckpoints.add(new CheckPoint(
                 9,
                 new BoundingBox(1074, 9, -3, 1077, 13, 4),
