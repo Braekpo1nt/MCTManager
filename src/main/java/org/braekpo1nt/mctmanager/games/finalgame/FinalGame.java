@@ -104,6 +104,13 @@ public class FinalGame implements MCTGame, Listener {
         BlockPlacementUtils.createCubeReplace(finalGameWorld, -1002, 2, -19, 5, 4, 1, Material.AIR, teamPowderColor);
     }
     
+    private void dropSandGates() {
+        //a
+        BlockPlacementUtils.createCube(finalGameWorld, -1002, 1, 19, 5, 1, 1, Material.AIR);
+        //b
+        BlockPlacementUtils.createCube(finalGameWorld, -1002, 1, -19, 5, 1, 1, Material.AIR);
+    }
+    
 
     private void initializeParticipant(Player participant) {
         participants.add(participant);
@@ -150,7 +157,7 @@ public class FinalGame implements MCTGame, Listener {
     }
     
     private void startFinalGame() {
-        dropSandGate();
+        dropSandGates();
         messageAllParticipants(Component.text("Go!")
                 .decorate(TextDecoration.BOLD)
                 .color(NamedTextColor.GREEN));
