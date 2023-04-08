@@ -192,17 +192,15 @@ public class ParkourPathwayGame implements MCTGame, Listener {
                 title,
                 "7:00",
                 "",
-                ""
+                "1/" + checkpoints.size()
         );
     }
     
     private void updateParkourPathwayFastBoardTimer(Player participant, String timerString) {
-        gameManager.getFastBoardManager().updateLines(
+        gameManager.getFastBoardManager().updateLine(
                 participant.getUniqueId(),
-                title,
-                timerString,
-                "",
-                "1/"
+                1,
+                timerString
         );
     }
 
