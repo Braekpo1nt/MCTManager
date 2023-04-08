@@ -122,6 +122,45 @@ public class FinalGame implements MCTGame, Listener {
         }
     }
 
+    /**
+     * returns the team with 3 or more kills, or null if no team has 3 kills
+     * @return the team with 3 or more kills, or null if no team has 3 kills
+     */
+    private String getTeamWith3Kills() {
+        for (String teamName : teamKillCounts.keySet()) {
+            if (teamKillCounts.get(teamName) >= 3) {
+                return teamName;
+            }
+        }
+        return null;
+    }
+
+    private void onParticipantGetKill(Player killed) {
+        Player killer = killed.getKiller();
+        if (!participants.contains(killer)) {
+            return;
+        }
+        addKill(killer);
+    }
+
+    private void addKill(Player killer) {
+        String killerTeam = gameManager.getTeamName(killer.getUniqueId());
+        int oldKillCount = teamKillCounts.get(killerTeam);
+        int newKillCount = oldKillCount + 1;
+        teamKillCounts.put(killerTeam, newKillCount);
+        Component displayName = gameManager.getFormattedTeamDisplayName(killerTeam);
+        messageAllParticipants(Component.empty()
+                .append(displayName)
+                .append(Component.text(" has "))
+                .append(Component.text(newKillCount))
+                .append(Component.text("/"))
+                .append(Component.text(3))
+                .append(Component.text(" kills!"))
+                .color(NamedTextColor.GOLD)
+                .decorate(TextDecoration.BOLD)
+        );
+    }
+
     private void onParticipantDeath(Player killed) {
         resetHealthAndHunger(killed);
         killed.getInventory().clear();

@@ -23,9 +23,9 @@ public class VoteSubCommand implements TabExecutor {
         mctGames = new HashMap<>();
         mctGames.put("foot-race", MCTGames.FOOT_RACE);
         mctGames.put("mecha", MCTGames.MECHA);
-        mctGames.put("capture-the-flag", MCTGames.CAPTURE_THE_FLAG);
         mctGames.put("spleef", MCTGames.SPLEEF);
         mctGames.put("parkour-pathway", MCTGames.PARKOUR_PATHWAY);
+        mctGames.put("capture-the-flag", MCTGames.CAPTURE_THE_FLAG);
     }
     
     @Override
@@ -56,7 +56,7 @@ public class VoteSubCommand implements TabExecutor {
         if (args.length == 0) {
             return Collections.emptyList();
         }
-        return getGamesNotInArgs(args).stream().sorted().toList();
+        return getGamesNotInArgs(args).stream().toList();
     }
 
     private List<String> getGamesNotInArgs(String[] args) {
