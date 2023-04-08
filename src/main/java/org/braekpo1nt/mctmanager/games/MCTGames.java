@@ -4,5 +4,6 @@ public enum MCTGames {
     FOOT_RACE,
     MECHA,
     CAPTURE_THE_FLAG,
-    SPLEEF
+    SPLEEF,
+    PARKOUR_PATHWAY
 }

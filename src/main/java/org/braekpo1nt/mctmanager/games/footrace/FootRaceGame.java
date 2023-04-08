@@ -82,8 +82,8 @@ public class FootRaceGame implements Listener, MCTGame {
             initializeParticipant(participant);
         }
         startStatusEffectsTask();
-        startStartRaceCountdownTask();
         setupTeamOptions();
+        startStartRaceCountdownTask();
         gameActive = true;
         Bukkit.getLogger().info("Starting Foot Race game");
     }
