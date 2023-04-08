@@ -1,19 +1,20 @@
 package org.braekpo1nt.mctmanager.games.finalgame;
 
 import com.onarandombox.MultiverseCore.api.MVWorldManager;
+import com.onarandombox.MultiverseCore.utils.AnchorManager;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
-import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
-import org.bukkit.World;
+import org.bukkit.*;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.potion.PotionEffect;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
@@ -22,13 +23,16 @@ import java.util.*;
 
 public class FinalGame implements MCTGame, Listener {
 
+    private static final int MAX_KILLS = 3;
     private final Main plugin;
     private final GameManager gameManager;
     private final World finalGameWorld;
+    private final String title = ChatColor.BLUE+"Final Game";
     private boolean gameActive = false;
     private List<Player> participants;
     private int finalGameCountDownTaskId;
     private Map<String, Integer> teamKillCounts;
+    private Map<String, Location> teamSpawns;
 
     public FinalGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
@@ -43,6 +47,7 @@ public class FinalGame implements MCTGame, Listener {
         this.participants = new ArrayList<>(newParticipants.size());
         this.teamKillCounts = new HashMap<>(newParticipants.size());
         replaceSandGate();
+        setUpTeamSpawns(newParticipants);
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
         }
@@ -52,6 +57,20 @@ public class FinalGame implements MCTGame, Listener {
         Bukkit.getLogger().info("Started final game");
     }
 
+    private void setUpTeamSpawns(List<Player> newParticipants) {
+        AnchorManager anchorManager = Main.multiverseCore.getAnchorManager();
+        List<String> teams = new ArrayList<>();
+        for (Player participant : newParticipants) {
+            String team = gameManager.getTeamName(participant.getUniqueId());
+            if (!teams.contains(team)) {
+                teams.add(team);
+            }
+        }
+        teamSpawns = new HashMap<>();
+        teamSpawns.put(teams.get(0), anchorManager.getAnchorLocation("final-game-a"));
+        teamSpawns.put(teams.get(1), anchorManager.getAnchorLocation("final-game-b"));
+    }
+
     private void initializeParticipant(Player participant) {
         participants.add(participant);
         UUID participantUniqueId = participant.getUniqueId();
@@ -59,7 +78,7 @@ public class FinalGame implements MCTGame, Listener {
         if (!teamKillCounts.containsKey(team)) {
             teamKillCounts.put(team, 0);
         }
-        teleportParticipantToStartingPosition(participant);
+        teleportParticipantToSpawn(participant);
         participant.setGameMode(GameMode.ADVENTURE);
         participant.getInventory().clear();
         giveParticipantEquipment(participant);
@@ -128,7 +147,7 @@ public class FinalGame implements MCTGame, Listener {
      */
     private String getTeamWith3Kills() {
         for (String teamName : teamKillCounts.keySet()) {
-            if (teamKillCounts.get(teamName) >= 3) {
+            if (teamKillCounts.get(teamName) >= MAX_KILLS) {
                 return teamName;
             }
         }
@@ -154,7 +173,7 @@ public class FinalGame implements MCTGame, Listener {
                 .append(Component.text(" has "))
                 .append(Component.text(newKillCount))
                 .append(Component.text("/"))
-                .append(Component.text(3))
+                .append(Component.text(MAX_KILLS))
                 .append(Component.text(" kills!"))
                 .color(NamedTextColor.GOLD)
                 .decorate(TextDecoration.BOLD)
@@ -171,6 +190,12 @@ public class FinalGame implements MCTGame, Listener {
                 teleportParticipantToSpawn(killed);
             }
         }.runTaskLater(plugin, 1L);
+    }
+    
+    private void teleportParticipantToSpawn(Player participant) {
+        String team = gameManager.getTeamName(participant.getUniqueId());
+        Location spawnLocation = teamSpawns.get(team);
+        participant.teleport(spawnLocation);
     }
 
     private void setUpTeamOptions() {
@@ -208,5 +233,29 @@ public class FinalGame implements MCTGame, Listener {
         for (Player participant : participants) {
             participant.sendMessage(message);
         }
+    }
+
+    private void resetHealthAndHunger(Player participant) {
+        participant.setHealth(participant.getAttribute(Attribute.GENERIC_MAX_HEALTH).getDefaultValue());
+        participant.setFoodLevel(20);
+        participant.setSaturation(5);
+    }
+
+    private void clearStatusEffects(Player participant) {
+        for (PotionEffect effect : participant.getActivePotionEffects()) {
+            participant.removePotionEffect(effect.getType());
+        }
+    }
+    
+    private void initializeFastBoard(Player participant) {
+        String teamName = gameManager.getTeamName(participant.getUniqueId());
+        int teamKillCount = teamKillCounts.getOrDefault(teamName, 0);
+        gameManager.getFastBoardManager().updateLines(
+                participant.getUniqueId(),
+                title,
+                "",
+                ChatColor.RED+"Kills: "+teamKillCount+"/"+MAX_KILLS,
+                ""
+        );
     }
 }
