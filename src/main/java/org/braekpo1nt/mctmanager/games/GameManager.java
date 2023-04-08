@@ -19,6 +19,7 @@ import org.braekpo1nt.mctmanager.hub.HubManager;
 import org.braekpo1nt.mctmanager.ui.FastBoardManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
+import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -619,5 +620,10 @@ public class GameManager implements Listener {
     public void setFinalGameTeams(String teamA, String teamB) {
         this.finalGameTeamA = teamA;
         this.finalGameTeamB = teamB;
+    }
+    
+    public Material getTeamPowderColor(String teamName) {
+        String colorString = gameStateStorageUtil.getTeamColorString(teamName);
+        return ColorMap.getConcretePowderColor(colorString);
     }
 }

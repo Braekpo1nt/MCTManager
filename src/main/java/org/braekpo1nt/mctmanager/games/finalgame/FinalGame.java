@@ -1,13 +1,14 @@
 package org.braekpo1nt.mctmanager.games.finalgame;
 
 import com.onarandombox.MultiverseCore.api.MVWorldManager;
-import com.onarandombox.MultiverseCore.utils.AnchorManager;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.color.ColorMap;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
+import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
@@ -33,6 +34,8 @@ public class FinalGame implements MCTGame, Listener {
     private int finalGameCountDownTaskId;
     private Map<String, Integer> teamKillCounts;
     private Map<String, Location> teamSpawns;
+    private String teamA;
+    private String teamB;
 
     public FinalGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
@@ -46,8 +49,10 @@ public class FinalGame implements MCTGame, Listener {
     public void start(List<Player> newParticipants) {
         this.participants = new ArrayList<>(newParticipants.size());
         this.teamKillCounts = new HashMap<>(newParticipants.size());
-        replaceSandGate();
-        setUpTeamSpawns(newParticipants);
+        setUpTeams(newParticipants);
+        setUpTeamSpawns();
+        replaceSandGateA(teamA);
+        replaceSandGateB(teamB);
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
         }
@@ -57,8 +62,7 @@ public class FinalGame implements MCTGame, Listener {
         Bukkit.getLogger().info("Started final game");
     }
 
-    private void setUpTeamSpawns(List<Player> newParticipants) {
-//        AnchorManager anchorManager = Main.multiverseCore.getAnchorManager();
+    private void setUpTeams(List<Player> newParticipants) {
         List<String> teams = new ArrayList<>();
         for (Player participant : newParticipants) {
             String team = gameManager.getTeamName(participant.getUniqueId());
@@ -66,13 +70,40 @@ public class FinalGame implements MCTGame, Listener {
                 teams.add(team);
             }
         }
-        teamSpawns = new HashMap<>();
-//        teamSpawns.put(teams.get(0), anchorManager.getAnchorLocation("final-game-a"));
-//        teamSpawns.put(teams.get(1), anchorManager.getAnchorLocation("final-game-b"));
-        teamSpawns.put(teams.get(0), new Location(finalGameWorld, -999, 2, 22, 179, 0));
-        teamSpawns.put(teams.get(1), new Location(finalGameWorld, -999, 2, -21, 0, 0));
-        
+        this.teamA = teams.get(0);
+        this.teamB = teams.get(1);
     }
+
+    private void setUpTeamSpawns() {
+        teamSpawns = new HashMap<>();
+        teamSpawns.put(teamA, new Location(finalGameWorld, -999, 2, 22, 179, 0));
+        teamSpawns.put(teamB, new Location(finalGameWorld, -999, 2, -21, 0, 0));
+    }
+    
+    private void replaceSandGateA(String teamA) {
+        //replace powder with air
+        for (Material powderColor : ColorMap.getAllConcretePowderColors()) {
+            BlockPlacementUtils.createCubeReplace(finalGameWorld, -1002, -3, 19, 5, 10, 1, powderColor, Material.AIR);
+        }
+        //place stone under
+        BlockPlacementUtils.createCube(finalGameWorld, -1002, 1, 19, 5, 1, 1, Material.STONE);
+        //place team color sand
+        Material teamPowderColor = gameManager.getTeamPowderColor(teamA);
+        BlockPlacementUtils.createCubeReplace(finalGameWorld, -1002, 2, 19, 5, 4, 1, Material.AIR, teamPowderColor);
+    }
+    
+    private void replaceSandGateB(String teamB) {
+        //replace powder with air
+        for (Material powderColor : ColorMap.getAllConcretePowderColors()) {
+            BlockPlacementUtils.createCubeReplace(finalGameWorld, -1002, -3, -19, 5, 10, 1, powderColor, Material.AIR);
+        }
+        //place stone under
+        BlockPlacementUtils.createCube(finalGameWorld, -1002, 1, -19, 5, 1, 1, Material.STONE);
+        //place team color sand
+        Material teamPowderColor = gameManager.getTeamPowderColor(teamB);
+        BlockPlacementUtils.createCubeReplace(finalGameWorld, -1002, 2, -19, 5, 4, 1, Material.AIR, teamPowderColor);
+    }
+    
 
     private void initializeParticipant(Player participant) {
         participants.add(participant);
@@ -93,7 +124,7 @@ public class FinalGame implements MCTGame, Listener {
     @Override
     public void stop() {
         cancelAllTasks();
-        replaceSandGate();
+        replaceSandGates();
         for (Player participant : participants) {
             resetParticipant(participant);
         }

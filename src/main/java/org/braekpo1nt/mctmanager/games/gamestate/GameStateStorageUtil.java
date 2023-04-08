@@ -283,4 +283,8 @@ public class GameStateStorageUtil {
     public int getTeamScore(String teamName) {
         return gameState.getTeam(teamName).getScore();
     }
+    
+    public String getTeamColorString(String teamName) {
+        return gameState.getTeam(teamName).getColor();
+    }
 }
