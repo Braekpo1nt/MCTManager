@@ -215,6 +215,7 @@ public class FinalGame implements MCTGame, Listener {
         if (teamWith3Kills != null) {
             finishFinalGame(teamWith3Kills);
         }
+        event.setCancelled(true);
     }
     
     private void finishFinalGame(String winningTeam) {
@@ -224,7 +225,7 @@ public class FinalGame implements MCTGame, Listener {
                 .append(Component.text(" wins MCT #1!"))
                 .color(teamColor)
                 .decorate(TextDecoration.BOLD));
-        stop();
+        stop(winningTeam);
     }
 
     /**

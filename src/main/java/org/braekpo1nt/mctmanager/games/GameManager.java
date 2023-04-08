@@ -328,8 +328,9 @@ public class GameManager implements Listener {
         hubManager.returnParticipantsToHubWithDelay(getOnlineParticipants());
     }
     
-    public void finalGameIsOver(String winningTeam) {
+    public void finalGameIsOver(String winningTeamName) {
         activeGame = null;
+        String winningTeam = gameStateStorageUtil.getTeamDisplayName(winningTeamName);
         List<Player> winningTeamParticipants = getOnlinePlayersOnTeam(winningTeam);
         String colorString = gameStateStorageUtil.getTeamColorString(winningTeam);
         ChatColor chatColor = ColorMap.getChatColor(colorString);
