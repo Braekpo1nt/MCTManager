@@ -136,7 +136,7 @@ public class ParkourPathwayGame implements MCTGame, Listener {
             // Player got to the next checkpoint
             currentCheckpoints.put(playerUUID, nextCheckpointIndex);
             updateCheckpointFastBoard(player);
-            if (nextCheckpointIndex >= checkpoints.size() - 1) {
+            if (nextCheckpointIndex >= checkpoints.size()) {
                 messageAllParticipants(Component.empty()
                         .append(Component.text(player.getName()))
                     .append(Component.text(" finished!")));
