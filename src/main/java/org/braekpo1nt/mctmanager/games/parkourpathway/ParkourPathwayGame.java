@@ -85,7 +85,7 @@ public class ParkourPathwayGame implements MCTGame, Listener {
         participant.getInventory().clear();
         hideFastBoard(participant);
     }
-
+    
     @Override
     public void stop() {
         cancelAllTasks();
@@ -94,6 +94,7 @@ public class ParkourPathwayGame implements MCTGame, Listener {
         }
         participants.clear();
         gameActive = false;
+        gameManager.gameIsOver();
         Bukkit.getLogger().info("Stopping Parkour Pathway game");
     }
 
