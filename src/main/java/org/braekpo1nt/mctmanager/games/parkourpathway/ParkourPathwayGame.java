@@ -133,9 +133,10 @@ public class ParkourPathwayGame implements MCTGame, Listener {
             messageAllParticipants(Component.empty()
                     .append(Component.text(player.getName()))
                     .append(Component.text(" reached checkpoint "))
-                    .append(Component.text(nextCheckpointIndex+1))
+                    .append(Component.text(nextCheckpointIndex))
                     .append(Component.text("/"))
                     .append(Component.text(checkpoints.size())));
+            updateCheckpointFastBoard(player);
             int points = calculatePointsForCheckpoint(playerUUID);
             gameManager.awardPointsToPlayer(player, points);
             return;
@@ -218,7 +219,7 @@ public class ParkourPathwayGame implements MCTGame, Listener {
     }
 
     private void teleportPlayerToStartingPosition(Player player) {
-        player.sendMessage("Teleporting to Foot Race");
+        player.sendMessage("Teleporting to Parkour Pathway");
         player.teleport(parkourPathwayStartAnchor);
     }
 
@@ -245,7 +246,7 @@ public class ParkourPathwayGame implements MCTGame, Listener {
                 title,
                 "7:00",
                 "",
-                "1/" + checkpoints.size()
+                "1/" + (checkpoints.size()-1)
         );
     }
     
@@ -254,6 +255,16 @@ public class ParkourPathwayGame implements MCTGame, Listener {
                 participant.getUniqueId(),
                 1,
                 timerString
+        );
+    }
+    
+    private void updateCheckpointFastBoard(Player participant) {
+        int currentCheckpoint = currentCheckpoints.get(participant.getUniqueId());
+        int lastCheckpoint = checkpoints.size()-1;
+        gameManager.getFastBoardManager().updateLine(
+                participant.getUniqueId(),
+                3,
+                currentCheckpoint + "/" + lastCheckpoint
         );
     }
 
@@ -276,7 +287,7 @@ public class ParkourPathwayGame implements MCTGame, Listener {
                 0,
                 new BoundingBox(998, 5, -8, 1007, -1, 8),
                 new Location(parkourPathwayWorld, 1003, 0, 0)
-        )); // spawn
+        )); // spawn (0)
         newCheckpoints.add(new CheckPoint(
                 8,
                 new BoundingBox(1017, 10, 6, 1020, 7, -6),
@@ -299,7 +310,7 @@ public class ParkourPathwayGame implements MCTGame, Listener {
         )); // 4
         newCheckpoints.add(new CheckPoint(
                 33,
-                new BoundingBox(1106, 33, -3, 1109, 37, -10),
+                new BoundingBox(1106, 32, -10, 1109, 38, 10),
                 new Location(parkourPathwayWorld, 1107, 33, -6)
         )); // 5
         newCheckpoints.add(new CheckPoint(
@@ -309,34 +320,39 @@ public class ParkourPathwayGame implements MCTGame, Listener {
         )); // 6
         newCheckpoints.add(new CheckPoint(
                 42,
+                new BoundingBox(1101, 43, 1, 1099, 45, -1),
+                new Location(parkourPathwayWorld, 1100, 43, 0)
+        )); // 7
+        newCheckpoints.add(new CheckPoint(
+                42,
                 new BoundingBox(1079, 43, 3, 1077, 48, -3),
                 new Location(parkourPathwayWorld, 1078, 44, 0)
-        )); // 7
+        )); // 8
         newCheckpoints.add(new CheckPoint(
                 42,
                 new BoundingBox(1038, 43, 3, 1034, 48, -3),
                 new Location(parkourPathwayWorld, 1036, 44, 0)
-        )); // 8
+        )); // 9
         newCheckpoints.add(new CheckPoint(
                 42,
                 new BoundingBox(1017, 44, 6, 1020, 51, -5),
                 new Location(parkourPathwayWorld, 1019, 45, 0)
-        )); // 9
+        )); // 10
         newCheckpoints.add(new CheckPoint(
                 44,
                 new BoundingBox(1005, 43, -3, 1003, 48, 5),
                 new Location(parkourPathwayWorld, 1004 ,44, 1)
-        )); // 10
+        )); // 11
         newCheckpoints.add(new CheckPoint(
                 42,
                 new BoundingBox(981, 43, -3, 984, 48, 5),
                 new Location(parkourPathwayWorld, 982 ,44, 1)
-        )); // 11
+        )); // 12
         newCheckpoints.add(new CheckPoint(
                 41,
                 new BoundingBox(924, 48, 5, 915, 40, -3),
                 new Location(parkourPathwayWorld,920, 41, 1 )
-        )); // finish line
+        )); // finish line (13)
         
         return newCheckpoints;
     }
