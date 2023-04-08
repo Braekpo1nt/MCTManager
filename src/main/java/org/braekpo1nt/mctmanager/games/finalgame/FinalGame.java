@@ -1,9 +1,11 @@
 package org.braekpo1nt.mctmanager.games.finalgame;
 
+import com.onarandombox.MultiverseCore.api.MVWorldManager;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
 import org.bukkit.Bukkit;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 
@@ -13,12 +15,15 @@ public class FinalGame implements MCTGame, Listener {
 
     private final Main plugin;
     private final GameManager gameManager;
-    private boolean gameActive;
+    private final World finalGameWorld;
+    private boolean gameActive = false;
 
     public FinalGame(Main plugin, GameManager gameManager) {
-        
         this.plugin = plugin;
         this.gameManager = gameManager;
+        plugin.getServer().getPluginManager().registerEvents(this, plugin);
+        MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
+        this.finalGameWorld = worldManager.getMVWorld("FT").getCBWorld();
     }
     
     @Override
