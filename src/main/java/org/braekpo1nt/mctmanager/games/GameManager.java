@@ -173,7 +173,7 @@ public class GameManager implements Listener {
                             .clickEvent(ClickEvent.suggestCommand("/mct team join "))));
             return;
         }
-        voteManager.startVote(onlineParticipants);
+        voteManager.startVote(onlineParticipants, votingPool);
     }
     
     /**

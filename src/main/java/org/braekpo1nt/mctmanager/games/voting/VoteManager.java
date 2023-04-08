@@ -34,17 +34,19 @@ public class VoteManager implements Listener {
     private boolean voting = false;
     private final Component NETHER_STAR_NAME = Component.text("Vote");
     private int voteCountDownTaskId;
-    
+    private List<MCTGames> votingPool = new ArrayList<>();
+
     public VoteManager(GameManager gameManager, Main plugin) {
         this.gameManager = gameManager;
         this.plugin = plugin;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
     
-    public void startVote(List<Player> participants) {
+    public void startVote(List<Player> participants, List<MCTGames> votingPool) {
         voting = true;
         votes.clear();
         voters.clear();
+        this.votingPool = votingPool;
         for (Player participant : participants) {
             showVoteGui(participant);
             this.voters.add(participant);
@@ -372,14 +374,16 @@ public class VoteManager implements Listener {
         spleef.setItemMeta(spleefMeta);
     
         Inventory newGui = Bukkit.createInventory(null, 9, TITLE);
-        ItemStack[] contents = {
-                footRace, 
-                mecha, 
-                captureTheFlag, 
-                spleef,
-                parkourPathway
-        };
-        newGui.setContents(contents);
+        Map<MCTGames, ItemStack> votingItems = new HashMap<>();
+        votingItems.put(MCTGames.FOOT_RACE, footRace);
+        votingItems.put(MCTGames.MECHA, mecha);
+        votingItems.put(MCTGames.CAPTURE_THE_FLAG, captureTheFlag);
+        votingItems.put(MCTGames.SPLEEF, spleef);
+        votingItems.put(MCTGames.PARKOUR_PATHWAY, parkourPathway);
+        
+        for (MCTGames mctGame : votingPool) {
+            newGui.addItem(votingItems.get(mctGame));
+        }
         participant.openInventory(newGui);
     }
     
