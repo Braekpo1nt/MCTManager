@@ -268,6 +268,15 @@ public class GameManager implements Listener {
                 }
                 finalGameParticipants.addAll(onlinePlayersOnTeamA);
                 finalGameParticipants.addAll(onlinePlayersOnTeamB);
+                
+                List<Player> otherParticipants = new ArrayList<>();
+                for (Player player : getOnlineParticipants()) {
+                    if (!finalGameParticipants.contains(player)) {
+                        otherParticipants.add(player);
+                    }
+                }
+                finalGame.teleportViewers(otherParticipants);
+                
                 finalGame.start(finalGameParticipants);
                 activeGame = finalGame;
             }

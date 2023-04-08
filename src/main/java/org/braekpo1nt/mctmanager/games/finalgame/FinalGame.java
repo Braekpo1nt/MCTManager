@@ -46,6 +46,16 @@ public class FinalGame implements MCTGame, Listener {
         this.finalGameWorld = worldManager.getMVWorld("FT").getCBWorld();
     }
     
+    public void teleportViewers(List<Player> otherParticipants) {
+        Location viewLocation = new Location(finalGameWorld, -999, 9, 20, 179, 20);
+        for (Player participant : otherParticipants) {
+            participant.teleport(viewLocation);
+            participant.setBedSpawnLocation(viewLocation);
+            participant.getInventory().clear();
+            participant.setGameMode(GameMode.ADVENTURE);
+        }
+    }
+    
     @Override
     public void start(List<Player> newParticipants) {
         this.participants = new ArrayList<>(newParticipants.size());
