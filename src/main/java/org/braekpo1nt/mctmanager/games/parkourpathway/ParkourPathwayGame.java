@@ -19,10 +19,7 @@ import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 import org.bukkit.util.BoundingBox;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class ParkourPathwayGame implements MCTGame, Listener {
 
@@ -41,6 +38,9 @@ public class ParkourPathwayGame implements MCTGame, Listener {
     private List<Player> participants;
     private Location parkourPathwayStartAnchor;
     private final List<CheckPoint> checkpoints;
+    /**
+     * UUID paired with index of checkpoint
+     */
     private Map<UUID, Integer> currentCheckpoint;
     
     public ParkourPathwayGame(Main plugin, GameManager gameManager) {
@@ -55,6 +55,7 @@ public class ParkourPathwayGame implements MCTGame, Listener {
     @Override
     public void start(List<Player> newParticipants) {
         participants = new ArrayList<>();
+        currentCheckpoint = new HashMap<>();
         AnchorManager anchorManager = Main.multiverseCore.getAnchorManager();
         this.parkourPathwayStartAnchor = anchorManager.getAnchorLocation("parkour-pathway");
         for (Player participant : newParticipants) {
@@ -70,6 +71,7 @@ public class ParkourPathwayGame implements MCTGame, Listener {
     private void initializeParticipant(Player participant) {
         UUID participantUniqueId = participant.getUniqueId();
         participants.add(participant);
+        currentCheckpoint.put(participantUniqueId, 0);
         initializeFastBoard(participant);
         teleportPlayerToStartingPosition(participant);
         participant.getInventory().clear();
@@ -200,7 +202,7 @@ public class ParkourPathwayGame implements MCTGame, Listener {
                 title,
                 timerString,
                 "",
-                ""
+                "1/"
         );
     }
 
