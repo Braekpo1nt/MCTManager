@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.games.parkourpathway;
 
 import com.onarandombox.MultiverseCore.api.MVWorldManager;
 import com.onarandombox.MultiverseCore.utils.AnchorManager;
+import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
@@ -41,7 +42,7 @@ public class ParkourPathwayGame implements MCTGame, Listener {
     /**
      * UUID paired with index of checkpoint
      */
-    private Map<UUID, Integer> currentCheckpoint;
+    private Map<UUID, Integer> currentCheckpoints;
     
     public ParkourPathwayGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
@@ -55,7 +56,7 @@ public class ParkourPathwayGame implements MCTGame, Listener {
     @Override
     public void start(List<Player> newParticipants) {
         participants = new ArrayList<>();
-        currentCheckpoint = new HashMap<>();
+        currentCheckpoints = new HashMap<>();
         AnchorManager anchorManager = Main.multiverseCore.getAnchorManager();
         this.parkourPathwayStartAnchor = anchorManager.getAnchorLocation("parkour-pathway");
         for (Player participant : newParticipants) {
@@ -71,7 +72,7 @@ public class ParkourPathwayGame implements MCTGame, Listener {
     private void initializeParticipant(Player participant) {
         UUID participantUniqueId = participant.getUniqueId();
         participants.add(participant);
-        currentCheckpoint.put(participantUniqueId, 0);
+        currentCheckpoints.put(participantUniqueId, 0);
         initializeFastBoard(participant);
         teleportPlayerToStartingPosition(participant);
         participant.getInventory().clear();
@@ -116,9 +117,61 @@ public class ParkourPathwayGame implements MCTGame, Listener {
         if (!participants.contains(player)) {
             return;
         }
-        
+        if (!currentCheckpoints.containsKey(playerUUID)) {
+            currentCheckpoints.put(playerUUID, 0);
+        }
+        int currentCheckpointIndex = currentCheckpoints.get(playerUUID);
+        int nextCheckpointIndex = currentCheckpointIndex + 1;
+        if (nextCheckpointIndex >= checkpoints.size()) {
+            // the player is in the finish line and already won
+            return;
+        }
+        CheckPoint nextCheckpoint = checkpoints.get(nextCheckpointIndex);
+        if (nextCheckpoint.getBoundingBox().contains(player.getLocation().toVector())) {
+            // Player got to the next checkpoint
+            currentCheckpoints.put(playerUUID, nextCheckpointIndex);
+            messageAllParticipants(Component.empty()
+                    .append(Component.text(player.getName()))
+                    .append(Component.text(" reached checkpoint "))
+                    .append(Component.text(nextCheckpointIndex+1))
+                    .append(Component.text("/"))
+                    .append(Component.text(checkpoints.size())));
+            int points = calculatePointsForCheckpoint(playerUUID);
+            gameManager.awardPointsToPlayer(player, points);
+            return;
+        }
+        CheckPoint currentCheckpoint = checkpoints.get(currentCheckpointIndex);
+        double yPos = player.getLocation().getY();
+        if (yPos < currentCheckpoint.getyValue()) {
+            // Player fell, and must be teleported to checkpoint spawn
+            player.teleport(currentCheckpoint.getRespawn());
+        }
     }
-    
+
+    private int calculatePointsForCheckpoint(UUID playerUUID) {
+        int playersCheckpoint = currentCheckpoints.get(playerUUID);
+        int count = 0;
+        for (int checkpointIndex : currentCheckpoints.values()) {
+            if (checkpointIndex >= playersCheckpoint) {
+                count++;
+            }
+        }
+        switch (count) {
+            case 1 -> {
+                return 50;
+            }
+            case 2 -> {
+                return 45;
+            }
+            case 3 -> {
+                return 40;
+            }
+            default -> {
+                return 35;
+            }
+        }
+    }
+
     private void startParkourPathwayTimer() {
         this.startNextRoundTimerTaskId = new BukkitRunnable() {
             int count = 7*60;
@@ -208,6 +261,12 @@ public class ParkourPathwayGame implements MCTGame, Listener {
         gameManager.getFastBoardManager().updateLines(
                 participant.getUniqueId()
         );
+    }
+
+    private void messageAllParticipants(Component message) {
+        for (Player participant : participants) {
+            participant.sendMessage(message);
+        }
     }
     
     private List<CheckPoint> createCheckpoints() {
