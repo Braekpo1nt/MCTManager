@@ -24,12 +24,17 @@ public class FinalGameSubCommand implements TabExecutor {
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length < 2) {
-            sender.sendMessage(Component.text("Usage: /mct game finalgame <teamName> <teamName>")
+            sender.sendMessage(Component.text("Usage: /mct game finalgame <teamA> <teamB>")
                     .color(NamedTextColor.RED));
             return true;
         }
         String teamA = args[0];
         String teamB = args[1];
+        if (teamA.equals(teamB)) {
+            sender.sendMessage(Component.text("must be two different teams")
+                    .color(NamedTextColor.RED));
+            return true;
+        }
         if (!gameManager.hasTeam(teamA)) {
             sender.sendMessage(Component.empty()
                             .append(Component.text(teamA)
