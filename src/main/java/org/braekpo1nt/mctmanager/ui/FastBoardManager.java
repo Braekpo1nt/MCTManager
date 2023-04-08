@@ -80,9 +80,10 @@ public class FastBoardManager {
         String teamName = gameStateStorageUtil.getPlayerTeamName(playerUniqueId);
         String teamDisplayName = gameStateStorageUtil.getTeamDisplayName(teamName);
         ChatColor teamChatColor = gameStateStorageUtil.getTeamChatColor(teamName);
-        int score = gameStateStorageUtil.getPlayerScore(playerUniqueId);
-        String teamLine = teamChatColor+teamDisplayName;
-        String scoreLine = ChatColor.GOLD+"Score: "+score;
+        int teamScore = gameStateStorageUtil.getTeamScore(teamName);
+        int playerScore = gameStateStorageUtil.getPlayerScore(playerUniqueId);
+        String teamLine = teamChatColor+teamDisplayName+": "+teamScore;
+        String scoreLine = ChatColor.GOLD+"Points: "+playerScore;
         return new String[]{teamLine, scoreLine};
     }
     
