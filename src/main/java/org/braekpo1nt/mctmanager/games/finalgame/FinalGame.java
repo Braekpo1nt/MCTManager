@@ -11,7 +11,9 @@ import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
@@ -26,7 +28,7 @@ public class FinalGame implements MCTGame, Listener {
     private boolean gameActive = false;
     private List<Player> participants;
     private int finalGameCountDownTaskId;
-    private Map<UUID, Integer> killCounts;
+    private Map<String, Integer> teamKillCounts;
 
     public FinalGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
@@ -39,7 +41,7 @@ public class FinalGame implements MCTGame, Listener {
     @Override
     public void start(List<Player> newParticipants) {
         this.participants = new ArrayList<>(newParticipants.size());
-        this.killCounts = new HashMap<>(newParticipants.size());
+        this.teamKillCounts = new HashMap<>(newParticipants.size());
         replaceSandGate();
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
@@ -53,10 +55,14 @@ public class FinalGame implements MCTGame, Listener {
     private void initializeParticipant(Player participant) {
         participants.add(participant);
         UUID participantUniqueId = participant.getUniqueId();
-        killCounts.put(participantUniqueId, 0);
+        String team = gameManager.getTeamName(participantUniqueId);
+        if (!teamKillCounts.containsKey(team)) {
+            teamKillCounts.put(team, 0);
+        }
         teleportParticipantToStartingPosition(participant);
         participant.setGameMode(GameMode.ADVENTURE);
         participant.getInventory().clear();
+        giveParticipantEquipment(participant);
         resetHealthAndHunger(participant);
         clearStatusEffects(participant);
         initializeFastBoard(participant);
@@ -95,6 +101,37 @@ public class FinalGame implements MCTGame, Listener {
         messageAllParticipants(Component.text("Go!")
                 .decorate(TextDecoration.BOLD)
                 .color(NamedTextColor.GREEN));
+    }
+    
+    @EventHandler
+    public void onPlayerDeath(PlayerDeathEvent event) {
+        if (!gameActive) {
+            return;
+        }
+        Player killed = event.getPlayer();
+        if (!participants.contains(killed)) {
+            return;
+        }
+        onParticipantDeath(killed);
+        if (killed.getKiller() != null) {
+            onParticipantGetKill(killed);
+        }
+        String teamWith3Kills = getTeamWith3Kills();
+        if (teamWith3Kills != null) {
+            finishFinalGame(teamWith3Kills);
+        }
+    }
+
+    private void onParticipantDeath(Player killed) {
+        resetHealthAndHunger(killed);
+        killed.getInventory().clear();
+        giveParticipantEquipment(killed);
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                teleportParticipantToSpawn(killed);
+            }
+        }.runTaskLater(plugin, 1L);
     }
 
     private void setUpTeamOptions() {
