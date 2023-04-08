@@ -1,7 +1,6 @@
 package org.braekpo1nt.mctmanager.commands.game;
 
 import org.braekpo1nt.mctmanager.games.GameManager;
-import org.braekpo1nt.mctmanager.games.voting.VoteManager;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -22,6 +21,7 @@ public class GameSubCommand implements TabExecutor {
         subCommands.put("start", new StartSubCommand(gameManager));
         subCommands.put("stop", new StopSubCommand(gameManager));
         subCommands.put("vote", new VoteSubCommand(gameManager));
+        subCommands.put("finalgame", new FinalGameSubCommand(gameManager));
     }
     
     @Override

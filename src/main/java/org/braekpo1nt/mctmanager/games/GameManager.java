@@ -7,6 +7,7 @@ import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.color.ColorMap;
 import org.braekpo1nt.mctmanager.games.capturetheflag.CaptureTheFlagGame;
+import org.braekpo1nt.mctmanager.games.finalgame.FinalGame;
 import org.braekpo1nt.mctmanager.games.footrace.FootRaceGame;
 import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
 import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
@@ -44,6 +45,7 @@ public class GameManager implements Listener {
     private final MechaGame mechaGame;
     private final SpleefGame spleefGame;
     private final ParkourPathwayGame parkourPathwayGame;
+    private final FinalGame finalGame;
     private final CaptureTheFlagGame captureTheFlagGame;
     private final HubManager hubManager;
     private final FastBoardManager fastBoardManager;
@@ -71,6 +73,7 @@ public class GameManager implements Listener {
         this.spleefGame = new SpleefGame(plugin, this);
         this.parkourPathwayGame = new ParkourPathwayGame(plugin, this);
         this.captureTheFlagGame = new CaptureTheFlagGame(plugin, this);
+        this.finalGame = new FinalGame(plugin, this);
         this.fastBoardManager = new FastBoardManager(gameStateStorageUtil);
         this.hubManager = new HubManager(plugin, mctScoreboard, fastBoardManager);
         kickOffFastBoardManager();
@@ -241,6 +244,10 @@ public class GameManager implements Listener {
             case PARKOUR_PATHWAY -> {
                 parkourPathwayGame.start(onlineParticipants);
                 activeGame = parkourPathwayGame;
+            }
+            case FINAL_GAME -> {
+                finalGame.start(onlineParticipants);
+                activeGame = finalGame;
             }
         }
     }
