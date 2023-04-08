@@ -15,6 +15,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
@@ -126,6 +127,16 @@ public class FinalGame implements MCTGame, Listener {
         resetHealthAndHunger(participant);
         clearStatusEffects(participant);
         initializeFastBoard(participant);
+    }
+
+    private void giveParticipantEquipment(Player participant) {
+        //stone sword, bow, 16 arrows, leather chest and boots, 16 steak
+        participant.getInventory().addItem(new ItemStack(Material.STONE_SWORD));
+        participant.getInventory().addItem(new ItemStack(Material.BOW));
+        participant.getInventory().addItem(new ItemStack(Material.ARROW, 16));
+        participant.getInventory().addItem(new ItemStack(Material.COOKED_BEEF, 16));
+        participant.getEquipment().setChestplate(new ItemStack(Material.LEATHER_CHESTPLATE));
+        participant.getEquipment().setBoots(new ItemStack(Material.LEATHER_BOOTS));
     }
 
     @Override
