@@ -5,7 +5,7 @@ about: Issues that describe a new feature. An addition to the plugin, a feature 
 title: ''
 labels: feature
 assignees: ''
-project: MCT Project
+
 ---
 
 *to see how to use this and other templates, see the project's README.md*
