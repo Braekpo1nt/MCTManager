@@ -25,7 +25,7 @@ import java.util.*;
 
 public class FinalGame implements MCTGame, Listener {
 
-    private static final int MAX_KILLS = 3;
+    private static final int MAX_KILLS = 9;
     private final Main plugin;
     private final GameManager gameManager;
     private final World finalGameWorld;
