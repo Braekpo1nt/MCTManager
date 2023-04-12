@@ -2,7 +2,7 @@
 name: Bug
 about: 'A bug that needs to be fixed. '
 title: ''
-labels: bug, redesign
+labels: bug
 assignees: ''
 
 ---
