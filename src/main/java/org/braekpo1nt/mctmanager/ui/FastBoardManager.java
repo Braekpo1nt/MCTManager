@@ -17,6 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class FastBoardManager {
     
+    private final String EVENT_TITLE = ChatColor.BOLD + "" + ChatColor.DARK_RED + "MCT #1";
     private final ConcurrentHashMap<UUID, FastBoard> boards = new ConcurrentHashMap<>();
     private final GameStateStorageUtil gameStateStorageUtil;
     
@@ -64,7 +65,7 @@ public class FastBoardManager {
 
     private synchronized void addBoard(Player player) {
         FastBoard newBoard = new FastBoard(player);
-        newBoard.updateTitle(ChatColor.BOLD+""+ChatColor.DARK_RED+"MCT Alpha");
+        newBoard.updateTitle(this.EVENT_TITLE);
         String[] mainLines = getMainLines(player.getUniqueId());
         String teamLine = mainLines[0];
         String scoreLine = mainLines[1];
@@ -79,9 +80,10 @@ public class FastBoardManager {
         String teamName = gameStateStorageUtil.getPlayerTeamName(playerUniqueId);
         String teamDisplayName = gameStateStorageUtil.getTeamDisplayName(teamName);
         ChatColor teamChatColor = gameStateStorageUtil.getTeamChatColor(teamName);
-        int score = gameStateStorageUtil.getPlayerScore(playerUniqueId);
-        String teamLine = teamChatColor+teamDisplayName;
-        String scoreLine = ChatColor.GOLD+"Score: "+score;
+        int teamScore = gameStateStorageUtil.getTeamScore(teamName);
+        int playerScore = gameStateStorageUtil.getPlayerScore(playerUniqueId);
+        String teamLine = teamChatColor+teamDisplayName+": "+teamScore;
+        String scoreLine = ChatColor.GOLD+"Points: "+playerScore;
         return new String[]{teamLine, scoreLine};
     }
     

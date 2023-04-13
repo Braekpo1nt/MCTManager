@@ -6,7 +6,7 @@ Check out [MCT Official on YouTube](https://www.youtube.com/channel/UCDHWFMl0D8v
 
 ## Authors
 - This plugin was programmed by Braekpo1nt. Find him on [YouTube](https://www.youtube.com/@braekpo1nt), [twitter](https://twitter.com/braekpo1nt), [facebook](https://www.facebook.com/Braekpo1nt/), or [instagram](https://www.instagram.com/braekpo1nt/).
-- The event this plugin supports was created by SgtShotgun. Find them on [YouTube](https://www.youtube.com/@SgtShotgun) and [twitter](https://twitter.com/SgtShotgun1)
+- The event this plugin supports was created by SgtShotgun. Find them on [YouTube](https://www.youtube.com/@SgtShotgun) and [twitter](https://twitter.com/SgtShotgun1) 
 
 ## Discord
 Ask the authors for access to the discord
@@ -29,14 +29,13 @@ Required plugins. Read this or you will get errors.
 
 # Running the event
 
-## Participants
-In order to host an event, you need to [add participants](#adding-a-new-participant) (the plugin has to know who is a participant and who is an admin).
-
 ### Starting a game
 You can start a game with the following command:
 
 - `/mct game start <game>`
   - `<game>` the game to start. Must be a valid game name in the event. See [list of games](#games-list)
+
+You can also start a game with a [vote](#voting)
 
 ### Stopping a game
 If a game is running, you can manually stop a game with the following command:
@@ -45,6 +44,14 @@ If a game is running, you can manually stop a game with the following command:
 
 This will stop the game, and return all players to the beginning. As of the time of writing this, the points for playing the game will be retained. 
 - `[true|false]` This is an optional argument (defaults to true). If you provide false, the teleport to the hub will be cancelled. This is a debugging feature, and players will often not be reset properly after a game ends. 
+
+### Voting
+
+You can initiate a vote for all online participants. You must specify the games you want to be voted for (must be at least one):
+
+- `/mct game vote [one or more games]`
+
+for example: `/mct game vote spleef foot-race mecha` will show all players a voting gui with those three games, and no others. 
 
 ### Adding a new team
 Every participant must be on a team, so you must first have at least one team. To add a new team, use the following command:
@@ -56,6 +63,10 @@ Every participant must be on a team, so you must first have at least one team. T
 
 ### Removing a team
 You can remove a team entirely. Points are lost and team members are removed, also losing their points, as if you [removed them manually](#removing-a-participant)
+
+
+## Participants
+In order to host an event, you need to [add participants](#adding-a-new-participant) (the plugin has to know who is a participant and who is an admin).
 
 ### Adding a new participant
 Participants must be on a team, so you must first [add a new team](#adding-a-new-team)
@@ -74,6 +85,34 @@ The only way to remove a participant is to leave them from their team:
 - `/mct team leave <member>`
 
 Note: This will delete a participants points, but as of right now doesn't remove those points from the team they used to be on
+
+### Listing teams and scores
+
+You can list the teams, their participants, and their scores with the following command:
+
+- `/mct team list [true|false]`
+  - `[true|false]` whether or not to display the teams to all participants. Defaults to false. If you specify true, it will display the team list to all participants. 
+
+This will show the team list and the players on the teams and all scores.
+
+### Modifying scores
+
+You can add, subtract, or set the scores of players and teams with the following command:
+
+- `/mct team score <add|subtract|set> <player|team> <playerName|teamName> <value>`
+  - `<add|subtract|set>`
+    - `add` add the `value`
+    - `subtract` subtract the `value`
+    - `set` set the score to the `value`
+- `<player|team>` specify player or team
+- `<playerName|teamName>` If you specified `player` above, enter the `playerName` of the player whose score you want to modify. If you specified `team` above, enter the `teamName` of the team whose score you want to modify.
+- `<value>` the value you want to `add`/`subtract`/`set`. 
+  - Must be an integer. 
+  - Can be negative for `add`/`subtract` 
+    - If you add a negative number it's subtracted, if you subtract a negative number it's added. 
+  - Must be positive for `set`. 
+  - You can't modify a score so that it's less than 0. If you try to subtract a number from a score that would cause it to go negative, the score is simply set to 0.
+
 
 ## Games List
 This is a list of the currently implemented games. See above for how to [start a game](#starting-a-game) or [stop a game](#stopping-a-game)
