@@ -28,4 +28,4 @@ assignees: ''
 - [ ] *task B*
 
 ## Related issues
-*list related issues, if any. Use `#<issue number>`*
+*if this is related to any issues, list them here using the issue notation #123*
