@@ -25,7 +25,7 @@ import java.util.*;
 
 public class FinalGame implements MCTGame, Listener {
 
-    private static final int MAX_KILLS = 3;
+    private static final int MAX_KILLS = 9;
     private final Main plugin;
     private final GameManager gameManager;
     private final World finalGameWorld;
@@ -215,6 +215,7 @@ public class FinalGame implements MCTGame, Listener {
         if (teamWith3Kills != null) {
             finishFinalGame(teamWith3Kills);
         }
+        event.setCancelled(true);
     }
     
     private void finishFinalGame(String winningTeam) {
@@ -224,7 +225,7 @@ public class FinalGame implements MCTGame, Listener {
                 .append(Component.text(" wins MCT #1!"))
                 .color(teamColor)
                 .decorate(TextDecoration.BOLD));
-        stop();
+        stop(winningTeam);
     }
 
     /**

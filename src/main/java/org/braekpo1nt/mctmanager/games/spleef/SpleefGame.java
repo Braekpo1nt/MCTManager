@@ -199,7 +199,9 @@ public class SpleefGame implements MCTGame, Listener {
         participantsAlive.put(killed.getUniqueId(), false);
         for (Player participant : participants) {
             if (!participant.getUniqueId().equals(killed.getUniqueId())) {
-                gameManager.awardPointsToPlayer(participant, 10);
+                if (participantsAlive.get(participant.getUniqueId())) {
+                    gameManager.awardPointsToPlayer(participant, 10);
+                }
             }
         }
     }

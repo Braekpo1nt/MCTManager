@@ -9,6 +9,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.plugin.Plugin;
 
@@ -51,6 +52,32 @@ public class HubBoundaryListener implements Listener {
             }
         }
         
+    }
+    
+    @EventHandler
+    public void onPlayerDamage(EntityDamageEvent event) {
+        if (!boundaryEnabled) {
+            return;
+        }
+
+        if (!(event.getEntity() instanceof Player)) {
+            return;
+        }
+        Player player = ((Player) event.getEntity());
+        
+        Plugin multiversePlugin = Bukkit.getPluginManager().getPlugin("Multiverse-Core");
+        MultiverseCore multiverseCore = ((MultiverseCore) multiversePlugin);
+        MVWorldManager worldManager = multiverseCore.getMVWorldManager();
+        MultiverseWorld hubWorld = worldManager.getMVWorld("Hub");
+        MultiverseWorld playerWorld = worldManager.getMVWorld(player.getWorld());
+
+        // make sure the player is in the hub world
+        if (playerWorld.equals(hubWorld)) {
+            if (!event.getCause().equals(EntityDamageEvent.DamageCause.LAVA)
+                    || event.getCause().equals(EntityDamageEvent.DamageCause.FIRE)) {
+                event.setCancelled(true);
+            }
+        }
     }
 
     public void disableBoundary() {

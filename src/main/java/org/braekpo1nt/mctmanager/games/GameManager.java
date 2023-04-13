@@ -328,18 +328,25 @@ public class GameManager implements Listener {
         hubManager.returnParticipantsToHubWithDelay(getOnlineParticipants());
     }
     
-    public void finalGameIsOver(String winningTeam) {
-        activeGame = null;
-        List<Player> winningTeamParticipants = getOnlinePlayersOnTeam(winningTeam);
-        String colorString = gameStateStorageUtil.getTeamColorString(winningTeam);
-        ChatColor chatColor = ColorMap.getChatColor(colorString);
-        List<Player> otherParticipants = new ArrayList<>();
-        for (Player player : getOnlineParticipants()) {
-            if (!winningTeamParticipants.contains(player)) {
-                otherParticipants.add(player);
+    public void finalGameIsOver(String winningTeamName) {
+        Bukkit.getLogger().info("Final game is over");
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                activeGame = null;
+                String winningTeamDisplayName = gameStateStorageUtil.getTeamDisplayName(winningTeamName);
+                List<Player> winningTeamParticipants = getOnlinePlayersOnTeam(winningTeamName);
+                String colorString = gameStateStorageUtil.getTeamColorString(winningTeamName);
+                ChatColor chatColor = ColorMap.getChatColor(colorString);
+                List<Player> otherParticipants = new ArrayList<>();
+                for (Player player : getOnlineParticipants()) {
+                    if (!winningTeamParticipants.contains(player)) {
+                        otherParticipants.add(player);
+                    }
+                }
+                hubManager.pedestalTeleport(winningTeamParticipants, winningTeamDisplayName, chatColor, otherParticipants);
             }
-        }
-        hubManager.pedestalTeleport(winningTeamParticipants, winningTeam, chatColor, otherParticipants);
+        }.runTaskLater(plugin, 5*20);
     }
     
     /**
