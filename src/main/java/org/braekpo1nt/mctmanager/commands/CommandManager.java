@@ -22,7 +22,7 @@ import java.util.Map;
  * Implement TabExecutor in your sub command to provide tab completion
  */
 public abstract class CommandManager implements TabExecutor {
-
+    
     protected final Map<String, CommandExecutor> subCommands = new HashMap<>();
     
     protected abstract Component getUsageMessage();
