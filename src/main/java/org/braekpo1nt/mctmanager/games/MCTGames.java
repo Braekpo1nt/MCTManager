@@ -5,5 +5,6 @@ public enum MCTGames {
     MECHA,
     CAPTURE_THE_FLAG,
     SPLEEF,
-    FINAL_GAME, PARKOUR_PATHWAY
+    FINAL_GAME, 
+    PARKOUR_PATHWAY
 }
