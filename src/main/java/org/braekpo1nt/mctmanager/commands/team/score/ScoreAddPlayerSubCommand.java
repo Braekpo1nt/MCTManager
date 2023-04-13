@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.commands.team.score;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
@@ -37,7 +38,8 @@ public class ScoreAddPlayerSubCommand implements TabExecutor {
         
         if (!gameManager.isParticipant(offlinePlayer.getUniqueId())) {
             sender.sendMessage(Component.text(playerName)
-                    .append(Component.text(" is not a participant")));
+                    .append(Component.text(" is not a participant"))
+                    .color(NamedTextColor.RED));
             return true;
         }
         String scoreString = args[1];
@@ -45,6 +47,10 @@ public class ScoreAddPlayerSubCommand implements TabExecutor {
             int score = Integer.parseInt(scoreString);
             if (invert) {
                 score = -score;
+                int currentScore = gameManager.getScore(offlinePlayer.getUniqueId());
+                if (currentScore + score < 0) {
+                    score = -currentScore;
+                }
             }
             gameManager.addScore(offlinePlayer.getUniqueId(), score);
             int newScore = gameManager.getScore(offlinePlayer.getUniqueId());

@@ -41,6 +41,10 @@ public class ScoreAddTeamSubCommand implements TabExecutor {
             int score = Integer.parseInt(scoreString);
             if (invert) {
                 score = -score;
+                int currentScore = gameManager.getScore(teamName);
+                if (currentScore + score < 0) {
+                    score = -currentScore;
+                }
             }
             gameManager.addScore(teamName, score);
             int newScore = gameManager.getScore(teamName);

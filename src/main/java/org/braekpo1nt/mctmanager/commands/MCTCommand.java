@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.commands;
 
+import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.game.GameSubCommand;
 import org.braekpo1nt.mctmanager.commands.team.TeamSubCommand;
@@ -24,10 +25,8 @@ import java.util.Map;
  * The super command for all MCT related commands. 
  * Everything should start with /mct _____, where _____ is a sub command
  */
-public class MCTCommand implements TabExecutor {
+public class MCTCommand extends CommandManager {
 
-    private final Map<String, CommandExecutor> subCommands = new HashMap<>();
-    
     public MCTCommand(Main plugin, GameManager gameManager, HubBoundaryListener hubBoundaryListener, BlockEffectsListener blockEffectsListener) {
         plugin.getCommand("mct").setExecutor(this);
         subCommands.put("game", new GameSubCommand(gameManager));
@@ -55,38 +54,9 @@ public class MCTCommand implements TabExecutor {
         });
     }
     
+    
     @Override
-    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (args.length < 1) {
-            sender.sendMessage("Usage: /mct <option>");
-            return false;
-        }
-        String subCommandName = args[0];
-        if (!subCommands.containsKey(subCommandName)) {
-            sender.sendMessage(String.format("Argument %s is not recognized.", subCommandName));
-            return true;
-        }
-        
-        return subCommands.get(subCommandName).onCommand(sender, command, label, Arrays.copyOfRange(args, 1, args.length));
-    }
-
-    @Override
-    public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (args.length == 1) {
-            List<String> subCommandNames = subCommands.keySet().stream().sorted().toList();
-            return subCommandNames;
-        }
-        if (args.length > 1) {
-            String subCommandName = args[0];
-            if (!subCommands.containsKey(subCommandName)) {
-                return null;
-            }
-            CommandExecutor subCommand = subCommands.get(subCommandName);
-            if (subCommand instanceof TabExecutor) {
-                TabExecutor subTabCommand = ((TabExecutor) subCommand);
-                return subTabCommand.onTabComplete(sender, command, label, Arrays.copyOfRange(args, 1, args.length));
-            }
-        }
-        return null;
+    protected Component getUsageMessage() {
+        return Component.text("Usage: /mct <option>");
     }
 }

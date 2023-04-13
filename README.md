@@ -29,9 +29,6 @@ Required plugins. Read this or you will get errors.
 
 # Running the event
 
-## Participants
-In order to host an event, you need to [add participants](#adding-a-new-participant) (the plugin has to know who is a participant and who is an admin).
-
 ### Starting a game
 You can start a game with the following command:
 
@@ -66,6 +63,10 @@ Every participant must be on a team, so you must first have at least one team. T
 
 ### Removing a team
 You can remove a team entirely. Points are lost and team members are removed, also losing their points, as if you [removed them manually](#removing-a-participant)
+
+
+## Participants
+In order to host an event, you need to [add participants](#adding-a-new-participant) (the plugin has to know who is a participant and who is an admin).
 
 ### Adding a new participant
 Participants must be on a team, so you must first [add a new team](#adding-a-new-team)
@@ -103,7 +104,14 @@ You can add, subtract, or set the scores of players and teams with the following
     - `add` add the `value`
     - `subtract` subtract the `value`
     - `set` set the score to the `value`
-- `<player|team>` specify player or
+- `<player|team>` specify player or team
+- `<playerName|teamName>` If you specified `player` above, enter the `playerName` of the player whose score you want to modify. If you specified `team` above, enter the `teamName` of the team whose score you want to modify.
+- `<value>` the value you want to `add`/`subtract`/`set`. 
+  - Must be an integer. 
+  - Can be negative for `add`/`subtract` 
+    - If you add a negative number it's subtracted, if you subtract a negative number it's added. 
+  - Must be positive for `set`. 
+  - You can't modify a score so that it's less than 0. If you try to subtract a number from a score that would cause it to go negative, the score is simply set to 0.
 
 
 ## Games List
