@@ -55,14 +55,14 @@ Start, stop, and vote for games.
     - `add` add the `value`
     - `subtract` subtract the `value`
     - `set` set the score to the `value`
-- `<player|team>` specify player or team
-- `<playerName|teamName>` If you specified `player` above, enter the `playerName` of the player whose score you want to modify. If you specified `team` above, enter the `teamName` of the team whose score you want to modify.
-- `<value>` the value you want to `add`/`subtract`/`set`.
-  - Must be an integer.
-  - Can be negative for `add`/`subtract`
-    - If you add a negative number it's subtracted, if you subtract a negative number it's added.
-  - Must be positive for `set`.
-  - You can't modify a score so that it's less than 0. If you try to subtract a number from a score that would cause it to go negative, the score is simply set to 0.
+  - `<player|team>` specify player or team
+  - `<playerName|teamName>` If you specified `player` above, enter the `playerName` of the player whose score you want to modify. If you specified `team` above, enter the `teamName` of the team whose score you want to modify.
+  - `<value>` the value you want to `add`/`subtract`/`set`.
+    - Must be an integer.
+    - Can be negative for `add`/`subtract`
+      - If you add a negative number it's subtracted, if you subtract a negative number it's added.
+    - Must be positive for `set`.
+    - You can't modify a score so that it's less than 0. If you try to subtract a number from a score that would cause it to go negative, the score is simply set to 0.
 
 ## /mct load
 
