@@ -3,7 +3,7 @@ package org.braekpo1nt.mctmanager.commands.team;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
-import org.braekpo1nt.mctmanager.color.ColorMap;
+import org.braekpo1nt.mctmanager.utils.color.ColorMap;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;

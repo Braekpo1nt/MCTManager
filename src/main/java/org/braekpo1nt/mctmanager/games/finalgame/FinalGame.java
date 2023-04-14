@@ -5,7 +5,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.color.ColorMap;
+import org.braekpo1nt.mctmanager.utils.color.ColorMap;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
