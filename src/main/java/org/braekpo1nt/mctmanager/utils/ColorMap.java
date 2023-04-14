@@ -82,13 +82,11 @@ public class ColorMap {
     }
     
     public static NamedTextColor getNamedTextColor(String colorString) {
-        NamedTextColor color = NAMED_TEXT_COLOR_MAP.get(colorString.toLowerCase());
-        return color != null ? color : NamedTextColor.WHITE;
+        return NAMED_TEXT_COLOR_MAP.getOrDefault(colorString.toLowerCase(), NamedTextColor.WHITE);
     }
     
     public static Color getColor(String colorString) {
-        Color color = COLOR_MAP.get(colorString);
-        return color != null ? color : Color.WHITE;
+        return COLOR_MAP.getOrDefault(colorString, Color.WHITE);
     }
     
     public static boolean hasNamedTextColor(String colorString) {
@@ -103,8 +101,7 @@ public class ColorMap {
     }
     
     public static ChatColor getChatColor(String colorString) {
-        ChatColor color = CHAT_COLOR_MAP.get(colorString.toLowerCase());
-        return color != null ? color : ChatColor.WHITE;
+        return CHAT_COLOR_MAP.getOrDefault(colorString.toLowerCase(), ChatColor.WHITE);
     }
     
     public static List<Material> getAllConcretePowderColors() {
