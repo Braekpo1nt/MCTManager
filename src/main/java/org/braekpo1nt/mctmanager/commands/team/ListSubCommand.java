@@ -58,7 +58,7 @@ public class ListSubCommand implements TabExecutor {
     private Component getTeamDisplay(CommandSender sender) {
         TextComponent.Builder messageBuilder = Component.text().append(Component.text("TEAMS\n")
                     .decorate(TextDecoration.BOLD));
-        List<OfflinePlayer> offlinePlayers = gameManager.getOfflinePlayers();
+        List<OfflinePlayer> offlinePlayers = gameManager.getOfflineParticipants();
         List<String> teamNames = gameManager.getTeamNames().stream().toList();
         
         for (String teamName : teamNames) {

@@ -1,4 +1,4 @@
-package org.braekpo1nt.mctmanager.utils.color;
+package org.braekpo1nt.mctmanager.utils;
 
 import java.util.List;
 import java.util.Map;
@@ -71,13 +71,13 @@ public class ColorMap {
         POWDER_TYPE_MAP.put("dark_green", Material.GREEN_CONCRETE_POWDER);
         POWDER_TYPE_MAP.put("dark_purple", Material.PURPLE_CONCRETE_POWDER);
         POWDER_TYPE_MAP.put("dark_red", Material.RED_CONCRETE_POWDER);
-        POWDER_TYPE_MAP.put("gold", Material.ORANGE_CONCRETE_POWDER);
+        POWDER_TYPE_MAP.put("gold", Material.YELLOW_CONCRETE_POWDER);
         POWDER_TYPE_MAP.put("gray", Material.LIGHT_GRAY_CONCRETE_POWDER);
         POWDER_TYPE_MAP.put("green", Material.LIME_CONCRETE_POWDER);
-        POWDER_TYPE_MAP.put("light_purple", Material.PINK_CONCRETE_POWDER);
-        POWDER_TYPE_MAP.put("red", Material.MAGENTA_CONCRETE_POWDER);
+        POWDER_TYPE_MAP.put("light_purple", Material.MAGENTA_CONCRETE_POWDER);
+        POWDER_TYPE_MAP.put("red", Material.RED_CONCRETE_POWDER);
         POWDER_TYPE_MAP.put("white", Material.WHITE_CONCRETE_POWDER);
-        POWDER_TYPE_MAP.put("blue", Material.BROWN_CONCRETE_POWDER);
+        POWDER_TYPE_MAP.put("blue", Material.LIGHT_BLUE_CONCRETE_POWDER);
         POWDER_TYPE_MAP.put("yellow", Material.YELLOW_CONCRETE_POWDER);
     }
     
@@ -111,6 +111,13 @@ public class ColorMap {
         return POWDER_TYPE_MAP.values().stream().toList();
     }
     
+    /**
+     * Returns the type of concrete powder which most closely matches the given colorString.
+     * Note that some color strings are duplicates.
+     * @param colorString The color string to get the concrete powder for. Should be the color strings matching
+     *                    the ChatColor values.
+     * @return The concrete powder color that best matches the given color string
+     */
     public static Material getConcretePowderColor(String colorString) {
         return POWDER_TYPE_MAP.getOrDefault(colorString, Material.WHITE_CONCRETE_POWDER);
     }
