@@ -32,19 +32,19 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
     private final String title = ChatColor.BLUE+"Capture the Flag";
     private final World captureTheFlagWorld;
     private final Location spawnObservatory;
-    private List<Arena> arenas;
+    private List<MatchPairing.Arena> arenas;
     private List<Player> participants;
     /**
      * a list of lists of TeamPairings. Each element is a list of 1-4 TeamPairings.
      * Each index corresponds to a round.
      */
-    private List<List<TeamPairing>> allRoundTeamPairings;
+    private List<List<MatchPairing>> allRoundTeamPairings;
     /**
      * Contains the 1-4 TeamPairings for the current round. 
      * See {@link CaptureTheFlagGame#allRoundTeamPairings}.
      * Each index corresponds to a pair of teams to fight in their own arena. 
      */
-    private List<TeamPairing> currentRoundTeamParings;
+    private List<MatchPairing> currentRoundTeamParings;
     private int currentRound = 0;
     private int maxRounds = 0;
     private List<UUID> livingPlayers;
@@ -284,16 +284,16 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
     }
     
     private void closeGlassBarriers() {
-        for (Arena arena : arenas) {
-            BlockPlacementUtils.createCube(arena.getNorthBarrier(), 5, 4, 1, Material.GLASS_PANE);
-            BlockPlacementUtils.createCube(arena.getSouthBarrier(), 5, 4, 1, Material.GLASS_PANE);
+        for (MatchPairing.Arena arena : arenas) {
+            BlockPlacementUtils.createCube(arena.northBarrier(), 5, 4, 1, Material.GLASS_PANE);
+            BlockPlacementUtils.createCube(arena.southBarrier(), 5, 4, 1, Material.GLASS_PANE);
         }
     }
     
     private void openGlassBarriers() {
-        for (Arena arena : arenas) {
-            BlockPlacementUtils.createCube(arena.getNorthBarrier(), 5, 4, 1, Material.AIR);
-            BlockPlacementUtils.createCube(arena.getSouthBarrier(), 5, 4, 1, Material.AIR);
+        for (MatchPairing.Arena arena : arenas) {
+            BlockPlacementUtils.createCube(arena.northBarrier(), 5, 4, 1, Material.AIR);
+            BlockPlacementUtils.createCube(arena.southBarrier(), 5, 4, 1, Material.AIR);
         }
     }
     
@@ -336,18 +336,18 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
      * @param newParticipants The participants whose teams will be used to create the pairings
      * @return A new list of lists of 1-4 TeamPairings. See {@link CaptureTheFlagGame#allRoundTeamPairings}
      */
-    public List<List<TeamPairing>> generateAllRoundTeamPairings(List<Player> newParticipants) {
+    public List<List<MatchPairing>> generateAllRoundTeamPairings(List<Player> newParticipants) {
         List<String> teamNames = gameManager.getTeamNames(newParticipants);
-        List<TeamPairing> teamPairings = generateAllPairings(teamNames);
+        List<MatchPairing> matchPairings = generateAllPairings(teamNames);
         // A list of lists of 1-4 TeamPairings
-        List<List<TeamPairing>> newAllRoundTeamPairings = new ArrayList<>();
+        List<List<MatchPairing>> newAllRoundTeamPairings = new ArrayList<>();
         int pairingIndex = 0;
-        while (pairingIndex < teamPairings.size()) {
+        while (pairingIndex < matchPairings.size()) {
             // A list of 1-4 TeamPairings
-            List<TeamPairing> singleRoundPairingGroup = new ArrayList<>();
+            List<MatchPairing> singleRoundPairingGroup = new ArrayList<>();
             int j = 0;
-            while (j < 4 && pairingIndex < teamPairings.size()) {
-                singleRoundPairingGroup.add(teamPairings.get(pairingIndex));
+            while (j < 4 && pairingIndex < matchPairings.size()) {
+                singleRoundPairingGroup.add(matchPairings.get(pairingIndex));
                 pairingIndex++;
                 j++;
             }
@@ -356,19 +356,19 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
         return newAllRoundTeamPairings;
     }
     
-    private static List<TeamPairing> generateAllPairings(List<String> teamNames) {
-        List<TeamPairing> teamPairings = new ArrayList<>();
+    private static List<MatchPairing> generateAllPairings(List<String> teamNames) {
+        List<MatchPairing> matchPairings = new ArrayList<>();
         int n = teamNames.size();
         // Generate all possible combinations of indices
         for (int i = 0; i < n; i++) {
             for (int j = i + 1; j < n; j++) {
                 String teamA = teamNames.get(i);
                 String teamB = teamNames.get(j);
-                TeamPairing teamPairing = new TeamPairing(teamA, teamB);
-                teamPairings.add(teamPairing);
+                MatchPairing matchPairing = new MatchPairing(teamA, teamB);
+                matchPairings.add(matchPairing);
             }
         }
-        return teamPairings;
+        return matchPairings;
     }
     
     private void teleportParticipantToSpawnObservatory(Player participant) {
@@ -378,26 +378,26 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
     
     private void teleportTeamPairingsToArenas() {
         for (int i = 0; i < currentRoundTeamParings.size(); i++) {
-            TeamPairing teamPairing = currentRoundTeamParings.get(i);
-            Arena arena = arenas.get(i);
-            teleportTeamPairingToArena(teamPairing, arena);
+            MatchPairing matchPairing = currentRoundTeamParings.get(i);
+            MatchPairing.Arena arena = arenas.get(i);
+            teleportTeamPairingToArena(matchPairing, arena);
         }
     }
     
     /**
      * Teleports all participants whose teams are in the given pairing to their
      * respective spawn positions in the given arena
-     * @param teamPairing The TeamPairing to teleport to the arena
+     * @param matchPairing The TeamPairing to teleport to the arena
      * @param arena The arena to teleport the TeamPairing to
      */
-    private void teleportTeamPairingToArena(TeamPairing teamPairing, Arena arena) {
+    private void teleportTeamPairingToArena(MatchPairing matchPairing, MatchPairing.Arena arena) {
         for (Player participant : participants) {
             String teamName = gameManager.getTeamName(participant.getUniqueId());
-            if (teamPairing.getNorthTeam().equals(teamName)) {
-                participant.teleport(arena.getNorthSpawn());
+            if (matchPairing.northTeam().equals(teamName)) {
+                participant.teleport(arena.northSpawn());
             }
-            if (teamPairing.getSouthTeam().equals(teamName)) {
-                participant.teleport(arena.getSouthSpawn());
+            if (matchPairing.southTeam().equals(teamName)) {
+                participant.teleport(arena.southSpawn());
             }
         }
     }
@@ -516,7 +516,7 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
     private void initializeArenas() {
         this.arenas = new ArrayList<>(4);
         //NorthWest
-        arenas.add(new Arena(
+        arenas.add(new MatchPairing.Arena(
                 new Location(captureTheFlagWorld, -15, -16, -1043), // North spawn
                 new Location(captureTheFlagWorld, -15, -16, -1003), // South spawn
                 new Location(captureTheFlagWorld, -6, -13, -1040), // North flag 
@@ -526,7 +526,7 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
                 
         ));
         //NorthEast
-        arenas.add(new Arena(
+        arenas.add(new MatchPairing.Arena(
                 new Location(captureTheFlagWorld, 15, -16, -1043), // North spawn
                 new Location(captureTheFlagWorld, 15, -16, -1003), // South spawn
                 new Location(captureTheFlagWorld, 24, -13, -1040), // North flag 
@@ -535,7 +535,7 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
                 new Location(captureTheFlagWorld, 13, -16, -1004) // South barrier 
         ));
         //SouthWest
-        arenas.add(new Arena(
+        arenas.add(new MatchPairing.Arena(
                 new Location(captureTheFlagWorld, -15, -16, -997), // North spawn
                 new Location(captureTheFlagWorld, -15, -16, -957), // South spawn
                 new Location(captureTheFlagWorld, -6, -13, -994), // North flag 
@@ -544,7 +544,7 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
                 new Location(captureTheFlagWorld, -17, -16, -958) // South barrier 
         ));
         //SouthEast
-        arenas.add(new Arena(
+        arenas.add(new MatchPairing.Arena(
                 new Location(captureTheFlagWorld, 15, -16, -997), // North spawn
                 new Location(captureTheFlagWorld, 15, -16, -957), // South spawn
                 new Location(captureTheFlagWorld, 24, -13, -994), // North flag 
