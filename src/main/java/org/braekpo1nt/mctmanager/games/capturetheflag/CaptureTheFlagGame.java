@@ -32,7 +32,7 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
     private final String title = ChatColor.BLUE+"Capture the Flag";
     private final World captureTheFlagWorld;
     private final Location spawnObservatory;
-    private List<MatchPairing.Arena> arenas;
+    private List<Arena> arenas;
     private List<Player> participants;
     /**
      * a list of lists of TeamPairings. Each element is a list of 1-4 TeamPairings.
@@ -284,14 +284,14 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
     }
     
     private void closeGlassBarriers() {
-        for (MatchPairing.Arena arena : arenas) {
+        for (Arena arena : arenas) {
             BlockPlacementUtils.createCube(arena.northBarrier(), 5, 4, 1, Material.GLASS_PANE);
             BlockPlacementUtils.createCube(arena.southBarrier(), 5, 4, 1, Material.GLASS_PANE);
         }
     }
     
     private void openGlassBarriers() {
-        for (MatchPairing.Arena arena : arenas) {
+        for (Arena arena : arenas) {
             BlockPlacementUtils.createCube(arena.northBarrier(), 5, 4, 1, Material.AIR);
             BlockPlacementUtils.createCube(arena.southBarrier(), 5, 4, 1, Material.AIR);
         }
@@ -379,7 +379,7 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
     private void teleportTeamPairingsToArenas() {
         for (int i = 0; i < currentRoundTeamParings.size(); i++) {
             MatchPairing matchPairing = currentRoundTeamParings.get(i);
-            MatchPairing.Arena arena = arenas.get(i);
+            Arena arena = arenas.get(i);
             teleportTeamPairingToArena(matchPairing, arena);
         }
     }
@@ -390,7 +390,7 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
      * @param matchPairing The TeamPairing to teleport to the arena
      * @param arena The arena to teleport the TeamPairing to
      */
-    private void teleportTeamPairingToArena(MatchPairing matchPairing, MatchPairing.Arena arena) {
+    private void teleportTeamPairingToArena(MatchPairing matchPairing, Arena arena) {
         for (Player participant : participants) {
             String teamName = gameManager.getTeamName(participant.getUniqueId());
             if (matchPairing.northTeam().equals(teamName)) {
@@ -516,7 +516,7 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
     private void initializeArenas() {
         this.arenas = new ArrayList<>(4);
         //NorthWest
-        arenas.add(new MatchPairing.Arena(
+        arenas.add(new Arena(
                 new Location(captureTheFlagWorld, -15, -16, -1043), // North spawn
                 new Location(captureTheFlagWorld, -15, -16, -1003), // South spawn
                 new Location(captureTheFlagWorld, -6, -13, -1040), // North flag 
@@ -526,7 +526,7 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
                 
         ));
         //NorthEast
-        arenas.add(new MatchPairing.Arena(
+        arenas.add(new Arena(
                 new Location(captureTheFlagWorld, 15, -16, -1043), // North spawn
                 new Location(captureTheFlagWorld, 15, -16, -1003), // South spawn
                 new Location(captureTheFlagWorld, 24, -13, -1040), // North flag 
@@ -535,7 +535,7 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
                 new Location(captureTheFlagWorld, 13, -16, -1004) // South barrier 
         ));
         //SouthWest
-        arenas.add(new MatchPairing.Arena(
+        arenas.add(new Arena(
                 new Location(captureTheFlagWorld, -15, -16, -997), // North spawn
                 new Location(captureTheFlagWorld, -15, -16, -957), // South spawn
                 new Location(captureTheFlagWorld, -6, -13, -994), // North flag 
@@ -544,7 +544,7 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
                 new Location(captureTheFlagWorld, -17, -16, -958) // South barrier 
         ));
         //SouthEast
-        arenas.add(new MatchPairing.Arena(
+        arenas.add(new Arena(
                 new Location(captureTheFlagWorld, 15, -16, -997), // North spawn
                 new Location(captureTheFlagWorld, 15, -16, -957), // South spawn
                 new Location(captureTheFlagWorld, 24, -13, -994), // North flag 
