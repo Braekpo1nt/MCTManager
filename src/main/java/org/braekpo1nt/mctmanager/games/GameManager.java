@@ -7,7 +7,7 @@ import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.enums.MCTGames;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
-import org.braekpo1nt.mctmanager.games.capturetheflag.CaptureTheFlagGame;
+import org.braekpo1nt.mctmanager.games.capturetheflag2.CaptureTheFlagGame;
 import org.braekpo1nt.mctmanager.games.finalgame.FinalGame;
 import org.braekpo1nt.mctmanager.games.footrace.FootRaceGame;
 import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
@@ -402,13 +402,13 @@ public class GameManager implements Listener {
     }
     
     /**
-     * Gets a list of all the team names of the players
-     * @param players The list of players to get the team names of
-     * @return A list of all unique team names which the players belong to.
+     * Gets a list of all unique team names which the given participants belong to.
+     * @param participants The list of participants to get the team names of
+     * @return A list of all unique team names which the given participants belong to.
      */
-    public List<String> getTeamNames(List<Player> players) {
+    public List<String> getTeamNames(List<Player> participants) {
         List<String> teamNames = new ArrayList<>();
-        for (Player player : players) {
+        for (Player player : participants) {
             String teamName = getTeamName(player.getUniqueId());
             if (!teamNames.contains(teamName)){
                 teamNames.add(teamName);

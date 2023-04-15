@@ -78,7 +78,7 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
     public void start(List<Player> newParticipants) {
         this.participants = new ArrayList<>(newParticipants.size());
         currentRound = 0;
-        this.allRoundTeamPairings = generateAllRoundTeamPairings(newParticipants);
+        this.allRoundTeamPairings = generateAllMatchPairings(newParticipants);
         maxRounds = allRoundTeamPairings.size();
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
@@ -336,7 +336,7 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
      * @param newParticipants The participants whose teams will be used to create the pairings
      * @return A new list of lists of 1-4 TeamPairings. See {@link CaptureTheFlagGame#allRoundTeamPairings}
      */
-    public List<List<MatchPairing>> generateAllRoundTeamPairings(List<Player> newParticipants) {
+    public List<List<MatchPairing>> generateAllMatchPairings(List<Player> newParticipants) {
         List<String> teamNames = gameManager.getTeamNames(newParticipants);
         List<MatchPairing> matchPairings = generateAllPairings(teamNames);
         // A list of lists of 1-4 TeamPairings
