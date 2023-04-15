@@ -1,6 +1,5 @@
-package org.braekpo1nt.mctmanager.color;
+package org.braekpo1nt.mctmanager.utils;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
@@ -72,24 +71,22 @@ public class ColorMap {
         POWDER_TYPE_MAP.put("dark_green", Material.GREEN_CONCRETE_POWDER);
         POWDER_TYPE_MAP.put("dark_purple", Material.PURPLE_CONCRETE_POWDER);
         POWDER_TYPE_MAP.put("dark_red", Material.RED_CONCRETE_POWDER);
-        POWDER_TYPE_MAP.put("gold", Material.ORANGE_CONCRETE_POWDER);
+        POWDER_TYPE_MAP.put("gold", Material.YELLOW_CONCRETE_POWDER);
         POWDER_TYPE_MAP.put("gray", Material.LIGHT_GRAY_CONCRETE_POWDER);
         POWDER_TYPE_MAP.put("green", Material.LIME_CONCRETE_POWDER);
-        POWDER_TYPE_MAP.put("light_purple", Material.PINK_CONCRETE_POWDER);
-        POWDER_TYPE_MAP.put("red", Material.MAGENTA_CONCRETE_POWDER);
+        POWDER_TYPE_MAP.put("light_purple", Material.MAGENTA_CONCRETE_POWDER);
+        POWDER_TYPE_MAP.put("red", Material.RED_CONCRETE_POWDER);
         POWDER_TYPE_MAP.put("white", Material.WHITE_CONCRETE_POWDER);
-        POWDER_TYPE_MAP.put("blue", Material.BROWN_CONCRETE_POWDER);
+        POWDER_TYPE_MAP.put("blue", Material.LIGHT_BLUE_CONCRETE_POWDER);
         POWDER_TYPE_MAP.put("yellow", Material.YELLOW_CONCRETE_POWDER);
     }
     
     public static NamedTextColor getNamedTextColor(String colorString) {
-        NamedTextColor color = NAMED_TEXT_COLOR_MAP.get(colorString.toLowerCase());
-        return color != null ? color : NamedTextColor.WHITE;
+        return NAMED_TEXT_COLOR_MAP.getOrDefault(colorString.toLowerCase(), NamedTextColor.WHITE);
     }
     
     public static Color getColor(String colorString) {
-        Color color = COLOR_MAP.get(colorString);
-        return color != null ? color : Color.WHITE;
+        return COLOR_MAP.getOrDefault(colorString, Color.WHITE);
     }
     
     public static boolean hasNamedTextColor(String colorString) {
@@ -104,14 +101,20 @@ public class ColorMap {
     }
     
     public static ChatColor getChatColor(String colorString) {
-        ChatColor color = CHAT_COLOR_MAP.get(colorString.toLowerCase());
-        return color != null ? color : ChatColor.WHITE;
+        return CHAT_COLOR_MAP.getOrDefault(colorString.toLowerCase(), ChatColor.WHITE);
     }
     
     public static List<Material> getAllConcretePowderColors() {
         return POWDER_TYPE_MAP.values().stream().toList();
     }
     
+    /**
+     * Returns the type of concrete powder which most closely matches the given colorString.
+     * Note that some color strings are duplicates.
+     * @param colorString The color string to get the concrete powder for. Should be the color strings matching
+     *                    the ChatColor values.
+     * @return The concrete powder color that best matches the given color string
+     */
     public static Material getConcretePowderColor(String colorString) {
         return POWDER_TYPE_MAP.getOrDefault(colorString, Material.WHITE_CONCRETE_POWDER);
     }

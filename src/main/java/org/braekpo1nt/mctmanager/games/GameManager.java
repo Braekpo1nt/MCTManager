@@ -5,7 +5,8 @@ import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.color.ColorMap;
+import org.braekpo1nt.mctmanager.games.enums.MCTGames;
+import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.braekpo1nt.mctmanager.games.capturetheflag.CaptureTheFlagGame;
 import org.braekpo1nt.mctmanager.games.finalgame.FinalGame;
 import org.braekpo1nt.mctmanager.games.footrace.FootRaceGame;
@@ -284,17 +285,11 @@ public class GameManager implements Listener {
     }
     
     /**
-     * gets a list of the online participants
-     * @return a list of all online participants
+     * Checks if a game is currently running
+     * @return True if a game is running, false if not
      */
-    private List<Player> getOnlineParticipants() {
-        List<Player> onlineParticipants = new ArrayList<>();
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            if (gameStateStorageUtil.containsPlayer(player.getUniqueId())) {
-                onlineParticipants.add(player);
-            }
-        }
-        return onlineParticipants;
+    public boolean gameIsRunning() {
+        return activeGame != null;
     }
     
     /**
@@ -306,14 +301,6 @@ public class GameManager implements Listener {
         this.shouldTeleportToHub = shouldTeleportToHub;
         activeGame.stop();
         activeGame = null;
-    }
-    
-    /**
-     * Checks if a game is currently running
-     * @return True if a game is running, false if not
-     */
-    public boolean gameIsRunning() {
-        return activeGame != null;
     }
     
     /**
@@ -348,6 +335,24 @@ public class GameManager implements Listener {
             }
         }.runTaskLater(plugin, 5*20);
     }
+    
+    /**
+     * gets a list of the online participants
+     * @return a list of all online participants
+     */
+    public List<Player> getOnlineParticipants() {
+        List<Player> onlineParticipants = new ArrayList<>();
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            if (gameStateStorageUtil.containsPlayer(player.getUniqueId())) {
+                onlineParticipants.add(player);
+            }
+        }
+        return onlineParticipants;
+    }
+    
+    //====================================================
+    // GameStateStorageUtil accessors and helpers
+    //====================================================
     
     /**
      * Remove the given team from the game
@@ -413,12 +418,21 @@ public class GameManager implements Listener {
     }
     
     /**
-     * Checks if the team exists in the game
+     * Checks if the team exists in the game state
      * @param teamName The team to look for
      * @return true if the team with the given teamName exists, false otherwise.
      */
     public boolean hasTeam(String teamName) {
         return gameStateStorageUtil.containsTeam(teamName);
+    }
+    
+    /**
+     * Checs if the player exists in the game state
+     * @param playerUniqueId The UUID of the player to check for
+     * @return true if the UUID is in the game state, false otherwise
+     */
+    public boolean isParticipant(UUID playerUniqueId) {
+        return gameStateStorageUtil.containsPlayer(playerUniqueId);
     }
     
     /**
@@ -453,16 +467,6 @@ public class GameManager implements Listener {
         newTeam.addPlayer(player);
     }
     
-    public List<String> getPlayerNamesOnTeam(String teamName) {
-        List<UUID> playerUniqueIds = gameStateStorageUtil.getPlayerUniqueIdsOnTeam(teamName);
-        List<String> playersNamesOnTeam = new ArrayList<>();
-        for (UUID playerUniqueId : playerUniqueIds) {
-            OfflinePlayer playerOnTeam = Bukkit.getOfflinePlayer(playerUniqueId);
-            playersNamesOnTeam.add(playerOnTeam.getName());
-        }
-        return playersNamesOnTeam;
-    }
-    
     /**
      * Gets the online players who are on the given team. 
      * @param teamName The internal name of the team
@@ -479,10 +483,6 @@ public class GameManager implements Listener {
             }
         }
         return onlinePlayersOnTeam;
-    }
-    
-    public boolean isParticipant(UUID playerUniqueId) {
-        return gameStateStorageUtil.containsPlayer(playerUniqueId);
     }
     
     /**
@@ -580,10 +580,14 @@ public class GameManager implements Listener {
         NamedTextColor teamColor = gameStateStorageUtil.getTeamNamedTextColor(teamName);
         return Component.text(displayName).color(teamColor).decorate(TextDecoration.BOLD);
     }
-
-
-    public List<String> getOnlinePlayerNames() {
-        List<Player> onlinePlayers = getOnlinePlayers();
+    
+    
+    /**
+     * Returns the names of all online participants
+     * @return A list of the names of all online participants. Empty list if none are online.
+     */
+    public List<String> getOnlineParticipantNames() {
+        List<Player> onlinePlayers = getOnlineParticipants();
         List<String> names = new ArrayList<>();
         for (Player player : onlinePlayers) {
             names.add(player.getName());
@@ -591,19 +595,14 @@ public class GameManager implements Listener {
         return names;
     }
     
-    private List<Player> getOnlinePlayers() {
-        List<OfflinePlayer> offlinePlayers = getOfflinePlayers();
-        List<Player> players = new ArrayList<>();
-        for (OfflinePlayer offlinePlayer : offlinePlayers) {
-            if (offlinePlayer.isOnline()) {
-                players.add(offlinePlayer.getPlayer());
-            }
-        }
-        return players;
-    }
     
-    public List<String> getOfflinePlayerNames() {
-        List<OfflinePlayer> offlinePlayers = getOfflinePlayers();
+    /**
+     * Gets all the names of the participants in the game state, regardless of 
+     * whether they're offline or online. 
+     * @return
+     */
+    public List<String> getAllParticipantNames() {
+        List<OfflinePlayer> offlinePlayers = getOfflineParticipants();
         List<String> playerNames = new ArrayList<>();
         for (OfflinePlayer offlinePlayer : offlinePlayers) {
             String name = offlinePlayer.getName();
@@ -612,7 +611,14 @@ public class GameManager implements Listener {
         return playerNames;
     }
     
-    public List<OfflinePlayer> getOfflinePlayers() {
+    /**
+     * Gets a list of all participants in the form of OfflinePlayers. This will
+     * return all participants in the game state whether they are offline or online. 
+     * @return A list of all OfflinePlayers in the game state. These players could
+     * be offline or online, exist or not. The only guarantee is that their UUID is
+     * in the game state. 
+     */
+    public List<OfflinePlayer> getOfflineParticipants() {
         List<UUID> uniqueIds = gameStateStorageUtil.getPlayerUniqueIds();
         List<OfflinePlayer> offlinePlayers = new ArrayList<>();
         for (UUID uniqueId : uniqueIds) {
@@ -622,30 +628,72 @@ public class GameManager implements Listener {
         return offlinePlayers;
     }
     
-    public void addScore(UUID uniqueId, int score) throws IOException {
-        gameStateStorageUtil.addScore(uniqueId, score);
+    /**
+     * Adds the given score to the participant with the given UUID
+     * @param participantUniqueId The UUID of the participant to add the score to
+     * @param score The score to add. Could be positive or negative.
+     * @throws IOException If there is a problem saving the game state.
+     */
+    public void addScore(UUID participantUniqueId, int score) throws IOException {
+        gameStateStorageUtil.addScore(participantUniqueId, score);
     }
     
+    /**
+     * Adds the given score to the team with the given name
+     * @param teamName The name of the team to add the score to
+     * @param score The score to add. Could be positive or negative.
+     * @throws IOException If there is a problem saving the game state.
+     */
     public void addScore(String teamName, int score) throws IOException {
         gameStateStorageUtil.addScore(teamName, score);
     }
     
-    public void setScore(UUID uniqueId, int score) throws IOException {
-        gameStateStorageUtil.setScore(uniqueId, score);
+    /**
+     * Sets the score of the participant with the given UUID to the given value
+     * @param participantUniqueId The UUID of the participant to set the score to
+     * @param score The score to set to. If the score is negative, the score will be set to 0.
+     * @throws IOException If there is a problem saving the game state.
+     */
+    public void setScore(UUID participantUniqueId, int score) throws IOException {
+        if (score < 0) {
+            gameStateStorageUtil.setScore(participantUniqueId, 0);
+            return;
+        }
+        gameStateStorageUtil.setScore(participantUniqueId, score);
     }
     
+    /**
+     * Sets the score of the team with the given name to the given value
+     * @param teamName The UUID of the participant to set the score to
+     * @param score The score to set to. If the score is negative, the score will be set to 0.
+     * @throws IOException If there is a problem saving the game state.
+     */
     public void setScore(String teamName, int score) throws IOException {
+        if (score < 0) {
+            gameStateStorageUtil.setScore(teamName, 0);
+            return;
+        }
         gameStateStorageUtil.setScore(teamName, score);
     }
-
+    
+    /**
+     * Gets the score of the given team
+     * @param teamName The team to get the score of
+     * @return The score of the given team
+     */
     public int getScore(String teamName) {
         return gameStateStorageUtil.getTeamScore(teamName);
     }
     
-    public int getScore(UUID uniqueId) {
-        return gameStateStorageUtil.getPlayerScore(uniqueId);
+    /**
+     * Gets the score of the participant with the given UUID
+     * @param participantUniqueId The UUID of the participant to get the score of
+     * @return The score of the participant with the given UUID
+     */
+    public int getScore(UUID participantUniqueId) {
+        return gameStateStorageUtil.getPlayerScore(participantUniqueId);
     }
-
+    
     public void setFinalGameTeams(String teamA, String teamB) {
         this.finalGameTeamA = teamA;
         this.finalGameTeamB = teamB;

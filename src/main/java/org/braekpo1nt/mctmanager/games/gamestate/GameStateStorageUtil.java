@@ -4,7 +4,7 @@ import com.google.gson.Gson;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.color.ColorMap;
+import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
@@ -279,11 +279,16 @@ public class GameStateStorageUtil {
         team.setScore(score);
         saveGameState();
     }
-
+    
     public int getTeamScore(String teamName) {
         return gameState.getTeam(teamName).getScore();
     }
     
+    /**
+     * Gets the color string of the given team
+     * @param teamName The team to get the color string of
+     * @return The color string of the given team
+     */
     public String getTeamColorString(String teamName) {
         return gameState.getTeam(teamName).getColor();
     }
