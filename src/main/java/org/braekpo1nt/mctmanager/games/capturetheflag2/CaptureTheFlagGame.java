@@ -20,7 +20,6 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
     
     private final Main plugin;
     private final GameManager gameManager;
-    private List<MatchPairing> matchPairings;
     
     public CaptureTheFlagGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
@@ -31,7 +30,8 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
     @Override
     public void start(List<Player> newParticipants) {
         List<String> teamNames = gameManager.getTeamNames(newParticipants);
-        matchPairings = generatePairings(teamNames);
+        List<MatchPairing> matchPairings = generateMatchPairings(teamNames);
+        List<CaptureTheFlagMatch> matches = generateMatches(matchPairings);
     }
     
     /**
@@ -40,7 +40,7 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
      * @return A list of MatchPairing objects representing all combinations of size 2
      * of the given list of team names
      */
-    public static List<MatchPairing> generatePairings(List<String> teamNames) {
+    public List<MatchPairing> generateMatchPairings(List<String> teamNames) {
         List<MatchPairing> combinations = new ArrayList<>();
         for (int i = 0; i < teamNames.size(); i++) {
             for (int j = i + 1; j < teamNames.size(); j++) {
@@ -52,6 +52,15 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
         }
         return combinations;
     }
+    
+    private List<CaptureTheFlagMatch> generateMatches(List<MatchPairing> matchPairings) {
+        List<CaptureTheFlagMatch> matches = new ArrayList<>(matchPairings.size());
+        for (MatchPairing matchPairing : matchPairings) {
+            CaptureTheFlagMatch newMatch = new CaptureTheFlagMatch();
+            matches.add(newMatch);
+        }
+    }
+    
     
     
     @Override
