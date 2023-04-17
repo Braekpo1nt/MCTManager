@@ -4,19 +4,18 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.bukkit.event.Listener;
 
+import java.util.List;
+
 /**
  * A round is made up of multiple matches. It kicks off the matches it contains, and ends
  * when all the matches are over.
  */
-public class CaptureTheFlagRound implements Listener {
+public class CaptureTheFlagRound {
     
-    private final Main plugin;
-    private final GameManager gameManager;
+    private final List<CaptureTheFlagMatch> matches;
     
-    public CaptureTheFlagRound(Main plugin, GameManager gameManager) {
-        this.plugin = plugin;
-        plugin.getServer().getPluginManager().registerEvents(this, plugin);
-        this.gameManager = gameManager;
+    public CaptureTheFlagRound(List<CaptureTheFlagMatch> matches) {
+        this.matches = matches;
     }
     
     public void start() {

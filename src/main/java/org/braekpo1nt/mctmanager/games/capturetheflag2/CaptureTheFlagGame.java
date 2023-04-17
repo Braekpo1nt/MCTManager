@@ -1,13 +1,19 @@
 package org.braekpo1nt.mctmanager.games.capturetheflag2;
 
+import com.onarandombox.MultiverseCore.api.MVWorldManager;
+import com.onarandombox.MultiverseCore.api.MultiverseWorld;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.capturetheflag.Arena;
 import org.braekpo1nt.mctmanager.games.capturetheflag.MatchPairing;
 import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
+import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -20,18 +26,23 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
     
     private final Main plugin;
     private final GameManager gameManager;
+    private final World captureTheFlagWorld;
+    private List<Arena> arenas;
     
     public CaptureTheFlagGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         this.gameManager = gameManager;
+        MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
+        MultiverseWorld mvCaptureTheFlagWorld = worldManager.getMVWorld("FT");
+        this.captureTheFlagWorld = mvCaptureTheFlagWorld.getCBWorld();
     }
     
     @Override
     public void start(List<Player> newParticipants) {
         List<String> teamNames = gameManager.getTeamNames(newParticipants);
         List<MatchPairing> matchPairings = generateMatchPairings(teamNames);
-        List<CaptureTheFlagMatch> matches = generateMatches(matchPairings);
+        List<CaptureTheFlagRound> rounds = generateRounds(matchPairings);
     }
     
     /**
@@ -53,13 +64,24 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
         return combinations;
     }
     
-    private List<CaptureTheFlagMatch> generateMatches(List<MatchPairing> matchPairings) {
-        List<CaptureTheFlagMatch> matches = new ArrayList<>(matchPairings.size());
-        for (MatchPairing matchPairing : matchPairings) {
-            CaptureTheFlagMatch newMatch = new CaptureTheFlagMatch(matchPairing);
-            matches.add(newMatch);
+    private List<CaptureTheFlagRound> generateRounds(List<MatchPairing> matchPairings) {
+        int numberOfRounds = matchPairings.size() / arenas.size();
+        int numberOfMatchesPerRound = arenas.size();
+        List<CaptureTheFlagRound> rounds = new ArrayList<>(numberOfRounds);
+        Iterator<MatchPairing> iterator = matchPairings.iterator();
+        for (int i = 0; i < numberOfRounds; i++) {
+            List<CaptureTheFlagMatch> roundMatches = new ArrayList<>(numberOfMatchesPerRound);
+            int matchCount = 0;
+            while(iterator.hasNext() && matchCount < numberOfMatchesPerRound) {
+                MatchPairing matchPairing = iterator.next();
+                CaptureTheFlagMatch roundMatch = new CaptureTheFlagMatch(matchPairing, arenas.get(matchCount));
+                roundMatches.add(roundMatch);
+                matchCount++;
+            }
+            CaptureTheFlagRound newRound = new CaptureTheFlagRound(roundMatches);
+            rounds.add(newRound);
         }
-        return matches;
+        return rounds;
     }
     
     
@@ -77,5 +99,46 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
     @Override
     public void onParticipantQuit(Player participant) {
         
+    }
+    
+    private void initializeArenas() {
+        this.arenas = new ArrayList<>(4);
+        //NorthWest
+        arenas.add(new Arena(
+                new Location(captureTheFlagWorld, -15, -16, -1043), // North spawn
+                new Location(captureTheFlagWorld, -15, -16, -1003), // South spawn
+                new Location(captureTheFlagWorld, -6, -13, -1040), // North flag 
+                new Location(captureTheFlagWorld, -24, -13, -1006), // South flag 
+                new Location(captureTheFlagWorld, -17, -16, -1042), // North barrier
+                new Location(captureTheFlagWorld, -17, -16, -1004) // South barrier 
+        
+        ));
+        //NorthEast
+        arenas.add(new Arena(
+                new Location(captureTheFlagWorld, 15, -16, -1043), // North spawn
+                new Location(captureTheFlagWorld, 15, -16, -1003), // South spawn
+                new Location(captureTheFlagWorld, 24, -13, -1040), // North flag 
+                new Location(captureTheFlagWorld, 6, -13, -1006), // South flag 
+                new Location(captureTheFlagWorld, 13, -16, -1042), // North barrier
+                new Location(captureTheFlagWorld, 13, -16, -1004) // South barrier 
+        ));
+        //SouthWest
+        arenas.add(new Arena(
+                new Location(captureTheFlagWorld, -15, -16, -997), // North spawn
+                new Location(captureTheFlagWorld, -15, -16, -957), // South spawn
+                new Location(captureTheFlagWorld, -6, -13, -994), // North flag 
+                new Location(captureTheFlagWorld, -24, -13, -960), // South flag 
+                new Location(captureTheFlagWorld, -17, -16, -996), // North barrier
+                new Location(captureTheFlagWorld, -17, -16, -958) // South barrier 
+        ));
+        //SouthEast
+        arenas.add(new Arena(
+                new Location(captureTheFlagWorld, 15, -16, -997), // North spawn
+                new Location(captureTheFlagWorld, 15, -16, -957), // South spawn
+                new Location(captureTheFlagWorld, 24, -13, -994), // North flag 
+                new Location(captureTheFlagWorld, 6, -13, -960), // South flag 
+                new Location(captureTheFlagWorld, 13, -16, -996), // North barrier
+                new Location(captureTheFlagWorld, 13, -16, -958) // South barrier 
+        ));
     }
 }
