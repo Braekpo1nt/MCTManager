@@ -56,9 +56,10 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
     private List<CaptureTheFlagMatch> generateMatches(List<MatchPairing> matchPairings) {
         List<CaptureTheFlagMatch> matches = new ArrayList<>(matchPairings.size());
         for (MatchPairing matchPairing : matchPairings) {
-            CaptureTheFlagMatch newMatch = new CaptureTheFlagMatch();
+            CaptureTheFlagMatch newMatch = new CaptureTheFlagMatch(matchPairing);
             matches.add(newMatch);
         }
+        return matches;
     }
     
     
