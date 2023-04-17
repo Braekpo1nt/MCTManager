@@ -51,7 +51,7 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
      * @return A list of MatchPairing objects representing all combinations of size 2
      * of the given list of team names
      */
-    public List<MatchPairing> generateMatchPairings(List<String> teamNames) {
+    private List<MatchPairing> generateMatchPairings(List<String> teamNames) {
         List<MatchPairing> combinations = new ArrayList<>();
         for (int i = 0; i < teamNames.size(); i++) {
             for (int j = i + 1; j < teamNames.size(); j++) {
