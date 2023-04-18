@@ -2,6 +2,8 @@ package org.braekpo1nt.mctmanager;
 
 import be.seeseemelk.mockbukkit.MockBukkit;
 import be.seeseemelk.mockbukkit.ServerMock;
+import com.onarandombox.MultiverseCore.MultiverseCore;
+import org.bukkit.plugin.Plugin;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,20 +18,24 @@ public class MainTest {
     public void setUp() {
         // Start the mock server
         server = MockBukkit.mock();
+        server.addSimpleWorld("world");
+        Plugin mv = MockBukkit.load(MultiverseCore.class);
+        
         // Load your plugin
         plugin = MockBukkit.load(Main.class);
     }
     
     @AfterEach
     public void tearDown() {
-        // Stop the mock server
         MockBukkit.unmock();
     }
     
     @Test
-    public void thisTestWillFail() {
-        // Perform your test
-        Assertions.assertTrue(true);
+    public void checkSumHere() {
+        int three = 3;
+        int four = 4;
+        int sum = three + four;
+        Assertions.assertEquals(6, sum);
     }
     
 }
