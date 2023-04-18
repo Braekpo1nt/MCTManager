@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.games.capturetheflag2;
 
 import com.onarandombox.MultiverseCore.api.MVWorldManager;
 import com.onarandombox.MultiverseCore.api.MultiverseWorld;
+import com.onarandombox.MultiverseCore.utils.AnchorManager;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.capturetheflag.Arena;
@@ -11,6 +12,7 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -24,18 +26,24 @@ import java.util.List;
  */
 public class CaptureTheFlagGame implements MCTGame, Listener {
     
-    private final Main plugin;
     private final GameManager gameManager;
     private final World captureTheFlagWorld;
     private final List<Arena> arenas;
+    private final Location spawnObservatory;
+    private int currentRoundIndex;
+    private int maxRounds;
+    private List<CaptureTheFlagRound> rounds;
+    private List<Player> participants;
+    
     
     public CaptureTheFlagGame(Main plugin, GameManager gameManager) {
-        this.plugin = plugin;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         this.gameManager = gameManager;
         MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
         MultiverseWorld mvCaptureTheFlagWorld = worldManager.getMVWorld("FT");
         this.captureTheFlagWorld = mvCaptureTheFlagWorld.getCBWorld();
+        AnchorManager anchorManager = Main.multiverseCore.getAnchorManager();
+        spawnObservatory = anchorManager.getAnchorLocation("capture-the-flag");
         arenas = initializeArenas();
     }
     
@@ -43,16 +51,33 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
     public void start(List<Player> newParticipants) {
         List<String> teamNames = gameManager.getTeamNames(newParticipants);
         List<MatchPairing> matchPairings = generateMatchPairings(teamNames);
-        List<CaptureTheFlagRound> rounds = generateRounds(matchPairings);
+        rounds = generateRounds(matchPairings);
+        currentRoundIndex = 0;
+        maxRounds = rounds.size();
+        participants = new ArrayList<>();
+        for (Player participant : newParticipants) {
+            initializeParticipant(participant);
+        }
+        startNextRound();
+    }
+    
+    private void initializeParticipant(Player participant) {
+        participants.add(participant);
+    }
+    
+    private void startNextRound() {
+        CaptureTheFlagRound nextRound = rounds.get(currentRoundIndex);
+        nextRound.start(participants);
     }
     
     /**
      * Generates all combinations of size 2 of the given teams in the form of {@link MatchPairing}s 
      * @param teamNames The teams to generate the combinations of
-     * @return A list of MatchPairing objects representing all combinations of size 2
+     * @return A list of at least two MatchPairing objects representing all combinations of size 2
      * of the given list of team names
+     * @throws IndexOutOfBoundsException if teamNames.size() is 1 or less
      */
-    public static List<MatchPairing> generateMatchPairings(List<String> teamNames) {
+    public static @NotNull List<MatchPairing> generateMatchPairings(@NotNull List<String> teamNames) {
         List<MatchPairing> combinations = new ArrayList<>();
         for (int i = 0; i < teamNames.size(); i++) {
             for (int j = i + 1; j < teamNames.size(); j++) {
@@ -73,7 +98,7 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
      * @param matchPairings The match parings to create the rounds for
      * @return A list of {@link CaptureTheFlagRound}s containing n {@link CaptureTheFlagMatch}s between them, where n is the number of given {@link MatchPairing}s
      */
-    public List<CaptureTheFlagRound> generateRounds(List<MatchPairing> matchPairings) {
+    public @NotNull List<CaptureTheFlagRound> generateRounds(@NotNull List<MatchPairing> matchPairings) {
         int numberOfRounds = (matchPairings.size() / arenas.size()) + (matchPairings.size() % arenas.size());
         int numberOfMatchesPerRound = arenas.size();
         List<CaptureTheFlagRound> rounds = new ArrayList<>(numberOfRounds);
@@ -87,7 +112,7 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
                 roundMatches.add(roundMatch);
                 matchCount++;
             }
-            CaptureTheFlagRound newRound = new CaptureTheFlagRound(roundMatches);
+            CaptureTheFlagRound newRound = new CaptureTheFlagRound(roundMatches, spawnObservatory);
             rounds.add(newRound);
         }
         return rounds;

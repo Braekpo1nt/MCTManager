@@ -1,10 +1,11 @@
 package org.braekpo1nt.mctmanager.games.capturetheflag2;
 
-import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.games.GameManager;
-import org.bukkit.event.Listener;
+import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
+import org.bukkit.GameMode;
+import org.bukkit.Location;
+import org.bukkit.entity.Player;
 
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -14,13 +15,33 @@ import java.util.List;
 public class CaptureTheFlagRound {
     
     private final List<CaptureTheFlagMatch> matches;
+    private List<Player> participants;
+    private final Location spawnObservatory;
     
-    public CaptureTheFlagRound(List<CaptureTheFlagMatch> matches) {
+    public CaptureTheFlagRound(List<CaptureTheFlagMatch> matches, Location spawnObservatory) {
         this.matches = matches;
+        this.spawnObservatory = spawnObservatory;
     }
     
-    public void start() {
-        
+    public void start(List<Player> newParticipants) {
+        participants = new ArrayList<>();
+        for (Player participant : newParticipants) {
+            initializeParticipant(participant);
+        }
+    }
+    
+    private void initializeParticipant(Player participant) {
+        participants.add(participant);
+        initializeFastBoard(participant);
+        participant.teleport(spawnObservatory);
+        participant.getInventory().clear();
+        participant.setGameMode(GameMode.ADVENTURE);
+        ParticipantInitializer.clearStatusEffects(participant);
+        ParticipantInitializer.resetHealthAndHunger(participant);
+    }
+    
+    private void initializeFastBoard(Player participant) {
+        throw new UnsupportedOperationException("initializeFastBoard unimplemented in CaptureTheFlagRound");
     }
     
     public void stop() {

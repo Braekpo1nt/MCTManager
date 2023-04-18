@@ -7,6 +7,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
+import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Block;
@@ -78,8 +79,8 @@ public class SpleefGame implements MCTGame, Listener {
         teleportPlayerToStartingPosition(participant);
         participant.getInventory().clear();
         participant.setGameMode(GameMode.SURVIVAL);
-        clearStatusEffects(participant);
-        resetHealthAndHunger(participant);
+        ParticipantInitializer.clearStatusEffects(participant);
+        ParticipantInitializer.resetHealthAndHunger(participant);
     }
     
     private void rejoinParticipant(Player participant) {
@@ -323,18 +324,6 @@ public class SpleefGame implements MCTGame, Listener {
     private void teleportPlayerToStartingPosition(Player player) {
         player.sendMessage("Teleporting to Spleef");
         player.teleport(spleefStartAnchor);
-    }
-
-    private void clearStatusEffects(Player participant) {
-        for (PotionEffect effect : participant.getActivePotionEffects()) {
-            participant.removePotionEffect(effect.getType());
-        }
-    }
-
-    private void resetHealthAndHunger(Player participant) {
-        participant.setHealth(participant.getAttribute(Attribute.GENERIC_MAX_HEALTH).getDefaultValue());
-        participant.setFoodLevel(20);
-        participant.setSaturation(5);
     }
 
     private void cancelAllTasks() {

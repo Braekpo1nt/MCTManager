@@ -7,6 +7,7 @@ import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
+import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.bukkit.*;
@@ -150,7 +151,7 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
     private void onParticipantDeath(Player killed) {
         UUID killedUniqueId = killed.getUniqueId();
         switchPlayerFromLivingToDead(killedUniqueId);
-        resetHealthAndHunger(killed);
+        ParticipantInitializer.resetHealthAndHunger(killed);
         killed.getInventory().clear();
         new BukkitRunnable() {
             @Override
@@ -179,21 +180,21 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
         teleportParticipantToSpawnObservatory(participant);
         participant.setGameMode(GameMode.ADVENTURE);
         participant.getInventory().clear();
-        resetHealthAndHunger(participant);
-        clearStatusEffects(participant);
+        ParticipantInitializer.resetHealthAndHunger(participant);
+        ParticipantInitializer.clearStatusEffects(participant);
     }
     
     private void resetParticipant(Player participant) {
         participant.getInventory().clear();
         hideFastBoard(participant);
-        resetHealthAndHunger(participant);
+        ParticipantInitializer.resetHealthAndHunger(participant);
     }
     
     private void resetParticipantForRoundEnd(Player participant) {
         participant.getInventory().clear();
         teleportParticipantToSpawnObservatory(participant);
         killCounts.put(participant.getUniqueId(), 0);
-        resetHealthAndHunger(participant);
+        ParticipantInitializer.resetHealthAndHunger(participant);
         participant.setGameMode(GameMode.ADVENTURE);
     }
     
@@ -203,7 +204,7 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
         killCounts.put(participantUniqueId, 0);
         participant.setGameMode(GameMode.ADVENTURE);
         participant.getInventory().clear();
-        resetHealthAndHunger(participant);
+        ParticipantInitializer.resetHealthAndHunger(participant);
         initializeFastBoard(participant);
     }
     
@@ -405,18 +406,6 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
     private void cancelAllTasks() {
         Bukkit.getScheduler().cancelTask(classSelectionCountdownTaskIt);
         Bukkit.getScheduler().cancelTask(startNextRoundTimerTaskId);
-    }
-    
-    private void resetHealthAndHunger(Player participant) {
-        participant.setHealth(participant.getAttribute(Attribute.GENERIC_MAX_HEALTH).getDefaultValue());
-        participant.setFoodLevel(20);
-        participant.setSaturation(5);
-    }
-    
-    private void clearStatusEffects(Player participant) {
-        for (PotionEffect effect : participant.getActivePotionEffects()) {
-            participant.removePotionEffect(effect.getType());
-        }
     }
     
     private void updateClassSelectionFastBoardTimer(Player participant, String timerString) {

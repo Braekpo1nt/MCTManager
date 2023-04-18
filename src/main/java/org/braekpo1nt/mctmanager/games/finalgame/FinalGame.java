@@ -5,6 +5,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
@@ -134,8 +135,8 @@ public class FinalGame implements MCTGame, Listener {
         participant.setGameMode(GameMode.ADVENTURE);
         participant.getInventory().clear();
         giveParticipantEquipment(participant);
-        resetHealthAndHunger(participant);
-        clearStatusEffects(participant);
+        ParticipantInitializer.resetHealthAndHunger(participant);
+        ParticipantInitializer.clearStatusEffects(participant);
         initializeFastBoard(participant);
     }
 
@@ -268,7 +269,7 @@ public class FinalGame implements MCTGame, Listener {
     }
 
     private void onParticipantDeath(Player killed) {
-        resetHealthAndHunger(killed);
+        ParticipantInitializer.resetHealthAndHunger(killed);
         killed.getInventory().clear();
         giveParticipantEquipment(killed);
         new BukkitRunnable() {
@@ -319,18 +320,6 @@ public class FinalGame implements MCTGame, Listener {
     private void messageAllParticipants(Component message) {
         for (Player participant : participants) {
             participant.sendMessage(message);
-        }
-    }
-
-    private void resetHealthAndHunger(Player participant) {
-        participant.setHealth(participant.getAttribute(Attribute.GENERIC_MAX_HEALTH).getDefaultValue());
-        participant.setFoodLevel(20);
-        participant.setSaturation(5);
-    }
-
-    private void clearStatusEffects(Player participant) {
-        for (PotionEffect effect : participant.getActivePotionEffects()) {
-            participant.removePotionEffect(effect.getType());
         }
     }
     
