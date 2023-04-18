@@ -18,23 +18,23 @@ class CaptureTheFlagGameTest extends MainTestBase {
     
     private CaptureTheFlagGame captureTheFlagGame;
     private final List<MatchPairing> MATCH_PAIRINGS = Arrays.asList(
-            new MatchPairing("North", "South"),
-            new MatchPairing("North", "South"),
-            new MatchPairing("North", "South"),
-            new MatchPairing("North", "South"),
-            new MatchPairing("North", "South"),
-            new MatchPairing("North", "South"),
-            new MatchPairing("North", "South"),
-            new MatchPairing("North", "South"),
-            new MatchPairing("North", "South"),
-            new MatchPairing("North", "South"),
-            new MatchPairing("North", "South"),
-            new MatchPairing("North", "South"),
-            new MatchPairing("North", "South"),
-            new MatchPairing("North", "South"),
-            new MatchPairing("North", "South"),
-            new MatchPairing("North", "South"),
-            new MatchPairing("North", "South")
+            new MatchPairing("North1", "South1"),
+            new MatchPairing("North2", "South2"),
+            new MatchPairing("North3", "South3"),
+            new MatchPairing("North4", "South4"),
+            new MatchPairing("North5", "South5"),
+            new MatchPairing("North6", "South6"),
+            new MatchPairing("North7", "South7"),
+            new MatchPairing("North8", "South8"),
+            new MatchPairing("North9", "South9"),
+            new MatchPairing("North10", "South10"),
+            new MatchPairing("North11", "South11"),
+            new MatchPairing("North12", "South12"),
+            new MatchPairing("North13", "South13"),
+            new MatchPairing("North14", "South14"),
+            new MatchPairing("North15", "South15"),
+            new MatchPairing("North16", "South16"),
+            new MatchPairing("North17", "South17")
     );
     
     @BeforeEach
