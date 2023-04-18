@@ -6,6 +6,8 @@ import be.seeseemelk.mockbukkit.UnimplementedOperationException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
+import java.util.logging.Level;
+
 
 public class MainTestBase {
     
@@ -13,8 +15,9 @@ public class MainTestBase {
     protected Main plugin;
     
     @BeforeEach
-    public void setUp() {
+    public void setUpServerAndPlugin() {
         server = MockBukkit.mock(new MyCustomServerMock());
+        server.getLogger().setLevel(Level.OFF);
         try {
             plugin = MockBukkit.load(Main.class);
         } catch (UnimplementedOperationException ex) {
@@ -25,7 +28,7 @@ public class MainTestBase {
     }
     
     @AfterEach
-    public void tearDown() {
+    public void tearDownServerAndPlugin() {
         MockBukkit.unmock();
     }
     

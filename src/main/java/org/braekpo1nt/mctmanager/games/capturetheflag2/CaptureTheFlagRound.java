@@ -4,6 +4,7 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.bukkit.event.Listener;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -26,4 +27,7 @@ public class CaptureTheFlagRound {
         
     }
     
+    public List<CaptureTheFlagMatch> getMatches() {
+        return matches;
+    }
 }
