@@ -65,6 +65,12 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
         return combinations;
     }
     
+    /**
+     * Given n {@link MatchPairing}s, returns ceiling(n/x) rounds, where x is the number of arenas in {@link CaptureTheFlagGame#arenas}. Each round should hold between 1 and x {@link CaptureTheFlagMatch}s.
+     * Note: If ceiling(n/x) is not a multiple of x, the last round in the list will hold the remainder of n/x (between 1 and x-1) {@link CaptureTheFlagMatch}s so that all matches are accounted for.
+     * @param matchPairings
+     * @return A list of {@link CaptureTheFlagRound}s containing n {@link CaptureTheFlagMatch}s between them, where n is the number of given {@link MatchPairing}s
+     */
     public List<CaptureTheFlagRound> generateRounds(List<MatchPairing> matchPairings) {
         int numberOfRounds = matchPairings.size() / arenas.size();
         int numberOfMatchesPerRound = arenas.size();
