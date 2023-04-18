@@ -64,7 +64,7 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
         return combinations;
     }
     
-    private List<CaptureTheFlagRound> generateRounds(List<MatchPairing> matchPairings) {
+    public List<CaptureTheFlagRound> generateRounds(List<MatchPairing> matchPairings) {
         int numberOfRounds = matchPairings.size() / arenas.size();
         int numberOfMatchesPerRound = arenas.size();
         List<CaptureTheFlagRound> rounds = new ArrayList<>(numberOfRounds);
