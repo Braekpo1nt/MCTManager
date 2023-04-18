@@ -69,3 +69,8 @@ processResources {
         expand props
     }
 }
+
+test {
+    useJUnitPlatform()
+}
+

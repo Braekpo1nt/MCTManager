@@ -18,7 +18,7 @@ import org.bukkit.scoreboard.Scoreboard;
 
 import java.io.IOException;
 
-public final class Main extends JavaPlugin {
+public class Main extends JavaPlugin {
     
     public static MultiverseCore multiverseCore;
     private GameManager gameManager;
