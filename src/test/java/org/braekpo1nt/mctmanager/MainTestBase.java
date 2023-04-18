@@ -10,8 +10,8 @@ import org.junit.jupiter.api.Test;
 
 public class MainTest {
     
-    private ServerMock server;
-    private Main plugin;
+    protected ServerMock server;
+    protected Main plugin;
     
     @BeforeEach
     public void setUp() {

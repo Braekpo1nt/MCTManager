@@ -27,7 +27,7 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
     private final Main plugin;
     private final GameManager gameManager;
     private final World captureTheFlagWorld;
-    private List<Arena> arenas;
+    private final List<Arena> arenas;
     
     public CaptureTheFlagGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
@@ -36,6 +36,7 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
         MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
         MultiverseWorld mvCaptureTheFlagWorld = worldManager.getMVWorld("FT");
         this.captureTheFlagWorld = mvCaptureTheFlagWorld.getCBWorld();
+        arenas = initializeArenas();
     }
     
     @Override
@@ -101,10 +102,10 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
         
     }
     
-    private void initializeArenas() {
-        this.arenas = new ArrayList<>(4);
+    private List<Arena> initializeArenas() {
+        List<Arena> newArenas = new ArrayList<>(4);
         //NorthWest
-        arenas.add(new Arena(
+        newArenas.add(new Arena(
                 new Location(captureTheFlagWorld, -15, -16, -1043), // North spawn
                 new Location(captureTheFlagWorld, -15, -16, -1003), // South spawn
                 new Location(captureTheFlagWorld, -6, -13, -1040), // North flag 
@@ -114,7 +115,7 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
         
         ));
         //NorthEast
-        arenas.add(new Arena(
+        newArenas.add(new Arena(
                 new Location(captureTheFlagWorld, 15, -16, -1043), // North spawn
                 new Location(captureTheFlagWorld, 15, -16, -1003), // South spawn
                 new Location(captureTheFlagWorld, 24, -13, -1040), // North flag 
@@ -123,7 +124,7 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
                 new Location(captureTheFlagWorld, 13, -16, -1004) // South barrier 
         ));
         //SouthWest
-        arenas.add(new Arena(
+        newArenas.add(new Arena(
                 new Location(captureTheFlagWorld, -15, -16, -997), // North spawn
                 new Location(captureTheFlagWorld, -15, -16, -957), // South spawn
                 new Location(captureTheFlagWorld, -6, -13, -994), // North flag 
@@ -132,7 +133,7 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
                 new Location(captureTheFlagWorld, -17, -16, -958) // South barrier 
         ));
         //SouthEast
-        arenas.add(new Arena(
+        newArenas.add(new Arena(
                 new Location(captureTheFlagWorld, 15, -16, -997), // North spawn
                 new Location(captureTheFlagWorld, 15, -16, -957), // South spawn
                 new Location(captureTheFlagWorld, 24, -13, -994), // North flag 
@@ -140,5 +141,7 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
                 new Location(captureTheFlagWorld, 13, -16, -996), // North barrier
                 new Location(captureTheFlagWorld, 13, -16, -958) // South barrier 
         ));
+        
+        return newArenas;
     }
 }
