@@ -4,11 +4,10 @@ import be.seeseemelk.mockbukkit.MockBukkit;
 import be.seeseemelk.mockbukkit.ServerMock;
 import be.seeseemelk.mockbukkit.UnimplementedOperationException;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 
-public class MainTest {
+
+public class MainTestBase {
     
     protected ServerMock server;
     protected Main plugin;
@@ -30,12 +29,5 @@ public class MainTest {
         MockBukkit.unmock();
     }
     
-    @Test
-    public void checkSumHere() {
-        int three = 3;
-        int four = 4;
-        int sum = three + four;
-        Assertions.assertEquals(7, sum);
-    }
     
 }

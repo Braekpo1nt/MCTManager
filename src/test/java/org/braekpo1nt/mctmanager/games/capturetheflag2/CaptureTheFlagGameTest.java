@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.games.capturetheflag2;
 
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.MainTestBase;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.capturetheflag.MatchPairing;
 import org.junit.jupiter.api.Assertions;
@@ -12,13 +13,12 @@ import java.util.List;
 
 import static org.mockito.Mockito.mock;
 
-class CaptureTheFlagGameTest {
+class CaptureTheFlagGameTest extends MainTestBase {
     
     private CaptureTheFlagGame captureTheFlagGame;
     
     @BeforeEach
     void setup() {
-        Main plugin = mock(Main.class);
         GameManager gameManager = mock(GameManager.class);
         captureTheFlagGame = new CaptureTheFlagGame(plugin, gameManager);
     }
