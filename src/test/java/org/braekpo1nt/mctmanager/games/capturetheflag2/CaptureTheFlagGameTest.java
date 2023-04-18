@@ -43,6 +43,33 @@ class CaptureTheFlagGameTest extends MainTestBase {
         captureTheFlagGame = new CaptureTheFlagGame(plugin, gameManager);
     }
     
+    // generateMatchPairings
+    @Test
+    @DisplayName("2 team names generate one match pairing")
+    void twoTeamNames() {
+        List<String> teamNames = Arrays.asList("North", "South");
+        List<MatchPairing> matchPairings = CaptureTheFlagGame.generateMatchPairings(teamNames);
+        Assertions.assertEquals(1, matchPairings.size());
+        Assertions.assertEquals("North", matchPairings.get(0).northTeam());
+        Assertions.assertEquals("South", matchPairings.get(0).southTeam());
+    }
+    
+    @Test
+    @DisplayName("3 team names generates 3 match pairings, in the right order")
+    void threeTeamNames() {
+        List<String> teamNames = Arrays.asList("One", "Two", "Three");
+        List<MatchPairing> matchPairings = CaptureTheFlagGame.generateMatchPairings(teamNames);
+        Assertions.assertEquals(3, matchPairings.size());
+        Assertions.assertEquals("One", matchPairings.get(0).northTeam());
+        Assertions.assertEquals("Two", matchPairings.get(0).southTeam());
+        Assertions.assertEquals("One", matchPairings.get(1).northTeam());
+        Assertions.assertEquals("Three", matchPairings.get(1).southTeam());
+        Assertions.assertEquals("Two", matchPairings.get(2).northTeam());
+        Assertions.assertEquals("Three", matchPairings.get(2).southTeam());
+    }
+    
+    // generateRounds
+    
     @Test
     @DisplayName("1 match pairing makes 1 round with 1 match")
     void singleMatchPairing() {
