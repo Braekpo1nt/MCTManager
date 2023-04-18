@@ -7,6 +7,6 @@ class CaptureTheFlagGameTest {
     
     @Test
     void generateRounds() {
-        Assertions.assertTrue(false);
+        Assertions.fail();
     }
 }

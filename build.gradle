@@ -24,8 +24,6 @@ repositories {
 
 dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter:5.9.2'
-//    testImplementation "io.papermc.paper:paper-api:1.19.3-R0.1-SNAPSHOT"
-    implementation 'com.github.seeseemelk:MockBukkit-v1.19:2.145.1'
     
     compileOnly "io.papermc.paper:paper-api:1.19.3-R0.1-SNAPSHOT"
     
