@@ -8,6 +8,7 @@ import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.capturetheflag.Arena;
 import org.braekpo1nt.mctmanager.games.capturetheflag.MatchPairing;
 import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -33,6 +34,7 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
     private int currentRoundIndex;
     private int maxRounds;
     private List<CaptureTheFlagRound> rounds;
+    private final String title = ChatColor.BLUE+"Capture the Flag";
     private List<Player> participants;
     
     
@@ -63,6 +65,7 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
     
     private void initializeParticipant(Player participant) {
         participants.add(participant);
+        initializeFastBoard(participant);
     }
     
     private void startNextRound() {
@@ -112,7 +115,7 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
                 roundMatches.add(roundMatch);
                 matchCount++;
             }
-            CaptureTheFlagRound newRound = new CaptureTheFlagRound(roundMatches, spawnObservatory);
+            CaptureTheFlagRound newRound = new CaptureTheFlagRound(gameManager.getFastBoardManager(), roundMatches, spawnObservatory);
             rounds.add(newRound);
         }
         return rounds;
@@ -133,6 +136,19 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
     @Override
     public void onParticipantQuit(Player participant) {
         
+    }
+    
+    private void initializeFastBoard(Player participant) {
+        gameManager.getFastBoardManager().updateLines(
+                participant.getUniqueId(),
+                title,
+                "", // current enemy team
+                String.format("Round %d/%d", currentRoundIndex+1, maxRounds), //current round
+                "",
+                "", // timer name
+                "", // timer
+                ""
+        );
     }
     
     private List<Arena> initializeArenas() {

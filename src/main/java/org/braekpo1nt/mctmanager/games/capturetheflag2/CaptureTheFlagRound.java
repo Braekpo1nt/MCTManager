@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.games.capturetheflag2;
 
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
+import org.braekpo1nt.mctmanager.ui.FastBoardManager;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -14,11 +15,13 @@ import java.util.List;
  */
 public class CaptureTheFlagRound {
     
+    private final FastBoardManager fastBoardManager;
     private final List<CaptureTheFlagMatch> matches;
     private List<Player> participants;
     private final Location spawnObservatory;
     
-    public CaptureTheFlagRound(List<CaptureTheFlagMatch> matches, Location spawnObservatory) {
+    public CaptureTheFlagRound(FastBoardManager fastBoardManager, List<CaptureTheFlagMatch> matches, Location spawnObservatory) {
+        this.fastBoardManager = fastBoardManager;
         this.matches = matches;
         this.spawnObservatory = spawnObservatory;
     }
@@ -41,7 +44,16 @@ public class CaptureTheFlagRound {
     }
     
     private void initializeFastBoard(Player participant) {
-        throw new UnsupportedOperationException("initializeFastBoard unimplemented in CaptureTheFlagRound");
+        fastBoardManager.updateLine(
+                participant.getUniqueId(),
+                4,
+                "Starting in:"
+        );
+        fastBoardManager.updateLine(
+                participant.getUniqueId(),
+                5,
+                "0"
+        );
     }
     
     public void stop() {
