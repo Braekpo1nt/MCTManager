@@ -27,6 +27,7 @@ import java.util.List;
  */
 public class CaptureTheFlagGame implements MCTGame, Listener {
     
+    private final Main plugin;
     private final GameManager gameManager;
     private final World captureTheFlagWorld;
     private final List<Arena> arenas;
@@ -39,6 +40,7 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
     
     
     public CaptureTheFlagGame(Main plugin, GameManager gameManager) {
+        this.plugin = plugin;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         this.gameManager = gameManager;
         MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
@@ -115,7 +117,7 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
                 roundMatches.add(roundMatch);
                 matchCount++;
             }
-            CaptureTheFlagRound newRound = new CaptureTheFlagRound(gameManager.getFastBoardManager(), roundMatches, spawnObservatory);
+            CaptureTheFlagRound newRound = new CaptureTheFlagRound(plugin, gameManager.getFastBoardManager(), roundMatches, spawnObservatory);
             rounds.add(newRound);
         }
         return rounds;

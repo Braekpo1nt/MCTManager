@@ -12,4 +12,9 @@ public class CaptureTheFlagMatch {
         this.matchPairing = matchPairing;
         this.arena = arena;
     }
+    
+    public void start() {
+        
+    }
+    
 }

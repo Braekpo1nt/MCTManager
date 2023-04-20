@@ -217,7 +217,7 @@ public class MechaGame implements MCTGame, Listener {
     }
     
     private void startStartMechaCountdownTask() {
-        startMechaTaskId = new BukkitRunnable() {
+        this.startMechaTaskId = new BukkitRunnable() {
             int count = 10;
             @Override
             public void run() {
