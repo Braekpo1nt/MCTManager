@@ -26,8 +26,9 @@ public class CaptureTheFlagMatch {
     private final GameManager gameManager;
     private final MatchPairing matchPairing;
     private final Arena arena;
-    private List<Player> northParticipants;
-    private List<Player> southParticipants;
+    private List<UUID> northParticipants;
+    private List<UUID> southParticipants;
+    private List<Player> allParticipants;
     private Map<UUID, Boolean> participantsAreAlive;
     private Map<UUID, Integer> killCount;
     private boolean matchActive = false;
@@ -47,6 +48,7 @@ public class CaptureTheFlagMatch {
     public void start(List<Player> newNorthParticipants, List<Player> newSouthParticipants) {
         northParticipants = new ArrayList<>();
         southParticipants = new ArrayList<>();
+        allParticipants = new ArrayList<>();
         participantsAreAlive = new HashMap<>();
         killCount = new HashMap<>();
         closeGlassBarriers();
@@ -67,12 +69,13 @@ public class CaptureTheFlagMatch {
         participantsAreAlive.put(participantUniqueId, true);
         killCount.put(participantUniqueId, 0);
         if (north) {
-            northParticipants.add(participant);
+            northParticipants.add(participant.getUniqueId());
             participant.teleport(arena.northSpawn());
         } else {
-            southParticipants.add(participant);
+            southParticipants.add(participant.getUniqueId());
             participant.teleport(arena.northSpawn());
         }
+        allParticipants.add(participant);
         initializeFastBoard(participant);
         participant.getInventory().clear();
         participant.setGameMode(GameMode.ADVENTURE);
@@ -103,11 +106,7 @@ public class CaptureTheFlagMatch {
                     this.cancel();
                     return;
                 }
-                for (Player participant : northParticipants) {
-                    String timeString = TimeStringUtils.getTimeString(count);
-                    updateClassSelectionFastBoardTimer(participant, timeString);
-                }
-                for (Player participant : southParticipants) {
+                for (Player participant : allParticipants) {
                     String timeString = TimeStringUtils.getTimeString(count);
                     updateClassSelectionFastBoardTimer(participant, timeString);
                 }
@@ -118,7 +117,7 @@ public class CaptureTheFlagMatch {
     
     private void initializeFastBoard(Player participant) {
         String enemyTeam = matchPairing.southTeam();
-        if (northParticipants.contains(participant)) {
+        if (northParticipants.contains(participant.getUniqueId())) {
             enemyTeam = matchPairing.northTeam();
         }
         ChatColor enemyColor = gameManager.getTeamChatColor(enemyTeam);
@@ -164,10 +163,7 @@ public class CaptureTheFlagMatch {
     }
     
     private void messageAllParticipants(Component message) {
-        for (Player participant : northParticipants) {
-            participant.sendMessage(message);
-        }
-        for (Player participant : southParticipants) {
+        for (Player participant : allParticipants) {
             participant.sendMessage(message);
         }
     }
