@@ -27,7 +27,7 @@ dependencies {
     testImplementation 'org.mockito:mockito-core:5.2.0'
     testImplementation 'io.papermc.paper:paper-api:1.19.3-R0.1-SNAPSHOT'
     testImplementation 'com.onarandombox.multiversecore:Multiverse-Core:4.3.1'
-    implementation 'com.github.seeseemelk:MockBukkit-v1.19:2.145.1'
+    implementation 'com.github.seeseemelk:MockBukkit-v1.19:2.146.1'
 
     compileOnly 'io.papermc.paper:paper-api:1.19.3-R0.1-SNAPSHOT'
 
