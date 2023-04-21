@@ -1,6 +1,8 @@
 package org.braekpo1nt.mctmanager.games.capturetheflag2;
 
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.capturetheflag.MatchPairing;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.FastBoardManager;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
@@ -21,15 +23,15 @@ import java.util.UUID;
 public class CaptureTheFlagRound {
 
     private final Main plugin;
-    private final FastBoardManager fastBoardManager;
+    private final GameManager gameManager;
     private final List<CaptureTheFlagMatch> matches;
     private List<Player> participants;
     private final Location spawnObservatory;
     private int matchesStartingCountDownTaskId;
 
-    public CaptureTheFlagRound(Main plugin, FastBoardManager fastBoardManager, List<CaptureTheFlagMatch> matches, Location spawnObservatory) {
+    public CaptureTheFlagRound(Main plugin, GameManager gameManager, List<CaptureTheFlagMatch> matches, Location spawnObservatory) {
         this.plugin = plugin;
-        this.fastBoardManager = fastBoardManager;
+        this.gameManager = gameManager;
         this.matches = matches;
         this.spawnObservatory = spawnObservatory;
     }
@@ -54,6 +56,9 @@ public class CaptureTheFlagRound {
 
     public void stop() {
         cancelAllTasks();
+        for (CaptureTheFlagMatch match : matches) {
+            match.stop();
+        }
     }
 
     private void startMatchesStartingCountDown() {
@@ -77,7 +82,18 @@ public class CaptureTheFlagRound {
      */
     private void startMatches() {
         for (CaptureTheFlagMatch match : matches) {
-            match.start();
+            MatchPairing matchPairing = match.getMatchPairing();
+            List<Player> northParticipants = gameManager.getOnlinePlayersOnTeam(matchPairing.northTeam());
+            List<Player> southParticipants = new ArrayList<>();
+            for (Player participant : participants) {
+                String team = gameManager.getTeamName(participant.getUniqueId());
+                if (team.equals(matchPairing.northTeam())) {
+                    northParticipants.add(participant);
+                } else if (team.equals(matchPairing.southTeam())) {
+                    southParticipants.add(participant);
+                }
+            }
+            match.start(northParticipants, southParticipants);
         }
     }
 
@@ -93,7 +109,7 @@ public class CaptureTheFlagRound {
         String timeString = TimeStringUtils.getTimeString(secondsLeft);
         for (Player participant : participants) {
             UUID participantUniqueId = participant.getUniqueId();
-            fastBoardManager.updateLine(
+            gameManager.getFastBoardManager().updateLine(
                     participantUniqueId,
                     5,
                     timeString
@@ -102,12 +118,12 @@ public class CaptureTheFlagRound {
     }
 
     private void initializeFastBoard(Player participant) {
-        fastBoardManager.updateLine(
+        gameManager.getFastBoardManager().updateLine(
                 participant.getUniqueId(),
                 4,
                 "Starting in:"
         );
-        fastBoardManager.updateLine(
+        gameManager.getFastBoardManager().updateLine(
                 participant.getUniqueId(),
                 5,
                 "0"
