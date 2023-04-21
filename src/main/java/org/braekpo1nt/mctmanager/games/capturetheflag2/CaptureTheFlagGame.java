@@ -119,7 +119,7 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
             int matchCount = 0;
             while(iterator.hasNext() && matchCount < numberOfMatchesPerRound) {
                 MatchPairing matchPairing = iterator.next();
-                CaptureTheFlagMatch roundMatch = new CaptureTheFlagMatch(matchPairing, arenas.get(matchCount));
+                CaptureTheFlagMatch roundMatch = new CaptureTheFlagMatch(plugin, gameManager, matchPairing, arenas.get(matchCount));
                 roundMatches.add(roundMatch);
                 matchCount++;
             }
