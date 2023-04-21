@@ -138,6 +138,19 @@ public class CaptureTheFlagMatch {
         );
     }
     
+    private void updateClassSelectionFastBoardTimer(Player participant, String timerString) {
+        gameManager.getFastBoardManager().updateLine(
+                participant.getUniqueId(),
+                4,
+                "Class selection:"
+        );
+        gameManager.getFastBoardManager().updateLine(
+                participant.getUniqueId(),
+                5,
+                timerString
+        );
+    }
+    
     /**
      * Closes the glass barriers for the {@link CaptureTheFlagMatch#arena}
      */
