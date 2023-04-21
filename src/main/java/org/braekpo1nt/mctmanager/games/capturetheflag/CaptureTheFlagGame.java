@@ -11,12 +11,10 @@ import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.bukkit.*;
-import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.potion.PotionEffect;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
@@ -27,7 +25,7 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
     
     private final Main plugin;
     private final GameManager gameManager;
-    private final ClassPickerManager classPickerManager;
+//    private final ClassPickerManager classPickerManager;
     private boolean gameActive = false;
     private boolean roundHasStarted = false;
     private final String title = ChatColor.BLUE+"Capture the Flag";
@@ -60,7 +58,7 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
         this.plugin = plugin;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         this.gameManager = gameManager;
-        this.classPickerManager = new ClassPickerManager(plugin, gameManager);
+//        this.classPickerManager = new ClassPickerManager(plugin);
         MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
         MultiverseWorld mvCaptureTheFlagWorld = worldManager.getMVWorld("FT");
         this.captureTheFlagWorld = mvCaptureTheFlagWorld.getCBWorld();
@@ -100,7 +98,7 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
             resetParticipant(participant);
         }
         participants.clear();
-        classPickerManager.stopClassPicking(participants);
+//        classPickerManager.stopClassPicking(participants);
         gameActive = false;
         roundHasStarted = false;
         gameManager.gameIsOver();
@@ -299,9 +297,9 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
     }
     
     private void startClassSelectionPeriod() {
-        this.classPickerManager.resetClassPickerTracker();
+//        this.classPickerManager.resetClassPickerTracker();
         messageAllParticipants(Component.text("Choose your class"));
-        classPickerManager.startClassPicking(participants);
+//        classPickerManager.startClassPicking(participants);
         this.classSelectionCountdownTaskIt = new BukkitRunnable() {
             private int count = 20;
             @Override
@@ -325,8 +323,8 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
     }
     
     private void startCaptureTheFlagRound() {
-        classPickerManager.assignClassesToParticipantsWithoutClasses(participants);
-        classPickerManager.stopClassPicking(participants);
+//        classPickerManager.assignClassesToParticipantsWithoutClasses(participants);
+//        classPickerManager.stopClassPicking(participants);
         messageAllParticipants(Component.text("Capture the flag!"));
         openGlassBarriers();
         startCurrentRoundTimer();

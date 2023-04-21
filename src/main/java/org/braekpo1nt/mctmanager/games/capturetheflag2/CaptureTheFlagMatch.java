@@ -1,11 +1,9 @@
 package org.braekpo1nt.mctmanager.games.capturetheflag2;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.TextComponent;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.capturetheflag.Arena;
-import org.braekpo1nt.mctmanager.games.capturetheflag.ClassPickerManager;
 import org.braekpo1nt.mctmanager.games.capturetheflag.MatchPairing;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
@@ -44,7 +42,7 @@ public class CaptureTheFlagMatch {
         this.gameManager = gameManager;
         this.matchPairing = matchPairing;
         this.arena = arena;
-        this.classPickerManager = new ClassPickerManager(plugin, gameManager);
+        this.classPickerManager = new ClassPickerManager(plugin);
     }
     
     public MatchPairing getMatchPairing() {

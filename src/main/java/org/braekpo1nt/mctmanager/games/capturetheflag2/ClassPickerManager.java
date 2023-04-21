@@ -1,24 +1,22 @@
-package org.braekpo1nt.mctmanager.games.capturetheflag;
+package org.braekpo1nt.mctmanager.games.capturetheflag2;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.capturetheflag.BattleClass;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
-import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-public class ClassPickerManager implements Listener {
+public class ClassPickerManager {
     
     public static final Component TITLE = Component.empty()
             .append(Component.text("Pick a Class")
@@ -28,79 +26,71 @@ public class ClassPickerManager implements Listener {
     private final Component NETHER_STAR_NAME = Component.text("Vote");
     private final Map<String, List<BattleClass>> classTracker = new HashMap<>();
     private final List<UUID> participantsWhoPickedClasses = new ArrayList<>();
-    private final GameManager gameManager;
-    private boolean picking = false;
-    
-    public ClassPickerManager(Main plugin, GameManager gameManager) {
-        this.gameManager = gameManager;
-        plugin.getServer().getPluginManager().registerEvents(this, plugin);
+    private final List<BattleClass> pickedBattleClasses = new ArrayList<>();
+
+    /**
+     * Converts a {@link Material} to a {@link BattleClass}
+     * @param material The material to get the associated battle class of. 
+     * @return The battle class associated with the given material. Null if the given material is not one of the associated material.
+     */
+    public static BattleClass materialToBattleClass(@NotNull Material material) {
+        switch (material) {
+            case STONE_SWORD -> {
+                return BattleClass.KNIGHT;
+            }
+            case BOW -> {
+                return BattleClass.ARCHER;
+            }
+            case IRON_SWORD -> {
+                return BattleClass.ASSASSIN;
+            }
+            case LEATHER_CHESTPLATE -> {
+                return BattleClass.TANK;
+            }
+            default -> {
+                return null;
+            }
+        }
     }
-    
-    @EventHandler
-    public void clickEvent(InventoryClickEvent event) {
-        if (!picking) {
+
+    /**
+     * Gets the pretty name of the battle class
+     * @param battleClass The battle class to get the name of
+     * @return The name of the battle class. Null if the battle class is not one with a name (shouldn't ever return null)
+     */
+    private String getBattleClassName(@NotNull BattleClass battleClass) {
+        switch (battleClass) {
+            case KNIGHT -> {
+                return "Knight";
+            }
+            case ARCHER -> {
+                return "Archer";
+            }
+            case ASSASSIN -> {
+                return "Assassin";
+            }
+            case TANK -> {
+                return "Tank";
+            }
+            default -> {
+                return null;
+            }
+        }
+    }
+
+    public void playerSelectBattleClass(@NotNull Player participant, @NotNull BattleClass battleClass) {
+        if (pickedBattleClasses.contains(battleClass)) {
+            participant.sendMessage(Component.empty()
+                            .append(Component.text("Someone on your team already selected "))
+                            .append(Component.text(getBattleClassName(battleClass)))
+                            .color(NamedTextColor.DARK_RED));
             return;
         }
-        if (event.getClickedInventory() == null) {
-            return;
-        }
-        if (!event.getView().title().equals(TITLE)) {
-            return;
-        }
-        if (event.getCurrentItem() == null) {
-            return;
-        }
-        Player participant = ((Player) event.getWhoClicked());
-        if (!gameManager.isParticipant(participant.getUniqueId())) {
-            return;
-        }
-        String teamName = gameManager.getTeamName(participant.getUniqueId());
-        if (!classTracker.containsKey(teamName)) {
-            classTracker.put(teamName, new ArrayList<>());
-        }
-        event.setCancelled(true);
-        List<BattleClass> teamClasses = classTracker.get(teamName);
-        Material clickedItem = event.getCurrentItem().getType();
-        switch (clickedItem) {
-            case STONE_SWORD:
-                if (teamClasses.contains(BattleClass.KNIGHT)) {
-                    participant.sendMessage(Component.text("Someone on your team already selected Knight").color(NamedTextColor.DARK_RED));
-                    return;
-                }
-                teamClasses.add(BattleClass.KNIGHT);
-                assignClass(participant, BattleClass.KNIGHT);
-                break;
-            case BOW:
-                if (teamClasses.contains(BattleClass.ARCHER)) {
-                    participant.sendMessage(Component.text("Someone on your team already selected Archer").color(NamedTextColor.DARK_RED));
-                    return;
-                }
-                teamClasses.add(BattleClass.ARCHER);
-                assignClass(participant, BattleClass.ARCHER);
-                break;
-            case IRON_SWORD:
-                if (teamClasses.contains(BattleClass.ASSASSIN)) {
-                    participant.sendMessage(Component.text("Someone on your team already selected Assassin").color(NamedTextColor.DARK_RED));
-                    return;
-                }
-                teamClasses.add(BattleClass.ASSASSIN);
-                assignClass(participant, BattleClass.ASSASSIN);
-                break;
-            case LEATHER_CHESTPLATE:
-                if (teamClasses.contains(BattleClass.TANK)) {
-                    participant.sendMessage(Component.text("Someone on your team already selected Tank").color(NamedTextColor.DARK_RED));
-                    return;
-                }
-                teamClasses.add(BattleClass.TANK);
-                assignClass(participant, BattleClass.TANK);
-                break;
-            default:
-                return;
-        }
+        pickedBattleClasses.add(battleClass);
+        assignClass(participant, battleClass);
         participantsWhoPickedClasses.add(participant.getUniqueId());
-        participant.closeInventory();
     }
-    
+
     @EventHandler
     public void onCloseMenu(InventoryCloseEvent event) {
         if (!picking) {
