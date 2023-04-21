@@ -5,6 +5,7 @@ import net.kyori.adventure.text.TextComponent;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.capturetheflag.Arena;
+import org.braekpo1nt.mctmanager.games.capturetheflag.ClassPickerManager;
 import org.braekpo1nt.mctmanager.games.capturetheflag.MatchPairing;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
@@ -33,12 +34,15 @@ public class CaptureTheFlagMatch {
     private Map<UUID, Integer> killCount;
     private boolean matchActive = false;
     private int classSelectionCountdownTaskIt;
+    private int matchTimerTaskId;
+    private final ClassPickerManager classPickerManager;
     
     public CaptureTheFlagMatch(Main plugin, GameManager gameManager, MatchPairing matchPairing, Arena arena) {
         this.plugin = plugin;
         this.gameManager = gameManager;
         this.matchPairing = matchPairing;
         this.arena = arena;
+        this.classPickerManager = new ClassPickerManager(plugin, gameManager);
     }
     
     public MatchPairing getMatchPairing() {
@@ -89,13 +93,21 @@ public class CaptureTheFlagMatch {
         Bukkit.getLogger().info("Stopping capture the flag match " + matchPairing);
     }
     
+    private void startMatch() {
+        classPickerManager.stopClassPicking(allParticipants);
+        messageAllParticipants(Component.text("Begin!"));
+        openGlassBarriers();
+        startMatchTimer();
+    }
+    
     private void cancelAllTasks() {
         Bukkit.getScheduler().cancelTask(classSelectionCountdownTaskIt);
+        Bukkit.getScheduler().cancelTask(matchTimerTaskId);
     }
     
     private void startClassSelectionPeriod() {
         messageAllParticipants(Component.text("Choose your class"));
-        
+        classPickerManager.startClassPicking(allParticipants);
         this.classSelectionCountdownTaskIt = new BukkitRunnable() {
             private int count = 20;
             @Override
@@ -109,6 +121,25 @@ public class CaptureTheFlagMatch {
                 for (Player participant : allParticipants) {
                     String timeString = TimeStringUtils.getTimeString(count);
                     updateClassSelectionFastBoardTimer(participant, timeString);
+                }
+                count--;
+            }
+        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+    }
+    
+    private void startMatchTimer() {
+        this.matchTimerTaskId = new BukkitRunnable() {
+            int count = 15;
+            @Override
+            public void run() {
+                if (count <= 0) {
+                    stop();
+                    this.cancel();
+                    return;
+                }
+                String timeString = TimeStringUtils.getTimeString(count);
+                for (Player participant : allParticipants) {
+                    updateMatchTimer(participant, timeString);
                 }
                 count--;
             }
@@ -129,7 +160,7 @@ public class CaptureTheFlagMatch {
         gameManager.getFastBoardManager().updateLine(
                 participant.getUniqueId(),
                 4,
-                "Time Left:"
+                "Round:"
         );
         gameManager.getFastBoardManager().updateLine(
                 participant.getUniqueId(),
@@ -151,12 +182,33 @@ public class CaptureTheFlagMatch {
         );
     }
     
+    private void updateMatchTimer(Player participant, String timeLeft) {
+        gameManager.getFastBoardManager().updateLine(
+                participant.getUniqueId(),
+                4,
+                "Round:"
+        );
+        gameManager.getFastBoardManager().updateLine(
+                participant.getUniqueId(),
+                5,
+                timeLeft
+        );
+    }
+    
     /**
      * Closes the glass barriers for the {@link CaptureTheFlagMatch#arena}
      */
     private void closeGlassBarriers() {
         BlockPlacementUtils.createCube(arena.northBarrier(), 5, 4, 1, Material.GLASS_PANE);
         BlockPlacementUtils.createCube(arena.southBarrier(), 5, 4, 1, Material.GLASS_PANE);
+    }
+    
+    /**
+     * Opens the glass barriers for the {@link CaptureTheFlagMatch#arena}
+     */
+    private void openGlassBarriers() {
+        BlockPlacementUtils.createCube(arena.northBarrier(), 5, 4, 1, Material.AIR);
+        BlockPlacementUtils.createCube(arena.southBarrier(), 5, 4, 1, Material.AIR);
     }
     
     /**
