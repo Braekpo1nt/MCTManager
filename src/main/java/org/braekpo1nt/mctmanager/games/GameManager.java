@@ -703,4 +703,9 @@ public class GameManager implements Listener {
         String colorString = gameStateStorageUtil.getTeamColorString(teamName);
         return ColorMap.getConcretePowderColor(colorString);
     }
+    
+    public ChatColor getTeamChatColor(String teamName) {
+        String colorString = gameStateStorageUtil.getTeamColorString(teamName);
+        return ColorMap.getChatColor(colorString);
+    }
 }

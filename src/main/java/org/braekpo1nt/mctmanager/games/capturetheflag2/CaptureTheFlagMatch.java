@@ -1,10 +1,12 @@
 package org.braekpo1nt.mctmanager.games.capturetheflag2;
 
+import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.capturetheflag.Arena;
 import org.braekpo1nt.mctmanager.games.capturetheflag.MatchPairing;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
+import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 
@@ -68,7 +70,29 @@ public class CaptureTheFlagMatch {
     }
     
     private void initializeFastBoard(Player participant) {
-        throw new UnsupportedOperationException("initialize fast board in match");
+        String friendlyTeam = gameManager.getTeamName(participant.getUniqueId());
+        String enemyTeam = "";
+        if (matchPairing.northTeam().equals(friendlyTeam)) {
+            enemyTeam = matchPairing.southTeam();
+        } else if (matchPairing.southTeam().equals(friendlyTeam)) {
+            enemyTeam = matchPairing.northTeam();
+        }
+        ChatColor enemyColor = gameManager.getTeamChatColor(enemyTeam);
+        gameManager.getFastBoardManager().updateLine(
+                participant.getUniqueId(),
+                1,
+                "vs: "+enemyColor+enemyTeam
+        );
+        gameManager.getFastBoardManager().updateLine(
+                participant.getUniqueId(),
+                4,
+                "Time Left:"
+        );
+        gameManager.getFastBoardManager().updateLine(
+                participant.getUniqueId(),
+                5,
+                "7:00"
+        );
     }
     
 }
