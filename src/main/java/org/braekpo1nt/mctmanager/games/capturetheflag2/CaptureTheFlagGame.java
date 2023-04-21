@@ -70,6 +70,12 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
         initializeFastBoard(participant);
     }
     
+    @Override
+    public void stop() {
+        CaptureTheFlagRound currentRound = rounds.get(currentRoundIndex);
+        currentRound.stop();
+    }
+    
     private void startNextRound() {
         CaptureTheFlagRound nextRound = rounds.get(currentRoundIndex);
         nextRound.start(participants);
@@ -117,17 +123,10 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
                 roundMatches.add(roundMatch);
                 matchCount++;
             }
-            CaptureTheFlagRound newRound = new CaptureTheFlagRound(plugin, gameManager.getFastBoardManager(), roundMatches, spawnObservatory);
+            CaptureTheFlagRound newRound = new CaptureTheFlagRound(plugin, gameManager, roundMatches, spawnObservatory);
             rounds.add(newRound);
         }
         return rounds;
-    }
-    
-    
-    
-    @Override
-    public void stop() {
-        
     }
     
     @Override
