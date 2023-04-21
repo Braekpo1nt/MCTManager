@@ -70,11 +70,8 @@ public class CaptureTheFlagMatch {
     }
     
     private void initializeFastBoard(Player participant) {
-        String friendlyTeam = gameManager.getTeamName(participant.getUniqueId());
-        String enemyTeam = "";
-        if (matchPairing.northTeam().equals(friendlyTeam)) {
-            enemyTeam = matchPairing.southTeam();
-        } else if (matchPairing.southTeam().equals(friendlyTeam)) {
+        String enemyTeam = matchPairing.southTeam();
+        if (northParticipants.contains(participant)) {
             enemyTeam = matchPairing.northTeam();
         }
         ChatColor enemyColor = gameManager.getTeamChatColor(enemyTeam);
