@@ -22,18 +22,23 @@ import java.util.UUID;
  */
 public class CaptureTheFlagRound {
 
+    private final CaptureTheFlagGame captureTheFlagGame;
     private final Main plugin;
     private final GameManager gameManager;
-    private final List<CaptureTheFlagMatch> matches;
+    private List<CaptureTheFlagMatch> matches;
     private List<Player> participants;
     private final Location spawnObservatory;
     private int matchesStartingCountDownTaskId;
 
-    public CaptureTheFlagRound(Main plugin, GameManager gameManager, List<CaptureTheFlagMatch> matches, Location spawnObservatory) {
+    public CaptureTheFlagRound(CaptureTheFlagGame captureTheFlagGame, Main plugin, GameManager gameManager, Location spawnObservatory) {
+        this.captureTheFlagGame = captureTheFlagGame;
         this.plugin = plugin;
         this.gameManager = gameManager;
-        this.matches = matches;
         this.spawnObservatory = spawnObservatory;
+    }
+    
+    public void setMatches(List<CaptureTheFlagMatch> matches) {
+        this.matches = matches;
     }
     
     public void start(List<Player> newParticipants) {
@@ -43,7 +48,7 @@ public class CaptureTheFlagRound {
         }
         startMatchesStartingCountDown();
     }
-
+    
     private void initializeParticipant(Player participant) {
         participants.add(participant);
         initializeFastBoard(participant);
@@ -53,14 +58,26 @@ public class CaptureTheFlagRound {
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
     }
-
+    
     public void stop() {
         cancelAllTasks();
         for (CaptureTheFlagMatch match : matches) {
             match.stop();
         }
+        captureTheFlagGame.roundIsOver();
     }
-
+    
+    /**
+     * Tells the round that the given match is over. If all matches are over, stops the round.
+     * @param match The match that is over. Must be one of the matches in {@link CaptureTheFlagRound#matches}.
+     */
+    public void matchIsOver(CaptureTheFlagMatch match) {
+        matches.remove(match);
+        if (matches.isEmpty()) {
+            stop();
+        }
+    }
+    
     private void startMatchesStartingCountDown() {
         this.matchesStartingCountDownTaskId = new BukkitRunnable() {
             int count = 15;

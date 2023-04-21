@@ -8,6 +8,7 @@ import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.capturetheflag.Arena;
 import org.braekpo1nt.mctmanager.games.capturetheflag.MatchPairing;
 import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -37,6 +38,7 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
     private List<CaptureTheFlagRound> rounds;
     private final String title = ChatColor.BLUE+"Capture the Flag";
     private List<Player> participants;
+    private boolean gameActive = false;
     
     
     public CaptureTheFlagGame(Main plugin, GameManager gameManager) {
@@ -62,7 +64,9 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
         }
+        gameActive = true;
         startNextRound();
+        Bukkit.getLogger().info("Starting Capture the Flag");
     }
     
     private void initializeParticipant(Player participant) {
@@ -74,6 +78,38 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
     public void stop() {
         CaptureTheFlagRound currentRound = rounds.get(currentRoundIndex);
         currentRound.stop();
+        gameActive = false;
+        for (Player participant : participants) {
+            resetParticipant(participant);
+        }
+        participants.clear();
+        gameManager.gameIsOver();
+        Bukkit.getLogger().info("Stopping Capture the Flag");
+    }
+
+    /**
+     * Tells the game that the current round is over. If there are no rounds left, ends the game. If there are rounds left, starts the next round.
+     */
+    public void roundIsOver() {
+        if (allRoundsAreOver()) {
+            stop();
+            return;
+        }
+        currentRoundIndex++;
+        startNextRound();
+    }
+
+    /**
+     * Checks if all rounds are over
+     * @return true if all rounds are over, i.e. there is no next round, false otherwise
+     */
+    private boolean allRoundsAreOver() {
+        return rounds.size() >= currentRoundIndex + 1;
+    }
+
+    private void resetParticipant(Player participant) {
+        participant.getInventory().clear();
+        hideFastBoard(participant);
     }
     
     private void startNextRound() {
@@ -115,15 +151,16 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
         List<CaptureTheFlagRound> rounds = new ArrayList<>(numberOfRounds);
         Iterator<MatchPairing> iterator = matchPairings.iterator();
         for (int i = 0; i < numberOfRounds; i++) {
+            CaptureTheFlagRound newRound = new CaptureTheFlagRound(this, plugin, gameManager, spawnObservatory);
             List<CaptureTheFlagMatch> roundMatches = new ArrayList<>(numberOfMatchesPerRound);
             int matchCount = 0;
             while(iterator.hasNext() && matchCount < numberOfMatchesPerRound) {
                 MatchPairing matchPairing = iterator.next();
-                CaptureTheFlagMatch roundMatch = new CaptureTheFlagMatch(plugin, gameManager, matchPairing, arenas.get(matchCount));
+                CaptureTheFlagMatch roundMatch = new CaptureTheFlagMatch(newRound, plugin, gameManager, matchPairing, arenas.get(matchCount));
                 roundMatches.add(roundMatch);
                 matchCount++;
             }
-            CaptureTheFlagRound newRound = new CaptureTheFlagRound(plugin, gameManager, roundMatches, spawnObservatory);
+            newRound.setMatches(roundMatches);
             rounds.add(newRound);
         }
         return rounds;
@@ -149,6 +186,12 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
                 "", // timer name
                 "", // timer
                 ""
+        );
+    }
+    
+    private void hideFastBoard(Player participant) {
+        gameManager.getFastBoardManager().updateLines(
+                participant.getUniqueId()
         );
     }
     

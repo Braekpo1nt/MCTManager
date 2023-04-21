@@ -23,6 +23,7 @@ import java.util.*;
 
 public class CaptureTheFlagMatch {
     
+    private final CaptureTheFlagRound captureTheFlagRound;
     private final Main plugin;
     private final GameManager gameManager;
     private final MatchPairing matchPairing;
@@ -37,7 +38,8 @@ public class CaptureTheFlagMatch {
     private int matchTimerTaskId;
     private final ClassPickerManager classPickerManager;
     
-    public CaptureTheFlagMatch(Main plugin, GameManager gameManager, MatchPairing matchPairing, Arena arena) {
+    public CaptureTheFlagMatch(CaptureTheFlagRound captureTheFlagRound, Main plugin, GameManager gameManager, MatchPairing matchPairing, Arena arena) {
+        this.captureTheFlagRound = captureTheFlagRound;
         this.plugin = plugin;
         this.gameManager = gameManager;
         this.matchPairing = matchPairing;
@@ -89,10 +91,23 @@ public class CaptureTheFlagMatch {
     
     public void stop() {
         cancelAllTasks();
+        for (Player participant : allParticipants) {
+            resetParticipant(participant);
+        }
+        allParticipants.clear();
+        northParticipants.clear();
+        southParticipants.clear();
+        classPickerManager.stopClassPicking(Collections.emptyList());
         matchActive = false;
+        captureTheFlagRound.matchIsOver(this);
         Bukkit.getLogger().info("Stopping capture the flag match " + matchPairing);
     }
     
+    private void resetParticipant(Player participant) {
+        participant.getInventory().clear();
+        ParticipantInitializer.resetHealthAndHunger(participant);
+    }
+
     private void startMatch() {
         classPickerManager.stopClassPicking(allParticipants);
         messageAllParticipants(Component.text("Begin!"));
