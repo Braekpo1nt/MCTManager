@@ -7,8 +7,8 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
+import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.bukkit.*;
-import org.bukkit.attribute.Attribute;
 import org.bukkit.block.structure.Mirror;
 import org.bukkit.block.structure.StructureRotation;
 import org.bukkit.entity.Player;
@@ -94,12 +94,13 @@ public class FootRaceGame implements Listener, MCTGame {
         lapCooldowns.put(participantUniqueId, System.currentTimeMillis());
         laps.put(participantUniqueId, 1);
         initializeFastBoard(participant);
-        teleportPlayerToStartingPosition(participant);
+        participant.sendMessage("Teleporting to Foot Race");
+        participant.teleport(footRaceStartAnchor);
         participant.getInventory().clear();
         giveBoots(participant);
         participant.setGameMode(GameMode.ADVENTURE);
-        clearStatusEffects(participant);
-        resetHealthAndHunger(participant);
+        ParticipantInitializer.clearStatusEffects(participant);
+        ParticipantInitializer.resetHealthAndHunger(participant);
     }
     
     @Override
@@ -208,18 +209,6 @@ public class FootRaceGame implements Listener, MCTGame {
         }
     }
     
-    private void clearStatusEffects(Player participant) {
-        for (PotionEffect effect : participant.getActivePotionEffects()) {
-            participant.removePotionEffect(effect.getType());
-        }
-    }
-    
-    private void resetHealthAndHunger(Player participant) {
-        participant.setHealth(participant.getAttribute(Attribute.GENERIC_MAX_HEALTH).getDefaultValue());
-        participant.setFoodLevel(20);
-        participant.setSaturation(5);
-    }
-    
     private void startStatusEffectsTask() {
         this.statusEffectsTaskId = new BukkitRunnable(){
             @Override
@@ -315,11 +304,6 @@ public class FootRaceGame implements Listener, MCTGame {
     private void closeGlassBarrier() {
         Structure structure = Bukkit.getStructureManager().loadStructure(new NamespacedKey("mctdatapack", "footrace/gateclosed"));
         structure.place(new Location(footRaceWorld, 2397, 76, 317), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
-    }
-    
-    private void teleportPlayerToStartingPosition(Player player) {
-        player.sendMessage("Teleporting to Foot Race");
-        player.teleport(footRaceStartAnchor);
     }
     
     private void initializeFastBoard(Player participant) {
