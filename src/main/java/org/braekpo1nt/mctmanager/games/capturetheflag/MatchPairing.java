@@ -1,7 +1,5 @@
 package org.braekpo1nt.mctmanager.games.capturetheflag;
 
-import org.bukkit.Location;
-
 /**
  * A class representing two teams that will fight each other in a match
  * @param northTeam

@@ -1,9 +1,8 @@
-package org.braekpo1nt.mctmanager.games.capturetheflag2;
+package org.braekpo1nt.mctmanager.games.capturetheflag;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.games.capturetheflag.BattleClass;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;

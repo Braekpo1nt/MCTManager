@@ -1,20 +1,18 @@
-package org.braekpo1nt.mctmanager.games.capturetheflag2;
+package org.braekpo1nt.mctmanager.games.capturetheflag;
 
 import org.braekpo1nt.mctmanager.MainTestBase;
 import org.braekpo1nt.mctmanager.games.GameManager;
-import org.braekpo1nt.mctmanager.games.capturetheflag.MatchPairing;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.Mockito.mock;
 
-class CaptureTheFlagGameTest extends MainTestBase {
+class CaptureTheFlagRoundMatchGeneratingTest extends MainTestBase {
     
     private CaptureTheFlagGame captureTheFlagGame;
     private final List<MatchPairing> MATCH_PAIRINGS = Arrays.asList(

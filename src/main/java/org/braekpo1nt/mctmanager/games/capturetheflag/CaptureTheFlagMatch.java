@@ -1,10 +1,8 @@
-package org.braekpo1nt.mctmanager.games.capturetheflag2;
+package org.braekpo1nt.mctmanager.games.capturetheflag;
 
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
-import org.braekpo1nt.mctmanager.games.capturetheflag.Arena;
-import org.braekpo1nt.mctmanager.games.capturetheflag.MatchPairing;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;

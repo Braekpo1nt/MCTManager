@@ -7,7 +7,7 @@ import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.enums.MCTGames;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
-import org.braekpo1nt.mctmanager.games.capturetheflag2.CaptureTheFlagGame;
+import org.braekpo1nt.mctmanager.games.capturetheflag.CaptureTheFlagGame;
 import org.braekpo1nt.mctmanager.games.finalgame.FinalGame;
 import org.braekpo1nt.mctmanager.games.footrace.FootRaceGame;
 import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
