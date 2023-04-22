@@ -17,7 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class FastBoardManager {
     
-    private final String EVENT_TITLE = ChatColor.BOLD + "" + ChatColor.DARK_RED + "MCT #1";
+    private final String EVENT_TITLE = ChatColor.BOLD + "" + ChatColor.DARK_RED + "MCT #2";
     private final ConcurrentHashMap<UUID, FastBoard> boards = new ConcurrentHashMap<>();
     private final GameStateStorageUtil gameStateStorageUtil;
     

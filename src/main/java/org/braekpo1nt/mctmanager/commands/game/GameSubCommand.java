@@ -10,8 +10,6 @@ import java.util.Map;
 
 public class GameSubCommand extends CommandManager {
     
-    private final Map<String, CommandExecutor> subCommands = new HashMap<>();
-    
     public GameSubCommand(GameManager gameManager) {
         subCommands.put("start", new StartSubCommand(gameManager));
         subCommands.put("stop", new StopSubCommand(gameManager));
