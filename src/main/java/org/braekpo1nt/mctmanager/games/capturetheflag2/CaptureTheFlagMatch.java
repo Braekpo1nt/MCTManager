@@ -109,7 +109,7 @@ public class CaptureTheFlagMatch {
         participant.closeInventory();
         ParticipantInitializer.resetHealthAndHunger(participant);
     }
-
+    
     private void startMatch() {
         for (Player participants : allParticipants) {
             participants.closeInventory();
@@ -169,7 +169,7 @@ public class CaptureTheFlagMatch {
     
     private void initializeFastBoard(Player participant) {
         String enemyTeam = matchPairing.southTeam();
-        if (northParticipants.contains(participant.getUniqueId())) {
+        if (northParticipants.contains(participant)) {
             enemyTeam = matchPairing.northTeam();
         }
         ChatColor enemyColor = gameManager.getTeamChatColor(enemyTeam);
