@@ -79,7 +79,7 @@ public class CaptureTheFlagMatch {
             participant.teleport(arena.northSpawn());
         } else {
             southParticipants.add(participant);
-            participant.teleport(arena.northSpawn());
+            participant.teleport(arena.southSpawn());
         }
         allParticipants.add(participant);
         initializeFastBoard(participant);
