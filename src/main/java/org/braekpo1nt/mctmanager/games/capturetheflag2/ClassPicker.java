@@ -2,10 +2,17 @@ package org.braekpo1nt.mctmanager.games.capturetheflag2;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.capturetheflag.BattleClass;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.HandlerList;
+import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -13,7 +20,10 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-public class ClassPicker {
+/**
+ * Handles the class picking for a given team
+ */
+public class ClassPicker implements Listener {
     
     public static final Component TITLE = Component.empty()
             .append(Component.text("Pick a Class")
@@ -21,15 +31,15 @@ public class ClassPicker {
             .append(Component.text(" (One per team)")
                     .color(NamedTextColor.GRAY));
     private final Component NETHER_STAR_NAME = Component.text("Vote");
-    private final List<UUID> participantsWhoPickedClasses = new ArrayList<>();
-    private final List<BattleClass> pickedBattleClasses = new ArrayList<>();
-
+    private final Map<UUID, BattleClass> pickedBattleClasses = new HashMap<>();
+    private final List<Player> teamMates = new ArrayList<>();
+    
     /**
      * Converts a {@link Material} to a {@link BattleClass}
      * @param material The material to get the associated battle class of. 
      * @return The battle class associated with the given material. Null if the given material is not one of the associated material.
      */
-    public static BattleClass materialToBattleClass(@NotNull Material material) {
+    private BattleClass materialToBattleClass(@NotNull Material material) {
         switch (material) {
             case STONE_SWORD -> {
                 return BattleClass.KNIGHT;
@@ -73,87 +83,166 @@ public class ClassPicker {
             }
         }
     }
-
-    public void playerSelectBattleClass(@NotNull Player participant, @NotNull BattleClass battleClass) {
-        if (pickedBattleClasses.contains(battleClass)) {
+    
+    /**
+     * Registers event listeners, and starts the class picking phase for the given list of teammates
+     * @param plugin The plugin
+     * @param newTeamMates The list of teammates. They are assumed to be on the same team. Weird things will happen if they are not. 
+     */
+    public void start(Main plugin, List<Player> newTeamMates) {
+        plugin.getServer().getPluginManager().registerEvents(this, plugin);
+        teamMates.clear();
+        teamMates.addAll(newTeamMates);
+        for (Player teamMate : teamMates) {
+            showClassPickerGui(teamMate);
+        }
+    }
+    
+    /**
+     * Unregisters event listeners, assigns battle classes to teammates who don't have them (if desired), and closes inventories
+     * @param assignBattleClasses If true, this will assign battle classes to teammates who haven't picked a battle class yet.
+     */
+    public void stop(boolean assignBattleClasses) {
+        HandlerList.unregisterAll(this);
+        if (assignBattleClasses) {
+            assignBattleClassesToTeamMatesWithoutBattleClasses();
+        }
+        for (Player teamMate : teamMates) {
+            teamMate.closeInventory();
+        }
+    }
+    
+    @EventHandler
+    public void clickEvent(InventoryClickEvent event) {
+        if (event.getClickedInventory() == null ||
+                !event.getView().title().equals(TITLE) ||
+                event.getCurrentItem() == null
+        ) {
+            return;
+        }
+        Player teamMate = ((Player) event.getWhoClicked());
+        if (!teamMates.contains(teamMate)) {
+            return;
+        }
+        event.setCancelled(true);
+        Material itemType = event.getCurrentItem().getType();
+        BattleClass battleClass = this.materialToBattleClass(itemType);
+        if (battleClass == null) {
+            return;
+        }
+        boolean playerSelectedBattleClass = selectBattleClass(teamMate, battleClass);
+        if (!playerSelectedBattleClass) {
+            return;
+        }
+        teamMate.closeInventory();
+    }
+    
+    @EventHandler
+    public void onCloseMenu(InventoryCloseEvent event) {
+        if (event.getView().title().equals(TITLE)) {
+            return;
+        }
+        Player teamMate = ((Player) event.getPlayer());
+        if (!teamMates.contains(teamMate)) {
+            return;
+        }
+        if (pickedBattleClasses.containsKey(teamMate.getUniqueId())) {
+            return;
+        }
+        giveNetherStar(teamMate);
+    }
+    
+    @EventHandler
+    public void onPlayerInteract(PlayerInteractEvent event) {
+        Player teamMate = event.getPlayer();
+        if (!teamMates.contains(teamMate)) {
+            return;
+        }
+        ItemStack netherStar = event.getItem();
+        if (netherStar == null || 
+                !netherStar.getType().equals(Material.NETHER_STAR)) {
+            return;
+        }
+        onClickNetherStar(teamMate, netherStar);
+    }
+    
+    private boolean selectBattleClass(@NotNull Player participant, @NotNull BattleClass battleClass) {
+        if (pickedBattleClasses.containsValue(battleClass)) {
             participant.sendMessage(Component.empty()
                             .append(Component.text("Someone on your team already selected "))
                             .append(Component.text(getBattleClassName(battleClass)))
                             .color(NamedTextColor.DARK_RED));
-            return;
+            return false;
         }
-        pickedBattleClasses.add(battleClass);
         assignClass(participant, battleClass);
-        participantsWhoPickedClasses.add(participant.getUniqueId());
+        return true;
     }
     
-    public void onCloseMenu(@NotNull Player participant) {
-        if (participantsWhoPickedClasses.contains(participant.getUniqueId())) {
-            return;
-        }
+    private void giveNetherStar(@NotNull Player teamMate) {
         ItemStack netherStar = new ItemStack(Material.NETHER_STAR);
         ItemMeta netherStarMeta = netherStar.getItemMeta();
         netherStarMeta.displayName(NETHER_STAR_NAME);
         netherStar.setItemMeta(netherStarMeta);
-        participant.getInventory().addItem(netherStar);
-        participant.sendMessage(Component.text("You didn't pick a class. Use the nether star to pick.").color(NamedTextColor.DARK_RED));
+        teamMate.getInventory().addItem(netherStar);
+        teamMate.sendMessage(Component.text("You didn't pick a class. Use the nether star to pick.").color(NamedTextColor.DARK_RED));
     }
     
-    public void onClickNetherStar(@NotNull Player participant, @NotNull ItemStack netherStar) {
-        participant.getInventory().remove(netherStar);
-        showClassPickerGui(participant);
+    private void onClickNetherStar(@NotNull Player teamMate, @NotNull ItemStack netherStar) {
+        ItemMeta netherStarMeta = netherStar.getItemMeta();
+        if (netherStarMeta == null ||
+                !netherStarMeta.hasDisplayName() ||
+                !Objects.equals(netherStarMeta.displayName(), NETHER_STAR_NAME)
+        ) {
+            return;
+        }
+        teamMate.getInventory().remove(netherStar);
+        showClassPickerGui(teamMate);
     }
-
+    
     /**
-     * Goes through all given participants and assigns a class to any that don't
-     * already have one. It will assign classes from the pool of unpicked classes
-     * for that team. 
-     * @param participants The list of participants to check for a class
-     *                     and assign if absent. 
+     *  Assigns a class to any teamMates that don't already have one. It will assign classes from the pool of unpicked classes for that team.
      */
-    public void assignClassesToParticipantsWithoutClasses(List<Player> participants) {
-        for (Player participant : participants) {
-            if (!this.participantsWhoPickedClasses.contains(participant.getUniqueId())) {
-                randomlyAssignClass(participant);
+    private void assignBattleClassesToTeamMatesWithoutBattleClasses() {
+        for (Player teamMate : teamMates) {
+            if (!pickedBattleClasses.containsKey(teamMate.getUniqueId())) {
+                randomlyAssignClass(teamMate);
             }
         }
     }
     
     /**
-     * Assign the given class to the given participant. Setting their inventory
+     * Assign the given class to the given teamMate. Setting their inventory
      * and armor to the appropriate items. 
-     * @param participant the participant to assign a class to
+     * @param teamMate the teamMate to assign a class to
      * @param battleClass the class to assign
      */
-    private void assignClass(Player participant, BattleClass battleClass) {
+    private void assignClass(Player teamMate, BattleClass battleClass) {
+        pickedBattleClasses.put(teamMate.getUniqueId(), battleClass);
+        teamMate.getInventory().clear();
         switch (battleClass) {
             case KNIGHT -> {
-                participant.getInventory().clear();
-                participant.getEquipment().setChestplate(new ItemStack(Material.LEATHER_CHESTPLATE));
-                participant.getEquipment().setBoots(new ItemStack(Material.LEATHER_BOOTS));
-                participant.getInventory().addItem(new ItemStack(Material.STONE_SWORD));
-                participant.sendMessage("Selected Knight");
+                teamMate.getEquipment().setChestplate(new ItemStack(Material.LEATHER_CHESTPLATE));
+                teamMate.getEquipment().setBoots(new ItemStack(Material.LEATHER_BOOTS));
+                teamMate.getInventory().addItem(new ItemStack(Material.STONE_SWORD));
+                teamMate.sendMessage("Selected Knight");
             }
             case ARCHER -> {
-                participant.getInventory().clear();
-                participant.getEquipment().setChestplate(new ItemStack(Material.LEATHER_CHESTPLATE));
-                participant.getEquipment().setBoots(new ItemStack(Material.LEATHER_BOOTS));
-                participant.getInventory().addItem(new ItemStack(Material.BOW));
-                participant.getInventory().addItem(new ItemStack(Material.ARROW, 16));
-                participant.getInventory().addItem(new ItemStack(Material.WOODEN_SWORD));
-                participant.sendMessage("Selected Archer");
+                teamMate.getEquipment().setChestplate(new ItemStack(Material.LEATHER_CHESTPLATE));
+                teamMate.getEquipment().setBoots(new ItemStack(Material.LEATHER_BOOTS));
+                teamMate.getInventory().addItem(new ItemStack(Material.BOW));
+                teamMate.getInventory().addItem(new ItemStack(Material.ARROW, 16));
+                teamMate.getInventory().addItem(new ItemStack(Material.WOODEN_SWORD));
+                teamMate.sendMessage("Selected Archer");
             }
             case ASSASSIN -> {
-                participant.getInventory().clear();
-                participant.getInventory().addItem(new ItemStack(Material.IRON_SWORD));
-                participant.sendMessage("Selected Assassin");
+                teamMate.getInventory().addItem(new ItemStack(Material.IRON_SWORD));
+                teamMate.sendMessage("Selected Assassin");
             }
             case TANK -> {
-                participant.getInventory().clear();
-                participant.getEquipment().setChestplate(new ItemStack(Material.LEATHER_CHESTPLATE));
-                participant.getEquipment().setLeggings(new ItemStack(Material.LEATHER_LEGGINGS));
-                participant.getEquipment().setBoots(new ItemStack(Material.LEATHER_BOOTS));
-                participant.sendMessage("Selected Tank");
+                teamMate.getEquipment().setChestplate(new ItemStack(Material.LEATHER_CHESTPLATE));
+                teamMate.getEquipment().setLeggings(new ItemStack(Material.LEATHER_LEGGINGS));
+                teamMate.getEquipment().setBoots(new ItemStack(Material.LEATHER_BOOTS));
+                teamMate.sendMessage("Selected Tank");
             }
         }
     }
@@ -167,17 +256,10 @@ public class ClassPicker {
      */
     private void randomlyAssignClass(Player participant) {
         for (BattleClass battleClass : BattleClass.values()) {
-            if (!pickedBattleClasses.contains(battleClass)) {
-                pickedBattleClasses.add(battleClass);
+            if (!pickedBattleClasses.containsValue(battleClass)) {
                 assignClass(participant, battleClass);
                 return;
             }
-        }
-    }
-    
-    public void startClassPicking(List<Player> participants) {
-        for (Player participant : participants) {
-            showClassPickerGui(participant);
         }
     }
     

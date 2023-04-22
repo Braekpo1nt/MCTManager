@@ -40,7 +40,6 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
     private List<Player> participants;
     private boolean gameActive = false;
     
-    
     public CaptureTheFlagGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);

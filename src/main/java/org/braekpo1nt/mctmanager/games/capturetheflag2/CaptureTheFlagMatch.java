@@ -91,6 +91,8 @@ public class CaptureTheFlagMatch {
     
     public void stop() {
         cancelAllTasks();
+        northClassPicker.stop(false);
+        southClassPicker.stop(false);
         for (Player participant : allParticipants) {
             resetParticipant(participant);
         }
@@ -124,8 +126,8 @@ public class CaptureTheFlagMatch {
     
     private void startClassSelectionPeriod() {
         messageAllParticipants(Component.text("Choose your class"));
-        northClassPicker.startClassPicking(northParticipants);
-        southClassPicker.startClassPicking(southParticipants);
+        northClassPicker.start(plugin, northParticipants);
+        southClassPicker.start(plugin, southParticipants);
         
         this.classSelectionCountdownTaskIt = new BukkitRunnable() {
             private int count = 20;
