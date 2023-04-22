@@ -177,6 +177,7 @@ public class CaptureTheFlagMatch {
             enemyTeam = matchPairing.northTeam();
         }
         ChatColor enemyColor = gameManager.getTeamChatColor(enemyTeam);
+        String enemyDisplayName = gameManager.getTeamDisplayName(enemyTeam);
         gameManager.getFastBoardManager().updateLine(
                 participant.getUniqueId(),
                 1,

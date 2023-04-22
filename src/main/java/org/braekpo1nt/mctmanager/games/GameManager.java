@@ -581,6 +581,9 @@ public class GameManager implements Listener {
         return Component.text(displayName).color(teamColor).decorate(TextDecoration.BOLD);
     }
     
+    public String getTeamDisplayName(String teamName) {
+        return gameStateStorageUtil.getTeamDisplayName(teamName);
+    }
     
     /**
      * Returns the names of all online participants
@@ -708,4 +711,5 @@ public class GameManager implements Listener {
         String colorString = gameStateStorageUtil.getTeamColorString(teamName);
         return ColorMap.getChatColor(colorString);
     }
+    
 }
