@@ -28,9 +28,9 @@ dependencies {
     testImplementation 'io.papermc.paper:paper-api:1.19.3-R0.1-SNAPSHOT'
     testImplementation 'com.onarandombox.multiversecore:Multiverse-Core:4.3.1'
     implementation 'com.github.seeseemelk:MockBukkit-v1.19:2.146.1'
-
+    
     compileOnly 'io.papermc.paper:paper-api:1.19.3-R0.1-SNAPSHOT'
-
+    
 //    Multiverse-Core API: 
 //    https://github.com/Multiverse/Multiverse-Core/wiki/Developer-API-Starter
 //    http://ci.onarandombox.com/job/Multiverse-Core/javadoc/
@@ -44,8 +44,20 @@ dependencies {
 }
 
 shadowJar {
+//    exclude 'META-INF/*.SF'
+//    exclude 'META-INF/*.DSA'
+//    exclude 'META-INF/*.RSA'
+//    
+//    // exclude all dependencies except fr.mrmicky.fastboard
+//    exclude 'com.google.code.gson:*'
+//    exclude 'org.mockito:*'
+//    exclude 'org.junit.jupiter:*'
+//    exclude 'io.papermc.paper:*'
+//    exclude 'com.onarandombox.multiversecore:*'
+
     relocate 'fr.mrmicky.fastboard', 'org.braekpo1nt.mctmanager'
 }
+
 
 def targetJavaVersion = 17
 java {
