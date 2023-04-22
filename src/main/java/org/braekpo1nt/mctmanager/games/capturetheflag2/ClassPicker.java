@@ -139,7 +139,7 @@ public class ClassPicker implements Listener {
     
     @EventHandler
     public void onCloseMenu(InventoryCloseEvent event) {
-        if (event.getView().title().equals(TITLE)) {
+        if (!event.getView().title().equals(TITLE)) {
             return;
         }
         Player teamMate = ((Player) event.getPlayer());
