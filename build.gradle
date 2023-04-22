@@ -23,6 +23,11 @@ repositories {
 }
 
 dependencies {
+    //IMPORTANT
+    //IMPORTANT
+    // When you add a dependency, make sure the shadowJar task has excluded it
+    //IMPORTANT
+    //IMPORTANT
     testImplementation 'org.junit.jupiter:junit-jupiter:5.9.2'
     testImplementation 'org.mockito:mockito-core:5.2.0'
     testImplementation 'io.papermc.paper:paper-api:1.19.3-R0.1-SNAPSHOT'
@@ -45,14 +50,15 @@ dependencies {
 
 shadowJar {
     // exclude all dependencies except fr.mrmicky.fastboard
-    exclude 'org.junit.jupiter'
-    exclude 'org.mockito'
-    exclude 'io.papermc.paper'
-    exclude 'com.onarandombox.multiversecore'
-    exclude 'com.github.seeseemelk'
+    exclude 'org/junit/jupiter'
+    exclude 'org/mockito'
+    exclude 'io/papermc/paper'
+    exclude 'com/onarandombox/multiversecore'
+    exclude 'com/github/seeseemelk'
     
     relocate 'fr.mrmicky.fastboard', 'org.braekpo1nt.mctmanager'
 }
+
 
 
 def targetJavaVersion = 17
