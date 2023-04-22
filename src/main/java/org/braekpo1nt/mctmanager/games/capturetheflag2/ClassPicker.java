@@ -6,9 +6,6 @@ import org.braekpo1nt.mctmanager.games.capturetheflag.BattleClass;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.inventory.InventoryCloseEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -16,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-public class ClassPickerManager {
+public class ClassPicker {
     
     public static final Component TITLE = Component.empty()
             .append(Component.text("Pick a Class")
@@ -24,7 +21,6 @@ public class ClassPickerManager {
             .append(Component.text(" (One per team)")
                     .color(NamedTextColor.GRAY));
     private final Component NETHER_STAR_NAME = Component.text("Vote");
-    private final Map<String, List<BattleClass>> classTracker = new HashMap<>();
     private final List<UUID> participantsWhoPickedClasses = new ArrayList<>();
     private final List<BattleClass> pickedBattleClasses = new ArrayList<>();
 
@@ -90,19 +86,8 @@ public class ClassPickerManager {
         assignClass(participant, battleClass);
         participantsWhoPickedClasses.add(participant.getUniqueId());
     }
-
-    @EventHandler
-    public void onCloseMenu(InventoryCloseEvent event) {
-        if (!picking) {
-            return;
-        }
-        if (!event.getView().title().equals(TITLE)) {
-            return;
-        }
-        Player participant = ((Player) event.getPlayer());
-        if (!gameManager.isParticipant(participant.getUniqueId())) {
-            return;
-        }
+    
+    public void onCloseMenu(@NotNull Player participant) {
         if (participantsWhoPickedClasses.contains(participant.getUniqueId())) {
             return;
         }
@@ -114,28 +99,24 @@ public class ClassPickerManager {
         participant.sendMessage(Component.text("You didn't pick a class. Use the nether star to pick.").color(NamedTextColor.DARK_RED));
     }
     
-    @EventHandler
-    public void onClickNetherStar(PlayerInteractEvent event) {
-        if (!picking) {
-            return;
-        }
-        Player participant = event.getPlayer();
-        if (!gameManager.isParticipant(participant.getUniqueId())) {
-            return;
-        }
-        ItemStack item = event.getItem();
-        if (item == null) {
-            return;
-        }
-        if (item.getType() != Material.NETHER_STAR) {
-            return;
-        }
-        ItemMeta netherStarMeta = item.getItemMeta();
-        if (netherStarMeta == null || !netherStarMeta.hasDisplayName() || !netherStarMeta.displayName().equals(NETHER_STAR_NAME)) {
-            return;
-        }
-        participant.getInventory().remove(item);
+    public void onClickNetherStar(@NotNull Player participant, @NotNull ItemStack netherStar) {
+        participant.getInventory().remove(netherStar);
         showClassPickerGui(participant);
+    }
+
+    /**
+     * Goes through all given participants and assigns a class to any that don't
+     * already have one. It will assign classes from the pool of unpicked classes
+     * for that team. 
+     * @param participants The list of participants to check for a class
+     *                     and assign if absent. 
+     */
+    public void assignClassesToParticipantsWithoutClasses(List<Player> participants) {
+        for (Player participant : participants) {
+            if (!this.participantsWhoPickedClasses.contains(participant.getUniqueId())) {
+                randomlyAssignClass(participant);
+            }
+        }
     }
     
     /**
@@ -144,7 +125,7 @@ public class ClassPickerManager {
      * @param participant the participant to assign a class to
      * @param battleClass the class to assign
      */
-    public void assignClass(Player participant, BattleClass battleClass) {
+    private void assignClass(Player participant, BattleClass battleClass) {
         switch (battleClass) {
             case KNIGHT -> {
                 participant.getInventory().clear();
@@ -178,21 +159,6 @@ public class ClassPickerManager {
     }
     
     /**
-     * Goes through all given participants and assigns a class to any that don't
-     * already have one. It will assign classes from the pool of unpicked classes
-     * for that team. 
-     * @param participants The list of participants to check for a class
-     *                     and assign if absent. 
-     */
-    public void assignClassesToParticipantsWithoutClasses(List<Player> participants) {
-        for (Player participant : participants) {
-            if (!this.participantsWhoPickedClasses.contains(participant.getUniqueId())) {
-                randomlyAssignClass(participant);
-            }
-        }
-    }
-    
-    /**
      * Randomly assign a class to the given participant from the pool of classes
      * that are left (classes that other players on their team didn't pick).
      * If there are no classes left unpicked to assign, this method does nothing.
@@ -200,11 +166,6 @@ public class ClassPickerManager {
      * @throws NullPointerException if the participant is not in the game state
      */
     private void randomlyAssignClass(Player participant) {
-        String teamName = gameManager.getTeamName(participant.getUniqueId());
-        if (!classTracker.containsKey(teamName)) {
-            classTracker.put(teamName, new ArrayList<>());
-        }
-        List<BattleClass> pickedBattleClasses = this.classTracker.get(teamName);
         for (BattleClass battleClass : BattleClass.values()) {
             if (!pickedBattleClasses.contains(battleClass)) {
                 pickedBattleClasses.add(battleClass);
@@ -214,23 +175,9 @@ public class ClassPickerManager {
         }
     }
     
-    public void resetClassPickerTracker() {
-        this.classTracker.clear();
-        this.participantsWhoPickedClasses.clear();
-    }
-    
     public void startClassPicking(List<Player> participants) {
-        picking = true;
         for (Player participant : participants) {
             showClassPickerGui(participant);
-        }
-    }
-    
-    public void stopClassPicking(List<Player> participants) {
-        picking = false;
-        resetClassPickerTracker();
-        for (Player participant : participants) {
-            participant.closeInventory();
         }
     }
     
@@ -289,9 +236,8 @@ public class ClassPickerManager {
         participant.openInventory(newGui);
     }
     
-    public int getSlotIndex(int line, int column) {
-        int slotIndex = (line - 1) * 9 + (column - 1);
-        return slotIndex;
+    private int getSlotIndex(int line, int column) {
+        return (line - 1) * 9 + (column - 1);
     }
     
 }

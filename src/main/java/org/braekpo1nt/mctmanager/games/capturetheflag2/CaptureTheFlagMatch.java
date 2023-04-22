@@ -26,15 +26,16 @@ public class CaptureTheFlagMatch {
     private final GameManager gameManager;
     private final MatchPairing matchPairing;
     private final Arena arena;
-    private List<UUID> northParticipants;
-    private List<UUID> southParticipants;
+    private List<Player> northParticipants;
+    private List<Player> southParticipants;
     private List<Player> allParticipants;
     private Map<UUID, Boolean> participantsAreAlive;
     private Map<UUID, Integer> killCount;
     private boolean matchActive = false;
     private int classSelectionCountdownTaskIt;
     private int matchTimerTaskId;
-    private final ClassPickerManager classPickerManager;
+    private final ClassPicker northClassPicker;
+    private final ClassPicker southClassPicker;
     
     public CaptureTheFlagMatch(CaptureTheFlagRound captureTheFlagRound, Main plugin, GameManager gameManager, MatchPairing matchPairing, Arena arena) {
         this.captureTheFlagRound = captureTheFlagRound;
@@ -42,7 +43,8 @@ public class CaptureTheFlagMatch {
         this.gameManager = gameManager;
         this.matchPairing = matchPairing;
         this.arena = arena;
-        this.classPickerManager = new ClassPickerManager(plugin);
+        this.northClassPicker = new ClassPicker();
+        this.southClassPicker = new ClassPicker();
     }
     
     public MatchPairing getMatchPairing() {
@@ -73,10 +75,10 @@ public class CaptureTheFlagMatch {
         participantsAreAlive.put(participantUniqueId, true);
         killCount.put(participantUniqueId, 0);
         if (north) {
-            northParticipants.add(participant.getUniqueId());
+            northParticipants.add(participant);
             participant.teleport(arena.northSpawn());
         } else {
-            southParticipants.add(participant.getUniqueId());
+            southParticipants.add(participant);
             participant.teleport(arena.northSpawn());
         }
         allParticipants.add(participant);
@@ -95,7 +97,6 @@ public class CaptureTheFlagMatch {
         allParticipants.clear();
         northParticipants.clear();
         southParticipants.clear();
-        classPickerManager.stopClassPicking(Collections.emptyList());
         matchActive = false;
         captureTheFlagRound.matchIsOver(this);
         Bukkit.getLogger().info("Stopping capture the flag match " + matchPairing);
@@ -103,11 +104,14 @@ public class CaptureTheFlagMatch {
     
     private void resetParticipant(Player participant) {
         participant.getInventory().clear();
+        participant.closeInventory();
         ParticipantInitializer.resetHealthAndHunger(participant);
     }
 
     private void startMatch() {
-        classPickerManager.stopClassPicking(allParticipants);
+        for (Player participants : allParticipants) {
+            participants.closeInventory();
+        }
         messageAllParticipants(Component.text("Begin!"));
         openGlassBarriers();
         startMatchTimer();
@@ -120,7 +124,9 @@ public class CaptureTheFlagMatch {
     
     private void startClassSelectionPeriod() {
         messageAllParticipants(Component.text("Choose your class"));
-        classPickerManager.startClassPicking(allParticipants);
+        northClassPicker.startClassPicking(northParticipants);
+        southClassPicker.startClassPicking(southParticipants);
+        
         this.classSelectionCountdownTaskIt = new BukkitRunnable() {
             private int count = 20;
             @Override
