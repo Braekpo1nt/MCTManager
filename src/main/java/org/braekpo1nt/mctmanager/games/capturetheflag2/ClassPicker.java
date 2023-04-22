@@ -264,10 +264,11 @@ public class ClassPicker implements Listener {
     }
     
     /**
-     * Shows the given participant the Class Picker gui
-     * @param participant The participant to show the gui to
+     * Shows the given teamMate the Class Picker gui
+     * @param teamMate The teamMate to show the gui to
      */
-    private void showClassPickerGui(Player participant) {
+    private void showClassPickerGui(Player teamMate) {
+        Bukkit.getLogger().info("Showing class picker gui to " + teamMate.getName());
         ItemStack knight = new ItemStack(Material.STONE_SWORD);
         ItemStack archer = new ItemStack(Material.BOW);
         ItemStack assassin = new ItemStack(Material.IRON_SWORD);
@@ -315,7 +316,7 @@ public class ClassPicker implements Listener {
         newGui.setItem(getSlotIndex(1, 2), archer);
         newGui.setItem(getSlotIndex(1, 3), assassin);
         newGui.setItem(getSlotIndex(1, 4), tank);
-        participant.openInventory(newGui);
+        teamMate.openInventory(newGui);
     }
     
     private int getSlotIndex(int line, int column) {

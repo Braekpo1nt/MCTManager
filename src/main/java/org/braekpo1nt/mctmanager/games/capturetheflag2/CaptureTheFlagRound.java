@@ -68,6 +68,7 @@ public class CaptureTheFlagRound {
         for (CaptureTheFlagMatch match : matches) {
             match.stop();
         }
+        matches.clear();
     }
     
     /**
@@ -83,7 +84,7 @@ public class CaptureTheFlagRound {
     
     private void startMatchesStartingCountDown() {
         this.matchesStartingCountDownTaskId = new BukkitRunnable() {
-            int count = 15;
+            int count = 10;
             @Override
             public void run() {
                 if (count <= 0) {
@@ -103,7 +104,7 @@ public class CaptureTheFlagRound {
     private void startMatches() {
         for (CaptureTheFlagMatch match : matches) {
             MatchPairing matchPairing = match.getMatchPairing();
-            List<Player> northParticipants = gameManager.getOnlinePlayersOnTeam(matchPairing.northTeam());
+            List<Player> northParticipants = new ArrayList<>();
             List<Player> southParticipants = new ArrayList<>();
             for (Player participant : participants) {
                 String team = gameManager.getTeamName(participant.getUniqueId());

@@ -154,7 +154,7 @@ public class CaptureTheFlagMatch {
     
     private void startMatchTimer() {
         this.matchTimerTaskId = new BukkitRunnable() {
-            int count = 15;
+            int count = 7*60;
             @Override
             public void run() {
                 if (count <= 0) {
