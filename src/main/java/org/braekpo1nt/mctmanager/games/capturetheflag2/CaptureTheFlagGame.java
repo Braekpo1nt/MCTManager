@@ -76,7 +76,7 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
     @Override
     public void stop() {
         CaptureTheFlagRound currentRound = rounds.get(currentRoundIndex);
-        currentRound.stop();
+        currentRound.stop(false);
         gameActive = false;
         for (Player participant : participants) {
             resetParticipant(participant);

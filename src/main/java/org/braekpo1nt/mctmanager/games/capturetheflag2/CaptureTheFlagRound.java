@@ -59,12 +59,14 @@ public class CaptureTheFlagRound {
         ParticipantInitializer.resetHealthAndHunger(participant);
     }
     
-    public void stop() {
+    public void stop(boolean report) {
         cancelAllTasks();
         for (CaptureTheFlagMatch match : matches) {
-            match.stop();
+            match.stop(false);
         }
-        captureTheFlagGame.roundIsOver();
+        if (report) {
+            captureTheFlagGame.roundIsOver();
+        }
     }
     
     /**
@@ -74,7 +76,7 @@ public class CaptureTheFlagRound {
     public void matchIsOver(CaptureTheFlagMatch match) {
         matches.remove(match);
         if (matches.isEmpty()) {
-            stop();
+            stop(true);
         }
     }
     
