@@ -139,6 +139,8 @@ public class CaptureTheFlagMatch {
             public void run() {
                 if (count <= 0) {
                     messageAllParticipants(Component.text("Class selection is over"));
+                    northClassPicker.stop(true);
+                    southClassPicker.stop(true);
                     startMatch();
                     this.cancel();
                     return;
