@@ -89,7 +89,12 @@ public class CaptureTheFlagMatch {
         ParticipantInitializer.resetHealthAndHunger(participant);
     }
     
-    public void stop(boolean report) {
+    private void matchIsOver() {
+        stop();
+        captureTheFlagRound.matchIsOver(this);
+    }
+    
+    public void stop() {
         cancelAllTasks();
         northClassPicker.stop(false);
         southClassPicker.stop(false);
@@ -100,9 +105,6 @@ public class CaptureTheFlagMatch {
         northParticipants.clear();
         southParticipants.clear();
         matchActive = false;
-        if (report) {
-            captureTheFlagRound.matchIsOver(this);
-        }
         Bukkit.getLogger().info("Stopping capture the flag match " + matchPairing);
     }
     
@@ -156,7 +158,7 @@ public class CaptureTheFlagMatch {
             @Override
             public void run() {
                 if (count <= 0) {
-                    stop(true);
+                    matchIsOver();
                     this.cancel();
                     return;
                 }
