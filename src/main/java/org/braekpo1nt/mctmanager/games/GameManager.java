@@ -712,4 +712,8 @@ public class GameManager implements Listener {
         return ColorMap.getChatColor(colorString);
     }
     
+    public Material getTeamBannerColor(String teamName) {
+        String colorString = gameStateStorageUtil.getTeamColorString(teamName);
+        return ColorMap.getBannerColor(colorString);
+    }
 }

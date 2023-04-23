@@ -39,6 +39,8 @@ public class CaptureTheFlagMatch implements Listener {
     private final ClassPicker southClassPicker;
     private Location northFlagPosition;
     private Location southFlagPosition;
+    private Material northBanner;
+    private Material southBanner;
     
     public CaptureTheFlagMatch(CaptureTheFlagRound captureTheFlagRound, Main plugin, GameManager gameManager, MatchPairing matchPairing, Arena arena) {
         this.captureTheFlagRound = captureTheFlagRound;
@@ -61,10 +63,9 @@ public class CaptureTheFlagMatch implements Listener {
         allParticipants = new ArrayList<>();
         participantsAreAlive = new HashMap<>();
         killCount = new HashMap<>();
-        northFlagPosition = arena.northFlag();
-        northFlagPosition.getBlock().setType(Material.WHITE_BANNER);
-        southFlagPosition = arena.southFlag();
-        southFlagPosition.getBlock().setType(Material.WHITE_BANNER);
+        String northTeam = gameManager.getTeamName(newNorthParticipants.get(0).getUniqueId());
+        String southTeam = gameManager.getTeamName(newSouthParticipants.get(0).getUniqueId());
+        placeFlags(northTeam, southTeam);
         closeGlassBarriers();
         for (Player northParticipant : newNorthParticipants) {
             initializeParticipant(northParticipant, true);
@@ -75,8 +76,7 @@ public class CaptureTheFlagMatch implements Listener {
         setupTeamOptions();
         startClassSelectionPeriod();
         matchActive = true;
-        Bukkit.getLogger().info(String.format("northpos: %s, southpos: %s", northFlagPosition, southFlagPosition));
-        Bukkit.getLogger().info(String.format("Starting capture the flag match %s, north: %s, south: %s", matchPairing, northParticipants, southParticipants));
+        Bukkit.getLogger().info(String.format("Starting capture the flag match %s", matchPairing));
     }
     
     private void initializeParticipant(Player participant, boolean north) {
@@ -167,7 +167,7 @@ public class CaptureTheFlagMatch implements Listener {
         messageNorthParticipants(Component.empty()
                 .append(Component.text("You captured the flag!"))
                 .color(NamedTextColor.GREEN));
-        northParticipant.getEquipment().setHelmet(new ItemStack(Material.WHITE_BANNER));
+        northParticipant.getEquipment().setHelmet(new ItemStack(southBanner));
         southFlagPosition.getBlock().setType(Material.AIR);
         southFlagPosition = null;
     }
@@ -179,7 +179,7 @@ public class CaptureTheFlagMatch implements Listener {
         messageSouthParticipants(Component.empty()
                 .append(Component.text("You captured the flag!"))
                 .color(NamedTextColor.GREEN));
-        southParticipant.getEquipment().setHelmet(new ItemStack(Material.WHITE_BANNER));
+        southParticipant.getEquipment().setHelmet(new ItemStack(northBanner));
         northFlagPosition.getBlock().setType(Material.AIR);
         northFlagPosition = null;
     }
@@ -218,7 +218,6 @@ public class CaptureTheFlagMatch implements Listener {
             @Override
             public void run() {
                 if (count <= 0) {
-                    messageAllParticipants(Component.text("Class selection is over"));
                     northClassPicker.stop(true);
                     southClassPicker.stop(true);
                     startMatch();
@@ -254,9 +253,9 @@ public class CaptureTheFlagMatch implements Listener {
     }
     
     private void initializeFastBoard(Player participant) {
-        String enemyTeam = matchPairing.southTeam();
+        String enemyTeam = matchPairing.northTeam();
         if (northParticipants.contains(participant)) {
-            enemyTeam = matchPairing.northTeam();
+            enemyTeam = matchPairing.southTeam();
         }
         ChatColor enemyColor = gameManager.getTeamChatColor(enemyTeam);
         String enemyDisplayName = gameManager.getTeamDisplayName(enemyTeam);
@@ -301,6 +300,16 @@ public class CaptureTheFlagMatch implements Listener {
                 5,
                 timeLeft
         );
+    }
+    
+    private void placeFlags(String northTeam, String southTeam) {
+        northBanner = gameManager.getTeamBannerColor(northTeam);
+        northFlagPosition = arena.northFlag().clone();
+        northFlagPosition.getBlock().setType(northBanner);
+        
+        southBanner = gameManager.getTeamBannerColor(southTeam);
+        southFlagPosition = arena.southFlag().clone();
+        southFlagPosition.getBlock().setType(southBanner);
     }
     
     /**

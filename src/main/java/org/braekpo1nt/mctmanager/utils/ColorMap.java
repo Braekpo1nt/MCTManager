@@ -81,6 +81,26 @@ public class ColorMap {
         POWDER_TYPE_MAP.put("yellow", Material.YELLOW_CONCRETE_POWDER);
     }
     
+    private static final Map<String, Material> BANNER_TYPE_MAP = new HashMap<>();
+    static {
+        BANNER_TYPE_MAP.put("aqua", Material.LIGHT_BLUE_BANNER);
+        BANNER_TYPE_MAP.put("black", Material.BLACK_BANNER);
+        BANNER_TYPE_MAP.put("dark_aqua", Material.CYAN_BANNER);
+        BANNER_TYPE_MAP.put("dark_blue", Material.BLUE_BANNER);
+        BANNER_TYPE_MAP.put("dark_gray", Material.GRAY_BANNER);
+        BANNER_TYPE_MAP.put("dark_green", Material.GREEN_BANNER);
+        BANNER_TYPE_MAP.put("dark_purple", Material.PURPLE_BANNER);
+        BANNER_TYPE_MAP.put("dark_red", Material.RED_BANNER);
+        BANNER_TYPE_MAP.put("gold", Material.YELLOW_BANNER);
+        BANNER_TYPE_MAP.put("gray", Material.LIGHT_GRAY_BANNER);
+        BANNER_TYPE_MAP.put("green", Material.LIME_BANNER);
+        BANNER_TYPE_MAP.put("light_purple", Material.MAGENTA_BANNER);
+        BANNER_TYPE_MAP.put("red", Material.RED_BANNER);
+        BANNER_TYPE_MAP.put("white", Material.WHITE_BANNER);
+        BANNER_TYPE_MAP.put("blue", Material.LIGHT_BLUE_BANNER);
+        BANNER_TYPE_MAP.put("yellow", Material.YELLOW_BANNER);
+    }
+    
     public static NamedTextColor getNamedTextColor(String colorString) {
         return NAMED_TEXT_COLOR_MAP.getOrDefault(colorString.toLowerCase(), NamedTextColor.WHITE);
     }
@@ -113,9 +133,18 @@ public class ColorMap {
      * Note that some color strings are duplicates.
      * @param colorString The color string to get the concrete powder for. Should be the color strings matching
      *                    the ChatColor values.
-     * @return The concrete powder color that best matches the given color string
+     * @return The concrete powder color that best matches the given color string. White if unrecognized.
      */
     public static Material getConcretePowderColor(String colorString) {
         return POWDER_TYPE_MAP.getOrDefault(colorString, Material.WHITE_CONCRETE_POWDER);
+    }
+    
+    /**
+     * Gets the color of banner associated with the given color string. Note that some are duplicates.
+     * @param colorString The color string 
+     * @return The banner color type most closely matching the given color string. White if unrecognized. 
+     */
+    public static Material getBannerColor(String colorString) {
+        return BANNER_TYPE_MAP.getOrDefault(colorString, Material.WHITE_BANNER);
     }
 }
