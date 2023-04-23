@@ -3,7 +3,6 @@ package org.braekpo1nt.mctmanager.games.capturetheflag;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public class CaptureTheFlagUtils {
@@ -28,7 +27,7 @@ public class CaptureTheFlagUtils {
         return combinations;
     }
     
-    public static @NotNull List<List<MatchPairing>> generateRounds(@NotNull List<MatchPairing> matchPairings) {
+    public static @NotNull List<List<MatchPairing>> generateRoundMatchPairings(@NotNull List<MatchPairing> matchPairings) {
         List<List<MatchPairing>> roundMatchPairingLists = new ArrayList<>();
         return roundMatchPairingLists;
     }

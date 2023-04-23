@@ -1,9 +1,6 @@
 package org.braekpo1nt.mctmanager.games.capturetheflag;
 
-import org.braekpo1nt.mctmanager.MainTestBase;
-import org.braekpo1nt.mctmanager.games.GameManager;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -82,7 +79,7 @@ class CaptureTheFlagUtilsTest {
                 new MatchPairing("A", "C"),
                 new MatchPairing("B", "C")
         );
-        List<List<MatchPairing>> roundMatchPairingLists = CaptureTheFlagUtils.generateRounds(matchPairings);
+        List<List<MatchPairing>> roundMatchPairingLists = CaptureTheFlagUtils.generateRoundMatchPairings(matchPairings);
         Assertions.assertEquals(3, roundMatchPairingLists.size());
         
         for (List<MatchPairing> matchPairingList : roundMatchPairingLists) {
@@ -103,7 +100,7 @@ class CaptureTheFlagUtilsTest {
     void singleMatchPairing() {
         List<String> teamNames = Arrays.asList("A", "B");
         List<MatchPairing> matchPairings = CaptureTheFlagUtils.generateMatchPairings(teamNames);
-        List<List<MatchPairing>> roundMatchPairingLists = CaptureTheFlagUtils.generateRounds(matchPairings);
+        List<List<MatchPairing>> roundMatchPairingLists = CaptureTheFlagUtils.generateRoundMatchPairings(matchPairings);
         Assertions.assertEquals(1, roundMatchPairingLists.size());
         Assertions.assertEquals(1, roundMatchPairingLists.get(0).size());
     }
@@ -113,7 +110,7 @@ class CaptureTheFlagUtilsTest {
     void threeTeamsTest() {
         List<String> teamNames = Arrays.asList("A", "B", "C");
         List<MatchPairing> matchPairings = CaptureTheFlagUtils.generateMatchPairings(teamNames);
-        List<List<MatchPairing>> roundLists = CaptureTheFlagUtils.generateRounds(matchPairings);
+        List<List<MatchPairing>> roundLists = CaptureTheFlagUtils.generateRoundMatchPairings(matchPairings);
         
         Assertions.assertEquals(3, roundLists.size());
         
@@ -132,7 +129,7 @@ class CaptureTheFlagUtilsTest {
     void fourTeamsTest() {
         List<String> teamNames = Arrays.asList("A", "B", "C", "D");
         List<MatchPairing> matchPairings = CaptureTheFlagUtils.generateMatchPairings(teamNames);
-        List<List<MatchPairing>> roundLists = CaptureTheFlagUtils.generateRounds(matchPairings);
+        List<List<MatchPairing>> roundLists = CaptureTheFlagUtils.generateRoundMatchPairings(matchPairings);
         
         Assertions.assertEquals(3, roundLists.size());
         
