@@ -53,7 +53,7 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
     @Override
     public void start(List<Player> newParticipants) {
         List<String> teamNames = gameManager.getTeamNames(newParticipants);
-        List<MatchPairing> matchPairings = generateMatchPairings(teamNames);
+        List<MatchPairing> matchPairings = CaptureTheFlagUtils.generateMatchPairings(teamNames);
         rounds = generateRounds(matchPairings);
         currentRoundIndex = 0;
         maxRounds = rounds.size();
@@ -113,26 +113,6 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
     private void startNextRound() {
         CaptureTheFlagRound nextRound = rounds.get(currentRoundIndex);
         nextRound.start(participants);
-    }
-    
-    /**
-     * Generates all combinations of size 2 of the given teams in the form of {@link MatchPairing}s 
-     * @param teamNames The teams to generate the combinations of
-     * @return A list of at least two MatchPairing objects representing all combinations of size 2
-     * of the given list of team names
-     * @throws IndexOutOfBoundsException if teamNames.size() is 1 or less
-     */
-    public static @NotNull List<MatchPairing> generateMatchPairings(@NotNull List<String> teamNames) {
-        List<MatchPairing> combinations = new ArrayList<>();
-        for (int i = 0; i < teamNames.size(); i++) {
-            for (int j = i + 1; j < teamNames.size(); j++) {
-                String northTeam = teamNames.get(i);
-                String southTeam = teamNames.get(j);
-                MatchPairing pairing = new MatchPairing(northTeam, southTeam);
-                combinations.add(pairing);
-            }
-        }
-        return combinations;
     }
     
     /**
