@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.games.capturetheflag;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
@@ -12,6 +13,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
@@ -60,7 +62,9 @@ public class CaptureTheFlagMatch implements Listener {
         participantsAreAlive = new HashMap<>();
         killCount = new HashMap<>();
         northFlagPosition = arena.northFlag();
+        northFlagPosition.getBlock().setType(Material.WHITE_BANNER);
         southFlagPosition = arena.southFlag();
+        southFlagPosition.getBlock().setType(Material.WHITE_BANNER);
         closeGlassBarriers();
         for (Player northParticipant : newNorthParticipants) {
             initializeParticipant(northParticipant, true);
@@ -140,28 +144,44 @@ public class CaptureTheFlagMatch implements Listener {
             return;
         }
         Player participant = event.getPlayer();
-        Location to = participant.getLocation();
+        Location location = participant.getLocation();
         if (northParticipants.contains(participant)) {
-            if (!canPickUpSouthFlag(to)) {
+            if (!canPickUpSouthFlag(location)) {
                 return;
             }
             pickUpSouthFlag(participant);
             return;
         }
         if (southParticipants.contains(participant)) {
-            if (!canPickUpNorthFlag(to)) {
+            if (!canPickUpNorthFlag(location)) {
                 return;
             }
             pickUpNorthFlag(participant);
         }
     }
     
-    private void pickUpSouthFlag(Player northParticipant) {
-        Bukkit.getLogger().info(northParticipant.getName() + " picked up the south flag");
+    private synchronized void pickUpSouthFlag(Player northParticipant) {
+        messageSouthParticipants(Component.empty()
+                .append(Component.text("Your flag was captured!"))
+                .color(NamedTextColor.DARK_RED));
+        messageNorthParticipants(Component.empty()
+                .append(Component.text("You captured the flag!"))
+                .color(NamedTextColor.GREEN));
+        northParticipant.getEquipment().setHelmet(new ItemStack(Material.WHITE_BANNER));
+        southFlagPosition.getBlock().setType(Material.AIR);
+        southFlagPosition = null;
     }
     
-    private void pickUpNorthFlag(Player southParticipant) {
-        Bukkit.getLogger().info(southParticipant.getName() + " picked up the north flag");
+    private synchronized void pickUpNorthFlag(Player southParticipant) {
+        messageNorthParticipants(Component.empty()
+                .append(Component.text("Your flag was captured!"))
+                .color(NamedTextColor.DARK_RED));
+        messageSouthParticipants(Component.empty()
+                .append(Component.text("You captured the flag!"))
+                .color(NamedTextColor.GREEN));
+        southParticipant.getEquipment().setHelmet(new ItemStack(Material.WHITE_BANNER));
+        northFlagPosition.getBlock().setType(Material.AIR);
+        northFlagPosition = null;
     }
     
     /**
@@ -194,7 +214,7 @@ public class CaptureTheFlagMatch implements Listener {
         southClassPicker.start(plugin, southParticipants);
         
         this.classSelectionCountdownTaskIt = new BukkitRunnable() {
-            private int count = 20;
+            private int count = 10;
             @Override
             public void run() {
                 if (count <= 0) {
@@ -216,7 +236,7 @@ public class CaptureTheFlagMatch implements Listener {
     
     private void startMatchTimer() {
         this.matchTimerTaskId = new BukkitRunnable() {
-            int count = 7*60;
+            int count = 3*60;
             @Override
             public void run() {
                 if (count <= 0) {
@@ -317,6 +337,18 @@ public class CaptureTheFlagMatch implements Listener {
     
     private void messageAllParticipants(Component message) {
         for (Player participant : allParticipants) {
+            participant.sendMessage(message);
+        }
+    }
+    
+    private void messageNorthParticipants(Component message) {
+        for (Player participant : northParticipants) {
+            participant.sendMessage(message);
+        }
+    }
+    
+    private void messageSouthParticipants(Component message) {
+        for (Player participant : southParticipants) {
             participant.sendMessage(message);
         }
     }
