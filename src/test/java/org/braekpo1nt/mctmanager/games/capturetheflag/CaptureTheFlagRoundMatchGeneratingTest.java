@@ -7,6 +7,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.List;
 
@@ -16,23 +17,27 @@ class CaptureTheFlagRoundMatchGeneratingTest extends MainTestBase {
     
     private CaptureTheFlagGame captureTheFlagGame;
     private final List<MatchPairing> MATCH_PAIRINGS = Arrays.asList(
-            new MatchPairing("North1", "South1"),
-            new MatchPairing("North2", "South2"),
-            new MatchPairing("North3", "South3"),
-            new MatchPairing("North4", "South4"),
-            new MatchPairing("North5", "South5"),
-            new MatchPairing("North6", "South6"),
-            new MatchPairing("North7", "South7"),
-            new MatchPairing("North8", "South8"),
-            new MatchPairing("North9", "South9"),
-            new MatchPairing("North10", "South10"),
-            new MatchPairing("North11", "South11"),
-            new MatchPairing("North12", "South12"),
-            new MatchPairing("North13", "South13"),
-            new MatchPairing("North14", "South14"),
-            new MatchPairing("North15", "South15"),
-            new MatchPairing("North16", "South16"),
-            new MatchPairing("North17", "South17")
+            new MatchPairing("A", "B"),
+            new MatchPairing("A", "C"),
+            new MatchPairing("A", "D"),
+            new MatchPairing("A", "E"),
+            new MatchPairing("A", "F"),
+            new MatchPairing("A", "G"),
+            new MatchPairing("B", "C"),
+            new MatchPairing("B", "D"),
+            new MatchPairing("B", "E"),
+            new MatchPairing("B", "F"),
+            new MatchPairing("B", "G"),
+            new MatchPairing("C", "D"),
+            new MatchPairing("C", "E"),
+            new MatchPairing("C", "F"),
+            new MatchPairing("C", "G"),
+            new MatchPairing("D", "E"),
+            new MatchPairing("D", "F"),
+            new MatchPairing("D", "G"),
+            new MatchPairing("E", "F"),
+            new MatchPairing("E", "G"),
+            new MatchPairing("F", "G")
     );
     
     @BeforeEach
@@ -67,6 +72,22 @@ class CaptureTheFlagRoundMatchGeneratingTest extends MainTestBase {
     }
     
     // generateRounds
+    
+    @Test
+    @DisplayName("The same team isn't in two different matches within the same round")
+    void duplicateTeamInRound() {
+        List<MatchPairing> matchPairings = Arrays.asList(
+                new MatchPairing("A", "B"),
+                new MatchPairing("A", "C"),
+                new MatchPairing("B", "C")
+        );
+        List<CaptureTheFlagRound> rounds = captureTheFlagGame.generateRounds(matchPairings);
+        Assertions.assertEquals(3, rounds.size());
+        Assertions.assertEquals(1, rounds.get(0).getMatches().size());
+        Assertions.assertEquals(new MatchPairing("A", "B"), rounds.get(0).getMatches().get(0).getMatchPairing());
+        Assertions.assertEquals(new MatchPairing("A", "C"), rounds.get(1).getMatches().get(0).getMatchPairing());
+        Assertions.assertEquals(new MatchPairing("B", "C"), rounds.get(2).getMatches().get(0).getMatchPairing());
+    }
     
     @Test
     @DisplayName("1 match pairing makes 1 round with 1 match")
