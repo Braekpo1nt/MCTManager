@@ -272,7 +272,7 @@ public class CaptureTheFlagMatch implements Listener {
         gameManager.getFastBoardManager().updateLine(
                 participant.getUniqueId(),
                 5,
-                "7:00"
+                "3:00"
         );
     }
     
