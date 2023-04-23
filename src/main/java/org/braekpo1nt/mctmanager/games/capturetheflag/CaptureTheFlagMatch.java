@@ -243,7 +243,7 @@ public class CaptureTheFlagMatch implements Listener {
         gameManager.getFastBoardManager().updateLine(
                 participant.getUniqueId(),
                 1,
-                "vs: "+enemyColor+enemyTeam
+                "vs: "+enemyColor+enemyDisplayName
         );
         gameManager.getFastBoardManager().updateLine(
                 participant.getUniqueId(),
