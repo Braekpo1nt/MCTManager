@@ -214,7 +214,7 @@ public class CaptureTheFlagMatch implements Listener {
         southClassPicker.start(plugin, southParticipants);
         
         this.classSelectionCountdownTaskIt = new BukkitRunnable() {
-            private int count = 10;
+            private int count = 20;
             @Override
             public void run() {
                 if (count <= 0) {
