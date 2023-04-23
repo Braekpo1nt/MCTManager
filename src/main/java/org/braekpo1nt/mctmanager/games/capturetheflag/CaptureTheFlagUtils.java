@@ -29,7 +29,8 @@ public class CaptureTheFlagUtils {
     }
     
     public static @NotNull List<List<MatchPairing>> generateRounds(@NotNull List<MatchPairing> matchPairings) {
-        return Collections.emptyList();
+        List<List<MatchPairing>> roundMatchPairingLists = new ArrayList<>();
+        return roundMatchPairingLists;
     }
     
 }

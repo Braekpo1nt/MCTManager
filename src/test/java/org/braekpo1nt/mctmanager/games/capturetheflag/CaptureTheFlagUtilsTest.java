@@ -76,6 +76,7 @@ class CaptureTheFlagUtilsTest {
     @Test
     @DisplayName("The same team isn't in two different matches within the same round")
     void duplicateTeamInRound() {
+        List<String> teamNames = Arrays.asList("A", "B", "C");
         List<MatchPairing> matchPairings = Arrays.asList(
                 new MatchPairing("A", "B"),
                 new MatchPairing("A", "C"),
@@ -83,10 +84,18 @@ class CaptureTheFlagUtilsTest {
         );
         List<List<MatchPairing>> roundMatchPairingLists = CaptureTheFlagUtils.generateRounds(matchPairings);
         Assertions.assertEquals(3, roundMatchPairingLists.size());
-        Assertions.assertEquals(1, roundMatchPairingLists.get(0).size());
-        Assertions.assertEquals(new MatchPairing("A", "B"), roundMatchPairingLists.get(0).get(0));
-        Assertions.assertEquals(new MatchPairing("A", "C"), roundMatchPairingLists.get(1).get(0));
-        Assertions.assertEquals(new MatchPairing("B", "C"), roundMatchPairingLists.get(2).get(0));
+        
+        for (List<MatchPairing> matchPairingList : roundMatchPairingLists) {
+            for (String teamName : teamNames) {
+                int count = 0;
+                for (MatchPairing matchPairing : matchPairingList) {
+                    if (matchPairing.containsTeam(teamName)) {
+                        count++;
+                    }
+                }
+                Assertions.assertTrue(count <= 1);
+            }
+        }
     }
     
     @Test
