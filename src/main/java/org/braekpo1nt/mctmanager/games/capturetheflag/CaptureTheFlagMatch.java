@@ -59,6 +59,8 @@ public class CaptureTheFlagMatch implements Listener {
         allParticipants = new ArrayList<>();
         participantsAreAlive = new HashMap<>();
         killCount = new HashMap<>();
+        northFlagPosition = arena.northFlag();
+        southFlagPosition = arena.southFlag();
         closeGlassBarriers();
         for (Player northParticipant : newNorthParticipants) {
             initializeParticipant(northParticipant, true);
@@ -69,7 +71,8 @@ public class CaptureTheFlagMatch implements Listener {
         setupTeamOptions();
         startClassSelectionPeriod();
         matchActive = true;
-        Bukkit.getLogger().info("Starting capture the flag match " + matchPairing);
+        Bukkit.getLogger().info(String.format("northpos: %s, southpos: %s", northFlagPosition, southFlagPosition));
+        Bukkit.getLogger().info(String.format("Starting capture the flag match %s, north: %s, south: %s", matchPairing, northParticipants, southParticipants));
     }
     
     private void initializeParticipant(Player participant, boolean north) {
@@ -137,7 +140,7 @@ public class CaptureTheFlagMatch implements Listener {
             return;
         }
         Player participant = event.getPlayer();
-        Location to = event.getTo();
+        Location to = participant.getLocation();
         if (northParticipants.contains(participant)) {
             if (!canPickUpSouthFlag(to)) {
                 return;
@@ -154,11 +157,11 @@ public class CaptureTheFlagMatch implements Listener {
     }
     
     private void pickUpSouthFlag(Player northParticipant) {
-        Bukkit.getLogger().info(northParticipant.getName() + " picked up the north flag");
+        Bukkit.getLogger().info(northParticipant.getName() + " picked up the south flag");
     }
     
     private void pickUpNorthFlag(Player southParticipant) {
-        Bukkit.getLogger().info(southParticipant.getName() + " picked up the south flag");
+        Bukkit.getLogger().info(southParticipant.getName() + " picked up the north flag");
     }
     
     /**
@@ -170,7 +173,7 @@ public class CaptureTheFlagMatch implements Listener {
         if (northFlagPosition == null) {
             return false;
         }
-        return northFlagPosition.equals(location.toBlockLocation());
+        return northFlagPosition.getBlockX() == location.getBlockX() && northFlagPosition.getBlockY() == location.getBlockY() && northFlagPosition.getBlockZ() == location.getBlockZ();
     }
     
     /**
@@ -182,7 +185,7 @@ public class CaptureTheFlagMatch implements Listener {
         if (southFlagPosition == null) {
             return false;
         }
-        return southFlagPosition.equals(location.toBlockLocation());
+        return southFlagPosition.getBlockX() == location.getBlockX() && southFlagPosition.getBlockY() == location.getBlockY() && southFlagPosition.getBlockZ() == location.getBlockZ();
     }
     
     private void startClassSelectionPeriod() {
