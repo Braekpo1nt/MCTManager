@@ -6,18 +6,19 @@ import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.GameMode;
-import org.bukkit.Material;
+import org.bukkit.*;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.HandlerList;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 
 import java.util.*;
 
-public class CaptureTheFlagMatch {
+public class CaptureTheFlagMatch implements Listener {
     
     private final CaptureTheFlagRound captureTheFlagRound;
     private final Main plugin;
@@ -34,6 +35,8 @@ public class CaptureTheFlagMatch {
     private int matchTimerTaskId;
     private final ClassPicker northClassPicker;
     private final ClassPicker southClassPicker;
+    private Location northFlagPosition;
+    private Location southFlagPosition;
     
     public CaptureTheFlagMatch(CaptureTheFlagRound captureTheFlagRound, Main plugin, GameManager gameManager, MatchPairing matchPairing, Arena arena) {
         this.captureTheFlagRound = captureTheFlagRound;
@@ -50,6 +53,7 @@ public class CaptureTheFlagMatch {
     }
     
     public void start(List<Player> newNorthParticipants, List<Player> newSouthParticipants) {
+        plugin.getServer().getPluginManager().registerEvents(this, plugin);
         northParticipants = new ArrayList<>();
         southParticipants = new ArrayList<>();
         allParticipants = new ArrayList<>();
@@ -93,6 +97,7 @@ public class CaptureTheFlagMatch {
     }
     
     public void stop() {
+        HandlerList.unregisterAll(this);
         cancelAllTasks();
         northClassPicker.stop(false);
         southClassPicker.stop(false);
@@ -124,6 +129,60 @@ public class CaptureTheFlagMatch {
     private void cancelAllTasks() {
         Bukkit.getScheduler().cancelTask(classSelectionCountdownTaskIt);
         Bukkit.getScheduler().cancelTask(matchTimerTaskId);
+    }
+    
+    @EventHandler
+    public void onPlayerMove(PlayerMoveEvent event) {
+        if (!matchActive) {
+            return;
+        }
+        Player participant = event.getPlayer();
+        Location to = event.getTo();
+        if (northParticipants.contains(participant)) {
+            if (!canPickUpSouthFlag(to)) {
+                return;
+            }
+            pickUpSouthFlag(participant);
+            return;
+        }
+        if (southParticipants.contains(participant)) {
+            if (!canPickUpNorthFlag(to)) {
+                return;
+            }
+            pickUpNorthFlag(participant);
+        }
+    }
+    
+    private void pickUpSouthFlag(Player northParticipant) {
+        Bukkit.getLogger().info(northParticipant.getName() + " picked up the north flag");
+    }
+    
+    private void pickUpNorthFlag(Player southParticipant) {
+        Bukkit.getLogger().info(southParticipant.getName() + " picked up the south flag");
+    }
+    
+    /**
+     * Returns true if the north flag is dropped on the ground, and the given location's blockLocation is equal to {@link CaptureTheFlagMatch#northFlagPosition}
+     * @param location The location to check
+     * @return Whether the north flag is dropped and the location is on the north flag
+     */
+    private boolean canPickUpNorthFlag(Location location) {
+        if (northFlagPosition == null) {
+            return false;
+        }
+        return northFlagPosition.equals(location.toBlockLocation());
+    }
+    
+    /**
+     * Returns true if the south flag is dropped on the ground, and the given location's blockLocation is equal to {@link CaptureTheFlagMatch#southFlagPosition}
+     * @param location The location to check
+     * @return Whether the south flag is dropped and the location is on the south flag
+     */
+    private boolean canPickUpSouthFlag(Location location) {
+        if (southFlagPosition == null) {
+            return false;
+        }
+        return southFlagPosition.equals(location.toBlockLocation());
     }
     
     private void startClassSelectionPeriod() {
