@@ -35,8 +35,20 @@ public class CaptureTheFlagRound {
         this.spawnObservatory = spawnObservatory;
     }
     
-    public void setMatches(List<CaptureTheFlagMatch> matches) {
-        this.matches = matches;
+    /**
+     * Creates the matches for this round from the provided matchPairings and arenas. matchPairings.size() must be less than or equal to arenas.size(), or you will get null pointer exceptions. 
+     * @param matchPairings The MatchPairings to create {@link CaptureTheFlagMatch}s from
+     * @param arenas The arenas to assign to each {@link CaptureTheFlagMatch}
+     * @throws NullPointerException if matchPairings.size() is greater than arenas.size()
+     */
+    public void createMatches(List<MatchPairing> matchPairings, List<Arena> arenas) {
+        matches = new ArrayList<>();
+        for (int i = 0; i < matchPairings.size(); i++) {
+            MatchPairing matchPairing = matchPairings.get(i);
+            Arena arena = arenas.get(i);
+            CaptureTheFlagMatch match = new CaptureTheFlagMatch(this, plugin, gameManager, matchPairing, arena);
+            matches.add(match);
+        }
     }
     
     public void start(List<Player> newParticipants) {

@@ -15,7 +15,6 @@ import org.bukkit.event.Listener;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -123,23 +122,12 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
      * @param matchPairings The match parings to create the rounds for
      * @return A list of {@link CaptureTheFlagRound}s containing n {@link CaptureTheFlagMatch}s between them, where n is the number of given {@link MatchPairing}s
      */
-    public @NotNull List<CaptureTheFlagRound> generateRounds(@NotNull List<MatchPairing> matchPairings) {
-        int numberOfRounds = (matchPairings.size() / arenas.size()) + (matchPairings.size() % arenas.size());
-        int numberOfMatchesPerRound = arenas.size();
-        List<CaptureTheFlagRound> rounds = new ArrayList<>(numberOfRounds);
-        Iterator<MatchPairing> iterator = matchPairings.iterator();
-        for (int i = 0; i < numberOfRounds; i++) {
+    private @NotNull List<CaptureTheFlagRound> generateRounds(@NotNull List<MatchPairing> matchPairings) {
+        List<CaptureTheFlagRound> rounds = new ArrayList<>();
+        List<List<MatchPairing>> roundMatchPairingsList = CaptureTheFlagUtils.generateRoundMatchPairings(matchPairings, arenas.size());
+        for (List<MatchPairing> roundMatchPairings : roundMatchPairingsList) {
             CaptureTheFlagRound newRound = new CaptureTheFlagRound(this, plugin, gameManager, spawnObservatory);
-            List<CaptureTheFlagMatch> roundMatches = new ArrayList<>(numberOfMatchesPerRound);
-            int matchCount = 0;
-            while(iterator.hasNext() && matchCount < numberOfMatchesPerRound) {
-                MatchPairing matchPairing = iterator.next();
-                CaptureTheFlagMatch roundMatch = new CaptureTheFlagMatch(newRound, plugin, gameManager, matchPairing, arenas.get(matchCount));
-                roundMatches.add(roundMatch);
-                matchCount++;
-            }
-            newRound.setMatches(roundMatches);
-            rounds.add(newRound);
+            newRound.createMatches(roundMatchPairings, arenas.subList(0, roundMatchPairings.size()));
         }
         return rounds;
     }
