@@ -160,10 +160,4 @@ public class CaptureTheFlagRound {
                 "0"
         );
     }
-
-    public List<CaptureTheFlagMatch> getMatches() {
-        return matches;
-    }
-    
-    
 }
