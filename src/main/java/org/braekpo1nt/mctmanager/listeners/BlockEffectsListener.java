@@ -11,7 +11,8 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
 /**
- * Handles listening for players to walk on special blocks and giving them appropriate status effects. 
+ * Handles listening for players to walk on special blocks and giving them appropriate status effects.
+ * and RSTLN!!
  */
 public class BlockEffectsListener implements Listener {
     
