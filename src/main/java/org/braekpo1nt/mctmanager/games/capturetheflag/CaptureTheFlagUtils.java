@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.capturetheflag;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 public class CaptureTheFlagUtils {
@@ -27,9 +28,37 @@ public class CaptureTheFlagUtils {
         return combinations;
     }
     
-    public static @NotNull List<List<MatchPairing>> generateRoundMatchPairings(@NotNull List<MatchPairing> matchPairings) {
-        List<List<MatchPairing>> roundMatchPairingLists = new ArrayList<>();
-        return roundMatchPairingLists;
+    public static @NotNull List<List<MatchPairing>> generateRoundMatchPairings(@NotNull List<MatchPairing> matchPairings, int maxRoundPairingsSize) {
+        List<List<MatchPairing>> roundPairingsList = new ArrayList<>();
+        List<MatchPairing> unassignedPairings = new ArrayList<>(matchPairings);
+        while (unassignedPairings.size() > 0) {
+            List<MatchPairing> newRoundPairings = new ArrayList<>();
+            Iterator<MatchPairing> unassignedIterator = unassignedPairings.iterator();
+            while (unassignedIterator.hasNext() && newRoundPairings.size() < maxRoundPairingsSize) {
+                MatchPairing unassignedPairing = unassignedIterator.next();
+                if (!containsEitherTeam(newRoundPairings, unassignedPairing)) {
+                    newRoundPairings.add(unassignedPairing);
+                    unassignedIterator.remove();
+                }
+            }
+            roundPairingsList.add(newRoundPairings);
+        }
+        return roundPairingsList;
+    }
+    
+    /**
+     * Check if any of the MatchPairings in the given list contain either of the teams in the given single MatchPairing.
+     * @param matchPairings The list that may or may not contain either team from checkMatchPairing
+     * @param checkMatchPairing The match pairing whose teams we are checking for within matchPairings
+     * @return True if any of the MatchPairings in matchPairings contain either of the teams in checkMatchPairing
+     */
+    public static boolean containsEitherTeam(List<MatchPairing> matchPairings, MatchPairing checkMatchPairing) {
+        for (MatchPairing matchPairing : matchPairings) {
+            if (matchPairing.containsTeam(checkMatchPairing.northTeam()) || matchPairing.containsTeam(checkMatchPairing.southTeam())) {
+                return true;
+            }
+        }
+        return false;
     }
     
 }

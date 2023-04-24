@@ -11,6 +11,8 @@ import static org.mockito.Mockito.mock;
 
 class CaptureTheFlagUtilsTest {
     
+    private final int NUMBER_OF_ARENAS = 4;
+    
     // generateMatchPairings
     @Test
     @DisplayName("A list of 7 team names returns the right match pairings")
@@ -68,6 +70,22 @@ class CaptureTheFlagUtilsTest {
         Assertions.assertEquals("Three", matchPairings.get(2).southTeam());
     }
     
+    // containsEitherTeam
+    @Test
+    @DisplayName("containsEitherTeam can detect when a list of MatchPairings contains the north team, the south team, or neither team in a given match pairing")
+    void containsNorthTeam() {
+        List<MatchPairing> matchPairings = Arrays.asList(
+                new MatchPairing("A", "B"),
+                new MatchPairing("A", "C"),
+                new MatchPairing("B", "C")
+        );
+        Assertions.assertTrue(CaptureTheFlagUtils.containsEitherTeam(matchPairings, new MatchPairing("C", "D")));
+        Assertions.assertTrue(CaptureTheFlagUtils.containsEitherTeam(matchPairings, new MatchPairing("D", "B")));
+        Assertions.assertTrue(CaptureTheFlagUtils.containsEitherTeam(matchPairings, new MatchPairing("A", "B")));
+        Assertions.assertFalse(CaptureTheFlagUtils.containsEitherTeam(matchPairings, new MatchPairing("D", "E")));
+    }
+    
+    
     // generateRounds
     
     @Test
@@ -79,20 +97,15 @@ class CaptureTheFlagUtilsTest {
                 new MatchPairing("A", "C"),
                 new MatchPairing("B", "C")
         );
-        List<List<MatchPairing>> roundMatchPairingLists = CaptureTheFlagUtils.generateRoundMatchPairings(matchPairings);
+        List<List<MatchPairing>> roundMatchPairingLists = CaptureTheFlagUtils.generateRoundMatchPairings(matchPairings, NUMBER_OF_ARENAS);
         Assertions.assertEquals(3, roundMatchPairingLists.size());
-        
-        for (List<MatchPairing> matchPairingList : roundMatchPairingLists) {
-            for (String teamName : teamNames) {
-                int count = 0;
-                for (MatchPairing matchPairing : matchPairingList) {
-                    if (matchPairing.containsTeam(teamName)) {
-                        count++;
-                    }
-                }
-                Assertions.assertTrue(count <= 1);
-            }
-        }
+    
+        Assertions.assertEquals(1, roundMatchPairingLists.get(0).size());
+        Assertions.assertEquals(roundMatchPairingLists.get(0).get(0), new MatchPairing("A", "B"));
+        Assertions.assertEquals(1, roundMatchPairingLists.get(1).size());
+        Assertions.assertEquals(roundMatchPairingLists.get(1).get(0), new MatchPairing("A", "C"));
+        Assertions.assertEquals(1, roundMatchPairingLists.get(2).size());
+        Assertions.assertEquals(roundMatchPairingLists.get(2).get(0), new MatchPairing("B", "C"));
     }
     
     @Test
@@ -100,7 +113,7 @@ class CaptureTheFlagUtilsTest {
     void singleMatchPairing() {
         List<String> teamNames = Arrays.asList("A", "B");
         List<MatchPairing> matchPairings = CaptureTheFlagUtils.generateMatchPairings(teamNames);
-        List<List<MatchPairing>> roundMatchPairingLists = CaptureTheFlagUtils.generateRoundMatchPairings(matchPairings);
+        List<List<MatchPairing>> roundMatchPairingLists = CaptureTheFlagUtils.generateRoundMatchPairings(matchPairings, NUMBER_OF_ARENAS);
         Assertions.assertEquals(1, roundMatchPairingLists.size());
         Assertions.assertEquals(1, roundMatchPairingLists.get(0).size());
     }
@@ -110,7 +123,7 @@ class CaptureTheFlagUtilsTest {
     void threeTeamsTest() {
         List<String> teamNames = Arrays.asList("A", "B", "C");
         List<MatchPairing> matchPairings = CaptureTheFlagUtils.generateMatchPairings(teamNames);
-        List<List<MatchPairing>> roundLists = CaptureTheFlagUtils.generateRoundMatchPairings(matchPairings);
+        List<List<MatchPairing>> roundLists = CaptureTheFlagUtils.generateRoundMatchPairings(matchPairings, NUMBER_OF_ARENAS);
         
         Assertions.assertEquals(3, roundLists.size());
         
@@ -129,7 +142,7 @@ class CaptureTheFlagUtilsTest {
     void fourTeamsTest() {
         List<String> teamNames = Arrays.asList("A", "B", "C", "D");
         List<MatchPairing> matchPairings = CaptureTheFlagUtils.generateMatchPairings(teamNames);
-        List<List<MatchPairing>> roundLists = CaptureTheFlagUtils.generateRoundMatchPairings(matchPairings);
+        List<List<MatchPairing>> roundLists = CaptureTheFlagUtils.generateRoundMatchPairings(matchPairings, NUMBER_OF_ARENAS);
         
         Assertions.assertEquals(3, roundLists.size());
         
@@ -144,8 +157,6 @@ class CaptureTheFlagUtilsTest {
         Assertions.assertEquals(2, roundLists.get(2).size());
         Assertions.assertTrue(roundLists.get(2).contains(new MatchPairing("A", "D")));
         Assertions.assertTrue(roundLists.get(2).contains(new MatchPairing("B", "C")));
-        
-        
         
     }
 }
