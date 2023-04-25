@@ -82,10 +82,17 @@ You can add, subtract, or set the scores of players and teams with the [/mct tea
 
 To participate, reach out to Braekpo1nt on [YouTube](https://www.youtube.com/@braekpo1nt), [twitter](https://twitter.com/braekpo1nt), [facebook](https://www.facebook.com/Braekpo1nt/), or [instagram](https://www.instagram.com/braekpo1nt/). 
 
-**Important note about building the project:**
+## **Important note about building the project:**
+
+### Gradle Wrapper
+This project includes a [Gradle Wrapper](https://docs.gradle.org/current/userguide/gradle_wrapper.html). If you don't know what that means, all you need to know is that instead of running `gradle build`, you should run `./gradlew build`. You should also configure your IDE (e.g. IntelliJ) to [use the project's gradle wrapper](https://www.jetbrains.com/idea/guide/tutorials/working-with-gradle/gradle-wrapper/). 
+
+A gradle wrapper essentially just makes it so that everyone who is developing on the project is using the same exact version of Gradle. 
+
+### Shadow Jar
 The dependency `fr.mrmicky:fastboard:1.2.1` from [FastBoard](https://github.com/MrMicky-FR/FastBoard) needs to be included in the jar file with *Shadow Jar*. 
 
-To do this, simply run `gradle shadowJar` instead of `gradle build`. Otherwise, you'll get an error like the following:
+To do this, simply run `./gradlew shadowJar` instead of `./gradle build`. Otherwise, you'll get an error like the following when you try to add the plugin to your project:
 ```java
 java.lang.NoClassDefFoundError: fr/mrmicky/fastboard/FastBoard
 at org.braekpo1nt.mctmanager.Main.onEnable(Main.java:45) ~[MCTManager-0.1.0.jar:?]
