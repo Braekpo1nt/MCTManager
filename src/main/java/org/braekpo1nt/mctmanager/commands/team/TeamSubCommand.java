@@ -28,7 +28,7 @@ public class TeamSubCommand extends CommandManager {
     }
     
     @Override
-    protected Component getUsageMessage() {
+    public Component getUsageMessage() {
         return Component.text("Usage: /mct team <options>");
     }
 }

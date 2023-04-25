@@ -18,7 +18,7 @@ public class GameSubCommand extends CommandManager {
     }
     
     @Override
-    protected Component getUsageMessage() {
+    public Component getUsageMessage() {
         return Component.text("Usage: /mct game <options>");
     }
 }

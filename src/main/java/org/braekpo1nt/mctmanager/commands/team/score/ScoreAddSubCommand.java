@@ -16,7 +16,7 @@ public class ScoreAddSubCommand extends CommandManager {
     }
     
     @Override
-    protected Component getUsageMessage() {
+    public Component getUsageMessage() {
         return Component.text("/mct team score add <player|team>");
     }
 }

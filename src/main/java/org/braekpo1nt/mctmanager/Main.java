@@ -24,6 +24,7 @@ public class Main extends JavaPlugin {
     private GameManager gameManager;
     private boolean saveGameStateOnDisable = true;
     public final static PotionEffect NIGHT_VISION = new PotionEffect(PotionEffectType.NIGHT_VISION, 300, 3, true, false, false);
+    private MCTCommand mctCommand;
     
     @Override
     public void onEnable() {
@@ -55,9 +56,13 @@ public class Main extends JavaPlugin {
         
         // Commands
         new MCTDebugCommand(this);
-        new MCTCommand(this, gameManager, hubBoundaryListener, blockEffectsListener);
+        mctCommand = new MCTCommand(this, gameManager, hubBoundaryListener, blockEffectsListener);
     
         alwaysGiveNightVision();
+    }
+    
+    public MCTCommand getMctCommand() {
+        return mctCommand;
     }
     
     private void alwaysGiveNightVision() {

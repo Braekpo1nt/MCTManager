@@ -56,7 +56,7 @@ public class MCTCommand extends CommandManager {
     
     
     @Override
-    protected Component getUsageMessage() {
+    public Component getUsageMessage() {
         return Component.text("Usage: /mct <option>");
     }
 }
