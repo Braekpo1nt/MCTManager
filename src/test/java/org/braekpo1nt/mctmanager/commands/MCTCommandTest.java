@@ -34,16 +34,16 @@ public class MCTCommandTest {
         command = plugin.getCommand("mct");
     }
     
+    @AfterEach
+    void tearDownServerAndPlugin() {
+        MockBukkit.unmock();
+    }
+    
     @Test
     @DisplayName("Running /mct with no args returns usage message")
     void noArgsShowsUsage() {
         Assertions.assertTrue(plugin.getMctCommand().onCommand(server.getConsoleSender(), command, "mct", new String[]{}));
         Assertions.assertEquals(plugin.getMctCommand().getUsageMessage(), server.getConsoleSender().nextComponentMessage());
-    }
-    
-    @AfterEach
-    void tearDownServerAndPlugin() {
-        MockBukkit.unmock();
     }
     
 }
