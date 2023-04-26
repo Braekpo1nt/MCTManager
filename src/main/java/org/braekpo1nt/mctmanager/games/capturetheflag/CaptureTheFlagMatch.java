@@ -446,8 +446,8 @@ public class CaptureTheFlagMatch implements Listener {
      * Closes the glass barriers for the {@link CaptureTheFlagMatch#arena}
      */
     private void closeGlassBarriers() {
-        BlockPlacementUtils.createCube(arena.northBarrier(), 5, 4, 1, Material.GLASS_PANE);
-        BlockPlacementUtils.createCube(arena.southBarrier(), 5, 4, 1, Material.GLASS_PANE);
+        BlockPlacementUtils.createCube(arena.northBarrier(), 5, 4, 1, Material.GLASS);
+        BlockPlacementUtils.createCube(arena.southBarrier(), 5, 4, 1, Material.GLASS);
     }
     
     /**
