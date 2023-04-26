@@ -6,6 +6,7 @@ import be.seeseemelk.mockbukkit.UnimplementedOperationException;
 import be.seeseemelk.mockbukkit.entity.PlayerMock;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.MyCustomServerMock;
+import org.braekpo1nt.mctmanager.MyPlayerMock;
 import org.braekpo1nt.mctmanager.ui.FastBoardManager;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginCommand;
@@ -50,13 +51,24 @@ public class CaptureTheFlagTest {
     
     @Test
     void startGame() {
-        PlayerMock player1 = server.addPlayer();
-        PlayerMock player2 = server.addPlayer();
-        plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"team", "add", "red", "\"Red\"", "red"});
-        plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"team", "add", "blue", "\"Blue\"", "blue"});
-        plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"team", "join", "red", player1.getName()});
-        plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"team", "join", "blue", player2.getName()});
-        plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"game", "start", "capture-the-flag"});
+        try {
+            PlayerMock player1 = new MyPlayerMock(server, "Player1");
+            server.addPlayer(player1);
+            PlayerMock player2 = new MyPlayerMock(server, "Player2");
+            server.addPlayer(player2);
+            plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"team", "add", "red", "\"Red\"", "red"});
+            plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"team", "add", "blue", "\"Blue\"", "blue"});
+            plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"team", "join", "red", player1.getName()});
+            plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"team", "join", "blue", player2.getName()});
+            plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"game", "start", "capture-the-flag"});
+            server.getScheduler().performTicks((20 * 10) + 1); // speed through the startMatchesStartingCountDown()
+            server.getScheduler().performTicks((20 * 20) + 1); // speed through the startClassSelectionPeriod()
+            
+        } catch (UnimplementedOperationException ex) {
+            System.out.println("UnimplementedOperationException in startGame()");
+            ex.printStackTrace();
+            System.exit(1);
+        }
     }
     
 }
