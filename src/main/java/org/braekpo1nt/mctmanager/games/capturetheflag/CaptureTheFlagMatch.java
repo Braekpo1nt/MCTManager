@@ -164,6 +164,17 @@ public class CaptureTheFlagMatch implements Listener {
         if (killed.getKiller() != null) {
             onParticipantGetKill(killed);
         }
+        if (allParticipantsAreDead()) {
+            onBothTeamsLose(Component.text("Both teams are dead."));
+        }
+    }
+    
+    /**
+     * Checks if all participants are dead.
+     * @return True if all participants are dead, false otherwise
+     */
+    private boolean allParticipantsAreDead() {
+        return !participantsAreAlive.containsValue(true);
     }
     
     private void onParticipantGetKill(Player killed) {
@@ -312,6 +323,13 @@ public class CaptureTheFlagMatch implements Listener {
         matchIsOver();
     }
     
+    private void onBothTeamsLose(Component reason) {
+        messageAllParticipants(Component.empty()
+                .append(Component.text("Game over. "))
+                .append(reason));
+        matchIsOver();
+    }
+    
     
     private void startClassSelectionPeriod() {
         messageAllParticipants(Component.text("Choose your class"));
@@ -344,7 +362,7 @@ public class CaptureTheFlagMatch implements Listener {
             @Override
             public void run() {
                 if (count <= 0) {
-                    matchIsOver();
+                    onBothTeamsLose(Component.text("Time ran out."));
                     this.cancel();
                     return;
                 }
