@@ -7,6 +7,7 @@ import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.listeners.BlockEffectsListener;
 import org.braekpo1nt.mctmanager.hub.HubBoundaryListener;
 import org.braekpo1nt.mctmanager.listeners.PlayerJoinListener;
+import org.braekpo1nt.mctmanager.ui.FastBoardManager;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -95,5 +96,10 @@ public class Main extends JavaPlugin {
         } else {
             Bukkit.getLogger().info("[MCTManager] Skipping save game state.");
         }
+    }
+    
+    //Testing methods for mocking components
+    public void setFastBoardManager(FastBoardManager fastBoardManager) {
+        gameManager.setFastBoardManager(fastBoardManager);
     }
 }

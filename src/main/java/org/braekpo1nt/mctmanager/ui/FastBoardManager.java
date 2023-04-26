@@ -51,7 +51,7 @@ public class FastBoardManager {
      * @param player The player
      * @return true if the player got a board or already has a board, false if not
      */
-    public synchronized boolean givePlayerBoardIfAbsent(Player player) {
+    private synchronized boolean givePlayerBoardIfAbsent(Player player) {
         UUID playerUniqueId = player.getUniqueId();
         if (boards.containsKey(playerUniqueId)) {
             return true;

@@ -6,13 +6,17 @@ import be.seeseemelk.mockbukkit.UnimplementedOperationException;
 import be.seeseemelk.mockbukkit.entity.PlayerMock;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.MyCustomServerMock;
+import org.braekpo1nt.mctmanager.ui.FastBoardManager;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginCommand;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.UUID;
 import java.util.logging.Level;
+
+import static org.mockito.Mockito.*;
 
 public class CaptureTheFlagTest {
     
@@ -33,6 +37,14 @@ public class CaptureTheFlagTest {
             ex.printStackTrace();
             System.exit(1);
         }
+        FastBoardManager mockFastBoardManager = mock(FastBoardManager.class);
+        doNothing().when(mockFastBoardManager).updateMainBoards();
+        doNothing().when(mockFastBoardManager).removeBoard(any(UUID.class));
+        doNothing().when(mockFastBoardManager).updateLines(any(UUID.class), any(String[].class));
+        doNothing().when(mockFastBoardManager).updateLine(any(UUID.class), anyInt(), anyString());
+        doNothing().when(mockFastBoardManager).removeBoard(any(UUID.class));
+        doNothing().when(mockFastBoardManager).removeAllBoards();
+        plugin.setFastBoardManager(mockFastBoardManager);
         command = plugin.getCommand("mct");
         sender = server.getConsoleSender();
     }
