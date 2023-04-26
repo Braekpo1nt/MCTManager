@@ -90,9 +90,11 @@ public class CaptureTheFlagMatch implements Listener {
         if (north) {
             northParticipants.add(participant);
             participant.teleport(arena.northSpawn());
+            participant.lookAt(arena.southSpawn().getX(), arena.southSpawn().getY(), arena.southSpawn().getZ(), LookAnchor.EYES);
         } else {
             southParticipants.add(participant);
             participant.teleport(arena.southSpawn());
+            participant.lookAt(arena.northSpawn().getX(), arena.northSpawn().getY(), arena.northSpawn().getZ(), LookAnchor.EYES);
         }
         allParticipants.add(participant);
         initializeFastBoard(participant);
