@@ -214,14 +214,6 @@ public class GameStateStorageUtil {
         saveGameState();
     }
     
-    public void addPointsToPlayer(UUID playerUniqueId, int points) throws IOException {
-        MCTPlayer mctPlayer = gameState.getPlayer(playerUniqueId);
-        mctPlayer.setScore(mctPlayer.getScore() + points);
-        MCTTeam mctTeam = gameState.getTeam(mctPlayer.getTeamName());
-        mctTeam.setScore(mctTeam.getScore() + points);
-        saveGameState();
-    }
-    
     public int getPlayerScore(UUID playerUniqueId) {
         return gameState.getPlayer(playerUniqueId).getScore();
     }

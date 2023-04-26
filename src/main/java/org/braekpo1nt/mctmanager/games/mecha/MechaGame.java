@@ -311,6 +311,9 @@ public class MechaGame implements MCTGame, Listener {
         killed.setGameMode(GameMode.SPECTATOR);
         dropInventory(killed, event.getDrops());
         event.setCancelled(true);
+        if (event.getDeathSound() != null && event.getDeathSoundCategory() != null) {
+            killed.getWorld().playSound(killed.getLocation(), event.getDeathSound(), event.getDeathSoundCategory(), event.getDeathSoundVolume(), event.getDeathSoundPitch());
+        }
         Component deathMessage = event.deathMessage();
         if (deathMessage != null) {
             Bukkit.getServer().sendMessage(deathMessage);
