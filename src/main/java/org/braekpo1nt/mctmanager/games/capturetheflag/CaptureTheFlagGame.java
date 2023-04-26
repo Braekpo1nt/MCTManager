@@ -128,6 +128,7 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
         for (List<MatchPairing> roundMatchPairings : roundMatchPairingsList) {
             CaptureTheFlagRound newRound = new CaptureTheFlagRound(this, plugin, gameManager, spawnObservatory);
             newRound.createMatches(roundMatchPairings, arenas.subList(0, roundMatchPairings.size()));
+            rounds.add(newRound);
         }
         return rounds;
     }

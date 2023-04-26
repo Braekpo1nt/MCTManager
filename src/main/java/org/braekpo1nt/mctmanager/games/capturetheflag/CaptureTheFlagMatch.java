@@ -164,11 +164,11 @@ public class CaptureTheFlagMatch implements Listener {
     }
     
     private boolean canDeliverSouthFlag(Location location) {
-        return arena.southFlag().getBlockX() == location.getBlockX() && arena.southFlag().getBlockY() == location.getBlockY() && arena.southFlag().getBlockZ() == location.getBlockZ();
+        return arena.northFlag().getBlockX() == location.getBlockX() && arena.northFlag().getBlockY() == location.getBlockY() && arena.northFlag().getBlockZ() == location.getBlockZ();
     }
     
     private void deliverSouthFlag(Player northParticipant) {
-        arena.southFlag().getBlock().setType(southBanner);
+        arena.northFlag().getBlock().setType(southBanner);
         northParticipant.getInventory().remove(southBanner);
         onParticipantWin(northParticipant);
     }
@@ -234,11 +234,11 @@ public class CaptureTheFlagMatch implements Listener {
     }
     
     private boolean canDeliverNorthFlag(Location location) {
-        return arena.northFlag().getBlockX() == location.getBlockX() && arena.northFlag().getBlockY() == location.getBlockY() && arena.northFlag().getBlockZ() == location.getBlockZ();
+        return arena.southFlag().getBlockX() == location.getBlockX() && arena.southFlag().getBlockY() == location.getBlockY() && arena.southFlag().getBlockZ() == location.getBlockZ();
     }
     
     private void deliverNorthFlag(Player southParticipant) {
-        arena.northFlag().getBlock().setType(northBanner);
+        arena.southFlag().getBlock().setType(northBanner);
         southParticipant.getInventory().remove(northBanner);
         onParticipantWin(southParticipant);
     }
