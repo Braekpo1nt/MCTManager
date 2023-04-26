@@ -152,6 +152,7 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
                 "",
                 "", // timer name
                 "", // timer
+                "",
                 ""
         );
     }

@@ -46,7 +46,7 @@ public class CaptureTheFlagRound {
         for (int i = 0; i < matchPairings.size(); i++) {
             MatchPairing matchPairing = matchPairings.get(i);
             Arena arena = arenas.get(i);
-            CaptureTheFlagMatch match = new CaptureTheFlagMatch(this, plugin, gameManager, matchPairing, arena);
+            CaptureTheFlagMatch match = new CaptureTheFlagMatch(this, plugin, gameManager, matchPairing, arena, spawnObservatory);
             matches.add(match);
         }
     }
@@ -78,7 +78,18 @@ public class CaptureTheFlagRound {
         for (CaptureTheFlagMatch match : matches) {
             match.stop();
         }
+        for (Player participant : participants) {
+            resetParticipant(participant);
+        }
+        participants.clear();
         matches.clear();
+    }
+    
+    private void resetParticipant(Player participant) {
+        participant.getInventory().clear();
+        participant.setGameMode(GameMode.ADVENTURE);
+        ParticipantInitializer.clearStatusEffects(participant);
+        ParticipantInitializer.resetHealthAndHunger(participant);
     }
     
     /**
