@@ -37,13 +37,7 @@ public class CaptureTheFlagTest {
             ex.printStackTrace();
             System.exit(1);
         }
-        FastBoardManager mockFastBoardManager = mock(FastBoardManager.class);
-        doNothing().when(mockFastBoardManager).updateMainBoards();
-        doNothing().when(mockFastBoardManager).removeBoard(any(UUID.class));
-        doNothing().when(mockFastBoardManager).updateLines(any(UUID.class), any(String[].class));
-        doNothing().when(mockFastBoardManager).updateLine(any(UUID.class), anyInt(), anyString());
-        doNothing().when(mockFastBoardManager).removeBoard(any(UUID.class));
-        doNothing().when(mockFastBoardManager).removeAllBoards();
+        FastBoardManager mockFastBoardManager = mock(FastBoardManager.class, RETURNS_DEFAULTS);
         plugin.setFastBoardManager(mockFastBoardManager);
         command = plugin.getCommand("mct");
         sender = server.getConsoleSender();
