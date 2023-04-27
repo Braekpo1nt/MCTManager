@@ -267,7 +267,7 @@ public class CaptureTheFlagMatch implements Listener {
             pickUpSouthFlag(northParticipant);
             return;
         }
-        if (canDeliverSouthFlag(location)) {
+        if (canDeliverSouthFlag(northParticipant)) {
             deliverSouthFlag(northParticipant);
             return;
         }
@@ -335,8 +335,13 @@ public class CaptureTheFlagMatch implements Listener {
         return location;
     }
     
-    private boolean canDeliverSouthFlag(Location location) {
-        return arena.northFlag().getBlockX() == location.getBlockX() && arena.northFlag().getBlockY() == location.getBlockY() && arena.northFlag().getBlockZ() == location.getBlockZ();
+    private boolean canDeliverSouthFlag(Player northParticipant) {
+        if (!hasSouthFlag(northParticipant)) {
+            return false;
+        }
+        Location location = northParticipant.getLocation();
+        boolean isOnNorthGoal = arena.northFlag().getBlockX() == location.getBlockX() && arena.northFlag().getBlockY() == location.getBlockY() && arena.northFlag().getBlockZ() == location.getBlockZ();
+        return isOnNorthGoal;
     }
     
     private void deliverSouthFlag(Player northParticipant) {
@@ -365,7 +370,7 @@ public class CaptureTheFlagMatch implements Listener {
             pickUpNorthFlag(southParticipant);
             return;
         }
-        if (canDeliverNorthFlag(location)) {
+        if (canDeliverNorthFlag(southParticipant)) {
             deliverNorthFlag(southParticipant);
             return;
         }
@@ -414,8 +419,13 @@ public class CaptureTheFlagMatch implements Listener {
         hasNorthFlag = southParticipant;
     }
     
-    private boolean canDeliverNorthFlag(Location location) {
-        return arena.southFlag().getBlockX() == location.getBlockX() && arena.southFlag().getBlockY() == location.getBlockY() && arena.southFlag().getBlockZ() == location.getBlockZ();
+    private boolean canDeliverNorthFlag(Player southParticipant) {
+        if (!hasNorthFlag(southParticipant)) {
+            return false;
+        }
+        Location location = southParticipant.getLocation();
+        boolean isOnSouthGoal = arena.southFlag().getBlockX() == location.getBlockX() && arena.southFlag().getBlockY() == location.getBlockY() && arena.southFlag().getBlockZ() == location.getBlockZ();
+        return isOnSouthGoal;
     }
     
     private void deliverNorthFlag(Player southParticipant) {
