@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.capturetheflag;
 import com.onarandombox.MultiverseCore.api.MVWorldManager;
 import com.onarandombox.MultiverseCore.api.MultiverseWorld;
 import com.onarandombox.MultiverseCore.utils.AnchorManager;
+import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
@@ -204,5 +205,15 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
         ));
         
         return newArenas;
+    }
+    
+    /**
+     * Messages all the participants of the game (whether they're in a match or not)
+     * @param message The message to send
+     */
+    public void messageAllParticipants(Component message) {
+        for (Player participant : participants) {
+            participant.sendMessage(message);
+        }
     }
 }

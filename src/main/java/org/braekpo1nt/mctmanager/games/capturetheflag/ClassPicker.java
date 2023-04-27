@@ -244,6 +244,7 @@ public class ClassPicker implements Listener {
                 teamMate.sendMessage("Selected Tank");
             }
         }
+        teamMate.getInventory().addItem(new ItemStack(Material.COOKED_BEEF, 8));
     }
     
     /**
