@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.commands;
 import be.seeseemelk.mockbukkit.MockBukkit;
 import be.seeseemelk.mockbukkit.ServerMock;
 import be.seeseemelk.mockbukkit.UnimplementedOperationException;
+import be.seeseemelk.mockbukkit.entity.SimpleEntityMock;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -43,7 +44,7 @@ public class MCTCommandTest {
     @DisplayName("Running /mct with no args returns usage message")
     void noArgsShowsUsage() {
         Assertions.assertTrue(plugin.getMctCommand().onCommand(server.getConsoleSender(), command, "mct", new String[]{}));
-        Assertions.assertEquals(plugin.getMctCommand().getUsageMessage(), server.getConsoleSender().nextComponentMessage());
+        server.getConsoleSender().assertSaid(plugin.getMctCommand().getUsageMessage());
     }
     
 }
