@@ -25,7 +25,7 @@ public abstract class CommandManager implements TabExecutor {
     
     protected final Map<String, CommandExecutor> subCommands = new HashMap<>();
     
-    protected abstract Component getUsageMessage();
+    public abstract Component getUsageMessage();
     
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {

@@ -13,7 +13,7 @@ public class ScoreSubtractSubCommand extends CommandManager {
     }
 
     @Override
-    protected Component getUsageMessage() {
+    public Component getUsageMessage() {
         return Component.text("/mct team score subtract <player|team>");
     }
     

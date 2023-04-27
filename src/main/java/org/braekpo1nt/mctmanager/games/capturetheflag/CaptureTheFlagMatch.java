@@ -383,9 +383,10 @@ public class CaptureTheFlagMatch implements Listener {
     private void placeFlag(Material flagType, Location flagLocation, BlockFace facing) {
         Block flagBlock = flagLocation.getBlock();
         flagBlock.setType(flagType);
-        Rotatable flagData = (Rotatable) flagBlock.getBlockData();
-        flagData.setRotation(facing);
-        flagBlock.setBlockData(flagData);
+        if (flagBlock.getBlockData() instanceof Rotatable flagData) {
+            flagData.setRotation(facing);
+            flagBlock.setBlockData(flagData);
+        }
     }
     
     private void onSouthParticipantMove(Player southParticipant) {

@@ -47,7 +47,7 @@ public class GameManager implements Listener {
     private final FinalGame finalGame;
     private final CaptureTheFlagGame captureTheFlagGame;
     private final HubManager hubManager;
-    private final FastBoardManager fastBoardManager;
+    private FastBoardManager fastBoardManager;
     private final GameStateStorageUtil gameStateStorageUtil;
     /**
      * Scoreboard for holding the teams. This private scoreboard can't be
@@ -744,5 +744,9 @@ public class GameManager implements Listener {
     public Material getTeamBannerColor(String teamName) {
         String colorString = gameStateStorageUtil.getTeamColorString(teamName);
         return ColorMap.getBannerColor(colorString);
+    }
+    
+    public void setFastBoardManager(FastBoardManager fastBoardManager) {
+        this.fastBoardManager = fastBoardManager;
     }
 }
