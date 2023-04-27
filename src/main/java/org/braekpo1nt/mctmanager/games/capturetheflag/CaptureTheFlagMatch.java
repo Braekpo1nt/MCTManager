@@ -10,6 +10,8 @@ import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.bukkit.*;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.Directional;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
@@ -130,6 +132,16 @@ public class CaptureTheFlagMatch implements Listener {
         cancelAllTasks();
         northClassPicker.stop(false);
         southClassPicker.stop(false);
+        hasNorthFlag = null;
+        hasSouthFlag = null;
+        if (northFlagPosition != null) {
+            northFlagPosition.getBlock().setType(Material.AIR);
+            northFlagPosition = null;
+        }
+        if (southFlagPosition != null) {
+            southFlagPosition.getBlock().setType(Material.AIR);
+            northFlagPosition = null;
+        }
         for (Player participant : allParticipants) {
             resetParticipant(participant);
         }
@@ -299,7 +311,7 @@ public class CaptureTheFlagMatch implements Listener {
         northParticipant.getEquipment().setHelmet(null);
         Location ground = getSolidBlockBelow(northParticipant.getLocation());
         southFlagPosition = ground.add(0, 1, 0);
-        southFlagPosition.getBlock().setType(southBanner);
+        placeFlag(southBanner, southFlagPosition, northParticipant.getFacing());
         hasSouthFlag = null;
     }
     
@@ -327,9 +339,23 @@ public class CaptureTheFlagMatch implements Listener {
     }
     
     private void deliverSouthFlag(Player northParticipant) {
-        arena.northFlag().getBlock().setType(southBanner);
+        placeFlag(southBanner, arena.northFlag(), BlockFace.NORTH);
         northParticipant.getInventory().remove(southBanner);
         onParticipantWin(northParticipant);
+    }
+    
+    /**
+     * Places the provided flag type at the given location facing the given direction
+     * @param flagBlock
+     * @param facing
+     * @param flagType
+     */
+    private void placeFlag(Material flagType, Location flagLocation, BlockFace facing) {
+        Block flagBlock = flagLocation.getBlock();
+        flagBlock.setType(flagType);
+        Directional flagData = (Directional) flagBlock.getBlockData();
+        flagData.setFacing(facing);
+        flagBlock.setBlockData(flagData);
     }
     
     private void onSouthParticipantMove(Player southParticipant) {
@@ -366,7 +392,7 @@ public class CaptureTheFlagMatch implements Listener {
         southParticipant.getEquipment().setHelmet(null);
         Location ground = getSolidBlockBelow(southParticipant.getLocation());
         northFlagPosition = ground.add(0, 1, 0);
-        northFlagPosition.getBlock().setType(northBanner);
+        placeFlag(northBanner, northFlagPosition, southParticipant.getFacing());
         hasNorthFlag = null;
     }
     
@@ -392,7 +418,7 @@ public class CaptureTheFlagMatch implements Listener {
     }
     
     private void deliverNorthFlag(Player southParticipant) {
-        arena.southFlag().getBlock().setType(northBanner);
+        placeFlag(northBanner, arena.southFlag(), BlockFace.SOUTH);
         southParticipant.getInventory().remove(northBanner);
         onParticipantWin(southParticipant);
     }
@@ -517,19 +543,19 @@ public class CaptureTheFlagMatch implements Listener {
     private void placeFlags(String northTeam, String southTeam) {
         northBanner = gameManager.getTeamBannerColor(northTeam);
         northFlagPosition = arena.northFlag().clone();
-        northFlagPosition.getBlock().setType(northBanner);
+        placeFlag(northBanner, northFlagPosition, BlockFace.SOUTH);
         
         southBanner = gameManager.getTeamBannerColor(southTeam);
         southFlagPosition = arena.southFlag().clone();
-        southFlagPosition.getBlock().setType(southBanner);
+        placeFlag(southBanner, southFlagPosition, BlockFace.NORTH);
     }
     
     /**
      * Closes the glass barriers for the {@link CaptureTheFlagMatch#arena}
      */
     private void closeGlassBarriers() {
-        BlockPlacementUtils.createCube(arena.northBarrier(), 5, 4, 1, Material.GLASS);
-        BlockPlacementUtils.createCube(arena.southBarrier(), 5, 4, 1, Material.GLASS);
+        BlockPlacementUtils.createCube(arena.northBarrier(), 5, 4, 1, Material.GLASS_PANE);
+        BlockPlacementUtils.createCube(arena.southBarrier(), 5, 4, 1, Material.GLASS_PANE);
     }
     
     /**
