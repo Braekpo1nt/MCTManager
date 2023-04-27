@@ -12,6 +12,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
+import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.jetbrains.annotations.NotNull;
 
@@ -40,7 +41,6 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
     
     public CaptureTheFlagGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
-        plugin.getServer().getPluginManager().registerEvents(this, plugin);
         this.gameManager = gameManager;
         MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
         MultiverseWorld mvCaptureTheFlagWorld = worldManager.getMVWorld("FT");
@@ -52,6 +52,7 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
     
     @Override
     public void start(List<Player> newParticipants) {
+        plugin.getServer().getPluginManager().registerEvents(this, plugin);
         List<String> teamNames = gameManager.getTeamNames(newParticipants);
         List<MatchPairing> matchPairings = CaptureTheFlagUtils.generateMatchPairings(teamNames);
         rounds = generateRounds(matchPairings);
@@ -73,6 +74,7 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
     
     @Override
     public void stop() {
+        HandlerList.unregisterAll(this);
         CaptureTheFlagRound currentRound = rounds.get(currentRoundIndex);
         currentRound.stop();
         rounds.clear();
