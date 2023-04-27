@@ -168,7 +168,7 @@ public class CaptureTheFlagRound {
             );
         }
     }
-
+    
     private void initializeFastBoard(Player participant) {
         gameManager.getFastBoardManager().updateLine(
                 participant.getUniqueId(),

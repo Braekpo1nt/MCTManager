@@ -494,7 +494,7 @@ public class CaptureTheFlagMatch implements Listener {
                 .append(winningTeamDisplayName)
                 .append(Component.text(" captured "))
                 .append(losingTeamDisplayName)
-                .append(Component.text("'s flag"))
+                .append(Component.text("'s flag!"))
                 .color(NamedTextColor.YELLOW));
         gameManager.awardPointsToTeam(winningTeam, 100);
         matchIsOver();
