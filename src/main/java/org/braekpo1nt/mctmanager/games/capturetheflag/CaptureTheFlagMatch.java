@@ -542,11 +542,11 @@ public class CaptureTheFlagMatch implements Listener {
     
     private void placeFlags(String northTeam, String southTeam) {
         northBanner = gameManager.getTeamBannerColor(northTeam);
-        northFlagPosition = arena.northFlag().clone();
+        northFlagPosition = arena.northFlag();
         placeFlag(northBanner, northFlagPosition, BlockFace.SOUTH);
         
         southBanner = gameManager.getTeamBannerColor(southTeam);
-        southFlagPosition = arena.southFlag().clone();
+        southFlagPosition = arena.southFlag();
         placeFlag(southBanner, southFlagPosition, BlockFace.NORTH);
     }
     
