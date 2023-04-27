@@ -267,7 +267,6 @@ public class ClassPicker implements Listener {
      * @param teamMate The teamMate to show the gui to
      */
     private void showClassPickerGui(Player teamMate) {
-        Bukkit.getLogger().info("Showing class picker gui to " + teamMate.getName());
         ItemStack knight = new ItemStack(Material.STONE_SWORD);
         ItemStack archer = new ItemStack(Material.BOW);
         ItemStack assassin = new ItemStack(Material.IRON_SWORD);

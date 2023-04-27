@@ -9,6 +9,9 @@ import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.bukkit.*;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.Directional;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
@@ -40,8 +43,22 @@ public class CaptureTheFlagMatch implements Listener {
     private int matchTimerTaskId;
     private final ClassPicker northClassPicker;
     private final ClassPicker southClassPicker;
+    /**
+     * The position of the north flag, if it has been dropped and can be picked up. Null if not
+     */
     private Location northFlagPosition;
+    /**
+     * The position of the south flag, if it has been dropped and can be picked up. Null if not
+     */
     private Location southFlagPosition;
+    /**
+     * The player who has the north flag, if it is picked up. Null if not.
+     */
+    private Player hasNorthFlag;
+    /**
+     * The player who has the south flag, if it is picked up. Null if not.
+     */
+    private Player hasSouthFlag;
     private Material northBanner;
     private Material southBanner;
     
@@ -115,6 +132,16 @@ public class CaptureTheFlagMatch implements Listener {
         cancelAllTasks();
         northClassPicker.stop(false);
         southClassPicker.stop(false);
+        hasNorthFlag = null;
+        hasSouthFlag = null;
+        if (northFlagPosition != null) {
+            northFlagPosition.getBlock().setType(Material.AIR);
+            northFlagPosition = null;
+        }
+        if (southFlagPosition != null) {
+            southFlagPosition.getBlock().setType(Material.AIR);
+            northFlagPosition = null;
+        }
         for (Player participant : allParticipants) {
             resetParticipant(participant);
         }
@@ -200,6 +227,16 @@ public class CaptureTheFlagMatch implements Listener {
     }
     
     private void onParicipantDeath(Player killed) {
+        if (northParticipants.contains(killed)) {
+            if (hasSouthFlag(killed)) {
+                dropSouthFlag(killed);
+            }
+        } else if (southParticipants.contains(killed)) {
+            if (hasNorthFlag(killed)){
+                dropNorthFlag(killed);
+            }
+        }
+        
         participantsAreAlive.put(killed.getUniqueId(), false);
         ParticipantInitializer.resetHealthAndHunger(killed);
         ParticipantInitializer.clearStatusEffects(killed);
@@ -235,16 +272,6 @@ public class CaptureTheFlagMatch implements Listener {
         }
     }
     
-    private boolean canDeliverSouthFlag(Location location) {
-        return arena.northFlag().getBlockX() == location.getBlockX() && arena.northFlag().getBlockY() == location.getBlockY() && arena.northFlag().getBlockZ() == location.getBlockZ();
-    }
-    
-    private void deliverSouthFlag(Player northParticipant) {
-        arena.northFlag().getBlock().setType(southBanner);
-        northParticipant.getInventory().remove(southBanner);
-        onParticipantWin(northParticipant);
-    }
-    
     /**
      * Returns true if the south flag is dropped on the ground, and the given location's blockLocation is equal to {@link CaptureTheFlagMatch#southFlagPosition}
      * @param location The location to check
@@ -257,16 +284,78 @@ public class CaptureTheFlagMatch implements Listener {
         return southFlagPosition.getBlockX() == location.getBlockX() && southFlagPosition.getBlockY() == location.getBlockY() && southFlagPosition.getBlockZ() == location.getBlockZ();
     }
     
+    private boolean hasSouthFlag(Player northParticipant) {
+        return Objects.equals(hasSouthFlag, northParticipant);
+    }
+    
     private synchronized void pickUpSouthFlag(Player northParticipant) {
         messageSouthParticipants(Component.empty()
-                .append(Component.text("Your flag was captured!"))
+                .append(Component.text("Your flag was captured"))
                 .color(NamedTextColor.DARK_RED));
         messageNorthParticipants(Component.empty()
-                .append(Component.text("You captured the flag!"))
+                .append(Component.text("You captured the flag"))
                 .color(NamedTextColor.GREEN));
         northParticipant.getEquipment().setHelmet(new ItemStack(southBanner));
         southFlagPosition.getBlock().setType(Material.AIR);
         southFlagPosition = null;
+        hasSouthFlag = northParticipant;
+    }
+    
+    private synchronized void dropSouthFlag(Player northParticipant) {
+        messageSouthParticipants(Component.empty()
+                .append(Component.text("Your flag was dropped"))
+                .color(NamedTextColor.GREEN));
+        messageNorthParticipants(Component.empty()
+                .append(Component.text("You dropped the flag"))
+                .color(NamedTextColor.DARK_RED));
+        northParticipant.getEquipment().setHelmet(null);
+        Location ground = getSolidBlockBelow(northParticipant.getLocation());
+        southFlagPosition = ground.add(0, 1, 0);
+        placeFlag(southBanner, southFlagPosition, northParticipant.getFacing());
+        hasSouthFlag = null;
+    }
+    
+    /**
+     * Gets the first solid block below the given location. If there is no floor all the way to the min height, returns the given location.
+     * @param location The location to check below
+     * @return the location below the given location that is a solid block. If there are no solid blocks
+     */
+    private Location getSolidBlockBelow(Location location) {
+        Location nonAirLocation = location.subtract(0, 1, 0);
+        while (nonAirLocation.getBlockY() > -64) {
+            Block block = nonAirLocation.getBlock();
+            if (!block.getType().equals(Material.AIR) &&
+                !block.getType().equals(Material.CAVE_AIR) &&
+                !block.getType().equals(Material.VOID_AIR)) {
+                return nonAirLocation;
+            }
+            nonAirLocation = nonAirLocation.subtract(0, 1, 0);
+        }
+        return location;
+    }
+    
+    private boolean canDeliverSouthFlag(Location location) {
+        return arena.northFlag().getBlockX() == location.getBlockX() && arena.northFlag().getBlockY() == location.getBlockY() && arena.northFlag().getBlockZ() == location.getBlockZ();
+    }
+    
+    private void deliverSouthFlag(Player northParticipant) {
+        placeFlag(southBanner, arena.northFlag(), BlockFace.NORTH);
+        northParticipant.getInventory().remove(southBanner);
+        onParticipantWin(northParticipant);
+    }
+    
+    /**
+     * Places the provided flag type at the given location facing the given direction
+     * @param flagBlock
+     * @param facing
+     * @param flagType
+     */
+    private void placeFlag(Material flagType, Location flagLocation, BlockFace facing) {
+        Block flagBlock = flagLocation.getBlock();
+        flagBlock.setType(flagType);
+        Directional flagData = (Directional) flagBlock.getBlockData();
+        flagData.setFacing(facing);
+        flagBlock.setBlockData(flagData);
     }
     
     private void onSouthParticipantMove(Player southParticipant) {
@@ -293,6 +382,24 @@ public class CaptureTheFlagMatch implements Listener {
         return northFlagPosition.getBlockX() == location.getBlockX() && northFlagPosition.getBlockY() == location.getBlockY() && northFlagPosition.getBlockZ() == location.getBlockZ();
     }
     
+    private synchronized void dropNorthFlag(Player southParticipant) {
+        messageNorthParticipants(Component.empty()
+                .append(Component.text("Your flag was dropped"))
+                .color(NamedTextColor.GREEN));
+        messageSouthParticipants(Component.empty()
+                .append(Component.text("You dropped the flag"))
+                .color(NamedTextColor.DARK_RED));
+        southParticipant.getEquipment().setHelmet(null);
+        Location ground = getSolidBlockBelow(southParticipant.getLocation());
+        northFlagPosition = ground.add(0, 1, 0);
+        placeFlag(northBanner, northFlagPosition, southParticipant.getFacing());
+        hasNorthFlag = null;
+    }
+    
+    private boolean hasNorthFlag(Player southParticipant) {
+        return Objects.equals(hasNorthFlag, southParticipant);
+    }
+    
     private synchronized void pickUpNorthFlag(Player southParticipant) {
         messageNorthParticipants(Component.empty()
                 .append(Component.text("Your flag was captured!"))
@@ -303,6 +410,7 @@ public class CaptureTheFlagMatch implements Listener {
         southParticipant.getEquipment().setHelmet(new ItemStack(northBanner));
         northFlagPosition.getBlock().setType(Material.AIR);
         northFlagPosition = null;
+        hasNorthFlag = southParticipant;
     }
     
     private boolean canDeliverNorthFlag(Location location) {
@@ -310,7 +418,7 @@ public class CaptureTheFlagMatch implements Listener {
     }
     
     private void deliverNorthFlag(Player southParticipant) {
-        arena.southFlag().getBlock().setType(northBanner);
+        placeFlag(northBanner, arena.southFlag(), BlockFace.SOUTH);
         southParticipant.getInventory().remove(northBanner);
         onParticipantWin(southParticipant);
     }
@@ -434,12 +542,12 @@ public class CaptureTheFlagMatch implements Listener {
     
     private void placeFlags(String northTeam, String southTeam) {
         northBanner = gameManager.getTeamBannerColor(northTeam);
-        northFlagPosition = arena.northFlag().clone();
-        northFlagPosition.getBlock().setType(northBanner);
+        northFlagPosition = arena.northFlag();
+        placeFlag(northBanner, northFlagPosition, BlockFace.SOUTH);
         
         southBanner = gameManager.getTeamBannerColor(southTeam);
-        southFlagPosition = arena.southFlag().clone();
-        southFlagPosition.getBlock().setType(southBanner);
+        southFlagPosition = arena.southFlag();
+        placeFlag(southBanner, southFlagPosition, BlockFace.NORTH);
     }
     
     /**
