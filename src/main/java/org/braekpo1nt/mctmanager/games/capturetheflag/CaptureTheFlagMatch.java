@@ -12,6 +12,7 @@ import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.Directional;
+import org.bukkit.block.data.Rotatable;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
@@ -353,8 +354,8 @@ public class CaptureTheFlagMatch implements Listener {
     private void placeFlag(Material flagType, Location flagLocation, BlockFace facing) {
         Block flagBlock = flagLocation.getBlock();
         flagBlock.setType(flagType);
-        Directional flagData = (Directional) flagBlock.getBlockData();
-        flagData.setFacing(facing);
+        Rotatable flagData = (Rotatable) flagBlock.getBlockData();
+        flagData.setRotation(facing);
         flagBlock.setBlockData(flagData);
     }
     
