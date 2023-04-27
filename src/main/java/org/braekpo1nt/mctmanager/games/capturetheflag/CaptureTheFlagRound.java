@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.games.capturetheflag;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
@@ -181,9 +182,11 @@ public class CaptureTheFlagRound {
         );
     }
     
-    public void messageAllParticipants(Component message) {
-        for (Player participant : participants) {
-            participant.sendMessage(message);
-        }
+    /**
+     * Messages all participants of the entire game, whether they are in this round or not
+     * @param message The message to send
+     */
+    public void messageAllGameParticipants(Component message) {
+        captureTheFlagGame.messageAllParticipants(message);
     }
 }

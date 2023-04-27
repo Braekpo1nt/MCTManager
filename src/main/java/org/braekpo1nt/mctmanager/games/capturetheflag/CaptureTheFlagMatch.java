@@ -490,7 +490,7 @@ public class CaptureTheFlagMatch implements Listener {
         }
         Component winningTeamDisplayName = gameManager.getFormattedTeamDisplayName(winningTeam);
         Component losingTeamDisplayName = gameManager.getFormattedTeamDisplayName(losingTeam);
-        captureTheFlagRound.messageAllParticipants(Component.empty()
+        captureTheFlagRound.messageAllGameParticipants(Component.empty()
                 .append(winningTeamDisplayName)
                 .append(Component.text(" captured "))
                 .append(losingTeamDisplayName)
