@@ -35,8 +35,20 @@ public class CaptureTheFlagRound {
         this.spawnObservatory = spawnObservatory;
     }
     
-    public void setMatches(List<CaptureTheFlagMatch> matches) {
-        this.matches = matches;
+    /**
+     * Creates the matches for this round from the provided matchPairings and arenas. matchPairings.size() must be less than or equal to arenas.size(), or you will get null pointer exceptions. 
+     * @param matchPairings The MatchPairings to create {@link CaptureTheFlagMatch}s from
+     * @param arenas The arenas to assign to each {@link CaptureTheFlagMatch}
+     * @throws NullPointerException if matchPairings.size() is greater than arenas.size()
+     */
+    public void createMatches(List<MatchPairing> matchPairings, List<Arena> arenas) {
+        matches = new ArrayList<>();
+        for (int i = 0; i < matchPairings.size(); i++) {
+            MatchPairing matchPairing = matchPairings.get(i);
+            Arena arena = arenas.get(i);
+            CaptureTheFlagMatch match = new CaptureTheFlagMatch(this, plugin, gameManager, matchPairing, arena, spawnObservatory);
+            matches.add(match);
+        }
     }
     
     public void start(List<Player> newParticipants) {
@@ -66,17 +78,36 @@ public class CaptureTheFlagRound {
         for (CaptureTheFlagMatch match : matches) {
             match.stop();
         }
+        for (Player participant : participants) {
+            resetParticipant(participant);
+        }
+        participants.clear();
         matches.clear();
     }
     
+    private void resetParticipant(Player participant) {
+        participant.getInventory().clear();
+        participant.setGameMode(GameMode.ADVENTURE);
+        ParticipantInitializer.clearStatusEffects(participant);
+        ParticipantInitializer.resetHealthAndHunger(participant);
+    }
+    
     /**
-     * Tells the round that the given match is over. If all matches are over, stops the round.
+     * Tells the round that the given match is over. If all matches are over, stops the round. If not all matches are over, teleports the players who were in the passed-in match to the spawn observatory.
      * @param match The match that is over. Must be one of the matches in {@link CaptureTheFlagRound#matches}.
      */
     public void matchIsOver(CaptureTheFlagMatch match) {
         matches.remove(match);
         if (matches.isEmpty()) {
             roundIsOver();
+            return;
+        }
+        MatchPairing matchPairing = match.getMatchPairing();
+        for (Player participant : participants) {
+            String team = gameManager.getTeamName(participant.getUniqueId());
+            if (matchPairing.containsTeam(team)) {
+                participant.teleport(spawnObservatory);
+            }
         }
     }
     
@@ -148,10 +179,4 @@ public class CaptureTheFlagRound {
                 "0"
         );
     }
-
-    public List<CaptureTheFlagMatch> getMatches() {
-        return matches;
-    }
-    
-    
 }

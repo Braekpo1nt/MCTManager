@@ -33,6 +33,7 @@ dependencies {
     testImplementation 'io.papermc.paper:paper-api:1.19.3-R0.1-SNAPSHOT'
     testImplementation 'com.onarandombox.multiversecore:Multiverse-Core:4.3.1'
     testImplementation 'com.github.seeseemelk:MockBukkit-v1.19:2.146.1'
+    testImplementation 'org.slf4j:slf4j-jdk14:2.0.5'
     
     compileOnly 'io.papermc.paper:paper-api:1.19.3-R0.1-SNAPSHOT'
     
@@ -55,6 +56,7 @@ shadowJar {
     exclude 'io/papermc/paper'
     exclude 'com/onarandombox/multiversecore'
     exclude 'com/github/seeseemelk'
+    exclude 'org/slf4j'
     
     relocate 'fr.mrmicky.fastboard', 'org.braekpo1nt.mctmanager'
 }

@@ -15,7 +15,6 @@ import org.bukkit.event.Listener;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -53,7 +52,7 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
     @Override
     public void start(List<Player> newParticipants) {
         List<String> teamNames = gameManager.getTeamNames(newParticipants);
-        List<MatchPairing> matchPairings = generateMatchPairings(teamNames);
+        List<MatchPairing> matchPairings = CaptureTheFlagUtils.generateMatchPairings(teamNames);
         rounds = generateRounds(matchPairings);
         currentRoundIndex = 0;
         maxRounds = rounds.size();
@@ -116,26 +115,6 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
     }
     
     /**
-     * Generates all combinations of size 2 of the given teams in the form of {@link MatchPairing}s 
-     * @param teamNames The teams to generate the combinations of
-     * @return A list of at least two MatchPairing objects representing all combinations of size 2
-     * of the given list of team names
-     * @throws IndexOutOfBoundsException if teamNames.size() is 1 or less
-     */
-    public static @NotNull List<MatchPairing> generateMatchPairings(@NotNull List<String> teamNames) {
-        List<MatchPairing> combinations = new ArrayList<>();
-        for (int i = 0; i < teamNames.size(); i++) {
-            for (int j = i + 1; j < teamNames.size(); j++) {
-                String northTeam = teamNames.get(i);
-                String southTeam = teamNames.get(j);
-                MatchPairing pairing = new MatchPairing(northTeam, southTeam);
-                combinations.add(pairing);
-            }
-        }
-        return combinations;
-    }
-    
-    /**
      * Given n {@link MatchPairing}s, where x is the number of arenas in {@link CaptureTheFlagGame#arenas}
      * if n>=x, returns ceiling(n/x) rounds. Each round should hold between 1 and x matches.
      * if n<x, returns 1 round with n matches.
@@ -143,22 +122,12 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
      * @param matchPairings The match parings to create the rounds for
      * @return A list of {@link CaptureTheFlagRound}s containing n {@link CaptureTheFlagMatch}s between them, where n is the number of given {@link MatchPairing}s
      */
-    public @NotNull List<CaptureTheFlagRound> generateRounds(@NotNull List<MatchPairing> matchPairings) {
-        int numberOfRounds = (matchPairings.size() / arenas.size()) + (matchPairings.size() % arenas.size());
-        int numberOfMatchesPerRound = arenas.size();
-        List<CaptureTheFlagRound> rounds = new ArrayList<>(numberOfRounds);
-        Iterator<MatchPairing> iterator = matchPairings.iterator();
-        for (int i = 0; i < numberOfRounds; i++) {
+    private @NotNull List<CaptureTheFlagRound> generateRounds(@NotNull List<MatchPairing> matchPairings) {
+        List<CaptureTheFlagRound> rounds = new ArrayList<>();
+        List<List<MatchPairing>> roundMatchPairingsList = CaptureTheFlagUtils.generateRoundMatchPairings(matchPairings, arenas.size());
+        for (List<MatchPairing> roundMatchPairings : roundMatchPairingsList) {
             CaptureTheFlagRound newRound = new CaptureTheFlagRound(this, plugin, gameManager, spawnObservatory);
-            List<CaptureTheFlagMatch> roundMatches = new ArrayList<>(numberOfMatchesPerRound);
-            int matchCount = 0;
-            while(iterator.hasNext() && matchCount < numberOfMatchesPerRound) {
-                MatchPairing matchPairing = iterator.next();
-                CaptureTheFlagMatch roundMatch = new CaptureTheFlagMatch(newRound, plugin, gameManager, matchPairing, arenas.get(matchCount));
-                roundMatches.add(roundMatch);
-                matchCount++;
-            }
-            newRound.setMatches(roundMatches);
+            newRound.createMatches(roundMatchPairings, arenas.subList(0, roundMatchPairings.size()));
             rounds.add(newRound);
         }
         return rounds;
@@ -183,6 +152,7 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
                 "",
                 "", // timer name
                 "", // timer
+                "",
                 ""
         );
     }

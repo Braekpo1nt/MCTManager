@@ -545,7 +545,9 @@ public class GameManager implements Listener {
             return;
         }
         try {
-            gameStateStorageUtil.addPointsToPlayer(playerUniqueId, points);
+            String teamName = gameStateStorageUtil.getPlayerTeamName(playerUniqueId);
+            addScore(playerUniqueId, points);
+            addScore(teamName, points);
         } catch (IOException e) {
             player.sendMessage(
                     Component.text("Critical error occurred. Please notify an admin to check the logs.")
@@ -559,6 +561,33 @@ public class GameManager implements Listener {
                 .append(Component.text(" points"))
                 .decorate(TextDecoration.BOLD)
                 .color(NamedTextColor.GOLD));
+    }
+    
+    /**
+     * Adds the given points to the given team, and announces to all online members of that team how many points the team earned.
+     * @param teamName The team to add points to
+     * @param points The points to add
+     */
+    public void awardPointsToTeam(String teamName, int points) {
+        if (!gameStateStorageUtil.containsTeam(teamName)) {
+            return;
+        }
+        try {
+            addScore(teamName, points);
+            Component displayName = getFormattedTeamDisplayName(teamName);
+            List<Player> playersOnTeam = getOnlinePlayersOnTeam(teamName);
+            for (Player playerOnTeam : playersOnTeam) {
+                playerOnTeam.sendMessage(Component.text("+")
+                        .append(Component.text(points))
+                        .append(Component.text(" points for "))
+                        .append(displayName)
+                        .decorate(TextDecoration.BOLD)
+                        .color(NamedTextColor.GOLD));
+            }
+        } catch (IOException e) {
+            Bukkit.getLogger().severe("Error while adding points to team. See log for error message.");
+            throw new RuntimeException(e);
+        }
     }
     
     public Color getTeamColor(UUID playerUniqueId) {
@@ -712,4 +741,8 @@ public class GameManager implements Listener {
         return ColorMap.getChatColor(colorString);
     }
     
+    public Material getTeamBannerColor(String teamName) {
+        String colorString = gameStateStorageUtil.getTeamColorString(teamName);
+        return ColorMap.getBannerColor(colorString);
+    }
 }

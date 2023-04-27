@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.utils;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
 public class ParticipantInitializer {
     
@@ -12,7 +13,9 @@ public class ParticipantInitializer {
      */
     public static void clearStatusEffects(Player participant) {
         for (PotionEffect effect : participant.getActivePotionEffects()) {
-            participant.removePotionEffect(effect.getType());
+            if (!effect.getType().equals(PotionEffectType.NIGHT_VISION)) {
+                participant.removePotionEffect(effect.getType());
+            }
         }
         participant.setFireTicks(0);
         participant.setVisualFire(false);
