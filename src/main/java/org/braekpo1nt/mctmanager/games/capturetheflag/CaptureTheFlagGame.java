@@ -12,8 +12,10 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -144,6 +146,11 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
     @Override
     public void onParticipantQuit(Player participant) {
         
+    }
+    
+    @EventHandler
+    public void onPlayerDamage(EntityDamageEvent event) {
+        throw new UnsupportedOperationException("EntityDamageEvent is not implemented yet");
     }
     
     private void initializeFastBoard(Player participant) {
