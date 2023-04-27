@@ -483,12 +483,20 @@ public class CaptureTheFlagMatch implements Listener {
     }
     
     private void onParticipantWin(Player participant) {
-        String team = gameManager.getTeamName(participant.getUniqueId());
-        Component displayName = gameManager.getFormattedTeamDisplayName(team);
+        String winningTeam = gameManager.getTeamName(participant.getUniqueId());
+        String losingTeam = matchPairing.northTeam();
+        if (winningTeam.equals(matchPairing.northTeam())) {
+            losingTeam = matchPairing.southTeam();
+        }
+        Component winningTeamDisplayName = gameManager.getFormattedTeamDisplayName(winningTeam);
+        Component losingTeamDisplayName = gameManager.getFormattedTeamDisplayName(losingTeam);
         messageAllParticipants(Component.empty()
-                .append(displayName)
-                .append(Component.text(" wins!")));
-        gameManager.awardPointsToTeam(team, 100);
+                .append(winningTeamDisplayName)
+                .append(Component.text(" captured "))
+                .append(losingTeamDisplayName)
+                .append(Component.text("'s flag"))
+                .color(NamedTextColor.YELLOW));
+        gameManager.awardPointsToTeam(winningTeam, 100);
         matchIsOver();
     }
     
