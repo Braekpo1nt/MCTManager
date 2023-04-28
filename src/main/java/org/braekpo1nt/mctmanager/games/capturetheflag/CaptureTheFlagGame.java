@@ -150,7 +150,22 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
     
     @EventHandler
     public void onPlayerDamage(EntityDamageEvent event) {
-        throw new UnsupportedOperationException("EntityDamageEvent is not implemented yet");
+        if (!gameActive) {
+            return;
+        }
+        if (!(event.getEntity() instanceof Player participant)) {
+            return;
+        }
+        if (!participants.contains(participant)) {
+            return;
+        }
+        if (currentRoundIndex >= rounds.size()) {
+            return;
+        }
+        if (rounds.get(currentRoundIndex).isAliveInMatch(participant)) {
+            return;
+        }
+        event.setCancelled(true);
     }
     
     private void initializeFastBoard(Player participant) {

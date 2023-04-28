@@ -48,7 +48,6 @@ public class HubBoundaryListener implements Listener {
                 player.sendMessage("You fell out of the hub boundary");
             }
         }
-        
     }
     
     @EventHandler
@@ -57,11 +56,10 @@ public class HubBoundaryListener implements Listener {
             return;
         }
 
-        if (!(event.getEntity() instanceof Player)) {
+        if (!(event.getEntity() instanceof Player player)) {
             return;
         }
-        Player player = ((Player) event.getEntity());
-        
+    
         if (player.getWorld().equals(hubWorld)) {
             if (!event.getCause().equals(EntityDamageEvent.DamageCause.LAVA)
                     || event.getCause().equals(EntityDamageEvent.DamageCause.FIRE)) {
