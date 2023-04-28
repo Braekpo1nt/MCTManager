@@ -10,7 +10,6 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.plugin.Plugin;
 
@@ -46,24 +45,6 @@ public class HubBoundaryListener implements Listener {
                 // Teleport player to hub start loc
                 player.teleport(hubWorld.getSpawnLocation());
                 player.sendMessage("You fell out of the hub boundary");
-            }
-        }
-    }
-    
-    @EventHandler
-    public void onPlayerDamage(EntityDamageEvent event) {
-        if (!boundaryEnabled) {
-            return;
-        }
-
-        if (!(event.getEntity() instanceof Player player)) {
-            return;
-        }
-    
-        if (player.getWorld().equals(hubWorld)) {
-            if (!event.getCause().equals(EntityDamageEvent.DamageCause.LAVA)
-                    || event.getCause().equals(EntityDamageEvent.DamageCause.FIRE)) {
-                event.setCancelled(true);
             }
         }
     }
