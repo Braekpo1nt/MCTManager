@@ -1,7 +1,6 @@
 package org.braekpo1nt.mctmanager.games.capturetheflag;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.TextComponent;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
@@ -99,8 +98,7 @@ public class CaptureTheFlagRound {
      * @param match The match that is over. Must be one of the matches in {@link CaptureTheFlagRound#matches}.
      */
     public void matchIsOver(CaptureTheFlagMatch match) {
-        matches.remove(match);
-        if (matches.isEmpty()) {
+        if (allMatchesAreOver()) {
             roundIsOver();
             return;
         }
@@ -111,6 +109,19 @@ public class CaptureTheFlagRound {
                 participant.teleport(spawnObservatory);
             }
         }
+    }
+    
+    /**
+     * Check if all the matches are over
+     * @return True if all matches are over, false if even one match isn't over
+     */
+    private boolean allMatchesAreOver() {
+        for (CaptureTheFlagMatch match : matches) {
+            if (match.isActive()) {
+                return false;
+            }
+        }
+        return true;
     }
     
     private void startMatchesStartingCountDown() {
@@ -188,5 +199,21 @@ public class CaptureTheFlagRound {
      */
     public void messageAllGameParticipants(Component message) {
         captureTheFlagGame.messageAllParticipants(message);
+    }
+    
+    /**
+     * Checks if the participant is alive and in a match
+     * @param participant The participant
+     * @return True if the participant is alive and in a match, false otherwise
+     */
+    public boolean isAliveInMatch(Player participant) {
+        for (CaptureTheFlagMatch match : matches) {
+            if (match.isActive()) {
+                if (match.isAliveInMatch(participant)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

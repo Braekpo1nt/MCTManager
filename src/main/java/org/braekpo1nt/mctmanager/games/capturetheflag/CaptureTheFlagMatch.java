@@ -11,7 +11,6 @@ import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.block.data.Directional;
 import org.bukkit.block.data.Rotatable;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -96,8 +95,8 @@ public class CaptureTheFlagMatch implements Listener {
             initializeParticipant(southParticipant, false);
         }
         setupTeamOptions();
-        startClassSelectionPeriod();
         matchActive = true;
+        startClassSelectionPeriod();
         Bukkit.getLogger().info(String.format("Starting capture the flag match %s", matchPairing));
     }
     
@@ -251,6 +250,9 @@ public class CaptureTheFlagMatch implements Listener {
             return;
         }
         Player participant = event.getPlayer();
+        if (!allParticipants.contains(participant)) {
+            return;
+        }
         if (!participantsAreAlive.get(participant.getUniqueId())) {
             return;
         }
@@ -650,6 +652,14 @@ public class CaptureTheFlagMatch implements Listener {
         }
     }
     
+    /**
+     * Check if the match is active
+     * @return True if the match is active, false otherwise
+     */
+    public boolean isActive() {
+        return matchActive;
+    }
+    
     private void messageAllParticipants(Component message) {
         for (Player participant : allParticipants) {
             participant.sendMessage(message);
@@ -668,4 +678,15 @@ public class CaptureTheFlagMatch implements Listener {
         }
     }
     
+    /**
+     * Check if the participant is alive and in the match
+     * @param participant The participant
+     * @return True if the participant is in this match and is alive, false otherwise
+     */
+    public boolean isAliveInMatch(Player participant) {
+        if (!allParticipants.contains(participant)) {
+            return false;
+        }
+        return participantsAreAlive.get(participant.getUniqueId());
+    }
 }

@@ -12,7 +12,10 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -40,7 +43,6 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
     
     public CaptureTheFlagGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
-        plugin.getServer().getPluginManager().registerEvents(this, plugin);
         this.gameManager = gameManager;
         MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
         MultiverseWorld mvCaptureTheFlagWorld = worldManager.getMVWorld("FT");
@@ -52,6 +54,7 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
     
     @Override
     public void start(List<Player> newParticipants) {
+        plugin.getServer().getPluginManager().registerEvents(this, plugin);
         List<String> teamNames = gameManager.getTeamNames(newParticipants);
         List<MatchPairing> matchPairings = CaptureTheFlagUtils.generateMatchPairings(teamNames);
         rounds = generateRounds(matchPairings);
@@ -73,6 +76,7 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
     
     @Override
     public void stop() {
+        HandlerList.unregisterAll(this);
         CaptureTheFlagRound currentRound = rounds.get(currentRoundIndex);
         currentRound.stop();
         rounds.clear();
@@ -142,6 +146,29 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
     @Override
     public void onParticipantQuit(Player participant) {
         
+    }
+    
+    @EventHandler
+    public void onPlayerDamage(EntityDamageEvent event) {
+        if (!gameActive) {
+            return;
+        }
+        if (event.getCause().equals(EntityDamageEvent.DamageCause.VOID)) {
+            return;
+        }
+        if (!(event.getEntity() instanceof Player participant)) {
+            return;
+        }
+        if (!participants.contains(participant)) {
+            return;
+        }
+        if (currentRoundIndex >= rounds.size()) {
+            return;
+        }
+        if (rounds.get(currentRoundIndex).isAliveInMatch(participant)) {
+            return;
+        }
+        event.setCancelled(true);
     }
     
     private void initializeFastBoard(Player participant) {

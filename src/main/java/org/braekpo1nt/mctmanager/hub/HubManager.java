@@ -2,14 +2,18 @@ package org.braekpo1nt.mctmanager.hub;
 
 import com.onarandombox.MultiverseCore.api.MVWorldManager;
 import com.onarandombox.MultiverseCore.utils.AnchorManager;
+import it.unimi.dsi.fastutil.BigList;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
 import org.braekpo1nt.mctmanager.ui.FastBoardManager;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -17,6 +21,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class HubManager implements Listener {
@@ -29,14 +34,20 @@ public class HubManager implements Listener {
     private final Main plugin;
     private final Scoreboard mctScoreboard;
     private final FastBoardManager fastBoardManager;
+    private final GameManager gameManager;
     private int returnToHubTaskId;
     private final Location observePedestalLocation;
     private final Location pedestalLocation;
-
-    public HubManager(Main plugin, Scoreboard mctScoreboard, FastBoardManager fastBoardManager) {
+    /**
+     * Contains a list of the players who are about to be sent to the hub and can see the countdown from the {@link HubManager#returnParticipantsToHubWithDelay(List)}
+     */
+    private final List<Player> headingToHub = new ArrayList<>();
+    
+    public HubManager(Main plugin, Scoreboard mctScoreboard, FastBoardManager fastBoardManager, GameManager gameManager) {
         this.plugin = plugin;
         this.mctScoreboard = mctScoreboard;
         this.fastBoardManager = fastBoardManager;
+        this.gameManager = gameManager;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
         this.hubWorld = worldManager.getMVWorld("Hub").getCBWorld();
@@ -47,6 +58,7 @@ public class HubManager implements Listener {
     }
     
     public void returnParticipantsToHubWithDelay(List<Player> participants) {
+        headingToHub.addAll(participants);
         this.returnToHubTaskId = new BukkitRunnable() {
             private int count = 10;
             @Override
@@ -54,20 +66,17 @@ public class HubManager implements Listener {
                 if (count <= 0) {
                     for (Player participant : participants){
                         participant.sendMessage(Component.text("Returning to hub"));
+                        returnParticipantToHub(participant);
                     }
+                    headingToHub.clear();
+                    setupTeamOptions();
+                    this.cancel();
+                    return;
                 } else {
                     String timeString = TimeStringUtils.getTimeString(count);
                     for (Player participant : participants) {
                         updateReturnToHubTimerFastBoard(participant, timeString);
                     }
-                }
-                if (count <= 0) {
-                    for (Player participant : participants) {
-                        returnParticipantToHub(participant);
-                    }
-                    setupTeamOptions();
-                    this.cancel();
-                    return;
                 }
                 count--;
             }
@@ -137,15 +146,13 @@ public class HubManager implements Listener {
             team.setCanSeeFriendlyInvisibles(true);
             team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.ALWAYS);
             team.setOption(Team.Option.DEATH_MESSAGE_VISIBILITY, Team.OptionStatus.ALWAYS);
-            team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.ALWAYS);
+            team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER);
         }
     }
     
     private void teleportPlayerToHub(Player participant) {
         participant.teleport(hubWorld.getSpawnLocation());
     }
-    
-    
     
     private void clearStatusEffects(Player participant) {
         for (PotionEffect effect : participant.getActivePotionEffects()) {
@@ -160,6 +167,26 @@ public class HubManager implements Listener {
             return;
         }
         giveAmbientStatusEffects(player);
+    }
+    
+    @EventHandler
+    public void onPlayerDamage(EntityDamageEvent event) {
+        if (event.getCause().equals(EntityDamageEvent.DamageCause.VOID)) {
+            return;
+        }
+        if (!(event.getEntity() instanceof Player participant)) {
+            return;
+        }
+        if (!gameManager.isParticipant(participant.getUniqueId())) {
+            return;
+        }
+        if (headingToHub.contains(participant) || participant.getWorld().equals(hubWorld)) {
+            event.setCancelled(true);
+        }
+    }
+    
+    private boolean isInOrHeadingToHub(Player participant) {
+        return participant.getWorld().equals(hubWorld) || headingToHub.contains(participant);
     }
     
     private void giveAmbientStatusEffects(Player player) {

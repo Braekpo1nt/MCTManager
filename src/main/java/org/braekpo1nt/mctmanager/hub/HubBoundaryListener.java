@@ -1,18 +1,13 @@
 package org.braekpo1nt.mctmanager.hub;
 
-import com.onarandombox.MultiverseCore.MultiverseCore;
 import com.onarandombox.MultiverseCore.api.MVWorldManager;
-import com.onarandombox.MultiverseCore.api.MultiverseWorld;
 import org.braekpo1nt.mctmanager.Main;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.plugin.Plugin;
 
 /**
  * Handles keeping players from walking off the side of the hub to their deaths
@@ -46,26 +41,6 @@ public class HubBoundaryListener implements Listener {
                 // Teleport player to hub start loc
                 player.teleport(hubWorld.getSpawnLocation());
                 player.sendMessage("You fell out of the hub boundary");
-            }
-        }
-        
-    }
-    
-    @EventHandler
-    public void onPlayerDamage(EntityDamageEvent event) {
-        if (!boundaryEnabled) {
-            return;
-        }
-
-        if (!(event.getEntity() instanceof Player)) {
-            return;
-        }
-        Player player = ((Player) event.getEntity());
-        
-        if (player.getWorld().equals(hubWorld)) {
-            if (!event.getCause().equals(EntityDamageEvent.DamageCause.LAVA)
-                    || event.getCause().equals(EntityDamageEvent.DamageCause.FIRE)) {
-                event.setCancelled(true);
             }
         }
     }
