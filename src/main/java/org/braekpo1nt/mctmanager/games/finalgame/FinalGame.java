@@ -14,6 +14,7 @@ import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.inventory.ItemStack;
@@ -42,7 +43,6 @@ public class FinalGame implements MCTGame, Listener {
     public FinalGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
         this.gameManager = gameManager;
-        plugin.getServer().getPluginManager().registerEvents(this, plugin);
         MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
         this.finalGameWorld = worldManager.getMVWorld("FT").getCBWorld();
     }
@@ -61,6 +61,7 @@ public class FinalGame implements MCTGame, Listener {
     public void start(List<Player> newParticipants) {
         this.participants = new ArrayList<>(newParticipants.size());
         this.teamKillCounts = new HashMap<>(newParticipants.size());
+        plugin.getServer().getPluginManager().registerEvents(this, plugin);
         setUpTeams(newParticipants);
         setUpTeamSpawns();
         replaceSandGateA(teamA);
@@ -152,6 +153,7 @@ public class FinalGame implements MCTGame, Listener {
 
     @Override
     public void stop() {
+        HandlerList.unregisterAll(this);
         cancelAllTasks();
         replaceSandGateA(teamA);
         replaceSandGateB(teamB);

@@ -13,6 +13,7 @@ import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
@@ -51,7 +52,6 @@ public class ParkourPathwayGame implements MCTGame, Listener {
     public ParkourPathwayGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
         this.gameManager = gameManager;
-        plugin.getServer().getPluginManager().registerEvents(this, plugin);
         MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
         this.parkourPathwayWorld = worldManager.getMVWorld("FT").getCBWorld();
         this.checkpoints = createCheckpoints();
@@ -62,6 +62,7 @@ public class ParkourPathwayGame implements MCTGame, Listener {
         participants = new ArrayList<>();
         currentCheckpoints = new HashMap<>();
         highestCheckpoint = 0;
+        plugin.getServer().getPluginManager().registerEvents(this, plugin);
         AnchorManager anchorManager = Main.multiverseCore.getAnchorManager();
         this.parkourPathwayStartAnchor = anchorManager.getAnchorLocation("parkour-pathway");
         for (Player participant : newParticipants) {
@@ -94,6 +95,7 @@ public class ParkourPathwayGame implements MCTGame, Listener {
     
     @Override
     public void stop() {
+        HandlerList.unregisterAll(this);
         cancelAllTasks();
         for (Player participant : participants) {
             resetParticipant(participant);

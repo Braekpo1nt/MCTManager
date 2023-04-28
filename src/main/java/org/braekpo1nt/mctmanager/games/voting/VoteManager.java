@@ -11,6 +11,7 @@ import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
@@ -39,7 +40,6 @@ public class VoteManager implements Listener {
     public VoteManager(GameManager gameManager, Main plugin) {
         this.gameManager = gameManager;
         this.plugin = plugin;
-        plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
     
     public void startVote(List<Player> participants, List<MCTGames> votingPool) {
@@ -47,6 +47,7 @@ public class VoteManager implements Listener {
         votes.clear();
         voters.clear();
         this.votingPool = votingPool;
+        plugin.getServer().getPluginManager().registerEvents(this, plugin);
         for (Player participant : participants) {
             showVoteGui(participant);
             this.voters.add(participant);
@@ -226,6 +227,7 @@ public class VoteManager implements Listener {
             hideFastBoard(voter);
         }
         messageAllVoters(Component.text("Cancelling vote"));
+        HandlerList.unregisterAll(this);
         votes.clear();
         voters.clear();
     }
@@ -239,6 +241,7 @@ public class VoteManager implements Listener {
             hideFastBoard(voter);
         }
         MCTGames mctGame = getVotedGame();
+        HandlerList.unregisterAll(this);
         votes.clear();
         voters.clear();
         gameManager.startGame(mctGame, Bukkit.getConsoleSender());

@@ -13,6 +13,7 @@ import org.bukkit.block.structure.Mirror;
 import org.bukkit.block.structure.StructureRotation;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.ItemStack;
@@ -64,7 +65,6 @@ public class FootRaceGame implements Listener, MCTGame {
     public FootRaceGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
         this.gameManager = gameManager;
-        plugin.getServer().getPluginManager().registerEvents(this, plugin);
         MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
         this.footRaceWorld = worldManager.getMVWorld("NT").getCBWorld();
     }
@@ -77,6 +77,7 @@ public class FootRaceGame implements Listener, MCTGame {
         placements = new ArrayList<>();
         AnchorManager anchorManager = Main.multiverseCore.getAnchorManager();
         this.footRaceStartAnchor = anchorManager.getAnchorLocation("foot-race");
+        plugin.getServer().getPluginManager().registerEvents(this, plugin);
         closeGlassBarrier();
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
@@ -105,6 +106,7 @@ public class FootRaceGame implements Listener, MCTGame {
     
     @Override
     public void stop() {
+        HandlerList.unregisterAll(this);
         closeGlassBarrier();
         cancelAllTasks();
         for (Player participant : participants) {
