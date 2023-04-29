@@ -152,6 +152,17 @@ public class CaptureTheFlagRound {
         }
     }
 
+    private List<Player> getParticipantsOnTeam(String teamName) {
+        List<Player> onTeam = new ArrayList<>();
+        for (Player participant : participants) {
+            String participantTeam = gameManager.getTeamName(participant.getUniqueId());
+            if (participantTeam.equals(teamName)) {
+                onTeam.add(participant);
+            }
+        }
+        return onTeam;
+    }
+
     private void cancelAllTasks() {
         Bukkit.getScheduler().cancelTask(matchesStartingCountDownTaskId);
     }
