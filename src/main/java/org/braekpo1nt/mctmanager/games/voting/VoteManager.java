@@ -64,16 +64,13 @@ public class VoteManager implements Listener {
             public void run() {
                 if (count <= 0) {
                     messageAllVoters(Component.text("Voting is over"));
-                } else {
-                    String timeString = TimeStringUtils.getTimeString(count);
-                    for (Player participant : voters) {
-                        updateVoteTimerFastBoard(participant, timeString);
-                    }
-                }
-                if (count <= 0) {
                     executeVote();
                     this.cancel();
                     return;
+                }
+                String timeString = TimeStringUtils.getTimeString(count);
+                for (Player participant : voters) {
+                    updateVoteTimerFastBoard(participant, timeString);
                 }
                 count--;
             }
