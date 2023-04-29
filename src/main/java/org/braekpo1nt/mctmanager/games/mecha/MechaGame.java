@@ -19,6 +19,7 @@ import org.bukkit.block.structure.StructureRotation;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.inventory.ItemStack;
@@ -76,7 +77,6 @@ public class MechaGame implements MCTGame, Listener {
     public MechaGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
         this.gameManager = gameManager;
-        plugin.getServer().getPluginManager().registerEvents(this, plugin);
         setChestCoordsAndLootTables();
         MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
         this.mvMechaWorld = worldManager.getMVWorld("FT");
@@ -91,6 +91,7 @@ public class MechaGame implements MCTGame, Listener {
         deadPlayers = new ArrayList<>();
         lastKilledTeam = null;
         this.killCounts = new HashMap<>(newParticipants.size());
+        plugin.getServer().getPluginManager().registerEvents(this, plugin);
         placePlatforms();
         fillAllChests();
         initializeTeamLocations();
@@ -119,6 +120,7 @@ public class MechaGame implements MCTGame, Listener {
     
     @Override
     public void stop() {
+        HandlerList.unregisterAll(this);
         cancelAllTasks();
         clearFloorItems();
         placePlatforms();

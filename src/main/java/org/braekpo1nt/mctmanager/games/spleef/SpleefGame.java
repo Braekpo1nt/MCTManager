@@ -18,6 +18,7 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
@@ -47,12 +48,11 @@ public class SpleefGame implements MCTGame, Listener {
     private int statusEffectsTaskId;
     private int startCountDownTaskID;
     private final String title = ChatColor.BLUE+"Spleef";
-    private final BoundingBox spleefArea = new BoundingBox(-20, 25, -1981, 21, 0, -2021);;
+    private final BoundingBox spleefArea = new BoundingBox(-20, 25, -1981, 21, 0, -2021);
 
     public SpleefGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
         this.gameManager = gameManager;
-        plugin.getServer().getPluginManager().registerEvents(this, plugin);
         MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
         this.spleefWorld = worldManager.getMVWorld("FT").getCBWorld();
     }
@@ -63,6 +63,7 @@ public class SpleefGame implements MCTGame, Listener {
         participantsAlive = new HashMap<>();
         AnchorManager anchorManager = Main.multiverseCore.getAnchorManager();
         this.spleefStartAnchor = anchorManager.getAnchorLocation("spleef");
+        plugin.getServer().getPluginManager().registerEvents(this, plugin);
         placeLayers();
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
@@ -100,6 +101,7 @@ public class SpleefGame implements MCTGame, Listener {
 
     @Override
     public void stop() {
+        HandlerList.unregisterAll(this);
         placeLayers();
         cancelAllTasks();
         for (Player participant : participants) {
