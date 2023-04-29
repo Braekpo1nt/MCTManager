@@ -146,16 +146,8 @@ public class CaptureTheFlagRound {
     private void startMatches() {
         for (CaptureTheFlagMatch match : matches) {
             MatchPairing matchPairing = match.getMatchPairing();
-            List<Player> northParticipants = new ArrayList<>();
-            List<Player> southParticipants = new ArrayList<>();
-            for (Player participant : participants) {
-                String team = gameManager.getTeamName(participant.getUniqueId());
-                if (team.equals(matchPairing.northTeam())) {
-                    northParticipants.add(participant);
-                } else if (team.equals(matchPairing.southTeam())) {
-                    southParticipants.add(participant);
-                }
-            }
+            List<Player> northParticipants = getParticipantsOnTeam(matchPairing.northTeam());
+            List<Player> southParticipants = getParticipantsOnTeam(matchPairing.southTeam());
             match.start(northParticipants, southParticipants);
         }
     }
