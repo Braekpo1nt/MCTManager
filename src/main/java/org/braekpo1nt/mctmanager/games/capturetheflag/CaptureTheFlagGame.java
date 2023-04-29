@@ -116,9 +116,58 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
     
     private void startNextRound() {
         CaptureTheFlagRound nextRound = rounds.get(currentRoundIndex);
+        for (Player participant : participants) {
+            String teamName = gameManager.getTeamName(participant.getUniqueId());
+            Component teamDisplayName = gameManager.getFormattedTeamDisplayName(teamName);
+            String oppositeTeam = nextRound.getOppositeTeam(teamName);
+            if (oppositeTeam != null) {
+                Component oppositeTeamDisplayName = gameManager.getFormattedTeamDisplayName(oppositeTeam);
+                participant.sendMessage(Component.empty()
+                        .append(teamDisplayName)
+                        .append(Component.text(" is competing against "))
+                        .append(oppositeTeamDisplayName)
+                        .append(Component.text(" this round ("))
+                        .append(Component.text(currentRoundIndex + 1))
+                        .append(Component.text("/"))
+                        .append(Component.text(maxRounds))
+                        .append(Component.text(")")));
+            } else {
+                int participantsNextRoundIndex = getTeamsNextRoundIndex(teamName);
+                if (participantsNextRoundIndex < 0) {
+                    participant.sendMessage(Component.empty()
+                            .append(teamDisplayName)
+                            .append(Component.text(" has no more rounds. They've competed against every team.")));
+                } else {
+                    participant.sendMessage(Component.empty()
+                            .append(teamDisplayName)
+                            .append(Component.text(" is not competing in this round ("))
+                            .append(Component.text(currentRoundIndex + 1))
+                            .append(Component.text("/"))
+                            .append(Component.text(maxRounds))
+                            .append(Component.text("). Their next round is "))
+                            .append(Component.text(participantsNextRoundIndex)));
+                }
+            }
+        }
         nextRound.start(participants);
     }
-    
+
+    /**
+     * Gets the index of the next round the given team is in, if they are in a successive round.
+     * @param teamName The teamName to search for
+     * @return The index of the next round the given team is in, -1 if they are not in any of the next rounds.
+     */
+    private int getTeamsNextRoundIndex(@NotNull String teamName) {
+        for (int i = currentRoundIndex + 1; i < rounds.size(); i++) {
+            CaptureTheFlagRound round = rounds.get(i);
+            String oppositeTeam = round.getOppositeTeam(teamName);
+            if (oppositeTeam != null) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
     /**
      * Given n {@link MatchPairing}s, where x is the number of arenas in {@link CaptureTheFlagGame#arenas}
      * if n>=x, returns ceiling(n/x) rounds. Each round should hold between 1 and x matches.

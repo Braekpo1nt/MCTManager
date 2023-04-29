@@ -10,6 +10,8 @@ import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -218,5 +220,22 @@ public class CaptureTheFlagRound {
             }
         }
         return false;
+    }
+
+    /**
+     * Gets the opposite team of the given teamName, if the teamName is contained in one of this round's
+     * {@link CaptureTheFlagRound#matches}.
+     * @param teamName The teamName to check for
+     * @return The opposite team in the {@link CaptureTheFlagMatch} which contains the given teamName. Null if
+     * the given teamName is not contained in any of the matches for this round.
+     */
+    public @Nullable String getOppositeTeam(@NotNull String teamName) {
+        for (CaptureTheFlagMatch match : matches) {
+            String oppositeTeam = match.getMatchPairing().oppositeTeam(teamName);
+            if (oppositeTeam != null) {
+                return oppositeTeam;
+            }
+        }
+        return null;
     }
 }
