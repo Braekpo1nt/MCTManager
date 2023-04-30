@@ -10,13 +10,14 @@ import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.bukkit.*;
-import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -31,6 +32,7 @@ public class ParkourPathwayGame implements MCTGame, Listener {
     private final Main plugin;
     private final GameManager gameManager;
     private final String title = ChatColor.BLUE+"Parkour Pathway";
+    private final PotionEffect INVISIBILITY = new PotionEffect(PotionEffectType.INVISIBILITY, 10000, 1, true, false, false);
     private final PotionEffect RESISTANCE = new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 70, 200, true, false, false);
     private final PotionEffect REGENERATION = new PotionEffect(PotionEffectType.REGENERATION, 70, 200, true, false, false);
     private final PotionEffect FIRE_RESISTANCE = new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 70, 1, true, false, false);
@@ -83,6 +85,7 @@ public class ParkourPathwayGame implements MCTGame, Listener {
         initializeFastBoard(participant);
         teleportPlayerToStartingPosition(participant);
         participant.getInventory().clear();
+        giveBoots(participant);
         participant.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
@@ -308,6 +311,7 @@ public class ParkourPathwayGame implements MCTGame, Listener {
             @Override
             public void run() {
                 for (Player participant : participants) {
+                    participant.addPotionEffect(INVISIBILITY);
                     participant.addPotionEffect(RESISTANCE);
                     participant.addPotionEffect(REGENERATION);
                     participant.addPotionEffect(FIRE_RESISTANCE);
@@ -315,6 +319,15 @@ public class ParkourPathwayGame implements MCTGame, Listener {
                 }
             }
         }.runTaskTimer(plugin, 0L, 60L).getTaskId();
+    }
+
+    private void giveBoots(Player participant) {
+        Color teamColor = gameManager.getTeamColor(participant.getUniqueId());
+        ItemStack boots = new ItemStack(Material.LEATHER_BOOTS);
+        LeatherArmorMeta meta = (LeatherArmorMeta) boots.getItemMeta();
+        meta.setColor(teamColor);
+        boots.setItemMeta(meta);
+        participant.getEquipment().setBoots(boots);
     }
 
     private void setupTeamOptions() {
