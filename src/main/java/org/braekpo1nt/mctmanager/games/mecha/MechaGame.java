@@ -11,7 +11,6 @@ import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.bukkit.*;
-import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
 import org.bukkit.block.structure.Mirror;
@@ -653,7 +652,7 @@ public class MechaGame implements MCTGame, Listener {
     }
     
     /**
-     * Gets a random loot table from the MECHA loot table selection
+     * Gets a random loot table from loots, using the provided weights
      * @return A loot table for a chest
      */
     private LootTable getRandomLootTable(List<Integer> weights, List<LootTable> loots) {
@@ -776,7 +775,7 @@ public class MechaGame implements MCTGame, Listener {
         this.mechaLootTableWeights = new ArrayList<>();
         LootTable poor = Bukkit.getLootTable(new NamespacedKey("mctdatapack", "mecha/poor-chest"));
         mechaLootTables.add(poor);
-        mechaLootTableWeights.add(3);
+        mechaLootTableWeights.add(2);
         
         LootTable good = Bukkit.getLootTable(new NamespacedKey("mctdatapack", "mecha/good-chest"));
         mechaLootTables.add(good);
