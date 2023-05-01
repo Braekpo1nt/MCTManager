@@ -126,11 +126,7 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
                         .append(teamDisplayName)
                         .append(Component.text(" is competing against "))
                         .append(oppositeTeamDisplayName)
-                        .append(Component.text(" this round ("))
-                        .append(Component.text(currentRoundIndex + 1))
-                        .append(Component.text("/"))
-                        .append(Component.text(maxRounds))
-                        .append(Component.text(")")));
+                        .append(Component.text(" this round.")));
             } else {
                 int participantsNextRoundIndex = getTeamsNextRoundIndex(teamName);
                 if (participantsNextRoundIndex < 0) {
@@ -140,11 +136,7 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
                 } else {
                     participant.sendMessage(Component.empty()
                             .append(teamDisplayName)
-                            .append(Component.text(" is not competing in this round ("))
-                            .append(Component.text(currentRoundIndex + 1))
-                            .append(Component.text("/"))
-                            .append(Component.text(maxRounds))
-                            .append(Component.text("). Their next round is "))
+                            .append(Component.text(" is not competing in this round. Their next round is "))
                             .append(Component.text(participantsNextRoundIndex)));
                 }
             }
