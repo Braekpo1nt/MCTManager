@@ -102,8 +102,4 @@ public class Main extends JavaPlugin {
     public void setFastBoardManager(FastBoardManager fastBoardManager) {
         gameManager.setFastBoardManager(fastBoardManager);
     }
-    
-    public GameManager getGameManager() {
-        return gameManager;
-    }
 }

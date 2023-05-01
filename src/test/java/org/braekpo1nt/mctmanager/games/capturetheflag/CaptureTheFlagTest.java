@@ -5,16 +5,16 @@ import be.seeseemelk.mockbukkit.ServerMock;
 import be.seeseemelk.mockbukkit.UnimplementedOperationException;
 import be.seeseemelk.mockbukkit.entity.PlayerMock;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.MyCustomServerMock;
 import org.braekpo1nt.mctmanager.MyPlayerMock;
 import org.braekpo1nt.mctmanager.ui.FastBoardManager;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginCommand;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 
 import java.util.logging.Level;
 
@@ -72,16 +72,24 @@ public class CaptureTheFlagTest {
         }
     }
     
-    PlayerMock createParticipant(String name, String teamName) {
+    PlayerMock createParticipant(String name, String teamName, String displayName, NamedTextColor teamColor) {
         PlayerMock player = new MyPlayerMock(server, name);
         server.addPlayer(player);
         plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"team", "join", teamName, player.getName()});
+        Component formattedDisplayName = formatTeamDisplayName(displayName, teamColor);
+        player.assertSaid(Component.text("You've been joined to ")
+                .append(formattedDisplayName));
         return player;
     }
     
     void addTeam(String teamName, String teamDisplayName, String teamColor) {
         plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"team", "add", teamName, teamDisplayName, teamColor});
     }
+    
+    Component formatTeamDisplayName(String displayName, NamedTextColor teamColor) {
+        return Component.text(displayName).color(teamColor).decorate(TextDecoration.BOLD);
+    }
+    
     
     @Test
     @DisplayName("With 3 teams, the third team gets notified they're on deck")
@@ -90,36 +98,23 @@ public class CaptureTheFlagTest {
             addTeam("red", "\"Red\"", "red");
             addTeam("blue", "\"Blue\"", "blue");
             addTeam("green", "\"Green\"", "green");
-            PlayerMock player1 = createParticipant("Player1", "red");
-            PlayerMock player2 = createParticipant("Player2", "blue");
-            PlayerMock player3 = createParticipant("Player3", "green");
+            PlayerMock player1 = createParticipant("Player1", "red", "Red", NamedTextColor.RED);
+            PlayerMock player2 = createParticipant("Player2", "blue", "Blue", NamedTextColor.BLUE);
+            PlayerMock player3 = createParticipant("Player3", "green", "Green", NamedTextColor.GREEN);
             plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"game", "start", "capture-the-flag"});
             
-            Component redDisplayName = plugin.getGameManager().getFormattedTeamDisplayName("red");
-            Component blueDisplayName = plugin.getGameManager().getFormattedTeamDisplayName("blue");
-            Component greenDisplayName = plugin.getGameManager().getFormattedTeamDisplayName("green");
+            player1.assertSaid("Red is competing against Blue this round.");
+            player2.assertSaid("Blue is competing against Red this round.");
+            player3.assertSaid("Green is not competing in this round. Their next round is 1");
             
-            player1.assertSaid(Component.empty()
-                    .append(redDisplayName)
-                    .append(Component.text(" is competing against "))
-                    .append(blueDisplayName)
-                    .append(Component.text(" this round.")));
-            
-            player2.assertSaid(Component.empty()
-                    .append(blueDisplayName)
-                    .append(Component.text(" is competing against "))
-                    .append(redDisplayName)
-                    .append(Component.text(" this round.")));
-            
-            player3.assertSaid(Component.empty()
-                    .append(greenDisplayName)
-                    .append(Component.text(" is not competing in this round. Their next round is "))
-                    .append(Component.text(1)));
-            
+            Assertions.assertTrue(true);
         } catch (UnimplementedOperationException ex) {
             System.out.println("UnimplementedOperationException in startGame()");
             ex.printStackTrace();
-            System.exit(1);
+            Assertions.fail(ex.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            Assertions.fail(e.getMessage());
         }
     }
     

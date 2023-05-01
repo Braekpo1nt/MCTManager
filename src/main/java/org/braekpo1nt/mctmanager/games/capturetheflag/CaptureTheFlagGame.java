@@ -3,7 +3,7 @@ package org.braekpo1nt.mctmanager.games.capturetheflag;
 import com.onarandombox.MultiverseCore.api.MVWorldManager;
 import com.onarandombox.MultiverseCore.api.MultiverseWorld;
 import com.onarandombox.MultiverseCore.utils.AnchorManager;
-import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.*;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
@@ -122,11 +122,13 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
             String oppositeTeam = nextRound.getOppositeTeam(teamName);
             if (oppositeTeam != null) {
                 Component oppositeTeamDisplayName = gameManager.getFormattedTeamDisplayName(oppositeTeam);
-                participant.sendMessage(Component.empty()
+                Component message = Component.empty()
                         .append(teamDisplayName)
                         .append(Component.text(" is competing against "))
                         .append(oppositeTeamDisplayName)
-                        .append(Component.text(" this round.")));
+                        .append(Component.text(" this round."));
+                String plainText = getPlainText(message);
+                participant.sendMessage(message);
             } else {
                 int participantsNextRoundIndex = getTeamsNextRoundIndex(teamName);
                 if (participantsNextRoundIndex < 0) {
@@ -142,6 +144,20 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
             }
         }
         nextRound.start(participants);
+    }
+    
+    private String getPlainText(Component component) {
+        StringBuilder builder = new StringBuilder();
+        
+        if (component instanceof TextComponent textComponent) {
+            builder.append(textComponent.content());
+        }
+        
+        for (Component child : component.children()) {
+            builder.append(getPlainText(child));
+        }
+        
+        return builder.toString();
     }
 
     /**
