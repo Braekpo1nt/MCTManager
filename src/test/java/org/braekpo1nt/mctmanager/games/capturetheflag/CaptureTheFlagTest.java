@@ -4,6 +4,7 @@ import be.seeseemelk.mockbukkit.MockBukkit;
 import be.seeseemelk.mockbukkit.ServerMock;
 import be.seeseemelk.mockbukkit.UnimplementedOperationException;
 import be.seeseemelk.mockbukkit.entity.PlayerMock;
+import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.MyCustomServerMock;
 import org.braekpo1nt.mctmanager.MyPlayerMock;
@@ -12,9 +13,9 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginCommand;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.util.UUID;
 import java.util.logging.Level;
 
 import static org.mockito.Mockito.*;
@@ -50,7 +51,7 @@ public class CaptureTheFlagTest {
     }
     
     @Test
-    void startGame() {
+    void twoPlayersGetToMatchStart() {
         try {
             PlayerMock player1 = new MyPlayerMock(server, "Player1");
             server.addPlayer(player1);
@@ -63,6 +64,57 @@ public class CaptureTheFlagTest {
             plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"game", "start", "capture-the-flag"});
             server.getScheduler().performTicks((20 * 10) + 1); // speed through the startMatchesStartingCountDown()
             server.getScheduler().performTicks((20 * 20) + 1); // speed through the startClassSelectionPeriod()
+            
+        } catch (UnimplementedOperationException ex) {
+            System.out.println("UnimplementedOperationException in startGame()");
+            ex.printStackTrace();
+            System.exit(1);
+        }
+    }
+    
+    PlayerMock createParticipant(String name, String teamName) {
+        PlayerMock player = new MyPlayerMock(server, name);
+        server.addPlayer(player);
+        plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"team", "join", teamName, player.getName()});
+        return player;
+    }
+    
+    void addTeam(String teamName, String teamDisplayName, String teamColor) {
+        plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"team", "add", teamName, teamDisplayName, teamColor});
+    }
+    
+    @Test
+    @DisplayName("With 3 teams, the third team gets notified they're on deck")
+    void threePlayerOnDeckTest() {
+        try {
+            addTeam("red", "\"Red\"", "red");
+            addTeam("blue", "\"Blue\"", "blue");
+            addTeam("green", "\"Green\"", "green");
+            PlayerMock player1 = createParticipant("Player1", "red");
+            PlayerMock player2 = createParticipant("Player2", "blue");
+            PlayerMock player3 = createParticipant("Player3", "green");
+            plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"game", "start", "capture-the-flag"});
+            
+            Component redDisplayName = plugin.getGameManager().getFormattedTeamDisplayName("red");
+            Component blueDisplayName = plugin.getGameManager().getFormattedTeamDisplayName("blue");
+            Component greenDisplayName = plugin.getGameManager().getFormattedTeamDisplayName("green");
+            
+            player1.assertSaid(Component.empty()
+                    .append(redDisplayName)
+                    .append(Component.text(" is competing against "))
+                    .append(blueDisplayName)
+                    .append(Component.text(" this round.")));
+            
+            player2.assertSaid(Component.empty()
+                    .append(blueDisplayName)
+                    .append(Component.text(" is competing against "))
+                    .append(redDisplayName)
+                    .append(Component.text(" this round.")));
+            
+            player3.assertSaid(Component.empty()
+                    .append(greenDisplayName)
+                    .append(Component.text(" is not competing in this round. Their next round is "))
+                    .append(Component.text(1)));
             
         } catch (UnimplementedOperationException ex) {
             System.out.println("UnimplementedOperationException in startGame()");
