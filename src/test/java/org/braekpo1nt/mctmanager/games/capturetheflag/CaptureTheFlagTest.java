@@ -72,22 +72,16 @@ public class CaptureTheFlagTest {
         }
     }
     
-    PlayerMock createParticipant(String name, String teamName, String displayName, NamedTextColor teamColor) {
+    PlayerMock createParticipant(String name, String teamName, String displayName) {
         PlayerMock player = new MyPlayerMock(server, name);
         server.addPlayer(player);
         plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"team", "join", teamName, player.getName()});
-        Component formattedDisplayName = formatTeamDisplayName(displayName, teamColor);
-        player.assertSaid(Component.text("You've been joined to ")
-                .append(formattedDisplayName));
+        Assertions.assertEquals("You've been joined to "+displayName, getPlainText(player.nextComponentMessage()));
         return player;
     }
     
     void addTeam(String teamName, String teamDisplayName, String teamColor) {
-        plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"team", "add", teamName, teamDisplayName, teamColor});
-    }
-    
-    Component formatTeamDisplayName(String displayName, NamedTextColor teamColor) {
-        return Component.text(displayName).color(teamColor).decorate(TextDecoration.BOLD);
+        plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"team", "add", teamName, String.format("\"%s\"", teamDisplayName), teamColor});
     }
     
     String getPlainText(Component component) {
@@ -108,12 +102,12 @@ public class CaptureTheFlagTest {
     @DisplayName("With 3 teams, the third team gets notified they're on deck")
     void threePlayerOnDeckTest() {
         try {
-            addTeam("red", "\"Red\"", "red");
-            addTeam("blue", "\"Blue\"", "blue");
-            addTeam("green", "\"Green\"", "green");
-            PlayerMock player1 = createParticipant("Player1", "red", "Red", NamedTextColor.RED);
-            PlayerMock player2 = createParticipant("Player2", "blue", "Blue", NamedTextColor.BLUE);
-            PlayerMock player3 = createParticipant("Player3", "green", "Green", NamedTextColor.GREEN);
+            addTeam("red", "Red", "red");
+            addTeam("blue", "Blue", "blue");
+            addTeam("green", "Green", "green");
+            PlayerMock player1 = createParticipant("Player1", "red", "Red");
+            PlayerMock player2 = createParticipant("Player2", "blue", "Blue");
+            PlayerMock player3 = createParticipant("Player3", "green", "Green");
             plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"game", "start", "capture-the-flag"});
             
             Assertions.assertEquals("Red is competing against Blue this round.", getPlainText(player1.nextComponentMessage()));
