@@ -27,4 +27,8 @@ public class MockFastBoard {
     public String[] getLines() {
         return lines;
     }
+    
+    public String getLine(int line) {
+        return lines[line];
+    }
 }

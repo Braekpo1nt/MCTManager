@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.ui;
 import org.bukkit.entity.Player;
 import org.junit.jupiter.api.Assertions;
 
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
@@ -110,6 +111,14 @@ public class MockFastBoardManager extends FastBoardManager {
         MockFastBoard board = boards.get(playerUniqueId);
         Assertions.assertNotNull(board);
         String[] lines = board.getLines();
-        Assertions.assertEquals(expectedLines, lines);
+        Assertions.assertEquals(expectedLines, Arrays.copyOfRange(lines, 2, lines.length));
+    }
+    
+    public void assertLine(UUID playerUniqueId, int line, String expectedText) {
+        MockFastBoard board = boards.get(playerUniqueId);
+        Assertions.assertNotNull(board);
+        int subLine = line + 2;
+        String text = board.getLine(subLine);
+        Assertions.assertEquals(expectedText, text);
     }
 }

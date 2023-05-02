@@ -22,6 +22,7 @@ public class CaptureTheFlagTest {
     private Main plugin;
     private PluginCommand command;
     private CommandSender sender;
+    private MockFastBoardManager mockFastBoardManager;
     
     
     @BeforeEach
@@ -36,7 +37,7 @@ public class CaptureTheFlagTest {
             System.exit(1);
         }
 //        FastBoardManager mockFastBoardManager = mock(FastBoardManager.class, RETURNS_DEFAULTS);
-        FastBoardManager mockFastBoardManager = new MockFastBoardManager();
+        mockFastBoardManager = new MockFastBoardManager();
         plugin.setFastBoardManager(mockFastBoardManager);
         command = plugin.getCommand("mct");
         sender = server.getConsoleSender();
@@ -96,6 +97,7 @@ public class CaptureTheFlagTest {
             player1.assertSaidPlaintext("Red is competing against Blue this round.");
             player2.assertSaidPlaintext("Blue is competing against Red this round.");
             player3.assertSaidPlaintext("Green is not competing in this round. Their next round is 1");
+            mockFastBoardManager.assertLine(player3.getUniqueId(), 1, "On Deck");
         } catch (UnimplementedOperationException ex) {
             System.out.println("UnimplementedOperationException in threePlayerOnDeckTest()");
             ex.printStackTrace();
