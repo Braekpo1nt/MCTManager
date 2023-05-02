@@ -556,17 +556,6 @@ public class CaptureTheFlagMatch implements Listener {
     }
     
     private void initializeFastBoard(Player participant) {
-        String enemyTeam = matchPairing.northTeam();
-        if (northParticipants.contains(participant)) {
-            enemyTeam = matchPairing.southTeam();
-        }
-        ChatColor enemyColor = gameManager.getTeamChatColor(enemyTeam);
-        String enemyDisplayName = gameManager.getTeamDisplayName(enemyTeam);
-        gameManager.getFastBoardManager().updateLine(
-                participant.getUniqueId(),
-                1,
-                "vs: "+enemyColor+enemyDisplayName
-        );
         gameManager.getFastBoardManager().updateLine(
                 participant.getUniqueId(),
                 4,

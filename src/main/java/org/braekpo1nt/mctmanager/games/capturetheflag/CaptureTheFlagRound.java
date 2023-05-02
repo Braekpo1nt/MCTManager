@@ -6,6 +6,7 @@ import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -22,7 +23,7 @@ import java.util.UUID;
  * when all the matches are over.
  */
 public class CaptureTheFlagRound {
-
+    
     private final CaptureTheFlagGame captureTheFlagGame;
     private final Main plugin;
     private final GameManager gameManager;
@@ -186,6 +187,15 @@ public class CaptureTheFlagRound {
     }
     
     private void initializeFastBoard(Player participant) {
+        String teamName = gameManager.getTeamName(participant.getUniqueId());
+        String enemyTeam = getOppositeTeam(teamName);
+        ChatColor enemyColor = gameManager.getTeamChatColor(enemyTeam);
+        String enemyDisplayName = gameManager.getTeamDisplayName(enemyTeam);
+        gameManager.getFastBoardManager().updateLine(
+                participant.getUniqueId(),
+                1,
+                "vs: "+enemyColor+enemyDisplayName
+        );
         gameManager.getFastBoardManager().updateLine(
                 participant.getUniqueId(),
                 4,
