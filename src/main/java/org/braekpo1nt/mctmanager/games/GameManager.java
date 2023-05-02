@@ -748,5 +748,6 @@ public class GameManager implements Listener {
     
     public void setFastBoardManager(FastBoardManager fastBoardManager) {
         this.fastBoardManager = fastBoardManager;
+        this.fastBoardManager.setGameStateStorageUtil(this.gameStateStorageUtil);
     }
 }

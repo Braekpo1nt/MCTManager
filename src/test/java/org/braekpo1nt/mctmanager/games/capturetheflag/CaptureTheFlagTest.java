@@ -3,18 +3,15 @@ package org.braekpo1nt.mctmanager.games.capturetheflag;
 import be.seeseemelk.mockbukkit.MockBukkit;
 import be.seeseemelk.mockbukkit.ServerMock;
 import be.seeseemelk.mockbukkit.UnimplementedOperationException;
-import be.seeseemelk.mockbukkit.entity.PlayerMock;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.MyCustomServerMock;
 import org.braekpo1nt.mctmanager.MyPlayerMock;
 import org.braekpo1nt.mctmanager.ui.FastBoardManager;
+import org.braekpo1nt.mctmanager.ui.MockFastBoardManager;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginCommand;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 
-import java.util.UUID;
 import java.util.logging.Level;
 
 import static org.mockito.Mockito.*;
@@ -25,6 +22,7 @@ public class CaptureTheFlagTest {
     private Main plugin;
     private PluginCommand command;
     private CommandSender sender;
+    private MockFastBoardManager mockFastBoardManager;
     
     
     @BeforeEach
@@ -38,7 +36,8 @@ public class CaptureTheFlagTest {
             ex.printStackTrace();
             System.exit(1);
         }
-        FastBoardManager mockFastBoardManager = mock(FastBoardManager.class, RETURNS_DEFAULTS);
+//        FastBoardManager mockFastBoardManager = mock(FastBoardManager.class, RETURNS_DEFAULTS);
+        mockFastBoardManager = new MockFastBoardManager();
         plugin.setFastBoardManager(mockFastBoardManager);
         command = plugin.getCommand("mct");
         sender = server.getConsoleSender();
@@ -50,24 +49,62 @@ public class CaptureTheFlagTest {
     }
     
     @Test
-    void startGame() {
+    @DisplayName("Starting capture the flag with two players has no errors up to the class selection period")
+    void twoPlayersGetToMatchStart() {
         try {
-            PlayerMock player1 = new MyPlayerMock(server, "Player1");
-            server.addPlayer(player1);
-            PlayerMock player2 = new MyPlayerMock(server, "Player2");
-            server.addPlayer(player2);
-            plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"team", "add", "red", "\"Red\"", "red"});
-            plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"team", "add", "blue", "\"Blue\"", "blue"});
-            plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"team", "join", "red", player1.getName()});
-            plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"team", "join", "blue", player2.getName()});
+            addTeam("red", "Red", "red");
+            addTeam("blue", "Blue", "blue");
+            createParticipant("Player1", "red", "Red");
+            createParticipant("Player2", "blue", "Blue");
             plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"game", "start", "capture-the-flag"});
             server.getScheduler().performTicks((20 * 10) + 1); // speed through the startMatchesStartingCountDown()
             server.getScheduler().performTicks((20 * 20) + 1); // speed through the startClassSelectionPeriod()
             
         } catch (UnimplementedOperationException ex) {
-            System.out.println("UnimplementedOperationException in startGame()");
+            System.out.println("UnimplementedOperationException in twoPlayersGetToMatchStart()");
             ex.printStackTrace();
-            System.exit(1);
+            Assertions.fail(ex.getMessage());
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            Assertions.fail(ex.getMessage());
+        }
+    }
+    
+    MyPlayerMock createParticipant(String name, String teamName, String displayName) {
+        MyPlayerMock player = new MyPlayerMock(server, name);
+        server.addPlayer(player);
+        plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"team", "join", teamName, player.getName()});
+        player.assertSaidPlaintext("You've been joined to "+displayName);
+        return player;
+    }
+    
+    void addTeam(String teamName, String teamDisplayName, String teamColor) {
+        plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"team", "add", teamName, String.format("\"%s\"", teamDisplayName), teamColor});
+    }
+    
+    @Test
+    @DisplayName("With 3 teams, the third team gets notified they're on deck")
+    void threePlayerOnDeckTest() {
+        try {
+            addTeam("red", "Red", "red");
+            addTeam("blue", "Blue", "blue");
+            addTeam("green", "Green", "green");
+            MyPlayerMock player1 = createParticipant("Player1", "red", "Red");
+            MyPlayerMock player2 = createParticipant("Player2", "blue", "Blue");
+            MyPlayerMock player3 = createParticipant("Player3", "green", "Green");
+            plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"game", "start", "capture-the-flag"});
+            
+            player1.assertSaidPlaintext("Red is competing against Blue this round.");
+            player2.assertSaidPlaintext("Blue is competing against Red this round.");
+            player3.assertSaidPlaintext("Green is not competing in this round. Their next round is 1");
+            mockFastBoardManager.assertLine(player3.getUniqueId(), 1, "On Deck");
+        } catch (UnimplementedOperationException ex) {
+            System.out.println("UnimplementedOperationException in threePlayerOnDeckTest()");
+            ex.printStackTrace();
+            Assertions.fail(ex.getMessage());
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            Assertions.fail(ex.getMessage());
         }
     }
     

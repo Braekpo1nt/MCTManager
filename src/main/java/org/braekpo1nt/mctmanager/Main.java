@@ -98,7 +98,7 @@ public class Main extends JavaPlugin {
         }
     }
     
-    //Testing methods for mocking components
+    // Testing methods for mocking components
     public void setFastBoardManager(FastBoardManager fastBoardManager) {
         gameManager.setFastBoardManager(fastBoardManager);
     }
