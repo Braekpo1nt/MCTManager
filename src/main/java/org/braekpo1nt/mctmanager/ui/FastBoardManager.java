@@ -17,9 +17,9 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class FastBoardManager {
     
-    private final String EVENT_TITLE = ChatColor.BOLD + "" + ChatColor.DARK_RED + "MCT #2";
+    protected final String EVENT_TITLE = ChatColor.BOLD + "" + ChatColor.DARK_RED + "MCT #2";
     private final ConcurrentHashMap<UUID, FastBoard> boards = new ConcurrentHashMap<>();
-    private final GameStateStorageUtil gameStateStorageUtil;
+    protected GameStateStorageUtil gameStateStorageUtil;
     
     public FastBoardManager(GameStateStorageUtil gameStateStorageUtil) {
         this.gameStateStorageUtil = gameStateStorageUtil;
@@ -142,6 +142,12 @@ public class FastBoardManager {
             }
             iterator.remove();
         }
+    }
+    
+    // Test methods
+    
+    public void setGameStateStorageUtil(GameStateStorageUtil gameStateStorageUtil) {
+        this.gameStateStorageUtil = gameStateStorageUtil;
     }
     
 }
