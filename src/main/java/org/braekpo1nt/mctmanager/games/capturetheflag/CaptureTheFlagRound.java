@@ -29,6 +29,7 @@ public class CaptureTheFlagRound {
     private final GameManager gameManager;
     private List<CaptureTheFlagMatch> matches;
     private List<Player> participants;
+    private List<Player> onDeckParticipants;
     private final Location spawnObservatory;
     private int matchesStartingCountDownTaskId;
 
@@ -57,8 +58,12 @@ public class CaptureTheFlagRound {
     
     public void start(List<Player> newParticipants, List<Player> newOnDeckParticipants) {
         participants = new ArrayList<>();
+        onDeckParticipants = new ArrayList<>();
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
+        }
+        for (Player onDeck : newOnDeckParticipants) {
+            initializeOnDeckParticipant(onDeck);
         }
         startMatchesStartingCountDown();
     }
@@ -73,6 +78,16 @@ public class CaptureTheFlagRound {
         ParticipantInitializer.resetHealthAndHunger(participant);
     }
     
+    private void initializeOnDeckParticipant(Player onDeckParticipant) {
+        onDeckParticipants.add(onDeckParticipant);
+        initializeOndDeckFastBoard(onDeckParticipant);
+        onDeckParticipant.teleport(spawnObservatory);
+        onDeckParticipant.getInventory().clear();
+        onDeckParticipant.setGameMode(GameMode.ADVENTURE);
+        ParticipantInitializer.clearStatusEffects(onDeckParticipant);
+        ParticipantInitializer.resetHealthAndHunger(onDeckParticipant);
+    }
+    
     private void roundIsOver() {
         stop();
         captureTheFlagGame.roundIsOver();
@@ -85,6 +100,9 @@ public class CaptureTheFlagRound {
         for (Player participant : participants) {
             resetParticipant(participant);
         }
+        for (Player onDeckParticipant : onDeckParticipants) {
+            resetOnDeckParticipant(onDeckParticipant);
+        }
         participants.clear();
         matches.clear();
     }
@@ -94,6 +112,13 @@ public class CaptureTheFlagRound {
         participant.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
+    }
+    
+    private void resetOnDeckParticipant(Player onDeckParticipant) {
+        onDeckParticipant.getInventory().clear();
+        onDeckParticipant.setGameMode(GameMode.ADVENTURE);
+        ParticipantInitializer.clearStatusEffects(onDeckParticipant);
+        ParticipantInitializer.resetHealthAndHunger(onDeckParticipant);
     }
     
     /**
@@ -177,9 +202,15 @@ public class CaptureTheFlagRound {
     private void displayMatchesStartingCountDown(int secondsLeft) {
         String timeString = TimeStringUtils.getTimeString(secondsLeft);
         for (Player participant : participants) {
-            UUID participantUniqueId = participant.getUniqueId();
             gameManager.getFastBoardManager().updateLine(
-                    participantUniqueId,
+                    participant.getUniqueId(),
+                    5,
+                    timeString
+            );
+        }
+        for (Player participant : onDeckParticipants) {
+            gameManager.getFastBoardManager().updateLine(
+                    participant.getUniqueId(),
                     5,
                     timeString
             );
@@ -195,6 +226,24 @@ public class CaptureTheFlagRound {
                 participant.getUniqueId(),
                 1,
                 "vs: "+enemyColor+enemyDisplayName
+        );
+        gameManager.getFastBoardManager().updateLine(
+                participant.getUniqueId(),
+                4,
+                "Starting in:"
+        );
+        gameManager.getFastBoardManager().updateLine(
+                participant.getUniqueId(),
+                5,
+                "0"
+        );
+    }
+    
+    private void initializeOndDeckFastBoard(Player participant) {
+        gameManager.getFastBoardManager().updateLine(
+                participant.getUniqueId(),
+                1,
+                "On Deck"
         );
         gameManager.getFastBoardManager().updateLine(
                 participant.getUniqueId(),
