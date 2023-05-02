@@ -7,6 +7,7 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.MyCustomServerMock;
 import org.braekpo1nt.mctmanager.MyPlayerMock;
 import org.braekpo1nt.mctmanager.ui.FastBoardManager;
+import org.braekpo1nt.mctmanager.ui.MockFastBoardManager;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginCommand;
 import org.junit.jupiter.api.*;
@@ -34,7 +35,8 @@ public class CaptureTheFlagTest {
             ex.printStackTrace();
             System.exit(1);
         }
-        FastBoardManager mockFastBoardManager = mock(FastBoardManager.class, RETURNS_DEFAULTS);
+//        FastBoardManager mockFastBoardManager = mock(FastBoardManager.class, RETURNS_DEFAULTS);
+        FastBoardManager mockFastBoardManager = new MockFastBoardManager();
         plugin.setFastBoardManager(mockFastBoardManager);
         command = plugin.getCommand("mct");
         sender = server.getConsoleSender();

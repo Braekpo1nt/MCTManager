@@ -31,7 +31,7 @@ public class FastBoardManager {
         }
     }
     
-    private synchronized void updateMainBoardForPlayer(Player player) {
+    protected synchronized void updateMainBoardForPlayer(Player player) {
         boolean playerHasBoard = givePlayerBoardIfAbsent(player);
         if (!playerHasBoard) {
             return;
@@ -51,7 +51,7 @@ public class FastBoardManager {
      * @param player The player
      * @return true if the player got a board or already has a board, false if not
      */
-    private synchronized boolean givePlayerBoardIfAbsent(Player player) {
+    protected synchronized boolean givePlayerBoardIfAbsent(Player player) {
         UUID playerUniqueId = player.getUniqueId();
         if (boards.containsKey(playerUniqueId)) {
             return true;
@@ -62,8 +62,8 @@ public class FastBoardManager {
         }
         return false;
     }
-
-    private synchronized void addBoard(Player player) {
+    
+    protected synchronized void addBoard(Player player) {
         FastBoard newBoard = new FastBoard(player);
         newBoard.updateTitle(this.EVENT_TITLE);
         String[] mainLines = getMainLines(player.getUniqueId());
@@ -76,7 +76,7 @@ public class FastBoardManager {
         boards.put(player.getUniqueId(), newBoard);
     }
     
-    private String[] getMainLines(UUID playerUniqueId) {
+    protected String[] getMainLines(UUID playerUniqueId) {
         String teamName = gameStateStorageUtil.getPlayerTeamName(playerUniqueId);
         String teamDisplayName = gameStateStorageUtil.getTeamDisplayName(teamName);
         ChatColor teamChatColor = gameStateStorageUtil.getTeamChatColor(teamName);
