@@ -116,11 +116,14 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
     
     private void startNextRound() {
         CaptureTheFlagRound nextRound = rounds.get(currentRoundIndex);
+        List<Player> roundParticipants = new ArrayList<>();
+        List<Player> onDeckParticipants = new ArrayList<>();
         for (Player participant : participants) {
             String teamName = gameManager.getTeamName(participant.getUniqueId());
             Component teamDisplayName = gameManager.getFormattedTeamDisplayName(teamName);
             String oppositeTeam = nextRound.getOppositeTeam(teamName);
             if (oppositeTeam != null) {
+                roundParticipants.add(participant);
                 Component oppositeTeamDisplayName = gameManager.getFormattedTeamDisplayName(oppositeTeam);
                 participant.sendMessage(Component.empty()
                         .append(teamDisplayName)
@@ -128,6 +131,7 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
                         .append(oppositeTeamDisplayName)
                         .append(Component.text(" this round.")));
             } else {
+                onDeckParticipants.add(participant);
                 int participantsNextRoundIndex = getTeamsNextRoundIndex(teamName);
                 if (participantsNextRoundIndex < 0) {
                     participant.sendMessage(Component.empty()
@@ -141,7 +145,7 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
                 }
             }
         }
-        nextRound.start(participants);
+        nextRound.start(roundParticipants, onDeckParticipants);
     }
 
     /**

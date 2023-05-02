@@ -55,7 +55,7 @@ public class CaptureTheFlagRound {
         }
     }
     
-    public void start(List<Player> newParticipants) {
+    public void start(List<Player> newParticipants, List<Player> newOnDeckParticipants) {
         participants = new ArrayList<>();
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
