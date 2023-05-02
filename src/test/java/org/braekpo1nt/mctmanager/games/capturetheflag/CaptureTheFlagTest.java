@@ -6,8 +6,6 @@ import be.seeseemelk.mockbukkit.UnimplementedOperationException;
 import be.seeseemelk.mockbukkit.entity.PlayerMock;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
-import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.MyCustomServerMock;
 import org.braekpo1nt.mctmanager.MyPlayerMock;
@@ -51,24 +49,24 @@ public class CaptureTheFlagTest {
     }
     
     @Test
+    @DisplayName("Starting capture the flag with two players has no errors up to the class selection period")
     void twoPlayersGetToMatchStart() {
         try {
-            PlayerMock player1 = new MyPlayerMock(server, "Player1");
-            server.addPlayer(player1);
-            PlayerMock player2 = new MyPlayerMock(server, "Player2");
-            server.addPlayer(player2);
-            plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"team", "add", "red", "\"Red\"", "red"});
-            plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"team", "add", "blue", "\"Blue\"", "blue"});
-            plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"team", "join", "red", player1.getName()});
-            plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"team", "join", "blue", player2.getName()});
+            addTeam("red", "Red", "red");
+            addTeam("blue", "Blue", "blue");
+            PlayerMock player1 = createParticipant("Player1", "red", "Red");
+            PlayerMock player2 = createParticipant("Player2", "blue", "Blue");
             plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"game", "start", "capture-the-flag"});
             server.getScheduler().performTicks((20 * 10) + 1); // speed through the startMatchesStartingCountDown()
             server.getScheduler().performTicks((20 * 20) + 1); // speed through the startClassSelectionPeriod()
             
         } catch (UnimplementedOperationException ex) {
-            System.out.println("UnimplementedOperationException in startGame()");
+            System.out.println("UnimplementedOperationException in twoPlayersGetToMatchStart()");
             ex.printStackTrace();
-            System.exit(1);
+            Assertions.fail(ex.getMessage());
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            Assertions.fail(ex.getMessage());
         }
     }
     
@@ -76,7 +74,7 @@ public class CaptureTheFlagTest {
         PlayerMock player = new MyPlayerMock(server, name);
         server.addPlayer(player);
         plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"team", "join", teamName, player.getName()});
-        Assertions.assertEquals("You've been joined to "+displayName, getPlainText(player.nextComponentMessage()));
+        Assertions.assertEquals("You've been joined to "+displayName, toPlainText(player.nextComponentMessage()));
         return player;
     }
     
@@ -84,7 +82,13 @@ public class CaptureTheFlagTest {
         plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"team", "add", teamName, String.format("\"%s\"", teamDisplayName), teamColor});
     }
     
-    String getPlainText(Component component) {
+    /**
+     * Takes in a Component with 1 or more children, and converts it to a plaintext string without formatting.
+     * Assumes it is made up of TextComponents and empty components.
+     * @param component The component to get the plaintext version of
+     * @return The concatenation of the contents() of the TextComponent children that this component is made of
+     */
+    String toPlainText(Component component) {
         StringBuilder builder = new StringBuilder();
         
         if (component instanceof TextComponent textComponent) {
@@ -92,7 +96,7 @@ public class CaptureTheFlagTest {
         }
         
         for (Component child : component.children()) {
-            builder.append(getPlainText(child));
+            builder.append(toPlainText(child));
         }
         
         return builder.toString();
@@ -110,16 +114,16 @@ public class CaptureTheFlagTest {
             PlayerMock player3 = createParticipant("Player3", "green", "Green");
             plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"game", "start", "capture-the-flag"});
             
-            Assertions.assertEquals("Red is competing against Blue this round.", getPlainText(player1.nextComponentMessage()));
-            Assertions.assertEquals("Blue is competing against Red this round.", getPlainText(player2.nextComponentMessage()));
-            Assertions.assertEquals("Green is not competing in this round. Their next round is 1", getPlainText(player3.nextComponentMessage()));
+            Assertions.assertEquals("Red is competing against Blue this round.", toPlainText(player1.nextComponentMessage()));
+            Assertions.assertEquals("Blue is competing against Red this round.", toPlainText(player2.nextComponentMessage()));
+            Assertions.assertEquals("Green is not competing in this round. Their next round is 1", toPlainText(player3.nextComponentMessage()));
         } catch (UnimplementedOperationException ex) {
-            System.out.println("UnimplementedOperationException in startGame()");
+            System.out.println("UnimplementedOperationException in threePlayerOnDeckTest()");
             ex.printStackTrace();
             Assertions.fail(ex.getMessage());
-        } catch (Exception e) {
-            e.printStackTrace();
-            Assertions.fail(e.getMessage());
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            Assertions.fail(ex.getMessage());
         }
     }
     
