@@ -90,6 +90,19 @@ public class CaptureTheFlagTest {
         return Component.text(displayName).color(teamColor).decorate(TextDecoration.BOLD);
     }
     
+    String getPlainText(Component component) {
+        StringBuilder builder = new StringBuilder();
+        
+        if (component instanceof TextComponent textComponent) {
+            builder.append(textComponent.content());
+        }
+        
+        for (Component child : component.children()) {
+            builder.append(getPlainText(child));
+        }
+        
+        return builder.toString();
+    }
     
     @Test
     @DisplayName("With 3 teams, the third team gets notified they're on deck")
@@ -103,11 +116,9 @@ public class CaptureTheFlagTest {
             PlayerMock player3 = createParticipant("Player3", "green", "Green", NamedTextColor.GREEN);
             plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"game", "start", "capture-the-flag"});
             
-            player1.assertSaid("Red is competing against Blue this round.");
-            player2.assertSaid("Blue is competing against Red this round.");
-            player3.assertSaid("Green is not competing in this round. Their next round is 1");
-            
-            Assertions.assertTrue(true);
+            Assertions.assertEquals("Red is competing against Blue this round.", getPlainText(player1.nextComponentMessage()));
+            Assertions.assertEquals("Blue is competing against Red this round.", getPlainText(player2.nextComponentMessage()));
+            Assertions.assertEquals("Green is not competing in this round. Their next round is 1", getPlainText(player3.nextComponentMessage()));
         } catch (UnimplementedOperationException ex) {
             System.out.println("UnimplementedOperationException in startGame()");
             ex.printStackTrace();

@@ -122,13 +122,11 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
             String oppositeTeam = nextRound.getOppositeTeam(teamName);
             if (oppositeTeam != null) {
                 Component oppositeTeamDisplayName = gameManager.getFormattedTeamDisplayName(oppositeTeam);
-                Component message = Component.empty()
+                participant.sendMessage(Component.empty()
                         .append(teamDisplayName)
                         .append(Component.text(" is competing against "))
                         .append(oppositeTeamDisplayName)
-                        .append(Component.text(" this round."));
-                String plainText = getPlainText(message);
-                participant.sendMessage(message);
+                        .append(Component.text(" this round.")));
             } else {
                 int participantsNextRoundIndex = getTeamsNextRoundIndex(teamName);
                 if (participantsNextRoundIndex < 0) {
@@ -144,20 +142,6 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
             }
         }
         nextRound.start(participants);
-    }
-    
-    private String getPlainText(Component component) {
-        StringBuilder builder = new StringBuilder();
-        
-        if (component instanceof TextComponent textComponent) {
-            builder.append(textComponent.content());
-        }
-        
-        for (Component child : component.children()) {
-            builder.append(getPlainText(child));
-        }
-        
-        return builder.toString();
     }
 
     /**
