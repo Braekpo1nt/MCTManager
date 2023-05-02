@@ -1,7 +1,7 @@
 package org.braekpo1nt.mctmanager.ui;
 
-import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
 import org.bukkit.entity.Player;
+import org.junit.jupiter.api.Assertions;
 
 import java.util.Iterator;
 import java.util.Map;
@@ -104,5 +104,12 @@ public class MockFastBoardManager extends FastBoardManager {
             }
             iterator.remove();
         }
+    }
+    
+    public void assertLines(UUID playerUniqueId, String... expectedLines) {
+        MockFastBoard board = boards.get(playerUniqueId);
+        Assertions.assertNotNull(board);
+        String[] lines = board.getLines();
+        Assertions.assertEquals(expectedLines, lines);
     }
 }

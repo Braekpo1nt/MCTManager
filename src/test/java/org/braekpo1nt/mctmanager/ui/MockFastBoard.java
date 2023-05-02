@@ -2,8 +2,10 @@ package org.braekpo1nt.mctmanager.ui;
 
 public class MockFastBoard {
     
+    private String[] lines;
+    
     public void updateLine(int line, String text) {
-        
+        this.lines[line] = text;
     }
     
     public void updateTitle(String title) {
@@ -11,7 +13,7 @@ public class MockFastBoard {
     }
     
     public void updateLines(String... lines) {
-        
+        this.lines = lines;
     }
     
     public boolean isDeleted() {
@@ -19,6 +21,10 @@ public class MockFastBoard {
     }
     
     public void delete() {
-        
+        this.lines = null;
+    }
+    
+    public String[] getLines() {
+        return lines;
     }
 }
