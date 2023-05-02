@@ -3,9 +3,6 @@ package org.braekpo1nt.mctmanager.games.capturetheflag;
 import be.seeseemelk.mockbukkit.MockBukkit;
 import be.seeseemelk.mockbukkit.ServerMock;
 import be.seeseemelk.mockbukkit.UnimplementedOperationException;
-import be.seeseemelk.mockbukkit.entity.PlayerMock;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.TextComponent;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.MyCustomServerMock;
 import org.braekpo1nt.mctmanager.MyPlayerMock;
@@ -54,8 +51,8 @@ public class CaptureTheFlagTest {
         try {
             addTeam("red", "Red", "red");
             addTeam("blue", "Blue", "blue");
-            PlayerMock player1 = createParticipant("Player1", "red", "Red");
-            PlayerMock player2 = createParticipant("Player2", "blue", "Blue");
+            createParticipant("Player1", "red", "Red");
+            createParticipant("Player2", "blue", "Blue");
             plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"game", "start", "capture-the-flag"});
             server.getScheduler().performTicks((20 * 10) + 1); // speed through the startMatchesStartingCountDown()
             server.getScheduler().performTicks((20 * 20) + 1); // speed through the startClassSelectionPeriod()
@@ -70,36 +67,16 @@ public class CaptureTheFlagTest {
         }
     }
     
-    PlayerMock createParticipant(String name, String teamName, String displayName) {
-        PlayerMock player = new MyPlayerMock(server, name);
+    MyPlayerMock createParticipant(String name, String teamName, String displayName) {
+        MyPlayerMock player = new MyPlayerMock(server, name);
         server.addPlayer(player);
         plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"team", "join", teamName, player.getName()});
-        Assertions.assertEquals("You've been joined to "+displayName, toPlainText(player.nextComponentMessage()));
+        player.assertSaidPlaintext("You've been joined to "+displayName);
         return player;
     }
     
     void addTeam(String teamName, String teamDisplayName, String teamColor) {
         plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"team", "add", teamName, String.format("\"%s\"", teamDisplayName), teamColor});
-    }
-    
-    /**
-     * Takes in a Component with 1 or more children, and converts it to a plaintext string without formatting.
-     * Assumes it is made up of TextComponents and empty components.
-     * @param component The component to get the plaintext version of
-     * @return The concatenation of the contents() of the TextComponent children that this component is made of
-     */
-    String toPlainText(Component component) {
-        StringBuilder builder = new StringBuilder();
-        
-        if (component instanceof TextComponent textComponent) {
-            builder.append(textComponent.content());
-        }
-        
-        for (Component child : component.children()) {
-            builder.append(toPlainText(child));
-        }
-        
-        return builder.toString();
     }
     
     @Test
@@ -109,14 +86,14 @@ public class CaptureTheFlagTest {
             addTeam("red", "Red", "red");
             addTeam("blue", "Blue", "blue");
             addTeam("green", "Green", "green");
-            PlayerMock player1 = createParticipant("Player1", "red", "Red");
-            PlayerMock player2 = createParticipant("Player2", "blue", "Blue");
-            PlayerMock player3 = createParticipant("Player3", "green", "Green");
+            MyPlayerMock player1 = createParticipant("Player1", "red", "Red");
+            MyPlayerMock player2 = createParticipant("Player2", "blue", "Blue");
+            MyPlayerMock player3 = createParticipant("Player3", "green", "Green");
             plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"game", "start", "capture-the-flag"});
             
-            Assertions.assertEquals("Red is competing against Blue this round.", toPlainText(player1.nextComponentMessage()));
-            Assertions.assertEquals("Blue is competing against Red this round.", toPlainText(player2.nextComponentMessage()));
-            Assertions.assertEquals("Green is not competing in this round. Their next round is 1", toPlainText(player3.nextComponentMessage()));
+            player1.assertSaidPlaintext("Red is competing against Blue this round.");
+            player2.assertSaidPlaintext("Blue is competing against Red this round.");
+            player3.assertSaidPlaintext("Green is not competing in this round. Their next round is 1");
         } catch (UnimplementedOperationException ex) {
             System.out.println("UnimplementedOperationException in threePlayerOnDeckTest()");
             ex.printStackTrace();
