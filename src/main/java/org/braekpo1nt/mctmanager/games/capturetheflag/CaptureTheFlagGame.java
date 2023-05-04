@@ -16,6 +16,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -176,7 +177,7 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
         List<CaptureTheFlagRound> rounds = new ArrayList<>();
         List<List<MatchPairing>> roundMatchPairingsList = CaptureTheFlagUtils.generateRoundMatchPairings(matchPairings, arenas.size());
         for (List<MatchPairing> roundMatchPairings : roundMatchPairingsList) {
-            CaptureTheFlagRound newRound = new CaptureTheFlagRound(this, plugin, gameManager, spawnObservatory);
+            CaptureTheFlagRound newRound = new CaptureTheFlagRound(this, plugin, gameManager, spawnObservatory, captureTheFlagWorld);
             newRound.createMatches(roundMatchPairings, arenas.subList(0, roundMatchPairings.size()));
             rounds.add(newRound);
         }
@@ -245,8 +246,8 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
                 new Location(captureTheFlagWorld, -6, -13, -1040), // North flag 
                 new Location(captureTheFlagWorld, -24, -13, -1006), // South flag 
                 new Location(captureTheFlagWorld, -17, -16, -1042), // North barrier
-                new Location(captureTheFlagWorld, -17, -16, -1004) // South barrier 
-        
+                new Location(captureTheFlagWorld, -17, -16, -1004), // South barrier 
+                new BoundingBox(-26, -17, -1001, -4, 4, -1045)
         ));
         //NorthEast
         newArenas.add(new Arena(
@@ -255,7 +256,8 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
                 new Location(captureTheFlagWorld, 24, -13, -1040), // North flag 
                 new Location(captureTheFlagWorld, 6, -13, -1006), // South flag 
                 new Location(captureTheFlagWorld, 13, -16, -1042), // North barrier
-                new Location(captureTheFlagWorld, 13, -16, -1004) // South barrier 
+                new Location(captureTheFlagWorld, 13, -16, -1004), // South barrier
+                new BoundingBox(4, 4, -1045, 26, -17, -1001)
         ));
         //SouthWest
         newArenas.add(new Arena(
@@ -264,7 +266,8 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
                 new Location(captureTheFlagWorld, -6, -13, -994), // North flag 
                 new Location(captureTheFlagWorld, -24, -13, -960), // South flag 
                 new Location(captureTheFlagWorld, -17, -16, -996), // North barrier
-                new Location(captureTheFlagWorld, -17, -16, -958) // South barrier 
+                new Location(captureTheFlagWorld, -17, -16, -958), // South barrier 
+                new BoundingBox(-4, -17, -999, -26, 4, -955)
         ));
         //SouthEast
         newArenas.add(new Arena(
@@ -273,7 +276,8 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
                 new Location(captureTheFlagWorld, 24, -13, -994), // North flag 
                 new Location(captureTheFlagWorld, 6, -13, -960), // South flag 
                 new Location(captureTheFlagWorld, 13, -16, -996), // North barrier
-                new Location(captureTheFlagWorld, 13, -16, -958) // South barrier 
+                new Location(captureTheFlagWorld, 13, -16, -958), // South barrier 
+                new BoundingBox(4, 4, -955, 26, -17, -999)
         ));
         
         return newArenas;

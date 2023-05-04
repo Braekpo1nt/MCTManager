@@ -5,10 +5,7 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.GameMode;
-import org.bukkit.Location;
+import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
@@ -32,12 +29,14 @@ public class CaptureTheFlagRound {
     private List<Player> onDeckParticipants;
     private final Location spawnObservatory;
     private int matchesStartingCountDownTaskId;
+    private final World captureTheFlagWorld;
 
-    public CaptureTheFlagRound(CaptureTheFlagGame captureTheFlagGame, Main plugin, GameManager gameManager, Location spawnObservatory) {
+    public CaptureTheFlagRound(CaptureTheFlagGame captureTheFlagGame, Main plugin, GameManager gameManager, Location spawnObservatory, World captureTheFlagWorld) {
         this.captureTheFlagGame = captureTheFlagGame;
         this.plugin = plugin;
         this.gameManager = gameManager;
         this.spawnObservatory = spawnObservatory;
+        this.captureTheFlagWorld = captureTheFlagWorld;
     }
     
     /**
@@ -51,7 +50,7 @@ public class CaptureTheFlagRound {
         for (int i = 0; i < matchPairings.size(); i++) {
             MatchPairing matchPairing = matchPairings.get(i);
             Arena arena = arenas.get(i);
-            CaptureTheFlagMatch match = new CaptureTheFlagMatch(this, plugin, gameManager, matchPairing, arena, spawnObservatory);
+            CaptureTheFlagMatch match = new CaptureTheFlagMatch(this, plugin, gameManager, matchPairing, arena, spawnObservatory, captureTheFlagWorld);
             matches.add(match);
         }
     }
