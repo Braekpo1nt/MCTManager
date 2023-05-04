@@ -8,6 +8,7 @@ import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
+import org.braekpo1nt.mctmanager.utils.MaterialUtils;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -19,6 +20,8 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -66,7 +69,9 @@ public class CaptureTheFlagMatch implements Listener {
     private Material southBanner;
     private final World captureTheFlagWorld;
     
-    public CaptureTheFlagMatch(CaptureTheFlagRound captureTheFlagRound, Main plugin, GameManager gameManager, MatchPairing matchPairing, Arena arena, Location spawnObservatory, World captureTheFlagWorld) {
+    public CaptureTheFlagMatch(CaptureTheFlagRound captureTheFlagRound, Main plugin, 
+                               GameManager gameManager, MatchPairing matchPairing, Arena arena, 
+                               Location spawnObservatory, World captureTheFlagWorld) {
         this.captureTheFlagRound = captureTheFlagRound;
         this.plugin = plugin;
         this.gameManager = gameManager;
@@ -218,6 +223,26 @@ public class CaptureTheFlagMatch implements Listener {
         if (allParticipantsAreDead()) {
             onBothTeamsLose(Component.text("Both teams are dead."));
         }
+    }
+    
+    @EventHandler
+    public void clickEvent(InventoryClickEvent event) {
+        if (event.getClickedInventory() == null) {
+            return;
+        }
+        ItemStack item = event.getCurrentItem();
+        if (item == null) {
+            return;
+        }
+        Player participant = ((Player) event.getWhoClicked());
+        if (!allParticipants.contains(participant)) {
+            return;
+        }
+        Material itemType = item.getType();
+        if (!MaterialUtils.isBanner(itemType)) {
+            return;
+        }
+        event.setCancelled(true);
     }
     
     /**
