@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.games.capturetheflag;
 
 import org.bukkit.Location;
+import org.bukkit.util.BoundingBox;
 
 /**
  * Represents an individual arena for Capture the Flag
@@ -10,7 +11,8 @@ import org.bukkit.Location;
  * @param southFlag The flag spawn/goal location for the south of the arena
  * @param northBarrier The origin location for the glass barrier for the north of the arena
  * @param southBarrier The origin location for the glass barrier for the south of the arena
+ * @param boundingBox The bounding box of the arena
  */
 public record Arena(Location northSpawn, Location southSpawn, Location northFlag, Location southFlag,
-                           Location northBarrier, Location southBarrier) {
+                    Location northBarrier, Location southBarrier, BoundingBox boundingBox) {
 }

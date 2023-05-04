@@ -12,6 +12,8 @@ import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.Rotatable;
+import org.bukkit.entity.Arrow;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
@@ -22,6 +24,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
+import org.bukkit.util.BoundingBox;
 
 import java.util.*;
 
@@ -61,8 +64,9 @@ public class CaptureTheFlagMatch implements Listener {
     private Player hasSouthFlag;
     private Material northBanner;
     private Material southBanner;
+    private final World captureTheFlagWorld;
     
-    public CaptureTheFlagMatch(CaptureTheFlagRound captureTheFlagRound, Main plugin, GameManager gameManager, MatchPairing matchPairing, Arena arena, Location spawnObservatory) {
+    public CaptureTheFlagMatch(CaptureTheFlagRound captureTheFlagRound, Main plugin, GameManager gameManager, MatchPairing matchPairing, Arena arena, Location spawnObservatory, World captureTheFlagWorld) {
         this.captureTheFlagRound = captureTheFlagRound;
         this.plugin = plugin;
         this.gameManager = gameManager;
@@ -71,6 +75,7 @@ public class CaptureTheFlagMatch implements Listener {
         this.northClassPicker = new ClassPicker();
         this.southClassPicker = new ClassPicker();
         this.spawnObservatory = spawnObservatory;
+        this.captureTheFlagWorld = captureTheFlagWorld;
     }
     
     public MatchPairing getMatchPairing() {
@@ -134,6 +139,18 @@ public class CaptureTheFlagMatch implements Listener {
         southClassPicker.stop(false);
         hasNorthFlag = null;
         hasSouthFlag = null;
+        resetArena();
+        for (Player participant : allParticipants) {
+            resetParticipant(participant);
+        }
+        allParticipants.clear();
+        northParticipants.clear();
+        southParticipants.clear();
+        Bukkit.getLogger().info("Stopping capture the flag match " + matchPairing);
+    }
+    
+    private void resetArena() {
+        openGlassBarriers();
         if (northFlagPosition != null) {
             northFlagPosition.getBlock().setType(Material.AIR);
             northFlagPosition = null;
@@ -142,13 +159,18 @@ public class CaptureTheFlagMatch implements Listener {
             southFlagPosition.getBlock().setType(Material.AIR);
             northFlagPosition = null;
         }
-        for (Player participant : allParticipants) {
-            resetParticipant(participant);
+        // remove items/arrows on the ground
+        BoundingBox removeArea = arena.boundingBox();
+        for (Arrow arrow : captureTheFlagWorld.getEntitiesByClass(Arrow.class)) {
+            if (removeArea.contains(arrow.getLocation().toVector())) {
+                arrow.remove();
+            }
         }
-        allParticipants.clear();
-        northParticipants.clear();
-        southParticipants.clear();
-        Bukkit.getLogger().info("Stopping capture the flag match " + matchPairing);
+        for (Item item : captureTheFlagWorld.getEntitiesByClass(Item.class)) {
+            if (removeArea.contains(item.getLocation().toVector())) {
+                item.remove();
+            }
+        }
     }
     
     private void resetParticipant(Player participant) {
