@@ -225,7 +225,7 @@ public class CaptureTheFlagRound {
         gameManager.getFastBoardManager().updateLine(
                 participant.getUniqueId(),
                 1,
-                "vs: "+enemyColor+enemyDisplayName
+                "vs: "+ChatColor.BOLD+enemyColor+enemyDisplayName
         );
         gameManager.getFastBoardManager().updateLine(
                 participant.getUniqueId(),
