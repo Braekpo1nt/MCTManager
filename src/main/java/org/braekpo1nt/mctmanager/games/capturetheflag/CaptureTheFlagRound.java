@@ -31,7 +31,8 @@ public class CaptureTheFlagRound {
     private int matchesStartingCountDownTaskId;
     private final World captureTheFlagWorld;
 
-    public CaptureTheFlagRound(CaptureTheFlagGame captureTheFlagGame, Main plugin, GameManager gameManager, Location spawnObservatory, World captureTheFlagWorld) {
+    public CaptureTheFlagRound(CaptureTheFlagGame captureTheFlagGame, Main plugin, GameManager gameManager, 
+                               Location spawnObservatory, World captureTheFlagWorld) {
         this.captureTheFlagGame = captureTheFlagGame;
         this.plugin = plugin;
         this.gameManager = gameManager;
@@ -40,7 +41,8 @@ public class CaptureTheFlagRound {
     }
     
     /**
-     * Creates the matches for this round from the provided matchPairings and arenas. matchPairings.size() must be less than or equal to arenas.size(), or you will get null pointer exceptions. 
+     * Creates the matches for this round from the provided matchPairings and arenas. matchPairings.size() 
+     * must be less than or equal to arenas.size(), or you will get null pointer exceptions. 
      * @param matchPairings The MatchPairings to create {@link CaptureTheFlagMatch}s from
      * @param arenas The arenas to assign to each {@link CaptureTheFlagMatch}
      * @throws NullPointerException if matchPairings.size() is greater than arenas.size()
@@ -50,7 +52,8 @@ public class CaptureTheFlagRound {
         for (int i = 0; i < matchPairings.size(); i++) {
             MatchPairing matchPairing = matchPairings.get(i);
             Arena arena = arenas.get(i);
-            CaptureTheFlagMatch match = new CaptureTheFlagMatch(this, plugin, gameManager, matchPairing, arena, spawnObservatory, captureTheFlagWorld);
+            CaptureTheFlagMatch match = new CaptureTheFlagMatch(this, plugin, gameManager, 
+                    matchPairing, arena, spawnObservatory, captureTheFlagWorld);
             matches.add(match);
         }
     }
