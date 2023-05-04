@@ -636,7 +636,9 @@ public class CaptureTheFlagMatch implements Listener {
      */
     private void closeGlassBarriers() {
         BlockPlacementUtils.createCube(arena.northBarrier(), 5, 4, 1, Material.GLASS_PANE);
+        BlockPlacementUtils.updateDirection(arena.northBarrier(), 5, 4, 1);
         BlockPlacementUtils.createCube(arena.southBarrier(), 5, 4, 1, Material.GLASS_PANE);
+        BlockPlacementUtils.updateDirection(arena.southBarrier(), 5, 4, 1);
     }
     
     /**
