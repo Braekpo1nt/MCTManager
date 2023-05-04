@@ -1,6 +1,5 @@
 package org.braekpo1nt.mctmanager.ui;
 
-import fr.mrmicky.fastboard.FastBoard;
 import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -18,7 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class FastBoardManager {
     
     protected final String EVENT_TITLE = ChatColor.BOLD + "" + ChatColor.DARK_RED + "MCT #2";
-    private final ConcurrentHashMap<UUID, FastBoard> boards = new ConcurrentHashMap<>();
+    protected final ConcurrentHashMap<UUID, FastBoardWrapper> boards = new ConcurrentHashMap<>();
     protected GameStateStorageUtil gameStateStorageUtil;
     
     public FastBoardManager(GameStateStorageUtil gameStateStorageUtil) {
@@ -37,7 +36,7 @@ public class FastBoardManager {
             return;
         }
         UUID playerUniqueId = player.getUniqueId();
-        FastBoard board = boards.get(playerUniqueId);
+        FastBoardWrapper board = boards.get(playerUniqueId);
         String[] mainLines = getMainLines(playerUniqueId);
         String teamLine = mainLines[0];
         String scoreLine = mainLines[1];
@@ -64,7 +63,8 @@ public class FastBoardManager {
     }
     
     protected synchronized void addBoard(Player player) {
-        FastBoard newBoard = new FastBoard(player);
+        FastBoardWrapper newBoard = new FastBoardWrapper();
+        newBoard.setPlayer(player);
         newBoard.updateTitle(this.EVENT_TITLE);
         String[] mainLines = getMainLines(player.getUniqueId());
         String teamLine = mainLines[0];
@@ -97,7 +97,7 @@ public class FastBoardManager {
         if (!boards.containsKey(playerUniqueId)) {
             return;
         }
-        FastBoard board = boards.get(playerUniqueId);
+        FastBoardWrapper board = boards.get(playerUniqueId);
         String[] mainLines = getMainLines(playerUniqueId);
         String[] linesPlusMainLines = new String[lines.length + 2];
         linesPlusMainLines[0] = mainLines[0];
@@ -117,7 +117,7 @@ public class FastBoardManager {
         if (!boards.containsKey(playerUniqueId)) {
             return;
         }
-        FastBoard board = boards.get(playerUniqueId);
+        FastBoardWrapper board = boards.get(playerUniqueId);
         int subLine = line + 2;
         board.updateLine(subLine, text);
     }
@@ -126,17 +126,17 @@ public class FastBoardManager {
         if (!boards.containsKey(playerUniqueId)) {
             return;
         }
-        FastBoard board = boards.remove(playerUniqueId);
+        FastBoardWrapper board = boards.remove(playerUniqueId);
         if (board != null && !board.isDeleted()) {
             board.delete();
         }
     }
     
     public synchronized void removeAllBoards() {
-        Iterator<Map.Entry<UUID, FastBoard>> iterator = boards.entrySet().iterator();
+        Iterator<Map.Entry<UUID, FastBoardWrapper>> iterator = boards.entrySet().iterator();
         while (iterator.hasNext()) {
-            Map.Entry<UUID, FastBoard> entry = iterator.next();
-            FastBoard board = entry.getValue();
+            Map.Entry<UUID, FastBoardWrapper> entry = iterator.next();
+            FastBoardWrapper board = entry.getValue();
             if (!board.isDeleted()) {
                 board.delete();
             }
