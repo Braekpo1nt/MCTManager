@@ -124,8 +124,8 @@ public class ClassPicker implements Listener {
         if (pickedBattleClasses.containsKey(teamMate.getUniqueId())) {
             unAssignClass(teamMate);
             teamMate.getInventory().clear();
-            teamMates.remove(teamMate);
         }
+        teamMates.remove(teamMate);
     }
     
     @EventHandler
@@ -348,5 +348,15 @@ public class ClassPicker implements Listener {
     
     public boolean isActive() {
         return classPickingActive;
+    }
+    
+    // Test methods
+    
+    /**
+     * Returns a copy of the list of the teamMates in this class picker
+     * @return A copy of the teamMates list
+     */
+    public @NotNull List<Player> getTeamMates() {
+        return new ArrayList<>(teamMates);
     }
 }

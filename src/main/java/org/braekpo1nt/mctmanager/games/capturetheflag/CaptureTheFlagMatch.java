@@ -790,4 +790,13 @@ public class CaptureTheFlagMatch implements Listener {
         }
         return participantsAreAlive.get(participant.getUniqueId());
     }
+    
+    // Test methods
+    public ClassPicker getNorthClassPicker() {
+        return northClassPicker;
+    }
+    
+    public ClassPicker getSouthClassPicker() {
+        return southClassPicker;
+    }
 }
