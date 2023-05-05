@@ -118,7 +118,7 @@ public class CaptureTheFlagTest {
     
     @Test
     @DisplayName("if two participants are on a team, and one quits during round countdown, the show goes on")
-    void quitDuringRoundCountdownTest() {
+    void playerQuitDuringRoundCountdownTest() {
         try {
             addTeam("red", "Red", "red");
             addTeam("blue", "Blue", "blue");
@@ -147,7 +147,7 @@ public class CaptureTheFlagTest {
     
     @Test
     @DisplayName("if two participants are on a team, and one quits during class selection, the show goes on")
-    void quitDuringClassSelectionTest() {
+    void playerQuitDuringClassSelectionTest() {
         try {
             addTeam("red", "Red", "red");
             addTeam("blue", "Blue", "blue");
@@ -173,6 +173,37 @@ public class CaptureTheFlagTest {
             ClassPicker southClassPicker = match.getSouthClassPicker();
             Assertions.assertTrue(southClassPicker.isActive());
             Assertions.assertEquals(1, southClassPicker.getTeamMates().size());
+            
+        } catch (UnimplementedOperationException ex) {
+            System.out.println("UnimplementedOperationException in threePlayerOnDeckTest()");
+            ex.printStackTrace();
+            Assertions.fail(ex.getMessage());
+        }
+    }
+    
+    @Test
+    @DisplayName("if an entire team quits during class selection, the team is considered dead at the start of the match")
+    void teamQuitDuringClassSelectionTest() {
+        try {
+            addTeam("red", "Red", "red");
+            addTeam("blue", "Blue", "blue");
+            MyPlayerMock player1 = createParticipant("Player1", "red", "Red");
+            MyPlayerMock player2 = createParticipant("Player2", "blue", "Blue");
+            plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"game", "start", "capture-the-flag"});
+            server.getScheduler().performTicks((20 * 10) + 1); // speed through startMatchesStartingCountDown()
+            server.getScheduler().performTicks((20 * 10) + 1); // speed through half the startClassSelectionPeriod()
+            player2.disconnect();
+            server.getScheduler().performTicks((20 * 10) + 1); // speed through the rest of startClassSelectionPeriod()
+            
+            CaptureTheFlagGame ctf = ((CaptureTheFlagGame) gameManager.getActiveGame());
+            Assertions.assertEquals(1, ctf.getParticipants().size());
+            CaptureTheFlagRound currentRound = ctf.getCurrentRound();
+            List<Player> participants = currentRound.getParticipants();
+            Assertions.assertNotNull(participants);
+            Assertions.assertEquals(1, participants.size());
+            List<CaptureTheFlagMatch> matches = currentRound.getMatches();
+            Assertions.assertEquals(1, matches.size());
+            Assertions.assertFalse(matches.get(0).isAliveInMatch(player2));
             
         } catch (UnimplementedOperationException ex) {
             System.out.println("UnimplementedOperationException in threePlayerOnDeckTest()");

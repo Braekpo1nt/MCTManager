@@ -25,7 +25,7 @@ public class CaptureTheFlagRound {
     private final Main plugin;
     private final GameManager gameManager;
     private List<CaptureTheFlagMatch> matches;
-    private List<Player> participants;
+    private List<Player> participants = new ArrayList<>();
     private List<Player> onDeckParticipants;
     private final Location spawnObservatory;
     private int matchesStartingCountDownTaskId;
@@ -355,7 +355,7 @@ public class CaptureTheFlagRound {
     /**
      * @return a copy of the list of participants
      */
-    public List<Player> getParticipants() {
+    public @NotNull List<Player> getParticipants() {
         return new ArrayList<>(participants);
     }
 }
