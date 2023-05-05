@@ -3,15 +3,24 @@ package org.braekpo1nt.mctmanager.games.capturetheflag;
 import be.seeseemelk.mockbukkit.MockBukkit;
 import be.seeseemelk.mockbukkit.ServerMock;
 import be.seeseemelk.mockbukkit.UnimplementedOperationException;
+import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.MyCustomServerMock;
 import org.braekpo1nt.mctmanager.MyPlayerMock;
+import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.ui.FastBoardManager;
 import org.braekpo1nt.mctmanager.ui.MockFastBoardManager;
+import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginCommand;
+import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.junit.jupiter.api.*;
 
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.UUID;
 import java.util.logging.Level;
 
 import static org.mockito.Mockito.*;
@@ -23,6 +32,7 @@ public class CaptureTheFlagTest {
     private PluginCommand command;
     private CommandSender sender;
     private MockFastBoardManager mockFastBoardManager;
+    private GameManager gameManager;
     
     
     @BeforeEach
@@ -38,7 +48,8 @@ public class CaptureTheFlagTest {
         }
 //        FastBoardManager mockFastBoardManager = mock(FastBoardManager.class, RETURNS_DEFAULTS);
         mockFastBoardManager = new MockFastBoardManager();
-        plugin.setFastBoardManager(mockFastBoardManager);
+        gameManager = plugin.getGameManager();
+        gameManager.setFastBoardManager(mockFastBoardManager);
         command = plugin.getCommand("mct");
         sender = server.getConsoleSender();
     }
@@ -71,7 +82,7 @@ public class CaptureTheFlagTest {
     }
     
     MyPlayerMock createParticipant(String name, String teamName, String displayName) {
-        MyPlayerMock player = new MyPlayerMock(server, name);
+        MyPlayerMock player = new MyPlayerMock(server, name, UUID.nameUUIDFromBytes(name.getBytes(StandardCharsets.UTF_8)));
         server.addPlayer(player);
         plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"team", "join", teamName, player.getName()});
         player.assertSaidPlaintext("You've been joined to "+displayName);
@@ -102,7 +113,33 @@ public class CaptureTheFlagTest {
             System.out.println("UnimplementedOperationException in threePlayerOnDeckTest()");
             ex.printStackTrace();
             Assertions.fail(ex.getMessage());
-        } catch (Exception ex) {
+        }
+    }
+    
+    @Test
+    @DisplayName("if two participants are on a team, and one quits during round countdown, the show goes on")
+    void quitDuringRoundCountdownTest() {
+        try {
+            addTeam("red", "Red", "red");
+            addTeam("blue", "Blue", "blue");
+            MyPlayerMock player1 = createParticipant("Player1", "red", "Red");
+            MyPlayerMock player2 = createParticipant("Player2", "blue", "Blue");
+            MyPlayerMock player3 = createParticipant("Player3", "blue", "Blue");
+            plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"game", "start", "capture-the-flag"});
+            server.getScheduler().performTicks((20 * 5) + 1); // speed through half the startMatchesStartingCountDown()
+            player3.disconnect();
+            
+            CaptureTheFlagGame ctf = ((CaptureTheFlagGame) gameManager.getActiveGame());
+            List<Player> participants = ctf.getParticipants();
+            Assertions.assertEquals(2, participants.size());
+            CaptureTheFlagRound currentRound = ctf.getCurrentRound();
+            Assertions.assertNotNull(currentRound);
+            List<CaptureTheFlagMatch> currentMatches = currentRound.getMatches();
+            Assertions.assertEquals(1, currentMatches.size());
+            
+            
+        } catch (UnimplementedOperationException ex) {
+            System.out.println("UnimplementedOperationException in threePlayerOnDeckTest()");
             ex.printStackTrace();
             Assertions.fail(ex.getMessage());
         }

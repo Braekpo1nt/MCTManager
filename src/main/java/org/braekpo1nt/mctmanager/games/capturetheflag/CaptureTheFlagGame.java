@@ -18,6 +18,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -89,7 +90,34 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
         gameManager.gameIsOver();
         Bukkit.getLogger().info("Stopping Capture the Flag");
     }
-
+    
+    private void resetParticipant(Player participant) {
+        participant.getInventory().clear();
+        hideFastBoard(participant);
+    }
+    
+    @Override
+    public void onParticipantJoin(Player participant) {
+        if (currentRoundIndex < 0) {
+            initializeParticipant(participant);
+            return;
+        }
+        // TODO: if the joining player is on a team that is not currently in the list of rounds/matches, we must add its matches to the lineup. If the team is one that completely left, and is now rejoining, we must check for its matches that have already been played out and make sure they aren't duplicated in the new lineup. 
+        String teamName = gameManager.getTeamName(participant.getUniqueId());
+    }
+    
+    @Override
+    public void onParticipantQuit(Player participant) {
+        if (currentRoundIndex >= 0) {
+            CaptureTheFlagRound currentRound = rounds.get(currentRoundIndex);
+            currentRound.onParticipantQuit(participant);
+        }
+        resetParticipant(participant);
+        participants.remove(participant);
+        
+        // TODO: if an entire team has left, remove it's future matches. Store its old matches so that if they rejoin, they can be re-incorporated into the lineup without duplicate matches being played again.
+    }
+    
     /**
      * Tells the game that the current round is over. If there are no rounds left, ends the game. If there are rounds left, starts the next round.
      */
@@ -108,11 +136,6 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
      */
     private boolean allRoundsAreOver() {
         return rounds.size() >= currentRoundIndex + 1;
-    }
-
-    private void resetParticipant(Player participant) {
-        participant.getInventory().clear();
-        hideFastBoard(participant);
     }
     
     private void startNextRound() {
@@ -164,6 +187,16 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
         }
         return -1;
     }
+    
+    private @NotNull List<CaptureTheFlagRound> getRounds(@NotNull String teamName) {
+        List<CaptureTheFlagRound> teamRounds = new ArrayList<>();
+        for (CaptureTheFlagRound round : rounds) {
+            if (round.getOppositeTeam(teamName) != null) {
+                teamRounds.add(round);
+            }
+        }
+        return teamRounds;
+    }
 
     /**
      * Given n {@link MatchPairing}s, where x is the number of arenas in {@link CaptureTheFlagGame#arenas}
@@ -182,24 +215,6 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
             rounds.add(newRound);
         }
         return rounds;
-    }
-    
-    @Override
-    public void onParticipantJoin(Player participant) {
-        
-    }
-    
-    @Override
-    public void onParticipantQuit(Player participant) {
-        if (currentRoundIndex < 0) {
-            resetParticipant(participant);
-            participants.remove(participant);
-            return;
-        }
-        CaptureTheFlagRound currentRound = rounds.get(currentRoundIndex);
-        currentRound.onParticipantQuit(participant);
-        resetParticipant(participant);
-        participants.remove(participant);
     }
     
     @EventHandler
@@ -299,5 +314,22 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
         for (Player participant : participants) {
             participant.sendMessage(message);
         }
+    }
+    
+    // Testing methods
+    /**
+     * Returns a copy of the list of participants. Not the actual list, modifying the return value
+     * of this function does not modify the actual list of participants.
+     * @return A copy of the list of participants
+     */
+    public List<Player> getParticipants() {
+        return new ArrayList<>(participants);
+    }
+    
+    public @Nullable CaptureTheFlagRound getCurrentRound() {
+        if (currentRoundIndex < 0) {
+            return null;
+        }
+        return rounds.get(currentRoundIndex);
     }
 }

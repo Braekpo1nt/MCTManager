@@ -29,6 +29,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.VisibleForTesting;
 
 import java.io.IOException;
 import java.util.*;
@@ -749,5 +750,10 @@ public class GameManager implements Listener {
     public void setFastBoardManager(FastBoardManager fastBoardManager) {
         this.fastBoardManager = fastBoardManager;
         this.fastBoardManager.setGameStateStorageUtil(this.gameStateStorageUtil);
+    }
+    
+    // Test methods
+    public MCTGame getActiveGame() {
+        return activeGame;
     }
 }
