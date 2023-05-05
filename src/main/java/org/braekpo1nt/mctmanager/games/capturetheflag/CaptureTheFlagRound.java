@@ -343,14 +343,14 @@ public class CaptureTheFlagRound {
         return null;
     }
     
-    // Test methods
-    
     /**
      * @return a copy of this round's matches.
      */
     public @NotNull List<CaptureTheFlagMatch> getMatches() {
         return new ArrayList<>(matches);
     }
+    
+    // Test methods
     
     /**
      * @return a copy of the list of participants

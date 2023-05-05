@@ -21,7 +21,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -115,8 +114,47 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
         }
         resetParticipant(participant);
         participants.remove(participant);
-        
+    
         // TODO: if an entire team has left, remove it's future matches. Store its old matches so that if they rejoin, they can be re-incorporated into the lineup without duplicate matches being played again.
+        String teamName = gameManager.getTeamName(participant.getUniqueId());
+        if (getTeamsNextRoundIndex(teamName) == -1) {
+            return;
+        }
+        if (!entireTeamHasQuit(teamName)) {
+            return;
+        }
+        // the entire team has quit, and they have rounds left. Those rounds must be removed.
+        removeFutureMatchesForTeam(teamName);
+    }
+    
+    private void removeFutureMatchesForTeam(String teamName) {
+        List<String> onlineTeamNames = gameManager.getTeamNames(participants);
+        List<MatchPairing> newMatchPairings = CaptureTheFlagUtils.generateMatchPairings(onlineTeamNames);
+        // remove already completed or in progress match pairings from newMatchPairings
+        for (int i = 0; i <= currentRoundIndex; i++) {
+            CaptureTheFlagRound round = rounds.get(i);
+            List<CaptureTheFlagMatch> roundMatches = round.getMatches();
+            for (CaptureTheFlagMatch roundMatch : roundMatches) {
+                MatchPairing roundMatchPairing = roundMatch.getMatchPairing();
+                newMatchPairings.remove(roundMatchPairing);
+            }
+        }
+        // generate a new set of rounds with the newMatchPairings, with the first and current round being the current round, if there is a currently active round
+    }
+    
+    /**
+     * Check if the entire team has quit (no participants exist with the given team)
+     * @param teamName The team name to check for
+     * @return True if there are no participants on the given team. False otherwise.
+     */
+    private boolean entireTeamHasQuit(String teamName) {
+        for (Player participant : participants) {
+            String participantTeamName = gameManager.getTeamName(participant.getUniqueId());
+            if (participantTeamName.equals(teamName)) {
+                return false;
+            }
+        }
+        return true;
     }
     
     /**
