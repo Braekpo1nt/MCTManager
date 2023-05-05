@@ -123,6 +123,34 @@ public class CaptureTheFlagRound {
         ParticipantInitializer.resetHealthAndHunger(onDeckParticipant);
     }
     
+    public void onParticipantQuit(Player participant) {
+        if (onDeckParticipants.contains(participant)) {
+            onOnDeckParticipantQuit(participant);
+            return;
+        }
+        if (!participants.contains(participant)) {
+            return;
+        }
+        CaptureTheFlagMatch match = getMatch(participant);
+        if (match == null) {
+            resetParticipant(participant);
+            participants.remove(participant);
+            return;
+        }
+        match.onParticipantQuit(participant);
+        resetParticipant(participant);
+        participants.remove(participant);
+    }
+    
+    /**
+     * Code to handle when an on-deck participant leaves
+     * @param onDeckParticipant the on-deck participant
+     */
+    private void onOnDeckParticipantQuit(Player onDeckParticipant) {
+        resetOnDeckParticipant(onDeckParticipant);
+        onDeckParticipants.remove(onDeckParticipant);
+    }
+    
     /**
      * Tells the round that the given match is over. If all matches are over, stops the round. If not all matches are over, teleports the players who were in the passed-in match to the spawn observatory.
      * @param match The match that is over. Must be one of the matches in {@link CaptureTheFlagRound#matches}.
@@ -295,6 +323,21 @@ public class CaptureTheFlagRound {
             String oppositeTeam = match.getMatchPairing().oppositeTeam(teamName);
             if (oppositeTeam != null) {
                 return oppositeTeam;
+            }
+        }
+        return null;
+    }
+    
+    /**
+     * Get the match that the participant is in.
+     * @param participant The participant to find the match for. 
+     * @return The match that the participant is in. Null if the given participant is not in a match.
+     */
+    private @Nullable CaptureTheFlagMatch getMatch(@NotNull Player participant) {
+        String teamName = gameManager.getTeamName(participant.getUniqueId());
+        for (CaptureTheFlagMatch match : matches) {
+            if (match.getMatchPairing().containsTeam(teamName)) {
+                return match;
             }
         }
         return null;

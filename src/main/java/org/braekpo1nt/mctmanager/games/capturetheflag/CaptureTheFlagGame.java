@@ -191,7 +191,11 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
     
     @Override
     public void onParticipantQuit(Player participant) {
-        
+        if (currentRoundIndex < 0) {
+            return;
+        }
+        CaptureTheFlagRound currentRound = rounds.get(currentRoundIndex);
+        currentRound.onParticipantQuit(participant);
     }
     
     @EventHandler

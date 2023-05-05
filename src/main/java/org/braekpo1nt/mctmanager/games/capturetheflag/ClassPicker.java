@@ -32,6 +32,7 @@ public class ClassPicker implements Listener {
     private final Component NETHER_STAR_NAME = Component.text("Vote");
     private final Map<UUID, BattleClass> pickedBattleClasses = new HashMap<>();
     private final List<Player> teamMates = new ArrayList<>();
+    private boolean classPickingActive = false;
     
     /**
      * Converts a {@link Material} to a {@link BattleClass}
@@ -92,6 +93,7 @@ public class ClassPicker implements Listener {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         teamMates.clear();
         teamMates.addAll(newTeamMates);
+        classPickingActive = true;
         for (Player teamMate : teamMates) {
             showClassPickerGui(teamMate);
         }
@@ -103,11 +105,26 @@ public class ClassPicker implements Listener {
      */
     public void stop(boolean assignBattleClasses) {
         HandlerList.unregisterAll(this);
+        classPickingActive = false;
         if (assignBattleClasses) {
             assignBattleClassesToTeamMatesWithoutBattleClasses();
         }
         for (Player teamMate : teamMates) {
             teamMate.closeInventory();
+        }
+    }
+    
+    public void removeTeamMate(Player teamMate) {
+        if (!classPickingActive) {
+            return;
+        }
+        if (!teamMates.contains(teamMate)) {
+            return;
+        }
+        if (pickedBattleClasses.containsKey(teamMate.getUniqueId())) {
+            unAssignClass(teamMate);
+            teamMate.getInventory().clear();
+            teamMates.remove(teamMate);
         }
     }
     
@@ -149,6 +166,7 @@ public class ClassPicker implements Listener {
             return;
         }
         giveNetherStar(teamMate);
+        teamMate.sendMessage(Component.text("You didn't pick a class. Use the nether star to pick.").color(NamedTextColor.DARK_RED));
     }
     
     @EventHandler
@@ -183,7 +201,6 @@ public class ClassPicker implements Listener {
         netherStarMeta.displayName(NETHER_STAR_NAME);
         netherStar.setItemMeta(netherStarMeta);
         teamMate.getInventory().addItem(netherStar);
-        teamMate.sendMessage(Component.text("You didn't pick a class. Use the nether star to pick.").color(NamedTextColor.DARK_RED));
     }
     
     private void onClickNetherStar(@NotNull Player teamMate, @NotNull ItemStack netherStar) {
@@ -245,6 +262,13 @@ public class ClassPicker implements Listener {
             }
         }
         teamMate.getInventory().addItem(new ItemStack(Material.COOKED_BEEF, 8));
+    }
+    
+    private void unAssignClass(Player teamMate) {
+        pickedBattleClasses.remove(teamMate.getUniqueId());
+        teamMate.getInventory().clear();
+        giveNetherStar(teamMate);
+        teamMate.sendMessage("Deselected class.");
     }
     
     /**
@@ -322,4 +346,7 @@ public class ClassPicker implements Listener {
         return (line - 1) * 9 + (column - 1);
     }
     
+    public boolean isActive() {
+        return classPickingActive;
+    }
 }

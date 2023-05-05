@@ -184,6 +184,69 @@ public class CaptureTheFlagMatch implements Listener {
         ParticipantInitializer.resetHealthAndHunger(participant);
     }
     
+    public void onParticipantQuit(Player participant) {
+        if (!matchActive) {
+            return;
+        }
+        if (!allParticipants.contains(participant)) {
+            return;
+        }
+        if (northParticipants.contains(participant)) {
+            onNorthParticipantQuit(participant);
+            return;
+        }
+        if (southParticipants.contains(participant)) {
+            onSouthParticipantQuit(participant);
+            return;
+        }
+    }
+    
+    private void onNorthParticipantQuit(Player northParticipant) {
+        if (northClassPicker.isActive()) {
+            northClassPicker.removeTeamMate(northParticipant);
+            resetParticipant(northParticipant);
+            allParticipants.remove(northParticipant);
+            northParticipants.remove(northParticipant);
+            return;
+        }
+        if (!participantsAreAlive.get(northParticipant.getUniqueId())) {
+            resetParticipant(northParticipant);
+            allParticipants.remove(northParticipant);
+            northParticipants.remove(northParticipant);
+            return;
+        }
+        Component deathMessage = Component.text(northParticipant.getName())
+                .append(Component.text(" left early. Their life is forfeit."));
+        PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(northParticipant, Collections.emptyList(), 0, deathMessage);
+        Bukkit.getServer().getPluginManager().callEvent(fakeDeathEvent);
+        resetParticipant(northParticipant);
+        allParticipants.remove(northParticipant);
+        northParticipants.remove(northParticipant);
+    }
+    
+    private void onSouthParticipantQuit(Player soutParticipant) {
+        if (southClassPicker.isActive()) {
+            southClassPicker.removeTeamMate(soutParticipant);
+            resetParticipant(soutParticipant);
+            allParticipants.remove(soutParticipant);
+            southParticipants.remove(soutParticipant);
+            return;
+        }
+        if (!participantsAreAlive.get(soutParticipant.getUniqueId())) {
+            resetParticipant(soutParticipant);
+            allParticipants.remove(soutParticipant);
+            northParticipants.remove(soutParticipant);
+            return;
+        }
+        Component deathMessage = Component.text(soutParticipant.getName())
+                .append(Component.text(" left early. Their life is forfeit."));
+        PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(soutParticipant, Collections.emptyList(), 0, deathMessage);
+        Bukkit.getServer().getPluginManager().callEvent(fakeDeathEvent);
+        resetParticipant(soutParticipant);
+        allParticipants.remove(soutParticipant);
+        northParticipants.remove(soutParticipant);
+    }
+    
     private void startMatch() {
         for (Player participants : allParticipants) {
             participants.closeInventory();
