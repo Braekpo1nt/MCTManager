@@ -358,4 +358,11 @@ public class CaptureTheFlagRound {
     public @NotNull List<Player> getParticipants() {
         return new ArrayList<>(participants);
     }
+    
+    /**
+     * @return a copy of the list of on-deck participants
+     */
+    public @NotNull List<Player> getOnDeckParticipants() {
+        return new ArrayList<>(onDeckParticipants);
+    }
 }

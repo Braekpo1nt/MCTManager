@@ -21,6 +21,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -187,16 +188,6 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
         }
         return -1;
     }
-    
-    private @NotNull List<CaptureTheFlagRound> getRounds(@NotNull String teamName) {
-        List<CaptureTheFlagRound> teamRounds = new ArrayList<>();
-        for (CaptureTheFlagRound round : rounds) {
-            if (round.getOppositeTeam(teamName) != null) {
-                teamRounds.add(round);
-            }
-        }
-        return teamRounds;
-    }
 
     /**
      * Given n {@link MatchPairing}s, where x is the number of arenas in {@link CaptureTheFlagGame#arenas}
@@ -331,5 +322,12 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
             return null;
         }
         return rounds.get(currentRoundIndex);
+    }
+    
+    /**
+     * @return a copy of the rounds list
+     */
+    public List<CaptureTheFlagRound> getRounds() {
+        return new ArrayList<>(rounds);
     }
 }

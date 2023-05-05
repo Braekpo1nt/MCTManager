@@ -314,4 +314,39 @@ public class CaptureTheFlagTest {
         }
     }
     
+    @Test
+    @DisplayName("if an entire team quits while they still have a round, their next rounds are removed")
+    void teamQuitBeforeAllTheirRoundsTest() {
+        try {
+            addTeam("red", "Red", "red");
+            addTeam("blue", "Blue", "blue");
+            addTeam("green", "Green", "green");
+            MyPlayerMock player1 = createParticipant("Player1", "red", "Red");
+            MyPlayerMock player2 = createParticipant("Player2", "blue", "Blue");
+            MyPlayerMock player3 = createParticipant("Player3", "green", "Green");
+            plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"game", "start", "capture-the-flag"});
+            
+            CaptureTheFlagGame ctf = ((CaptureTheFlagGame) gameManager.getActiveGame());
+            Assertions.assertEquals(3, ctf.getParticipants().size());
+            Assertions.assertEquals(3, ctf.getRounds().size());
+            CaptureTheFlagRound currentRound = ctf.getCurrentRound();
+            Assertions.assertNotNull(currentRound);
+            Assertions.assertEquals(2, currentRound.getParticipants().size());
+            List<Player> onDeckParticipants = currentRound.getOnDeckParticipants();
+            Assertions.assertEquals(1, onDeckParticipants.size());
+            Assertions.assertTrue(onDeckParticipants.contains(player3));
+            
+            player3.disconnect();
+            
+            Assertions.assertEquals(1, ctf.getRounds().size());
+            
+            
+    
+        } catch (UnimplementedOperationException ex) {
+            System.out.println("UnimplementedOperationException in threePlayerOnDeckTest()");
+            ex.printStackTrace();
+            Assertions.fail(ex.getMessage());
+        }
+    }
+    
 }
