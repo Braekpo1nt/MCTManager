@@ -140,6 +140,7 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
             }
         }
         // generate a new set of rounds with the newMatchPairings, with the first and current round being the current round, if there is a currently active round
+        throw new UnsupportedOperationException(" removeFutureMatchesForTeam is not complete");
     }
     
     /**
