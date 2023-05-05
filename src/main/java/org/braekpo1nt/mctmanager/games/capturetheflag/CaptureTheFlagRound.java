@@ -346,10 +346,16 @@ public class CaptureTheFlagRound {
     // Test methods
     
     /**
-     * returns a copy of the list of matches. 
      * @return a copy of this round's matches.
      */
     public @NotNull List<CaptureTheFlagMatch> getMatches() {
         return new ArrayList<>(matches);
+    }
+    
+    /**
+     * @return a copy of the list of participants
+     */
+    public List<Player> getParticipants() {
+        return new ArrayList<>(participants);
     }
 }

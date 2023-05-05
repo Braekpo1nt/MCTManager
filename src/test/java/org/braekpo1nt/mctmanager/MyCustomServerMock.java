@@ -8,6 +8,7 @@ import com.onarandombox.MultiverseCore.MultiverseCore;
 import com.onarandombox.MultiverseCore.api.MVWorldManager;
 import com.onarandombox.MultiverseCore.api.MultiverseWorld;
 import com.onarandombox.MultiverseCore.utils.AnchorManager;
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -19,7 +20,11 @@ import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.refEq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -48,6 +53,13 @@ public class MyCustomServerMock extends ServerMock {
     @Override
     public @NotNull InventoryMock createInventory(@Nullable InventoryHolder owner, int size, @NotNull Component title) throws IllegalArgumentException {
         return new InventoryMock(owner, size, InventoryType.PLAYER);
+    }
+    
+    @Override
+    public @NotNull Iterable<? extends Audience> audiences() {
+        List<Audience> audiences = new ArrayList<>(this.getOnlinePlayers());
+        audiences.add(this.getConsoleSender());
+        return audiences;
     }
     
     /**

@@ -235,7 +235,7 @@ public class CaptureTheFlagMatch implements Listener {
         if (!participantsAreAlive.get(soutParticipant.getUniqueId())) {
             resetParticipant(soutParticipant);
             allParticipants.remove(soutParticipant);
-            northParticipants.remove(soutParticipant);
+            southParticipants.remove(soutParticipant);
             return;
         }
         Component deathMessage = Component.text(soutParticipant.getName())
@@ -244,7 +244,7 @@ public class CaptureTheFlagMatch implements Listener {
         Bukkit.getServer().getPluginManager().callEvent(fakeDeathEvent);
         resetParticipant(soutParticipant);
         allParticipants.remove(soutParticipant);
-        northParticipants.remove(soutParticipant);
+        southParticipants.remove(soutParticipant);
     }
     
     private void startMatch() {
@@ -798,5 +798,19 @@ public class CaptureTheFlagMatch implements Listener {
     
     public ClassPicker getSouthClassPicker() {
         return southClassPicker;
+    }
+    
+    /**
+     * @return a copy of the south participiants list
+     */
+    public List<Player> getSouthParticipants() {
+        return new ArrayList<>(southParticipants);
+    }
+    
+    /**
+     * @return a copy of the north participiants list
+     */
+    public List<Player> getNorthParticipants() {
+        return new ArrayList<>(northParticipants);
     }
 }

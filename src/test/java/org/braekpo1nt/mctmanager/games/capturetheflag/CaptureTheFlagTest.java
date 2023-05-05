@@ -181,4 +181,37 @@ public class CaptureTheFlagTest {
         }
     }
     
+    @Test
+    @DisplayName("if two participants are on a team, and one quits during the match, the show goes on")
+    void quitDuringMatchTest() {
+        try {
+            addTeam("red", "Red", "red");
+            addTeam("blue", "Blue", "blue");
+            MyPlayerMock player1 = createParticipant("Player1", "red", "Red");
+            MyPlayerMock player2 = createParticipant("Player2", "blue", "Blue");
+            MyPlayerMock player3 = createParticipant("Player3", "blue", "Blue");
+            plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"game", "start", "capture-the-flag"});
+            server.getScheduler().performTicks((20 * 10) + 1); // speed through startMatchesStartingCountDown()
+            server.getScheduler().performTicks((20 * 20) + 1); // speed through startClassSelectionPeriod()
+            player3.disconnect();
+            
+            CaptureTheFlagGame ctf = ((CaptureTheFlagGame) gameManager.getActiveGame());
+            Assertions.assertEquals(2, ctf.getParticipants().size());
+            CaptureTheFlagRound currentRound = ctf.getCurrentRound();
+            Assertions.assertNotNull(currentRound);
+            Assertions.assertEquals(2, currentRound.getParticipants().size());
+            List<CaptureTheFlagMatch> currentMatches = currentRound.getMatches();
+            Assertions.assertEquals(1, currentMatches.size());
+            CaptureTheFlagMatch match = currentMatches.get(0);
+            Assertions.assertEquals(1, match.getNorthParticipants().size());
+            Assertions.assertEquals(1, match.getSouthParticipants().size());
+            
+            
+        } catch (UnimplementedOperationException ex) {
+            System.out.println("UnimplementedOperationException in threePlayerOnDeckTest()");
+            ex.printStackTrace();
+            Assertions.fail(ex.getMessage());
+        }
+    }
+    
 }
