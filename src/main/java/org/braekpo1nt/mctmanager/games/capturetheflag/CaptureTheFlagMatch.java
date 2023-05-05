@@ -94,9 +94,7 @@ public class CaptureTheFlagMatch implements Listener {
         allParticipants = new ArrayList<>();
         participantsAreAlive = new HashMap<>();
         killCounts = new HashMap<>();
-        String northTeam = gameManager.getTeamName(newNorthParticipants.get(0).getUniqueId());
-        String southTeam = gameManager.getTeamName(newSouthParticipants.get(0).getUniqueId());
-        placeFlags(northTeam, southTeam);
+        placeFlags();
         closeGlassBarriers();
         for (Player northParticipant : newNorthParticipants) {
             initializeParticipant(northParticipant, true);
@@ -709,12 +707,12 @@ public class CaptureTheFlagMatch implements Listener {
         );
     }
     
-    private void placeFlags(String northTeam, String southTeam) {
-        northBanner = gameManager.getTeamBannerColor(northTeam);
+    private void placeFlags() {
+        northBanner = gameManager.getTeamBannerColor(matchPairing.northTeam());
         northFlagPosition = arena.northFlag();
         placeFlag(northBanner, northFlagPosition, BlockFace.SOUTH);
         
-        southBanner = gameManager.getTeamBannerColor(southTeam);
+        southBanner = gameManager.getTeamBannerColor(matchPairing.southTeam());
         southFlagPosition = arena.southFlag();
         placeFlag(southBanner, southFlagPosition, BlockFace.NORTH);
     }

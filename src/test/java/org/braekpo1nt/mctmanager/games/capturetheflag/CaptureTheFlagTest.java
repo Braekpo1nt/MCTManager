@@ -146,6 +146,38 @@ public class CaptureTheFlagTest {
     }
     
     @Test
+    @DisplayName("if an entire team quits during round countdown, the round is cancelled")
+    void teamQuitDuringRoundCountdownTest() {
+        try {
+            addTeam("red", "Red", "red");
+            addTeam("blue", "Blue", "blue");
+            MyPlayerMock player1 = createParticipant("Player1", "red", "Red");
+            MyPlayerMock player2 = createParticipant("Player2", "blue", "Blue");
+            plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"game", "start", "capture-the-flag"});
+            server.getScheduler().performTicks((20 * 5) + 1); // speed through half the startMatchesStartingCountDown()
+            player2.disconnect();
+            server.getScheduler().performTicks((20 * 5) + 1); // speed through the second half the startMatchesStartingCountDown()
+            server.getScheduler().performTicks((20 * 20) + 1); // speed through startClassSelectionPeriod()
+            
+            CaptureTheFlagGame ctf = ((CaptureTheFlagGame) gameManager.getActiveGame());
+            Assertions.assertEquals(1, ctf.getParticipants().size());
+            CaptureTheFlagRound currentRound = ctf.getCurrentRound();
+            Assertions.assertNotNull(currentRound);
+            Assertions.assertEquals(1, currentRound.getParticipants().size());
+            List<CaptureTheFlagMatch> matches = currentRound.getMatches();
+            Assertions.assertEquals(1, matches.size());
+            CaptureTheFlagMatch match = matches.get(0);
+            Assertions.assertFalse(match.isAliveInMatch(player2));
+            Assertions.assertTrue(match.isAliveInMatch(player1));
+    
+        } catch (UnimplementedOperationException ex) {
+            System.out.println("UnimplementedOperationException in threePlayerOnDeckTest()");
+            ex.printStackTrace();
+            Assertions.fail(ex.getMessage());
+        }
+    }
+    
+    @Test
     @DisplayName("if two participants are on a team, and one quits during class selection, the show goes on")
     void playerQuitDuringClassSelectionTest() {
         try {
