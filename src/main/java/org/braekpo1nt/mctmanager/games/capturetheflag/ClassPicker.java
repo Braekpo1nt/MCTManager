@@ -114,6 +114,14 @@ public class ClassPicker implements Listener {
         }
     }
     
+    public void addTeamMate(Player newTeamMate) {
+        if (!classPickingActive) {
+            return;
+        }
+        teamMates.add(newTeamMate);
+        showClassPickerGui(newTeamMate);
+    }
+    
     public void removeTeamMate(Player teamMate) {
         if (!classPickingActive) {
             return;
@@ -359,4 +367,5 @@ public class ClassPicker implements Listener {
     public @NotNull List<Player> getTeamMates() {
         return new ArrayList<>(teamMates);
     }
+    
 }

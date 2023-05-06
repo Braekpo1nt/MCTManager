@@ -182,6 +182,39 @@ public class CaptureTheFlagMatch implements Listener {
         ParticipantInitializer.resetHealthAndHunger(participant);
     }
     
+    public void onParticipantJoin(Player participant) {
+        if (!matchActive) {
+            return;
+        }
+        String teamName = gameManager.getTeamName(participant.getUniqueId());
+        if (matchPairing.northTeam().equals(teamName)) {
+            onNorthParticipantJoin(participant);
+            return;
+        }
+        if (matchPairing.southTeam().equals(teamName)) {
+            onSouthParticipantJoin(participant);
+            return;
+        }
+    }
+    
+    private void onNorthParticipantJoin(Player northParticipant) {
+        if (northClassPicker.isActive()) {
+            initializeParticipant(northParticipant, true);
+            northClassPicker.addTeamMate(northParticipant);
+            return;
+        }
+        initializeParticipant(northParticipant, true);
+    }
+    
+    private void onSouthParticipantJoin(Player southParticipant) {
+        if (southClassPicker.isActive()) {
+            initializeParticipant(southParticipant, false);
+            southClassPicker.addTeamMate(southParticipant);
+            return;
+        }
+        initializeParticipant(southParticipant, false);
+    }
+    
     public void onParticipantQuit(Player participant) {
         if (!matchActive) {
             return;

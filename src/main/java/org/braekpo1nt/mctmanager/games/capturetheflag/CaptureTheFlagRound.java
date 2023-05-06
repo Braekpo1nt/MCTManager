@@ -123,6 +123,17 @@ public class CaptureTheFlagRound {
         ParticipantInitializer.resetHealthAndHunger(onDeckParticipant);
     }
     
+    public void onParticipantJoin(Player participant) {
+        String teamName = gameManager.getTeamName(participant.getUniqueId());
+        CaptureTheFlagMatch match = getMatch(teamName);
+        if (match == null) {
+            initializeOnDeckParticipant(participant);
+            return;
+        }
+        initializeParticipant(participant);
+        match.onParticipantJoin(participant);
+    }
+    
     public void onParticipantQuit(Player participant) {
         if (onDeckParticipants.contains(participant)) {
             onOnDeckParticipantQuit(participant);
@@ -131,7 +142,8 @@ public class CaptureTheFlagRound {
         if (!participants.contains(participant)) {
             return;
         }
-        CaptureTheFlagMatch match = getMatch(participant);
+        String teamName = gameManager.getTeamName(participant.getUniqueId());
+        CaptureTheFlagMatch match = getMatch(teamName);
         if (match == null) {
             resetParticipant(participant);
             participants.remove(participant);
@@ -329,12 +341,11 @@ public class CaptureTheFlagRound {
     }
     
     /**
-     * Get the match that the participant is in.
-     * @param participant The participant to find the match for. 
-     * @return The match that the participant is in. Null if the given participant is not in a match.
+     * Get the match that the team is in.
+     * @param teamName The team to find the match for. 
+     * @return The match that the team is in. Null if the given team is not in a match.
      */
-    private @Nullable CaptureTheFlagMatch getMatch(@NotNull Player participant) {
-        String teamName = gameManager.getTeamName(participant.getUniqueId());
+    private @Nullable CaptureTheFlagMatch getMatch(@NotNull String teamName) {
         for (CaptureTheFlagMatch match : matches) {
             if (match.getMatchPairing().containsTeam(teamName)) {
                 return match;

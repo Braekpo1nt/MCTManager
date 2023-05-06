@@ -124,7 +124,6 @@ public class CaptureTheFlagTest {
             player3.assertSaidPlaintext("Green is not competing in this round. Their next round is 1");
             mockFastBoardManager.assertLine(player3.getUniqueId(), 1, "On Deck");
         } catch (UnimplementedOperationException ex) {
-            System.out.println("UnimplementedOperationException in threePlayerOnDeckTest()");
             ex.printStackTrace();
             Assertions.fail(ex.getMessage());
         }
@@ -155,7 +154,6 @@ public class CaptureTheFlagTest {
             
             
         } catch (UnimplementedOperationException ex) {
-            System.out.println("UnimplementedOperationException in threePlayerOnDeckTest()");
             ex.printStackTrace();
             Assertions.fail(ex.getMessage());
         }
@@ -189,7 +187,6 @@ public class CaptureTheFlagTest {
             Assertions.assertEquals(0, match.getSouthParticipants().size());
     
         } catch (UnimplementedOperationException ex) {
-            System.out.println("UnimplementedOperationException in threePlayerOnDeckTest()");
             ex.printStackTrace();
             Assertions.fail(ex.getMessage());
         }
@@ -225,7 +222,6 @@ public class CaptureTheFlagTest {
             Assertions.assertEquals(1, southClassPicker.getTeamMates().size());
             
         } catch (UnimplementedOperationException ex) {
-            System.out.println("UnimplementedOperationException in threePlayerOnDeckTest()");
             ex.printStackTrace();
             Assertions.fail(ex.getMessage());
         }
@@ -259,7 +255,6 @@ public class CaptureTheFlagTest {
             Assertions.assertEquals(0, match.getSouthParticipants().size());
             
         } catch (UnimplementedOperationException ex) {
-            System.out.println("UnimplementedOperationException in threePlayerOnDeckTest()");
             ex.printStackTrace();
             Assertions.fail(ex.getMessage());
         }
@@ -292,7 +287,6 @@ public class CaptureTheFlagTest {
             
             
         } catch (UnimplementedOperationException ex) {
-            System.out.println("UnimplementedOperationException in threePlayerOnDeckTest()");
             ex.printStackTrace();
             Assertions.fail(ex.getMessage());
         }
@@ -324,7 +318,6 @@ public class CaptureTheFlagTest {
             
             
         } catch (UnimplementedOperationException ex) {
-            System.out.println("UnimplementedOperationException in threePlayerOnDeckTest()");
             ex.printStackTrace();
             Assertions.fail(ex.getMessage());
         }
@@ -367,7 +360,6 @@ public class CaptureTheFlagTest {
             mockFastBoardManager.assertLine(player2.getUniqueId(), 2, "Round 1/1");
             
         } catch (UnimplementedOperationException ex) {
-            System.out.println("UnimplementedOperationException in threePlayerOnDeckTest()");
             ex.printStackTrace();
             Assertions.fail(ex.getMessage());
         }
@@ -415,7 +407,6 @@ public class CaptureTheFlagTest {
             Assertions.assertEquals(1, roundsAfterDisconnect.get(2).getMatches().size());
     
         } catch (UnimplementedOperationException ex) {
-            System.out.println("UnimplementedOperationException in threePlayerOnDeckTest()");
             ex.printStackTrace();
             Assertions.fail(ex.getMessage());
         }
@@ -471,7 +462,6 @@ public class CaptureTheFlagTest {
             Assertions.assertFalse(currentMatchesAfterDisconnect.get(1).isAliveInMatch(player4));
             
         } catch (UnimplementedOperationException ex) {
-            System.out.println("UnimplementedOperationException in threePlayerOnDeckTest()");
             ex.printStackTrace();
             Assertions.fail(ex.getMessage());
         }
@@ -514,7 +504,6 @@ public class CaptureTheFlagTest {
             
             
         } catch (UnimplementedOperationException ex) {
-            System.out.println("UnimplementedOperationException in threePlayerOnDeckTest()");
             ex.printStackTrace();
             Assertions.fail(ex.getMessage());
         }
@@ -550,14 +539,82 @@ public class CaptureTheFlagTest {
             Assertions.assertEquals(3, currentRoundAfterJoin.getParticipants().size());
             
         } catch (UnimplementedOperationException ex) {
-            System.out.println("UnimplementedOperationException in threePlayerOnDeckTest()");
             ex.printStackTrace();
             Assertions.fail(ex.getMessage());
         }
     }
     
     @Test
-    @DisplayName("if a player joins during class selection, they are on-deck")
+    @DisplayName("if a player joins during round their team isn't in, they are on-deck")
+    void playerJoinTeamNotInRound() {
+        try {
+            addTeam("red", "Red", "red");
+            addTeam("blue", "Blue", "blue");
+            addTeam("purple", "Purple", "dark_purple");
+            MyPlayerMock player1 = createParticipant("Player1", "red", "Red");
+            MyPlayerMock player2 = createParticipant("Player2", "blue", "Blue");
+            MyPlayerMock player3 = createParticipant("Player3", "purple", "Purple");
+            MyPlayerMock player4 = createParticipant("Player4", "purple", "Purple");
+            player4.disconnect();
+            plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"game", "start", "capture-the-flag"});
+            
+            speedThroughRoundCountdown();
+            speedThroughHalfClassSelection();
+            
+            CaptureTheFlagGame ctf = ((CaptureTheFlagGame) gameManager.getActiveGame());
+            CaptureTheFlagRound currentRound = ctf.getCurrentRound();
+            Assertions.assertNotNull(currentRound);
+            List<Player> onDeckParticipants = currentRound.getOnDeckParticipants();
+            Assertions.assertEquals(1, onDeckParticipants.size());
+            Assertions.assertTrue(onDeckParticipants.contains(player3));
+            
+            player4.reconnect();
+            
+            CaptureTheFlagRound currentRoundAfterRejoin = ctf.getCurrentRound();
+            Assertions.assertNotNull(currentRoundAfterRejoin);
+            List<Player> onDeckParticipantsAfterRejoin = currentRoundAfterRejoin.getOnDeckParticipants();
+            Assertions.assertEquals(2, onDeckParticipantsAfterRejoin.size());
+            Assertions.assertTrue(onDeckParticipantsAfterRejoin.contains(player3));
+            Assertions.assertTrue(onDeckParticipantsAfterRejoin.contains(player4));
+    
+        } catch (UnimplementedOperationException ex) {
+            ex.printStackTrace();
+            Assertions.fail(ex.getMessage());
+        }
+    }
+    
+    @Test
+    @DisplayName("if a player joins during round countdown, they are in the game")
+    void playerJoinRoundCountdown() {
+        try {
+            addTeam("red", "Red", "red");
+            addTeam("blue", "Blue", "blue");
+            MyPlayerMock player1 = createParticipant("Player1", "red", "Red");
+            MyPlayerMock player2 = createParticipant("Player2", "blue", "Blue");
+            MyPlayerMock player3 = createParticipant("Player3", "blue", "Blue");
+            player3.disconnect();
+            plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"game", "start", "capture-the-flag"});
+            speedThroughHalfRoundCountdown();
+            
+            player3.reconnect();
+            
+            speedThroughHalfRoundCountdown();
+            speedThroughClassSelection();
+            
+            CaptureTheFlagGame ctf = ((CaptureTheFlagGame) gameManager.getActiveGame());
+            CaptureTheFlagRound currentRound = ctf.getCurrentRound();
+            Assertions.assertNotNull(currentRound);
+            Assertions.assertTrue(currentRound.getParticipants().contains(player3));
+            Assertions.assertTrue(currentRound.getMatches().get(0).isAliveInMatch(player3));
+            
+        } catch (UnimplementedOperationException ex) {
+            ex.printStackTrace();
+            Assertions.fail(ex.getMessage());
+        }
+    }
+    
+    @Test
+    @DisplayName("if a player joins during class selection, they are in the game")
     void playerJoinClassSelection() {
         try {
             addTeam("red", "Red", "red");
@@ -567,7 +624,7 @@ public class CaptureTheFlagTest {
             MyPlayerMock player3 = createParticipant("Player3", "blue", "Blue");
             player3.disconnect();
             plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"game", "start", "capture-the-flag"});
-    
+            
             speedThroughRoundCountdown();
             speedThroughHalfClassSelection();
             
@@ -582,12 +639,15 @@ public class CaptureTheFlagTest {
             Assertions.assertEquals(1, ctf.getRounds().size());
             CaptureTheFlagRound currentRoundAfterJoin = ctf.getCurrentRound();
             Assertions.assertNotNull(currentRoundAfterJoin);
-            Assertions.assertEquals(2, currentRoundAfterJoin.getParticipants().size());
-            Assertions.assertEquals(1, currentRoundAfterJoin.getOnDeckParticipants().size());
-            Assertions.assertTrue( currentRoundAfterJoin.getOnDeckParticipants().contains(player3));
+            Assertions.assertEquals(3, currentRoundAfterJoin.getParticipants().size());
+            Assertions.assertEquals(0, currentRoundAfterJoin.getOnDeckParticipants().size());
+            Assertions.assertTrue( currentRoundAfterJoin.getParticipants().contains(player3));
+            
+            speedThroughHalfClassSelection();
+            
+            Assertions.assertTrue(currentRoundAfterJoin.isAliveInMatch(player3));
             
         } catch (UnimplementedOperationException ex) {
-            System.out.println("UnimplementedOperationException in threePlayerOnDeckTest()");
             ex.printStackTrace();
             Assertions.fail(ex.getMessage());
         }
@@ -614,7 +674,6 @@ public class CaptureTheFlagTest {
             Assertions.assertEquals(3, ctf.getRounds().size());
             
         } catch (UnimplementedOperationException ex) {
-            System.out.println("UnimplementedOperationException in threePlayerOnDeckTest()");
             ex.printStackTrace();
             Assertions.fail(ex.getMessage());
         }
@@ -643,7 +702,6 @@ public class CaptureTheFlagTest {
             Assertions.assertTrue(onDeckParticipants.contains(player3));
             
         } catch (UnimplementedOperationException ex) {
-            System.out.println("UnimplementedOperationException in threePlayerOnDeckTest()");
             ex.printStackTrace();
             Assertions.fail(ex.getMessage());
         }
@@ -671,7 +729,6 @@ public class CaptureTheFlagTest {
             Assertions.assertTrue(rounds.get(2).containsTeam("green"));
     
         } catch (UnimplementedOperationException ex) {
-            System.out.println("UnimplementedOperationException in threePlayerOnDeckTest()");
             ex.printStackTrace();
             Assertions.fail(ex.getMessage());
         }
@@ -724,7 +781,6 @@ public class CaptureTheFlagTest {
 //            Assertions.assertTrue(rounds.get(9).containsTeam("black"));
             
         } catch (UnimplementedOperationException ex) {
-            System.out.println("UnimplementedOperationException in threePlayerOnDeckTest()");
             ex.printStackTrace();
             Assertions.fail(ex.getMessage());
         }
