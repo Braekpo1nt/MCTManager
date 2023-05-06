@@ -335,10 +335,15 @@ public class CaptureTheFlagTest {
             List<Player> onDeckParticipants = currentRound.getOnDeckParticipants();
             Assertions.assertEquals(1, onDeckParticipants.size());
             Assertions.assertTrue(onDeckParticipants.contains(player3));
+            mockFastBoardManager.assertLine(player1.getUniqueId(), 2, "Round 1/3");
+            mockFastBoardManager.assertLine(player2.getUniqueId(), 2, "Round 1/3");
+            mockFastBoardManager.assertLine(player3.getUniqueId(), 2, "Round 1/3");
             
             player3.disconnect();
             
             Assertions.assertEquals(1, ctf.getRounds().size());
+            mockFastBoardManager.assertLine(player1.getUniqueId(), 2, "Round 1/1");
+            mockFastBoardManager.assertLine(player2.getUniqueId(), 2, "Round 1/1");
             
             
     

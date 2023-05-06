@@ -146,8 +146,10 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
             newRounds.add(0, currentRound);
         }
         currentRoundIndex = 0;
+        maxRounds = newRounds.size();
+        rounds = newRounds;
         for (Player participant : participants) {
-            throw new UnsupportedOperationException();
+            updateRoundFastBoard(participant);
         }
     }
     
@@ -289,6 +291,14 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
                 "", // timer
                 "",
                 ""
+        );
+    }
+    
+    private void updateRoundFastBoard(Player participant) {
+        gameManager.getFastBoardManager().updateLine(
+                participant.getUniqueId(),
+                2,
+                String.format("Round %d/%d", currentRoundIndex+1, maxRounds) //current round
         );
     }
     
