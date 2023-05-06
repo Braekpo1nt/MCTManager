@@ -365,4 +365,17 @@ public class CaptureTheFlagRound {
     public @NotNull List<Player> getOnDeckParticipants() {
         return new ArrayList<>(onDeckParticipants);
     }
+    
+    /**
+     * @param teamName The team name to check for
+     * @return true if the teamName is in one of this round's matches, false otherwise
+     */
+    public boolean containsTeam(String teamName) {
+        for (CaptureTheFlagMatch match : matches) {
+            if (match.getMatchPairing().containsTeam(teamName)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

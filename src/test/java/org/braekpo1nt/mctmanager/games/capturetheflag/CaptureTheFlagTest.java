@@ -3,27 +3,20 @@ package org.braekpo1nt.mctmanager.games.capturetheflag;
 import be.seeseemelk.mockbukkit.MockBukkit;
 import be.seeseemelk.mockbukkit.ServerMock;
 import be.seeseemelk.mockbukkit.UnimplementedOperationException;
-import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.MyCustomServerMock;
 import org.braekpo1nt.mctmanager.MyPlayerMock;
 import org.braekpo1nt.mctmanager.games.GameManager;
-import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
-import org.braekpo1nt.mctmanager.ui.FastBoardManager;
 import org.braekpo1nt.mctmanager.ui.MockFastBoardManager;
-import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
-import org.bukkit.event.player.PlayerQuitEvent;
 import org.junit.jupiter.api.*;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
-
-import static org.mockito.Mockito.*;
 
 public class CaptureTheFlagTest {
     
@@ -68,8 +61,8 @@ public class CaptureTheFlagTest {
             createParticipant("Player1", "red", "Red");
             createParticipant("Player2", "blue", "Blue");
             plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"game", "start", "capture-the-flag"});
-            server.getScheduler().performTicks((20 * 10) + 1); // speed through the startMatchesStartingCountDown()
-            server.getScheduler().performTicks((20 * 20) + 1); // speed through the startClassSelectionPeriod()
+            speedThroughRoundCountdown();
+            speedThroughClassSelection();
             
         } catch (UnimplementedOperationException ex) {
             System.out.println("UnimplementedOperationException in twoPlayersGetToMatchStart()");
@@ -81,11 +74,32 @@ public class CaptureTheFlagTest {
         }
     }
     
-    MyPlayerMock createParticipant(String name, String teamName, String displayName) {
+    void speedThroughRoundCountdown() {
+        server.getScheduler().performTicks((20 * 10) + 1); // speed through the startMatchesStartingCountDown()
+    }
+    
+    void speedThroughHalfRoundCountdown() {
+        server.getScheduler().performTicks((20 * 5) + 1); // speed through the startMatchesStartingCountDown()
+    }
+    
+    void speedThroughClassSelection() {
+        server.getScheduler().performTicks((20 * 20) + 1); // speed through the startClassSelectionPeriod()
+    }
+    
+    void speedThroughHalfClassSelection() {
+        server.getScheduler().performTicks((20 * 10) + 1); // speed through the startClassSelectionPeriod()
+    }
+    
+    void speedThroughRound() {
+        server.getScheduler().performTicks((20*60*3)+1); // speed through round
+    }
+    
+    
+    MyPlayerMock createParticipant(String name, String teamName, String expectedDisplayName) {
         MyPlayerMock player = new MyPlayerMock(server, name, UUID.nameUUIDFromBytes(name.getBytes(StandardCharsets.UTF_8)));
         server.addPlayer(player);
         plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"team", "join", teamName, player.getName()});
-        player.assertSaidPlaintext("You've been joined to "+displayName);
+        player.assertSaidPlaintext("You've been joined to "+expectedDisplayName);
         return player;
     }
     
@@ -116,6 +130,8 @@ public class CaptureTheFlagTest {
         }
     }
     
+    // Quit tests
+    
     @Test
     @DisplayName("if two participants are on a team, and one quits during round countdown, the show goes on")
     void playerQuitDuringRoundCountdownTest() {
@@ -126,7 +142,7 @@ public class CaptureTheFlagTest {
             MyPlayerMock player2 = createParticipant("Player2", "blue", "Blue");
             MyPlayerMock player3 = createParticipant("Player3", "blue", "Blue");
             plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"game", "start", "capture-the-flag"});
-            server.getScheduler().performTicks((20 * 5) + 1); // speed through half the startMatchesStartingCountDown()
+            speedThroughHalfRoundCountdown();
             player3.disconnect();
             
             CaptureTheFlagGame ctf = ((CaptureTheFlagGame) gameManager.getActiveGame());
@@ -154,10 +170,10 @@ public class CaptureTheFlagTest {
             MyPlayerMock player1 = createParticipant("Player1", "red", "Red");
             MyPlayerMock player2 = createParticipant("Player2", "blue", "Blue");
             plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"game", "start", "capture-the-flag"});
-            server.getScheduler().performTicks((20 * 5) + 1); // speed through half the startMatchesStartingCountDown()
+            speedThroughHalfRoundCountdown();
             player2.disconnect();
-            server.getScheduler().performTicks((20 * 5) + 1); // speed through the second half the startMatchesStartingCountDown()
-            server.getScheduler().performTicks((20 * 20) + 1); // speed through startClassSelectionPeriod()
+            speedThroughHalfRoundCountdown();
+            speedThroughClassSelection();
             
             CaptureTheFlagGame ctf = ((CaptureTheFlagGame) gameManager.getActiveGame());
             Assertions.assertEquals(1, ctf.getParticipants().size());
@@ -189,8 +205,8 @@ public class CaptureTheFlagTest {
             MyPlayerMock player2 = createParticipant("Player2", "blue", "Blue");
             MyPlayerMock player3 = createParticipant("Player3", "blue", "Blue");
             plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"game", "start", "capture-the-flag"});
-            server.getScheduler().performTicks((20 * 10) + 1); // speed through startMatchesStartingCountDown()
-            server.getScheduler().performTicks((20 * 10) + 1); // speed through half the startClassSelectionPeriod()
+            speedThroughRoundCountdown();
+            speedThroughHalfClassSelection();
             player3.disconnect();
             
             CaptureTheFlagGame ctf = ((CaptureTheFlagGame) gameManager.getActiveGame());
@@ -224,10 +240,10 @@ public class CaptureTheFlagTest {
             MyPlayerMock player1 = createParticipant("Player1", "red", "Red");
             MyPlayerMock player2 = createParticipant("Player2", "blue", "Blue");
             plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"game", "start", "capture-the-flag"});
-            server.getScheduler().performTicks((20 * 10) + 1); // speed through startMatchesStartingCountDown()
-            server.getScheduler().performTicks((20 * 10) + 1); // speed through half the startClassSelectionPeriod()
+            speedThroughRoundCountdown();
+            speedThroughHalfClassSelection();
             player2.disconnect();
-            server.getScheduler().performTicks((20 * 10) + 1); // speed through the rest of startClassSelectionPeriod()
+            speedThroughHalfClassSelection();
             
             CaptureTheFlagGame ctf = ((CaptureTheFlagGame) gameManager.getActiveGame());
             Assertions.assertEquals(1, ctf.getParticipants().size());
@@ -259,8 +275,8 @@ public class CaptureTheFlagTest {
             MyPlayerMock player2 = createParticipant("Player2", "blue", "Blue");
             MyPlayerMock player3 = createParticipant("Player3", "blue", "Blue");
             plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"game", "start", "capture-the-flag"});
-            server.getScheduler().performTicks((20 * 10) + 1); // speed through startMatchesStartingCountDown()
-            server.getScheduler().performTicks((20 * 20) + 1); // speed through startClassSelectionPeriod()
+            speedThroughRoundCountdown();
+            speedThroughClassSelection();
             player3.disconnect();
             
             CaptureTheFlagGame ctf = ((CaptureTheFlagGame) gameManager.getActiveGame());
@@ -291,8 +307,8 @@ public class CaptureTheFlagTest {
             MyPlayerMock player1 = createParticipant("Player1", "red", "Red");
             MyPlayerMock player2 = createParticipant("Player2", "blue", "Blue");
             plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"game", "start", "capture-the-flag"});
-            server.getScheduler().performTicks((20 * 10) + 1); // speed through startMatchesStartingCountDown()
-            server.getScheduler().performTicks((20 * 20) + 1); // speed through startClassSelectionPeriod()
+            speedThroughRoundCountdown();
+            speedThroughClassSelection();
             player2.disconnect();
             
             CaptureTheFlagGame ctf = ((CaptureTheFlagGame) gameManager.getActiveGame());
@@ -445,9 +461,9 @@ public class CaptureTheFlagTest {
             Assertions.assertEquals(0, currentRoundAfterDisconnect.getOnDeckParticipants().size());
             List<CaptureTheFlagMatch> currentMatchesAfterDisconnect = currentRoundAfterDisconnect.getMatches();
             Assertions.assertEquals(2, currentMatchesAfterDisconnect.size());
-            
-            server.getScheduler().performTicks((20 * 10) + 1); // speed through startMatchesStartingCountDown()
-            server.getScheduler().performTicks((20 * 20) + 1); // speed through startClassSelectionPeriod()
+    
+            speedThroughRoundCountdown();
+            speedThroughClassSelection();
             
             Assertions.assertTrue(currentMatchesAfterDisconnect.get(0).isAliveInMatch(player1));
             Assertions.assertTrue(currentMatchesAfterDisconnect.get(0).isAliveInMatch(player2));
@@ -480,12 +496,12 @@ public class CaptureTheFlagTest {
             Assertions.assertNotNull(firstRound);
             
             player4.disconnect();
-            
-            server.getScheduler().performTicks((20 * 10) + 1); // speed through startMatchesStartingCountDown()
-            server.getScheduler().performTicks((20 * 20) + 1); // speed through startClassSelectionPeriod()
-            server.getScheduler().performTicks((20*60*3)+1); // speed through first round
-            server.getScheduler().performTicks((20 * 10) + 1); // speed through startMatchesStartingCountDown()
-            server.getScheduler().performTicks((20 * 20) + 1); // speed through startClassSelectionPeriod()
+    
+            speedThroughRoundCountdown();
+            speedThroughClassSelection();
+            speedThroughRound();
+            speedThroughRoundCountdown();
+            speedThroughClassSelection();
             
             Assertions.assertEquals(3, ctf.getRounds().size());
             CaptureTheFlagRound secondRound = ctf.getCurrentRound();
@@ -496,6 +512,216 @@ public class CaptureTheFlagTest {
             Assertions.assertEquals(1, secondRound.getOnDeckParticipants().size());
             Assertions.assertTrue(secondRound.getOnDeckParticipants().contains(player2));
             
+            
+        } catch (UnimplementedOperationException ex) {
+            System.out.println("UnimplementedOperationException in threePlayerOnDeckTest()");
+            ex.printStackTrace();
+            Assertions.fail(ex.getMessage());
+        }
+    }
+    
+    // Join tests
+    
+    @Test
+    @DisplayName("if a player joins during round count down, they are in the current round")
+    void playerJoinRoundCountDown() {
+        try {
+            addTeam("red", "Red", "red");
+            addTeam("blue", "Blue", "blue");
+            MyPlayerMock player1 = createParticipant("Player1", "red", "Red");
+            MyPlayerMock player2 = createParticipant("Player2", "blue", "Blue");
+            MyPlayerMock player3 = createParticipant("Player3", "blue", "Blue");
+            player3.disconnect();
+            plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"game", "start", "capture-the-flag"});
+    
+            speedThroughHalfRoundCountdown();
+            
+            CaptureTheFlagGame ctf = ((CaptureTheFlagGame) gameManager.getActiveGame());
+            Assertions.assertEquals(1, ctf.getRounds().size());
+            CaptureTheFlagRound currentRoundBeforeJoin = ctf.getCurrentRound();
+            Assertions.assertNotNull(currentRoundBeforeJoin);
+            Assertions.assertEquals(2, currentRoundBeforeJoin.getParticipants().size());
+            
+            player3.reconnect();
+    
+            Assertions.assertEquals(1, ctf.getRounds().size());
+            CaptureTheFlagRound currentRoundAfterJoin = ctf.getCurrentRound();
+            Assertions.assertNotNull(currentRoundAfterJoin);
+            Assertions.assertEquals(3, currentRoundAfterJoin.getParticipants().size());
+            
+        } catch (UnimplementedOperationException ex) {
+            System.out.println("UnimplementedOperationException in threePlayerOnDeckTest()");
+            ex.printStackTrace();
+            Assertions.fail(ex.getMessage());
+        }
+    }
+    
+    @Test
+    @DisplayName("if a player joins during class selection, they are on-deck")
+    void playerJoinClassSelection() {
+        try {
+            addTeam("red", "Red", "red");
+            addTeam("blue", "Blue", "blue");
+            MyPlayerMock player1 = createParticipant("Player1", "red", "Red");
+            MyPlayerMock player2 = createParticipant("Player2", "blue", "Blue");
+            MyPlayerMock player3 = createParticipant("Player3", "blue", "Blue");
+            player3.disconnect();
+            plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"game", "start", "capture-the-flag"});
+    
+            speedThroughRoundCountdown();
+            speedThroughHalfClassSelection();
+            
+            CaptureTheFlagGame ctf = ((CaptureTheFlagGame) gameManager.getActiveGame());
+            Assertions.assertEquals(1, ctf.getRounds().size());
+            CaptureTheFlagRound currentRoundBeforeJoin = ctf.getCurrentRound();
+            Assertions.assertNotNull(currentRoundBeforeJoin);
+            Assertions.assertEquals(2, currentRoundBeforeJoin.getParticipants().size());
+            
+            player3.reconnect();
+            
+            Assertions.assertEquals(1, ctf.getRounds().size());
+            CaptureTheFlagRound currentRoundAfterJoin = ctf.getCurrentRound();
+            Assertions.assertNotNull(currentRoundAfterJoin);
+            Assertions.assertEquals(2, currentRoundAfterJoin.getParticipants().size());
+            Assertions.assertEquals(1, currentRoundAfterJoin.getOnDeckParticipants().size());
+            Assertions.assertTrue( currentRoundAfterJoin.getOnDeckParticipants().contains(player3));
+            
+        } catch (UnimplementedOperationException ex) {
+            System.out.println("UnimplementedOperationException in threePlayerOnDeckTest()");
+            ex.printStackTrace();
+            Assertions.fail(ex.getMessage());
+        }
+    }
+    
+    @Test
+    @DisplayName("if a team joins mid-game, their rounds are added")
+    void teamJoinRoundsAdded() {
+        try {
+            addTeam("red", "Red", "red");
+            addTeam("blue", "Blue", "blue");
+            addTeam("green", "Green", "green");
+            MyPlayerMock player1 = createParticipant("Player1", "red", "Red");
+            MyPlayerMock player2 = createParticipant("Player2", "blue", "Blue");
+            MyPlayerMock player3 = createParticipant("Player3", "green", "Green");
+            player3.disconnect();
+            plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"game", "start", "capture-the-flag"});
+            
+            CaptureTheFlagGame ctf = ((CaptureTheFlagGame) gameManager.getActiveGame());
+            Assertions.assertEquals(1, ctf.getRounds().size());
+            
+            player3.reconnect();
+            
+            Assertions.assertEquals(3, ctf.getRounds().size());
+            
+        } catch (UnimplementedOperationException ex) {
+            System.out.println("UnimplementedOperationException in threePlayerOnDeckTest()");
+            ex.printStackTrace();
+            Assertions.fail(ex.getMessage());
+        }
+    }
+    
+    @Test
+    @DisplayName("if a team joins mid-game, they are on-deck")
+    void teamJoinOnDeck() {
+        try {
+            addTeam("red", "Red", "red");
+            addTeam("blue", "Blue", "blue");
+            addTeam("green", "Green", "green");
+            MyPlayerMock player1 = createParticipant("Player1", "red", "Red");
+            MyPlayerMock player2 = createParticipant("Player2", "blue", "Blue");
+            MyPlayerMock player3 = createParticipant("Player3", "green", "Green");
+            player3.disconnect();
+            plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"game", "start", "capture-the-flag"});
+            
+            player3.reconnect();
+            
+            CaptureTheFlagGame ctf = ((CaptureTheFlagGame) gameManager.getActiveGame());
+            CaptureTheFlagRound currentRound = ctf.getCurrentRound();
+            Assertions.assertNotNull(currentRound);
+            List<Player> onDeckParticipants = currentRound.getOnDeckParticipants();
+            Assertions.assertEquals(1, onDeckParticipants.size());
+            Assertions.assertTrue(onDeckParticipants.contains(player3));
+            
+        } catch (UnimplementedOperationException ex) {
+            System.out.println("UnimplementedOperationException in threePlayerOnDeckTest()");
+            ex.printStackTrace();
+            Assertions.fail(ex.getMessage());
+        }
+    }
+    
+    @Test
+    @DisplayName("if a team joins mid-game, their rounds are added to the end")
+    void teamJoinRoundsAddedEnd() {
+        try {
+            addTeam("red", "Red", "red");
+            addTeam("blue", "Blue", "blue");
+            addTeam("green", "Green", "green");
+            MyPlayerMock player1 = createParticipant("Player1", "red", "Red");
+            MyPlayerMock player2 = createParticipant("Player2", "blue", "Blue");
+            MyPlayerMock player3 = createParticipant("Player3", "green", "Green");
+            player3.disconnect();
+            plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"game", "start", "capture-the-flag"});
+    
+            player3.reconnect();
+            
+            CaptureTheFlagGame ctf = ((CaptureTheFlagGame) gameManager.getActiveGame());
+            List<CaptureTheFlagRound> rounds = ctf.getRounds();
+            Assertions.assertFalse(rounds.get(0).containsTeam("green"));
+            Assertions.assertFalse(rounds.get(1).containsTeam("green"));
+            Assertions.assertTrue(rounds.get(2).containsTeam("green"));
+    
+        } catch (UnimplementedOperationException ex) {
+            System.out.println("UnimplementedOperationException in threePlayerOnDeckTest()");
+            ex.printStackTrace();
+            Assertions.fail(ex.getMessage());
+        }
+    }
+    
+    @Test
+    @DisplayName("if a team joins at the end of many rounds, their rounds are added to the end")
+    void teamJoinManyRoundsAddedEnd() {
+        try {
+            addTeam("red", "Red", "red");
+            addTeam("blue", "Blue", "blue");
+            addTeam("green", "Green", "green");
+            addTeam("purple", "Purple", "dark_purple");
+            addTeam("black", "Black", "black");
+            MyPlayerMock player1 = createParticipant("Player1", "red", "Red");
+            MyPlayerMock player2 = createParticipant("Player2", "blue", "Blue");
+            MyPlayerMock player3 = createParticipant("Player3", "green", "Green");
+            MyPlayerMock player4 = createParticipant("Player4", "purple", "Purple");
+            MyPlayerMock player5 = createParticipant("Player5", "black", "Black");
+            player5.disconnect();
+            plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"game", "start", "capture-the-flag"});
+            
+            CaptureTheFlagGame ctf = ((CaptureTheFlagGame) gameManager.getActiveGame());
+            Assertions.assertEquals(3, ctf.getRounds().size());
+            speedThroughRoundCountdown();
+            speedThroughClassSelection();
+            speedThroughRound();
+            speedThroughRoundCountdown();
+            speedThroughClassSelection();
+            speedThroughRound();
+            speedThroughRoundCountdown();
+            speedThroughClassSelection();
+            
+            player5.reconnect();
+            
+            Assertions.assertEquals(10, ctf.getRounds().size());
+            
+//            List<CaptureTheFlagRound> rounds = ctf.getRounds();
+//            Assertions.assertEquals(10, rounds.size());
+//            Assertions.assertFalse(rounds.get(0).containsTeam("black"));
+//            Assertions.assertFalse(rounds.get(1).containsTeam("black"));
+//            Assertions.assertFalse(rounds.get(2).containsTeam("black"));
+//            Assertions.assertFalse(rounds.get(3).containsTeam("black"));
+//            Assertions.assertFalse(rounds.get(4).containsTeam("black"));
+//            Assertions.assertFalse(rounds.get(5).containsTeam("black"));
+//            //all the end rounds contain black
+//            Assertions.assertTrue(rounds.get(6).containsTeam("black"));
+//            Assertions.assertTrue(rounds.get(7).containsTeam("black"));
+//            Assertions.assertTrue(rounds.get(8).containsTeam("black"));
+//            Assertions.assertTrue(rounds.get(9).containsTeam("black"));
             
         } catch (UnimplementedOperationException ex) {
             System.out.println("UnimplementedOperationException in threePlayerOnDeckTest()");

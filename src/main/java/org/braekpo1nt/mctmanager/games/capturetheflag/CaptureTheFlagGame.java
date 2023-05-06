@@ -387,4 +387,8 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
     public List<CaptureTheFlagRound> getRounds() {
         return new ArrayList<>(rounds);
     }
+    
+    public int getCurrentRoundIndex() {
+        return currentRoundIndex;
+    }
 }
