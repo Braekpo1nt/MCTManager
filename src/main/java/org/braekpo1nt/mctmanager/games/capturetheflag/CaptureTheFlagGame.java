@@ -185,7 +185,7 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
      * @return true if all rounds are over, i.e. there is no next round, false otherwise
      */
     private boolean allRoundsAreOver() {
-        return rounds.size() >= currentRoundIndex + 1;
+        return currentRoundIndex+1 >= rounds.size();
     }
     
     private void startNextRound() {

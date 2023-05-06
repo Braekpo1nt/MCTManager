@@ -340,13 +340,163 @@ public class CaptureTheFlagTest {
             mockFastBoardManager.assertLine(player3.getUniqueId(), 2, "Round 1/3");
             
             player3.disconnect();
-            
+    
+            Assertions.assertEquals(2, ctf.getParticipants().size());
             Assertions.assertEquals(1, ctf.getRounds().size());
+            CaptureTheFlagRound currentRoundAfterDisconnect = ctf.getCurrentRound();
+            Assertions.assertSame(currentRound, currentRoundAfterDisconnect);
+            Assertions.assertEquals(2, currentRoundAfterDisconnect.getParticipants().size());
+            Assertions.assertEquals(0, currentRoundAfterDisconnect.getOnDeckParticipants().size());
             mockFastBoardManager.assertLine(player1.getUniqueId(), 2, "Round 1/1");
             mockFastBoardManager.assertLine(player2.getUniqueId(), 2, "Round 1/1");
             
-            
+        } catch (UnimplementedOperationException ex) {
+            System.out.println("UnimplementedOperationException in threePlayerOnDeckTest()");
+            ex.printStackTrace();
+            Assertions.fail(ex.getMessage());
+        }
+    }
     
+    @Test
+    @DisplayName("if an entire team quits while they still have a round, their next rounds are removed")
+    void teamQuitRoundsRemovedTest() {
+        try {
+            addTeam("red", "Red", "red");
+            addTeam("blue", "Blue", "blue");
+            addTeam("green", "Green", "green");
+            addTeam("purple", "Purple", "dark_purple");
+            MyPlayerMock player1 = createParticipant("Player1", "red", "Red");
+            MyPlayerMock player2 = createParticipant("Player2", "blue", "Blue");
+            MyPlayerMock player3 = createParticipant("Player3", "green", "Green");
+            MyPlayerMock player4 = createParticipant("Player4", "purple", "Purple");
+            plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"game", "start", "capture-the-flag"});
+            
+            CaptureTheFlagGame ctf = ((CaptureTheFlagGame) gameManager.getActiveGame());
+            Assertions.assertEquals(4, ctf.getParticipants().size());
+            List<CaptureTheFlagRound> roundsBeforeDisconnect = ctf.getRounds();
+            Assertions.assertEquals(3, roundsBeforeDisconnect.size());
+            Assertions.assertEquals(2, roundsBeforeDisconnect.get(0).getMatches().size());
+            Assertions.assertEquals(2, roundsBeforeDisconnect.get(1).getMatches().size());
+            Assertions.assertEquals(2, roundsBeforeDisconnect.get(2).getMatches().size());
+            
+            CaptureTheFlagRound firstRoundBeforeDisconnect = ctf.getCurrentRound();
+            Assertions.assertNotNull(firstRoundBeforeDisconnect);
+            List<Player> currentRoundParticipants = firstRoundBeforeDisconnect.getParticipants();
+            Assertions.assertEquals(4, currentRoundParticipants.size());
+            Assertions.assertTrue(currentRoundParticipants.contains(player1));
+            Assertions.assertTrue(currentRoundParticipants.contains(player2));
+            Assertions.assertTrue(currentRoundParticipants.contains(player3));
+            Assertions.assertTrue(currentRoundParticipants.contains(player4));
+            Assertions.assertEquals(0, firstRoundBeforeDisconnect.getOnDeckParticipants().size());
+            
+            player4.disconnect();
+            
+            Assertions.assertEquals(3, ctf.getParticipants().size());
+            List<CaptureTheFlagRound> roundsAfterDisconnect = ctf.getRounds();
+            Assertions.assertEquals(3, roundsAfterDisconnect.size());
+            Assertions.assertEquals(2, roundsAfterDisconnect.get(0).getMatches().size());
+            Assertions.assertEquals(1, roundsAfterDisconnect.get(1).getMatches().size());
+            Assertions.assertEquals(1, roundsAfterDisconnect.get(2).getMatches().size());
+    
+        } catch (UnimplementedOperationException ex) {
+            System.out.println("UnimplementedOperationException in threePlayerOnDeckTest()");
+            ex.printStackTrace();
+            Assertions.fail(ex.getMessage());
+        }
+    }
+    
+    @Test
+    @DisplayName("if an entire team quits while they still have a round, the current round is unchanged")
+    void teamQuitCurrentRoundUnchangedTest() {
+        try {
+            addTeam("red", "Red", "red");
+            addTeam("blue", "Blue", "blue");
+            addTeam("green", "Green", "green");
+            addTeam("purple", "Purple", "dark_purple");
+            MyPlayerMock player1 = createParticipant("Player1", "red", "Red");
+            MyPlayerMock player2 = createParticipant("Player2", "blue", "Blue");
+            MyPlayerMock player3 = createParticipant("Player3", "green", "Green");
+            MyPlayerMock player4 = createParticipant("Player4", "purple", "Purple");
+            plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"game", "start", "capture-the-flag"});
+            
+            CaptureTheFlagGame ctf = ((CaptureTheFlagGame) gameManager.getActiveGame());
+            Assertions.assertEquals(4, ctf.getParticipants().size());
+            List<CaptureTheFlagRound> roundsBeforeDisconnect = ctf.getRounds();
+            Assertions.assertEquals(3, roundsBeforeDisconnect.size());
+            Assertions.assertEquals(2, roundsBeforeDisconnect.get(0).getMatches().size());
+            Assertions.assertEquals(2, roundsBeforeDisconnect.get(1).getMatches().size());
+            Assertions.assertEquals(2, roundsBeforeDisconnect.get(2).getMatches().size());
+            
+            CaptureTheFlagRound currentRoundBeforeDisconnect = ctf.getCurrentRound();
+            Assertions.assertNotNull(currentRoundBeforeDisconnect);
+            List<Player> currentRoundParticipants = currentRoundBeforeDisconnect.getParticipants();
+            Assertions.assertEquals(4, currentRoundParticipants.size());
+            Assertions.assertTrue(currentRoundParticipants.contains(player1));
+            Assertions.assertTrue(currentRoundParticipants.contains(player2));
+            Assertions.assertTrue(currentRoundParticipants.contains(player3));
+            Assertions.assertTrue(currentRoundParticipants.contains(player4));
+            Assertions.assertEquals(0, currentRoundBeforeDisconnect.getOnDeckParticipants().size());
+            
+            player4.disconnect();
+    
+            CaptureTheFlagRound currentRoundAfterDisconnect = ctf.getCurrentRound();
+            Assertions.assertSame(currentRoundBeforeDisconnect, currentRoundAfterDisconnect);
+            Assertions.assertEquals(3, currentRoundAfterDisconnect.getParticipants().size());
+            Assertions.assertEquals(0, currentRoundAfterDisconnect.getOnDeckParticipants().size());
+            List<CaptureTheFlagMatch> currentMatchesAfterDisconnect = currentRoundAfterDisconnect.getMatches();
+            Assertions.assertEquals(2, currentMatchesAfterDisconnect.size());
+            
+            server.getScheduler().performTicks((20 * 10) + 1); // speed through startMatchesStartingCountDown()
+            server.getScheduler().performTicks((20 * 20) + 1); // speed through startClassSelectionPeriod()
+            
+            Assertions.assertTrue(currentMatchesAfterDisconnect.get(0).isAliveInMatch(player1));
+            Assertions.assertTrue(currentMatchesAfterDisconnect.get(0).isAliveInMatch(player2));
+            Assertions.assertTrue(currentMatchesAfterDisconnect.get(1).isAliveInMatch(player3));
+            Assertions.assertFalse(currentMatchesAfterDisconnect.get(1).isAliveInMatch(player4));
+            
+        } catch (UnimplementedOperationException ex) {
+            System.out.println("UnimplementedOperationException in threePlayerOnDeckTest()");
+            ex.printStackTrace();
+            Assertions.fail(ex.getMessage());
+        }
+    }
+    
+    @Test
+    @DisplayName("if an entire team quits while they still have a round, the new set of rounds still progress")
+    void teamQuitRoundProgressionTest() {
+        try {
+            addTeam("red", "Red", "red");
+            addTeam("blue", "Blue", "blue");
+            addTeam("green", "Green", "green");
+            addTeam("purple", "Purple", "dark_purple");
+            MyPlayerMock player1 = createParticipant("Player1", "red", "Red");
+            MyPlayerMock player2 = createParticipant("Player2", "blue", "Blue");
+            MyPlayerMock player3 = createParticipant("Player3", "green", "Green");
+            MyPlayerMock player4 = createParticipant("Player4", "purple", "Purple");
+            plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"game", "start", "capture-the-flag"});
+            
+            CaptureTheFlagGame ctf = ((CaptureTheFlagGame) gameManager.getActiveGame());
+            CaptureTheFlagRound firstRound = ctf.getCurrentRound();
+            Assertions.assertNotNull(firstRound);
+            
+            player4.disconnect();
+            
+            server.getScheduler().performTicks((20 * 10) + 1); // speed through startMatchesStartingCountDown()
+            server.getScheduler().performTicks((20 * 20) + 1); // speed through startClassSelectionPeriod()
+            server.getScheduler().performTicks((20*60*3)+1); // speed through first round
+            server.getScheduler().performTicks((20 * 10) + 1); // speed through startMatchesStartingCountDown()
+            server.getScheduler().performTicks((20 * 20) + 1); // speed through startClassSelectionPeriod()
+            
+            Assertions.assertEquals(3, ctf.getRounds().size());
+            CaptureTheFlagRound secondRound = ctf.getCurrentRound();
+            Assertions.assertNotSame(firstRound, secondRound);
+            Assertions.assertEquals(2, secondRound.getParticipants().size());
+            Assertions.assertTrue(secondRound.getParticipants().contains(player1));
+            Assertions.assertTrue(secondRound.getParticipants().contains(player3));
+            Assertions.assertEquals(1, secondRound.getOnDeckParticipants().size());
+            Assertions.assertTrue(secondRound.getOnDeckParticipants().contains(player2));
+            
+            
         } catch (UnimplementedOperationException ex) {
             System.out.println("UnimplementedOperationException in threePlayerOnDeckTest()");
             ex.printStackTrace();
