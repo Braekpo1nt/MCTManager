@@ -106,7 +106,6 @@ public class CaptureTheFlagRound {
             resetOnDeckParticipant(onDeckParticipant);
         }
         participants.clear();
-        matches.clear();
     }
     
     private void resetParticipant(Player participant) {
@@ -362,6 +361,17 @@ public class CaptureTheFlagRound {
     }
     
     // Test methods
+    
+    
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        for (CaptureTheFlagMatch match : matches) {
+            sb.append(match);
+            sb.append(",");
+        }
+        return sb.toString();
+    }
     
     /**
      * @return a copy of the list of participants

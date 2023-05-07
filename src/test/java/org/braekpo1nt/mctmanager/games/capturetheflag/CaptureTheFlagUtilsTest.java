@@ -159,4 +159,14 @@ class CaptureTheFlagUtilsTest {
         Assertions.assertTrue(roundLists.get(2).contains(new MatchPairing("B", "C")));
         
     }
+    
+    @Test
+    @DisplayName("5 teams generates 7 matches")
+    void fiveTeamsTest() {
+        List<String> teamNames = Arrays.asList("A", "B", "C", "D", "E");
+        List<MatchPairing> matchPairings = CaptureTheFlagUtils.generateMatchPairings(teamNames);
+        List<List<MatchPairing>> roundLists = CaptureTheFlagUtils.generateRoundMatchPairings(matchPairings, NUMBER_OF_ARENAS);
+        
+        Assertions.assertEquals(7, roundLists.size());
+    }
 }

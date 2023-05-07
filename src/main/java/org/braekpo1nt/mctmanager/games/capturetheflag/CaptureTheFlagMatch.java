@@ -822,6 +822,25 @@ public class CaptureTheFlagMatch implements Listener {
     }
     
     // Test methods
+    
+    
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(matchPairing.northTeam());
+        if (northParticipants != null) {
+            sb.append(":");
+            sb.append(northParticipants.size());
+        }
+        sb.append(" vs ");
+        sb.append(matchPairing.southTeam());
+        if (southParticipants != null) {
+            sb.append(":");
+            sb.append(southParticipants.size());
+        }
+        return sb.toString();
+    }
+    
     public ClassPicker getNorthClassPicker() {
         return northClassPicker;
     }

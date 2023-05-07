@@ -103,10 +103,26 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
             return;
         }
         // TODO: if the joining player is on a team that is not currently in the list of rounds/matches, we must add its matches to the lineup. If the team is one that completely left, and is now rejoining, we must check for its matches that have already been played out and make sure they aren't duplicated in the new lineup. 
+        String teamName = gameManager.getTeamName(participant.getUniqueId());
+        if (teamIsNew(teamName)) {
+            initializeParticipant(participant);
+            addFutureMatchesForTeam(teamName);
+            return;
+        }
         initializeParticipant(participant);
-//        String teamName = gameManager.getTeamName(participant.getUniqueId());
         CaptureTheFlagRound currentRound = rounds.get(currentRoundIndex);
         currentRound.onParticipantJoin(participant);
+    }
+    
+    /**
+     * Check if the team is new to the game.
+     * @param teamName The team to check if it's new
+     * @return True if no members of the given team are in the list of participants, false if at least
+     * one member of that team is already in the list of participants.
+     */
+    private boolean teamIsNew(String teamName) {
+        List<String> allTeams = gameManager.getTeamNames(participants);
+        return !allTeams.contains(teamName);
     }
     
     @Override
@@ -141,7 +157,8 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
                 newMatchPairings.remove(roundMatchPairing);
             }
         }
-        // generate a new set of rounds with the newMatchPairings, with the first and current round being the current round, if there is a currently active round
+        // generate a new set of rounds with the newMatchPairings, with the first round being the current round, if there is a currently active round
+        //TODO: the new list of rounds should include the old rounds before the current round, so that if the team rejoins, they don't get duplicate new rounds
         List<CaptureTheFlagRound> newRounds = generateRounds(newMatchPairings);
         if (currentRoundIndex >= 0) {
             CaptureTheFlagRound currentRound = rounds.get(currentRoundIndex);
@@ -150,6 +167,42 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
         currentRoundIndex = 0;
         maxRounds = newRounds.size();
         rounds = newRounds;
+        for (Player participant : participants) {
+            updateRoundFastBoard(participant);
+        }
+    }
+    
+    /**
+     * Add future matches for the given team to the round lineup. This will add 1 or more new rounds
+     * to accommodate the new team.
+     * - Will not add duplicates of already-fought matches
+     * - All new matches will be added to rounds after the current round 
+     *   (i.e. the current round and previous rounds will not be modified)
+     * - updates the FastBoard to reflect current round structure
+     * - Assumes that members of the given team are in the {@link CaptureTheFlagGame#participants} list
+     * @param teamName The team to add new matches for
+     */
+    private void addFutureMatchesForTeam(String teamName) {
+        List<String> onlineTeamNames = gameManager.getTeamNames(participants);
+        // generate a set of match pairings with the given team name
+        List<MatchPairing> newMatchPairings = CaptureTheFlagUtils.generateMatchPairings(onlineTeamNames);
+        // remove already completed or in progress match pairings from newMatchPairings
+        for (int i = 0; i <= currentRoundIndex; i++) {
+            CaptureTheFlagRound round = rounds.get(i);
+            List<CaptureTheFlagMatch> roundMatches = round.getMatches();
+            for (CaptureTheFlagMatch roundMatch : roundMatches) {
+                MatchPairing roundMatchPairing = roundMatch.getMatchPairing();
+                newMatchPairings.remove(roundMatchPairing);
+            }
+        }
+        // now newMatchPairings contains only matches that haven't been fought yet, including ones involving teamName
+        // generate rounds involving the newMatchParings
+        List<CaptureTheFlagRound> newRounds = generateRounds(newMatchPairings);
+        List<CaptureTheFlagRound> oldRounds = rounds.subList(0, currentRoundIndex+1);
+        List<CaptureTheFlagRound> combinedRounds = new ArrayList<>(oldRounds);
+        combinedRounds.addAll(newRounds);
+        maxRounds = combinedRounds.size();
+        rounds = combinedRounds;
         for (Player participant : participants) {
             updateRoundFastBoard(participant);
         }
