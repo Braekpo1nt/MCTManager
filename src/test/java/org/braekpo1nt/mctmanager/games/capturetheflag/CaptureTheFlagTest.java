@@ -99,7 +99,7 @@ public class CaptureTheFlagTest {
         MyPlayerMock player = new MyPlayerMock(server, name, UUID.nameUUIDFromBytes(name.getBytes(StandardCharsets.UTF_8)));
         server.addPlayer(player);
         plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"team", "join", teamName, player.getName()});
-        player.assertSaidPlaintext("You've been joined to "+expectedDisplayName);
+        Assertions.assertTrue(gameManager.isParticipant(player.getUniqueId()));
         return player;
     }
     
