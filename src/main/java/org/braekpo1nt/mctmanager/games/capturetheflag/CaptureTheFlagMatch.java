@@ -200,7 +200,6 @@ public class CaptureTheFlagMatch implements Listener {
     private void onNorthParticipantJoin(Player northParticipant) {
         if (northClassPicker.isActive()) {
             initializeParticipant(northParticipant, true);
-            northParticipant.sendMessage("Choose your class");
             northClassPicker.addTeamMate(northParticipant);
             return;
         }
@@ -210,7 +209,6 @@ public class CaptureTheFlagMatch implements Listener {
     private void onSouthParticipantJoin(Player southParticipant) {
         if (southClassPicker.isActive()) {
             initializeParticipant(southParticipant, false);
-            southParticipant.sendMessage("Choose your class");
             southClassPicker.addTeamMate(southParticipant);
             return;
         }
@@ -655,7 +653,6 @@ public class CaptureTheFlagMatch implements Listener {
     
     
     private void startClassSelectionPeriod() {
-        messageAllParticipants(Component.text("Choose your class"));
         northClassPicker.start(plugin, northParticipants);
         southClassPicker.start(plugin, southParticipants);
         

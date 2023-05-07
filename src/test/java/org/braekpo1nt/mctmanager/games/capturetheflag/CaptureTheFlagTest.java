@@ -654,32 +654,6 @@ public class CaptureTheFlagTest {
     }
     
     @Test
-    @DisplayName("if a team joins mid-game, their rounds are added")
-    void teamJoinRoundsAdded() {
-        try {
-            addTeam("red", "Red", "red");
-            addTeam("blue", "Blue", "blue");
-            addTeam("green", "Green", "green");
-            MyPlayerMock player1 = createParticipant("Player1", "red", "Red");
-            MyPlayerMock player2 = createParticipant("Player2", "blue", "Blue");
-            MyPlayerMock player3 = createParticipant("Player3", "green", "Green");
-            player3.disconnect();
-            plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"game", "start", "capture-the-flag"});
-            
-            CaptureTheFlagGame ctf = ((CaptureTheFlagGame) gameManager.getActiveGame());
-            Assertions.assertEquals(1, ctf.getRounds().size());
-            
-            player3.reconnect();
-            
-            Assertions.assertEquals(3, ctf.getRounds().size());
-            
-        } catch (UnimplementedOperationException ex) {
-            ex.printStackTrace();
-            Assertions.fail(ex.getMessage());
-        }
-    }
-    
-    @Test
     @DisplayName("if a team joins mid-game, they are on-deck")
     void teamJoinOnDeck() {
         try {
@@ -700,6 +674,32 @@ public class CaptureTheFlagTest {
             List<Player> onDeckParticipants = currentRound.getOnDeckParticipants();
             Assertions.assertEquals(1, onDeckParticipants.size());
             Assertions.assertTrue(onDeckParticipants.contains(player3));
+            
+        } catch (UnimplementedOperationException ex) {
+            ex.printStackTrace();
+            Assertions.fail(ex.getMessage());
+        }
+    }
+    
+    @Test
+    @DisplayName("if a team joins mid-game, their rounds are added")
+    void teamJoinRoundsAdded() {
+        try {
+            addTeam("red", "Red", "red");
+            addTeam("blue", "Blue", "blue");
+            addTeam("green", "Green", "green");
+            MyPlayerMock player1 = createParticipant("Player1", "red", "Red");
+            MyPlayerMock player2 = createParticipant("Player2", "blue", "Blue");
+            MyPlayerMock player3 = createParticipant("Player3", "green", "Green");
+            player3.disconnect();
+            plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"game", "start", "capture-the-flag"});
+            
+            CaptureTheFlagGame ctf = ((CaptureTheFlagGame) gameManager.getActiveGame());
+            Assertions.assertEquals(1, ctf.getRounds().size());
+            
+            player3.reconnect();
+            
+            Assertions.assertEquals(3, ctf.getRounds().size());
             
         } catch (UnimplementedOperationException ex) {
             ex.printStackTrace();

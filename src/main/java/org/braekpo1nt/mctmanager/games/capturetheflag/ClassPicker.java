@@ -95,6 +95,7 @@ public class ClassPicker implements Listener {
         teamMates.addAll(newTeamMates);
         classPickingActive = true;
         for (Player teamMate : teamMates) {
+            teamMate.sendMessage(Component.text("Choose your class"));
             showClassPickerGui(teamMate);
         }
     }
@@ -119,6 +120,7 @@ public class ClassPicker implements Listener {
             return;
         }
         teamMates.add(newTeamMate);
+        newTeamMate.sendMessage(Component.text("Choose your class"));
         showClassPickerGui(newTeamMate);
     }
     
