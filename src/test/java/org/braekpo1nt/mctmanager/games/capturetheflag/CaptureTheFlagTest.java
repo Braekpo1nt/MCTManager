@@ -123,9 +123,9 @@ public class CaptureTheFlagTest {
             MyPlayerMock player3 = createParticipant("Player3", "green", "Green");
             plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"game", "start", "capture-the-flag"});
             
-            player1.assertSaidPlaintext("Red is competing against Blue this round.");
-            player2.assertSaidPlaintext("Blue is competing against Red this round.");
-            player3.assertSaidPlaintext("Green is not competing in this round. Their next round is 1");
+            Assertions.assertTrue(player1.receivedMessagePlaintext("Red is competing against Blue this round."));
+            Assertions.assertTrue(player2.receivedMessagePlaintext("Blue is competing against Red this round."));
+            Assertions.assertTrue(player3.receivedMessagePlaintext("Green is not competing in this round. Their next round is 1"));
             mockFastBoardManager.assertLine(player3.getUniqueId(), 1, "On Deck");
         } catch (UnimplementedOperationException ex) {
             ex.printStackTrace();
