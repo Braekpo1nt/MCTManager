@@ -821,4 +821,25 @@ public class CaptureTheFlagTest {
         }
     }
     
+    @Test
+    @DisplayName("if a player quits during the game, then rejoins, they are dead")
+    void quitRejoinDead() {
+        try {
+            addTeam("red", "Red", "red");
+            addTeam("blue", "Blue", "blue");
+            MyPlayerMock player1 = createParticipant("Player1", "red", "Red");
+            MyPlayerMock player2 = createParticipant("Player2", "blue", "Blue");
+            MyPlayerMock player3 = createParticipant("Player3", "blue", "Blue");
+            plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"game", "start", "capture-the-flag"});
+            
+            CaptureTheFlagGame ctf = ((CaptureTheFlagGame) gameManager.getActiveGame());
+            
+            
+        } catch (UnimplementedOperationException ex) {
+            ex.printStackTrace();
+            Assertions.fail(ex.getMessage());
+        }
+        Assertions.fail();
+    }
+    
 }
