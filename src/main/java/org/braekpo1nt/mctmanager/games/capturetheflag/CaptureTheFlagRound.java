@@ -30,7 +30,7 @@ public class CaptureTheFlagRound {
     private final Location spawnObservatory;
     private int matchesStartingCountDownTaskId;
     private final World captureTheFlagWorld;
-
+    
     public CaptureTheFlagRound(CaptureTheFlagGame captureTheFlagGame, Main plugin, GameManager gameManager, 
                                Location spawnObservatory, World captureTheFlagWorld) {
         this.captureTheFlagGame = captureTheFlagGame;
@@ -131,10 +131,6 @@ public class CaptureTheFlagRound {
         }
         if (!match.isActive()) {
             initializeParticipant(participant);
-            return;
-        }
-        if (!match.isInClassSelection()) {
-            initializeOnDeckParticipant(participant);
             return;
         }
         initializeParticipant(participant);

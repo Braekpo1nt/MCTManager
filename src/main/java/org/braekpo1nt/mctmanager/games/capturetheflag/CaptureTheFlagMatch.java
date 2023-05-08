@@ -21,7 +21,6 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -129,6 +128,23 @@ public class CaptureTheFlagMatch implements Listener {
         ParticipantInitializer.resetHealthAndHunger(participant);
     }
     
+    private void initializeDeadParticipant(Player participant, boolean north) {
+        Location lookLocation;
+        if (north) {
+            northParticipants.add(participant);
+            lookLocation = arena.northFlag();
+        } else {
+            southParticipants.add(participant);
+            lookLocation = arena.southFlag();
+        }
+        allParticipants.add(participant);
+        initializeFastBoard(participant);
+        ParticipantInitializer.resetHealthAndHunger(participant);
+        ParticipantInitializer.clearStatusEffects(participant);
+        participant.teleport(spawnObservatory);
+        participant.lookAt(lookLocation.getX(), lookLocation.getY(), lookLocation.getZ(), LookAnchor.EYES);
+    }
+    
     private void matchIsOver() {
         stop();
         captureTheFlagRound.matchIsOver(this);
@@ -203,7 +219,8 @@ public class CaptureTheFlagMatch implements Listener {
             northClassPicker.addTeamMate(northParticipant);
             return;
         }
-        initializeParticipant(northParticipant, true);
+        participantsAreAlive.put(northParticipant.getUniqueId(), true);
+        initializeDeadParticipant(northParticipant, true);
     }
     
     private void onSouthParticipantJoin(Player southParticipant) {
@@ -212,7 +229,8 @@ public class CaptureTheFlagMatch implements Listener {
             southClassPicker.addTeamMate(southParticipant);
             return;
         }
-        initializeParticipant(southParticipant, false);
+        participantsAreAlive.put(southParticipant.getUniqueId(), false);
+        initializeDeadParticipant(southParticipant, false);
     }
     
     public void onParticipantQuit(Player participant) {
@@ -870,5 +888,12 @@ public class CaptureTheFlagMatch implements Listener {
      */
     public List<Player> getNorthParticipants() {
         return new ArrayList<>(northParticipants);
+    }
+    
+    /**
+     * @return a copy of the allParticipants list
+     */
+    public List<Player> getAllParticipants() {
+        return new ArrayList<>(allParticipants);
     }
 }

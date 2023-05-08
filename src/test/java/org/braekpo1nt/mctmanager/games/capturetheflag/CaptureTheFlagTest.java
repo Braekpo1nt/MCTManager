@@ -643,6 +643,46 @@ public class CaptureTheFlagTest {
     }
     
     @Test
+    @DisplayName("If a player joins during a round their team is in, they are dead")
+    void playerJoinTeamInRound() {
+        try {
+            addTeam("red", "Red", "red");
+            addTeam("blue", "Blue", "blue");
+            MyPlayerMock player1 = createParticipant("Player1", "red", "Red");
+            MyPlayerMock player2 = createParticipant("Player2", "blue", "Blue");
+            MyPlayerMock player3 = createParticipant("Player3", "blue", "Blue");
+            player3.disconnect();
+            plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"game", "start", "capture-the-flag"});
+            
+            speedThroughRoundCountdown();
+            speedThroughClassSelection();
+            speedThroughHalfRound();
+            
+            CaptureTheFlagGame ctf = ((CaptureTheFlagGame) gameManager.getActiveGame());
+            
+            CaptureTheFlagRound currentRoundBeforeDisconnect = ctf.getCurrentRound();
+            Assertions.assertNotNull(currentRoundBeforeDisconnect);
+            Assertions.assertFalse(currentRoundBeforeDisconnect.isAliveInMatch(player3));
+            
+            player3.reconnect();
+            
+            CaptureTheFlagRound currentRoundAfterReconnect = ctf.getCurrentRound();
+            Assertions.assertNotNull(currentRoundAfterReconnect);
+            Assertions.assertFalse(currentRoundAfterReconnect.isAliveInMatch(player3));
+            CaptureTheFlagMatch match = currentRoundAfterReconnect.getMatches().get(0);
+            Assertions.assertEquals(3, match.getAllParticipants().size());
+            Assertions.assertEquals(1, match.getNorthParticipants().size());
+            List<Player> southParticipants = match.getSouthParticipants();
+            Assertions.assertEquals(2, southParticipants.size());
+            Assertions.assertTrue(southParticipants.contains(player3));
+            
+        } catch (UnimplementedOperationException ex) {
+            ex.printStackTrace();
+            Assertions.fail(ex.getMessage());
+        }
+    }
+    
+    @Test
     @DisplayName("if a player joins during class selection, they are in the game")
     void playerJoinClassSelection() {
         try {
@@ -822,8 +862,8 @@ public class CaptureTheFlagTest {
     }
     
     @Test
-    @DisplayName("if a player quits during the game, then rejoins, they are dead")
-    void quitRejoinDead() {
+    @DisplayName("if a player quits during the game, then rejoins, they are dead and in the spawn observatory")
+    void playerQuitRejoinDead() {
         try {
             addTeam("red", "Red", "red");
             addTeam("blue", "Blue", "blue");
@@ -832,14 +872,33 @@ public class CaptureTheFlagTest {
             MyPlayerMock player3 = createParticipant("Player3", "blue", "Blue");
             plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"game", "start", "capture-the-flag"});
             
+            speedThroughRoundCountdown();
+            speedThroughClassSelection();
+            speedThroughHalfRound();
+    
             CaptureTheFlagGame ctf = ((CaptureTheFlagGame) gameManager.getActiveGame());
+    
+            CaptureTheFlagRound currentRoundBeforeDisconnect = ctf.getCurrentRound();
+            Assertions.assertNotNull(currentRoundBeforeDisconnect);
+            Assertions.assertTrue(currentRoundBeforeDisconnect.isAliveInMatch(player3));
             
+            player3.disconnect();
+            player3.reconnect();
+            
+            CaptureTheFlagRound currentRoundAfterReconnect = ctf.getCurrentRound();
+            Assertions.assertNotNull(currentRoundAfterReconnect);
+            Assertions.assertFalse(currentRoundAfterReconnect.isAliveInMatch(player3));
+            CaptureTheFlagMatch match = currentRoundAfterReconnect.getMatches().get(0);
+            Assertions.assertEquals(3, match.getAllParticipants().size());
+            Assertions.assertEquals(1, match.getNorthParticipants().size());
+            List<Player> southParticipants = match.getSouthParticipants();
+            Assertions.assertEquals(2, southParticipants.size());
+            Assertions.assertTrue(southParticipants.contains(player3));
             
         } catch (UnimplementedOperationException ex) {
             ex.printStackTrace();
             Assertions.fail(ex.getMessage());
         }
-        Assertions.fail();
     }
     
 }
