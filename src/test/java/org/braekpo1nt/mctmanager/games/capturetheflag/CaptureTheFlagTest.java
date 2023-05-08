@@ -91,7 +91,11 @@ public class CaptureTheFlagTest {
     }
     
     void speedThroughRound() {
-        server.getScheduler().performTicks((20*60*3)+1); // speed through round
+        server.getScheduler().performTicks((20*60*3)+1); // speed through the round
+    }
+    
+    void speedThroughHalfRound() {
+        server.getScheduler().performTicks((20*30*3)+1); // speed through half the round
     }
     
     
@@ -588,7 +592,10 @@ public class CaptureTheFlagTest {
             Assertions.assertEquals(1, ctf.getRounds().size());
             CaptureTheFlagRound currentRoundAfterJoin = ctf.getCurrentRound();
             Assertions.assertNotNull(currentRoundAfterJoin);
-            Assertions.assertEquals(3, currentRoundAfterJoin.getParticipants().size());
+            List<Player> participantsAfterJoin = currentRoundAfterJoin.getParticipants();
+            Assertions.assertEquals(3, participantsAfterJoin.size());
+            Assertions.assertEquals(0, currentRoundAfterJoin.getOnDeckParticipants().size());
+            Assertions.assertTrue(participantsAfterJoin.contains(player3));
             
         } catch (UnimplementedOperationException ex) {
             ex.printStackTrace();
@@ -636,36 +643,6 @@ public class CaptureTheFlagTest {
     }
     
     @Test
-    @DisplayName("if a player joins during round countdown, they are in the game")
-    void playerJoinRoundCountdown() {
-        try {
-            addTeam("red", "Red", "red");
-            addTeam("blue", "Blue", "blue");
-            MyPlayerMock player1 = createParticipant("Player1", "red", "Red");
-            MyPlayerMock player2 = createParticipant("Player2", "blue", "Blue");
-            MyPlayerMock player3 = createParticipant("Player3", "blue", "Blue");
-            player3.disconnect();
-            plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"game", "start", "capture-the-flag"});
-            speedThroughHalfRoundCountdown();
-            
-            player3.reconnect();
-            
-            speedThroughHalfRoundCountdown();
-            speedThroughClassSelection();
-            
-            CaptureTheFlagGame ctf = ((CaptureTheFlagGame) gameManager.getActiveGame());
-            CaptureTheFlagRound currentRound = ctf.getCurrentRound();
-            Assertions.assertNotNull(currentRound);
-            Assertions.assertTrue(currentRound.getParticipants().contains(player3));
-            Assertions.assertTrue(currentRound.getMatches().get(0).isAliveInMatch(player3));
-            
-        } catch (UnimplementedOperationException ex) {
-            ex.printStackTrace();
-            Assertions.fail(ex.getMessage());
-        }
-    }
-    
-    @Test
     @DisplayName("if a player joins during class selection, they are in the game")
     void playerJoinClassSelection() {
         try {
@@ -706,7 +683,7 @@ public class CaptureTheFlagTest {
     }
     
     @Test
-    @DisplayName("if a team joins mid-game, they are on-deck")
+    @DisplayName("if a team joins mid-game (after class selection), they are on-deck")
     void teamJoinOnDeck() {
         try {
             addTeam("red", "Red", "red");
@@ -717,6 +694,10 @@ public class CaptureTheFlagTest {
             MyPlayerMock player3 = createParticipant("Player3", "green", "Green");
             player3.disconnect();
             plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"game", "start", "capture-the-flag"});
+            
+            speedThroughRoundCountdown();
+            speedThroughClassSelection();
+            speedThroughHalfRound();
             
             player3.reconnect();
             

@@ -103,14 +103,15 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
             return;
         }
         // TODO: if the joining player is on a team that is not currently in the list of rounds/matches, we must add its matches to the lineup. If the team is one that completely left, and is now rejoining, we must check for its matches that have already been played out and make sure they aren't duplicated in the new lineup. 
+        CaptureTheFlagRound currentRound = rounds.get(currentRoundIndex);
         String teamName = gameManager.getTeamName(participant.getUniqueId());
         if (teamIsNew(teamName)) {
             initializeParticipant(participant);
             addFutureMatchesForTeam(teamName);
+            currentRound.onParticipantJoin(participant);
             return;
         }
         initializeParticipant(participant);
-        CaptureTheFlagRound currentRound = rounds.get(currentRoundIndex);
         currentRound.onParticipantJoin(participant);
     }
     

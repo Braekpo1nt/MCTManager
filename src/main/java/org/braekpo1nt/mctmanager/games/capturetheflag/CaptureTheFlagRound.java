@@ -129,6 +129,14 @@ public class CaptureTheFlagRound {
             initializeOnDeckParticipant(participant);
             return;
         }
+        if (!match.isActive()) {
+            initializeParticipant(participant);
+            return;
+        }
+        if (!match.isInClassSelection()) {
+            initializeOnDeckParticipant(participant);
+            return;
+        }
         initializeParticipant(participant);
         match.onParticipantJoin(participant);
     }

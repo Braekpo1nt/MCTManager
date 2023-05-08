@@ -790,6 +790,15 @@ public class CaptureTheFlagMatch implements Listener {
     public boolean isActive() {
         return matchActive;
     }
+
+    /**
+     * Checks if either of the teams is still in class selection period
+     * @return True if either team is in class selection, 
+     * false if no teams are in class selection
+     */
+    public boolean isInClassSelection() {
+        return northClassPicker.isActive() || southClassPicker.isActive();
+    }
     
     private void messageAllParticipants(Component message) {
         for (Player participant : allParticipants) {
