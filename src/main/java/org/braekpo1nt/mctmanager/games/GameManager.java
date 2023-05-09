@@ -64,6 +64,10 @@ public class GameManager implements Listener {
     private String finalGameTeamA;
     private String finalGameTeamB;
     private boolean eventActive = false;
+    /**
+     * Contains the list of online participants. Updated when participants are added/removed or quit/join
+     */
+    private final List<Player> onlineParticipants = new ArrayList<>();
     
     public GameManager(Main plugin, Scoreboard mctScoreboard) {
         this.plugin = plugin;
@@ -108,13 +112,14 @@ public class GameManager implements Listener {
     
     /**
      * Handles when a participant leaves the event.
-     * Should be called when the player disconnects from the server 
+     * Should be called when a participant disconnects (quits/leaves) from the server 
      * (see {@link GameManager#playerQuitEvent(PlayerQuitEvent)}),
      * or when they are removed from the participants list
      * (see {@link GameManager#leavePlayer(OfflinePlayer)})
      * @param participant The participant who left the event
      */
     private void onParticipantLeave(@NotNull Player participant) {
+        onlineParticipants.remove(participant);
         fastBoardManager.removeBoard(participant.getUniqueId());
         if (gameIsRunning()) {
             activeGame.onParticipantQuit(participant);
@@ -135,11 +140,12 @@ public class GameManager implements Listener {
      * Handles when a participant joins the event. 
      * Should be called when an existing participant joins the server
      * (see {@link GameManager#playerJoinEvent(PlayerJoinEvent)})
-     * or when a new participant is online and added to the participants list
+     * or when an online player is added to the participants list
      * (see {@link GameManager#addNewPlayer(UUID, String)})
      * @param participant the participant
      */
-    private void onParticipantJoin(Player participant) {
+    private void onParticipantJoin(@NotNull Player participant) {
+        onlineParticipants.add(participant);
         fastBoardManager.updateMainBoards();
         if (!gameIsRunning()) {
             if (participantsWhoLeftMidGame.contains(participant.getUniqueId())) {
@@ -165,6 +171,12 @@ public class GameManager implements Listener {
         for (Player player : Bukkit.getOnlinePlayers()) {
             player.setScoreboard(mctScoreboard);
         }
+        onlineParticipants.clear();
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            if (gameStateStorageUtil.containsPlayer(player.getUniqueId())) {
+                onlineParticipants.add(player);
+            }
+        }
     }
     
     public void saveGameState() throws IOException, IllegalStateException {
@@ -172,7 +184,6 @@ public class GameManager implements Listener {
     }
     
     public void startVote(@NotNull CommandSender sender, List<MCTGames> votingPool) {
-        List<Player> onlineParticipants = this.getOnlineParticipants();
         if (onlineParticipants.isEmpty()) {
             sender.sendMessage(Component.text("There are no online participants. You can add participants using:\n")
                     .append(Component.text("/mct team join <team> <member>")
@@ -201,7 +212,6 @@ public class GameManager implements Listener {
         if (eventActive) {
             return;
         }
-        List<Player> onlineParticipants = getOnlineParticipants();
         hubManager.returnParticipantsToHub(onlineParticipants);
         eventActive = true;
         throw new UnsupportedOperationException();
@@ -226,7 +236,6 @@ public class GameManager implements Listener {
             return;
         }
         
-        List<Player> onlineParticipants = this.getOnlineParticipants();
         if (onlineParticipants.isEmpty()) {
             sender.sendMessage(Component.text("There are no online participants. You can add participants using:\n")
                     .append(Component.text("/mct team join <team> <member>")
@@ -295,7 +304,7 @@ public class GameManager implements Listener {
                 finalGameParticipants.addAll(onlinePlayersOnTeamB);
                 
                 List<Player> otherParticipants = new ArrayList<>();
-                for (Player player : getOnlineParticipants()) {
+                for (Player player : onlineParticipants) {
                     if (!finalGameParticipants.contains(player)) {
                         otherParticipants.add(player);
                     }
@@ -336,7 +345,7 @@ public class GameManager implements Listener {
             shouldTeleportToHub = true;
             return;
         }
-        hubManager.returnParticipantsToHubWithDelay(getOnlineParticipants());
+        hubManager.returnParticipantsToHubWithDelay(onlineParticipants);
     }
     
     public void finalGameIsOver(String winningTeamName) {
@@ -350,7 +359,7 @@ public class GameManager implements Listener {
                 String colorString = gameStateStorageUtil.getTeamColorString(winningTeamName);
                 ChatColor chatColor = ColorMap.getChatColor(colorString);
                 List<Player> otherParticipants = new ArrayList<>();
-                for (Player player : getOnlineParticipants()) {
+                for (Player player : onlineParticipants) {
                     if (!winningTeamParticipants.contains(player)) {
                         otherParticipants.add(player);
                     }
@@ -358,20 +367,6 @@ public class GameManager implements Listener {
                 hubManager.pedestalTeleport(winningTeamParticipants, winningTeamDisplayName, chatColor, otherParticipants);
             }
         }.runTaskLater(plugin, 5*20).getTaskId();
-    }
-    
-    /**
-     * gets a list of the online participants
-     * @return a list of all online participants
-     */
-    public List<Player> getOnlineParticipants() {
-        List<Player> onlineParticipants = new ArrayList<>();
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            if (gameStateStorageUtil.containsPlayer(player.getUniqueId())) {
-                onlineParticipants.add(player);
-            }
-        }
-        return onlineParticipants;
     }
     
     //====================================================
@@ -645,9 +640,8 @@ public class GameManager implements Listener {
      * @return A list of the names of all online participants. Empty list if none are online.
      */
     public List<String> getOnlineParticipantNames() {
-        List<Player> onlinePlayers = getOnlineParticipants();
         List<String> names = new ArrayList<>();
-        for (Player player : onlinePlayers) {
+        for (Player player : onlineParticipants) {
             names.add(player.getName());
         }
         return names;
