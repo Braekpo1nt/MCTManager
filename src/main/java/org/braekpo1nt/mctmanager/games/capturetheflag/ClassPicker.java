@@ -64,7 +64,7 @@ public class ClassPicker implements Listener {
      * @param battleClass The battle class to get the name of
      * @return The name of the battle class. Null if the battle class is not one with a name (shouldn't ever return null)
      */
-    private String getBattleClassName(@NotNull BattleClass battleClass) {
+    private @NotNull String getBattleClassName(@NotNull BattleClass battleClass) {
         switch (battleClass) {
             case KNIGHT -> {
                 return "Knight";
@@ -79,7 +79,7 @@ public class ClassPicker implements Listener {
                 return "Tank";
             }
             default -> {
-                return null;
+                return "";
             }
         }
     }
@@ -139,7 +139,10 @@ public class ClassPicker implements Listener {
     }
     
     @EventHandler
-    public void clickEvent(InventoryClickEvent event) {
+    public void clickClassPickerInventory(InventoryClickEvent event) {
+        if (!isActive()) {
+            return;
+        }
         if (event.getClickedInventory() == null ||
                 !event.getView().title().equals(TITLE) ||
                 event.getCurrentItem() == null
@@ -165,6 +168,9 @@ public class ClassPicker implements Listener {
     
     @EventHandler
     public void onCloseMenu(InventoryCloseEvent event) {
+        if (!isActive()) {
+            return;
+        }
         if (!event.getView().title().equals(TITLE)) {
             return;
         }
@@ -180,7 +186,32 @@ public class ClassPicker implements Listener {
     }
     
     @EventHandler
-    public void onPlayerInteract(PlayerInteractEvent event) {
+    public void clickNetherStar(InventoryClickEvent event) {
+        if (!isActive()) {
+            return;
+        }
+        ItemStack netherStar = event.getCurrentItem();
+        if (netherStar == null ||
+                !netherStar.getType().equals(Material.NETHER_STAR)) {
+            return;
+        }
+        ItemMeta netherStarMeta = netherStar.getItemMeta();
+        if (netherStarMeta == null || !netherStarMeta.hasDisplayName() || !Objects.equals(netherStarMeta.displayName(), NETHER_STAR_NAME)) {
+            return;
+        }
+        Player teamMate = ((Player) event.getWhoClicked());
+        if (!teamMates.contains(teamMate)) {
+            return;
+        }
+        event.setCancelled(true);
+        onClickNetherStar(teamMate, netherStar);
+    }
+    
+    @EventHandler
+    public void interactWithNetherStar(PlayerInteractEvent event) {
+        if (!isActive()) {
+            return;
+        }
         Player teamMate = event.getPlayer();
         if (!teamMates.contains(teamMate)) {
             return;
@@ -190,6 +221,11 @@ public class ClassPicker implements Listener {
                 !netherStar.getType().equals(Material.NETHER_STAR)) {
             return;
         }
+        ItemMeta netherStarMeta = netherStar.getItemMeta();
+        if (netherStarMeta == null || !netherStarMeta.hasDisplayName() || !Objects.equals(netherStarMeta.displayName(), NETHER_STAR_NAME)) {
+            return;
+        }
+        event.setCancelled(true);
         onClickNetherStar(teamMate, netherStar);
     }
     
