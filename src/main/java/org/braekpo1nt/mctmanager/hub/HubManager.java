@@ -7,6 +7,7 @@ import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
+import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.FastBoardManager;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.bukkit.*;
@@ -87,7 +88,7 @@ public class HubManager implements Listener {
         setupTeamOptions();
         for (Player participant : otherParticipants) {
             showWinningFastBoard(participant, winningTeam, winningChatColor);
-            clearStatusEffects(participant);
+            ParticipantInitializer.clearStatusEffects(participant);
             participant.setGameMode(GameMode.ADVENTURE);
             participant.getInventory().clear();
             giveAmbientStatusEffects(participant);
@@ -95,7 +96,7 @@ public class HubManager implements Listener {
         }
         for (Player winningParticipant : winningTeamParticipants) {
             showWinningFastBoard(winningParticipant, winningTeam, winningChatColor);
-            clearStatusEffects(winningParticipant);
+            ParticipantInitializer.clearStatusEffects(winningParticipant);
             winningParticipant.setGameMode(GameMode.ADVENTURE);
             winningParticipant.getInventory().clear();
             giveAmbientStatusEffects(winningParticipant);
@@ -133,7 +134,7 @@ public class HubManager implements Listener {
     
     public void returnParticipantToHub(Player participant) {
         hideFastBoard(participant);
-        clearStatusEffects(participant);
+        ParticipantInitializer.clearStatusEffects(participant);
         participant.setGameMode(GameMode.ADVENTURE);
         teleportPlayerToHub(participant);
         participant.getInventory().clear();
@@ -152,12 +153,6 @@ public class HubManager implements Listener {
     
     private void teleportPlayerToHub(Player participant) {
         participant.teleport(hubWorld.getSpawnLocation());
-    }
-    
-    private void clearStatusEffects(Player participant) {
-        for (PotionEffect effect : participant.getActivePotionEffects()) {
-            participant.removePotionEffect(effect.getType());
-        }
     }
     
     @EventHandler
