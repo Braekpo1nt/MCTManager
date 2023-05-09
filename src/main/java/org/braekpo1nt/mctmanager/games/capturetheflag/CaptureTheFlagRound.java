@@ -25,12 +25,12 @@ public class CaptureTheFlagRound {
     private final Main plugin;
     private final GameManager gameManager;
     private List<CaptureTheFlagMatch> matches;
-    private List<Player> participants;
+    private List<Player> participants = new ArrayList<>();
     private List<Player> onDeckParticipants;
     private final Location spawnObservatory;
     private int matchesStartingCountDownTaskId;
     private final World captureTheFlagWorld;
-
+    
     public CaptureTheFlagRound(CaptureTheFlagGame captureTheFlagGame, Main plugin, GameManager gameManager, 
                                Location spawnObservatory, World captureTheFlagWorld) {
         this.captureTheFlagGame = captureTheFlagGame;
@@ -106,7 +106,6 @@ public class CaptureTheFlagRound {
             resetOnDeckParticipant(onDeckParticipant);
         }
         participants.clear();
-        matches.clear();
     }
     
     private void resetParticipant(Player participant) {
@@ -121,6 +120,50 @@ public class CaptureTheFlagRound {
         onDeckParticipant.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearStatusEffects(onDeckParticipant);
         ParticipantInitializer.resetHealthAndHunger(onDeckParticipant);
+    }
+    
+    public void onParticipantJoin(Player participant) {
+        String teamName = gameManager.getTeamName(participant.getUniqueId());
+        CaptureTheFlagMatch match = getMatch(teamName);
+        if (match == null) {
+            initializeOnDeckParticipant(participant);
+            return;
+        }
+        if (!match.isActive()) {
+            initializeParticipant(participant);
+            return;
+        }
+        initializeParticipant(participant);
+        match.onParticipantJoin(participant);
+    }
+    
+    public void onParticipantQuit(Player participant) {
+        if (onDeckParticipants.contains(participant)) {
+            onOnDeckParticipantQuit(participant);
+            return;
+        }
+        if (!participants.contains(participant)) {
+            return;
+        }
+        String teamName = gameManager.getTeamName(participant.getUniqueId());
+        CaptureTheFlagMatch match = getMatch(teamName);
+        if (match == null) {
+            resetParticipant(participant);
+            participants.remove(participant);
+            return;
+        }
+        match.onParticipantQuit(participant);
+        resetParticipant(participant);
+        participants.remove(participant);
+    }
+    
+    /**
+     * Code to handle when an on-deck participant leaves
+     * @param onDeckParticipant the on-deck participant
+     */
+    private void onOnDeckParticipantQuit(Player onDeckParticipant) {
+        resetOnDeckParticipant(onDeckParticipant);
+        onDeckParticipants.remove(onDeckParticipant);
     }
     
     /**
@@ -298,5 +341,66 @@ public class CaptureTheFlagRound {
             }
         }
         return null;
+    }
+    
+    /**
+     * Get the match that the team is in.
+     * @param teamName The team to find the match for. 
+     * @return The match that the team is in. Null if the given team is not in a match.
+     */
+    private @Nullable CaptureTheFlagMatch getMatch(@NotNull String teamName) {
+        for (CaptureTheFlagMatch match : matches) {
+            if (match.getMatchPairing().containsTeam(teamName)) {
+                return match;
+            }
+        }
+        return null;
+    }
+    
+    /**
+     * @return a copy of this round's matches.
+     */
+    public @NotNull List<CaptureTheFlagMatch> getMatches() {
+        return new ArrayList<>(matches);
+    }
+    
+    // Test methods
+    
+    
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        for (CaptureTheFlagMatch match : matches) {
+            sb.append(match);
+            sb.append(",");
+        }
+        return sb.toString();
+    }
+    
+    /**
+     * @return a copy of the list of participants
+     */
+    public @NotNull List<Player> getParticipants() {
+        return new ArrayList<>(participants);
+    }
+    
+    /**
+     * @return a copy of the list of on-deck participants
+     */
+    public @NotNull List<Player> getOnDeckParticipants() {
+        return new ArrayList<>(onDeckParticipants);
+    }
+    
+    /**
+     * @param teamName The team name to check for
+     * @return true if the teamName is in one of this round's matches, false otherwise
+     */
+    public boolean containsTeam(String teamName) {
+        for (CaptureTheFlagMatch match : matches) {
+            if (match.getMatchPairing().containsTeam(teamName)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

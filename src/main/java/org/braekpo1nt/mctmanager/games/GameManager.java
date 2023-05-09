@@ -750,4 +750,9 @@ public class GameManager implements Listener {
         this.fastBoardManager = fastBoardManager;
         this.fastBoardManager.setGameStateStorageUtil(this.gameStateStorageUtil);
     }
+    
+    // Test methods
+    public MCTGame getActiveGame() {
+        return activeGame;
+    }
 }

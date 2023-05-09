@@ -21,7 +21,6 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -94,9 +93,7 @@ public class CaptureTheFlagMatch implements Listener {
         allParticipants = new ArrayList<>();
         participantsAreAlive = new HashMap<>();
         killCounts = new HashMap<>();
-        String northTeam = gameManager.getTeamName(newNorthParticipants.get(0).getUniqueId());
-        String southTeam = gameManager.getTeamName(newSouthParticipants.get(0).getUniqueId());
-        placeFlags(northTeam, southTeam);
+        placeFlags();
         closeGlassBarriers();
         for (Player northParticipant : newNorthParticipants) {
             initializeParticipant(northParticipant, true);
@@ -129,6 +126,23 @@ public class CaptureTheFlagMatch implements Listener {
         participant.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
+    }
+    
+    private void initializeDeadParticipant(Player participant, boolean north) {
+        Location lookLocation;
+        if (north) {
+            northParticipants.add(participant);
+            lookLocation = arena.northFlag();
+        } else {
+            southParticipants.add(participant);
+            lookLocation = arena.southFlag();
+        }
+        allParticipants.add(participant);
+        initializeFastBoard(participant);
+        ParticipantInitializer.resetHealthAndHunger(participant);
+        ParticipantInitializer.clearStatusEffects(participant);
+        participant.teleport(spawnObservatory);
+        participant.lookAt(lookLocation.getX(), lookLocation.getY(), lookLocation.getZ(), LookAnchor.EYES);
     }
     
     private void matchIsOver() {
@@ -182,6 +196,104 @@ public class CaptureTheFlagMatch implements Listener {
         participant.getInventory().clear();
         participant.closeInventory();
         ParticipantInitializer.resetHealthAndHunger(participant);
+    }
+    
+    public void onParticipantJoin(Player participant) {
+        if (!matchActive) {
+            return;
+        }
+        String teamName = gameManager.getTeamName(participant.getUniqueId());
+        if (matchPairing.northTeam().equals(teamName)) {
+            onNorthParticipantJoin(participant);
+            return;
+        }
+        if (matchPairing.southTeam().equals(teamName)) {
+            onSouthParticipantJoin(participant);
+            return;
+        }
+    }
+    
+    private void onNorthParticipantJoin(Player northParticipant) {
+        if (northClassPicker.isActive()) {
+            initializeParticipant(northParticipant, true);
+            northClassPicker.addTeamMate(northParticipant);
+            return;
+        }
+        participantsAreAlive.put(northParticipant.getUniqueId(), true);
+        initializeDeadParticipant(northParticipant, true);
+    }
+    
+    private void onSouthParticipantJoin(Player southParticipant) {
+        if (southClassPicker.isActive()) {
+            initializeParticipant(southParticipant, false);
+            southClassPicker.addTeamMate(southParticipant);
+            return;
+        }
+        participantsAreAlive.put(southParticipant.getUniqueId(), false);
+        initializeDeadParticipant(southParticipant, false);
+    }
+    
+    public void onParticipantQuit(Player participant) {
+        if (!matchActive) {
+            return;
+        }
+        if (!allParticipants.contains(participant)) {
+            return;
+        }
+        if (northParticipants.contains(participant)) {
+            onNorthParticipantQuit(participant);
+            return;
+        }
+        if (southParticipants.contains(participant)) {
+            onSouthParticipantQuit(participant);
+            return;
+        }
+    }
+    
+    private void onNorthParticipantQuit(Player northParticipant) {
+        if (northClassPicker.isActive()) {
+            northClassPicker.removeTeamMate(northParticipant);
+            resetParticipant(northParticipant);
+            allParticipants.remove(northParticipant);
+            northParticipants.remove(northParticipant);
+            return;
+        }
+        if (!participantsAreAlive.get(northParticipant.getUniqueId())) {
+            resetParticipant(northParticipant);
+            allParticipants.remove(northParticipant);
+            northParticipants.remove(northParticipant);
+            return;
+        }
+        Component deathMessage = Component.text(northParticipant.getName())
+                .append(Component.text(" left early. Their life is forfeit."));
+        PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(northParticipant, Collections.emptyList(), 0, deathMessage);
+        Bukkit.getServer().getPluginManager().callEvent(fakeDeathEvent);
+        resetParticipant(northParticipant);
+        allParticipants.remove(northParticipant);
+        northParticipants.remove(northParticipant);
+    }
+    
+    private void onSouthParticipantQuit(Player soutParticipant) {
+        if (southClassPicker.isActive()) {
+            southClassPicker.removeTeamMate(soutParticipant);
+            resetParticipant(soutParticipant);
+            allParticipants.remove(soutParticipant);
+            southParticipants.remove(soutParticipant);
+            return;
+        }
+        if (!participantsAreAlive.get(soutParticipant.getUniqueId())) {
+            resetParticipant(soutParticipant);
+            allParticipants.remove(soutParticipant);
+            southParticipants.remove(soutParticipant);
+            return;
+        }
+        Component deathMessage = Component.text(soutParticipant.getName())
+                .append(Component.text(" left early. Their life is forfeit."));
+        PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(soutParticipant, Collections.emptyList(), 0, deathMessage);
+        Bukkit.getServer().getPluginManager().callEvent(fakeDeathEvent);
+        resetParticipant(soutParticipant);
+        allParticipants.remove(soutParticipant);
+        southParticipants.remove(soutParticipant);
     }
     
     private void startMatch() {
@@ -559,7 +671,6 @@ public class CaptureTheFlagMatch implements Listener {
     
     
     private void startClassSelectionPeriod() {
-        messageAllParticipants(Component.text("Choose your class"));
         northClassPicker.start(plugin, northParticipants);
         southClassPicker.start(plugin, southParticipants);
         
@@ -646,12 +757,12 @@ public class CaptureTheFlagMatch implements Listener {
         );
     }
     
-    private void placeFlags(String northTeam, String southTeam) {
-        northBanner = gameManager.getTeamBannerColor(northTeam);
+    private void placeFlags() {
+        northBanner = gameManager.getTeamBannerColor(matchPairing.northTeam());
         northFlagPosition = arena.northFlag();
         placeFlag(northBanner, northFlagPosition, BlockFace.SOUTH);
         
-        southBanner = gameManager.getTeamBannerColor(southTeam);
+        southBanner = gameManager.getTeamBannerColor(matchPairing.southTeam());
         southFlagPosition = arena.southFlag();
         placeFlag(southBanner, southFlagPosition, BlockFace.NORTH);
     }
@@ -697,6 +808,15 @@ public class CaptureTheFlagMatch implements Listener {
     public boolean isActive() {
         return matchActive;
     }
+
+    /**
+     * Checks if either of the teams is still in class selection period
+     * @return True if either team is in class selection, 
+     * false if no teams are in class selection
+     */
+    public boolean isInClassSelection() {
+        return northClassPicker.isActive() || southClassPicker.isActive();
+    }
     
     private void messageAllParticipants(Component message) {
         for (Player participant : allParticipants) {
@@ -726,5 +846,54 @@ public class CaptureTheFlagMatch implements Listener {
             return false;
         }
         return participantsAreAlive.get(participant.getUniqueId());
+    }
+    
+    // Test methods
+    
+    
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(matchPairing.northTeam());
+        if (northParticipants != null) {
+            sb.append(":");
+            sb.append(northParticipants.size());
+        }
+        sb.append(" vs ");
+        sb.append(matchPairing.southTeam());
+        if (southParticipants != null) {
+            sb.append(":");
+            sb.append(southParticipants.size());
+        }
+        return sb.toString();
+    }
+    
+    public ClassPicker getNorthClassPicker() {
+        return northClassPicker;
+    }
+    
+    public ClassPicker getSouthClassPicker() {
+        return southClassPicker;
+    }
+    
+    /**
+     * @return a copy of the south participiants list
+     */
+    public List<Player> getSouthParticipants() {
+        return new ArrayList<>(southParticipants);
+    }
+    
+    /**
+     * @return a copy of the north participiants list
+     */
+    public List<Player> getNorthParticipants() {
+        return new ArrayList<>(northParticipants);
+    }
+    
+    /**
+     * @return a copy of the allParticipants list
+     */
+    public List<Player> getAllParticipants() {
+        return new ArrayList<>(allParticipants);
     }
 }

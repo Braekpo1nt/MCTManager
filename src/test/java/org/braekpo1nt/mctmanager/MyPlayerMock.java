@@ -7,6 +7,8 @@ import net.kyori.adventure.text.*;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Assertions;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 public class MyPlayerMock extends PlayerMock {
@@ -36,6 +38,30 @@ public class MyPlayerMock extends PlayerMock {
             String plainText = toPlainText(comp);
             Assertions.assertEquals(expected, plainText);
         }
+    }
+    
+    /**
+     * Checks if the given message was sent to the player, ignoring formatting
+     * This searches through all messages sent to the player by making calls to {@link PlayerMock#nextComponentMessage()} until it finds the expected message, or there are no more messages. This will re-send the messages to the player with use of the {@link PlayerMock#sendMessage(String)} method, in the appropriate order. 
+     * @param expected The message to search for
+     * @return True if the expected message was ever sent to the player, false if not
+     */
+    public boolean receivedMessagePlaintext(@NotNull String expected) {
+        Component comp = nextComponentMessage();
+        List<Component> sentMessages = new ArrayList<>();
+        boolean messageWasSent = false;
+        while (comp != null) {
+            sentMessages.add(comp);
+            String plainText = toPlainText(comp);
+            if (plainText.equals(expected)) {
+                messageWasSent = true;
+            }
+            comp = nextComponentMessage();
+        }
+        for (Component sentMessage : sentMessages) {
+            sendMessage(sentMessage);
+        }
+        return messageWasSent;
     }
     
     /**
