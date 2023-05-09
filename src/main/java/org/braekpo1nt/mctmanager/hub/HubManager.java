@@ -65,12 +65,7 @@ public class HubManager implements Listener {
             @Override
             public void run() {
                 if (count <= 0) {
-                    for (Player participant : participants){
-                        participant.sendMessage(Component.text("Returning to hub"));
-                        returnParticipantToHub(participant);
-                    }
-                    headingToHub.clear();
-                    setupTeamOptions();
+                    returnParticipantsToHub(participants);
                     this.cancel();
                     return;
                 } else {
@@ -83,7 +78,16 @@ public class HubManager implements Listener {
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
     }
-
+    
+    public void returnParticipantsToHub(List<Player> participants) {
+        for (Player participant : participants){
+            participant.sendMessage(Component.text("Returning to hub"));
+            returnParticipantToHub(participant);
+        }
+        headingToHub.clear();
+        setupTeamOptions();
+    }
+    
     public void pedestalTeleport(List<Player> winningTeamParticipants, String winningTeam, ChatColor winningChatColor, List<Player> otherParticipants) {
         setupTeamOptions();
         for (Player participant : otherParticipants) {
@@ -178,10 +182,6 @@ public class HubManager implements Listener {
         if (headingToHub.contains(participant) || participant.getWorld().equals(hubWorld)) {
             event.setCancelled(true);
         }
-    }
-    
-    private boolean isInOrHeadingToHub(Player participant) {
-        return participant.getWorld().equals(hubWorld) || headingToHub.contains(participant);
     }
     
     private void giveAmbientStatusEffects(Player player) {

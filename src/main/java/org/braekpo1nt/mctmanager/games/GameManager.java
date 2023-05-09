@@ -58,11 +58,13 @@ public class GameManager implements Listener {
     private final Main plugin;
     private boolean shouldTeleportToHub = true;
     private int fastBoardUpdaterTaskId;
+    private int finalGameEndTaskId;
     private final List<UUID> participantsWhoLeftMidGame = new ArrayList<>();
     private final VoteManager voteManager;
     private String finalGameTeamA;
     private String finalGameTeamB;
-
+    private boolean eventActive = false;
+    
     public GameManager(Main plugin, Scoreboard mctScoreboard) {
         this.plugin = plugin;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
@@ -91,6 +93,7 @@ public class GameManager implements Listener {
     
     public void cancelFastBoardManager() {
         Bukkit.getScheduler().cancelTask(this.fastBoardUpdaterTaskId);
+        Bukkit.getScheduler().cancelTask(this.finalGameEndTaskId);
         fastBoardManager.removeAllBoards();
     }
     
@@ -111,7 +114,7 @@ public class GameManager implements Listener {
      * (see {@link GameManager#leavePlayer(OfflinePlayer)})
      * @param participant The participant who left the event
      */
-    private void onParticipantLeave(Player participant) {
+    private void onParticipantLeave(@NotNull Player participant) {
         fastBoardManager.removeBoard(participant.getUniqueId());
         if (gameIsRunning()) {
             activeGame.onParticipantQuit(participant);
@@ -134,7 +137,7 @@ public class GameManager implements Listener {
      * (see {@link GameManager#playerJoinEvent(PlayerJoinEvent)})
      * or when a new participant is online and added to the participants list
      * (see {@link GameManager#addNewPlayer(UUID, String)})
-     * @param participant
+     * @param participant the participant
      */
     private void onParticipantJoin(Player participant) {
         fastBoardManager.updateMainBoards();
@@ -195,6 +198,12 @@ public class GameManager implements Listener {
     }
     
     public void startEvent() {
+        if (eventActive) {
+            return;
+        }
+        List<Player> onlineParticipants = getOnlineParticipants();
+        hubManager.returnParticipantsToHub(onlineParticipants);
+        eventActive = true;
         throw new UnsupportedOperationException();
     }
     
@@ -332,7 +341,7 @@ public class GameManager implements Listener {
     
     public void finalGameIsOver(String winningTeamName) {
         Bukkit.getLogger().info("Final game is over");
-        new BukkitRunnable() {
+        finalGameEndTaskId = new BukkitRunnable() {
             @Override
             public void run() {
                 activeGame = null;
@@ -348,7 +357,7 @@ public class GameManager implements Listener {
                 }
                 hubManager.pedestalTeleport(winningTeamParticipants, winningTeamDisplayName, chatColor, otherParticipants);
             }
-        }.runTaskLater(plugin, 5*20);
+        }.runTaskLater(plugin, 5*20).getTaskId();
     }
     
     /**
@@ -527,7 +536,9 @@ public class GameManager implements Listener {
     public void leavePlayer(OfflinePlayer offlinePlayer) throws IOException {
         if (offlinePlayer.isOnline()) {
             Player onlinePlayer = offlinePlayer.getPlayer();
-            onParticipantLeave(onlinePlayer);
+            if (onlinePlayer != null) {
+                onParticipantLeave(onlinePlayer);
+            }
         }
         UUID playerUniqueId = offlinePlayer.getUniqueId();
         String teamName = gameStateStorageUtil.getPlayerTeamName(playerUniqueId);
@@ -646,7 +657,7 @@ public class GameManager implements Listener {
     /**
      * Gets all the names of the participants in the game state, regardless of 
      * whether they're offline or online. 
-     * @return
+     * @return a list of the names of all participants in the game state
      */
     public List<String> getAllParticipantNames() {
         List<OfflinePlayer> offlinePlayers = getOfflineParticipants();
