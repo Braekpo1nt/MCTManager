@@ -31,7 +31,7 @@ public class VoteManager implements Listener {
     private final GameManager gameManager;
     private final Map<UUID, MCTGames> votes = new HashMap<>();
     private final Main plugin;
-    private List<Player> voters = new ArrayList<>();
+    private final List<Player> voters = new ArrayList<>();
     private boolean voting = false;
     private final Component NETHER_STAR_NAME = Component.text("Vote");
     private int voteCountDownTaskId;
@@ -94,7 +94,7 @@ public class VoteManager implements Listener {
     
     
     @EventHandler
-    private void clickEvent(InventoryClickEvent event) {
+    private void clickVoteInventory(InventoryClickEvent event) {
         if (!voting) {
             return;
         }
@@ -179,7 +179,7 @@ public class VoteManager implements Listener {
         }
         return votes.get(participant.getUniqueId()) == null;
     }
-
+    
     @EventHandler
     private void onCloseMenu(InventoryCloseEvent event) {
         if (!voting) {
@@ -245,7 +245,7 @@ public class VoteManager implements Listener {
     }
     
     @EventHandler
-    public void onClickNetherStar(PlayerInteractEvent event) {
+    public void interactWithNetherStar(PlayerInteractEvent event) {
         if (!voting) {
             return;
         }
@@ -253,15 +253,13 @@ public class VoteManager implements Listener {
         if (!gameManager.isParticipant(participant.getUniqueId())) {
             return;
         }
-        ItemStack item = event.getItem();
-        if (item == null) {
+        ItemStack netherStar = event.getItem();
+        if (netherStar == null ||
+                !netherStar.getType().equals(Material.NETHER_STAR)) {
             return;
         }
-        if (item.getType() != Material.NETHER_STAR) {
-            return;
-        }
-        ItemMeta netherStarMeta = item.getItemMeta();
-        if (netherStarMeta == null || !netherStarMeta.hasDisplayName() || !netherStarMeta.displayName().equals(NETHER_STAR_NAME)) {
+        ItemMeta netherStarMeta = netherStar.getItemMeta();
+        if (netherStarMeta == null || !netherStarMeta.hasDisplayName() || !Objects.equals(netherStarMeta.displayName(), NETHER_STAR_NAME)) {
             return;
         }
         if (!voters.contains(participant)) {
@@ -272,25 +270,51 @@ public class VoteManager implements Listener {
                     .color(NamedTextColor.GREEN));
             return;
         }
-        participant.getInventory().remove(item);
+        event.setCancelled(true);
+        participant.getInventory().remove(netherStar);
+        showVoteGui(participant);
+    }
+    
+    @EventHandler
+    public void clickNetherStar(InventoryClickEvent event) {
+        if (!voting) {
+            return;
+        }
+        Player participant = ((Player) event.getWhoClicked());
+        if (!gameManager.isParticipant(participant.getUniqueId())) {
+            return;
+        }
+        ItemStack netherStar = event.getCurrentItem();
+        if (netherStar == null ||
+                !netherStar.getType().equals(Material.NETHER_STAR)) {
+            return;
+        }
+        ItemMeta netherStarMeta = netherStar.getItemMeta();
+        if (netherStarMeta == null || !netherStarMeta.hasDisplayName() || !Objects.equals(netherStarMeta.displayName(), NETHER_STAR_NAME)) {
+            return;
+        }
+        if (!voters.contains(participant)) {
+            voters.add(participant);
+        }
+        if (participantVoted(participant)) {
+            participant.sendMessage(Component.text("You already voted.")
+                    .color(NamedTextColor.GREEN));
+            return;
+        }
+        event.setCancelled(true);
+        participant.getInventory().remove(netherStar);
         showVoteGui(participant);
     }
     
     private MCTGames getVotedGame() {
         Random random = new Random();
-        Map<MCTGames, Integer> voteCount = new HashMap<>();
-    
+        
         if (votes.isEmpty()) {
-            int randomGameIndex = random.nextInt(3);
-            return Arrays.asList(
-                    MCTGames.FOOT_RACE, 
-                    MCTGames.MECHA, 
-                    MCTGames.CAPTURE_THE_FLAG, 
-                    MCTGames.SPLEEF, 
-                    MCTGames.PARKOUR_PATHWAY
-            ).get(randomGameIndex);
+            int randomGameIndex = random.nextInt(votingPool.size());
+            return votingPool.get(randomGameIndex);
         }
     
+        Map<MCTGames, Integer> voteCount = new HashMap<>();
         // Count the number of occurrences of each string in the list
         for (MCTGames vote : votes.values()) {
             if (vote != null) {
@@ -298,7 +322,12 @@ public class VoteManager implements Listener {
                 voteCount.put(vote, count + 1);
             }
         }
-    
+        
+        if (voteCount.isEmpty()) {
+            int randomGameIndex = random.nextInt(votingPool.size());
+            return votingPool.get(randomGameIndex);
+        }
+        
         // Find the maximum number of occurrences
         int maxCount = 0;
         for (Integer count : voteCount.values()) {
@@ -314,7 +343,7 @@ public class VoteManager implements Listener {
                 winners.add(entry.getKey());
             }
         }
-    
+        
         // Randomly select a winner from the list of strings with the maximum number of occurrences
         int index = random.nextInt(winners.size());
         return winners.get(index);
