@@ -194,6 +194,21 @@ public class GameManager implements Listener {
         hubManager.cancelReturnToHub();
     }
     
+    public void startEvent() {
+        throw new UnsupportedOperationException();
+    }
+    
+    public void stopEvent() {
+        throw new UnsupportedOperationException();
+    }
+    
+    public void pauseEvent() {
+        throw new UnsupportedOperationException();
+    }
+    
+    public void resumeEvent() {
+        throw new UnsupportedOperationException();
+    }
     
     public void startGame(MCTGames mctGame, @NotNull CommandSender sender) {
         

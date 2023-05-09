@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.commands;
 
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.commands.event.EventSubCommand;
 import org.braekpo1nt.mctmanager.commands.game.GameSubCommand;
 import org.braekpo1nt.mctmanager.commands.team.TeamSubCommand;
 import org.braekpo1nt.mctmanager.games.GameManager;
@@ -32,6 +33,7 @@ public class MCTCommand extends CommandManager {
         subCommands.put("game", new GameSubCommand(gameManager));
         subCommands.put("option", new OptionSubCommand(hubBoundaryListener, blockEffectsListener));
         subCommands.put("team", new TeamSubCommand(gameManager));
+        subCommands.put("event", new EventSubCommand(gameManager));
         subCommands.put("save", (sender, command, label, args) -> {
             try {
                 gameManager.saveGameState();
