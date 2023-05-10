@@ -107,7 +107,7 @@ public class GameManager implements Listener {
         if (!isParticipant(player.getUniqueId())) {
             return;
         }
-        onParticipantLeave(player);
+        onParticipantQuit(player);
     }
     
     /**
@@ -118,13 +118,15 @@ public class GameManager implements Listener {
      * (see {@link GameManager#leavePlayer(OfflinePlayer)})
      * @param participant The participant who left the event
      */
-    private void onParticipantLeave(@NotNull Player participant) {
+    private void onParticipantQuit(@NotNull Player participant) {
         onlineParticipants.remove(participant);
         fastBoardManager.removeBoard(participant.getUniqueId());
         if (gameIsRunning()) {
             activeGame.onParticipantQuit(participant);
             participantsWhoLeftMidGame.add(participant.getUniqueId());
+            return;
         }
+        hubManager.onParticipantQuit(participant);
     }
     
     @EventHandler
@@ -147,14 +149,16 @@ public class GameManager implements Listener {
     private void onParticipantJoin(@NotNull Player participant) {
         onlineParticipants.add(participant);
         fastBoardManager.updateMainBoards();
-        if (!gameIsRunning()) {
-            if (participantsWhoLeftMidGame.contains(participant.getUniqueId())) {
-                participantsWhoLeftMidGame.remove(participant.getUniqueId());
-                hubManager.returnParticipantToHub(participant);
-            }
+        if (gameIsRunning()) {
+            activeGame.onParticipantJoin(participant);
             return;
         }
-        activeGame.onParticipantJoin(participant);
+        if (participantsWhoLeftMidGame.contains(participant.getUniqueId())) {
+            participantsWhoLeftMidGame.remove(participant.getUniqueId());
+            hubManager.returnParticipantToHub(participant);
+            return;
+        }
+        hubManager.onParticipantJoin(participant);
     }
     
     public Scoreboard getMctScoreboard() {
@@ -172,9 +176,10 @@ public class GameManager implements Listener {
             player.setScoreboard(mctScoreboard);
         }
         onlineParticipants.clear();
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            if (gameStateStorageUtil.containsPlayer(player.getUniqueId())) {
-                onlineParticipants.add(player);
+        for (Player participant : Bukkit.getOnlinePlayers()) {
+            if (gameStateStorageUtil.containsPlayer(participant.getUniqueId())) {
+                onlineParticipants.add(participant);
+                hubManager.onParticipantJoin(participant);
             }
         }
     }
@@ -244,15 +249,16 @@ public class GameManager implements Listener {
             return;
         }
         
-        List<String> onlineTeamNames = this.getTeamNames(onlineParticipants);
+        List<String> onlineTeams = getTeamNames(onlineParticipants);
         
         switch (mctGame) {
             case FOOT_RACE -> {
+                hubManager.removeParticipantsFromHub(onlineParticipants);
                 footRaceGame.start(onlineParticipants);
                 activeGame = footRaceGame;
             }
             case MECHA -> {
-                if (onlineTeamNames.size() < 2) {
+                if (onlineTeams.size() < 2) {
                     sender.sendMessage(Component.text("MECHA doesn't end correctly unless there are 2 or more teams online. use ")
                             .append(Component.text("/mct game stop")
                                     .clickEvent(ClickEvent.suggestCommand("/mct game stop"))
@@ -260,22 +266,26 @@ public class GameManager implements Listener {
                             .append(Component.text(" to stop the game."))
                             .color(NamedTextColor.RED));
                 }
+                hubManager.removeParticipantsFromHub(onlineParticipants);
                 mechaGame.start(onlineParticipants);
                 activeGame = mechaGame;
             }
             case CAPTURE_THE_FLAG -> {
-                if (onlineTeamNames.size() < 2 || 8 < onlineTeamNames.size()) {
+                if (onlineTeams.size() < 2 || 8 < onlineTeams.size()) {
                     sender.sendMessage(Component.text("Capture the Flag needs at least 2 and at most 8 teams online to play."));
                     return;
                 }
+                hubManager.removeParticipantsFromHub(onlineParticipants);
                 captureTheFlagGame.start(onlineParticipants);
                 activeGame = captureTheFlagGame;
             }
             case SPLEEF -> {
+                hubManager.removeParticipantsFromHub(onlineParticipants);
                 spleefGame.start(onlineParticipants);
                 activeGame = spleefGame;
             }
             case PARKOUR_PATHWAY -> {
+                hubManager.removeParticipantsFromHub(onlineParticipants);
                 parkourPathwayGame.start(onlineParticipants);
                 activeGame = parkourPathwayGame;
             }
@@ -311,6 +321,7 @@ public class GameManager implements Listener {
                 }
                 finalGame.teleportViewers(otherParticipants);
                 
+                hubManager.removeParticipantsFromHub(onlineParticipants);
                 finalGame.start(finalGameParticipants);
                 activeGame = finalGame;
             }
@@ -532,7 +543,7 @@ public class GameManager implements Listener {
         if (offlinePlayer.isOnline()) {
             Player onlinePlayer = offlinePlayer.getPlayer();
             if (onlinePlayer != null) {
-                onParticipantLeave(onlinePlayer);
+                onParticipantQuit(onlinePlayer);
             }
         }
         UUID playerUniqueId = offlinePlayer.getUniqueId();
@@ -769,6 +780,10 @@ public class GameManager implements Listener {
     public void setFastBoardManager(FastBoardManager fastBoardManager) {
         this.fastBoardManager = fastBoardManager;
         this.fastBoardManager.setGameStateStorageUtil(this.gameStateStorageUtil);
+    }
+    
+    public void setBoundaryEnabled(boolean boundaryEnabled) {
+        hubManager.setBoundaryEnabled(boundaryEnabled);
     }
     
     // Test methods
