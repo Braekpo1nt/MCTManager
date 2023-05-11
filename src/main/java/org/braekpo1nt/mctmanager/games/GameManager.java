@@ -231,15 +231,42 @@ public class GameManager implements Listener {
     
     private void kickOffFinalGame() {
         List<String> allTeams = getTeamNames(onlineParticipants);
-        Map<String, Integer> scores = new HashMap<>();
+        Map<String, Integer> teamScores = new HashMap<>();
         for (String teamName : allTeams) {
             int score = getScore(teamName);
-            scores.put(teamName, score);
+            teamScores.put(teamName, score);
         }
-        String[] firstAndSecond = GameManagerUtils.calculateFirstPlace(scores);
-        String firstPlace = firstAndSecond[0];
-        String secondPlace = firstAndSecond[1];
+        String[] firstPlaces = GameManagerUtils.calculateFirstPlace(teamScores);
+        if (firstPlaces.length == 2) {
+            String firstPlace = firstPlaces[0];
+            String secondPlace = firstPlaces[1];
+            setFinalGameTeams(firstPlace, secondPlace);
+            return;
+        }
+        if (firstPlaces.length > 2) {
+            eventMaster.sendMessage(Component.text("There are more than 2 teams tied for first place. A tie breaker is needed. Use ")
+                    .append(Component.text("/mct game finalgame <first> <second>")
+                            .clickEvent(ClickEvent.suggestCommand("/mct game finalgame "))
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(" to start the final game with the two chosen teams."))
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        String firstPlace = firstPlaces[0];
+        teamScores.remove(firstPlace);
+        String[] secondPlaces = GameManagerUtils.calculateFirstPlace(teamScores);
+        if (secondPlaces.length > 1) {
+            eventMaster.sendMessage(Component.text("There is a tie second place. A tie breaker is needed. Use ")
+                    .append(Component.text("/mct game finalgame <first> <second>")
+                            .clickEvent(ClickEvent.suggestCommand("/mct game finalgame "))
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(" to start the final game with the two chosen teams."))
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        String secondPlace = secondPlaces[0];
         setFinalGameTeams(firstPlace, secondPlace);
+        startGame(MCTGames.FINAL_GAME);
     }
     
     /**
