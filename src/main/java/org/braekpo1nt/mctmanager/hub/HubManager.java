@@ -276,6 +276,9 @@ public class HubManager implements Listener {
         if (!participants.contains(participant)) {
             return;
         }
+        if (!participant.getWorld().equals(hubWorld)) {
+            return;
+        }
         Location location = participant.getLocation();
         if (location.getY() < 130) {
             participant.teleport(hubWorld.getSpawnLocation());
