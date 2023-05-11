@@ -7,6 +7,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.enums.MCTGames;
 import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
@@ -81,6 +82,11 @@ public class MechaGame implements MCTGame, Listener {
         this.mvMechaWorld = worldManager.getMVWorld("FT");
         this.mechaWorld = mvMechaWorld.getCBWorld();
         this.worldBorder = mechaWorld.getWorldBorder();
+    }
+    
+    @Override
+    public MCTGames getType() {
+        return MCTGames.MECHA;
     }
     
     @Override

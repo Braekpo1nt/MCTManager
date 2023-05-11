@@ -6,6 +6,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.enums.MCTGames;
 import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.bukkit.*;
@@ -55,6 +56,11 @@ public class SpleefGame implements MCTGame, Listener {
         this.gameManager = gameManager;
         MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
         this.spleefWorld = worldManager.getMVWorld("FT").getCBWorld();
+    }
+    
+    @Override
+    public MCTGames getType() {
+        return MCTGames.SPLEEF;
     }
 
     @Override

@@ -6,6 +6,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.enums.MCTGames;
 import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
@@ -57,6 +58,11 @@ public class ParkourPathwayGame implements MCTGame, Listener {
         MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
         this.parkourPathwayWorld = worldManager.getMVWorld("FT").getCBWorld();
         this.checkpoints = createCheckpoints();
+    }
+    
+    @Override
+    public MCTGames getType() {
+        return MCTGames.PARKOUR_PATHWAY;
     }
     
     @Override
