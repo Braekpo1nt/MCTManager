@@ -164,6 +164,7 @@ public class HubManager implements Listener {
     public void pedestalTeleport(List<Player> winningTeamParticipants, String winningTeam, ChatColor winningChatColor, List<Player> otherParticipants) {
         setupTeamOptions();
         for (Player participant : otherParticipants) {
+            initializeParticipant(participant);
             showWinningFastBoard(participant, winningTeam, winningChatColor);
             ParticipantInitializer.clearStatusEffects(participant);
             participant.setGameMode(GameMode.ADVENTURE);
@@ -172,6 +173,7 @@ public class HubManager implements Listener {
             participant.teleport(this.observePedestalLocation);
         }
         for (Player winningParticipant : winningTeamParticipants) {
+            initializeParticipant(winningParticipant);
             showWinningFastBoard(winningParticipant, winningTeam, winningChatColor);
             ParticipantInitializer.clearStatusEffects(winningParticipant);
             winningParticipant.setGameMode(GameMode.ADVENTURE);
