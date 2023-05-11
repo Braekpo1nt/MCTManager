@@ -236,7 +236,7 @@ public class GameManager implements Listener {
             int score = getScore(teamName);
             scores.put(teamName, score);
         }
-        String[] firstAndSecond = GameManagerUtils.calculateFirstAndSecondPlace(scores);
+        String[] firstAndSecond = GameManagerUtils.calculateFirstPlace(scores);
         String firstPlace = firstAndSecond[0];
         String secondPlace = firstAndSecond[1];
         setFinalGameTeams(firstPlace, secondPlace);
