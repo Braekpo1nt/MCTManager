@@ -15,6 +15,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -283,6 +284,21 @@ public class HubManager implements Listener {
         if (location.getY() < 130) {
             participant.teleport(hubWorld.getSpawnLocation());
             participant.sendMessage("You fell out of the hub boundary");
+        }
+    }
+    
+    @EventHandler
+    public void teleportListener(PlayerTeleportEvent event) {
+        Player participant = event.getPlayer();
+        if (!participants.contains(participant)) {
+            return;
+        }
+        if (event.getTo().getWorld().equals(hubWorld)) {
+            if (!event.getFrom().getWorld().equals(hubWorld)) {
+                initializeParticipant(participant);
+            }
+        } else {
+            this.participants.remove(participant);
         }
     }
     
