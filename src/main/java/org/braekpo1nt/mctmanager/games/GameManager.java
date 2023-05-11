@@ -6,6 +6,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.enums.MCTGames;
+import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.braekpo1nt.mctmanager.games.capturetheflag.CaptureTheFlagGame;
 import org.braekpo1nt.mctmanager.games.finalgame.FinalGame;
@@ -220,7 +221,25 @@ public class GameManager implements Listener {
         votingPool.add(MCTGames.PARKOUR_PATHWAY);
         votingPool.removeAll(playedGames);
         
+        if (votingPool.isEmpty()) {
+            eventMaster.sendMessage(Component.text("No more games to play. Initiating final game with top two teams."));
+            kickOffFinalGame();
+        }
+        
         voteManager.startVote(onlineParticipants, votingPool);
+    }
+    
+    private void kickOffFinalGame() {
+        List<String> allTeams = getTeamNames(onlineParticipants);
+        Map<String, Integer> scores = new HashMap<>();
+        for (String teamName : allTeams) {
+            int score = getScore(teamName);
+            scores.put(teamName, score);
+        }
+        String[] firstAndSecond = GameManagerUtils.calculateFirstAndSecondPlace(scores);
+        String firstPlace = firstAndSecond[0];
+        String secondPlace = firstAndSecond[1];
+        setFinalGameTeams(firstPlace, secondPlace);
     }
     
     /**
