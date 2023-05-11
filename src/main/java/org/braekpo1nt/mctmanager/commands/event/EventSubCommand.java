@@ -32,7 +32,7 @@ public class EventSubCommand implements TabExecutor {
         String argument = args[0];
         switch (argument) {
             case "start" -> {
-                gameManager.startEvent();
+                gameManager.startEvent(sender);
             }
             case "stop" -> {
                 gameManager.stopEvent();

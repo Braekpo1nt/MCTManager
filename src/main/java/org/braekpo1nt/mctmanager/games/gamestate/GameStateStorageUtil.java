@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.games.enums.MCTGames;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -259,7 +260,7 @@ public class GameStateStorageUtil {
         team.setScore(team.getScore() + score);
         saveGameState();
     }
-
+    
     public void setScore(UUID uniqueId, int score) throws IOException {
         MCTPlayer player = gameState.getPlayers().get(uniqueId);
         player.setScore(score);
@@ -283,5 +284,24 @@ public class GameStateStorageUtil {
      */
     public String getTeamColorString(String teamName) {
         return gameState.getTeam(teamName).getColor();
+    }
+    
+    /**
+     * Gets the list of played games for the game state
+     * @return A list of the MCTGames that have been played in this game state
+     */
+    public List<MCTGames> getPlayedGames() {
+        return gameState.getPlayedGames();
+    }
+    
+    /**
+     * Add a played game to the game state
+     * @param type the MCTGames representing the played game
+     */
+    public void addPlayedGame(MCTGames type) throws IOException {
+        List<MCTGames> playedGames = gameState.getPlayedGames();
+        playedGames.add(type);
+        gameState.setPlayedGames(playedGames);
+        saveGameState();
     }
 }

@@ -36,12 +36,17 @@ public class VoteManager implements Listener {
     private final Component NETHER_STAR_NAME = Component.text("Vote");
     private int voteCountDownTaskId;
     private List<MCTGames> votingPool = new ArrayList<>();
-
+    
     public VoteManager(GameManager gameManager, Main plugin) {
         this.gameManager = gameManager;
         this.plugin = plugin;
     }
     
+    /**
+     * Starts a voting phase with the given list of participants using the given voting pool
+     * @param participants The participants who should vote
+     * @param votingPool The games to vote between
+     */
     public void startVote(List<Player> participants, List<MCTGames> votingPool) {
         voting = true;
         votes.clear();
@@ -49,8 +54,8 @@ public class VoteManager implements Listener {
         this.votingPool = votingPool;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         for (Player participant : participants) {
-            showVoteGui(participant);
             this.voters.add(participant);
+            showVoteGui(participant);
             participant.sendMessage(Component.text("Vote for the game you want to play")
                     .color(NamedTextColor.GREEN));
         }
@@ -241,7 +246,7 @@ public class VoteManager implements Listener {
         HandlerList.unregisterAll(this);
         votes.clear();
         voters.clear();
-        gameManager.startGame(mctGame, Bukkit.getConsoleSender());
+        gameManager.startGame(mctGame);
     }
     
     @EventHandler

@@ -80,7 +80,7 @@ public class Main extends JavaPlugin {
         if (saveGameStateOnDisable && gameManager != null) {
             gameManager.cancelFastBoardManager();
             gameManager.cancelVote();
-            gameManager.cancelReturnToHub();
+            gameManager.cancelAllTasks();
             try {
                 gameManager.saveGameState();
                 if (gameManager.gameIsRunning()) {

@@ -64,6 +64,7 @@ public class GameManager implements Listener {
     private String finalGameTeamA;
     private String finalGameTeamB;
     private boolean eventActive = false;
+    private CommandSender eventMaster;
     /**
      * Contains the list of online participants. Updated when participants are added/removed or quit/join
      */
@@ -83,6 +84,7 @@ public class GameManager implements Listener {
         this.finalGame = new FinalGame(plugin, this);
         this.fastBoardManager = new FastBoardManager(gameStateStorageUtil);
         this.hubManager = new HubManager(plugin, mctScoreboard, fastBoardManager, this);
+        this.eventMaster = Bukkit.getConsoleSender();
         kickOffFastBoardManager();
     }
     
@@ -188,7 +190,12 @@ public class GameManager implements Listener {
         gameStateStorageUtil.saveGameState();
     }
     
-    public void startVote(@NotNull CommandSender sender, List<MCTGames> votingPool) {
+    /**
+     * For the "/mct game vote" command. Starts the vote with the specified voting pool.
+     * @param sender The sender of the command
+     * @param votingPool The games to vote between
+     */
+    public void manuallyStartVote(@NotNull CommandSender sender, List<MCTGames> votingPool) {
         if (onlineParticipants.isEmpty()) {
             sender.sendMessage(Component.text("There are no online participants. You can add participants using:\n")
                     .append(Component.text("/mct team join <team> <member>")
@@ -196,6 +203,23 @@ public class GameManager implements Listener {
                             .clickEvent(ClickEvent.suggestCommand("/mct team join "))));
             return;
         }
+        voteManager.startVote(onlineParticipants, votingPool);
+    }
+    
+    /**
+     * Starts the voting phase for the event
+     */
+    public void startVote() {
+        List<MCTGames> playedGames = gameStateStorageUtil.getPlayedGames();
+        
+        List<MCTGames> votingPool = new ArrayList<>();
+        votingPool.add(MCTGames.FOOT_RACE);
+        votingPool.add(MCTGames.MECHA);
+        votingPool.add(MCTGames.CAPTURE_THE_FLAG);
+        votingPool.add(MCTGames.SPLEEF);
+        votingPool.add(MCTGames.PARKOUR_PATHWAY);
+        votingPool.removeAll(playedGames);
+        
         voteManager.startVote(onlineParticipants, votingPool);
     }
     
@@ -209,17 +233,17 @@ public class GameManager implements Listener {
     /**
      * Cancel the return to hub if it's in progress
      */
-    public void cancelReturnToHub() {
-        hubManager.cancelReturnToHub();
+    public void cancelAllTasks() {
+        hubManager.cancelAllTasks();
     }
     
-    public void startEvent() {
+    public void startEvent(CommandSender eventMaster) {
         if (eventActive) {
             return;
         }
-        hubManager.returnParticipantsToHub(onlineParticipants);
+        this.eventMaster = eventMaster;
         eventActive = true;
-        throw new UnsupportedOperationException();
+        hubManager.returnParticipantsToHub(onlineParticipants);
     }
     
     public void stopEvent() {
@@ -234,6 +258,19 @@ public class GameManager implements Listener {
         throw new UnsupportedOperationException();
     }
     
+    /**
+     * Starts the given game using the eventMaster as the sender
+     * @param mctGame the game to start
+     */
+    public void startGame(MCTGames mctGame) {
+        startGame(mctGame, eventMaster);
+    }
+    
+    /**
+     * Starts the given game
+     * @param mctGame The game to start
+     * @param sender The sender to send messages and alerts to
+     */
     public void startGame(MCTGames mctGame, @NotNull CommandSender sender) {
         
         if (activeGame != null) {
@@ -351,6 +388,14 @@ public class GameManager implements Listener {
      * Meant to be called by the active game when the game is over.
      */
     public void gameIsOver() {
+        if (eventActive) {
+            try {
+                gameStateStorageUtil.addPlayedGame(activeGame.getType());
+            } catch (IOException e) {
+                Bukkit.getLogger().severe("Error saving a played game. See log for error message.");
+                throw new RuntimeException(e);
+            }
+        }
         activeGame = null;
         if (!shouldTeleportToHub) {
             shouldTeleportToHub = true;
@@ -786,7 +831,12 @@ public class GameManager implements Listener {
         hubManager.setBoundaryEnabled(boundaryEnabled);
     }
     
+    public boolean isEventActive() {
+        return eventActive;
+    }
+    
     // Test methods
+    
     public MCTGame getActiveGame() {
         return activeGame;
     }
