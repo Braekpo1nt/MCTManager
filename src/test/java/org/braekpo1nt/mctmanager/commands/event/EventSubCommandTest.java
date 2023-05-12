@@ -6,6 +6,7 @@ import be.seeseemelk.mockbukkit.UnimplementedOperationException;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.MyCustomServerMock;
 import org.braekpo1nt.mctmanager.TestUtils;
+import org.braekpo1nt.mctmanager.games.gamestate.MockGameStateStorageUtil;
 import org.bukkit.command.PluginCommand;
 import org.junit.jupiter.api.*;
 
@@ -30,6 +31,10 @@ class EventSubCommandTest {
             ex.printStackTrace();
             System.exit(1);
         }
+        
+        MockGameStateStorageUtil mockGameStateStorageUtil = new MockGameStateStorageUtil(plugin);
+        plugin.getGameManager().setGameStateStorageUtil(mockGameStateStorageUtil);
+        
         command = plugin.getCommand("mct");
     }
     

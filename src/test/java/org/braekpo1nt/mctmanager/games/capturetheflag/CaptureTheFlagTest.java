@@ -7,6 +7,7 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.MyCustomServerMock;
 import org.braekpo1nt.mctmanager.MyPlayerMock;
 import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.gamestate.MockGameStateStorageUtil;
 import org.braekpo1nt.mctmanager.ui.MockFastBoardManager;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginCommand;
@@ -39,10 +40,11 @@ public class CaptureTheFlagTest {
             ex.printStackTrace();
             System.exit(1);
         }
-//        FastBoardManager mockFastBoardManager = mock(FastBoardManager.class, RETURNS_DEFAULTS);
-        mockFastBoardManager = new MockFastBoardManager();
         gameManager = plugin.getGameManager();
+        mockFastBoardManager = new MockFastBoardManager();
         gameManager.setFastBoardManager(mockFastBoardManager);
+        MockGameStateStorageUtil mockGameStateStorageUtil = new MockGameStateStorageUtil(plugin);
+        gameManager.setGameStateStorageUtil(mockGameStateStorageUtil);
         command = plugin.getCommand("mct");
         sender = server.getConsoleSender();
     }

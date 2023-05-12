@@ -23,7 +23,7 @@ public class GameStateStorageUtil {
     
     private static final String GAME_STATE_FILE_NAME = "gameState.json";
     private final File gameStateDirectory;
-    private GameState gameState = new GameState();
+    protected GameState gameState = new GameState();
     
     public GameStateStorageUtil(Main plugin) {
         this.gameStateDirectory = plugin.getDataFolder().getAbsoluteFile();

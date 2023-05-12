@@ -49,7 +49,7 @@ public class GameManager implements Listener {
     private final CaptureTheFlagGame captureTheFlagGame;
     private final HubManager hubManager;
     private FastBoardManager fastBoardManager;
-    private final GameStateStorageUtil gameStateStorageUtil;
+    private GameStateStorageUtil gameStateStorageUtil;
     /**
      * Scoreboard for holding the teams. This private scoreboard can't be
      * modified using the normal /team command, and thus can't be unsynced
@@ -870,11 +870,6 @@ public class GameManager implements Listener {
         return ColorMap.getBannerColor(colorString);
     }
     
-    public void setFastBoardManager(FastBoardManager fastBoardManager) {
-        this.fastBoardManager = fastBoardManager;
-        this.fastBoardManager.setGameStateStorageUtil(this.gameStateStorageUtil);
-    }
-    
     public void setBoundaryEnabled(boolean boundaryEnabled) {
         hubManager.setBoundaryEnabled(boundaryEnabled);
     }
@@ -884,6 +879,16 @@ public class GameManager implements Listener {
     }
     
     // Test methods
+    
+    public void setFastBoardManager(FastBoardManager fastBoardManager) {
+        this.fastBoardManager = fastBoardManager;
+        this.fastBoardManager.setGameStateStorageUtil(this.gameStateStorageUtil);
+    }
+    
+    public void setGameStateStorageUtil(GameStateStorageUtil gameStateStorageUtil) {
+        this.gameStateStorageUtil = gameStateStorageUtil;
+        this.fastBoardManager.setGameStateStorageUtil(gameStateStorageUtil);
+    }
     
     public MCTGame getActiveGame() {
         return activeGame;
