@@ -39,13 +39,12 @@ public class Main extends JavaPlugin {
         Scoreboard mctScoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
         
         gameManager = new GameManager(this, mctScoreboard);
-        try {
-            gameManager.loadGameState();
-        } catch (IOException e) {
-            Bukkit.getLogger().severe("[MCTManager] Could not load game state from memory. Printing stack trace below. Disabling plugin.");
-            e.printStackTrace();
+        boolean ableToLoadGameSate = gameManager.loadGameState();
+        if (!ableToLoadGameSate) {
+            Bukkit.getLogger().severe("[MCTManager] Could not load game state from memory. Disabling plugin.");
             saveGameStateOnDisable = false;
             Bukkit.getPluginManager().disablePlugin(this);
+            return;
         }
         
         // Listeners
@@ -81,14 +80,9 @@ public class Main extends JavaPlugin {
             gameManager.cancelFastBoardManager();
             gameManager.cancelVote();
             gameManager.cancelAllTasks();
-            try {
-                gameManager.saveGameState();
-                if (gameManager.gameIsRunning()) {
-                    gameManager.manuallyStopGame(false);
-                }
-            } catch (IOException e) {
-                Bukkit.getLogger().severe("[MCTManager] Could not save game state. Printing stack trace below.");
-                e.printStackTrace();
+            gameManager.saveGameState();
+            if (gameManager.gameIsRunning()) {
+                gameManager.manuallyStopGame(false);
             }
         } else {
             Bukkit.getLogger().info("[MCTManager] Skipping save game state.");

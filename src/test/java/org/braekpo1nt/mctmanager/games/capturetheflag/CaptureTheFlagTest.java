@@ -103,21 +103,13 @@ public class CaptureTheFlagTest {
     MyPlayerMock createParticipant(String name, String teamName, String expectedDisplayName) {
         MyPlayerMock player = new MyPlayerMock(server, name, UUID.nameUUIDFromBytes(name.getBytes(StandardCharsets.UTF_8)));
         server.addPlayer(player);
-        try {
-            gameManager.joinPlayerToTeam(player, teamName);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        gameManager.joinPlayerToTeam(player, teamName);
         Assertions.assertTrue(gameManager.isParticipant(player.getUniqueId()));
         return player;
     }
     
     void addTeam(String teamName, String teamDisplayName, String teamColor) {
-        try {
-            gameManager.addTeam(teamName, teamDisplayName, teamColor);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        gameManager.addTeam(teamName, teamDisplayName, teamColor);
         Assertions.assertTrue(gameManager.hasTeam(teamName));
     }
     
