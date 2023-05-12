@@ -73,7 +73,7 @@ public class GameStateStorageUtil {
      * @throws IOException if there is an error creating a new game state file
      */
     private File getGameStateFile() throws IOException {
-        File gameStateFile = new File(gameStateDirectory.getAbsolutePath(), this.GAME_STATE_FILE_NAME);
+        File gameStateFile = new File(gameStateDirectory.getAbsolutePath(), GAME_STATE_FILE_NAME);
         if (!gameStateFile.exists()) {
             if (!gameStateDirectory.exists()) {
                 gameStateDirectory.mkdirs();
