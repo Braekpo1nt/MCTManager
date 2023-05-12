@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.commands.team;
 
+import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -39,7 +40,10 @@ public class JoinSubCommand implements TabExecutor {
         }
         try {
             gameManager.joinPlayerToTeam(playerToJoin, teamName);
-            sender.sendMessage(String.format("Joined %s to team %s", playerName, teamName));
+            sender.sendMessage(Component.text("Joined ")
+                    .append(Component.text(playerName))
+                    .append(Component.text("to team "))
+                    .append(Component.text(teamName)));
         } catch (IOException e) {
             sender.sendMessage("Error adding player to team. See log for error message.");
             Bukkit.getLogger().severe("Error saving game sate while creating new team.");
