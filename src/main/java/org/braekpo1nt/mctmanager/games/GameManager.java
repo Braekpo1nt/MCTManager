@@ -285,6 +285,8 @@ public class GameManager implements Listener {
     
     public void startEvent(CommandSender eventMaster) {
         if (eventActive) {
+            eventMaster.sendMessage(Component.text("An event is already running.")
+                    .color(NamedTextColor.RED));
             return;
         }
         this.eventMaster = eventMaster;
