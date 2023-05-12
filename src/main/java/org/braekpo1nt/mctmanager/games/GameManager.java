@@ -66,6 +66,8 @@ public class GameManager implements Listener {
     private String finalGameTeamB;
     private boolean eventActive = false;
     private CommandSender eventMaster;
+    private int currentGameNumber = 0;
+    private int maxGames = 6;
     /**
      * Contains the list of online participants. Updated when participants are added/removed or quit/join
      */
@@ -221,6 +223,12 @@ public class GameManager implements Listener {
      * Starts the voting phase for the event
      */
     public void startVote() {
+        if (currentGameNumber < maxGames) {
+            eventMaster.sendMessage(Component.text("All games have been played. Initiating final game with top two teams."));
+            kickOffFinalGame();
+            return;
+        }
+        
         List<MCTGames> playedGames = gameStateStorageUtil.getPlayedGames();
         
         List<MCTGames> votingPool = new ArrayList<>();
@@ -234,6 +242,7 @@ public class GameManager implements Listener {
         if (votingPool.isEmpty()) {
             eventMaster.sendMessage(Component.text("No more games to play. Initiating final game with top two teams."));
             kickOffFinalGame();
+            return;
         }
         
         voteManager.startVote(onlineParticipants, votingPool);
@@ -300,7 +309,14 @@ public class GameManager implements Listener {
             return;
         }
         this.eventMaster = eventMaster;
+        currentGameNumber = 1;
+        maxGames = 6;
         eventActive = true;
+        eventMaster.sendMessage(Component.text("Starting event. On game ")
+                .append(Component.text(currentGameNumber))
+                .append(Component.text("/"))
+                .append(Component.text(maxGames))
+                .append(Component.text(".")));
         hubManager.returnParticipantsToHub(onlineParticipants);
     }
     
@@ -439,7 +455,6 @@ public class GameManager implements Listener {
     public void manuallyStopGame(boolean shouldTeleportToHub) {
         this.shouldTeleportToHub = shouldTeleportToHub;
         activeGame.stop();
-        activeGame = null;
     }
     
     /**
@@ -453,6 +468,12 @@ public class GameManager implements Listener {
                 Bukkit.getLogger().severe("Error saving a played game. See log for error message.");
                 throw new RuntimeException(e);
             }
+            currentGameNumber++;
+            eventMaster.sendMessage(Component.text("Now on game ")
+                    .append(Component.text(currentGameNumber))
+                    .append(Component.text("/"))
+                    .append(Component.text(maxGames))
+                    .append(Component.text(".")));
         }
         activeGame = null;
         if (!shouldTeleportToHub) {
