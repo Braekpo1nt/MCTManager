@@ -56,11 +56,6 @@ public class ScoreAddTeamSubCommand implements TabExecutor {
             sender.sendMessage(Component.text(scoreString)
                     .append(Component.text(" is not an integer")));
             return true;
-        } catch (IOException e) {
-            sender.sendMessage(Component.text("Error occurred saving game state. See console for details."));
-            Bukkit.getLogger().severe("Error occurred saving game state.");
-            e.printStackTrace();
-            return true;
         }
         return true;
     }
