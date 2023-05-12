@@ -24,23 +24,13 @@ public class MCTCommand extends CommandManager {
         subCommands.put("team", new TeamSubCommand(gameManager));
         subCommands.put("event", new EventSubCommand(gameManager));
         subCommands.put("save", (sender, command, label, args) -> {
-            try {
-                gameManager.saveGameState();
-                sender.sendMessage("Saved game state.");
-            } catch (IOException e) {
-                Bukkit.getLogger().severe("[MCTManager] Unable to save game state.");
-                throw new RuntimeException(e);
-            }
+            gameManager.saveGameState();
+            sender.sendMessage("Saved game state.");
             return true;
         });
         subCommands.put("load", (sender, command, label, args) -> {
-            try {
-                gameManager.loadGameState();
-                sender.sendMessage("Loaded game state.");
-            } catch (IOException e) {
-                Bukkit.getLogger().severe("[MCTManager] Unable to load game state.");
-                throw new RuntimeException(e);
-            }
+            gameManager.loadGameState();
+            sender.sendMessage("Loaded game state.");
             return true;
         });
     }

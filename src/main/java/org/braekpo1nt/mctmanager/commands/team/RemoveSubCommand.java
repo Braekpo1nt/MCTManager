@@ -26,18 +26,12 @@ public class RemoveSubCommand implements TabExecutor {
             return true;
         }
         String removeTeamName = args[0];
-        try {
-            boolean teamExists = gameManager.removeTeam(removeTeamName);
-            if (!teamExists) {
-                sender.sendMessage(String.format("Team \"%s\" does not exist", removeTeamName));
-                return true;
-            }
-            sender.sendMessage(String.format("Removed team \"%s\".", removeTeamName));
-        } catch (IOException e) {
-            sender.sendMessage("Error removing team. See log for error message.");
-            Bukkit.getLogger().severe("Error saving game state while removing team.");
-            throw new RuntimeException(e);
+        boolean teamExists = gameManager.removeTeam(removeTeamName);
+        if (!teamExists) {
+            sender.sendMessage(String.format("Team \"%s\" does not exist", removeTeamName));
+            return true;
         }
+        sender.sendMessage(String.format("Removed team \"%s\".", removeTeamName));
         return true;
     }
     

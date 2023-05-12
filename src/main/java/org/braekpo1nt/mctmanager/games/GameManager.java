@@ -172,8 +172,13 @@ public class GameManager implements Listener {
         return fastBoardManager;
     }
     
-    public void loadGameState() throws IOException {
-        gameStateStorageUtil.loadGameState();
+    public boolean loadGameState() {
+        try {
+            gameStateStorageUtil.loadGameState();
+        } catch (IOException e) {
+            reportGameStateIOException("loading game state", e);
+            return false;
+        }
         gameStateStorageUtil.setupScoreboard(mctScoreboard);
         for (Player player : Bukkit.getOnlinePlayers()) {
             player.setScoreboard(mctScoreboard);
@@ -185,10 +190,15 @@ public class GameManager implements Listener {
                 hubManager.onParticipantJoin(participant);
             }
         }
+        return true;
     }
     
-    public void saveGameState() throws IOException, IllegalStateException {
-        gameStateStorageUtil.saveGameState();
+    public void saveGameState() {
+        try {
+            gameStateStorageUtil.saveGameState();
+        } catch (IOException e) {
+            reportGameStateIOException("adding score to player", e);
+        }
     }
     
     /**
@@ -481,14 +491,17 @@ public class GameManager implements Listener {
      * Remove the given team from the game
      * @param teamName The internal name of the team to remove
      * @return True if the team was successfully removed, false if the team did not exist
-     * @throws IOException If there is a problem saving the game state while removing the team
      */
-    public boolean removeTeam(String teamName) throws IOException {
+    public boolean removeTeam(String teamName) {
         if (!gameStateStorageUtil.containsTeam(teamName)) {
             return false;
         }
-        this.leavePlayersOnTeam(teamName);
-        gameStateStorageUtil.removeTeam(teamName);
+        leavePlayersOnTeam(teamName);
+        try {
+            gameStateStorageUtil.removeTeam(teamName);
+        } catch (IOException e) {
+            reportGameStateIOException("removing team", e);
+        }
         Team team = mctScoreboard.getTeam(teamName);
         if (team != null){
             team.unregister();
@@ -501,13 +514,16 @@ public class GameManager implements Listener {
      * @param teamName The internal name of the team.
      * @param teamDisplayName The display name of the team.
      * @return True if the team was successfully created. False if the team already exists.
-     * @throws IOException If there was a problem saving the game state with the new team.
      */
-    public boolean addTeam(String teamName, String teamDisplayName, String colorString) throws IOException {
+    public boolean addTeam(String teamName, String teamDisplayName, String colorString) {
         if (gameStateStorageUtil.containsTeam(teamName)) {
             return false;
         }
-        gameStateStorageUtil.addTeam(teamName, teamDisplayName, colorString);
+        try {
+            gameStateStorageUtil.addTeam(teamName, teamDisplayName, colorString);
+        } catch (IOException e) {
+            reportGameStateIOException("adding score to player", e);
+        }
         Team newTeam = mctScoreboard.registerNewTeam(teamName);
         newTeam.displayName(Component.text(teamDisplayName));
         NamedTextColor color = ColorMap.getNamedTextColor(colorString);
@@ -566,7 +582,7 @@ public class GameManager implements Listener {
      *                 This method assumes the team exists, and will throw a 
      *                 null pointer exception if it doesn't.
      */
-    public void joinPlayerToTeam(Player player, String teamName) throws IOException {
+    public void joinPlayerToTeam(Player player, String teamName) {
         UUID playerUniqueId = player.getUniqueId();
         if (gameStateStorageUtil.containsPlayer(playerUniqueId)) {
             movePlayerToTeam(playerUniqueId, teamName);
@@ -613,10 +629,13 @@ public class GameManager implements Listener {
      * If a game is running, and the player is online, joins the player to that game.  
      * @param playerUniqueId The UUID of the player to add
      * @param teamName The name of the team to join the new player to
-     * @throws IOException If there is an issue saving the game state when adding the player
      */
-    private void addNewPlayer(UUID playerUniqueId, String teamName) throws IOException {
-        gameStateStorageUtil.addNewPlayer(playerUniqueId, teamName);
+    private void addNewPlayer(UUID playerUniqueId, String teamName) {
+        try {
+            gameStateStorageUtil.addNewPlayer(playerUniqueId, teamName);
+        } catch (IOException e) {
+            reportGameStateIOException("adding new player", e);
+        }
         Team team = mctScoreboard.getTeam(teamName);
         OfflinePlayer newPlayer = Bukkit.getOfflinePlayer(playerUniqueId);
         team.addPlayer(newPlayer);
@@ -630,9 +649,8 @@ public class GameManager implements Listener {
      * Leaves the player from the team and removes them from the game state.
      * If a game is running, and the player is online, removes that player from the game as well. 
      * @param offlinePlayer The player to remove from the team
-     * @throws IOException If there is an issue saving the game state when removing the player
      */
-    public void leavePlayer(OfflinePlayer offlinePlayer) throws IOException {
+    public void leavePlayer(OfflinePlayer offlinePlayer) {
         if (offlinePlayer.isOnline()) {
             Player onlinePlayer = offlinePlayer.getPlayer();
             if (onlinePlayer != null) {
@@ -641,13 +659,17 @@ public class GameManager implements Listener {
         }
         UUID playerUniqueId = offlinePlayer.getUniqueId();
         String teamName = gameStateStorageUtil.getPlayerTeamName(playerUniqueId);
-        gameStateStorageUtil.leavePlayer(playerUniqueId);
+        try {
+            gameStateStorageUtil.leavePlayer(playerUniqueId);
+        } catch (IOException e) {
+            reportGameStateIOException("leaving player", e);
+        }
         Team team = mctScoreboard.getTeam(teamName);
         team.removePlayer(offlinePlayer);
         fastBoardManager.removeBoard(playerUniqueId);
     }
     
-    private void leavePlayersOnTeam(String teamName) throws IOException {
+    private void leavePlayersOnTeam(String teamName) {
         List<UUID> playerUniqueIds = gameStateStorageUtil.getPlayerUniqueIdsOnTeam(teamName);
         for (UUID playerUniqueId : playerUniqueIds) {
             OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(playerUniqueId);
@@ -669,18 +691,9 @@ public class GameManager implements Listener {
         if (!gameStateStorageUtil.containsPlayer(playerUniqueId)) {
             return;
         }
-        try {
-            String teamName = gameStateStorageUtil.getPlayerTeamName(playerUniqueId);
-            addScore(playerUniqueId, points);
-            addScore(teamName, points);
-        } catch (IOException e) {
-            player.sendMessage(
-                    Component.text("Critical error occurred. Please notify an admin to check the logs.")
-                            .color(NamedTextColor.RED)
-                            .decorate(TextDecoration.BOLD));
-            Bukkit.getLogger().severe("Error while adding points to player. See log for error message.");
-            throw new RuntimeException(e);
-        }
+        String teamName = gameStateStorageUtil.getPlayerTeamName(playerUniqueId);
+        addScore(playerUniqueId, points);
+        addScore(teamName, points);
         player.sendMessage(Component.text("+")
                 .append(Component.text(points))
                 .append(Component.text(" points"))
@@ -697,21 +710,16 @@ public class GameManager implements Listener {
         if (!gameStateStorageUtil.containsTeam(teamName)) {
             return;
         }
-        try {
-            addScore(teamName, points);
-            Component displayName = getFormattedTeamDisplayName(teamName);
-            List<Player> playersOnTeam = getOnlinePlayersOnTeam(teamName);
-            for (Player playerOnTeam : playersOnTeam) {
-                playerOnTeam.sendMessage(Component.text("+")
-                        .append(Component.text(points))
-                        .append(Component.text(" points for "))
-                        .append(displayName)
-                        .decorate(TextDecoration.BOLD)
-                        .color(NamedTextColor.GOLD));
-            }
-        } catch (IOException e) {
-            Bukkit.getLogger().severe("Error while adding points to team. See log for error message.");
-            throw new RuntimeException(e);
+        addScore(teamName, points);
+        Component displayName = getFormattedTeamDisplayName(teamName);
+        List<Player> playersOnTeam = getOnlinePlayersOnTeam(teamName);
+        for (Player playerOnTeam : playersOnTeam) {
+            playerOnTeam.sendMessage(Component.text("+")
+                    .append(Component.text(points))
+                    .append(Component.text(" points for "))
+                    .append(displayName)
+                    .decorate(TextDecoration.BOLD)
+                    .color(NamedTextColor.GOLD));
         }
     }
     
@@ -788,48 +796,60 @@ public class GameManager implements Listener {
      * Adds the given score to the participant with the given UUID
      * @param participantUniqueId The UUID of the participant to add the score to
      * @param score The score to add. Could be positive or negative.
-     * @throws IOException If there is a problem saving the game state.
      */
-    public void addScore(UUID participantUniqueId, int score) throws IOException {
-        gameStateStorageUtil.addScore(participantUniqueId, score);
+    public void addScore(UUID participantUniqueId, int score) {
+        try {
+            gameStateStorageUtil.addScore(participantUniqueId, score);
+        } catch (IOException e) {
+            reportGameStateIOException("adding score to player", e);
+        }
     }
     
     /**
      * Adds the given score to the team with the given name
      * @param teamName The name of the team to add the score to
      * @param score The score to add. Could be positive or negative.
-     * @throws IOException If there is a problem saving the game state.
      */
-    public void addScore(String teamName, int score) throws IOException {
-        gameStateStorageUtil.addScore(teamName, score);
+    public void addScore(String teamName, int score) {
+        try {
+            gameStateStorageUtil.addScore(teamName, score);
+        } catch (IOException e) {
+            reportGameStateIOException("adding score to team", e);
+        }
     }
     
     /**
      * Sets the score of the participant with the given UUID to the given value
      * @param participantUniqueId The UUID of the participant to set the score to
      * @param score The score to set to. If the score is negative, the score will be set to 0.
-     * @throws IOException If there is a problem saving the game state.
      */
-    public void setScore(UUID participantUniqueId, int score) throws IOException {
-        if (score < 0) {
-            gameStateStorageUtil.setScore(participantUniqueId, 0);
-            return;
+    public void setScore(UUID participantUniqueId, int score) {
+        try {
+            if (score < 0) {
+                gameStateStorageUtil.setScore(participantUniqueId, 0);
+                return;
+            }
+            gameStateStorageUtil.setScore(participantUniqueId, score);
+        } catch (IOException e) {
+            reportGameStateIOException("setting a player's score", e);
         }
-        gameStateStorageUtil.setScore(participantUniqueId, score);
     }
     
     /**
      * Sets the score of the team with the given name to the given value
      * @param teamName The UUID of the participant to set the score to
      * @param score The score to set to. If the score is negative, the score will be set to 0.
-     * @throws IOException If there is a problem saving the game state.
      */
-    public void setScore(String teamName, int score) throws IOException {
-        if (score < 0) {
-            gameStateStorageUtil.setScore(teamName, 0);
-            return;
+    public void setScore(String teamName, int score) {
+        try {
+            if (score < 0) {
+                gameStateStorageUtil.setScore(teamName, 0);
+                return;
+            }
+            gameStateStorageUtil.setScore(teamName, score);
+        } catch (IOException e) {
+            reportGameStateIOException("adding score to team", e);
         }
-        gameStateStorageUtil.setScore(teamName, score);
     }
     
     /**
@@ -888,6 +908,11 @@ public class GameManager implements Listener {
     public void setGameStateStorageUtil(GameStateStorageUtil gameStateStorageUtil) {
         this.gameStateStorageUtil = gameStateStorageUtil;
         this.fastBoardManager.setGameStateStorageUtil(gameStateStorageUtil);
+    }
+    
+    private void reportGameStateIOException(String attemptedOperation, IOException ioException) {
+        Bukkit.getLogger().severe(String.format("error while %s. See log for error message.", attemptedOperation));
+        throw new RuntimeException(ioException);
     }
     
     public MCTGame getActiveGame() {
