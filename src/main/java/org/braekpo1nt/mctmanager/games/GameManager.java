@@ -223,7 +223,7 @@ public class GameManager implements Listener {
      * Starts the voting phase for the event
      */
     public void startVote() {
-        if (currentGameNumber < maxGames) {
+        if (currentGameNumber > maxGames) {
             eventMaster.sendMessage(Component.text("All games have been played. Initiating final game with top two teams."));
             kickOffFinalGame();
             return;

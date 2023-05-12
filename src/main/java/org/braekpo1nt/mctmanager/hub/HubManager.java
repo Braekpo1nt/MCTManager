@@ -90,7 +90,7 @@ public class HubManager implements Listener {
             initializeHubDelayCountDown(participant, "1:00");
         }
         this.hubDelayTaskId = new BukkitRunnable() {
-            int count = 60;
+            int count = 20;
             @Override
             public void run() {
                 if (count <= 0) {

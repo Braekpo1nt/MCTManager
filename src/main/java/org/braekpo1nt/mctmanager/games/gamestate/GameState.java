@@ -16,6 +16,7 @@ public class GameState {
     public GameState() {
         this.players = new HashMap<>();
         this.teams = new HashMap<>();
+        this.playedGames = new ArrayList<>();
     }
     
     /**
