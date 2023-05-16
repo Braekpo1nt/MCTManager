@@ -302,7 +302,7 @@ public class GameManager implements Listener {
         hubManager.cancelAllTasks();
     }
     
-    public void startEvent(CommandSender eventMaster) {
+    public void startEvent(CommandSender eventMaster, int maxGames) {
         if (eventActive) {
             eventMaster.sendMessage(Component.text("An event is already running.")
                     .color(NamedTextColor.RED));
@@ -310,7 +310,7 @@ public class GameManager implements Listener {
         }
         this.eventMaster = eventMaster;
         currentGameNumber = 1;
-        maxGames = 6;
+        this.maxGames = maxGames;
         eventActive = true;
         eventMaster.sendMessage(Component.text("Starting event. On game ")
                 .append(Component.text(currentGameNumber))
@@ -465,6 +465,9 @@ public class GameManager implements Listener {
             try {
                 gameStateStorageUtil.addPlayedGame(activeGame.getType());
             } catch (IOException e) {
+                eventMaster.sendMessage(Component.text(
+                            "Error saving a played game. See log for error message.")
+                        .color(NamedTextColor.RED));
                 Bukkit.getLogger().severe("Error saving a played game. See log for error message.");
                 throw new RuntimeException(e);
             }
@@ -489,7 +492,7 @@ public class GameManager implements Listener {
             @Override
             public void run() {
                 activeGame = null;
-                String winningTeamDisplayName = gameStateStorageUtil.getTeamDisplayName(winningTeamName);
+                String winningTeam = gameStateStorageUtil.getTeamDisplayName(winningTeamName);
                 List<Player> winningTeamParticipants = getOnlinePlayersOnTeam(winningTeamName);
                 String colorString = gameStateStorageUtil.getTeamColorString(winningTeamName);
                 ChatColor chatColor = ColorMap.getChatColor(colorString);
@@ -499,7 +502,9 @@ public class GameManager implements Listener {
                         otherParticipants.add(player);
                     }
                 }
-                hubManager.pedestalTeleport(winningTeamParticipants, winningTeamDisplayName, chatColor, otherParticipants);
+                eventActive = false;
+                eventMaster = null;
+                hubManager.sendParticipantsToPedestal(winningTeamParticipants, winningTeam, chatColor, otherParticipants);
             }
         }.runTaskLater(plugin, 5*20).getTaskId();
     }
@@ -915,7 +920,7 @@ public class GameManager implements Listener {
         hubManager.setBoundaryEnabled(boundaryEnabled);
     }
     
-    public boolean isEventActive() {
+    public boolean eventIsActive() {
         return eventActive;
     }
     

@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.commands.team.score;
 
 import net.kyori.adventure.text.Component;
+import org.braekpo1nt.mctmanager.commands.CommandUtils;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -37,26 +38,25 @@ public class ScoreAddTeamSubCommand implements TabExecutor {
             return true;
         }
         String scoreString = args[1];
-        try {
-            int score = Integer.parseInt(scoreString);
-            if (invert) {
-                score = -score;
-                int currentScore = gameManager.getScore(teamName);
-                if (currentScore + score < 0) {
-                    score = -currentScore;
-                }
-            }
-            gameManager.addScore(teamName, score);
-            int newScore = gameManager.getScore(teamName);
-            sender.sendMessage(Component.empty()
-                    .append(gameManager.getFormattedTeamDisplayName(teamName))
-                    .append(Component.text(" score is now "))
-                    .append(Component.text(newScore)));
-        } catch (NumberFormatException e) {
+        if (!CommandUtils.isInteger(scoreString)) {
             sender.sendMessage(Component.text(scoreString)
                     .append(Component.text(" is not an integer")));
             return true;
         }
+        int score = Integer.parseInt(scoreString);
+        if (invert) {
+            score = -score;
+            int currentScore = gameManager.getScore(teamName);
+            if (currentScore + score < 0) {
+                score = -currentScore;
+            }
+        }
+        gameManager.addScore(teamName, score);
+        int newScore = gameManager.getScore(teamName);
+        sender.sendMessage(Component.empty()
+                .append(gameManager.getFormattedTeamDisplayName(teamName))
+                .append(Component.text(" score is now "))
+                .append(Component.text(newScore)));
         return true;
     }
 

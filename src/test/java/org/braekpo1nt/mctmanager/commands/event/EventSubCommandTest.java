@@ -12,8 +12,6 @@ import org.junit.jupiter.api.*;
 
 import java.util.logging.Level;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 class EventSubCommandTest {
     
     private ServerMock server;
@@ -61,7 +59,7 @@ class EventSubCommandTest {
     @DisplayName("`/mct event start` starts the event")
     void startTest() {
         Assertions.assertTrue(plugin.getMctCommand().onCommand(server.getConsoleSender(), command, "mct", new String[]{"event", "start"}));
-        Assertions.assertTrue(plugin.getGameManager().isEventActive());
+        Assertions.assertTrue(plugin.getGameManager().eventIsActive());
     }
     
     @Test

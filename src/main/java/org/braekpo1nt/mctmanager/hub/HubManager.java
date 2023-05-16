@@ -116,7 +116,7 @@ public class HubManager implements Listener {
             returnParticipantToHub(participant);
         }
         setupTeamOptions();
-        if (gameManager.isEventActive()) {
+        if (gameManager.eventIsActive()) {
             kickOffHubDelay();
         }
     }
@@ -125,6 +125,48 @@ public class HubManager implements Listener {
         participant.sendMessage(Component.text("Returning to hub"));
         participant.teleport(hubWorld.getSpawnLocation());
         initializeParticipant(participant);
+    }
+    
+    public void sendParticipantsToPedestal(List<Player> winningTeamParticipants, String winningTeam, ChatColor winningChatColor, List<Player> otherParticipants) {
+        headingToHub.addAll(winningTeamParticipants);
+        headingToHub.addAll(otherParticipants);
+        this.returnToHubTaskId = new BukkitRunnable() {
+            private int count = 10;
+            @Override
+            public void run() {
+                if (count <= 0) {
+                    setupTeamOptions();
+                    for (Player participant : otherParticipants) {
+                        sendParticipantToPedestal(participant, false, winningTeam, winningChatColor);
+                    }
+                    for (Player winningParticipant : winningTeamParticipants) {
+                        sendParticipantToPedestal(winningParticipant, true, winningTeam, winningChatColor);
+                    }
+                    headingToHub.clear();
+                    this.cancel();
+                    return;
+                }
+                String timeString = TimeStringUtils.getTimeString(count);
+                for (Player participant : winningTeamParticipants) {
+                    updateReturnToHubTimerFastBoard(participant, timeString);
+                }
+                for (Player participant : otherParticipants) {
+                    updateReturnToHubTimerFastBoard(participant, timeString);
+                }
+                count--;
+            }
+        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+    }
+    
+    private void sendParticipantToPedestal(Player participant, boolean winner, String winningTeam, ChatColor winningChatColor) {
+        participant.sendMessage(Component.text("Returning to hub"));
+        if (winner) {
+            participant.teleport(pedestalLocation);
+        } else {
+            participant.teleport(observePedestalLocation);
+        }
+        initializeParticipant(participant);
+        showWinningFastBoard(participant, winningTeam, winningChatColor);
     }
     
     private void initializeParticipant(Player participant) {
@@ -160,28 +202,6 @@ public class HubManager implements Listener {
             return;
         }
         participants.add(participant);
-    }
-    
-    public void pedestalTeleport(List<Player> winningTeamParticipants, String winningTeam, ChatColor winningChatColor, List<Player> otherParticipants) {
-        setupTeamOptions();
-        for (Player participant : otherParticipants) {
-            initializeParticipant(participant);
-            showWinningFastBoard(participant, winningTeam, winningChatColor);
-            ParticipantInitializer.clearStatusEffects(participant);
-            participant.setGameMode(GameMode.ADVENTURE);
-            participant.getInventory().clear();
-            giveAmbientStatusEffects(participant);
-            participant.teleport(this.observePedestalLocation);
-        }
-        for (Player winningParticipant : winningTeamParticipants) {
-            initializeParticipant(winningParticipant);
-            showWinningFastBoard(winningParticipant, winningTeam, winningChatColor);
-            ParticipantInitializer.clearStatusEffects(winningParticipant);
-            winningParticipant.setGameMode(GameMode.ADVENTURE);
-            winningParticipant.getInventory().clear();
-            giveAmbientStatusEffects(winningParticipant);
-            winningParticipant.teleport(this.pedestalLocation);
-        }
     }
     
     public void cancelAllTasks() {
