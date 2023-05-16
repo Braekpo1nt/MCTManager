@@ -69,4 +69,19 @@ class EventSubCommandTest {
         Assertions.assertTrue(plugin.getMctCommand().onCommand(server.getConsoleSender(), command, "mct", new String[]{"event", "start"}));
         TestUtils.assertComponentPlaintextEquals("An event is already running.", server.getConsoleSender().nextComponentMessage());
     }
+    
+    @Test
+    @DisplayName("`/mct event start 4` starts the with 4 games")
+    void startNumberTest() {
+        Assertions.assertTrue(plugin.getMctCommand().onCommand(server.getConsoleSender(), command, "mct", new String[]{"event", "start", "4"}));
+        Assertions.assertTrue(plugin.getGameManager().eventIsActive());
+        Assertions.assertEquals(4, plugin.getGameManager().getMaxGames());
+    }
+    
+    @Test
+    @DisplayName("`/mct event start blank` complains that blank isn't an integer")
+    void startWrongArgsTest() {
+        Assertions.assertTrue(plugin.getMctCommand().onCommand(server.getConsoleSender(), command, "mct", new String[]{"event", "start", "blank"}));
+        TestUtils.assertComponentPlaintextEquals("blank is not an integer", server.getConsoleSender().nextComponentMessage());
+    }
 }

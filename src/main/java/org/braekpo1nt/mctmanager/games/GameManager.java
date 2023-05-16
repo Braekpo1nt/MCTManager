@@ -944,4 +944,8 @@ public class GameManager implements Listener {
     public MCTGame getActiveGame() {
         return activeGame;
     }
+    
+    public int getMaxGames() {
+        return maxGames;
+    }
 }
