@@ -320,15 +320,30 @@ public class GameManager implements Listener {
         hubManager.returnParticipantsToHub(onlineParticipants);
     }
     
-    public void stopEvent() {
+    public void stopEvent(CommandSender sender) {
         throw new UnsupportedOperationException();
     }
     
-    public void pauseEvent() {
-        throw new UnsupportedOperationException();
+    public void pauseEvent(CommandSender sender) {
+        if (!eventActive) {
+            sender.sendMessage(Component.text("There is no event running.")
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        if (activeGame != null) {
+            sender.sendMessage(Component.text("You can't pause the event while a game is active.")
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        hubManager.pauseHubTimer();
+        Component pauseMessage = Component.text("Event paused.");
+        sender.sendMessage(pauseMessage);
+        if (!sender.equals(eventMaster)) {
+            eventMaster.sendMessage(pauseMessage);
+        }
     }
     
-    public void resumeEvent() {
+    public void resumeEvent(CommandSender sender) {
         throw new UnsupportedOperationException();
     }
     

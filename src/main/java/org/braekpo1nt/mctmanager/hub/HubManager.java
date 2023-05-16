@@ -48,7 +48,8 @@ public class HubManager implements Listener {
      * A list of the participants who are in the hub
      */
     private final List<Player> participants = new ArrayList<>();
-    private int hubDelayTaskId;
+    private int hubTimerTaskId;
+    private boolean hubTimerPaused = false;
     
     public HubManager(Main plugin, Scoreboard mctScoreboard, FastBoardManager fastBoardManager, GameManager gameManager) {
         this.plugin = plugin;
@@ -85,14 +86,22 @@ public class HubManager implements Listener {
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
     }
     
-    public void kickOffHubDelay() {
+    public void pauseHubTimer() {
+        hubTimerPaused = true;
+    }
+    
+    public void kickOffHubTimer() {
+        hubTimerPaused = false;
         for (Player participant : participants) {
-            initializeHubDelayCountDown(participant, "1:00");
+            initializeHubDelayCountDown(participant, "");
         }
-        this.hubDelayTaskId = new BukkitRunnable() {
+        this.hubTimerTaskId = new BukkitRunnable() {
             int count = 20;
             @Override
             public void run() {
+                if (hubTimerPaused) {
+                    return;
+                }
                 if (count <= 0) {
                     gameManager.startVote();
                     this.cancel();
@@ -100,7 +109,7 @@ public class HubManager implements Listener {
                 }
                 String timeString = TimeStringUtils.getTimeString(count);
                 for (Player participant : participants) {
-                    updateHubDelayCountDown(participant, timeString);
+                    updateHubTimerDisplay(participant, timeString);
                 }
                 count--;
             }
@@ -117,7 +126,7 @@ public class HubManager implements Listener {
         }
         setupTeamOptions();
         if (gameManager.eventIsActive()) {
-            kickOffHubDelay();
+            kickOffHubTimer();
         }
     }
     
@@ -206,7 +215,7 @@ public class HubManager implements Listener {
     
     public void cancelAllTasks() {
         Bukkit.getScheduler().cancelTask(returnToHubTaskId);
-        Bukkit.getScheduler().cancelTask(hubDelayTaskId);
+        Bukkit.getScheduler().cancelTask(hubTimerTaskId);
     }
     
     private void updateReturnToHubTimerFastBoard(Player participant, String timeString) {
@@ -241,7 +250,7 @@ public class HubManager implements Listener {
         );
     }
     
-    private void updateHubDelayCountDown(Player participant, String timeString) {
+    private void updateHubTimerDisplay(Player participant, String timeString) {
         fastBoardManager.updateLine(
                 participant.getUniqueId(),
                 1,

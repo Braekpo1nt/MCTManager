@@ -50,13 +50,13 @@ public class EventSubCommand implements TabExecutor {
                 gameManager.startEvent(sender, maxGames);
             }
             case "stop" -> {
-                gameManager.stopEvent();
+                gameManager.stopEvent(sender);
             }
             case "pause" -> {
-                gameManager.pauseEvent();
+                gameManager.pauseEvent(sender);
             }
             case "resume" -> {
-                gameManager.resumeEvent();
+                gameManager.resumeEvent(sender);
             }
             default -> {
                 sender.sendMessage(Component.empty()
