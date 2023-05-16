@@ -250,6 +250,15 @@ public class GameManager implements Listener {
     
     private void kickOffFinalGame() {
         List<String> allTeams = getTeamNames(onlineParticipants);
+        if (allTeams.size() < 2) {
+            eventMaster.sendMessage(Component.empty()
+                    .append(Component.text("There are fewer than two teams online. Use "))
+                    .append(Component.text("/mct game finalgame <first> <second>")
+                            .clickEvent(ClickEvent.suggestCommand("/mct game finalgame "))
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(" to start the final game with the two chosen teams.")));
+            return;
+        }
         Map<String, Integer> teamScores = new HashMap<>();
         for (String teamName : allTeams) {
             int score = getScore(teamName);
@@ -260,6 +269,7 @@ public class GameManager implements Listener {
             String firstPlace = firstPlaces[0];
             String secondPlace = firstPlaces[1];
             setFinalGameTeams(firstPlace, secondPlace);
+            startGame(MCTGames.FINAL_GAME);
             return;
         }
         if (firstPlaces.length > 2) {
