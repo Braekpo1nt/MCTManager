@@ -427,4 +427,8 @@ public class VoteManager implements Listener {
         }
     }
     
+    public boolean isVoting() {
+        return voting;
+    }
+    
 }

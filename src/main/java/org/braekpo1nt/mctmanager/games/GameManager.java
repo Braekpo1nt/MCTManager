@@ -345,6 +345,11 @@ public class GameManager implements Listener {
                     .color(NamedTextColor.RED));
             return;
         }
+        if (voteManager.isVoting()) {
+            sender.sendMessage(Component.text("You can't pause the event during the voting phase.")
+                    .color(NamedTextColor.RED));
+            return;
+        }
         hubManager.pauseHubTimer();
         Component pauseMessage = Component.text("Event paused.");
         sender.sendMessage(pauseMessage);
