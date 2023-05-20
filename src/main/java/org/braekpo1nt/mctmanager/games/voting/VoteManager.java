@@ -2,11 +2,13 @@ package org.braekpo1nt.mctmanager.games.voting;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.enums.MCTGames;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -36,6 +38,7 @@ public class VoteManager implements Listener {
     private final Component NETHER_STAR_NAME = Component.text("Vote");
     private int voteCountDownTaskId;
     private List<MCTGames> votingPool = new ArrayList<>();
+    private int executeVoteCountdownTaskId;
     
     public VoteManager(GameManager gameManager, Main plugin) {
         this.gameManager = gameManager;
@@ -69,7 +72,7 @@ public class VoteManager implements Listener {
             public void run() {
                 if (count <= 0) {
                     messageAllVoters(Component.text("Voting is over"));
-                    executeVote();
+                    startExecuteVoteCountdown();
                     this.cancel();
                     return;
                 }
@@ -87,6 +90,15 @@ public class VoteManager implements Listener {
                 participant.getUniqueId(),
                 "",
                 "Voting:",
+                timeString
+        );
+    }
+    
+    private void updateExecuteVoteFastBoard(Player voter, String gameTitle, String timeString) {
+        gameManager.getFastBoardManager().updateLines(
+                voter.getUniqueId(),
+                "",
+                gameTitle,
                 timeString
         );
     }
@@ -198,7 +210,7 @@ public class VoteManager implements Listener {
             return;
         }
         if (allPlayersHaveVoted()) {
-            executeVote();
+            startExecuteVoteCountdown();
         } else {
             if (participantVoted(participant)) {
                 return;
@@ -222,7 +234,7 @@ public class VoteManager implements Listener {
             return;
         }
         voting = false;
-        Bukkit.getScheduler().cancelTask(voteCountDownTaskId);
+        cancelAllTasks();
         for (Player voter : voters) {
             voter.closeInventory();
             voter.getInventory().clear();
@@ -234,19 +246,50 @@ public class VoteManager implements Listener {
         voters.clear();
     }
     
-    private void executeVote() {
-        voting = false;
-        Bukkit.getScheduler().cancelTask(voteCountDownTaskId);
+    private void startExecuteVoteCountdown() {
         for (Player voter : voters) {
             voter.closeInventory();
             voter.getInventory().clear();
             hideFastBoard(voter);
         }
-        MCTGames mctGame = getVotedGame();
+        MCTGames votedForGame = getVotedForGame();
+        String gameTitle = ChatColor.BLUE+""+ChatColor.BOLD+MCTGames.getTitle(votedForGame);
+        messageAllVoters(Component.empty()
+                .append(Component.text(gameTitle)
+                        .color(NamedTextColor.BLUE)
+                        .decorate(TextDecoration.BOLD))
+                .append(Component.text(" was selected"))
+                .color(NamedTextColor.GREEN));
+        this.executeVoteCountdownTaskId = new BukkitRunnable() {
+            int count = 5;
+            @Override
+            public void run() {
+                if (count <= 0) {
+                    executeVote(votedForGame);
+                    this.cancel();
+                    return;
+                }
+                String timeString = TimeStringUtils.getTimeString(count);
+                for (Player voter : voters) {
+                    updateExecuteVoteFastBoard(voter, gameTitle, timeString);
+                }
+                count--;
+            }
+        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+    }
+    
+    private void executeVote(MCTGames votedForGame) {
+        voting = false;
+        cancelAllTasks();
         HandlerList.unregisterAll(this);
         votes.clear();
         voters.clear();
-        gameManager.startGame(mctGame);
+        gameManager.startGame(votedForGame);
+    }
+    
+    private void cancelAllTasks() {
+        Bukkit.getScheduler().cancelTask(voteCountDownTaskId);
+        Bukkit.getScheduler().cancelTask(executeVoteCountdownTaskId);
     }
     
     @EventHandler
@@ -311,7 +354,7 @@ public class VoteManager implements Listener {
         showVoteGui(participant);
     }
     
-    private MCTGames getVotedGame() {
+    private MCTGames getVotedForGame() {
         Random random = new Random();
         
         if (votes.isEmpty()) {
