@@ -338,6 +338,11 @@ public class GameManager implements Listener {
                     .color(NamedTextColor.RED));
             return;
         }
+        if (activeGame != null) {
+            eventMaster.sendMessage(Component.text("Can't start an event while a game is running.")
+                    .color(NamedTextColor.RED));
+            return;
+        }
         this.eventMaster = eventMaster;
         currentGameNumber = 1;
         this.maxGames = maxGames;

@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.commands.event;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.CommandManager;
@@ -50,6 +51,30 @@ public class EventSubCommand implements TabExecutor {
                 gameManager.startEvent(sender, maxGames);
             }
             case "stop" -> {
+                if (!gameManager.eventIsActive()) {
+                    sender.sendMessage(Component.text("There is no event running.")
+                            .color(NamedTextColor.RED));
+                    return true;
+                }
+                if (args.length != 2) {
+                    sender.sendMessage(Component.text("Are you sure? Type ")
+                            .append(Component.empty()
+                                    .append(Component.text("/mct event stop "))
+                                    .append(Component.text("confirm")
+                                            .decorate(TextDecoration.BOLD))
+                                    .decorate(TextDecoration.ITALIC))
+                            .append(Component.text(" to confirm."))
+                            .color(NamedTextColor.YELLOW));
+                    return true;
+                }
+                String confirmString = args[1];
+                if (!confirmString.equals("confirm")) {
+                    sender.sendMessage(Component.empty()
+                                    .append(Component.text(confirmString))
+                                    .append(Component.text(" is not a recognized option."))
+                                    .color(NamedTextColor.RED));
+                    return true;
+                }
                 gameManager.stopEvent(sender);
             }
             case "pause" -> {
