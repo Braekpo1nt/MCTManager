@@ -387,6 +387,11 @@ public class GameManager implements Listener {
     public void startGameWithDelay(MCTGames mctGame, CommandSender sender) {
         String gameTitle = ChatColor.BLUE+""+ChatColor.BOLD+MCTGames.getTitle(mctGame);
         startingGameWithDelay = true;
+        messageOnlineParticipants(Component.empty()
+                .append(Component.text(gameTitle)
+                        .decorate(TextDecoration.BOLD))
+                .append(Component.text(" was selected"))
+                .color(NamedTextColor.BLUE));
         this.startGameWithDelayTaskId = new BukkitRunnable() {
             int count = 5;
             @Override
@@ -1000,6 +1005,12 @@ public class GameManager implements Listener {
     
     public boolean eventIsActive() {
         return eventActive;
+    }
+    
+    private void messageOnlineParticipants(Component message) {
+        for (Player participant : onlineParticipants) {
+            participant.sendMessage(message);
+        }
     }
     
     // Test methods
