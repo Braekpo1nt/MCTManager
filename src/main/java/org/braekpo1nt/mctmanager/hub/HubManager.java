@@ -90,6 +90,10 @@ public class HubManager implements Listener {
         hubTimerPaused = true;
     }
     
+    public void resumeHubTimer() {
+        hubTimerPaused = false;
+    }
+    
     public void kickOffHubTimer() {
         hubTimerPaused = false;
         for (Player participant : participants) {

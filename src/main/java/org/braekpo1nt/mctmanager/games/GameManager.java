@@ -66,6 +66,7 @@ public class GameManager implements Listener {
     private String finalGameTeamA;
     private String finalGameTeamB;
     private boolean eventActive = false;
+    private boolean eventPaused = false;
     private CommandSender eventMaster;
     private int currentGameNumber = 0;
     private int maxGames = 6;
@@ -372,6 +373,7 @@ public class GameManager implements Listener {
                     .color(NamedTextColor.RED));
             return;
         }
+        eventPaused = true;
         hubManager.pauseHubTimer();
         Component pauseMessage = Component.text("Event paused.");
         sender.sendMessage(pauseMessage);
@@ -381,7 +383,23 @@ public class GameManager implements Listener {
     }
     
     public void resumeEvent(CommandSender sender) {
-        throw new UnsupportedOperationException();
+        if (!eventActive) {
+            sender.sendMessage(Component.text("There isn't an event going on.")
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        if (!eventPaused) {
+            sender.sendMessage(Component.text("The event is not paused.")
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        eventPaused = false;
+        hubManager.resumeHubTimer();
+        Component pauseMessage = Component.text("Event resumed.");
+        sender.sendMessage(pauseMessage);
+        if (!sender.equals(eventMaster)) {
+            eventMaster.sendMessage(pauseMessage);
+        }
     }
     
     public void startGameWithDelay(MCTGames mctGame, CommandSender sender) {
