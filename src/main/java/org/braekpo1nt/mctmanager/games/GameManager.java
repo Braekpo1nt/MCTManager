@@ -7,6 +7,7 @@ import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.enums.MCTGames;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
+import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.braekpo1nt.mctmanager.games.capturetheflag.CaptureTheFlagGame;
 import org.braekpo1nt.mctmanager.games.finalgame.FinalGame;
@@ -72,6 +73,8 @@ public class GameManager implements Listener {
      * Contains the list of online participants. Updated when participants are added/removed or quit/join
      */
     private final List<Player> onlineParticipants = new ArrayList<>();
+    private int startGameWithDelayTaskId;
+    private boolean startingGameWithDelay;
     
     public GameManager(Main plugin, Scoreboard mctScoreboard) {
         this.plugin = plugin;
@@ -103,6 +106,7 @@ public class GameManager implements Listener {
     public void cancelFastBoardManager() {
         Bukkit.getScheduler().cancelTask(this.fastBoardUpdaterTaskId);
         Bukkit.getScheduler().cancelTask(this.finalGameEndTaskId);
+        Bukkit.getScheduler().cancelTask(this.startGameWithDelayTaskId);
         fastBoardManager.removeAllBoards();
     }
     
@@ -248,6 +252,15 @@ public class GameManager implements Listener {
         voteManager.startVote(onlineParticipants, votingPool);
     }
     
+    private void updateStartGameDelayFastBoard(Player voter, String gameTitle, String timeString) {
+        fastBoardManager.updateLines(
+                voter.getUniqueId(),
+                "",
+                gameTitle,
+                timeString
+        );
+    }
+    
     private void kickOffFinalGame() {
         List<String> allTeams = getTeamNames(onlineParticipants);
         if (allTeams.size() < 2) {
@@ -322,6 +335,15 @@ public class GameManager implements Listener {
         currentGameNumber = 1;
         this.maxGames = maxGames;
         eventActive = true;
+        try {
+            gameStateStorageUtil.clearPlayedGames();
+        } catch (IOException e) {
+            eventMaster.sendMessage(Component.text(
+                            "Error clearing played games. See log for error message.")
+                    .color(NamedTextColor.RED));
+            Bukkit.getLogger().severe("Error clearing played games. See log for error message.");
+            throw new RuntimeException(e);
+        }
         eventMaster.sendMessage(Component.text("Starting event. On game ")
                 .append(Component.text(currentGameNumber))
                 .append(Component.text("/"))
@@ -340,7 +362,7 @@ public class GameManager implements Listener {
                     .color(NamedTextColor.RED));
             return;
         }
-        if (activeGame != null) {
+        if (activeGame != null || startingGameWithDelay) {
             sender.sendMessage(Component.text("You can't pause the event while a game is active.")
                     .color(NamedTextColor.RED));
             return;
@@ -360,6 +382,32 @@ public class GameManager implements Listener {
     
     public void resumeEvent(CommandSender sender) {
         throw new UnsupportedOperationException();
+    }
+    
+    public void startGameWithDelay(MCTGames mctGame, CommandSender sender) {
+        String gameTitle = ChatColor.BLUE+""+ChatColor.BOLD+MCTGames.getTitle(mctGame);
+        startingGameWithDelay = true;
+        this.startGameWithDelayTaskId = new BukkitRunnable() {
+            int count = 5;
+            @Override
+            public void run() {
+                if (count <= 0) {
+                    if (eventActive) {
+                        startGame(mctGame, eventMaster);
+                    } else {
+                        startGame(mctGame, sender);
+                    }
+                    startingGameWithDelay = false;
+                    this.cancel();
+                    return;
+                }
+                String timeString = TimeStringUtils.getTimeString(count);
+                for (Player voter : onlineParticipants) {
+                    updateStartGameDelayFastBoard(voter, gameTitle, timeString);
+                }
+                count--;
+            }
+        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
     }
     
     /**

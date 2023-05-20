@@ -11,6 +11,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.Material;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
@@ -38,7 +39,6 @@ public class VoteManager implements Listener {
     private final Component NETHER_STAR_NAME = Component.text("Vote");
     private int voteCountDownTaskId;
     private List<MCTGames> votingPool = new ArrayList<>();
-    private int executeVoteCountdownTaskId;
     
     public VoteManager(GameManager gameManager, Main plugin) {
         this.gameManager = gameManager;
@@ -72,7 +72,7 @@ public class VoteManager implements Listener {
             public void run() {
                 if (count <= 0) {
                     messageAllVoters(Component.text("Voting is over"));
-                    startExecuteVoteCountdown();
+                    executeVote();
                     this.cancel();
                     return;
                 }
@@ -90,15 +90,6 @@ public class VoteManager implements Listener {
                 participant.getUniqueId(),
                 "",
                 "Voting:",
-                timeString
-        );
-    }
-    
-    private void updateExecuteVoteFastBoard(Player voter, String gameTitle, String timeString) {
-        gameManager.getFastBoardManager().updateLines(
-                voter.getUniqueId(),
-                "",
-                gameTitle,
                 timeString
         );
     }
@@ -210,7 +201,7 @@ public class VoteManager implements Listener {
             return;
         }
         if (allPlayersHaveVoted()) {
-            startExecuteVoteCountdown();
+            executeVote();
         } else {
             if (participantVoted(participant)) {
                 return;
@@ -246,50 +237,23 @@ public class VoteManager implements Listener {
         voters.clear();
     }
     
-    private void startExecuteVoteCountdown() {
+    private void executeVote() {
+        voting = false;
+        cancelAllTasks();
         for (Player voter : voters) {
             voter.closeInventory();
             voter.getInventory().clear();
             hideFastBoard(voter);
         }
-        MCTGames votedForGame = getVotedForGame();
-        String gameTitle = ChatColor.BLUE+""+ChatColor.BOLD+MCTGames.getTitle(votedForGame);
-        messageAllVoters(Component.empty()
-                .append(Component.text(gameTitle)
-                        .color(NamedTextColor.BLUE)
-                        .decorate(TextDecoration.BOLD))
-                .append(Component.text(" was selected"))
-                .color(NamedTextColor.GREEN));
-        this.executeVoteCountdownTaskId = new BukkitRunnable() {
-            int count = 5;
-            @Override
-            public void run() {
-                if (count <= 0) {
-                    executeVote(votedForGame);
-                    this.cancel();
-                    return;
-                }
-                String timeString = TimeStringUtils.getTimeString(count);
-                for (Player voter : voters) {
-                    updateExecuteVoteFastBoard(voter, gameTitle, timeString);
-                }
-                count--;
-            }
-        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
-    }
-    
-    private void executeVote(MCTGames votedForGame) {
-        voting = false;
-        cancelAllTasks();
+        MCTGames mctGame = getVotedForGame();
         HandlerList.unregisterAll(this);
         votes.clear();
         voters.clear();
-        gameManager.startGame(votedForGame);
+        gameManager.startGameWithDelay(mctGame, Bukkit.getConsoleSender());
     }
     
     private void cancelAllTasks() {
         Bukkit.getScheduler().cancelTask(voteCountDownTaskId);
-        Bukkit.getScheduler().cancelTask(executeVoteCountdownTaskId);
     }
     
     @EventHandler
