@@ -329,7 +329,7 @@ public class GameManager implements Listener {
                 .append(Component.text(".")));
         hubManager.returnParticipantsToHub(onlineParticipants);
     }
-    w
+    
     public void stopEvent(CommandSender sender) {
         throw new UnsupportedOperationException();
     }
