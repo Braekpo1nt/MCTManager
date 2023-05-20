@@ -107,7 +107,6 @@ public class GameManager implements Listener {
     public void cancelFastBoardManager() {
         Bukkit.getScheduler().cancelTask(this.fastBoardUpdaterTaskId);
         Bukkit.getScheduler().cancelTask(this.finalGameEndTaskId);
-        Bukkit.getScheduler().cancelTask(this.startGameWithDelayTaskId);
         fastBoardManager.removeAllBoards();
     }
     
@@ -323,7 +322,14 @@ public class GameManager implements Listener {
      * Cancel the return to hub if it's in progress
      */
     public void cancelAllTasks() {
+        Bukkit.getScheduler().cancelTask(this.finalGameEndTaskId);
+        Bukkit.getScheduler().cancelTask(this.fastBoardUpdaterTaskId);
+        cancelAllEventTasks();
         hubManager.cancelAllTasks();
+    }
+    
+    private void cancelAllEventTasks() {
+        Bukkit.getScheduler().cancelTask(this.startGameWithDelayTaskId);
     }
     
     public void startEvent(CommandSender eventMaster, int maxGames) {
@@ -354,7 +360,25 @@ public class GameManager implements Listener {
     }
     
     public void stopEvent(CommandSender sender) {
-        throw new UnsupportedOperationException();
+        if (!eventActive) {
+            sender.sendMessage(Component.text("There is no event running.")
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        eventActive = false;
+        Component message = Component.text("Ending event. ")
+                .append(Component.text(currentGameNumber - 1))
+                .append(Component.text("/"))
+                .append(Component.text(maxGames))
+                .append(Component.text(" games were played."));
+        sender.sendMessage(message);
+        if (!sender.equals(eventMaster)){
+            eventMaster.sendMessage(message);
+        }
+        cancelAllEventTasks();
+        hubManager.eventIsOver();
+        currentGameNumber = 0;
+        this.maxGames = 6;
     }
     
     public void pauseEvent(CommandSender sender) {

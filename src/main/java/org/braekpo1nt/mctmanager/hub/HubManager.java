@@ -120,6 +120,17 @@ public class HubManager implements Listener {
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
     }
     
+    public void eventIsOver() {
+        cancelEventTasks();
+        for (Player participant : participants) {
+            hideHubDelayCountDown(participant);
+        }
+    }
+    
+    private void cancelEventTasks() {
+        Bukkit.getScheduler().cancelTask(hubTimerTaskId);
+    }
+    
     /**
      * Returns the participants to the hub instantly, without a delay
      * @param newParticipants the participants to send to the hub
@@ -219,7 +230,7 @@ public class HubManager implements Listener {
     
     public void cancelAllTasks() {
         Bukkit.getScheduler().cancelTask(returnToHubTaskId);
-        Bukkit.getScheduler().cancelTask(hubTimerTaskId);
+        cancelEventTasks();
     }
     
     private void updateReturnToHubTimerFastBoard(Player participant, String timeString) {
@@ -251,6 +262,12 @@ public class HubManager implements Listener {
                 participant.getUniqueId(),
                 "",
                 timeString
+        );
+    }
+    
+    private void hideHubDelayCountDown(Player participant) {
+        fastBoardManager.updateLines(
+                participant.getUniqueId()
         );
     }
     
