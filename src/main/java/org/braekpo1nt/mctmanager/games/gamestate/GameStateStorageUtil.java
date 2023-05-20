@@ -43,7 +43,7 @@ public class GameStateStorageUtil {
         writer.flush();
         writer.close();
         Bukkit.getLogger().info("[MCTManager] Saved game state.");
-    }
+    } 
     
     /**
      * Load the GameState from storage
