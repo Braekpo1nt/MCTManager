@@ -477,6 +477,12 @@ public class GameManager implements Listener {
      */
     public void startGame(MCTGames mctGame, @NotNull CommandSender sender) {
         
+        if (voteManager.isVoting()) {
+            sender.sendMessage(Component.text("Can't start a game while a vote is going on.")
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        
         if (activeGame != null) {
             sender.sendMessage("There is already a game running. You must stop the game before you start a new one.");
             return;

@@ -97,9 +97,7 @@ public class HubManager implements Listener {
     
     private void kickOffHubTimer() {
         hubTimerPaused = false;
-        int currentGameNumber = gameManager.getCurrentGameNumber();
-        int maxGames = gameManager.getMaxGames();
-        String currentGameString = String.format("%d/%d", currentGameNumber, maxGames);
+        String currentGameString = createCurrentGameString();
         for (Player participant : participants) {
             initializeHubTimerDisplay(participant, currentGameString);
         }
@@ -124,10 +122,18 @@ public class HubManager implements Listener {
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
     }
     
+    private String createCurrentGameString() {
+        int currentGameNumber = gameManager.getCurrentGameNumber();
+        int maxGames = gameManager.getMaxGames();
+        String currentGameString = String.format("%d/%d", currentGameNumber, maxGames);
+        return "Game "+currentGameString;
+    }
+    
     private void kickOff5MinuteBreak() {
         hubTimerPaused = false;
+        String currentGameString = createCurrentGameString();
         for (Player participant : participants) {
-            initializeFiveMinuteBreakDisplay(participant, "");
+            initializeFiveMinuteBreakDisplay(participant, currentGameString);
         }
         messageAllParticipants(Component.text("Break time")
                 .decorate(TextDecoration.BOLD)
@@ -315,19 +321,20 @@ public class HubManager implements Listener {
         );
     }
     
-    private void initializeFiveMinuteBreakDisplay(Player participant, String timeString) {
+    private void initializeFiveMinuteBreakDisplay(Player participant, String gameString) {
         gameManager.getFastBoardManager().updateLines(
                 participant.getUniqueId(),
                 "",
+                gameString,
                 ChatColor.YELLOW+"Break",
-                timeString
+                ""
         );
     }
     
     private void updateFiveMinuteBreakDisplay(Player participant, String timeString) {
         gameManager.getFastBoardManager().updateLine(
                 participant.getUniqueId(),
-                2,
+                3,
                 timeString
         );
     }
