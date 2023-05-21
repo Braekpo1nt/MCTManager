@@ -1054,6 +1054,16 @@ public class GameManager implements Listener {
         return eventActive;
     }
     
+    /**
+     * Check if half the games have been played
+     * @return true if the currentGameNumber-1 is half of the maxGames. False if it is lower or higher. 
+     * If maxGames is odd, it must be the greater half (i.e. 2 is half of 3, 1 is not). 
+     */
+    public boolean halfOfEventHasBeenPlayed() {
+        double half = maxGames / 2.0;
+        return half <= currentGameNumber-1 && currentGameNumber-1 <= Math.ceil(half);
+    }
+    
     private void messageOnlineParticipants(Component message) {
         for (Player participant : onlineParticipants) {
             participant.sendMessage(message);

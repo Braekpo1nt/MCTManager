@@ -3,6 +3,8 @@ package org.braekpo1nt.mctmanager.hub;
 import com.onarandombox.MultiverseCore.api.MVWorldManager;
 import com.onarandombox.MultiverseCore.utils.AnchorManager;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
@@ -37,6 +39,7 @@ public class HubManager implements Listener {
     private final FastBoardManager fastBoardManager;
     private final GameManager gameManager;
     private int returnToHubTaskId;
+    private int fiveMinuteBreakTaskId;
     private final Location observePedestalLocation;
     private final Location pedestalLocation;
     /**
@@ -94,10 +97,10 @@ public class HubManager implements Listener {
         hubTimerPaused = false;
     }
     
-    public void kickOffHubTimer() {
+    private void kickOffHubTimer() {
         hubTimerPaused = false;
         for (Player participant : participants) {
-            initializeHubDelayCountDown(participant, "");
+            initializeHubTimerDisplay(participant, "");
         }
         this.hubTimerTaskId = new BukkitRunnable() {
             int count = 20;
@@ -120,15 +123,48 @@ public class HubManager implements Listener {
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
     }
     
+    private void kickOff5MinuteBreak() {
+        hubTimerPaused = false;
+        for (Player participant : participants) {
+            initializeFiveMinuteBreakDisplay(participant, "");
+        }
+        messageAllParticipants(Component.text("Break time")
+                .decorate(TextDecoration.BOLD)
+                .color(NamedTextColor.YELLOW));
+        this.fiveMinuteBreakTaskId = new BukkitRunnable() {
+            int count = 60*5;
+            @Override
+            public void run() {
+                if (hubTimerPaused) {
+                    return;
+                }
+                if (count <= 0) {
+                    messageAllParticipants(Component.text("Break is over")
+                            .decorate(TextDecoration.BOLD)
+                            .color(NamedTextColor.YELLOW));
+                    kickOffHubTimer();
+                    this.cancel();
+                    return;
+                }
+                String timeString = ChatColor.YELLOW+TimeStringUtils.getTimeString(count);
+                for (Player participant : participants) {
+                    updateFiveMinuteBreakDisplay(participant, timeString);
+                }
+                count--;
+            }
+        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+    }
+    
     public void eventIsOver() {
         cancelEventTasks();
         for (Player participant : participants) {
-            hideHubDelayCountDown(participant);
+            hideHubTimerDisplay(participant);
         }
     }
     
     private void cancelEventTasks() {
         Bukkit.getScheduler().cancelTask(hubTimerTaskId);
+        Bukkit.getScheduler().cancelTask(fiveMinuteBreakTaskId);
     }
     
     /**
@@ -141,7 +177,11 @@ public class HubManager implements Listener {
         }
         setupTeamOptions();
         if (gameManager.eventIsActive()) {
-            kickOffHubTimer();
+            if (gameManager.halfOfEventHasBeenPlayed()) {
+                kickOff5MinuteBreak();
+            } else {
+                kickOffHubTimer();
+            }
         }
     }
     
@@ -257,7 +297,7 @@ public class HubManager implements Listener {
         );
     }
     
-    private void initializeHubDelayCountDown(Player participant, String timeString) {
+    private void initializeHubTimerDisplay(Player participant, String timeString) {
         fastBoardManager.updateLines(
                 participant.getUniqueId(),
                 "",
@@ -265,7 +305,7 @@ public class HubManager implements Listener {
         );
     }
     
-    private void hideHubDelayCountDown(Player participant) {
+    private void hideHubTimerDisplay(Player participant) {
         fastBoardManager.updateLines(
                 participant.getUniqueId()
         );
@@ -278,6 +318,24 @@ public class HubManager implements Listener {
                 timeString
         );
     }
+    
+    private void initializeFiveMinuteBreakDisplay(Player participant, String timeString) {
+        fastBoardManager.updateLines(
+                participant.getUniqueId(),
+                "",
+                ChatColor.YELLOW+"Break",
+                timeString
+        );
+    }
+    
+    private void updateFiveMinuteBreakDisplay(Player participant, String timeString) {
+        fastBoardManager.updateLine(
+                participant.getUniqueId(),
+                2,
+                timeString
+        );
+    }
+    
     
     private void setupTeamOptions() {
         for (Team team : mctScoreboard.getTeams()) {
@@ -372,5 +430,11 @@ public class HubManager implements Listener {
     
     public void setBoundaryEnabled(boolean boundaryEnabled) {
         this.boundaryEnabled = boundaryEnabled;
+    }
+    
+    private void messageAllParticipants(Component message) {
+        for (Player participant : participants) {
+            participant.sendMessage(message);
+        }
     }
 }

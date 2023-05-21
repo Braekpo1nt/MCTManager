@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager;
 import net.kyori.adventure.text.*;
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class TestUtils {
     /**
