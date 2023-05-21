@@ -90,7 +90,7 @@ public class GameManager implements Listener {
         this.captureTheFlagGame = new CaptureTheFlagGame(plugin, this);
         this.finalGame = new FinalGame(plugin, this);
         this.fastBoardManager = new FastBoardManager(gameStateStorageUtil);
-        this.hubManager = new HubManager(plugin, mctScoreboard, fastBoardManager, this);
+        this.hubManager = new HubManager(plugin, mctScoreboard, this);
         this.eventMaster = Bukkit.getConsoleSender();
         kickOffFastBoardManager();
     }
@@ -1054,6 +1054,14 @@ public class GameManager implements Listener {
         return eventActive;
     }
     
+    public int getCurrentGameNumber() {
+        return currentGameNumber;
+    }
+    
+    public int getMaxGames() {
+        return maxGames;
+    }
+    
     /**
      * Check if half the games have been played
      * @return true if the currentGameNumber-1 is half of the maxGames. False if it is lower or higher. 
@@ -1089,9 +1097,5 @@ public class GameManager implements Listener {
     
     public MCTGame getActiveGame() {
         return activeGame;
-    }
-    
-    public int getMaxGames() {
-        return maxGames;
     }
 }

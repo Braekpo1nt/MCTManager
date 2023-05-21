@@ -36,7 +36,6 @@ public class HubManager implements Listener {
     private final World hubWorld;
     private final Main plugin;
     private final Scoreboard mctScoreboard;
-    private final FastBoardManager fastBoardManager;
     private final GameManager gameManager;
     private int returnToHubTaskId;
     private int fiveMinuteBreakTaskId;
@@ -54,10 +53,9 @@ public class HubManager implements Listener {
     private int hubTimerTaskId;
     private boolean hubTimerPaused = false;
     
-    public HubManager(Main plugin, Scoreboard mctScoreboard, FastBoardManager fastBoardManager, GameManager gameManager) {
+    public HubManager(Main plugin, Scoreboard mctScoreboard, GameManager gameManager) {
         this.plugin = plugin;
         this.mctScoreboard = mctScoreboard;
-        this.fastBoardManager = fastBoardManager;
         this.gameManager = gameManager;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
@@ -99,8 +97,11 @@ public class HubManager implements Listener {
     
     private void kickOffHubTimer() {
         hubTimerPaused = false;
+        int currentGameNumber = gameManager.getCurrentGameNumber();
+        int maxGames = gameManager.getMaxGames();
+        String currentGameString = String.format("%d/%d", currentGameNumber, maxGames);
         for (Player participant : participants) {
-            initializeHubTimerDisplay(participant, "");
+            initializeHubTimerDisplay(participant, currentGameString);
         }
         this.hubTimerTaskId = new BukkitRunnable() {
             int count = 20;
@@ -158,7 +159,7 @@ public class HubManager implements Listener {
     public void eventIsOver() {
         cancelEventTasks();
         for (Player participant : participants) {
-            hideHubTimerDisplay(participant);
+            hideFastBoard(participant);
         }
     }
     
@@ -274,7 +275,7 @@ public class HubManager implements Listener {
     }
     
     private void updateReturnToHubTimerFastBoard(Player participant, String timeString) {
-        fastBoardManager.updateLines(
+        gameManager.getFastBoardManager().updateLines(
                 participant.getUniqueId(),
                 "",
                 "Back to Hub:",
@@ -283,7 +284,7 @@ public class HubManager implements Listener {
     }
     
     private void showWinningFastBoard(Player participant, String winningTeam, ChatColor chatColor) {
-        fastBoardManager.updateLines(
+        gameManager.getFastBoardManager().updateLines(
                 participant.getUniqueId(),
                 "",
                 chatColor+"Winners:",
@@ -292,35 +293,30 @@ public class HubManager implements Listener {
     }
     
     private void initializeFastBoard(Player participant) {
-        fastBoardManager.updateLines(
+        gameManager.getFastBoardManager().updateLines(
                 participant.getUniqueId()
         );
     }
     
-    private void initializeHubTimerDisplay(Player participant, String timeString) {
-        fastBoardManager.updateLines(
+    private void initializeHubTimerDisplay(Player participant, String gameString) {
+        gameManager.getFastBoardManager().updateLines(
                 participant.getUniqueId(),
                 "",
-                timeString
-        );
-    }
-    
-    private void hideHubTimerDisplay(Player participant) {
-        fastBoardManager.updateLines(
-                participant.getUniqueId()
+                gameString,
+                ""
         );
     }
     
     private void updateHubTimerDisplay(Player participant, String timeString) {
-        fastBoardManager.updateLine(
+        gameManager.getFastBoardManager().updateLine(
                 participant.getUniqueId(),
-                1,
+                2,
                 timeString
         );
     }
     
     private void initializeFiveMinuteBreakDisplay(Player participant, String timeString) {
-        fastBoardManager.updateLines(
+        gameManager.getFastBoardManager().updateLines(
                 participant.getUniqueId(),
                 "",
                 ChatColor.YELLOW+"Break",
@@ -329,10 +325,16 @@ public class HubManager implements Listener {
     }
     
     private void updateFiveMinuteBreakDisplay(Player participant, String timeString) {
-        fastBoardManager.updateLine(
+        gameManager.getFastBoardManager().updateLine(
                 participant.getUniqueId(),
                 2,
                 timeString
+        );
+    }
+    
+    private void hideFastBoard(Player participant) {
+        gameManager.getFastBoardManager().updateLines(
+                participant.getUniqueId()
         );
     }
     
