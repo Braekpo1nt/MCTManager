@@ -10,7 +10,8 @@ Most, if not all commands are sub-commands of the `/mct <sub-command>` command.
 
 | Command                      | Description                              |
 |------------------------------|------------------------------------------|
-| [`/mct game`](#mct-game)     | Start, stop, and vote for games.         |
+| [`/mct game`](#mct-game)     | Start, stop, and vote for games          |
+| [`/mct event`](#mct-event)   | Start, stop, pause, and resume events    |
 | [`/mct team`](#mct-team)     | Add/remove, join/leave, and modify teams |
 | [`/mct load`](#mct-load)     | Load the game state from memory          |
 | [`/mct save`](#mct-save)     | Save the game state to memory            |
@@ -29,6 +30,15 @@ Start, stop, and vote for games.
 - `/mct game vote [one or more games]`
   - Initiates a vote for all participants using the provided games as the voting pool.
   - for example: `/mct game vote spleef foot-race mecha` will show all players a voting gui with those three games, and no others.
+
+## /mct event
+
+Start, stop, pause and resume events.
+
+- `/mct event start [number of games]`
+  - Starts the event
+  - `[number of games]` Optional argument to specify the number of games to play in the event. If omitted, defaults to 6 games.
+- `/mct event stop [confirm]`
 
 ## /mct team
 
