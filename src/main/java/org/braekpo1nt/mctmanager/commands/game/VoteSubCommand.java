@@ -47,7 +47,7 @@ public class VoteSubCommand implements TabExecutor {
             }
             votingPool.add(mctGames.get(gameName));
         }
-        gameManager.startVote(sender, votingPool);
+        gameManager.manuallyStartVote(sender, votingPool);
         return true;
     }
 

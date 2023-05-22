@@ -55,7 +55,7 @@ public class AddSubCommand implements TabExecutor {
             return true;
         }
         
-        if (!displayNameIndexesAreValid(displayNameStart, displayNameEnd)) {
+        if (displayNameIndexesAreInvalid(displayNameStart, displayNameEnd)) {
             sender.sendMessage(Component.text("Display name must be quoted")
                     .color(NamedTextColor.RED));
             sender.sendMessage(Component.text("/mct team add <team> ")
@@ -96,32 +96,26 @@ public class AddSubCommand implements TabExecutor {
                     .color(NamedTextColor.RED));
             return true;
         }
-        try {
-            boolean teamExists = !gameManager.addTeam(teamName, teamDisplayName, colorString);
-            if (teamExists) {
-                sender.sendMessage(Component.text("A team already exists with the team name \"")
-                        .append(Component.text(teamName))
-                        .append(Component.text("\""))
-                        .color(NamedTextColor.RED));
-                return true;
-            }
-            sender.sendMessage(String.format("Created team \"%s\" with display name \"%s\"", teamName, teamDisplayName));
-            sender.sendMessage(Component.text("Created team ")
+        boolean teamExists = !gameManager.addTeam(teamName, teamDisplayName, colorString);
+        if (teamExists) {
+            sender.sendMessage(Component.text("A team already exists with the team name \"")
                     .append(Component.text(teamName))
-                    .append(Component.text("\" with display name \""))
-                    .append(Component.text(teamDisplayName))
                     .append(Component.text("\""))
-                    .color(NamedTextColor.GREEN));
-        } catch (IOException e) {
-            sender.sendMessage(Component.text("Error creating team. See log for error message.").color(NamedTextColor.RED));
-            Bukkit.getLogger().severe("Error saving game state while creating new team.");
-            throw new RuntimeException(e);
+                    .color(NamedTextColor.RED));
+            return true;
         }
+        sender.sendMessage(String.format("Created team \"%s\" with display name \"%s\"", teamName, teamDisplayName));
+        sender.sendMessage(Component.text("Created team ")
+                .append(Component.text(teamName))
+                .append(Component.text("\" with display name \""))
+                .append(Component.text(teamDisplayName))
+                .append(Component.text("\""))
+                .color(NamedTextColor.GREEN));
         return true;
     }
     
-    private static boolean displayNameIndexesAreValid(int displayNameStart, int displayNameEnd) {
-        return displayNameStart != -1 || displayNameEnd != -1 || displayNameStart <= displayNameEnd;
+    private static boolean displayNameIndexesAreInvalid(int displayNameStart, int displayNameEnd) {
+        return displayNameStart == -1 || displayNameEnd == -1 || displayNameStart > displayNameEnd;
     }
     
     private boolean validTeamName(String teamName) {
@@ -172,7 +166,7 @@ public class AddSubCommand implements TabExecutor {
             int[] displayNameIndexes = getDisplayNameIndexes(args);
             int displayNameStart = displayNameIndexes[0];
             int displayNameEnd = displayNameIndexes[1];
-            if (displayNameIndexesAreValid(displayNameStart, displayNameEnd)) {
+            if (!displayNameIndexesAreInvalid(displayNameStart, displayNameEnd)) {
                 if (args.length == displayNameEnd + 2) {
                     String colorString = args[displayNameEnd + 1];
                     return ColorMap.getPartiallyMatchingColorStrings(colorString);

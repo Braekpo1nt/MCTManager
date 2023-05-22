@@ -2,13 +2,16 @@ package org.braekpo1nt.mctmanager.games.voting;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.enums.MCTGames;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.Material;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
@@ -36,12 +39,17 @@ public class VoteManager implements Listener {
     private final Component NETHER_STAR_NAME = Component.text("Vote");
     private int voteCountDownTaskId;
     private List<MCTGames> votingPool = new ArrayList<>();
-
+    
     public VoteManager(GameManager gameManager, Main plugin) {
         this.gameManager = gameManager;
         this.plugin = plugin;
     }
     
+    /**
+     * Starts a voting phase with the given list of participants using the given voting pool
+     * @param participants The participants who should vote
+     * @param votingPool The games to vote between
+     */
     public void startVote(List<Player> participants, List<MCTGames> votingPool) {
         voting = true;
         votes.clear();
@@ -49,8 +57,8 @@ public class VoteManager implements Listener {
         this.votingPool = votingPool;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         for (Player participant : participants) {
-            showVoteGui(participant);
             this.voters.add(participant);
+            showVoteGui(participant);
             participant.sendMessage(Component.text("Vote for the game you want to play")
                     .color(NamedTextColor.GREEN));
         }
@@ -217,7 +225,7 @@ public class VoteManager implements Listener {
             return;
         }
         voting = false;
-        Bukkit.getScheduler().cancelTask(voteCountDownTaskId);
+        cancelAllTasks();
         for (Player voter : voters) {
             voter.closeInventory();
             voter.getInventory().clear();
@@ -231,17 +239,21 @@ public class VoteManager implements Listener {
     
     private void executeVote() {
         voting = false;
-        Bukkit.getScheduler().cancelTask(voteCountDownTaskId);
+        cancelAllTasks();
         for (Player voter : voters) {
             voter.closeInventory();
             voter.getInventory().clear();
             hideFastBoard(voter);
         }
-        MCTGames mctGame = getVotedGame();
+        MCTGames mctGame = getVotedForGame();
         HandlerList.unregisterAll(this);
         votes.clear();
         voters.clear();
-        gameManager.startGame(mctGame, Bukkit.getConsoleSender());
+        gameManager.startGameWithDelay(mctGame, Bukkit.getConsoleSender());
+    }
+    
+    private void cancelAllTasks() {
+        Bukkit.getScheduler().cancelTask(voteCountDownTaskId);
     }
     
     @EventHandler
@@ -306,7 +318,7 @@ public class VoteManager implements Listener {
         showVoteGui(participant);
     }
     
-    private MCTGames getVotedGame() {
+    private MCTGames getVotedForGame() {
         Random random = new Random();
         
         if (votes.isEmpty()) {
@@ -420,6 +432,10 @@ public class VoteManager implements Listener {
         for (Player voter : voters) {
             voter.sendMessage(message);
         }
+    }
+    
+    public boolean isVoting() {
+        return voting;
     }
     
 }

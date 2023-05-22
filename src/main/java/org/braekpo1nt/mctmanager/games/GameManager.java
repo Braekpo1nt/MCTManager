@@ -6,6 +6,8 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.enums.MCTGames;
+import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
+import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.braekpo1nt.mctmanager.games.capturetheflag.CaptureTheFlagGame;
 import org.braekpo1nt.mctmanager.games.finalgame.FinalGame;
@@ -48,7 +50,7 @@ public class GameManager implements Listener {
     private final CaptureTheFlagGame captureTheFlagGame;
     private final HubManager hubManager;
     private FastBoardManager fastBoardManager;
-    private final GameStateStorageUtil gameStateStorageUtil;
+    private GameStateStorageUtil gameStateStorageUtil;
     /**
      * Scoreboard for holding the teams. This private scoreboard can't be
      * modified using the normal /team command, and thus can't be unsynced
@@ -58,11 +60,23 @@ public class GameManager implements Listener {
     private final Main plugin;
     private boolean shouldTeleportToHub = true;
     private int fastBoardUpdaterTaskId;
+    private int finalGameEndTaskId;
     private final List<UUID> participantsWhoLeftMidGame = new ArrayList<>();
     private final VoteManager voteManager;
     private String finalGameTeamA;
     private String finalGameTeamB;
-
+    private boolean eventActive = false;
+    private boolean eventPaused = false;
+    private CommandSender eventMaster;
+    private int currentGameNumber = 0;
+    private int maxGames = 6;
+    /**
+     * Contains the list of online participants. Updated when participants are added/removed or quit/join
+     */
+    private final List<Player> onlineParticipants = new ArrayList<>();
+    private int startGameWithDelayTaskId;
+    private boolean startingGameWithDelay;
+    
     public GameManager(Main plugin, Scoreboard mctScoreboard) {
         this.plugin = plugin;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
@@ -76,7 +90,8 @@ public class GameManager implements Listener {
         this.captureTheFlagGame = new CaptureTheFlagGame(plugin, this);
         this.finalGame = new FinalGame(plugin, this);
         this.fastBoardManager = new FastBoardManager(gameStateStorageUtil);
-        this.hubManager = new HubManager(plugin, mctScoreboard, fastBoardManager, this);
+        this.hubManager = new HubManager(plugin, mctScoreboard, this);
+        this.eventMaster = Bukkit.getConsoleSender();
         kickOffFastBoardManager();
     }
     
@@ -91,6 +106,7 @@ public class GameManager implements Listener {
     
     public void cancelFastBoardManager() {
         Bukkit.getScheduler().cancelTask(this.fastBoardUpdaterTaskId);
+        Bukkit.getScheduler().cancelTask(this.finalGameEndTaskId);
         fastBoardManager.removeAllBoards();
     }
     
@@ -100,23 +116,26 @@ public class GameManager implements Listener {
         if (!isParticipant(player.getUniqueId())) {
             return;
         }
-        onParticipantLeave(player);
+        onParticipantQuit(player);
     }
     
     /**
      * Handles when a participant leaves the event.
-     * Should be called when the player disconnects from the server 
+     * Should be called when a participant disconnects (quits/leaves) from the server 
      * (see {@link GameManager#playerQuitEvent(PlayerQuitEvent)}),
      * or when they are removed from the participants list
      * (see {@link GameManager#leavePlayer(OfflinePlayer)})
      * @param participant The participant who left the event
      */
-    private void onParticipantLeave(Player participant) {
+    private void onParticipantQuit(@NotNull Player participant) {
+        onlineParticipants.remove(participant);
         fastBoardManager.removeBoard(participant.getUniqueId());
         if (gameIsRunning()) {
             activeGame.onParticipantQuit(participant);
             participantsWhoLeftMidGame.add(participant.getUniqueId());
+            return;
         }
+        hubManager.onParticipantQuit(participant);
     }
     
     @EventHandler
@@ -132,20 +151,23 @@ public class GameManager implements Listener {
      * Handles when a participant joins the event. 
      * Should be called when an existing participant joins the server
      * (see {@link GameManager#playerJoinEvent(PlayerJoinEvent)})
-     * or when a new participant is online and added to the participants list
+     * or when an online player is added to the participants list
      * (see {@link GameManager#addNewPlayer(UUID, String)})
-     * @param participant
+     * @param participant the participant
      */
-    private void onParticipantJoin(Player participant) {
+    private void onParticipantJoin(@NotNull Player participant) {
+        onlineParticipants.add(participant);
         fastBoardManager.updateMainBoards();
-        if (!gameIsRunning()) {
-            if (participantsWhoLeftMidGame.contains(participant.getUniqueId())) {
-                participantsWhoLeftMidGame.remove(participant.getUniqueId());
-                hubManager.returnParticipantToHub(participant);
-            }
+        if (gameIsRunning()) {
+            activeGame.onParticipantJoin(participant);
             return;
         }
-        activeGame.onParticipantJoin(participant);
+        if (participantsWhoLeftMidGame.contains(participant.getUniqueId())) {
+            participantsWhoLeftMidGame.remove(participant.getUniqueId());
+            hubManager.returnParticipantToHub(participant);
+            return;
+        }
+        hubManager.onParticipantJoin(participant);
     }
     
     public Scoreboard getMctScoreboard() {
@@ -156,20 +178,41 @@ public class GameManager implements Listener {
         return fastBoardManager;
     }
     
-    public void loadGameState() throws IOException {
-        gameStateStorageUtil.loadGameState();
+    public boolean loadGameState() {
+        try {
+            gameStateStorageUtil.loadGameState();
+        } catch (IOException e) {
+            reportGameStateIOException("loading game state", e);
+            return false;
+        }
         gameStateStorageUtil.setupScoreboard(mctScoreboard);
         for (Player player : Bukkit.getOnlinePlayers()) {
             player.setScoreboard(mctScoreboard);
         }
+        onlineParticipants.clear();
+        for (Player participant : Bukkit.getOnlinePlayers()) {
+            if (gameStateStorageUtil.containsPlayer(participant.getUniqueId())) {
+                onlineParticipants.add(participant);
+                hubManager.onParticipantJoin(participant);
+            }
+        }
+        return true;
     }
     
-    public void saveGameState() throws IOException, IllegalStateException {
-        gameStateStorageUtil.saveGameState();
+    public void saveGameState() {
+        try {
+            gameStateStorageUtil.saveGameState();
+        } catch (IOException e) {
+            reportGameStateIOException("adding score to player", e);
+        }
     }
     
-    public void startVote(@NotNull CommandSender sender, List<MCTGames> votingPool) {
-        List<Player> onlineParticipants = this.getOnlineParticipants();
+    /**
+     * For the "/mct game vote" command. Starts the vote with the specified voting pool.
+     * @param sender The sender of the command
+     * @param votingPool The games to vote between
+     */
+    public void manuallyStartVote(@NotNull CommandSender sender, List<MCTGames> votingPool) {
         if (onlineParticipants.isEmpty()) {
             sender.sendMessage(Component.text("There are no online participants. You can add participants using:\n")
                     .append(Component.text("/mct team join <team> <member>")
@@ -178,6 +221,94 @@ public class GameManager implements Listener {
             return;
         }
         voteManager.startVote(onlineParticipants, votingPool);
+    }
+    
+    /**
+     * Starts the voting phase for the event
+     */
+    public void startVote() {
+        if (currentGameNumber > maxGames) {
+            eventMaster.sendMessage(Component.text("All games have been played. Initiating final game with top two teams."));
+            kickOffFinalGame();
+            return;
+        }
+        
+        List<MCTGames> playedGames = gameStateStorageUtil.getPlayedGames();
+        
+        List<MCTGames> votingPool = new ArrayList<>();
+        votingPool.add(MCTGames.FOOT_RACE);
+        votingPool.add(MCTGames.MECHA);
+        votingPool.add(MCTGames.CAPTURE_THE_FLAG);
+        votingPool.add(MCTGames.SPLEEF);
+        votingPool.add(MCTGames.PARKOUR_PATHWAY);
+        votingPool.removeAll(playedGames);
+        
+        if (votingPool.isEmpty()) {
+            eventMaster.sendMessage(Component.text("No more games to play. Initiating final game with top two teams."));
+            kickOffFinalGame();
+            return;
+        }
+        
+        voteManager.startVote(onlineParticipants, votingPool);
+    }
+    
+    private void updateStartGameDelayFastBoard(Player voter, String gameTitle, String timeString) {
+        fastBoardManager.updateLines(
+                voter.getUniqueId(),
+                "",
+                gameTitle,
+                timeString
+        );
+    }
+    
+    private void kickOffFinalGame() {
+        List<String> allTeams = getTeamNames(onlineParticipants);
+        if (allTeams.size() < 2) {
+            eventMaster.sendMessage(Component.empty()
+                    .append(Component.text("There are fewer than two teams online. Use "))
+                    .append(Component.text("/mct game finalgame <first> <second>")
+                            .clickEvent(ClickEvent.suggestCommand("/mct game finalgame "))
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(" to start the final game with the two chosen teams.")));
+            return;
+        }
+        Map<String, Integer> teamScores = new HashMap<>();
+        for (String teamName : allTeams) {
+            int score = getScore(teamName);
+            teamScores.put(teamName, score);
+        }
+        String[] firstPlaces = GameManagerUtils.calculateFirstPlace(teamScores);
+        if (firstPlaces.length == 2) {
+            String firstPlace = firstPlaces[0];
+            String secondPlace = firstPlaces[1];
+            setFinalGameTeams(firstPlace, secondPlace);
+            startGame(MCTGames.FINAL_GAME);
+            return;
+        }
+        if (firstPlaces.length > 2) {
+            eventMaster.sendMessage(Component.text("There are more than 2 teams tied for first place. A tie breaker is needed. Use ")
+                    .append(Component.text("/mct game finalgame <first> <second>")
+                            .clickEvent(ClickEvent.suggestCommand("/mct game finalgame "))
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(" to start the final game with the two chosen teams."))
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        String firstPlace = firstPlaces[0];
+        teamScores.remove(firstPlace);
+        String[] secondPlaces = GameManagerUtils.calculateFirstPlace(teamScores);
+        if (secondPlaces.length > 1) {
+            eventMaster.sendMessage(Component.text("There is a tie second place. A tie breaker is needed. Use ")
+                    .append(Component.text("/mct game finalgame <first> <second>")
+                            .clickEvent(ClickEvent.suggestCommand("/mct game finalgame "))
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(" to start the final game with the two chosen teams."))
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        String secondPlace = secondPlaces[0];
+        setFinalGameTeams(firstPlace, secondPlace);
+        startGame(MCTGames.FINAL_GAME);
     }
     
     /**
@@ -190,19 +321,173 @@ public class GameManager implements Listener {
     /**
      * Cancel the return to hub if it's in progress
      */
-    public void cancelReturnToHub() {
-        hubManager.cancelReturnToHub();
+    public void cancelAllTasks() {
+        Bukkit.getScheduler().cancelTask(this.finalGameEndTaskId);
+        Bukkit.getScheduler().cancelTask(this.fastBoardUpdaterTaskId);
+        cancelAllEventTasks();
+        hubManager.cancelAllTasks();
     }
     
+    private void cancelAllEventTasks() {
+        Bukkit.getScheduler().cancelTask(this.startGameWithDelayTaskId);
+    }
     
+    public void startEvent(CommandSender eventMaster, int maxGames) {
+        if (eventActive) {
+            eventMaster.sendMessage(Component.text("An event is already running.")
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        if (activeGame != null) {
+            eventMaster.sendMessage(Component.text("Can't start an event while a game is running.")
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        this.eventMaster = eventMaster;
+        currentGameNumber = 1;
+        this.maxGames = maxGames;
+        eventActive = true;
+        try {
+            gameStateStorageUtil.clearPlayedGames();
+        } catch (IOException e) {
+            eventMaster.sendMessage(Component.text(
+                            "Error clearing played games. See log for error message.")
+                    .color(NamedTextColor.RED));
+            Bukkit.getLogger().severe("Error clearing played games. See log for error message.");
+            throw new RuntimeException(e);
+        }
+        eventMaster.sendMessage(Component.text("Starting event. On game ")
+                .append(Component.text(currentGameNumber))
+                .append(Component.text("/"))
+                .append(Component.text(maxGames))
+                .append(Component.text(".")));
+        hubManager.returnParticipantsToHub(onlineParticipants);
+    }
+    
+    public void stopEvent(CommandSender sender) {
+        if (!eventActive) {
+            sender.sendMessage(Component.text("There is no event running.")
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        eventActive = false;
+        Component message = Component.text("Ending event. ")
+                .append(Component.text(currentGameNumber - 1))
+                .append(Component.text("/"))
+                .append(Component.text(maxGames))
+                .append(Component.text(" games were played."));
+        sender.sendMessage(message);
+        if (!sender.equals(eventMaster)){
+            eventMaster.sendMessage(message);
+        }
+        cancelAllEventTasks();
+        hubManager.eventIsOver();
+        currentGameNumber = 0;
+        this.maxGames = 6;
+    }
+    
+    public void pauseEvent(CommandSender sender) {
+        if (!eventActive) {
+            sender.sendMessage(Component.text("There is no event running.")
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        if (activeGame != null || startingGameWithDelay) {
+            sender.sendMessage(Component.text("You can't pause the event while a game is active.")
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        if (voteManager.isVoting()) {
+            sender.sendMessage(Component.text("You can't pause the event during the voting phase.")
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        eventPaused = true;
+        hubManager.pauseHubTimer();
+        Component pauseMessage = Component.text("Event paused.");
+        sender.sendMessage(pauseMessage);
+        if (!sender.equals(eventMaster)) {
+            eventMaster.sendMessage(pauseMessage);
+        }
+    }
+    
+    public void resumeEvent(CommandSender sender) {
+        if (!eventActive) {
+            sender.sendMessage(Component.text("There isn't an event going on.")
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        if (!eventPaused) {
+            sender.sendMessage(Component.text("The event is not paused.")
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        eventPaused = false;
+        hubManager.resumeHubTimer();
+        Component pauseMessage = Component.text("Event resumed.");
+        sender.sendMessage(pauseMessage);
+        if (!sender.equals(eventMaster)) {
+            eventMaster.sendMessage(pauseMessage);
+        }
+    }
+    
+    public void startGameWithDelay(MCTGames mctGame, CommandSender sender) {
+        String gameTitle = ChatColor.BLUE+""+ChatColor.BOLD+MCTGames.getTitle(mctGame);
+        startingGameWithDelay = true;
+        messageOnlineParticipants(Component.empty()
+                .append(Component.text(gameTitle)
+                        .decorate(TextDecoration.BOLD))
+                .append(Component.text(" was selected"))
+                .color(NamedTextColor.BLUE));
+        this.startGameWithDelayTaskId = new BukkitRunnable() {
+            int count = 5;
+            @Override
+            public void run() {
+                if (count <= 0) {
+                    if (eventActive) {
+                        startGame(mctGame, eventMaster);
+                    } else {
+                        startGame(mctGame, sender);
+                    }
+                    startingGameWithDelay = false;
+                    this.cancel();
+                    return;
+                }
+                String timeString = TimeStringUtils.getTimeString(count);
+                for (Player voter : onlineParticipants) {
+                    updateStartGameDelayFastBoard(voter, gameTitle, timeString);
+                }
+                count--;
+            }
+        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+    }
+    
+    /**
+     * Starts the given game using the eventMaster as the sender
+     * @param mctGame the game to start
+     */
+    public void startGame(MCTGames mctGame) {
+        startGame(mctGame, eventMaster);
+    }
+    
+    /**
+     * Starts the given game
+     * @param mctGame The game to start
+     * @param sender The sender to send messages and alerts to
+     */
     public void startGame(MCTGames mctGame, @NotNull CommandSender sender) {
+        
+        if (voteManager.isVoting()) {
+            sender.sendMessage(Component.text("Can't start a game while a vote is going on.")
+                    .color(NamedTextColor.RED));
+            return;
+        }
         
         if (activeGame != null) {
             sender.sendMessage("There is already a game running. You must stop the game before you start a new one.");
             return;
         }
         
-        List<Player> onlineParticipants = this.getOnlineParticipants();
         if (onlineParticipants.isEmpty()) {
             sender.sendMessage(Component.text("There are no online participants. You can add participants using:\n")
                     .append(Component.text("/mct team join <team> <member>")
@@ -211,15 +496,16 @@ public class GameManager implements Listener {
             return;
         }
         
-        List<String> onlineTeamNames = this.getTeamNames(onlineParticipants);
+        List<String> onlineTeams = getTeamNames(onlineParticipants);
         
         switch (mctGame) {
             case FOOT_RACE -> {
+                hubManager.removeParticipantsFromHub(onlineParticipants);
                 footRaceGame.start(onlineParticipants);
                 activeGame = footRaceGame;
             }
             case MECHA -> {
-                if (onlineTeamNames.size() < 2) {
+                if (onlineTeams.size() < 2) {
                     sender.sendMessage(Component.text("MECHA doesn't end correctly unless there are 2 or more teams online. use ")
                             .append(Component.text("/mct game stop")
                                     .clickEvent(ClickEvent.suggestCommand("/mct game stop"))
@@ -227,22 +513,26 @@ public class GameManager implements Listener {
                             .append(Component.text(" to stop the game."))
                             .color(NamedTextColor.RED));
                 }
+                hubManager.removeParticipantsFromHub(onlineParticipants);
                 mechaGame.start(onlineParticipants);
                 activeGame = mechaGame;
             }
             case CAPTURE_THE_FLAG -> {
-                if (onlineTeamNames.size() < 2 || 8 < onlineTeamNames.size()) {
+                if (onlineTeams.size() < 2 || 8 < onlineTeams.size()) {
                     sender.sendMessage(Component.text("Capture the Flag needs at least 2 and at most 8 teams online to play."));
                     return;
                 }
+                hubManager.removeParticipantsFromHub(onlineParticipants);
                 captureTheFlagGame.start(onlineParticipants);
                 activeGame = captureTheFlagGame;
             }
             case SPLEEF -> {
+                hubManager.removeParticipantsFromHub(onlineParticipants);
                 spleefGame.start(onlineParticipants);
                 activeGame = spleefGame;
             }
             case PARKOUR_PATHWAY -> {
+                hubManager.removeParticipantsFromHub(onlineParticipants);
                 parkourPathwayGame.start(onlineParticipants);
                 activeGame = parkourPathwayGame;
             }
@@ -271,13 +561,14 @@ public class GameManager implements Listener {
                 finalGameParticipants.addAll(onlinePlayersOnTeamB);
                 
                 List<Player> otherParticipants = new ArrayList<>();
-                for (Player player : getOnlineParticipants()) {
+                for (Player player : onlineParticipants) {
                     if (!finalGameParticipants.contains(player)) {
                         otherParticipants.add(player);
                     }
                 }
                 finalGame.teleportViewers(otherParticipants);
                 
+                hubManager.removeParticipantsFromHub(onlineParticipants);
                 finalGame.start(finalGameParticipants);
                 activeGame = finalGame;
             }
@@ -300,54 +591,58 @@ public class GameManager implements Listener {
     public void manuallyStopGame(boolean shouldTeleportToHub) {
         this.shouldTeleportToHub = shouldTeleportToHub;
         activeGame.stop();
-        activeGame = null;
     }
     
     /**
      * Meant to be called by the active game when the game is over.
      */
     public void gameIsOver() {
+        if (eventActive) {
+            try {
+                gameStateStorageUtil.addPlayedGame(activeGame.getType());
+            } catch (IOException e) {
+                eventMaster.sendMessage(Component.text(
+                            "Error saving a played game. See log for error message.")
+                        .color(NamedTextColor.RED));
+                Bukkit.getLogger().severe("Error saving a played game. See log for error message.");
+                throw new RuntimeException(e);
+            }
+            currentGameNumber++;
+            eventMaster.sendMessage(Component.text("Now on game ")
+                    .append(Component.text(currentGameNumber))
+                    .append(Component.text("/"))
+                    .append(Component.text(maxGames))
+                    .append(Component.text(".")));
+        }
         activeGame = null;
         if (!shouldTeleportToHub) {
             shouldTeleportToHub = true;
             return;
         }
-        hubManager.returnParticipantsToHubWithDelay(getOnlineParticipants());
+        hubManager.returnParticipantsToHubWithDelay(onlineParticipants);
     }
     
     public void finalGameIsOver(String winningTeamName) {
         Bukkit.getLogger().info("Final game is over");
-        new BukkitRunnable() {
+        finalGameEndTaskId = new BukkitRunnable() {
             @Override
             public void run() {
                 activeGame = null;
-                String winningTeamDisplayName = gameStateStorageUtil.getTeamDisplayName(winningTeamName);
+                String winningTeam = gameStateStorageUtil.getTeamDisplayName(winningTeamName);
                 List<Player> winningTeamParticipants = getOnlinePlayersOnTeam(winningTeamName);
                 String colorString = gameStateStorageUtil.getTeamColorString(winningTeamName);
                 ChatColor chatColor = ColorMap.getChatColor(colorString);
                 List<Player> otherParticipants = new ArrayList<>();
-                for (Player player : getOnlineParticipants()) {
+                for (Player player : onlineParticipants) {
                     if (!winningTeamParticipants.contains(player)) {
                         otherParticipants.add(player);
                     }
                 }
-                hubManager.pedestalTeleport(winningTeamParticipants, winningTeamDisplayName, chatColor, otherParticipants);
+                eventActive = false;
+                eventMaster = null;
+                hubManager.sendParticipantsToPedestal(winningTeamParticipants, winningTeam, chatColor, otherParticipants);
             }
-        }.runTaskLater(plugin, 5*20);
-    }
-    
-    /**
-     * gets a list of the online participants
-     * @return a list of all online participants
-     */
-    public List<Player> getOnlineParticipants() {
-        List<Player> onlineParticipants = new ArrayList<>();
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            if (gameStateStorageUtil.containsPlayer(player.getUniqueId())) {
-                onlineParticipants.add(player);
-            }
-        }
-        return onlineParticipants;
+        }.runTaskLater(plugin, 5*20).getTaskId();
     }
     
     //====================================================
@@ -358,14 +653,17 @@ public class GameManager implements Listener {
      * Remove the given team from the game
      * @param teamName The internal name of the team to remove
      * @return True if the team was successfully removed, false if the team did not exist
-     * @throws IOException If there is a problem saving the game state while removing the team
      */
-    public boolean removeTeam(String teamName) throws IOException {
+    public boolean removeTeam(String teamName) {
         if (!gameStateStorageUtil.containsTeam(teamName)) {
             return false;
         }
-        this.leavePlayersOnTeam(teamName);
-        gameStateStorageUtil.removeTeam(teamName);
+        leavePlayersOnTeam(teamName);
+        try {
+            gameStateStorageUtil.removeTeam(teamName);
+        } catch (IOException e) {
+            reportGameStateIOException("removing team", e);
+        }
         Team team = mctScoreboard.getTeam(teamName);
         if (team != null){
             team.unregister();
@@ -378,13 +676,16 @@ public class GameManager implements Listener {
      * @param teamName The internal name of the team.
      * @param teamDisplayName The display name of the team.
      * @return True if the team was successfully created. False if the team already exists.
-     * @throws IOException If there was a problem saving the game state with the new team.
      */
-    public boolean addTeam(String teamName, String teamDisplayName, String colorString) throws IOException {
+    public boolean addTeam(String teamName, String teamDisplayName, String colorString) {
         if (gameStateStorageUtil.containsTeam(teamName)) {
             return false;
         }
-        gameStateStorageUtil.addTeam(teamName, teamDisplayName, colorString);
+        try {
+            gameStateStorageUtil.addTeam(teamName, teamDisplayName, colorString);
+        } catch (IOException e) {
+            reportGameStateIOException("adding score to player", e);
+        }
         Team newTeam = mctScoreboard.registerNewTeam(teamName);
         newTeam.displayName(Component.text(teamDisplayName));
         NamedTextColor color = ColorMap.getNamedTextColor(colorString);
@@ -443,7 +744,7 @@ public class GameManager implements Listener {
      *                 This method assumes the team exists, and will throw a 
      *                 null pointer exception if it doesn't.
      */
-    public void joinPlayerToTeam(Player player, String teamName) throws IOException {
+    public void joinPlayerToTeam(Player player, String teamName) {
         UUID playerUniqueId = player.getUniqueId();
         if (gameStateStorageUtil.containsPlayer(playerUniqueId)) {
             movePlayerToTeam(playerUniqueId, teamName);
@@ -490,10 +791,13 @@ public class GameManager implements Listener {
      * If a game is running, and the player is online, joins the player to that game.  
      * @param playerUniqueId The UUID of the player to add
      * @param teamName The name of the team to join the new player to
-     * @throws IOException If there is an issue saving the game state when adding the player
      */
-    private void addNewPlayer(UUID playerUniqueId, String teamName) throws IOException {
-        gameStateStorageUtil.addNewPlayer(playerUniqueId, teamName);
+    private void addNewPlayer(UUID playerUniqueId, String teamName) {
+        try {
+            gameStateStorageUtil.addNewPlayer(playerUniqueId, teamName);
+        } catch (IOException e) {
+            reportGameStateIOException("adding new player", e);
+        }
         Team team = mctScoreboard.getTeam(teamName);
         OfflinePlayer newPlayer = Bukkit.getOfflinePlayer(playerUniqueId);
         team.addPlayer(newPlayer);
@@ -507,22 +811,27 @@ public class GameManager implements Listener {
      * Leaves the player from the team and removes them from the game state.
      * If a game is running, and the player is online, removes that player from the game as well. 
      * @param offlinePlayer The player to remove from the team
-     * @throws IOException If there is an issue saving the game state when removing the player
      */
-    public void leavePlayer(OfflinePlayer offlinePlayer) throws IOException {
+    public void leavePlayer(OfflinePlayer offlinePlayer) {
         if (offlinePlayer.isOnline()) {
             Player onlinePlayer = offlinePlayer.getPlayer();
-            onParticipantLeave(onlinePlayer);
+            if (onlinePlayer != null) {
+                onParticipantQuit(onlinePlayer);
+            }
         }
         UUID playerUniqueId = offlinePlayer.getUniqueId();
         String teamName = gameStateStorageUtil.getPlayerTeamName(playerUniqueId);
-        gameStateStorageUtil.leavePlayer(playerUniqueId);
+        try {
+            gameStateStorageUtil.leavePlayer(playerUniqueId);
+        } catch (IOException e) {
+            reportGameStateIOException("leaving player", e);
+        }
         Team team = mctScoreboard.getTeam(teamName);
         team.removePlayer(offlinePlayer);
         fastBoardManager.removeBoard(playerUniqueId);
     }
     
-    private void leavePlayersOnTeam(String teamName) throws IOException {
+    private void leavePlayersOnTeam(String teamName) {
         List<UUID> playerUniqueIds = gameStateStorageUtil.getPlayerUniqueIdsOnTeam(teamName);
         for (UUID playerUniqueId : playerUniqueIds) {
             OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(playerUniqueId);
@@ -544,18 +853,9 @@ public class GameManager implements Listener {
         if (!gameStateStorageUtil.containsPlayer(playerUniqueId)) {
             return;
         }
-        try {
-            String teamName = gameStateStorageUtil.getPlayerTeamName(playerUniqueId);
-            addScore(playerUniqueId, points);
-            addScore(teamName, points);
-        } catch (IOException e) {
-            player.sendMessage(
-                    Component.text("Critical error occurred. Please notify an admin to check the logs.")
-                            .color(NamedTextColor.RED)
-                            .decorate(TextDecoration.BOLD));
-            Bukkit.getLogger().severe("Error while adding points to player. See log for error message.");
-            throw new RuntimeException(e);
-        }
+        String teamName = gameStateStorageUtil.getPlayerTeamName(playerUniqueId);
+        addScore(playerUniqueId, points);
+        addScore(teamName, points);
         player.sendMessage(Component.text("+")
                 .append(Component.text(points))
                 .append(Component.text(" points"))
@@ -572,21 +872,16 @@ public class GameManager implements Listener {
         if (!gameStateStorageUtil.containsTeam(teamName)) {
             return;
         }
-        try {
-            addScore(teamName, points);
-            Component displayName = getFormattedTeamDisplayName(teamName);
-            List<Player> playersOnTeam = getOnlinePlayersOnTeam(teamName);
-            for (Player playerOnTeam : playersOnTeam) {
-                playerOnTeam.sendMessage(Component.text("+")
-                        .append(Component.text(points))
-                        .append(Component.text(" points for "))
-                        .append(displayName)
-                        .decorate(TextDecoration.BOLD)
-                        .color(NamedTextColor.GOLD));
-            }
-        } catch (IOException e) {
-            Bukkit.getLogger().severe("Error while adding points to team. See log for error message.");
-            throw new RuntimeException(e);
+        addScore(teamName, points);
+        Component displayName = getFormattedTeamDisplayName(teamName);
+        List<Player> playersOnTeam = getOnlinePlayersOnTeam(teamName);
+        for (Player playerOnTeam : playersOnTeam) {
+            playerOnTeam.sendMessage(Component.text("+")
+                    .append(Component.text(points))
+                    .append(Component.text(" points for "))
+                    .append(displayName)
+                    .decorate(TextDecoration.BOLD)
+                    .color(NamedTextColor.GOLD));
         }
     }
     
@@ -619,9 +914,8 @@ public class GameManager implements Listener {
      * @return A list of the names of all online participants. Empty list if none are online.
      */
     public List<String> getOnlineParticipantNames() {
-        List<Player> onlinePlayers = getOnlineParticipants();
         List<String> names = new ArrayList<>();
-        for (Player player : onlinePlayers) {
+        for (Player player : onlineParticipants) {
             names.add(player.getName());
         }
         return names;
@@ -631,7 +925,7 @@ public class GameManager implements Listener {
     /**
      * Gets all the names of the participants in the game state, regardless of 
      * whether they're offline or online. 
-     * @return
+     * @return a list of the names of all participants in the game state
      */
     public List<String> getAllParticipantNames() {
         List<OfflinePlayer> offlinePlayers = getOfflineParticipants();
@@ -664,48 +958,60 @@ public class GameManager implements Listener {
      * Adds the given score to the participant with the given UUID
      * @param participantUniqueId The UUID of the participant to add the score to
      * @param score The score to add. Could be positive or negative.
-     * @throws IOException If there is a problem saving the game state.
      */
-    public void addScore(UUID participantUniqueId, int score) throws IOException {
-        gameStateStorageUtil.addScore(participantUniqueId, score);
+    public void addScore(UUID participantUniqueId, int score) {
+        try {
+            gameStateStorageUtil.addScore(participantUniqueId, score);
+        } catch (IOException e) {
+            reportGameStateIOException("adding score to player", e);
+        }
     }
     
     /**
      * Adds the given score to the team with the given name
      * @param teamName The name of the team to add the score to
      * @param score The score to add. Could be positive or negative.
-     * @throws IOException If there is a problem saving the game state.
      */
-    public void addScore(String teamName, int score) throws IOException {
-        gameStateStorageUtil.addScore(teamName, score);
+    public void addScore(String teamName, int score) {
+        try {
+            gameStateStorageUtil.addScore(teamName, score);
+        } catch (IOException e) {
+            reportGameStateIOException("adding score to team", e);
+        }
     }
     
     /**
      * Sets the score of the participant with the given UUID to the given value
      * @param participantUniqueId The UUID of the participant to set the score to
      * @param score The score to set to. If the score is negative, the score will be set to 0.
-     * @throws IOException If there is a problem saving the game state.
      */
-    public void setScore(UUID participantUniqueId, int score) throws IOException {
-        if (score < 0) {
-            gameStateStorageUtil.setScore(participantUniqueId, 0);
-            return;
+    public void setScore(UUID participantUniqueId, int score) {
+        try {
+            if (score < 0) {
+                gameStateStorageUtil.setScore(participantUniqueId, 0);
+                return;
+            }
+            gameStateStorageUtil.setScore(participantUniqueId, score);
+        } catch (IOException e) {
+            reportGameStateIOException("setting a player's score", e);
         }
-        gameStateStorageUtil.setScore(participantUniqueId, score);
     }
     
     /**
      * Sets the score of the team with the given name to the given value
      * @param teamName The UUID of the participant to set the score to
      * @param score The score to set to. If the score is negative, the score will be set to 0.
-     * @throws IOException If there is a problem saving the game state.
      */
-    public void setScore(String teamName, int score) throws IOException {
-        if (score < 0) {
-            gameStateStorageUtil.setScore(teamName, 0);
-            return;
+    public void setScore(String teamName, int score) {
+        try {
+            if (score < 0) {
+                gameStateStorageUtil.setScore(teamName, 0);
+                return;
+            }
+            gameStateStorageUtil.setScore(teamName, score);
+        } catch (IOException e) {
+            reportGameStateIOException("adding score to team", e);
         }
-        gameStateStorageUtil.setScore(teamName, score);
     }
     
     /**
@@ -746,12 +1052,55 @@ public class GameManager implements Listener {
         return ColorMap.getBannerColor(colorString);
     }
     
+    public void setBoundaryEnabled(boolean boundaryEnabled) {
+        hubManager.setBoundaryEnabled(boundaryEnabled);
+    }
+    
+    public boolean eventIsActive() {
+        return eventActive;
+    }
+    
+    public int getCurrentGameNumber() {
+        return currentGameNumber;
+    }
+    
+    public int getMaxGames() {
+        return maxGames;
+    }
+    
+    /**
+     * Check if half the games have been played
+     * @return true if the currentGameNumber-1 is half of the maxGames. False if it is lower or higher. 
+     * If maxGames is odd, it must be the greater half (i.e. 2 is half of 3, 1 is not). 
+     */
+    public boolean halfOfEventHasBeenPlayed() {
+        double half = maxGames / 2.0;
+        return half <= currentGameNumber-1 && currentGameNumber-1 <= Math.ceil(half);
+    }
+    
+    private void messageOnlineParticipants(Component message) {
+        for (Player participant : onlineParticipants) {
+            participant.sendMessage(message);
+        }
+    }
+    
+    // Test methods
+    
     public void setFastBoardManager(FastBoardManager fastBoardManager) {
         this.fastBoardManager = fastBoardManager;
         this.fastBoardManager.setGameStateStorageUtil(this.gameStateStorageUtil);
     }
     
-    // Test methods
+    public void setGameStateStorageUtil(GameStateStorageUtil gameStateStorageUtil) {
+        this.gameStateStorageUtil = gameStateStorageUtil;
+        this.fastBoardManager.setGameStateStorageUtil(gameStateStorageUtil);
+    }
+    
+    private void reportGameStateIOException(String attemptedOperation, IOException ioException) {
+        Bukkit.getLogger().severe(String.format("error while %s. See log for error message.", attemptedOperation));
+        throw new RuntimeException(ioException);
+    }
+    
     public MCTGame getActiveGame() {
         return activeGame;
     }

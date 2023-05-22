@@ -5,6 +5,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.games.enums.MCTGames;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.braekpo1nt.mctmanager.games.GameManager;
@@ -45,6 +46,11 @@ public class FinalGame implements MCTGame, Listener {
         this.gameManager = gameManager;
         MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
         this.finalGameWorld = worldManager.getMVWorld("FT").getCBWorld();
+    }
+    
+    @Override
+    public MCTGames getType() {
+        return MCTGames.FINAL_GAME;
     }
     
     public void teleportViewers(List<Player> otherParticipants) {
@@ -225,7 +231,7 @@ public class FinalGame implements MCTGame, Listener {
         NamedTextColor teamColor = gameManager.getTeamNamedTextColor(winningTeam);
         Bukkit.getServer().sendMessage(Component.empty()
                 .append(gameManager.getFormattedTeamDisplayName(winningTeam))
-                .append(Component.text(" wins MCT #1!"))
+                .append(Component.text(" wins MCT #2!"))
                 .color(teamColor)
                 .decorate(TextDecoration.BOLD));
         stop(winningTeam);

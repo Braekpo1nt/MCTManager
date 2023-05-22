@@ -10,7 +10,8 @@ Most, if not all commands are sub-commands of the `/mct <sub-command>` command.
 
 | Command                      | Description                              |
 |------------------------------|------------------------------------------|
-| [`/mct game`](#mct-game)     | Start, stop, and vote for games.         |
+| [`/mct game`](#mct-game)     | Start, stop, and vote for games          |
+| [`/mct event`](#mct-event)   | Start, stop, pause, and resume events    |
 | [`/mct team`](#mct-team)     | Add/remove, join/leave, and modify teams |
 | [`/mct load`](#mct-load)     | Load the game state from memory          |
 | [`/mct save`](#mct-save)     | Save the game state to memory            |
@@ -29,6 +30,38 @@ Start, stop, and vote for games.
 - `/mct game vote [one or more games]`
   - Initiates a vote for all participants using the provided games as the voting pool.
   - for example: `/mct game vote spleef foot-race mecha` will show all players a voting gui with those three games, and no others.
+
+## /mct event
+
+Start, stop, pause and resume events.
+
+Starting an event kicks off an autonomous flow of a set number of games (specified by the command sender) with a 5-minute break in the middle. The flow looks like this:
+
+- Waiting period in the hub
+- Voting phase where players vote for the next game (games during an event can't be voted for/played more than once).
+- The voted for game is played through to completion
+- Repeat
+
+After all the games in the event have been played (or there are no more games to be played) the top two winners will be sent to the final round to determine the overall champion. 
+
+You can pause the flow of the event during the waiting period in the hub. You can't pause the event during any other period.
+
+You can stop games manually with the `/mct game stop` command. This will continue the flow of the event as normal. Note: `/mct game stop false` has unknown effects on the event flow, and may break the event. More robustness will be added in future updates. 
+
+When an event is over (either by naturally ending, or stopping manually) the points of the teams and players will be saved in the `plugins/MCTManager/gameState.json` file. The games that were played during the event will also be saved to that. However, starting a new event will clear the list of saved already-played games. 
+
+- `/mct event start [number of games]`
+  - Starts the event
+  - `[number of games]` Optional argument to specify the number of games to play in the event. If omitted, defaults to 6 games.
+  - You can't start an event while another event is going on
+- `/mct event stop [confirm]`
+  - Stops the event. This will stop the flow, and no more games will be automatically started by the event. 
+  - `[confirm]` you must provide this argument for it to stop the event. If you don't provide this argument, you will be asked to confirm the stop.
+- `/mct event pause`
+  - Pauses the event. The event can only be paused during the waiting period between the end of a game and the voting phase. 
+- `/mct event resume`
+  - Resumes a paused event.
+
 
 ## /mct team
 

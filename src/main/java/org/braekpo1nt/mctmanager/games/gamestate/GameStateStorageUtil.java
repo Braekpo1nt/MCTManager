@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.games.enums.MCTGames;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -11,6 +12,7 @@ import org.bukkit.Color;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
 import java.util.*;
@@ -22,7 +24,7 @@ public class GameStateStorageUtil {
     
     private static final String GAME_STATE_FILE_NAME = "gameState.json";
     private final File gameStateDirectory;
-    private GameState gameState = new GameState();
+    protected GameState gameState = new GameState();
     
     public GameStateStorageUtil(Main plugin) {
         this.gameStateDirectory = plugin.getDataFolder().getAbsoluteFile();
@@ -72,7 +74,7 @@ public class GameStateStorageUtil {
      * @throws IOException if there is an error creating a new game state file
      */
     private File getGameStateFile() throws IOException {
-        File gameStateFile = new File(gameStateDirectory.getAbsolutePath(), this.GAME_STATE_FILE_NAME);
+        File gameStateFile = new File(gameStateDirectory.getAbsolutePath(), GAME_STATE_FILE_NAME);
         if (!gameStateFile.exists()) {
             if (!gameStateDirectory.exists()) {
                 gameStateDirectory.mkdirs();
@@ -259,7 +261,7 @@ public class GameStateStorageUtil {
         team.setScore(team.getScore() + score);
         saveGameState();
     }
-
+    
     public void setScore(UUID uniqueId, int score) throws IOException {
         MCTPlayer player = gameState.getPlayers().get(uniqueId);
         player.setScore(score);
@@ -283,5 +285,33 @@ public class GameStateStorageUtil {
      */
     public String getTeamColorString(String teamName) {
         return gameState.getTeam(teamName).getColor();
+    }
+    
+    /**
+     * Clear the stored played games from the last event.
+     * @throws IOException if there is an issue saving the game state
+     */
+    public void clearPlayedGames() throws IOException {
+        gameState.setPlayedGames(new ArrayList<>());
+        saveGameState();
+    }
+    
+    /**
+     * Gets the list of played games for the game state
+     * @return A list of the MCTGames that have been played in this game state
+     */
+    public List<MCTGames> getPlayedGames() {
+        return gameState.getPlayedGames();
+    }
+    
+    /**
+     * Add a played game to the game state
+     * @param type the MCTGames representing the played game
+     */
+    public void addPlayedGame(MCTGames type) throws IOException {
+        List<MCTGames> playedGames = gameState.getPlayedGames();
+        playedGames.add(type);
+        gameState.setPlayedGames(playedGames);
+        saveGameState();
     }
 }

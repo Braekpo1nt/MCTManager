@@ -5,9 +5,7 @@ import org.braekpo1nt.mctmanager.commands.MCTCommand;
 import org.braekpo1nt.mctmanager.commands.MCTDebugCommand;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.listeners.BlockEffectsListener;
-import org.braekpo1nt.mctmanager.hub.HubBoundaryListener;
 import org.braekpo1nt.mctmanager.listeners.PlayerJoinListener;
-import org.braekpo1nt.mctmanager.ui.FastBoardManager;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -41,23 +39,21 @@ public class Main extends JavaPlugin {
         Scoreboard mctScoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
         
         gameManager = new GameManager(this, mctScoreboard);
-        try {
-            gameManager.loadGameState();
-        } catch (IOException e) {
-            Bukkit.getLogger().severe("[MCTManager] Could not load game state from memory. Printing stack trace below. Disabling plugin.");
-            e.printStackTrace();
+        boolean ableToLoadGameSate = gameManager.loadGameState();
+        if (!ableToLoadGameSate) {
+            Bukkit.getLogger().severe("[MCTManager] Could not load game state from memory. Disabling plugin.");
             saveGameStateOnDisable = false;
             Bukkit.getPluginManager().disablePlugin(this);
+            return;
         }
         
         // Listeners
-        HubBoundaryListener hubBoundaryListener = new HubBoundaryListener(this);
         BlockEffectsListener blockEffectsListener = new BlockEffectsListener(this);
         new PlayerJoinListener(this, mctScoreboard);
         
         // Commands
         new MCTDebugCommand(this);
-        mctCommand = new MCTCommand(this, gameManager, hubBoundaryListener, blockEffectsListener);
+        mctCommand = new MCTCommand(this, gameManager, blockEffectsListener);
     
         alwaysGiveNightVision();
     }
@@ -83,15 +79,10 @@ public class Main extends JavaPlugin {
         if (saveGameStateOnDisable && gameManager != null) {
             gameManager.cancelFastBoardManager();
             gameManager.cancelVote();
-            gameManager.cancelReturnToHub();
-            try {
-                gameManager.saveGameState();
-                if (gameManager.gameIsRunning()) {
-                    gameManager.manuallyStopGame(false);
-                }
-            } catch (IOException e) {
-                Bukkit.getLogger().severe("[MCTManager] Could not save game state. Printing stack trace below.");
-                e.printStackTrace();
+            gameManager.cancelAllTasks();
+            gameManager.saveGameState();
+            if (gameManager.gameIsRunning()) {
+                gameManager.manuallyStopGame(false);
             }
         } else {
             Bukkit.getLogger().info("[MCTManager] Skipping save game state.");

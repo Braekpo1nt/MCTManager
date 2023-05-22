@@ -1,7 +1,7 @@
 package org.braekpo1nt.mctmanager.commands;
 
+import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.listeners.BlockEffectsListener;
-import org.braekpo1nt.mctmanager.hub.HubBoundaryListener;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
@@ -16,11 +16,11 @@ import java.util.List;
  */
 public class OptionSubCommand implements TabExecutor {
     
-    private final HubBoundaryListener hubBoundaryListener;
+    private final GameManager gameManager;
     private final BlockEffectsListener blockEffectsListener;
     
-    public OptionSubCommand(HubBoundaryListener hubBoundaryListener, BlockEffectsListener blockEffectsListener) {
-        this.hubBoundaryListener = hubBoundaryListener;
+    public OptionSubCommand(GameManager gameManager, BlockEffectsListener blockEffectsListener) {
+        this.gameManager = gameManager;
         this.blockEffectsListener = blockEffectsListener;
     }
     
@@ -33,10 +33,10 @@ public class OptionSubCommand implements TabExecutor {
         
         switch (args[0]) {
             case "disablehubboundary":
-                hubBoundaryListener.disableBoundary();
+                gameManager.setBoundaryEnabled(false);
                 break;
             case "enablehubboundary":
-                hubBoundaryListener.enableBoundary();
+                gameManager.setBoundaryEnabled(true);
                 break;
             case "disableblockeffects":
                 blockEffectsListener.disableBlockEffects();
