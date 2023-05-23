@@ -281,28 +281,21 @@ public class SpleefGame implements MCTGame, Listener {
         layer3.place(new Location(spleefWorld, -23, 25, -2023), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
         layer4.place(new Location(spleefWorld, -23, 21, -2023), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
     }
-
+    
     @EventHandler
     public void onBlockBreak(BlockBreakEvent event) {
         if (!gameActive) {
             return;
         }
-        Block block = event.getBlock();
-        if (!isSpleefBlock(block)) {
+        Player participant = event.getPlayer();
+        if (!participants.contains(participant)) {
             return;
         }
-        // cancel the event and drop nothing
-        event.setCancelled(true);
-        block.setType(Material.AIR);
-    }
-
-    private boolean isSpleefBlock(Block block) {
-        if (spleefArea.contains(block.getLocation().toVector())) {
-            if (block.getType().equals(Material.DIRT)) {
-                return true;
-            }
+        Block block = event.getBlock();
+        if (!block.getType().equals(Material.DIRT)) {
+            return;
         }
-        return false;
+        event.setDropItems(false);
     }
 
 
