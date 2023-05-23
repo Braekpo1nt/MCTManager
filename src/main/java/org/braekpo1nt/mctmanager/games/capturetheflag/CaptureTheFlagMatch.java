@@ -669,7 +669,7 @@ public class CaptureTheFlagMatch implements Listener {
         matchIsOver();
     }
     
-    private void startClassSelectionPeriod() {
+    public void startClassSelectionPeriod() {
         northClassPicker.start(plugin, northParticipants);
         southClassPicker.start(plugin, southParticipants);
         
@@ -684,9 +684,9 @@ public class CaptureTheFlagMatch implements Listener {
                     this.cancel();
                     return;
                 }
+                String timeLeft = TimeStringUtils.getTimeString(count);
                 for (Player participant : allParticipants) {
-                    String timeString = TimeStringUtils.getTimeString(count);
-                    updateClassSelectionFastBoardTimer(participant, timeString);
+                    updateClassSelectionTimerFastBoard(participant, timeLeft);
                 }
                 count--;
             }
@@ -703,9 +703,9 @@ public class CaptureTheFlagMatch implements Listener {
                     this.cancel();
                     return;
                 }
-                String timeString = TimeStringUtils.getTimeString(count);
+                String timeLeft = TimeStringUtils.getTimeString(count);
                 for (Player participant : allParticipants) {
-                    updateMatchTimerFastBoard(participant, timeString);
+                    updateMatchTimerFastBoard(participant, timeLeft);
                 }
                 count--;
             }
@@ -730,7 +730,7 @@ public class CaptureTheFlagMatch implements Listener {
         );
     }
     
-    private void updateClassSelectionFastBoardTimer(Player participant, String timerString) {
+    private void updateClassSelectionTimerFastBoard(Player participant, String timeLeft) {
         gameManager.getFastBoardManager().updateLine(
                 participant.getUniqueId(),
                 4,
@@ -739,7 +739,7 @@ public class CaptureTheFlagMatch implements Listener {
         gameManager.getFastBoardManager().updateLine(
                 participant.getUniqueId(),
                 5,
-                timerString
+                timeLeft
         );
     }
     

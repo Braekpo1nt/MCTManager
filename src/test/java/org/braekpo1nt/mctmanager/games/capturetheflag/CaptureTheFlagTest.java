@@ -918,11 +918,15 @@ public class CaptureTheFlagTest {
         mockFastBoardManager.assertLine(player1.getUniqueId(), 5, "0:05");
         mockFastBoardManager.assertLine(player2.getUniqueId(), 5, "0:05");
         mockFastBoardManager.assertLine(player3.getUniqueId(), 5, "0:05");
-        
         speedThroughHalfRoundCountdown();
-        speedThroughClassSelection();
-        speedThroughHalfRound();
         
+        speedThroughHalfClassSelection();
+        mockFastBoardManager.assertLine(player1.getUniqueId(), 5, "0:10");
+        mockFastBoardManager.assertLine(player2.getUniqueId(), 5, "0:10");
+        mockFastBoardManager.assertLine(player3.getUniqueId(), 5, "0:10");
+        speedThroughHalfClassSelection();
+        
+        speedThroughHalfRound();
         mockFastBoardManager.assertLine(player1.getUniqueId(), 5, "1:30");
         mockFastBoardManager.assertLine(player2.getUniqueId(), 5, "1:30");
         mockFastBoardManager.assertLine(player3.getUniqueId(), 5, "1:30");
