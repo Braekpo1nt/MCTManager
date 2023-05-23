@@ -903,4 +903,33 @@ public class CaptureTheFlagTest {
         }
     }
     
+    @Test
+    @DisplayName("The timer counts down for observers")
+    void timerCountDown() {
+        addTeam("red", "Red", "red");
+        addTeam("blue", "Blue", "blue");
+        addTeam("green", "Green", "green");
+        MyPlayerMock player1 = createParticipant("Player1", "red", "Red");
+        MyPlayerMock player2 = createParticipant("Player2", "blue", "Blue");
+        MyPlayerMock player3 = createParticipant("Player3", "green", "Green");
+        gameManager.startGame(MCTGames.CAPTURE_THE_FLAG, sender);
+        
+        speedThroughHalfRoundCountdown();
+        mockFastBoardManager.assertLine(player1.getUniqueId(), 5, "0:05");
+        mockFastBoardManager.assertLine(player2.getUniqueId(), 5, "0:05");
+        mockFastBoardManager.assertLine(player3.getUniqueId(), 5, "0:05");
+        speedThroughHalfRoundCountdown();
+        
+        speedThroughHalfClassSelection();
+        mockFastBoardManager.assertLine(player1.getUniqueId(), 5, "0:10");
+        mockFastBoardManager.assertLine(player2.getUniqueId(), 5, "0:10");
+        mockFastBoardManager.assertLine(player3.getUniqueId(), 5, "0:10");
+        speedThroughHalfClassSelection();
+        
+        speedThroughHalfRound();
+        mockFastBoardManager.assertLine(player1.getUniqueId(), 5, "1:30");
+        mockFastBoardManager.assertLine(player2.getUniqueId(), 5, "1:30");
+        mockFastBoardManager.assertLine(player3.getUniqueId(), 5, "1:30");
+    }
+    
 }

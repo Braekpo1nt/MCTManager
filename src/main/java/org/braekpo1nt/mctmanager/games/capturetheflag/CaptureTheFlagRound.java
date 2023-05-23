@@ -13,7 +13,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 /**
  * A round is made up of multiple matches. It kicks off the matches it contains, and ends
@@ -29,6 +28,8 @@ public class CaptureTheFlagRound {
     private List<Player> onDeckParticipants;
     private final Location spawnObservatory;
     private int matchesStartingCountDownTaskId;
+    private int onDeckClassSelectionTimerTaskId;
+    private int onDeckMatchTimerTaskId;
     private final World captureTheFlagWorld;
     
     public CaptureTheFlagRound(CaptureTheFlagGame captureTheFlagGame, Main plugin, GameManager gameManager, 
@@ -197,6 +198,69 @@ public class CaptureTheFlagRound {
         return true;
     }
     
+    private void startOnDeckClassSelectionTimer() {
+        this.onDeckClassSelectionTimerTaskId = new BukkitRunnable() {
+            private int count = 20;
+            @Override
+            public void run() {
+                if (count <= 0) {
+                    startOnDeckMatchTimer();
+                    this.cancel();
+                    return;
+                }
+                String timeLeft = TimeStringUtils.getTimeString(count);
+                for (Player onDeckParticipant : onDeckParticipants) {
+                    updateOnDeckClassSelectionTimerFastBoard(onDeckParticipant, timeLeft);
+                }
+                count--;
+            }
+        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+    }
+    
+    private void startOnDeckMatchTimer() {
+        this.onDeckMatchTimerTaskId = new BukkitRunnable() {
+            int count = 3*60;
+            @Override
+            public void run() {
+                if (count <= 0) {
+                    this.cancel();
+                    return;
+                }
+                String timeLeft = TimeStringUtils.getTimeString(count);
+                for (Player onDeckParticipant : onDeckParticipants) {
+                    updateOnDeckMatchTimerFastBoard(onDeckParticipant, timeLeft);
+                }
+                count--;
+            }
+        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+    }
+    
+    private void updateOnDeckMatchTimerFastBoard(Player onDeckParticipant, String timeLeft) {
+        gameManager.getFastBoardManager().updateLine(
+                onDeckParticipant.getUniqueId(),
+                4,
+                "Round:"
+        );
+        gameManager.getFastBoardManager().updateLine(
+                onDeckParticipant.getUniqueId(),
+                5,
+                timeLeft
+        );
+    }
+    
+    private void updateOnDeckClassSelectionTimerFastBoard(Player onDeckParticipant, String timeLeft) {
+        gameManager.getFastBoardManager().updateLine(
+                onDeckParticipant.getUniqueId(),
+                4,
+                "Class selection:"
+        );
+        gameManager.getFastBoardManager().updateLine(
+                onDeckParticipant.getUniqueId(),
+                5,
+                timeLeft
+        );
+    }
+    
     private void startMatchesStartingCountDown() {
         this.matchesStartingCountDownTaskId = new BukkitRunnable() {
             int count = 10;
@@ -223,6 +287,7 @@ public class CaptureTheFlagRound {
             List<Player> southParticipants = getParticipantsOnTeam(matchPairing.southTeam());
             match.start(northParticipants, southParticipants);
         }
+        startOnDeckClassSelectionTimer();
     }
 
     private List<Player> getParticipantsOnTeam(String teamName) {
@@ -235,9 +300,11 @@ public class CaptureTheFlagRound {
         }
         return onTeam;
     }
-
+    
     private void cancelAllTasks() {
         Bukkit.getScheduler().cancelTask(matchesStartingCountDownTaskId);
+        Bukkit.getScheduler().cancelTask(onDeckClassSelectionTimerTaskId);
+        Bukkit.getScheduler().cancelTask(onDeckMatchTimerTaskId);
     }
     
     /**
