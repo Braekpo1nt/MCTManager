@@ -235,7 +235,7 @@ public class CaptureTheFlagRound {
         }
         return onTeam;
     }
-
+    
     private void cancelAllTasks() {
         Bukkit.getScheduler().cancelTask(matchesStartingCountDownTaskId);
     }

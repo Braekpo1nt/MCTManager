@@ -669,7 +669,6 @@ public class CaptureTheFlagMatch implements Listener {
         matchIsOver();
     }
     
-    
     private void startClassSelectionPeriod() {
         northClassPicker.start(plugin, northParticipants);
         southClassPicker.start(plugin, southParticipants);
@@ -706,7 +705,7 @@ public class CaptureTheFlagMatch implements Listener {
                 }
                 String timeString = TimeStringUtils.getTimeString(count);
                 for (Player participant : allParticipants) {
-                    updateMatchTimer(participant, timeString);
+                    updateMatchTimerFastBoard(participant, timeString);
                 }
                 count--;
             }
@@ -744,7 +743,7 @@ public class CaptureTheFlagMatch implements Listener {
         );
     }
     
-    private void updateMatchTimer(Player participant, String timeLeft) {
+    private void updateMatchTimerFastBoard(Player participant, String timeLeft) {
         gameManager.getFastBoardManager().updateLine(
                 participant.getUniqueId(),
                 4,
