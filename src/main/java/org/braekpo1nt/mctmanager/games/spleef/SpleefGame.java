@@ -88,7 +88,7 @@ public class SpleefGame implements MCTGame, Listener {
         initializeFastBoard(participant);
         teleportPlayerToStartingPosition(participant);
         participant.getInventory().clear();
-        participant.setGameMode(GameMode.SURVIVAL);
+        participant.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
     }
@@ -204,19 +204,17 @@ public class SpleefGame implements MCTGame, Listener {
             stop();
         }
     }
-
+    
     private boolean lessThanTwoPlayersAlive() {
         int aliveCount = 0;
-        Iterator<Boolean> isAlives = participantsAlive.values().iterator();
-        while (isAlives.hasNext()) {
-            boolean isAlive = isAlives.next();
+        for (boolean isAlive : participantsAlive.values()) {
             if (isAlive) {
                 aliveCount += 1;
             }
         }
         return aliveCount < 2;
     }
-
+    
     private void onParticipantDeath(Player killed) {
         participantsAlive.put(killed.getUniqueId(), false);
         for (Player participant : participants) {
@@ -227,13 +225,16 @@ public class SpleefGame implements MCTGame, Listener {
             }
         }
     }
-
+    
     private void startSpleef() {
         placeLayers();
+        for (Player participant : participants) {
+            participant.setGameMode(GameMode.SURVIVAL);
+        }
         givePlayersShovels();
         spleefStarted = true;
     }
-
+    
     private void givePlayersShovels() {
         for (Player participant : participants) {
             giveParticipantShovel(participant);
