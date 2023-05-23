@@ -271,15 +271,15 @@ public class SpleefGame implements MCTGame, Listener {
     }
     
     private void placeLayers() {
-//        Structure layer1 = Bukkit.getStructureManager().loadStructure(new NamespacedKey("mctdatapack", "spleef/spleef_layer1"));
-//        Structure layer2 = Bukkit.getStructureManager().loadStructure(new NamespacedKey("mctdatapack", "spleef/spleef_layer2"));
-//        Structure layer3 = Bukkit.getStructureManager().loadStructure(new NamespacedKey("mctdatapack", "spleef/spleef_layer3"));
-//        Structure layer4 = Bukkit.getStructureManager().loadStructure(new NamespacedKey("mctdatapack", "spleef/spleef_layer4"));
-//
-//        layer1.place(new Location(spleefWorld, -15, 21, -2015), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
-//        layer2.place(new Location(spleefWorld, -15, 16, -2015), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
-//        layer3.place(new Location(spleefWorld, -15, 11, -2015), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
-//        layer4.place(new Location(spleefWorld, -15, 6, -2015), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
+        Structure layer1 = Bukkit.getStructureManager().loadStructure(new NamespacedKey("mctdatapack", "spleef/spleef_layer1"));
+        Structure layer2 = Bukkit.getStructureManager().loadStructure(new NamespacedKey("mctdatapack", "spleef/spleef_layer2"));
+        Structure layer3 = Bukkit.getStructureManager().loadStructure(new NamespacedKey("mctdatapack", "spleef/spleef_layer3"));
+        Structure layer4 = Bukkit.getStructureManager().loadStructure(new NamespacedKey("mctdatapack", "spleef/spleef_layer4"));
+
+        layer1.place(new Location(spleefWorld, -23, 33, -2023), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
+        layer2.place(new Location(spleefWorld, -23, 29, -2023), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
+        layer3.place(new Location(spleefWorld, -23, 25, -2023), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
+        layer4.place(new Location(spleefWorld, -23, 21, -2023), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
     }
 
     @EventHandler
