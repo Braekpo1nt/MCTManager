@@ -282,6 +282,9 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
             }
         }
         nextRound.start(roundParticipants, onDeckParticipants);
+        for (Player participant : participants) {
+            updateRoundFastBoard(participant);
+        }
     }
 
     /**

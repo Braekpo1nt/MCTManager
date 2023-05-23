@@ -50,12 +50,15 @@ public class SpleefGame implements MCTGame, Listener {
     private int startCountDownTaskID;
     private final String title = ChatColor.BLUE+"Spleef";
     private final BoundingBox spleefArea = new BoundingBox(-20, 25, -1981, 21, 0, -2021);
-
+    private final List<BoundingBox> layers;
+    private int decayTaskId;
+    
     public SpleefGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
         this.gameManager = gameManager;
         MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
         this.spleefWorld = worldManager.getMVWorld("FT").getCBWorld();
+        this.layers = createLayers();
     }
     
     @Override
@@ -76,6 +79,7 @@ public class SpleefGame implements MCTGame, Listener {
         }
         startStatusEffectsTask();
         startStartSpleefCountDownTask();
+        startDecayTask();
         setupTeamOptions();
         gameActive = true;
         Bukkit.getLogger().info("Starting Spleef game");
@@ -235,6 +239,70 @@ public class SpleefGame implements MCTGame, Listener {
         spleefStarted = true;
     }
     
+    private void startDecayTask() {
+         this.decayTaskId = new BukkitRunnable() {
+            private final Random random = new Random();
+            @Override
+            public void run() {
+                // Get all dirt and coarse dirt blocks within the layer bounding box
+                BoundingBox layer = layers.get(random.nextInt(layers.size()));
+                
+                List<Block> coarseDirtBlocks = getCoarseDirtBlocks(layer);
+                List<Block> dirtBlocks = getDirtBlocks(layer);
+                
+                // Decay coarse dirt blocks to air
+                if (!coarseDirtBlocks.isEmpty()) {
+                    for (int i = 0; i < 3; i++) {
+                        Block randomCoarseDirtBlock = coarseDirtBlocks.get(random.nextInt(coarseDirtBlocks.size()));
+                        randomCoarseDirtBlock.setType(Material.AIR);
+                    }
+                }
+                
+                // Decay dirt blocks to coarse dirt
+                if (!dirtBlocks.isEmpty()) {
+                    for (int i = 0; i < 3; i++) {
+                        Block randomDirtBlock = dirtBlocks.get(random.nextInt(dirtBlocks.size()));
+                        randomDirtBlock.setType(Material.COARSE_DIRT);
+                    }
+                }
+            }
+            
+            private List<Block> getDirtBlocks(BoundingBox layer) {
+                List<Block> dirtBlocks = new ArrayList<>();
+                
+                for (int x = layer.getMin().getBlockX(); x <= layer.getMaxX(); x++) {
+                    for (int y = layer.getMin().getBlockY(); y <= layer.getMaxY(); y++) {
+                        for (int z = layer.getMin().getBlockZ(); z <= layer.getMaxZ(); z++) {
+                            Block block = spleefWorld.getBlockAt(x, y, z);
+                            if (block.getType() == Material.DIRT) {
+                                dirtBlocks.add(block);
+                            }
+                        }
+                    }
+                }
+                
+                return dirtBlocks;
+            }
+            
+            private List<Block> getCoarseDirtBlocks(BoundingBox layer) {
+                List<Block> coarseDirtBlocks = new ArrayList<>();
+                
+                for (int x = layer.getMin().getBlockX(); x <= layer.getMaxX(); x++) {
+                    for (int y = layer.getMin().getBlockY(); y <= layer.getMaxY(); y++) {
+                        for (int z = layer.getMin().getBlockZ(); z <= layer.getMaxZ(); z++) {
+                            Block block = spleefWorld.getBlockAt(x, y, z);
+                            if (block.getType() == Material.COARSE_DIRT) {
+                                coarseDirtBlocks.add(block);
+                            }
+                        }
+                    }
+                }
+                
+                return coarseDirtBlocks;
+            }
+        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+    }
+    
     private void givePlayersShovels() {
         for (Player participant : participants) {
             giveParticipantShovel(participant);
@@ -251,7 +319,7 @@ public class SpleefGame implements MCTGame, Listener {
     private void startStartSpleefCountDownTask() {
         this.startCountDownTaskID = new BukkitRunnable() {
             private int count = 10;
-
+            
             @Override
             public void run() {
                 for (Player participant : participants) {
@@ -276,7 +344,7 @@ public class SpleefGame implements MCTGame, Listener {
         Structure layer2 = Bukkit.getStructureManager().loadStructure(new NamespacedKey("mctdatapack", "spleef/spleef_layer2"));
         Structure layer3 = Bukkit.getStructureManager().loadStructure(new NamespacedKey("mctdatapack", "spleef/spleef_layer3"));
         Structure layer4 = Bukkit.getStructureManager().loadStructure(new NamespacedKey("mctdatapack", "spleef/spleef_layer4"));
-
+        
         layer1.place(new Location(spleefWorld, -23, 33, -2023), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
         layer2.place(new Location(spleefWorld, -23, 29, -2023), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
         layer3.place(new Location(spleefWorld, -23, 25, -2023), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
@@ -293,13 +361,13 @@ public class SpleefGame implements MCTGame, Listener {
             return;
         }
         Block block = event.getBlock();
-        if (!block.getType().equals(Material.DIRT)) {
+        Material type = block.getType();
+        if (!type.equals(Material.DIRT) && !type.equals(Material.COARSE_DIRT)) {
             return;
         }
         event.setDropItems(false);
     }
-
-
+    
     private void startStatusEffectsTask() {
         this.statusEffectsTaskId = new BukkitRunnable(){
             @Override
@@ -310,7 +378,7 @@ public class SpleefGame implements MCTGame, Listener {
             }
         }.runTaskTimer(plugin, 0L, 60L).getTaskId();
     }
-
+    
     private void setupTeamOptions() {
         Scoreboard mctScoreboard = gameManager.getMctScoreboard();
         for (Team team : mctScoreboard.getTeams()) {
@@ -321,7 +389,7 @@ public class SpleefGame implements MCTGame, Listener {
             team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER);
         }
     }
-
+    
     private void initializeFastBoard(Player participant) {
         gameManager.getFastBoardManager().updateLines(
                 participant.getUniqueId(),
@@ -329,21 +397,22 @@ public class SpleefGame implements MCTGame, Listener {
                 ""
         );
     }
-
+    
     private void hideFastBoard(Player participant) {
         gameManager.getFastBoardManager().updateLines(
                 participant.getUniqueId()
         );
     }
-
+    
     private void teleportPlayerToStartingPosition(Player player) {
         player.sendMessage("Teleporting to Spleef");
         player.teleport(spleefStartAnchor);
     }
-
+    
     private void cancelAllTasks() {
         Bukkit.getScheduler().cancelTask(startCountDownTaskID);
         Bukkit.getScheduler().cancelTask(statusEffectsTaskId);
+        Bukkit.getScheduler().cancelTask(decayTaskId);
     }
 
     private void messageAllParticipants(Component message) {
@@ -355,5 +424,14 @@ public class SpleefGame implements MCTGame, Listener {
     private int calculateExpPoints(int level) {
         int maxExpPoints = level > 7 ? 100 : level * 7;
         return maxExpPoints / 10;
+    }
+    
+    private List<BoundingBox> createLayers() {
+        List<BoundingBox> layers = new ArrayList<>(4);
+        layers.add(new BoundingBox(-23, 33, -2023, 21, 33, -1979));
+        layers.add(new BoundingBox(-23, 29, -2023, 21, 29, -1979));
+        layers.add(new BoundingBox(-23, 25, -2023, 21, 25, -1979));
+        layers.add(new BoundingBox(-23, 21, -2023, 21, 21, -1979));
+        return layers;
     }
 }
