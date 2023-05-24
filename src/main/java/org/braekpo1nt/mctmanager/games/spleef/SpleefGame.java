@@ -254,6 +254,8 @@ public class SpleefGame implements MCTGame, Listener {
                         if (count <= 0) {
                             count = 60;
                             decayStage = DecayStage.TOP_HALF;
+                            messageAllParticipants(Component.text("Top two levels are decaying")
+                                    .color(NamedTextColor.YELLOW));
                             return;
                         }
                         count--;
@@ -261,10 +263,12 @@ public class SpleefGame implements MCTGame, Listener {
                     case TOP_HALF -> {
                         if (count <= 0) {
                             decayStage = DecayStage.BOTTOM_HALF;
+                            messageAllParticipants(Component.text("All levels are decaying")
+                                    .color(NamedTextColor.YELLOW));
                             return;
                         }
                         count--;
-    
+                        
                         decayLayer(layers.get(0), 8);
                         decayLayer(layers.get(1), 6);
                     }
