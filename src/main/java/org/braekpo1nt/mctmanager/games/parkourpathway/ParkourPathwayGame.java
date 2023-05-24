@@ -44,7 +44,7 @@ public class ParkourPathwayGame implements MCTGame, Listener {
     private int checkpointCounterTask;
     private boolean gameActive = false;
     private List<Player> participants;
-    private Location parkourPathwayStartAnchor;
+    private final Location parkourPathwayStartAnchor;
     private final List<CheckPoint> checkpoints;
     /**
      * UUID paired with index of checkpoint
@@ -58,6 +58,8 @@ public class ParkourPathwayGame implements MCTGame, Listener {
         MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
         this.parkourPathwayWorld = worldManager.getMVWorld("FT").getCBWorld();
         this.checkpoints = createCheckpoints();
+        AnchorManager anchorManager = Main.multiverseCore.getAnchorManager();
+        this.parkourPathwayStartAnchor = anchorManager.getAnchorLocation("parkour-pathway");
     }
     
     @Override
@@ -71,8 +73,6 @@ public class ParkourPathwayGame implements MCTGame, Listener {
         currentCheckpoints = new HashMap<>();
         highestCheckpoint = 0;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
-        AnchorManager anchorManager = Main.multiverseCore.getAnchorManager();
-        this.parkourPathwayStartAnchor = anchorManager.getAnchorLocation("parkour-pathway");
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
         }
@@ -163,7 +163,7 @@ public class ParkourPathwayGame implements MCTGame, Listener {
             return;
         }
         CheckPoint nextCheckpoint = checkpoints.get(nextCheckpointIndex);
-        if (nextCheckpoint.getBoundingBox().contains(player.getLocation().toVector())) {
+        if (nextCheckpoint.boundingBox().contains(player.getLocation().toVector())) {
             // Player got to the next checkpoint
             currentCheckpoints.put(playerUUID, nextCheckpointIndex);
             updateCheckpointFastBoard(player);
@@ -195,9 +195,9 @@ public class ParkourPathwayGame implements MCTGame, Listener {
         }
         CheckPoint currentCheckpoint = checkpoints.get(currentCheckpointIndex);
         double yPos = player.getLocation().getY();
-        if (yPos < currentCheckpoint.getyValue()) {
+        if (yPos < currentCheckpoint.yValue()) {
             // Player fell, and must be teleported to checkpoint spawn
-            player.teleport(currentCheckpoint.getRespawn());
+            player.teleport(currentCheckpoint.respawn());
         }
     }
 
@@ -326,7 +326,7 @@ public class ParkourPathwayGame implements MCTGame, Listener {
             }
         }.runTaskTimer(plugin, 0L, 60L).getTaskId();
     }
-
+    
     private void giveBoots(Player participant) {
         Color teamColor = gameManager.getTeamColor(participant.getUniqueId());
         ItemStack boots = new ItemStack(Material.LEATHER_BOOTS);
@@ -335,7 +335,7 @@ public class ParkourPathwayGame implements MCTGame, Listener {
         boots.setItemMeta(meta);
         participant.getEquipment().setBoots(boots);
     }
-
+    
     private void setupTeamOptions() {
         Scoreboard mctScoreboard = gameManager.getMctScoreboard();
         for (Team team : mctScoreboard.getTeams()) {
@@ -346,12 +346,12 @@ public class ParkourPathwayGame implements MCTGame, Listener {
             team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER);
         }
     }
-
+    
     private void teleportPlayerToStartingPosition(Player player) {
         player.sendMessage("Teleporting to Parkour Pathway");
         player.teleport(parkourPathwayStartAnchor);
     }
-
+    
     private void cancelAllTasks() {
         Bukkit.getScheduler().cancelTask(statusEffectsTaskId);
         Bukkit.getScheduler().cancelTask(startNextRoundTimerTaskId);
