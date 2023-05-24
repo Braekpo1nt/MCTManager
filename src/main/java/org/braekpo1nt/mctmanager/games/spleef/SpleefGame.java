@@ -9,6 +9,7 @@ import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.enums.MCTGames;
 import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
+import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Block;
@@ -79,7 +80,6 @@ public class SpleefGame implements MCTGame, Listener {
         }
         startStatusEffectsTask();
         startStartSpleefCountDownTask();
-        startDecayTask();
         setupTeamOptions();
         gameActive = true;
         Bukkit.getLogger().info("Starting Spleef game");
@@ -221,21 +221,28 @@ public class SpleefGame implements MCTGame, Listener {
     
     private void onParticipantDeath(Player killed) {
         participantsAlive.put(killed.getUniqueId(), false);
+        int count = participants.size();
         for (Player participant : participants) {
-            if (!participant.getUniqueId().equals(killed.getUniqueId())) {
-                if (participantsAlive.get(participant.getUniqueId())) {
-                    gameManager.awardPointsToPlayer(participant, 10);
-                }
+            if (participantsAlive.get(participant.getUniqueId())) {
+                gameManager.awardPointsToPlayer(participant, 10);
+            } else {
+                count--;
             }
+        }
+        for (Player participant : participants) {
+            updateAliveCountFastBoard(participant, ""+count);
         }
     }
     
     private void startSpleef() {
         placeLayers();
+        String count = "" + participants.size();
         for (Player participant : participants) {
             participant.setGameMode(GameMode.SURVIVAL);
+            initializeAliveCountFastBoard(participant, count);
         }
         givePlayersShovels();
+        startDecayTask();
         spleefStarted = true;
     }
     
@@ -322,17 +329,14 @@ public class SpleefGame implements MCTGame, Listener {
             
             @Override
             public void run() {
-                for (Player participant : participants) {
-                    if (count <= 0) {
-                        participant.sendMessage(Component.text("Go!"));
-                    } else {
-                        participant.sendMessage(Component.text(count));
-                    }
-                }
                 if (count <= 0) {
                     startSpleef();
                     this.cancel();
                     return;
+                }
+                String timeLeft = TimeStringUtils.getTimeString(count);
+                for (Player participant : participants) {
+                    updateCountDownFastBoard(participant, timeLeft);
                 }
                 count--;
             }
@@ -344,11 +348,19 @@ public class SpleefGame implements MCTGame, Listener {
         Structure layer2 = Bukkit.getStructureManager().loadStructure(new NamespacedKey("mctdatapack", "spleef/spleef_layer2"));
         Structure layer3 = Bukkit.getStructureManager().loadStructure(new NamespacedKey("mctdatapack", "spleef/spleef_layer3"));
         Structure layer4 = Bukkit.getStructureManager().loadStructure(new NamespacedKey("mctdatapack", "spleef/spleef_layer4"));
-        
-        layer1.place(new Location(spleefWorld, -23, 33, -2023), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
-        layer2.place(new Location(spleefWorld, -23, 29, -2023), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
-        layer3.place(new Location(spleefWorld, -23, 25, -2023), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
-        layer4.place(new Location(spleefWorld, -23, 21, -2023), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
+    
+        if (layer1 != null) {
+            layer1.place(new Location(spleefWorld, -23, 33, -2023), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
+        }
+        if (layer2 != null) {
+            layer2.place(new Location(spleefWorld, -23, 29, -2023), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
+        }
+        if (layer3 != null) {
+            layer3.place(new Location(spleefWorld, -23, 25, -2023), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
+        }
+        if (layer4 != null) {
+            layer4.place(new Location(spleefWorld, -23, 21, -2023), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
+        }
     }
     
     @EventHandler
@@ -394,7 +406,35 @@ public class SpleefGame implements MCTGame, Listener {
         gameManager.getFastBoardManager().updateLines(
                 participant.getUniqueId(),
                 title,
+                "",
+                "Starting in",
                 ""
+        );
+    }
+    
+    private void initializeAliveCountFastBoard(Player participant, String count) {
+        gameManager.getFastBoardManager().updateLines(
+                participant.getUniqueId(),
+                title,
+                "",
+                "Alive:",
+                count
+        );
+    }
+    
+    private void updateAliveCountFastBoard(Player participant, String count) {
+        gameManager.getFastBoardManager().updateLine(
+                participant.getUniqueId(),
+                3,
+                count
+        );
+    }
+    
+    private void updateCountDownFastBoard(Player participant, String timeLeft) {
+        gameManager.getFastBoardManager().updateLine(
+                participant.getUniqueId(),
+                3,
+                timeLeft
         );
     }
     
