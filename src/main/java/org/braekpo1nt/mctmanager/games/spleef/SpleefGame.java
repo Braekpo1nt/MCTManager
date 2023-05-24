@@ -11,19 +11,15 @@ import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.bukkit.*;
-import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Block;
 import org.bukkit.block.structure.Mirror;
 import org.bukkit.block.structure.StructureRotation;
 import org.bukkit.enchantments.Enchantment;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
-import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.inventory.ItemStack;
@@ -249,32 +245,60 @@ public class SpleefGame implements MCTGame, Listener {
     private void startDecayTask() {
          this.decayTaskId = new BukkitRunnable() {
             private final Random random = new Random();
+            private DecayStage decayStage = DecayStage.NONE;
+            private int count = 60;
             @Override
             public void run() {
-                // Get all dirt and coarse dirt blocks within the layer bounding box
-                BoundingBox layer = layers.get(random.nextInt(layers.size()));
-                
-                List<Block> coarseDirtBlocks = getCoarseDirtBlocks(layer);
-                List<Block> dirtBlocks = getDirtBlocks(layer);
-                
-                // Decay coarse dirt blocks to air
-                if (!coarseDirtBlocks.isEmpty()) {
-                    for (int i = 0; i < 3; i++) {
-                        Block randomCoarseDirtBlock = coarseDirtBlocks.get(random.nextInt(coarseDirtBlocks.size()));
-                        randomCoarseDirtBlock.setType(Material.AIR);
+                switch (decayStage) {
+                    case NONE -> {
+                        if (count <= 0) {
+                            count = 60;
+                            decayStage = DecayStage.TOP_HALF;
+                            return;
+                        }
+                        count--;
                     }
-                }
-                
-                // Decay dirt blocks to coarse dirt
-                if (!dirtBlocks.isEmpty()) {
-                    for (int i = 0; i < 3; i++) {
-                        Block randomDirtBlock = dirtBlocks.get(random.nextInt(dirtBlocks.size()));
-                        randomDirtBlock.setType(Material.COARSE_DIRT);
+                    case TOP_HALF -> {
+                        if (count <= 0) {
+                            decayStage = DecayStage.BOTTOM_HALF;
+                            return;
+                        }
+                        count--;
+    
+                        decayLayer(layers.get(0), 8);
+                        decayLayer(layers.get(1), 6);
+                    }
+                    case BOTTOM_HALF -> {
+                        decayLayer(layers.get(0), 8);
+                        decayLayer(layers.get(1), 6);
+                        decayLayer(layers.get(2), 4);
+                        decayLayer(layers.get(3), 2);
                     }
                 }
             }
             
-            private List<Block> getDirtBlocks(BoundingBox layer) {
+             private void decayLayer(BoundingBox layer1, int blocks) {
+                 List<Block> coarseDirtBlocks = getCoarseDirtBlocks(layer1);
+                 List<Block> dirtBlocks = getDirtBlocks(layer1);
+            
+                 // Decay coarse dirt blocks to air
+                 if (!coarseDirtBlocks.isEmpty()) {
+                     for (int i = 0; i < blocks; i++) {
+                         Block randomCoarseDirtBlock = coarseDirtBlocks.get(random.nextInt(coarseDirtBlocks.size()));
+                         randomCoarseDirtBlock.setType(Material.AIR);
+                     }
+                 }
+                
+                 // Decay dirt blocks to coarse dirt
+                 if (!dirtBlocks.isEmpty()) {
+                     for (int i = 0; i < blocks; i++) {
+                         Block randomDirtBlock = dirtBlocks.get(random.nextInt(dirtBlocks.size()));
+                         randomDirtBlock.setType(Material.COARSE_DIRT);
+                     }
+                 }
+             }
+    
+             private List<Block> getDirtBlocks(BoundingBox layer) {
                 List<Block> dirtBlocks = new ArrayList<>();
                 
                 for (int x = layer.getMin().getBlockX(); x <= layer.getMaxX(); x++) {
