@@ -185,10 +185,7 @@ public class ParkourPathwayGame implements MCTGame, Listener {
                 stop();
                 return;
             }
-            if (highestCheckpoint < nextCheckpointIndex) {
-                highestCheckpoint = nextCheckpointIndex;
-                restartCheckpointCounter();
-            }
+            restartCheckpointCounter();
             return;
         }
         CheckPoint currentCheckpoint = checkpoints.get(currentCheckpointIndex);
@@ -275,9 +272,7 @@ public class ParkourPathwayGame implements MCTGame, Listener {
                 }
                 if (count == 30) {
                     messageAllParticipants(Component.empty()
-                            .append(Component.text("No one has reached checkpoint "))
-                            .append(Component.text(highestCheckpoint + 1))
-                            .append(Component.text(" in the last 1.5 minutes. Ending in 30 seconds"))
+                            .append(Component.text("No one has reached a new checkpoint in the last 1.5 minutes. Ending in 30 seconds"))
                             .color(NamedTextColor.RED));
                 }
                 if (count <= 30) {
