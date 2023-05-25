@@ -440,159 +440,87 @@ public class ParkourPathwayGame implements MCTGame, Listener {
 //        }
 //        return parkourPathwayStorageUtil.getCheckPoints();
         
-        List<CheckPoint> newCheckpoints = new ArrayList<>();
-        
-        newCheckpoints.add(new CheckPoint(
+        return new ArrayList<>();
+    }
+    
+    private void saveSampleConfig() {
+        List<CheckPoint> checkpoints = new ArrayList<>();
+    
+        checkpoints.add(new CheckPoint(
                 0,
                 new BoundingBox(998, 5, -8, 1007, -1, 8),
                 new Location(parkourPathwayWorld, 1003, 0, 0)
         )); // spawn (0)
-        newCheckpoints.add(new CheckPoint(
+        checkpoints.add(new CheckPoint(
                 8,
                 new BoundingBox(1017, 10, 6, 1020, 7, -6),
                 new Location(parkourPathwayWorld, 1017, 8, 4)
         )); // 1
-        newCheckpoints.add(new CheckPoint(
+        checkpoints.add(new CheckPoint(
                 5,
                 new BoundingBox(1048, 7, -4, 1046, 11, 3),
                 new Location(parkourPathwayWorld, 1046 ,8 ,2)
         )); //2
-        newCheckpoints.add(new CheckPoint(
+        checkpoints.add(new CheckPoint(
                 9,
                 new BoundingBox(1074, 9, -3, 1077, 13, 4),
                 new Location(parkourPathwayWorld, 1076 ,9 ,0)
         )); // 3
-        newCheckpoints.add(new CheckPoint(
+        checkpoints.add(new CheckPoint(
                 9,
                 new BoundingBox(1101, 11, -7, 1099, 9, 7),
                 new Location(parkourPathwayWorld, 1101, 9, 0)
         )); // 4
-        newCheckpoints.add(new CheckPoint(
+        checkpoints.add(new CheckPoint(
                 33,
                 new BoundingBox(1106, 32, -10, 1109, 38, 10),
                 new Location(parkourPathwayWorld, 1107, 33, -6)
         )); // 5
-        newCheckpoints.add(new CheckPoint(
+        checkpoints.add(new CheckPoint(
                 35,
                 new BoundingBox(1109, 34, -3, 1107, 38, 3),
                 new Location(parkourPathwayWorld, 1108 ,35 ,0)
         )); // 6
-        newCheckpoints.add(new CheckPoint(
+        checkpoints.add(new CheckPoint(
                 42,
                 new BoundingBox(1101, 43, 1, 1099, 45, -1),
                 new Location(parkourPathwayWorld, 1100, 43, 0)
         )); // 7
-        newCheckpoints.add(new CheckPoint(
+        checkpoints.add(new CheckPoint(
                 42,
                 new BoundingBox(1079, 43, 3, 1077, 48, -3),
                 new Location(parkourPathwayWorld, 1078, 44, 0)
         )); // 8
-        newCheckpoints.add(new CheckPoint(
+        checkpoints.add(new CheckPoint(
                 42,
                 new BoundingBox(1038, 43, 3, 1034, 48, -3),
                 new Location(parkourPathwayWorld, 1036, 44, 0)
         )); // 9
-        newCheckpoints.add(new CheckPoint(
+        checkpoints.add(new CheckPoint(
                 42,
                 new BoundingBox(1017, 44, 6, 1020, 51, -5),
                 new Location(parkourPathwayWorld, 1019, 45, 0)
         )); // 10
-        newCheckpoints.add(new CheckPoint(
+        checkpoints.add(new CheckPoint(
                 44,
                 new BoundingBox(1005, 43, -3, 1003, 48, 5),
                 new Location(parkourPathwayWorld, 1004 ,44, 1)
         )); // 11
-        newCheckpoints.add(new CheckPoint(
+        checkpoints.add(new CheckPoint(
                 42,
                 new BoundingBox(981, 43, -3, 984, 48, 5),
                 new Location(parkourPathwayWorld, 982 ,44, 1)
         )); // 12
-        newCheckpoints.add(new CheckPoint(
+        checkpoints.add(new CheckPoint(
                 41,
                 new BoundingBox(924, 48, 5, 915, 40, -3),
                 new Location(parkourPathwayWorld,920, 41, 1 )
         )); // finish line (13)
-        
-        return newCheckpoints;
-    }
-    
-    private void saveSampleConfig() {
-        List<List<CheckPoint>> checkpoints = new ArrayList<>();
-        
-        checkpoints.add(Collections.singletonList(new CheckPoint(
-                0,
-                new BoundingBox(998, 5, -8, 1007, -1, 8),
-                new Location(parkourPathwayWorld, 1003, 0, 0)
-        ))); // spawn (0)
-        checkpoints.add(Collections.singletonList(new CheckPoint(
-                8,
-                new BoundingBox(1017, 10, 6, 1020, 7, -6),
-                new Location(parkourPathwayWorld, 1017, 8, 4)
-        ))); // 1
-        checkpoints.add(Collections.singletonList(new CheckPoint(
-                5,
-                new BoundingBox(1048, 7, -4, 1046, 11, 3),
-                new Location(parkourPathwayWorld, 1046 ,8 ,2)
-        ))); //2
-        checkpoints.add(Collections.singletonList(new CheckPoint(
-                9,
-                new BoundingBox(1074, 9, -3, 1077, 13, 4),
-                new Location(parkourPathwayWorld, 1076 ,9 ,0)
-        ))); // 3
-        checkpoints.add(Collections.singletonList(new CheckPoint(
-                9,
-                new BoundingBox(1101, 11, -7, 1099, 9, 7),
-                new Location(parkourPathwayWorld, 1101, 9, 0)
-        ))); // 4
-        checkpoints.add(Collections.singletonList(new CheckPoint(
-                33,
-                new BoundingBox(1106, 32, -10, 1109, 38, 10),
-                new Location(parkourPathwayWorld, 1107, 33, -6)
-        ))); // 5
-        checkpoints.add(Collections.singletonList(new CheckPoint(
-                35,
-                new BoundingBox(1109, 34, -3, 1107, 38, 3),
-                new Location(parkourPathwayWorld, 1108 ,35 ,0)
-        ))); // 6
-        checkpoints.add(Collections.singletonList(new CheckPoint(
-                42,
-                new BoundingBox(1101, 43, 1, 1099, 45, -1),
-                new Location(parkourPathwayWorld, 1100, 43, 0)
-        ))); // 7
-        checkpoints.add(Collections.singletonList(new CheckPoint(
-                42,
-                new BoundingBox(1079, 43, 3, 1077, 48, -3),
-                new Location(parkourPathwayWorld, 1078, 44, 0)
-        ))); // 8
-        checkpoints.add(Collections.singletonList(new CheckPoint(
-                42,
-                new BoundingBox(1038, 43, 3, 1034, 48, -3),
-                new Location(parkourPathwayWorld, 1036, 44, 0)
-        ))); // 9
-        checkpoints.add(Collections.singletonList(new CheckPoint(
-                42,
-                new BoundingBox(1017, 44, 6, 1020, 51, -5),
-                new Location(parkourPathwayWorld, 1019, 45, 0)
-        ))); // 10
-        checkpoints.add(Collections.singletonList(new CheckPoint(
-                44,
-                new BoundingBox(1005, 43, -3, 1003, 48, 5),
-                new Location(parkourPathwayWorld, 1004 ,44, 1)
-        ))); // 11
-        checkpoints.add(Collections.singletonList(new CheckPoint(
-                42,
-                new BoundingBox(981, 43, -3, 984, 48, 5),
-                new Location(parkourPathwayWorld, 982 ,44, 1)
-        ))); // 12
-        checkpoints.add(Collections.singletonList(new CheckPoint(
-                41,
-                new BoundingBox(924, 48, 5, 915, 40, -3),
-                new Location(parkourPathwayWorld,920, 41, 1 )
-        ))); // finish line (13)
     
         ParkourPathwayStorageUtil parkourPathwayStorageUtil = new ParkourPathwayStorageUtil(plugin);
         try {
             parkourPathwayStorageUtil.setCheckpoints(checkpoints);
+            parkourPathwayStorageUtil.setWorld("FT");
         } catch (IOException e) {
             Bukkit.getLogger().severe("Error saving parkour pathway checkpoints to config file. See console for details.");
             Bukkit.getPluginManager().disablePlugin(plugin);
