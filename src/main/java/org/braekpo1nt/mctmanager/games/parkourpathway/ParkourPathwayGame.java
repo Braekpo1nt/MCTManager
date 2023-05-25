@@ -26,6 +26,7 @@ import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 import org.bukkit.util.BoundingBox;
 
+import java.io.IOException;
 import java.util.*;
 
 public class ParkourPathwayGame implements MCTGame, Listener {
@@ -38,13 +39,12 @@ public class ParkourPathwayGame implements MCTGame, Listener {
     private final PotionEffect REGENERATION = new PotionEffect(PotionEffectType.REGENERATION, 70, 200, true, false, false);
     private final PotionEffect FIRE_RESISTANCE = new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 70, 1, true, false, false);
     private final PotionEffect SATURATION = new PotionEffect(PotionEffectType.SATURATION, 70, 250, true, false, false);
-    private final World parkourPathwayWorld;
     private int statusEffectsTaskId;
     private int startNextRoundTimerTaskId;
     private int checkpointCounterTask;
     private boolean gameActive = false;
     private List<Player> participants;
-    private Location parkourPathwayStartAnchor;
+    private final Location parkourPathwayStartAnchor;
     private final List<CheckPoint> checkpoints;
     /**
      * UUID paired with index of checkpoint
@@ -55,9 +55,9 @@ public class ParkourPathwayGame implements MCTGame, Listener {
     public ParkourPathwayGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
         this.gameManager = gameManager;
-        MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
-        this.parkourPathwayWorld = worldManager.getMVWorld("FT").getCBWorld();
-        this.checkpoints = createCheckpoints();
+        AnchorManager anchorManager = Main.multiverseCore.getAnchorManager();
+        this.parkourPathwayStartAnchor = anchorManager.getAnchorLocation("parkour-pathway");
+        this.checkpoints = loadCheckpoints();
     }
     
     @Override
@@ -71,8 +71,6 @@ public class ParkourPathwayGame implements MCTGame, Listener {
         currentCheckpoints = new HashMap<>();
         highestCheckpoint = 0;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
-        AnchorManager anchorManager = Main.multiverseCore.getAnchorManager();
-        this.parkourPathwayStartAnchor = anchorManager.getAnchorLocation("parkour-pathway");
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
         }
@@ -163,7 +161,7 @@ public class ParkourPathwayGame implements MCTGame, Listener {
             return;
         }
         CheckPoint nextCheckpoint = checkpoints.get(nextCheckpointIndex);
-        if (nextCheckpoint.getBoundingBox().contains(player.getLocation().toVector())) {
+        if (nextCheckpoint.boundingBox().contains(player.getLocation().toVector())) {
             // Player got to the next checkpoint
             currentCheckpoints.put(playerUUID, nextCheckpointIndex);
             updateCheckpointFastBoard(player);
@@ -187,17 +185,14 @@ public class ParkourPathwayGame implements MCTGame, Listener {
                 stop();
                 return;
             }
-            if (highestCheckpoint < nextCheckpointIndex) {
-                highestCheckpoint = nextCheckpointIndex;
-                restartCheckpointCounter();
-            }
+            restartCheckpointCounter();
             return;
         }
         CheckPoint currentCheckpoint = checkpoints.get(currentCheckpointIndex);
         double yPos = player.getLocation().getY();
-        if (yPos < currentCheckpoint.getyValue()) {
+        if (yPos < currentCheckpoint.yValue()) {
             // Player fell, and must be teleported to checkpoint spawn
-            player.teleport(currentCheckpoint.getRespawn());
+            player.teleport(currentCheckpoint.respawn());
         }
     }
 
@@ -277,9 +272,7 @@ public class ParkourPathwayGame implements MCTGame, Listener {
                 }
                 if (count == 30) {
                     messageAllParticipants(Component.empty()
-                            .append(Component.text("No one has reached checkpoint "))
-                            .append(Component.text(highestCheckpoint + 1))
-                            .append(Component.text(" in the last 1.5 minutes. Ending in 30 seconds"))
+                            .append(Component.text("No one has reached a new checkpoint in the last 1.5 minutes. Ending in 30 seconds"))
                             .color(NamedTextColor.RED));
                 }
                 if (count <= 30) {
@@ -326,7 +319,7 @@ public class ParkourPathwayGame implements MCTGame, Listener {
             }
         }.runTaskTimer(plugin, 0L, 60L).getTaskId();
     }
-
+    
     private void giveBoots(Player participant) {
         Color teamColor = gameManager.getTeamColor(participant.getUniqueId());
         ItemStack boots = new ItemStack(Material.LEATHER_BOOTS);
@@ -335,7 +328,7 @@ public class ParkourPathwayGame implements MCTGame, Listener {
         boots.setItemMeta(meta);
         participant.getEquipment().setBoots(boots);
     }
-
+    
     private void setupTeamOptions() {
         Scoreboard mctScoreboard = gameManager.getMctScoreboard();
         for (Team team : mctScoreboard.getTeams()) {
@@ -346,12 +339,12 @@ public class ParkourPathwayGame implements MCTGame, Listener {
             team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER);
         }
     }
-
+    
     private void teleportPlayerToStartingPosition(Player player) {
         player.sendMessage("Teleporting to Parkour Pathway");
         player.teleport(parkourPathwayStartAnchor);
     }
-
+    
     private void cancelAllTasks() {
         Bukkit.getScheduler().cancelTask(statusEffectsTaskId);
         Bukkit.getScheduler().cancelTask(startNextRoundTimerTaskId);
@@ -427,80 +420,15 @@ public class ParkourPathwayGame implements MCTGame, Listener {
         }
     }
     
-    private List<CheckPoint> createCheckpoints() {
-        List<CheckPoint> newCheckpoints = new ArrayList<>();
-        
-        newCheckpoints.add(new CheckPoint(
-                0,
-                new BoundingBox(998, 5, -8, 1007, -1, 8),
-                new Location(parkourPathwayWorld, 1003, 0, 0)
-        )); // spawn (0)
-        newCheckpoints.add(new CheckPoint(
-                8,
-                new BoundingBox(1017, 10, 6, 1020, 7, -6),
-                new Location(parkourPathwayWorld, 1017, 8, 4)
-        )); // 1
-        newCheckpoints.add(new CheckPoint(
-                5,
-                new BoundingBox(1048, 7, -4, 1046, 11, 3),
-                new Location(parkourPathwayWorld, 1046 ,8 ,2)
-        )); //2
-        newCheckpoints.add(new CheckPoint(
-                9,
-                new BoundingBox(1074, 9, -3, 1077, 13, 4),
-                new Location(parkourPathwayWorld, 1076 ,9 ,0)
-        )); // 3
-        newCheckpoints.add(new CheckPoint(
-                9,
-                new BoundingBox(1101, 11, -7, 1099, 9, 7),
-                new Location(parkourPathwayWorld, 1101, 9, 0)
-        )); // 4
-        newCheckpoints.add(new CheckPoint(
-                33,
-                new BoundingBox(1106, 32, -10, 1109, 38, 10),
-                new Location(parkourPathwayWorld, 1107, 33, -6)
-        )); // 5
-        newCheckpoints.add(new CheckPoint(
-                35,
-                new BoundingBox(1109, 34, -3, 1107, 38, 3),
-                new Location(parkourPathwayWorld, 1108 ,35 ,0)
-        )); // 6
-        newCheckpoints.add(new CheckPoint(
-                42,
-                new BoundingBox(1101, 43, 1, 1099, 45, -1),
-                new Location(parkourPathwayWorld, 1100, 43, 0)
-        )); // 7
-        newCheckpoints.add(new CheckPoint(
-                42,
-                new BoundingBox(1079, 43, 3, 1077, 48, -3),
-                new Location(parkourPathwayWorld, 1078, 44, 0)
-        )); // 8
-        newCheckpoints.add(new CheckPoint(
-                42,
-                new BoundingBox(1038, 43, 3, 1034, 48, -3),
-                new Location(parkourPathwayWorld, 1036, 44, 0)
-        )); // 9
-        newCheckpoints.add(new CheckPoint(
-                42,
-                new BoundingBox(1017, 44, 6, 1020, 51, -5),
-                new Location(parkourPathwayWorld, 1019, 45, 0)
-        )); // 10
-        newCheckpoints.add(new CheckPoint(
-                44,
-                new BoundingBox(1005, 43, -3, 1003, 48, 5),
-                new Location(parkourPathwayWorld, 1004 ,44, 1)
-        )); // 11
-        newCheckpoints.add(new CheckPoint(
-                42,
-                new BoundingBox(981, 43, -3, 984, 48, 5),
-                new Location(parkourPathwayWorld, 982 ,44, 1)
-        )); // 12
-        newCheckpoints.add(new CheckPoint(
-                41,
-                new BoundingBox(924, 48, 5, 915, 40, -3),
-                new Location(parkourPathwayWorld,920, 41, 1 )
-        )); // finish line (13)
-        
-        return newCheckpoints;
+    private List<CheckPoint> loadCheckpoints() {
+        ParkourPathwayStorageUtil parkourPathwayStorageUtil = new ParkourPathwayStorageUtil(plugin);
+        try {
+            parkourPathwayStorageUtil.loadConfig();
+        } catch (IOException e) {
+            Bukkit.getLogger().severe("Error loading parkour pathway checkpoints from config file. See console for details.");
+            Bukkit.getPluginManager().disablePlugin(plugin);
+            throw new RuntimeException(e);
+        }
+        return parkourPathwayStorageUtil.getCheckPoints();
     }
 }
