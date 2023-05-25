@@ -5,7 +5,7 @@ import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.games.clockwork.ClockWorkGame;
+import org.braekpo1nt.mctmanager.games.clockwork.ClockworkGame;
 import org.braekpo1nt.mctmanager.games.enums.MCTGames;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
@@ -49,7 +49,7 @@ public class GameManager implements Listener {
     private final ParkourPathwayGame parkourPathwayGame;
     private final FinalGame finalGame;
     private final CaptureTheFlagGame captureTheFlagGame;
-    private final ClockWorkGame clockworkGame;
+    private final ClockworkGame clockworkGame;
     private final HubManager hubManager;
     private FastBoardManager fastBoardManager;
     private GameStateStorageUtil gameStateStorageUtil;
@@ -90,7 +90,7 @@ public class GameManager implements Listener {
         this.spleefGame = new SpleefGame(plugin, this);
         this.parkourPathwayGame = new ParkourPathwayGame(plugin, this);
         this.captureTheFlagGame = new CaptureTheFlagGame(plugin, this);
-        this.clockworkGame = new ClockWorkGame(plugin, this);
+        this.clockworkGame = new ClockworkGame(plugin, this);
         this.finalGame = new FinalGame(plugin, this);
         this.fastBoardManager = new FastBoardManager(gameStateStorageUtil);
         this.hubManager = new HubManager(plugin, mctScoreboard, this);
