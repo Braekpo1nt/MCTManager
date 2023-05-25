@@ -8,7 +8,8 @@ public enum MCTGames {
     CAPTURE_THE_FLAG,
     SPLEEF,
     FINAL_GAME, 
-    PARKOUR_PATHWAY;
+    PARKOUR_PATHWAY, 
+    CLOCKWORK;
     
     public static @NotNull String getTitle(@NotNull MCTGames mctGame) {
         switch (mctGame) {
@@ -26,6 +27,9 @@ public enum MCTGames {
             }
             case PARKOUR_PATHWAY -> {
                 return "Parkour Pathway";
+            }
+            case CLOCKWORK -> {
+                return "Clockwork";
             }
             case FINAL_GAME -> {
                 return "Final Game";

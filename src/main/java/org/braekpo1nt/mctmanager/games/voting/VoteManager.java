@@ -155,6 +155,10 @@ public class VoteManager implements Listener {
                 participant.sendMessage(Component.text("Voted for Parkour Pathway")
                         .color(NamedTextColor.GREEN));
                 break;
+            case CLOCK:
+                votes.put(participant.getUniqueId(), MCTGames.CLOCKWORK);
+                participant.sendMessage(Component.text("Voted for Clockwork")
+                        .color(NamedTextColor.GREEN));
             default:
                 return;
         }
@@ -375,7 +379,7 @@ public class VoteManager implements Listener {
 
         ItemMeta footRaceMeta = footRace.getItemMeta();
         footRaceMeta.displayName(Component.text("Foot Race"));
-        footRaceMeta.lore(Arrays.asList(
+        footRaceMeta.lore(List.of(
                 Component.text("A racing game")
         ));
         footRace.setItemMeta(footRaceMeta);
@@ -383,7 +387,7 @@ public class VoteManager implements Listener {
         ItemStack mecha = new ItemStack(Material.IRON_SWORD);
         ItemMeta mechaMeta = mecha.getItemMeta();
         mechaMeta.displayName(Component.text("MECHA"));
-        mechaMeta.lore(Arrays.asList(
+        mechaMeta.lore(List.of(
                 Component.text("A fighting game")
         ));
         mecha.setItemMeta(mechaMeta);
@@ -391,15 +395,23 @@ public class VoteManager implements Listener {
         ItemStack captureTheFlag = new ItemStack(Material.GRAY_BANNER);
         ItemMeta captureTheFlagMeta = captureTheFlag.getItemMeta();
         captureTheFlagMeta.displayName(Component.text("Capture the Flag"));
-        captureTheFlagMeta.lore(Arrays.asList(
+        captureTheFlagMeta.lore(List.of(
                 Component.text("A team capture the flag game")
         ));
         captureTheFlag.setItemMeta(captureTheFlagMeta);
+        
+        ItemStack clockwork = new ItemStack(Material.CLOCK);
+        ItemMeta clockworkMeta = clockwork.getItemMeta();
+        clockworkMeta.displayName(Component.text("Clockwork"));
+        clockworkMeta.lore(List.of(
+                Component.text("A time-sensitive game")
+        ));
+        clockwork.setItemMeta(clockworkMeta);
 
         ItemStack parkourPathway = new ItemStack(Material.LEATHER_BOOTS);
         ItemMeta parkourPathwayMeta = parkourPathway.getItemMeta();
         parkourPathwayMeta.displayName(Component.text("Parkour Pathway"));
-        parkourPathwayMeta.lore(Arrays.asList(
+        parkourPathwayMeta.lore(List.of(
                 Component.text("A jumping game")
         ));
         LeatherArmorMeta parkourPathwayLeatherArmorMeta = ((LeatherArmorMeta) parkourPathwayMeta);
@@ -409,11 +421,11 @@ public class VoteManager implements Listener {
         ItemStack spleef = new ItemStack(Material.DIAMOND_SHOVEL);
         ItemMeta spleefMeta = spleef.getItemMeta();
         spleefMeta.displayName(Component.text("Spleef"));
-        spleefMeta.lore(Arrays.asList(
+        spleefMeta.lore(List.of(
                 Component.text("A falling game")
         ));
         spleef.setItemMeta(spleefMeta);
-    
+        
         Inventory newGui = Bukkit.createInventory(null, 9, TITLE);
         Map<MCTGames, ItemStack> votingItems = new HashMap<>();
         votingItems.put(MCTGames.FOOT_RACE, footRace);
@@ -421,6 +433,7 @@ public class VoteManager implements Listener {
         votingItems.put(MCTGames.CAPTURE_THE_FLAG, captureTheFlag);
         votingItems.put(MCTGames.SPLEEF, spleef);
         votingItems.put(MCTGames.PARKOUR_PATHWAY, parkourPathway);
+        votingItems.put(MCTGames.CLOCKWORK, clockwork);
         
         for (MCTGames mctGame : votingPool) {
             newGui.addItem(votingItems.get(mctGame));

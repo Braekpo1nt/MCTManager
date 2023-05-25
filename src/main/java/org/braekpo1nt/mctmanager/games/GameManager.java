@@ -5,6 +5,7 @@ import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.games.clockwork.ClockWorkGame;
 import org.braekpo1nt.mctmanager.games.enums.MCTGames;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
@@ -40,7 +41,7 @@ import java.util.*;
  * Creating new game instances, starting/stopping games, and handling game events.
  */
 public class GameManager implements Listener {
-    
+
     private MCTGame activeGame = null;
     private final FootRaceGame footRaceGame;
     private final MechaGame mechaGame;
@@ -48,6 +49,7 @@ public class GameManager implements Listener {
     private final ParkourPathwayGame parkourPathwayGame;
     private final FinalGame finalGame;
     private final CaptureTheFlagGame captureTheFlagGame;
+    private final ClockWorkGame clockworkGame;
     private final HubManager hubManager;
     private FastBoardManager fastBoardManager;
     private GameStateStorageUtil gameStateStorageUtil;
@@ -88,6 +90,7 @@ public class GameManager implements Listener {
         this.spleefGame = new SpleefGame(plugin, this);
         this.parkourPathwayGame = new ParkourPathwayGame(plugin, this);
         this.captureTheFlagGame = new CaptureTheFlagGame(plugin, this);
+        this.clockworkGame = new ClockWorkGame(plugin, this);
         this.finalGame = new FinalGame(plugin, this);
         this.fastBoardManager = new FastBoardManager(gameStateStorageUtil);
         this.hubManager = new HubManager(plugin, mctScoreboard, this);
@@ -241,6 +244,7 @@ public class GameManager implements Listener {
         votingPool.add(MCTGames.CAPTURE_THE_FLAG);
         votingPool.add(MCTGames.SPLEEF);
         votingPool.add(MCTGames.PARKOUR_PATHWAY);
+        votingPool.add(MCTGames.CLOCKWORK);
         votingPool.removeAll(playedGames);
         
         if (votingPool.isEmpty()) {
@@ -535,6 +539,11 @@ public class GameManager implements Listener {
                 hubManager.removeParticipantsFromHub(onlineParticipants);
                 parkourPathwayGame.start(onlineParticipants);
                 activeGame = parkourPathwayGame;
+            }
+            case CLOCKWORK -> {
+                hubManager.removeParticipantsFromHub(onlineParticipants);
+                clockworkGame.start(onlineParticipants);
+                activeGame = clockworkGame;
             }
             case FINAL_GAME -> {
                 if (finalGameTeamA == null || finalGameTeamB == null) {
