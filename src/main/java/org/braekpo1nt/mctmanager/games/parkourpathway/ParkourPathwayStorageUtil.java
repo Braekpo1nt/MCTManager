@@ -1,9 +1,11 @@
 package org.braekpo1nt.mctmanager.games.parkourpathway;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import org.braekpo1nt.mctmanager.Main;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
@@ -39,7 +41,7 @@ public class ParkourPathwayStorageUtil {
     }
     
     public void saveConfig() throws IOException {
-        Gson gson = new Gson();
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
         File configFile = getConfigFile();
         Writer writer = new FileWriter(configFile, false);
         gson.toJson(this.parkourPathwayConfig, writer);
@@ -59,35 +61,32 @@ public class ParkourPathwayStorageUtil {
         return configFile;
     }
     
-    public List<List<CheckPoint>> getCheckPoints() {
-        List<List<CheckPointConfig>> checkpointConfigsList = parkourPathwayConfig.getCheckpoints();
-        List<List<CheckPoint>> checkpointsList = new ArrayList<>();
-        for (List<CheckPointConfig> checkpointConfigs : checkpointConfigsList) {
-            List<CheckPoint> newCheckpoints = new ArrayList<>();
-            for (CheckPointConfig checkpointConfig : checkpointConfigs) {
-                Vector min = checkpointConfig.min();
-                Vector max = checkpointConfig.max();
-                BoundingBox boundingBox = new BoundingBox(min.getX(), min.getY(), min.getZ(), max.getX(), max.getY(), max.getZ());
-                Vector configRespawn = checkpointConfig.respawn();
-                Location respawn = new Location(Bukkit.getWorld("FT"), configRespawn.getX(), configRespawn.getY(), configRespawn.getZ());
-                newCheckpoints.add(new CheckPoint(checkpointConfig.yValue(), boundingBox, respawn));
-            }
-            checkpointsList.add(newCheckpoints);
+    public List<CheckPoint> getCheckPoints() {
+        World checkpointWorld = Bukkit.getWorld(parkourPathwayConfig.getWorld());
+        List<CheckPoint> newCheckpoints = new ArrayList<>();
+        for (CheckPointConfig checkpointConfig : parkourPathwayConfig.getCheckpoints()) {
+            Vector min = checkpointConfig.min();
+            Vector max = checkpointConfig.max();
+            BoundingBox boundingBox = new BoundingBox(min.getX(), min.getY(), min.getZ(), max.getX(), max.getY(), max.getZ());
+            Vector configRespawn = checkpointConfig.respawn();
+            Location respawn = new Location(checkpointWorld, configRespawn.getX(), configRespawn.getY(), configRespawn.getZ());
+            newCheckpoints.add(new CheckPoint(checkpointConfig.yValue(), boundingBox, respawn));
         }
-        return checkpointsList;
+        return newCheckpoints;
     }
     
-    public void setCheckpoints(List<List<CheckPoint>> checkpointsList) throws IOException {
+    public void setCheckpoints(List<CheckPoint> checkpoints) throws IOException {
         parkourPathwayConfig = new ParkourPathwayConfig();
-        List<List<CheckPointConfig>> checkpointConfigsList = new ArrayList<>();
-        for (List<CheckPoint> checkPoints : checkpointsList) {
-            List<CheckPointConfig> checkpointConfigs = new ArrayList<>();
-            for (CheckPoint checkpoint : checkPoints) {
-                checkpointConfigs.add(new CheckPointConfig(checkpoint.yValue(), checkpoint.boundingBox().getMin(), checkpoint.boundingBox().getMax(), checkpoint.respawn().toVector()));
-            }
-            checkpointConfigsList.add(checkpointConfigs);
+        List<CheckPointConfig> checkpointConfigs = new ArrayList<>();
+        for (CheckPoint checkpoint : checkpoints) {
+            checkpointConfigs.add(new CheckPointConfig(checkpoint.yValue(), checkpoint.boundingBox().getMin(), checkpoint.boundingBox().getMax(), checkpoint.respawn().toVector()));
         }
-        parkourPathwayConfig.setCheckpoints(checkpointConfigsList);
+        parkourPathwayConfig.setCheckpoints(checkpointConfigs);
+        saveConfig();
+    }
+    
+    public void setWorld(String world) throws IOException {
+        parkourPathwayConfig.setWorld(world);
         saveConfig();
     }
 }
