@@ -4,7 +4,9 @@ import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
+import org.bukkit.scoreboard.Team;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
@@ -32,8 +34,12 @@ public class FastBoardManager {
     
     protected synchronized void updateMainBoardForPlayer(Player player) {
         boolean playerHasBoard = givePlayerBoardIfAbsent(player);
+        String[] trailingLines = new String[0];
         if (!playerHasBoard) {
             return;
+        }
+        if (!player.getWorld().getName().equals("Hub")) {
+            trailingLines = getAllScoreLines();
         }
         UUID playerUniqueId = player.getUniqueId();
         FastBoardWrapper board = boards.get(playerUniqueId);
@@ -42,6 +48,12 @@ public class FastBoardManager {
         String scoreLine = mainLines[1];
         board.updateLine(0, teamLine);
         board.updateLine(1, scoreLine);
+        if (trailingLines.length > 0) {
+            board.updateLine(2, ""); //blank line - not sure if there's another way
+            for (int i = 0; i < trailingLines.length; i++) {
+                board.updateLine(i+6, trailingLines[i]); //skips first 5 existing lines
+            }
+        }
     }
     
     /**
@@ -74,6 +86,19 @@ public class FastBoardManager {
                 scoreLine
         );
         boards.put(player.getUniqueId(), newBoard);
+    }
+
+    protected String[] getAllScoreLines() {
+        ArrayList<String> allTeamScores = new ArrayList<>();
+        for (String teamName : gameStateStorageUtil.getTeamNames()) {
+            String teamDisplayName = gameStateStorageUtil.getTeamDisplayName(teamName);
+            ChatColor teamChatColor = gameStateStorageUtil.getTeamChatColor(teamName);
+            int teamScore = gameStateStorageUtil.getTeamScore(teamName);
+            String teamLine = teamChatColor+teamDisplayName+": "+teamScore;
+            allTeamScores.add(teamLine);
+        }
+
+        return allTeamScores.toArray(new String[0]);
     }
     
     protected String[] getMainLines(UUID playerUniqueId) {
