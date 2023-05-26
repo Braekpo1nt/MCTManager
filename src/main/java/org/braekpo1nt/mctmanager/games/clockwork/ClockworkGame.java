@@ -29,6 +29,7 @@ public class ClockworkGame implements MCTGame, Listener {
     private int currentRoundIndex = 0;
     private boolean gameActive = false;
     private static final String title = ChatColor.BLUE+"Clockwork";
+    private int roundDelayTaskId;
 
     public ClockworkGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
@@ -70,6 +71,7 @@ public class ClockworkGame implements MCTGame, Listener {
 
     @Override
     public void stop() {
+        cancelAllTasks();
         HandlerList.unregisterAll(this);
         ClockworkRound currentRound = rounds.get(currentRoundIndex);
         currentRound.stop();
@@ -81,6 +83,10 @@ public class ClockworkGame implements MCTGame, Listener {
         participants.clear();
         gameManager.gameIsOver();
         Bukkit.getLogger().info("Stopping Clockwork");
+    }
+
+    private void cancelAllTasks() {
+        Bukkit.getScheduler().cancelTask(roundDelayTaskId);
     }
 
     private void resetParticipant(Player participant) {
@@ -110,7 +116,8 @@ public class ClockworkGame implements MCTGame, Listener {
             return;
         }
         currentRoundIndex++;
-        startNextRound();
+        this.roundDelayTaskId = Bukkit.getScheduler().runTaskLater(plugin, this::startNextRound, 5*20L).getTaskId();
+        
     }
     
     private void startNextRound() {
