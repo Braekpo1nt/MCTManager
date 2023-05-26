@@ -12,8 +12,10 @@ import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
@@ -81,6 +83,23 @@ public class ClockworkRound implements Listener {
         participants.clear();
         participantsAreAlive.clear();
         Bukkit.getLogger().info("Stopping clockwork round");
+    }
+    
+    @EventHandler
+    public void onPlayerDamage(EntityDamageEvent event) {
+        if (!roundActive) {
+            return;
+        }
+        if (event.getCause().equals(EntityDamageEvent.DamageCause.VOID)) {
+            return;
+        }
+        if (!(event.getEntity() instanceof Player participant)) {
+            return;
+        }
+        if (!participants.contains(participant)) {
+            return;
+        }
+        event.setCancelled(true);
     }
     
     private void startRoundStartingCountDown() {
@@ -180,7 +199,7 @@ public class ClockworkRound implements Listener {
             team.setCanSeeFriendlyInvisibles(true);
             team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.FOR_OTHER_TEAMS);
             team.setOption(Team.Option.DEATH_MESSAGE_VISIBILITY, Team.OptionStatus.ALWAYS);
-            team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.ALWAYS);
+            team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER);
         }
     }
 
