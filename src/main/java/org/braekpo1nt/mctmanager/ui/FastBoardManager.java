@@ -53,7 +53,7 @@ public class FastBoardManager {
         }
 
         for (int i = 0; i < allFastBoardLines.length; i++) {
-            board.updateLine(i+1, allFastBoardLines[i]);
+            board.updateLine(i, allFastBoardLines[i]);
         }
     }
 
