@@ -34,26 +34,44 @@ public class FastBoardManager {
     
     protected synchronized void updateMainBoardForPlayer(Player player) {
         boolean playerHasBoard = givePlayerBoardIfAbsent(player);
-        String[] trailingLines = new String[0];
         if (!playerHasBoard) {
             return;
         }
-        if (!player.getWorld().getName().equals("Hub")) {
-            trailingLines = getAllScoreLines();
-        }
+        String[] allFastBoardLines;
+        String[] blankLine = {""};
+
         UUID playerUniqueId = player.getUniqueId();
         FastBoardWrapper board = boards.get(playerUniqueId);
         String[] mainLines = getMainLines(playerUniqueId);
-        String teamLine = mainLines[0];
-        String scoreLine = mainLines[1];
-        board.updateLine(0, teamLine);
-        board.updateLine(1, scoreLine);
-        if (trailingLines.length > 0) {
-            board.updateLine(2, ""); //blank line - not sure if there's another way
-            for (int i = 0; i < trailingLines.length; i++) {
-                board.updateLine(i+6, trailingLines[i]); //skips first 5 existing lines
-            }
+        String[] teamLine = {mainLines[0]};
+        String[] scoreLine = {mainLines[1]};
+
+        if (player.getWorld().getName().equals("Hub")) {
+            allFastBoardLines = combineFastBoardLines(getAllScoreLines(),blankLine,scoreLine);
+        } else {
+            allFastBoardLines = combineFastBoardLines(teamLine,scoreLine);
         }
+
+        for (int i = 0; i < allFastBoardLines.length; i++) {
+            board.updateLine(i+1, allFastBoardLines[i]);
+        }
+    }
+
+    private String[] combineFastBoardLines(String[]... arrays) {
+        int totalLength = 0;
+        for (String[] array : arrays) {
+            totalLength += array.length;
+        }
+
+        String[] newArray = new String[totalLength];
+        int currentIndex = 0;
+
+        for (String[] array : arrays) {
+            System.arraycopy(array, 0, newArray, currentIndex, array.length);
+            currentIndex += array.length;
+        }
+
+        return newArray;
     }
     
     /**
