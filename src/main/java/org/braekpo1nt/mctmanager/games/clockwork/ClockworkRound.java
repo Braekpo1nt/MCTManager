@@ -3,11 +3,17 @@ package org.braekpo1nt.mctmanager.games.clockwork;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
+import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.Team;
 
 import java.util.*;
 
@@ -15,15 +21,19 @@ public class ClockworkRound implements Listener {
 
     private final Main plugin;
     private final GameManager gameManager;
+    private final ClockworkGame clockworkGame;
     private final Location startingPosition;
     private Map<UUID, Boolean> participantsAreAlive;
     private Map<String, Boolean> teamsAreAlive;
     private List<Player> participants;
     private static final String title = ChatColor.BLUE+"Clockwork";
+    private boolean roundActive;
+    private int roundStartingCountDownTaskId;
 
-    public ClockworkRound(Main plugin, GameManager gameManager, Location startingPosition) {
+    public ClockworkRound(Main plugin, GameManager gameManager, ClockworkGame clockworkGame, Location startingPosition) {
         this.plugin = plugin;
         this.gameManager = gameManager;
+        this.clockworkGame = clockworkGame;
         this.startingPosition = startingPosition;
     }
     
@@ -40,6 +50,85 @@ public class ClockworkRound implements Listener {
         for (Player participant : newParticipants) {
             initializeParticipant(participant, livingTeams);
         }
+        setupTeamOptions();
+        startRoundStartingCountDown();
+        roundActive = true;
+        Bukkit.getLogger().info("Starting capture the flag round");
+    }
+
+    private void roundIsOver() {
+        stop();
+        clockworkGame.roundIsOver();
+    }
+
+    public void stop() {
+        roundActive = false;
+        HandlerList.unregisterAll(this);
+        cancelAllTasks();
+        for (Player participant : participants) {
+            resetParticipant(participant);
+        }
+        participants.clear();
+        participantsAreAlive.clear();
+        Bukkit.getLogger().info("Stopping clockwork round");
+    }
+    
+    private void startRoundStartingCountDown() {
+        this.roundStartingCountDownTaskId = new BukkitRunnable() {
+            int count = 10;
+            @Override
+            public void run() {
+                if (count <= 0) {
+                    startClockwork();
+                    this.cancel();
+                    return;
+                }
+                String timeLeft = TimeStringUtils.getTimeString(count);
+                for (Player participant : participants){
+                    updateRoundStartingCountDown(participant, timeLeft);
+                }
+                count--;
+            }
+        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+    }
+
+    private void startClockwork() {
+        
+    }
+
+    private void setupTeamOptions() {
+        Scoreboard mctScoreboard = gameManager.getMctScoreboard();
+        for (Team team : mctScoreboard.getTeams()) {
+            team.setAllowFriendlyFire(false);
+            team.setCanSeeFriendlyInvisibles(true);
+            team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.FOR_OTHER_TEAMS);
+            team.setOption(Team.Option.DEATH_MESSAGE_VISIBILITY, Team.OptionStatus.ALWAYS);
+            team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.ALWAYS);
+        }
+    }
+
+    private void resetParticipant(Player participant) {
+        participant.getInventory().clear();
+        participant.setGameMode(GameMode.ADVENTURE);
+        ParticipantInitializer.clearStatusEffects(participant);
+        ParticipantInitializer.resetHealthAndHunger(participant);
+    }
+
+    private void cancelAllTasks() {
+        Bukkit.getScheduler().cancelTask(roundStartingCountDownTaskId);
+    }
+
+    private void updateRoundStartingCountDown(Player participant, String timeLeft) {
+        gameManager.getFastBoardManager().updateLine(
+                participant.getUniqueId(),
+                3,
+                "Starting:"
+        );
+        gameManager.getFastBoardManager().updateLine(
+                participant.getUniqueId(),
+                4,
+                timeLeft
+        );
     }
 
     private void initializeParticipant(Player participant, String livingTeams) {
