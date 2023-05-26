@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.clockwork;
 
+import com.google.gson.internal.bind.JsonTreeReader;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -7,11 +8,12 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.GameMode;
-import org.bukkit.Location;
+import org.bukkit.*;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Skeleton;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
@@ -38,8 +40,14 @@ public class ClockworkRound implements Listener {
     private boolean roundActive;
     private int roundStartingCountDownTaskId;
     private int bellCountDownTaskId;
+    private int bellCountDown = 8;
     private int numberOfBellRings = 1;
+    private long bellRingCycleDuration = 20L;
     private final List<Wedge> wedges;
+    private int ringBellTaskId;
+    private final Random random = new Random();
+    private String lastKilledTeam = null;
+    private boolean skeletonCycle = false;
 
     public ClockworkRound(Main plugin, GameManager gameManager, ClockworkGame clockworkGame, Location startingPosition) {
         this.plugin = plugin;
@@ -53,6 +61,11 @@ public class ClockworkRound implements Listener {
         participants = new ArrayList<>(newParticipants.size());
         participantsAreAlive = new HashMap<>(newParticipants.size());
         teamsAreAlive = new HashMap<>();
+        lastKilledTeam = null;
+        numberOfBellRings = 1;
+        bellCountDown = 8;
+        bellRingCycleDuration = 20L;
+        skeletonCycle = false;
         List<String> teams = gameManager.getTeamNames(newParticipants);
         for (String team : teams) {
             teamsAreAlive.put(team, true);
@@ -75,8 +88,13 @@ public class ClockworkRound implements Listener {
 
     public void stop() {
         roundActive = false;
+        killAllSkeletons();
         HandlerList.unregisterAll(this);
         cancelAllTasks();
+        lastKilledTeam = null;
+        numberOfBellRings = 1;
+        bellCountDown = 8;
+        bellRingCycleDuration = 20L;
         for (Player participant : participants) {
             resetParticipant(participant);
         }
@@ -97,6 +115,11 @@ public class ClockworkRound implements Listener {
             return;
         }
         if (!participants.contains(participant)) {
+            return;
+        }
+        if (event.getCause().equals(EntityDamageEvent.DamageCause.PROJECTILE)) {
+            event.setDamage(0);
+            ParticipantInitializer.resetHealthAndHunger(participant);
             return;
         }
         event.setCancelled(true);
@@ -149,6 +172,7 @@ public class ClockworkRound implements Listener {
                 gameManager.awardPointsToPlayer(participant, 5);
             }
         }
+        lastKilledTeam = teamName;
     }
     
     private void onTeamDeath(String teamName) {
@@ -156,6 +180,7 @@ public class ClockworkRound implements Listener {
         messageAllParticipants(Component.empty()
                 .append(displayName)
                 .append(Component.text(" has been eliminated.")));
+        teamsAreAlive.put(teamName, false);
         int count = 0;
         for (boolean alive : teamsAreAlive.values()) {
             if (alive) {
@@ -184,10 +209,22 @@ public class ClockworkRound implements Listener {
     }
 
     private String getWinningTeam() {
+        int count = 0;
+        for (boolean isAlive : teamsAreAlive.values()) {
+            if (isAlive) {
+                count++;
+            }
+        }
+        if (count > 1) {
+            return null;
+        }
         for (Map.Entry<String, Boolean> teamIsAlive : teamsAreAlive.entrySet()) {
             if (teamIsAlive.getValue()) {
                 return teamIsAlive.getKey();
             }
+        }
+        if (count == 0) {
+            return lastKilledTeam;
         }
         return null;
     }
@@ -226,18 +263,37 @@ public class ClockworkRound implements Listener {
     }
     
     private void ringBell() {
-        numberOfBellRings = new Random().nextInt(1, 13);
-        messageAllParticipants(Component.text("The bell rings ")
-                .append(Component.text(numberOfBellRings))
-                .append(Component.text(" times"))
-                .color(NamedTextColor.GREEN)
-                .decorate(TextDecoration.BOLD));
-        startBellCountDown();
+        numberOfBellRings = random.nextInt(1, 13);
+        this.ringBellTaskId = new BukkitRunnable() {
+            private int count = numberOfBellRings;
+            @Override
+            public void run() {
+                if (count <= 0) {
+                    startBellCountDown();
+                    if (skeletonCycle) {
+                        summonSkeleton();
+                    }
+                    skeletonCycle = !skeletonCycle;
+                    if (bellRingCycleDuration > 2) {
+                        bellRingCycleDuration = bellRingCycleDuration - 2;
+                    }
+                    if (bellRingCycleDuration < 10) {
+                        bellCountDown = 5;
+                    }
+                    this.cancel();
+                    return;
+                }
+                for (Player participant : participants) {
+                    participant.playSound(participant.getLocation(), Sound.BLOCK_BELL_USE, 100, 2);
+                }
+                count--;
+            }
+        }.runTaskTimer(plugin, 0L, bellRingCycleDuration).getTaskId();
     }
 
     private void startBellCountDown() {
         this.bellCountDownTaskId = new BukkitRunnable() {
-            int count = 8;
+            int count = bellCountDown;
             @Override
             public void run() {
                 if (count <= 0) {
@@ -298,7 +354,6 @@ public class ClockworkRound implements Listener {
 
     private void resetParticipant(Player participant) {
         participant.getInventory().clear();
-        participant.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
     }
@@ -306,6 +361,7 @@ public class ClockworkRound implements Listener {
     private void cancelAllTasks() {
         Bukkit.getScheduler().cancelTask(roundStartingCountDownTaskId);
         Bukkit.getScheduler().cancelTask(bellCountDownTaskId);
+        Bukkit.getScheduler().cancelTask(ringBellTaskId);
     }
 
     private void updateBellCountDownFastBoard(Player participant, String timeLeft) {
@@ -393,6 +449,23 @@ public class ClockworkRound implements Listener {
         newWedges.add(createWedge(-989, -1, -984)); //11
         newWedges.add(createWedge(-1001, -1, -982)); //12
         return newWedges;
+    }
+
+    private void summonSkeleton() {
+        World world = startingPosition.getWorld();
+        if (world != null) {
+            Skeleton skeleton = (Skeleton) world.spawnEntity(startingPosition, EntityType.SKELETON);
+            skeleton.setLootTable(null);
+            // Additional configuration for the summoned skeleton can be done here
+        }
+    }
+    
+    private void killAllSkeletons() {
+        for (Entity entity : startingPosition.getWorld().getEntities()) {
+            if (entity.getType() == EntityType.SKELETON) {
+                entity.remove();
+            }
+        }
     }
 
     public Wedge createWedge(int x, int y, int z) {
