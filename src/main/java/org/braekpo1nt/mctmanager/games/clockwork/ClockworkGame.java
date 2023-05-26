@@ -12,6 +12,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
+import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
@@ -48,9 +49,9 @@ public class ClockworkGame implements MCTGame, Listener {
     public void start(List<Player> newParticipants) {
         participants = new ArrayList<>(newParticipants.size());
         rounds = List.of(
-                new ClockworkRound(plugin, gameManager, startingPosition),
-                new ClockworkRound(plugin, gameManager, startingPosition),
-                new ClockworkRound(plugin, gameManager, startingPosition));
+                new ClockworkRound(plugin, gameManager, this, startingPosition),
+                new ClockworkRound(plugin, gameManager, this, startingPosition),
+                new ClockworkRound(plugin, gameManager, this, startingPosition));
         currentRoundIndex = 0;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         for (Player participant : newParticipants) {
@@ -69,7 +70,28 @@ public class ClockworkGame implements MCTGame, Listener {
 
     @Override
     public void stop() {
-        
+        HandlerList.unregisterAll(this);
+        ClockworkRound currentRound = rounds.get(currentRoundIndex);
+        currentRound.stop();
+        rounds.clear();
+        gameActive = false;
+        for (Player participant : participants) {
+            resetParticipant(participant);
+        }
+        participants.clear();
+        gameManager.gameIsOver();
+        Bukkit.getLogger().info("Stopping Clockwork");
+    }
+
+    private void resetParticipant(Player participant) {
+        participant.getInventory().clear();
+        hideFastBoard(participant);
+    }
+    
+    private void hideFastBoard(Player participant) {
+        gameManager.getFastBoardManager().updateLines(
+                participant.getUniqueId()
+        );
     }
 
     @Override
@@ -81,7 +103,16 @@ public class ClockworkGame implements MCTGame, Listener {
     public void onParticipantQuit(Player participant) {
         
     }
-
+    
+    public void roundIsOver() {
+        if (currentRoundIndex+1 >= rounds.size()) {
+            stop();
+            return;
+        }
+        currentRoundIndex++;
+        startNextRound();
+    }
+    
     private void startNextRound() {
         ClockworkRound nextRound = rounds.get(currentRoundIndex);
         nextRound.start(participants);
