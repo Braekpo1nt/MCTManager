@@ -1,5 +1,8 @@
 package org.braekpo1nt.mctmanager.games.clockwork;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
@@ -15,7 +18,9 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 
+import java.awt.*;
 import java.util.*;
+import java.util.List;
 
 public class ClockworkRound implements Listener {
 
@@ -29,6 +34,7 @@ public class ClockworkRound implements Listener {
     private static final String title = ChatColor.BLUE+"Clockwork";
     private boolean roundActive;
     private int roundStartingCountDownTaskId;
+    private int bellCountDownTaskId;
 
     public ClockworkRound(Main plugin, GameManager gameManager, ClockworkGame clockworkGame, Location startingPosition) {
         this.plugin = plugin;
@@ -93,7 +99,57 @@ public class ClockworkRound implements Listener {
     }
 
     private void startClockwork() {
-        
+        messageAllParticipants(Component.text("Listen to the bell!"));
+        ringBell();
+    }
+    
+    private void ringBell() {
+        int numberOfBellRings = new Random().nextInt(1, 13);
+        messageAllParticipants(Component.text("The bell rings ")
+                .append(Component.text(numberOfBellRings))
+                .append(Component.text(" times"))
+                .color(NamedTextColor.GREEN)
+                .decorate(TextDecoration.BOLD));
+        startBellCountDown();
+    }
+
+    private void startBellCountDown() {
+        this.bellCountDownTaskId = new BukkitRunnable() {
+            int count = 5;
+            @Override
+            public void run() {
+                if (count <= 0) {
+                    onBellCountDownRunOut();
+                    this.cancel();
+                    return;
+                }
+                String timeLeft = ""+count;
+                for (Player participant : participants) {
+                    updateBellCountDownFastBoard(participant, timeLeft);
+                }
+                count--;
+            }
+        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+    }
+
+    private void onBellCountDownRunOut() {
+        messageAllParticipants(Component.text("All players not on the right wedge are dead"));
+        this.bellCountDownTaskId = new BukkitRunnable() {
+            int count = 3;
+            @Override
+            public void run() {
+                if (count <= 0) {
+                    ringBell();
+                    this.cancel();
+                    return;
+                }
+                String timeLeft = ""+count;
+                for (Player participant : participants) {
+                    updateBellCountDownFastBoard(participant, timeLeft);
+                }
+                count--;
+            }
+        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
     }
 
     private void setupTeamOptions() {
@@ -116,6 +172,15 @@ public class ClockworkRound implements Listener {
 
     private void cancelAllTasks() {
         Bukkit.getScheduler().cancelTask(roundStartingCountDownTaskId);
+        Bukkit.getScheduler().cancelTask(bellCountDownTaskId);
+    }
+
+    private void updateBellCountDownFastBoard(Player participant, String timeLeft) {
+        gameManager.getFastBoardManager().updateLine(
+                participant.getUniqueId(),
+                6,
+                timeLeft
+        );
     }
 
     private void updateRoundStartingCountDown(Player participant, String timeLeft) {
@@ -163,5 +228,10 @@ public class ClockworkRound implements Listener {
                 ""+livingTeams // teams alive
         );
     }
-
+    
+    private void messageAllParticipants(Component message) {
+        for (Player participant : participants) {
+            participant.sendMessage(message);
+        }
+    }
 }
