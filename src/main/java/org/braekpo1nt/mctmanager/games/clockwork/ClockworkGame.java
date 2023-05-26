@@ -48,10 +48,10 @@ public class ClockworkGame implements MCTGame, Listener {
     @Override
     public void start(List<Player> newParticipants) {
         participants = new ArrayList<>(newParticipants.size());
-        rounds = List.of(
-                new ClockworkRound(plugin, gameManager, this, startingPosition),
-                new ClockworkRound(plugin, gameManager, this, startingPosition),
-                new ClockworkRound(plugin, gameManager, this, startingPosition));
+        rounds = new ArrayList<>();
+        rounds.add(new ClockworkRound(plugin, gameManager, this, startingPosition));
+        rounds.add(new ClockworkRound(plugin, gameManager, this, startingPosition));
+        rounds.add(new ClockworkRound(plugin, gameManager, this, startingPosition));
         currentRoundIndex = 0;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         for (Player participant : newParticipants) {
@@ -135,7 +135,7 @@ public class ClockworkGame implements MCTGame, Listener {
     private void updateRoundFastBoard(Player participant) {
         gameManager.getFastBoardManager().updateLine(
                 participant.getUniqueId(),
-                2,
+                1,
                 String.format("Round %d/%d", currentRoundIndex+1, rounds.size())
         );
     }
@@ -146,7 +146,7 @@ public class ClockworkGame implements MCTGame, Listener {
                 title,
                 String.format("Round %d/%d", currentRoundIndex+1, rounds.size()),
                 "",
-                "Teams:", // teams alive
+                "", // teams alive
                 "", // number of teams alive
                 "",
                 "" // countdown

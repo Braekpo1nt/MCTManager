@@ -97,9 +97,19 @@ public class ClockworkRound implements Listener {
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
     }
-
+    
     private void startClockwork() {
         messageAllParticipants(Component.text("Listen to the bell!"));
+        int count = 0;
+        for (boolean alive : teamsAreAlive.values()) {
+            if (alive) {
+                count++;
+            }
+        }
+        String teamsAlive = ""+count;
+        for (Player participant : participants) {
+            updateTeamsAliveFastBoard(participant, teamsAlive);
+        }
         ringBell();
     }
     
@@ -131,21 +141,20 @@ public class ClockworkRound implements Listener {
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
     }
-
+    
     private void onBellCountDownRunOut() {
         messageAllParticipants(Component.text("All players not on the right wedge are dead"));
+        for (Player participant : participants) {
+            updateBellCountDownFastBoard(participant, "");
+        }
         this.bellCountDownTaskId = new BukkitRunnable() {
-            int count = 3;
+            int count = 5;
             @Override
             public void run() {
                 if (count <= 0) {
                     ringBell();
                     this.cancel();
                     return;
-                }
-                String timeLeft = ""+count;
-                for (Player participant : participants) {
-                    updateBellCountDownFastBoard(participant, timeLeft);
                 }
                 count--;
             }
@@ -182,7 +191,7 @@ public class ClockworkRound implements Listener {
                 timeLeft
         );
     }
-
+    
     private void updateRoundStartingCountDown(Player participant, String timeLeft) {
         gameManager.getFastBoardManager().updateLine(
                 participant.getUniqueId(),
@@ -211,6 +220,11 @@ public class ClockworkRound implements Listener {
     private void initializeFastBoard(Player participant, String livingTeams) {
         gameManager.getFastBoardManager().updateLine(
                 participant.getUniqueId(),
+                3,
+                "Teams:"// teams alive
+        );
+        gameManager.getFastBoardManager().updateLine(
+                participant.getUniqueId(),
                 4,
                 livingTeams// teams alive
         );
@@ -224,8 +238,13 @@ public class ClockworkRound implements Listener {
     private void updateTeamsAliveFastBoard(Player participant, String livingTeams) {
         gameManager.getFastBoardManager().updateLine(
                 participant.getUniqueId(),
+                3,
+                "Teams:" // teams alive
+        );
+        gameManager.getFastBoardManager().updateLine(
+                participant.getUniqueId(),
                 4,
-                ""+livingTeams // teams alive
+                livingTeams // teams alive
         );
     }
     
