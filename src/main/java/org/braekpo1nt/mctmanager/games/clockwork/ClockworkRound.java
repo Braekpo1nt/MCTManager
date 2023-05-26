@@ -16,12 +16,12 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 import org.bukkit.util.BoundingBox;
 
-import java.awt.*;
 import java.util.*;
 import java.util.List;
 
@@ -102,6 +102,96 @@ public class ClockworkRound implements Listener {
         event.setCancelled(true);
     }
     
+    @EventHandler
+    public void onPlayerDeath(PlayerDeathEvent event) {
+        if (!roundActive) {
+            return;
+        }
+        Player killed = event.getPlayer();
+        if (!participants.contains(killed)) {
+            return;
+        }
+        killed.setGameMode(GameMode.SPECTATOR);
+        killed.getInventory().clear();
+        event.setCancelled(true);
+        if (event.getDeathSound() != null && event.getDeathSoundCategory() != null) {
+            killed.getWorld().playSound(killed.getLocation(), event.getDeathSound(), event.getDeathSoundCategory(), event.getDeathSoundVolume(), event.getDeathSoundPitch());
+        }
+        Component deathMessage = event.deathMessage();
+        if (deathMessage != null) {
+            Bukkit.getServer().sendMessage(deathMessage);
+        }
+        onParticipantDeath(killed);
+        String winningTeam = getWinningTeam();
+        if (winningTeam != null) {
+            onTeamWin(winningTeam);
+        }
+    }
+
+    private void onTeamWin(String winningTeam) {
+        gameManager.awardPointsToTeam(winningTeam, 50);
+        Component displayName = gameManager.getFormattedTeamDisplayName(winningTeam);
+        messageAllParticipants(Component.text("Team ")
+                .append(displayName)
+                .append(Component.text(" wins this round!")));
+        roundIsOver();
+    }
+
+    private void onParticipantDeath(Player killed) {
+        UUID killedUniqueId = killed.getUniqueId();
+        participantsAreAlive.put(killedUniqueId, false);
+        String teamName = gameManager.getTeamName(killedUniqueId);
+        if (teamIsAllDead(teamName)) {
+            onTeamDeath(teamName);
+        }
+        for (Player participant : participants) {
+            if (participantsAreAlive.get(participant.getUniqueId())) {
+                gameManager.awardPointsToPlayer(participant, 5);
+            }
+        }
+    }
+    
+    private void onTeamDeath(String teamName) {
+        Component displayName = gameManager.getFormattedTeamDisplayName(teamName);
+        messageAllParticipants(Component.empty()
+                .append(displayName)
+                .append(Component.text(" has been eliminated.")));
+        int count = 0;
+        for (boolean alive : teamsAreAlive.values()) {
+            if (alive) {
+                count++;
+            }
+        }
+        String teamsAlive = ""+count;
+        for (Player participant : participants) {
+            if (participantsAreAlive.get(participant.getUniqueId())) {
+                gameManager.awardPointsToPlayer(participant, 20);
+            }
+            updateTeamsAliveFastBoard(participant, teamsAlive);
+        }
+    }
+
+    private boolean teamIsAllDead(String teamName) {
+        for (Map.Entry<UUID, Boolean> participantIsAlive : participantsAreAlive.entrySet()) {
+            if (participantIsAlive.getValue()) {
+                String aliveTeamName = gameManager.getTeamName(participantIsAlive.getKey());
+                if (teamName.equals(aliveTeamName)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    private String getWinningTeam() {
+        for (Map.Entry<String, Boolean> teamIsAlive : teamsAreAlive.entrySet()) {
+            if (teamIsAlive.getValue()) {
+                return teamIsAlive.getKey();
+            }
+        }
+        return null;
+    }
+
     private void startRoundStartingCountDown() {
         this.roundStartingCountDownTaskId = new BukkitRunnable() {
             int count = 10;
@@ -186,8 +276,11 @@ public class ClockworkRound implements Listener {
     private void killPlayersNotOnWedge() {
         Wedge wedge = wedges.get(numberOfBellRings-1);
         for (Player participant : participants) {
+            Component deathMessage = Component.text(participant.getName())
+                    .append(Component.text(" was eliminated"));
             if (!wedge.isInside(participant)) {
-                participant.setGameMode(GameMode.SPECTATOR); // Kill the player
+                PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(participant, Collections.emptyList(), 0, deathMessage);
+                Bukkit.getPluginManager().callEvent(fakeDeathEvent);
             }
         }
     }
