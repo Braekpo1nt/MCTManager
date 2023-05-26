@@ -26,6 +26,7 @@ public class VoteSubCommand implements TabExecutor {
         mctGames.put("spleef", MCTGames.SPLEEF);
         mctGames.put("parkour-pathway", MCTGames.PARKOUR_PATHWAY);
         mctGames.put("capture-the-flag", MCTGames.CAPTURE_THE_FLAG);
+        mctGames.put("clockwork", MCTGames.CLOCKWORK);
     }
     
     @Override
