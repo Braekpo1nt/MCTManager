@@ -17,6 +17,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
+import org.bukkit.util.BoundingBox;
 
 import java.awt.*;
 import java.util.*;
@@ -35,12 +36,15 @@ public class ClockworkRound implements Listener {
     private boolean roundActive;
     private int roundStartingCountDownTaskId;
     private int bellCountDownTaskId;
+    private int numberOfBellRings = 1;
+    private final List<Wedge> wedges;
 
     public ClockworkRound(Main plugin, GameManager gameManager, ClockworkGame clockworkGame, Location startingPosition) {
         this.plugin = plugin;
         this.gameManager = gameManager;
         this.clockworkGame = clockworkGame;
         this.startingPosition = startingPosition;
+        this.wedges = createWedges();
     }
     
     public void start(List<Player> newParticipants) {
@@ -99,7 +103,6 @@ public class ClockworkRound implements Listener {
     }
     
     private void startClockwork() {
-        messageAllParticipants(Component.text("Listen to the bell!"));
         int count = 0;
         for (boolean alive : teamsAreAlive.values()) {
             if (alive) {
@@ -114,7 +117,7 @@ public class ClockworkRound implements Listener {
     }
     
     private void ringBell() {
-        int numberOfBellRings = new Random().nextInt(1, 13);
+        numberOfBellRings = new Random().nextInt(1, 13);
         messageAllParticipants(Component.text("The bell rings ")
                 .append(Component.text(numberOfBellRings))
                 .append(Component.text(" times"))
@@ -125,7 +128,7 @@ public class ClockworkRound implements Listener {
 
     private void startBellCountDown() {
         this.bellCountDownTaskId = new BukkitRunnable() {
-            int count = 5;
+            int count = 8;
             @Override
             public void run() {
                 if (count <= 0) {
@@ -133,7 +136,7 @@ public class ClockworkRound implements Listener {
                     this.cancel();
                     return;
                 }
-                String timeLeft = ""+count;
+                String timeLeft = ChatColor.RED+""+count;
                 for (Player participant : participants) {
                     updateBellCountDownFastBoard(participant, timeLeft);
                 }
@@ -143,10 +146,10 @@ public class ClockworkRound implements Listener {
     }
     
     private void onBellCountDownRunOut() {
-        messageAllParticipants(Component.text("All players not on the right wedge are dead"));
         for (Player participant : participants) {
             updateBellCountDownFastBoard(participant, "");
         }
+        killPlayersNotOnWedge();
         this.bellCountDownTaskId = new BukkitRunnable() {
             int count = 5;
             @Override
@@ -159,6 +162,15 @@ public class ClockworkRound implements Listener {
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+    }
+
+    private void killPlayersNotOnWedge() {
+        Wedge wedge = wedges.get(numberOfBellRings-1);
+        for (Player participant : participants) {
+            if (!wedge.isInside(participant)) {
+                participant.setGameMode(GameMode.SPECTATOR); // Kill the player
+            }
+        }
     }
 
     private void setupTeamOptions() {
@@ -252,5 +264,36 @@ public class ClockworkRound implements Listener {
         for (Player participant : participants) {
             participant.sendMessage(message);
         }
+    }
+    
+    private List<Wedge> createWedges() {
+        List<Wedge> newWedges = new ArrayList<>();
+        newWedges.add(createWedge(-1013, -1, -984)); //1
+        newWedges.add(createWedge(-1018, -1, -989)); //2
+        newWedges.add(createWedge(-1020, -1, -1001)); //3
+        newWedges.add(createWedge(-1018, -1, -1013)); //4
+        newWedges.add(createWedge(-1013, -1, -1018)); //5
+        newWedges.add(createWedge(-1001, -1, -1020)); //6
+        newWedges.add(createWedge(-989, -1, -1018)); //7
+        newWedges.add(createWedge(-984, -1, -1013)); //8
+        newWedges.add(createWedge(-982, -1, -1001)); //9
+        newWedges.add(createWedge(-984, -1, -989)); //10
+        newWedges.add(createWedge(-989, -1, -984)); //11
+        newWedges.add(createWedge(-1001, -1, -982)); //12
+        return newWedges;
+    }
+
+    public Wedge createWedge(int x, int y, int z) {
+        int sizeX = 3; // Size along X-axis
+        int sizeY = 10; // Size along Y-axis
+        int sizeZ = 3; // Size along Z-axis
+        
+        // Calculate the minimum and maximum coordinates
+        int maxX = x + sizeX;
+        int maxY = y + sizeY;
+        int maxZ = z + sizeZ;
+        
+        // Create and return the BoundingBox
+        return new Wedge(new BoundingBox(x, y, z, maxX, maxY, maxZ));
     }
 }
