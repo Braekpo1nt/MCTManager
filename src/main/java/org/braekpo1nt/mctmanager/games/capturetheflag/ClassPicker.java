@@ -302,7 +302,7 @@ public class ClassPicker implements Listener {
             }
             case TANK -> {
                 teamMate.getEquipment().setChestplate(new ItemStack(Material.LEATHER_CHESTPLATE));
-                teamMate.getEquipment().setLeggings(new ItemStack(Material.LEATHER_LEGGINGS));
+                teamMate.getEquipment().setLeggings(new ItemStack(Material.CHAINMAIL_LEGGINGS));
                 teamMate.getEquipment().setBoots(new ItemStack(Material.LEATHER_BOOTS));
                 teamMate.sendMessage("Selected Tank");
             }
@@ -376,6 +376,7 @@ public class ClassPicker implements Listener {
         tankMeta.lore(Arrays.asList(
                 Component.text("Comes with:"),
                 Component.text("- Full Leather Armor"),
+                Component.text("- Chainmail Leggings"),
                 Component.text("- No Sword")
         ));
         tank.setItemMeta(tankMeta);
