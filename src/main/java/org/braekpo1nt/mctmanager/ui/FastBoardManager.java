@@ -4,12 +4,7 @@ import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
-import org.bukkit.scoreboard.Team;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -112,9 +107,35 @@ public class FastBoardManager {
             String teamDisplayName = gameStateStorageUtil.getTeamDisplayName(teamName);
             ChatColor teamChatColor = gameStateStorageUtil.getTeamChatColor(teamName);
             int teamScore = gameStateStorageUtil.getTeamScore(teamName);
-            String teamLine = teamChatColor+teamDisplayName+": "+teamScore;
+            String teamLine = teamChatColor + teamDisplayName + ": " + teamScore;
             allTeamScores.add(teamLine);
         }
+
+        // Sort the allTeamScores ArrayList based on 'teamScore'
+        Collections.sort(allTeamScores, new Comparator<String>() {
+            @Override
+            public int compare(String line1, String line2) {
+                // Extract team scores from the lines
+                int score1 = extractTeamScore(line1);
+                int score2 = extractTeamScore(line2);
+
+                // Compare the scores in descending order
+                return Integer.compare(score2, score1);
+            }
+
+            private int extractTeamScore(String line) {
+                // Assuming the team score is separated by a colon and a space after the team name
+                String[] parts = line.split(": ");
+                if (parts.length >= 2) {
+                    try {
+                        return Integer.parseInt(parts[1]);
+                    } catch (NumberFormatException e) {
+                        // Handle any parsing errors gracefully
+                    }
+                }
+                return 0; // Default score if unable to extract from the line
+            }
+        });
 
         return allTeamScores.toArray(new String[0]);
     }
