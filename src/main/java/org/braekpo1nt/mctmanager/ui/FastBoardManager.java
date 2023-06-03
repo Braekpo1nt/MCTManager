@@ -7,7 +7,6 @@ import org.bukkit.entity.Player;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-
 import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
@@ -31,10 +30,6 @@ public class FastBoardManager {
         for (Player player : Bukkit.getOnlinePlayers()) {
             updateMainBoardForPlayer(player);
         }
-    }
-
-    public synchronized int doNotUse() {
-        return 1;
     }
 
     protected synchronized void updateMainBoardForPlayer(Player player) {
@@ -110,8 +105,6 @@ public class FastBoardManager {
         );
         boards.put(player.getUniqueId(), newBoard);
     }
-
-
 
     protected String[] getAllScoreLines() {
         ArrayList<String> allTeamScores = new ArrayList<>();
