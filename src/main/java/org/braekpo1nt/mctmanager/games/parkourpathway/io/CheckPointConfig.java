@@ -1,4 +1,4 @@
-package org.braekpo1nt.mctmanager.games.parkourpathway;
+package org.braekpo1nt.mctmanager.games.parkourpathway.io;
 
 import org.bukkit.util.Vector;
 

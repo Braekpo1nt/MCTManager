@@ -1,6 +1,4 @@
-package org.braekpo1nt.mctmanager.games.parkourpathway;
-
-import org.bukkit.World;
+package org.braekpo1nt.mctmanager.games.parkourpathway.io;
 
 import java.util.ArrayList;
 import java.util.List;

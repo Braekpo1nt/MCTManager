@@ -1,8 +1,9 @@
-package org.braekpo1nt.mctmanager.games.parkourpathway;
+package org.braekpo1nt.mctmanager.games.parkourpathway.io;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.games.parkourpathway.CheckPoint;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
