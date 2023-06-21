@@ -4,8 +4,14 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.braekpo1nt.mctmanager.Main;
 import org.bukkit.Bukkit;
+import org.bukkit.NamespacedKey;
+import org.bukkit.loot.LootTable;
+import org.bukkit.loot.LootTables;
+import org.bukkit.util.Vector;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MechaStorageUtil {
     
@@ -48,6 +54,69 @@ public class MechaStorageUtil {
             configFile.createNewFile();
         }
         return configFile;
+    }
+    
+    public List<Vector> getSpawnChestCoords() {
+        return mechaConfig.getSpawnChestCoords();
+    }
+    
+    public void setSpawnChestCoords(List<Vector> spawnChestCoords) {
+        mechaConfig.setSpawnChestCoords(spawnChestCoords);
+    }
+    
+    public List<Vector> getMapChestCoords() {
+        return mechaConfig.getMapChestCoords();
+    }
+    
+    public void setMapChestCoords(List<Vector> mapChestCoords) {
+        mechaConfig.setMapChestCoords(mapChestCoords);
+    }
+    
+    public LootTable getSpawnLootTable() {
+        NamespacedKey spawnLootTableNamespacedKey = mechaConfig.getSpawnLootTable();
+        if (spawnLootTableNamespacedKey == null) {
+            return LootTables.EMPTY.getLootTable();
+        }
+        return Bukkit.getLootTable(spawnLootTableNamespacedKey);
+    }
+    
+    public void setSpawnLootTable(NamespacedKey lootTableNamespacedKey) {
+        mechaConfig.setSpawnLootTable(lootTableNamespacedKey);
+    }
+    
+    public List<LootTable> getMechaLootTables() {
+        List<WeightedNamespacedKey> weightedMechaLootTables = mechaConfig.getWeightedMechaLootTables();
+        List<LootTable> mechaLootTables = new ArrayList<>(weightedMechaLootTables.size());
+        for (WeightedNamespacedKey weightedNamespacedKey : weightedMechaLootTables) {
+            String namespace = weightedNamespacedKey.namespace();
+            String key = weightedNamespacedKey.key();
+            LootTable lootTable = Bukkit.getLootTable(new NamespacedKey(namespace, key));
+            mechaLootTables.add(lootTable);
+        }
+        return mechaLootTables;
+    }
+    
+    public List<Integer> getMechaLootTableWeights() {
+        List<WeightedNamespacedKey> weightedMechaLootTables = mechaConfig.getWeightedMechaLootTables();
+        List<Integer> weights = new ArrayList<>(weightedMechaLootTables.size());
+        for (WeightedNamespacedKey weightedNamespacedKey : weightedMechaLootTables) {
+            int weight = weightedNamespacedKey.weight();
+            weights.add(weight);
+        }
+        return weights;
+    }
+    
+    public void setWeightedMechaLootTables(List<NamespacedKey> namespacedKeys, List<Integer> weights) {
+        List<WeightedNamespacedKey> weightedMechaLootTables = new ArrayList<>(namespacedKeys.size());
+        for (int i = 0; i < namespacedKeys.size(); i++) {
+            NamespacedKey namespacedKey = namespacedKeys.get(i);
+            String key = namespacedKey.getKey();
+            String namespace = namespacedKey.getNamespace();
+            int weight = weights.get(i);
+            WeightedNamespacedKey weightedNamespacedKey = new WeightedNamespacedKey(namespace, key, weight);
+            weightedMechaLootTables.add(weightedNamespacedKey);
+        }
+        mechaConfig.setWeightedMechaLootTables(weightedMechaLootTables);
     }
     
 }

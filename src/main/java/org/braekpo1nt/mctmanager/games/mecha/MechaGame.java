@@ -699,6 +699,12 @@ public class MechaGame implements MCTGame, Listener {
     
     private void setChestCoordsAndLootTables() {
         MechaStorageUtil mechaStorageUtil = new MechaStorageUtil(plugin);
+        this.spawnChestCoords = mechaStorageUtil.getSpawnChestCoords();
+        this.mapChestCoords = mechaStorageUtil.getMapChestCoords();
+        this.mapChestCoords = mechaStorageUtil.getMapChestCoords();
+        this.spawnLootTable = mechaStorageUtil.getSpawnLootTable();
+        this.mechaLootTables = mechaStorageUtil.getMechaLootTables();
+        this.mechaLootTableWeights = mechaStorageUtil.getMechaLootTableWeights();
     }
     
     private void setChestCoordsAndLootTables2() {
