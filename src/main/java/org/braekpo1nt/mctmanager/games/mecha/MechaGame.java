@@ -9,6 +9,7 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.enums.MCTGames;
 import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
+import org.braekpo1nt.mctmanager.games.mecha.io.MechaStorageUtil;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.bukkit.*;
@@ -697,6 +698,10 @@ public class MechaGame implements MCTGame, Listener {
     }
     
     private void setChestCoordsAndLootTables() {
+        MechaStorageUtil mechaStorageUtil = new MechaStorageUtil(plugin);
+    }
+    
+    private void setChestCoordsAndLootTables2() {
         this.spawnChestCoords = new ArrayList<>(12);
         spawnChestCoords.add(new Vector(-1, -45, 1));
         spawnChestCoords.add(new Vector(0, -45, 1));
