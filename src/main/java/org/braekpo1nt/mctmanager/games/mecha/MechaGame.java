@@ -333,39 +333,14 @@ public class MechaGame implements MCTGame, Listener {
         String winningTeam = getWinningTeam();
         if (winningTeam != null) {
             onTeamWin(winningTeam);
-            gameManager.awardPointsToTeam(winningTeam, 500);
+            gameManager.awardPointsToTeam(winningTeam,500);
             gameManager.awardPointsToTeam(lastKilledTeam, 350);
+
+
         }
     }
-    public String getThirdPlaceTeam() {
-        int thirdPlaceScore = Integer.MIN_VALUE;
-        String thirdPlaceTeam = null;
 
-        for (Map.Entry<String, Integer> entry : teamScores.entrySet()) {
-            String teamName = entry.getKey();
-            int score = entry.getValue();
-
-            if (score > thirdPlaceScore) {
-                thirdPlaceScore = score;
-                thirdPlaceTeam = teamName;
-            }
-        }
-
-        return thirdPlaceTeam;
-    }
-
-    // Method to award points to the 3rd place team
-    public void awardPointsToThirdPlaceTeam() {
-        String thirdPlaceTeam = getThirdPlaceTeam();
-        if (thirdPlaceTeam != null) {
-            int thirdPlacePoints = 200; // Change this value to the desired number of points for 3rd place
-
-
-
-
-
-
-            private void onParticipantDeath(Player killed) {
+    private void onParticipantDeath(Player killed) {
         UUID killedUniqueId = killed.getUniqueId();
         switchPlayerFromLivingToDead(killedUniqueId);
         String teamName = gameManager.getTeamName(killedUniqueId);
@@ -386,7 +361,6 @@ public class MechaGame implements MCTGame, Listener {
             }
         }
     }
-
 
     /**
      * Checks if the given team name is all dead
