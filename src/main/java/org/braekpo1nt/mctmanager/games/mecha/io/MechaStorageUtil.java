@@ -15,7 +15,7 @@ import java.util.*;
 public class MechaStorageUtil {
     
     private final File configDirectory;
-    protected MechaConfig mechaConfig;
+    protected MechaConfig mechaConfig = new MechaConfig();
     private static final String CONFIG_FILE_NAME = "mechaConfig.json";
     
     public MechaStorageUtil(Main plugin) {
@@ -38,6 +38,9 @@ public class MechaStorageUtil {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         File configFile = getConfigFile();
         Writer writer = new FileWriter(configFile, false);
+        if (mechaConfig == null) {
+            mechaConfig = new MechaConfig();
+        }
         gson.toJson(this.mechaConfig, writer);
         writer.flush();
         writer.close();

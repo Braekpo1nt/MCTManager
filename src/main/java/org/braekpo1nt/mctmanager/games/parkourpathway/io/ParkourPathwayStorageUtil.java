@@ -17,7 +17,7 @@ import java.util.List;
 public class ParkourPathwayStorageUtil {
     
     private final File configDirectory;
-    protected ParkourPathwayConfig parkourPathwayConfig;
+    protected ParkourPathwayConfig parkourPathwayConfig = new ParkourPathwayConfig();
     private static final String CONFIG_FILE_NAME = "parkourPathwayConfig.json";
     
     public ParkourPathwayStorageUtil(Main plugin) {
@@ -45,6 +45,9 @@ public class ParkourPathwayStorageUtil {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         File configFile = getConfigFile();
         Writer writer = new FileWriter(configFile, false);
+        if (parkourPathwayConfig == null) {
+            parkourPathwayConfig = new ParkourPathwayConfig();
+        }
         gson.toJson(this.parkourPathwayConfig, writer);
         writer.flush();
         writer.close();
