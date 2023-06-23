@@ -65,9 +65,9 @@ public class SpleefRound implements Listener {
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
         }
-        startStatusEffectsTask();
-        startStartSpleefCountDownTask();
         setupTeamOptions();
+        startStatusEffectsTask();
+        startRoundStartingCountDown();
         roundActive = true;
         Bukkit.getLogger().info("Starting Spleef game");
     }
@@ -96,6 +96,11 @@ public class SpleefRound implements Listener {
         hideFastBoard(participant);
     }
     
+    private void roundIsOver() {
+        stop();
+        spleefGame.roundIsOver();
+    }
+    
     public void stop() {
         HandlerList.unregisterAll(this);
         placeLayers();
@@ -106,7 +111,6 @@ public class SpleefRound implements Listener {
         participants.clear();
         participantsAlive.clear();
         roundActive = false;
-        gameManager.gameIsOver();
         Bukkit.getLogger().info("Stopping Spleef game");
     }
     
@@ -188,7 +192,7 @@ public class SpleefRound implements Listener {
         }
         onParticipantDeath(killed);
         if (lessThanTwoPlayersAlive()) {
-            stop();
+            roundIsOver();
         }
     }
     
@@ -337,7 +341,7 @@ public class SpleefRound implements Listener {
         participant.getInventory().addItem(diamondShovel);
     }
     
-    private void startStartSpleefCountDownTask() {
+    private void startRoundStartingCountDown() {
         this.startCountDownTaskID = new BukkitRunnable() {
             private int count = 10;
             

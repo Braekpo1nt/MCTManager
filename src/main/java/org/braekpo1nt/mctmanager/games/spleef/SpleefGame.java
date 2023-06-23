@@ -90,16 +90,16 @@ public class SpleefGame implements MCTGame, Listener {
     
     @Override
     public void onParticipantQuit(Player participant) {
+        
+    }
+    
+    public void roundIsOver() {
         if (currentRoundIndex+1 >= rounds.size()) {
             stop();
             return;
         }
         currentRoundIndex++;
         this.roundDelayTaskId = Bukkit.getScheduler().runTaskLater(plugin, this::startNextRound, 5*20L).getTaskId();
-    }
-    
-    public void roundIsOver() {
-        
     }
     
     public void startNextRound() {

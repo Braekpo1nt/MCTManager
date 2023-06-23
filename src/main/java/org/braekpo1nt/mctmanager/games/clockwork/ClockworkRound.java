@@ -80,12 +80,12 @@ public class ClockworkRound implements Listener {
         roundActive = true;
         Bukkit.getLogger().info("Starting capture the flag round");
     }
-
+    
     private void roundIsOver() {
         stop();
         clockworkGame.roundIsOver();
     }
-
+    
     public void stop() {
         roundActive = false;
         killAllSkeletons();
