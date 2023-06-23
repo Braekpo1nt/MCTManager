@@ -1043,16 +1043,29 @@ public class GameManager implements Listener {
     }
     
     
+    /**
+     * Checks if the given player is an admin
+     * @param admin The admin to check
+     * @return True if the given player is an admin, false otherwise
+     */
     public boolean isAdmin(Player admin) {
-        return false;
+        return gameStateStorageUtil.isAdmin(admin.getUniqueId());
     }
     
+    /**
+     * Adds the given player as an admin
+     * @param newAdmin The player to add
+     */
     public void addAdmin(Player newAdmin) {
-        throw new UnsupportedOperationException();
+        
     }
     
+    /**
+     * Removes the given player from the admins
+     * @param admin The player to remove
+     */
     public void removeAdmin(Player admin) {
-        throw new UnsupportedOperationException();
+        
     }
     
     public void setFinalGameTeams(String teamA, String teamB) {
