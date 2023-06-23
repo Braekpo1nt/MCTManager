@@ -1,45 +1,35 @@
 package org.braekpo1nt.mctmanager.games.spleef;
 
-import com.onarandombox.MultiverseCore.api.MVWorldManager;
 import com.onarandombox.MultiverseCore.utils.AnchorManager;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.enums.MCTGames;
 import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
-import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
-import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.bukkit.*;
-import org.bukkit.block.Block;
-import org.bukkit.block.structure.Mirror;
-import org.bukkit.block.structure.StructureRotation;
-import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
-import org.bukkit.structure.Structure;
-import org.bukkit.util.BoundingBox;
 
 import java.util.*;
 
 public class SpleefGame implements MCTGame, Listener {
     private final Main plugin;
     private final GameManager gameManager;
+    private final String title = ChatColor.BLUE+"Spleef";
+    private final Location startingLocation;
+    private List<Player> participants;
+    private List<SpleefRound> rounds;
+    private int currentRoundIndex = 0;
+    private boolean gameActive = false;
+    private int roundDelayTaskId;
     
     public SpleefGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
         this.gameManager = gameManager;
+        AnchorManager anchorManager = Main.multiverseCore.getAnchorManager();
+        this.startingLocation = anchorManager.getAnchorLocation("spleef");
     }
     
     @Override
@@ -49,12 +39,48 @@ public class SpleefGame implements MCTGame, Listener {
     
     @Override
     public void start(List<Player> newParticipants) {
-        
+        participants = new ArrayList<>(newParticipants.size());
+        rounds = new ArrayList<>();
+        rounds.add(new SpleefRound(plugin, gameManager, this, startingLocation));
+        rounds.add(new SpleefRound(plugin, gameManager, this, startingLocation));
+        rounds.add(new SpleefRound(plugin, gameManager, this, startingLocation));
+        currentRoundIndex = 0;
+        plugin.getServer().getPluginManager().registerEvents(this, plugin);
+        for (Player participant : newParticipants) {
+            initializeParticipant(participant);
+        }
+        setupTeamOptions();
+        startNextRound();
+        gameActive = true;
+        Bukkit.getLogger().info("Started Spleef");
+    }
+    
+    private void initializeParticipant(Player participant) {
+        participants.add(participant);
+        initializeFastBoard(participant);
     }
     
     @Override
     public void stop() {
-        
+        cancelAllTasks();
+        HandlerList.unregisterAll(this);
+        if (currentRoundIndex < rounds.size()) {
+            SpleefRound currentRound = rounds.get(currentRoundIndex);
+            currentRound.stop();
+        }
+        rounds.clear();
+        gameActive = false;
+        for (Player participant : participants) {
+            resetParticipant(participant);
+        }
+        participants.clear();
+        gameManager.gameIsOver();
+        Bukkit.getLogger().info("Stopping Spleef");
+    }
+    
+    private void resetParticipant(Player participant) {
+        participant.getInventory().clear();
+        hideFastBoard(participant);
     }
     
     @Override
@@ -64,6 +90,63 @@ public class SpleefGame implements MCTGame, Listener {
     
     @Override
     public void onParticipantQuit(Player participant) {
+        if (currentRoundIndex+1 >= rounds.size()) {
+            stop();
+            return;
+        }
+        currentRoundIndex++;
+        this.roundDelayTaskId = Bukkit.getScheduler().runTaskLater(plugin, this::startNextRound, 5*20L).getTaskId();
+    }
+    
+    public void roundIsOver() {
         
+    }
+    
+    public void startNextRound() {
+        SpleefRound nextRound = rounds.get(currentRoundIndex);
+        nextRound.start(participants);
+        for (Player participant : participants) {
+            updateRoundFastBoard(participant);
+        }
+    }
+    
+    private void cancelAllTasks() {
+        Bukkit.getScheduler().cancelTask(roundDelayTaskId);
+    }
+    
+    private void updateRoundFastBoard(Player participant) {
+        gameManager.getFastBoardManager().updateLine(
+                participant.getUniqueId(),
+                1,
+                String.format("Round %d/%d", currentRoundIndex+1, rounds.size())
+        );
+    }
+    
+    private void initializeFastBoard(Player participant) {
+        gameManager.getFastBoardManager().updateLines(
+                participant.getUniqueId(),
+                title,
+                String.format("Round %d/%d", currentRoundIndex+1, rounds.size()),
+                "",
+                "Starting in",
+                ""
+        );
+    }
+    
+    private void hideFastBoard(Player participant) {
+        gameManager.getFastBoardManager().updateLines(
+                participant.getUniqueId()
+        );
+    }
+    
+    private void setupTeamOptions() {
+        Scoreboard mctScoreboard = gameManager.getMctScoreboard();
+        for (Team team : mctScoreboard.getTeams()) {
+            team.setAllowFriendlyFire(false);
+            team.setCanSeeFriendlyInvisibles(true);
+            team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.ALWAYS);
+            team.setOption(Team.Option.DEATH_MESSAGE_VISIBILITY, Team.OptionStatus.ALWAYS);
+            team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER);
+        }
     }
 }

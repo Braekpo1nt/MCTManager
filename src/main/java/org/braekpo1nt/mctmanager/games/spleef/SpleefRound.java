@@ -1,13 +1,10 @@
 package org.braekpo1nt.mctmanager.games.spleef;
 
 import com.onarandombox.MultiverseCore.api.MVWorldManager;
-import com.onarandombox.MultiverseCore.utils.AnchorManager;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
-import org.braekpo1nt.mctmanager.games.enums.MCTGames;
-import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.bukkit.*;
@@ -39,9 +36,9 @@ public class SpleefRound implements Listener {
     private List<Player> participants;
     private final World spleefWorld;
     private Map<UUID, Boolean> participantsAlive;
-    private boolean gameActive = false;
-    private boolean spleefStarted = false;
-    private Location spleefStartAnchor;
+    private boolean roundActive = false;
+    private final SpleefGame spleefGame;
+    private final Location spleefStartAnchor;
     private final PotionEffect SATURATION = new PotionEffect(PotionEffectType.SATURATION, 70, 250, true, false, false);
     private int statusEffectsTaskId;
     private int startCountDownTaskID;
@@ -50,9 +47,11 @@ public class SpleefRound implements Listener {
     private final List<BoundingBox> layers;
     private int decayTaskId;
     
-    public SpleefRound(Main plugin, GameManager gameManager) {
+    public SpleefRound(Main plugin, GameManager gameManager, SpleefGame spleefGame, Location startingLocation) {
         this.plugin = plugin;
         this.gameManager = gameManager;
+        this.spleefGame = spleefGame;
+        this.spleefStartAnchor = startingLocation;
         MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
         this.spleefWorld = worldManager.getMVWorld("FT").getCBWorld();
         this.layers = createLayers();
@@ -61,8 +60,6 @@ public class SpleefRound implements Listener {
     public void start(List<Player> newParticipants) {
         this.participants = new ArrayList<>();
         participantsAlive = new HashMap<>();
-        AnchorManager anchorManager = Main.multiverseCore.getAnchorManager();
-        this.spleefStartAnchor = anchorManager.getAnchorLocation("spleef");
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         placeLayers();
         for (Player participant : newParticipants) {
@@ -71,7 +68,7 @@ public class SpleefRound implements Listener {
         startStatusEffectsTask();
         startStartSpleefCountDownTask();
         setupTeamOptions();
-        gameActive = true;
+        roundActive = true;
         Bukkit.getLogger().info("Starting Spleef game");
     }
     
@@ -108,14 +105,13 @@ public class SpleefRound implements Listener {
         }
         participants.clear();
         participantsAlive.clear();
-        gameActive = false;
-        spleefStarted = false;
+        roundActive = false;
         gameManager.gameIsOver();
         Bukkit.getLogger().info("Stopping Spleef game");
     }
     
     public void onParticipantJoin(Player participant) {
-        if (!gameActive) {
+        if (!roundActive) {
             return;
         }
         if (participantShouldRejoin(participant)) {
@@ -132,14 +128,14 @@ public class SpleefRound implements Listener {
     }
     
     private boolean participantShouldRejoin(Player participant) {
-        if (!gameActive) {
+        if (!roundActive) {
             return false;
         }
         return participantsAlive.containsKey(participant.getUniqueId());
     }
     
     public void onParticipantQuit(Player participant) {
-        if (!gameActive) {
+        if (!roundActive) {
             return;
         }
         List<ItemStack> drops = Arrays.stream(participant.getInventory().getContents())
@@ -155,7 +151,7 @@ public class SpleefRound implements Listener {
     
     @EventHandler
     public void onPlayerDamage(EntityDamageEvent event) {
-        if (!gameActive) {
+        if (!roundActive) {
             return;
         }
         if (event.getCause().equals(EntityDamageEvent.DamageCause.VOID)) {
@@ -176,7 +172,7 @@ public class SpleefRound implements Listener {
     
     @EventHandler
     public void onPlayerDeath(PlayerDeathEvent event) {
-        if (!gameActive) {
+        if (!roundActive) {
             return;
         }
         Player killed = event.getPlayer();
@@ -230,7 +226,6 @@ public class SpleefRound implements Listener {
         }
         givePlayersShovels();
         startDecayTask();
-        spleefStarted = true;
     }
     
     private void startDecayTask() {
@@ -384,7 +379,7 @@ public class SpleefRound implements Listener {
     
     @EventHandler
     public void onBlockBreak(BlockBreakEvent event) {
-        if (!gameActive) {
+        if (!roundActive) {
             return;
         }
         Player participant = event.getPlayer();
@@ -422,21 +417,22 @@ public class SpleefRound implements Listener {
     }
     
     private void initializeFastBoard(Player participant) {
-        gameManager.getFastBoardManager().updateLines(
+        gameManager.getFastBoardManager().updateLine(
                 participant.getUniqueId(),
-                title,
-                "",
-                "Starting in",
-                ""
+                3,
+                "Starting in"
         );
     }
     
     private void initializeAliveCountFastBoard(Player participant, String count) {
-        gameManager.getFastBoardManager().updateLines(
+        gameManager.getFastBoardManager().updateLine(
                 participant.getUniqueId(),
-                title,
-                "",
-                "Alive:",
+                3,
+                "Alive:"
+        );
+        gameManager.getFastBoardManager().updateLine(
+                participant.getUniqueId(),
+                4,
                 count
         );
     }
@@ -444,7 +440,7 @@ public class SpleefRound implements Listener {
     private void updateAliveCountFastBoard(Player participant, String count) {
         gameManager.getFastBoardManager().updateLine(
                 participant.getUniqueId(),
-                3,
+                4,
                 count
         );
     }
@@ -452,7 +448,7 @@ public class SpleefRound implements Listener {
     private void updateCountDownFastBoard(Player participant, String timeLeft) {
         gameManager.getFastBoardManager().updateLine(
                 participant.getUniqueId(),
-                3,
+                4,
                 timeLeft
         );
     }
