@@ -336,7 +336,8 @@ public class ParkourPathwayGame implements MCTGame, Listener {
             team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER);
         }
     }
-    
+
+
     private void teleportPlayerToStartingPosition(Player player) {
         player.sendMessage("Teleporting to Parkour Pathway");
         player.teleport(parkourPathwayStartAnchor);
