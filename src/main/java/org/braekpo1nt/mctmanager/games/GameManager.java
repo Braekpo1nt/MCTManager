@@ -118,10 +118,18 @@ public class GameManager implements Listener {
     @EventHandler
     public void playerQuitEvent(PlayerQuitEvent event) {
         Player player = event.getPlayer();
-        if (!isParticipant(player.getUniqueId())) {
+        if (isAdmin(player.getUniqueId())) {
+            onAdminQuit(player);
             return;
         }
-        onParticipantQuit(player);
+        if (isParticipant(player.getUniqueId())) {
+            onParticipantQuit(player);
+        }
+    }
+    
+    private void onAdminQuit(@NotNull Player admin) {
+        onlineAdmins.remove(admin);
+        fastBoardManager.removeBoard(admin.getUniqueId());
     }
     
     /**
@@ -146,10 +154,18 @@ public class GameManager implements Listener {
     @EventHandler
     public void playerJoinEvent(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-        if (!isParticipant(player.getUniqueId())) {
+        if (isAdmin(player.getUniqueId())) {
+            onAdminJoin(player);
             return;
         }
-        onParticipantJoin(player);
+        if (isParticipant(player.getUniqueId())) {
+            onParticipantJoin(player);
+        }
+    }
+    
+    private void onAdminJoin(@NotNull Player admin) {
+        onlineAdmins.add(admin);
+        fastBoardManager.updateMainBoards();
     }
     
     /**
@@ -1076,7 +1092,7 @@ public class GameManager implements Listener {
     
     /**
      * Removes the given player from the admins
-     * @param admin The player to remove
+     * @param offlineAdmin The admin to remove
      */
     public void removeAdmin(OfflinePlayer offlineAdmin) {
         if (offlineAdmin.isOnline()) {
