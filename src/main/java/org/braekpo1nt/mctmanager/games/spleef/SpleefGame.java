@@ -378,16 +378,16 @@ public class SpleefGame implements MCTGame, Listener {
         Structure layer4 = Bukkit.getStructureManager().loadStructure(new NamespacedKey("mctdatapack", "spleef/spleef_layer4"));
     
         if (layer1 != null) {
-            layer1.place(new Location(spleefWorld, -23, 33, -2023), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
+            layer1.place(new Location(spleefWorld, -22, 37, -2022), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
         }
         if (layer2 != null) {
-            layer2.place(new Location(spleefWorld, -23, 29, -2023), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
+            layer2.place(new Location(spleefWorld, -22, 30, -2022), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
         }
         if (layer3 != null) {
-            layer3.place(new Location(spleefWorld, -23, 25, -2023), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
+            layer3.place(new Location(spleefWorld, -22, 24, -2022), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
         }
         if (layer4 != null) {
-            layer4.place(new Location(spleefWorld, -23, 21, -2023), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
+            layer4.place(new Location(spleefWorld, -22, 19, -2022), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
         }
     }
     
