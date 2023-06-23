@@ -5,6 +5,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
@@ -31,16 +32,8 @@ public class RemoveSubCommand implements TabExecutor {
             return true;
         }
         String name = args[0];
-        Player admin = Bukkit.getPlayer(name);
-        if (admin == null) {
-            sender.sendMessage(Component.empty()
-                    .append(Component.text(name)
-                            .decorate(TextDecoration.BOLD))
-                    .append(Component.text(" is not an admin"))
-                    .color(NamedTextColor.RED));
-            return true;
-        }
-        if (!gameManager.isAdmin(admin)) {
+        OfflinePlayer admin = Bukkit.getOfflinePlayer(name);
+        if (!gameManager.isAdmin(admin.getUniqueId())) {
             sender.sendMessage(Component.empty()
                     .append(Component.text(name)
                             .decorate(TextDecoration.BOLD))

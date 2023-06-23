@@ -40,7 +40,7 @@ public class AddSubCommand implements TabExecutor {
                     .color(NamedTextColor.RED));
             return true;
         }
-        if (gameManager.isAdmin(newAdmin)) {
+        if (gameManager.isAdmin(newAdmin.getUniqueId())) {
             sender.sendMessage(Component.empty()
                     .append(Component.text(name)
                             .decorate(TextDecoration.BOLD))

@@ -41,7 +41,8 @@ import java.util.*;
  * Creating new game instances, starting/stopping games, and handling game events.
  */
 public class GameManager implements Listener {
-
+    
+    public static final String ADMIN_TEAM = "_Admins";
     private MCTGame activeGame = null;
     private final FootRaceGame footRaceGame;
     private final MechaGame mechaGame;
@@ -685,7 +686,7 @@ public class GameManager implements Listener {
      * Add a team to the game.
      * @param teamName The internal name of the team.
      * @param teamDisplayName The display name of the team.
-     * @return True if the team was successfully created. False if the team already exists.
+     * @return True if the team was successfully created. False if the team already exists, or if the name matches the admin team's name.
      */
     public boolean addTeam(String teamName, String teamDisplayName, String colorString) {
         if (gameStateStorageUtil.containsTeam(teamName)) {
@@ -1045,11 +1046,11 @@ public class GameManager implements Listener {
     
     /**
      * Checks if the given player is an admin
-     * @param admin The admin to check
+     * @param adminUniqueId The unique id of the admin to check
      * @return True if the given player is an admin, false otherwise
      */
-    public boolean isAdmin(Player admin) {
-        return gameStateStorageUtil.isAdmin(admin.getUniqueId());
+    public boolean isAdmin(UUID adminUniqueId) {
+        return gameStateStorageUtil.isAdmin(adminUniqueId);
     }
     
     /**
@@ -1057,15 +1058,42 @@ public class GameManager implements Listener {
      * @param newAdmin The player to add
      */
     public void addAdmin(Player newAdmin) {
-        
+        UUID uniqueId = newAdmin.getUniqueId();
+        if (gameStateStorageUtil.isAdmin(uniqueId)) {
+            return;
+        }
+        try {
+            gameStateStorageUtil.addAdmin(uniqueId);
+        } catch (IOException e) {
+            reportGameStateIOException("adding new admin", e);
+        }
+        Team adminTeam = mctScoreboard.getTeam(ADMIN_TEAM);
+        adminTeam.addPlayer(newAdmin);
+        if (newAdmin.isOnline()) {
+            onAdminJoin(newAdmin);
+        }
     }
     
     /**
      * Removes the given player from the admins
      * @param admin The player to remove
      */
-    public void removeAdmin(Player admin) {
-        
+    public void removeAdmin(OfflinePlayer offlineAdmin) {
+        if (offlineAdmin.isOnline()) {
+            Player onlineAdmin = offlineAdmin.getPlayer();
+            if (onlineAdmin != null) {
+                onAdminQuit(onlineAdmin);
+            }
+        }
+        UUID adminUniqueId = offlineAdmin.getUniqueId();
+        try {
+            gameStateStorageUtil.removeAdmin(adminUniqueId);
+        } catch (IOException e) {
+            reportGameStateIOException("removing admin", e);
+        }
+        Team team = mctScoreboard.getTeam(ADMIN_TEAM);
+        team.removePlayer(offlineAdmin);
+        fastBoardManager.removeBoard(adminUniqueId);
     }
     
     public void setFinalGameTeams(String teamA, String teamB) {

@@ -47,6 +47,17 @@ public class AddSubCommand implements TabExecutor {
             return true;
         }
         String teamName = args[0];
+        if (teamName.equals(GameManager.ADMIN_TEAM)) {
+            sender.sendMessage(Component.empty()
+                            .append(Component.text(teamName)
+                                    .decorate(TextDecoration.BOLD))
+                            .append(Component.text(" cannot be "))
+                            .append(Component.text(GameManager.ADMIN_TEAM)
+                                    .decorate(TextDecoration.BOLD))
+                            .append(Component.text(" because that is reserved for the admin team."))
+                            .color(NamedTextColor.RED));
+            return true;
+        }
         if (!validTeamName(teamName)) {
             sender.sendMessage(Component.text("Provide a valid team name\n")
                             .append(Component.text(
