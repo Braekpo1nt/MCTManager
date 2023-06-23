@@ -314,4 +314,24 @@ public class GameStateStorageUtil {
         gameState.setPlayedGames(playedGames);
         saveGameState();
     }
+    
+    /**
+     * Add an admin to the game state
+     * @param adminUniqueId the unique id of the admin
+     * @throws IOException If there is an issue saving the game state
+     */
+    public void addAdmin(UUID adminUniqueId) throws IOException {
+        gameState.addAdmin(adminUniqueId);
+        saveGameState();
+    }
+    
+    /**
+     * Remove an admin from the game state
+     * @param adminUniqueId the unique id of the admin
+     * @throws IOException If there is an issue saving the game state
+     */
+    public void removeAdmin(UUID adminUniqueId) throws IOException {
+        gameState.removeAdmin(adminUniqueId);
+        saveGameState();
+    }
 }

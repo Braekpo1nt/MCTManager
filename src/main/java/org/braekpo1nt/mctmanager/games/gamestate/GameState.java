@@ -12,11 +12,13 @@ public class GameState {
     private Map<UUID, MCTPlayer> players;
     private Map<String, MCTTeam> teams;
     private List<MCTGames> playedGames;
+    private List<UUID> admins;
     
     public GameState() {
         this.players = new HashMap<>();
         this.teams = new HashMap<>();
         this.playedGames = new ArrayList<>();
+        this.admins = new ArrayList<>();
     }
     
     /**
@@ -107,5 +109,30 @@ public class GameState {
     
     public void setPlayedGames(List<MCTGames> playedGames) {
         this.playedGames = playedGames;
+    }
+    
+    public List<UUID> getAdmins() {
+        return admins;
+    }
+    
+    public void setAdmins(List<UUID> admins) {
+        this.admins = admins;
+    }
+    
+    /**
+     * Checks if the game state contains the given admin
+     * @param adminUniqueId The unique id of the admin
+     * @return True if the unique id is in the admin list, false otherwise
+     */
+    public boolean isAdmin(UUID adminUniqueId) {
+        return admins.contains(adminUniqueId);
+    }
+    
+    public void addAdmin(UUID adminUniqueId) {
+        admins.add(adminUniqueId);
+    }
+    
+    public void removeAdmin(UUID adminUniqueId) {
+        admins.remove(adminUniqueId);
     }
 }
