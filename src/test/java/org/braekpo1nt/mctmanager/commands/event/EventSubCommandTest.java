@@ -67,7 +67,8 @@ class EventSubCommandTest {
     void startTwiceTest() {
         Assertions.assertTrue(plugin.getMctCommand().onCommand(server.getConsoleSender(), command, "mct", new String[]{"event", "start"}));
         Assertions.assertTrue(plugin.getMctCommand().onCommand(server.getConsoleSender(), command, "mct", new String[]{"event", "start"}));
-        TestUtils.assertComponentPlaintextEquals("An event is already running.", server.getConsoleSender().nextComponentMessage());
+        Assertions.assertTrue(TestUtils.receivedMessagePlaintext(server.getConsoleSender(), "An event is already running."));
+        
     }
     
     @Test

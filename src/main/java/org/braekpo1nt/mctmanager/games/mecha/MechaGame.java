@@ -34,6 +34,7 @@ import org.bukkit.structure.Structure;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
+import java.io.IOException;
 import java.util.*;
 
 public class MechaGame implements MCTGame, Listener {
@@ -700,6 +701,13 @@ public class MechaGame implements MCTGame, Listener {
     
     private void setChestCoordsAndLootTables() {
         MechaStorageUtil mechaStorageUtil = new MechaStorageUtil(plugin);
+        try {
+            mechaStorageUtil.loadConfig();
+        } catch (IOException e) {
+            Bukkit.getLogger().severe("Error loading MECHA config file. See console for details.");
+            Bukkit.getPluginManager().disablePlugin(plugin);
+            throw new RuntimeException(e);
+        }
         this.spawnChestCoords = mechaStorageUtil.getSpawnChestCoords();
         this.mapChestCoords = mechaStorageUtil.getMapChestCoords();
         this.mapChestCoords = mechaStorageUtil.getMapChestCoords();
