@@ -462,9 +462,9 @@ public class FootRaceGame implements Listener, MCTGame {
             case 3:
                 return 200;
             case 4:
-                return 150;
+                return 170;
             case 5:
-                return 100;
+                return 150;
             default:
                 int previousPoints = calculatePointsForPlacement(placement - 1);
                 int points = previousPoints - 10;
