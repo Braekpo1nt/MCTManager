@@ -1,9 +1,14 @@
 package org.braekpo1nt.mctmanager;
 
+import be.seeseemelk.mockbukkit.command.ConsoleCommandSenderMock;
 import net.kyori.adventure.text.*;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class TestUtils {
     /**
@@ -50,5 +55,23 @@ public class TestUtils {
     public static void assertComponentPlaintextEquals(String expected, Component actual) {
         String actualString = toPlainText(actual);
         Assertions.assertEquals(expected, actualString);
+    }
+    
+    public static boolean receivedMessagePlaintext(@NotNull ConsoleCommandSenderMock sender, @NotNull String expected) {
+        Component comp = sender.nextComponentMessage();
+        List<Component> sentMessages = new ArrayList<>();
+        boolean messageWasSent = false;
+        while (comp != null) {
+            sentMessages.add(comp);
+            String plainText = TestUtils.toPlainText(comp);
+            if (plainText.equals(expected)) {
+                messageWasSent = true;
+            }
+            comp = sender.nextComponentMessage();
+        }
+        for (Component sentMessage : sentMessages) {
+            sender.sendMessage(sentMessage);
+        }
+        return messageWasSent;
     }
 }

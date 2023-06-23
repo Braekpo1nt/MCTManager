@@ -1,6 +1,5 @@
 package org.braekpo1nt.mctmanager.games.parkourpathway;
 
-import com.onarandombox.MultiverseCore.api.MVWorldManager;
 import com.onarandombox.MultiverseCore.utils.AnchorManager;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -8,6 +7,7 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.enums.MCTGames;
 import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
+import org.braekpo1nt.mctmanager.games.parkourpathway.io.ParkourPathwayStorageUtil;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.bukkit.*;
@@ -24,7 +24,6 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
-import org.bukkit.util.BoundingBox;
 
 import java.io.IOException;
 import java.util.*;
@@ -50,7 +49,6 @@ public class ParkourPathwayGame implements MCTGame, Listener {
      * UUID paired with index of checkpoint
      */
     private Map<UUID, Integer> currentCheckpoints;
-    private int highestCheckpoint = 0;
     
     public ParkourPathwayGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
@@ -69,7 +67,6 @@ public class ParkourPathwayGame implements MCTGame, Listener {
     public void start(List<Player> newParticipants) {
         participants = new ArrayList<>();
         currentCheckpoints = new HashMap<>();
-        highestCheckpoint = 0;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
