@@ -211,10 +211,14 @@ public class GameManager implements Listener {
             player.setScoreboard(mctScoreboard);
         }
         onlineParticipants.clear();
-        for (Player participant : Bukkit.getOnlinePlayers()) {
-            if (gameStateStorageUtil.containsPlayer(participant.getUniqueId())) {
-                onlineParticipants.add(participant);
-                hubManager.onParticipantJoin(participant);
+        onlineAdmins.clear();
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            if (gameStateStorageUtil.isAdmin(player.getUniqueId())) {
+                onlineAdmins.add(player);
+            }
+            if (gameStateStorageUtil.containsPlayer(player.getUniqueId())) {
+                onlineParticipants.add(player);
+                hubManager.onParticipantJoin(player);
             }
         }
         return true;

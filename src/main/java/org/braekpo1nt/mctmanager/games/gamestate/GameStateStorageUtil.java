@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.enums.MCTGames;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.bukkit.Bukkit;
@@ -134,10 +135,17 @@ public class GameStateStorageUtil {
     }
     
     /**
-     * Registers all teams in the game state with the given scoreboard
+     * Registers all teams in the game state with the given scoreboard,
+     * including the admin team
      * @param scoreboard The scoreboard to register the teams for
      */
     private void registerTeams(Scoreboard scoreboard) {
+        Team adminTeam = scoreboard.registerNewTeam(GameManager.ADMIN_TEAM);
+        adminTeam.prefix(Component.empty()
+                        .append(Component.text("["))
+                .append(Component.text("Admin")
+                    .color(NamedTextColor.DARK_RED))
+                .append(Component.text("]")));
         for (MCTTeam mctTeam : gameState.getTeams().values()) {
             Team team = scoreboard.registerNewTeam(mctTeam.getName());
             team.displayName(Component.text(mctTeam.getDisplayName()));
@@ -151,6 +159,11 @@ public class GameStateStorageUtil {
      * @param scoreboard The scoreboard with the teams to join players to
      */
     private void joinPlayersToTeams(Scoreboard scoreboard) {
+        for (UUID adminUniqueId : gameState.getAdmins()) {
+            Team adminTeam = scoreboard.getTeam(GameManager.ADMIN_TEAM);
+            OfflinePlayer admin = Bukkit.getOfflinePlayer(adminUniqueId);
+            adminTeam.addPlayer(admin);
+        }
         for (MCTPlayer mctPlayer : gameState.getPlayers().values()) {
             Team team = scoreboard.getTeam(mctPlayer.getTeamName());
             OfflinePlayer player = Bukkit.getOfflinePlayer(mctPlayer.getUniqueId());
