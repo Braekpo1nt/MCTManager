@@ -316,6 +316,15 @@ public class GameStateStorageUtil {
     }
     
     /**
+     * Checks if the given unique id is an admin
+     * @param adminUniqueId The admin's unique id to check
+     * @return True if the given unique id is an admin, false otherwise
+     */
+    public boolean isAdmin(UUID adminUniqueId) {
+        return gameState.isAdmin(adminUniqueId);
+    }
+    
+    /**
      * Add an admin to the game state
      * @param adminUniqueId the unique id of the admin
      * @throws IOException If there is an issue saving the game state
