@@ -48,7 +48,7 @@ public class ClockworkRound implements Listener {
     private final Random random = new Random();
     private String lastKilledTeam = null;
     private boolean skeletonCycle = false;
-
+    
     public ClockworkRound(Main plugin, GameManager gameManager, ClockworkGame clockworkGame, Location startingPosition) {
         this.plugin = plugin;
         this.gameManager = gameManager;
