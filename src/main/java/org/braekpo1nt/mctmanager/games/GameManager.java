@@ -76,6 +76,7 @@ public class GameManager implements Listener {
      * Contains the list of online participants. Updated when participants are added/removed or quit/join
      */
     private final List<Player> onlineParticipants = new ArrayList<>();
+    private final List<Player> onlineAdmins = new ArrayList<>();
     private int startGameWithDelayTaskId;
     private boolean startingGameWithDelay;
     
@@ -1039,6 +1040,19 @@ public class GameManager implements Listener {
      */
     public int getScore(UUID participantUniqueId) {
         return gameStateStorageUtil.getPlayerScore(participantUniqueId);
+    }
+    
+    
+    public boolean isAdmin(Player admin) {
+        return false;
+    }
+    
+    public void addAdmin(Player newAdmin) {
+        throw new UnsupportedOperationException();
+    }
+    
+    public void removeAdmin(Player admin) {
+        throw new UnsupportedOperationException();
     }
     
     public void setFinalGameTeams(String teamA, String teamB) {
