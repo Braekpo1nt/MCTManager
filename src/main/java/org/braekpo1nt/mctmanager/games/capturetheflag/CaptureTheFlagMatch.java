@@ -537,7 +537,7 @@ public class CaptureTheFlagMatch implements Listener {
     
     /**
      * Places the provided flag type at the given location facing the given direction
-     * @param flagBlock
+     * @param flagLocation
      * @param facing
      * @param flagType
      */
@@ -545,11 +545,86 @@ public class CaptureTheFlagMatch implements Listener {
         Block flagBlock = flagLocation.getBlock();
         flagBlock.setType(flagType);
         if (flagBlock.getBlockData() instanceof Rotatable flagData) {
-            flagData.setRotation(facing);
+            // Find the closest matching direction -rstln
+            BlockFace closestDirection = getClosestDirection(facing);
+            flagData.setRotation(closestDirection);
             flagBlock.setBlockData(flagData);
         }
     }
-    
+    private BlockFace getClosestDirection(BlockFace facing) {
+        BlockFace[] availableDirections = BlockFace.values();
+
+        // Find the closest matching direction
+        BlockFace closestDirection = availableDirections[0];
+        double closestAngle = Double.MAX_VALUE;
+        double facingYaw = getYawFromBlockFace(facing);
+
+        for (BlockFace direction : availableDirections) {
+            double angle = Math.abs(facingYaw - getYawFromBlockFace(direction));
+            if (angle < closestAngle) {
+                closestAngle = angle;
+                closestDirection = direction;
+            }
+        }
+
+        return closestDirection;
+    }
+    public float getYawFromBlockFace(BlockFace direction) {
+        float yaw = 0.0f;
+
+        switch (direction) {
+            case SOUTH:
+                yaw = 0.0f;
+                break;
+            case SOUTH_SOUTH_WEST:
+                yaw = 22.5f;
+                break;
+            case SOUTH_WEST:
+                yaw = 45.0f;
+                break;
+            case WEST_SOUTH_WEST:
+                yaw = 67.5f;
+                break;
+            case WEST:
+                yaw = 90.0f;
+                break;
+            case WEST_NORTH_WEST:
+                yaw = 112.5f;
+                break;
+            case NORTH_WEST:
+                yaw = 135.0f;
+                break;
+            case NORTH_NORTH_WEST:
+                yaw = 157.5f;
+                break;
+            case NORTH:
+                yaw = 180.0f;
+                break;
+            case NORTH_NORTH_EAST:
+                yaw = -157.5f;
+                break;
+            case NORTH_EAST:
+                yaw = -135.0f;
+                break;
+            case EAST_NORTH_EAST:
+                yaw = -112.5f;
+                break;
+            case EAST:
+                yaw = -90.0f;
+                break;
+            case EAST_SOUTH_EAST:
+                yaw = -67.5f;
+                break;
+            case SOUTH_EAST:
+                yaw = -45.0f;
+                break;
+            case SOUTH_SOUTH_EAST:
+                yaw = -22.5f;
+                break;
+        }
+
+        return yaw;
+    }
     private void onSouthParticipantMove(Player southParticipant) {
         Location location = southParticipant.getLocation();
         if (canPickUpNorthFlag(location)) {
