@@ -1191,7 +1191,11 @@ public class GameManager implements Listener {
     }
     
     private void reportGameStateIOException(String attemptedOperation, IOException ioException) {
-        Bukkit.getLogger().severe(String.format("error while %s. See log for error message.", attemptedOperation));
+        Bukkit.getLogger().severe(String.format("error while %s. See console log for error message.", attemptedOperation));
+        messageAdmins(Component.empty()
+                .append(Component.text("error while "))
+                .append(Component.text(attemptedOperation))
+                .append(Component.text(". See console log for error message.")));
         throw new RuntimeException(ioException);
     }
     
