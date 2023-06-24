@@ -442,6 +442,7 @@ public class HubManager implements Listener {
     }
     
     private void messageAllParticipants(Component message) {
+        gameManager.messageAdmins(message);
         for (Player participant : participants) {
             participant.sendMessage(message);
         }

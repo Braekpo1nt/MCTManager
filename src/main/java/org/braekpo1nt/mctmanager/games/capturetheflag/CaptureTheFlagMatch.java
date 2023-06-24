@@ -818,6 +818,7 @@ public class CaptureTheFlagMatch implements Listener {
     }
     
     private void messageAllParticipants(Component message) {
+        gameManager.messageAdmins(message);
         for (Player participant : allParticipants) {
             participant.sendMessage(message);
         }

@@ -681,6 +681,7 @@ public class MechaGame implements MCTGame, Listener {
     }
     
     private void messageAllParticipants(Component message) {
+        gameManager.messageAdmins(message);
         for (Player participant : participants) {
             participant.sendMessage(message);
         }

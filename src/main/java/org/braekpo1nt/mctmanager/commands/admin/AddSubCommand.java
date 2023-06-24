@@ -1,4 +1,4 @@
-package org.braekpo1nt.mctmanager.commands.team;
+package org.braekpo1nt.mctmanager.commands.admin;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -12,61 +12,55 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
-public class JoinSubCommand implements TabExecutor {
+public class AddSubCommand implements TabExecutor {
+    
     private final GameManager gameManager;
     
-    public JoinSubCommand(GameManager gameManager) {
+    public AddSubCommand(GameManager gameManager) {
         this.gameManager = gameManager;
     }
     
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (args.length < 2) {
-            sender.sendMessage("Usage: /mct team join <team> <member>");
-            return true;
-        }
-        String teamName = args[0];
-        if (!gameManager.hasTeam(teamName)) {
-            sender.sendMessage(String.format("Team \"%s\" does not exist.", teamName));
-            return true;
-        }
-        String playerName = args[1];
-        Player playerToJoin = Bukkit.getPlayer(playerName);
-        if (playerToJoin == null) {
-            sender.sendMessage(Component.empty()
-                    .append(Component.text("Player "))
-                    .append(Component.text(playerName)
-                            .decorate(TextDecoration.BOLD))
-                    .append(Component.text(" is not online."))
+        if (args.length != 1) {
+            sender.sendMessage(Component.text("Usage: /mct admin add <player>")
                     .color(NamedTextColor.RED));
             return true;
         }
-        if (gameManager.isAdmin(playerToJoin.getUniqueId())) {
+        String name = args[0];
+        Player newAdmin = Bukkit.getPlayer(name);
+        if (newAdmin == null || !newAdmin.isOnline()) {
             sender.sendMessage(Component.empty()
-                    .append(Component.text(playerName)
+                    .append(Component.text(name)
                             .decorate(TextDecoration.BOLD))
-                    .append(Component.text(" is an admin, and can't be a participant."))
+                    .append(Component.text(" is not online"))
                     .color(NamedTextColor.RED));
             return true;
         }
-        gameManager.joinPlayerToTeam(playerToJoin, teamName);
-        sender.sendMessage(Component.text("Joined ")
-                .append(Component.text(playerName))
-                .append(Component.text("to team "))
-                .append(Component.text(teamName)));
+        if (gameManager.isAdmin(newAdmin.getUniqueId())) {
+            sender.sendMessage(Component.empty()
+                    .append(Component.text(name)
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(" is already an admin"))
+                    .color(NamedTextColor.YELLOW));
+            return true;
+        }
+        gameManager.addAdmin(newAdmin);
+        sender.sendMessage(Component.empty()
+                .append(Component.text("Added "))
+                .append(Component.text(name)
+                        .decorate(TextDecoration.BOLD))
+                .append(Component.text(" as an admin"))
+                .color(NamedTextColor.YELLOW));
         return true;
     }
     
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length == 1) {
-            return gameManager.getTeamNames().stream().sorted().toList();
-        }
-        if (args.length == 2) {
             return null;
         }
         return Collections.emptyList();

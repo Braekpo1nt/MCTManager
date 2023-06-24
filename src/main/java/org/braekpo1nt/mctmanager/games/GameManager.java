@@ -41,7 +41,8 @@ import java.util.*;
  * Creating new game instances, starting/stopping games, and handling game events.
  */
 public class GameManager implements Listener {
-
+    
+    public static final String ADMIN_TEAM = "_Admins";
     private MCTGame activeGame = null;
     private final FootRaceGame footRaceGame;
     private final MechaGame mechaGame;
@@ -76,6 +77,7 @@ public class GameManager implements Listener {
      * Contains the list of online participants. Updated when participants are added/removed or quit/join
      */
     private final List<Player> onlineParticipants = new ArrayList<>();
+    private final List<Player> onlineAdmins = new ArrayList<>();
     private int startGameWithDelayTaskId;
     private boolean startingGameWithDelay;
     
@@ -116,10 +118,18 @@ public class GameManager implements Listener {
     @EventHandler
     public void playerQuitEvent(PlayerQuitEvent event) {
         Player player = event.getPlayer();
-        if (!isParticipant(player.getUniqueId())) {
+        if (isAdmin(player.getUniqueId())) {
+            onAdminQuit(player);
             return;
         }
-        onParticipantQuit(player);
+        if (isParticipant(player.getUniqueId())) {
+            onParticipantQuit(player);
+        }
+    }
+    
+    private void onAdminQuit(@NotNull Player admin) {
+        onlineAdmins.remove(admin);
+        fastBoardManager.removeBoard(admin.getUniqueId());
     }
     
     /**
@@ -144,10 +154,18 @@ public class GameManager implements Listener {
     @EventHandler
     public void playerJoinEvent(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-        if (!isParticipant(player.getUniqueId())) {
+        if (isAdmin(player.getUniqueId())) {
+            onAdminJoin(player);
             return;
         }
-        onParticipantJoin(player);
+        if (isParticipant(player.getUniqueId())) {
+            onParticipantJoin(player);
+        }
+    }
+    
+    private void onAdminJoin(@NotNull Player admin) {
+        onlineAdmins.add(admin);
+        fastBoardManager.updateMainBoards();
     }
     
     /**
@@ -193,10 +211,14 @@ public class GameManager implements Listener {
             player.setScoreboard(mctScoreboard);
         }
         onlineParticipants.clear();
-        for (Player participant : Bukkit.getOnlinePlayers()) {
-            if (gameStateStorageUtil.containsPlayer(participant.getUniqueId())) {
-                onlineParticipants.add(participant);
-                hubManager.onParticipantJoin(participant);
+        onlineAdmins.clear();
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            if (gameStateStorageUtil.isAdmin(player.getUniqueId())) {
+                onlineAdmins.add(player);
+            }
+            if (gameStateStorageUtil.containsPlayer(player.getUniqueId())) {
+                onlineParticipants.add(player);
+                hubManager.onParticipantJoin(player);
             }
         }
         return true;
@@ -684,7 +706,7 @@ public class GameManager implements Listener {
      * Add a team to the game.
      * @param teamName The internal name of the team.
      * @param teamDisplayName The display name of the team.
-     * @return True if the team was successfully created. False if the team already exists.
+     * @return True if the team was successfully created. False if the team already exists, or if the name matches the admin team's name.
      */
     public boolean addTeam(String teamName, String teamDisplayName, String colorString) {
         if (gameStateStorageUtil.containsTeam(teamName)) {
@@ -747,7 +769,8 @@ public class GameManager implements Listener {
     
     /**
      * Joins the player with the given UUID to the team with the given teamName, and adds them
-     * to the game state.
+     * to the game state. Note, this will not join a player to a team
+     * if that player is an admin. 
      * @param player The player to join to the given team
      * @param teamName The internal teamName of the team to join the player to. 
      *                 This method assumes the team exists, and will throw a 
@@ -755,6 +778,9 @@ public class GameManager implements Listener {
      */
     public void joinPlayerToTeam(Player player, String teamName) {
         UUID playerUniqueId = player.getUniqueId();
+        if (isAdmin(playerUniqueId)) {
+            return;
+        }
         if (gameStateStorageUtil.containsPlayer(playerUniqueId)) {
             movePlayerToTeam(playerUniqueId, teamName);
             player.sendMessage(Component.text("You've been moved to ")
@@ -1041,6 +1067,59 @@ public class GameManager implements Listener {
         return gameStateStorageUtil.getPlayerScore(participantUniqueId);
     }
     
+    
+    /**
+     * Checks if the given player is an admin
+     * @param adminUniqueId The unique id of the admin to check
+     * @return True if the given player is an admin, false otherwise
+     */
+    public boolean isAdmin(UUID adminUniqueId) {
+        return gameStateStorageUtil.isAdmin(adminUniqueId);
+    }
+    
+    /**
+     * Adds the given player as an admin
+     * @param newAdmin The player to add
+     */
+    public void addAdmin(Player newAdmin) {
+        UUID uniqueId = newAdmin.getUniqueId();
+        if (gameStateStorageUtil.isAdmin(uniqueId)) {
+            return;
+        }
+        try {
+            gameStateStorageUtil.addAdmin(uniqueId);
+        } catch (IOException e) {
+            reportGameStateIOException("adding new admin", e);
+        }
+        Team adminTeam = mctScoreboard.getTeam(ADMIN_TEAM);
+        adminTeam.addPlayer(newAdmin);
+        if (newAdmin.isOnline()) {
+            onAdminJoin(newAdmin);
+        }
+    }
+    
+    /**
+     * Removes the given player from the admins
+     * @param offlineAdmin The admin to remove
+     */
+    public void removeAdmin(OfflinePlayer offlineAdmin) {
+        if (offlineAdmin.isOnline()) {
+            Player onlineAdmin = offlineAdmin.getPlayer();
+            if (onlineAdmin != null) {
+                onAdminQuit(onlineAdmin);
+            }
+        }
+        UUID adminUniqueId = offlineAdmin.getUniqueId();
+        try {
+            gameStateStorageUtil.removeAdmin(adminUniqueId);
+        } catch (IOException e) {
+            reportGameStateIOException("removing admin", e);
+        }
+        Team team = mctScoreboard.getTeam(ADMIN_TEAM);
+        team.removePlayer(offlineAdmin);
+        fastBoardManager.removeBoard(adminUniqueId);
+    }
+    
     public void setFinalGameTeams(String teamA, String teamB) {
         this.finalGameTeamA = teamA;
         this.finalGameTeamB = teamB;
@@ -1087,6 +1166,12 @@ public class GameManager implements Listener {
         return half <= currentGameNumber-1 && currentGameNumber-1 <= Math.ceil(half);
     }
     
+    public void messageAdmins(Component message) {
+        for (Player admin : onlineAdmins) {
+            admin.sendMessage(message);
+        }
+    }
+    
     private void messageOnlineParticipants(Component message) {
         for (Player participant : onlineParticipants) {
             participant.sendMessage(message);
@@ -1106,7 +1191,11 @@ public class GameManager implements Listener {
     }
     
     private void reportGameStateIOException(String attemptedOperation, IOException ioException) {
-        Bukkit.getLogger().severe(String.format("error while %s. See log for error message.", attemptedOperation));
+        Bukkit.getLogger().severe(String.format("error while %s. See console log for error message.", attemptedOperation));
+        messageAdmins(Component.empty()
+                .append(Component.text("error while "))
+                .append(Component.text(attemptedOperation))
+                .append(Component.text(". See console log for error message.")));
         throw new RuntimeException(ioException);
     }
     
