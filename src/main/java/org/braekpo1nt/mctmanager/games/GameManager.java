@@ -769,7 +769,8 @@ public class GameManager implements Listener {
     
     /**
      * Joins the player with the given UUID to the team with the given teamName, and adds them
-     * to the game state.
+     * to the game state. Note, this will not join a player to a team
+     * if that player is an admin. 
      * @param player The player to join to the given team
      * @param teamName The internal teamName of the team to join the player to. 
      *                 This method assumes the team exists, and will throw a 
@@ -777,6 +778,9 @@ public class GameManager implements Listener {
      */
     public void joinPlayerToTeam(Player player, String teamName) {
         UUID playerUniqueId = player.getUniqueId();
+        if (isAdmin(playerUniqueId)) {
+            return;
+        }
         if (gameStateStorageUtil.containsPlayer(playerUniqueId)) {
             movePlayerToTeam(playerUniqueId, teamName);
             player.sendMessage(Component.text("You've been moved to ")
