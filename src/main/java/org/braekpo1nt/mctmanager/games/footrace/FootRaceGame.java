@@ -448,6 +448,7 @@ public class FootRaceGame implements Listener, MCTGame {
     }
     
     private void messageAllParticipants(Component message) {
+        gameManager.messageAdmins(message);
         for (Player participant : participants) {
             participant.sendMessage(message);
         }

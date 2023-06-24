@@ -1166,6 +1166,12 @@ public class GameManager implements Listener {
         return half <= currentGameNumber-1 && currentGameNumber-1 <= Math.ceil(half);
     }
     
+    public void messageAdmins(Component message) {
+        for (Player admin : onlineAdmins) {
+            admin.sendMessage(message);
+        }
+    }
+    
     private void messageOnlineParticipants(Component message) {
         for (Player participant : onlineParticipants) {
             participant.sendMessage(message);

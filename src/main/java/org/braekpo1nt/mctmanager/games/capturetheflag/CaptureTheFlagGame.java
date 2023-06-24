@@ -424,6 +424,7 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
      * @param message The message to send
      */
     public void messageAllParticipants(Component message) {
+        gameManager.messageAdmins(message);
         for (Player participant : participants) {
             participant.sendMessage(message);
         }
