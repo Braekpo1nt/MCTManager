@@ -7,19 +7,24 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
-import org.bukkit.*;
+import org.bukkit.ChatColor;
+import org.bukkit.GameMode;
+import org.bukkit.Location;
+import org.bukkit.World;
+import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
 import org.bukkit.block.structure.Mirror;
 import org.bukkit.block.structure.StructureRotation;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.event.block.BlockSpreadEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.Material;
 import org.bukkit.potion.PotionEffect;
@@ -198,11 +203,16 @@ public class SpleefRound implements Listener {
         }
     }
 
+
     @EventHandler
-    public void onBlockSpread(BlockSpreadEvent event) { // prevent making grass paths
-        Block block = event.getBlock();
-        if (block.getType() == Material.GRASS_BLOCK) { // Check if the block being spread is a grass block
-            event.setCancelled(true); // Cancel the event to prevent the spread
+    public void onPlayerInteract(PlayerInteractEvent event) {
+        if (event.getAction() == Action.RIGHT_CLICK_BLOCK && event.getPlayer().getInventory().getItemInMainHand().getType() == Material.DIAMOND_SHOVEL) {
+            if (event.getClickedBlock() != null) {
+                Material clickedBlockType = event.getClickedBlock().getType();
+                if (clickedBlockType == Material.DIRT || clickedBlockType == Material.COARSE_DIRT) {
+                    event.setCancelled(true);
+                }
+            }
         }
     }
     
