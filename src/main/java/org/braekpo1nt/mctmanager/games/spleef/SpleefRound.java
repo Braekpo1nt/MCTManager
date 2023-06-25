@@ -17,9 +17,11 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockSpreadEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.Material;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -193,6 +195,14 @@ public class SpleefRound implements Listener {
         onParticipantDeath(killed);
         if (lessThanTwoPlayersAlive()) {
             roundIsOver();
+        }
+    }
+
+    @EventHandler
+    public void onBlockSpread(BlockSpreadEvent event) { // prevent making grass paths
+        Block block = event.getBlock();
+        if (block.getType() == Material.GRASS_BLOCK) { // Check if the block being spread is a grass block
+            event.setCancelled(true); // Cancel the event to prevent the spread
         }
     }
     
