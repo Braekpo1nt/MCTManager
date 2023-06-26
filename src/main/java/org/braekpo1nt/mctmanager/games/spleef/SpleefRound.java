@@ -207,6 +207,9 @@ public class SpleefRound implements Listener {
 
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
+        if (!roundActive) {
+            return;
+        }
         if (event.getAction() == Action.RIGHT_CLICK_BLOCK && event.getPlayer().getInventory().getItemInMainHand().getType() == Material.DIAMOND_SHOVEL) {
             if (event.getClickedBlock() != null) {
                 Material clickedBlockType = event.getClickedBlock().getType();
