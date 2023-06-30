@@ -67,7 +67,26 @@ public class CaptureTheFlagMatch implements Listener {
     private Material northBanner;
     private Material southBanner;
     private final World captureTheFlagWorld;
-    
+    private static final Map<BlockFace, Float> DIRECTION_YAW_MAP = new HashMap<>();
+
+    static {
+        DIRECTION_YAW_MAP.put(BlockFace.SOUTH, 0.0f);
+        DIRECTION_YAW_MAP.put(BlockFace.SOUTH_SOUTH_WEST, 22.5f);
+        DIRECTION_YAW_MAP.put(BlockFace.SOUTH_WEST, 45.0f);
+        DIRECTION_YAW_MAP.put(BlockFace.WEST_SOUTH_WEST, 67.5f);
+        DIRECTION_YAW_MAP.put(BlockFace.WEST, 90.0f);
+        DIRECTION_YAW_MAP.put(BlockFace.WEST_NORTH_WEST, 112.5f);
+        DIRECTION_YAW_MAP.put(BlockFace.NORTH_WEST, 135.0f);
+        DIRECTION_YAW_MAP.put(BlockFace.NORTH_NORTH_WEST, 157.5f);
+        DIRECTION_YAW_MAP.put(BlockFace.NORTH, 180.0f);
+        DIRECTION_YAW_MAP.put(BlockFace.NORTH_NORTH_EAST, -157.5f);
+        DIRECTION_YAW_MAP.put(BlockFace.NORTH_EAST, -135.0f);
+        DIRECTION_YAW_MAP.put(BlockFace.EAST_NORTH_EAST, -112.5f);
+        DIRECTION_YAW_MAP.put(BlockFace.EAST, -90.0f);
+        DIRECTION_YAW_MAP.put(BlockFace.EAST_SOUTH_EAST, -67.5f);
+        DIRECTION_YAW_MAP.put(BlockFace.SOUTH_EAST, -45.0f);
+        DIRECTION_YAW_MAP.put(BlockFace.SOUTH_SOUTH_EAST, -22.5f);
+    }
     public CaptureTheFlagMatch(CaptureTheFlagRound captureTheFlagRound, Main plugin, 
                                GameManager gameManager, MatchPairing matchPairing, Arena arena, 
                                Location spawnObservatory, World captureTheFlagWorld) {
@@ -551,6 +570,7 @@ public class CaptureTheFlagMatch implements Listener {
             flagBlock.setBlockData(flagData);
         }
     }
+
     private BlockFace getClosestDirection(BlockFace facing) {
         BlockFace[] availableDirections = BlockFace.values();
 
@@ -569,62 +589,12 @@ public class CaptureTheFlagMatch implements Listener {
 
         return closestDirection;
     }
+
     public float getYawFromBlockFace(BlockFace direction) {
-        float yaw = 0.0f;
-
-        switch (direction) {
-            case SOUTH:
-                yaw = 0.0f;
-                break;
-            case SOUTH_SOUTH_WEST:
-                yaw = 22.5f;
-                break;
-            case SOUTH_WEST:
-                yaw = 45.0f;
-                break;
-            case WEST_SOUTH_WEST:
-                yaw = 67.5f;
-                break;
-            case WEST:
-                yaw = 90.0f;
-                break;
-            case WEST_NORTH_WEST:
-                yaw = 112.5f;
-                break;
-            case NORTH_WEST:
-                yaw = 135.0f;
-                break;
-            case NORTH_NORTH_WEST:
-                yaw = 157.5f;
-                break;
-            case NORTH:
-                yaw = 180.0f;
-                break;
-            case NORTH_NORTH_EAST:
-                yaw = -157.5f;
-                break;
-            case NORTH_EAST:
-                yaw = -135.0f;
-                break;
-            case EAST_NORTH_EAST:
-                yaw = -112.5f;
-                break;
-            case EAST:
-                yaw = -90.0f;
-                break;
-            case EAST_SOUTH_EAST:
-                yaw = -67.5f;
-                break;
-            case SOUTH_EAST:
-                yaw = -45.0f;
-                break;
-            case SOUTH_SOUTH_EAST:
-                yaw = -22.5f;
-                break;
-        }
-
-        return yaw;
+        Float yaw = DIRECTION_YAW_MAP.get(direction);
+        return yaw != null ? yaw : 0.0f;
     }
+
     private void onSouthParticipantMove(Player southParticipant) {
         Location location = southParticipant.getLocation();
         if (canPickUpNorthFlag(location)) {
