@@ -43,6 +43,24 @@ public class FastBoardManager {
     }
     
     protected String[] getMainLines(UUID playerUniqueId) {
+        Player player = Bukkit.getPlayer(playerUniqueId);
+        if (player.getWorld().getName().equals("Hub")) {
+            List<String> mainLines = new ArrayList<>();
+            Set<String> teamNames = gameStateStorageUtil.getTeamNames();
+            for (String teamName : teamNames) {
+                String teamDisplayName = gameStateStorageUtil.getTeamDisplayName(teamName);
+                ChatColor teamChatColor = gameStateStorageUtil.getTeamChatColor(teamName);
+                int teamScore = gameStateStorageUtil.getTeamScore(teamName);
+                String teamLine = teamChatColor+teamDisplayName+": "+teamScore;
+                mainLines.add(teamLine);
+            }
+            mainLines.add("");
+            int playerScore = gameStateStorageUtil.getPlayerScore(playerUniqueId);
+            String scoreLine = ChatColor.GOLD+"Points: "+playerScore;
+            mainLines.add(scoreLine);
+            return mainLines.toArray(String[]::new);
+        }
+        
         String teamName = gameStateStorageUtil.getPlayerTeamName(playerUniqueId);
         String teamDisplayName = gameStateStorageUtil.getTeamDisplayName(teamName);
         ChatColor teamChatColor = gameStateStorageUtil.getTeamChatColor(teamName);
