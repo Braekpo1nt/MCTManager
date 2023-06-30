@@ -12,7 +12,6 @@ import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.mecha.io.MechaStorageUtil;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
-//import org.bukkit.*;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Material;
@@ -30,7 +29,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.loot.LootTable;
 import org.bukkit.potion.PotionEffect;
@@ -344,19 +343,21 @@ public class MechaGame implements MCTGame, Listener {
         }
     }
 
-    @EventHandler // prevent player interaction with Item Frames or Armor Stands
-    public void onPlayerInteract(PlayerInteractEvent event) {
+    @EventHandler
+    public void onPlayerInteractEntity(PlayerInteractEntityEvent event) {
         if (!gameActive) {
             return;
         }
         if (!mechaHasStarted) {
             return;
         }
-        if (event.getClickedBlock() != null) {
-            Material blockType = event.getClickedBlock().getType();
-            if (blockType == Material.ARMOR_STAND || blockType == Material.ITEM_FRAME) {
-                event.setCancelled(true);
-            }
+        Player clicker = event.getPlayer();
+        if (!participants.contains(clicker)) {
+            return;
+        }
+        if (event.getRightClicked().getType() == EntityType.ARMOR_STAND ||
+                event.getRightClicked().getType() == EntityType.ITEM_FRAME) {
+            event.setCancelled(true);
         }
     }
 
