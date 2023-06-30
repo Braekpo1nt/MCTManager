@@ -32,24 +32,25 @@ public class FastBoardManager {
         if (!playerHasBoard) {
             return;
         }
-        String[] allFastBoardLines;
-        String[] blankLine = {""};
 
         UUID playerUniqueId = player.getUniqueId();
         FastBoardWrapper board = boards.get(playerUniqueId);
         String[] mainLines = getMainLines(playerUniqueId);
-        String[] teamLine = {mainLines[0]};
-        String[] scoreLine = {mainLines[1]};
 
-        if (player.getWorld().getName().equals("Hub")) {
-            allFastBoardLines = combineFastBoardLines(getAllScoreLines(),blankLine,scoreLine);
-        } else {
-            allFastBoardLines = combineFastBoardLines(teamLine,scoreLine);
+        for (int i = 0; i < mainLines.length; i++) {
+            board.updateLine(i, mainLines[i]);
         }
-
-        for (int i = 0; i < allFastBoardLines.length; i++) {
-            board.updateLine(i, allFastBoardLines[i]);
-        }
+    }
+    
+    protected String[] getMainLines(UUID playerUniqueId) {
+        String teamName = gameStateStorageUtil.getPlayerTeamName(playerUniqueId);
+        String teamDisplayName = gameStateStorageUtil.getTeamDisplayName(teamName);
+        ChatColor teamChatColor = gameStateStorageUtil.getTeamChatColor(teamName);
+        int teamScore = gameStateStorageUtil.getTeamScore(teamName);
+        int playerScore = gameStateStorageUtil.getPlayerScore(playerUniqueId);
+        String teamLine = teamChatColor+teamDisplayName+": "+teamScore;
+        String scoreLine = ChatColor.GOLD+"Points: "+playerScore;
+        return new String[]{teamLine, scoreLine};
     }
 
     private String[] combineFastBoardLines(String[]... arrays) {
@@ -92,63 +93,8 @@ public class FastBoardManager {
         newBoard.setPlayer(player);
         newBoard.updateTitle(this.EVENT_TITLE);
         String[] mainLines = getMainLines(player.getUniqueId());
-        String teamLine = mainLines[0];
-        String scoreLine = mainLines[1];
-        newBoard.updateLines(
-                teamLine,
-                scoreLine
-        );
+        newBoard.updateLines(mainLines);
         boards.put(player.getUniqueId(), newBoard);
-    }
-
-    protected String[] getAllScoreLines() {
-        ArrayList<String> allTeamScores = new ArrayList<>();
-        for (String teamName : gameStateStorageUtil.getTeamNames()) {
-            String teamDisplayName = gameStateStorageUtil.getTeamDisplayName(teamName);
-            ChatColor teamChatColor = gameStateStorageUtil.getTeamChatColor(teamName);
-            int teamScore = gameStateStorageUtil.getTeamScore(teamName);
-            String teamLine = teamChatColor + teamDisplayName + ": " + teamScore;
-            allTeamScores.add(teamLine);
-        }
-
-        // Sort the allTeamScores ArrayList based on 'teamScore'
-        Collections.sort(allTeamScores, new Comparator<String>() {
-            @Override
-            public int compare(String line1, String line2) {
-                // Extract team scores from the lines
-                int score1 = extractTeamScore(line1);
-                int score2 = extractTeamScore(line2);
-
-                // Compare the scores in descending order
-                return Integer.compare(score2, score1);
-            }
-
-            private int extractTeamScore(String line) {
-                // Assuming the team score is separated by a colon and a space after the team name
-                String[] parts = line.split(": ");
-                if (parts.length >= 2) {
-                    try {
-                        return Integer.parseInt(parts[1]);
-                    } catch (NumberFormatException e) {
-                        // Handle any parsing errors gracefully
-                    }
-                }
-                return 0; // Default score if unable to extract from the line
-            }
-        });
-
-        return allTeamScores.toArray(new String[0]);
-    }
-    
-    protected String[] getMainLines(UUID playerUniqueId) {
-        String teamName = gameStateStorageUtil.getPlayerTeamName(playerUniqueId);
-        String teamDisplayName = gameStateStorageUtil.getTeamDisplayName(teamName);
-        ChatColor teamChatColor = gameStateStorageUtil.getTeamChatColor(teamName);
-        int teamScore = gameStateStorageUtil.getTeamScore(teamName);
-        int playerScore = gameStateStorageUtil.getPlayerScore(playerUniqueId);
-        String teamLine = teamChatColor+teamDisplayName+": "+teamScore;
-        String scoreLine = ChatColor.GOLD+"Points: "+playerScore;
-        return new String[]{teamLine, scoreLine};
     }
     
     /**
@@ -163,10 +109,9 @@ public class FastBoardManager {
         }
         FastBoardWrapper board = boards.get(playerUniqueId);
         String[] mainLines = getMainLines(playerUniqueId);
-        String[] linesPlusMainLines = new String[lines.length + 2];
-        linesPlusMainLines[0] = mainLines[0];
-        linesPlusMainLines[1] = mainLines[1];
-        System.arraycopy(lines, 0, linesPlusMainLines, 2, lines.length);
+        String[] linesPlusMainLines = new String[lines.length + mainLines.length];
+        System.arraycopy(mainLines, 0, linesPlusMainLines, 0, mainLines.length);
+        System.arraycopy(lines, 0, linesPlusMainLines, mainLines.length, lines.length);
         board.updateLines(linesPlusMainLines);
     }
     
@@ -182,7 +127,8 @@ public class FastBoardManager {
             return;
         }
         FastBoardWrapper board = boards.get(playerUniqueId);
-        int subLine = line + 2;
+        String[] mainLines = getMainLines(playerUniqueId);
+        int subLine = line + mainLines.length;
         board.updateLine(subLine, text);
     }
     
