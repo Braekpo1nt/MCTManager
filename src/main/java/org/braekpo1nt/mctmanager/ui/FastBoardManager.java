@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.ui;
 
 import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
+import org.braekpo1nt.mctmanager.hub.HubManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -16,9 +17,11 @@ public class FastBoardManager {
     protected final String EVENT_TITLE = ChatColor.BOLD + "" + ChatColor.DARK_RED + "MCT #3";
     protected final ConcurrentHashMap<UUID, FastBoardWrapper> boards = new ConcurrentHashMap<>();
     protected GameStateStorageUtil gameStateStorageUtil;
+    protected HubManager hubManager;
     
-    public FastBoardManager(GameStateStorageUtil gameStateStorageUtil) {
+    public FastBoardManager(GameStateStorageUtil gameStateStorageUtil, HubManager hubManager) {
         this.gameStateStorageUtil = gameStateStorageUtil;
+        this.hubManager = hubManager;
     }
     
     public synchronized void updateMainBoards() {
@@ -32,19 +35,18 @@ public class FastBoardManager {
         if (!playerHasBoard) {
             return;
         }
-
+        
         UUID playerUniqueId = player.getUniqueId();
         FastBoardWrapper board = boards.get(playerUniqueId);
         String[] mainLines = getMainLines(playerUniqueId);
-
+        
         for (int i = 0; i < mainLines.length; i++) {
             board.updateLine(i, mainLines[i]);
         }
     }
     
     protected String[] getMainLines(UUID playerUniqueId) {
-        Player player = Bukkit.getPlayer(playerUniqueId);
-        if (player.getWorld().getName().equals("Hub")) {
+        if (hubManager.contains(playerUniqueId)) {
             List<String> mainLines = new ArrayList<>();
             Set<String> teamNames = gameStateStorageUtil.getTeamNames();
             for (String teamName : teamNames) {
@@ -60,7 +62,7 @@ public class FastBoardManager {
             mainLines.add(scoreLine);
             return mainLines.toArray(String[]::new);
         }
-        
+    
         String teamName = gameStateStorageUtil.getPlayerTeamName(playerUniqueId);
         String teamDisplayName = gameStateStorageUtil.getTeamDisplayName(teamName);
         ChatColor teamChatColor = gameStateStorageUtil.getTeamChatColor(teamName);
@@ -69,23 +71,6 @@ public class FastBoardManager {
         String teamLine = teamChatColor+teamDisplayName+": "+teamScore;
         String scoreLine = ChatColor.GOLD+"Points: "+playerScore;
         return new String[]{teamLine, scoreLine};
-    }
-
-    private String[] combineFastBoardLines(String[]... arrays) {
-        int totalLength = 0;
-        for (String[] array : arrays) {
-            totalLength += array.length;
-        }
-
-        String[] newArray = new String[totalLength];
-        int currentIndex = 0;
-
-        for (String[] array : arrays) {
-            System.arraycopy(array, 0, newArray, currentIndex, array.length);
-            currentIndex += array.length;
-        }
-
-        return newArray;
     }
     
     /**
@@ -125,6 +110,7 @@ public class FastBoardManager {
         if (!boards.containsKey(playerUniqueId)) {
             return;
         }
+        Bukkit.getLogger().info("updateLines");
         FastBoardWrapper board = boards.get(playerUniqueId);
         String[] mainLines = getMainLines(playerUniqueId);
         String[] linesPlusMainLines = new String[lines.length + mainLines.length];

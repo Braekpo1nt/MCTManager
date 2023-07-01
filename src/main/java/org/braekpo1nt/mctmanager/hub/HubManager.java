@@ -26,6 +26,7 @@ import org.bukkit.scoreboard.Team;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class HubManager implements Listener {
     
@@ -446,5 +447,9 @@ public class HubManager implements Listener {
         for (Player participant : participants) {
             participant.sendMessage(message);
         }
+    }
+    
+    public boolean contains(UUID playerUniqueId) {
+        return participants.stream().anyMatch(player -> playerUniqueId.equals(player.getUniqueId()));
     }
 }
