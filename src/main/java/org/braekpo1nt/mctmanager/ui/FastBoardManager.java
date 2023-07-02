@@ -16,6 +16,7 @@ public class FastBoardManager {
     
     protected final String EVENT_TITLE = ChatColor.BOLD + "" + ChatColor.DARK_RED + "MCT #3";
     protected final ConcurrentHashMap<UUID, FastBoardWrapper> boards = new ConcurrentHashMap<>();
+    protected final ConcurrentHashMap<UUID, HeaderType> headerTypes = new ConcurrentHashMap<>();
     protected GameStateStorageUtil gameStateStorageUtil;
     protected HubManager hubManager;
     
@@ -38,15 +39,16 @@ public class FastBoardManager {
         
         UUID playerUniqueId = player.getUniqueId();
         FastBoardWrapper board = boards.get(playerUniqueId);
-        String[] mainLines = getMainLines(playerUniqueId);
+        HeaderType headerType = headerTypes.get(playerUniqueId);
+        String[] mainLines = getMainLines(playerUniqueId, headerType);
         
         for (int i = 0; i < mainLines.length; i++) {
             board.updateLine(i, mainLines[i]);
         }
     }
     
-    protected String[] getMainLines(UUID playerUniqueId) {
-        if (hubManager.contains(playerUniqueId)) {
+    protected String[] getMainLines(UUID playerUniqueId, HeaderType headerType) {
+        if (headerType == HeaderType.ALL) {
             List<String> mainLines = new ArrayList<>();
             Set<String> teamNames = gameStateStorageUtil.getTeamNames();
             for (String teamName : teamNames) {
@@ -62,7 +64,7 @@ public class FastBoardManager {
             mainLines.add(scoreLine);
             return mainLines.toArray(String[]::new);
         }
-    
+        
         String teamName = gameStateStorageUtil.getPlayerTeamName(playerUniqueId);
         String teamDisplayName = gameStateStorageUtil.getTeamDisplayName(teamName);
         ChatColor teamChatColor = gameStateStorageUtil.getTeamChatColor(teamName);
@@ -95,9 +97,17 @@ public class FastBoardManager {
         FastBoardWrapper newBoard = new FastBoardWrapper();
         newBoard.setPlayer(player);
         newBoard.updateTitle(this.EVENT_TITLE);
-        String[] mainLines = getMainLines(player.getUniqueId());
+        String[] mainLines = getMainLines(player.getUniqueId(), HeaderType.PERSONAL);
         newBoard.updateLines(mainLines);
         boards.put(player.getUniqueId(), newBoard);
+        headerTypes.put(player.getUniqueId(), HeaderType.PERSONAL);
+    }
+    
+    public synchronized void setHeaderType(UUID playerUniqueId, HeaderType headerType) {
+        if (!headerTypes.containsKey(playerUniqueId)) {
+            return;
+        }
+        headerTypes.put(playerUniqueId, headerType);
     }
     
     /**
@@ -110,14 +120,23 @@ public class FastBoardManager {
         if (!boards.containsKey(playerUniqueId)) {
             return;
         }
-        Bukkit.getLogger().info("updateLines");
         FastBoardWrapper board = boards.get(playerUniqueId);
-        String[] mainLines = getMainLines(playerUniqueId);
+        HeaderType headerType = headerTypes.get(playerUniqueId);
+        String[] mainLines = getMainLines(playerUniqueId, headerType);
         String[] linesPlusMainLines = new String[lines.length + mainLines.length];
         System.arraycopy(mainLines, 0, linesPlusMainLines, 0, mainLines.length);
         System.arraycopy(lines, 0, linesPlusMainLines, mainLines.length, lines.length);
         board.updateLines(linesPlusMainLines);
     }
+    
+    public static <T> T[] joinArrays(T[] array1, T[] array2) {
+        int length1 = array1.length;
+        int length2 = array2.length;
+        T[] result = Arrays.copyOf(array1, length1 + length2);
+        System.arraycopy(array2, 0, result, length1, length2);
+        return result;
+    }
+    
     
     /**
      * Updates the sub-board line (after the main lines) for the given player
@@ -131,7 +150,8 @@ public class FastBoardManager {
             return;
         }
         FastBoardWrapper board = boards.get(playerUniqueId);
-        String[] mainLines = getMainLines(playerUniqueId);
+        HeaderType headerType = headerTypes.get(playerUniqueId);
+        String[] mainLines = getMainLines(playerUniqueId, headerType);
         int subLine = line + mainLines.length;
         board.updateLine(subLine, text);
     }
