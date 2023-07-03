@@ -10,7 +10,7 @@ public class MockFastBoardManager extends FastBoardManager {
     
     
     public MockFastBoardManager() {
-        super(null, null);
+        super(null);
     }
     
     @Override

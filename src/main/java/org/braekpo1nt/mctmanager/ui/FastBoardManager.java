@@ -18,11 +18,9 @@ public class FastBoardManager {
     protected final ConcurrentHashMap<UUID, FastBoardWrapper> boards = new ConcurrentHashMap<>();
     protected final ConcurrentHashMap<UUID, HeaderType> headerTypes = new ConcurrentHashMap<>();
     protected GameStateStorageUtil gameStateStorageUtil;
-    protected HubManager hubManager;
     
-    public FastBoardManager(GameStateStorageUtil gameStateStorageUtil, HubManager hubManager) {
+    public FastBoardManager(GameStateStorageUtil gameStateStorageUtil) {
         this.gameStateStorageUtil = gameStateStorageUtil;
-        this.hubManager = hubManager;
     }
     
     public synchronized void updateMainBoards() {

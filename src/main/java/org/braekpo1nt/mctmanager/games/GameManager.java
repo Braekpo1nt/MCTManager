@@ -95,7 +95,7 @@ public class GameManager implements Listener {
         this.clockworkGame = new ClockworkGame(plugin, this);
         this.finalGame = new FinalGame(plugin, this);
         this.hubManager = new HubManager(plugin, mctScoreboard, this);
-        this.fastBoardManager = new FastBoardManager(gameStateStorageUtil, hubManager);
+        this.fastBoardManager = new FastBoardManager(gameStateStorageUtil);
         this.eventMaster = Bukkit.getConsoleSender();
         kickOffFastBoardManager();
     }
