@@ -285,7 +285,7 @@ public class ParkourPathwayGame implements MCTGame, Listener {
 
     private void startParkourPathwayTimer() {
         this.startNextRoundTimerTaskId = new BukkitRunnable() {
-            int count = 7*60;
+            int count = 10*60;
             @Override
             public void run() {
                 if (count <= 0) {
