@@ -1,4 +1,4 @@
-package org.braekpo1nt.mctmanager.games.mecha.io;
+package org.braekpo1nt.mctmanager.games.mecha.config;
 
 import org.bukkit.NamespacedKey;
 import org.bukkit.util.Vector;

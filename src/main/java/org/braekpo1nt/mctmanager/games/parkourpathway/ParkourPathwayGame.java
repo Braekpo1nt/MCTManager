@@ -7,7 +7,7 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.enums.MCTGames;
 import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
-import org.braekpo1nt.mctmanager.games.parkourpathway.io.ParkourPathwayStorageUtil;
+import org.braekpo1nt.mctmanager.games.parkourpathway.config.ParkourPathwayStorageUtil;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.bukkit.*;
@@ -285,7 +285,7 @@ public class ParkourPathwayGame implements MCTGame, Listener {
 
     private void startParkourPathwayTimer() {
         this.startNextRoundTimerTaskId = new BukkitRunnable() {
-            int count = 7*60;
+            int count = 10*60;
             @Override
             public void run() {
                 if (count <= 0) {
