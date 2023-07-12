@@ -1,8 +1,7 @@
 package org.braekpo1nt.mctmanager.games.parkourpathway.io;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.games.io.GameConfigStorageUtil;
 import org.braekpo1nt.mctmanager.games.parkourpathway.CheckPoint;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -14,55 +13,27 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ParkourPathwayStorageUtil {
+public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPathwayConfig> {
     
-    private final File configDirectory;
     protected ParkourPathwayConfig parkourPathwayConfig = new ParkourPathwayConfig();
-    private static final String CONFIG_FILE_NAME = "parkourPathwayConfig.json";
     
     public ParkourPathwayStorageUtil(Main plugin) {
-        this.configDirectory = plugin.getDataFolder().getAbsoluteFile();
+        super(plugin, "parkourPathwayConfig.json", ParkourPathwayConfig.class);
     }
     
-    /**
-     * Load the config file from storage
-     * @throws IOException if there is a problem creating a new, reading the existing, 
-     * or parsing the json of the config file
-     */
-    public void loadConfig() throws IOException {
-        Gson gson = new Gson();
-        File configFile = getConfigFile();
-        Reader reader = new FileReader(configFile);
-        parkourPathwayConfig = gson.fromJson(reader, ParkourPathwayConfig.class);
-        reader.close();
-        if (parkourPathwayConfig == null) {
-            parkourPathwayConfig = new ParkourPathwayConfig();
-        }
-        Bukkit.getLogger().info("[MCTManager] Loaded parkour pathway config");
+    @Override
+    protected ParkourPathwayConfig initializeConfig() {
+        return new ParkourPathwayConfig();
     }
     
-    public void saveConfig() throws IOException {
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        File configFile = getConfigFile();
-        Writer writer = new FileWriter(configFile, false);
-        if (parkourPathwayConfig == null) {
-            parkourPathwayConfig = new ParkourPathwayConfig();
-        }
-        gson.toJson(this.parkourPathwayConfig, writer);
-        writer.flush();
-        writer.close();
-        Bukkit.getLogger().info("[MCTManager] saved parkour pathway config");
+    @Override
+    protected ParkourPathwayConfig getConfig() {
+        return parkourPathwayConfig;
     }
     
-    private File getConfigFile() throws IOException {
-        File configFile = new File(configDirectory.getAbsolutePath(), CONFIG_FILE_NAME);
-        if (!configFile.exists()) {
-            if (!configDirectory.exists()) {
-                configDirectory.mkdirs();
-            }
-            configFile.createNewFile();
-        }
-        return configFile;
+    @Override
+    protected void setConfig(ParkourPathwayConfig config) {
+        parkourPathwayConfig = config;
     }
     
     public List<CheckPoint> getCheckPoints() {

@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.mecha.io;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.games.io.GameConfigStorageUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.loot.LootTable;
@@ -12,50 +13,27 @@ import org.bukkit.util.Vector;
 import java.io.*;
 import java.util.*;
 
-public class MechaStorageUtil {
+public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
     
-    private final File configDirectory;
     protected MechaConfig mechaConfig = new MechaConfig();
-    private static final String CONFIG_FILE_NAME = "mechaConfig.json";
     
     public MechaStorageUtil(Main plugin) {
-        this.configDirectory = plugin.getDataFolder().getAbsoluteFile();
+        super(plugin, "mechaConfig.json", MechaConfig.class);
     }
     
-    public void loadConfig() throws IOException {
-        Gson gson = new Gson();
-        File configFile = getConfigFile();
-        Reader reader = new FileReader(configFile);
-        mechaConfig = gson.fromJson(reader, MechaConfig.class);
-        reader.close();
-        if (mechaConfig == null) {
-            mechaConfig = new MechaConfig();
-        }
-        Bukkit.getLogger().info("[MCTManager] Loaded MECHA config");
+    @Override
+    protected MechaConfig getConfig() {
+        return mechaConfig;
     }
     
-    public void saveConfig() throws IOException {
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        File configFile = getConfigFile();
-        Writer writer = new FileWriter(configFile, false);
-        if (mechaConfig == null) {
-            mechaConfig = new MechaConfig();
-        }
-        gson.toJson(this.mechaConfig, writer);
-        writer.flush();
-        writer.close();
-        Bukkit.getLogger().info("[MCTManager] saved MECHA config");
+    @Override
+    protected void setConfig(MechaConfig config) {
+        this.mechaConfig = config;
     }
     
-    private File getConfigFile() throws IOException {
-        File configFile = new File(configDirectory.getAbsolutePath(), CONFIG_FILE_NAME);
-        if (!configFile.exists()) {
-            if (!configDirectory.exists()) {
-                configDirectory.mkdirs();
-            }
-            configFile.createNewFile();
-        }
-        return configFile;
+    @Override
+    protected MechaConfig initializeConfig() {
+        return new MechaConfig();
     }
     
     public List<Vector> getSpawnChestCoords() {
@@ -111,5 +89,4 @@ public class MechaStorageUtil {
         }
         mechaConfig.setWeightedMechaLootTables(weightedNamespacedKeys);
     }
-    
 }

@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.io;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.braekpo1nt.mctmanager.Main;
+import org.bukkit.Bukkit;
 
 import java.io.*;
 
@@ -14,7 +15,6 @@ public abstract class GameConfigStorageUtil<T> {
     
     protected final File configDirectory;
     protected final String configFileName;
-    protected T config;
     /**
      * The class object representing the type of the configuration object. Used by gson for instantiating from json. 
      */
@@ -35,24 +35,30 @@ public abstract class GameConfigStorageUtil<T> {
         Gson gson = new Gson();
         File configFile = getConfigFile();
         Reader reader = new FileReader(configFile);
-        this.config = gson.fromJson(reader, configClass);
+        setConfig(gson.fromJson(reader, configClass));
         reader.close();
-        if (config == null) {
-            config = initializeConfig();
+        if (getConfig() == null) {
+            setConfig(initializeConfig());
         }
+        Bukkit.getLogger().info(String.format("[MCTManager] Loaded %s", configFileName));
     }
     
     public void saveConfig() throws IOException {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         File configFile = getConfigFile();
         Writer writer = new FileWriter(configFile, false);
-        if (config == null) {
-            config = initializeConfig();
+        if (getConfig() == null) {
+            setConfig(initializeConfig());
         }
-        gson.toJson(this.config, writer);
+        gson.toJson(getConfig(), writer);
         writer.flush();
         writer.close();
+        Bukkit.getLogger().info(String.format("[MCTManager] Saved %s", configFileName));
     }
+    
+    protected abstract T getConfig();
+    
+    protected abstract void setConfig(T config);
     
     /**
      * Return a basic, empty instance of Config
