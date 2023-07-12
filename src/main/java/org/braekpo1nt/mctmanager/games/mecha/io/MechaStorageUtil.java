@@ -1,7 +1,5 @@
 package org.braekpo1nt.mctmanager.games.mecha.io;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.io.GameConfigStorageUtil;
 import org.bukkit.Bukkit;
@@ -10,7 +8,6 @@ import org.bukkit.loot.LootTable;
 import org.bukkit.loot.LootTables;
 import org.bukkit.util.Vector;
 
-import java.io.*;
 import java.util.*;
 
 public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {

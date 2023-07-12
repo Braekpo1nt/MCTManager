@@ -39,24 +39,24 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
     public List<CheckPoint> getCheckPoints() {
         World checkpointWorld = Bukkit.getWorld(parkourPathwayConfig.getWorld());
         List<CheckPoint> newCheckpoints = new ArrayList<>();
-        for (CheckPointConfig checkpointConfig : parkourPathwayConfig.getCheckpoints()) {
-            Vector min = checkpointConfig.min();
-            Vector max = checkpointConfig.max();
+        for (CheckPointDTO checkpointDTO : parkourPathwayConfig.getCheckpoints()) {
+            Vector min = checkpointDTO.min();
+            Vector max = checkpointDTO.max();
             BoundingBox boundingBox = new BoundingBox(min.getX(), min.getY(), min.getZ(), max.getX(), max.getY(), max.getZ());
-            Vector configRespawn = checkpointConfig.respawn();
+            Vector configRespawn = checkpointDTO.respawn();
             Location respawn = new Location(checkpointWorld, configRespawn.getX(), configRespawn.getY(), configRespawn.getZ());
-            newCheckpoints.add(new CheckPoint(checkpointConfig.yValue(), boundingBox, respawn));
+            newCheckpoints.add(new CheckPoint(checkpointDTO.yValue(), boundingBox, respawn));
         }
         return newCheckpoints;
     }
     
     public void setCheckpoints(List<CheckPoint> checkpoints) throws IOException {
         parkourPathwayConfig = new ParkourPathwayConfig();
-        List<CheckPointConfig> checkpointConfigs = new ArrayList<>();
+        List<CheckPointDTO> checkpointDTOS = new ArrayList<>();
         for (CheckPoint checkpoint : checkpoints) {
-            checkpointConfigs.add(new CheckPointConfig(checkpoint.yValue(), checkpoint.boundingBox().getMin(), checkpoint.boundingBox().getMax(), checkpoint.respawn().toVector()));
+            checkpointDTOS.add(new CheckPointDTO(checkpoint.yValue(), checkpoint.boundingBox().getMin(), checkpoint.boundingBox().getMax(), checkpoint.respawn().toVector()));
         }
-        parkourPathwayConfig.setCheckpoints(checkpointConfigs);
+        parkourPathwayConfig.setCheckpoints(checkpointDTOS);
         saveConfig();
     }
     
