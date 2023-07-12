@@ -1,7 +1,7 @@
-package org.braekpo1nt.mctmanager.games.mecha.io;
+package org.braekpo1nt.mctmanager.games.mecha.config;
 
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.games.io.GameConfigStorageUtil;
+import org.braekpo1nt.mctmanager.games.config.GameConfigStorageUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.loot.LootTable;

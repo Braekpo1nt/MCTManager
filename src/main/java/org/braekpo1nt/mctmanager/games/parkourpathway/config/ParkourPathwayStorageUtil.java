@@ -1,7 +1,7 @@
-package org.braekpo1nt.mctmanager.games.parkourpathway.io;
+package org.braekpo1nt.mctmanager.games.parkourpathway.config;
 
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.games.io.GameConfigStorageUtil;
+import org.braekpo1nt.mctmanager.games.config.GameConfigStorageUtil;
 import org.braekpo1nt.mctmanager.games.parkourpathway.CheckPoint;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;

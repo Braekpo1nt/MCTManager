@@ -1,4 +1,4 @@
-package org.braekpo1nt.mctmanager.games.io;
+package org.braekpo1nt.mctmanager.games.config;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
