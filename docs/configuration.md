@@ -96,6 +96,47 @@ This is the config file for Parkour Pathway. It allows you to configure:
 - The checkpoints along the parkour map
 - The world that the map is located in
 
+This is an example of a `parkourPathwayConfig.json` file
+
+```json
+{
+  "checkpoints": [
+    {
+      "yValue": 0,
+      "min": {
+        "x": 998,
+        "y": -1,
+        "z": -8
+      },
+      "max": {
+        "x": 1007,
+        "y": 5,
+        "z": 8
+      },
+      "respawn": {
+        "x": 1003,
+        "y": 0,
+        "z": 0
+      }
+    },
+    ...
+  ],
+  "world": "FT"
+}
+```
+
+- `"checkpoints"` defines a list of checkpoints. 
+  - The first checkpoint is the initial spawn location when players are teleported in
+  - Checkpoints are progressed in order
+  - The last checkpoint is the finish line
+    - It might not make sense to have a `"yValue"` field for the finish line. Suffice it to say, this is the easy way. Just set it lower than the player can go.
+  - `"yValue"` is the lower limit of the checkpoint. If the player falls below that y height, they'll be teleported back to `"respawn"`
+  - `"min"` and `"max"` are the minimum and maximum corners for the bounding box that defines the detection region for the checkpoint. If a player steps into that bounding box, then they have "reached" that checkpoint. 
+    - Think of this like the `/fill` command, where the first set of coordinates is `"min"` and the second set is `"max"`
+  - `"respawn"` the position of the respawn point
+    - The player will be teleported here if the player falls below the `"yValue"` after reaching this checkpoint
+- `"world"` specifies the name of the world the Parkour Map is in
+
 
 
 
