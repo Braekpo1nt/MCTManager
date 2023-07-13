@@ -12,7 +12,7 @@ import java.util.*;
 
 public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
     
-    protected MechaConfig mechaConfig = new MechaConfig();
+    protected MechaConfig mechaConfig = initializeConfig();
     
     public MechaStorageUtil(Main plugin) {
         super(plugin, "mechaConfig.json", MechaConfig.class);
@@ -30,39 +30,30 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
     
     @Override
     protected MechaConfig initializeConfig() {
-        return new MechaConfig();
+        return new MechaConfig(null, Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
     }
     
     public List<Vector> getSpawnChestCoords() {
-        return mechaConfig.getSpawnChestCoords();
+        return mechaConfig.spawnChestCoords();
     }
     
-    public void setSpawnChestCoords(List<Vector> spawnChestCoords) {
-        mechaConfig.setSpawnChestCoords(spawnChestCoords);
-    }
     
     public List<Vector> getMapChestCoords() {
-        return mechaConfig.getMapChestCoords();
+        return mechaConfig.mapChestCoords();
     }
     
-    public void setMapChestCoords(List<Vector> mapChestCoords) {
-        mechaConfig.setMapChestCoords(mapChestCoords);
-    }
     
     public LootTable getSpawnLootTable() {
-        NamespacedKey spawnLootTableNamespacedKey = mechaConfig.getSpawnLootTable();
+        NamespacedKey spawnLootTableNamespacedKey = mechaConfig.spawnLootTable();
         if (spawnLootTableNamespacedKey == null) {
             return LootTables.EMPTY.getLootTable();
         }
         return Bukkit.getLootTable(spawnLootTableNamespacedKey);
     }
     
-    public void setSpawnLootTable(NamespacedKey lootTableNamespacedKey) {
-        mechaConfig.setSpawnLootTable(lootTableNamespacedKey);
-    }
     
     public Map<LootTable, Integer> getWeightedMechaLootTables() {
-        List<WeightedNamespacedKey> weightedNamespacedKeys = mechaConfig.getWeightedMechaLootTables();
+        List<WeightedNamespacedKey> weightedNamespacedKeys = mechaConfig.weightedMechaLootTables();
         Map<LootTable, Integer> weightedMechaLootTables = new HashMap<>(weightedNamespacedKeys.size());
         for (WeightedNamespacedKey weightedNamespacedKey : weightedNamespacedKeys) {
             String namespace = weightedNamespacedKey.namespace();
@@ -74,21 +65,8 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
         return weightedMechaLootTables;
     }
     
-    public void setWeightedMechaLootTables(Map<LootTable, Integer> weightedMechaLootTables) {
-        List<WeightedNamespacedKey> weightedNamespacedKeys = new ArrayList<>(weightedMechaLootTables.size());
-        for (Map.Entry<LootTable, Integer> entry : weightedMechaLootTables.entrySet()) {
-            LootTable lootTable = entry.getKey();
-            NamespacedKey namespacedKey = lootTable.getKey();
-            String namespace = namespacedKey.getNamespace();
-            String key = namespacedKey.getKey();
-            int weight = entry.getValue();
-            weightedNamespacedKeys.add(new WeightedNamespacedKey(namespace, key, weight));
-        }
-        mechaConfig.setWeightedMechaLootTables(weightedNamespacedKeys);
-    }
-    
     public int[] getSizes() {
-        List<BorderStage> borderStages = mechaConfig.getBorderStages();
+        List<BorderStage> borderStages = mechaConfig.borderStages();
         int[] sizes = new int[borderStages.size()];
         for (int i = 0; i < borderStages.size(); i++) {
             sizes[i] = borderStages.get(i).size();
@@ -97,7 +75,7 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
     }
 
     public int[] getDelays() {
-        List<BorderStage> borderStages = mechaConfig.getBorderStages();
+        List<BorderStage> borderStages = mechaConfig.borderStages();
         int[] delays = new int[borderStages.size()];
         for (int i = 0; i < borderStages.size(); i++) {
             delays[i] = borderStages.get(i).delay();
@@ -106,7 +84,7 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
     }
 
     public int[] getDurations() {
-        List<BorderStage> borderStages = mechaConfig.getBorderStages();
+        List<BorderStage> borderStages = mechaConfig.borderStages();
         int[] durations = new int[borderStages.size()];
         for (int i = 0; i < borderStages.size(); i++) {
             durations[i] = borderStages.get(i).duration();

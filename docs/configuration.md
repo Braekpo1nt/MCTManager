@@ -34,22 +34,6 @@ This is the config file for MECHA. It allows you to configure:
 This is an example of a `mechaConfig.json` file (elipses `...` mean that you can add as many as you want in the list)
 ```json
 {
-  "spawnChestCoords": [
-    {
-      "x": -1.0,
-      "y": -45.0,
-      "z": 1.0
-    },
-    ...
-  ],
-  "mapChestCoords": [
-    {
-      "x": -18.0,
-      "y": -45.0,
-      "z": -15.0
-    },
-    ...
-  ],
   "spawnLootTable": {
     "namespace": "mctdatapack",
     "key": "mecha/spawn-chest"
@@ -68,6 +52,22 @@ This is an example of a `mechaConfig.json` file (elipses `...` mean that you can
       "size": 180,
       "delay": 90,
       "duration": 25
+    },
+    ...
+  ],
+  "spawnChestCoords": [
+    {
+      "x": -1.0,
+      "y": -45.0,
+      "z": 1.0
+    },
+    ...
+  ],
+  "mapChestCoords": [
+    {
+      "x": -18.0,
+      "y": -45.0,
+      "z": -15.0
     },
     ...
   ]
