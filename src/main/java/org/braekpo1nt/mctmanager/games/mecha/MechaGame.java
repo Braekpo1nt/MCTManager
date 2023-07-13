@@ -41,6 +41,7 @@ public class MechaGame implements MCTGame, Listener {
     
     private final Main plugin;
     private final GameManager gameManager;
+    private final MechaStorageUtil mechaStorageUtil;
     private boolean gameActive = false;
     private boolean mechaHasStarted = false;
     private List<Player> participants;
@@ -74,16 +75,12 @@ public class MechaGame implements MCTGame, Listener {
     private final String title = ChatColor.BLUE+"MECHA";
     private Map<String, Location> teamLocations;
     private final PotionEffect RESISTANCE = new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 200, 200, true, false, true);
-    private int[] sizes;
-    private int[] delays;
-    private int[] durations;
-
+    
     public MechaGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
         this.gameManager = gameManager;
-        MechaStorageUtil mechaStorageUtil = loadConfig();
-        setChestCoordsAndLootTables(mechaStorageUtil);
-        setBorderStages(mechaStorageUtil);
+        this.mechaStorageUtil = loadConfig();
+        setChestCoordsAndLootTables();
         MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
         this.mvMechaWorld = worldManager.getMVWorld("FT");
         this.mechaWorld = mvMechaWorld.getCBWorld();
@@ -463,6 +460,9 @@ public class MechaGame implements MCTGame, Listener {
     }
     
     private void kickOffBorderShrinking() {
+        int [] sizes = mechaStorageUtil.getSizes();
+        int [] delays = mechaStorageUtil.getDelays();
+        int [] durations = mechaStorageUtil.getDurations();
         this.borderShrinkingTaskId = new BukkitRunnable() {
             int delay = 0;
             int duration = 0;
@@ -714,7 +714,7 @@ public class MechaGame implements MCTGame, Listener {
         return mechaStorageUtil;
     }
     
-    private void setChestCoordsAndLootTables(MechaStorageUtil mechaStorageUtil) {
+    private void setChestCoordsAndLootTables() {
         this.spawnChestCoords = mechaStorageUtil.getSpawnChestCoords();
         this.mapChestCoords = mechaStorageUtil.getMapChestCoords();
         this.mapChestCoords = mechaStorageUtil.getMapChestCoords();
@@ -722,9 +722,4 @@ public class MechaGame implements MCTGame, Listener {
         this.weightedMechaLootTables = mechaStorageUtil.getWeightedMechaLootTables();
     }
     
-    private void setBorderStages(MechaStorageUtil mechaStorageUtil) {
-        sizes = mechaStorageUtil.getSizes();
-        delays = mechaStorageUtil.getDelays();
-        durations = mechaStorageUtil.getDurations();
-    }
 }
