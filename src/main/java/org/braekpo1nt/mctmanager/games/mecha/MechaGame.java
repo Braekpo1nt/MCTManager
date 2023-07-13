@@ -9,7 +9,6 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.enums.MCTGames;
 import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
-import org.braekpo1nt.mctmanager.games.mecha.config.BorderStage;
 import org.braekpo1nt.mctmanager.games.mecha.config.MechaStorageUtil;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
@@ -469,7 +468,7 @@ public class MechaGame implements MCTGame, Listener {
             int duration = 0;
             boolean onDelay = false;
             boolean onDuration = false;
-            int sceneIndex = 0;
+            int stage = 0;
             @Override
             public void run() {
                 if (onDelay) {
@@ -477,8 +476,8 @@ public class MechaGame implements MCTGame, Listener {
                     if (delay <= 1) {
                         onDelay = false;
                         onDuration = true;
-                        duration = durations[sceneIndex];
-                        int size = sizes[sceneIndex];
+                        duration = durations[stage];
+                        int size = sizes[stage];
                         worldBorder.setSize(size, duration);
                         sendBorderShrinkAnouncement(duration, size);
                         return;
@@ -489,14 +488,14 @@ public class MechaGame implements MCTGame, Listener {
                     if (duration <= 1) {
                         onDuration = false;
                         onDelay = true;
-                        sceneIndex++;
-                        if (sceneIndex >= delays.length) {
+                        stage++;
+                        if (stage >= delays.length) {
                             startSuddenDeath();
                             Bukkit.getLogger().info("Border is in final position.");
                             this.cancel();
                             return;
                         }
-                        delay = delays[sceneIndex];
+                        delay = delays[stage];
                         sendBorderDelayAnouncement(delay);
                         return;
                     }
