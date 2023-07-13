@@ -100,6 +100,9 @@ This is an example of a `parkourPathwayConfig.json` file
 
 ```json
 {
+  "timeLimit": 600,
+  "checkpointCounter": 120,
+  "checkpointCounterAlert": 30,
   "checkpoints": [
     {
       "yValue": 0,
@@ -125,6 +128,10 @@ This is an example of a `parkourPathwayConfig.json` file
 }
 ```
 
+- `"timeLimit"` the duration in seconds of the entire game
+- `"checkpointCounter"` the duration in seconds to wait before activating the mercy rule/failsafe. If no players reach a new checkpoint in the `checkpointCounter` time limit, then the game will end.
+- `"checkpointCounterAlert"` this is how many seconds left in the failsafe time (`"checkpointCounter"`) there must be in order for players to be notified. For example, if the `"checkpointCounter"` is `60` and `"checkpointCounterAlert"` is `10`, then if no players have reached a new checkpoint for `50` seconds, they'll be notified they have `10` seconds left.  
+  - this must be less than `"checkpointCounter"`, or problems will occur
 - `"checkpoints"` defines a list of checkpoints. 
   - The first checkpoint is the initial spawn location when players are teleported in
   - Checkpoints are progressed in order
