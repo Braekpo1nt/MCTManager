@@ -74,11 +74,16 @@ public class MechaGame implements MCTGame, Listener {
     private final String title = ChatColor.BLUE+"MECHA";
     private Map<String, Location> teamLocations;
     private final PotionEffect RESISTANCE = new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 200, 200, true, false, true);
-    
+    private int[] sizes;
+    private int[] delays;
+    private int[] durations;
+
     public MechaGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
         this.gameManager = gameManager;
-        setChestCoordsAndLootTables();
+        MechaStorageUtil mechaStorageUtil = loadConfig();
+        setChestCoordsAndLootTables(mechaStorageUtil);
+        setBorderStages(mechaStorageUtil);
         MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
         this.mvMechaWorld = worldManager.getMVWorld("FT");
         this.mechaWorld = mvMechaWorld.getCBWorld();
@@ -458,15 +463,12 @@ public class MechaGame implements MCTGame, Listener {
     }
     
     private void kickOffBorderShrinking() {
-        int[] sizes = new int[]{180, 150, 100, 50, 25, 2};
-        int[] delays = new int[]{90, 70, 60, 80, 60, 30};
-        int[] durations = new int[]{25, 20, 20 , 15, 15, 30};
         this.borderShrinkingTaskId = new BukkitRunnable() {
             int delay = 0;
             int duration = 0;
             boolean onDelay = false;
             boolean onDuration = false;
-            int sceneIndex = 0;
+            int stage = 0;
             @Override
             public void run() {
                 if (onDelay) {
@@ -474,8 +476,8 @@ public class MechaGame implements MCTGame, Listener {
                     if (delay <= 1) {
                         onDelay = false;
                         onDuration = true;
-                        duration = durations[sceneIndex];
-                        int size = sizes[sceneIndex];
+                        duration = durations[stage];
+                        int size = sizes[stage];
                         worldBorder.setSize(size, duration);
                         sendBorderShrinkAnouncement(duration, size);
                         return;
@@ -486,14 +488,14 @@ public class MechaGame implements MCTGame, Listener {
                     if (duration <= 1) {
                         onDuration = false;
                         onDelay = true;
-                        sceneIndex++;
-                        if (sceneIndex >= delays.length) {
+                        stage++;
+                        if (stage >= delays.length) {
                             startSuddenDeath();
                             Bukkit.getLogger().info("Border is in final position.");
                             this.cancel();
                             return;
                         }
-                        delay = delays[sceneIndex];
+                        delay = delays[stage];
                         sendBorderDelayAnouncement(delay);
                         return;
                     }
@@ -700,7 +702,7 @@ public class MechaGame implements MCTGame, Listener {
         teamLocations.put("red", anchorManager.getAnchorLocation("mecha-red"));
     }
     
-    private void setChestCoordsAndLootTables() {
+    private MechaStorageUtil loadConfig() {
         MechaStorageUtil mechaStorageUtil = new MechaStorageUtil(plugin);
         try {
             mechaStorageUtil.loadConfig();
@@ -709,10 +711,20 @@ public class MechaGame implements MCTGame, Listener {
             Bukkit.getPluginManager().disablePlugin(plugin);
             throw new RuntimeException(e);
         }
+        return mechaStorageUtil;
+    }
+    
+    private void setChestCoordsAndLootTables(MechaStorageUtil mechaStorageUtil) {
         this.spawnChestCoords = mechaStorageUtil.getSpawnChestCoords();
         this.mapChestCoords = mechaStorageUtil.getMapChestCoords();
         this.mapChestCoords = mechaStorageUtil.getMapChestCoords();
         this.spawnLootTable = mechaStorageUtil.getSpawnLootTable();
         this.weightedMechaLootTables = mechaStorageUtil.getWeightedMechaLootTables();
+    }
+    
+    private void setBorderStages(MechaStorageUtil mechaStorageUtil) {
+        sizes = mechaStorageUtil.getSizes();
+        delays = mechaStorageUtil.getDelays();
+        durations = mechaStorageUtil.getDurations();
     }
 }

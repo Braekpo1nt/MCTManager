@@ -64,4 +64,16 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
         parkourPathwayConfig.setWorld(world);
         saveConfig();
     }
+    
+    public int getTimeLimit() {
+        return parkourPathwayConfig.getTimeLimit();
+    }
+    
+    public int getCheckpointCounter() {
+        return parkourPathwayConfig.getCheckpointCounter();
+    }
+    
+    public int getCheckpointCounterAlert() {
+        return parkourPathwayConfig.getCheckpointCounterAlert();
+    }
 }
