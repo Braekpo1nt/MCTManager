@@ -86,4 +86,31 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
         }
         mechaConfig.setWeightedMechaLootTables(weightedNamespacedKeys);
     }
+    
+    public int[] getSizes() {
+        List<BorderStage> borderStages = mechaConfig.getBorderStages();
+        int[] sizes = new int[borderStages.size()];
+        for (int i = 0; i < borderStages.size(); i++) {
+            sizes[i] = borderStages.get(i).size();
+        }
+        return sizes;
+    }
+
+    public int[] getDelays() {
+        List<BorderStage> borderStages = mechaConfig.getBorderStages();
+        int[] delays = new int[borderStages.size()];
+        for (int i = 0; i < borderStages.size(); i++) {
+            delays[i] = borderStages.get(i).delay();
+        }
+        return delays;
+    }
+
+    public int[] getDurations() {
+        List<BorderStage> borderStages = mechaConfig.getBorderStages();
+        int[] durations = new int[borderStages.size()];
+        for (int i = 0; i < borderStages.size(); i++) {
+            durations[i] = borderStages.get(i).duration();
+        }
+        return durations;
+    }
 }

@@ -12,6 +12,7 @@ public class MechaConfig {
     private List<Vector> mapChestCoords;
     private NamespacedKey spawnLootTable;
     private List<WeightedNamespacedKey> weightedMechaLootTables;
+    private List<BorderStage> borderStages;
     
     public MechaConfig() {
         this.spawnChestCoords = new ArrayList<>();
@@ -51,4 +52,9 @@ public class MechaConfig {
     public void setWeightedMechaLootTables(List<WeightedNamespacedKey> weightedMechaLootTables) {
         this.weightedMechaLootTables = weightedMechaLootTables;
     }
+    
+    public List<BorderStage> getBorderStages() {
+        return borderStages;
+    }
+    
 }

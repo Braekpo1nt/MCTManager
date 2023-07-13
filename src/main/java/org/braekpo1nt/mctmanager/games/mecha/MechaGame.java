@@ -9,6 +9,7 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.enums.MCTGames;
 import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
+import org.braekpo1nt.mctmanager.games.mecha.config.BorderStage;
 import org.braekpo1nt.mctmanager.games.mecha.config.MechaStorageUtil;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
@@ -74,11 +75,16 @@ public class MechaGame implements MCTGame, Listener {
     private final String title = ChatColor.BLUE+"MECHA";
     private Map<String, Location> teamLocations;
     private final PotionEffect RESISTANCE = new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 200, 200, true, false, true);
-    
+    private int[] sizes;
+    private int[] delays;
+    private int[] durations;
+
     public MechaGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
         this.gameManager = gameManager;
-        setChestCoordsAndLootTables();
+        MechaStorageUtil mechaStorageUtil = loadConfig();
+        setChestCoordsAndLootTables(mechaStorageUtil);
+        setBorderStages(mechaStorageUtil);
         MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
         this.mvMechaWorld = worldManager.getMVWorld("FT");
         this.mechaWorld = mvMechaWorld.getCBWorld();
@@ -458,9 +464,6 @@ public class MechaGame implements MCTGame, Listener {
     }
     
     private void kickOffBorderShrinking() {
-        int[] sizes = new int[]{180, 150, 100, 50, 25, 2};
-        int[] delays = new int[]{90, 70, 60, 80, 60, 30};
-        int[] durations = new int[]{25, 20, 20 , 15, 15, 30};
         this.borderShrinkingTaskId = new BukkitRunnable() {
             int delay = 0;
             int duration = 0;
@@ -700,7 +703,7 @@ public class MechaGame implements MCTGame, Listener {
         teamLocations.put("red", anchorManager.getAnchorLocation("mecha-red"));
     }
     
-    private void setChestCoordsAndLootTables() {
+    private MechaStorageUtil loadConfig() {
         MechaStorageUtil mechaStorageUtil = new MechaStorageUtil(plugin);
         try {
             mechaStorageUtil.loadConfig();
@@ -709,10 +712,20 @@ public class MechaGame implements MCTGame, Listener {
             Bukkit.getPluginManager().disablePlugin(plugin);
             throw new RuntimeException(e);
         }
+        return mechaStorageUtil;
+    }
+    
+    private void setChestCoordsAndLootTables(MechaStorageUtil mechaStorageUtil) {
         this.spawnChestCoords = mechaStorageUtil.getSpawnChestCoords();
         this.mapChestCoords = mechaStorageUtil.getMapChestCoords();
         this.mapChestCoords = mechaStorageUtil.getMapChestCoords();
         this.spawnLootTable = mechaStorageUtil.getSpawnLootTable();
         this.weightedMechaLootTables = mechaStorageUtil.getWeightedMechaLootTables();
+    }
+    
+    private void setBorderStages(MechaStorageUtil mechaStorageUtil) {
+        sizes = mechaStorageUtil.getSizes();
+        delays = mechaStorageUtil.getDelays();
+        durations = mechaStorageUtil.getDurations();
     }
 }
