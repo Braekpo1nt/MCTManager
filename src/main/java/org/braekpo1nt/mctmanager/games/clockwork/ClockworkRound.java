@@ -1,15 +1,11 @@
 package org.braekpo1nt.mctmanager.games.clockwork;
 
-import com.google.gson.internal.bind.JsonTreeReader;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.bukkit.*;
-import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -307,31 +303,31 @@ public class ClockworkRound implements Listener {
         }
         // this must happen after the above loop, rather than in the PlayerDeathEvent handler,
         // because otherwise it will be called multiple times and concurrently
-        String winningTeam = getWinningTeam();
-        if (winningTeam != null) {
-            onTeamWin(winningTeam);
+        List<String> livingTeams = getLivingTeams();
+        if (livingTeams.size() > 1) {
+            return;
+        }
+        if (livingTeams.size() == 1) {
+            onTeamWin(livingTeams.get(0));
+        }
+        if (livingTeams.isEmpty()) {
+            onAllTeamsLose();
         }
     }
     
-    private String getWinningTeam() {
-        int count = 0;
-        for (boolean isAlive : teamsAreAlive.values()) {
+    /**
+     * @return a list of all living teams
+     */
+    private List<String> getLivingTeams() {
+        List<String> livingTeams = new ArrayList<>(teamsAreAlive.size());
+        for (Map.Entry<String, Boolean> entry : teamsAreAlive.entrySet()) {
+            boolean isAlive = entry.getValue();
             if (isAlive) {
-                count++;
+                String teamName = entry.getKey();
+                livingTeams.add(teamName);
             }
         }
-        if (count > 1) {
-            return null;
-        }
-        for (Map.Entry<String, Boolean> teamIsAlive : teamsAreAlive.entrySet()) {
-            if (teamIsAlive.getValue()) {
-                return teamIsAlive.getKey();
-            }
-        }
-        if (count == 0) {
-            return lastKilledTeam;
-        }
-        return null;
+        return livingTeams;
     }
     
     private void onTeamWin(String winningTeam) {
@@ -340,6 +336,11 @@ public class ClockworkRound implements Listener {
         messageAllParticipants(Component.text("Team ")
                 .append(displayName)
                 .append(Component.text(" wins this round!")));
+        roundIsOver();
+    }
+    
+    private void onAllTeamsLose() {
+        messageAllParticipants(Component.text("All teams are dead!"));
         roundIsOver();
     }
 
