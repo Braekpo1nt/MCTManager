@@ -42,7 +42,6 @@ public class ClockworkRound implements Listener {
     private final List<Wedge> wedges;
     private int ringBellTaskId;
     private final Random random = new Random();
-    private String lastKilledTeam = null;
     private boolean skeletonCycle = false;
     
     public ClockworkRound(Main plugin, GameManager gameManager, ClockworkGame clockworkGame, Location startingPosition) {
@@ -57,7 +56,6 @@ public class ClockworkRound implements Listener {
         participants = new ArrayList<>(newParticipants.size());
         participantsAreAlive = new HashMap<>(newParticipants.size());
         teamsAreAlive = new HashMap<>();
-        lastKilledTeam = null;
         numberOfBellRings = 1;
         bellCountDown = 8;
         bellRingCycleDuration = 20L;
@@ -87,7 +85,6 @@ public class ClockworkRound implements Listener {
         killAllSkeletons();
         HandlerList.unregisterAll(this);
         cancelAllTasks();
-        lastKilledTeam = null;
         numberOfBellRings = 1;
         bellCountDown = 8;
         bellRingCycleDuration = 20L;
@@ -155,7 +152,6 @@ public class ClockworkRound implements Listener {
                 gameManager.awardPointsToPlayer(participant, 5);
             }
         }
-        lastKilledTeam = teamName;
     }
     
     private void onTeamDeath(String teamName) {
