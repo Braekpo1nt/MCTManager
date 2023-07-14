@@ -35,8 +35,8 @@ public class ClockworkGame implements MCTGame, Listener {
         this.plugin = plugin;
         this.gameManager = gameManager;
         MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
-        MultiverseWorld mvCaptureTheFlagWorld = worldManager.getMVWorld("FT");
-        this.clockworkWorld = mvCaptureTheFlagWorld.getCBWorld();
+        MultiverseWorld mvClockworkWorld = worldManager.getMVWorld("FT");
+        this.clockworkWorld = mvClockworkWorld.getCBWorld();
         AnchorManager anchorManager = Main.multiverseCore.getAnchorManager();
         startingPosition = anchorManager.getAnchorLocation("clockwork");
     }
