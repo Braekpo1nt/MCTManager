@@ -115,7 +115,8 @@ public class ParkourPathwayGame implements MCTGame, Listener {
     }
     
     private void closeGlassBarriers() {
-        BlockPlacementUtils.createCube(parkourPathwayWorld, 1006, 0, -6, 1, 5, 13, Material.GLASS_PANE);
+        BlockPlacementUtils.createCube(parkourPathwayWorld, 1006, 0, -6, 1, 5, 13, Material.GLASS);
+        BlockPlacementUtils.updateDirection(parkourPathwayWorld, 1006, 0, -6, 1, 5, 13);
     }
     
     private void openGlassBarriers() {
@@ -232,7 +233,7 @@ public class ParkourPathwayGame implements MCTGame, Listener {
         double yPos = player.getLocation().getY();
         if (yPos < currentCheckpoint.yValue()) {
             // Player fell, and must be teleported to checkpoint spawn
-            player.teleport(currentCheckpoint.respawn());
+            player.teleport(currentCheckpoint.respawn().setDirection(player.getLocation().getDirection()));
         }
     }
 
