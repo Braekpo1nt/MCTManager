@@ -35,7 +35,7 @@ public class ClockworkRound implements Listener {
     private final Location startingPosition;
     private Map<UUID, Boolean> participantsAreAlive;
     private Map<String, Boolean> teamsAreAlive;
-    private List<Player> participants;
+    private List<Player> participants = new ArrayList<>();
     private static final String title = ChatColor.BLUE+"Clockwork";
     private boolean roundActive;
     private int roundStartingCountDownTaskId;
@@ -78,7 +78,7 @@ public class ClockworkRound implements Listener {
         setupTeamOptions();
         startRoundStartingCountDown();
         roundActive = true;
-        Bukkit.getLogger().info("Starting capture the flag round");
+        Bukkit.getLogger().info("Starting clockwork round");
     }
     
     private void roundIsOver() {
@@ -145,19 +145,6 @@ public class ClockworkRound implements Listener {
             Bukkit.getServer().sendMessage(deathMessage);
         }
         onParticipantDeath(killed);
-        String winningTeam = getWinningTeam();
-        if (winningTeam != null) {
-            onTeamWin(winningTeam);
-        }
-    }
-
-    private void onTeamWin(String winningTeam) {
-        gameManager.awardPointsToTeam(winningTeam, 50);
-        Component displayName = gameManager.getFormattedTeamDisplayName(winningTeam);
-        messageAllParticipants(Component.text("Team ")
-                .append(displayName)
-                .append(Component.text(" wins this round!")));
-        roundIsOver();
     }
 
     private void onParticipantDeath(Player killed) {
@@ -206,27 +193,6 @@ public class ClockworkRound implements Listener {
             }
         }
         return true;
-    }
-
-    private String getWinningTeam() {
-        int count = 0;
-        for (boolean isAlive : teamsAreAlive.values()) {
-            if (isAlive) {
-                count++;
-            }
-        }
-        if (count > 1) {
-            return null;
-        }
-        for (Map.Entry<String, Boolean> teamIsAlive : teamsAreAlive.entrySet()) {
-            if (teamIsAlive.getValue()) {
-                return teamIsAlive.getKey();
-            }
-        }
-        if (count == 0) {
-            return lastKilledTeam;
-        }
-        return null;
     }
 
     private void startRoundStartingCountDown() {
@@ -339,6 +305,42 @@ public class ClockworkRound implements Listener {
                 Bukkit.getPluginManager().callEvent(fakeDeathEvent);
             }
         }
+        // this must happen after the above loop, rather than in the PlayerDeathEvent handler,
+        // because otherwise it will be called multiple times and concurrently
+        String winningTeam = getWinningTeam();
+        if (winningTeam != null) {
+            onTeamWin(winningTeam);
+        }
+    }
+    
+    private String getWinningTeam() {
+        int count = 0;
+        for (boolean isAlive : teamsAreAlive.values()) {
+            if (isAlive) {
+                count++;
+            }
+        }
+        if (count > 1) {
+            return null;
+        }
+        for (Map.Entry<String, Boolean> teamIsAlive : teamsAreAlive.entrySet()) {
+            if (teamIsAlive.getValue()) {
+                return teamIsAlive.getKey();
+            }
+        }
+        if (count == 0) {
+            return lastKilledTeam;
+        }
+        return null;
+    }
+    
+    private void onTeamWin(String winningTeam) {
+        gameManager.awardPointsToTeam(winningTeam, 50);
+        Component displayName = gameManager.getFormattedTeamDisplayName(winningTeam);
+        messageAllParticipants(Component.text("Team ")
+                .append(displayName)
+                .append(Component.text(" wins this round!")));
+        roundIsOver();
     }
 
     private void setupTeamOptions() {
