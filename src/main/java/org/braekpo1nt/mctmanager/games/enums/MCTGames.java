@@ -9,7 +9,7 @@ public enum MCTGames {
     SPLEEF,
     FINAL_GAME, 
     PARKOUR_PATHWAY, 
-    CLOCKWORK;
+    CLOCKWORK, COLOSSAL_COLOSSEUM;
     
     public static @NotNull String getTitle(@NotNull MCTGames mctGame) {
         switch (mctGame) {
