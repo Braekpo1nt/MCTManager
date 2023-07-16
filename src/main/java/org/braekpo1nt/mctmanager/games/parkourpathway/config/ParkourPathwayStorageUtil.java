@@ -76,4 +76,8 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
     public int getCheckpointCounterAlert() {
         return parkourPathwayConfig.getCheckpointCounterAlert();
     }
+    
+    public String getWorld() {
+        return parkourPathwayConfig.getWorld();
+    }
 }

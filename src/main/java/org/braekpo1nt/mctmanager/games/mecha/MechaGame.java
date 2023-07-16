@@ -228,7 +228,8 @@ public class MechaGame implements MCTGame, Listener {
     
     private void startStartMechaCountdownTask() {
         this.startMechaTaskId = new BukkitRunnable() {
-            int count = 10;
+            private int count = 10;
+            
             @Override
             public void run() {
                 if (count <= 0) {
@@ -236,7 +237,10 @@ public class MechaGame implements MCTGame, Listener {
                     this.cancel();
                     return;
                 }
-                messageAllParticipants(Component.text(count));
+                String timeLeft = TimeStringUtils.getTimeString(count);
+                for (Player participant : participants) {
+                    updateCountDownFastBoard(participant, timeLeft);
+                }
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -519,6 +523,19 @@ public class MechaGame implements MCTGame, Listener {
                 "",
                 ChatColor.LIGHT_PURPLE+"Border",
                 ChatColor.LIGHT_PURPLE+"0:00"
+        );
+    }
+    
+    private void updateCountDownFastBoard(Player participant, String timeLeft) {
+        gameManager.getFastBoardManager().updateLine(
+                participant.getUniqueId(),
+                4,
+                "Starting:"
+        );
+        gameManager.getFastBoardManager().updateLine(
+                participant.getUniqueId(),
+                5,
+                timeLeft
         );
     }
     
