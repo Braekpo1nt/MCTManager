@@ -26,6 +26,7 @@ import org.bukkit.scoreboard.Team;
 
 import java.util.*;
 
+@Deprecated
 public class FinalGame implements MCTGame, Listener {
 
     private static final int MAX_KILLS = 9;
