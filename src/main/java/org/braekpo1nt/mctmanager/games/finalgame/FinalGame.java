@@ -50,7 +50,7 @@ public class FinalGame implements MCTGame, Listener {
     
     @Override
     public MCTGames getType() {
-        return MCTGames.FINAL_GAME;
+        return null;
     }
     
     public void teleportViewers(List<Player> otherParticipants) {
