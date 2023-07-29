@@ -10,8 +10,10 @@ import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 
@@ -183,6 +185,20 @@ public class ColossalColosseumGame implements MCTGame, Listener {
     @Override
     public void onParticipantQuit(Player participant) {
         
+    }
+    
+    @EventHandler
+    public void onSpectatorGetDamaged(EntityDamageEvent event) {
+        if (event.getCause().equals(EntityDamageEvent.DamageCause.VOID)) {
+            return;
+        }
+        if (!(event.getEntity() instanceof Player participant)) {
+            return;
+        }
+        if (!spectators.contains(participant)) {
+            return;
+        }
+        event.setCancelled(true);
     }
     
     private void initializeFastBoard(Player participant) {

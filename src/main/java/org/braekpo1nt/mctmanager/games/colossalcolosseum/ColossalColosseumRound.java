@@ -13,6 +13,7 @@ import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
@@ -72,23 +73,34 @@ public class ColossalColosseumRound implements Listener {
     
     private void initializeFirstPlaceParticipant(Player first) {
         firstPlaceParticipants.add(first);
-        participantsAlive.put(first.getUniqueId(), true);
-        initializeFastBoard(first);
         first.teleport(firstPlaceSpawn);
-        first.getInventory().clear();
-        first.setGameMode(GameMode.ADVENTURE);
-        ParticipantInitializer.clearStatusEffects(first);
-        ParticipantInitializer.resetHealthAndHunger(first);
+        initializeParticipant(first);
     }
     
     private void initializeSecondPlaceParticipant(Player second) {
         secondPlaceParticipants.add(second);
-        initializeFastBoard(second);
         second.teleport(secondPlaceSpawn);
-        second.getInventory().clear();
-        second.setGameMode(GameMode.ADVENTURE);
-        ParticipantInitializer.clearStatusEffects(second);
-        ParticipantInitializer.resetHealthAndHunger(second);
+        initializeParticipant(second);
+    }
+    
+    private void initializeParticipant(Player participant) {
+        participantsAlive.put(participant.getUniqueId(), true);
+        initializeFastBoard(participant);
+        participant.getInventory().clear();
+        participant.setGameMode(GameMode.ADVENTURE);
+        ParticipantInitializer.clearStatusEffects(participant);
+        ParticipantInitializer.resetHealthAndHunger(participant);
+        giveParticipantEquipment(participant);
+    }
+    
+    private void giveParticipantEquipment(Player participant) {
+        //stone sword, bow, 16 arrows, leather chest and boots, 16 steak
+        participant.getInventory().addItem(new ItemStack(Material.STONE_SWORD));
+        participant.getInventory().addItem(new ItemStack(Material.BOW));
+        participant.getInventory().addItem(new ItemStack(Material.ARROW, 16));
+        participant.getInventory().addItem(new ItemStack(Material.COOKED_BEEF, 16));
+        participant.getEquipment().setChestplate(new ItemStack(Material.LEATHER_CHESTPLATE));
+        participant.getEquipment().setBoots(new ItemStack(Material.LEATHER_BOOTS));
     }
     
     private void initializeSpectator(Player spectator) {
