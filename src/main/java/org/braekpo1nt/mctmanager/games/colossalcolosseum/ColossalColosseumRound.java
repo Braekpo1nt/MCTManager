@@ -2,15 +2,18 @@ package org.braekpo1nt.mctmanager.games.colossalcolosseum;
 
 import com.onarandombox.MultiverseCore.api.MVWorldManager;
 import com.onarandombox.MultiverseCore.utils.AnchorManager;
+import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
+import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 
@@ -30,6 +33,7 @@ public class ColossalColosseumRound implements Listener {
     private List<Player> firstPlaceParticipants = new ArrayList<>();
     private List<Player> secondPlaceParticipants = new ArrayList<>();
     private List<Player> spectators = new ArrayList<>();
+    private int startCountDownTaskId;
     
     public ColossalColosseumRound(Main plugin, GameManager gameManager, ColossalColosseumGame colossalColosseumGame) {
         this.plugin = plugin;
@@ -126,7 +130,38 @@ public class ColossalColosseumRound implements Listener {
     }
     
     private void cancelAllTasks() {
-        
+        Bukkit.getScheduler().cancelTask(startCountDownTaskId);
+    }
+    
+    private void startRound() {
+        openGates();
+        messageAllParticipants(Component.text("Let it begin!"));
+    }
+    
+    private void startRoundStartingCountDown() {
+        this.startCountDownTaskId = new BukkitRunnable() {
+            private int count = 10;
+    
+            @Override
+            public void run() {
+                if (count <= 0) {
+                    startRound();
+                    this.cancel();
+                    return;
+                }
+                String timeLeft = TimeStringUtils.getTimeString(count);
+                for (Player participant : firstPlaceParticipants) {
+                    updateCountDownFastBoard(participant, timeLeft);
+                }
+                for (Player participant : secondPlaceParticipants) {
+                    updateCountDownFastBoard(participant, timeLeft);
+                }
+                for (Player participant : spectators) {
+                    updateCountDownFastBoard(participant, timeLeft);
+                }
+                count--;
+            }
+        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
     }
     
     private void initializeFastBoard(Player participant) {
@@ -139,6 +174,19 @@ public class ColossalColosseumRound implements Listener {
                 participant.getUniqueId(),
                 8,
                 ""
+        );
+    }
+    
+    private void updateCountDownFastBoard(Player participant, String timeLeft) {
+        gameManager.getFastBoardManager().updateLine(
+                participant.getUniqueId(),
+                7,
+                ChatColor.BOLD+"Starting:"
+        );
+        gameManager.getFastBoardManager().updateLine(
+                participant.getUniqueId(),
+                8,
+                ChatColor.BOLD+timeLeft
         );
     }
     
@@ -181,6 +229,19 @@ public class ColossalColosseumRound implements Listener {
             team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.ALWAYS);
             team.setOption(Team.Option.DEATH_MESSAGE_VISIBILITY, Team.OptionStatus.ALWAYS);
             team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER);
+        }
+    }
+    
+    private void messageAllParticipants(Component message) {
+        gameManager.messageAdmins(message);
+        for (Player participant : firstPlaceParticipants) {
+            participant.sendMessage(message);
+        }
+        for (Player participant : secondPlaceParticipants) {
+            participant.sendMessage(message);
+        }
+        for (Player participant : spectators) {
+            participant.sendMessage(message);
         }
     }
     
