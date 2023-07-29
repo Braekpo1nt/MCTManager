@@ -119,7 +119,7 @@ public class SpleefRound implements Listener {
         participants.clear();
         participantsAlive.clear();
         roundActive = false;
-        Bukkit.getLogger().info("Stopping Spleef game");
+        Bukkit.getLogger().info("Stopping Spleef round");
     }
     
     public void onParticipantJoin(Player participant) {

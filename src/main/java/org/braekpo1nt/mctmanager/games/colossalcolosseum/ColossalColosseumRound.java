@@ -20,6 +20,7 @@ public class ColossalColosseumRound implements Listener {
     
     private final Main plugin;
     private final GameManager gameManager;
+    private final ColossalColosseumGame colossalColosseumGame;
     private final World colossalColosseumWorld;
     private final Location firstPlaceSpawn;
     private final Location secondPlaceSpawn;
@@ -33,6 +34,7 @@ public class ColossalColosseumRound implements Listener {
     public ColossalColosseumRound(Main plugin, GameManager gameManager, ColossalColosseumGame colossalColosseumGame) {
         this.plugin = plugin;
         this.gameManager = gameManager;
+        this.colossalColosseumGame = colossalColosseumGame;
         MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
         this.colossalColosseumWorld = worldManager.getMVWorld("FT").getCBWorld();
         AnchorManager anchorManager = Main.multiverseCore.getAnchorManager();
@@ -94,8 +96,33 @@ public class ColossalColosseumRound implements Listener {
         ParticipantInitializer.resetHealthAndHunger(spectator);
     }
     
+    private void roundIsOver() {
+        stop();
+        colossalColosseumGame.roundIsOver();
+    }
+    
     public void stop() {
         HandlerList.unregisterAll(this);
+        cancelAllTasks();
+        closeFirstGate();
+        closeSecondGate();
+        for (Player participant : firstPlaceParticipants) {
+            resetParticipant(participant);
+        }
+        firstPlaceParticipants.clear();
+        for (Player participant : secondPlaceParticipants) {
+            resetParticipant(participant);
+        }
+        secondPlaceParticipants.clear();
+        for (Player participant : spectators) {
+            resetParticipant(participant);
+        }
+        spectators.clear();
+        Bukkit.getLogger().info("Stopping Colossal Colosseum round");
+    }
+    
+    private void resetParticipant(Player participant) {
+        participant.getInventory().clear();
     }
     
     private void cancelAllTasks() {
