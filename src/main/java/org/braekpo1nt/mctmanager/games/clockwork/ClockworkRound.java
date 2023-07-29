@@ -244,6 +244,7 @@ public class ClockworkRound implements Listener {
                 for (Player participant : participants) {
                     participant.playSound(participant.getLocation(), Sound.BLOCK_BELL_USE, 100, 2);
                 }
+                gameManager.playSoundForAdmins(Sound.BLOCK_BELL_USE, 100, 2);
                 count--;
             }
         }.runTaskTimer(plugin, 0L, bellRingCycleDuration).getTaskId();

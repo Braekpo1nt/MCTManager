@@ -12,7 +12,6 @@ import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.braekpo1nt.mctmanager.games.capturetheflag.CaptureTheFlagGame;
-import org.braekpo1nt.mctmanager.games.finalgame.FinalGame;
 import org.braekpo1nt.mctmanager.games.footrace.FootRaceGame;
 import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
 import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
@@ -1168,6 +1167,13 @@ public class GameManager implements Listener {
             admin.sendMessage(message);
         }
     }
+    
+    public void playSoundForAdmins(Sound sound, int volume, int pitch) {
+        for (Player admin : onlineAdmins) {
+            admin.playSound(admin.getLocation(), sound, volume, pitch);
+        }
+    }
+    
     
     private void messageOnlineParticipants(Component message) {
         for (Player participant : onlineParticipants) {
