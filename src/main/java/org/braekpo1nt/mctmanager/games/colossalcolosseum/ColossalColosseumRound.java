@@ -226,6 +226,15 @@ public class ColossalColosseumRound implements Listener {
             @Override
             public void run() {
                 if (count <= 0) {
+                    for (Player participant : firstPlaceParticipants) {
+                        hideCountDownFastBoard(participant);
+                    }
+                    for (Player participant : secondPlaceParticipants) {
+                        hideCountDownFastBoard(participant);
+                    }
+                    for (Player participant : spectators) {
+                        hideCountDownFastBoard(participant);
+                    }
                     startRound();
                     this.cancel();
                     return;
@@ -268,6 +277,19 @@ public class ColossalColosseumRound implements Listener {
                 participant.getUniqueId(),
                 8,
                 ChatColor.BOLD+timeLeft
+        );
+    }
+    
+    private void hideCountDownFastBoard(Player participant) {
+        gameManager.getFastBoardManager().updateLine(
+                participant.getUniqueId(),
+                7,
+                ""
+        );
+        gameManager.getFastBoardManager().updateLine(
+                participant.getUniqueId(),
+                8,
+                ""
         );
     }
     

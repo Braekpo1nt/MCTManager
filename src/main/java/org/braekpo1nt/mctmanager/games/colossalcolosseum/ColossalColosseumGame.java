@@ -232,12 +232,16 @@ public class ColossalColosseumGame implements MCTGame, Listener {
     }
     
     private void initializeFastBoard(Player participant) {
+        ChatColor firstChatColor = gameManager.getTeamChatColor(firstTeamName);
+        String firstDisplayName = ChatColor.BOLD + "" +  firstChatColor + gameManager.getTeamDisplayName(firstTeamName);
+        ChatColor secondChatColor = gameManager.getTeamChatColor(secondTeamName);
+        String secondDisplayName = ChatColor.BOLD + "" +  secondChatColor + gameManager.getTeamDisplayName(secondTeamName);
         gameManager.getFastBoardManager().updateLines(
                 participant.getUniqueId(),
                 title,
                 "",
-                String.format("%s: 0/3", firstTeamName), // first team win count
-                String.format("%s: 0/3", secondTeamName), // second team win count
+                String.format("%s: 0/3", firstDisplayName), // first team win count
+                String.format("%s: 0/3", secondDisplayName), // second team win count
                 "",
                 "Round: 1", // Round: x
                 "",
