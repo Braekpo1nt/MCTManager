@@ -460,7 +460,12 @@ public class MechaGame implements MCTGame, Listener {
     
     private void initializeWorldBorder() {
         worldBorder.setCenter(0, 0);
-        worldBorder.setSize(248);
+        int [] sizes = mechaStorageUtil.getSizes();
+        if (sizes.length > 0) {
+            worldBorder.setSize(sizes[0]);
+        } else {
+            worldBorder.setSize(399);
+        }
     }
     
     private void kickOffBorderShrinking() {
