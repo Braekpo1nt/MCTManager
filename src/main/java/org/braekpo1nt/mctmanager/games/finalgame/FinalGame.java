@@ -232,7 +232,7 @@ public class FinalGame implements MCTGame, Listener {
         NamedTextColor teamColor = gameManager.getTeamNamedTextColor(winningTeam);
         Bukkit.getServer().sendMessage(Component.empty()
                 .append(gameManager.getFormattedTeamDisplayName(winningTeam))
-                .append(Component.text(" wins MCT #3!"))
+                .append(Component.text(" wins MCT #4!"))
                 .color(teamColor)
                 .decorate(TextDecoration.BOLD));
         stop(winningTeam);
