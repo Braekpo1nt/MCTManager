@@ -77,7 +77,7 @@ public class SpleefRound implements Listener {
         startStatusEffectsTask();
         startRoundStartingCountDown();
         roundActive = true;
-        Bukkit.getLogger().info("Starting Spleef game");
+        Bukkit.getLogger().info("Starting Spleef round");
     }
     
     private void initializeParticipant(Player participant) {
