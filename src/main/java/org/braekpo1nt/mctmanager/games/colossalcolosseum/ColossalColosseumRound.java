@@ -4,6 +4,7 @@ import com.onarandombox.MultiverseCore.api.MVWorldManager;
 import com.onarandombox.MultiverseCore.utils.AnchorManager;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.bukkit.*;
@@ -65,17 +66,32 @@ public class ColossalColosseumRound implements Listener {
     
     private void initializeFirstPlaceParticipant(Player first) {
         firstPlaceParticipants.add(first);
+        participantsAlive.put(first.getUniqueId(), true);
         initializeFastBoard(first);
+        first.teleport(firstPlaceSpawn);
+        first.getInventory().clear();
+        first.setGameMode(GameMode.ADVENTURE);
+        ParticipantInitializer.clearStatusEffects(first);
+        ParticipantInitializer.resetHealthAndHunger(first);
     }
     
     private void initializeSecondPlaceParticipant(Player second) {
         secondPlaceParticipants.add(second);
         initializeFastBoard(second);
+        second.teleport(secondPlaceSpawn);
+        second.getInventory().clear();
+        second.setGameMode(GameMode.ADVENTURE);
+        ParticipantInitializer.clearStatusEffects(second);
+        ParticipantInitializer.resetHealthAndHunger(second);
     }
     
     private void initializeSpectator(Player spectator) {
         spectators.add(spectator);
         initializeFastBoard(spectator);
+        spectator.getInventory().clear();
+        spectator.setGameMode(GameMode.ADVENTURE);
+        ParticipantInitializer.clearStatusEffects(spectator);
+        ParticipantInitializer.resetHealthAndHunger(spectator);
     }
     
     public void stop() {

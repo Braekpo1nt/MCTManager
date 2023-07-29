@@ -100,16 +100,22 @@ public class ColossalColosseumGame implements MCTGame, Listener {
     private void initializeFirstPlaceParticipant(Player first) {
         firstPlaceParticipants.add(first);
         initializeFastBoard(first);
+        first.teleport(firstPlaceSpawn);
+        first.setGameMode(GameMode.ADVENTURE);
     }
     
     private void initializeSecondPlaceParticipant(Player second) {
         secondPlaceParticipants.add(second);
         initializeFastBoard(second);
+        second.teleport(secondPlaceSpawn);
+        second.setGameMode(GameMode.ADVENTURE);
     }
     
     private void initializeSpectator(Player spectator) {
         spectators.add(spectator);
         initializeFastBoard(spectator);
+        spectator.teleport(spectatorSpawn);
+        spectator.setGameMode(GameMode.ADVENTURE);
     }
     
     private void startNextRound() {
