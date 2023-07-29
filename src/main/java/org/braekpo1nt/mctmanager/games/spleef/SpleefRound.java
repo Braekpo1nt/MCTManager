@@ -41,7 +41,7 @@ import java.util.*;
 public class SpleefRound implements Listener {
     private final Main plugin;
     private final GameManager gameManager;
-    private List<Player> participants;
+    private List<Player> participants = new ArrayList<>();
     private final World spleefWorld;
     private Map<UUID, Boolean> participantsAlive;
     private boolean roundActive = false;
