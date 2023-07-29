@@ -2,6 +2,9 @@ package org.braekpo1nt.mctmanager.games.colossalcolosseum;
 
 import com.onarandombox.MultiverseCore.api.MVWorldManager;
 import com.onarandombox.MultiverseCore.utils.AnchorManager;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.enums.MCTGames;
@@ -34,6 +37,9 @@ public class ColossalColosseumGame implements MCTGame, Listener {
     private List<Player> spectators = new ArrayList<>();
     private List<ColossalColosseumRound> rounds = new ArrayList<>();
     private int currentRoundIndex = 0;
+    private final int MAX_ROUND_WINS = 3;
+    private int firstPlaceRoundWins = 0;
+    private int secondPlaceRoundWins = 0;
     private String firstTeamName;
     private String secondTeamName;
     private int roundDelayTaskId;
@@ -72,6 +78,8 @@ public class ColossalColosseumGame implements MCTGame, Listener {
     public void start(List<Player> newFirstPlaceParticipants, List<Player> newSecondPlaceParticipants, List<Player> newSpectators) {
         firstTeamName = gameManager.getTeamName(newFirstPlaceParticipants.get(0).getUniqueId());
         secondTeamName = gameManager.getTeamName(newSecondPlaceParticipants.get(0).getUniqueId());
+        firstPlaceRoundWins = 0;
+        secondPlaceRoundWins = 0;
         closeFirstGate();
         closeSecondGate();
         firstPlaceParticipants = new ArrayList<>(newFirstPlaceParticipants.size());
@@ -134,13 +142,35 @@ public class ColossalColosseumGame implements MCTGame, Listener {
         }
     }
     
-    public void roundIsOver() {
-        if (currentRoundIndex+1 >= rounds.size()) {
-            stop();
+    public void onFirstPlaceWinRound() {
+        firstPlaceRoundWins++;
+        if (firstPlaceRoundWins >= MAX_ROUND_WINS) {
+            onTeamWinGame(firstTeamName);
             return;
         }
         currentRoundIndex++;
         this.roundDelayTaskId = Bukkit.getScheduler().runTaskLater(plugin, this::startNextRound, 5*20L).getTaskId();
+    }
+    
+    public void onSecondPlaceWinRound() {
+        secondPlaceRoundWins++;
+        if (secondPlaceRoundWins >= MAX_ROUND_WINS) {
+            onTeamWinGame(secondTeamName);
+            return;
+        }
+        currentRoundIndex++;
+        this.roundDelayTaskId = Bukkit.getScheduler().runTaskLater(plugin, this::startNextRound, 5*20L).getTaskId();
+    }
+    
+    private void onTeamWinGame(String winningTeam) {
+        NamedTextColor teamColor = gameManager.getTeamNamedTextColor(winningTeam);
+        Bukkit.getServer().sendMessage(Component.empty()
+                .append(gameManager.getFormattedTeamDisplayName(winningTeam))
+                .append(Component.text(" wins MCT #4!"))
+                .color(teamColor)
+                .decorate(TextDecoration.BOLD));
+        gameManager.finalGameIsOver(winningTeam);
+        Bukkit.getLogger().info(String.format("%s won Colossal Colosseum", winningTeam));
     }
     
     @Override
