@@ -144,6 +144,15 @@ public class ColossalColosseumGame implements MCTGame, Listener {
     
     public void onFirstPlaceWinRound() {
         firstPlaceRoundWins++;
+        for (Player participant : firstPlaceParticipants) {
+            updateRoundWinFastBoard(participant);
+        }
+        for (Player participant : secondPlaceParticipants) {
+            updateRoundWinFastBoard(participant);
+        }
+        for (Player participant : spectators) {
+            updateRoundWinFastBoard(participant);
+        }
         if (firstPlaceRoundWins >= MAX_ROUND_WINS) {
             onTeamWinGame(firstTeamName);
             return;
@@ -154,6 +163,15 @@ public class ColossalColosseumGame implements MCTGame, Listener {
     
     public void onSecondPlaceWinRound() {
         secondPlaceRoundWins++;
+        for (Player participant : firstPlaceParticipants) {
+            updateRoundWinFastBoard(participant);
+        }
+        for (Player participant : secondPlaceParticipants) {
+            updateRoundWinFastBoard(participant);
+        }
+        for (Player participant : spectators) {
+            updateRoundWinFastBoard(participant);
+        }
         if (secondPlaceRoundWins >= MAX_ROUND_WINS) {
             onTeamWinGame(secondTeamName);
             return;
@@ -229,6 +247,23 @@ public class ColossalColosseumGame implements MCTGame, Listener {
             return;
         }
         event.setCancelled(true);
+    }
+    
+    private void updateRoundWinFastBoard(Player participant) {
+        ChatColor firstChatColor = gameManager.getTeamChatColor(firstTeamName);
+        String firstDisplayName = ChatColor.BOLD + "" +  firstChatColor + gameManager.getTeamDisplayName(firstTeamName);
+        ChatColor secondChatColor = gameManager.getTeamChatColor(secondTeamName);
+        String secondDisplayName = ChatColor.BOLD + "" +  secondChatColor + gameManager.getTeamDisplayName(secondTeamName);
+        gameManager.getFastBoardManager().updateLine(
+                participant.getUniqueId(),
+                2,
+                String.format("%s: %s/3", firstDisplayName, firstPlaceRoundWins)
+        );
+        gameManager.getFastBoardManager().updateLine(
+                participant.getUniqueId(),
+                3,
+                String.format("%s: %s/3", secondDisplayName, secondPlaceRoundWins)
+        );
     }
     
     private void initializeFastBoard(Player participant) {
