@@ -6,6 +6,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.clockwork.ClockworkGame;
+import org.braekpo1nt.mctmanager.games.colossalcolosseum.ColossalColosseumGame;
 import org.braekpo1nt.mctmanager.games.enums.MCTGames;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
@@ -48,7 +49,7 @@ public class GameManager implements Listener {
     private final MechaGame mechaGame;
     private final SpleefGame spleefGame;
     private final ParkourPathwayGame parkourPathwayGame;
-    private final FinalGame finalGame;
+    private final ColossalColosseumGame colossalColosseumGame;
     private final CaptureTheFlagGame captureTheFlagGame;
     private final ClockworkGame clockworkGame;
     private final HubManager hubManager;
@@ -66,8 +67,8 @@ public class GameManager implements Listener {
     private int finalGameEndTaskId;
     private final List<UUID> participantsWhoLeftMidGame = new ArrayList<>();
     private final VoteManager voteManager;
-    private String finalGameTeamA;
-    private String finalGameTeamB;
+    private String firstPlaceTeamName;
+    private String secondPlaceTeamName;
     private boolean eventActive = false;
     private boolean eventPaused = false;
     private CommandSender eventMaster;
@@ -93,7 +94,7 @@ public class GameManager implements Listener {
         this.parkourPathwayGame = new ParkourPathwayGame(plugin, this);
         this.captureTheFlagGame = new CaptureTheFlagGame(plugin, this);
         this.clockworkGame = new ClockworkGame(plugin, this);
-        this.finalGame = new FinalGame(plugin, this);
+        this.colossalColosseumGame = new ColossalColosseumGame(plugin, this);
         this.fastBoardManager = new FastBoardManager(gameStateStorageUtil);
         this.hubManager = new HubManager(plugin, mctScoreboard, this);
         this.eventMaster = Bukkit.getConsoleSender();
@@ -308,7 +309,7 @@ public class GameManager implements Listener {
             String firstPlace = firstPlaces[0];
             String secondPlace = firstPlaces[1];
             setFinalGameTeams(firstPlace, secondPlace);
-            startGame(MCTGames.FINAL_GAME);
+            startGame(MCTGames.COLOSSAL_COLOSSEUM);
             return;
         }
         if (firstPlaces.length > 2) {
@@ -334,7 +335,7 @@ public class GameManager implements Listener {
         }
         String secondPlace = secondPlaces[0];
         setFinalGameTeams(firstPlace, secondPlace);
-        startGame(MCTGames.FINAL_GAME);
+        startGame(MCTGames.COLOSSAL_COLOSSEUM);
     }
     
     /**
@@ -545,7 +546,7 @@ public class GameManager implements Listener {
             }
             case CAPTURE_THE_FLAG -> {
                 if (onlineTeams.size() < 2 || 8 < onlineTeams.size()) {
-                    sender.sendMessage(Component.text("Capture the Flag needs at least 2 and at most 8 teams online to play."));
+                    sender.sendMessage(Component.text("Capture the Flag needs at least 2 and at most 8 teams online to play.").color(NamedTextColor.RED));
                     return;
                 }
                 hubManager.removeParticipantsFromHub(onlineParticipants);
@@ -567,41 +568,37 @@ public class GameManager implements Listener {
                 clockworkGame.start(onlineParticipants);
                 activeGame = clockworkGame;
             }
-            case FINAL_GAME -> {
-                if (finalGameTeamA == null || finalGameTeamB == null) {
-                    sender.sendMessage(Component.text("Final game teams not set. Use /mct game finalgame <teamA> <teamB>")
-                            .color(NamedTextColor.RED));
+            case COLOSSAL_COLOSSEUM -> {
+                if (firstPlaceTeamName == null || secondPlaceTeamName == null) {
+                    sender.sendMessage(Component.text("Please specify the first and second place teams.").color(NamedTextColor.RED));
                     return;
                 }
-                List<Player> finalGameParticipants = new ArrayList<>();
-                List<Player> onlinePlayersOnTeamA = getOnlinePlayersOnTeam(finalGameTeamA);
-                if (onlinePlayersOnTeamA.size() == 0) {
-                    sender.sendMessage(Component.empty()
-                            .append(Component.text("There are no players online from team "))
-                            .append(Component.text(finalGameTeamA)));
-                    return;
-                }
-                List<Player> onlinePlayersOnTeamB = getOnlinePlayersOnTeam(finalGameTeamB);
-                if (onlinePlayersOnTeamB.size() == 0) {
-                    sender.sendMessage(Component.empty()
-                            .append(Component.text("There are no players online from team "))
-                            .append(Component.text(finalGameTeamB)));
-                    return;
-                }
-                finalGameParticipants.addAll(onlinePlayersOnTeamA);
-                finalGameParticipants.addAll(onlinePlayersOnTeamB);
                 
-                List<Player> otherParticipants = new ArrayList<>();
-                for (Player player : onlineParticipants) {
-                    if (!finalGameParticipants.contains(player)) {
-                        otherParticipants.add(player);
+                List<Player> firstPlaceParticipants = new ArrayList<>();
+                List<Player> secondPlaceParticipants = new ArrayList<>();
+                List<Player> spectators = new ArrayList<>();
+                for (Player participant : onlineParticipants) {
+                    String teamName = getTeamName(participant.getUniqueId());
+                    if (teamName.equals(firstPlaceTeamName)) {
+                        firstPlaceParticipants.add(participant);
+                    } else if (teamName.equals(secondPlaceTeamName)) {
+                        secondPlaceParticipants.add(participant);
+                    } else {
+                        spectators.add(participant);
                     }
                 }
-                finalGame.teleportViewers(otherParticipants);
                 
-                hubManager.removeParticipantsFromHub(onlineParticipants);
-                finalGame.start(finalGameParticipants);
-                activeGame = finalGame;
+                if (firstPlaceParticipants.isEmpty()) {
+                    sender.sendMessage(Component.text("There are no members of the first place team online.").color(NamedTextColor.RED));
+                    return;
+                }
+    
+                if (secondPlaceParticipants.isEmpty()) {
+                    sender.sendMessage(Component.text("There are no members of the second place team online.").color(NamedTextColor.RED));
+                    return;
+                }
+                
+                colossalColosseumGame.start(firstPlaceParticipants, secondPlaceParticipants, spectators);
             }
         }
     }
@@ -1121,8 +1118,8 @@ public class GameManager implements Listener {
     }
     
     public void setFinalGameTeams(String teamA, String teamB) {
-        this.finalGameTeamA = teamA;
-        this.finalGameTeamB = teamB;
+        this.firstPlaceTeamName = teamA;
+        this.secondPlaceTeamName = teamB;
     }
     
     public Material getTeamPowderColor(String teamName) {

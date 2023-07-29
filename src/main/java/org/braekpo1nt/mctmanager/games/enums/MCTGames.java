@@ -7,9 +7,8 @@ public enum MCTGames {
     MECHA,
     CAPTURE_THE_FLAG,
     SPLEEF,
-    FINAL_GAME, 
     PARKOUR_PATHWAY, 
-    CLOCKWORK;
+    CLOCKWORK, COLOSSAL_COLOSSEUM;
     
     public static @NotNull String getTitle(@NotNull MCTGames mctGame) {
         switch (mctGame) {
@@ -31,8 +30,8 @@ public enum MCTGames {
             case CLOCKWORK -> {
                 return "Clockwork";
             }
-            case FINAL_GAME -> {
-                return "Final Game";
+            case COLOSSAL_COLOSSEUM -> {
+                return "Colossal Colosseum";
             }
             default -> {
                 return "";

@@ -51,7 +51,7 @@ public class FinalGameSubCommand implements TabExecutor {
             return true;
         }
         gameManager.setFinalGameTeams(teamA, teamB);
-        gameManager.startGame(MCTGames.FINAL_GAME, sender);
+        gameManager.startGame(MCTGames.COLOSSAL_COLOSSEUM, sender);
         return true;
     }
 

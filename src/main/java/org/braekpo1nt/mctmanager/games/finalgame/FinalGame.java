@@ -26,6 +26,7 @@ import org.bukkit.scoreboard.Team;
 
 import java.util.*;
 
+@Deprecated
 public class FinalGame implements MCTGame, Listener {
 
     private static final int MAX_KILLS = 9;
@@ -50,7 +51,7 @@ public class FinalGame implements MCTGame, Listener {
     
     @Override
     public MCTGames getType() {
-        return MCTGames.FINAL_GAME;
+        return null;
     }
     
     public void teleportViewers(List<Player> otherParticipants) {
@@ -146,7 +147,7 @@ public class FinalGame implements MCTGame, Listener {
         ParticipantInitializer.clearStatusEffects(participant);
         initializeFastBoard(participant);
     }
-
+    
     private void giveParticipantEquipment(Player participant) {
         //stone sword, bow, 16 arrows, leather chest and boots, 16 steak
         participant.getInventory().addItem(new ItemStack(Material.STONE_SWORD));
@@ -156,7 +157,7 @@ public class FinalGame implements MCTGame, Listener {
         participant.getEquipment().setChestplate(new ItemStack(Material.LEATHER_CHESTPLATE));
         participant.getEquipment().setBoots(new ItemStack(Material.LEATHER_BOOTS));
     }
-
+    
     @Override
     public void stop() {
         HandlerList.unregisterAll(this);
@@ -231,7 +232,7 @@ public class FinalGame implements MCTGame, Listener {
         NamedTextColor teamColor = gameManager.getTeamNamedTextColor(winningTeam);
         Bukkit.getServer().sendMessage(Component.empty()
                 .append(gameManager.getFormattedTeamDisplayName(winningTeam))
-                .append(Component.text(" wins MCT #3!"))
+                .append(Component.text(" wins MCT #4!"))
                 .color(teamColor)
                 .decorate(TextDecoration.BOLD));
         stop(winningTeam);

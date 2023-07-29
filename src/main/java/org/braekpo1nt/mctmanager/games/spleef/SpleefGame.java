@@ -14,12 +14,12 @@ import org.bukkit.scoreboard.Team;
 
 import java.util.*;
 
-public class SpleefGame implements MCTGame, Listener {
+public class SpleefGame implements MCTGame {
     private final Main plugin;
     private final GameManager gameManager;
     private final String title = ChatColor.BLUE+"Spleef";
     private final Location startingLocation;
-    private List<Player> participants;
+    private List<Player> participants = new ArrayList<>();
     private List<SpleefRound> rounds;
     private int currentRoundIndex = 0;
     private boolean gameActive = false;
@@ -40,12 +40,11 @@ public class SpleefGame implements MCTGame, Listener {
     @Override
     public void start(List<Player> newParticipants) {
         participants = new ArrayList<>(newParticipants.size());
-        rounds = new ArrayList<>();
+        rounds = new ArrayList<>(3);
         rounds.add(new SpleefRound(plugin, gameManager, this, startingLocation));
         rounds.add(new SpleefRound(plugin, gameManager, this, startingLocation));
         rounds.add(new SpleefRound(plugin, gameManager, this, startingLocation));
         currentRoundIndex = 0;
-        plugin.getServer().getPluginManager().registerEvents(this, plugin);
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
         }
@@ -63,7 +62,6 @@ public class SpleefGame implements MCTGame, Listener {
     @Override
     public void stop() {
         cancelAllTasks();
-        HandlerList.unregisterAll(this);
         if (currentRoundIndex < rounds.size()) {
             SpleefRound currentRound = rounds.get(currentRoundIndex);
             currentRound.stop();
