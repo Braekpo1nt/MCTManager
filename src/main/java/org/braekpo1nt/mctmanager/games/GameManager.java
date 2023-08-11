@@ -486,8 +486,6 @@ public class GameManager implements Listener {
         ScoreKeeper scoreKeeper = scoreKeepers.get(game);
         Set<String> teamNames = getTeamNames();
         
-        TextComponent.Builder reportBuilder = Component.text()
-                .append(Component.text("Scores Removed:\n"));
         for (String teamName : teamNames) {
             int teamScoreToSubtract = scoreKeeper.getScore(teamName);
             int teamCurrentScore = getScore(teamName);
@@ -495,6 +493,22 @@ public class GameManager implements Listener {
                 teamScoreToSubtract = teamCurrentScore;
             }
             addScore(teamName, -teamScoreToSubtract);
+            
+            List<UUID> participantUUIDs = gameStateStorageUtil.getPlayerUniqueIdsOnTeam(teamName);
+            for (UUID participantUUID : participantUUIDs) {
+                int participantScoreToSubtract = scoreKeeper.getScore(participantUUID);
+                int participantCurrentScore = getScore(participantUUID);
+                if (participantCurrentScore - participantScoreToSubtract < 0) {
+                    participantScoreToSubtract = participantCurrentScore;
+                }
+                addScore(participantUUID, -participantScoreToSubtract);
+            }
+        }
+        
+        TextComponent.Builder reportBuilder = Component.text()
+                .append(Component.text("Scores Removed:\n"));
+        for (String teamName : teamNames) {
+            int teamScoreToSubtract = scoreKeeper.getScore(teamName);
             NamedTextColor teamColor = getTeamNamedTextColor(teamName);
             Component displayName = getFormattedTeamDisplayName(teamName);
             reportBuilder.append(Component.text("  - "))
@@ -507,14 +521,9 @@ public class GameManager implements Listener {
             
             List<UUID> participantUUIDs = gameStateStorageUtil.getPlayerUniqueIdsOnTeam(teamName);
             for (UUID participantUUID : participantUUIDs) {
-                int participantScoreToSubtract = scoreKeeper.getScore(participantUUID);
-                int participantCurrentScore = getScore(participantUUID);
-                if (participantCurrentScore - participantScoreToSubtract < 0) {
-                    participantScoreToSubtract = participantCurrentScore;
-                }
-                addScore(participantUUID, -participantScoreToSubtract);
                 Player participant = Bukkit.getPlayer(participantUUID);
                 if (participant != null) {
+                    int participantScoreToSubtract = scoreKeeper.getScore(participantUUID);
                     reportBuilder.append(Component.text("    - "))
                             .append(Component.text(participant.getName())
                                     .color(teamColor))
