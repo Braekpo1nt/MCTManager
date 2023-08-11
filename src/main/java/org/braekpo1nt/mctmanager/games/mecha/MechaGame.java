@@ -294,7 +294,7 @@ public class MechaGame implements MCTGame, Listener {
         for (Player participant : participants) {
             participant.addPotionEffect(RESISTANCE);
         }
-        messageAllParticipants(Component.text("Invulnerable for 10 seconds!"));
+        messageAllParticipants(Component.text("Invulnerable for 20 seconds!"));
     }
     
     private void onTeamWin(String winningTeamName) {
