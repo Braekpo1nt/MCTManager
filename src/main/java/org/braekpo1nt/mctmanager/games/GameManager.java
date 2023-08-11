@@ -8,6 +8,7 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.clockwork.ClockworkGame;
 import org.braekpo1nt.mctmanager.games.colossalcolosseum.ColossalColosseumGame;
 import org.braekpo1nt.mctmanager.games.enums.MCTGames;
+import org.braekpo1nt.mctmanager.games.event.ScoreKeeper;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
@@ -70,7 +71,7 @@ public class GameManager implements Listener {
     private String secondPlaceTeamName;
     private boolean eventActive = false;
     private boolean eventPaused = false;
-    private 
+    private final Map<MCTGames, ScoreKeeper> scoreKeepers = new HashMap<>();
     private CommandSender eventMaster;
     private int currentGameNumber = 0;
     private int maxGames = 6;
@@ -383,6 +384,7 @@ public class GameManager implements Listener {
             Bukkit.getLogger().severe("Error clearing played games. See log for error message.");
             throw new RuntimeException(e);
         }
+        scoreKeepers.clear();
         eventMaster.sendMessage(Component.text("Starting event. On game ")
                 .append(Component.text(currentGameNumber))
                 .append(Component.text("/"))
@@ -882,21 +884,29 @@ public class GameManager implements Listener {
      * @param points The points to award to the participant
      */
     public void awardPointsToParticipant(Player participant, int points) {
-        UUID playerUniqueId = participant.getUniqueId();
-        if (!gameStateStorageUtil.containsPlayer(playerUniqueId)) {
+        UUID participantUUID = participant.getUniqueId();
+        if (!gameStateStorageUtil.containsPlayer(participantUUID)) {
             return;
         }
-        String teamName = gameStateStorageUtil.getPlayerTeamName(playerUniqueId);
-        addScore(playerUniqueId, points);
+        String teamName = gameStateStorageUtil.getPlayerTeamName(participantUUID);
+        addScore(participantUUID, points);
         addScore(teamName, points);
+    
+        if (eventActive) {
+            MCTGames type = activeGame.getType();
+            if (!scoreKeepers.containsKey(type)) {
+                scoreKeepers.put(type, new ScoreKeeper());
+            }
+            ScoreKeeper scoreKeeper = scoreKeepers.get(type);
+            scoreKeeper.addPoints(participantUUID, points);
+            scoreKeeper.addPoints(teamName, points);
+        }
+        
         participant.sendMessage(Component.text("+")
                 .append(Component.text(points))
                 .append(Component.text(" points"))
                 .decorate(TextDecoration.BOLD)
                 .color(NamedTextColor.GOLD));
-        if (eventActive) {
-            
-        }
     }
     
     /**
@@ -911,6 +921,16 @@ public class GameManager implements Listener {
             return;
         }
         addScore(teamName, points);
+    
+        if (eventActive) {
+            MCTGames type = activeGame.getType();
+            if (!scoreKeepers.containsKey(type)) {
+                scoreKeepers.put(type, new ScoreKeeper());
+            }
+            ScoreKeeper scoreKeeper = scoreKeepers.get(type);
+            scoreKeeper.addPoints(teamName, points);
+        }
+        
         Component displayName = getFormattedTeamDisplayName(teamName);
         List<Player> playersOnTeam = getOnlinePlayersOnTeam(teamName);
         for (Player playerOnTeam : playersOnTeam) {
