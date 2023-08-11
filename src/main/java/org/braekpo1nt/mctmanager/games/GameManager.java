@@ -70,6 +70,7 @@ public class GameManager implements Listener {
     private String secondPlaceTeamName;
     private boolean eventActive = false;
     private boolean eventPaused = false;
+    private 
     private CommandSender eventMaster;
     private int currentGameNumber = 0;
     private int maxGames = 6;
@@ -875,7 +876,8 @@ public class GameManager implements Listener {
     }
     
     /**
-     * Awards points to the participant and their team. If the participant does not exist, nothing happens.
+     * Awards points to the participant and their team and announces to that participant how many points they received. 
+     * If the participant does not exist, nothing happens.
      * @param participant The participant to award points to
      * @param points The points to award to the participant
      */
@@ -892,10 +894,15 @@ public class GameManager implements Listener {
                 .append(Component.text(" points"))
                 .decorate(TextDecoration.BOLD)
                 .color(NamedTextColor.GOLD));
+        if (eventActive) {
+            
+        }
     }
     
     /**
-     * Adds the given points to the given team, and announces to all online members of that team how many points the team earned.
+     * Adds the given points to the given team, and announces to all online members of that 
+     * team how many points the team earned.
+     * If the team doesn't exist, nothing happens. 
      * @param teamName The team to add points to
      * @param points The points to add
      */
