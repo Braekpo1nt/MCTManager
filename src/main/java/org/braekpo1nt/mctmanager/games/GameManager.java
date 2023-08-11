@@ -1,6 +1,8 @@
 package org.braekpo1nt.mctmanager.games;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.ComponentBuilder;
+import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -458,6 +460,73 @@ public class GameManager implements Listener {
         if (!sender.equals(eventMaster)) {
             eventMaster.sendMessage(pauseMessage);
         }
+    }
+    
+    /**
+     * Subtracts the scores accumulated during the provided game from all teams and players
+     * @param sender The sender
+     * @param game The game to undo
+     */
+    public void undoGame(CommandSender sender, MCTGames game) {
+        List<MCTGames> playedGames = gameStateStorageUtil.getPlayedGames();
+        if (!playedGames.contains(game)) {
+            sender.sendMessage(Component.empty()
+                    .append(Component.text("This game has not been played yet."))
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        if (!scoreKeepers.containsKey(game)) {
+            sender.sendMessage(Component.empty()
+                    .append(Component.text("No points were tracked for "))
+                    .append(Component.text(MCTGames.getTitle(game))
+                            .decorate(TextDecoration.BOLD))
+                    .color(NamedTextColor.YELLOW);
+            return;
+        }
+        ScoreKeeper scoreKeeper = scoreKeepers.get(game);
+        Set<String> teamNames = getTeamNames();
+        
+        TextComponent.Builder reportBuilder = Component.text()
+                .append(Component.text("Scores Removed:\n"));
+        for (String teamName : teamNames) {
+            int teamScoreToSubtract = scoreKeeper.getScore(teamName);
+            int teamCurrentScore = getScore(teamName);
+            if (teamCurrentScore - teamScoreToSubtract < 0) {
+                teamScoreToSubtract = teamCurrentScore;
+            }
+            addScore(teamName, -teamScoreToSubtract);
+            NamedTextColor teamColor = getTeamNamedTextColor(teamName);
+            Component displayName = getFormattedTeamDisplayName(teamName);
+            reportBuilder.append(Component.text("  - "))
+                    .append(displayName)
+                    .append(Component.text(": "))
+                    .append(Component.text(teamScoreToSubtract)
+                            .color(NamedTextColor.GOLD)
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text("\n"));
+            
+            List<UUID> participantUUIDs = gameStateStorageUtil.getPlayerUniqueIdsOnTeam(teamName);
+            for (UUID participantUUID : participantUUIDs) {
+                int participantScoreToSubtract = scoreKeeper.getScore(participantUUID);
+                int participantCurrentScore = getScore(participantUUID);
+                if (participantCurrentScore - participantScoreToSubtract < 0) {
+                    participantScoreToSubtract = participantCurrentScore;
+                }
+                addScore(participantUUID, -participantScoreToSubtract);
+                Player participant = Bukkit.getPlayer(participantUUID);
+                if (participant != null) {
+                    reportBuilder.append(Component.text("    - "))
+                            .append(Component.text(participant.getName())
+                                    .color(teamColor))
+                            .append(Component.text(": "))
+                            .append(Component.text(participantScoreToSubtract)
+                                    .color(NamedTextColor.GOLD)
+                                    .decorate(TextDecoration.BOLD))
+                            .append(Component.text("\n"));
+                }
+            }
+        }
+        sender.sendMessage(reportBuilder.build());
     }
     
     public void startGameWithDelay(MCTGames mctGame, CommandSender sender) {
