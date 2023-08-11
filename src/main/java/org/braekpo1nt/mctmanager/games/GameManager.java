@@ -875,19 +875,19 @@ public class GameManager implements Listener {
     }
     
     /**
-     * Awards points to the player and their team. If the player does not exist, nothing happens.
-     * @param player The player to award points to
-     * @param points The points to award to the player
+     * Awards points to the participant and their team. If the participant does not exist, nothing happens.
+     * @param participant The participant to award points to
+     * @param points The points to award to the participant
      */
-    public void awardPointsToPlayer(Player player, int points) {
-        UUID playerUniqueId = player.getUniqueId();
+    public void awardPointsToParticipant(Player participant, int points) {
+        UUID playerUniqueId = participant.getUniqueId();
         if (!gameStateStorageUtil.containsPlayer(playerUniqueId)) {
             return;
         }
         String teamName = gameStateStorageUtil.getPlayerTeamName(playerUniqueId);
         addScore(playerUniqueId, points);
         addScore(teamName, points);
-        player.sendMessage(Component.text("+")
+        participant.sendMessage(Component.text("+")
                 .append(Component.text(points))
                 .append(Component.text(" points"))
                 .decorate(TextDecoration.BOLD)

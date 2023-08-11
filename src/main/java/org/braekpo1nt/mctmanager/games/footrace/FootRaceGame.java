@@ -427,7 +427,7 @@ public class FootRaceGame implements Listener, MCTGame {
         showRaceCompleteFastBoard(player.getUniqueId());
         int placement = placements.indexOf(player.getUniqueId()) + 1;
         int points = calculatePointsForPlacement(placement);
-        gameManager.awardPointsToPlayer(player, points);
+        gameManager.awardPointsToParticipant(player, points);
         String placementTitle = getPlacementTitle(placement);
         String timeString = getTimeString(elapsedTime);
         if (placements.size() == 1) {

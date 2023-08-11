@@ -359,7 +359,7 @@ public class MechaGame implements MCTGame, Listener {
                 .append(Component.text(" has been eliminated.")));
         for (Player participant : participants) {
             if (livingPlayers.contains(participant.getUniqueId())) {
-                gameManager.awardPointsToPlayer(participant, 40);
+                gameManager.awardPointsToParticipant(participant, 40);
             }
         }
     }
@@ -397,7 +397,7 @@ public class MechaGame implements MCTGame, Listener {
             return;
         }
         addKill(killer.getUniqueId());
-        gameManager.awardPointsToPlayer(killer, 40);
+        gameManager.awardPointsToParticipant(killer, 40);
     }
     
     /**

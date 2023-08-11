@@ -235,7 +235,7 @@ public class SpleefRound implements Listener {
         int count = participants.size();
         for (Player participant : participants) {
             if (participantsAlive.get(participant.getUniqueId())) {
-                gameManager.awardPointsToPlayer(participant, 10);
+                gameManager.awardPointsToParticipant(participant, 10);
             } else {
                 count--;
             }

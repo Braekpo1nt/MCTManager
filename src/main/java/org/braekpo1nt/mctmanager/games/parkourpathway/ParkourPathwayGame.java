@@ -216,7 +216,7 @@ public class ParkourPathwayGame implements MCTGame, Listener {
                         .append(Component.text("/"))
                         .append(Component.text(checkpoints.size()-1)));
                 int points = calculatePointsForCheckpoint(playerUUID);
-                gameManager.awardPointsToPlayer(player, points);
+                gameManager.awardPointsToParticipant(player, points);
             }
             if (allPlayersHaveFinished()) {
                 stop();
@@ -238,7 +238,7 @@ public class ParkourPathwayGame implements MCTGame, Listener {
                 .append(Component.text(participant.getName()))
                 .append(Component.text(" finished!")));
         int points = calculatePointsForWin(participant.getUniqueId());
-        gameManager.awardPointsToPlayer(participant, points);
+        gameManager.awardPointsToParticipant(participant, points);
         participant.setGameMode(GameMode.SPECTATOR);
     }
     

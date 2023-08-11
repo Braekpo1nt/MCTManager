@@ -149,7 +149,7 @@ public class ClockworkRound implements Listener {
         }
         for (Player participant : participants) {
             if (participantsAreAlive.get(participant.getUniqueId())) {
-                gameManager.awardPointsToPlayer(participant, 5);
+                gameManager.awardPointsToParticipant(participant, 5);
             }
         }
     }
@@ -169,7 +169,7 @@ public class ClockworkRound implements Listener {
         String teamsAlive = ""+count;
         for (Player participant : participants) {
             if (participantsAreAlive.get(participant.getUniqueId())) {
-                gameManager.awardPointsToPlayer(participant, 20);
+                gameManager.awardPointsToParticipant(participant, 20);
             }
             updateTeamsAliveFastBoard(participant, teamsAlive);
         }
