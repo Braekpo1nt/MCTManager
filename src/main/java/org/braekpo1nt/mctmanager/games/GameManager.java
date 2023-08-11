@@ -468,6 +468,11 @@ public class GameManager implements Listener {
      * @param game The game to undo
      */
     public void undoGame(CommandSender sender, MCTGames game) {
+        if (!eventActive) {
+            sender.sendMessage(Component.text("There isn't an event going on.")
+                    .color(NamedTextColor.RED));
+            return;
+        }
         List<MCTGames> playedGames = gameStateStorageUtil.getPlayedGames();
         if (!playedGames.contains(game)) {
             sender.sendMessage(Component.empty()
@@ -480,7 +485,7 @@ public class GameManager implements Listener {
                     .append(Component.text("No points were tracked for "))
                     .append(Component.text(MCTGames.getTitle(game))
                             .decorate(TextDecoration.BOLD))
-                    .color(NamedTextColor.YELLOW);
+                    .color(NamedTextColor.YELLOW));
             return;
         }
         ScoreKeeper scoreKeeper = scoreKeepers.get(game);
