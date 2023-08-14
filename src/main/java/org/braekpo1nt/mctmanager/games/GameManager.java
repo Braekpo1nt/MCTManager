@@ -1,7 +1,6 @@
 package org.braekpo1nt.mctmanager.games;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.ComponentBuilder;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -9,7 +8,7 @@ import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.clockwork.ClockworkGame;
 import org.braekpo1nt.mctmanager.games.colossalcolosseum.ColossalColosseumGame;
-import org.braekpo1nt.mctmanager.games.enums.MCTGames;
+import org.braekpo1nt.mctmanager.games.enums.GameType;
 import org.braekpo1nt.mctmanager.games.event.ScoreKeeper;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
@@ -73,7 +72,7 @@ public class GameManager implements Listener {
     private String secondPlaceTeamName;
     private boolean eventActive = false;
     private boolean eventPaused = false;
-    private final Map<MCTGames, ScoreKeeper> scoreKeepers = new HashMap<>();
+    private final Map<GameType, ScoreKeeper> scoreKeepers = new HashMap<>();
     private CommandSender eventMaster;
     private int currentGameNumber = 0;
     private int maxGames = 6;
@@ -241,7 +240,7 @@ public class GameManager implements Listener {
      * @param sender The sender of the command
      * @param votingPool The games to vote between
      */
-    public void manuallyStartVote(@NotNull CommandSender sender, List<MCTGames> votingPool) {
+    public void manuallyStartVote(@NotNull CommandSender sender, List<GameType> votingPool) {
         if (onlineParticipants.isEmpty()) {
             sender.sendMessage(Component.text("There are no online participants. You can add participants using:\n")
                     .append(Component.text("/mct team join <team> <member>")
@@ -262,15 +261,15 @@ public class GameManager implements Listener {
             return;
         }
         
-        List<MCTGames> playedGames = gameStateStorageUtil.getPlayedGames();
+        List<GameType> playedGames = gameStateStorageUtil.getPlayedGames();
         
-        List<MCTGames> votingPool = new ArrayList<>();
-        votingPool.add(MCTGames.FOOT_RACE);
-        votingPool.add(MCTGames.MECHA);
-        votingPool.add(MCTGames.CAPTURE_THE_FLAG);
-        votingPool.add(MCTGames.SPLEEF);
-        votingPool.add(MCTGames.PARKOUR_PATHWAY);
-        votingPool.add(MCTGames.CLOCKWORK);
+        List<GameType> votingPool = new ArrayList<>();
+        votingPool.add(GameType.FOOT_RACE);
+        votingPool.add(GameType.MECHA);
+        votingPool.add(GameType.CAPTURE_THE_FLAG);
+        votingPool.add(GameType.SPLEEF);
+        votingPool.add(GameType.PARKOUR_PATHWAY);
+        votingPool.add(GameType.CLOCKWORK);
         votingPool.removeAll(playedGames);
         
         if (votingPool.isEmpty()) {
@@ -312,7 +311,7 @@ public class GameManager implements Listener {
             String firstPlace = firstPlaces[0];
             String secondPlace = firstPlaces[1];
             setFinalGameTeams(firstPlace, secondPlace);
-            startGame(MCTGames.COLOSSAL_COLOSSEUM);
+            startGame(GameType.COLOSSAL_COLOSSEUM);
             return;
         }
         if (firstPlaces.length > 2) {
@@ -338,7 +337,7 @@ public class GameManager implements Listener {
         }
         String secondPlace = secondPlaces[0];
         setFinalGameTeams(firstPlace, secondPlace);
-        startGame(MCTGames.COLOSSAL_COLOSSEUM);
+        startGame(GameType.COLOSSAL_COLOSSEUM);
     }
     
     /**
@@ -467,13 +466,13 @@ public class GameManager implements Listener {
      * @param sender The sender
      * @param game The game to undo
      */
-    public void undoGame(CommandSender sender, MCTGames game) {
+    public void undoGame(CommandSender sender, GameType game) {
         if (!eventActive) {
             sender.sendMessage(Component.text("There isn't an event going on.")
                     .color(NamedTextColor.RED));
             return;
         }
-        List<MCTGames> playedGames = gameStateStorageUtil.getPlayedGames();
+        List<GameType> playedGames = gameStateStorageUtil.getPlayedGames();
         if (!playedGames.contains(game)) {
             sender.sendMessage(Component.empty()
                     .append(Component.text("This game has not been played yet."))
@@ -483,7 +482,7 @@ public class GameManager implements Listener {
         if (!scoreKeepers.containsKey(game)) {
             sender.sendMessage(Component.empty()
                     .append(Component.text("No points were tracked for "))
-                    .append(Component.text(MCTGames.getTitle(game))
+                    .append(Component.text(GameType.getTitle(game))
                             .decorate(TextDecoration.BOLD))
                     .color(NamedTextColor.YELLOW));
             return;
@@ -543,8 +542,8 @@ public class GameManager implements Listener {
         sender.sendMessage(reportBuilder.build());
     }
     
-    public void startGameWithDelay(MCTGames mctGame, CommandSender sender) {
-        String gameTitle = ChatColor.BLUE+""+ChatColor.BOLD+MCTGames.getTitle(mctGame);
+    public void startGameWithDelay(GameType mctGame, CommandSender sender) {
+        String gameTitle = ChatColor.BLUE+""+ChatColor.BOLD+ GameType.getTitle(mctGame);
         startingGameWithDelay = true;
         messageOnlineParticipants(Component.empty()
                 .append(Component.text(gameTitle)
@@ -578,7 +577,7 @@ public class GameManager implements Listener {
      * Starts the given game using the eventMaster as the sender
      * @param mctGame the game to start
      */
-    public void startGame(MCTGames mctGame) {
+    public void startGame(GameType mctGame) {
         startGame(mctGame, eventMaster);
     }
     
@@ -587,7 +586,7 @@ public class GameManager implements Listener {
      * @param mctGame The game to start
      * @param sender The sender to send messages and alerts to
      */
-    public void startGame(MCTGames mctGame, @NotNull CommandSender sender) {
+    public void startGame(GameType mctGame, @NotNull CommandSender sender) {
         
         if (voteManager.isVoting()) {
             sender.sendMessage(Component.text("Can't start a game while a vote is going on.")
@@ -976,7 +975,7 @@ public class GameManager implements Listener {
         addScore(teamName, points);
     
         if (eventActive) {
-            MCTGames type = activeGame.getType();
+            GameType type = activeGame.getType();
             if (!scoreKeepers.containsKey(type)) {
                 scoreKeepers.put(type, new ScoreKeeper());
             }
@@ -1006,7 +1005,7 @@ public class GameManager implements Listener {
         addScore(teamName, points);
     
         if (eventActive) {
-            MCTGames type = activeGame.getType();
+            GameType type = activeGame.getType();
             if (!scoreKeepers.containsKey(type)) {
                 scoreKeepers.put(type, new ScoreKeeper());
             }

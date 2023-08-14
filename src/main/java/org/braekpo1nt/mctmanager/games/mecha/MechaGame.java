@@ -7,7 +7,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
-import org.braekpo1nt.mctmanager.games.enums.MCTGames;
+import org.braekpo1nt.mctmanager.games.enums.GameType;
 import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.mecha.config.MechaStorageUtil;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
@@ -88,8 +88,8 @@ public class MechaGame implements MCTGame, Listener {
     }
     
     @Override
-    public MCTGames getType() {
-        return MCTGames.MECHA;
+    public GameType getType() {
+        return GameType.MECHA;
     }
     
     @Override

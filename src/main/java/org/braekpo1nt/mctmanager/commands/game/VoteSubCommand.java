@@ -4,7 +4,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.games.GameManager;
-import org.braekpo1nt.mctmanager.games.enums.MCTGames;
+import org.braekpo1nt.mctmanager.games.enums.GameType;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
@@ -16,17 +16,17 @@ import java.util.*;
 public class VoteSubCommand implements TabExecutor {
     
     private final GameManager gameManager;
-    private final Map<String, MCTGames> mctGames;
+    private final Map<String, GameType> mctGames;
     
     public VoteSubCommand(GameManager gameManager) {
         this.gameManager = gameManager;
         mctGames = new HashMap<>();
-        mctGames.put("foot-race", MCTGames.FOOT_RACE);
-        mctGames.put("mecha", MCTGames.MECHA);
-        mctGames.put("spleef", MCTGames.SPLEEF);
-        mctGames.put("parkour-pathway", MCTGames.PARKOUR_PATHWAY);
-        mctGames.put("capture-the-flag", MCTGames.CAPTURE_THE_FLAG);
-        mctGames.put("clockwork", MCTGames.CLOCKWORK);
+        mctGames.put("foot-race", GameType.FOOT_RACE);
+        mctGames.put("mecha", GameType.MECHA);
+        mctGames.put("spleef", GameType.SPLEEF);
+        mctGames.put("parkour-pathway", GameType.PARKOUR_PATHWAY);
+        mctGames.put("capture-the-flag", GameType.CAPTURE_THE_FLAG);
+        mctGames.put("clockwork", GameType.CLOCKWORK);
     }
     
     @Override
@@ -36,7 +36,7 @@ public class VoteSubCommand implements TabExecutor {
                     .color(NamedTextColor.RED));
             return true;
         }
-        List<MCTGames> votingPool = new ArrayList<>();
+        List<GameType> votingPool = new ArrayList<>();
         for (String gameName : args) {
             if (!mctGames.containsKey(gameName)) {
                 sender.sendMessage(Component.empty()

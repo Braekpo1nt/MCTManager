@@ -5,7 +5,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
-import org.braekpo1nt.mctmanager.games.enums.MCTGames;
+import org.braekpo1nt.mctmanager.games.enums.GameType;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -13,7 +13,6 @@ import org.bukkit.Color;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
 import java.util.*;
@@ -313,7 +312,7 @@ public class GameStateStorageUtil {
      * Gets the list of played games for the game state
      * @return A list of the MCTGames that have been played in this game state
      */
-    public List<MCTGames> getPlayedGames() {
+    public List<GameType> getPlayedGames() {
         return gameState.getPlayedGames();
     }
     
@@ -321,8 +320,8 @@ public class GameStateStorageUtil {
      * Add a played game to the game state
      * @param type the MCTGames representing the played game
      */
-    public void addPlayedGame(MCTGames type) throws IOException {
-        List<MCTGames> playedGames = gameState.getPlayedGames();
+    public void addPlayedGame(GameType type) throws IOException {
+        List<GameType> playedGames = gameState.getPlayedGames();
         playedGames.add(type);
         gameState.setPlayedGames(playedGames);
         saveGameState();

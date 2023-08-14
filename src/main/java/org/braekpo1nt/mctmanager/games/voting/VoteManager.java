@@ -2,16 +2,13 @@ package org.braekpo1nt.mctmanager.games.voting;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
-import org.braekpo1nt.mctmanager.games.enums.MCTGames;
+import org.braekpo1nt.mctmanager.games.enums.GameType;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.Material;
-import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
@@ -32,13 +29,13 @@ public class VoteManager implements Listener {
     private final Component TITLE = Component.text("Vote for a Game");
     
     private final GameManager gameManager;
-    private final Map<UUID, MCTGames> votes = new HashMap<>();
+    private final Map<UUID, GameType> votes = new HashMap<>();
     private final Main plugin;
     private final List<Player> voters = new ArrayList<>();
     private boolean voting = false;
     private final Component NETHER_STAR_NAME = Component.text("Vote");
     private int voteCountDownTaskId;
-    private List<MCTGames> votingPool = new ArrayList<>();
+    private List<GameType> votingPool = new ArrayList<>();
     
     public VoteManager(GameManager gameManager, Main plugin) {
         this.gameManager = gameManager;
@@ -50,7 +47,7 @@ public class VoteManager implements Listener {
      * @param participants The participants who should vote
      * @param votingPool The games to vote between
      */
-    public void startVote(List<Player> participants, List<MCTGames> votingPool) {
+    public void startVote(List<Player> participants, List<GameType> votingPool) {
         voting = true;
         votes.clear();
         voters.clear();
@@ -131,32 +128,32 @@ public class VoteManager implements Listener {
         Material clickedItem = event.getCurrentItem().getType();
         switch (clickedItem) {
             case FEATHER:
-                votes.put(participant.getUniqueId(), MCTGames.FOOT_RACE);
+                votes.put(participant.getUniqueId(), GameType.FOOT_RACE);
                 participant.sendMessage(Component.text("Voted for Foot Race")
                         .color(NamedTextColor.GREEN));
                 break;
             case IRON_SWORD:
-                votes.put(participant.getUniqueId(), MCTGames.MECHA);
+                votes.put(participant.getUniqueId(), GameType.MECHA);
                 participant.sendMessage(Component.text("Voted for MECHA")
                         .color(NamedTextColor.GREEN));
                 break;
             case GRAY_BANNER:
-                votes.put(participant.getUniqueId(), MCTGames.CAPTURE_THE_FLAG);
+                votes.put(participant.getUniqueId(), GameType.CAPTURE_THE_FLAG);
                 participant.sendMessage(Component.text("Voted for Capture the Flag")
                         .color(NamedTextColor.GREEN));
                 break;
             case DIAMOND_SHOVEL:
-                votes.put(participant.getUniqueId(), MCTGames.SPLEEF);
+                votes.put(participant.getUniqueId(), GameType.SPLEEF);
                 participant.sendMessage(Component.text("Voted for Spleef")
                         .color(NamedTextColor.GREEN));
                 break;
             case LEATHER_BOOTS:
-                votes.put(participant.getUniqueId(), MCTGames.PARKOUR_PATHWAY);
+                votes.put(participant.getUniqueId(), GameType.PARKOUR_PATHWAY);
                 participant.sendMessage(Component.text("Voted for Parkour Pathway")
                         .color(NamedTextColor.GREEN));
                 break;
             case CLOCK:
-                votes.put(participant.getUniqueId(), MCTGames.CLOCKWORK);
+                votes.put(participant.getUniqueId(), GameType.CLOCKWORK);
                 participant.sendMessage(Component.text("Voted for Clockwork")
                         .color(NamedTextColor.GREEN));
             default:
@@ -249,7 +246,7 @@ public class VoteManager implements Listener {
             voter.getInventory().clear();
             hideFastBoard(voter);
         }
-        MCTGames mctGame = getVotedForGame();
+        GameType mctGame = getVotedForGame();
         HandlerList.unregisterAll(this);
         votes.clear();
         voters.clear();
@@ -322,7 +319,7 @@ public class VoteManager implements Listener {
         showVoteGui(participant);
     }
     
-    private MCTGames getVotedForGame() {
+    private GameType getVotedForGame() {
         Random random = new Random();
         
         if (votes.isEmpty()) {
@@ -330,9 +327,9 @@ public class VoteManager implements Listener {
             return votingPool.get(randomGameIndex);
         }
     
-        Map<MCTGames, Integer> voteCount = new HashMap<>();
+        Map<GameType, Integer> voteCount = new HashMap<>();
         // Count the number of occurrences of each string in the list
-        for (MCTGames vote : votes.values()) {
+        for (GameType vote : votes.values()) {
             if (vote != null) {
                 int count = voteCount.getOrDefault(vote, 0);
                 voteCount.put(vote, count + 1);
@@ -353,8 +350,8 @@ public class VoteManager implements Listener {
         }
     
         // Get all strings with the maximum number of occurrences
-        List<MCTGames> winners = new ArrayList<>();
-        for (Map.Entry<MCTGames, Integer> entry : voteCount.entrySet()) {
+        List<GameType> winners = new ArrayList<>();
+        for (Map.Entry<GameType, Integer> entry : voteCount.entrySet()) {
             if (entry.getValue() == maxCount) {
                 winners.add(entry.getKey());
             }
@@ -427,15 +424,15 @@ public class VoteManager implements Listener {
         spleef.setItemMeta(spleefMeta);
         
         Inventory newGui = Bukkit.createInventory(null, 9, TITLE);
-        Map<MCTGames, ItemStack> votingItems = new HashMap<>();
-        votingItems.put(MCTGames.FOOT_RACE, footRace);
-        votingItems.put(MCTGames.MECHA, mecha);
-        votingItems.put(MCTGames.CAPTURE_THE_FLAG, captureTheFlag);
-        votingItems.put(MCTGames.SPLEEF, spleef);
-        votingItems.put(MCTGames.PARKOUR_PATHWAY, parkourPathway);
-        votingItems.put(MCTGames.CLOCKWORK, clockwork);
+        Map<GameType, ItemStack> votingItems = new HashMap<>();
+        votingItems.put(GameType.FOOT_RACE, footRace);
+        votingItems.put(GameType.MECHA, mecha);
+        votingItems.put(GameType.CAPTURE_THE_FLAG, captureTheFlag);
+        votingItems.put(GameType.SPLEEF, spleef);
+        votingItems.put(GameType.PARKOUR_PATHWAY, parkourPathway);
+        votingItems.put(GameType.CLOCKWORK, clockwork);
         
-        for (MCTGames mctGame : votingPool) {
+        for (GameType mctGame : votingPool) {
             newGui.addItem(votingItems.get(mctGame));
         }
         participant.openInventory(newGui);

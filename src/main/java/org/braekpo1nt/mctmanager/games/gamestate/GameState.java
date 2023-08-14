@@ -1,7 +1,6 @@
 package org.braekpo1nt.mctmanager.games.gamestate;
 
-import net.kyori.adventure.text.format.NamedTextColor;
-import org.braekpo1nt.mctmanager.games.enums.MCTGames;
+import org.braekpo1nt.mctmanager.games.enums.GameType;
 
 import java.util.*;
 
@@ -11,7 +10,7 @@ import java.util.*;
 public class GameState {
     private Map<UUID, MCTPlayer> players;
     private Map<String, MCTTeam> teams;
-    private List<MCTGames> playedGames;
+    private List<GameType> playedGames;
     private List<UUID> admins;
     
     public GameState() {
@@ -103,11 +102,11 @@ public class GameState {
         this.teams = teams;
     }
     
-    public List<MCTGames> getPlayedGames() {
+    public List<GameType> getPlayedGames() {
         return playedGames;
     }
     
-    public void setPlayedGames(List<MCTGames> playedGames) {
+    public void setPlayedGames(List<GameType> playedGames) {
         this.playedGames = playedGames;
     }
     
