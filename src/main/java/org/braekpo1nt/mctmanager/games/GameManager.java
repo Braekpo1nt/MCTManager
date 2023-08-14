@@ -464,30 +464,31 @@ public class GameManager implements Listener {
     /**
      * Subtracts the scores accumulated during the provided game from all teams and players
      * @param sender The sender
-     * @param game The game to undo
+     * @param gameType The game to undo
      */
-    public void undoGame(CommandSender sender, GameType game) {
+    public void undoGame(CommandSender sender, GameType gameType) {
         if (!eventActive) {
             sender.sendMessage(Component.text("There isn't an event going on.")
                     .color(NamedTextColor.RED));
             return;
         }
         List<GameType> playedGames = gameStateStorageUtil.getPlayedGames();
-        if (!playedGames.contains(game)) {
+        if (!playedGames.contains(gameType)) {
             sender.sendMessage(Component.empty()
                     .append(Component.text("This game has not been played yet."))
                     .color(NamedTextColor.RED));
             return;
         }
-        if (!scoreKeepers.containsKey(game)) {
+        if (!scoreKeepers.containsKey(gameType)) {
             sender.sendMessage(Component.empty()
                     .append(Component.text("No points were tracked for "))
-                    .append(Component.text(GameType.getTitle(game))
+                    .append(Component.text(GameType.getTitle(gameType))
                             .decorate(TextDecoration.BOLD))
+                    .append(Component.text("."))
                     .color(NamedTextColor.YELLOW));
             return;
         }
-        ScoreKeeper scoreKeeper = scoreKeepers.get(game);
+        ScoreKeeper scoreKeeper = scoreKeepers.remove(gameType);
         Set<String> teamNames = getTeamNames();
         
         for (String teamName : teamNames) {
@@ -540,6 +541,7 @@ public class GameManager implements Listener {
             }
         }
         sender.sendMessage(reportBuilder.build());
+        Bukkit.getConsoleSender().sendMessage(reportBuilder.build());
     }
     
     public void startGameWithDelay(GameType mctGame, CommandSender sender) {
