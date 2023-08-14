@@ -310,7 +310,7 @@ public class GameStateStorageUtil {
     
     /**
      * Gets the list of played games for the game state
-     * @return A list of the MCTGames that have been played in this game state
+     * @return A list of the GameTypes that have been played in this game state
      */
     public List<GameType> getPlayedGames() {
         return gameState.getPlayedGames();
@@ -318,7 +318,7 @@ public class GameStateStorageUtil {
     
     /**
      * Add a played game to the game state
-     * @param type the MCTGames representing the played game
+     * @param type the GameType representing the played game
      */
     public void addPlayedGame(GameType type) throws IOException {
         List<GameType> playedGames = gameState.getPlayedGames();

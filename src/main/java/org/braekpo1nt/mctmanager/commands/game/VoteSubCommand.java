@@ -16,17 +16,9 @@ import java.util.*;
 public class VoteSubCommand implements TabExecutor {
     
     private final GameManager gameManager;
-    private final Map<String, GameType> mctGames;
     
     public VoteSubCommand(GameManager gameManager) {
         this.gameManager = gameManager;
-        mctGames = new HashMap<>();
-        mctGames.put("foot-race", GameType.FOOT_RACE);
-        mctGames.put("mecha", GameType.MECHA);
-        mctGames.put("spleef", GameType.SPLEEF);
-        mctGames.put("parkour-pathway", GameType.PARKOUR_PATHWAY);
-        mctGames.put("capture-the-flag", GameType.CAPTURE_THE_FLAG);
-        mctGames.put("clockwork", GameType.CLOCKWORK);
     }
     
     @Override
@@ -37,16 +29,17 @@ public class VoteSubCommand implements TabExecutor {
             return true;
         }
         List<GameType> votingPool = new ArrayList<>();
-        for (String gameName : args) {
-            if (!mctGames.containsKey(gameName)) {
+        for (String gameID : args) {
+            GameType gameType = GameType.fromID(gameID);
+            if (gameType == null) {
                 sender.sendMessage(Component.empty()
-                        .append(Component.text(gameName)
+                        .append(Component.text(gameID)
                                 .decorate(TextDecoration.BOLD))
                         .append(Component.text(" is not a recognized game name."))
                         .color(NamedTextColor.RED));
                 return true;
             }
-            votingPool.add(mctGames.get(gameName));
+            votingPool.add(gameType);
         }
         gameManager.manuallyStartVote(sender, votingPool);
         return true;
@@ -63,7 +56,7 @@ public class VoteSubCommand implements TabExecutor {
     private List<String> getGamesNotInArgs(String[] args) {
         List<String> gamesNotInArgs = new ArrayList<>();
         
-        for (String game : mctGames.keySet()) {
+        for (String game : GameType.GAME_IDS.keySet()) {
             if (!argsContains(args, game)) {
                 gamesNotInArgs.add(game);
             }
