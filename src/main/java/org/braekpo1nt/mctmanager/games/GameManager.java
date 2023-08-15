@@ -472,6 +472,14 @@ public class GameManager implements Listener {
                     .color(NamedTextColor.RED));
             return;
         }
+        if (activeGame != null && activeGame.getType().equals(gameType)) {
+            sender.sendMessage(Component.text("Can't undo ")
+                    .append(Component.text(GameType.getTitle(gameType))
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(" because it is in progress"))
+                    .color(NamedTextColor.RED));
+            return;
+        }
         List<GameType> playedGames = gameStateStorageUtil.getPlayedGames();
         if (!playedGames.contains(gameType)) {
             sender.sendMessage(Component.empty()
@@ -511,12 +519,16 @@ public class GameManager implements Listener {
         }
         
         TextComponent.Builder reportBuilder = Component.text()
-                .append(Component.text("Scores Removed:\n"));
+                .append(Component.text("|Scores removed ("))
+                .append(Component.text(GameType.getTitle(gameType))
+                        .decorate(TextDecoration.BOLD))
+                .append(Component.text("):\n"))
+                .color(NamedTextColor.YELLOW);
         for (String teamName : teamNames) {
             int teamScoreToSubtract = scoreKeeper.getScore(teamName);
             NamedTextColor teamColor = getTeamNamedTextColor(teamName);
             Component displayName = getFormattedTeamDisplayName(teamName);
-            reportBuilder.append(Component.text("  - "))
+            reportBuilder.append(Component.text("|  - "))
                     .append(displayName)
                     .append(Component.text(": "))
                     .append(Component.text(teamScoreToSubtract)
@@ -529,7 +541,7 @@ public class GameManager implements Listener {
                 Player participant = Bukkit.getPlayer(participantUUID);
                 if (participant != null) {
                     int participantScoreToSubtract = scoreKeeper.getScore(participantUUID);
-                    reportBuilder.append(Component.text("    - "))
+                    reportBuilder.append(Component.text("|    - "))
                             .append(Component.text(participant.getName())
                                     .color(teamColor))
                             .append(Component.text(": "))
