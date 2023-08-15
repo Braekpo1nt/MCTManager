@@ -86,6 +86,10 @@ Many games and other attributes can be configured using config files. See [this 
 
 To participate, reach out to Braekpo1nt on [YouTube](https://www.youtube.com/@braekpo1nt), [twitter](https://twitter.com/braekpo1nt), [facebook](https://www.facebook.com/Braekpo1nt/), or [instagram](https://www.instagram.com/braekpo1nt/). 
 
+## Adding a new mini-game
+
+Crucial instructions for adding a new mini-game are located in [Adding a New Game](./docs/adding-new-game.md)
+
 ## **Important note about building the project:**
 
 ### Gradle Wrapper

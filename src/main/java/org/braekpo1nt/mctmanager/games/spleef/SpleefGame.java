@@ -3,12 +3,10 @@ package org.braekpo1nt.mctmanager.games.spleef;
 import com.onarandombox.MultiverseCore.utils.AnchorManager;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
-import org.braekpo1nt.mctmanager.games.enums.MCTGames;
+import org.braekpo1nt.mctmanager.games.enums.GameType;
 import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
-import org.bukkit.event.HandlerList;
-import org.bukkit.event.Listener;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 
@@ -33,8 +31,8 @@ public class SpleefGame implements MCTGame {
     }
     
     @Override
-    public MCTGames getType() {
-        return MCTGames.SPLEEF;
+    public GameType getType() {
+        return GameType.SPLEEF;
     }
     
     @Override

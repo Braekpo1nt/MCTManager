@@ -1,14 +1,12 @@
 package org.braekpo1nt.mctmanager.commands.event;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
-import org.braekpo1nt.mctmanager.commands.CommandManager;
 import org.braekpo1nt.mctmanager.commands.CommandUtils;
 import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.enums.GameType;
 import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.jetbrains.annotations.NotNull;
@@ -29,7 +27,8 @@ public class EventSubCommand implements TabExecutor {
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length < 1 || args.length > 2) {
-            sender.sendMessage(Component.text("Usage: /mct event <options>"));
+            sender.sendMessage(Component.text("Usage: /mct event <options>")
+                    .color(NamedTextColor.RED));
             return true;
         }
         String argument = args[0];
@@ -83,6 +82,22 @@ public class EventSubCommand implements TabExecutor {
             case "resume" -> {
                 gameManager.resumeEvent(sender);
             }
+            case "undo" -> {
+                if (args.length != 2) {
+                    sender.sendMessage(Component.text("Usage: /mct event undo <game>")
+                            .color(NamedTextColor.RED));
+                    return true;
+                }
+                String gameID = args[1];
+                GameType gameType = GameType.fromID(gameID);
+                if (gameType == null) {
+                    sender.sendMessage(Component.text(gameID)
+                            .append(Component.text(" is not a valid game"))
+                            .color(NamedTextColor.RED));
+                    return true;
+                }
+                gameManager.undoGame(sender, gameType);
+            }
             default -> {
                 sender.sendMessage(Component.empty()
                         .append(Component.text("Unrecognized option "))
@@ -99,7 +114,7 @@ public class EventSubCommand implements TabExecutor {
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length == 1) {
-            return Arrays.asList("pause", "resume", "start", "stop");
+            return Arrays.asList("pause", "resume", "start", "stop", "undo");
         }
         return Collections.emptyList();
     }

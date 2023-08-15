@@ -7,7 +7,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
-import org.braekpo1nt.mctmanager.games.enums.MCTGames;
+import org.braekpo1nt.mctmanager.games.enums.GameType;
 import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.mecha.config.MechaStorageUtil;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
@@ -88,8 +88,8 @@ public class MechaGame implements MCTGame, Listener {
     }
     
     @Override
-    public MCTGames getType() {
-        return MCTGames.MECHA;
+    public GameType getType() {
+        return GameType.MECHA;
     }
     
     @Override
@@ -359,7 +359,7 @@ public class MechaGame implements MCTGame, Listener {
                 .append(Component.text(" has been eliminated.")));
         for (Player participant : participants) {
             if (livingPlayers.contains(participant.getUniqueId())) {
-                gameManager.awardPointsToPlayer(participant, 40);
+                gameManager.awardPointsToParticipant(participant, 40);
             }
         }
     }
@@ -397,7 +397,7 @@ public class MechaGame implements MCTGame, Listener {
             return;
         }
         addKill(killer.getUniqueId());
-        gameManager.awardPointsToPlayer(killer, 40);
+        gameManager.awardPointsToParticipant(killer, 40);
     }
     
     /**

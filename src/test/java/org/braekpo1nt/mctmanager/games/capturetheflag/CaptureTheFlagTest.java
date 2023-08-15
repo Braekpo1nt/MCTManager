@@ -7,14 +7,13 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.MyCustomServerMock;
 import org.braekpo1nt.mctmanager.MyPlayerMock;
 import org.braekpo1nt.mctmanager.games.GameManager;
-import org.braekpo1nt.mctmanager.games.enums.MCTGames;
+import org.braekpo1nt.mctmanager.games.enums.GameType;
 import org.braekpo1nt.mctmanager.games.gamestate.MockGameStateStorageUtil;
 import org.braekpo1nt.mctmanager.ui.MockFastBoardManager;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.junit.jupiter.api.*;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.UUID;
@@ -61,7 +60,7 @@ public class CaptureTheFlagTest {
             addTeam("blue", "Blue", "blue");
             createParticipant("Player1", "red", "Red");
             createParticipant("Player2", "blue", "Blue");
-            gameManager.startGame(MCTGames.CAPTURE_THE_FLAG, sender);
+            gameManager.startGame(GameType.CAPTURE_THE_FLAG, sender);
             speedThroughRoundCountdown();
             speedThroughClassSelection();
             
@@ -123,7 +122,7 @@ public class CaptureTheFlagTest {
             MyPlayerMock player1 = createParticipant("Player1", "red", "Red");
             MyPlayerMock player2 = createParticipant("Player2", "blue", "Blue");
             MyPlayerMock player3 = createParticipant("Player3", "green", "Green");
-            gameManager.startGame(MCTGames.CAPTURE_THE_FLAG, sender);
+            gameManager.startGame(GameType.CAPTURE_THE_FLAG, sender);
             
             Assertions.assertTrue(player1.receivedMessagePlaintext("Red is competing against Blue this round."));
             Assertions.assertTrue(player2.receivedMessagePlaintext("Blue is competing against Red this round."));
@@ -149,7 +148,7 @@ public class CaptureTheFlagTest {
             MyPlayerMock player2 = createParticipant("Player2", "blue", "Blue");
             MyPlayerMock player3 = createParticipant("Player3", "green", "Green");
             MyPlayerMock player4 = createParticipant("Player4", "purple", "Purple");
-            gameManager.startGame(MCTGames.CAPTURE_THE_FLAG, sender);
+            gameManager.startGame(GameType.CAPTURE_THE_FLAG, sender);
             
             CaptureTheFlagGame ctf = ((CaptureTheFlagGame) gameManager.getActiveGame());
             List<CaptureTheFlagRound> roundsBeforeJoin = ctf.getRounds();
@@ -175,7 +174,7 @@ public class CaptureTheFlagTest {
             MyPlayerMock player3 = createParticipant("Player3", "green", "Green");
             MyPlayerMock player4 = createParticipant("Player4", "purple", "Purple");
             MyPlayerMock player5 = createParticipant("Player5", "black", "Black");
-            gameManager.startGame(MCTGames.CAPTURE_THE_FLAG, sender);
+            gameManager.startGame(GameType.CAPTURE_THE_FLAG, sender);
             
             CaptureTheFlagGame ctf = ((CaptureTheFlagGame) gameManager.getActiveGame());
             List<CaptureTheFlagRound> roundsBeforeJoin = ctf.getRounds();
@@ -198,7 +197,7 @@ public class CaptureTheFlagTest {
             MyPlayerMock player1 = createParticipant("Player1", "red", "Red");
             MyPlayerMock player2 = createParticipant("Player2", "blue", "Blue");
             MyPlayerMock player3 = createParticipant("Player3", "blue", "Blue");
-            gameManager.startGame(MCTGames.CAPTURE_THE_FLAG, sender);
+            gameManager.startGame(GameType.CAPTURE_THE_FLAG, sender);
             speedThroughHalfRoundCountdown();
             player3.disconnect();
             
@@ -225,7 +224,7 @@ public class CaptureTheFlagTest {
             addTeam("blue", "Blue", "blue");
             MyPlayerMock player1 = createParticipant("Player1", "red", "Red");
             MyPlayerMock player2 = createParticipant("Player2", "blue", "Blue");
-            gameManager.startGame(MCTGames.CAPTURE_THE_FLAG, sender);
+            gameManager.startGame(GameType.CAPTURE_THE_FLAG, sender);
             speedThroughHalfRoundCountdown();
             player2.disconnect();
             speedThroughHalfRoundCountdown();
@@ -259,7 +258,7 @@ public class CaptureTheFlagTest {
             MyPlayerMock player1 = createParticipant("Player1", "red", "Red");
             MyPlayerMock player2 = createParticipant("Player2", "blue", "Blue");
             MyPlayerMock player3 = createParticipant("Player3", "blue", "Blue");
-            gameManager.startGame(MCTGames.CAPTURE_THE_FLAG, sender);
+            gameManager.startGame(GameType.CAPTURE_THE_FLAG, sender);
             speedThroughRoundCountdown();
             speedThroughHalfClassSelection();
             player3.disconnect();
@@ -293,7 +292,7 @@ public class CaptureTheFlagTest {
             addTeam("blue", "Blue", "blue");
             MyPlayerMock player1 = createParticipant("Player1", "red", "Red");
             MyPlayerMock player2 = createParticipant("Player2", "blue", "Blue");
-            gameManager.startGame(MCTGames.CAPTURE_THE_FLAG, sender);
+            gameManager.startGame(GameType.CAPTURE_THE_FLAG, sender);
             speedThroughRoundCountdown();
             speedThroughHalfClassSelection();
             player2.disconnect();
@@ -327,7 +326,7 @@ public class CaptureTheFlagTest {
             MyPlayerMock player1 = createParticipant("Player1", "red", "Red");
             MyPlayerMock player2 = createParticipant("Player2", "blue", "Blue");
             MyPlayerMock player3 = createParticipant("Player3", "blue", "Blue");
-            gameManager.startGame(MCTGames.CAPTURE_THE_FLAG, sender);
+            gameManager.startGame(GameType.CAPTURE_THE_FLAG, sender);
             speedThroughRoundCountdown();
             speedThroughClassSelection();
             player3.disconnect();
@@ -358,7 +357,7 @@ public class CaptureTheFlagTest {
             addTeam("blue", "Blue", "blue");
             MyPlayerMock player1 = createParticipant("Player1", "red", "Red");
             MyPlayerMock player2 = createParticipant("Player2", "blue", "Blue");
-            gameManager.startGame(MCTGames.CAPTURE_THE_FLAG, sender);
+            gameManager.startGame(GameType.CAPTURE_THE_FLAG, sender);
             speedThroughRoundCountdown();
             speedThroughClassSelection();
             player2.disconnect();
@@ -391,7 +390,7 @@ public class CaptureTheFlagTest {
             MyPlayerMock player1 = createParticipant("Player1", "red", "Red");
             MyPlayerMock player2 = createParticipant("Player2", "blue", "Blue");
             MyPlayerMock player3 = createParticipant("Player3", "green", "Green");
-            gameManager.startGame(MCTGames.CAPTURE_THE_FLAG, sender);
+            gameManager.startGame(GameType.CAPTURE_THE_FLAG, sender);
             
             CaptureTheFlagGame ctf = ((CaptureTheFlagGame) gameManager.getActiveGame());
             Assertions.assertEquals(3, ctf.getParticipants().size());
@@ -435,7 +434,7 @@ public class CaptureTheFlagTest {
             MyPlayerMock player2 = createParticipant("Player2", "blue", "Blue");
             MyPlayerMock player3 = createParticipant("Player3", "green", "Green");
             MyPlayerMock player4 = createParticipant("Player4", "purple", "Purple");
-            gameManager.startGame(MCTGames.CAPTURE_THE_FLAG, sender);
+            gameManager.startGame(GameType.CAPTURE_THE_FLAG, sender);
             
             CaptureTheFlagGame ctf = ((CaptureTheFlagGame) gameManager.getActiveGame());
             Assertions.assertEquals(4, ctf.getParticipants().size());
@@ -482,7 +481,7 @@ public class CaptureTheFlagTest {
             MyPlayerMock player2 = createParticipant("Player2", "blue", "Blue");
             MyPlayerMock player3 = createParticipant("Player3", "green", "Green");
             MyPlayerMock player4 = createParticipant("Player4", "purple", "Purple");
-            gameManager.startGame(MCTGames.CAPTURE_THE_FLAG, sender);
+            gameManager.startGame(GameType.CAPTURE_THE_FLAG, sender);
             
             CaptureTheFlagGame ctf = ((CaptureTheFlagGame) gameManager.getActiveGame());
             Assertions.assertEquals(4, ctf.getParticipants().size());
@@ -537,7 +536,7 @@ public class CaptureTheFlagTest {
             MyPlayerMock player2 = createParticipant("Player2", "blue", "Blue");
             MyPlayerMock player3 = createParticipant("Player3", "green", "Green");
             MyPlayerMock player4 = createParticipant("Player4", "purple", "Purple");
-            gameManager.startGame(MCTGames.CAPTURE_THE_FLAG, sender);
+            gameManager.startGame(GameType.CAPTURE_THE_FLAG, sender);
             
             CaptureTheFlagGame ctf = ((CaptureTheFlagGame) gameManager.getActiveGame());
             CaptureTheFlagRound firstRound = ctf.getCurrentRound();
@@ -579,7 +578,7 @@ public class CaptureTheFlagTest {
             MyPlayerMock player2 = createParticipant("Player2", "blue", "Blue");
             MyPlayerMock player3 = createParticipant("Player3", "blue", "Blue");
             player3.disconnect();
-            gameManager.startGame(MCTGames.CAPTURE_THE_FLAG, sender);
+            gameManager.startGame(GameType.CAPTURE_THE_FLAG, sender);
     
             speedThroughHalfRoundCountdown();
             
@@ -617,7 +616,7 @@ public class CaptureTheFlagTest {
             MyPlayerMock player3 = createParticipant("Player3", "purple", "Purple");
             MyPlayerMock player4 = createParticipant("Player4", "purple", "Purple");
             player4.disconnect();
-            gameManager.startGame(MCTGames.CAPTURE_THE_FLAG, sender);
+            gameManager.startGame(GameType.CAPTURE_THE_FLAG, sender);
             
             speedThroughRoundCountdown();
             speedThroughHalfClassSelection();
@@ -654,7 +653,7 @@ public class CaptureTheFlagTest {
             MyPlayerMock player2 = createParticipant("Player2", "blue", "Blue");
             MyPlayerMock player3 = createParticipant("Player3", "blue", "Blue");
             player3.disconnect();
-            gameManager.startGame(MCTGames.CAPTURE_THE_FLAG, sender);
+            gameManager.startGame(GameType.CAPTURE_THE_FLAG, sender);
             
             speedThroughRoundCountdown();
             speedThroughClassSelection();
@@ -694,7 +693,7 @@ public class CaptureTheFlagTest {
             MyPlayerMock player2 = createParticipant("Player2", "blue", "Blue");
             MyPlayerMock player3 = createParticipant("Player3", "blue", "Blue");
             player3.disconnect();
-            gameManager.startGame(MCTGames.CAPTURE_THE_FLAG, sender);
+            gameManager.startGame(GameType.CAPTURE_THE_FLAG, sender);
             
             speedThroughRoundCountdown();
             speedThroughHalfClassSelection();
@@ -735,7 +734,7 @@ public class CaptureTheFlagTest {
             MyPlayerMock player2 = createParticipant("Player2", "blue", "Blue");
             MyPlayerMock player3 = createParticipant("Player3", "green", "Green");
             player3.disconnect();
-            gameManager.startGame(MCTGames.CAPTURE_THE_FLAG, sender);
+            gameManager.startGame(GameType.CAPTURE_THE_FLAG, sender);
             
             speedThroughRoundCountdown();
             speedThroughClassSelection();
@@ -767,7 +766,7 @@ public class CaptureTheFlagTest {
             MyPlayerMock player2 = createParticipant("Player2", "blue", "Blue");
             MyPlayerMock player3 = createParticipant("Player3", "green", "Green");
             player3.disconnect();
-            gameManager.startGame(MCTGames.CAPTURE_THE_FLAG, sender);
+            gameManager.startGame(GameType.CAPTURE_THE_FLAG, sender);
             
             CaptureTheFlagGame ctf = ((CaptureTheFlagGame) gameManager.getActiveGame());
             Assertions.assertEquals(1, ctf.getRounds().size());
@@ -793,7 +792,7 @@ public class CaptureTheFlagTest {
             MyPlayerMock player2 = createParticipant("Player2", "blue", "Blue");
             MyPlayerMock player3 = createParticipant("Player3", "green", "Green");
             player3.disconnect();
-            gameManager.startGame(MCTGames.CAPTURE_THE_FLAG, sender);
+            gameManager.startGame(GameType.CAPTURE_THE_FLAG, sender);
     
             CaptureTheFlagGame ctf = ((CaptureTheFlagGame) gameManager.getActiveGame());
             List<CaptureTheFlagRound> roundsBeforeJoin = ctf.getRounds();
@@ -829,7 +828,7 @@ public class CaptureTheFlagTest {
             MyPlayerMock player4 = createParticipant("Player4", "purple", "Purple");
             MyPlayerMock player5 = createParticipant("Player5", "black", "Black");
             player5.disconnect();
-            gameManager.startGame(MCTGames.CAPTURE_THE_FLAG, sender);
+            gameManager.startGame(GameType.CAPTURE_THE_FLAG, sender);
             
             CaptureTheFlagGame ctf = ((CaptureTheFlagGame) gameManager.getActiveGame());
             List<CaptureTheFlagRound> roundsBeforeJoin = ctf.getRounds();
@@ -872,7 +871,7 @@ public class CaptureTheFlagTest {
             MyPlayerMock player1 = createParticipant("Player1", "red", "Red");
             MyPlayerMock player2 = createParticipant("Player2", "blue", "Blue");
             MyPlayerMock player3 = createParticipant("Player3", "blue", "Blue");
-            gameManager.startGame(MCTGames.CAPTURE_THE_FLAG, sender);
+            gameManager.startGame(GameType.CAPTURE_THE_FLAG, sender);
             
             speedThroughRoundCountdown();
             speedThroughClassSelection();
@@ -912,7 +911,7 @@ public class CaptureTheFlagTest {
         MyPlayerMock player1 = createParticipant("Player1", "red", "Red");
         MyPlayerMock player2 = createParticipant("Player2", "blue", "Blue");
         MyPlayerMock player3 = createParticipant("Player3", "green", "Green");
-        gameManager.startGame(MCTGames.CAPTURE_THE_FLAG, sender);
+        gameManager.startGame(GameType.CAPTURE_THE_FLAG, sender);
         
         speedThroughHalfRoundCountdown();
         mockFastBoardManager.assertLine(player1.getUniqueId(), 5, "0:05");
