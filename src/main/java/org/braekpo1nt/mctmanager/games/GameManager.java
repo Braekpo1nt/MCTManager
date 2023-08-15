@@ -466,7 +466,7 @@ public class GameManager implements Listener {
      * @param sender The sender
      * @param gameType The game to undo
      */
-    public void undoGame(CommandSender sender, GameType gameType) {
+    public void undoGame(@NotNull CommandSender sender, @NotNull GameType gameType) {
         if (!eventActive) {
             sender.sendMessage(Component.text("There isn't an event going on.")
                     .color(NamedTextColor.RED));
