@@ -62,6 +62,10 @@ public class GameManager implements Listener {
     private final Main plugin;
     private boolean shouldTeleportToHub = true;
     private int fastBoardUpdaterTaskId;
+    /**
+     * used to store a list of participants who left mid-game and didn't log back before the game ended, 
+     * so we can send them back to the hub rather than whatever game the player left from
+     */
     private final List<UUID> participantsWhoLeftMidGame = new ArrayList<>();
     private final VoteManager voteManager;
     private final EventManager eventManager;

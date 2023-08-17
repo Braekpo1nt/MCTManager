@@ -12,6 +12,7 @@ import org.braekpo1nt.mctmanager.games.enums.GameType;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.voting.VoteManager;
 import org.braekpo1nt.mctmanager.hub.HubManager;
+import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
@@ -32,8 +33,11 @@ public class EventManager {
     private int currentGameNumber = 0;
     private int maxGames = 6;
     private int finalGameEndTaskId;
+    private int fiveMinuteBreakTaskId;
     private EventState currentState;
     private EventState lastState;
+    private int hubTimerTaskId;
+    private boolean hubTimerPaused = false;
     
     public EventManager(Main plugin, GameManager gameManager, VoteManager voteManager, HubManager hubManager) {
         this.plugin = plugin;
@@ -56,7 +60,6 @@ public class EventManager {
         }
         currentGameNumber = 1;
         this.maxGames = maxGames;
-        currentState = EventState.WAITING_HUB;
         gameManager.clearPlayedGames();
         scoreKeepers.clear();
         messageAllAdmins(Component.text("Starting event. On game ")
@@ -65,6 +68,7 @@ public class EventManager {
                 .append(Component.text(maxGames))
                 .append(Component.text(".")));
         hubManager.returnParticipantsToHub(gameManager.getOnlineParticipants());
+        startWaitingInHub();
     }
     
     public void stopEvent(CommandSender sender) {
@@ -82,7 +86,6 @@ public class EventManager {
         Bukkit.getLogger().info(String.format("Ending event. %d/%d games were played", currentGameNumber - 1, maxGames));
         cancelAllTasks();
         currentState = null;
-        hubManager.eventIsOver();
         currentGameNumber = 0;
         this.maxGames = 6;
     }
@@ -105,7 +108,7 @@ public class EventManager {
         }
         lastState = currentState;
         currentState = EventState.PAUSED;
-        hubManager.pauseHubTimer();
+        hubTimerPaused = true;
         Component pauseMessage = Component.text("Event paused.");
         sender.sendMessage(pauseMessage);
         messageAllAdmins(pauseMessage);
@@ -124,7 +127,7 @@ public class EventManager {
         }
         currentState = lastState;
         lastState = null;
-        hubManager.resumeHubTimer();
+        hubTimerPaused = false;
         Component resumeMessage = Component.text("Event resumed.");
         sender.sendMessage(resumeMessage);
         messageAllAdmins(resumeMessage);
@@ -242,6 +245,67 @@ public class EventManager {
                 .append(Component.text(".")));
     }
     
+    private void startWaitingInHub() {
+        currentState = EventState.WAITING_HUB;
+        hubTimerPaused = false;
+        String currentGameString = String.format("Game %d/%d", currentGameNumber, maxGames);
+        for (Player participant : gameManager.getOnlineParticipants()) {
+            initializeHubTimerDisplay(participant, currentGameString);
+        }
+        this.hubTimerTaskId = new BukkitRunnable() {
+            int count = 20;
+            @Override
+            public void run() {
+                if (hubTimerPaused) {
+                    return;
+                }
+                if (count <= 0) {
+                    startVote();
+                    this.cancel();
+                    return;
+                }
+                String timeString = TimeStringUtils.getTimeString(count);
+                for (Player participant : gameManager.getOnlineParticipants()) {
+                    updateHubTimerDisplay(participant, timeString);
+                }
+                count--;
+            }
+        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+    }
+    
+    private void start5MinuteBreak() {
+        hubTimerPaused = false;
+        String currentGameString = String.format("Game %d/%d", currentGameNumber, maxGames);
+        for (Player participant : gameManager.getOnlineParticipants()) {
+            initializeFiveMinuteBreakDisplay(participant, currentGameString);
+        }
+        messageAllParticipants(Component.text("Break time")
+                .decorate(TextDecoration.BOLD)
+                .color(NamedTextColor.YELLOW));
+        this.fiveMinuteBreakTaskId = new BukkitRunnable() {
+            int count = 60*5;
+            @Override
+            public void run() {
+                if (hubTimerPaused) {
+                    return;
+                }
+                if (count <= 0) {
+                    messageAllParticipants(Component.text("Break is over")
+                            .decorate(TextDecoration.BOLD)
+                            .color(NamedTextColor.YELLOW));
+                    startWaitingInHub();
+                    this.cancel();
+                    return;
+                }
+                String timeString = ChatColor.YELLOW+TimeStringUtils.getTimeString(count);
+                for (Player participant : gameManager.getOnlineParticipants()) {
+                    updateFiveMinuteBreakDisplay(participant, timeString);
+                }
+                count--;
+            }
+        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+    }
+    
     /**
      * Starts the voting phase for the event
      */
@@ -252,16 +316,8 @@ public class EventManager {
             return;
         }
         
-        List<GameType> playedGames = gameManager.getPlayedGames();
-        
-        List<GameType> votingPool = new ArrayList<>();
-        votingPool.add(GameType.FOOT_RACE);
-        votingPool.add(GameType.MECHA);
-        votingPool.add(GameType.CAPTURE_THE_FLAG);
-        votingPool.add(GameType.SPLEEF);
-        votingPool.add(GameType.PARKOUR_PATHWAY);
-        votingPool.add(GameType.CLOCKWORK);
-        votingPool.removeAll(playedGames);
+        List<GameType> votingPool = new ArrayList<>(List.of(GameType.values()));
+        votingPool.removeAll(gameManager.getPlayedGames());
         
         if (votingPool.isEmpty()) {
             messageAllAdmins(Component.text("No more games to play. Manually initiate final game."));
@@ -409,6 +465,43 @@ public class EventManager {
     
     public void cancelAllTasks() {
         Bukkit.getScheduler().cancelTask(this.finalGameEndTaskId);
+        Bukkit.getScheduler().cancelTask(this.hubTimerTaskId);
+        Bukkit.getScheduler().cancelTask(this.fiveMinuteBreakTaskId);
+    }
+    
+    private void initializeHubTimerDisplay(Player participant, String gameString) {
+        gameManager.getFastBoardManager().updateLines(
+                participant.getUniqueId(),
+                "",
+                gameString,
+                ""
+        );
+    }
+    
+    private void updateHubTimerDisplay(Player participant, String timeString) {
+        gameManager.getFastBoardManager().updateLine(
+                participant.getUniqueId(),
+                2,
+                timeString
+        );
+    }
+    
+    private void initializeFiveMinuteBreakDisplay(Player participant, String gameString) {
+        gameManager.getFastBoardManager().updateLines(
+                participant.getUniqueId(),
+                "",
+                gameString,
+                ChatColor.YELLOW+"Break",
+                ""
+        );
+    }
+    
+    private void updateFiveMinuteBreakDisplay(Player participant, String timeString) {
+        gameManager.getFastBoardManager().updateLine(
+                participant.getUniqueId(),
+                3,
+                timeString
+        );
     }
     
     /**
@@ -428,15 +521,20 @@ public class EventManager {
         return currentState != null;
     }
     
-    public int getCurrentGameNumber() {
-        return currentGameNumber;
-    }
-    
-    public int getMaxGames() {
-        return maxGames;
+    private void messageAllParticipants(Component message) {
+        for (Player participant : gameManager.getOnlineParticipants()) {
+            participant.sendMessage(message);
+        }
     }
     
     private void messageAllAdmins(Component message) {
         gameManager.messageAdmins(message);
     }
+    
+    
+    // Testing
+    public int getMaxGames() {
+        return maxGames;
+    }
+    
 }
