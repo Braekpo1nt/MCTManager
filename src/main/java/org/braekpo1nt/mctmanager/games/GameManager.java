@@ -79,7 +79,6 @@ public class GameManager implements Listener {
         this.mctScoreboard = mctScoreboard;
         this.gameStateStorageUtil = new GameStateStorageUtil(plugin);
         this.voteManager = new VoteManager(this, plugin);
-        this.eventManager = new EventManager(plugin, this);
         this.footRaceGame = new FootRaceGame(plugin, this);
         this.mechaGame = new MechaGame(plugin, this);
         this.spleefGame = new SpleefGame(plugin, this);
@@ -88,6 +87,7 @@ public class GameManager implements Listener {
         this.clockworkGame = new ClockworkGame(plugin, this);
         this.fastBoardManager = new FastBoardManager(gameStateStorageUtil);
         this.hubManager = new HubManager(plugin, mctScoreboard, this);
+        this.eventManager = new EventManager(plugin, this, voteManager, hubManager);
         kickOffFastBoardManager();
     }
     

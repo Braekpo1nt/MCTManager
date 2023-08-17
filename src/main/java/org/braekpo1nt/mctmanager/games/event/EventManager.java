@@ -10,6 +10,8 @@ import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.colossalcolosseum.ColossalColosseumGame;
 import org.braekpo1nt.mctmanager.games.enums.GameType;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
+import org.braekpo1nt.mctmanager.games.voting.VoteManager;
+import org.braekpo1nt.mctmanager.hub.HubManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
@@ -23,6 +25,8 @@ public class EventManager {
     
     private final Main plugin;
     private final GameManager gameManager;
+    private final VoteManager voteManager;
+    private final HubManager hubManager;
     private final ColossalColosseumGame colossalColosseumGame;
     protected boolean eventActive = false;
     private final Map<GameType, ScoreKeeper> scoreKeepers = new HashMap<>();
@@ -32,9 +36,11 @@ public class EventManager {
     private EventState currentState;
     private EventState lastState;
     
-    public EventManager(Main plugin, GameManager gameManager) {
+    public EventManager(Main plugin, GameManager gameManager, VoteManager voteManager, HubManager hubManager) {
         this.plugin = plugin;
         this.gameManager = gameManager;
+        this.voteManager = voteManager;
+        this.hubManager = hubManager;
         this.colossalColosseumGame = new ColossalColosseumGame(plugin, gameManager);
     }
     
@@ -262,7 +268,6 @@ public class EventManager {
             messageAllAdmins(Component.text("No more games to play. Manually initiate final game."));
             return;
         }
-        
         voteManager.startVote(gameManager.getOnlineParticipants(), votingPool);
     }
     
