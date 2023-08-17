@@ -5,7 +5,7 @@ import com.onarandombox.MultiverseCore.api.MultiverseWorld;
 import com.onarandombox.MultiverseCore.utils.AnchorManager;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
-import org.braekpo1nt.mctmanager.games.enums.MCTGames;
+import org.braekpo1nt.mctmanager.games.enums.GameType;
 import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -35,15 +35,15 @@ public class ClockworkGame implements MCTGame, Listener {
         this.plugin = plugin;
         this.gameManager = gameManager;
         MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
-        MultiverseWorld mvCaptureTheFlagWorld = worldManager.getMVWorld("FT");
-        this.clockworkWorld = mvCaptureTheFlagWorld.getCBWorld();
+        MultiverseWorld mvClockworkWorld = worldManager.getMVWorld("FT");
+        this.clockworkWorld = mvClockworkWorld.getCBWorld();
         AnchorManager anchorManager = Main.multiverseCore.getAnchorManager();
         startingPosition = anchorManager.getAnchorLocation("clockwork");
     }
     
     @Override
-    public MCTGames getType() {
-        return MCTGames.CLOCKWORK;
+    public GameType getType() {
+        return GameType.CLOCKWORK;
     }
     
     @Override

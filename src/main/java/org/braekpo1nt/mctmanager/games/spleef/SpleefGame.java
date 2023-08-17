@@ -3,23 +3,21 @@ package org.braekpo1nt.mctmanager.games.spleef;
 import com.onarandombox.MultiverseCore.utils.AnchorManager;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
-import org.braekpo1nt.mctmanager.games.enums.MCTGames;
+import org.braekpo1nt.mctmanager.games.enums.GameType;
 import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
-import org.bukkit.event.HandlerList;
-import org.bukkit.event.Listener;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 
 import java.util.*;
 
-public class SpleefGame implements MCTGame, Listener {
+public class SpleefGame implements MCTGame {
     private final Main plugin;
     private final GameManager gameManager;
     private final String title = ChatColor.BLUE+"Spleef";
     private final Location startingLocation;
-    private List<Player> participants;
+    private List<Player> participants = new ArrayList<>();
     private List<SpleefRound> rounds;
     private int currentRoundIndex = 0;
     private boolean gameActive = false;
@@ -33,19 +31,18 @@ public class SpleefGame implements MCTGame, Listener {
     }
     
     @Override
-    public MCTGames getType() {
-        return MCTGames.SPLEEF;
+    public GameType getType() {
+        return GameType.SPLEEF;
     }
     
     @Override
     public void start(List<Player> newParticipants) {
         participants = new ArrayList<>(newParticipants.size());
-        rounds = new ArrayList<>();
+        rounds = new ArrayList<>(3);
         rounds.add(new SpleefRound(plugin, gameManager, this, startingLocation));
         rounds.add(new SpleefRound(plugin, gameManager, this, startingLocation));
         rounds.add(new SpleefRound(plugin, gameManager, this, startingLocation));
         currentRoundIndex = 0;
-        plugin.getServer().getPluginManager().registerEvents(this, plugin);
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
         }
@@ -63,7 +60,6 @@ public class SpleefGame implements MCTGame, Listener {
     @Override
     public void stop() {
         cancelAllTasks();
-        HandlerList.unregisterAll(this);
         if (currentRoundIndex < rounds.size()) {
             SpleefRound currentRound = rounds.get(currentRoundIndex);
             currentRound.stop();

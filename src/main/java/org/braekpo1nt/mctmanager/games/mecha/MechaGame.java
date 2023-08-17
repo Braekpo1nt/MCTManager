@@ -7,9 +7,9 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
-import org.braekpo1nt.mctmanager.games.enums.MCTGames;
+import org.braekpo1nt.mctmanager.games.enums.GameType;
 import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
-import org.braekpo1nt.mctmanager.games.mecha.io.MechaStorageUtil;
+import org.braekpo1nt.mctmanager.games.mecha.config.MechaStorageUtil;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.bukkit.*;
@@ -41,6 +41,7 @@ public class MechaGame implements MCTGame, Listener {
     
     private final Main plugin;
     private final GameManager gameManager;
+    private final MechaStorageUtil mechaStorageUtil;
     private boolean gameActive = false;
     private boolean mechaHasStarted = false;
     private List<Player> participants;
@@ -78,6 +79,7 @@ public class MechaGame implements MCTGame, Listener {
     public MechaGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
         this.gameManager = gameManager;
+        this.mechaStorageUtil = loadConfig();
         setChestCoordsAndLootTables();
         MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
         this.mvMechaWorld = worldManager.getMVWorld("FT");
@@ -86,8 +88,8 @@ public class MechaGame implements MCTGame, Listener {
     }
     
     @Override
-    public MCTGames getType() {
-        return MCTGames.MECHA;
+    public GameType getType() {
+        return GameType.MECHA;
     }
     
     @Override
@@ -226,7 +228,8 @@ public class MechaGame implements MCTGame, Listener {
     
     private void startStartMechaCountdownTask() {
         this.startMechaTaskId = new BukkitRunnable() {
-            int count = 10;
+            private int count = 10;
+            
             @Override
             public void run() {
                 if (count <= 0) {
@@ -234,7 +237,10 @@ public class MechaGame implements MCTGame, Listener {
                     this.cancel();
                     return;
                 }
-                messageAllParticipants(Component.text(count));
+                String timeLeft = TimeStringUtils.getTimeString(count);
+                for (Player participant : participants) {
+                    updateCountDownFastBoard(participant, timeLeft);
+                }
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -288,7 +294,7 @@ public class MechaGame implements MCTGame, Listener {
         for (Player participant : participants) {
             participant.addPotionEffect(RESISTANCE);
         }
-        messageAllParticipants(Component.text("Invulnerable for 10 seconds!"));
+        messageAllParticipants(Component.text("Invulnerable for 20 seconds!"));
     }
     
     private void onTeamWin(String winningTeamName) {
@@ -353,7 +359,7 @@ public class MechaGame implements MCTGame, Listener {
                 .append(Component.text(" has been eliminated.")));
         for (Player participant : participants) {
             if (livingPlayers.contains(participant.getUniqueId())) {
-                gameManager.awardPointsToPlayer(participant, 40);
+                gameManager.awardPointsToParticipant(participant, 40);
             }
         }
     }
@@ -391,7 +397,7 @@ public class MechaGame implements MCTGame, Listener {
             return;
         }
         addKill(killer.getUniqueId());
-        gameManager.awardPointsToPlayer(killer, 40);
+        gameManager.awardPointsToParticipant(killer, 40);
     }
     
     /**
@@ -454,19 +460,24 @@ public class MechaGame implements MCTGame, Listener {
     
     private void initializeWorldBorder() {
         worldBorder.setCenter(0, 0);
-        worldBorder.setSize(248);
+        int [] sizes = mechaStorageUtil.getSizes();
+        if (sizes.length > 0) {
+            worldBorder.setSize(sizes[0]);
+        } else {
+            worldBorder.setSize(399);
+        }
     }
     
     private void kickOffBorderShrinking() {
-        int[] sizes = new int[]{180, 150, 100, 50, 25, 2};
-        int[] delays = new int[]{90, 70, 60, 80, 60, 30};
-        int[] durations = new int[]{25, 20, 20 , 15, 15, 30};
+        int [] sizes = mechaStorageUtil.getSizes();
+        int [] delays = mechaStorageUtil.getDelays();
+        int [] durations = mechaStorageUtil.getDurations();
         this.borderShrinkingTaskId = new BukkitRunnable() {
             int delay = 0;
             int duration = 0;
             boolean onDelay = false;
             boolean onDuration = false;
-            int sceneIndex = 0;
+            int stage = 0;
             @Override
             public void run() {
                 if (onDelay) {
@@ -474,8 +485,8 @@ public class MechaGame implements MCTGame, Listener {
                     if (delay <= 1) {
                         onDelay = false;
                         onDuration = true;
-                        duration = durations[sceneIndex];
-                        int size = sizes[sceneIndex];
+                        duration = durations[stage];
+                        int size = sizes[stage];
                         worldBorder.setSize(size, duration);
                         sendBorderShrinkAnouncement(duration, size);
                         return;
@@ -486,14 +497,14 @@ public class MechaGame implements MCTGame, Listener {
                     if (duration <= 1) {
                         onDuration = false;
                         onDelay = true;
-                        sceneIndex++;
-                        if (sceneIndex >= delays.length) {
+                        stage++;
+                        if (stage >= delays.length) {
                             startSuddenDeath();
                             Bukkit.getLogger().info("Border is in final position.");
                             this.cancel();
                             return;
                         }
-                        delay = delays[sceneIndex];
+                        delay = delays[stage];
                         sendBorderDelayAnouncement(delay);
                         return;
                     }
@@ -517,6 +528,19 @@ public class MechaGame implements MCTGame, Listener {
                 "",
                 ChatColor.LIGHT_PURPLE+"Border",
                 ChatColor.LIGHT_PURPLE+"0:00"
+        );
+    }
+    
+    private void updateCountDownFastBoard(Player participant, String timeLeft) {
+        gameManager.getFastBoardManager().updateLine(
+                participant.getUniqueId(),
+                4,
+                "Starting:"
+        );
+        gameManager.getFastBoardManager().updateLine(
+                participant.getUniqueId(),
+                5,
+                timeLeft
         );
     }
     
@@ -700,7 +724,7 @@ public class MechaGame implements MCTGame, Listener {
         teamLocations.put("red", anchorManager.getAnchorLocation("mecha-red"));
     }
     
-    private void setChestCoordsAndLootTables() {
+    private MechaStorageUtil loadConfig() {
         MechaStorageUtil mechaStorageUtil = new MechaStorageUtil(plugin);
         try {
             mechaStorageUtil.loadConfig();
@@ -709,10 +733,15 @@ public class MechaGame implements MCTGame, Listener {
             Bukkit.getPluginManager().disablePlugin(plugin);
             throw new RuntimeException(e);
         }
+        return mechaStorageUtil;
+    }
+    
+    private void setChestCoordsAndLootTables() {
         this.spawnChestCoords = mechaStorageUtil.getSpawnChestCoords();
         this.mapChestCoords = mechaStorageUtil.getMapChestCoords();
         this.mapChestCoords = mechaStorageUtil.getMapChestCoords();
         this.spawnLootTable = mechaStorageUtil.getSpawnLootTable();
         this.weightedMechaLootTables = mechaStorageUtil.getWeightedMechaLootTables();
     }
+    
 }

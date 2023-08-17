@@ -6,7 +6,7 @@ import com.onarandombox.MultiverseCore.utils.AnchorManager;
 import net.kyori.adventure.text.*;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
-import org.braekpo1nt.mctmanager.games.enums.MCTGames;
+import org.braekpo1nt.mctmanager.games.enums.GameType;
 import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -56,8 +56,8 @@ public class CaptureTheFlagGame implements MCTGame, Listener {
     }
     
     @Override
-    public MCTGames getType() {
-        return MCTGames.CAPTURE_THE_FLAG;
+    public GameType getType() {
+        return GameType.CAPTURE_THE_FLAG;
     }
     
     @Override

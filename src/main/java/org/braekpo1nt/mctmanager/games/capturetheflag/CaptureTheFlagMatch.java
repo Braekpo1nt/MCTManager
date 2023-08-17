@@ -371,7 +371,7 @@ public class CaptureTheFlagMatch implements Listener {
             return;
         }
         addKill(killer.getUniqueId());
-        gameManager.awardPointsToPlayer(killer, 20);
+        gameManager.awardPointsToParticipant(killer, 20);
     }
     
     private void addKill(UUID killerUniqueId) {

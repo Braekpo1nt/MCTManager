@@ -41,7 +41,7 @@ import java.util.*;
 public class SpleefRound implements Listener {
     private final Main plugin;
     private final GameManager gameManager;
-    private List<Player> participants;
+    private List<Player> participants = new ArrayList<>();
     private final World spleefWorld;
     private Map<UUID, Boolean> participantsAlive;
     private boolean roundActive = false;
@@ -77,7 +77,7 @@ public class SpleefRound implements Listener {
         startStatusEffectsTask();
         startRoundStartingCountDown();
         roundActive = true;
-        Bukkit.getLogger().info("Starting Spleef game");
+        Bukkit.getLogger().info("Starting Spleef round");
     }
     
     private void initializeParticipant(Player participant) {
@@ -119,7 +119,7 @@ public class SpleefRound implements Listener {
         participants.clear();
         participantsAlive.clear();
         roundActive = false;
-        Bukkit.getLogger().info("Stopping Spleef game");
+        Bukkit.getLogger().info("Stopping Spleef round");
     }
     
     public void onParticipantJoin(Player participant) {
@@ -235,7 +235,7 @@ public class SpleefRound implements Listener {
         int count = participants.size();
         for (Player participant : participants) {
             if (participantsAlive.get(participant.getUniqueId())) {
-                gameManager.awardPointsToPlayer(participant, 10);
+                gameManager.awardPointsToParticipant(participant, 10);
             } else {
                 count--;
             }
