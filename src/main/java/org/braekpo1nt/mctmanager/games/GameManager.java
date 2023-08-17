@@ -88,6 +88,7 @@ public class GameManager implements Listener {
         this.fastBoardManager = new FastBoardManager(gameStateStorageUtil);
         this.hubManager = new HubManager(plugin, mctScoreboard, this);
         this.eventManager = new EventManager(plugin, this, voteManager, hubManager);
+        this.fastBoardManager = new FastBoardManager(gameStateStorageUtil);
         kickOffFastBoardManager();
     }
     

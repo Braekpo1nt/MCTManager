@@ -9,6 +9,7 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.FastBoardManager;
+import org.braekpo1nt.mctmanager.ui.HeaderType;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
@@ -26,6 +27,7 @@ import org.bukkit.scoreboard.Team;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class HubManager implements Listener {
     
@@ -242,6 +244,7 @@ public class HubManager implements Listener {
     
     private void initializeParticipant(Player participant) {
         participants.add(participant);
+        gameManager.getFastBoardManager().setHeaderType(participant.getUniqueId(), HeaderType.ALL);
         initializeFastBoard(participant);
         participant.getInventory().clear();
         participant.setGameMode(GameMode.ADVENTURE);
@@ -256,6 +259,7 @@ public class HubManager implements Listener {
      */
     public void removeParticipantsFromHub(List<Player> participantsToRemove) {
         for (Player participant : participantsToRemove) {
+            gameManager.getFastBoardManager().setHeaderType(participant.getUniqueId(), HeaderType.PERSONAL);
             this.participants.remove(participant);
         }
     }
@@ -273,6 +277,7 @@ public class HubManager implements Listener {
             return;
         }
         participants.add(participant);
+        gameManager.getFastBoardManager().setHeaderType(participant.getUniqueId(), HeaderType.ALL);
     }
     
     public void cancelAllTasks() {
