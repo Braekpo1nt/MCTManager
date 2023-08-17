@@ -28,7 +28,6 @@ public class EventManager {
     private final VoteManager voteManager;
     private final HubManager hubManager;
     private final ColossalColosseumGame colossalColosseumGame;
-    protected boolean eventActive = false;
     private final Map<GameType, ScoreKeeper> scoreKeepers = new HashMap<>();
     private int currentGameNumber = 0;
     private int maxGames = 6;
@@ -45,7 +44,7 @@ public class EventManager {
     }
     
     public void startEvent(CommandSender sender, int maxGames) {
-        if (eventActive) {
+        if (currentState != null) {
             sender.sendMessage(Component.text("An event is already running.")
                     .color(NamedTextColor.RED));
             return;
@@ -57,7 +56,7 @@ public class EventManager {
         }
         currentGameNumber = 1;
         this.maxGames = maxGames;
-        eventActive = true;
+        currentState = EventState.WAITING_HUB;
         gameManager.clearPlayedGames();
         scoreKeepers.clear();
         messageAllAdmins(Component.text("Starting event. On game ")
@@ -69,27 +68,27 @@ public class EventManager {
     }
     
     public void stopEvent(CommandSender sender) {
-        if (!eventActive) {
+        if (currentState == null) {
             sender.sendMessage(Component.text("There is no event running.")
                     .color(NamedTextColor.RED));
             return;
         }
-        eventActive = false;
         Component message = Component.text("Ending event. ")
                 .append(Component.text(currentGameNumber - 1))
                 .append(Component.text("/"))
                 .append(Component.text(maxGames))
                 .append(Component.text(" games were played."));
-        sender.sendMessage(message);
+        messageAllAdmins(message);
         Bukkit.getLogger().info(String.format("Ending event. %d/%d games were played", currentGameNumber - 1, maxGames));
         cancelAllTasks();
+        currentState = null;
         hubManager.eventIsOver();
         currentGameNumber = 0;
         this.maxGames = 6;
     }
     
     public void pauseEvent(CommandSender sender) {
-        if (!eventActive) {
+        if (currentState == null) {
             sender.sendMessage(Component.text("There is no event running.")
                     .color(NamedTextColor.RED));
             return;
@@ -113,7 +112,7 @@ public class EventManager {
     }
     
     public void resumeEvent(CommandSender sender) {
-        if (!eventActive) {
+        if (currentState == null) {
             sender.sendMessage(Component.text("There isn't an event going on.")
                     .color(NamedTextColor.RED));
             return;
@@ -137,7 +136,7 @@ public class EventManager {
      * @param gameType The game to undo
      */
     public void undoGame(@NotNull CommandSender sender, @NotNull GameType gameType) {
-        if (!eventActive) {
+        if (currentState == null) {
             sender.sendMessage(Component.text("There isn't an event going on.")
                     .color(NamedTextColor.RED));
             return;
@@ -231,7 +230,7 @@ public class EventManager {
      * @param gameType The game that just ended
      */
     public void gameIsOver(GameType gameType) {
-        if (!eventActive) {
+        if (currentState == null) {
             return;
         }
         gameManager.addPlayedGame(gameType);
@@ -285,7 +284,7 @@ public class EventManager {
                         otherParticipants.add(player);
                     }
                 }
-                eventActive = false;
+                currentState = null;
                 hubManager.sendParticipantsToPedestal(winningTeamParticipants, winningTeam, chatColor, otherParticipants);
             }
         }.runTaskLater(plugin, 5*20).getTaskId();
@@ -380,7 +379,7 @@ public class EventManager {
      * @param gameType the game that the points came from
      */
     public void trackPoints(String teamName, int points, GameType gameType) {
-        if (!eventActive) {
+        if (currentState == null) {
             return;
         }
         if (!scoreKeepers.containsKey(gameType)) {
@@ -398,7 +397,7 @@ public class EventManager {
      * @param gameType the game that the points came from
      */
     public void trackPoints(UUID participantUUID, int points, GameType gameType) {
-        if (!eventActive) {
+        if (currentState == null) {
             return;
         }
         if (!scoreKeepers.containsKey(gameType)) {
@@ -422,8 +421,11 @@ public class EventManager {
         return half <= currentGameNumber-1 && currentGameNumber-1 <= Math.ceil(half);
     }
     
+    /**
+     * @return true if an event is active, false if not
+     */
     public boolean eventIsActive() {
-        return eventActive;
+        return currentState != null;
     }
     
     public int getCurrentGameNumber() {
