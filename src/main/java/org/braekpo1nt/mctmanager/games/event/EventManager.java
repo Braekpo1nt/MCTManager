@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.games.event;
 
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
+import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -17,6 +18,12 @@ public class EventManager {
     private final int VOTING_DURATION = 20;
     private final int STARTING_GAME_COUNT_DOWN_DURATION = 5;
     private final int BACK_TO_HUB_DELAY_DURATION = 10;
+    private int waitingInHubTaskId;
+    private int toColossalColosseumDelayTaskId;
+    private int backToHubDelayTaskId;
+    private int startingGameCountdownTaskId;
+    private int halftimeBreakTaskId;
+    private int votingTaskId;
     
     
     public EventManager(Main plugin, GameManager gameManager) {
@@ -31,6 +38,15 @@ public class EventManager {
      */
     public void startEvent(CommandSender sender, int numberOfGames) {
         startWaitingInHub();
+    }
+    
+    public void cancelAllTasks() {
+        Bukkit.getScheduler().cancelTask(waitingInHubTaskId);
+        Bukkit.getScheduler().cancelTask(toColossalColosseumDelayTaskId);
+        Bukkit.getScheduler().cancelTask(backToHubDelayTaskId);
+        Bukkit.getScheduler().cancelTask(startingGameCountdownTaskId);
+        Bukkit.getScheduler().cancelTask(halftimeBreakTaskId);
+        Bukkit.getScheduler().cancelTask(votingTaskId);
     }
     
     private void startWaitingInHub() {
