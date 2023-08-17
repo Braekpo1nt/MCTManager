@@ -15,6 +15,10 @@ public class FastBoardManager {
     
     protected final String EVENT_TITLE = ChatColor.BOLD + "" + ChatColor.DARK_RED + "MCT #4";
     protected final ConcurrentHashMap<UUID, FastBoardWrapper> boards = new ConcurrentHashMap<>();
+    /**
+     * Used to store for each user which header type to show. See {@link HeaderType} 
+     */
+    protected final ConcurrentHashMap<UUID, HeaderType> headerTypes = new ConcurrentHashMap<>();
     protected GameStateStorageUtil gameStateStorageUtil;
     
     public FastBoardManager(GameStateStorageUtil gameStateStorageUtil) {
@@ -32,41 +36,56 @@ public class FastBoardManager {
         if (!playerHasBoard) {
             return;
         }
-        String[] allFastBoardLines;
-        String[] blankLine = {""};
-
+        
         UUID playerUniqueId = player.getUniqueId();
         FastBoardWrapper board = boards.get(playerUniqueId);
-        String[] mainLines = getMainLines(playerUniqueId);
-        String[] teamLine = {mainLines[0]};
-        String[] scoreLine = {mainLines[1]};
-
-        if (player.getWorld().getName().equals("Hub")) {
-            allFastBoardLines = combineFastBoardLines(getAllScoreLines(),blankLine,scoreLine);
-        } else {
-            allFastBoardLines = combineFastBoardLines(teamLine,scoreLine);
-        }
-
-        for (int i = 0; i < allFastBoardLines.length; i++) {
-            board.updateLine(i, allFastBoardLines[i]);
+        HeaderType headerType = headerTypes.get(playerUniqueId);
+        String[] header = getHeader(playerUniqueId, headerType);
+        
+        for (int i = 0; i < header.length; i++) {
+            board.updateLine(i, header[i]);
         }
     }
-
-    private String[] combineFastBoardLines(String[]... arrays) {
-        int totalLength = 0;
-        for (String[] array : arrays) {
-            totalLength += array.length;
+    
+    /**
+     * Retrieve the header 
+     * @param playerUniqueId
+     * @param headerType
+     * @return
+     */
+    protected String[] getHeader(UUID playerUniqueId, HeaderType headerType) {
+        if (headerType == HeaderType.ALL) {
+            List<String> header = new ArrayList<>();
+            Set<String> teamNames = gameStateStorageUtil.getTeamNames();
+            List<String> sortedTeamNames = sortTeamNames(teamNames);
+            for (String teamName : sortedTeamNames) {
+                String teamDisplayName = gameStateStorageUtil.getTeamDisplayName(teamName);
+                ChatColor teamChatColor = gameStateStorageUtil.getTeamChatColor(teamName);
+                int teamScore = gameStateStorageUtil.getTeamScore(teamName);
+                String teamLine = teamChatColor+teamDisplayName+": "+teamScore;
+                header.add(teamLine);
+            }
+            header.add("");
+            int playerScore = gameStateStorageUtil.getPlayerScore(playerUniqueId);
+            String scoreLine = ChatColor.GOLD+"Points: "+playerScore;
+            header.add(scoreLine);
+            return header.toArray(String[]::new);
         }
-
-        String[] newArray = new String[totalLength];
-        int currentIndex = 0;
-
-        for (String[] array : arrays) {
-            System.arraycopy(array, 0, newArray, currentIndex, array.length);
-            currentIndex += array.length;
-        }
-
-        return newArray;
+        
+        String teamName = gameStateStorageUtil.getPlayerTeamName(playerUniqueId);
+        String teamDisplayName = gameStateStorageUtil.getTeamDisplayName(teamName);
+        ChatColor teamChatColor = gameStateStorageUtil.getTeamChatColor(teamName);
+        int teamScore = gameStateStorageUtil.getTeamScore(teamName);
+        int playerScore = gameStateStorageUtil.getPlayerScore(playerUniqueId);
+        String teamLine = teamChatColor+teamDisplayName+": "+teamScore;
+        String scoreLine = ChatColor.GOLD+"Points: "+playerScore;
+        return new String[]{teamLine, scoreLine};
+    }
+    
+    protected List<String> sortTeamNames(Set<String> teamNames) {
+        List<String> sortedTeamNames = new ArrayList<>(teamNames);
+        sortedTeamNames.sort(Comparator.comparing(teamName -> gameStateStorageUtil.getTeamScore(teamName)));
+        return sortedTeamNames;
     }
     
     /**
@@ -91,68 +110,26 @@ public class FastBoardManager {
         FastBoardWrapper newBoard = new FastBoardWrapper();
         newBoard.setPlayer(player);
         newBoard.updateTitle(this.EVENT_TITLE);
-        String[] mainLines = getMainLines(player.getUniqueId());
-        String teamLine = mainLines[0];
-        String scoreLine = mainLines[1];
-        newBoard.updateLines(
-                teamLine,
-                scoreLine
-        );
+        String[] header = getHeader(player.getUniqueId(), HeaderType.PERSONAL);
+        newBoard.updateLines(header);
         boards.put(player.getUniqueId(), newBoard);
-    }
-
-    protected String[] getAllScoreLines() {
-        ArrayList<String> allTeamScores = new ArrayList<>();
-        for (String teamName : gameStateStorageUtil.getTeamNames()) {
-            String teamDisplayName = gameStateStorageUtil.getTeamDisplayName(teamName);
-            ChatColor teamChatColor = gameStateStorageUtil.getTeamChatColor(teamName);
-            int teamScore = gameStateStorageUtil.getTeamScore(teamName);
-            String teamLine = teamChatColor + teamDisplayName + ": " + teamScore;
-            allTeamScores.add(teamLine);
-        }
-
-        // Sort the allTeamScores ArrayList based on 'teamScore'
-        Collections.sort(allTeamScores, new Comparator<String>() {
-            @Override
-            public int compare(String line1, String line2) {
-                // Extract team scores from the lines
-                int score1 = extractTeamScore(line1);
-                int score2 = extractTeamScore(line2);
-
-                // Compare the scores in descending order
-                return Integer.compare(score2, score1);
-            }
-
-            private int extractTeamScore(String line) {
-                // Assuming the team score is separated by a colon and a space after the team name
-                String[] parts = line.split(": ");
-                if (parts.length >= 2) {
-                    try {
-                        return Integer.parseInt(parts[1]);
-                    } catch (NumberFormatException e) {
-                        // Handle any parsing errors gracefully
-                    }
-                }
-                return 0; // Default score if unable to extract from the line
-            }
-        });
-
-        return allTeamScores.toArray(new String[0]);
-    }
-    
-    protected String[] getMainLines(UUID playerUniqueId) {
-        String teamName = gameStateStorageUtil.getPlayerTeamName(playerUniqueId);
-        String teamDisplayName = gameStateStorageUtil.getTeamDisplayName(teamName);
-        ChatColor teamChatColor = gameStateStorageUtil.getTeamChatColor(teamName);
-        int teamScore = gameStateStorageUtil.getTeamScore(teamName);
-        int playerScore = gameStateStorageUtil.getPlayerScore(playerUniqueId);
-        String teamLine = teamChatColor+teamDisplayName+": "+teamScore;
-        String scoreLine = ChatColor.GOLD+"Points: "+playerScore;
-        return new String[]{teamLine, scoreLine};
+        headerTypes.put(player.getUniqueId(), HeaderType.PERSONAL);
     }
     
     /**
-     * Updates the sub-board lines (after the main lines) for the given player
+     * Set the header type for the player's FastBoard
+     * @param playerUniqueId The player
+     * @param headerType the header type
+     */
+    public synchronized void setHeaderType(UUID playerUniqueId, HeaderType headerType) {
+        if (!headerTypes.containsKey(playerUniqueId)) {
+            return;
+        }
+        headerTypes.put(playerUniqueId, headerType);
+    }
+    
+    /**
+     * Updates the sub-board lines (after the header) for the given player
      * using the given lines. Provide no lines arguments to clear. 
      * @param playerUniqueId The player UUID to update the sub-board for
      * @param lines The lines to update the sub-board to
@@ -162,16 +139,16 @@ public class FastBoardManager {
             return;
         }
         FastBoardWrapper board = boards.get(playerUniqueId);
-        String[] mainLines = getMainLines(playerUniqueId);
-        String[] linesPlusMainLines = new String[lines.length + 2];
-        linesPlusMainLines[0] = mainLines[0];
-        linesPlusMainLines[1] = mainLines[1];
-        System.arraycopy(lines, 0, linesPlusMainLines, 2, lines.length);
-        board.updateLines(linesPlusMainLines);
+        HeaderType headerType = headerTypes.get(playerUniqueId);
+        String[] header = getHeader(playerUniqueId, headerType);
+        String[] linesPlusHeader = new String[lines.length + header.length];
+        System.arraycopy(header, 0, linesPlusHeader, 0, header.length);
+        System.arraycopy(lines, 0, linesPlusHeader, header.length, lines.length);
+        board.updateLines(linesPlusHeader);
     }
     
     /**
-     * Updates the sub-board line (after the main lines) for the given player
+     * Updates the sub-board line (after the header) for the given player
      * using the given text.
      * @param playerUniqueId The player UUID to update the sub-line for
      * @param line The line index of the sub-line (0 being the first)
@@ -182,7 +159,9 @@ public class FastBoardManager {
             return;
         }
         FastBoardWrapper board = boards.get(playerUniqueId);
-        int subLine = line + 2;
+        HeaderType headerType = headerTypes.get(playerUniqueId);
+        String[] header = getHeader(playerUniqueId, headerType);
+        int subLine = line + header.length;
         board.updateLine(subLine, text);
     }
     

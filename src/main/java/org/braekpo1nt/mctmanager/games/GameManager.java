@@ -99,6 +99,7 @@ public class GameManager implements Listener {
         this.colossalColosseumGame = new ColossalColosseumGame(plugin, this);
         this.fastBoardManager = new FastBoardManager(gameStateStorageUtil);
         this.hubManager = new HubManager(plugin, mctScoreboard, this);
+        this.fastBoardManager = new FastBoardManager(gameStateStorageUtil);
         this.eventMaster = Bukkit.getConsoleSender();
         kickOffFastBoardManager();
     }
