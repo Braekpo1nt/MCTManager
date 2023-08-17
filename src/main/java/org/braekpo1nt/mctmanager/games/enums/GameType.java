@@ -8,8 +8,7 @@ public enum GameType {
     CAPTURE_THE_FLAG,
     SPLEEF,
     PARKOUR_PATHWAY, 
-    CLOCKWORK, 
-    COLOSSAL_COLOSSEUM;
+    CLOCKWORK;
     
     public static final Map<String, GameType> GAME_IDS;
     public static final Map<GameType, String> TITLES;
@@ -21,8 +20,7 @@ public enum GameType {
                 "capture-the-flag", GameType.CAPTURE_THE_FLAG, 
                 "spleef", GameType.SPLEEF, 
                 "parkour-pathway", GameType.PARKOUR_PATHWAY, 
-                "clockwork", GameType.CLOCKWORK, 
-                "colossal-colosseum", GameType.COLOSSAL_COLOSSEUM);
+                "clockwork", GameType.CLOCKWORK);
         
         TITLES = Map.of(
                 GameType.FOOT_RACE, "Foot Race", 
@@ -30,8 +28,7 @@ public enum GameType {
                 GameType.CAPTURE_THE_FLAG, "Capture the Flag\"", 
                 GameType.SPLEEF, "Spleef", 
                 GameType.PARKOUR_PATHWAY, "Parkour Pathway", 
-                GameType.CLOCKWORK, "Clockwork", 
-                GameType.COLOSSAL_COLOSSEUM, "Colossal Colosseum");
+                GameType.CLOCKWORK, "Clockwork");
     }
     
     /**

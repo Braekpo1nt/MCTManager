@@ -47,10 +47,10 @@ public class EventSubCommand implements TabExecutor {
                     }
                     maxGames = Integer.parseInt(maxGamesString);
                 }
-                gameManager.startEvent(sender, maxGames);
+                gameManager.getEventManager().startEvent(sender, maxGames);
             }
             case "stop" -> {
-                if (!gameManager.eventIsActive()) {
+                if (!gameManager.getEventManager().eventIsActive()) {
                     sender.sendMessage(Component.text("There is no event running.")
                             .color(NamedTextColor.RED));
                     return true;
@@ -74,13 +74,13 @@ public class EventSubCommand implements TabExecutor {
                                     .color(NamedTextColor.RED));
                     return true;
                 }
-                gameManager.stopEvent(sender);
+                gameManager.getEventManager().stopEvent(sender);
             }
             case "pause" -> {
-                gameManager.pauseEvent(sender);
+                gameManager.getEventManager().pauseEvent(sender);
             }
             case "resume" -> {
-                gameManager.resumeEvent(sender);
+                gameManager.getEventManager().resumeEvent(sender);
             }
             case "undo" -> {
                 if (args.length != 2) {
@@ -96,7 +96,7 @@ public class EventSubCommand implements TabExecutor {
                             .color(NamedTextColor.RED));
                     return true;
                 }
-                gameManager.undoGame(sender, gameType);
+                gameManager.getEventManager().undoGame(sender, gameType);
             }
             default -> {
                 sender.sendMessage(Component.empty()

@@ -50,8 +50,7 @@ public class FinalGameSubCommand implements TabExecutor {
                     .color(NamedTextColor.RED));
             return true;
         }
-        gameManager.setFinalGameTeams(teamA, teamB);
-        gameManager.startGame(GameType.COLOSSAL_COLOSSEUM, sender);
+        gameManager.getEventManager().startColossalColosseum(sender, teamA, teamB);
         return true;
     }
 

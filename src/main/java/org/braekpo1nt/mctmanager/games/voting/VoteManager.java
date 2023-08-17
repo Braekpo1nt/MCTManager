@@ -250,7 +250,7 @@ public class VoteManager implements Listener {
         HandlerList.unregisterAll(this);
         votes.clear();
         voters.clear();
-        gameManager.startGameWithDelay(mctGame, Bukkit.getConsoleSender());
+        gameManager.startGameWithDelay(mctGame);
     }
     
     private void cancelAllTasks() {

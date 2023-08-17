@@ -7,8 +7,6 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
-import org.braekpo1nt.mctmanager.games.enums.GameType;
-import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.bukkit.*;
@@ -23,7 +21,7 @@ import org.bukkit.scoreboard.Team;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ColossalColosseumGame implements MCTGame, Listener {
+public class ColossalColosseumGame implements Listener {
     
     private final Main plugin;
     private final GameManager gameManager;
@@ -53,20 +51,6 @@ public class ColossalColosseumGame implements MCTGame, Listener {
         this.firstPlaceSpawn = anchorManager.getAnchorLocation("cc-first-place-spawn");
         this.secondPlaceSpawn = anchorManager.getAnchorLocation("cc-second-place-spawn");
         this.spectatorSpawn = anchorManager.getAnchorLocation("cc-spectator-spawn");
-    }
-    
-    @Override
-    public GameType getType() {
-        return GameType.COLOSSAL_COLOSSEUM;
-    }
-    
-    /**
-     * Do not use this method. Instead, use {@link ColossalColosseumGame#start(List, List, List)}
-     * @param newParticipants The participants
-     */
-    @Override
-    public void start(List<Player> newParticipants) {
-        throw new UnsupportedOperationException("ColossalColosseumGame is a special case, because it is the final game. Please use the overload method, start(List<Player> newFirstPlaceParticipants, List<Player> newSecondPlaceParticipants, List<Player> newSpectators).");
     }
     
     /**
@@ -187,11 +171,10 @@ public class ColossalColosseumGame implements MCTGame, Listener {
                 .append(Component.text(" wins MCT #4!"))
                 .color(teamColor)
                 .decorate(TextDecoration.BOLD));
-        gameManager.finalGameIsOver(winningTeam);
+        gameManager.getEventManager().finalGameIsOver(winningTeam);
         Bukkit.getLogger().info(String.format("%s won Colossal Colosseum", winningTeam));
     }
     
-    @Override
     public void stop() {
         cancelAllTasks();
         HandlerList.unregisterAll(this);
@@ -225,12 +208,10 @@ public class ColossalColosseumGame implements MCTGame, Listener {
         Bukkit.getScheduler().cancelTask(roundDelayTaskId);
     }
     
-    @Override
     public void onParticipantJoin(Player participant) {
         
     }
     
-    @Override
     public void onParticipantQuit(Player participant) {
         
     }

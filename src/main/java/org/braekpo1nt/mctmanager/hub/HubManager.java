@@ -109,7 +109,7 @@ public class HubManager implements Listener {
                     return;
                 }
                 if (count <= 0) {
-                    gameManager.startVote();
+                    gameManager.getEventManager().startVote();
                     this.cancel();
                     return;
                 }
@@ -123,8 +123,8 @@ public class HubManager implements Listener {
     }
     
     private String createCurrentGameString() {
-        int currentGameNumber = gameManager.getCurrentGameNumber();
-        int maxGames = gameManager.getMaxGames();
+        int currentGameNumber = gameManager.getEventManager().getCurrentGameNumber();
+        int maxGames = gameManager.getEventManager().getMaxGames();
         String currentGameString = String.format("%d/%d", currentGameNumber, maxGames);
         return "Game "+currentGameString;
     }
@@ -183,8 +183,8 @@ public class HubManager implements Listener {
             returnParticipantToHub(participant);
         }
         setupTeamOptions();
-        if (gameManager.eventIsActive()) {
-            if (gameManager.halfOfEventHasBeenPlayed()) {
+        if (gameManager.getEventManager().eventIsActive()) {
+            if (gameManager.getEventManager().halfOfEventHasBeenPlayed()) {
                 kickOff5MinuteBreak();
             } else {
                 kickOffHubTimer();
