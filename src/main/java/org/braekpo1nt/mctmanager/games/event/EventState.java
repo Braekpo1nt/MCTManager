@@ -1,10 +1,9 @@
 package org.braekpo1nt.mctmanager.games.event;
 
 public enum EventState {
-    WAITING_HUB,
+    WAITING_IN_HUB,
     VOTING,
-    TELEPORTING_TO_GAME,
+    DELAY,
     PLAYING_GAME,
-    TELEPORTING_FROM_GAME,
     PAUSED,
 }
