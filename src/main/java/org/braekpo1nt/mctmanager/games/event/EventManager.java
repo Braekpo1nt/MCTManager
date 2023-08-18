@@ -58,6 +58,7 @@ public class EventManager {
     public void startEvent(CommandSender sender, int numberOfGames) {
         maxGames = numberOfGames;
         currentGameNumber = 0;
+        gameManager.clearPlayedGames();
         startWaitingInHub();
     }
     
@@ -116,7 +117,9 @@ public class EventManager {
     
     private void startVoting() {
         currentState = EventState.VOTING;
-        voteManager.startVote(gameManager.getOnlineParticipants(), null, this::startingGameDelay);
+        List<GameType> votingPool = new ArrayList<>(List.of(GameType.values()));
+        votingPool.removeAll(gameManager.getPlayedGames());
+        voteManager.startVote(gameManager.getOnlineParticipants(), votingPool, this::startingGameDelay);
 //        this.votingTaskId = new BukkitRunnable() {
 //            int count = VOTING_DURATION;
 //            @Override
