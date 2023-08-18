@@ -274,7 +274,7 @@ public class EventManager {
     }
     
     public boolean eventIsActive() {
-        return currentState == null;
+        return currentState != null;
     }
     
     /**
