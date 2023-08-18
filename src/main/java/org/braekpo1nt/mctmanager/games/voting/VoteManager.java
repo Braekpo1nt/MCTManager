@@ -23,6 +23,7 @@ import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
+import java.util.function.Consumer;
 
 public class VoteManager implements Listener {
     
@@ -36,6 +37,7 @@ public class VoteManager implements Listener {
     private final Component NETHER_STAR_NAME = Component.text("Vote");
     private int voteCountDownTaskId;
     private List<GameType> votingPool = new ArrayList<>();
+    private Consumer<GameType> executeMethod;
     
     public VoteManager(GameManager gameManager, Main plugin) {
         this.gameManager = gameManager;
@@ -47,7 +49,8 @@ public class VoteManager implements Listener {
      * @param participants The participants who should vote
      * @param votingPool The games to vote between
      */
-    public void startVote(List<Player> participants, List<GameType> votingPool) {
+    public void startVote(List<Player> participants, List<GameType> votingPool, Consumer<GameType> executeMethod) {
+        this.executeMethod = executeMethod;
         voting = true;
         votes.clear();
         voters.clear();
@@ -250,7 +253,8 @@ public class VoteManager implements Listener {
         HandlerList.unregisterAll(this);
         votes.clear();
         voters.clear();
-        gameManager.startGameWithDelay(mctGame);
+//        gameManager.startGameWithDelay(mctGame);
+        executeMethod.accept(mctGame);
     }
     
     private void cancelAllTasks() {

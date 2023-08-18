@@ -91,7 +91,7 @@ public class GameManager implements Listener {
         this.clockworkGame = new ClockworkGame(plugin, this);
         this.fastBoardManager = new FastBoardManager(gameStateStorageUtil);
         this.hubManager = new HubManager(plugin, mctScoreboard, this);
-        this.eventManager = new EventManager(plugin, this);
+        this.eventManager = new EventManager(plugin, this, voteManager);
         this.fastBoardManager = new FastBoardManager(gameStateStorageUtil);
         kickOffFastBoardManager();
     }
@@ -240,7 +240,7 @@ public class GameManager implements Listener {
                             .clickEvent(ClickEvent.suggestCommand("/mct team join "))));
             return;
         }
-        voteManager.startVote(onlineParticipants, votingPool);
+        voteManager.startVote(onlineParticipants, votingPool, this::startGameWithDelay);
     }
     
     private void updateStartGameDelayFastBoard(Player voter, String gameTitle, String timeString) {

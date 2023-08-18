@@ -323,7 +323,7 @@ public class EventManager2 {
             messageAllAdmins(Component.text("No more games to play. Manually initiate final game."));
             return;
         }
-        voteManager.startVote(gameManager.getOnlineParticipants(), votingPool);
+//        voteManager.startVote(gameManager.getOnlineParticipants(), votingPool);
     }
     
     public void finalGameIsOver(String winningTeamName) {
