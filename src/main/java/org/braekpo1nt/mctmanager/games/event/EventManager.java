@@ -1,18 +1,29 @@
 package org.braekpo1nt.mctmanager.games.event;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.colossalcolosseum.ColossalColosseumGame;
 import org.braekpo1nt.mctmanager.games.enums.GameType;
+import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.voting.VoteManager;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.*;
 
 public class EventManager {
     
     private final Main plugin;
     private final GameManager gameManager;
     private final VoteManager voteManager;
+    private final ColossalColosseumGame colossalColosseumGame;
     private EventState currentState;
     private int maxGames = 6;
     private int currentGameNumber = 0;
@@ -36,6 +47,7 @@ public class EventManager {
         this.plugin = plugin;
         this.gameManager = gameManager;
         this.voteManager = voteManager;
+        this.colossalColosseumGame = new ColossalColosseumGame(plugin, gameManager);
     }
     
     /**
@@ -48,6 +60,14 @@ public class EventManager {
         currentGameNumber = 0;
         startWaitingInHub();
     }
+    
+    public void stopEvent(CommandSender sender) {}
+    
+    public void pauseEvent(CommandSender sender) {}
+    
+    public void resumeEvent(CommandSender sender) {}
+    
+    public void undoGame(@NotNull CommandSender sender, @NotNull GameType gameType) {}
     
     public void cancelAllTasks() {
         Bukkit.getScheduler().cancelTask(waitingInHubTaskId);
@@ -158,13 +178,99 @@ public class EventManager {
                 if (count <= 0) {
                     // start selected game
                     currentState = EventState.PLAYING_GAME;
-                    startColossalColoseum();
+                    startColossalColosseum();
                     this.cancel();
                     return;
                 }
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+    }
+    
+    public void startColossalColosseum() {
+        Set<String> allTeams = gameManager.getTeamNames();
+        if (allTeams.size() < 2) {
+            messageAllAdmins(Component.empty()
+                    .append(Component.text("There are fewer than two teams online. Use "))
+                    .append(Component.text("/mct game finalgame <first> <second>")
+                            .clickEvent(ClickEvent.suggestCommand("/mct game finalgame "))
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(" to start the final game with the two chosen teams.")));
+            return;
+        }
+        Map<String, Integer> teamScores = new HashMap<>();
+        for (String teamName : allTeams) {
+            int score = gameManager.getScore(teamName);
+            teamScores.put(teamName, score);
+        }
+        String[] firstPlaces = GameManagerUtils.calculateFirstPlace(teamScores);
+        if (firstPlaces.length == 2) {
+            String firstPlace = firstPlaces[0];
+            String secondPlace = firstPlaces[1];
+            startColossalColosseum(Bukkit.getConsoleSender(), firstPlace, secondPlace);
+            return;
+        }
+        if (firstPlaces.length > 2) {
+            messageAllAdmins(Component.text("There are more than 2 teams tied for first place. A tie breaker is needed. Use ")
+                    .append(Component.text("/mct game finalgame <first> <second>")
+                            .clickEvent(ClickEvent.suggestCommand("/mct game finalgame "))
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(" to start the final game with the two chosen teams."))
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        String firstPlace = firstPlaces[0];
+        teamScores.remove(firstPlace);
+        String[] secondPlaces = GameManagerUtils.calculateFirstPlace(teamScores);
+        if (secondPlaces.length > 1) {
+            messageAllAdmins(Component.text("There is a tie second place. A tie breaker is needed. Use ")
+                    .append(Component.text("/mct game finalgame <first> <second>")
+                            .clickEvent(ClickEvent.suggestCommand("/mct game finalgame "))
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(" to start the final game with the two chosen teams."))
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        String secondPlace = secondPlaces[0];
+        startColossalColosseum(Bukkit.getConsoleSender(), firstPlace, secondPlace);
+    }
+    
+    public void startColossalColosseum(CommandSender sender, String firstPlaceTeamName, String secondPlaceTeamName) {
+        if (firstPlaceTeamName == null || secondPlaceTeamName == null) {
+            sender.sendMessage(Component.text("Please specify the first and second place teams.").color(NamedTextColor.RED));
+            return;
+        }
+        
+        List<Player> firstPlaceParticipants = new ArrayList<>();
+        List<Player> secondPlaceParticipants = new ArrayList<>();
+        List<Player> spectators = new ArrayList<>();
+        for (Player participant : gameManager.getOnlineParticipants()) {
+            String teamName = gameManager.getTeamName(participant.getUniqueId());
+            if (teamName.equals(firstPlaceTeamName)) {
+                firstPlaceParticipants.add(participant);
+            } else if (teamName.equals(secondPlaceTeamName)) {
+                secondPlaceParticipants.add(participant);
+            } else {
+                spectators.add(participant);
+            }
+        }
+        
+        if (firstPlaceParticipants.isEmpty()) {
+            sender.sendMessage(Component.text("There are no members of the first place team online.").color(NamedTextColor.RED));
+            return;
+        }
+        
+        if (secondPlaceParticipants.isEmpty()) {
+            sender.sendMessage(Component.text("There are no members of the second place team online.").color(NamedTextColor.RED));
+            return;
+        }
+        
+        colossalColosseumGame.start(firstPlaceParticipants, secondPlaceParticipants, spectators);
+    }
+    
+    public void finalGameIsOver(String winningTeamName) {
+        Bukkit.getLogger().info("Called \"finalGameIsOver\" method: " + winningTeamName);
+        throw new UnsupportedOperationException("EventManager#finalGameIsOver is not implemented yet");
     }
     
     public boolean eventIsActive() {
@@ -183,5 +289,9 @@ public class EventManager {
     
     public boolean allGamesHaveBeenPlayed() {
         return currentGameNumber == maxGames - 1;
+    }
+    
+    private void messageAllAdmins(Component message) {
+        gameManager.messageAdmins(message);
     }
 }
