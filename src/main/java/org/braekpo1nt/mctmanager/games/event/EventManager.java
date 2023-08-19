@@ -119,20 +119,7 @@ public class EventManager {
         currentState = EventState.VOTING;
         List<GameType> votingPool = new ArrayList<>(List.of(GameType.values()));
         votingPool.removeAll(gameManager.getPlayedGames());
-        voteManager.startVote(gameManager.getOnlineParticipants(), votingPool, this::startingGameDelay);
-//        this.votingTaskId = new BukkitRunnable() {
-//            int count = VOTING_DURATION;
-//            @Override
-//            public void run() {
-//                if (count <= 0) {
-//                    // get voted game
-//                    startingGameDelay();
-//                    this.cancel();
-//                    return;
-//                }
-//                count--;
-//            }
-//        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+        voteManager.startVote(gameManager.getOnlineParticipants(), votingPool, VOTING_DURATION, this::startingGameDelay);
     }
     
     private void startingGameDelay(GameType gameType) {

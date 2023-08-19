@@ -27,6 +27,7 @@ import java.util.function.Consumer;
 
 public class VoteManager implements Listener {
     
+    private int voteCountDownDuration;
     private final Component TITLE = Component.text("Vote for a Game");
     
     private final GameManager gameManager;
@@ -49,8 +50,9 @@ public class VoteManager implements Listener {
      * @param participants The participants who should vote
      * @param votingPool The games to vote between
      */
-    public void startVote(List<Player> participants, List<GameType> votingPool, Consumer<GameType> executeMethod) {
+    public void startVote(List<Player> participants, List<GameType> votingPool, int duration, Consumer<GameType> executeMethod) {
         this.executeMethod = executeMethod;
+        this.voteCountDownDuration = duration;
         voting = true;
         votes.clear();
         voters.clear();
@@ -67,7 +69,7 @@ public class VoteManager implements Listener {
     
     private void startVoteCountDown() {
         this.voteCountDownTaskId = new BukkitRunnable() {
-            private int count = 60;
+            private int count = voteCountDownDuration;
             @Override
             public void run() {
                 if (count <= 0) {

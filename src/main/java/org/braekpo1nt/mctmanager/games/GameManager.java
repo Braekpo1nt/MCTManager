@@ -240,7 +240,7 @@ public class GameManager implements Listener {
                             .clickEvent(ClickEvent.suggestCommand("/mct team join "))));
             return;
         }
-        voteManager.startVote(onlineParticipants, votingPool, this::startGameWithDelay);
+        voteManager.startVote(onlineParticipants, votingPool, 60, this::startGameWithDelay);
     }
     
     private void updateStartGameDelayFastBoard(Player voter, String gameTitle, String timeString) {
