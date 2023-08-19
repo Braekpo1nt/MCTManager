@@ -10,6 +10,7 @@ import org.braekpo1nt.mctmanager.games.colossalcolosseum.ColossalColosseumGame;
 import org.braekpo1nt.mctmanager.games.enums.GameType;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.voting.VoteManager;
+import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -105,6 +106,10 @@ public class EventManager {
                     }
                     this.cancel();
                     return;
+                }
+                String timeString = "Hub: " + TimeStringUtils.getTimeString(count);
+                for (Player participant : gameManager.getOnlineParticipants()) {
+                    updateTimerFastBoard(participant, timeString);
                 }
                 count--;
             }
@@ -274,6 +279,17 @@ public class EventManager {
         Bukkit.getLogger().info("Called \"finalGameIsOver\" method: " + winningTeamName);
         throw new UnsupportedOperationException("EventManager#finalGameIsOver is not implemented yet");
     }
+    
+    // FastBoard start
+    private void updateTimerFastBoard(Player participant, String time) {
+        gameManager.getFastBoardManager().updateLine(
+                participant.getUniqueId(),
+                1,
+                time
+        );
+    }
+    
+    // FastBoard end
     
     public boolean eventIsActive() {
         return currentState != null;
