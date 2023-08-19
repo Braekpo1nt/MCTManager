@@ -426,11 +426,12 @@ public class GameManager implements Listener {
      * Meant to be called by the active game when the game is over.
      */
     public void gameIsOver() {
-        activeGame = null;
         if (eventManager.eventIsActive()) {
-            eventManager.gameIsOver();
+            eventManager.gameIsOver(activeGame.getType());
+            activeGame = null;
             return;
         }
+        activeGame = null;
         if (!shouldTeleportToHub) {
             shouldTeleportToHub = true;
             return;
