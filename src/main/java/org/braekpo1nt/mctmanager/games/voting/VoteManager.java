@@ -46,9 +46,12 @@ public class VoteManager implements Listener {
     }
     
     /**
-     * Starts a voting phase with the given list of participants using the given voting pool
+     *Starts a voting phase with the given list of participants using the given voting pool
      * @param participants The participants who should vote
      * @param votingPool The games to vote between
+     * @param duration how long (in seconds) the vote should last
+     * @param executeMethod the method to execute when the voting is over (either because the duration
+     *                      is up or all voters have voted
      */
     public void startVote(List<Player> participants, List<GameType> votingPool, int duration, Consumer<GameType> executeMethod) {
         this.executeMethod = executeMethod;
