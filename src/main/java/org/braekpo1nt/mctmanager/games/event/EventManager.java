@@ -28,7 +28,7 @@ public class EventManager {
     private final ColossalColosseumGame colossalColosseumGame;
     private EventState currentState;
     private int maxGames = 6;
-    private int currentGameNumber = 0;
+    private int currentGameNumber = 1;
     private final List<GameType> playedGames = new ArrayList<>();
     // Config stuff
     // Durations in seconds
@@ -163,6 +163,7 @@ public class EventManager {
     public void gameIsOver(GameType finishedGameType) {
         currentState = EventState.DELAY;
         playedGames.add(finishedGameType);
+        currentGameNumber += 1;
         this.backToHubDelayTaskId = new BukkitRunnable() {
             int count = BACK_TO_HUB_DELAY_DURATION;
             @Override
@@ -319,7 +320,7 @@ public class EventManager {
     }
     
     public boolean allGamesHaveBeenPlayed() {
-        return currentGameNumber == maxGames - 1;
+        return currentGameNumber == maxGames;
     }
     
     private void messageAllAdmins(Component message) {
