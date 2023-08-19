@@ -40,8 +40,6 @@ public class EventManager {
     private int backToHubDelayTaskId;
     private int startingGameCountdownTaskId;
     private int halftimeBreakTaskId;
-    private int votingTaskId;
-    
     
     public EventManager(Main plugin, GameManager gameManager, VoteManager voteManager) {
         this.plugin = plugin;
@@ -56,9 +54,24 @@ public class EventManager {
      * @param numberOfGames the number of games to be played in this event
      */
     public void startEvent(CommandSender sender, int numberOfGames) {
+        if (currentState != null) {
+            sender.sendMessage(Component.text("An event is already running.")
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        if (gameManager.getActiveGame() != null) {
+            sender.sendMessage(Component.text("Can't start an event while a game is running.")
+                    .color(NamedTextColor.RED));
+            return;
+        }
         maxGames = numberOfGames;
-        currentGameNumber = 0;
+        currentGameNumber = 1;
         gameManager.clearPlayedGames();
+        messageAllAdmins(Component.text("Starting event. On game ")
+                .append(Component.text(currentGameNumber))
+                .append(Component.text("/"))
+                .append(Component.text(maxGames))
+                .append(Component.text(".")));
         startWaitingInHub();
     }
     
@@ -76,7 +89,6 @@ public class EventManager {
         Bukkit.getScheduler().cancelTask(backToHubDelayTaskId);
         Bukkit.getScheduler().cancelTask(startingGameCountdownTaskId);
         Bukkit.getScheduler().cancelTask(halftimeBreakTaskId);
-        Bukkit.getScheduler().cancelTask(votingTaskId);
     }
     
     private void startWaitingInHub() {
