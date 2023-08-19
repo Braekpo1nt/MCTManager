@@ -96,6 +96,7 @@ public class EventManager {
     
     private void startWaitingInHub() {
         currentState = EventState.WAITING_IN_HUB;
+        gameManager.returnAllParticipantsToHub();
         this.waitingInHubTaskId = new BukkitRunnable() {
             int count = WAITING_IN_HUB_DURATION;
             @Override
@@ -117,6 +118,7 @@ public class EventManager {
     
     private void startHalftimeBreak() {
         currentState = EventState.WAITING_IN_HUB;
+        gameManager.returnAllParticipantsToHub();
         this.halftimeBreakTaskId = new BukkitRunnable() {
             int count = HALFTIME_BREAK_DURATION;
             @Override

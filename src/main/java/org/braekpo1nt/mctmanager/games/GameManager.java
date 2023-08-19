@@ -439,6 +439,10 @@ public class GameManager implements Listener {
         hubManager.returnParticipantsToHubWithDelay(onlineParticipants);
     }
     
+    public void returnAllParticipantsToHub() {
+        hubManager.returnParticipantsToHub(onlineParticipants);
+    }
+    
     //====================================================
     // GameStateStorageUtil accessors and helpers
     //====================================================
