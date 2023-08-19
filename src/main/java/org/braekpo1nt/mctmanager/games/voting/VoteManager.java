@@ -81,7 +81,7 @@ public class VoteManager implements Listener {
                     this.cancel();
                     return;
                 }
-                String timeString = TimeStringUtils.getTimeString(count);
+                String timeString = "Voting: " + TimeStringUtils.getTimeString(count);
                 for (Player participant : voters) {
                     updateVoteTimerFastBoard(participant, timeString);
                 }
@@ -90,12 +90,11 @@ public class VoteManager implements Listener {
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
     }
     
-    private void updateVoteTimerFastBoard(Player participant, String timeString) {
+    private void updateVoteTimerFastBoard(Player participant, String timer) {
         gameManager.getFastBoardManager().updateLines(
                 participant.getUniqueId(),
                 "",
-                "Voting:",
-                timeString
+                timer
         );
     }
     

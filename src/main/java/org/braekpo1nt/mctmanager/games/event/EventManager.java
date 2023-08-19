@@ -12,6 +12,7 @@ import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.voting.VoteManager;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -107,10 +108,7 @@ public class EventManager {
                     this.cancel();
                     return;
                 }
-                String timeString = "Hub: " + TimeStringUtils.getTimeString(count);
-                for (Player participant : gameManager.getOnlineParticipants()) {
-                    updateTimerFastBoard(participant, timeString);
-                }
+                updateTimerFastBoard(TimeStringUtils.getTimeString(count));
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -127,6 +125,7 @@ public class EventManager {
                     this.cancel();
                     return;
                 }
+                updateTimerFastBoard(String.format("%sBreak: %s", ChatColor.YELLOW, TimeStringUtils.getTimeString(count)));
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -151,6 +150,8 @@ public class EventManager {
                     this.cancel();
                     return;
                 }
+                updateTimerFastBoard(String.format("%s: %s", GameType.getTitle(gameType),
+                        TimeStringUtils.getTimeString(count)));
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -171,6 +172,7 @@ public class EventManager {
                     this.cancel();
                     return;
                 }
+                updateTimerFastBoard(String.format("Back to Hub: %s", TimeStringUtils.getTimeString(count)));
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -189,6 +191,7 @@ public class EventManager {
                     this.cancel();
                     return;
                 }
+                updateTimerFastBoard(String.format("Colossal Colosseum: %s", TimeStringUtils.getTimeString(count)));
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -281,6 +284,12 @@ public class EventManager {
     }
     
     // FastBoard start
+    
+    private void updateTimerFastBoard(String time) {
+        for (Player participant : gameManager.getOnlineParticipants()) {
+            updateTimerFastBoard(participant, time);
+        }
+    }
     private void updateTimerFastBoard(Player participant, String time) {
         gameManager.getFastBoardManager().updateLine(
                 participant.getUniqueId(),
