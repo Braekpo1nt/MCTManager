@@ -29,6 +29,7 @@ public class EventManager {
     private EventState currentState;
     private int maxGames = 6;
     private int currentGameNumber = 0;
+    private final List<GameType> playedGames = new ArrayList<>();
     // Config stuff
     // Durations in seconds
     private final int WAITING_IN_HUB_DURATION = 20;
@@ -68,7 +69,7 @@ public class EventManager {
         }
         maxGames = numberOfGames;
         currentGameNumber = 1;
-        gameManager.clearPlayedGames();
+        playedGames.clear();
         messageAllAdmins(Component.text("Starting event. On game ")
                 .append(Component.text(currentGameNumber))
                 .append(Component.text("/"))
@@ -134,7 +135,7 @@ public class EventManager {
     private void startVoting() {
         currentState = EventState.VOTING;
         List<GameType> votingPool = new ArrayList<>(List.of(GameType.values()));
-        votingPool.removeAll(gameManager.getPlayedGames());
+        votingPool.removeAll(playedGames);
         voteManager.startVote(gameManager.getOnlineParticipants(), votingPool, VOTING_DURATION, this::startingGameDelay);
     }
     
@@ -157,8 +158,9 @@ public class EventManager {
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
     }
     
-    public void gameIsOver() {
+    public void gameIsOver(GameType finishedGameType) {
         currentState = EventState.DELAY;
+        playedGames.add(finishedGameType);
         this.backToHubDelayTaskId = new BukkitRunnable() {
             int count = BACK_TO_HUB_DELAY_DURATION;
             @Override
