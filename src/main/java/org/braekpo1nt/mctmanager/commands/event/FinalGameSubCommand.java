@@ -67,7 +67,7 @@ public class FinalGameSubCommand extends CommandManager {
                         .color(NamedTextColor.RED));
                 return true;
             }
-            gameManager.getEventManager().stopColossalColosseum();
+            gameManager.getEventManager().stopColossalColosseum(sender);
             return true;
         });
     }
