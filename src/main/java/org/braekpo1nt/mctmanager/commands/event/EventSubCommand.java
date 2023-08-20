@@ -4,6 +4,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.CommandUtils;
+import org.braekpo1nt.mctmanager.commands.game.FinalGameSubCommand;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.enums.GameType;
 import org.bukkit.command.Command;
@@ -82,6 +83,9 @@ public class EventSubCommand implements TabExecutor {
             case "resume" -> {
                 gameManager.getEventManager().resumeEvent(sender);
             }
+            case "finalgame" -> {
+                new FinalGameSubCommand(gameManager).onCommand(sender, command, label, Arrays.copyOfRange(args, 1, args.length));
+            }
             case "undo" -> {
                 if (args.length != 2) {
                     sender.sendMessage(Component.text("Usage: /mct event undo <game>")
@@ -114,7 +118,7 @@ public class EventSubCommand implements TabExecutor {
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length == 1) {
-            return Arrays.asList("pause", "resume", "start", "stop", "undo");
+            return Arrays.asList("pause", "resume", "start", "stop", "finalgame", "undo");
         }
         return Collections.emptyList();
     }
