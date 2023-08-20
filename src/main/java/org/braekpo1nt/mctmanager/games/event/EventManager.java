@@ -43,6 +43,7 @@ public class EventManager {
     private int backToHubDelayTaskId;
     private int startingGameCountdownTaskId;
     private int halftimeBreakTaskId;
+    private int toPodiumDelayTaskId;
     
     public EventManager(Main plugin, GameManager gameManager, VoteManager voteManager) {
         this.plugin = plugin;
@@ -92,6 +93,7 @@ public class EventManager {
         Bukkit.getScheduler().cancelTask(backToHubDelayTaskId);
         Bukkit.getScheduler().cancelTask(startingGameCountdownTaskId);
         Bukkit.getScheduler().cancelTask(halftimeBreakTaskId);
+        Bukkit.getScheduler().cancelTask(toPodiumDelayTaskId);
     }
     
     private void startWaitingInHub() {
@@ -129,6 +131,23 @@ public class EventManager {
                     return;
                 }
                 updateTimerFastBoard(String.format(ChatColor.YELLOW+"Break: %s", TimeStringUtils.getTimeString(count)));
+                count--;
+            }
+        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+    }
+    
+    private void toPodiumDelay(String winningTeam) {
+        currentState = EventState.DELAY;
+        this.toPodiumDelayTaskId = new BukkitRunnable() {
+            int count = BACK_TO_HUB_DELAY_DURATION;
+            @Override
+            public void run() {
+                if (count <= 0) {
+                    gameManager.returnAllParticipantsToPodium(winningTeam);
+                    this.cancel();
+                    return;
+                }
+                updateTimerFastBoard(String.format("Heading to Podium: %s", TimeStringUtils.getTimeString(count)));
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -300,7 +319,7 @@ public class EventManager {
                 .append(Component.text(" wins MCT #5!"))
                 .color(teamColor)
                 .decorate(TextDecoration.BOLD));
-        
+        toPodiumDelay(winningTeam);
     }
     
     // FastBoard start

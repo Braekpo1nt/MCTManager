@@ -3,8 +3,6 @@ package org.braekpo1nt.mctmanager.hub;
 import com.onarandombox.MultiverseCore.api.MVWorldManager;
 import com.onarandombox.MultiverseCore.utils.AnchorManager;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
@@ -101,7 +99,7 @@ public class HubManager implements Listener {
         initializeParticipant(participant);
     }
     
-    public void sendParticipantsToPedestal(List<Player> winningTeamParticipants, String winningTeam, ChatColor winningChatColor, List<Player> otherParticipants) {
+    public void sendParticipantsToPodium(List<Player> winningTeamParticipants, String winningTeam, ChatColor winningChatColor, List<Player> otherParticipants) {
         headingToHub.addAll(winningTeamParticipants);
         headingToHub.addAll(otherParticipants);
         this.returnToHubTaskId = new BukkitRunnable() {

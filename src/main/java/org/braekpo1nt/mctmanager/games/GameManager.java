@@ -8,7 +8,6 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.clockwork.ClockworkGame;
 import org.braekpo1nt.mctmanager.games.enums.GameType;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
-import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.braekpo1nt.mctmanager.games.capturetheflag.CaptureTheFlagGame;
@@ -441,6 +440,18 @@ public class GameManager implements Listener {
     
     public void returnAllParticipantsToHub() {
         hubManager.returnParticipantsToHub(onlineParticipants);
+    }
+    
+    public void returnAllParticipantsToPodium(String winningTeam) {
+        List<Player> winningTeamParticipants = getOnlinePlayersOnTeam(winningTeam);
+        ChatColor winningTeamChatColor = getTeamChatColor(winningTeam);
+        List<Player> otherParticipants = new ArrayList<>();
+        for (Player participant : getOnlineParticipants()) {
+            if (!winningTeamParticipants.contains(participant)) {
+                otherParticipants.add(participant);
+            }
+        }
+        hubManager.sendParticipantsToPodium(winningTeamParticipants, winningTeam, winningTeamChatColor, otherParticipants);
     }
     
     //====================================================

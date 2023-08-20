@@ -341,7 +341,7 @@ public class EventManager2 {
                     }
                 }
                 currentState = null;
-                hubManager.sendParticipantsToPedestal(winningTeamParticipants, winningTeam, chatColor, otherParticipants);
+                hubManager.sendParticipantsToPodium(winningTeamParticipants, winningTeam, chatColor, otherParticipants);
             }
         }.runTaskLater(plugin, 5*20).getTaskId();
     }
