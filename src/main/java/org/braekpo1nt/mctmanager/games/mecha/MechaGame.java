@@ -28,7 +28,10 @@ import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.hanging.HangingBreakByEntityEvent;
+import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.loot.LootTable;
@@ -343,6 +346,47 @@ public class MechaGame implements MCTGame, Listener {
         }
     }
 
+    /**
+     * Called when:
+     * Right-clicking an armor stand
+     * Right-clicking an item frame (also; onPlayerInteractEntity() )
+     *
+     * Not called when:
+     * Left-clicking an armor stand
+     * Left-clicking an item frame with an item in it
+     * Left-clicking an item frame without an item in it
+     * @param event
+     */
+    @EventHandler
+    public void onPlayerInteractAtEntity(PlayerInteractAtEntityEvent event) {
+        if (!gameActive) {
+            return;
+        }
+        if (!mechaHasStarted) {
+            return;
+        }
+        Player clicker = event.getPlayer();
+        if (!participants.contains(clicker)) {
+            return;
+        }
+        if (event.getRightClicked() instanceof ArmorStand || event.getRightClicked().getType() == EntityType.ITEM_FRAME) {
+            event.setCancelled(true);
+        }
+        Bukkit.getLogger().info("PlayerInteractAtEntityEvent");
+    }
+
+    /**
+     * Called when:
+     * Right-clicking an item frame (also; onPlayerInteractAtEntity() )
+     *
+     * Not called when:
+     * Right-clicking an armor stand
+     * Left-clicking an armor stand
+     * Left-clicking an item frame with an item in it
+     * Left-clicking an item frame without an item in it
+     * @param event
+     */
+
     @EventHandler
     public void onPlayerInteractEntity(PlayerInteractEntityEvent event) {
         if (!gameActive) {
@@ -355,8 +399,69 @@ public class MechaGame implements MCTGame, Listener {
         if (!participants.contains(clicker)) {
             return;
         }
-        if (event.getRightClicked().getType() == EntityType.ARMOR_STAND ||
-                event.getRightClicked().getType() == EntityType.ITEM_FRAME) {
+        if (event.getRightClicked().getType() == EntityType.ITEM_FRAME) {
+            event.setCancelled(true);
+        }
+        Bukkit.getLogger().info("PlayerInteractEntityEvent");
+    }
+
+    /**
+     * Called when:
+     * Left-clicking an armor stand
+     * Left-clicking an item frame with an item in it
+     *
+     * Not called when:
+     * Right-clicking an armor stand
+     * Right-clicking an item frame
+     * Left-clicking an item frame without an item in it
+     * @param event
+     */
+    @EventHandler
+    public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
+        if (!gameActive) {
+            return;
+        }
+        if (!mechaHasStarted) {
+            return;
+        }
+        if (event.getDamager() instanceof Player) {
+
+            Player clicker = (Player) event.getDamager();
+            if (!participants.contains(clicker)) {
+                return;
+            }
+        }
+        if (event.getEntity() instanceof ArmorStand || event.getEntity().getType() == EntityType.ITEM_FRAME) {
+            event.setCancelled(true);
+        }
+        Bukkit.getLogger().info("EntityDamageByEntityEvent");
+    }
+
+    /**
+     * Called when:
+     * Left-clicking an item frame without an item in it
+     *
+     * Not called when:
+     * Right-clicking an armor stand
+     * Left-clicking an armor stand
+     * Right-clicking an item frame
+     * Left-clicking an item frame with an item in it
+     * Left-clicking an item frame without an item in it
+     * @param event
+     */
+    @EventHandler
+    public void onHangingBreakByEntity(HangingBreakByEntityEvent event) {
+        if (!gameActive) {
+            return;
+        }
+        if (!mechaHasStarted) {
+            return;
+        }
+        Player clicker = (Player) event.getRemover();
+        if (!participants.contains(clicker)) {
+            return;
+        }
+        if (event.getEntity().getType() == EntityType.ITEM_FRAME) {
             event.setCancelled(true);
         }
     }
