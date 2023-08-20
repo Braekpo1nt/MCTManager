@@ -216,7 +216,7 @@ public class EventManager {
                 if (count <= 0) {
                     // start selected game
                     currentState = EventState.PLAYING_GAME;
-                    startColossalColosseum();
+                    identifyWinnersAndStartColossalColosseum();
                     this.cancel();
                     return;
                 }
@@ -226,7 +226,7 @@ public class EventManager {
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
     }
     
-    public void startColossalColosseum() {
+    public void identifyWinnersAndStartColossalColosseum() {
         Set<String> allTeams = gameManager.getTeamNames();
         if (allTeams.size() < 2) {
             messageAllAdmins(Component.empty()
