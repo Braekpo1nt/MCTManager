@@ -51,7 +51,8 @@ public class VoteManager implements Listener {
      * @param votingPool The games to vote between
      * @param duration how long (in seconds) the vote should last
      * @param executeMethod the method to execute when the voting is over (either because the duration
-     *                      is up or all voters have voted
+     *                      is up or all voters have voted). It will be passed the voted for
+     *                      GameType.
      */
     public void startVote(List<Player> participants, List<GameType> votingPool, int duration, Consumer<GameType> executeMethod) {
         this.executeMethod = executeMethod;

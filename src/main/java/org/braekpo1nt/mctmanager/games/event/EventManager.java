@@ -128,7 +128,7 @@ public class EventManager {
                     this.cancel();
                     return;
                 }
-                updateTimerFastBoard(String.format("%sBreak: %s", ChatColor.YELLOW, TimeStringUtils.getTimeString(count)));
+                updateTimerFastBoard(String.format(ChatColor.YELLOW+"Break: %s", TimeStringUtils.getTimeString(count)));
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -288,9 +288,19 @@ public class EventManager {
         colossalColosseumGame.start(firstPlaceParticipants, secondPlaceParticipants, spectators);
     }
     
-    public void finalGameIsOver(String winningTeamName) {
-        Bukkit.getLogger().info("Called \"finalGameIsOver\" method: " + winningTeamName);
-        throw new UnsupportedOperationException("EventManager#finalGameIsOver is not implemented yet");
+    /**
+     * Called when Colossal Colosseum is over. If the passed in winningTeam name is null,
+     * nothing happens. Otherwise, this initiates the podium process for the winning team.
+     * @param winningTeam The name of the winning team. If this is null, nothing happens.
+     */
+    public void colossalColosseumIsOver(String winningTeam) {
+        NamedTextColor teamColor = gameManager.getTeamNamedTextColor(winningTeam);
+        Bukkit.getServer().sendMessage(Component.empty()
+                .append(gameManager.getFormattedTeamDisplayName(winningTeam))
+                .append(Component.text(" wins MCT #5!"))
+                .color(teamColor)
+                .decorate(TextDecoration.BOLD));
+        
     }
     
     // FastBoard start

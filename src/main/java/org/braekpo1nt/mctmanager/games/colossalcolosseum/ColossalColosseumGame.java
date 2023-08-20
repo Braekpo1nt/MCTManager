@@ -2,9 +2,6 @@ package org.braekpo1nt.mctmanager.games.colossalcolosseum;
 
 import com.onarandombox.MultiverseCore.api.MVWorldManager;
 import com.onarandombox.MultiverseCore.utils.AnchorManager;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
@@ -138,7 +135,7 @@ public class ColossalColosseumGame implements Listener {
             updateRoundWinFastBoard(participant);
         }
         if (firstPlaceRoundWins >= MAX_ROUND_WINS) {
-            onTeamWinGame(firstTeamName);
+            stop(firstTeamName);
             return;
         }
         currentRoundIndex++;
@@ -157,25 +154,14 @@ public class ColossalColosseumGame implements Listener {
             updateRoundWinFastBoard(participant);
         }
         if (secondPlaceRoundWins >= MAX_ROUND_WINS) {
-            onTeamWinGame(secondTeamName);
+            stop(secondTeamName);
             return;
         }
         currentRoundIndex++;
         this.roundDelayTaskId = Bukkit.getScheduler().runTaskLater(plugin, this::startNextRound, 5*20L).getTaskId();
     }
     
-    private void onTeamWinGame(String winningTeam) {
-        NamedTextColor teamColor = gameManager.getTeamNamedTextColor(winningTeam);
-        Bukkit.getServer().sendMessage(Component.empty()
-                .append(gameManager.getFormattedTeamDisplayName(winningTeam))
-                .append(Component.text(" wins MCT #4!"))
-                .color(teamColor)
-                .decorate(TextDecoration.BOLD));
-        gameManager.getEventManager().finalGameIsOver(winningTeam);
-        Bukkit.getLogger().info(String.format("%s won Colossal Colosseum", winningTeam));
-    }
-    
-    public void stop() {
+    public void stop(String winningTeam) {
         cancelAllTasks();
         HandlerList.unregisterAll(this);
         if (currentRoundIndex < rounds.size()) {
@@ -195,8 +181,8 @@ public class ColossalColosseumGame implements Listener {
             resetParticipant(participant);
         }
         spectators.clear();
-        gameManager.gameIsOver();
-        Bukkit.getLogger().info("Stopping Colossal Colosseum");
+        gameManager.getEventManager().colossalColosseumIsOver(winningTeam);
+        Bukkit.getLogger().info(String.format("%s won Colossal Colosseum. Stopping the game.", winningTeam));
     }
     
     private void resetParticipant(Player participant) {
