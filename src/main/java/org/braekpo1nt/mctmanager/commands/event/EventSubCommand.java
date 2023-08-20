@@ -5,19 +5,8 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.CommandManager;
 import org.braekpo1nt.mctmanager.commands.CommandUtils;
-import org.braekpo1nt.mctmanager.commands.game.FinalGameSubCommand;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.enums.GameType;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabExecutor;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 
 public class EventSubCommand extends CommandManager {
     
