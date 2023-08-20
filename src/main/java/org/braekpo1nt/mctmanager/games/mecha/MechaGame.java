@@ -339,9 +339,13 @@ public class MechaGame implements MCTGame, Listener {
         String winningTeam = getWinningTeam();
         if (winningTeam != null) {
             onTeamWin(winningTeam);
+            gameManager.awardPointsToTeam(winningTeam,500);
+            gameManager.awardPointsToTeam(lastKilledTeam, 350);
+
+
         }
     }
-    
+
     private void onParticipantDeath(Player killed) {
         UUID killedUniqueId = killed.getUniqueId();
         switchPlayerFromLivingToDead(killedUniqueId);
@@ -363,7 +367,7 @@ public class MechaGame implements MCTGame, Listener {
             }
         }
     }
-    
+
     /**
      * Checks if the given team name is all dead
      * @param teamName The team to check
