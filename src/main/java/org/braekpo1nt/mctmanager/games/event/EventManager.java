@@ -275,6 +275,10 @@ public class EventManager {
     }
     
     public void startColossalColosseum(CommandSender sender, String firstPlaceTeamName, String secondPlaceTeamName) {
+        if (colossalColosseumGame.isActive()) {
+            sender.sendMessage(Component.text("Colossal Colosseum is already running").color(NamedTextColor.RED));
+            return;
+        }
         if (firstPlaceTeamName == null || secondPlaceTeamName == null) {
             sender.sendMessage(Component.text("Please specify the first and second place teams.").color(NamedTextColor.RED));
             return;
@@ -307,7 +311,12 @@ public class EventManager {
         colossalColosseumGame.start(firstPlaceParticipants, secondPlaceParticipants, spectators);
     }
     
-    public void stopColossalColosseum() {
+    public void stopColossalColosseum(CommandSender sender) {
+        if (!colossalColosseumGame.isActive()) {
+            sender.sendMessage(Component.text("Colossal Colosseum is not running")
+                    .color(NamedTextColor.RED));
+            return;
+        }
         colossalColosseumGame.stop(null);
     }
     

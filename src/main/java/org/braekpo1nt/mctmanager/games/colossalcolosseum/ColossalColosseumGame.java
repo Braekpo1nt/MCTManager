@@ -38,6 +38,7 @@ public class ColossalColosseumGame implements Listener {
     private String firstTeamName;
     private String secondTeamName;
     private int roundDelayTaskId;
+    private boolean gameIsActive = false;
     
     public ColossalColosseumGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
@@ -85,6 +86,7 @@ public class ColossalColosseumGame implements Listener {
         }
         setupTeamOptions();
         startNextRound();
+        gameIsActive = true;
         Bukkit.getLogger().info("Started Colossal Colosseum");
     }
     
@@ -162,6 +164,7 @@ public class ColossalColosseumGame implements Listener {
     }
     
     public void stop(String winningTeam) {
+        gameIsActive = false;
         cancelAllTasks();
         HandlerList.unregisterAll(this);
         if (currentRoundIndex < rounds.size()) {
@@ -299,5 +302,9 @@ public class ColossalColosseumGame implements Listener {
             team.setOption(Team.Option.DEATH_MESSAGE_VISIBILITY, Team.OptionStatus.ALWAYS);
             team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER);
         }
+    }
+    
+    public boolean isActive() {
+        return gameIsActive;
     }
 }
