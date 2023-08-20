@@ -307,12 +307,19 @@ public class EventManager {
         colossalColosseumGame.start(firstPlaceParticipants, secondPlaceParticipants, spectators);
     }
     
+    public void stopColossalColosseum() {
+        colossalColosseumGame.stop(null);
+    }
+    
     /**
      * Called when Colossal Colosseum is over. If the passed in winningTeam name is null,
      * nothing happens. Otherwise, this initiates the podium process for the winning team.
      * @param winningTeam The name of the winning team. If this is null, nothing happens.
      */
     public void colossalColosseumIsOver(String winningTeam) {
+        if (winningTeam == null) {
+            return;
+        }
         NamedTextColor teamColor = gameManager.getTeamNamedTextColor(winningTeam);
         Bukkit.getServer().sendMessage(Component.empty()
                 .append(gameManager.getFormattedTeamDisplayName(winningTeam))

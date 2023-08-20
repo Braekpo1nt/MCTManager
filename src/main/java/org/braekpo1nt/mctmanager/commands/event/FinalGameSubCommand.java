@@ -63,8 +63,12 @@ public class FinalGameSubCommand extends CommandManager {
         });
         subCommands.put("stop", (sender, command, label, args) -> {
             if (args.length != 0) {
-                
+                sender.sendMessage(Component.text("Usage: /mct event finalgame stop")
+                        .color(NamedTextColor.RED));
+                return true;
             }
+            gameManager.getEventManager().stopColossalColosseum();
+            return true;
         });
     }
     

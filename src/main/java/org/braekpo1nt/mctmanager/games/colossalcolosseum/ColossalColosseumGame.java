@@ -182,7 +182,7 @@ public class ColossalColosseumGame implements Listener {
         }
         spectators.clear();
         gameManager.getEventManager().colossalColosseumIsOver(winningTeam);
-        Bukkit.getLogger().info(String.format("%s won Colossal Colosseum. Stopping the game.", winningTeam));
+        Bukkit.getLogger().info("Stopping Colossal Colosseum");
     }
     
     private void resetParticipant(Player participant) {
