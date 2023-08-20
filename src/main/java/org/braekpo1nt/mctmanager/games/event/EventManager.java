@@ -160,6 +160,11 @@ public class EventManager {
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
     }
     
+    /**
+     * To be called when a game is over. The GameManager knows when a game ends, 
+     * and thus can call this method if an event is running.
+     * @param finishedGameType The GameType of the game that just ended
+     */
     public void gameIsOver(GameType finishedGameType) {
         currentState = EventState.DELAY;
         playedGames.add(finishedGameType);
