@@ -674,8 +674,8 @@ public class GameManager implements Listener {
         String teamName = gameStateStorageUtil.getPlayerTeamName(participantUUID);
         addScore(participantUUID, points);
         addScore(teamName, points);
-//        eventManager.trackPoints(participantUUID, points, activeGame.getType());
-//        eventManager.trackPoints(teamName, points, activeGame.getType());
+        eventManager.trackPoints(participantUUID, points, activeGame.getType());
+        eventManager.trackPoints(teamName, points, activeGame.getType());
         
         participant.sendMessage(Component.text("+")
                 .append(Component.text(points))
@@ -696,7 +696,7 @@ public class GameManager implements Listener {
             return;
         }
         addScore(teamName, points);
-//        eventManager.trackPoints(teamName, points, activeGame.getType());
+        eventManager.trackPoints(teamName, points, activeGame.getType());
         
         Component displayName = getFormattedTeamDisplayName(teamName);
         List<Player> playersOnTeam = getOnlinePlayersOnTeam(teamName);

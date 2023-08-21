@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.games.event;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -32,6 +33,7 @@ public class EventManager {
     private int maxGames = 6;
     private int currentGameNumber = 1;
     private final List<GameType> playedGames = new ArrayList<>();
+    private final Map<GameType, ScoreKeeper> scoreKeepers = new HashMap<>();
     // Config stuff
     // Durations in seconds
     private final int WAITING_IN_HUB_DURATION = 20;
@@ -73,6 +75,7 @@ public class EventManager {
         maxGames = numberOfGames;
         currentGameNumber = 1;
         playedGames.clear();
+        scoreKeepers.clear();
         messageAllAdmins(Component.text("Starting event. On game ")
                 .append(Component.text(currentGameNumber))
                 .append(Component.text("/"))
@@ -162,7 +165,114 @@ public class EventManager {
         gameManager.messageOnlineParticipants(pauseMessage);
     }
     
-    public void undoGame(@NotNull CommandSender sender, @NotNull GameType gameType) {}
+    public void undoGame(@NotNull CommandSender sender, @NotNull GameType gameType) {
+        if (currentState == null) {
+            sender.sendMessage(Component.text("There isn't an event going on.")
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        if (gameManager.getActiveGame() != null && gameManager.getActiveGame().getType().equals(gameType)) {
+            sender.sendMessage(Component.text("Can't undo ")
+                    .append(Component.text(GameType.getTitle(gameType))
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(" because it is in progress"))
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        if (!playedGames.contains(gameType)) {
+            sender.sendMessage(Component.empty()
+                    .append(Component.text("This game has not been played yet."))
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        if (!scoreKeepers.containsKey(gameType)) {
+            sender.sendMessage(Component.empty()
+                    .append(Component.text("No points were tracked for "))
+                    .append(Component.text(GameType.getTitle(gameType))
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text("."))
+                    .color(NamedTextColor.YELLOW));
+            return;
+        }
+        
+        ScoreKeeper scoreKeeper = scoreKeepers.remove(gameType);
+        undoScores(scoreKeeper);
+        Component report = createUndoReport(gameType, scoreKeeper);
+        sender.sendMessage(report);
+        Bukkit.getConsoleSender().sendMessage(report);
+    }
+    
+    /**
+     * Removes the scores that were tracked by the given ScoreKeeper
+     * @param scoreKeeper holds the tracked scores to be removed
+     */
+    private void undoScores(ScoreKeeper scoreKeeper) {
+        Set<String> teamNames = gameManager.getTeamNames();
+        for (String teamName : teamNames) {
+            int teamScoreToSubtract = scoreKeeper.getScore(teamName);
+            int teamCurrentScore = gameManager.getScore(teamName);
+            if (teamCurrentScore - teamScoreToSubtract < 0) {
+                teamScoreToSubtract = teamCurrentScore;
+            }
+            gameManager.addScore(teamName, -teamScoreToSubtract);
+        
+            List<UUID> participantUUIDs = gameManager.getParticipantUUIDsOnTeam(teamName);
+            for (UUID participantUUID : participantUUIDs) {
+                int participantScoreToSubtract = scoreKeeper.getScore(participantUUID);
+                int participantCurrentScore = gameManager.getScore(participantUUID);
+                if (participantCurrentScore - participantScoreToSubtract < 0) {
+                    participantScoreToSubtract = participantCurrentScore;
+                }
+                gameManager.addScore(participantUUID, -participantScoreToSubtract);
+            }
+        }
+    }
+    
+    /**
+     * Creates a report describing the scores associated with the given ScoreKeeper
+     * @param gameType The gameType the ScoreKeeper is associated with
+     * @param scoreKeeper The scorekeeper describing the given scores
+     * @return A component with a report of the ScoreKeeper's scores
+     */
+    @NotNull
+    private Component createUndoReport(@NotNull GameType gameType, @NotNull ScoreKeeper scoreKeeper) {
+        Set<String> teamNames = gameManager.getTeamNames();
+        TextComponent.Builder reportBuilder = Component.text()
+                .append(Component.text("|Scores removed ("))
+                .append(Component.text(GameType.getTitle(gameType))
+                        .decorate(TextDecoration.BOLD))
+                .append(Component.text("):\n"))
+                .color(NamedTextColor.YELLOW);
+        for (String teamName : teamNames) {
+            int teamScoreToSubtract = scoreKeeper.getScore(teamName);
+            NamedTextColor teamColor = gameManager.getTeamNamedTextColor(teamName);
+            Component displayName = gameManager.getFormattedTeamDisplayName(teamName);
+            reportBuilder.append(Component.text("|  - "))
+                    .append(displayName)
+                    .append(Component.text(": "))
+                    .append(Component.text(teamScoreToSubtract)
+                            .color(NamedTextColor.GOLD)
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text("\n"));
+        
+            List<UUID> participantUUIDs = gameManager.getParticipantUUIDsOnTeam(teamName);
+            for (UUID participantUUID : participantUUIDs) {
+                Player participant = Bukkit.getPlayer(participantUUID);
+                if (participant != null) {
+                    int participantScoreToSubtract = scoreKeeper.getScore(participantUUID);
+                    reportBuilder.append(Component.text("|    - "))
+                            .append(Component.text(participant.getName())
+                                    .color(teamColor))
+                            .append(Component.text(": "))
+                            .append(Component.text(participantScoreToSubtract)
+                                    .color(NamedTextColor.GOLD)
+                                    .decorate(TextDecoration.BOLD))
+                            .append(Component.text("\n"));
+                }
+            }
+        }
+        return reportBuilder.build();
+    }
     
     public void cancelAllTasks() {
         Bukkit.getScheduler().cancelTask(waitingInHubTaskId);
@@ -432,6 +542,42 @@ public class EventManager {
                 .color(teamColor)
                 .decorate(TextDecoration.BOLD));
         toPodiumDelay(winningTeam);
+    }
+    
+    /**
+     * Track the points earned for the given team in the given game. 
+     * If the event is not active, nothing happens.
+     * @param teamName The team to track points for
+     * @param points the points to add
+     * @param gameType the game that the points came from
+     */
+    public void trackPoints(String teamName, int points, GameType gameType) {
+        if (currentState == null) {
+            return;
+        }
+        if (!scoreKeepers.containsKey(gameType)) {
+            scoreKeepers.put(gameType, new ScoreKeeper());
+        }
+        ScoreKeeper scoreKeeper = scoreKeepers.get(gameType);
+        scoreKeeper.addPoints(teamName, points);
+    }
+    
+    /**
+     * Track the points earned for the given participant in the given game. 
+     * If the event is not active, nothing happens.
+     * @param participantUUID The participant to track points for
+     * @param points the points to add 
+     * @param gameType the game that the points came from
+     */
+    public void trackPoints(UUID participantUUID, int points, GameType gameType) {
+        if (currentState == null) {
+            return;
+        }
+        if (!scoreKeepers.containsKey(gameType)) {
+            scoreKeepers.put(gameType, new ScoreKeeper());
+        }
+        ScoreKeeper scoreKeeper = scoreKeepers.get(gameType);
+        scoreKeeper.addPoints(participantUUID, points);
     }
     
     // FastBoard start
