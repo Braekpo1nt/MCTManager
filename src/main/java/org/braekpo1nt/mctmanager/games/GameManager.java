@@ -950,7 +950,7 @@ public class GameManager implements Listener {
     }
     
     
-    private void messageOnlineParticipants(Component message) {
+    public void messageOnlineParticipants(Component message) {
         for (Player participant : onlineParticipants) {
             participant.sendMessage(message);
         }

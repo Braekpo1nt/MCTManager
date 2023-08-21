@@ -36,13 +36,19 @@ public class VoteManager implements Listener {
     private final List<Player> voters = new ArrayList<>();
     private boolean voting = false;
     private final Component NETHER_STAR_NAME = Component.text("Vote");
+    private final ItemStack NETHER_STAR;
     private int voteCountDownTaskId;
     private List<GameType> votingPool = new ArrayList<>();
     private Consumer<GameType> executeMethod;
+    private boolean paused = false;
     
     public VoteManager(GameManager gameManager, Main plugin) {
         this.gameManager = gameManager;
         this.plugin = plugin;
+        this.NETHER_STAR = new ItemStack(Material.NETHER_STAR);
+        ItemMeta netherStarMeta = this.NETHER_STAR.getItemMeta();
+        netherStarMeta.displayName(NETHER_STAR_NAME);
+        this.NETHER_STAR.setItemMeta(netherStarMeta);
     }
     
     /**
@@ -58,6 +64,7 @@ public class VoteManager implements Listener {
         this.executeMethod = executeMethod;
         this.voteCountDownDuration = duration;
         voting = true;
+        paused = false;
         votes.clear();
         voters.clear();
         this.votingPool = votingPool;
@@ -76,6 +83,9 @@ public class VoteManager implements Listener {
             private int count = voteCountDownDuration;
             @Override
             public void run() {
+                if (paused) {
+                    return;
+                }
                 if (count <= 0) {
                     messageAllVoters(Component.text("Voting is over"));
                     executeVote();
@@ -169,7 +179,7 @@ public class VoteManager implements Listener {
         }
         participant.closeInventory();
     }
-
+    
     /**
      * Checks if the participant submitted a vote already
      * @param participant the participant to check
@@ -182,7 +192,7 @@ public class VoteManager implements Listener {
         }
         return votes.get(participant.getUniqueId()) != null;
     }
-
+    
     /**
      * Checks if the participant abstained from voting
      * @param participant the participant
@@ -215,14 +225,41 @@ public class VoteManager implements Listener {
             if (participantVoted(participant)) {
                 return;
             }
-            ItemStack netherStar = new ItemStack(Material.NETHER_STAR);
-            ItemMeta netherStarMeta = netherStar.getItemMeta();
-            netherStarMeta.displayName(NETHER_STAR_NAME);
-            netherStar.setItemMeta(netherStarMeta);
-            participant.getInventory().addItem(netherStar);
+            participant.getInventory().addItem(NETHER_STAR);
             participant.sendMessage(Component.text("You didn't vote for a game. Use the nether star to vote.")
-                    .color(NamedTextColor.DARK_RED));
+                    .color(NamedTextColor.YELLOW));
             votes.put(participant.getUniqueId(), null);
+        }
+    }
+    
+    /**
+     * Pauses the vote. If no vote is running, nothing happens. Removes UI from players,
+     * removes nether stars from players, pauses the timer, and retains player votes for resuming.
+     */
+    public void pauseVote() {
+        paused = true;
+        for (Player voter : voters) {
+            voter.closeInventory();
+            voter.getInventory().remove(NETHER_STAR);
+        }
+        messageAllVoters(Component.text("Voting is paused.")
+                .color(NamedTextColor.YELLOW));
+    }
+    
+    /**
+     * Resumes a paused vote. If the vote is not currently paused, nothing happens. Gives the UI
+     * back to players who have not yet voted, resumes the timer, and retains any votes that
+     * occurred before the pause.
+     */
+    public void resumeVote() {
+        if (!paused) {
+            return;
+        }
+        paused = false;
+        for (Player voter : voters) {
+            if (!participantVoted(voter)) {
+                showVoteGui(voter);
+            }
         }
     }
     
@@ -234,6 +271,7 @@ public class VoteManager implements Listener {
             return;
         }
         voting = false;
+        paused = false;
         cancelAllTasks();
         for (Player voter : voters) {
             voter.closeInventory();
@@ -248,6 +286,7 @@ public class VoteManager implements Listener {
     
     private void executeVote() {
         voting = false;
+        paused = false;
         cancelAllTasks();
         for (Player voter : voters) {
             voter.closeInventory();
@@ -272,6 +311,11 @@ public class VoteManager implements Listener {
             return;
         }
         Player participant = event.getPlayer();
+        if (paused) {
+            participant.sendMessage(Component.text("Voting is paused.")
+                    .color(NamedTextColor.YELLOW));
+            return;
+        }
         if (!gameManager.isParticipant(participant.getUniqueId())) {
             return;
         }
@@ -321,6 +365,7 @@ public class VoteManager implements Listener {
         if (participantVoted(participant)) {
             participant.sendMessage(Component.text("You already voted.")
                     .color(NamedTextColor.GREEN));
+            event.setCancelled(true);
             return;
         }
         event.setCancelled(true);

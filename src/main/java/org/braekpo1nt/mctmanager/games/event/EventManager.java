@@ -124,7 +124,19 @@ public class EventManager {
                     .color(NamedTextColor.RED));
             return;
         }
-        throw new UnsupportedOperationException("Pause is not supported");
+        if (currentState == EventState.VOTING) {
+            sender.sendMessage(Component.text("Can't pause the event during voting phase.")
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        currentState = EventState.PAUSED;
+        voteManager.pauseVote();
+        Component pauseMessage = Component.text("The event was paused.")
+                .color(NamedTextColor.YELLOW)
+                .decorate(TextDecoration.BOLD);
+        sender.sendMessage(pauseMessage);
+        messageAllAdmins(pauseMessage);
+        gameManager.messageOnlineParticipants(pauseMessage);
     }
     
     public void resumeEvent(CommandSender sender) {}
@@ -148,6 +160,9 @@ public class EventManager {
             int count = WAITING_IN_HUB_DURATION;
             @Override
             public void run() {
+                if (currentState == EventState.PAUSED) {
+                    return;
+                }
                 if (count <= 0) {
                     if (allGamesHaveBeenPlayed()) {
                         toColossalColosseumDelay();
@@ -170,6 +185,9 @@ public class EventManager {
             int count = HALFTIME_BREAK_DURATION;
             @Override
             public void run() {
+                if (currentState == EventState.PAUSED) {
+                    return;
+                }
                 if (count <= 0) {
                     startVoting();
                     this.cancel();
@@ -187,6 +205,9 @@ public class EventManager {
             int count = BACK_TO_HUB_DELAY_DURATION;
             @Override
             public void run() {
+                if (currentState == EventState.PAUSED) {
+                    return;
+                }
                 if (count <= 0) {
                     gameManager.returnAllParticipantsToPodium(winningTeam);
                     this.cancel();
@@ -211,6 +232,9 @@ public class EventManager {
             int count = STARTING_GAME_COUNT_DOWN_DURATION;
             @Override
             public void run() {
+                if (currentState == EventState.PAUSED) {
+                    return;
+                }
                 if (count <= 0) {
                     currentState = EventState.PLAYING_GAME;
                     gameManager.startGame(gameType, Bukkit.getConsoleSender());
@@ -237,6 +261,9 @@ public class EventManager {
             int count = BACK_TO_HUB_DELAY_DURATION;
             @Override
             public void run() {
+                if (currentState == EventState.PAUSED) {
+                    return;
+                }
                 if (count <= 0) {
                     if (isItHalfTime()) {
                         startHalftimeBreak();
@@ -258,6 +285,9 @@ public class EventManager {
             int count = STARTING_GAME_COUNT_DOWN_DURATION;
             @Override
             public void run() {
+                if (currentState == EventState.PAUSED) {
+                    return;
+                }
                 if (count <= 0) {
                     // start selected game
                     currentState = EventState.PLAYING_GAME;
