@@ -423,6 +423,7 @@ public class GameManager implements Listener {
     
     /**
      * Meant to be called by the active game when the game is over.
+     * If an event is running, calls {@link EventManager#gameIsOver(GameType)}
      */
     public void gameIsOver() {
         if (eventManager.eventIsActive()) {
