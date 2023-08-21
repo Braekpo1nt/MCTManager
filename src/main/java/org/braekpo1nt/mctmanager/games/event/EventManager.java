@@ -17,6 +17,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -79,9 +80,52 @@ public class EventManager {
         startWaitingInHub();
     }
     
-    public void stopEvent(CommandSender sender) {}
+    public void stopEvent(CommandSender sender) {
+        if (currentState == null) {
+            sender.sendMessage(Component.text("There is no event running.")
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        if (currentState == EventState.PLAYING_GAME) {
+            sender.sendMessage(Component.text("Can't stop an event while a game is running.")
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        Component message = Component.text("Ending event. ")
+                .append(Component.text(currentGameNumber - 1))
+                .append(Component.text("/"))
+                .append(Component.text(maxGames))
+                .append(Component.text(" games were played."));
+        sender.sendMessage(message);
+        messageAllAdmins(message);
+        Bukkit.getLogger().info(String.format("Ending event. %d/%d games were played", currentGameNumber - 1, maxGames));
+        if (colossalColosseumGame.isActive()) {
+            colossalColosseumGame.stop(null);
+        }
+        cancelAllTasks();
+        currentState = null;
+        currentGameNumber = 0;
+        maxGames = 6;
+    }
     
-    public void pauseEvent(CommandSender sender) {}
+    public void pauseEvent(CommandSender sender) {
+        if (currentState == null) {
+            sender.sendMessage(Component.text("There is no event running.")
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        if (currentState == EventState.PAUSED) {
+            sender.sendMessage(Component.text("The event is already paused.")
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        if (currentState == EventState.PLAYING_GAME) {
+            sender.sendMessage(Component.text("Can't pause the event during a game.")
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        throw new UnsupportedOperationException("Pause is not supported");
+    }
     
     public void resumeEvent(CommandSender sender) {}
     
@@ -94,6 +138,7 @@ public class EventManager {
         Bukkit.getScheduler().cancelTask(startingGameCountdownTaskId);
         Bukkit.getScheduler().cancelTask(halftimeBreakTaskId);
         Bukkit.getScheduler().cancelTask(toPodiumDelayTaskId);
+        voteManager.cancelVote();
     }
     
     private void startWaitingInHub() {
@@ -325,7 +370,7 @@ public class EventManager {
      * nothing happens. Otherwise, this initiates the podium process for the winning team.
      * @param winningTeam The name of the winning team. If this is null, nothing happens.
      */
-    public void colossalColosseumIsOver(String winningTeam) {
+    public void colossalColosseumIsOver(@Nullable String winningTeam) {
         if (winningTeam == null) {
             return;
         }

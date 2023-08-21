@@ -14,6 +14,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -163,7 +164,7 @@ public class ColossalColosseumGame implements Listener {
         this.roundDelayTaskId = Bukkit.getScheduler().runTaskLater(plugin, this::startNextRound, 5*20L).getTaskId();
     }
     
-    public void stop(String winningTeam) {
+    public void stop(@Nullable String winningTeam) {
         gameIsActive = false;
         cancelAllTasks();
         HandlerList.unregisterAll(this);
