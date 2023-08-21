@@ -28,6 +28,7 @@ public class EventManager {
     private final VoteManager voteManager;
     private final ColossalColosseumGame colossalColosseumGame;
     private EventState currentState;
+    private EventState lastStateBeforePause;
     private int maxGames = 6;
     private int currentGameNumber = 1;
     private final List<GameType> playedGames = new ArrayList<>();
@@ -129,6 +130,7 @@ public class EventManager {
                     .color(NamedTextColor.RED));
             return;
         }
+        lastStateBeforePause = currentState;
         currentState = EventState.PAUSED;
         voteManager.pauseVote();
         Component pauseMessage = Component.text("The event was paused.")
@@ -139,7 +141,26 @@ public class EventManager {
         gameManager.messageOnlineParticipants(pauseMessage);
     }
     
-    public void resumeEvent(CommandSender sender) {}
+    public void resumeEvent(CommandSender sender) {
+        if (currentState == null) {
+            sender.sendMessage(Component.text("There isn't an event going on.")
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        if (currentState != EventState.PAUSED) {
+            sender.sendMessage(Component.text("The event is not paused.")
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        currentState = lastStateBeforePause;
+        voteManager.resumeVote();
+        Component pauseMessage = Component.text("The event was resumed.")
+                .color(NamedTextColor.YELLOW)
+                .decorate(TextDecoration.BOLD);
+        sender.sendMessage(pauseMessage);
+        messageAllAdmins(pauseMessage);
+        gameManager.messageOnlineParticipants(pauseMessage);
+    }
     
     public void undoGame(@NotNull CommandSender sender, @NotNull GameType gameType) {}
     
