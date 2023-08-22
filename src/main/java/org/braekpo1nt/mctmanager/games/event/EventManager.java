@@ -128,11 +128,6 @@ public class EventManager {
                     .color(NamedTextColor.RED));
             return;
         }
-        if (currentState == EventState.VOTING) {
-            sender.sendMessage(Component.text("Can't pause the event during voting phase.")
-                    .color(NamedTextColor.RED));
-            return;
-        }
         lastStateBeforePause = currentState;
         currentState = EventState.PAUSED;
         voteManager.pauseVote();
@@ -303,7 +298,7 @@ public class EventManager {
                     this.cancel();
                     return;
                 }
-                updateTimerFastBoard(TimeStringUtils.getTimeString(count));
+                updateTimerFastBoard(String.format("Vote starts in: %s", TimeStringUtils.getTimeString(count)));
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -612,7 +607,7 @@ public class EventManager {
     }
     
     public boolean allGamesHaveBeenPlayed() {
-        return currentGameNumber == maxGames;
+        return currentGameNumber == maxGames + 1;
     }
     
     private void messageAllAdmins(Component message) {

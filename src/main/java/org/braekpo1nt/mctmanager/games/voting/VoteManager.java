@@ -212,6 +212,9 @@ public class VoteManager implements Listener {
         if (!voting) {
             return;
         }
+        if (paused) {
+            return;
+        }
         if (!event.getView().title().equals(TITLE)) {
             return;
         }
