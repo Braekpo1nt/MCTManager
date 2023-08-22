@@ -362,9 +362,6 @@ public class MechaGame implements MCTGame, Listener {
         if (!gameActive) {
             return;
         }
-        if (!mechaHasStarted) {
-            return;
-        }
         Player clicker = event.getPlayer();
         if (!participants.contains(clicker)) {
             return;
@@ -391,9 +388,6 @@ public class MechaGame implements MCTGame, Listener {
         if (!gameActive) {
             return;
         }
-        if (!mechaHasStarted) {
-            return;
-        }
         Player clicker = event.getPlayer();
         if (!participants.contains(clicker)) {
             return;
@@ -417,9 +411,6 @@ public class MechaGame implements MCTGame, Listener {
     @EventHandler
     public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
         if (!gameActive) {
-            return;
-        }
-        if (!mechaHasStarted) {
             return;
         }
         if (event.getDamager() instanceof Player) {
@@ -449,9 +440,6 @@ public class MechaGame implements MCTGame, Listener {
     @EventHandler
     public void onHangingBreakByEntity(HangingBreakByEntityEvent event) {
         if (!gameActive) {
-            return;
-        }
-        if (!mechaHasStarted) {
             return;
         }
         Player clicker = (Player) event.getRemover();
