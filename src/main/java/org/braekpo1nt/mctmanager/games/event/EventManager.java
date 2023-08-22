@@ -106,6 +106,9 @@ public class EventManager {
         if (colossalColosseumGame.isActive()) {
             colossalColosseumGame.stop(null);
         }
+        for (Player participant : gameManager.getOnlineParticipants()) {
+            hideFastBoard(participant);
+        }
         cancelAllTasks();
         currentState = null;
         currentGameNumber = 0;
@@ -588,6 +591,10 @@ public class EventManager {
                 1,
                 time
         );
+    }
+    
+    private void hideFastBoard(Player participant) {
+        gameManager.getFastBoardManager().updateLines(participant.getUniqueId());
     }
     
     // FastBoard end
