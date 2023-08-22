@@ -127,6 +127,8 @@ public class FootRaceGame implements Listener, MCTGame {
     
     private void resetParticipant(Player participant) {
         participant.getInventory().clear();
+        ParticipantInitializer.clearStatusEffects(participant);
+        ParticipantInitializer.resetHealthAndHunger(participant);
         hideFastBoard(participant);
     }
     

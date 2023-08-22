@@ -3,119 +3,93 @@ package org.braekpo1nt.mctmanager.commands.event;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.braekpo1nt.mctmanager.commands.CommandManager;
 import org.braekpo1nt.mctmanager.commands.CommandUtils;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.enums.GameType;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabExecutor;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
-public class EventSubCommand implements TabExecutor {
-    
-    private final GameManager gameManager;
+public class EventSubCommand extends CommandManager {
     
     public EventSubCommand(GameManager gameManager) {
-        this.gameManager = gameManager;
-    }
-    
-    @Override
-    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (args.length < 1 || args.length > 2) {
-            sender.sendMessage(Component.text("Usage: /mct event <options>")
-                    .color(NamedTextColor.RED));
-            return true;
-        }
-        String argument = args[0];
-        switch (argument) {
-            case "start" -> {
-                int maxGames = 6;
-                if (args.length == 2) {
-                    String maxGamesString = args[1];
-                    if (!CommandUtils.isInteger(maxGamesString)) {
-                        sender.sendMessage(Component.empty()
-                                .append(Component.text(maxGamesString)
-                                        .decorate(TextDecoration.BOLD))
-                                .append(Component.text(" is not an integer"))
-                                .color(NamedTextColor.RED));
-                        return true;
-                    }
-                    maxGames = Integer.parseInt(maxGamesString);
-                }
-                gameManager.startEvent(sender, maxGames);
-            }
-            case "stop" -> {
-                if (!gameManager.eventIsActive()) {
-                    sender.sendMessage(Component.text("There is no event running.")
-                            .color(NamedTextColor.RED));
-                    return true;
-                }
-                if (args.length != 2) {
-                    sender.sendMessage(Component.text("Are you sure? Type ")
-                            .append(Component.empty()
-                                    .append(Component.text("/mct event stop "))
-                                    .append(Component.text("confirm")
-                                            .decorate(TextDecoration.BOLD))
-                                    .decorate(TextDecoration.ITALIC))
-                            .append(Component.text(" to confirm."))
-                            .color(NamedTextColor.YELLOW));
-                    return true;
-                }
-                String confirmString = args[1];
-                if (!confirmString.equals("confirm")) {
-                    sender.sendMessage(Component.empty()
-                                    .append(Component.text(confirmString))
-                                    .append(Component.text(" is not a recognized option."))
-                                    .color(NamedTextColor.RED));
-                    return true;
-                }
-                gameManager.stopEvent(sender);
-            }
-            case "pause" -> {
-                gameManager.pauseEvent(sender);
-            }
-            case "resume" -> {
-                gameManager.resumeEvent(sender);
-            }
-            case "undo" -> {
-                if (args.length != 2) {
-                    sender.sendMessage(Component.text("Usage: /mct event undo <game>")
-                            .color(NamedTextColor.RED));
-                    return true;
-                }
-                String gameID = args[1];
-                GameType gameType = GameType.fromID(gameID);
-                if (gameType == null) {
-                    sender.sendMessage(Component.text(gameID)
-                            .append(Component.text(" is not a valid game"))
-                            .color(NamedTextColor.RED));
-                    return true;
-                }
-                gameManager.undoGame(sender, gameType);
-            }
-            default -> {
-                sender.sendMessage(Component.empty()
-                        .append(Component.text("Unrecognized option "))
-                        .append(Component.text(argument)
-                                .decorate(TextDecoration.BOLD))
-                        .color(NamedTextColor.RED)
-                );
+        subCommands.put("start", (sender, command, label, args) -> {
+            int maxGames = 6;
+            if (args.length != 1) {
+                sender.sendMessage(Component.text("Usage: /mct event start <number of games>")
+                        .color(NamedTextColor.RED));
                 return true;
             }
-        }
-        return true;
+            String maxGamesString = args[0];
+            if (!CommandUtils.isInteger(maxGamesString)) {
+                sender.sendMessage(Component.empty()
+                        .append(Component.text(maxGamesString)
+                                .decorate(TextDecoration.BOLD))
+                        .append(Component.text(" is not an integer"))
+                        .color(NamedTextColor.RED));
+                return true;
+            }
+            maxGames = Integer.parseInt(maxGamesString);
+            gameManager.getEventManager().startEvent(sender, maxGames);
+            return true;
+        });
+        subCommands.put("stop", (sender, command, label, args) -> {
+            if (!gameManager.getEventManager().eventIsActive()) {
+                sender.sendMessage(Component.text("There is no event running.")
+                        .color(NamedTextColor.RED));
+                return true;
+            }
+            if (args.length != 1) {
+                sender.sendMessage(Component.text("Are you sure? Type ")
+                        .append(Component.empty()
+                                .append(Component.text("/mct event stop "))
+                                .append(Component.text("confirm")
+                                        .decorate(TextDecoration.BOLD))
+                                .decorate(TextDecoration.ITALIC))
+                        .append(Component.text(" to confirm."))
+                        .color(NamedTextColor.YELLOW));
+                return true;
+            }
+            String confirmString = args[0];
+            if (!confirmString.equals("confirm")) {
+                sender.sendMessage(Component.empty()
+                        .append(Component.text(confirmString))
+                        .append(Component.text(" is not a recognized option."))
+                        .color(NamedTextColor.RED));
+                return true;
+            }
+            gameManager.getEventManager().stopEvent(sender);
+            return true;
+        });
+        subCommands.put("pause", (sender, command, label, args) -> {
+            gameManager.getEventManager().pauseEvent(sender);
+            return true;
+        });
+        subCommands.put("resume", (sender, command, label, args) -> {
+            gameManager.getEventManager().resumeEvent(sender);
+            return true;
+        });
+        subCommands.put("finalgame", new FinalGameSubCommand(gameManager));
+        subCommands.put("undo", (sender, command, label, args) -> {
+            if (args.length != 1) {
+                sender.sendMessage(Component.text("Usage: /mct event undo <game>")
+                        .color(NamedTextColor.RED));
+                return true;
+            }
+            String gameID = args[0];
+            GameType gameType = GameType.fromID(gameID);
+            if (gameType == null) {
+                sender.sendMessage(Component.text(gameID)
+                        .append(Component.text(" is not a valid game"))
+                        .color(NamedTextColor.RED));
+                return true;
+            }
+            gameManager.getEventManager().undoGame(sender, gameType);
+            return true;
+        });
     }
     
     @Override
-    public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (args.length == 1) {
-            return Arrays.asList("pause", "resume", "start", "stop", "undo");
-        }
-        return Collections.emptyList();
+    public Component getUsageMessage() {
+        return Component.text("Usage: /mct event <options>");
     }
+       
 }

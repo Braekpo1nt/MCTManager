@@ -23,9 +23,11 @@ import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
+import java.util.function.Consumer;
 
 public class VoteManager implements Listener {
     
+    private int voteCountDownDuration;
     private final Component TITLE = Component.text("Vote for a Game");
     
     private final GameManager gameManager;
@@ -34,21 +36,35 @@ public class VoteManager implements Listener {
     private final List<Player> voters = new ArrayList<>();
     private boolean voting = false;
     private final Component NETHER_STAR_NAME = Component.text("Vote");
+    private final ItemStack NETHER_STAR;
     private int voteCountDownTaskId;
     private List<GameType> votingPool = new ArrayList<>();
+    private Consumer<GameType> executeMethod;
+    private boolean paused = false;
     
     public VoteManager(GameManager gameManager, Main plugin) {
         this.gameManager = gameManager;
         this.plugin = plugin;
+        this.NETHER_STAR = new ItemStack(Material.NETHER_STAR);
+        ItemMeta netherStarMeta = this.NETHER_STAR.getItemMeta();
+        netherStarMeta.displayName(NETHER_STAR_NAME);
+        this.NETHER_STAR.setItemMeta(netherStarMeta);
     }
     
     /**
-     * Starts a voting phase with the given list of participants using the given voting pool
+     *Starts a voting phase with the given list of participants using the given voting pool
      * @param participants The participants who should vote
      * @param votingPool The games to vote between
+     * @param duration how long (in seconds) the vote should last
+     * @param executeMethod the method to execute when the voting is over (either because the duration
+     *                      is up or all voters have voted). It will be passed the voted for
+     *                      GameType.
      */
-    public void startVote(List<Player> participants, List<GameType> votingPool) {
+    public void startVote(List<Player> participants, List<GameType> votingPool, int duration, Consumer<GameType> executeMethod) {
+        this.executeMethod = executeMethod;
+        this.voteCountDownDuration = duration;
         voting = true;
+        paused = false;
         votes.clear();
         voters.clear();
         this.votingPool = votingPool;
@@ -64,16 +80,19 @@ public class VoteManager implements Listener {
     
     private void startVoteCountDown() {
         this.voteCountDownTaskId = new BukkitRunnable() {
-            private int count = 60;
+            private int count = voteCountDownDuration;
             @Override
             public void run() {
+                if (paused) {
+                    return;
+                }
                 if (count <= 0) {
                     messageAllVoters(Component.text("Voting is over"));
                     executeVote();
                     this.cancel();
                     return;
                 }
-                String timeString = TimeStringUtils.getTimeString(count);
+                String timeString = "Voting: " + TimeStringUtils.getTimeString(count);
                 for (Player participant : voters) {
                     updateVoteTimerFastBoard(participant, timeString);
                 }
@@ -82,12 +101,11 @@ public class VoteManager implements Listener {
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
     }
     
-    private void updateVoteTimerFastBoard(Player participant, String timeString) {
+    private void updateVoteTimerFastBoard(Player participant, String timer) {
         gameManager.getFastBoardManager().updateLines(
                 participant.getUniqueId(),
                 "",
-                "Voting:",
-                timeString
+                timer
         );
     }
     
@@ -121,9 +139,6 @@ public class VoteManager implements Listener {
             participant.sendMessage(Component.text("You already voted.")
                     .color(NamedTextColor.GREEN));
             return;
-        }
-        if (participantAbstained(participant)) {
-            votes.remove(participant.getUniqueId());
         }
         Material clickedItem = event.getCurrentItem().getType();
         switch (clickedItem) {
@@ -161,37 +176,22 @@ public class VoteManager implements Listener {
         }
         participant.closeInventory();
     }
-
+    
     /**
      * Checks if the participant submitted a vote already
      * @param participant the participant to check
      * @return True of the participant voted, false if they haven't yet
-     * or if they have abstained (see {@link VoteManager#participantAbstained(Player)})
      */
     private boolean participantVoted(Player participant) {
-        if (!votes.containsKey(participant.getUniqueId())) {
-            return false;
-        }
-        return votes.get(participant.getUniqueId()) != null;
-    }
-
-    /**
-     * Checks if the participant abstained from voting
-     * @param participant the participant
-     * @return True if the participant abstained from voting,
-     * false if they voted or didn't vote or abstain yet (i.e. still
-     * in the voting gui)
-     */
-    private boolean participantAbstained(Player participant) {
-        if (!votes.containsKey(participant.getUniqueId())) {
-            return false;
-        }
-        return votes.get(participant.getUniqueId()) == null;
+        return votes.containsKey(participant.getUniqueId());
     }
     
     @EventHandler
     private void onCloseMenu(InventoryCloseEvent event) {
         if (!voting) {
+            return;
+        }
+        if (paused) {
             return;
         }
         if (!event.getView().title().equals(TITLE)) {
@@ -207,14 +207,40 @@ public class VoteManager implements Listener {
             if (participantVoted(participant)) {
                 return;
             }
-            ItemStack netherStar = new ItemStack(Material.NETHER_STAR);
-            ItemMeta netherStarMeta = netherStar.getItemMeta();
-            netherStarMeta.displayName(NETHER_STAR_NAME);
-            netherStar.setItemMeta(netherStarMeta);
-            participant.getInventory().addItem(netherStar);
+            participant.getInventory().addItem(NETHER_STAR);
             participant.sendMessage(Component.text("You didn't vote for a game. Use the nether star to vote.")
-                    .color(NamedTextColor.DARK_RED));
-            votes.put(participant.getUniqueId(), null);
+                    .color(NamedTextColor.YELLOW));
+        }
+    }
+    
+    /**
+     * Pauses the vote. If no vote is running, nothing happens. Removes UI from players,
+     * removes nether stars from players, pauses the timer, and retains player votes for resuming.
+     */
+    public void pauseVote() {
+        paused = true;
+        for (Player voter : voters) {
+            voter.closeInventory();
+            voter.getInventory().remove(NETHER_STAR);
+        }
+        messageAllVoters(Component.text("Voting is paused.")
+                .color(NamedTextColor.YELLOW));
+    }
+    
+    /**
+     * Resumes a paused vote. If the vote is not currently paused, nothing happens. Gives the UI
+     * back to players who have not yet voted, resumes the timer, and retains any votes that
+     * occurred before the pause.
+     */
+    public void resumeVote() {
+        if (!paused) {
+            return;
+        }
+        paused = false;
+        for (Player voter : voters) {
+            if (!participantVoted(voter)) {
+                showVoteGui(voter);
+            }
         }
     }
     
@@ -226,6 +252,7 @@ public class VoteManager implements Listener {
             return;
         }
         voting = false;
+        paused = false;
         cancelAllTasks();
         for (Player voter : voters) {
             voter.closeInventory();
@@ -240,17 +267,19 @@ public class VoteManager implements Listener {
     
     private void executeVote() {
         voting = false;
+        paused = false;
         cancelAllTasks();
         for (Player voter : voters) {
             voter.closeInventory();
             voter.getInventory().clear();
             hideFastBoard(voter);
         }
-        GameType mctGame = getVotedForGame();
+        GameType gameType = getVotedForGame();
         HandlerList.unregisterAll(this);
         votes.clear();
         voters.clear();
-        gameManager.startGameWithDelay(mctGame, Bukkit.getConsoleSender());
+//        gameManager.startGameWithDelay(gameType);
+        executeMethod.accept(gameType);
     }
     
     private void cancelAllTasks() {
@@ -263,6 +292,11 @@ public class VoteManager implements Listener {
             return;
         }
         Player participant = event.getPlayer();
+        if (paused) {
+            participant.sendMessage(Component.text("Voting is paused.")
+                    .color(NamedTextColor.YELLOW));
+            return;
+        }
         if (!gameManager.isParticipant(participant.getUniqueId())) {
             return;
         }
@@ -312,6 +346,7 @@ public class VoteManager implements Listener {
         if (participantVoted(participant)) {
             participant.sendMessage(Component.text("You already voted.")
                     .color(NamedTextColor.GREEN));
+            event.setCancelled(true);
             return;
         }
         event.setCancelled(true);
@@ -326,19 +361,12 @@ public class VoteManager implements Listener {
             int randomGameIndex = random.nextInt(votingPool.size());
             return votingPool.get(randomGameIndex);
         }
-    
+        
         Map<GameType, Integer> voteCount = new HashMap<>();
         // Count the number of occurrences of each string in the list
         for (GameType vote : votes.values()) {
-            if (vote != null) {
-                int count = voteCount.getOrDefault(vote, 0);
-                voteCount.put(vote, count + 1);
-            }
-        }
-        
-        if (voteCount.isEmpty()) {
-            int randomGameIndex = random.nextInt(votingPool.size());
-            return votingPool.get(randomGameIndex);
+            int count = voteCount.getOrDefault(vote, 0);
+            voteCount.put(vote, count + 1);
         }
         
         // Find the maximum number of occurrences
@@ -348,7 +376,7 @@ public class VoteManager implements Listener {
                 maxCount = count;
             }
         }
-    
+        
         // Get all strings with the maximum number of occurrences
         List<GameType> winners = new ArrayList<>();
         for (Map.Entry<GameType, Integer> entry : voteCount.entrySet()) {
@@ -364,7 +392,7 @@ public class VoteManager implements Listener {
     
     private boolean allPlayersHaveVoted() {
         for (Player participant : voters) {
-            if (!participantVoted(participant) && !participantAbstained(participant)) {
+            if (!participantVoted(participant)) {
                 return false;
             }
         }

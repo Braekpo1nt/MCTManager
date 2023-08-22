@@ -12,18 +12,28 @@ import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.mecha.config.MechaStorageUtil;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.NamespacedKey;
+import org.bukkit.Material;
+import org.bukkit.GameMode;
+import org.bukkit.ChatColor;
+import org.bukkit.Location;
+import org.bukkit.World;
+import org.bukkit.WorldBorder;
 import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
 import org.bukkit.block.structure.Mirror;
 import org.bukkit.block.structure.StructureRotation;
-import org.bukkit.entity.Item;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.inventory.InventoryHolder;
+import org.bukkit.event.hanging.HangingBreakByEntityEvent;
+import org.bukkit.event.player.PlayerInteractAtEntityEvent;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.loot.LootTable;
 import org.bukkit.potion.PotionEffect;
@@ -359,7 +369,112 @@ public class MechaGame implements MCTGame, Listener {
             onTeamWin(winningTeam);
         }
     }
-    
+
+    /**
+     * Called when:
+     * Right-clicking an armor stand
+     * Right-clicking an item frame (also; onPlayerInteractEntity() )
+     *
+     * Not called when:
+     * Left-clicking an armor stand
+     * Left-clicking an item frame with an item in it
+     * Left-clicking an item frame without an item in it
+     * @param event
+     */
+    @EventHandler
+    public void onPlayerInteractAtEntity(PlayerInteractAtEntityEvent event) {
+        if (!gameActive) {
+            return;
+        }
+        Player clicker = event.getPlayer();
+        if (!participants.contains(clicker)) {
+            return;
+        }
+        if (event.getRightClicked() instanceof ArmorStand || event.getRightClicked().getType() == EntityType.ITEM_FRAME || event.getRightClicked().getType() == EntityType.GLOW_ITEM_FRAME) {
+            event.setCancelled(true);
+        }
+    }
+
+    /**
+     * Called when:
+     * Right-clicking an item frame (also; onPlayerInteractAtEntity() )
+     *
+     * Not called when:
+     * Right-clicking an armor stand
+     * Left-clicking an armor stand
+     * Left-clicking an item frame with an item in it
+     * Left-clicking an item frame without an item in it
+     * @param event
+     */
+
+    @EventHandler
+    public void onPlayerInteractEntity(PlayerInteractEntityEvent event) {
+        if (!gameActive) {
+            return;
+        }
+        Player clicker = event.getPlayer();
+        if (!participants.contains(clicker)) {
+            return;
+        }
+        if (event.getRightClicked().getType() == EntityType.ITEM_FRAME || event.getRightClicked().getType() == EntityType.GLOW_ITEM_FRAME) {
+            event.setCancelled(true);
+        }
+    }
+
+    /**
+     * Called when:
+     * Left-clicking an armor stand
+     * Left-clicking an item frame with an item in it
+     *
+     * Not called when:
+     * Right-clicking an armor stand
+     * Right-clicking an item frame
+     * Left-clicking an item frame without an item in it
+     * @param event
+     */
+    @EventHandler
+    public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
+        if (!gameActive) {
+            return;
+        }
+        if (event.getDamager() instanceof Player) {
+
+            Player clicker = (Player) event.getDamager();
+            if (!participants.contains(clicker)) {
+                return;
+            }
+        }
+        if (event.getEntity() instanceof ArmorStand || event.getEntity().getType() == EntityType.ITEM_FRAME || event.getEntity().getType() == EntityType.GLOW_ITEM_FRAME) {
+            event.setCancelled(true);
+        }
+    }
+
+    /**
+     * Called when:
+     * Left-clicking an item frame without an item in it
+     *
+     * Not called when:
+     * Right-clicking an armor stand
+     * Left-clicking an armor stand
+     * Right-clicking an item frame
+     * Left-clicking an item frame with an item in it
+     * Left-clicking an item frame without an item in it
+     * @param event
+     */
+    @EventHandler
+    public void onHangingBreakByEntity(HangingBreakByEntityEvent event) {
+        if (!gameActive) {
+            return;
+        }
+        Player clicker = (Player) event.getRemover();
+        if (!participants.contains(clicker)) {
+            return;
+        }
+        if (event.getEntity().getType() == EntityType.ITEM_FRAME || event.getEntity().getType() == EntityType.GLOW_ITEM_FRAME) {
+            event.setCancelled(true);
+        }
+    }
+
     private void onParticipantDeath(Player killed) {
         UUID killedUniqueId = killed.getUniqueId();
         switchPlayerFromLivingToDead(killedUniqueId);

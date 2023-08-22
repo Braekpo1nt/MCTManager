@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class FastBoardManager {
     
-    protected final String EVENT_TITLE = ChatColor.BOLD + "" + ChatColor.DARK_RED + "MCT #4";
+    protected final String EVENT_TITLE = ChatColor.BOLD + "" + ChatColor.DARK_RED + "MCT #5";
     protected final ConcurrentHashMap<UUID, FastBoardWrapper> boards = new ConcurrentHashMap<>();
     /**
      * Used to store for each user which header type to show. See {@link HeaderType} 
@@ -84,7 +84,7 @@ public class FastBoardManager {
     
     protected List<String> sortTeamNames(Set<String> teamNames) {
         List<String> sortedTeamNames = new ArrayList<>(teamNames);
-        sortedTeamNames.sort(Comparator.comparing(teamName -> gameStateStorageUtil.getTeamScore(teamName)));
+        sortedTeamNames.sort(Comparator.comparing(teamName -> gameStateStorageUtil.getTeamScore(teamName), Comparator.reverseOrder()));
         return sortedTeamNames;
     }
     
