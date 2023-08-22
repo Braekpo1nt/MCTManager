@@ -90,11 +90,6 @@ public class EventManager {
                     .color(NamedTextColor.RED));
             return;
         }
-        if (currentState == EventState.PLAYING_GAME) {
-            sender.sendMessage(Component.text("Can't stop an event while a game is running.")
-                    .color(NamedTextColor.RED));
-            return;
-        }
         Component message = Component.text("Ending event. ")
                 .append(Component.text(currentGameNumber - 1))
                 .append(Component.text("/"))
@@ -301,7 +296,11 @@ public class EventManager {
                     this.cancel();
                     return;
                 }
-                updateTimerFastBoard(String.format("Vote starts in: %s", TimeStringUtils.getTimeString(count)));
+                if (!allGamesHaveBeenPlayed()) {
+                    updateTimerFastBoard(String.format("Vote starts in: %s", TimeStringUtils.getTimeString(count)));
+                } else {
+                    updateTimerFastBoard(String.format("Final round: %s", TimeStringUtils.getTimeString(count)));
+                }
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -522,6 +521,7 @@ public class EventManager {
             return;
         }
         colossalColosseumGame.stop(null);
+        startWaitingInHub();
     }
     
     /**
@@ -540,6 +540,7 @@ public class EventManager {
                 .color(teamColor)
                 .decorate(TextDecoration.BOLD));
         toPodiumDelay(winningTeam);
+        stopEvent(Bukkit.getConsoleSender());
     }
     
     /**
