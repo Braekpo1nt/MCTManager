@@ -74,7 +74,6 @@ public class GameManager implements Listener {
     private final List<Player> onlineParticipants = new ArrayList<>();
     private final List<Player> onlineAdmins = new ArrayList<>();
     private int startGameWithDelayTaskId;
-    private boolean startingGameWithDelay;
     
     public GameManager(Main plugin, Scoreboard mctScoreboard) {
         this.plugin = plugin;
@@ -276,30 +275,8 @@ public class GameManager implements Listener {
         return eventManager;
     }
     
-    public void addPlayedGame(GameType gameType) {
-        try {
-            gameStateStorageUtil.addPlayedGame(gameType);
-        } catch (IOException e) {
-            reportGameStateIOException("save a played game", e);
-            throw new RuntimeException(e);
-        }
-    }
-    
-    public boolean isStartingGameWithDelay() {
-        return startingGameWithDelay;
-    }
-    
-    public void clearPlayedGames() {
-        try {
-            gameStateStorageUtil.clearPlayedGames();
-        } catch (IOException e) {
-            reportGameStateIOException("clear played games", e);
-            throw new RuntimeException(e);
-        }
-    }
-    
-    public List<GameType> getPlayedGames() {
-        return gameStateStorageUtil.getPlayedGames();
+    public void removeOnlineParticipantsFromHub() {
+        hubManager.removeParticipantsFromHub(onlineParticipants);
     }
     
     public void startGameWithDelay(GameType mctGame) {
@@ -309,14 +286,12 @@ public class GameManager implements Listener {
                         .decorate(TextDecoration.BOLD))
                 .append(Component.text(" was selected"))
                 .color(NamedTextColor.BLUE));
-        startingGameWithDelay = true;
         this.startGameWithDelayTaskId = new BukkitRunnable() {
             int count = 5;
             @Override
             public void run() {
                 if (count <= 0) {
                     startGame(mctGame, Bukkit.getConsoleSender());
-                    startingGameWithDelay = false;
                     this.cancel();
                     return;
                 }

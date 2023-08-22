@@ -90,6 +90,7 @@ public class EventManager {
                     .color(NamedTextColor.RED));
             return;
         }
+        currentState = null;
         Component message = Component.text("Ending event. ")
                 .append(Component.text(currentGameNumber - 1))
                 .append(Component.text("/"))
@@ -105,8 +106,7 @@ public class EventManager {
             hideFastBoard(participant);
         }
         cancelAllTasks();
-        currentState = null;
-        currentGameNumber = 0;
+        currentGameNumber = 1;
         maxGames = 6;
     }
     
@@ -338,6 +338,7 @@ public class EventManager {
                 }
                 if (count <= 0) {
                     gameManager.returnAllParticipantsToPodium(winningTeam);
+                    stopEvent(Bukkit.getConsoleSender());
                     this.cancel();
                     return;
                 }
@@ -478,6 +479,7 @@ public class EventManager {
     }
     
     public void startColossalColosseum(CommandSender sender, String firstPlaceTeamName, String secondPlaceTeamName) {
+        gameManager.removeOnlineParticipantsFromHub();
         if (colossalColosseumGame.isActive()) {
             sender.sendMessage(Component.text("Colossal Colosseum is already running").color(NamedTextColor.RED));
             return;
@@ -521,7 +523,6 @@ public class EventManager {
             return;
         }
         colossalColosseumGame.stop(null);
-        startWaitingInHub();
     }
     
     /**
@@ -531,6 +532,9 @@ public class EventManager {
      */
     public void colossalColosseumIsOver(@Nullable String winningTeam) {
         if (winningTeam == null) {
+            if (currentState != null) {
+                startWaitingInHub();
+            }
             return;
         }
         NamedTextColor teamColor = gameManager.getTeamNamedTextColor(winningTeam);
@@ -540,7 +544,6 @@ public class EventManager {
                 .color(teamColor)
                 .decorate(TextDecoration.BOLD));
         toPodiumDelay(winningTeam);
-        stopEvent(Bukkit.getConsoleSender());
     }
     
     /**
@@ -610,12 +613,15 @@ public class EventManager {
      * If maxGames is odd, it must be the greater half (i.e. 2 is half of 3, 1 is not). 
      */
     public boolean isItHalfTime() {
+        if (maxGames == 1) {
+            return false;
+        }
         double half = maxGames / 2.0;
         return half <= currentGameNumber-1 && currentGameNumber-1 <= Math.ceil(half);
     }
     
     public boolean allGamesHaveBeenPlayed() {
-        return currentGameNumber == maxGames + 1;
+        return currentGameNumber >= maxGames + 1;
     }
     
     private void messageAllAdmins(Component message) {
