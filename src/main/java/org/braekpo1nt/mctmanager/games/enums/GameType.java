@@ -25,7 +25,7 @@ public enum GameType {
         TITLES = Map.of(
                 GameType.FOOT_RACE, "Foot Race", 
                 GameType.MECHA, "MECHA", 
-                GameType.CAPTURE_THE_FLAG, "Capture the Flag\"", 
+                GameType.CAPTURE_THE_FLAG, "Capture the Flag", 
                 GameType.SPLEEF, "Spleef", 
                 GameType.PARKOUR_PATHWAY, "Parkour Pathway", 
                 GameType.CLOCKWORK, "Clockwork");
