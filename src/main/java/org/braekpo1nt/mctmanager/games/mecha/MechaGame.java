@@ -23,6 +23,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.loot.LootTable;
 import org.bukkit.potion.PotionEffect;
@@ -133,6 +134,7 @@ public class MechaGame implements MCTGame, Listener {
         clearFloorItems();
         placePlatforms();
         clearAllChests();
+        clearContainers();
         lastKilledTeam = null;
         worldBorder.reset();
         for (Player participant : participants) {
@@ -149,7 +151,23 @@ public class MechaGame implements MCTGame, Listener {
         participant.getInventory().clear();
         hideFastBoard(participant);
     }
-    
+
+    public void clearContainers() {
+        Location location1 = new Location(mechaWorld,-175, -64, -175); // bounding box of mechaWorld is not dynamic.
+                                                                                // Should be pulled from mecha config file in future. -rstln
+        Location location2 = new Location(mechaWorld, 200, 255, 150);
+        for (int x = location1.getBlockX(); x <= location2.getBlockX(); x++) {
+            for (int y = location1.getBlockY(); y <= location2.getBlockY(); y++) {
+                for (int z = location1.getBlockZ(); z <= location2.getBlockZ(); z++) {
+                    Block block = mechaWorld.getBlockAt(x, y, z);
+                    if (block.getState() instanceof InventoryHolder) {
+                        ((InventoryHolder) block.getState()).getInventory().clear();
+                    }
+                }
+            }
+        }
+    }
+
     @Override
     public void onParticipantJoin(Player participant) {
         if (participantShouldRejoin(participant)) {
