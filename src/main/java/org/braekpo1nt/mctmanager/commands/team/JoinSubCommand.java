@@ -56,7 +56,7 @@ public class JoinSubCommand implements TabExecutor {
         gameManager.joinPlayerToTeam(playerToJoin, teamName);
         sender.sendMessage(Component.text("Joined ")
                 .append(Component.text(playerName))
-                .append(Component.text("to team "))
+                .append(Component.text(" to team "))
                 .append(Component.text(teamName)));
         return true;
     }

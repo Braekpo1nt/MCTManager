@@ -67,7 +67,26 @@ public class CaptureTheFlagMatch implements Listener {
     private Material northBanner;
     private Material southBanner;
     private final World captureTheFlagWorld;
-    
+    private static final Map<BlockFace, Float> DIRECTION_YAW_MAP = new HashMap<>();
+
+    static {
+        DIRECTION_YAW_MAP.put(BlockFace.SOUTH, 0.0f);
+        DIRECTION_YAW_MAP.put(BlockFace.SOUTH_SOUTH_WEST, 22.5f);
+        DIRECTION_YAW_MAP.put(BlockFace.SOUTH_WEST, 45.0f);
+        DIRECTION_YAW_MAP.put(BlockFace.WEST_SOUTH_WEST, 67.5f);
+        DIRECTION_YAW_MAP.put(BlockFace.WEST, 90.0f);
+        DIRECTION_YAW_MAP.put(BlockFace.WEST_NORTH_WEST, 112.5f);
+        DIRECTION_YAW_MAP.put(BlockFace.NORTH_WEST, 135.0f);
+        DIRECTION_YAW_MAP.put(BlockFace.NORTH_NORTH_WEST, 157.5f);
+        DIRECTION_YAW_MAP.put(BlockFace.NORTH, 180.0f);
+        DIRECTION_YAW_MAP.put(BlockFace.NORTH_NORTH_EAST, -157.5f);
+        DIRECTION_YAW_MAP.put(BlockFace.NORTH_EAST, -135.0f);
+        DIRECTION_YAW_MAP.put(BlockFace.EAST_NORTH_EAST, -112.5f);
+        DIRECTION_YAW_MAP.put(BlockFace.EAST, -90.0f);
+        DIRECTION_YAW_MAP.put(BlockFace.EAST_SOUTH_EAST, -67.5f);
+        DIRECTION_YAW_MAP.put(BlockFace.SOUTH_EAST, -45.0f);
+        DIRECTION_YAW_MAP.put(BlockFace.SOUTH_SOUTH_EAST, -22.5f);
+    }
     public CaptureTheFlagMatch(CaptureTheFlagRound captureTheFlagRound, Main plugin, 
                                GameManager gameManager, MatchPairing matchPairing, Arena arena, 
                                Location spawnObservatory, World captureTheFlagWorld) {
@@ -537,7 +556,7 @@ public class CaptureTheFlagMatch implements Listener {
     
     /**
      * Places the provided flag type at the given location facing the given direction
-     * @param flagBlock
+     * @param flagLocation
      * @param facing
      * @param flagType
      */
@@ -545,11 +564,37 @@ public class CaptureTheFlagMatch implements Listener {
         Block flagBlock = flagLocation.getBlock();
         flagBlock.setType(flagType);
         if (flagBlock.getBlockData() instanceof Rotatable flagData) {
-            flagData.setRotation(facing);
+            // Find the closest matching direction -rstln
+            BlockFace closestDirection = getClosestDirection(facing);
+            flagData.setRotation(closestDirection);
             flagBlock.setBlockData(flagData);
         }
     }
-    
+
+    private BlockFace getClosestDirection(BlockFace facing) {
+        BlockFace[] availableDirections = BlockFace.values();
+
+        // Find the closest matching direction
+        BlockFace closestDirection = availableDirections[0];
+        double closestAngle = Double.MAX_VALUE;
+        double facingYaw = getYawFromBlockFace(facing);
+
+        for (BlockFace direction : availableDirections) {
+            double angle = Math.abs(facingYaw - getYawFromBlockFace(direction));
+            if (angle < closestAngle) {
+                closestAngle = angle;
+                closestDirection = direction;
+            }
+        }
+
+        return closestDirection;
+    }
+
+    public float getYawFromBlockFace(BlockFace direction) {
+        Float yaw = DIRECTION_YAW_MAP.get(direction);
+        return yaw != null ? yaw : 0.0f;
+    }
+
     private void onSouthParticipantMove(Player southParticipant) {
         Location location = southParticipant.getLocation();
         if (canPickUpNorthFlag(location)) {
