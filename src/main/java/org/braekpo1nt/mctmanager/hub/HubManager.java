@@ -3,12 +3,9 @@ package org.braekpo1nt.mctmanager.hub;
 import com.onarandombox.MultiverseCore.api.MVWorldManager;
 import com.onarandombox.MultiverseCore.utils.AnchorManager;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
-import org.braekpo1nt.mctmanager.ui.FastBoardManager;
 import org.braekpo1nt.mctmanager.ui.HeaderType;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.bukkit.*;
@@ -27,7 +24,6 @@ import org.bukkit.scoreboard.Team;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 public class HubManager implements Listener {
     
@@ -40,7 +36,6 @@ public class HubManager implements Listener {
     private final Scoreboard mctScoreboard;
     private final GameManager gameManager;
     private int returnToHubTaskId;
-    private int fiveMinuteBreakTaskId;
     private final Location observePedestalLocation;
     private final Location pedestalLocation;
     /**
@@ -52,8 +47,6 @@ public class HubManager implements Listener {
      * A list of the participants who are in the hub
      */
     private final List<Player> participants = new ArrayList<>();
-    private int hubTimerTaskId;
-    private boolean hubTimerPaused = false;
     
     public HubManager(Main plugin, Scoreboard mctScoreboard, GameManager gameManager) {
         this.plugin = plugin;
@@ -89,93 +82,6 @@ public class HubManager implements Listener {
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
     }
     
-    public void pauseHubTimer() {
-        hubTimerPaused = true;
-    }
-    
-    public void resumeHubTimer() {
-        hubTimerPaused = false;
-    }
-    
-    private void kickOffHubTimer() {
-        hubTimerPaused = false;
-        String currentGameString = createCurrentGameString();
-        for (Player participant : participants) {
-            initializeHubTimerDisplay(participant, currentGameString);
-        }
-        this.hubTimerTaskId = new BukkitRunnable() {
-            int count = 20;
-            @Override
-            public void run() {
-                if (hubTimerPaused) {
-                    return;
-                }
-                if (count <= 0) {
-                    gameManager.startVote();
-                    this.cancel();
-                    return;
-                }
-                String timeString = TimeStringUtils.getTimeString(count);
-                for (Player participant : participants) {
-                    updateHubTimerDisplay(participant, timeString);
-                }
-                count--;
-            }
-        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
-    }
-    
-    private String createCurrentGameString() {
-        int currentGameNumber = gameManager.getCurrentGameNumber();
-        int maxGames = gameManager.getMaxGames();
-        String currentGameString = String.format("%d/%d", currentGameNumber, maxGames);
-        return "Game "+currentGameString;
-    }
-    
-    private void kickOff5MinuteBreak() {
-        hubTimerPaused = false;
-        String currentGameString = createCurrentGameString();
-        for (Player participant : participants) {
-            initializeFiveMinuteBreakDisplay(participant, currentGameString);
-        }
-        messageAllParticipants(Component.text("Break time")
-                .decorate(TextDecoration.BOLD)
-                .color(NamedTextColor.YELLOW));
-        this.fiveMinuteBreakTaskId = new BukkitRunnable() {
-            int count = 60*5;
-            @Override
-            public void run() {
-                if (hubTimerPaused) {
-                    return;
-                }
-                if (count <= 0) {
-                    messageAllParticipants(Component.text("Break is over")
-                            .decorate(TextDecoration.BOLD)
-                            .color(NamedTextColor.YELLOW));
-                    kickOffHubTimer();
-                    this.cancel();
-                    return;
-                }
-                String timeString = ChatColor.YELLOW+TimeStringUtils.getTimeString(count);
-                for (Player participant : participants) {
-                    updateFiveMinuteBreakDisplay(participant, timeString);
-                }
-                count--;
-            }
-        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
-    }
-    
-    public void eventIsOver() {
-        cancelEventTasks();
-        for (Player participant : participants) {
-            hideFastBoard(participant);
-        }
-    }
-    
-    private void cancelEventTasks() {
-        Bukkit.getScheduler().cancelTask(hubTimerTaskId);
-        Bukkit.getScheduler().cancelTask(fiveMinuteBreakTaskId);
-    }
-    
     /**
      * Returns the participants to the hub instantly, without a delay
      * @param newParticipants the participants to send to the hub
@@ -185,13 +91,6 @@ public class HubManager implements Listener {
             returnParticipantToHub(participant);
         }
         setupTeamOptions();
-        if (gameManager.eventIsActive()) {
-            if (gameManager.halfOfEventHasBeenPlayed()) {
-                kickOff5MinuteBreak();
-            } else {
-                kickOffHubTimer();
-            }
-        }
     }
     
     public void returnParticipantToHub(Player participant) {
@@ -200,7 +99,7 @@ public class HubManager implements Listener {
         initializeParticipant(participant);
     }
     
-    public void sendParticipantsToPedestal(List<Player> winningTeamParticipants, String winningTeam, ChatColor winningChatColor, List<Player> otherParticipants) {
+    public void sendParticipantsToPodium(List<Player> winningTeamParticipants, String winningTeam, ChatColor winningChatColor, List<Player> otherParticipants) {
         headingToHub.addAll(winningTeamParticipants);
         headingToHub.addAll(otherParticipants);
         this.returnToHubTaskId = new BukkitRunnable() {
@@ -282,7 +181,6 @@ public class HubManager implements Listener {
     
     public void cancelAllTasks() {
         Bukkit.getScheduler().cancelTask(returnToHubTaskId);
-        cancelEventTasks();
     }
     
     private void updateReturnToHubTimerFastBoard(Player participant, String timeString) {
@@ -306,41 +204,6 @@ public class HubManager implements Listener {
     private void initializeFastBoard(Player participant) {
         gameManager.getFastBoardManager().updateLines(
                 participant.getUniqueId()
-        );
-    }
-    
-    private void initializeHubTimerDisplay(Player participant, String gameString) {
-        gameManager.getFastBoardManager().updateLines(
-                participant.getUniqueId(),
-                "",
-                gameString,
-                ""
-        );
-    }
-    
-    private void updateHubTimerDisplay(Player participant, String timeString) {
-        gameManager.getFastBoardManager().updateLine(
-                participant.getUniqueId(),
-                2,
-                timeString
-        );
-    }
-    
-    private void initializeFiveMinuteBreakDisplay(Player participant, String gameString) {
-        gameManager.getFastBoardManager().updateLines(
-                participant.getUniqueId(),
-                "",
-                gameString,
-                ChatColor.YELLOW+"Break",
-                ""
-        );
-    }
-    
-    private void updateFiveMinuteBreakDisplay(Player participant, String timeString) {
-        gameManager.getFastBoardManager().updateLine(
-                participant.getUniqueId(),
-                3,
-                timeString
         );
     }
     

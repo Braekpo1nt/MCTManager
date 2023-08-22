@@ -2,13 +2,8 @@ package org.braekpo1nt.mctmanager.games.colossalcolosseum;
 
 import com.onarandombox.MultiverseCore.api.MVWorldManager;
 import com.onarandombox.MultiverseCore.utils.AnchorManager;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
-import org.braekpo1nt.mctmanager.games.enums.GameType;
-import org.braekpo1nt.mctmanager.games.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.bukkit.*;
@@ -19,11 +14,12 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class ColossalColosseumGame implements MCTGame, Listener {
+public class ColossalColosseumGame implements Listener {
     
     private final Main plugin;
     private final GameManager gameManager;
@@ -43,6 +39,7 @@ public class ColossalColosseumGame implements MCTGame, Listener {
     private String firstTeamName;
     private String secondTeamName;
     private int roundDelayTaskId;
+    private boolean gameIsActive = false;
     
     public ColossalColosseumGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
@@ -53,20 +50,6 @@ public class ColossalColosseumGame implements MCTGame, Listener {
         this.firstPlaceSpawn = anchorManager.getAnchorLocation("cc-first-place-spawn");
         this.secondPlaceSpawn = anchorManager.getAnchorLocation("cc-second-place-spawn");
         this.spectatorSpawn = anchorManager.getAnchorLocation("cc-spectator-spawn");
-    }
-    
-    @Override
-    public GameType getType() {
-        return GameType.COLOSSAL_COLOSSEUM;
-    }
-    
-    /**
-     * Do not use this method. Instead, use {@link ColossalColosseumGame#start(List, List, List)}
-     * @param newParticipants The participants
-     */
-    @Override
-    public void start(List<Player> newParticipants) {
-        throw new UnsupportedOperationException("ColossalColosseumGame is a special case, because it is the final game. Please use the overload method, start(List<Player> newFirstPlaceParticipants, List<Player> newSecondPlaceParticipants, List<Player> newSpectators).");
     }
     
     /**
@@ -104,6 +87,7 @@ public class ColossalColosseumGame implements MCTGame, Listener {
         }
         setupTeamOptions();
         startNextRound();
+        gameIsActive = true;
         Bukkit.getLogger().info("Started Colossal Colosseum");
     }
     
@@ -154,7 +138,7 @@ public class ColossalColosseumGame implements MCTGame, Listener {
             updateRoundWinFastBoard(participant);
         }
         if (firstPlaceRoundWins >= MAX_ROUND_WINS) {
-            onTeamWinGame(firstTeamName);
+            stop(firstTeamName);
             return;
         }
         currentRoundIndex++;
@@ -173,26 +157,15 @@ public class ColossalColosseumGame implements MCTGame, Listener {
             updateRoundWinFastBoard(participant);
         }
         if (secondPlaceRoundWins >= MAX_ROUND_WINS) {
-            onTeamWinGame(secondTeamName);
+            stop(secondTeamName);
             return;
         }
         currentRoundIndex++;
         this.roundDelayTaskId = Bukkit.getScheduler().runTaskLater(plugin, this::startNextRound, 5*20L).getTaskId();
     }
     
-    private void onTeamWinGame(String winningTeam) {
-        NamedTextColor teamColor = gameManager.getTeamNamedTextColor(winningTeam);
-        Bukkit.getServer().sendMessage(Component.empty()
-                .append(gameManager.getFormattedTeamDisplayName(winningTeam))
-                .append(Component.text(" wins MCT #4!"))
-                .color(teamColor)
-                .decorate(TextDecoration.BOLD));
-        gameManager.finalGameIsOver(winningTeam);
-        Bukkit.getLogger().info(String.format("%s won Colossal Colosseum", winningTeam));
-    }
-    
-    @Override
-    public void stop() {
+    public void stop(@Nullable String winningTeam) {
+        gameIsActive = false;
         cancelAllTasks();
         HandlerList.unregisterAll(this);
         if (currentRoundIndex < rounds.size()) {
@@ -212,7 +185,7 @@ public class ColossalColosseumGame implements MCTGame, Listener {
             resetParticipant(participant);
         }
         spectators.clear();
-        gameManager.gameIsOver();
+        gameManager.getEventManager().colossalColosseumIsOver(winningTeam);
         Bukkit.getLogger().info("Stopping Colossal Colosseum");
     }
     
@@ -225,12 +198,10 @@ public class ColossalColosseumGame implements MCTGame, Listener {
         Bukkit.getScheduler().cancelTask(roundDelayTaskId);
     }
     
-    @Override
     public void onParticipantJoin(Player participant) {
         
     }
     
-    @Override
     public void onParticipantQuit(Player participant) {
         
     }
@@ -332,5 +303,9 @@ public class ColossalColosseumGame implements MCTGame, Listener {
             team.setOption(Team.Option.DEATH_MESSAGE_VISIBILITY, Team.OptionStatus.ALWAYS);
             team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER);
         }
+    }
+    
+    public boolean isActive() {
+        return gameIsActive;
     }
 }
