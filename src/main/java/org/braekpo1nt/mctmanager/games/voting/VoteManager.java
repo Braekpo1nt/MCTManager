@@ -140,9 +140,6 @@ public class VoteManager implements Listener {
                     .color(NamedTextColor.GREEN));
             return;
         }
-        if (participantAbstained(participant)) {
-            votes.remove(participant.getUniqueId());
-        }
         Material clickedItem = event.getCurrentItem().getType();
         switch (clickedItem) {
             case FEATHER:
@@ -184,27 +181,9 @@ public class VoteManager implements Listener {
      * Checks if the participant submitted a vote already
      * @param participant the participant to check
      * @return True of the participant voted, false if they haven't yet
-     * or if they have abstained (see {@link VoteManager#participantAbstained(Player)})
      */
     private boolean participantVoted(Player participant) {
-        if (!votes.containsKey(participant.getUniqueId())) {
-            return false;
-        }
-        return votes.get(participant.getUniqueId()) != null;
-    }
-    
-    /**
-     * Checks if the participant abstained from voting
-     * @param participant the participant
-     * @return True if the participant abstained from voting,
-     * false if they voted or didn't vote or abstain yet (i.e. still
-     * in the voting gui)
-     */
-    private boolean participantAbstained(Player participant) {
-        if (!votes.containsKey(participant.getUniqueId())) {
-            return false;
-        }
-        return votes.get(participant.getUniqueId()) == null;
+        return votes.containsKey(participant.getUniqueId());
     }
     
     @EventHandler
@@ -231,7 +210,6 @@ public class VoteManager implements Listener {
             participant.getInventory().addItem(NETHER_STAR);
             participant.sendMessage(Component.text("You didn't vote for a game. Use the nether star to vote.")
                     .color(NamedTextColor.YELLOW));
-            votes.put(participant.getUniqueId(), null);
         }
     }
     
@@ -296,12 +274,12 @@ public class VoteManager implements Listener {
             voter.getInventory().clear();
             hideFastBoard(voter);
         }
-        GameType mctGame = getVotedForGame();
+        GameType gameType = getVotedForGame();
         HandlerList.unregisterAll(this);
         votes.clear();
         voters.clear();
-//        gameManager.startGameWithDelay(mctGame);
-        executeMethod.accept(mctGame);
+//        gameManager.startGameWithDelay(gameType);
+        executeMethod.accept(gameType);
     }
     
     private void cancelAllTasks() {
@@ -383,19 +361,12 @@ public class VoteManager implements Listener {
             int randomGameIndex = random.nextInt(votingPool.size());
             return votingPool.get(randomGameIndex);
         }
-    
+        
         Map<GameType, Integer> voteCount = new HashMap<>();
         // Count the number of occurrences of each string in the list
         for (GameType vote : votes.values()) {
-            if (vote != null) {
-                int count = voteCount.getOrDefault(vote, 0);
-                voteCount.put(vote, count + 1);
-            }
-        }
-        
-        if (voteCount.isEmpty()) {
-            int randomGameIndex = random.nextInt(votingPool.size());
-            return votingPool.get(randomGameIndex);
+            int count = voteCount.getOrDefault(vote, 0);
+            voteCount.put(vote, count + 1);
         }
         
         // Find the maximum number of occurrences
@@ -405,7 +376,7 @@ public class VoteManager implements Listener {
                 maxCount = count;
             }
         }
-    
+        
         // Get all strings with the maximum number of occurrences
         List<GameType> winners = new ArrayList<>();
         for (Map.Entry<GameType, Integer> entry : voteCount.entrySet()) {
@@ -421,7 +392,7 @@ public class VoteManager implements Listener {
     
     private boolean allPlayersHaveVoted() {
         for (Player participant : voters) {
-            if (!participantVoted(participant) && !participantAbstained(participant)) {
+            if (!participantVoted(participant)) {
                 return false;
             }
         }
