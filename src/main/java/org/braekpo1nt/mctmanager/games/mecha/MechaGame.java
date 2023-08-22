@@ -369,10 +369,9 @@ public class MechaGame implements MCTGame, Listener {
         if (!participants.contains(clicker)) {
             return;
         }
-        if (event.getRightClicked() instanceof ArmorStand || event.getRightClicked().getType() == EntityType.ITEM_FRAME) {
+        if (event.getRightClicked() instanceof ArmorStand || event.getRightClicked().getType() == EntityType.ITEM_FRAME || event.getRightClicked().getType() == EntityType.GLOW_ITEM_FRAME) {
             event.setCancelled(true);
         }
-        Bukkit.getLogger().info("PlayerInteractAtEntityEvent");
     }
 
     /**
@@ -399,10 +398,9 @@ public class MechaGame implements MCTGame, Listener {
         if (!participants.contains(clicker)) {
             return;
         }
-        if (event.getRightClicked().getType() == EntityType.ITEM_FRAME) {
+        if (event.getRightClicked().getType() == EntityType.ITEM_FRAME || event.getRightClicked().getType() == EntityType.GLOW_ITEM_FRAME) {
             event.setCancelled(true);
         }
-        Bukkit.getLogger().info("PlayerInteractEntityEvent");
     }
 
     /**
@@ -431,10 +429,9 @@ public class MechaGame implements MCTGame, Listener {
                 return;
             }
         }
-        if (event.getEntity() instanceof ArmorStand || event.getEntity().getType() == EntityType.ITEM_FRAME) {
+        if (event.getEntity() instanceof ArmorStand || event.getEntity().getType() == EntityType.ITEM_FRAME || event.getEntity().getType() == EntityType.GLOW_ITEM_FRAME) {
             event.setCancelled(true);
         }
-        Bukkit.getLogger().info("EntityDamageByEntityEvent");
     }
 
     /**
@@ -461,7 +458,7 @@ public class MechaGame implements MCTGame, Listener {
         if (!participants.contains(clicker)) {
             return;
         }
-        if (event.getEntity().getType() == EntityType.ITEM_FRAME) {
+        if (event.getEntity().getType() == EntityType.ITEM_FRAME || event.getEntity().getType() == EntityType.GLOW_ITEM_FRAME) {
             event.setCancelled(true);
         }
     }
