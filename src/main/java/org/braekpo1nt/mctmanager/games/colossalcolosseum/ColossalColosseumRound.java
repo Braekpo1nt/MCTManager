@@ -308,7 +308,7 @@ public class ColossalColosseumRound implements Listener {
         //place stone under
         BlockPlacementUtils.createCube(colossalColosseumWorld, -1002, 1, -19, 5, 1, 1, Material.STONE);
         //place team color sand
-        Material teamPowderColor = gameManager.getTeamPowderColor(secondTeamName);
+        Material teamPowderColor = gameManager.getTeamPowderColor(firstTeamName);
         BlockPlacementUtils.createCubeReplace(colossalColosseumWorld, -1002, 2, -19, 5, 4, 1, Material.AIR, teamPowderColor);
     }
     
@@ -320,7 +320,7 @@ public class ColossalColosseumRound implements Listener {
         //place stone under
         BlockPlacementUtils.createCube(colossalColosseumWorld, -1002, 1, 19, 5, 1, 1, Material.STONE);
         //place team color sand
-        Material teamPowderColor = gameManager.getTeamPowderColor(firstTeamName);
+        Material teamPowderColor = gameManager.getTeamPowderColor(secondTeamName);
         BlockPlacementUtils.createCubeReplace(colossalColosseumWorld, -1002, 2, 19, 5, 4, 1, Material.AIR, teamPowderColor);
     }
     
