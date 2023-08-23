@@ -6,7 +6,7 @@ import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.CommandManager;
 import org.braekpo1nt.mctmanager.commands.CommandUtils;
 import org.braekpo1nt.mctmanager.games.GameManager;
-import org.braekpo1nt.mctmanager.games.enums.GameType;
+import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 
 public class EventSubCommand extends CommandManager {
     

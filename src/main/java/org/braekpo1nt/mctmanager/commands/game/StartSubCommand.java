@@ -3,7 +3,7 @@ package org.braekpo1nt.mctmanager.commands.game;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.games.GameManager;
-import org.braekpo1nt.mctmanager.games.enums.GameType;
+import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;

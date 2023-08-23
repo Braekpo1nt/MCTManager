@@ -1,6 +1,6 @@
 package org.braekpo1nt.mctmanager.games.gamestate;
 
-import org.braekpo1nt.mctmanager.games.enums.GameType;
+import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 
 import java.util.*;
 
