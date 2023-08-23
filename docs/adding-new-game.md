@@ -19,8 +19,8 @@ There are a few things you need to do when adding a new game.
   - You need to specify an item to represent your new game in the voting pool. In `showVoteGui()`, add an `ItemStack` for your game. Use the others as an example. In this example, we'll use `Material.STONE` for the material, and call the `ItemStack` variable `newGameItem`.
     - Make sure you add your `newGameItem` to the `votingItems` Map, like so: `votingItems.put(GameType.NEW_GAME, newGame);`.
   - Add a case to the switch statement in `clickVoteInventory()` for `Material.STONE` (or whatever material you used). This is why your material must be unique from the other game materials. Use the other cases as an example. 
-- If you haven't already, create a folder under `braekpo1nt/mctmanager/games/<newgame>`
-- Create your game class, which must implement `org.braekpo1nt.mctmanager.games.interfaces.MCTGame`. For this example, we'll call it `NewGame.java`
+- If you haven't already, create a folder under `braekpo1nt/mctmanager/games/game/<newgame>`
+- Create your game class, which must implement `org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame`. For this example, we'll call it `NewGame.java`
   - Make `getType()` return `GameType.NEW_GAME`
   - For more details on implementing the `MCTGame` class and writing the functionality for your game, see the other games as examples. There should also be a general guide written soon.
 - Add your game to the `GameManager.java`
