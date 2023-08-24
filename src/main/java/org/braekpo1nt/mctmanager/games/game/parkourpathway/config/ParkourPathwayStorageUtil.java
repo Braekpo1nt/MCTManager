@@ -22,7 +22,7 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
     }
     
     @Override
-    protected ParkourPathwayConfig initializeConfig() {
+    protected ParkourPathwayConfig getInitialConfig() {
         return new ParkourPathwayConfig();
     }
     

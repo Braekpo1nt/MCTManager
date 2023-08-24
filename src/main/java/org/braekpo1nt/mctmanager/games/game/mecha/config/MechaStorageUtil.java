@@ -12,7 +12,7 @@ import java.util.*;
 
 public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
     
-    protected MechaConfig mechaConfig = initializeConfig();
+    protected MechaConfig mechaConfig = getInitialConfig();
     
     public MechaStorageUtil(Main plugin) {
         super(plugin, "mechaConfig.json", MechaConfig.class);
@@ -29,7 +29,7 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
     }
     
     @Override
-    protected MechaConfig initializeConfig() {
+    protected MechaConfig getInitialConfig() {
         return new MechaConfig(null, Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
     }
     
