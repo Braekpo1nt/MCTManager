@@ -1,15 +1,19 @@
 package org.braekpo1nt.mctmanager;
 
+import be.seeseemelk.mockbukkit.MockBukkit;
 import be.seeseemelk.mockbukkit.ServerMock;
 import be.seeseemelk.mockbukkit.entity.PlayerMock;
 import io.papermc.paper.entity.LookAnchor;
 import net.kyori.adventure.text.*;
 import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.*;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.logging.Level;
 
 public class MyPlayerMock extends PlayerMock {
     
@@ -61,5 +65,38 @@ public class MyPlayerMock extends PlayerMock {
             sendMessage(sentMessage);
         }
         return messageWasSent;
+    }
+    
+    public static class ServerMockTest {
+        
+        private ServerMock server;
+        
+        @BeforeEach
+        void setUp() {
+            server = MockBukkit.mock(new MyCustomServerMock());
+            server.getLogger().setLevel(Level.OFF);
+        }
+        
+        @AfterEach
+        void tearDown() {
+            MockBukkit.unmock();
+        }
+        
+        @Test
+        @DisplayName("Make sure the temporary files created by plugin.getDataFolder() are getting deleted on MockBukkit.unmock()")
+        void getDataFolder_CleanEnvironment_CreatesTemporaryDataDirectory() throws IOException {
+            Main plugin = MockBukkit.load(Main.class);
+            File folder = plugin.getDataFolder();
+            Assertions.assertNotNull(folder);
+            Assertions.assertTrue(folder.isDirectory());
+            File file = new File(folder, "data.txt");
+            Assertions.assertFalse(file.exists());
+            file.createNewFile();
+            Assertions.assertTrue(file.exists());
+            MockBukkit.unmock();
+            MockBukkit.mock();
+            Assertions.assertFalse(file.exists());
+        }
+        
     }
 }

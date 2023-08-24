@@ -34,9 +34,11 @@ import static org.mockito.Mockito.when;
  * - Implement methods that the original {@link ServerMock} has not yet implemented (they throw {@link be.seeseemelk.mockbukkit.UnimplementedOperationException})
  */
 public class MyCustomServerMock extends ServerMock {
+    PluginManagerMock myCustomPluginManagerMock = new MyCustomPluginManagerMock(this);
+    
     @Override
     public @NotNull PluginManagerMock getPluginManager() {
-        return new MyCustomPluginManagerMock(this);
+        return myCustomPluginManagerMock;
     }
     
     /**

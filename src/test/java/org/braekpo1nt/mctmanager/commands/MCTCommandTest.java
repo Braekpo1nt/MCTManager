@@ -3,10 +3,7 @@ package org.braekpo1nt.mctmanager.commands;
 import be.seeseemelk.mockbukkit.MockBukkit;
 import be.seeseemelk.mockbukkit.ServerMock;
 import be.seeseemelk.mockbukkit.UnimplementedOperationException;
-import be.seeseemelk.mockbukkit.entity.SimpleEntityMock;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextDecoration;
+import com.onarandombox.MultiverseCore.MultiverseCore;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.MyCustomServerMock;
 import org.braekpo1nt.mctmanager.games.gamestate.MockGameStateStorageUtil;
@@ -18,6 +15,7 @@ import java.util.logging.Level;
 public class MCTCommandTest {
     
     private ServerMock server;
+    private MultiverseCore multiverseCore;
     private Main plugin;
     private PluginCommand command;
     
