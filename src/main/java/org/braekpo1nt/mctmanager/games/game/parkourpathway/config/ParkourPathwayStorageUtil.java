@@ -9,6 +9,7 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -45,7 +46,7 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
      * @return A new config instance with default values for use if no user-config is present
      */
     @Override
-    public ParkourPathwayConfig getDefaultConfig() {
+    public @NotNull ParkourPathwayConfig getDefaultConfig() {
         InputStream inputStream = plugin.getClass().getResourceAsStream("/parkourpathway/defaultParkourPathwayConfig.json");
         if (inputStream == null) {
             Bukkit.getLogger().severe("");

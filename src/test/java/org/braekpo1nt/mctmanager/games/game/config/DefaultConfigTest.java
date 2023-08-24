@@ -4,6 +4,7 @@ import be.seeseemelk.mockbukkit.MockBukkit;
 import be.seeseemelk.mockbukkit.ServerMock;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.MyCustomServerMock;
+import org.braekpo1nt.mctmanager.games.game.parkourpathway.config.ParkourPathwayConfig;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.config.ParkourPathwayStorageUtil;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -28,7 +29,11 @@ public class DefaultConfigTest {
     @Test
     void parkourPathway() {
         ParkourPathwayStorageUtil parkourPathwayStorageUtil = new ParkourPathwayStorageUtil(plugin);
-        Assertions.assertDoesNotThrow(parkourPathwayStorageUtil::getDefaultConfig);
+        Assertions.assertDoesNotThrow(() -> {
+            ParkourPathwayConfig defaultConfig = parkourPathwayStorageUtil.getDefaultConfig();
+            Assertions.assertNotNull(defaultConfig.getCheckpoints());
+            Assertions.assertNotNull(defaultConfig.getWorld());
+        });
     }
     
     @AfterEach
