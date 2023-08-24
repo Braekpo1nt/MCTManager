@@ -52,21 +52,21 @@ class EventSubCommandTest {
     @DisplayName("Running /mct event blank gives unrecognized")
     void unrecognizedOption() {
         Assertions.assertTrue(plugin.getMctCommand().onCommand(server.getConsoleSender(), command, "mct", new String[]{"event", "blank"}));
-        TestUtils.assertComponentPlaintextEquals("Unrecognized option blank", server.getConsoleSender().nextComponentMessage());
+        TestUtils.assertComponentPlaintextEquals("Argument blank is not recognized.", server.getConsoleSender().nextComponentMessage());
     }
     
     @Test
-    @DisplayName("`/mct event start` starts the event")
+    @DisplayName("`/mct event start 6` starts the event with 6 games")
     void startTest() {
-        Assertions.assertTrue(plugin.getMctCommand().onCommand(server.getConsoleSender(), command, "mct", new String[]{"event", "start"}));
+        Assertions.assertTrue(plugin.getMctCommand().onCommand(server.getConsoleSender(), command, "mct", new String[]{"event", "start", "6"}));
         Assertions.assertTrue(plugin.getGameManager().getEventManager().eventIsActive());
     }
     
     @Test
-    @DisplayName("`/mct event start` twice returns event already running message")
+    @DisplayName("`/mct event start 6` twice returns event already running message")
     void startTwiceTest() {
-        Assertions.assertTrue(plugin.getMctCommand().onCommand(server.getConsoleSender(), command, "mct", new String[]{"event", "start"}));
-        Assertions.assertTrue(plugin.getMctCommand().onCommand(server.getConsoleSender(), command, "mct", new String[]{"event", "start"}));
+        Assertions.assertTrue(plugin.getMctCommand().onCommand(server.getConsoleSender(), command, "mct", new String[]{"event", "start", "6"}));
+        Assertions.assertTrue(plugin.getMctCommand().onCommand(server.getConsoleSender(), command, "mct", new String[]{"event", "start", "6"}));
         Assertions.assertTrue(TestUtils.receivedMessagePlaintext(server.getConsoleSender(), "An event is already running."));
         
     }

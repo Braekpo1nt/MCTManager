@@ -5,7 +5,7 @@ import org.braekpo1nt.mctmanager.games.game.config.GameConfigStorageUtil;
 
 public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
     
-    protected SpleefConfig spleefConfig = getInitialConfig();
+    protected SpleefConfig spleefConfig = null;
     
     public SpleefStorageUtil(Main plugin) {
         super(plugin, "spleefConfig.json", SpleefConfig.class);
@@ -22,12 +22,8 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
     }
     
     @Override
-    protected SpleefConfig getInitialConfig() {
+    protected SpleefConfig getDefaultConfig() {
         return new SpleefConfig();
     }
     
-    @Override
-    protected SpleefConfig getDefaultConfig() {
-        return null;
-    }
 }

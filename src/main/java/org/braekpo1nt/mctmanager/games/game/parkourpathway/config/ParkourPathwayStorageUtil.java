@@ -45,7 +45,7 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
      * @return A new config instance with default values for use if no user-config is present
      */
     @Override
-    protected ParkourPathwayConfig getDefaultConfig() {
+    public ParkourPathwayConfig getDefaultConfig() {
         InputStream inputStream = plugin.getClass().getResourceAsStream("/parkourpathway/defaultParkourPathwayConfig.json");
         if (inputStream == null) {
             Bukkit.getLogger().severe("");

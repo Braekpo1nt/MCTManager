@@ -14,6 +14,14 @@ public class MockFastBoardManager extends FastBoardManager {
     }
     
     @Override
+    protected synchronized void updateMainBoardForPlayer(Player player) {
+        boolean playerHasBoard = givePlayerBoardIfAbsent(player);
+        if (!playerHasBoard) {
+            return;
+        }
+    }
+    
+    @Override
     protected synchronized void addBoard(Player player) {
         MockFastBoardWrapper newBoard = new MockFastBoardWrapper();
         newBoard.updateTitle(this.EVENT_TITLE);

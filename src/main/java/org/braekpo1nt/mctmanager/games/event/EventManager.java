@@ -627,4 +627,8 @@ public class EventManager {
     private void messageAllAdmins(Component message) {
         gameManager.messageAdmins(message);
     }
+    
+    public int getMaxGames() {
+        return maxGames;
+    }
 }
