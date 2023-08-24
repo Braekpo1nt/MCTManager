@@ -12,10 +12,12 @@ import java.util.*;
 
 public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
     
-    protected MechaConfig mechaConfig = getInitialConfig();
+    private final Main plugin;
+    protected MechaConfig mechaConfig = null;
     
     public MechaStorageUtil(Main plugin) {
         super(plugin, "mechaConfig.json", MechaConfig.class);
+        this.plugin = plugin;
     }
     
     @Override
@@ -28,9 +30,25 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
         this.mechaConfig = config;
     }
     
+    /**
+     * Returns a new instance of the default config. Note that the returned config instance may
+     * be modified, so this should return a fresh instance to avoid errors with future default
+     * uses.
+     *
+     * @return A new config instance with default values for use if no user-config is present
+     */
     @Override
-    protected MechaConfig getInitialConfig() {
-        return new MechaConfig(null, Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
+    protected MechaConfig getDefaultConfig() {
+        return new MechaConfig(
+                new NamespacedKey("mctdatapack", "mecha/spawn-chest"),
+                List.of(new WeightedNamespacedKey("mctdatapack", "mecha/better-chest", 1)),
+                List.of(new BorderStage(400, 120, 45),
+                        new BorderStage(180, 90, 50)),
+                List.of(new Vector(0.0, -45.0, 1.0),
+                        new Vector(0.0, -46.0, 1.0)),
+                List.of(new Vector(-1.0, -44.0, 1.0),
+                        new Vector(-1.0, -43.0, 1.0))
+        );
     }
     
     public List<Vector> getSpawnChestCoords() {
