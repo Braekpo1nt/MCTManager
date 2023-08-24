@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.mecha.config;
 
+import com.google.gson.Gson;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.config.GameConfigStorageUtil;
 import org.bukkit.Bukkit;
@@ -8,6 +9,10 @@ import org.bukkit.loot.LootTable;
 import org.bukkit.loot.LootTables;
 import org.bukkit.util.Vector;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
@@ -39,16 +44,30 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
      */
     @Override
     protected MechaConfig getDefaultConfig() {
-        return new MechaConfig(
-                new NamespacedKey("mctdatapack", "mecha/spawn-chest"),
-                List.of(new WeightedNamespacedKey("mctdatapack", "mecha/better-chest", 1)),
-                List.of(new BorderStage(400, 120, 45),
-                        new BorderStage(180, 90, 50)),
-                List.of(new Vector(0.0, -45.0, 1.0),
-                        new Vector(0.0, -46.0, 1.0)),
-                List.of(new Vector(-1.0, -44.0, 1.0),
-                        new Vector(-1.0, -43.0, 1.0))
-        );
+        InputStream inputStream = plugin.getClass().getResourceAsStream("/mecha/defaultMechaConfig.json");
+        if (inputStream == null) {
+            Bukkit.getLogger().severe("");
+            return new MechaConfig(
+                    null,
+                    new ArrayList<>(),
+                    new ArrayList<>(),
+                    new ArrayList<>(),
+                    new ArrayList<>()
+            );
+        }
+        InputStreamReader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
+        Gson gson = new Gson();
+        MechaConfig defaultConfig = gson.fromJson(reader, MechaConfig.class);
+        if (defaultConfig == null) {
+            return new MechaConfig(
+                    null,
+                    new ArrayList<>(),
+                    new ArrayList<>(),
+                    new ArrayList<>(),
+                    new ArrayList<>()
+            );
+        }
+        return defaultConfig;
     }
     
     public List<Vector> getSpawnChestCoords() {

@@ -1,0 +1,62 @@
+{
+  "timeLimit": 600,
+  "checkpointCounter": 120,
+  "checkpointCounterAlert": 30,
+  "world": "FT",
+  "checkpoints": [
+    {
+      "yValue": 0,
+      "min": {
+        "x": 998,
+        "y": -1,
+        "z": -8
+      },
+      "max": {
+        "x": 1007,
+        "y": 5,
+        "z": 8
+      },
+      "respawn": {
+        "x": 1003,
+        "y": 0,
+        "z": 0
+      }
+    },
+    {
+      "yValue": 8,
+      "min": {
+        "x": 1017,
+        "y": 7,
+        "z": -6
+      },
+      "max": {
+        "x": 1020,
+        "y": 10,
+        "z": 6
+      },
+      "respawn": {
+        "x": 1017,
+        "y": 8,
+        "z": 4
+      }
+    },
+    {
+      "yValue": 5,
+      "min": {
+        "x": 1046,
+        "y": 7,
+        "z": -4
+      },
+      "max": {
+        "x": 1048,
+        "y": 11,
+        "z": 3
+      },
+      "respawn": {
+        "x": 1046,
+        "y": 8,
+        "z": 2
+      }
+    }
+  ]
+}
