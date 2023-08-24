@@ -5,16 +5,19 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
+import org.braekpo1nt.mctmanager.games.game.spleef.config.SpleefStorageUtil;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 
+import java.io.IOException;
 import java.util.*;
 
 public class SpleefGame implements MCTGame {
     private final Main plugin;
     private final GameManager gameManager;
+    private final SpleefStorageUtil spleefStorageUtil;
     private final String title = ChatColor.BLUE+"Spleef";
     private final Location startingLocation;
     private List<Player> participants = new ArrayList<>();
@@ -26,6 +29,8 @@ public class SpleefGame implements MCTGame {
     public SpleefGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
         this.gameManager = gameManager;
+        this.spleefStorageUtil = new SpleefStorageUtil(plugin);
+        this.spleefStorageUtil.loadConfig();
         AnchorManager anchorManager = Main.multiverseCore.getAnchorManager();
         this.startingLocation = anchorManager.getAnchorLocation("spleef");
     }

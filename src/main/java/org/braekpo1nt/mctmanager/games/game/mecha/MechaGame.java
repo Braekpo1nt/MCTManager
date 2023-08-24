@@ -90,7 +90,8 @@ public class MechaGame implements MCTGame, Listener {
     public MechaGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
         this.gameManager = gameManager;
-        this.mechaStorageUtil = loadConfig();
+        this.mechaStorageUtil = new MechaStorageUtil(plugin);
+        mechaStorageUtil.loadConfig();
         setChestCoordsAndLootTables();
         MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
         this.mvMechaWorld = worldManager.getMVWorld("FT");
@@ -855,18 +856,6 @@ public class MechaGame implements MCTGame, Listener {
         teamLocations.put("blue", anchorManager.getAnchorLocation("mecha-blue"));
         teamLocations.put("purple", anchorManager.getAnchorLocation("mecha-purple"));
         teamLocations.put("red", anchorManager.getAnchorLocation("mecha-red"));
-    }
-    
-    private MechaStorageUtil loadConfig() {
-        MechaStorageUtil mechaStorageUtil = new MechaStorageUtil(plugin);
-        try {
-            mechaStorageUtil.loadConfig();
-        } catch (IOException e) {
-            Bukkit.getLogger().severe("Error loading MECHA config file. See console for details.");
-            Bukkit.getPluginManager().disablePlugin(plugin);
-            throw new RuntimeException(e);
-        }
-        return mechaStorageUtil;
     }
     
     private void setChestCoordsAndLootTables() {
