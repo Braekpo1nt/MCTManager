@@ -19,7 +19,6 @@ public class SpleefGame implements MCTGame {
     private final GameManager gameManager;
     private final SpleefStorageUtil spleefStorageUtil;
     private final String title = ChatColor.BLUE+"Spleef";
-    private final Location startingLocation;
     private List<Player> participants = new ArrayList<>();
     private List<SpleefRound> rounds;
     private int currentRoundIndex = 0;
@@ -29,10 +28,8 @@ public class SpleefGame implements MCTGame {
     public SpleefGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
         this.gameManager = gameManager;
-        this.spleefStorageUtil = new SpleefStorageUtil(plugin);
+        this.spleefStorageUtil = new SpleefStorageUtil(plugin.getDataFolder());
         this.spleefStorageUtil.loadConfig();
-        AnchorManager anchorManager = Main.multiverseCore.getAnchorManager();
-        this.startingLocation = anchorManager.getAnchorLocation("spleef");
     }
     
     @Override
@@ -44,9 +41,9 @@ public class SpleefGame implements MCTGame {
     public void start(List<Player> newParticipants) {
         participants = new ArrayList<>(newParticipants.size());
         rounds = new ArrayList<>(3);
-        rounds.add(new SpleefRound(plugin, gameManager, this, startingLocation));
-        rounds.add(new SpleefRound(plugin, gameManager, this, startingLocation));
-        rounds.add(new SpleefRound(plugin, gameManager, this, startingLocation));
+        rounds.add(new SpleefRound(plugin, gameManager, this, spleefStorageUtil));
+        rounds.add(new SpleefRound(plugin, gameManager, this, spleefStorageUtil));
+        rounds.add(new SpleefRound(plugin, gameManager, this, spleefStorageUtil));
         currentRoundIndex = 0;
         for (Player participant : newParticipants) {
             initializeParticipant(participant);

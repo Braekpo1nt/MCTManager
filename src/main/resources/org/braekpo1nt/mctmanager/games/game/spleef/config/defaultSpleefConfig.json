@@ -15,5 +15,9 @@
   },
   "scores": {
     "survive": 10
+  },
+  "durations": {
+    "decayTopLayers": 60,
+    "decayBottomLayers": 60
   }
 }

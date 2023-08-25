@@ -1,16 +1,19 @@
 package org.braekpo1nt.mctmanager.games.game.spleef.config;
 
-import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.config.GameConfigStorageUtil;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.World;
 
+import java.io.File;
 import java.io.InputStream;
 
 public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
     
     protected SpleefConfig spleefConfig = null;
     
-    public SpleefStorageUtil(Main plugin) {
-        super(plugin, "spleefConfig.json", SpleefConfig.class);
+    public SpleefStorageUtil(File configDirectory) {
+        super(configDirectory, "spleefConfig.json", SpleefConfig.class);
     }
     
     @Override
@@ -26,5 +29,13 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
     @Override
     protected InputStream getDefaultResourceStream() {
         return SpleefStorageUtil.class.getResourceAsStream("defaultSpleefConfig.json");
+    }
+    
+    public Location getStartingLocation() {
+        return spleefConfig.startingLocation.toLocation(Bukkit.getWorld(spleefConfig.world));
+    }
+    
+    public World getWorld() {
+        return Bukkit.getWorld(spleefConfig.world);
     }
 }
