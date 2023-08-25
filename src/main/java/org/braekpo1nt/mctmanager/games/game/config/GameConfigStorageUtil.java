@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.game.config;
 import com.google.gson.*;
 import org.braekpo1nt.mctmanager.Main;
 import org.bukkit.Bukkit;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
@@ -51,7 +52,7 @@ public abstract class GameConfigStorageUtil<T> {
      * or null if there were any IO, Json, or Security exceptions thrown from reading/parsing
      * the config file. Null if there is no config file yet.
      */
-    protected T getConfigFromFile() {
+    protected @Nullable T getConfigFromFile() {
         try {
             if (!configFile.exists()) {
                 return null;
@@ -76,11 +77,11 @@ public abstract class GameConfigStorageUtil<T> {
     
     /**
      * Saves the passed in config object to the {@link GameConfigStorageUtil#configFile}.
-     * If there are any IO, security, or json errors, an error is reported to the logger 
-     * and nothing happens.
+     * If config us null, or there are any IO, security, or json errors, then 
+     * an error is reported to the logger and nothing happens.
      * @param config the config to save
      */
-    protected void saveConfig(T config) {
+    private void saveConfig(T config) {
         try {
             if (!configFile.exists()) {
                 if (!configDirectory.exists()) {
@@ -120,6 +121,10 @@ public abstract class GameConfigStorageUtil<T> {
     
     protected abstract void setConfig(T config);
     
+    /**
+     * @return An InputStream holding the default json file contents for
+     * the {@link T} config
+     */
     protected abstract InputStream getDefaultResourceStream();
     
     /**

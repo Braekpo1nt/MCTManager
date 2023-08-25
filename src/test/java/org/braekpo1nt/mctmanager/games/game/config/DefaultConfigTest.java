@@ -31,27 +31,39 @@ public class DefaultConfigTest {
     }
     
     @Test
-    void parkourPathway() {
+    void parkourPathwayDefault() {
         ParkourPathwayStorageUtil parkourPathwayStorageUtil = new ParkourPathwayStorageUtil(plugin);
-        Assertions.assertDoesNotThrow(() -> {
-            Assertions.assertNotNull(parkourPathwayStorageUtil.getDefaultConfig());
-        });
+        Assertions.assertNotNull(parkourPathwayStorageUtil.getDefaultConfig());
     }
     
     @Test
-    void mecha() {
+    void parkourPathwayLoad() {
+        ParkourPathwayStorageUtil parkourPathwayStorageUtil = new ParkourPathwayStorageUtil(plugin);
+        Assertions.assertDoesNotThrow(parkourPathwayStorageUtil::loadConfig);
+    }
+    
+    @Test
+    void mechaDefault() {
         MechaStorageUtil mechaStorageUtil = new MechaStorageUtil(plugin);
-        Assertions.assertDoesNotThrow(() -> {
-            Assertions.assertNotNull(mechaStorageUtil.getDefaultConfig());
-        });
+        Assertions.assertNotNull(mechaStorageUtil.getDefaultConfig());
     }
     
     @Test
-    void spleef() {
+    void mechaLoad() {
+        MechaStorageUtil mechaStorageUtil = new MechaStorageUtil(plugin);
+        Assertions.assertDoesNotThrow(mechaStorageUtil::loadConfig);
+    }
+    
+    @Test
+    void spleefDefault() {
         SpleefStorageUtil spleefStorageUtil = new SpleefStorageUtil(plugin);
-        Assertions.assertDoesNotThrow(() -> {
-            Assertions.assertNotNull(spleefStorageUtil.getDefaultConfig());
-        });
+        Assertions.assertNotNull(spleefStorageUtil.getDefaultConfig());
+    }
+    
+    @Test
+    void spleefLoad() {
+        SpleefStorageUtil spleefStorageUtil = new SpleefStorageUtil(plugin);
+        Assertions.assertDoesNotThrow(spleefStorageUtil::loadConfig);
     }
     
     @AfterEach
