@@ -3,8 +3,10 @@ package org.braekpo1nt.mctmanager.games.game.config;
 import com.google.gson.*;
 import org.braekpo1nt.mctmanager.Main;
 import org.bukkit.Bukkit;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 
 /**
  * A storage utility for saving and loading config files for games
@@ -118,12 +120,23 @@ public abstract class GameConfigStorageUtil<T> {
     
     protected abstract void setConfig(T config);
     
+    protected abstract InputStream getDefaultResourceStream();
+    
     /**
      * Returns a new instance of the default config. Note that the returned config instance may
      * be modified, so this should return a fresh instance to avoid errors with future default
      * uses. 
-     * @return A new config instance with default values for use if no user-config is present
+     * @return A new config instance with default values for use if no user-config is present.
+     * null if there is a problem reading or parsing the default config
      */
-    public abstract T getDefaultConfig();
+    public @Nullable T getDefaultConfig() {
+        InputStream inputStream = getDefaultResourceStream();
+        if (inputStream == null) {
+            return null;
+        }
+        Reader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
+        Gson gson = new Gson();
+        return gson.fromJson(reader, configClass);
+    }
     
 }

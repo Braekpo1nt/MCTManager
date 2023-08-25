@@ -34,39 +34,9 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
         this.mechaConfig = config;
     }
     
-    /**
-     * Returns a new instance of the default config. Note that the returned config instance may
-     * be modified, so this should return a fresh instance to avoid errors with future default
-     * uses.
-     *
-     * @return A new config instance with default values for use if no user-config is present
-     */
     @Override
-    public MechaConfig getDefaultConfig() {
-        InputStream inputStream = plugin.getClass().getResourceAsStream("/mecha/defaultMechaConfig.json");
-        if (inputStream == null) {
-            Bukkit.getLogger().severe("");
-            return new MechaConfig(
-                    null,
-                    new ArrayList<>(),
-                    new ArrayList<>(),
-                    new ArrayList<>(),
-                    new ArrayList<>()
-            );
-        }
-        InputStreamReader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
-        Gson gson = new Gson();
-        MechaConfig defaultConfig = gson.fromJson(reader, MechaConfig.class);
-        if (defaultConfig == null) {
-            return new MechaConfig(
-                    null,
-                    new ArrayList<>(),
-                    new ArrayList<>(),
-                    new ArrayList<>(),
-                    new ArrayList<>()
-            );
-        }
-        return defaultConfig;
+    protected InputStream getDefaultResourceStream() {
+        return MechaStorageUtil.class.getResourceAsStream("defaultMechaConfig.json");
     }
     
     public List<Vector> getSpawnChestCoords() {

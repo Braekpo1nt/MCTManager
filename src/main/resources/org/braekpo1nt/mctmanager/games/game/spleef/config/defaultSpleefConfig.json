@@ -1,0 +1,19 @@
+{
+  "world": "FT",
+  "startingLocation": {
+    "x": 0.0,
+    "y": 0.0,
+    "z": 0.0
+  },
+  "spectatorBoundary": {
+    "minX": 0.0,
+    "minY": 0.0,
+    "minZ": 0.0,
+    "maxX": 1.0,
+    "maxY": 1.0,
+    "maxZ": 1.0
+  },
+  "scores": {
+    "survive": 10
+  }
+}

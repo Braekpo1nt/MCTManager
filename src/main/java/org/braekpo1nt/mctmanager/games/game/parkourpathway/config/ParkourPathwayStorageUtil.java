@@ -49,7 +49,6 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
     public @NotNull ParkourPathwayConfig getDefaultConfig() {
         InputStream inputStream = plugin.getClass().getResourceAsStream("/parkourpathway/defaultParkourPathwayConfig.json");
         if (inputStream == null) {
-            Bukkit.getLogger().severe("");
             return new ParkourPathwayConfig();
         }
         InputStreamReader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
@@ -59,6 +58,11 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
             return new ParkourPathwayConfig();
         }
         return defaultConfig;
+    }
+    
+    @Override
+    protected InputStream getDefaultResourceStream() {
+        return ParkourPathwayStorageUtil.class.getResourceAsStream("defaultParkourPathwayConfig.json");
     }
     
     public List<CheckPoint> getCheckPoints() {

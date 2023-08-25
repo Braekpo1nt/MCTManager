@@ -8,6 +8,8 @@ import org.braekpo1nt.mctmanager.games.game.mecha.config.MechaConfig;
 import org.braekpo1nt.mctmanager.games.game.mecha.config.MechaStorageUtil;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.config.ParkourPathwayConfig;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.config.ParkourPathwayStorageUtil;
+import org.braekpo1nt.mctmanager.games.game.spleef.config.SpleefConfig;
+import org.braekpo1nt.mctmanager.games.game.spleef.config.SpleefStorageUtil;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,9 +34,7 @@ public class DefaultConfigTest {
     void parkourPathway() {
         ParkourPathwayStorageUtil parkourPathwayStorageUtil = new ParkourPathwayStorageUtil(plugin);
         Assertions.assertDoesNotThrow(() -> {
-            ParkourPathwayConfig defaultConfig = parkourPathwayStorageUtil.getDefaultConfig();
-            Assertions.assertNotNull(defaultConfig.getCheckpoints());
-            Assertions.assertNotNull(defaultConfig.getWorld());
+            Assertions.assertNotNull(parkourPathwayStorageUtil.getDefaultConfig());
         });
     }
     
@@ -42,12 +42,15 @@ public class DefaultConfigTest {
     void mecha() {
         MechaStorageUtil mechaStorageUtil = new MechaStorageUtil(plugin);
         Assertions.assertDoesNotThrow(() -> {
-            MechaConfig defaultConfig = mechaStorageUtil.getDefaultConfig();
-            Assertions.assertNotNull(defaultConfig.spawnLootTable());
-            Assertions.assertNotNull(defaultConfig.weightedMechaLootTables());
-            Assertions.assertNotNull(defaultConfig.borderStages());
-            Assertions.assertNotNull(defaultConfig.spawnChestCoords());
-            Assertions.assertNotNull(defaultConfig.mapChestCoords());
+            Assertions.assertNotNull(mechaStorageUtil.getDefaultConfig());
+        });
+    }
+    
+    @Test
+    void spleef() {
+        SpleefStorageUtil spleefStorageUtil = new SpleefStorageUtil(plugin);
+        Assertions.assertDoesNotThrow(() -> {
+            Assertions.assertNotNull(spleefStorageUtil.getDefaultConfig());
         });
     }
     

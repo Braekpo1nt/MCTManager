@@ -3,6 +3,8 @@ package org.braekpo1nt.mctmanager.games.game.spleef.config;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.config.GameConfigStorageUtil;
 
+import java.io.InputStream;
+
 public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
     
     protected SpleefConfig spleefConfig = null;
@@ -22,8 +24,7 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
     }
     
     @Override
-    public SpleefConfig getDefaultConfig() {
-        return new SpleefConfig();
+    protected InputStream getDefaultResourceStream() {
+        return SpleefStorageUtil.class.getResourceAsStream("defaultSpleefConfig.json");
     }
-    
 }
