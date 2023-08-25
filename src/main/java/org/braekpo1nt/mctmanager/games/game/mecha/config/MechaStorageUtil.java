@@ -9,19 +9,16 @@ import org.bukkit.loot.LootTable;
 import org.bukkit.loot.LootTables;
 import org.bukkit.util.Vector;
 
+import java.io.File;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
     
-    private final Main plugin;
     protected MechaConfig mechaConfig = null;
     
-    public MechaStorageUtil(Main plugin) {
-        super(plugin, "mechaConfig.json", MechaConfig.class);
-        this.plugin = plugin;
+    public MechaStorageUtil(File configDirectory) {
+        super(configDirectory, "mechaConfig.json", MechaConfig.class);
     }
     
     @Override

@@ -27,7 +27,7 @@ public class GameStateStorageUtil {
     protected GameState gameState = new GameState();
     
     public GameStateStorageUtil(Main plugin) {
-        this.gameStateDirectory = plugin.getDataFolder().getAbsoluteFile();
+        this.gameStateDirectory = plugin.getDataFolder();
     }
     
     /**

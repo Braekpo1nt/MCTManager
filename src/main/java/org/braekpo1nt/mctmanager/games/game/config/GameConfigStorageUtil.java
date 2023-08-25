@@ -24,14 +24,14 @@ public abstract class GameConfigStorageUtil<T> {
     protected Class<T> configClass;
     
     /**
-     * @param plugin the plugin
+     * @param configDirectory The directory that the config should be located in (e.g. the plugin's data folder)
      * @param configFileName The filename of the config file
      * @param configClass The class object representing the type of the configuration object. Used by gson for instantiating from json.
      */
-    public GameConfigStorageUtil(Main plugin, String configFileName, Class<T> configClass) {
-        this.configDirectory = plugin.getDataFolder().getAbsoluteFile();
+    public GameConfigStorageUtil(File configDirectory, String configFileName, Class<T> configClass) {
+        this.configDirectory = configDirectory;
         this.configFileName = configFileName;
-        this.configFile = new File(configDirectory.getAbsolutePath(), configFileName);
+        this.configFile = new File(this.configDirectory, configFileName);
         this.configClass = configClass;
     }
     
@@ -134,7 +134,7 @@ public abstract class GameConfigStorageUtil<T> {
      * @return A new config instance with default values for use if no user-config is present.
      * null if there is a problem reading or parsing the default config
      */
-    public @Nullable T getDefaultConfig() {
+    protected @Nullable T getDefaultConfig() {
         InputStream inputStream = getDefaultResourceStream();
         if (inputStream == null) {
             return null;
