@@ -124,6 +124,6 @@ public abstract class GameConfigStorageUtil<T> {
      * uses. 
      * @return A new config instance with default values for use if no user-config is present
      */
-    protected abstract T getDefaultConfig();
+    public abstract T getDefaultConfig();
     
 }

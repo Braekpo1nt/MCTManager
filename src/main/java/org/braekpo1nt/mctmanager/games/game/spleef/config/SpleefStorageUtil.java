@@ -22,7 +22,7 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
     }
     
     @Override
-    protected SpleefConfig getDefaultConfig() {
+    public SpleefConfig getDefaultConfig() {
         return new SpleefConfig();
     }
     

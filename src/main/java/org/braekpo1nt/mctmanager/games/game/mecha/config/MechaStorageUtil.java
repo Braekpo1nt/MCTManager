@@ -42,7 +42,7 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
      * @return A new config instance with default values for use if no user-config is present
      */
     @Override
-    protected MechaConfig getDefaultConfig() {
+    public MechaConfig getDefaultConfig() {
         InputStream inputStream = plugin.getClass().getResourceAsStream("/mecha/defaultMechaConfig.json");
         if (inputStream == null) {
             Bukkit.getLogger().severe("");

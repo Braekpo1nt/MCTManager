@@ -4,6 +4,8 @@ import be.seeseemelk.mockbukkit.MockBukkit;
 import be.seeseemelk.mockbukkit.ServerMock;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.MyCustomServerMock;
+import org.braekpo1nt.mctmanager.games.game.mecha.config.MechaConfig;
+import org.braekpo1nt.mctmanager.games.game.mecha.config.MechaStorageUtil;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.config.ParkourPathwayConfig;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.config.ParkourPathwayStorageUtil;
 import org.junit.jupiter.api.AfterEach;
@@ -33,6 +35,19 @@ public class DefaultConfigTest {
             ParkourPathwayConfig defaultConfig = parkourPathwayStorageUtil.getDefaultConfig();
             Assertions.assertNotNull(defaultConfig.getCheckpoints());
             Assertions.assertNotNull(defaultConfig.getWorld());
+        });
+    }
+    
+    @Test
+    void mecha() {
+        MechaStorageUtil mechaStorageUtil = new MechaStorageUtil(plugin);
+        Assertions.assertDoesNotThrow(() -> {
+            MechaConfig defaultConfig = mechaStorageUtil.getDefaultConfig();
+            Assertions.assertNotNull(defaultConfig.spawnLootTable());
+            Assertions.assertNotNull(defaultConfig.weightedMechaLootTables());
+            Assertions.assertNotNull(defaultConfig.borderStages());
+            Assertions.assertNotNull(defaultConfig.spawnChestCoords());
+            Assertions.assertNotNull(defaultConfig.mapChestCoords());
         });
     }
     

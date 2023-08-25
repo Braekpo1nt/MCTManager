@@ -75,7 +75,7 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
         return newCheckpoints;
     }
     
-    public void setCheckpoints(List<CheckPoint> checkpoints) throws IOException {
+    public void setCheckpoints(List<CheckPoint> checkpoints) {
         parkourPathwayConfig = new ParkourPathwayConfig();
         List<CheckPointDTO> checkpointDTOS = new ArrayList<>();
         for (CheckPoint checkpoint : checkpoints) {
@@ -85,7 +85,7 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
         saveConfig();
     }
     
-    public void setWorld(String world) throws IOException {
+    public void setWorld(String world) {
         parkourPathwayConfig.setWorld(world);
         saveConfig();
     }
