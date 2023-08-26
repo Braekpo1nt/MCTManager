@@ -1,7 +1,5 @@
 package org.braekpo1nt.mctmanager.games.game.mecha.config;
 
-import com.google.gson.Gson;
-import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.config.GameConfigStorageUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
@@ -15,7 +13,7 @@ import java.util.*;
 
 public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
     
-    protected MechaConfig mechaConfig = null;
+    protected MechaConfig mechaConfig = getDefaultConfig();
     
     public MechaStorageUtil(File configDirectory) {
         super(configDirectory, "mechaConfig.json", MechaConfig.class);
@@ -33,7 +31,7 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
     
     @Override
     protected boolean configIsValid(MechaConfig config) {
-        throw new UnsupportedOperationException();
+        return true;
     }
     
     @Override

@@ -29,7 +29,7 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
     
     @Override
     protected boolean configIsValid(SpleefConfig config) {
-        throw new UnsupportedOperationException();
+        return false;
     }
     
     @Override

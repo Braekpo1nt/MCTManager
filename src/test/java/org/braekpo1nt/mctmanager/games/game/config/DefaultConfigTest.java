@@ -42,7 +42,7 @@ public class DefaultConfigTest {
     
     @Test
     void spleefMalformedJson() {
-        createFileInDirectory(new File(plugin.getDataFolder(), "spleef.json"), "spleefConfig.json", "{,");
+        createFileInDirectory(plugin.getDataFolder(), "spleefConfig.json", "{,");
         SpleefStorageUtil spleefStorageUtil = new SpleefStorageUtil(plugin.getDataFolder());
         Assertions.assertFalse(spleefStorageUtil.loadConfig());
     }

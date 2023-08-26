@@ -16,7 +16,7 @@ import java.util.List;
 
 public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPathwayConfig> {
     
-    protected ParkourPathwayConfig parkourPathwayConfig = new ParkourPathwayConfig();
+    protected ParkourPathwayConfig parkourPathwayConfig = getDefaultConfig();
     
     public ParkourPathwayStorageUtil(File configDirectory) {
         super(configDirectory, "parkourPathwayConfig.json", ParkourPathwayConfig.class);
@@ -34,7 +34,7 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
     
     @Override
     protected boolean configIsValid(ParkourPathwayConfig config) {
-        throw new UnsupportedOperationException();
+        return true;
     }
     
     @Override

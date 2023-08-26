@@ -68,7 +68,6 @@ public abstract class GameConfigStorageUtil<T> {
             }
         } catch (SecurityException e) {
             Bukkit.getLogger().severe(String.format("Permission error while checking for existence of %s file: \n%s", configFile, e));
-            e.printStackTrace();
             return null;
         }
         T newConfig = null;
@@ -79,10 +78,8 @@ public abstract class GameConfigStorageUtil<T> {
             reader.close();
         } catch (IOException | JsonIOException e) {
             Bukkit.getLogger().severe(String.format("Error while reading %s: \n%s", configFile, e));
-            e.printStackTrace();
         } catch (JsonSyntaxException e) {
             Bukkit.getLogger().severe(String.format("Error parsing %s: \n%s", configFile, e));
-            e.printStackTrace();
         }
         return newConfig;
     }
