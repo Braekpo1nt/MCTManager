@@ -35,22 +35,16 @@ public class DefaultConfigTest {
     }
     
     @Test
-    void spleefDefault() {
-        SpleefStorageUtil spleefStorageUtil = new SpleefStorageUtil(plugin.getDataFolder());
-        Assertions.assertNotNull(spleefStorageUtil.getDefaultConfig());
-    }
-    
-    @Test
     void spleefLoad() {
         SpleefStorageUtil spleefStorageUtil = new SpleefStorageUtil(plugin.getDataFolder());
-        Assertions.assertThrows(IOException.class, spleefStorageUtil::loadConfig);
+        Assertions.assertFalse(spleefStorageUtil.loadConfig());
     }
     
     @Test
     void spleefMalformedJson() {
         createFileInDirectory(new File(plugin.getDataFolder(), "spleef.json"), "spleefConfig.json", "{,");
         SpleefStorageUtil spleefStorageUtil = new SpleefStorageUtil(plugin.getDataFolder());
-        Assertions.assertThrows(IOException.class, spleefStorageUtil::loadConfig);
+        Assertions.assertFalse(spleefStorageUtil.loadConfig());
     }
     
     @Test
@@ -58,7 +52,7 @@ public class DefaultConfigTest {
         InputStream inputStream = SpleefStorageUtil.class.getResourceAsStream("defaultSpleefConfig.json");
         copyInputStreamToFile(inputStream, new File(plugin.getDataFolder(), "spleefConfig.json"));
         SpleefStorageUtil spleefStorageUtil = new SpleefStorageUtil(plugin.getDataFolder());
-        Assertions.assertDoesNotThrow(spleefStorageUtil::loadConfig);
+        Assertions.assertTrue(spleefStorageUtil.loadConfig());
     }
     
     public static void copyInputStreamToFile(InputStream inputStream, File destinationFile) {

@@ -95,7 +95,7 @@ public abstract class GameConfigStorageUtil<T> {
      * an error is reported to the logger and nothing happens.
      * @param config the config to save
      */
-    private void saveConfig(T config) {
+    protected void saveConfig(T config) {
         try {
             if (!configFile.exists()) {
                 if (!configDirectory.exists()) {
