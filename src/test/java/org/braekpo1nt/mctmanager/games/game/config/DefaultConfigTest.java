@@ -12,6 +12,9 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.logging.Level;
 
 public class DefaultConfigTest {
@@ -22,7 +25,7 @@ public class DefaultConfigTest {
     @BeforeEach
     void setupServerAndPlugin() {
         server = MockBukkit.mock(new MyCustomServerMock());
-        server.getLogger().setLevel(Level.OFF);
+//        server.getLogger().setLevel(Level.OFF);
         plugin = MockBukkit.load(Main.class);
     }
     
@@ -68,6 +71,31 @@ public class DefaultConfigTest {
     void spleefLoad() {
         SpleefStorageUtil spleefStorageUtil = new SpleefStorageUtil(plugin.getDataFolder());
         Assertions.assertDoesNotThrow(spleefStorageUtil::loadConfig);
+    }
+    
+    @Test
+    void malformedJsonSpleef() {
+        createFileInDirectory(plugin.getDataFolder(), "spleefConfig.json", "{,");
+        SpleefStorageUtil spleefStorageUtil = new SpleefStorageUtil(plugin.getDataFolder());
+        Assertions.assertDoesNotThrow(spleefStorageUtil::loadConfig);
+    }
+    
+    public static void createFileInDirectory(File directory, String fileName, String fileContents) {
+        // Check if the provided "directory" is indeed a directory
+        if (!directory.isDirectory()) {
+            throw new IllegalArgumentException("Provided file is not a directory.");
+        }
+        
+        // Create a File object representing the new file within the specified directory
+        File newFile = new File(directory, fileName);
+        
+        // Create the new file and write the contents
+        try (FileWriter writer = new FileWriter(newFile)) {
+            writer.write(fileContents);
+        } catch (IOException e) {
+            // Handle or propagate the IOException if necessary
+            Assertions.fail(String.format("Unable to create file %s in %s with contents %s", fileName, directory, fileContents));
+        }
     }
     
 }

@@ -39,7 +39,6 @@ public abstract class GameConfigStorageUtil<T> {
         T newConfig = getConfigFromFile();
         if (newConfig == null) {
             newConfig = getDefaultConfig();
-            saveConfig(newConfig);
         }
         setConfig(newConfig);
         Bukkit.getLogger().info(String.format("[MCTManager] Loaded %s", configFileName));
@@ -58,7 +57,8 @@ public abstract class GameConfigStorageUtil<T> {
                 return null;
             }
         } catch (SecurityException e) {
-            Bukkit.getLogger().severe(String.format("Permission error while checking for existence of config file: \n%s", e));
+            Bukkit.getLogger().severe(String.format("Permission error while checking for existence of %s file: \n%s", configFile, e));
+            e.printStackTrace();
             return null;
         }
         T newConfig = null;
@@ -68,9 +68,11 @@ public abstract class GameConfigStorageUtil<T> {
             newConfig = gson.fromJson(reader, configClass);
             reader.close();
         } catch (IOException | JsonIOException e) {
-            Bukkit.getLogger().severe(String.format("Error while reading config file: \n%s", e));
+            Bukkit.getLogger().severe(String.format("Error while reading %s: \n%s", configFile, e));
+            e.printStackTrace();
         } catch (JsonSyntaxException e) {
-            Bukkit.getLogger().severe(String.format("Error parsing config file: \n%s", e));
+            Bukkit.getLogger().severe(String.format("Error parsing %s: \n%s", configFile, e));
+            e.printStackTrace();
         }
         return newConfig;
     }
