@@ -63,7 +63,6 @@ public class SpleefRound implements Listener {
         this.spleefGame = spleefGame;
         this.spleefStorageUtil = spleefStorageUtil;
         this.spleefStartAnchor = spleefStorageUtil.getStartingLocation();
-        MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
         this.spleefWorld = spleefStorageUtil.getWorld();
         this.layers = createLayers();
     }
