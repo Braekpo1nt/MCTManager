@@ -8,6 +8,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
+import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.game.mecha.config.MechaStorageUtil;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
@@ -48,7 +49,7 @@ import org.bukkit.util.Vector;
 import java.io.IOException;
 import java.util.*;
 
-public class MechaGame implements MCTGame, Listener {
+public class MechaGame implements MCTGame, Configurable, Listener {
     
     private final Main plugin;
     private final GameManager gameManager;
@@ -56,8 +57,7 @@ public class MechaGame implements MCTGame, Listener {
     private boolean gameActive = false;
     private boolean mechaHasStarted = false;
     private List<Player> participants;
-    private final World mechaWorld;
-    private final MultiverseWorld mvMechaWorld;
+    private World mechaWorld;
     private int startMechaTaskId;
     private int stopMechaCountdownTaskId;
     /**
@@ -77,7 +77,7 @@ public class MechaGame implements MCTGame, Listener {
      * Holds the mecha spawn loot table from the mctdatapack
      */
     private LootTable spawnLootTable;
-    private final WorldBorder worldBorder;
+    private WorldBorder worldBorder;
     private int borderShrinkingTaskId;
     private String lastKilledTeam;
     private List<UUID> livingPlayers;
@@ -91,12 +91,7 @@ public class MechaGame implements MCTGame, Listener {
         this.plugin = plugin;
         this.gameManager = gameManager;
         this.mechaStorageUtil = new MechaStorageUtil(plugin.getDataFolder());
-        mechaStorageUtil.loadConfig();
         setChestCoordsAndLootTables();
-        MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
-        this.mvMechaWorld = worldManager.getMVWorld("FT");
-        this.mechaWorld = mvMechaWorld.getCBWorld();
-        this.worldBorder = mechaWorld.getWorldBorder();
     }
     
     @Override
@@ -105,12 +100,19 @@ public class MechaGame implements MCTGame, Listener {
     }
     
     @Override
+    public boolean loadConfig() {
+        return mechaStorageUtil.loadConfig();
+    }
+    
+    @Override
     public void start(List<Player> newParticipants) {
         this.participants = new ArrayList<>(newParticipants.size());
         livingPlayers = new ArrayList<>(newParticipants.size());
         deadPlayers = new ArrayList<>();
         lastKilledTeam = null;
-        this.killCounts = new HashMap<>(newParticipants.size());
+        killCounts = new HashMap<>(newParticipants.size());
+        mechaWorld = mechaStorageUtil.getWorld();
+        worldBorder = mechaWorld.getWorldBorder();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         placePlatforms();
         fillAllChests();
@@ -865,5 +867,4 @@ public class MechaGame implements MCTGame, Listener {
         this.spawnLootTable = mechaStorageUtil.getSpawnLootTable();
         this.weightedMechaLootTables = mechaStorageUtil.getWeightedMechaLootTables();
     }
-    
 }

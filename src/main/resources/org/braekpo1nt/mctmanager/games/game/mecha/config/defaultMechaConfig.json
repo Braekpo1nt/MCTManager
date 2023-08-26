@@ -1,4 +1,5 @@
 {
+  "world": "FT",
   "spawnLootTable": {
     "namespace": "mctdatapack",
     "key": "mecha/spawn-chest"

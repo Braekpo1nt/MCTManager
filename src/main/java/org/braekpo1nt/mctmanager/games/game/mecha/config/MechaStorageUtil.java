@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.game.mecha.config;
 import org.braekpo1nt.mctmanager.games.game.config.GameConfigStorageUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
+import org.bukkit.World;
 import org.bukkit.loot.LootTable;
 import org.bukkit.loot.LootTables;
 import org.bukkit.util.Vector;
@@ -43,11 +44,9 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
         return mechaConfig.spawnChestCoords();
     }
     
-    
     public List<Vector> getMapChestCoords() {
         return mechaConfig.mapChestCoords();
     }
-    
     
     public LootTable getSpawnLootTable() {
         NamespacedKey spawnLootTableNamespacedKey = mechaConfig.spawnLootTable();
@@ -56,7 +55,6 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
         }
         return Bukkit.getLootTable(spawnLootTableNamespacedKey);
     }
-    
     
     public Map<LootTable, Integer> getWeightedMechaLootTables() {
         List<WeightedNamespacedKey> weightedNamespacedKeys = mechaConfig.weightedMechaLootTables();
@@ -79,7 +77,7 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
         }
         return sizes;
     }
-
+    
     public int[] getDelays() {
         List<BorderStage> borderStages = mechaConfig.borderStages();
         int[] delays = new int[borderStages.size()];
@@ -88,7 +86,7 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
         }
         return delays;
     }
-
+    
     public int[] getDurations() {
         List<BorderStage> borderStages = mechaConfig.borderStages();
         int[] durations = new int[borderStages.size()];
@@ -96,5 +94,9 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
             durations[i] = borderStages.get(i).duration();
         }
         return durations;
+    }
+    
+    public World getWorld() {
+        return Bukkit.getWorld(mechaConfig.world());
     }
 }

@@ -347,6 +347,10 @@ public class GameManager implements Listener {
                             .append(Component.text(" to stop the game."))
                             .color(NamedTextColor.RED));
                 }
+                if (mechaGame.loadConfig()) {
+                    sender.sendMessage(Component.text("Error loading config file. See console for details."));
+                    return;
+                }
                 hubManager.removeParticipantsFromHub(onlineParticipants);
                 mechaGame.start(onlineParticipants);
                 activeGame = mechaGame;
