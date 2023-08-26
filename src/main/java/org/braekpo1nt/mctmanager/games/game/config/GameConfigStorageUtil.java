@@ -35,13 +35,24 @@ public abstract class GameConfigStorageUtil<T> {
         this.configClass = configClass;
     }
     
-    public void loadConfig() {
+    /**
+     * Loads the {@link GameConfigStorageUtil#configFile} and stores it in memory. 
+     * if the config file doesn't exist, if there are any exceptions thrown while reading/parsing the file, or if the loaded config is not valid, prints the reason to the Bukkit log and returns null.
+     * 
+     * @return true if the config loaded properly, false if there were any exceptions thrown while
+     * loading the config file, if the file doesn't exist, or the values aren't valid.
+     */
+    public boolean loadConfig() {
         T newConfig = getConfigFromFile();
         if (newConfig == null) {
-            newConfig = getDefaultConfig();
+            return false;
+        }
+        if (!configIsValid(newConfig)) {
+            return false;
         }
         setConfig(newConfig);
         Bukkit.getLogger().info(String.format("[MCTManager] Loaded %s", configFileName));
+        return true;
     }
     
     /**
@@ -54,6 +65,7 @@ public abstract class GameConfigStorageUtil<T> {
     protected @Nullable T getConfigFromFile() {
         try {
             if (!configFile.exists()) {
+                Bukkit.getLogger().severe(String.format("%s not found.", configFile));
                 return null;
             }
         } catch (SecurityException e) {
@@ -120,6 +132,14 @@ public abstract class GameConfigStorageUtil<T> {
     }
     
     protected abstract T getConfig();
+    
+    /**
+     * Checks if the given config is valid. If the config is invalid, prints the reason to the console
+     * and returns null
+     * @param config The config to validate
+     * @return true if the config is valid, false if not
+     */
+    protected abstract boolean configIsValid(T config);
     
     protected abstract void setConfig(T config);
     
