@@ -1,9 +1,7 @@
 package org.braekpo1nt.mctmanager.games.game.config;
 
 import com.google.gson.*;
-import org.braekpo1nt.mctmanager.Main;
 import org.bukkit.Bukkit;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.*;

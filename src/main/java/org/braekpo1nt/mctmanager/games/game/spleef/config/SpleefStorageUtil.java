@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.games.game.spleef.config;
 
 import org.braekpo1nt.mctmanager.games.game.config.GameConfigStorageUtil;
+import org.braekpo1nt.mctmanager.games.game.mecha.config.MechaConfig;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -24,6 +25,11 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
     @Override
     protected void setConfig(SpleefConfig config) {
         this.spleefConfig = config;
+    }
+    
+    @Override
+    protected boolean configIsValid(SpleefConfig config) {
+        throw new UnsupportedOperationException();
     }
     
     @Override

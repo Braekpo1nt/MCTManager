@@ -32,6 +32,11 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
     }
     
     @Override
+    protected boolean configIsValid(MechaConfig config) {
+        throw new UnsupportedOperationException();
+    }
+    
+    @Override
     protected InputStream getDefaultResourceStream() {
         return MechaStorageUtil.class.getResourceAsStream("defaultMechaConfig.json");
     }

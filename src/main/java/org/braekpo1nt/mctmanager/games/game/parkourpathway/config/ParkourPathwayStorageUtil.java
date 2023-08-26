@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.games.game.parkourpathway.config;
 
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.config.GameConfigStorageUtil;
+import org.braekpo1nt.mctmanager.games.game.mecha.config.MechaConfig;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.CheckPoint;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -21,8 +22,6 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
         super(configDirectory, "parkourPathwayConfig.json", ParkourPathwayConfig.class);
     }
     
-    
-    
     @Override
     protected ParkourPathwayConfig getConfig() {
         return parkourPathwayConfig;
@@ -31,6 +30,11 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
     @Override
     protected void setConfig(ParkourPathwayConfig config) {
         parkourPathwayConfig = config;
+    }
+    
+    @Override
+    protected boolean configIsValid(ParkourPathwayConfig config) {
+        throw new UnsupportedOperationException();
     }
     
     @Override
