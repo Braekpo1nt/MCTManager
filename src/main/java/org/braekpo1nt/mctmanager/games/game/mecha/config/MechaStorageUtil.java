@@ -7,6 +7,7 @@ import org.bukkit.World;
 import org.bukkit.loot.LootTable;
 import org.bukkit.loot.LootTables;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.InputStream;
@@ -31,7 +32,7 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
     }
     
     @Override
-    protected boolean configIsValid(MechaConfig config) {
+    protected boolean configIsValid(@Nullable MechaConfig config) {
         return true;
     }
     

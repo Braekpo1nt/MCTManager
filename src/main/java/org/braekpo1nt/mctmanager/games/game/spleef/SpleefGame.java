@@ -1,9 +1,9 @@
 package org.braekpo1nt.mctmanager.games.game.spleef;
 
-import com.onarandombox.MultiverseCore.utils.AnchorManager;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
+import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.game.spleef.config.SpleefStorageUtil;
 import org.bukkit.*;
@@ -11,10 +11,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 
-import java.io.IOException;
 import java.util.*;
 
-public class SpleefGame implements MCTGame {
+public class SpleefGame implements MCTGame, Configurable {
     private final Main plugin;
     private final GameManager gameManager;
     private final SpleefStorageUtil spleefStorageUtil;
@@ -35,6 +34,11 @@ public class SpleefGame implements MCTGame {
     @Override
     public GameType getType() {
         return GameType.SPLEEF;
+    }
+    
+    @Override
+    public boolean loadConfig() throws IllegalArgumentException {
+        return spleefStorageUtil.loadConfig();
     }
     
     @Override

@@ -4,6 +4,7 @@ import org.braekpo1nt.mctmanager.games.game.config.GameConfigStorageUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.InputStream;
@@ -27,7 +28,10 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
     }
     
     @Override
-    protected boolean configIsValid(SpleefConfig config) throws IllegalArgumentException {
+    protected boolean configIsValid(@Nullable SpleefConfig config) throws IllegalArgumentException {
+        if (config == null) {
+            throw new IllegalArgumentException("Saved config is null");
+        }
         World mechaWorld = Bukkit.getWorld(config.world());
         if (mechaWorld == null) {
             throw new IllegalArgumentException(String.format("Could not find world \"%s\"", config.world()));

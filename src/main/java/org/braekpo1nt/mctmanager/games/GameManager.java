@@ -280,7 +280,7 @@ public class GameManager implements Listener {
     }
     
     public void startGameWithDelay(GameType mctGame) {
-        String gameTitle = ChatColor.BLUE+""+ChatColor.BOLD+ GameType.getTitle(mctGame);
+        String gameTitle = ChatColor.BLUE+""+ChatColor.BOLD+ mctGame.getTitle();
         messageOnlineParticipants(Component.empty()
                 .append(Component.text(gameTitle)
                         .decorate(TextDecoration.BOLD))
@@ -306,10 +306,10 @@ public class GameManager implements Listener {
     
     /**
      * Starts the given game
-     * @param mctGame The game to start
+     * @param gameType The game to start
      * @param sender The sender to send messages and alerts to
      */
-    public void startGame(GameType mctGame, @NotNull CommandSender sender) {
+    public void startGame(GameType gameType, @NotNull CommandSender sender) {
         
         if (voteManager.isVoting()) {
             sender.sendMessage(Component.text("Can't start a game while a vote is going on.")
@@ -332,7 +332,7 @@ public class GameManager implements Listener {
         
         List<String> onlineTeams = getTeamNames(onlineParticipants);
         
-        switch (mctGame) {
+        switch (gameType) {
             case FOOT_RACE -> {
                 hubManager.removeParticipantsFromHub(onlineParticipants);
                 footRaceGame.start(onlineParticipants);
@@ -347,8 +347,16 @@ public class GameManager implements Listener {
                             .append(Component.text(" to stop the game."))
                             .color(NamedTextColor.RED));
                 }
-                if (mechaGame.loadConfig()) {
-                    sender.sendMessage(Component.text("Error loading config file. See console for details."));
+                try {
+                    mechaGame.loadConfig();
+                } catch (IllegalArgumentException e) {
+                    Component message = Component.text("Can't start ")
+                            .append(Component.text(gameType.name()))
+                            .append(Component.text(". Error loading config file. See console for details: "))
+                            .append(Component.text(e.getMessage()))
+                            .color(NamedTextColor.RED);
+                    sender.sendMessage(message);
+                    messageAdmins(message, sender);
                     return;
                 }
                 hubManager.removeParticipantsFromHub(onlineParticipants);
@@ -365,11 +373,35 @@ public class GameManager implements Listener {
                 activeGame = captureTheFlagGame;
             }
             case SPLEEF -> {
+                try {
+                    spleefGame.loadConfig();
+                } catch (IllegalArgumentException e) {
+                    Component message = Component.text("Can't start ")
+                            .append(Component.text(gameType.name()))
+                            .append(Component.text(". Error loading config file. See console for details: "))
+                            .append(Component.text(e.getMessage()))
+                            .color(NamedTextColor.RED);
+                    sender.sendMessage(message);
+                    messageAdmins(message, sender);
+                    return;
+                }
                 hubManager.removeParticipantsFromHub(onlineParticipants);
                 spleefGame.start(onlineParticipants);
                 activeGame = spleefGame;
             }
             case PARKOUR_PATHWAY -> {
+                try {
+                    parkourPathwayGame.loadConfig();
+                } catch (IllegalArgumentException e) {
+                    Component message = Component.text("Can't start ")
+                            .append(Component.text(gameType.name()))
+                            .append(Component.text(". Error loading config file. See console for details: "))
+                            .append(Component.text(e.getMessage()))
+                            .color(NamedTextColor.RED);
+                    sender.sendMessage(message);
+                    messageAdmins(message, sender);
+                    return;
+                }
                 hubManager.removeParticipantsFromHub(onlineParticipants);
                 parkourPathwayGame.start(onlineParticipants);
                 activeGame = parkourPathwayGame;
@@ -920,6 +952,14 @@ public class GameManager implements Listener {
     public void messageAdmins(Component message) {
         for (Player admin : onlineAdmins) {
             admin.sendMessage(message);
+        }
+    }
+    
+    public void messageAdmins(Component message, CommandSender except) {
+        for (Player admin : onlineAdmins) {
+            if (!admin.equals(except)) {
+                admin.sendMessage(message);
+            }
         }
     }
     

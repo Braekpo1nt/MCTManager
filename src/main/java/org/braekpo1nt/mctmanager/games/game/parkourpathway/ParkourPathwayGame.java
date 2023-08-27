@@ -6,6 +6,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
+import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.config.ParkourPathwayStorageUtil;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
@@ -29,7 +30,7 @@ import org.bukkit.scoreboard.Team;
 import java.io.IOException;
 import java.util.*;
 
-public class ParkourPathwayGame implements MCTGame, Listener {
+public class ParkourPathwayGame implements MCTGame, Configurable, Listener {
 
     private final Main plugin;
     private final GameManager gameManager;
@@ -64,7 +65,6 @@ public class ParkourPathwayGame implements MCTGame, Listener {
         AnchorManager anchorManager = Main.multiverseCore.getAnchorManager();
         this.parkourPathwayStartAnchor = anchorManager.getAnchorLocation("parkour-pathway");
         parkourPathwayStorageUtil = new ParkourPathwayStorageUtil(plugin.getDataFolder());
-        parkourPathwayStorageUtil.loadConfig();
         this.parkourPathwayWorld = Bukkit.getWorld(parkourPathwayStorageUtil.getWorld());
         this.checkpoints = parkourPathwayStorageUtil.getCheckPoints();
     }
@@ -72,6 +72,11 @@ public class ParkourPathwayGame implements MCTGame, Listener {
     @Override
     public GameType getType() {
         return GameType.PARKOUR_PATHWAY;
+    }
+    
+    @Override
+    public boolean loadConfig() throws IllegalArgumentException {
+        return parkourPathwayStorageUtil.loadConfig();
     }
     
     @Override

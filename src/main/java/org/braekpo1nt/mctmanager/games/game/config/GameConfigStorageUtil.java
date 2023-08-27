@@ -35,16 +35,12 @@ public abstract class GameConfigStorageUtil<T> {
     
     /**
      * Loads the {@link GameConfigStorageUtil#configFile} and stores it in memory. 
-     * if the config file doesn't exist, if there are any exceptions thrown while reading/parsing the file, or if the loaded config is not valid, prints the reason to the Bukkit log and returns null.
-     * 
+     * @throws IllegalArgumentException if the config file doesn't exist, if there are any exceptions thrown while reading/parsing the file, or if the loaded config is not valid.
      * @return true if the config loaded properly, false if there were any exceptions thrown while
      * loading the config file, if the file doesn't exist, or the config isn't valid.
      */
     public boolean loadConfig() throws IllegalArgumentException {
         T newConfig = getConfigFromFile();
-        if (newConfig == null) {
-            return false;
-        }
         if (!configIsValid(newConfig)) {
             throw new IllegalArgumentException(String.format("Invalid config: %s", configFileName));
         }
@@ -56,7 +52,7 @@ public abstract class GameConfigStorageUtil<T> {
     /**
      * Get the config from the config file. 
      * @throws IllegalArgumentException if there were any IO, Json, or Security exceptions thrown from reading/parsing the config file, or if the config file doesn't exist.
-     * @return a new {@link T} config object from the {@link GameConfigStorageUtil#configFile}, 
+     * @return a new {@link T} config object from the {@link GameConfigStorageUtil#configFile}, null if the stored config in the file is null
      */
     protected @Nullable T getConfigFromFile() throws IllegalArgumentException {
         try {
@@ -66,18 +62,17 @@ public abstract class GameConfigStorageUtil<T> {
         } catch (SecurityException e) {
             throw new IllegalArgumentException(String.format("Permission error while checking for existence of %s file", configFile), e);
         }
-        T newConfig = null;
         try {
             Reader reader = new FileReader(configFile);
             Gson gson = new Gson();
-            newConfig = gson.fromJson(reader, configClass);
+            T newConfig = gson.fromJson(reader, configClass);
             reader.close();
+            return newConfig;
         } catch (IOException | JsonIOException e) {
             throw new IllegalArgumentException(String.format("Error while reading %s", configFile), e);
         } catch (JsonSyntaxException e) {
             throw new IllegalArgumentException(String.format("Error parsing %s", configFile), e);
         }
-        return newConfig;
     }
     
     /**
@@ -130,7 +125,7 @@ public abstract class GameConfigStorageUtil<T> {
      * @throws IllegalArgumentException If the config is invalid. The exception includes a detailed message of what was invalid
      * @return true if the config is valid, false if not
      */
-    protected abstract boolean configIsValid(T config) throws IllegalArgumentException;
+    protected abstract boolean configIsValid(@Nullable T config) throws IllegalArgumentException;
     
     protected abstract void setConfig(T config);
     
