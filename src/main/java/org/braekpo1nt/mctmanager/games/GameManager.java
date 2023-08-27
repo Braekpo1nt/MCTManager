@@ -8,6 +8,7 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.clockwork.ClockworkGame;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
+import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.CaptureTheFlagGame;
@@ -331,13 +332,51 @@ public class GameManager implements Listener {
         }
         
         List<String> onlineTeams = getTeamNames(onlineParticipants);
-        
+
+        MCTGame selectedGame;
         switch (gameType) {
             case FOOT_RACE -> {
-                hubManager.removeParticipantsFromHub(onlineParticipants);
-                footRaceGame.start(onlineParticipants);
-                activeGame = footRaceGame;
+                selectedGame = footRaceGame;
             }
+            case MECHA -> {
+                selectedGame = mechaGame;
+            }
+            case SPLEEF -> {
+                selectedGame = spleefGame;
+            }
+            case CLOCKWORK -> {
+                selectedGame = clockworkGame;
+            }
+            case PARKOUR_PATHWAY -> {
+                selectedGame = parkourPathwayGame;
+            }
+            case CAPTURE_THE_FLAG -> {
+                selectedGame = captureTheFlagGame;
+            }
+            default -> {
+                sender.sendMessage(Component.text("Can't find game for type " + gameType));
+                return;
+            }
+        }
+        
+        // make sure config loads
+        if (selectedGame instanceof Configurable configurable) {
+            try {
+                configurable.loadConfig();
+            } catch (IllegalArgumentException e) {
+                Component message = Component.text("Can't start ")
+                        .append(Component.text(gameType.name()))
+                        .append(Component.text(". Error loading config file. See console for details: "))
+                        .append(Component.text(e.getMessage()))
+                        .color(NamedTextColor.RED);
+                sender.sendMessage(message);
+                messageAdmins(message, sender);
+                return;
+            }
+        }
+    
+        // make sure the requirements are met to play the game
+        switch (gameType) {
             case MECHA -> {
                 if (onlineTeams.size() < 2) {
                     sender.sendMessage(Component.text("MECHA doesn't end correctly unless there are 2 or more teams online. use ")
@@ -347,71 +386,19 @@ public class GameManager implements Listener {
                             .append(Component.text(" to stop the game."))
                             .color(NamedTextColor.RED));
                 }
-                try {
-                    mechaGame.loadConfig();
-                } catch (IllegalArgumentException e) {
-                    Component message = Component.text("Can't start ")
-                            .append(Component.text(gameType.name()))
-                            .append(Component.text(". Error loading config file. See console for details: "))
-                            .append(Component.text(e.getMessage()))
-                            .color(NamedTextColor.RED);
-                    sender.sendMessage(message);
-                    messageAdmins(message, sender);
-                    return;
-                }
-                hubManager.removeParticipantsFromHub(onlineParticipants);
-                mechaGame.start(onlineParticipants);
-                activeGame = mechaGame;
             }
             case CAPTURE_THE_FLAG -> {
                 if (onlineTeams.size() < 2 || 8 < onlineTeams.size()) {
                     sender.sendMessage(Component.text("Capture the Flag needs at least 2 and at most 8 teams online to play.").color(NamedTextColor.RED));
                     return;
                 }
-                hubManager.removeParticipantsFromHub(onlineParticipants);
-                captureTheFlagGame.start(onlineParticipants);
-                activeGame = captureTheFlagGame;
-            }
-            case SPLEEF -> {
-                try {
-                    spleefGame.loadConfig();
-                } catch (IllegalArgumentException e) {
-                    Component message = Component.text("Can't start ")
-                            .append(Component.text(gameType.name()))
-                            .append(Component.text(". Error loading config file. See console for details: "))
-                            .append(Component.text(e.getMessage()))
-                            .color(NamedTextColor.RED);
-                    sender.sendMessage(message);
-                    messageAdmins(message, sender);
-                    return;
-                }
-                hubManager.removeParticipantsFromHub(onlineParticipants);
-                spleefGame.start(onlineParticipants);
-                activeGame = spleefGame;
-            }
-            case PARKOUR_PATHWAY -> {
-                try {
-                    parkourPathwayGame.loadConfig();
-                } catch (IllegalArgumentException e) {
-                    Component message = Component.text("Can't start ")
-                            .append(Component.text(gameType.name()))
-                            .append(Component.text(". Error loading config file. See console for details: "))
-                            .append(Component.text(e.getMessage()))
-                            .color(NamedTextColor.RED);
-                    sender.sendMessage(message);
-                    messageAdmins(message, sender);
-                    return;
-                }
-                hubManager.removeParticipantsFromHub(onlineParticipants);
-                parkourPathwayGame.start(onlineParticipants);
-                activeGame = parkourPathwayGame;
-            }
-            case CLOCKWORK -> {
-                hubManager.removeParticipantsFromHub(onlineParticipants);
-                clockworkGame.start(onlineParticipants);
-                activeGame = clockworkGame;
             }
         }
+        
+        hubManager.removeParticipantsFromHub(onlineParticipants);
+        selectedGame.start(onlineParticipants);
+        activeGame = selectedGame;
+        
     }
     
     /**
