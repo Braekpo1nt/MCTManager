@@ -28,8 +28,22 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
     }
     
     @Override
-    protected boolean configIsValid(SpleefConfig config) {
-        return false;
+    protected boolean configIsValid(SpleefConfig config) throws IllegalArgumentException {
+        World mechaWorld = Bukkit.getWorld(config.world());
+        if (mechaWorld == null) {
+            throw new IllegalArgumentException(String.format("Could not find world \"%s\"", config.world()));
+        }
+        double volume = config.spectatorBoundary().getVolume();
+        if (volume <= 1) {
+            throw new IllegalArgumentException(String.format("Defined spectatorBoundary must have a volume greater than 1: %s", config.spectatorBoundary()));
+        }
+        if (config.durations().decayTopLayers() < 0) {
+            throw new IllegalArgumentException(String.format("Duration decayTopLayers can't be negative: %s", config.durations().decayTopLayers()));
+        }
+        if (config.durations().decayBottomLayers() < 0) {
+            throw new IllegalArgumentException(String.format("Duration decayBottomLayers can't be negative: %s", config.durations().decayBottomLayers()));
+        }
+        return true;
     }
     
     @Override
@@ -38,10 +52,10 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
     }
     
     public Location getStartingLocation() {
-        return spleefConfig.startingLocation.toLocation(Bukkit.getWorld(spleefConfig.world));
+        return spleefConfig.startingLocation().toLocation(Bukkit.getWorld(spleefConfig.world()));
     }
     
     public World getWorld() {
-        return Bukkit.getWorld(spleefConfig.world);
+        return Bukkit.getWorld(spleefConfig.world());
     }
 }

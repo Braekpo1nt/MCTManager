@@ -38,7 +38,7 @@ public abstract class GameConfigStorageUtil<T> {
      * if the config file doesn't exist, if there are any exceptions thrown while reading/parsing the file, or if the loaded config is not valid, prints the reason to the Bukkit log and returns null.
      * 
      * @return true if the config loaded properly, false if there were any exceptions thrown while
-     * loading the config file, if the file doesn't exist, or the values aren't valid.
+     * loading the config file, if the file doesn't exist, or the config isn't valid.
      */
     public boolean loadConfig() {
         T newConfig = getConfigFromFile();
@@ -58,7 +58,7 @@ public abstract class GameConfigStorageUtil<T> {
      * or if there are any errors reading the config file, returns null.
      * @return a new {@link T} config object from the {@link GameConfigStorageUtil#configFile}, 
      * or null if there were any IO, Json, or Security exceptions thrown from reading/parsing
-     * the config file. Null if there is no config file yet.
+     * the config file, or if the config file doesn't exist.
      */
     protected @Nullable T getConfigFromFile() {
         try {
@@ -129,12 +129,12 @@ public abstract class GameConfigStorageUtil<T> {
     protected abstract T getConfig();
     
     /**
-     * Checks if the given config is valid. If the config is invalid, prints the reason to the console
-     * and returns null
+     * Checks if the given config is valid. If the config is invalid, throws an IllegalArgumentException with a detailed message of what was invalid about the given config
      * @param config The config to validate
+     * @throws IllegalArgumentException If the config is invalid. The exception includes a detailed message of what was invalid
      * @return true if the config is valid, false if not
      */
-    protected abstract boolean configIsValid(T config);
+    protected abstract boolean configIsValid(T config) throws IllegalArgumentException;
     
     protected abstract void setConfig(T config);
     
