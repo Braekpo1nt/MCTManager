@@ -33,7 +33,7 @@ public class MechaStorageUtilTest {
     void tearDown() {
         MockBukkit.unmock();
     }
-
+    
     @Test
     void configDoesNotExist() {
         Assertions.assertThrows(IllegalArgumentException.class, storageUtil::loadConfig);
