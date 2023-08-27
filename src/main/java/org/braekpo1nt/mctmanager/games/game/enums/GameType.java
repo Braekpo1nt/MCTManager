@@ -1,42 +1,36 @@
 package org.braekpo1nt.mctmanager.games.game.enums;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public enum GameType {
-    FOOT_RACE,
-    MECHA,
-    CAPTURE_THE_FLAG,
-    SPLEEF,
-    PARKOUR_PATHWAY, 
-    CLOCKWORK;
+    FOOT_RACE("Foot Race", "foot-race"),
+    MECHA("MECHA", "mecha"),
+    CAPTURE_THE_FLAG("Capture the Flag", "capture-the-flag"),
+    SPLEEF("Spleef", "spleef"),
+    PARKOUR_PATHWAY("Parkour Pathway", "parkour-pathway"),
+    CLOCKWORK("Clockwork", "clockwork");
     
-    public static final Map<String, GameType> GAME_IDS;
-    public static final Map<GameType, String> TITLES;
-    
-    static {
-        GAME_IDS = Map.of(
-                "foot-race", GameType.FOOT_RACE, 
-                "mecha", GameType.MECHA, 
-                "capture-the-flag", GameType.CAPTURE_THE_FLAG, 
-                "spleef", GameType.SPLEEF, 
-                "parkour-pathway", GameType.PARKOUR_PATHWAY, 
-                "clockwork", GameType.CLOCKWORK);
-        
-        TITLES = Map.of(
-                GameType.FOOT_RACE, "Foot Race", 
-                GameType.MECHA, "MECHA", 
-                GameType.CAPTURE_THE_FLAG, "Capture the Flag", 
-                GameType.SPLEEF, "Spleef", 
-                GameType.PARKOUR_PATHWAY, "Parkour Pathway", 
-                GameType.CLOCKWORK, "Clockwork");
+    GameType(String title, String id) {
+        this.title = title;
+        this.id = id;
     }
     
-    /**
-     * @param gameType the GameType to get the title of
-     * @return the user-readable title of the given GameType, or null if gameType is null
-     */
-    public static String getTitle(GameType gameType) {
-        return TITLES.getOrDefault(gameType, null);
+    private final String title;
+    private final String id;
+    
+    public String getTitle() {
+        return title;
+    }
+    
+    public static final Map<String, GameType> GAME_IDS;
+    
+    static {
+        Map<String, GameType> gameIds = new HashMap<>();
+        for (GameType gameType : GameType.values()) {
+            gameIds.put(gameType.id, gameType);
+        }
+        GAME_IDS = Map.copyOf(gameIds);
     }
     
     /**
