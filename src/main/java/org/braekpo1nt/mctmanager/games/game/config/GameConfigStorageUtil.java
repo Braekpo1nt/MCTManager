@@ -40,13 +40,13 @@ public abstract class GameConfigStorageUtil<T> {
      * @return true if the config loaded properly, false if there were any exceptions thrown while
      * loading the config file, if the file doesn't exist, or the config isn't valid.
      */
-    public boolean loadConfig() {
+    public boolean loadConfig() throws IllegalArgumentException {
         T newConfig = getConfigFromFile();
         if (newConfig == null) {
             return false;
         }
         if (!configIsValid(newConfig)) {
-            return false;
+            throw new IllegalArgumentException(String.format("Invalid config: %s", configFileName));
         }
         setConfig(newConfig);
         Bukkit.getLogger().info(String.format("[MCTManager] Loaded %s", configFileName));
@@ -54,21 +54,17 @@ public abstract class GameConfigStorageUtil<T> {
     }
     
     /**
-     * Get the config from the config file. If the config file doesn't exist, 
-     * or if there are any errors reading the config file, returns null.
+     * Get the config from the config file. 
+     * @throws IllegalArgumentException if there were any IO, Json, or Security exceptions thrown from reading/parsing the config file, or if the config file doesn't exist.
      * @return a new {@link T} config object from the {@link GameConfigStorageUtil#configFile}, 
-     * or null if there were any IO, Json, or Security exceptions thrown from reading/parsing
-     * the config file, or if the config file doesn't exist.
      */
-    protected @Nullable T getConfigFromFile() {
+    protected @Nullable T getConfigFromFile() throws IllegalArgumentException {
         try {
             if (!configFile.exists()) {
-                Bukkit.getLogger().severe(String.format("%s not found.", configFile));
-                return null;
+                throw new IllegalArgumentException(String.format("%s not found.", configFile));
             }
         } catch (SecurityException e) {
-            Bukkit.getLogger().severe(String.format("Permission error while checking for existence of %s file: \n%s", configFile, e));
-            return null;
+            throw new IllegalArgumentException(String.format("Permission error while checking for existence of %s file", configFile), e);
         }
         T newConfig = null;
         try {
@@ -77,9 +73,9 @@ public abstract class GameConfigStorageUtil<T> {
             newConfig = gson.fromJson(reader, configClass);
             reader.close();
         } catch (IOException | JsonIOException e) {
-            Bukkit.getLogger().severe(String.format("Error while reading %s: \n%s", configFile, e));
+            throw new IllegalArgumentException(String.format("Error while reading %s", configFile), e);
         } catch (JsonSyntaxException e) {
-            Bukkit.getLogger().severe(String.format("Error parsing %s: \n%s", configFile, e));
+            throw new IllegalArgumentException(String.format("Error parsing %s", configFile), e);
         }
         return newConfig;
     }

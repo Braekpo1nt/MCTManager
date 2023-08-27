@@ -1,7 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.spleef.config;
 
 import org.braekpo1nt.mctmanager.games.game.config.GameConfigStorageUtil;
-import org.braekpo1nt.mctmanager.games.game.mecha.config.MechaConfig;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
