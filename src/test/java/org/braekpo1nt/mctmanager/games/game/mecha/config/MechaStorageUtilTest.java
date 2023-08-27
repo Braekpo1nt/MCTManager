@@ -28,7 +28,7 @@ public class MechaStorageUtilTest {
         plugin = MockBukkit.load(Main.class);
         storageUtil = new MechaStorageUtil(plugin.getDataFolder());
     }
- 
+    
     @AfterEach
     void tearDown() {
         MockBukkit.unmock();
