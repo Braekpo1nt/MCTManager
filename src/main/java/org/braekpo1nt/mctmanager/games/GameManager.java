@@ -306,10 +306,10 @@ public class GameManager implements Listener {
     
     /**
      * Starts the given game
-     * @param mctGame The game to start
+     * @param gameType The game to start
      * @param sender The sender to send messages and alerts to
      */
-    public void startGame(GameType mctGame, @NotNull CommandSender sender) {
+    public void startGame(GameType gameType, @NotNull CommandSender sender) {
         
         if (voteManager.isVoting()) {
             sender.sendMessage(Component.text("Can't start a game while a vote is going on.")
@@ -331,13 +331,36 @@ public class GameManager implements Listener {
         }
         
         List<String> onlineTeams = getTeamNames(onlineParticipants);
-        
-        switch (mctGame) {
+        MCTGame selectedGame;
+        switch (gameType) {
             case FOOT_RACE -> {
-                hubManager.removeParticipantsFromHub(onlineParticipants);
-                footRaceGame.start(onlineParticipants);
-                activeGame = footRaceGame;
+                selectedGame = footRaceGame;
             }
+            case MECHA -> {
+                selectedGame = mechaGame;
+            }
+            case SPLEEF -> {
+                selectedGame = spleefGame;
+            }
+            case CLOCKWORK -> {
+                selectedGame = clockworkGame;
+            }
+            case PARKOUR_PATHWAY -> {
+                selectedGame = parkourPathwayGame;
+            }
+            case CAPTURE_THE_FLAG -> {
+                selectedGame = captureTheFlagGame;
+            }
+            default -> {
+                sender.sendMessage(Component.text("Can't find game for type " + gameType));
+                return;
+            }
+        }
+        
+        // make sure config loads
+        
+        // make sure the requirements are met to play the game
+        switch (gameType) {
             case MECHA -> {
                 if (onlineTeams.size() < 2) {
                     sender.sendMessage(Component.text("MECHA doesn't end correctly unless there are 2 or more teams online. use ")
@@ -347,35 +370,19 @@ public class GameManager implements Listener {
                             .append(Component.text(" to stop the game."))
                             .color(NamedTextColor.RED));
                 }
-                hubManager.removeParticipantsFromHub(onlineParticipants);
-                mechaGame.start(onlineParticipants);
-                activeGame = mechaGame;
             }
             case CAPTURE_THE_FLAG -> {
                 if (onlineTeams.size() < 2 || 8 < onlineTeams.size()) {
                     sender.sendMessage(Component.text("Capture the Flag needs at least 2 and at most 8 teams online to play.").color(NamedTextColor.RED));
                     return;
                 }
-                hubManager.removeParticipantsFromHub(onlineParticipants);
-                captureTheFlagGame.start(onlineParticipants);
-                activeGame = captureTheFlagGame;
-            }
-            case SPLEEF -> {
-                hubManager.removeParticipantsFromHub(onlineParticipants);
-                spleefGame.start(onlineParticipants);
-                activeGame = spleefGame;
-            }
-            case PARKOUR_PATHWAY -> {
-                hubManager.removeParticipantsFromHub(onlineParticipants);
-                parkourPathwayGame.start(onlineParticipants);
-                activeGame = parkourPathwayGame;
-            }
-            case CLOCKWORK -> {
-                hubManager.removeParticipantsFromHub(onlineParticipants);
-                clockworkGame.start(onlineParticipants);
-                activeGame = clockworkGame;
             }
         }
+        
+        hubManager.removeParticipantsFromHub(onlineParticipants);
+        selectedGame.start(onlineParticipants);
+        activeGame = selectedGame;
+        
     }
     
     /**
