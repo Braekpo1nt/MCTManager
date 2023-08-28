@@ -371,13 +371,12 @@ public class GameManager implements Listener {
                         .append(Component.text(e.getMessage()))
                         .color(NamedTextColor.RED);
                 sender.sendMessage(message);
-                messageAdmins(message, sender);
                 return;
             }
         }
         
         List<String> onlineTeams = getTeamNames(onlineParticipants);
-        // make sure the requirements are met to play the game
+        // make sure the player and team count requirements are met
         switch (gameType) {
             case MECHA -> {
                 if (onlineTeams.size() < 2) {
