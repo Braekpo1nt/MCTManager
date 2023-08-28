@@ -16,6 +16,8 @@ import java.util.*;
 public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
     
     protected MechaConfig mechaConfig = getExampleConfig();
+    private Map<LootTable, Integer> weightedMechaLootTables;
+    private @Nullable World world;
     
     public MechaStorageUtil(File configDirectory) {
         super(configDirectory, "mechaConfig.json", MechaConfig.class);
@@ -29,6 +31,18 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
     @Override
     protected void setConfig(MechaConfig config) {
         this.mechaConfig = config;
+        
+        world = Bukkit.getWorld(mechaConfig.world())
+        
+        List<WeightedNamespacedKey> weightedNamespacedKeys = mechaConfig.weightedMechaLootTables();
+        weightedMechaLootTables = new HashMap<>(weightedNamespacedKeys.size());
+        for (WeightedNamespacedKey weightedNamespacedKey : weightedNamespacedKeys) {
+            String namespace = weightedNamespacedKey.namespace();
+            String key = weightedNamespacedKey.key();
+            int weight = weightedNamespacedKey.weight();
+            LootTable lootTable = Bukkit.getLootTable(new NamespacedKey(namespace, key));
+            weightedMechaLootTables.put(lootTable, weight);
+        }
         
     }
     
@@ -95,33 +109,33 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
         return MechaStorageUtil.class.getResourceAsStream("exampleMechaConfig.json");
     }
     
+    /**
+     * The coordinates of all the spawn chests
+     */
     public List<Vector> getSpawnChestCoords() {
         return mechaConfig.spawnChestCoords();
     }
     
+    /**
+     * The coordinates of all the chests in the open world, not including spawn chests
+     */
     public List<Vector> getMapChestCoords() {
         return mechaConfig.mapChestCoords();
     }
     
+    /**
+     * The mecha spawn loot table from the mctdatapack
+     */
     public LootTable getSpawnLootTable() {
-        NamespacedKey spawnLootTableNamespacedKey = mechaConfig.spawnLootTable();
-        if (spawnLootTableNamespacedKey == null) {
-            return LootTables.EMPTY.getLootTable();
-        }
-        return Bukkit.getLootTable(spawnLootTableNamespacedKey);
+        return Bukkit.getLootTable(mechaConfig.spawnLootTable());
     }
     
+    /**
+     * The mecha loot tables from the mctdatapack, not including the spawn loot.
+     * Each loot table is paired with a weight for random selection. 
+     */
     public Map<LootTable, Integer> getWeightedMechaLootTables() {
-        List<WeightedNamespacedKey> weightedNamespacedKeys = mechaConfig.weightedMechaLootTables();
-        Map<LootTable, Integer> weightedMechaLootTables = new HashMap<>(weightedNamespacedKeys.size());
-        for (WeightedNamespacedKey weightedNamespacedKey : weightedNamespacedKeys) {
-            String namespace = weightedNamespacedKey.namespace();
-            String key = weightedNamespacedKey.key();
-            int weight = weightedNamespacedKey.weight();
-            LootTable lootTable = Bukkit.getLootTable(new NamespacedKey(namespace, key));
-            weightedMechaLootTables.put(lootTable, weight);
-        }
-        return weightedMechaLootTables;
+        return this.weightedMechaLootTables;
     }
     
     public int[] getSizes() {
@@ -152,7 +166,7 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
     }
     
     public World getWorld() {
-        return Bukkit.getWorld(mechaConfig.world());
+        return world;
     }
     
     public double getInitialBorderSize() {

@@ -58,23 +58,6 @@ public class MechaGame implements MCTGame, Configurable, Listener {
     private World mechaWorld;
     private int startMechaTaskId;
     private int stopMechaCountdownTaskId;
-    /**
-     * The coordinates of all the chests in the open world, not including spawn chests
-     */
-    private List<Vector> mapChestCoords;
-    /**
-     * The coordinates of all the spawn chests
-     */
-    private List<Vector> spawnChestCoords;
-    /**
-     * Holds the mecha loot tables from the mctdatapack, not including the spawn loot.
-     * Each loot table is paired with a weight for random selection. 
-     */
-    private Map<LootTable, Integer> weightedMechaLootTables;
-    /**
-     * Holds the mecha spawn loot table from the mctdatapack
-     */
-    private LootTable spawnLootTable;
     private WorldBorder worldBorder;
     private int borderShrinkingTaskId;
     private String lastKilledTeam;
@@ -101,11 +84,6 @@ public class MechaGame implements MCTGame, Configurable, Listener {
         if (!mechaStorageUtil.loadConfig()) {
             return false;
         }
-        spawnChestCoords = mechaStorageUtil.getSpawnChestCoords();
-        mapChestCoords = mechaStorageUtil.getMapChestCoords();
-        mapChestCoords = mechaStorageUtil.getMapChestCoords();
-        spawnLootTable = mechaStorageUtil.getSpawnLootTable();
-        weightedMechaLootTables = mechaStorageUtil.getWeightedMechaLootTables();
         mechaWorld = mechaStorageUtil.getWorld();
         return true;
     }
@@ -382,12 +360,11 @@ public class MechaGame implements MCTGame, Configurable, Listener {
      * Called when:
      * Right-clicking an armor stand
      * Right-clicking an item frame (also; onPlayerInteractEntity() )
-     *
+     * <p>
      * Not called when:
      * Left-clicking an armor stand
      * Left-clicking an item frame with an item in it
      * Left-clicking an item frame without an item in it
-     * @param event
      */
     @EventHandler
     public void onPlayerInteractAtEntity(PlayerInteractAtEntityEvent event) {
@@ -406,13 +383,12 @@ public class MechaGame implements MCTGame, Configurable, Listener {
     /**
      * Called when:
      * Right-clicking an item frame (also; onPlayerInteractAtEntity() )
-     *
+     * <p>
      * Not called when:
      * Right-clicking an armor stand
      * Left-clicking an armor stand
      * Left-clicking an item frame with an item in it
      * Left-clicking an item frame without an item in it
-     * @param event
      */
 
     @EventHandler
@@ -433,21 +409,18 @@ public class MechaGame implements MCTGame, Configurable, Listener {
      * Called when:
      * Left-clicking an armor stand
      * Left-clicking an item frame with an item in it
-     *
+     * <p>
      * Not called when:
      * Right-clicking an armor stand
      * Right-clicking an item frame
      * Left-clicking an item frame without an item in it
-     * @param event
      */
     @EventHandler
     public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
         if (!gameActive) {
             return;
         }
-        if (event.getDamager() instanceof Player) {
-
-            Player clicker = (Player) event.getDamager();
+        if (event.getDamager() instanceof Player clicker) {
             if (!participants.contains(clicker)) {
                 return;
             }
@@ -460,14 +433,13 @@ public class MechaGame implements MCTGame, Configurable, Listener {
     /**
      * Called when:
      * Left-clicking an item frame without an item in it
-     *
+     * <p>
      * Not called when:
      * Right-clicking an armor stand
      * Left-clicking an armor stand
      * Right-clicking an item frame
      * Left-clicking an item frame with an item in it
      * Left-clicking an item frame without an item in it
-     * @param event
      */
     @EventHandler
     public void onHangingBreakByEntity(HangingBreakByEntityEvent event) {
@@ -534,6 +506,9 @@ public class MechaGame implements MCTGame, Configurable, Listener {
     
     private void onParticipantGetKill(Player killed) {
         Player killer = killed.getKiller();
+        if (killer == null) {
+            return;
+        }
         if (!participants.contains(killer)) {
             return;
         }
@@ -780,8 +755,8 @@ public class MechaGame implements MCTGame, Configurable, Listener {
     }
     
     private void clearAllChests() {
-        List<Vector> allChestCoords = new ArrayList<>(spawnChestCoords);
-        allChestCoords.addAll(mapChestCoords);
+        List<Vector> allChestCoords = new ArrayList<>(mechaStorageUtil.getSpawnChestCoords());
+        allChestCoords.addAll(mechaStorageUtil.getMapChestCoords());
         for (Vector coords : allChestCoords) {
             Block block = mechaWorld.getBlockAt(coords.getBlockX(), coords.getBlockY(), coords.getBlockZ());
             block.setType(Material.CHEST);
@@ -791,17 +766,17 @@ public class MechaGame implements MCTGame, Configurable, Listener {
     }
     
     private void fillSpawnChests() {
-        for (Vector coords : spawnChestCoords) {
+        for (Vector coords : mechaStorageUtil.getSpawnChestCoords()) {
             Block block = mechaWorld.getBlockAt(coords.getBlockX(), coords.getBlockY(), coords.getBlockZ());
             block.setType(Material.CHEST);
             Chest chest = (Chest) block.getState();
-            chest.setLootTable(spawnLootTable);
+            chest.setLootTable(mechaStorageUtil.getSpawnLootTable());
             chest.update();
         }
     }
     
     private void fillMapChests() {
-        for (Vector coords : mapChestCoords) {
+        for (Vector coords : mechaStorageUtil.getSpawnChestCoords()) {
             Block block = mechaWorld.getBlockAt(coords.getBlockX(), coords.getBlockY(), coords.getBlockZ());
             block.setType(Material.CHEST);
             fillMapChest(((Chest) block.getState()));
@@ -813,7 +788,7 @@ public class MechaGame implements MCTGame, Configurable, Listener {
      * @param chest The chest to fill
      */
     private void fillMapChest(Chest chest) {
-        LootTable lootTable = getRandomLootTable(weightedMechaLootTables);
+        LootTable lootTable = getRandomLootTable(mechaStorageUtil.getWeightedMechaLootTables());
         chest.setLootTable(lootTable);
         chest.update();
     }
