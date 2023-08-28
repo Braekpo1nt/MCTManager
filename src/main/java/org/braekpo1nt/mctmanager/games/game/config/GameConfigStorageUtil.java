@@ -9,7 +9,7 @@ import java.nio.charset.StandardCharsets;
 
 /**
  * A storage utility for saving and loading config files for games
- * @param <T> The 
+ * @param <T> The config type
  */
 public abstract class GameConfigStorageUtil<T> {
     
@@ -41,8 +41,12 @@ public abstract class GameConfigStorageUtil<T> {
      */
     public boolean loadConfig() throws IllegalArgumentException {
         T newConfig = getConfigFromFile();
-        if (!configIsValid(newConfig)) {
-            throw new IllegalArgumentException(String.format("Invalid config: %s", configFileName));
+        try {
+            if (!configIsValid(newConfig)) {
+                throw new IllegalArgumentException(String.format("Invalid config: \"%s\"", configFileName));
+            }
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException(String.format("Invalid config file: \"%s\"", configFile), e);
         }
         setConfig(newConfig);
         Bukkit.getLogger().info(String.format("[MCTManager] Loaded %s", configFileName));
@@ -126,7 +130,7 @@ public abstract class GameConfigStorageUtil<T> {
      * @return true if the config is valid, false if not
      */
     protected abstract boolean configIsValid(@Nullable T config) throws IllegalArgumentException;
-
+    
     /**
      * Sets this storage util's config to the given config, thus saving it to memory for later use.
      * This may involve assigning some variables (e.g. getting a bukkit world one time

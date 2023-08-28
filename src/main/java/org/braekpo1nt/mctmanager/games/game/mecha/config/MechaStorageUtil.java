@@ -44,6 +44,9 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
         if (lootTableDoesNotExist(config.spawnLootTable())) {
             throw new IllegalArgumentException(String.format("Could not find spawn loot table \"%s\"", config.spawnLootTable()));
         }
+        if (config.weightedMechaLootTables() == null) {
+            throw new IllegalArgumentException("weightedMechaLootTables can't be null");
+        }
         // weightedNamespacedKey list can be empty and still be valid
         for (WeightedNamespacedKey weightedNamespacedKey : config.weightedMechaLootTables()) {
             NamespacedKey key = new NamespacedKey(weightedNamespacedKey.namespace(), weightedNamespacedKey.key());
@@ -56,6 +59,9 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
         }
         if (config.initialBorderSize() < 1.0) {
             throw new IllegalArgumentException(String.format("initialBorderSize can't be less than 1.0: %s", config.initialBorderSize()));
+        }
+        if (config.borderStages() == null) {
+            throw new IllegalArgumentException("borderStages can't be null");
         }
         if (config.borderStages().size() < 1) {
             throw new IllegalArgumentException("borderStages must have at least one stage");
@@ -71,11 +77,17 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
                 throw new IllegalArgumentException(String.format("border stage duration can't be less than 0: %s", borderStage.duration()));
             }
         }
+        if (config.spawnChestCoords() == null) {
+            throw new IllegalArgumentException("spawnChestCoords can't be null");
+        }
+        if (config.mapChestCoords() == null) {
+            throw new IllegalArgumentException("mapChestCoords can't be null");
+        }
         return true;
     }
     
     private boolean lootTableDoesNotExist(NamespacedKey lootTable) {
-        return Bukkit.getLootTable(lootTable) == null;
+        return lootTable != null && Bukkit.getLootTable(lootTable) == null;
     }
     
     @Override
