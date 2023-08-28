@@ -129,6 +129,7 @@ public abstract class GameConfigStorageUtil<T> {
 
     /**
      * Sets this storage util's config to the given config, thus saving it to memory for later use.
+     * This may involve assigning some variables (e.g. getting a bukkit world one time
      * <p> 
      * This assumes that the config has been validated according to {@link GameConfigStorageUtil#configIsValid(Object)}
      * @param config the config to use

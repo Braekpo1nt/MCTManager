@@ -1,7 +1,5 @@
 package org.braekpo1nt.mctmanager.games.game.mecha;
 
-import com.onarandombox.MultiverseCore.api.MVWorldManager;
-import com.onarandombox.MultiverseCore.api.MultiverseWorld;
 import com.onarandombox.MultiverseCore.utils.AnchorManager;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -45,8 +43,8 @@ import org.bukkit.scoreboard.Team;
 import org.bukkit.structure.Structure;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.Nullable;
 
-import java.io.IOException;
 import java.util.*;
 
 public class MechaGame implements MCTGame, Configurable, Listener {
@@ -91,7 +89,6 @@ public class MechaGame implements MCTGame, Configurable, Listener {
         this.plugin = plugin;
         this.gameManager = gameManager;
         this.mechaStorageUtil = new MechaStorageUtil(plugin.getDataFolder());
-        setChestCoordsAndLootTables();
     }
     
     @Override
@@ -100,8 +97,17 @@ public class MechaGame implements MCTGame, Configurable, Listener {
     }
     
     @Override
-    public boolean loadConfig() {
-        return mechaStorageUtil.loadConfig();
+    public boolean loadConfig() throws IllegalArgumentException {
+        if (!mechaStorageUtil.loadConfig()) {
+            return false;
+        }
+        spawnChestCoords = mechaStorageUtil.getSpawnChestCoords();
+        mapChestCoords = mechaStorageUtil.getMapChestCoords();
+        mapChestCoords = mechaStorageUtil.getMapChestCoords();
+        spawnLootTable = mechaStorageUtil.getSpawnLootTable();
+        weightedMechaLootTables = mechaStorageUtil.getWeightedMechaLootTables();
+        mechaWorld = mechaStorageUtil.getWorld();
+        return true;
     }
     
     @Override
@@ -111,7 +117,6 @@ public class MechaGame implements MCTGame, Configurable, Listener {
         deadPlayers = new ArrayList<>();
         lastKilledTeam = null;
         killCounts = new HashMap<>(newParticipants.size());
-        mechaWorld = mechaStorageUtil.getWorld();
         worldBorder = mechaWorld.getWorldBorder();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         placePlatforms();
@@ -596,12 +601,7 @@ public class MechaGame implements MCTGame, Configurable, Listener {
     
     private void initializeWorldBorder() {
         worldBorder.setCenter(0, 0);
-        int [] sizes = mechaStorageUtil.getSizes();
-        if (sizes.length > 0) {
-            worldBorder.setSize(sizes[0]);
-        } else {
-            worldBorder.setSize(399);
-        }
+        worldBorder.setSize(mechaStorageUtil.getInitialBorderSize());
     }
     
     private void kickOffBorderShrinking() {
@@ -820,9 +820,9 @@ public class MechaGame implements MCTGame, Configurable, Listener {
     
     /**
      * Gets a random loot table from loots, using the provided weights
-     * @return A loot table for a chest
+     * @return A loot table for a chest. Null if there are zero weightedLootTables passed in
      */
-    private LootTable getRandomLootTable(Map<LootTable, Integer> weightedLootTables) {
+    private @Nullable LootTable getRandomLootTable(Map<LootTable, Integer> weightedLootTables) {
         int totalWeight = 0;
         Collection<Integer> weights = weightedLootTables.values();
         for (int weight : weights) {
@@ -860,11 +860,4 @@ public class MechaGame implements MCTGame, Configurable, Listener {
         teamLocations.put("red", anchorManager.getAnchorLocation("mecha-red"));
     }
     
-    private void setChestCoordsAndLootTables() {
-        this.spawnChestCoords = mechaStorageUtil.getSpawnChestCoords();
-        this.mapChestCoords = mechaStorageUtil.getMapChestCoords();
-        this.mapChestCoords = mechaStorageUtil.getMapChestCoords();
-        this.spawnLootTable = mechaStorageUtil.getSpawnLootTable();
-        this.weightedMechaLootTables = mechaStorageUtil.getWeightedMechaLootTables();
-    }
 }

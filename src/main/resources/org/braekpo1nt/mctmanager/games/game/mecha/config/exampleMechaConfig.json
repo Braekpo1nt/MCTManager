@@ -26,6 +26,7 @@
       "weight": 2
     }
   ],
+  "initialBorderSize": 400,
   "borderStages": [
     {
       "size": 50,

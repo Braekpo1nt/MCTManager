@@ -38,8 +38,8 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
         if (config == null) {
             throw new IllegalArgumentException("Saved config is null");
         }
-        World mechaWorld = Bukkit.getWorld(config.world());
-        if (mechaWorld == null) {
+        World spleefWorld = Bukkit.getWorld(config.world());
+        if (spleefWorld == null) {
             throw new IllegalArgumentException(String.format("Could not find world \"%s\"", config.world()));
         }
         double volume = config.spectatorBoundary().getVolume();
