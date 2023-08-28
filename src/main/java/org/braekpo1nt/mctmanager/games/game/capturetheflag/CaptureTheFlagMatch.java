@@ -76,8 +76,8 @@ public class CaptureTheFlagMatch implements Listener {
         this.gameManager = gameManager;
         this.matchPairing = matchPairing;
         this.arena = arena;
-        this.northClassPicker = new ClassPicker();
-        this.southClassPicker = new ClassPicker();
+        this.northClassPicker = new ClassPicker(gameManager);
+        this.southClassPicker = new ClassPicker(gameManager);
         this.spawnObservatory = spawnObservatory;
         this.captureTheFlagWorld = captureTheFlagWorld;
     }
@@ -537,7 +537,7 @@ public class CaptureTheFlagMatch implements Listener {
     
     /**
      * Places the provided flag type at the given location facing the given direction
-     * @param flagBlock
+     * @param flagLocation
      * @param facing
      * @param flagType
      */

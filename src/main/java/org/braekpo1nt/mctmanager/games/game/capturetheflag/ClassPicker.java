@@ -3,7 +3,9 @@ package org.braekpo1nt.mctmanager.games.game.capturetheflag;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.games.GameManager;
 import org.bukkit.Bukkit;
+import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -15,6 +17,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -33,7 +36,13 @@ public class ClassPicker implements Listener {
     private final Map<UUID, BattleClass> pickedBattleClasses = new HashMap<>();
     private final List<Player> teamMates = new ArrayList<>();
     private boolean classPickingActive = false;
-    
+
+    private final GameManager gameManager;
+
+    public ClassPicker(GameManager gameManager) {
+        this.gameManager = gameManager;
+    }
+
     /**
      * Converts a {@link Material} to a {@link BattleClass}
      * @param material The material to get the associated battle class of. 
@@ -283,14 +292,18 @@ public class ClassPicker implements Listener {
         teamMate.getInventory().clear();
         switch (battleClass) {
             case KNIGHT -> {
-                teamMate.getEquipment().setChestplate(new ItemStack(Material.LEATHER_CHESTPLATE));
-                teamMate.getEquipment().setBoots(new ItemStack(Material.LEATHER_BOOTS));
+//                teamMate.getEquipment().setChestplate(new ItemStack(Material.LEATHER_CHESTPLATE));
+                giveLeatherChestplate(teamMate);
+//                teamMate.getEquipment().setBoots(new ItemStack(Material.LEATHER_BOOTS));
+                giveLeatherBoots(teamMate);
                 teamMate.getInventory().addItem(new ItemStack(Material.STONE_SWORD));
                 teamMate.sendMessage("Selected Knight");
             }
             case ARCHER -> {
-                teamMate.getEquipment().setChestplate(new ItemStack(Material.LEATHER_CHESTPLATE));
-                teamMate.getEquipment().setBoots(new ItemStack(Material.LEATHER_BOOTS));
+//                teamMate.getEquipment().setChestplate(new ItemStack(Material.LEATHER_CHESTPLATE));
+                giveLeatherChestplate(teamMate);
+//                teamMate.getEquipment().setBoots(new ItemStack(Material.LEATHER_BOOTS));
+                giveLeatherBoots(teamMate);
                 teamMate.getInventory().addItem(new ItemStack(Material.BOW));
                 teamMate.getInventory().addItem(new ItemStack(Material.ARROW, 16));
                 teamMate.getInventory().addItem(new ItemStack(Material.WOODEN_SWORD));
@@ -298,10 +311,13 @@ public class ClassPicker implements Listener {
             }
             case ASSASSIN -> {
                 teamMate.getInventory().addItem(new ItemStack(Material.IRON_SWORD));
+//                teamMate.getEquipment().setBoots(new ItemStack(Material.LEATHER_BOOTS));
+                giveLeatherBoots(teamMate);
                 teamMate.sendMessage("Selected Assassin");
             }
             case TANK -> {
-                teamMate.getEquipment().setChestplate(new ItemStack(Material.LEATHER_CHESTPLATE));
+//                teamMate.getEquipment().setChestplate(new ItemStack(Material.LEATHER_CHESTPLATE));
+                giveLeatherChestplate(teamMate);
                 teamMate.getEquipment().setLeggings(new ItemStack(Material.CHAINMAIL_LEGGINGS));
                 teamMate.getEquipment().setBoots(new ItemStack(Material.LEATHER_BOOTS));
                 teamMate.sendMessage("Selected Tank");
@@ -309,7 +325,24 @@ public class ClassPicker implements Listener {
         }
         teamMate.getInventory().addItem(new ItemStack(Material.COOKED_BEEF, 8));
     }
-    
+
+    private void giveLeatherBoots(Player participant) {
+        Color teamColor = gameManager.getTeamColor(participant.getUniqueId());
+        ItemStack boots = new ItemStack(Material.LEATHER_BOOTS);
+        LeatherArmorMeta meta = (LeatherArmorMeta) boots.getItemMeta();
+        meta.setColor(teamColor);
+        boots.setItemMeta(meta);
+        participant.getEquipment().setBoots(boots);
+    }
+    private void giveLeatherChestplate(Player participant) {
+        Color teamColor = gameManager.getTeamColor(participant.getUniqueId());
+        ItemStack chestplate = new ItemStack(Material.LEATHER_CHESTPLATE);
+        LeatherArmorMeta meta = (LeatherArmorMeta) chestplate.getItemMeta();
+        meta.setColor(teamColor);
+        chestplate.setItemMeta(meta);
+        participant.getEquipment().setChestplate(chestplate);
+    }
+
     private void unAssignClass(Player teamMate) {
         pickedBattleClasses.remove(teamMate.getUniqueId());
         teamMate.getInventory().clear();
