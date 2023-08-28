@@ -1,44 +1,22 @@
 package org.braekpo1nt.mctmanager.games.game.parkourpathway.config;
 
-import java.util.ArrayList;
+import org.braekpo1nt.mctmanager.games.game.parkourpathway.CheckPoint;
+import org.bukkit.util.BoundingBox;
+import org.bukkit.util.Vector;
+
 import java.util.List;
 
-public class ParkourPathwayConfig {
-    protected int timeLimit;
-    protected int checkpointCounter;
-    protected int checkpointCounterAlert;
-    protected List<CheckPointDTO> checkpoints;
-    protected String world;
-    
-    public ParkourPathwayConfig() {
-        this.checkpoints = new ArrayList<>();
+public record ParkourPathwayConfig  (String world, Durations durations, List<CheckPointDTO> checkpoints) {
+    public record Durations(int timeLimit, int checkpointCounter, int checkpointCounterAlert) {
     }
     
-    public List<CheckPointDTO> getCheckpoints() {
-        return checkpoints;
-    }
-    
-    public void setCheckpoints(List<CheckPointDTO> checkpoints) {
-        this.checkpoints = checkpoints;
-    }
-    
-    public String getWorld() {
-        return world;
-    }
-    
-    public void setWorld(String world) {
-        this.world = world;
-    }
-    
-    public int getTimeLimit() {
-        return timeLimit;
-    }
-    
-    public int getCheckpointCounter() {
-        return checkpointCounter;
-    }
-    
-    public int getCheckpointCounterAlert() {
-        return checkpointCounterAlert;
+    /**
+     * The Data Transfer Object holding the necessary information to create a {@link CheckPoint}. 
+     * For more info, look up the DAO (Data Access Object) and DTO (Data Transfer Object) pattern
+     * @param yValue the y-value that a participant can't fall below without being teleported to respawn
+     * @param detectionBox the box that is checked to see if the player entered the checkpoint
+     * @param respawn the position to teleport back to if the player falls below the yValue
+     */
+    public record CheckPointDTO(double yValue, BoundingBox detectionBox, Vector respawn) {
     }
 }

@@ -144,7 +144,7 @@ public abstract class GameConfigStorageUtil<T> {
      * @return An InputStream holding the default json file contents for
      * the {@link T} config
      */
-    protected abstract InputStream getDefaultResourceStream();
+    protected abstract InputStream getExampleResourceStream();
     
     /**
      * Returns a new instance of the example config. Note that the returned config instance may
@@ -153,7 +153,7 @@ public abstract class GameConfigStorageUtil<T> {
      * null if there is a problem reading or parsing the example config
      */
     protected @Nullable T getExampleConfig() {
-        InputStream inputStream = getDefaultResourceStream();
+        InputStream inputStream = getExampleResourceStream();
         if (inputStream == null) {
             return null;
         }

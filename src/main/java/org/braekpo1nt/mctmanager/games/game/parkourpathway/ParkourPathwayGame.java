@@ -65,7 +65,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener {
         AnchorManager anchorManager = Main.multiverseCore.getAnchorManager();
         this.parkourPathwayStartAnchor = anchorManager.getAnchorLocation("parkour-pathway");
         parkourPathwayStorageUtil = new ParkourPathwayStorageUtil(plugin.getDataFolder());
-        this.parkourPathwayWorld = Bukkit.getWorld(parkourPathwayStorageUtil.getWorld());
+        this.parkourPathwayWorld = parkourPathwayStorageUtil.getWorld();
         this.checkpoints = parkourPathwayStorageUtil.getCheckPoints();
     }
     

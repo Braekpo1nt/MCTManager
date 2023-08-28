@@ -17,7 +17,7 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
     
     protected MechaConfig mechaConfig = getExampleConfig();
     private Map<LootTable, Integer> weightedMechaLootTables;
-    private @Nullable World world;
+    private World world;
     
     public MechaStorageUtil(File configDirectory) {
         super(configDirectory, "mechaConfig.json", MechaConfig.class);
@@ -105,7 +105,7 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
     }
     
     @Override
-    protected InputStream getDefaultResourceStream() {
+    protected InputStream getExampleResourceStream() {
         return MechaStorageUtil.class.getResourceAsStream("exampleMechaConfig.json");
     }
     
