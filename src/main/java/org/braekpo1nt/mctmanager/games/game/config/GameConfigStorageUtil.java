@@ -142,11 +142,10 @@ public abstract class GameConfigStorageUtil<T> {
     protected abstract InputStream getDefaultResourceStream();
     
     /**
-     * Returns a new instance of the default config. Note that the returned config instance may
-     * be modified, so this should return a fresh instance to avoid errors with future default
-     * uses. 
-     * @return A new config instance with default values for use if no user-config is present.
-     * null if there is a problem reading or parsing the default config
+     * Returns a new instance of the example config. Note that the returned config instance may
+     * be modified, so this should return a fresh instance to avoid errors with future uses. 
+     * @return A new config instance with example values.
+     * null if there is a problem reading or parsing the example config
      */
     protected @Nullable T getExampleConfig() {
         InputStream inputStream = getDefaultResourceStream();
