@@ -1,20 +1,20 @@
 {
-  "timeLimit": 600,
-  "checkpointCounter": 120,
-  "checkpointCounterAlert": 30,
-  "world": "FT",
+  "world": "World",
+  "durations": {
+    "timeLimit": 600,
+    "checkpointCounter": 120,
+    "checkpointCounterAlert": 30
+  },
   "checkpoints": [
     {
       "yValue": 0,
-      "min": {
-        "x": 998,
-        "y": -1,
-        "z": -8
-      },
-      "max": {
-        "x": 1007,
-        "y": 5,
-        "z": 8
+      "detectionBox": {
+        "minX": 998,
+        "minY": -1,
+        "minZ": -8,
+        "maxX": 1007,
+        "maxY": 5,
+        "maxZ": 8
       },
       "respawn": {
         "x": 1003,
@@ -24,15 +24,13 @@
     },
     {
       "yValue": 8,
-      "min": {
-        "x": 1017,
-        "y": 7,
-        "z": -6
-      },
-      "max": {
-        "x": 1020,
-        "y": 10,
-        "z": 6
+      "detectionBox": {
+        "minX": 1017,
+        "minY": 7,
+        "minZ": -6,
+        "maxX": 1020,
+        "maxY": 10,
+        "maxZ": 6
       },
       "respawn": {
         "x": 1017,
@@ -41,16 +39,14 @@
       }
     },
     {
-      "yValue": 5,
-      "min": {
-        "x": 1046,
-        "y": 7,
-        "z": -4
-      },
-      "max": {
-        "x": 1048,
-        "y": 11,
-        "z": 3
+      "yValue": 4.5,
+      "detectionBox": {
+        "minX": 1046,
+        "minY": 7,
+        "minZ": -4,
+        "maxX": 1048,
+        "maxY": 11,
+        "maxZ": 3
       },
       "respawn": {
         "x": 1046,

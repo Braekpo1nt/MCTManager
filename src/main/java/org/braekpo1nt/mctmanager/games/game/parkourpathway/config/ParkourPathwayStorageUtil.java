@@ -73,8 +73,8 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
             if (checkPoint.detectionBox() == null) {
                 throw new IllegalArgumentException("detectionBox can't be null");
             }
-            if (checkPoint.yValue() > checkPoint.detectionBox().getMinY()) {
-                throw new IllegalArgumentException(String.format("checkpoint's yValue (%s) can't be greater than the minimum y-value of its detectionBox (%s)", checkPoint.yValue(), checkPoint.detectionBox().getMinY()));
+            if (checkPoint.detectionBox().getMinY() < checkPoint.yValue()) {
+                throw new IllegalArgumentException(String.format("checkpoint's detectionBox (%s) can't have a minY value less than the checkpoint's yValue (%s)", checkPoint.detectionBox(), checkPoint.yValue()));
             }
             if (checkPoint.detectionBox().getVolume() <= 1) {
                 throw new IllegalArgumentException(String.format("detectionBox's volume (%s) can't be less than 1", checkPoint.detectionBox().getVolume()));
