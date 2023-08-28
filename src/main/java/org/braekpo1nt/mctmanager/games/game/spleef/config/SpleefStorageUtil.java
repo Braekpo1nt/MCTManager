@@ -53,7 +53,7 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
     
     @Override
     protected InputStream getDefaultResourceStream() {
-        return SpleefStorageUtil.class.getResourceAsStream("defaultSpleefConfig.json");
+        return SpleefStorageUtil.class.getResourceAsStream("exampleSpleefConfig.json");
     }
     
     public Location getStartingLocation() {

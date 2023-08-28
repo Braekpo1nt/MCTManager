@@ -28,7 +28,6 @@ public class SpleefGame implements MCTGame, Configurable {
         this.plugin = plugin;
         this.gameManager = gameManager;
         this.spleefStorageUtil = new SpleefStorageUtil(plugin.getDataFolder());
-        this.spleefStorageUtil.loadConfig();
     }
     
     @Override

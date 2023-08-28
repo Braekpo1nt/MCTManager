@@ -38,7 +38,7 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
     
     @Override
     protected InputStream getDefaultResourceStream() {
-        return ParkourPathwayStorageUtil.class.getResourceAsStream("defaultParkourPathwayConfig.json");
+        return ParkourPathwayStorageUtil.class.getResourceAsStream("exampleParkourPathwayConfig.json");
     }
     
     public List<CheckPoint> getCheckPoints() {

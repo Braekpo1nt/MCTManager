@@ -38,7 +38,7 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
     
     @Override
     protected InputStream getDefaultResourceStream() {
-        return MechaStorageUtil.class.getResourceAsStream("defaultMechaConfig.json");
+        return MechaStorageUtil.class.getResourceAsStream("exampleMechaConfig.json");
     }
     
     public List<Vector> getSpawnChestCoords() {
