@@ -148,7 +148,7 @@ public abstract class GameConfigStorageUtil<T> {
      * @return A new config instance with default values for use if no user-config is present.
      * null if there is a problem reading or parsing the default config
      */
-    protected @Nullable T getDefaultConfig() {
+    protected @Nullable T getExampleConfig() {
         InputStream inputStream = getDefaultResourceStream();
         if (inputStream == null) {
             return null;

@@ -15,7 +15,7 @@ import java.util.List;
 
 public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPathwayConfig> {
     
-    protected ParkourPathwayConfig parkourPathwayConfig = getDefaultConfig();
+    protected ParkourPathwayConfig parkourPathwayConfig = getExampleConfig();
     
     public ParkourPathwayStorageUtil(File configDirectory) {
         super(configDirectory, "parkourPathwayConfig.json", ParkourPathwayConfig.class);

@@ -15,7 +15,7 @@ import java.util.*;
 
 public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
     
-    protected MechaConfig mechaConfig = getDefaultConfig();
+    protected MechaConfig mechaConfig = getExampleConfig();
     
     public MechaStorageUtil(File configDirectory) {
         super(configDirectory, "mechaConfig.json", MechaConfig.class);
