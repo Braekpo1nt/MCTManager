@@ -13,6 +13,7 @@ import java.util.Objects;
 public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
     
     protected SpleefConfig spleefConfig = null;
+    private World world;
     
     public SpleefStorageUtil(File configDirectory) {
         super(configDirectory, "spleefConfig.json", SpleefConfig.class);
@@ -25,8 +26,11 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
     
     @Override
     protected void setConfig(SpleefConfig config) {
-        
         this.spleefConfig = config;
+        world = Bukkit.getWorld(spleefConfig.world());
+        if (world == null) {
+            throw new IllegalArgumentException(String.format("Could not find world \"%s\"", config.world()));
+        }
     }
     
     @Override
@@ -57,10 +61,10 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
     }
     
     public Location getStartingLocation() {
-        return spleefConfig.startingLocation().toLocation(Objects.requireNonNull(Bukkit.getWorld(spleefConfig.world())));
+        return spleefConfig.startingLocation().toLocation(world);
     }
     
     public World getWorld() {
-        return Bukkit.getWorld(spleefConfig.world());
+        return world;
     }
 }
