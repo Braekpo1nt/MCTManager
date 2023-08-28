@@ -55,6 +55,10 @@ public class EventManager {
         this.voteManager = voteManager;
         this.colossalColosseumGame = new ColossalColosseumGame(plugin, gameManager);
     }
+
+    public int getCurrentGameNumber(){
+        return currentGameNumber;
+    }
     
     /**
      * Start a new event with the given number of games
