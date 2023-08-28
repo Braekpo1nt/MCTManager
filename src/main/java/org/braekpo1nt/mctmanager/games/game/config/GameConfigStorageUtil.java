@@ -126,7 +126,13 @@ public abstract class GameConfigStorageUtil<T> {
      * @return true if the config is valid, false if not
      */
     protected abstract boolean configIsValid(@Nullable T config) throws IllegalArgumentException;
-    
+
+    /**
+     * Sets this storage util's config to the given config, thus saving it to memory for later use.
+     * <p> 
+     * This assumes that the config has been validated according to {@link GameConfigStorageUtil#configIsValid(Object)}
+     * @param config the config to use
+     */
     protected abstract void setConfig(T config);
     
     /**
