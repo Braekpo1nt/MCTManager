@@ -8,6 +8,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.InputStream;
+import java.util.Objects;
 
 public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
     
@@ -24,6 +25,7 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
     
     @Override
     protected void setConfig(SpleefConfig config) {
+        
         this.spleefConfig = config;
     }
     
@@ -55,7 +57,7 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
     }
     
     public Location getStartingLocation() {
-        return spleefConfig.startingLocation().toLocation(Bukkit.getWorld(spleefConfig.world()));
+        return spleefConfig.startingLocation().toLocation(Objects.requireNonNull(Bukkit.getWorld(spleefConfig.world())));
     }
     
     public World getWorld() {
