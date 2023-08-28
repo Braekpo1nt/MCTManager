@@ -15,9 +15,12 @@ import java.util.logging.Level;
 
 public class SpleefStorageUtilTest {
 
+    String validConfigFile = "validSpleefConfig.json";
+    String invalidConfigFile = "invalidSpleefConfig.json";
+    String configFileName = "spleefConfig.json";
     Main plugin;
     SpleefStorageUtil storageUtil;
-    
+
     @BeforeEach
     void setupServerAndPlugin() {
         ServerMock server = MockBukkit.mock(new MyCustomServerMock());
@@ -25,34 +28,34 @@ public class SpleefStorageUtilTest {
         plugin = MockBukkit.load(Main.class);
         storageUtil = new SpleefStorageUtil(plugin.getDataFolder());
     }
-    
+
     @AfterEach
     void tearDown() {
         MockBukkit.unmock();
     }
-    
+
     @Test
     void configDoesNotExist() {
         Assertions.assertThrows(IllegalArgumentException.class, storageUtil::loadConfig);
     }
-    
+
     @Test
     void malformedJson() {
-        TestUtils.createFileInDirectory(plugin.getDataFolder(), "spleefConfig.json", "{,");
+        TestUtils.createFileInDirectory(plugin.getDataFolder(), configFileName, "{,");
         Assertions.assertThrows(IllegalArgumentException.class, storageUtil::loadConfig);
     }
-    
+
     @Test
     void wellFormedJsonValidData() {
-        InputStream inputStream = getClass().getResourceAsStream("validSpleefConfig.json");
-        TestUtils.copyInputStreamToFile(inputStream, new File(plugin.getDataFolder(), "spleefConfig.json"));
+        InputStream inputStream = getClass().getResourceAsStream(validConfigFile);
+        TestUtils.copyInputStreamToFile(inputStream, new File(plugin.getDataFolder(), configFileName));
         Assertions.assertTrue(storageUtil.loadConfig());
     }
 
     @Test
     void wellFormedJsonInvalidData() {
-        InputStream inputStream = getClass().getResourceAsStream("invalidSpleefConfig.json");
-        TestUtils.copyInputStreamToFile(inputStream, new File(plugin.getDataFolder(), "spleefConfig.json"));
+        InputStream inputStream = getClass().getResourceAsStream(invalidConfigFile);
+        TestUtils.copyInputStreamToFile(inputStream, new File(plugin.getDataFolder(), configFileName));
         Assertions.assertThrows(IllegalArgumentException.class, storageUtil::loadConfig);
     }
 
