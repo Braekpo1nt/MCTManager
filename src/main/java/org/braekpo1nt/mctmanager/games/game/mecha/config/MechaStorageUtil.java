@@ -32,7 +32,7 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
     protected void setConfig(MechaConfig config) {
         this.mechaConfig = config;
         
-        world = Bukkit.getWorld(mechaConfig.world())
+        world = Bukkit.getWorld(mechaConfig.world());
         
         List<WeightedNamespacedKey> weightedNamespacedKeys = mechaConfig.weightedMechaLootTables();
         weightedMechaLootTables = new HashMap<>(weightedNamespacedKeys.size());
