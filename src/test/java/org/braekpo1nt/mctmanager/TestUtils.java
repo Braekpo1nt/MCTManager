@@ -7,6 +7,7 @@ import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -73,5 +74,27 @@ public class TestUtils {
             sender.sendMessage(sentMessage);
         }
         return messageWasSent;
+    }
+
+    public static void copyInputStreamToFile(InputStream inputStream, File destinationFile) {
+        Assertions.assertNotNull(inputStream);
+        try (OutputStream outputStream = new FileOutputStream(destinationFile)) {
+            byte[] buffer = new byte[1024];
+            int bytesRead;
+            while ((bytesRead = inputStream.read(buffer)) != -1) {
+                outputStream.write(buffer, 0, bytesRead);
+            }
+        } catch (IOException e) {
+            Assertions.fail(String.format("Unable to copy stream to %s \n%s", destinationFile, e));
+        }
+    }
+
+    public static void createFileInDirectory(File directory, String fileName, String fileContents) {
+        File newFile = new File(directory, fileName);
+        try (FileWriter writer = new FileWriter(newFile)) {
+            writer.write(fileContents);
+        } catch (IOException e) {
+            Assertions.fail(String.format("Unable to create file %s in %s with contents %s", fileName, directory, fileContents));
+        }
     }
 }

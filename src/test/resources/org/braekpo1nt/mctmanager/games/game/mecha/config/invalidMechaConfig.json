@@ -1,5 +1,5 @@
 {
-  "world": "World",
+  "world": "nonexistent_world",
   "spawnLootTable": {
     "namespace": "mctdatapack",
     "key": "mecha/spawn-chest"
