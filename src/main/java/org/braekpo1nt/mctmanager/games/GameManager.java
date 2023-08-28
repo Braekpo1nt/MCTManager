@@ -331,8 +331,6 @@ public class GameManager implements Listener {
             return;
         }
         
-        List<String> onlineTeams = getTeamNames(onlineParticipants);
-
         MCTGame selectedGame;
         switch (gameType) {
             case FOOT_RACE -> {
@@ -362,11 +360,14 @@ public class GameManager implements Listener {
         // make sure config loads
         if (selectedGame instanceof Configurable configurable) {
             try {
-                configurable.loadConfig();
+                if (!configurable.loadConfig()) {
+                    throw new IllegalArgumentException("Config could not be loaded.");
+                }
             } catch (IllegalArgumentException e) {
                 Component message = Component.text("Can't start ")
-                        .append(Component.text(gameType.name()))
-                        .append(Component.text(". Error loading config file. See console for details: "))
+                        .append(Component.text(gameType.name())
+                                .decorate(TextDecoration.BOLD))
+                        .append(Component.text(". Error loading config file. See console for details:\n"))
                         .append(Component.text(e.getMessage()))
                         .color(NamedTextColor.RED);
                 sender.sendMessage(message);
@@ -374,7 +375,8 @@ public class GameManager implements Listener {
                 return;
             }
         }
-    
+        
+        List<String> onlineTeams = getTeamNames(onlineParticipants);
         // make sure the requirements are met to play the game
         switch (gameType) {
             case MECHA -> {
