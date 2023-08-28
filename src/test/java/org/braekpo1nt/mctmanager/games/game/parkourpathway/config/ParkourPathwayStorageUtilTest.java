@@ -38,7 +38,7 @@ public class ParkourPathwayStorageUtilTest {
     void configDoesNotExist() {
         Assertions.assertThrows(IllegalArgumentException.class, storageUtil::loadConfig);
     }
-
+    
     @Test
     void malformedJson() {
         TestUtils.createFileInDirectory(plugin.getDataFolder(), configFileName, "{,");

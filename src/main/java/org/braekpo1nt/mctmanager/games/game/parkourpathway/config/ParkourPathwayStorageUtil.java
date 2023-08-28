@@ -66,15 +66,14 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
         if (config.checkpoints().size() < 3) {
             throw new IllegalArgumentException("checkpoints must have at least 3 checkpoints");
         }
-        for (ParkourPathwayConfig.CheckPointDTO checkPoint : config.checkpoints()) {
+        
+        for (int i = 0; i < config.checkpoints().size(); i++) {
+            ParkourPathwayConfig.CheckPointDTO checkPoint = config.checkpoints().get(i);
             if (checkPoint == null) {
-                throw new IllegalArgumentException("a checkpoint can't be null");
+                throw new IllegalArgumentException(String.format("checkpoint %s is null", i));
             }
             if (checkPoint.detectionBox() == null) {
-                throw new IllegalArgumentException("detectionBox can't be null");
-            }
-            if (checkPoint.detectionBox().getMinY() < checkPoint.yValue()) {
-                throw new IllegalArgumentException(String.format("checkpoint's detectionBox (%s) can't have a minY value less than the checkpoint's yValue (%s)", checkPoint.detectionBox(), checkPoint.yValue()));
+                throw new IllegalArgumentException(String.format("checkpoint %s's detectionBox is null", i));
             }
             if (checkPoint.detectionBox().getVolume() <= 1) {
                 throw new IllegalArgumentException(String.format("detectionBox's volume (%s) can't be less than 1", checkPoint.detectionBox().getVolume()));
@@ -82,8 +81,16 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
             if (checkPoint.respawn().getY() < checkPoint.yValue()) {
                 throw new IllegalArgumentException(String.format("checkpoint's respawn's y-value (%s) can't be lower than its yValue (%s)", checkPoint.respawn().getY(), checkPoint.yValue()));
             }
-            if (checkPoint.detectionBox().contains(checkPoint.respawn())) {
-                throw new IllegalArgumentException(String.format("a checkpoint's respawn (%s) can't be inside its detectionBox (%s)", checkPoint.respawn(), checkPoint.detectionBox()));
+            
+            if (i-1 >= 0) {
+                ParkourPathwayConfig.CheckPointDTO lastCheckPoint = config.checkpoints().get(i-1);
+                if (checkPoint.detectionBox().getMinY() < lastCheckPoint.yValue()) {
+                    throw new IllegalArgumentException(String.format("checkpoint %s's detectionBox (%s) can't have a minY (%s) lower than checkpoint %s's yValue", i, checkPoint.detectionBox(), checkPoint.detectionBox().getMinY(), lastCheckPoint.yValue()));
+                }
+                
+                if (checkPoint.detectionBox().contains(lastCheckPoint.respawn())) {
+                    throw new IllegalArgumentException(String.format("checkpoint %s's detectionBox (%s) can't contain checkpoint %s's respawn (%s)", i, checkPoint.detectionBox(), i-1, lastCheckPoint.respawn()));
+                }
             }
         }
         return true;
