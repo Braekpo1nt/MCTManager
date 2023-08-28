@@ -26,21 +26,12 @@
       "weight": 2
     }
   ],
+  "initialBorderSize": 400,
   "borderStages": [
     {
       "size": 50,
       "delay": 80,
       "duration": 15
-    },
-    {
-      "size": 25,
-      "delay": 60,
-      "duration": 15
-    },
-    {
-      "size": 2,
-      "delay": 30,
-      "duration": 30
     }
   ],
   "spawnChestCoords": [
