@@ -6,13 +6,13 @@ import org.bukkit.util.Vector;
 
 import java.util.List;
 
-record CaptureTheFlagConfig(String world, Vector spawnObservatory, List<ArenaDTO> arenas, BoundingBox spectatorArea, Points scores, Durations durations) {
+record CaptureTheFlagConfig(String world, Vector spawnObservatory, List<ArenaDTO> arenas, BoundingBox spectatorArea, Scores scores, Durations durations) {
     public record ArenaDTO(Vector northSpawn, Vector southSpawn, Vector northFlag, Vector southFlag, Vector northBarrier, Vector southBarrier, BoundingBox boundingBox) {
     }
     
-    public record Points(int kill, int win) {
+    public record Scores(int kill, int win) {
     }
     
-    public record Durations() {
+    public record Durations(int matchesStarting, int classSelection, int roundTimer) {
     }
 }

@@ -60,6 +60,8 @@
     "win": 100
   },
   "durations": {
-    
+    "matchesStarting": 10,
+    "classSelection": 20,
+    "roundTimer": 180
   }
 }

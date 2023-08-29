@@ -199,7 +199,7 @@ public class CaptureTheFlagRound {
     
     private void startOnDeckClassSelectionTimer() {
         this.onDeckClassSelectionTimerTaskId = new BukkitRunnable() {
-            private int count = 20;
+            private int count = storageUtil.getDurations().classSelection();
             @Override
             public void run() {
                 if (count <= 0) {
@@ -218,7 +218,7 @@ public class CaptureTheFlagRound {
     
     private void startOnDeckMatchTimer() {
         this.onDeckMatchTimerTaskId = new BukkitRunnable() {
-            int count = 3*60;
+            int count = storageUtil.getDurations().roundTimer();
             @Override
             public void run() {
                 if (count <= 0) {
@@ -262,7 +262,7 @@ public class CaptureTheFlagRound {
     
     private void startMatchesStartingCountDown() {
         this.matchesStartingCountDownTaskId = new BukkitRunnable() {
-            int count = 10;
+            int count = storageUtil.getDurations().matchesStarting();
             @Override
             public void run() {
                 if (count <= 0) {
