@@ -54,7 +54,7 @@ public abstract class GameConfigStorageUtil<T> {
     }
     
     /**
-     * Get the config from the config file. 
+     * Get the config from the config file and parse it into a {@link T} object 
      * @throws IllegalArgumentException if there were any IO, Json, or Security exceptions thrown from reading/parsing the config file, or if the config file doesn't exist.
      * @return a new {@link T} config object from the {@link GameConfigStorageUtil#configFile}, null if the stored config in the file is null
      */
@@ -121,6 +121,9 @@ public abstract class GameConfigStorageUtil<T> {
         Bukkit.getLogger().info(String.format("[MCTManager] Saved %s", configFileName));
     }
     
+    /**
+     * @return the saved config
+     */
     protected abstract T getConfig();
     
     /**
@@ -133,7 +136,8 @@ public abstract class GameConfigStorageUtil<T> {
     
     /**
      * Sets this storage util's config to the given config, thus saving it to memory for later use.
-     * This may involve assigning some variables (e.g. getting a bukkit world one time
+     * This may involve assigning some variables (e.g. getting a bukkit world one time and setting it to a field
+     * instead of using Bukkit.getWorld() every time this.getWorld() is called).
      * <p> 
      * This assumes that the config has been validated according to {@link GameConfigStorageUtil#configIsValid(Object)}
      * @param config the config to use
@@ -141,14 +145,13 @@ public abstract class GameConfigStorageUtil<T> {
     protected abstract void setConfig(T config);
     
     /**
-     * @return An InputStream holding the default json file contents for
-     * the {@link T} config
+     * @return An InputStream holding an example json-serialized {@link T} config
      */
     protected abstract InputStream getExampleResourceStream();
     
     /**
      * Returns a new instance of the example config. Note that the returned config instance may
-     * be modified, so this should return a fresh instance to avoid errors with future uses. 
+     * be modified, so this returns a fresh instance to avoid errors with future uses. 
      * @return A new config instance with example values.
      * null if there is a problem reading or parsing the example config
      */
