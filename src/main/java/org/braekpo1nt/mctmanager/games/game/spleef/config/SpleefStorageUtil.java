@@ -42,9 +42,22 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
         if (spleefWorld == null) {
             throw new IllegalArgumentException(String.format("Could not find world \"%s\"", config.world()));
         }
+        if (config.startingLocation() == null) {
+            throw new IllegalArgumentException("startingLocation can't be null");
+        }
+        if (config.spectatorBoundary() == null) {
+            throw new IllegalArgumentException("spectatorBoundary can't be null");
+        }
         double volume = config.spectatorBoundary().getVolume();
-        if (volume <= 1) {
-            throw new IllegalArgumentException(String.format("Defined spectatorBoundary must have a volume greater than 1: %s", config.spectatorBoundary()));
+        if (volume <= 1.0) {
+            throw new IllegalArgumentException(String.format("Defined spectatorBoundary (%s) must have a volume greater than 1.0, but its %s", config.spectatorBoundary(), volume));
+        }
+        if (config.scores() == null) {
+            throw new IllegalArgumentException("scores can't be null");
+        }
+        // score value can be anything, even negative
+        if (config.durations() == null) {
+            throw new IllegalArgumentException("durations can't be null");
         }
         if (config.durations().decayTopLayers() < 0) {
             throw new IllegalArgumentException(String.format("Duration decayTopLayers can't be negative: %s", config.durations().decayTopLayers()));
