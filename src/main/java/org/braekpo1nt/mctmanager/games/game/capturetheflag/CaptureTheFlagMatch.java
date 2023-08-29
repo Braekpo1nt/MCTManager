@@ -5,6 +5,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlagStorageUtil;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
@@ -35,9 +36,9 @@ public class CaptureTheFlagMatch implements Listener {
     private final CaptureTheFlagRound captureTheFlagRound;
     private final Main plugin;
     private final GameManager gameManager;
+    private final CaptureTheFlagStorageUtil storageUtil;
     private final MatchPairing matchPairing;
     private final Arena arena;
-    private final Location spawnObservatory;
     private List<Player> northParticipants = new ArrayList<>();
     private List<Player> southParticipants = new ArrayList<>();
     private List<Player> allParticipants = new ArrayList<>();
@@ -66,20 +67,18 @@ public class CaptureTheFlagMatch implements Listener {
     private Player hasSouthFlag;
     private Material northBanner;
     private Material southBanner;
-    private final World captureTheFlagWorld;
     
-    public CaptureTheFlagMatch(CaptureTheFlagRound captureTheFlagRound, Main plugin, 
-                               GameManager gameManager, MatchPairing matchPairing, Arena arena, 
-                               Location spawnObservatory, World captureTheFlagWorld) {
+    public CaptureTheFlagMatch(CaptureTheFlagRound captureTheFlagRound, Main plugin,
+                               GameManager gameManager, MatchPairing matchPairing, Arena arena,
+                               CaptureTheFlagStorageUtil storageUtil) {
         this.captureTheFlagRound = captureTheFlagRound;
         this.plugin = plugin;
         this.gameManager = gameManager;
+        this.storageUtil = storageUtil;
         this.matchPairing = matchPairing;
         this.arena = arena;
         this.northClassPicker = new ClassPicker();
         this.southClassPicker = new ClassPicker();
-        this.spawnObservatory = spawnObservatory;
-        this.captureTheFlagWorld = captureTheFlagWorld;
     }
     
     public MatchPairing getMatchPairing() {
@@ -141,7 +140,7 @@ public class CaptureTheFlagMatch implements Listener {
         initializeFastBoard(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
         ParticipantInitializer.clearStatusEffects(participant);
-        participant.teleport(spawnObservatory);
+        participant.teleport(storageUtil.getSpawnObservatory());
         participant.lookAt(lookLocation.getX(), lookLocation.getY(), lookLocation.getZ(), LookAnchor.EYES);
     }
     
@@ -180,12 +179,12 @@ public class CaptureTheFlagMatch implements Listener {
         }
         // remove items/arrows on the ground
         BoundingBox removeArea = arena.boundingBox();
-        for (Arrow arrow : captureTheFlagWorld.getEntitiesByClass(Arrow.class)) {
+        for (Arrow arrow : storageUtil.getWorld().getEntitiesByClass(Arrow.class)) {
             if (removeArea.contains(arrow.getLocation().toVector())) {
                 arrow.remove();
             }
         }
-        for (Item item : captureTheFlagWorld.getEntitiesByClass(Item.class)) {
+        for (Item item : storageUtil.getWorld().getEntitiesByClass(Item.class)) {
             if (removeArea.contains(item.getLocation().toVector())) {
                 item.remove();
             }
@@ -399,7 +398,7 @@ public class CaptureTheFlagMatch implements Listener {
         participantsAreAlive.put(killed.getUniqueId(), false);
         ParticipantInitializer.resetHealthAndHunger(killed);
         ParticipantInitializer.clearStatusEffects(killed);
-        killed.teleport(spawnObservatory);
+        killed.teleport(storageUtil.getSpawnObservatory());
         killed.lookAt(arena.northFlag().getX(), arena.northFlag().getY(), arena.northFlag().getZ(), LookAnchor.EYES);
     }
     

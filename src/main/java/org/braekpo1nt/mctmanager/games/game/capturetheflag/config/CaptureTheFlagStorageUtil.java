@@ -52,5 +52,13 @@ public class CaptureTheFlagStorageUtil extends GameConfigStorageUtil<CaptureTheF
         return spawnObservatory;
     }
     
+    public int getKillPoints() {
+        return captureTheFlagConfig.points().kill();
+    }
+    
+    public int getWinPoints() {
+        return captureTheFlagConfig.points().win();
+    }
+    
     
 }

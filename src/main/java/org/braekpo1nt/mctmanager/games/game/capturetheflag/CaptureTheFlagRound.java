@@ -24,22 +24,20 @@ public class CaptureTheFlagRound {
     private final CaptureTheFlagGame captureTheFlagGame;
     private final Main plugin;
     private final GameManager gameManager;
+    private final CaptureTheFlagStorageUtil storageUtil;
     private List<CaptureTheFlagMatch> matches;
     private List<Player> participants = new ArrayList<>();
     private List<Player> onDeckParticipants;
-    private final Location spawnObservatory;
     private int matchesStartingCountDownTaskId;
     private int onDeckClassSelectionTimerTaskId;
     private int onDeckMatchTimerTaskId;
-    private final World captureTheFlagWorld;
     
     public CaptureTheFlagRound(CaptureTheFlagGame captureTheFlagGame, Main plugin, GameManager gameManager,
                                CaptureTheFlagStorageUtil storageUtil) {
         this.captureTheFlagGame = captureTheFlagGame;
         this.plugin = plugin;
         this.gameManager = gameManager;
-        this.spawnObservatory = storageUtil.getSpawnObservatory();
-        this.captureTheFlagWorld = storageUtil.getWorld();
+        this.storageUtil = storageUtil;
     }
     
     /**
@@ -55,7 +53,7 @@ public class CaptureTheFlagRound {
             MatchPairing matchPairing = matchPairings.get(i);
             Arena arena = arenas.get(i);
             CaptureTheFlagMatch match = new CaptureTheFlagMatch(this, plugin, gameManager, 
-                    matchPairing, arena, spawnObservatory, captureTheFlagWorld);
+                    matchPairing, arena, storageUtil);
             matches.add(match);
         }
     }
@@ -75,7 +73,7 @@ public class CaptureTheFlagRound {
     private void initializeParticipant(Player participant) {
         participants.add(participant);
         initializeFastBoard(participant);
-        participant.teleport(spawnObservatory);
+        participant.teleport(storageUtil.getSpawnObservatory());
         participant.getInventory().clear();
         participant.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearStatusEffects(participant);
@@ -85,7 +83,7 @@ public class CaptureTheFlagRound {
     private void initializeOnDeckParticipant(Player onDeckParticipant) {
         onDeckParticipants.add(onDeckParticipant);
         initializeOndDeckFastBoard(onDeckParticipant);
-        onDeckParticipant.teleport(spawnObservatory);
+        onDeckParticipant.teleport(storageUtil.getSpawnObservatory());
         onDeckParticipant.getInventory().clear();
         onDeckParticipant.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearStatusEffects(onDeckParticipant);
@@ -181,7 +179,7 @@ public class CaptureTheFlagRound {
         for (Player participant : participants) {
             String team = gameManager.getTeamName(participant.getUniqueId());
             if (matchPairing.containsTeam(team)) {
-                participant.teleport(spawnObservatory);
+                participant.teleport(storageUtil.getSpawnObservatory());
             }
         }
     }
