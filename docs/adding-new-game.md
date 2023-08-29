@@ -4,8 +4,9 @@ There are a few things you need to do when adding a new game.
 
 - Create a new enum for the game in `GameType.java` (all upper-case, underscores; in this example, it's `GameType.NEW_GAME`) 
   - Create a new enum value `NEW_GAME`
-  - Add an entry to the `GAME_IDS` map (`"new-game", GameType.NEW_GAME`)
-  - Add an entry to the `TITLES` map (`GameType.NEW_GAME, "New Game"`)
+    - Give it a `title` and an `id` (for this example, it will be `NEW_GAME("New Game", "new-game")`)
+      - `title` is the display name
+      - `id` must be lowercase with no spaces (only dashes) and only alphanumeric characters (it must match the `validIdRegex` in the `GameType` constructor, or an `IllegalArgumentException` will be thrown)
   - The Enum for the game is used in various places to identify which game is being played/selected. For example:
     - This allows the `/mct game start new-game` command to start your new game
     - This allows the vote sub command to include this game in its list of votable games

@@ -5,6 +5,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.game.spleef.config.SpleefStorageUtil;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.bukkit.ChatColor;
@@ -55,13 +56,12 @@ public class SpleefRound implements Listener {
     private final List<BoundingBox> layers;
     private int decayTaskId;
     
-    public SpleefRound(Main plugin, GameManager gameManager, SpleefGame spleefGame, Location startingLocation) {
+    public SpleefRound(Main plugin, GameManager gameManager, SpleefGame spleefGame, SpleefStorageUtil spleefStorageUtil) {
         this.plugin = plugin;
         this.gameManager = gameManager;
         this.spleefGame = spleefGame;
-        this.spleefStartAnchor = startingLocation;
-        MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
-        this.spleefWorld = worldManager.getMVWorld("FT").getCBWorld();
+        this.spleefStartAnchor = spleefStorageUtil.getStartingLocation();
+        this.spleefWorld = spleefStorageUtil.getWorld();
         this.layers = createLayers();
     }
     

@@ -166,7 +166,7 @@ public class EventManager {
         }
         if (gameManager.getActiveGame() != null && gameManager.getActiveGame().getType().equals(gameType)) {
             sender.sendMessage(Component.text("Can't undo ")
-                    .append(Component.text(GameType.getTitle(gameType))
+                    .append(Component.text(gameType.getTitle())
                             .decorate(TextDecoration.BOLD))
                     .append(Component.text(" because it is in progress"))
                     .color(NamedTextColor.RED));
@@ -181,7 +181,7 @@ public class EventManager {
         if (!scoreKeepers.containsKey(gameType)) {
             sender.sendMessage(Component.empty()
                     .append(Component.text("No points were tracked for "))
-                    .append(Component.text(GameType.getTitle(gameType))
+                    .append(Component.text(gameType.getTitle())
                             .decorate(TextDecoration.BOLD))
                     .append(Component.text("."))
                     .color(NamedTextColor.YELLOW));
@@ -232,7 +232,7 @@ public class EventManager {
         Set<String> teamNames = gameManager.getTeamNames();
         TextComponent.Builder reportBuilder = Component.text()
                 .append(Component.text("|Scores removed ("))
-                .append(Component.text(GameType.getTitle(gameType))
+                .append(Component.text(gameType.getTitle())
                         .decorate(TextDecoration.BOLD))
                 .append(Component.text("):\n"))
                 .color(NamedTextColor.YELLOW);
@@ -370,7 +370,7 @@ public class EventManager {
                     this.cancel();
                     return;
                 }
-                updateTimerFastBoard(String.format("%s: %s", GameType.getTitle(gameType),
+                updateTimerFastBoard(String.format("%s: %s", gameType.getTitle(),
                         TimeStringUtils.getTimeString(count)));
                 count--;
             }
@@ -626,5 +626,9 @@ public class EventManager {
     
     private void messageAllAdmins(Component message) {
         gameManager.messageAdmins(message);
+    }
+    
+    public int getMaxGames() {
+        return maxGames;
     }
 }

@@ -38,9 +38,9 @@ public class CaptureTheFlagMatch implements Listener {
     private final MatchPairing matchPairing;
     private final Arena arena;
     private final Location spawnObservatory;
-    private List<Player> northParticipants;
-    private List<Player> southParticipants;
-    private List<Player> allParticipants;
+    private List<Player> northParticipants = new ArrayList<>();
+    private List<Player> southParticipants = new ArrayList<>();
+    private List<Player> allParticipants = new ArrayList<>();
     private Map<UUID, Boolean> participantsAreAlive;
     private Map<UUID, Integer> killCounts;
     private boolean matchActive = false;

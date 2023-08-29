@@ -1,13 +1,12 @@
 package org.braekpo1nt.mctmanager.games.game.mecha;
 
-import com.onarandombox.MultiverseCore.api.MVWorldManager;
-import com.onarandombox.MultiverseCore.api.MultiverseWorld;
 import com.onarandombox.MultiverseCore.utils.AnchorManager;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
+import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.game.mecha.config.MechaStorageUtil;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
@@ -44,11 +43,11 @@ import org.bukkit.scoreboard.Team;
 import org.bukkit.structure.Structure;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.Nullable;
 
-import java.io.IOException;
 import java.util.*;
 
-public class MechaGame implements MCTGame, Listener {
+public class MechaGame implements MCTGame, Configurable, Listener {
     
     private final Main plugin;
     private final GameManager gameManager;
@@ -56,28 +55,10 @@ public class MechaGame implements MCTGame, Listener {
     private boolean gameActive = false;
     private boolean mechaHasStarted = false;
     private List<Player> participants;
-    private final World mechaWorld;
-    private final MultiverseWorld mvMechaWorld;
+    private World mechaWorld;
     private int startMechaTaskId;
     private int stopMechaCountdownTaskId;
-    /**
-     * The coordinates of all the chests in the open world, not including spawn chests
-     */
-    private List<Vector> mapChestCoords;
-    /**
-     * The coordinates of all the spawn chests
-     */
-    private List<Vector> spawnChestCoords;
-    /**
-     * Holds the mecha loot tables from the mctdatapack, not including the spawn loot.
-     * Each loot table is paired with a weight for random selection. 
-     */
-    private Map<LootTable, Integer> weightedMechaLootTables;
-    /**
-     * Holds the mecha spawn loot table from the mctdatapack
-     */
-    private LootTable spawnLootTable;
-    private final WorldBorder worldBorder;
+    private WorldBorder worldBorder;
     private int borderShrinkingTaskId;
     private String lastKilledTeam;
     private List<UUID> livingPlayers;
@@ -90,12 +71,7 @@ public class MechaGame implements MCTGame, Listener {
     public MechaGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
         this.gameManager = gameManager;
-        this.mechaStorageUtil = loadConfig();
-        setChestCoordsAndLootTables();
-        MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
-        this.mvMechaWorld = worldManager.getMVWorld("FT");
-        this.mechaWorld = mvMechaWorld.getCBWorld();
-        this.worldBorder = mechaWorld.getWorldBorder();
+        this.mechaStorageUtil = new MechaStorageUtil(plugin.getDataFolder());
     }
     
     @Override
@@ -104,12 +80,22 @@ public class MechaGame implements MCTGame, Listener {
     }
     
     @Override
+    public boolean loadConfig() throws IllegalArgumentException {
+        if (!mechaStorageUtil.loadConfig()) {
+            return false;
+        }
+        mechaWorld = mechaStorageUtil.getWorld();
+        return true;
+    }
+    
+    @Override
     public void start(List<Player> newParticipants) {
         this.participants = new ArrayList<>(newParticipants.size());
         livingPlayers = new ArrayList<>(newParticipants.size());
         deadPlayers = new ArrayList<>();
         lastKilledTeam = null;
-        this.killCounts = new HashMap<>(newParticipants.size());
+        killCounts = new HashMap<>(newParticipants.size());
+        worldBorder = mechaWorld.getWorldBorder();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         placePlatforms();
         fillAllChests();
@@ -374,12 +360,11 @@ public class MechaGame implements MCTGame, Listener {
      * Called when:
      * Right-clicking an armor stand
      * Right-clicking an item frame (also; onPlayerInteractEntity() )
-     *
+     * <p>
      * Not called when:
      * Left-clicking an armor stand
      * Left-clicking an item frame with an item in it
      * Left-clicking an item frame without an item in it
-     * @param event
      */
     @EventHandler
     public void onPlayerInteractAtEntity(PlayerInteractAtEntityEvent event) {
@@ -398,13 +383,12 @@ public class MechaGame implements MCTGame, Listener {
     /**
      * Called when:
      * Right-clicking an item frame (also; onPlayerInteractAtEntity() )
-     *
+     * <p>
      * Not called when:
      * Right-clicking an armor stand
      * Left-clicking an armor stand
      * Left-clicking an item frame with an item in it
      * Left-clicking an item frame without an item in it
-     * @param event
      */
 
     @EventHandler
@@ -425,21 +409,18 @@ public class MechaGame implements MCTGame, Listener {
      * Called when:
      * Left-clicking an armor stand
      * Left-clicking an item frame with an item in it
-     *
+     * <p>
      * Not called when:
      * Right-clicking an armor stand
      * Right-clicking an item frame
      * Left-clicking an item frame without an item in it
-     * @param event
      */
     @EventHandler
     public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
         if (!gameActive) {
             return;
         }
-        if (event.getDamager() instanceof Player) {
-
-            Player clicker = (Player) event.getDamager();
+        if (event.getDamager() instanceof Player clicker) {
             if (!participants.contains(clicker)) {
                 return;
             }
@@ -452,14 +433,13 @@ public class MechaGame implements MCTGame, Listener {
     /**
      * Called when:
      * Left-clicking an item frame without an item in it
-     *
+     * <p>
      * Not called when:
      * Right-clicking an armor stand
      * Left-clicking an armor stand
      * Right-clicking an item frame
      * Left-clicking an item frame with an item in it
      * Left-clicking an item frame without an item in it
-     * @param event
      */
     @EventHandler
     public void onHangingBreakByEntity(HangingBreakByEntityEvent event) {
@@ -526,6 +506,9 @@ public class MechaGame implements MCTGame, Listener {
     
     private void onParticipantGetKill(Player killed) {
         Player killer = killed.getKiller();
+        if (killer == null) {
+            return;
+        }
         if (!participants.contains(killer)) {
             return;
         }
@@ -593,12 +576,7 @@ public class MechaGame implements MCTGame, Listener {
     
     private void initializeWorldBorder() {
         worldBorder.setCenter(0, 0);
-        int [] sizes = mechaStorageUtil.getSizes();
-        if (sizes.length > 0) {
-            worldBorder.setSize(sizes[0]);
-        } else {
-            worldBorder.setSize(399);
-        }
+        worldBorder.setSize(mechaStorageUtil.getInitialBorderSize());
     }
     
     private void kickOffBorderShrinking() {
@@ -777,8 +755,8 @@ public class MechaGame implements MCTGame, Listener {
     }
     
     private void clearAllChests() {
-        List<Vector> allChestCoords = new ArrayList<>(spawnChestCoords);
-        allChestCoords.addAll(mapChestCoords);
+        List<Vector> allChestCoords = new ArrayList<>(mechaStorageUtil.getSpawnChestCoords());
+        allChestCoords.addAll(mechaStorageUtil.getMapChestCoords());
         for (Vector coords : allChestCoords) {
             Block block = mechaWorld.getBlockAt(coords.getBlockX(), coords.getBlockY(), coords.getBlockZ());
             block.setType(Material.CHEST);
@@ -788,17 +766,17 @@ public class MechaGame implements MCTGame, Listener {
     }
     
     private void fillSpawnChests() {
-        for (Vector coords : spawnChestCoords) {
+        for (Vector coords : mechaStorageUtil.getSpawnChestCoords()) {
             Block block = mechaWorld.getBlockAt(coords.getBlockX(), coords.getBlockY(), coords.getBlockZ());
             block.setType(Material.CHEST);
             Chest chest = (Chest) block.getState();
-            chest.setLootTable(spawnLootTable);
+            chest.setLootTable(mechaStorageUtil.getSpawnLootTable());
             chest.update();
         }
     }
     
     private void fillMapChests() {
-        for (Vector coords : mapChestCoords) {
+        for (Vector coords : mechaStorageUtil.getSpawnChestCoords()) {
             Block block = mechaWorld.getBlockAt(coords.getBlockX(), coords.getBlockY(), coords.getBlockZ());
             block.setType(Material.CHEST);
             fillMapChest(((Chest) block.getState()));
@@ -810,16 +788,16 @@ public class MechaGame implements MCTGame, Listener {
      * @param chest The chest to fill
      */
     private void fillMapChest(Chest chest) {
-        LootTable lootTable = getRandomLootTable(weightedMechaLootTables);
+        LootTable lootTable = getRandomLootTable(mechaStorageUtil.getWeightedMechaLootTables());
         chest.setLootTable(lootTable);
         chest.update();
     }
     
     /**
      * Gets a random loot table from loots, using the provided weights
-     * @return A loot table for a chest
+     * @return A loot table for a chest. Null if there are zero weightedLootTables passed in
      */
-    private LootTable getRandomLootTable(Map<LootTable, Integer> weightedLootTables) {
+    private @Nullable LootTable getRandomLootTable(Map<LootTable, Integer> weightedLootTables) {
         int totalWeight = 0;
         Collection<Integer> weights = weightedLootTables.values();
         for (int weight : weights) {
@@ -855,26 +833,6 @@ public class MechaGame implements MCTGame, Listener {
         teamLocations.put("blue", anchorManager.getAnchorLocation("mecha-blue"));
         teamLocations.put("purple", anchorManager.getAnchorLocation("mecha-purple"));
         teamLocations.put("red", anchorManager.getAnchorLocation("mecha-red"));
-    }
-    
-    private MechaStorageUtil loadConfig() {
-        MechaStorageUtil mechaStorageUtil = new MechaStorageUtil(plugin);
-        try {
-            mechaStorageUtil.loadConfig();
-        } catch (IOException e) {
-            Bukkit.getLogger().severe("Error loading MECHA config file. See console for details.");
-            Bukkit.getPluginManager().disablePlugin(plugin);
-            throw new RuntimeException(e);
-        }
-        return mechaStorageUtil;
-    }
-    
-    private void setChestCoordsAndLootTables() {
-        this.spawnChestCoords = mechaStorageUtil.getSpawnChestCoords();
-        this.mapChestCoords = mechaStorageUtil.getMapChestCoords();
-        this.mapChestCoords = mechaStorageUtil.getMapChestCoords();
-        this.spawnLootTable = mechaStorageUtil.getSpawnLootTable();
-        this.weightedMechaLootTables = mechaStorageUtil.getWeightedMechaLootTables();
     }
     
 }

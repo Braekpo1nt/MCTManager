@@ -5,4 +5,5 @@ import org.bukkit.util.Vector;
 
 import java.util.List;
 
-public record MechaConfig (NamespacedKey spawnLootTable,List<WeightedNamespacedKey> weightedMechaLootTables, List<BorderStage> borderStages, List<Vector> spawnChestCoords,List<Vector> mapChestCoords) {}
+public record MechaConfig (String world, NamespacedKey spawnLootTable, List<WeightedNamespacedKey> weightedMechaLootTables, double initialBorderSize, List<BorderStage> borderStages, List<Vector> spawnChestCoords, List<Vector> mapChestCoords) {
+}

@@ -8,6 +8,7 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.clockwork.ClockworkGame;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
+import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.CaptureTheFlagGame;
@@ -280,7 +281,7 @@ public class GameManager implements Listener {
     }
     
     public void startGameWithDelay(GameType mctGame) {
-        String gameTitle = ChatColor.BLUE+""+ChatColor.BOLD+ GameType.getTitle(mctGame);
+        String gameTitle = ChatColor.BLUE+""+ChatColor.BOLD+ mctGame.getTitle();
         messageOnlineParticipants(Component.empty()
                 .append(Component.text(gameTitle)
                         .decorate(TextDecoration.BOLD))
@@ -310,7 +311,6 @@ public class GameManager implements Listener {
      * @param sender The sender to send messages and alerts to
      */
     public void startGame(GameType gameType, @NotNull CommandSender sender) {
-        
         if (voteManager.isVoting()) {
             sender.sendMessage(Component.text("Can't start a game while a vote is going on.")
                     .color(NamedTextColor.RED));
@@ -330,7 +330,6 @@ public class GameManager implements Listener {
             return;
         }
         
-        List<String> onlineTeams = getTeamNames(onlineParticipants);
         MCTGame selectedGame;
         switch (gameType) {
             case FOOT_RACE -> {
@@ -358,8 +357,26 @@ public class GameManager implements Listener {
         }
         
         // make sure config loads
+        if (selectedGame instanceof Configurable configurable) {
+            try {
+                if (!configurable.loadConfig()) {
+                    throw new IllegalArgumentException("Config could not be loaded.");
+                }
+            } catch (IllegalArgumentException e) {
+                Bukkit.getLogger().severe(e.getMessage());
+                e.printStackTrace();
+                sender.sendMessage(Component.text("Can't start ")
+                        .append(Component.text(gameType.name())
+                                .decorate(TextDecoration.BOLD))
+                        .append(Component.text(". Error loading config file. See console for details:\n"))
+                        .append(Component.text(e.getMessage()))
+                        .color(NamedTextColor.RED));
+                return;
+            }
+        }
         
-        // make sure the requirements are met to play the game
+        List<String> onlineTeams = getTeamNames(onlineParticipants);
+        // make sure the player and team count requirements are met
         switch (gameType) {
             case MECHA -> {
                 if (onlineTeams.size() < 2) {
@@ -923,6 +940,14 @@ public class GameManager implements Listener {
     public void messageAdmins(Component message) {
         for (Player admin : onlineAdmins) {
             admin.sendMessage(message);
+        }
+    }
+    
+    public void messageAdmins(Component message, CommandSender except) {
+        for (Player admin : onlineAdmins) {
+            if (!admin.equals(except)) {
+                admin.sendMessage(message);
+            }
         }
     }
     

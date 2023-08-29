@@ -1,0 +1,74 @@
+{
+  "world": "World",
+  "durations": {
+    "timeLimit": 600,
+    "checkpointCounter": 120,
+    "checkpointCounterAlert": 30
+  },
+  "checkpoints": [
+    {
+      "yValue": 0,
+      "detectionBox": {
+        "minX": 1007,
+        "minY": 5,
+        "minZ": 8,
+        "maxX": 1003,
+        "maxY": 0,
+        "maxZ": -8
+      },
+      "respawn": {
+        "x": 998,
+        "y": 0,
+        "z": 0
+      }
+    },
+    {
+      "yValue": -1,
+      "detectionBox": {
+        "minX": 1003,
+        "minY": 0,
+        "minZ": -8,
+        "maxX": 1007,
+        "maxY": 5,
+        "maxZ": 8
+      },
+      "respawn": {
+        "x": 998,
+        "y": 0,
+        "z": 0
+      }
+    },
+    {
+      "yValue": 7,
+      "detectionBox": {
+        "minX": 1017,
+        "minY": 8,
+        "minZ": -6,
+        "maxX": 1020,
+        "maxY": 10,
+        "maxZ": 6
+      },
+      "respawn": {
+        "x": 1010,
+        "y": 8,
+        "z": 4
+      }
+    },
+    {
+      "yValue": 4.5,
+      "detectionBox": {
+        "minX": 1046,
+        "minY": 7,
+        "minZ": -4,
+        "maxX": 1048,
+        "maxY": 11,
+        "maxZ": 3
+      },
+      "respawn": {
+        "x": 1046,
+        "y": 8,
+        "z": 2
+      }
+    }
+  ]
+}

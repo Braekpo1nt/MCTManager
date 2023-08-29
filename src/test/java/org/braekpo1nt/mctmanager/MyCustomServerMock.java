@@ -34,13 +34,15 @@ import static org.mockito.Mockito.when;
  * - Implement methods that the original {@link ServerMock} has not yet implemented (they throw {@link be.seeseemelk.mockbukkit.UnimplementedOperationException})
  */
 public class MyCustomServerMock extends ServerMock {
+    PluginManagerMock myCustomPluginManagerMock = new MyCustomPluginManagerMock(this);
+    
     @Override
     public @NotNull PluginManagerMock getPluginManager() {
-        return new MyCustomPluginManagerMock(this);
+        return myCustomPluginManagerMock;
     }
     
     /**
-     * Returns a mocked version of LootTable. Nothing is implemented, if it's attemted to be used, it will fail.
+     * Returns a mocked version of LootTable. Nothing is implemented, if it's attempted to be used, it will fail.
      * @param key the name of the LootTable
      * @return A mocked version of LootTable
      */

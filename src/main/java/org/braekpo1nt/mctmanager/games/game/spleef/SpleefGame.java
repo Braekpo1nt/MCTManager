@@ -1,10 +1,11 @@
 package org.braekpo1nt.mctmanager.games.game.spleef;
 
-import com.onarandombox.MultiverseCore.utils.AnchorManager;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
+import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
+import org.braekpo1nt.mctmanager.games.game.spleef.config.SpleefStorageUtil;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Scoreboard;
@@ -12,11 +13,11 @@ import org.bukkit.scoreboard.Team;
 
 import java.util.*;
 
-public class SpleefGame implements MCTGame {
+public class SpleefGame implements MCTGame, Configurable {
     private final Main plugin;
     private final GameManager gameManager;
+    private final SpleefStorageUtil spleefStorageUtil;
     private final String title = ChatColor.BLUE+"Spleef";
-    private final Location startingLocation;
     private List<Player> participants = new ArrayList<>();
     private List<SpleefRound> rounds;
     private int currentRoundIndex = 0;
@@ -26,8 +27,7 @@ public class SpleefGame implements MCTGame {
     public SpleefGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
         this.gameManager = gameManager;
-        AnchorManager anchorManager = Main.multiverseCore.getAnchorManager();
-        this.startingLocation = anchorManager.getAnchorLocation("spleef");
+        this.spleefStorageUtil = new SpleefStorageUtil(plugin.getDataFolder());
     }
     
     @Override
@@ -36,12 +36,17 @@ public class SpleefGame implements MCTGame {
     }
     
     @Override
+    public boolean loadConfig() throws IllegalArgumentException {
+        return spleefStorageUtil.loadConfig();
+    }
+    
+    @Override
     public void start(List<Player> newParticipants) {
         participants = new ArrayList<>(newParticipants.size());
         rounds = new ArrayList<>(3);
-        rounds.add(new SpleefRound(plugin, gameManager, this, startingLocation));
-        rounds.add(new SpleefRound(plugin, gameManager, this, startingLocation));
-        rounds.add(new SpleefRound(plugin, gameManager, this, startingLocation));
+        rounds.add(new SpleefRound(plugin, gameManager, this, spleefStorageUtil));
+        rounds.add(new SpleefRound(plugin, gameManager, this, spleefStorageUtil));
+        rounds.add(new SpleefRound(plugin, gameManager, this, spleefStorageUtil));
         currentRoundIndex = 0;
         for (Player participant : newParticipants) {
             initializeParticipant(participant);

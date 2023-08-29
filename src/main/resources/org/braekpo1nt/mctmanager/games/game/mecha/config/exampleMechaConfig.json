@@ -1,0 +1,71 @@
+{
+  "world": "FT",
+  "spawnLootTable": {
+    "namespace": "mctdatapack",
+    "key": "mecha/spawn-chest"
+  },
+  "weightedMechaLootTables": [
+    {
+      "namespace": "mctdatapack",
+      "key": "mecha/better-chest",
+      "weight": 2
+    },
+    {
+      "namespace": "mctdatapack",
+      "key": "mecha/good-chest",
+      "weight": 3
+    },
+    {
+      "namespace": "mctdatapack",
+      "key": "mecha/excellent-chest",
+      "weight": 1
+    },
+    {
+      "namespace": "mctdatapack",
+      "key": "mecha/poor-chest",
+      "weight": 2
+    }
+  ],
+  "initialBorderSize": 400,
+  "borderStages": [
+    {
+      "size": 50,
+      "delay": 80,
+      "duration": 15
+    },
+    {
+      "size": 25,
+      "delay": 60,
+      "duration": 15
+    },
+    {
+      "size": 2,
+      "delay": 30,
+      "duration": 30
+    }
+  ],
+  "spawnChestCoords": [
+    {
+      "x": -1.0,
+      "y": -45.0,
+      "z": 1.0
+    },
+    {
+      "x": 0.0,
+      "y": -45.0,
+      "z": 1.0
+    }
+  ],
+  "mapChestCoords": [
+    {
+      "x": -18.0,
+      "y": -45.0,
+      "z": -15.0
+    },
+    {
+      "x": 130.0,
+      "y": -45.0,
+      "z": -44.0
+    }
+  ]
+}
