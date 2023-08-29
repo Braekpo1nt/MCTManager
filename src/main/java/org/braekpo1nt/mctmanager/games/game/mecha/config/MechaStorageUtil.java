@@ -5,7 +5,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.loot.LootTable;
-import org.bukkit.loot.LootTables;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.Nullable;
 
@@ -73,7 +72,7 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
             if (lootTableDoesNotExist(namespacedKey)) {
                 throw new IllegalArgumentException(String.format("Could not find loot table \"%s\"", namespacedKey));
             }
-            if (weightedNamespacedKey.weight() <= 1) {
+            if (weightedNamespacedKey.weight() < 1) {
                 throw new IllegalArgumentException(String.format("weightedNamespacedKey (%s) can't have a weight (%s) less than 1", namespacedKey, weightedNamespacedKey.weight()));
             }
         }
