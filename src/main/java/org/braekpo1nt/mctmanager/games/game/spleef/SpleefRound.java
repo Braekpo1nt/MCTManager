@@ -42,7 +42,6 @@ import java.util.*;
 public class SpleefRound implements Listener {
     private final Main plugin;
     private final GameManager gameManager;
-    private final SpleefStorageUtil spleefStorageUtil;
     private List<Player> participants = new ArrayList<>();
     private final World spleefWorld;
     private Map<UUID, Boolean> participantsAlive;
@@ -61,7 +60,6 @@ public class SpleefRound implements Listener {
         this.plugin = plugin;
         this.gameManager = gameManager;
         this.spleefGame = spleefGame;
-        this.spleefStorageUtil = spleefStorageUtil;
         this.spleefStartAnchor = spleefStorageUtil.getStartingLocation();
         this.spleefWorld = spleefStorageUtil.getWorld();
         this.layers = createLayers();
