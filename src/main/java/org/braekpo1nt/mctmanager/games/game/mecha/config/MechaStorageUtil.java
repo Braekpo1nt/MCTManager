@@ -63,12 +63,18 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
         }
         // weightedNamespacedKey list can be empty and still be valid
         for (WeightedNamespacedKey weightedNamespacedKey : config.weightedMechaLootTables()) {
-            NamespacedKey key = new NamespacedKey(weightedNamespacedKey.namespace(), weightedNamespacedKey.key());
-            if (lootTableDoesNotExist(key)) {
-                throw new IllegalArgumentException(String.format("Could not find loot table \"%s\"", key));
+            if (weightedNamespacedKey.namespace() == null) {
+                throw new IllegalArgumentException("weightedNamespacedKey.namespace can't be null");
             }
-            if (weightedNamespacedKey.weight() <= 0) {
-                throw new IllegalArgumentException(String.format("Weight for loot table \"%s\" is less than 0: %s", key, weightedNamespacedKey.weight()));
+            if (weightedNamespacedKey.key() == null) {
+                throw new IllegalArgumentException("weightedNamespacedKey.key can't be null");
+            }
+            NamespacedKey namespacedKey = new NamespacedKey(weightedNamespacedKey.namespace(), weightedNamespacedKey.key());
+            if (lootTableDoesNotExist(namespacedKey)) {
+                throw new IllegalArgumentException(String.format("Could not find loot table \"%s\"", namespacedKey));
+            }
+            if (weightedNamespacedKey.weight() <= 1) {
+                throw new IllegalArgumentException(String.format("weightedNamespacedKey (%s) can't have a weight (%s) less than 1", namespacedKey, weightedNamespacedKey.weight()));
             }
         }
         if (config.initialBorderSize() < 1.0) {
@@ -82,25 +88,31 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
         }
         for (BorderStage borderStage : config.borderStages()) {
             if (borderStage.size() < 1.0) {
-                throw new IllegalArgumentException(String.format("border stage size can't be less than 1.0: %s", borderStage.size()));
+                throw new IllegalArgumentException(String.format("border stage size (%s) can't be less than 1.0", borderStage.size()));
             }
             if (borderStage.delay() < 0) {
-                throw new IllegalArgumentException(String.format("border stage delay can't be less than 0: %s", borderStage.delay()));
+                throw new IllegalArgumentException(String.format("border stage delay (%s) can't be less than 0", borderStage.delay()));
             }
             if (borderStage.duration() < 0) {
-                throw new IllegalArgumentException(String.format("border stage duration can't be less than 0: %s", borderStage.duration()));
+                throw new IllegalArgumentException(String.format("border stage duration (%s) can't be less than 0", borderStage.duration()));
             }
         }
         if (config.spawnChestCoords() == null) {
             throw new IllegalArgumentException("spawnChestCoords can't be null");
         }
+        if (config.spawnChestCoords().contains(null)) {
+            throw new IllegalArgumentException("spawnChestCoords can't contain a null position");
+        }
         if (config.mapChestCoords() == null) {
             throw new IllegalArgumentException("mapChestCoords can't be null");
+        }
+        if (config.mapChestCoords().contains(null)) {
+            throw new IllegalArgumentException("mapChestCoords can't contain a null position");
         }
         return true;
     }
     
-    private boolean lootTableDoesNotExist(NamespacedKey lootTable) {
+    private boolean lootTableDoesNotExist(@Nullable NamespacedKey lootTable) {
         return lootTable != null && Bukkit.getLootTable(lootTable) == null;
     }
     
