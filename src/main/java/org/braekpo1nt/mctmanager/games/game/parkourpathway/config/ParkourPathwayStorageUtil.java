@@ -85,7 +85,7 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
             if (i-1 >= 0) {
                 ParkourPathwayConfig.CheckPointDTO lastCheckPoint = config.checkpoints().get(i-1);
                 if (checkPoint.detectionBox().getMinY() < lastCheckPoint.yValue()) {
-                    throw new IllegalArgumentException(String.format("checkpoint %s's detectionBox (%s) can't have a minY (%s) lower than checkpoint %s's yValue", i, checkPoint.detectionBox(), checkPoint.detectionBox().getMinY(), lastCheckPoint.yValue()));
+                    throw new IllegalArgumentException(String.format("checkpoint %s's detectionBox (%s) can't have a minY (%s) lower than checkpoint %s's yValue (%s)", i, checkPoint.detectionBox(), checkPoint.detectionBox().getMinY(), i-1, lastCheckPoint.yValue()));
                 }
                 
                 if (checkPoint.detectionBox().contains(lastCheckPoint.respawn())) {
