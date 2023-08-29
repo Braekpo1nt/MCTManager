@@ -50,7 +50,7 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
         }
         double volume = config.spectatorBoundary().getVolume();
         if (volume <= 1.0) {
-            throw new IllegalArgumentException(String.format("Defined spectatorBoundary (%s) must have a volume greater than 1.0, but its %s", config.spectatorBoundary(), volume));
+            throw new IllegalArgumentException(String.format("spectatorBoundary (%s) must have a volume greater than 1.0, but its %s", config.spectatorBoundary(), volume));
         }
         if (config.scores() == null) {
             throw new IllegalArgumentException("scores can't be null");
@@ -60,10 +60,10 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
             throw new IllegalArgumentException("durations can't be null");
         }
         if (config.durations().decayTopLayers() < 0) {
-            throw new IllegalArgumentException(String.format("Duration decayTopLayers can't be negative: %s", config.durations().decayTopLayers()));
+            throw new IllegalArgumentException(String.format("Duration decayTopLayers (%s) can't be negative", config.durations().decayTopLayers()));
         }
         if (config.durations().decayBottomLayers() < 0) {
-            throw new IllegalArgumentException(String.format("Duration decayBottomLayers can't be negative: %s", config.durations().decayBottomLayers()));
+            throw new IllegalArgumentException(String.format("Duration decayBottomLayers (%s) can't be negative", config.durations().decayBottomLayers()));
         }
         return true;
     }
