@@ -13,6 +13,10 @@ public enum GameType {
     
     GameType(String title, String id) {
         this.title = title;
+        String validIdRegex = "^[a-z0-9-]+$";
+        if (!id.matches(validIdRegex)) {
+            throw new IllegalArgumentException(String.format("Invalid id \"%s\": Does not match the regex \"%s\"", id, validIdRegex));
+        }
         this.id = id;
     }
     
