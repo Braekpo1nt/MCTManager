@@ -7,6 +7,22 @@
   },
   "checkpoints": [
     {
+      "yValue": 0,
+      "detectionBox": {
+        "minX": 1007,
+        "minY": 5,
+        "minZ": 8,
+        "maxX": 1003,
+        "maxY": 0,
+        "maxZ": -8
+      },
+      "respawn": {
+        "x": 998,
+        "y": 0,
+        "z": 0
+      }
+    },
+    {
       "yValue": -1,
       "detectionBox": {
         "minX": 1003,

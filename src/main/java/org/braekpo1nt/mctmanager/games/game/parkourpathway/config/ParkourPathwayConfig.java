@@ -18,5 +18,10 @@ public record ParkourPathwayConfig  (String world, Durations durations, List<Che
      * @param respawn the position to teleport back to if the player falls below the yValue
      */
     public record CheckPointDTO(double yValue, BoundingBox detectionBox, Vector respawn) {
+        public CheckPointDTO(double yValue, BoundingBox detectionBox, Vector respawn) {
+            this.yValue = yValue;
+            this.detectionBox = detectionBox.resize(detectionBox.getMinX(), detectionBox.getMinY(), detectionBox.getMinZ(), detectionBox.getMaxX(), detectionBox.getMaxY(), detectionBox.getMaxZ());
+            this.respawn = respawn;
+        }
     }
 }
