@@ -311,7 +311,6 @@ public class GameManager implements Listener {
      * @param sender The sender to send messages and alerts to
      */
     public void startGame(GameType gameType, @NotNull CommandSender sender) {
-        
         if (voteManager.isVoting()) {
             sender.sendMessage(Component.text("Can't start a game while a vote is going on.")
                     .color(NamedTextColor.RED));
@@ -364,13 +363,14 @@ public class GameManager implements Listener {
                     throw new IllegalArgumentException("Config could not be loaded.");
                 }
             } catch (IllegalArgumentException e) {
-                Component message = Component.text("Can't start ")
+                Bukkit.getLogger().severe(e.getMessage());
+                e.printStackTrace();
+                sender.sendMessage(Component.text("Can't start ")
                         .append(Component.text(gameType.name())
                                 .decorate(TextDecoration.BOLD))
                         .append(Component.text(". Error loading config file. See console for details:\n"))
                         .append(Component.text(e.getMessage()))
-                        .color(NamedTextColor.RED);
-                sender.sendMessage(message);
+                        .color(NamedTextColor.RED));
                 return;
             }
         }

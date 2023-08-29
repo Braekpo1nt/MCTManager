@@ -17,6 +17,22 @@ public record ParkourPathwayConfig  (String world, Durations durations, List<Che
      * @param detectionBox the box that is checked to see if the player entered this checkpoint
      * @param respawn the position to teleport back to if the player falls below the yValue
      */
-    public record CheckPointDTO(double yValue, BoundingBox detectionBox, Vector respawn) {
+    public record CheckPointDTO(double yValue, DetectionBox detectionBox, Vector respawn) {
+        /**
+         * A necessary encapsulation of a BoundingBox. Users may enter garbage min and max coordinates,
+         * so a true BoundingBox could return negative volume, or incorrect maxY or other dimensions.
+         * With this, a user can enter two points, and we will form a bounding box from it.
+         * @param x1
+         * @param y1
+         * @param z1
+         * @param x2
+         * @param y2
+         * @param z2
+         */
+        public record DetectionBox(double x1, double y1, double z1, double x2, double y2, double z2) {
+            public BoundingBox boundingBox() {
+                return new BoundingBox(x1, y1, z1, x2, y2, z2);
+            }
+        }
     }
 }

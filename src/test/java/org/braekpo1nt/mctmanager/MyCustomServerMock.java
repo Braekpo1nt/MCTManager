@@ -42,7 +42,7 @@ public class MyCustomServerMock extends ServerMock {
     }
     
     /**
-     * Returns a mocked version of LootTable. Nothing is implemented, if it's attemted to be used, it will fail.
+     * Returns a mocked version of LootTable. Nothing is implemented, if it's attempted to be used, it will fail.
      * @param key the name of the LootTable
      * @return A mocked version of LootTable
      */
