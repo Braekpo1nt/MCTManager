@@ -370,7 +370,7 @@ public class CaptureTheFlagMatch implements Listener {
             return;
         }
         addKill(killer.getUniqueId());
-        gameManager.awardPointsToParticipant(killer, 20);
+        gameManager.awardPointsToParticipant(killer, storageUtil.getKillPoints());
     }
     
     private void addKill(UUID killerUniqueId) {
@@ -657,7 +657,7 @@ public class CaptureTheFlagMatch implements Listener {
                 .append(losingTeamDisplayName)
                 .append(Component.text("'s flag!"))
                 .color(NamedTextColor.YELLOW));
-        gameManager.awardPointsToTeam(winningTeam, 100);
+        gameManager.awardPointsToTeam(winningTeam, storageUtil.getWinPoints());
         matchIsOver();
     }
     
