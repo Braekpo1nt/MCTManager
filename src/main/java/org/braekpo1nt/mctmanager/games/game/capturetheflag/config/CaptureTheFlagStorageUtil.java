@@ -29,7 +29,85 @@ public class CaptureTheFlagStorageUtil extends GameConfigStorageUtil<CaptureTheF
     
     @Override
     protected boolean configIsValid(@Nullable CaptureTheFlagConfig config) throws IllegalArgumentException {
-        return false;
+        if (config == null) {
+            throw new IllegalArgumentException("Saved config is null");
+        }
+        World ctfWorld = Bukkit.getWorld(config.world());
+        if (ctfWorld == null) {
+            throw new IllegalArgumentException(String.format("Could not find world \"%s\"", config.world()));
+        }
+        if (config.arenas() == null) {
+            throw new IllegalArgumentException("arenas can't be null");
+        }
+        if (config.arenas().size() < 1) {
+            throw new IllegalArgumentException("there must be at least 1 arena");
+        }
+        for (CaptureTheFlagConfig.ArenaDTO arena : config.arenas()) {
+            if (arena.northSpawn() == null) {
+                throw new IllegalArgumentException("northSpawn can't be null");
+            }
+            if (arena.southSpawn() == null) {
+                throw new IllegalArgumentException("southSpawn can't be null");
+            }
+            if (arena.northFlag() == null) {
+                throw new IllegalArgumentException("northFlag can't be null");
+            }
+            if (arena.southFlag() == null) {
+                throw new IllegalArgumentException("southFlag can't be null");
+            }
+            if (arena.northFlag().equals(arena.southFlag())) {
+                throw new IllegalArgumentException(String.format("northFlag and southFlag can't be identical (%s)", arena.northFlag()));
+            }
+            if (arena.northBarrier() == null) {
+                throw new IllegalArgumentException("northBarrier can't be null");
+            }
+            if (arena.southBarrier() == null) {
+                throw new IllegalArgumentException("southBarrier can't be null");
+            }
+            if (arena.barrierSize() == null) {
+                throw new IllegalArgumentException("barrierSize can't be null");
+            }
+            if (arena.barrierSize().xSize() < 1 
+                    || arena.barrierSize().ySize() < 1 
+                    || arena.barrierSize().zSize() < 1) {
+                throw new IllegalArgumentException(String.format("barrierSize can't have a dimension less than 1 (%s)", arena.barrierSize()));
+            }
+            if (arena.boundingBox() == null) {
+                throw new IllegalArgumentException("boundingBox can't be null");
+            }
+            if (arena.getBoundingBox().getVolume() < 2.0) {
+                throw new IllegalArgumentException(String.format("boundingBox (%s) volume (%s) must be at least 2.0", arena.getBoundingBox(), arena.getBoundingBox().getVolume()));
+            }
+            if (!arena.getBoundingBox().contains(arena.northFlag())) {
+                throw new IllegalArgumentException(String.format("boundingBox (%s) must contain northFlag (%s)", arena.getBoundingBox(), arena.northFlag()));
+            }
+            if (!arena.getBoundingBox().contains(arena.southFlag())) {
+                throw new IllegalArgumentException(String.format("boundingBox (%s) must contain southFlag (%s)", arena.getBoundingBox(), arena.southFlag()));
+            }
+        }
+        if (config.spectatorArea() == null) {
+            throw new IllegalArgumentException("spectatorArea can't be null");
+        }
+        if (config.getSpectatorArea().getVolume() < 1.0) {
+            throw new IllegalArgumentException(String.format("spectatorArea (%s) volume (%s) must be at least 1.0", config.getSpectatorArea(), config.getSpectatorArea().getVolume()));
+        }
+        if (config.scores() == null) {
+            throw new IllegalArgumentException("scores can't be null");
+        }
+        if (config.durations() == null) {
+            throw new IllegalArgumentException("durations can't be null");
+        }
+        if (config.durations().matchesStarting() < 0) {
+            throw new IllegalArgumentException(String.format("durations.matchesStarting (%s) can't be negative", config.durations().matchesStarting()));
+        }
+        if (config.durations().classSelection() < 0) {
+            throw new IllegalArgumentException(String.format("durations.classSelection (%s) can't be negative", config.durations().classSelection()));
+        }
+        if (config.durations().roundTimer() < 0) {
+            throw new IllegalArgumentException(String.format("durations.roundTimer (%s) can't be negative", config.durations().roundTimer()));
+        }
+        
+        return true;
     }
     
     @Override
