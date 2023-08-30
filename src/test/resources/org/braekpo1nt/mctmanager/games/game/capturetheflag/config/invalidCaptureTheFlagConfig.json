@@ -1,0 +1,67 @@
+{
+  "world": "World",
+  "spawnObservatory": {
+    "x": 0,
+    "y": 0,
+    "z": 0
+  },
+  "arenas": [
+    {
+      "northSpawn": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "southSpawn": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "northFlag": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "southFlag": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "northBarrier": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "southBarrier": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "boundingBox": {
+        "minX": -2.0,
+        "minY": -2.0,
+        "minZ": -2.0,
+        "maxX": 2.0,
+        "maxY": 2.0,
+        "maxZ": 2.0
+      }
+    }
+  ],
+  "spectatorArea": {
+    "minX": -2.0,
+    "minY": -2.0,
+    "minZ": -2.0,
+    "maxX": 2.0,
+    "maxY": 2.0,
+    "maxZ": 2.0
+  },
+  "scores": {
+    "kill": 20,
+    "win": 100
+  },
+  "durations": {
+    "matchesStarting": 10,
+    "classSelection": 20,
+    "roundTimer": 180
+  }
+}
