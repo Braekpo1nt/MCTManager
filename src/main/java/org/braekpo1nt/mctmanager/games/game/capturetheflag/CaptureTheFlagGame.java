@@ -1,8 +1,5 @@
 package org.braekpo1nt.mctmanager.games.game.capturetheflag;
 
-import com.onarandombox.MultiverseCore.api.MVWorldManager;
-import com.onarandombox.MultiverseCore.api.MultiverseWorld;
-import com.onarandombox.MultiverseCore.utils.AnchorManager;
 import net.kyori.adventure.text.*;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
@@ -12,14 +9,11 @@ import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -36,7 +30,6 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
     
     private final Main plugin;
     private final GameManager gameManager;
-    private final List<Arena> arenas;
     private final CaptureTheFlagStorageUtil storageUtil;
     private int currentRoundIndex;
     private int maxRounds;
@@ -49,7 +42,6 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
         this.plugin = plugin;
         this.gameManager = gameManager;
         this.storageUtil = new CaptureTheFlagStorageUtil(plugin.getDataFolder());
-        arenas = initializeArenas();
     }
     
     @Override
@@ -306,7 +298,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
     }
 
     /**
-     * Given n {@link MatchPairing}s, where x is the number of arenas in {@link CaptureTheFlagGame#arenas}
+     * Given n {@link MatchPairing}s, where x is the number of arenas in {@link CaptureTheFlagStorageUtil#getArenas()}
      * if n>=x, returns ceiling(n/x) rounds. Each round should hold between 1 and x matches.
      * if n<x, returns 1 round with n matches.
      * Note: If ceiling(n/x) is not a multiple of x, the last round in the list will hold the remainder of n/x (between 1 and x-1) {@link CaptureTheFlagMatch}s so that all matches are accounted for.
@@ -315,10 +307,10 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
      */
     private @NotNull List<CaptureTheFlagRound> generateRounds(@NotNull List<MatchPairing> matchPairings) {
         List<CaptureTheFlagRound> rounds = new ArrayList<>();
-        List<List<MatchPairing>> roundMatchPairingsList = CaptureTheFlagUtils.generateRoundMatchPairings(matchPairings, arenas.size());
+        List<List<MatchPairing>> roundMatchPairingsList = CaptureTheFlagUtils.generateRoundMatchPairings(matchPairings, storageUtil.getArenas().size());
         for (List<MatchPairing> roundMatchPairings : roundMatchPairingsList) {
             CaptureTheFlagRound newRound = new CaptureTheFlagRound(this, plugin, gameManager, storageUtil);
-            newRound.createMatches(roundMatchPairings, arenas.subList(0, roundMatchPairings.size()));
+            newRound.createMatches(roundMatchPairings, storageUtil.getArenas().subList(0, roundMatchPairings.size()));
             rounds.add(newRound);
         }
         return rounds;
@@ -373,52 +365,6 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
         gameManager.getFastBoardManager().updateLines(
                 participant.getUniqueId()
         );
-    }
-    
-    private List<Arena> initializeArenas() {
-        List<Arena> newArenas = new ArrayList<>(4);
-        //NorthWest
-        newArenas.add(new Arena(
-                new Location(storageUtil.getWorld(), -15, -16, -1043), // North spawn
-                new Location(storageUtil.getWorld(), -15, -16, -1003), // South spawn
-                new Location(storageUtil.getWorld(), -6, -13, -1040), // North flag 
-                new Location(storageUtil.getWorld(), -24, -13, -1006), // South flag 
-                new Location(storageUtil.getWorld(), -17, -16, -1042), // North barrier
-                new Location(storageUtil.getWorld(), -17, -16, -1004), // South barrier 
-                new BoundingBox(-26, -17, -1001, -4, 4, -1045)
-        ));
-        //NorthEast
-        newArenas.add(new Arena(
-                new Location(storageUtil.getWorld(), 15, -16, -1043), // North spawn
-                new Location(storageUtil.getWorld(), 15, -16, -1003), // South spawn
-                new Location(storageUtil.getWorld(), 24, -13, -1040), // North flag 
-                new Location(storageUtil.getWorld(), 6, -13, -1006), // South flag 
-                new Location(storageUtil.getWorld(), 13, -16, -1042), // North barrier
-                new Location(storageUtil.getWorld(), 13, -16, -1004), // South barrier
-                new BoundingBox(4, 4, -1045, 26, -17, -1001)
-        ));
-        //SouthWest
-        newArenas.add(new Arena(
-                new Location(storageUtil.getWorld(), -15, -16, -997), // North spawn
-                new Location(storageUtil.getWorld(), -15, -16, -957), // South spawn
-                new Location(storageUtil.getWorld(), -6, -13, -994), // North flag 
-                new Location(storageUtil.getWorld(), -24, -13, -960), // South flag 
-                new Location(storageUtil.getWorld(), -17, -16, -996), // North barrier
-                new Location(storageUtil.getWorld(), -17, -16, -958), // South barrier 
-                new BoundingBox(-4, -17, -999, -26, 4, -955)
-        ));
-        //SouthEast
-        newArenas.add(new Arena(
-                new Location(storageUtil.getWorld(), 15, -16, -997), // North spawn
-                new Location(storageUtil.getWorld(), 15, -16, -957), // South spawn
-                new Location(storageUtil.getWorld(), 24, -13, -994), // North flag 
-                new Location(storageUtil.getWorld(), 6, -13, -960), // South flag 
-                new Location(storageUtil.getWorld(), 13, -16, -996), // North barrier
-                new Location(storageUtil.getWorld(), 13, -16, -958), // South barrier 
-                new BoundingBox(4, 4, -955, 26, -17, -999)
-        ));
-        
-        return newArenas;
     }
     
     /**
