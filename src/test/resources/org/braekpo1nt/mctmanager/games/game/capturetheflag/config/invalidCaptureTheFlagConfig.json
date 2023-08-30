@@ -37,6 +37,11 @@
         "y": 0,
         "z": 0
       },
+      "barrierSize": {
+        "xSize": 5,
+        "ySize": 4,
+        "zSize": 1
+      },
       "boundingBox": {
         "minX": -2.0,
         "minY": -2.0,

@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.games.game.capturetheflag.config;
 
 
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.Arena;
 import org.braekpo1nt.mctmanager.games.game.config.BoundingBoxDTO;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
@@ -13,7 +14,7 @@ record CaptureTheFlagConfig(String world, Vector spawnObservatory, List<ArenaDTO
         return spectatorArea.getBoundingBox();
     }
     
-    public record ArenaDTO(Vector northSpawn, Vector southSpawn, Vector northFlag, Vector southFlag, Vector northBarrier, Vector southBarrier, BoundingBoxDTO boundingBox) {
+    public record ArenaDTO(Vector northSpawn, Vector southSpawn, Vector northFlag, Vector southFlag, Vector northBarrier, Vector southBarrier, Arena.BarrierSize barrierSize, BoundingBoxDTO boundingBox) {
         public BoundingBox getBoundingBox() {
             return boundingBox.getBoundingBox();
         }

@@ -769,18 +769,20 @@ public class CaptureTheFlagMatch implements Listener {
      * Closes the glass barriers for the {@link CaptureTheFlagMatch#arena}
      */
     private void closeGlassBarriers() {
-        BlockPlacementUtils.createCube(arena.northBarrier(), 5, 4, 1, Material.GLASS_PANE);
-        BlockPlacementUtils.updateDirection(arena.northBarrier(), 5, 4, 1);
-        BlockPlacementUtils.createCube(arena.southBarrier(), 5, 4, 1, Material.GLASS_PANE);
-        BlockPlacementUtils.updateDirection(arena.southBarrier(), 5, 4, 1);
+        Arena.BarrierSize size = arena.barrierSize();
+        BlockPlacementUtils.createCube(arena.northBarrier(), size.xSize(), size.ySize(), size.zSize(), Material.GLASS_PANE);
+        BlockPlacementUtils.updateDirection(arena.northBarrier(), size.xSize(), size.ySize(), size.zSize());
+        BlockPlacementUtils.createCube(arena.southBarrier(), size.xSize(), size.ySize(), size.zSize(), Material.GLASS_PANE);
+        BlockPlacementUtils.updateDirection(arena.southBarrier(), size.xSize(), size.ySize(), size.zSize());
     }
     
     /**
      * Opens the glass barriers for the {@link CaptureTheFlagMatch#arena}
      */
     private void openGlassBarriers() {
-        BlockPlacementUtils.createCube(arena.northBarrier(), 5, 4, 1, Material.AIR);
-        BlockPlacementUtils.createCube(arena.southBarrier(), 5, 4, 1, Material.AIR);
+        Arena.BarrierSize size = arena.barrierSize();
+        BlockPlacementUtils.createCube(arena.northBarrier(), size.xSize(), size.ySize(), size.zSize(), Material.AIR);
+        BlockPlacementUtils.createCube(arena.southBarrier(), size.xSize(), size.ySize(), size.zSize(), Material.AIR);
     }
     
     /**

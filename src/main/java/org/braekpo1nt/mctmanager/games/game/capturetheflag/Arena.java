@@ -14,5 +14,7 @@ import org.bukkit.util.BoundingBox;
  * @param boundingBox The bounding box of the arena
  */
 public record Arena(Location northSpawn, Location southSpawn, Location northFlag, Location southFlag,
-                    Location northBarrier, Location southBarrier, BoundingBox boundingBox) {
+                    Location northBarrier, Location southBarrier, BarrierSize barrierSize, BoundingBox boundingBox) {
+    public record BarrierSize(int xSize, int ySize, int zSize) {
+    }
 }
