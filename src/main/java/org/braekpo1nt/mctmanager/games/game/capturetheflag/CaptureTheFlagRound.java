@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.game.capturetheflag;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlagStorageUtil;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.bukkit.*;
@@ -23,22 +24,20 @@ public class CaptureTheFlagRound {
     private final CaptureTheFlagGame captureTheFlagGame;
     private final Main plugin;
     private final GameManager gameManager;
+    private final CaptureTheFlagStorageUtil storageUtil;
     private List<CaptureTheFlagMatch> matches;
     private List<Player> participants = new ArrayList<>();
     private List<Player> onDeckParticipants;
-    private final Location spawnObservatory;
     private int matchesStartingCountDownTaskId;
     private int onDeckClassSelectionTimerTaskId;
     private int onDeckMatchTimerTaskId;
-    private final World captureTheFlagWorld;
     
-    public CaptureTheFlagRound(CaptureTheFlagGame captureTheFlagGame, Main plugin, GameManager gameManager, 
-                               Location spawnObservatory, World captureTheFlagWorld) {
+    public CaptureTheFlagRound(CaptureTheFlagGame captureTheFlagGame, Main plugin, GameManager gameManager,
+                               CaptureTheFlagStorageUtil storageUtil) {
         this.captureTheFlagGame = captureTheFlagGame;
         this.plugin = plugin;
         this.gameManager = gameManager;
-        this.spawnObservatory = spawnObservatory;
-        this.captureTheFlagWorld = captureTheFlagWorld;
+        this.storageUtil = storageUtil;
     }
     
     /**
@@ -54,7 +53,7 @@ public class CaptureTheFlagRound {
             MatchPairing matchPairing = matchPairings.get(i);
             Arena arena = arenas.get(i);
             CaptureTheFlagMatch match = new CaptureTheFlagMatch(this, plugin, gameManager, 
-                    matchPairing, arena, spawnObservatory, captureTheFlagWorld);
+                    matchPairing, arena, storageUtil);
             matches.add(match);
         }
     }
@@ -74,7 +73,7 @@ public class CaptureTheFlagRound {
     private void initializeParticipant(Player participant) {
         participants.add(participant);
         initializeFastBoard(participant);
-        participant.teleport(spawnObservatory);
+        participant.teleport(storageUtil.getSpawnObservatory());
         participant.getInventory().clear();
         participant.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearStatusEffects(participant);
@@ -84,7 +83,7 @@ public class CaptureTheFlagRound {
     private void initializeOnDeckParticipant(Player onDeckParticipant) {
         onDeckParticipants.add(onDeckParticipant);
         initializeOndDeckFastBoard(onDeckParticipant);
-        onDeckParticipant.teleport(spawnObservatory);
+        onDeckParticipant.teleport(storageUtil.getSpawnObservatory());
         onDeckParticipant.getInventory().clear();
         onDeckParticipant.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearStatusEffects(onDeckParticipant);
@@ -180,7 +179,7 @@ public class CaptureTheFlagRound {
         for (Player participant : participants) {
             String team = gameManager.getTeamName(participant.getUniqueId());
             if (matchPairing.containsTeam(team)) {
-                participant.teleport(spawnObservatory);
+                participant.teleport(storageUtil.getSpawnObservatory());
             }
         }
     }
@@ -200,7 +199,7 @@ public class CaptureTheFlagRound {
     
     private void startOnDeckClassSelectionTimer() {
         this.onDeckClassSelectionTimerTaskId = new BukkitRunnable() {
-            private int count = 20;
+            private int count = storageUtil.getDurations().classSelection();
             @Override
             public void run() {
                 if (count <= 0) {
@@ -219,7 +218,7 @@ public class CaptureTheFlagRound {
     
     private void startOnDeckMatchTimer() {
         this.onDeckMatchTimerTaskId = new BukkitRunnable() {
-            int count = 3*60;
+            int count = storageUtil.getDurations().roundTimer();
             @Override
             public void run() {
                 if (count <= 0) {
@@ -263,7 +262,7 @@ public class CaptureTheFlagRound {
     
     private void startMatchesStartingCountDown() {
         this.matchesStartingCountDownTaskId = new BukkitRunnable() {
-            int count = 10;
+            int count = storageUtil.getDurations().matchesStarting();
             @Override
             public void run() {
                 if (count <= 0) {

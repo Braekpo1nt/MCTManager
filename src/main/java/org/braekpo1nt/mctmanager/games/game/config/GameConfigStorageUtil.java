@@ -43,7 +43,7 @@ public abstract class GameConfigStorageUtil<T> {
         T newConfig = getConfigFromFile();
         try {
             if (!configIsValid(newConfig)) {
-                throw new IllegalArgumentException(String.format("Invalid config: \"%s\"", configFileName));
+                throw new IllegalArgumentException(String.format("configIsValid returned false for config file \"%s\"", configFile));
             }
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException(String.format("Invalid config file: \"%s\"", configFile), e);

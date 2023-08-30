@@ -11,8 +11,17 @@ import org.bukkit.util.BoundingBox;
  * @param southFlag The flag spawn/goal location for the south of the arena
  * @param northBarrier The origin location for the glass barrier for the north of the arena
  * @param southBarrier The origin location for the glass barrier for the south of the arena
+ * @param barrierSize The size of the barrier to be placed
  * @param boundingBox The bounding box of the arena
  */
 public record Arena(Location northSpawn, Location southSpawn, Location northFlag, Location southFlag,
-                    Location northBarrier, Location southBarrier, BoundingBox boundingBox) {
+                    Location northBarrier, Location southBarrier, BarrierSize barrierSize, BoundingBox boundingBox) {
+    /**
+     * 
+     * @param xSize Must be 1 or more. The size in the x direction.
+     * @param ySize Must be 1 or more. The size in the y direction.
+     * @param zSize Must be 1 or more. The size in the z direction.
+     */
+    public record BarrierSize(int xSize, int ySize, int zSize) {
+    }
 }

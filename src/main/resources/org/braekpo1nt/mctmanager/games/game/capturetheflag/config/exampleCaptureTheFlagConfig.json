@@ -1,0 +1,207 @@
+{
+  "world": "World",
+  "spawnObservatory": {
+    "x": 0,
+    "y": 0,
+    "z": -1000
+  },
+  "arenas": [
+    {
+      "northSpawn": {
+        "x": -15,
+        "y": -16,
+        "z": -1043
+      },
+      "southSpawn": {
+        "x": -15,
+        "y": -16,
+        "z": -1003
+      },
+      "northFlag": {
+        "x": -6,
+        "y": -13,
+        "z": -1040
+      },
+      "southFlag": {
+        "x": -24,
+        "y": -13,
+        "z": -1006
+      },
+      "northBarrier": {
+        "x": -17,
+        "y": -16,
+        "z": -1042
+      },
+      "southBarrier": {
+        "x": -17,
+        "y": -16,
+        "z": -1004
+      },
+      "barrierSize": {
+        "xSize": 5,
+        "ySize": 4,
+        "zSize": 1
+      },
+      "boundingBox": {
+        "minX": -26,
+        "minY": -17,
+        "minZ": -1001,
+        "maxX": -4,
+        "maxY": 4,
+        "maxZ": -1045
+      }
+    },
+    {
+      "northSpawn": {
+        "x": 15,
+        "y": -16,
+        "z": -1043
+      },
+      "southSpawn": {
+        "x": 15,
+        "y": -16,
+        "z": -1003
+      },
+      "northFlag": {
+        "x": 24,
+        "y": -13,
+        "z": -1040
+      },
+      "southFlag": {
+        "x": 6,
+        "y": -13,
+        "z": -1006
+      },
+      "northBarrier": {
+        "x": 13,
+        "y": -16,
+        "z": -1042
+      },
+      "southBarrier": {
+        "x": 13,
+        "y": -16,
+        "z": -1004
+      },
+      "barrierSize": {
+        "xSize": 5,
+        "ySize": 4,
+        "zSize": 1
+      },
+      "boundingBox": {
+        "minX": 4,
+        "minY": 4,
+        "minZ": -1045,
+        "maxX": 26,
+        "maxY": -17,
+        "maxZ": -1001
+      }
+    },
+    {
+      "northSpawn": {
+        "x": -15,
+        "y": -16,
+        "z": -997
+      },
+      "southSpawn": {
+        "x": -15,
+        "y": -16,
+        "z": -957
+      },
+      "northFlag": {
+        "x": -6,
+        "y": -13,
+        "z": -994
+      },
+      "southFlag": {
+        "x": -24,
+        "y": -13,
+        "z": -960
+      },
+      "northBarrier": {
+        "x": -17,
+        "y": -16,
+        "z": -996
+      },
+      "southBarrier": {
+        "x": -17,
+        "y": -16,
+        "z": -958
+      },
+      "barrierSize": {
+        "xSize": 5,
+        "ySize": 4,
+        "zSize": 1
+      },
+      "boundingBox": {
+        "minX": -4,
+        "minY": -17,
+        "minZ": -999,
+        "maxX": -26,
+        "maxY": 4,
+        "maxZ": -955
+      }
+    },
+    {
+      "northSpawn": {
+        "x": 15,
+        "y": -16,
+        "z": -997
+      },
+      "southSpawn": {
+        "x": 15,
+        "y": -16,
+        "z": -957
+      },
+      "northFlag": {
+        "x": 24,
+        "y": -13,
+        "z": -994
+      },
+      "southFlag": {
+        "x": 6,
+        "y": -13,
+        "z": -960
+      },
+      "northBarrier": {
+        "x": 13,
+        "y": -16,
+        "z": -996
+      },
+      "southBarrier": {
+        "x": 13,
+        "y": -16,
+        "z": -958
+      },
+      "barrierSize": {
+        "xSize": 5,
+        "ySize": 4,
+        "zSize": 1
+      },
+      "boundingBox": {
+        "minX": 4,
+        "minY": 4,
+        "minZ": -955,
+        "maxX": 26,
+        "maxY": -17,
+        "maxZ": -999
+      }
+    }
+  ],
+  "spectatorArea": {
+    "minX": 26,
+    "minY": 4,
+    "minZ": -1042,
+    "maxX": -26,
+    "maxY": -17,
+    "maxZ": -958
+  },
+  "scores": {
+    "kill": 20,
+    "win": 100
+  },
+  "durations": {
+    "matchesStarting": 10,
+    "classSelection": 20,
+    "roundTimer": 180
+  }
+}

@@ -6,11 +6,13 @@ import be.seeseemelk.mockbukkit.UnimplementedOperationException;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.MyCustomServerMock;
 import org.braekpo1nt.mctmanager.MyPlayerMock;
+import org.braekpo1nt.mctmanager.TestUtils;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.CaptureTheFlagGame;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.CaptureTheFlagMatch;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.CaptureTheFlagRound;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.ClassPicker;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlagStorageUtilTest;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.gamestate.MockGameStateStorageUtil;
 import org.braekpo1nt.mctmanager.ui.MockFastBoardManager;
@@ -18,6 +20,8 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.junit.jupiter.api.*;
 
+import java.io.File;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.UUID;
@@ -49,6 +53,8 @@ public class CaptureTheFlagTest {
         MockGameStateStorageUtil mockGameStateStorageUtil = new MockGameStateStorageUtil(plugin);
         gameManager.setGameStateStorageUtil(mockGameStateStorageUtil);
         sender = server.getConsoleSender();
+        InputStream inputStream = CaptureTheFlagStorageUtilTest.class.getResourceAsStream("validCaptureTheFlagConfig.json");
+        TestUtils.copyInputStreamToFile(inputStream, new File(plugin.getDataFolder(), "captureTheFlagConfig.json"));
     }
     
     @AfterEach

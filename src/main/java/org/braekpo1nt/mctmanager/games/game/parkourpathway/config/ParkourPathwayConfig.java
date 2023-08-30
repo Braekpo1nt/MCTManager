@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.parkourpathway.config;
 
+import org.braekpo1nt.mctmanager.games.game.config.BoundingBoxDTO;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.CheckPoint;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
@@ -17,11 +18,9 @@ public record ParkourPathwayConfig  (String world, Durations durations, List<Che
      * @param detectionBox the box that is checked to see if the player entered this checkpoint
      * @param respawn the position to teleport back to if the player falls below the yValue
      */
-    public record CheckPointDTO(double yValue, BoundingBox detectionBox, Vector respawn) {
-        public CheckPointDTO(double yValue, BoundingBox detectionBox, Vector respawn) {
-            this.yValue = yValue;
-            this.detectionBox = detectionBox.resize(detectionBox.getMinX(), detectionBox.getMinY(), detectionBox.getMinZ(), detectionBox.getMaxX(), detectionBox.getMaxY(), detectionBox.getMaxZ());
-            this.respawn = respawn;
+    public record CheckPointDTO(double yValue, BoundingBoxDTO detectionBox, Vector respawn) {
+        public BoundingBox getDetectionBox() {
+            return detectionBox.getBoundingBox();
         }
     }
 }
