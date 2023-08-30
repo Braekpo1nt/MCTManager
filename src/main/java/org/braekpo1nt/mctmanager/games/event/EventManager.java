@@ -56,8 +56,26 @@ public class EventManager {
         this.colossalColosseumGame = new ColossalColosseumGame(plugin, gameManager);
     }
 
-    public int getCurrentGameNumber(){
-        return currentGameNumber;
+    /**
+     * Return point multiplier according to match progress:
+     * Game 1 No multiplier
+     * Game 2 1.5 multiplier
+     * Game 3 1.5
+     * Game 4 2
+     * Game 5 2
+     * Game 6 2.5
+     * */
+    public double matchProgressPointMultiplier() {
+        if (currentGameNumber <= 1) {
+            return 1;
+        }
+        if (currentGameNumber <= 3) {
+            return 1.5;
+        }
+        if (currentGameNumber <= 5) {
+            return 2;
+        }
+        return 2.5;
     }
     
     /**
