@@ -659,21 +659,22 @@ public class GameManager implements Listener {
     public String getTeamName(UUID playerUniqueId) {
         return gameStateStorageUtil.getPlayerTeamName(playerUniqueId);
     }
-    
+
     /**
      * Awards points to the participant and their team and announces to that participant how many points they received. 
      * If the participant does not exist, nothing happens.
      * @param participant The participant to award points to
      * @param points The points to award to the participant
      */
+
     public void awardPointsToParticipant(Player participant, int points) {
         UUID participantUUID = participant.getUniqueId();
         if (!gameStateStorageUtil.containsPlayer(participantUUID)) {
             return;
         }
         String teamName = gameStateStorageUtil.getPlayerTeamName(participantUUID);
-        addScore(participantUUID, points);
-        addScore(teamName, points);
+        addScore(participantUUID, (int) (points * eventManager.matchProgressPointMultiplier()));
+        addScore(teamName, (int) (points * eventManager.matchProgressPointMultiplier()));
         eventManager.trackPoints(participantUUID, points, activeGame.getType());
         eventManager.trackPoints(teamName, points, activeGame.getType());
         
@@ -695,7 +696,7 @@ public class GameManager implements Listener {
         if (!gameStateStorageUtil.containsTeam(teamName)) {
             return;
         }
-        addScore(teamName, points);
+        addScore(teamName, (int) (points * eventManager.matchProgressPointMultiplier()));
         eventManager.trackPoints(teamName, points, activeGame.getType());
         
         Component displayName = getFormattedTeamDisplayName(teamName);
