@@ -48,7 +48,7 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
         if (config.spectatorBoundary() == null) {
             throw new IllegalArgumentException("spectatorBoundary can't be null");
         }
-        double volume = config.spectatorBoundary().getVolume();
+        double volume = config.getSpectatorBoundary().getVolume();
         if (volume <= 1.0) {
             throw new IllegalArgumentException(String.format("spectatorBoundary (%s) must have a volume greater than 1.0, but its %s", config.spectatorBoundary(), volume));
         }
