@@ -112,13 +112,13 @@ public class CaptureTheFlagStorageUtil extends GameConfigStorageUtil<CaptureTheF
     
     @Override
     protected void setConfig(CaptureTheFlagConfig config) {
-        this.captureTheFlagConfig = config;
-        world = Bukkit.getWorld(captureTheFlagConfig.world());
+        world = Bukkit.getWorld(config.world());
         if (world == null) {
-            throw new IllegalArgumentException("world can't be null");
+            throw new IllegalArgumentException(String.format("Could not find world \"%s\"", config.world()));
         }
-        spawnObservatory = captureTheFlagConfig.spawnObservatory().toLocation(world);
+        spawnObservatory = config.spawnObservatory().toLocation(world);
         this.arenas = toArenas(config.arenas(), world);
+        this.captureTheFlagConfig = config;
     }
     
     private List<Arena> toArenas(List<CaptureTheFlagConfig.ArenaDTO> arenaDTOS, World arenaWorld) {

@@ -26,11 +26,11 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
     
     @Override
     protected void setConfig(SpleefConfig config) {
-        this.spleefConfig = config;
-        world = Bukkit.getWorld(spleefConfig.world());
+        world = Bukkit.getWorld(config.world());
         if (world == null) {
             throw new IllegalArgumentException(String.format("Could not find world \"%s\"", config.world()));
         }
+        this.spleefConfig = config;
     }
     
     @Override

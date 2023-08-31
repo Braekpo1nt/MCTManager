@@ -35,5 +35,6 @@
   "durations": {
     "startRace": 10,
     "raceEndCountdown": 60
-  }
+  },
+  "description": {"text":"Foot Race description","color":"dark_blue","bold": true}
 }

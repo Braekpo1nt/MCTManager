@@ -29,14 +29,14 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
     
     @Override
     protected void setConfig(ParkourPathwayConfig config) {
-        this.parkourPathwayConfig = config;
-        world = Bukkit.getWorld(parkourPathwayConfig.world());
+        world = Bukkit.getWorld(config.world());
         checkPoints = new ArrayList<>();
-        for (ParkourPathwayConfig.CheckPointDTO checkpointDTO : parkourPathwayConfig.checkpoints()) {
+        for (ParkourPathwayConfig.CheckPointDTO checkpointDTO : config.checkpoints()) {
             Vector configRespawn = checkpointDTO.respawn();
             Location respawn = new Location(world, configRespawn.getX(), configRespawn.getY(), configRespawn.getZ());
             checkPoints.add(new CheckPoint(checkpointDTO.yValue(), checkpointDTO.getDetectionBox(), respawn));
         }
+        this.parkourPathwayConfig = config;
     }
     
     @Override

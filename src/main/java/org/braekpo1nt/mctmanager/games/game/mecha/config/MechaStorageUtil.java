@@ -29,11 +29,8 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
     
     @Override
     protected void setConfig(MechaConfig config) {
-        this.mechaConfig = config;
-        
-        world = Bukkit.getWorld(mechaConfig.world());
-        
-        List<WeightedNamespacedKey> weightedNamespacedKeys = mechaConfig.weightedMechaLootTables();
+        world = Bukkit.getWorld(config.world());
+        List<WeightedNamespacedKey> weightedNamespacedKeys = config.weightedMechaLootTables();
         weightedMechaLootTables = new HashMap<>(weightedNamespacedKeys.size());
         for (WeightedNamespacedKey weightedNamespacedKey : weightedNamespacedKeys) {
             String namespace = weightedNamespacedKey.namespace();
@@ -42,6 +39,7 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
             LootTable lootTable = Bukkit.getLootTable(new NamespacedKey(namespace, key));
             weightedMechaLootTables.put(lootTable, weight);
         }
+        this.mechaConfig = config;
         
     }
     
