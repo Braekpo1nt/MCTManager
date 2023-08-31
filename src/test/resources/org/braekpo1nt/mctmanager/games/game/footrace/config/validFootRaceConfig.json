@@ -1,3 +1,27 @@
 {
-  
+  "world": "World",
+  "startingLocation": {
+    "x": 0,
+    "y": 0,
+    "z": 0
+  },
+  "spectatorArea": {
+    "minX": 0,
+    "minY": 0,
+    "minZ": 0,
+    "maxX": 0,
+    "maxY": 0,
+    "maxZ": 0
+  },
+  "scores": {
+    "completeLap": 5,
+    "placementPoints": [
+      350,
+      275,
+      200,
+      170,
+      150
+    ],
+    "detriment": 10
+  }
 }

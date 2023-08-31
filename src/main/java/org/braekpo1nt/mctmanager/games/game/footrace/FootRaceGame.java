@@ -7,6 +7,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
+import org.braekpo1nt.mctmanager.games.game.footrace.config.FootRaceStorageUtil;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.bukkit.*;
@@ -35,13 +36,13 @@ import java.util.*;
 public class FootRaceGame implements Listener, MCTGame {
     
     private final int MAX_LAPS = 3;
-        
+    private final FootRaceStorageUtil footRaceStorageUtil;
+    
     private boolean gameActive = false;
     private boolean raceHasStarted = false;
     /**
      * Holds the Foot Race world
      */
-    private final World footRaceWorld;
     private final BoundingBox finishLine = new BoundingBox(2396, 80, 295, 2404, 79, 308);
     private final Main plugin;
     private final GameManager gameManager;
@@ -61,13 +62,11 @@ public class FootRaceGame implements Listener, MCTGame {
     private final PotionEffect SATURATION = new PotionEffect(PotionEffectType.SATURATION, 70, 250, true, false, false);
     private int statusEffectsTaskId;
     private final String title = ChatColor.BLUE+"Foot Race";
-    private Location footRaceStartAnchor;
     
     public FootRaceGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
         this.gameManager = gameManager;
-        MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
-        this.footRaceWorld = worldManager.getMVWorld("NT").getCBWorld();
+        this.footRaceStorageUtil = new FootRaceStorageUtil(plugin.getDataFolder());
     }
     
     @Override
@@ -81,8 +80,6 @@ public class FootRaceGame implements Listener, MCTGame {
         lapCooldowns = new HashMap<>();
         laps = new HashMap<>();
         placements = new ArrayList<>();
-        AnchorManager anchorManager = Main.multiverseCore.getAnchorManager();
-        this.footRaceStartAnchor = anchorManager.getAnchorLocation("foot-race");
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         closeGlassBarrier();
         for (Player participant : newParticipants) {
@@ -102,7 +99,7 @@ public class FootRaceGame implements Listener, MCTGame {
         laps.put(participantUniqueId, 1);
         initializeFastBoard(participant);
         participant.sendMessage("Teleporting to Foot Race");
-        participant.teleport(footRaceStartAnchor);
+        participant.teleport(footRaceStorageUtil.getStartingLocation());
         participant.getInventory().clear();
         giveBoots(participant);
         participant.setGameMode(GameMode.ADVENTURE);
@@ -308,12 +305,12 @@ public class FootRaceGame implements Listener, MCTGame {
     
     private void openGlassBarrier() {
         Structure structure = Bukkit.getStructureManager().loadStructure(new NamespacedKey("mctdatapack", "footrace/gateopen"));
-        structure.place(new Location(footRaceWorld, 2397, 76, 317), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
+        structure.place(new Location(footRaceStorageUtil.getWorld(), 2397, 76, 317), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
     }
     
     private void closeGlassBarrier() {
         Structure structure = Bukkit.getStructureManager().loadStructure(new NamespacedKey("mctdatapack", "footrace/gateclosed"));
-        structure.place(new Location(footRaceWorld, 2397, 76, 317), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
+        structure.place(new Location(footRaceStorageUtil.getWorld(), 2397, 76, 317), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
     }
     
     private void initializeFastBoard(Player participant) {
@@ -371,7 +368,7 @@ public class FootRaceGame implements Listener, MCTGame {
         if (!participants.contains(player)) {
             return;
         }
-        if (!player.getWorld().equals(footRaceWorld)) {
+        if (!player.getWorld().equals(footRaceStorageUtil.getWorld())) {
             return;
         }
         
@@ -456,23 +453,22 @@ public class FootRaceGame implements Listener, MCTGame {
         }
     }
     
-    private int calculatePointsForPlacement(int placement) {
-        switch (placement) {
-            case 1:
-                return 350;
-            case 2:
-                return 275;
-            case 3:
-                return 200;
-            case 4:
-                return 170;
-            case 5:
-                return 150;
-            default:
-                int previousPoints = calculatePointsForPlacement(placement - 1);
-                int points = previousPoints - 10;
-                return Math.max(points, 0);
+    /**
+     * Calculates the points to be awarded for the given placement. This is based on user-configured values. Returns a set number of values for placement less than or equal to x, and a detriment of 10 points for each successive placement greater than x
+     * @param placement the placement number (1=1st place, 2=2nd place, 300=300th place) to get the points for. Must be 1 or more.
+     * @return The number of points to award for the placement, no less than 0.
+     */
+    int calculatePointsForPlacement(int placement) {
+        if (placement < 1) {
+            throw new IllegalArgumentException("placement can't be less than 1");
         }
+        int[] placementPoints = footRaceStorageUtil.getScores().placementPoints();
+        if (placement <= placementPoints.length) {
+            return placementPoints[placement-1];
+        }
+        int minPlacementPoints = placementPoints[placementPoints.length-1];
+        int points = minPlacementPoints - ((placement-placementPoints.length) * footRaceStorageUtil.getScores().detriment());
+        return Math.max(points, 0);
     }
     
     /**
