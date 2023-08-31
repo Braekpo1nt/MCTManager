@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.game.footrace.config;
 import be.seeseemelk.mockbukkit.MockBukkit;
 import be.seeseemelk.mockbukkit.ServerMock;
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.google.gson.TypeAdapter;
 import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.stream.JsonReader;
@@ -86,49 +87,30 @@ class FootRaceStorageUtilTest {
     
     @Test
     void componentTellraw() throws IOException {
-        InputStream inputStream = getClass().getResourceAsStream("config.json");
+        InputStream inputStream = FootRaceStorageUtilTest.class.getResourceAsStream("config.json");
         File configFile = new File(plugin.getDataFolder(), "config.json");
         TestUtils.copyInputStreamToFile(inputStream, configFile);
         Reader reader = new FileReader(configFile);
         Gson gson = new Gson();
         Config newConfig = gson.fromJson(reader, Config.class);
         reader.close();
-        server.getConsoleSender().sendMessage(newConfig.getTellrawComponent());
+        Component tellraw = GsonComponentSerializer.gson().deserializeFromTree(newConfig.getTellrawComponent());
+        server.getConsoleSender().sendMessage(tellraw);
+        String tellrawString = GsonComponentSerializer.gson().serialize(tellraw);
+        server.getLogger().info(tellrawString);
     }
     
     static class Config {
         
-        @JsonAdapter(ComponentTypeAdapter.class) // Use the custom TypeAdapter for this field
-        private Component tellrawComponent;
+        private JsonObject tellrawComponent;
         
-        public Component getTellrawComponent() {
+        public JsonObject getTellrawComponent() {
             return tellrawComponent;
         }
         
-        public void setTellrawComponent(Component tellrawComponent) {
+        public void setTellrawComponent(JsonObject tellrawComponent) {
             this.tellrawComponent = tellrawComponent;
         }
-    }
-    
-    static class ComponentTypeAdapter extends TypeAdapter<Component> {
-        
-        @Override
-        public void write(JsonWriter out, Component value) throws IOException {
-            throw new UnsupportedOperationException("Serializing components not supported");
-        }
-        
-        @Override
-        public Component read(JsonReader in) throws IOException {
-            if (in.peek() == JsonToken.NULL) {
-                in.nextNull();
-                return null;
-            }
-            
-            String json = in.nextString();
-            return GsonComponentSerializer.gson().deserialize(json);
-        }
-        
-        
     }
     
 }
