@@ -43,7 +43,6 @@ public class FootRaceGame implements Listener, MCTGame {
     /**
      * Holds the Foot Race world
      */
-    private final BoundingBox finishLine = new BoundingBox(2396, 80, 295, 2404, 79, 308);
     private final Main plugin;
     private final GameManager gameManager;
     private int startCountDownTaskID;
@@ -481,20 +480,16 @@ public class FootRaceGame implements Listener, MCTGame {
         if (placement % 100 >= 11 && placement % 100 <= 13) {
             return placement + "th";
         } else {
-            switch (placement % 10) {
-                case 1:
-                    return placement + "st";
-                case 2:
-                    return placement + "nd";
-                case 3:
-                    return placement + "rd";
-                default:
-                    return placement + "th";
-            }
+            return switch (placement % 10) {
+                case 1 -> placement + "st";
+                case 2 -> placement + "nd";
+                case 3 -> placement + "rd";
+                default -> placement + "th";
+            };
         }
     }
     
     private boolean isInFinishLineBoundingBox(Player player) {
-        return finishLine.contains(player.getLocation().toVector());
+        return footRaceStorageUtil.getFinishLine().contains(player.getLocation().toVector());
     }
 }

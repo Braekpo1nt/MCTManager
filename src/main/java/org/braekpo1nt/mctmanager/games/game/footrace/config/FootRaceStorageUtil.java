@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.game.footrace.config;
 import org.braekpo1nt.mctmanager.games.game.config.GameConfigStorageUtil;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -47,5 +48,9 @@ public class FootRaceStorageUtil extends GameConfigStorageUtil<FootRaceConfig> {
     
     public FootRaceConfig.Scores getScores() {
         return footRaceConfig.scores();
+    }
+    
+    public BoundingBox getFinishLine() {
+        return footRaceConfig.getFinishLine();
     }
 }

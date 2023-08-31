@@ -23,5 +23,13 @@
       150
     ],
     "detriment": 10
+  },
+  "finishLine": {
+    "minX": 2396, 
+    "minY": 80, 
+    "minZ": 295, 
+    "maxX": 2404, 
+    "maxY": 79, 
+    "maxZ": 308
   }
 }
