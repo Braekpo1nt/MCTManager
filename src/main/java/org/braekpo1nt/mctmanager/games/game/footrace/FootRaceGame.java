@@ -233,7 +233,7 @@ public class FootRaceGame implements Listener, MCTGame {
     
     private void startStartRaceCountdownTask() {
         this.startCountDownTaskID = new BukkitRunnable() {
-            private int count = 10;
+            private int count = footRaceStorageUtil.getStartRaceDuration();
             
             @Override
             public void run() {
@@ -257,7 +257,7 @@ public class FootRaceGame implements Listener, MCTGame {
     
     private void startEndRaceCountDown() {
         this.endRaceCountDownId = new BukkitRunnable() {
-            private int count = 60;
+            private int count = footRaceStorageUtil.getRaceEndCountdownDuration();
             @Override
             public void run() {
                 if (count <= 0) {
@@ -265,11 +265,9 @@ public class FootRaceGame implements Listener, MCTGame {
                     stop();
                     return;
                 }
-                if (count > 0) {
-                    if (count <= 10) {
-                        messageAllParticipants(Component.text("Ending in ")
-                                .append(Component.text(count)));
-                    }
+                if (count <= 10) {
+                    messageAllParticipants(Component.text("Ending in ")
+                            .append(Component.text(count)));
                 }
                 count--;
             }
@@ -461,12 +459,12 @@ public class FootRaceGame implements Listener, MCTGame {
         if (placement < 1) {
             throw new IllegalArgumentException("placement can't be less than 1");
         }
-        int[] placementPoints = footRaceStorageUtil.getScores().placementPoints();
+        int[] placementPoints = footRaceStorageUtil.getPlacementPoints();
         if (placement <= placementPoints.length) {
             return placementPoints[placement-1];
         }
         int minPlacementPoints = placementPoints[placementPoints.length-1];
-        int points = minPlacementPoints - ((placement-placementPoints.length) * footRaceStorageUtil.getScores().detriment());
+        int points = minPlacementPoints - ((placement-placementPoints.length) * footRaceStorageUtil.getDetriment());
         return Math.max(points, 0);
     }
     

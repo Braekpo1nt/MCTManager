@@ -5,17 +5,19 @@ import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
 
-record FootRaceConfig(String world, Vector startingLocation, BoundingBoxDTO finishLine, BoundingBoxDTO spectatorArea, Scores scores) {
-    public BoundingBox getFinishLine() {
+record FootRaceConfig(String world, Vector startingLocation, BoundingBoxDTO finishLine, BoundingBoxDTO spectatorArea, Scores scores, Durations durations) {
+    BoundingBox getFinishLine() {
         return finishLine.getBoundingBox();
     }
     
-    public BoundingBox getSpectatorArea() {
+    BoundingBox getSpectatorArea() {
         return spectatorArea.getBoundingBox();
     }
     
-    public record Scores(int completeLap, int[] placementPoints, int detriment) {
+    record Scores(int completeLap, int[] placementPoints, int detriment) {
     }
     
+    record Durations(int startRace, int raceEndCountdown) {
+    }
     
 }

@@ -53,4 +53,21 @@ public class FootRaceStorageUtil extends GameConfigStorageUtil<FootRaceConfig> {
     public BoundingBox getFinishLine() {
         return footRaceConfig.getFinishLine();
     }
+    
+    public int getStartRaceDuration() {
+        return footRaceConfig.durations().startRace();
+    }
+    
+    public int getRaceEndCountdownDuration() {
+        return footRaceConfig.durations().raceEndCountdown();
+    }
+    
+    public int[] getPlacementPoints() {
+        return footRaceConfig.scores().placementPoints();
+    }
+    
+    public int getDetriment() {
+        return footRaceConfig.scores().detriment();
+    }
+    
 }
