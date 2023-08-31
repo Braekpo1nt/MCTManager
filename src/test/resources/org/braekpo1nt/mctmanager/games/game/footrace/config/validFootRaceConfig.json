@@ -1,9 +1,9 @@
 {
   "world": "World",
   "startingLocation": {
-    "x": 0,
-    "y": 0,
-    "z": 0
+    "x": 2400,
+    "y": 76,
+    "z": 312
   },
   "finishLine": {
     "minX": 2396,
@@ -14,12 +14,12 @@
     "maxZ": 308
   },
   "spectatorArea": {
-    "minX": 0,
-    "minY": 0,
-    "minZ": 0,
-    "maxX": 0,
-    "maxY": 0,
-    "maxZ": 0
+    "minX": 2393,
+    "minY": 60,
+    "minZ": 246,
+    "maxX": 2614,
+    "maxY": 113,
+    "maxZ": 439
   },
   "scores": {
     "completeLap": 5,
