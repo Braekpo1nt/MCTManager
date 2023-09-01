@@ -66,12 +66,17 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
         if (config == null) {
             throw new IllegalArgumentException("Saved config is null");
         }
-        World configWorld = Bukkit.getWorld(config.world());
-        if (configWorld == null) {
+        if (Bukkit.getWorld(config.world()) == null) {
             throw new IllegalArgumentException(String.format("Could not find world \"%s\"", config.world()));
         }
         if (lootTableDoesNotExist(config.spawnLootTable())) {
             throw new IllegalArgumentException(String.format("Could not find spawn loot table \"%s\"", config.spawnLootTable()));
+        }
+        if (config.removeArea() == null) {
+            throw new IllegalArgumentException("removeArea can't be null");
+        }
+        if (config.getRemoveArea().getVolume() < 1.0) {
+            throw new IllegalArgumentException(String.format("removeArea (%s) volume (%s) can't be less than 1.0", config.getRemoveArea(), config.getRemoveArea().getVolume()));
         }
         if (config.weightedMechaLootTables() == null) {
             throw new IllegalArgumentException("weightedMechaLootTables can't be null");
@@ -118,11 +123,36 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
         if (config.spawnChestCoords().contains(null)) {
             throw new IllegalArgumentException("spawnChestCoords can't contain a null position");
         }
+        for (Vector pos : config.spawnChestCoords()) {
+            if (!config.getRemoveArea().contains(pos)) {
+                throw new IllegalArgumentException(String.format("spawnChestCoord (%s) is not inside removeArea (%s)", pos, config.getRemoveArea()));
+            }
+        }
         if (config.mapChestCoords() == null) {
             throw new IllegalArgumentException("mapChestCoords can't be null");
         }
         if (config.mapChestCoords().contains(null)) {
             throw new IllegalArgumentException("mapChestCoords can't contain a null position");
+        }
+        for (Vector pos : config.mapChestCoords()) {
+            if (!config.getRemoveArea().contains(pos)) {
+                throw new IllegalArgumentException(String.format("mapChestCoord (%s) is not inside removeArea (%s)", pos, config.getRemoveArea()));
+            }
+        }
+        if (config.platformsStructure() == null) {
+            throw new IllegalArgumentException("platformsStructure can't be null");
+        }
+        if (Bukkit.getStructureManager().loadStructure(config.platformsStructure()) == null) {
+            throw new IllegalArgumentException(String.format("Can't find platformsStructure %s", config.platformsStructure()));
+        }
+        if (config.platformsRemovedStructure() == null) {
+            throw new IllegalArgumentException("platformsRemovedStructure can't be null");
+        }
+        if (Bukkit.getStructureManager().loadStructure(config.platformsRemovedStructure()) == null) {
+            throw new IllegalArgumentException(String.format("Can't find platformsRemovedStructure %s", config.platformsRemovedStructure()));
+        }
+        if (config.platformsOrigin() == null) {
+            throw new IllegalArgumentException("platformsOrigin can't be null");
         }
         return true;
     }
