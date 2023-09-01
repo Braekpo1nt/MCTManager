@@ -1,9 +1,5 @@
 {
   "world": "World",
-  "spawnLootTable": {
-    "namespace": "mctdatapack",
-    "key": "mecha/spawn-chest"
-  },
   "spectatorArea": {
     "minX": -175,
     "minY": -64,
@@ -19,6 +15,18 @@
     "maxX": 200,
     "maxY": 255,
     "maxZ": 150
+  },
+  "initialBorderSize": 400,
+  "borderStages": [
+    {
+      "size": 50,
+      "delay": 80,
+      "duration": 15
+    }
+  ],
+  "spawnLootTable": {
+    "namespace": "mctdatapack",
+    "key": "mecha/spawn-chest"
   },
   "weightedMechaLootTables": [
     {
@@ -42,17 +50,9 @@
       "weight": 2
     }
   ],
-  "initialBorderSize": 400,
-  "borderStages": [
-    {
-      "size": 50,
-      "delay": 80,
-      "duration": 15
-    }
-  ],
   "spawnChestCoords": [
     {
-      "x": -176.0,
+      "x": -1.0,
       "y": -45.0,
       "z": 1.0
     },

@@ -75,9 +75,6 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
         if (Bukkit.getWorld(config.world()) == null) {
             throw new IllegalArgumentException(String.format("Could not find world \"%s\"", config.world()));
         }
-        if (lootTableDoesNotExist(config.spawnLootTable())) {
-            throw new IllegalArgumentException(String.format("Could not find spawn loot table \"%s\"", config.spawnLootTable()));
-        }
         if (config.spectatorArea() == null) {
             throw new IllegalArgumentException("spectatorArea can't be null");
         }
@@ -89,25 +86,6 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
         }
         if (config.getRemoveArea().getVolume() < 1.0) {
             throw new IllegalArgumentException(String.format("removeArea (%s) volume (%s) can't be less than 1.0", config.getRemoveArea(), config.getRemoveArea().getVolume()));
-        }
-        if (config.weightedMechaLootTables() == null) {
-            throw new IllegalArgumentException("weightedMechaLootTables can't be null");
-        }
-        // weightedNamespacedKey list can be empty and still be valid
-        for (MechaConfig.WeightedNamespacedKey weightedNamespacedKey : config.weightedMechaLootTables()) {
-            if (weightedNamespacedKey.namespace() == null) {
-                throw new IllegalArgumentException("weightedNamespacedKey.namespace can't be null");
-            }
-            if (weightedNamespacedKey.key() == null) {
-                throw new IllegalArgumentException("weightedNamespacedKey.key can't be null");
-            }
-            NamespacedKey namespacedKey = new NamespacedKey(weightedNamespacedKey.namespace(), weightedNamespacedKey.key());
-            if (lootTableDoesNotExist(namespacedKey)) {
-                throw new IllegalArgumentException(String.format("Could not find loot table \"%s\"", namespacedKey));
-            }
-            if (weightedNamespacedKey.weight() < 1) {
-                throw new IllegalArgumentException(String.format("weightedNamespacedKey (%s) can't have a weight (%s) less than 1", namespacedKey, weightedNamespacedKey.weight()));
-            }
         }
         if (config.initialBorderSize() < 1.0) {
             throw new IllegalArgumentException(String.format("initialBorderSize can't be less than 1.0: %s", config.initialBorderSize()));
@@ -127,6 +105,28 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
             }
             if (borderStage.duration() < 0) {
                 throw new IllegalArgumentException(String.format("border stage duration (%s) can't be less than 0", borderStage.duration()));
+            }
+        }
+        if (lootTableDoesNotExist(config.spawnLootTable())) {
+            throw new IllegalArgumentException(String.format("Could not find spawn loot table \"%s\"", config.spawnLootTable()));
+        }
+        if (config.weightedMechaLootTables() == null) {
+            throw new IllegalArgumentException("weightedMechaLootTables can't be null");
+        }
+        // weightedNamespacedKey list can be empty and still be valid
+        for (MechaConfig.WeightedNamespacedKey weightedNamespacedKey : config.weightedMechaLootTables()) {
+            if (weightedNamespacedKey.namespace() == null) {
+                throw new IllegalArgumentException("weightedNamespacedKey.namespace can't be null");
+            }
+            if (weightedNamespacedKey.key() == null) {
+                throw new IllegalArgumentException("weightedNamespacedKey.key can't be null");
+            }
+            NamespacedKey namespacedKey = new NamespacedKey(weightedNamespacedKey.namespace(), weightedNamespacedKey.key());
+            if (lootTableDoesNotExist(namespacedKey)) {
+                throw new IllegalArgumentException(String.format("Could not find loot table \"%s\"", namespacedKey));
+            }
+            if (weightedNamespacedKey.weight() < 1) {
+                throw new IllegalArgumentException(String.format("weightedNamespacedKey (%s) can't have a weight (%s) less than 1", namespacedKey, weightedNamespacedKey.weight()));
             }
         }
         if (config.spawnChestCoords() == null) {
