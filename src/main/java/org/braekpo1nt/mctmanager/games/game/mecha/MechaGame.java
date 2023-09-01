@@ -11,13 +11,9 @@ import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.game.mecha.config.MechaStorageUtil;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
-import org.bukkit.Bukkit;
-import org.bukkit.Material;
-import org.bukkit.GameMode;
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.WorldBorder;
+import org.bukkit.*;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockState;
 import org.bukkit.block.Chest;
 import org.bukkit.block.structure.Mirror;
 import org.bukkit.block.structure.StructureRotation;
@@ -38,6 +34,7 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
+import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.Nullable;
 
@@ -140,23 +137,38 @@ public class MechaGame implements MCTGame, Configurable, Listener {
         hideFastBoard(participant);
     }
     
-    public void clearContainers() {
-        int minX = (int) mechaStorageUtil.getRemoveArea().getMinX();
-        int minY = (int) mechaStorageUtil.getRemoveArea().getMinY();
-        int minZ = (int) mechaStorageUtil.getRemoveArea().getMinZ();
-        int maxX = (int) mechaStorageUtil.getRemoveArea().getMaxX();
-        int maxY = (int) mechaStorageUtil.getRemoveArea().getMaxY();
-        int maxZ = (int) mechaStorageUtil.getRemoveArea().getMaxZ();
-        for (int x = minX; x <= maxX; x++) {
-            for (int y = minY; y <= maxY; y++) {
-                for (int z = minZ; z <= maxZ; z++) {
-                    Block block = mechaStorageUtil.getWorld().getBlockAt(x, y, z);
-                    if (block.getState() instanceof InventoryHolder) {
-                        ((InventoryHolder) block.getState()).getInventory().clear();
-                    }
+    private void clearContainers() {
+        Bukkit.getLogger().info("Clearing containers");
+        List<Chunk> chunks = getChunksInBoundingBox(mechaStorageUtil.getWorld(), mechaStorageUtil.getRemoveArea());
+        int count = 0;
+        for (Chunk chunk : chunks) {
+            Collection<BlockState> blockStates = chunk.getTileEntities(block -> block.getState() instanceof InventoryHolder, false);
+            count += blockStates.size();
+            for (BlockState blockState : blockStates) {
+                ((InventoryHolder) blockState).getInventory().clear();
+            }
+        }
+        Bukkit.getLogger().info(String.format("%s chunks found, %s InventoryHolders", chunks.size(), count));
+    }
+    
+    public static List<Chunk> getChunksInBoundingBox(World world, BoundingBox boundingBox) {
+        List<Chunk> chunksInBoundingBox = new ArrayList<>();
+        
+        int minX = (int) boundingBox.getMinX();
+        int maxX = (int) boundingBox.getMaxX();
+        int minZ = (int) boundingBox.getMinZ();
+        int maxZ = (int) boundingBox.getMaxZ();
+        
+        for (int x = minX; x <= maxX; x += 16) {
+            for (int z = minZ; z <= maxZ; z += 16) {
+                Chunk chunk = world.getChunkAt(x >> 4, z >> 4);
+                if (!chunksInBoundingBox.contains(chunk)) {
+                    chunksInBoundingBox.add(chunk);
                 }
             }
         }
+        
+        return chunksInBoundingBox;
     }
 
     private void clearFloorItems() {
