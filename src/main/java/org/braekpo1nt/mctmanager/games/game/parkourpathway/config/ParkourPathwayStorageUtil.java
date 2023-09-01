@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.parkourpathway.config;
 
+import com.google.common.base.Preconditions;
 import org.braekpo1nt.mctmanager.games.game.config.GameConfigStorageUtil;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.CheckPoint;
 import org.bukkit.Bukkit;
@@ -30,6 +31,7 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
     @Override
     protected void setConfig(ParkourPathwayConfig config) {
         world = Bukkit.getWorld(config.world());
+        Preconditions.checkArgument(world != null, "Could not find world \"%s\"", config.world());
         checkPoints = new ArrayList<>();
         for (ParkourPathwayConfig.CheckPointDTO checkpointDTO : config.checkpoints()) {
             Vector configRespawn = checkpointDTO.respawn();
@@ -41,56 +43,25 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
     
     @Override
     protected boolean configIsValid(@Nullable ParkourPathwayConfig config) {
-        if (config == null) {
-            throw new IllegalArgumentException("Saved config is null");
-        }
-        World configWorld = Bukkit.getWorld(config.world());
-        if (configWorld == null) {
-            throw new IllegalArgumentException(String.format("Could not find world \"%s\"", config.world()));
-        }
-        if (config.durations() == null) {
-            throw new IllegalArgumentException("durations can't be null");
-        }
-        if (config.durations().timeLimit() < 2) {
-            throw new IllegalArgumentException(String.format("durations.timeLimit (%s) can't be less than 2", config.durations().timeLimit()));
-        }
-        if (config.durations().checkpointCounter() < 1) {
-            throw new IllegalArgumentException(String.format("durations.checkpointCounter (%s) can't be less than 1", config.durations().checkpointCounter()));
-        }
-        if (config.durations().checkpointCounterAlert() < 1 ||config.durations().checkpointCounter() < config.durations().checkpointCounterAlert()) {
-            throw new IllegalArgumentException(String.format("durations.checkpointCounterAlert (%s) can't be less than 0 or greater than durations.checkpointCounter", config.durations().checkpointCounterAlert()));
-        }
-        if (config.checkpoints() == null) {
-            throw new IllegalArgumentException("checkpoints can't be null");
-        }
-        if (config.checkpoints().size() < 3) {
-            throw new IllegalArgumentException("checkpoints must have at least 3 checkpoints");
-        }
-        
+        Preconditions.checkArgument(config != null, "Saved config is null");
+        Preconditions.checkArgument(Bukkit.getWorld(config.world()) != null, "Could not find world \"%s\"", config.world());
+        Preconditions.checkArgument(config.durations() != null, "durations can't be null");
+        Preconditions.checkArgument(config.durations().timeLimit() >= 2, "durations.timeLimit (%s) can't be less than 2", config.durations().timeLimit());
+        Preconditions.checkArgument(config.durations().checkpointCounter() >= 1, "durations.checkpointCounter (%s) can't be less than 1", config.durations().checkpointCounter());
+        Preconditions.checkArgument(config.durations().checkpointCounterAlert() >= 1 && config.durations().checkpointCounter() >= config.durations().checkpointCounterAlert(), "durations.checkpointCounterAlert (%s) can't be less than 0 or greater than durations.checkpointCounter", config.durations().checkpointCounterAlert());
+        Preconditions.checkArgument(config.checkpoints() != null, "checkpoints can't be null");
+        Preconditions.checkArgument(config.checkpoints().size() >= 3, "checkpoints must have at least 3 checkpoints");
         for (int i = 0; i < config.checkpoints().size(); i++) {
             ParkourPathwayConfig.CheckPointDTO checkPoint = config.checkpoints().get(i);
-            if (checkPoint == null) {
-                throw new IllegalArgumentException(String.format("checkpoint %s is null", i));
-            }
-            if (checkPoint.getDetectionBox() == null) {
-                throw new IllegalArgumentException(String.format("checkpoint %s's detectionBox is null", i));
-            }
-            if (checkPoint.getDetectionBox().getVolume() <= 1) {
-                throw new IllegalArgumentException(String.format("detectionBox's volume (%s) can't be less than 1. %s", checkPoint.getDetectionBox().getVolume(), checkPoint.getDetectionBox()));
-            }
-            if (checkPoint.respawn().getY() < checkPoint.yValue()) {
-                throw new IllegalArgumentException(String.format("checkpoint's respawn's y-value (%s) can't be lower than its yValue (%s)", checkPoint.respawn().getY(), checkPoint.yValue()));
-            }
-            
+            Preconditions.checkArgument(checkPoint != null, "checkpoint %s is null", i);
+            Preconditions.checkArgument(checkPoint.getDetectionBox() != null, "checkpoint %s's detectionBox is null", i);
+            Preconditions.checkArgument(checkPoint.getDetectionBox().getVolume() >= 1, "detectionBox's volume (%s) can't be less than 1. %s", checkPoint.getDetectionBox().getVolume(), checkPoint.getDetectionBox());
+            Preconditions.checkArgument(checkPoint.respawn().getY() >= checkPoint.yValue(), "checkpoint's respawn's y-value (%s) can't be lower than its yValue (%s)", checkPoint.respawn().getY(), checkPoint.yValue());
             if (i-1 >= 0) {
                 ParkourPathwayConfig.CheckPointDTO lastCheckPoint = config.checkpoints().get(i-1);
-                if (checkPoint.getDetectionBox().getMaxY() < lastCheckPoint.yValue()) {
-                    throw new IllegalArgumentException(String.format("checkpoint %s's detectionBox (%s) can't have a maxY (%s) lower than checkpoint %s's yValue (%s)", i, checkPoint.getDetectionBox(), checkPoint.getDetectionBox().getMaxY(), i-1, lastCheckPoint.yValue()));
-                }
+                Preconditions.checkArgument(checkPoint.getDetectionBox().getMaxY() >= lastCheckPoint.yValue(), "checkpoint %s's detectionBox (%s) can't have a maxY (%s) lower than checkpoint %s's yValue (%s)", i, checkPoint.getDetectionBox(), checkPoint.getDetectionBox().getMaxY(), i-1, lastCheckPoint.yValue());
                 
-                if (checkPoint.getDetectionBox().contains(lastCheckPoint.respawn())) {
-                    throw new IllegalArgumentException(String.format("checkpoint %s's detectionBox (%s) can't contain checkpoint %s's respawn (%s)", i, checkPoint.getDetectionBox(), i-1, lastCheckPoint.respawn()));
-                }
+                Preconditions.checkArgument(!checkPoint.getDetectionBox().contains(lastCheckPoint.respawn()), "checkpoint %s's detectionBox (%s) can't contain checkpoint %s's respawn (%s)", i, checkPoint.getDetectionBox(), i-1, lastCheckPoint.respawn());
             }
         }
         return true;
