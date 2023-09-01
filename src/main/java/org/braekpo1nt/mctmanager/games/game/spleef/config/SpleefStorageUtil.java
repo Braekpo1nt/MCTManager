@@ -31,7 +31,7 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
         if (world == null) {
             throw new IllegalArgumentException(String.format("Could not find world \"%s\"", config.world()));
         }
-        startingLocation = spleefConfig.startingLocation().toLocation(world);
+        startingLocation = config.startingLocation().toLocation(world);
         this.spleefConfig = config;
     }
     
