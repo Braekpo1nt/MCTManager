@@ -26,7 +26,7 @@ public class FootRaceStorageUtil extends GameConfigStorageUtil<FootRaceConfig> {
     
     @Override
     protected FootRaceConfig getConfig() {
-        return null;
+        return footRaceConfig;
     }
     
     @Override
@@ -101,7 +101,7 @@ public class FootRaceStorageUtil extends GameConfigStorageUtil<FootRaceConfig> {
     
     @Override
     protected InputStream getExampleResourceStream() {
-        return null;
+        return FootRaceStorageUtil.class.getResourceAsStream("exampleFootRaceConfig.json");
     }
     
     public World getWorld() {
