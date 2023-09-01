@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.spleef.config;
 
+import com.google.common.base.Preconditions;
 import org.braekpo1nt.mctmanager.games.game.config.GameConfigStorageUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -37,36 +38,15 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
     
     @Override
     protected boolean configIsValid(@Nullable SpleefConfig config) throws IllegalArgumentException {
-        if (config == null) {
-            throw new IllegalArgumentException("Saved config is null");
-        }
-        World spleefWorld = Bukkit.getWorld(config.world());
-        if (spleefWorld == null) {
-            throw new IllegalArgumentException(String.format("Could not find world \"%s\"", config.world()));
-        }
-        if (config.startingLocation() == null) {
-            throw new IllegalArgumentException("startingLocation can't be null");
-        }
-        if (config.spectatorBoundary() == null) {
-            throw new IllegalArgumentException("spectatorBoundary can't be null");
-        }
-        double volume = config.getSpectatorBoundary().getVolume();
-        if (volume <= 1.0) {
-            throw new IllegalArgumentException(String.format("spectatorBoundary (%s) must have a volume greater than 1.0, but its %s", config.spectatorBoundary(), volume));
-        }
-        if (config.scores() == null) {
-            throw new IllegalArgumentException("scores can't be null");
-        }
-        // score value can be anything, even negative
-        if (config.durations() == null) {
-            throw new IllegalArgumentException("durations can't be null");
-        }
-        if (config.durations().decayTopLayers() < 0) {
-            throw new IllegalArgumentException(String.format("Duration decayTopLayers (%s) can't be negative", config.durations().decayTopLayers()));
-        }
-        if (config.durations().decayBottomLayers() < 0) {
-            throw new IllegalArgumentException(String.format("Duration decayBottomLayers (%s) can't be negative", config.durations().decayBottomLayers()));
-        }
+        Preconditions.checkArgument(config != null, "Saved config is null");
+        Preconditions.checkArgument(Bukkit.getWorld(config.world()) != null, "Could not find world \"%s\"", config.world());
+        Preconditions.checkArgument(config.startingLocation() != null, "startingLocation can't be null");
+        Preconditions.checkArgument(config.spectatorBoundary() != null, "spectatorBoundary can't be null");
+        Preconditions.checkArgument(config.getSpectatorBoundary().getVolume() >= 1.0, "spectatorBoundary (%s) must have a volume (%s) of at least 1.0", config.spectatorBoundary(), config.getSpectatorBoundary().getVolume());
+        Preconditions.checkArgument(config.scores() != null, "scores can't be null");
+        Preconditions.checkArgument(config.durations() != null, "durations can't be null");
+        Preconditions.checkArgument(config.durations().decayTopLayers() >= 0, "Duration decayTopLayers (%s) can't be negative", config.durations().decayTopLayers());
+        Preconditions.checkArgument(config.durations().decayBottomLayers() >= 0, "Duration decayBottomLayers (%s) can't be negative", config.durations().decayBottomLayers());
         return true;
     }
     
