@@ -2,9 +2,11 @@ package org.braekpo1nt.mctmanager.games.game.mecha.config;
 
 import org.braekpo1nt.mctmanager.games.game.config.GameConfigStorageUtil;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.loot.LootTable;
+import org.bukkit.structure.Structure;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.Nullable;
@@ -18,7 +20,10 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
     protected MechaConfig mechaConfig = getExampleConfig();
     private Map<LootTable, Integer> weightedMechaLootTables;
     private World world;
-    
+    private Location platformsOrigin;
+    private Structure platformsStructure;
+    private Structure platformsRemovedStructure;
+
     public MechaStorageUtil(File configDirectory) {
         super(configDirectory, "mechaConfig.json", MechaConfig.class);
     }
@@ -31,6 +36,9 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
     @Override
     protected void setConfig(MechaConfig config) {
         world = Bukkit.getWorld(config.world());
+        if (world == null) {
+            throw new IllegalArgumentException(String.format("Could not find world \"%s\"", config.world()));
+        }
         List<MechaConfig.WeightedNamespacedKey> weightedNamespacedKeys = config.weightedMechaLootTables();
         weightedMechaLootTables = new HashMap<>(weightedNamespacedKeys.size());
         for (MechaConfig.WeightedNamespacedKey weightedNamespacedKey : weightedNamespacedKeys) {
@@ -40,6 +48,15 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
             LootTable lootTable = Bukkit.getLootTable(new NamespacedKey(namespace, key));
             weightedMechaLootTables.put(lootTable, weight);
         }
+        platformsStructure = Bukkit.getStructureManager().loadStructure(config.platformsStructure());
+        if (platformsStructure == null) {
+            throw new IllegalArgumentException(String.format("Can't find platformsStructure %s", config.platformsStructure()));
+        }
+        platformsRemovedStructure = Bukkit.getStructureManager().loadStructure(mechaConfig.platformsRemovedStructure());
+        if (platformsRemovedStructure == null) {
+            throw new IllegalArgumentException(String.format("Can't find platformsRemovedStructure %s", config.platformsRemovedStructure()));
+        }
+        platformsOrigin = config.platformsOrigin().toLocation(world);
         this.mechaConfig = config;
         
     }
@@ -185,5 +202,17 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
 
     public BoundingBox getRemoveArea() {
         return mechaConfig.getRemoveArea();
+    }
+    
+    public Structure getPlatformStructure() {
+        return platformsStructure;
+    }
+    
+    public Structure getPlatformRemovedStructure() {
+        return platformsRemovedStructure;
+    }
+    
+    public Location getPlatformsOrigin() {
+        return platformsOrigin;
     }
 }

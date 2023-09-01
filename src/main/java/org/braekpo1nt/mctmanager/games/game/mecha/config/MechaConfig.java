@@ -7,7 +7,20 @@ import org.bukkit.util.Vector;
 
 import java.util.List;
 
-record MechaConfig (String world, NamespacedKey spawnLootTable, BoundingBoxDTO removeArea, List<WeightedNamespacedKey> weightedMechaLootTables, double initialBorderSize, List<BorderStage> borderStages, List<Vector> spawnChestCoords, List<Vector> mapChestCoords) {
+/**
+ * @param world the world
+ * @param spawnLootTable The loot table for the spawn chests
+ * @param removeArea The area to empty containers and remove floor items
+ * @param weightedMechaLootTables The loot tables for the chests, with weights for the weighted random selection
+ * @param initialBorderSize The size that the border should start at
+ * @param borderStages The stages the border should progress through
+ * @param spawnChestCoords The coordinates of the spawn chests
+ * @param mapChestCoords the coordinates of the map chests
+ * @param platformsStructure the structure to place the platforms
+ * @param platformsRemovedStructure the structure to remove the platforms
+ * @param platformsOrigin the origin to place the platformsStructure at
+ */
+record MechaConfig (String world, NamespacedKey spawnLootTable, BoundingBoxDTO removeArea, List<WeightedNamespacedKey> weightedMechaLootTables, double initialBorderSize, List<BorderStage> borderStages, List<Vector> spawnChestCoords, List<Vector> mapChestCoords, NamespacedKey platformsStructure, NamespacedKey platformsRemovedStructure, Vector platformsOrigin) {
     
     public BoundingBox getRemoveArea() {
         return removeArea.getBoundingBox();

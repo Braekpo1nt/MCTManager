@@ -731,13 +731,12 @@ public class MechaGame implements MCTGame, Configurable, Listener {
     }
     
     private void placePlatforms() {
-        Structure structure = Bukkit.getStructureManager().loadStructure(new NamespacedKey("mctdatapack", "mecha/platforms"));
-        structure.place(new Location(mechaStorageUtil.getWorld(), -13, -43, -13), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
+        mechaStorageUtil.getPlatformStructure().place(mechaStorageUtil.getPlatformsOrigin(), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
     }
     
     private void removePlatforms() {
-        Structure structure = Bukkit.getStructureManager().loadStructure(new NamespacedKey("mctdatapack", "mecha/platforms_removed"));
-        structure.place(new Location(mechaStorageUtil.getWorld(), -13, -43, -13), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
+        
+        mechaStorageUtil.getPlatformRemovedStructure().place(mechaStorageUtil.getPlatformsOrigin(), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
     }
     
     /**

@@ -65,5 +65,18 @@
       "y": -45.0,
       "z": -44.0
     }
-  ]
+  ],
+  "platformsStructure": {
+    "namespace": "mctdatapack",
+    "key": "mecha/platforms"
+  },
+  "platformsRemovedStructure": {
+    "namespace": "mctdatapack",
+    "key": "mecha/platforms_removed"
+  },
+  "platformsOrigin": {
+    "x": -13,
+    "y": -43,
+    "z": -13
+  }
 }
