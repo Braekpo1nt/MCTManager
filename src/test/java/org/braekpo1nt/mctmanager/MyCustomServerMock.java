@@ -17,14 +17,16 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.loot.LootTable;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.structure.Structure;
+import org.bukkit.structure.StructureManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.mockito.ArgumentMatchers;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.refEq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -48,8 +50,14 @@ public class MyCustomServerMock extends ServerMock {
      */
     @Override
     public LootTable getLootTable(NamespacedKey key) {
-        LootTable lootTable = mock(LootTable.class);
-        return lootTable;
+        return mock(LootTable.class);
+    }
+    
+    @Override
+    public @NotNull StructureManager getStructureManager() {
+        StructureManager mockStructureManager = mock(StructureManager.class);
+        when(mockStructureManager.loadStructure((NamespacedKey) any())).thenReturn(mock(Structure.class));
+        return mockStructureManager;
     }
     
     @Override

@@ -735,7 +735,6 @@ public class MechaGame implements MCTGame, Configurable, Listener {
     }
     
     private void removePlatforms() {
-        
         mechaStorageUtil.getPlatformRemovedStructure().place(mechaStorageUtil.getPlatformsOrigin(), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
     }
     
