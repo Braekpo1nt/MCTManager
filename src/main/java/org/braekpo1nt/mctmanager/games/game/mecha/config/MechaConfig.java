@@ -21,13 +21,13 @@ import java.util.List;
  * @param platformsRemovedStructure the structure to remove the platforms
  * @param platformsOrigin the origin to place the platformsStructure at
  */
-record MechaConfig (String world, BoundingBoxDTO spectatorArea, BoundingBoxDTO removeArea, double initialBorderSize, List<BorderStage> borderStages, NamespacedKey spawnLootTable, List<WeightedNamespacedKey> weightedMechaLootTables, List<Vector> spawnChestCoords, List<Vector> mapChestCoords, NamespacedKey platformsStructure, NamespacedKey platformsRemovedStructure, Vector platformsOrigin, JsonObject description) {
+record MechaConfig (String world, BoundingBoxDTO spectatorArea, BoundingBoxDTO removeArea, double initialBorderSize, List<BorderStage> borderStages, NamespacedKey spawnLootTable, List<WeightedNamespacedKey> weightedMechaLootTables, List<Vector> spawnChestCoords, List<Vector> mapChestCoords, NamespacedKey platformsStructure, NamespacedKey platformsRemovedStructure, Vector platformsOrigin, Scores scores, Durations durations,  JsonObject description) {
     
-    public BoundingBox getRemoveArea() {
+    BoundingBox getRemoveArea() {
         return removeArea.getBoundingBox();
     }
     
-    public BoundingBox getSpectatorArea() {
+    BoundingBox getSpectatorArea() {
         return spectatorArea.getBoundingBox();
     }
     
@@ -41,5 +41,17 @@ record MechaConfig (String world, BoundingBoxDTO spectatorArea, BoundingBoxDTO r
      * @param duration the border will take this many seconds to transition from the previous stage's size to this stage's size
      */
     record BorderStage (int size, int delay, int duration){
+    }
+    
+    record Scores(int kill, int surviveTeam, int firstPlace, int secondPlace, int thirdPlace) {
+    }
+    
+    /**
+     * 
+     * @param start the delay before the game starts, the time spent on the platforms before they disappear
+     * @param invulnerability the duration of the invulnerability once the platforms disappear
+     * @param end the delay after the game ends, allows for some celebration time before armor and items are taken away and the teleport back to the hub starts
+     */
+    record Durations(int start, int invulnerability, int end) {
     }
 }

@@ -87,5 +87,17 @@
     "y": -43,
     "z": -13
   },
+  "scores": {
+    "kill": 40,
+    "surviveTeam": 40,
+    "firstPlace": 100,
+    "secondPlace": 70,
+    "thirdPlace": 50
+  },
+  "durations": {
+    "start": 10,
+    "invulnerability": 20,
+    "end": 10
+  },
   "description": {"text":"MECHA description","color":"dark_blue","bold": true}
 }

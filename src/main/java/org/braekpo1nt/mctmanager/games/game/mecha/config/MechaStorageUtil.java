@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.mecha.config;
 
+import com.google.common.base.Preconditions;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
 import net.kyori.adventure.text.Component;
@@ -166,6 +167,21 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
         if (config.platformsOrigin() == null) {
             throw new IllegalArgumentException("platformsOrigin can't be null");
         }
+        if (config.scores() == null) {
+            throw new IllegalArgumentException("scores can't be null");
+        }
+        if (config.durations() == null) {
+            throw new IllegalArgumentException("durations can't be null");
+        }
+        if (config.durations().start() < 0) {
+            throw new IllegalArgumentException(String.format("durations.start (%s) can't be negative", config.durations().start()));
+        }
+        if (config.durations().invulnerability() < 0) {
+            throw new IllegalArgumentException(String.format("durations.invulnerability (%s) can't be negative", config.durations().invulnerability()));
+        }
+        if (config.durations().end() < 0) {
+            throw new IllegalArgumentException(String.format("durations.end (%s) can't be negative", config.durations().end()));
+        }
         try {
             GsonComponentSerializer.gson().deserializeFromTree(config.description());
         } catch (JsonIOException | JsonSyntaxException e) {
@@ -265,5 +281,25 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
     
     public Component getDescription() {
         return description;
+    }
+    
+    public int getStartDuration() {
+        return mechaConfig.durations().start();
+    }
+    
+    public int getInvulnerabilityDuration() {
+        return mechaConfig.durations().invulnerability();
+    }
+    
+    public int getEndDuration() {
+        return mechaConfig.durations().end();
+    }
+    
+    public int getKillScore() {
+        return mechaConfig.scores().kill();
+    }
+    
+    public int getSurviveTeamScore() {
+        return mechaConfig.scores().surviveTeam();
     }
 }

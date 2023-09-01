@@ -12,7 +12,6 @@ import org.braekpo1nt.mctmanager.games.game.mecha.config.MechaStorageUtil;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.bukkit.Bukkit;
-import org.bukkit.NamespacedKey;
 import org.bukkit.Material;
 import org.bukkit.GameMode;
 import org.bukkit.ChatColor;
@@ -39,8 +38,6 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
-import org.bukkit.structure.Structure;
-import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.Nullable;
 
@@ -64,7 +61,7 @@ public class MechaGame implements MCTGame, Configurable, Listener {
     private Map<UUID, Integer> killCounts;
     private final String title = ChatColor.BLUE+"MECHA";
     private Map<String, Location> teamLocations;
-    private final PotionEffect RESISTANCE = new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 200, 200, true, false, true);
+    private PotionEffect resistance = new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 200, 200, true, false, true);
     
     public MechaGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
@@ -90,6 +87,7 @@ public class MechaGame implements MCTGame, Configurable, Listener {
         lastKilledTeam = null;
         killCounts = new HashMap<>(newParticipants.size());
         worldBorder = mechaStorageUtil.getWorld().getWorldBorder();
+        resistance = new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, mechaStorageUtil.getInvulnerabilityDuration(), 200, true, false, true);
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         placePlatforms();
         fillAllChests();
@@ -247,7 +245,7 @@ public class MechaGame implements MCTGame, Configurable, Listener {
     
     private void startStartMechaCountdownTask() {
         this.startMechaTaskId = new BukkitRunnable() {
-            private int count = 10;
+            private int count = mechaStorageUtil.getStartDuration();
             
             @Override
             public void run() {
@@ -266,9 +264,11 @@ public class MechaGame implements MCTGame, Configurable, Listener {
     }
     
     private void startStopMechaCountdownTask() {
-        messageAllParticipants(Component.text("Game ending in 10 seconds..."));
+        String endDuration = TimeStringUtils.getTimeString(mechaStorageUtil.getEndDuration());
+        messageAllParticipants(Component.text("Game ending in ")
+                .append(Component.text(endDuration)));
         stopMechaCountdownTaskId = new BukkitRunnable() {
-            int count = 10;
+            int count = mechaStorageUtil.getEndDuration();
             @Override
             public void run() {
                 if (count <= 0) {
@@ -300,9 +300,12 @@ public class MechaGame implements MCTGame, Configurable, Listener {
     
     private void giveInvulnerabilityForTenSeconds() {
         for (Player participant : participants) {
-            participant.addPotionEffect(RESISTANCE);
+            participant.addPotionEffect(resistance);
         }
-        messageAllParticipants(Component.text("Invulnerable for 20 seconds!"));
+        String invulnerabilityDuration = TimeStringUtils.getTimeString(mechaStorageUtil.getInvulnerabilityDuration());
+        messageAllParticipants(Component.text("Invulnerable for ")
+                .append(Component.text(invulnerabilityDuration))
+                .append(Component.text("!")));
     }
     
     private void onTeamWin(String winningTeamName) {
@@ -466,7 +469,7 @@ public class MechaGame implements MCTGame, Configurable, Listener {
                 .append(Component.text(" has been eliminated.")));
         for (Player participant : participants) {
             if (livingPlayers.contains(participant.getUniqueId())) {
-                gameManager.awardPointsToParticipant(participant, 40);
+                gameManager.awardPointsToParticipant(participant, mechaStorageUtil.getSurviveTeamScore());
             }
         }
     }
@@ -507,7 +510,7 @@ public class MechaGame implements MCTGame, Configurable, Listener {
             return;
         }
         addKill(killer.getUniqueId());
-        gameManager.awardPointsToParticipant(killer, 40);
+        gameManager.awardPointsToParticipant(killer, mechaStorageUtil.getKillScore());
     }
     
     /**
