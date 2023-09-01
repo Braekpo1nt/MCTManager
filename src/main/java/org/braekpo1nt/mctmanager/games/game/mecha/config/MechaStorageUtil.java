@@ -5,6 +5,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.loot.LootTable;
+import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.Nullable;
 
@@ -180,5 +181,9 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
     
     public double getInitialBorderSize() {
         return mechaConfig.initialBorderSize();
+    }
+
+    public BoundingBox getRemoveArea() {
+        return mechaConfig.getRemoveArea();
     }
 }
