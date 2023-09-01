@@ -1,0 +1,35 @@
+{
+  "world": "World",
+  "startingLocation": {
+    "x": 2400,
+    "y": 76,
+    "z": 312
+  },
+  "finishLine": {
+    "minX": 2396,
+    "minY": 80,
+    "minZ": 295,
+    "maxX": 2404,
+    "maxY": 79,
+    "maxZ": 308
+  },
+  "spectatorArea": {
+    "minX": 2393,
+    "minY": 60,
+    "minZ": 246,
+    "maxX": 2614,
+    "maxY": 113,
+    "maxZ": 439
+  },
+  "scores": {
+    "completeLap": 5,
+    "placementPoints": [
+    ],
+    "detriment": 10
+  },
+  "durations": {
+    "startRace": 10,
+    "raceEndCountdown": 60
+  },
+  "description": {"text":"Foot Race description","color":"dark_blue","bold": true}
+}

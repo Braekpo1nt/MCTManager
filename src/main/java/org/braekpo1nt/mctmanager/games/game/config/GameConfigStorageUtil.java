@@ -139,10 +139,11 @@ public abstract class GameConfigStorageUtil<T> {
      * This may involve assigning some variables (e.g. getting a bukkit world one time and setting it to a field
      * instead of using Bukkit.getWorld() every time this.getWorld() is called).
      * <p> 
-     * This assumes that the config has been validated according to {@link GameConfigStorageUtil#configIsValid(Object)}
+     * This assumes that the config has been validated according to {@link GameConfigStorageUtil#configIsValid(Object)}, and throws IllegalArgumentException if that assumption turns out to be false
+     * @throws IllegalArgumentException if the config, which is assumed to be valid according to {@link GameConfigStorageUtil#configIsValid(Object)}, turns out to be invalid. 
      * @param config the config to use
      */
-    protected abstract void setConfig(T config);
+    protected abstract void setConfig(T config) throws IllegalArgumentException;
     
     /**
      * @return An InputStream holding an example json-serialized {@link T} config
