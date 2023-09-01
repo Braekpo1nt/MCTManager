@@ -11,15 +11,9 @@ import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.game.mecha.config.MechaStorageUtil;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
-import org.bukkit.Bukkit;
-import org.bukkit.NamespacedKey;
-import org.bukkit.Material;
-import org.bukkit.GameMode;
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.World;
-import org.bukkit.WorldBorder;
+import org.bukkit.*;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockState;
 import org.bukkit.block.Chest;
 import org.bukkit.block.structure.Mirror;
 import org.bukkit.block.structure.StructureRotation;
@@ -40,7 +34,6 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
-import org.bukkit.structure.Structure;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.Nullable;
@@ -55,7 +48,6 @@ public class MechaGame implements MCTGame, Configurable, Listener {
     private boolean gameActive = false;
     private boolean mechaHasStarted = false;
     private List<Player> participants;
-    private World mechaWorld;
     private int startMechaTaskId;
     private int stopMechaCountdownTaskId;
     private WorldBorder worldBorder;
@@ -66,7 +58,7 @@ public class MechaGame implements MCTGame, Configurable, Listener {
     private Map<UUID, Integer> killCounts;
     private final String title = ChatColor.BLUE+"MECHA";
     private Map<String, Location> teamLocations;
-    private final PotionEffect RESISTANCE = new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 200, 200, true, false, true);
+    private PotionEffect resistance = new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 200, 200, true, false, true);
     
     public MechaGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
@@ -81,11 +73,7 @@ public class MechaGame implements MCTGame, Configurable, Listener {
     
     @Override
     public boolean loadConfig() throws IllegalArgumentException {
-        if (!mechaStorageUtil.loadConfig()) {
-            return false;
-        }
-        mechaWorld = mechaStorageUtil.getWorld();
-        return true;
+        return mechaStorageUtil.loadConfig();
     }
     
     @Override
@@ -95,7 +83,8 @@ public class MechaGame implements MCTGame, Configurable, Listener {
         deadPlayers = new ArrayList<>();
         lastKilledTeam = null;
         killCounts = new HashMap<>(newParticipants.size());
-        worldBorder = mechaWorld.getWorldBorder();
+        worldBorder = mechaStorageUtil.getWorld().getWorldBorder();
+        resistance = new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, mechaStorageUtil.getInvulnerabilityDuration(), 200, true, false, true);
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         placePlatforms();
         fillAllChests();
@@ -147,19 +136,45 @@ public class MechaGame implements MCTGame, Configurable, Listener {
         participant.getInventory().clear();
         hideFastBoard(participant);
     }
-
-    public void clearContainers() {
-        Location location1 = new Location(mechaWorld,-175, -64, -175); // bounding box of mechaWorld is not dynamic.
-                                                                                // Should be pulled from mecha config file in future. -rstln
-        Location location2 = new Location(mechaWorld, 200, 255, 150);
-        for (int x = location1.getBlockX(); x <= location2.getBlockX(); x++) {
-            for (int y = location1.getBlockY(); y <= location2.getBlockY(); y++) {
-                for (int z = location1.getBlockZ(); z <= location2.getBlockZ(); z++) {
-                    Block block = mechaWorld.getBlockAt(x, y, z);
-                    if (block.getState() instanceof InventoryHolder) {
-                        ((InventoryHolder) block.getState()).getInventory().clear();
-                    }
+    
+    private void clearContainers() {
+        Bukkit.getLogger().info("Clearing containers");
+        List<Chunk> chunks = getChunksInBoundingBox(mechaStorageUtil.getWorld(), mechaStorageUtil.getRemoveArea());
+        int count = 0;
+        for (Chunk chunk : chunks) {
+            Collection<BlockState> blockStates = chunk.getTileEntities(block -> block.getState() instanceof InventoryHolder, false);
+            count += blockStates.size();
+            for (BlockState blockState : blockStates) {
+                ((InventoryHolder) blockState).getInventory().clear();
+            }
+        }
+        Bukkit.getLogger().info(String.format("%s chunks found, %s InventoryHolders", chunks.size(), count));
+    }
+    
+    public static List<Chunk> getChunksInBoundingBox(World world, BoundingBox boundingBox) {
+        List<Chunk> chunksInBoundingBox = new ArrayList<>();
+        
+        int minX = (int) boundingBox.getMinX();
+        int maxX = (int) boundingBox.getMaxX();
+        int minZ = (int) boundingBox.getMinZ();
+        int maxZ = (int) boundingBox.getMaxZ();
+        
+        for (int x = minX; x <= maxX; x += 16) {
+            for (int z = minZ; z <= maxZ; z += 16) {
+                Chunk chunk = world.getChunkAt(x >> 4, z >> 4);
+                if (!chunksInBoundingBox.contains(chunk)) {
+                    chunksInBoundingBox.add(chunk);
                 }
+            }
+        }
+        
+        return chunksInBoundingBox;
+    }
+
+    private void clearFloorItems() {
+        for (Item item : mechaStorageUtil.getWorld().getEntitiesByClass(Item.class)) {
+            if (mechaStorageUtil.getRemoveArea().contains(item.getLocation().toVector())) {
+                item.remove();
             }
         }
     }
@@ -242,7 +257,7 @@ public class MechaGame implements MCTGame, Configurable, Listener {
     
     private void startStartMechaCountdownTask() {
         this.startMechaTaskId = new BukkitRunnable() {
-            private int count = 10;
+            private int count = mechaStorageUtil.getStartDuration();
             
             @Override
             public void run() {
@@ -261,9 +276,11 @@ public class MechaGame implements MCTGame, Configurable, Listener {
     }
     
     private void startStopMechaCountdownTask() {
-        messageAllParticipants(Component.text("Game ending in 10 seconds..."));
+        String endDuration = TimeStringUtils.getTimeString(mechaStorageUtil.getEndDuration());
+        messageAllParticipants(Component.text("Game ending in ")
+                .append(Component.text(endDuration)));
         stopMechaCountdownTaskId = new BukkitRunnable() {
-            int count = 10;
+            int count = mechaStorageUtil.getEndDuration();
             @Override
             public void run() {
                 if (count <= 0) {
@@ -285,17 +302,6 @@ public class MechaGame implements MCTGame, Configurable, Listener {
         deadPlayers.add(playerUniqueId);
     }
     
-    private void clearFloorItems() {
-        Location min = new Location(mechaWorld, -130, -64, -130);
-        Location max = new Location(mechaWorld, 130, 325, 130);
-        BoundingBox removeArea = BoundingBox.of(min, max);
-        for (Item item : mechaWorld.getEntitiesByClass(Item.class)) {
-            if (removeArea.contains(item.getLocation().toVector())) {
-                item.remove();
-            }
-        }
-    }
-    
     private void startMecha() {
         this.mechaHasStarted = true;
         kickOffBorderShrinking();
@@ -306,9 +312,12 @@ public class MechaGame implements MCTGame, Configurable, Listener {
     
     private void giveInvulnerabilityForTenSeconds() {
         for (Player participant : participants) {
-            participant.addPotionEffect(RESISTANCE);
+            participant.addPotionEffect(resistance);
         }
-        messageAllParticipants(Component.text("Invulnerable for 20 seconds!"));
+        String invulnerabilityDuration = TimeStringUtils.getTimeString(mechaStorageUtil.getInvulnerabilityDuration());
+        messageAllParticipants(Component.text("Invulnerable for ")
+                .append(Component.text(invulnerabilityDuration))
+                .append(Component.text("!")));
     }
     
     private void onTeamWin(String winningTeamName) {
@@ -472,7 +481,7 @@ public class MechaGame implements MCTGame, Configurable, Listener {
                 .append(Component.text(" has been eliminated.")));
         for (Player participant : participants) {
             if (livingPlayers.contains(participant.getUniqueId())) {
-                gameManager.awardPointsToParticipant(participant, 40);
+                gameManager.awardPointsToParticipant(participant, mechaStorageUtil.getSurviveTeamScore());
             }
         }
     }
@@ -499,7 +508,7 @@ public class MechaGame implements MCTGame, Configurable, Listener {
     
     private void dropInventory(Player killed, List<ItemStack> drops) {
         for (ItemStack item : drops) {
-            mechaWorld.dropItemNaturally(killed.getLocation(), item);
+            mechaStorageUtil.getWorld().dropItemNaturally(killed.getLocation(), item);
         }
         killed.getInventory().clear();
     }
@@ -513,7 +522,7 @@ public class MechaGame implements MCTGame, Configurable, Listener {
             return;
         }
         addKill(killer.getUniqueId());
-        gameManager.awardPointsToParticipant(killer, 40);
+        gameManager.awardPointsToParticipant(killer, mechaStorageUtil.getKillScore());
     }
     
     /**
@@ -737,13 +746,11 @@ public class MechaGame implements MCTGame, Configurable, Listener {
     }
     
     private void placePlatforms() {
-        Structure structure = Bukkit.getStructureManager().loadStructure(new NamespacedKey("mctdatapack", "mecha/platforms"));
-        structure.place(new Location(this.mechaWorld, -13, -43, -13), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
+        mechaStorageUtil.getPlatformStructure().place(mechaStorageUtil.getPlatformsOrigin(), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
     }
     
     private void removePlatforms() {
-        Structure structure = Bukkit.getStructureManager().loadStructure(new NamespacedKey("mctdatapack", "mecha/platforms_removed"));
-        structure.place(new Location(this.mechaWorld, -13, -43, -13), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
+        mechaStorageUtil.getPlatformRemovedStructure().place(mechaStorageUtil.getPlatformsOrigin(), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
     }
     
     /**
@@ -758,7 +765,7 @@ public class MechaGame implements MCTGame, Configurable, Listener {
         List<Vector> allChestCoords = new ArrayList<>(mechaStorageUtil.getSpawnChestCoords());
         allChestCoords.addAll(mechaStorageUtil.getMapChestCoords());
         for (Vector coords : allChestCoords) {
-            Block block = mechaWorld.getBlockAt(coords.getBlockX(), coords.getBlockY(), coords.getBlockZ());
+            Block block = mechaStorageUtil.getWorld().getBlockAt(coords.getBlockX(), coords.getBlockY(), coords.getBlockZ());
             block.setType(Material.CHEST);
             Chest chest = (Chest) block.getState();
             chest.getBlockInventory().clear();
@@ -767,7 +774,7 @@ public class MechaGame implements MCTGame, Configurable, Listener {
     
     private void fillSpawnChests() {
         for (Vector coords : mechaStorageUtil.getSpawnChestCoords()) {
-            Block block = mechaWorld.getBlockAt(coords.getBlockX(), coords.getBlockY(), coords.getBlockZ());
+            Block block = mechaStorageUtil.getWorld().getBlockAt(coords.getBlockX(), coords.getBlockY(), coords.getBlockZ());
             block.setType(Material.CHEST);
             Chest chest = (Chest) block.getState();
             chest.setLootTable(mechaStorageUtil.getSpawnLootTable());
@@ -777,7 +784,7 @@ public class MechaGame implements MCTGame, Configurable, Listener {
     
     private void fillMapChests() {
         for (Vector coords : mechaStorageUtil.getSpawnChestCoords()) {
-            Block block = mechaWorld.getBlockAt(coords.getBlockX(), coords.getBlockY(), coords.getBlockZ());
+            Block block = mechaStorageUtil.getWorld().getBlockAt(coords.getBlockX(), coords.getBlockY(), coords.getBlockZ());
             block.setType(Material.CHEST);
             fillMapChest(((Chest) block.getState()));
         }

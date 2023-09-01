@@ -1,5 +1,29 @@
 {
-  "world": "nonexistent_world",
+  "world": "World",
+  "spectatorArea": {
+    "minX": -175,
+    "minY": -64,
+    "minZ": -175,
+    "maxX": 200,
+    "maxY": 255,
+    "maxZ": 150
+  },
+  "removeArea": {
+    "minX": -175,
+    "minY": -64,
+    "minZ": -175,
+    "maxX": 200,
+    "maxY": 255,
+    "maxZ": 150
+  },
+  "initialBorderSize": 400,
+  "borderStages": [
+    {
+      "size": 50,
+      "delay": 80,
+      "duration": 15
+    }
+  ],
   "spawnLootTable": {
     "namespace": "mctdatapack",
     "key": "mecha/spawn-chest"
@@ -26,26 +50,9 @@
       "weight": 2
     }
   ],
-  "borderStages": [
-    {
-      "size": 50,
-      "delay": 80,
-      "duration": 15
-    },
-    {
-      "size": 25,
-      "delay": 60,
-      "duration": 15
-    },
-    {
-      "size": 2,
-      "delay": 30,
-      "duration": 30
-    }
-  ],
   "spawnChestCoords": [
     {
-      "x": -1.0,
+      "x": -176.0,
       "y": -45.0,
       "z": 1.0
     },
@@ -66,5 +73,31 @@
       "y": -45.0,
       "z": -44.0
     }
-  ]
+  ],
+  "platformsStructure": {
+    "namespace": "mctdatapack",
+    "key": "mecha/platforms"
+  },
+  "platformsRemovedStructure": {
+    "namespace": "mctdatapack",
+    "key": "mecha/platforms_removed"
+  },
+  "platformsOrigin": {
+    "x": -13,
+    "y": -43,
+    "z": -13
+  },
+  "scores": {
+    "kill": 40,
+    "surviveTeam": 40,
+    "firstPlace": 100,
+    "secondPlace": 70,
+    "thirdPlace": 50
+  },
+  "durations": {
+    "start": 10,
+    "invulnerability": 20,
+    "end": 10
+  },
+  "description": {"text":"MECHA description","color":"dark_blue","bold": true}
 }
