@@ -4,6 +4,14 @@
     "namespace": "mctdatapack",
     "key": "mecha/spawn-chest"
   },
+  "spectatorArea": {
+    "minX": -175,
+    "minY": -64,
+    "minZ": -175,
+    "maxX": 200,
+    "maxY": 255,
+    "maxZ": 150
+  },
   "removeArea": {
     "minX": -175,
     "minY": -64,

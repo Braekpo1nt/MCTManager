@@ -78,6 +78,12 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
         if (lootTableDoesNotExist(config.spawnLootTable())) {
             throw new IllegalArgumentException(String.format("Could not find spawn loot table \"%s\"", config.spawnLootTable()));
         }
+        if (config.spectatorArea() == null) {
+            throw new IllegalArgumentException("spectatorArea can't be null");
+        }
+        if (config.getSpectatorArea().getVolume() < 1.0) {
+            throw new IllegalArgumentException(String.format("getSpectatorArea's volume (%s) can't be less than 1. %s", config.getSpectatorArea().getVolume(), config.getSpectatorArea()));
+        }
         if (config.removeArea() == null) {
             throw new IllegalArgumentException("removeArea can't be null");
         }

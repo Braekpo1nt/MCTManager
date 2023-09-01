@@ -21,10 +21,14 @@ import java.util.List;
  * @param platformsRemovedStructure the structure to remove the platforms
  * @param platformsOrigin the origin to place the platformsStructure at
  */
-record MechaConfig (String world, NamespacedKey spawnLootTable, BoundingBoxDTO removeArea, List<WeightedNamespacedKey> weightedMechaLootTables, double initialBorderSize, List<BorderStage> borderStages, List<Vector> spawnChestCoords, List<Vector> mapChestCoords, NamespacedKey platformsStructure, NamespacedKey platformsRemovedStructure, Vector platformsOrigin, JsonObject description) {
+record MechaConfig (String world, NamespacedKey spawnLootTable, BoundingBoxDTO spectatorArea, BoundingBoxDTO removeArea, List<WeightedNamespacedKey> weightedMechaLootTables, double initialBorderSize, List<BorderStage> borderStages, List<Vector> spawnChestCoords, List<Vector> mapChestCoords, NamespacedKey platformsStructure, NamespacedKey platformsRemovedStructure, Vector platformsOrigin, JsonObject description) {
     
     public BoundingBox getRemoveArea() {
         return removeArea.getBoundingBox();
+    }
+    
+    public BoundingBox getSpectatorArea() {
+        return spectatorArea.getBoundingBox();
     }
     
     record WeightedNamespacedKey(String namespace, String key, int weight) {
