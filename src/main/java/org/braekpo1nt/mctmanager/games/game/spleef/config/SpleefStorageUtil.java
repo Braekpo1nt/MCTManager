@@ -29,9 +29,7 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
     @Override
     protected void setConfig(SpleefConfig config) {
         world = Bukkit.getWorld(config.world());
-        if (world == null) {
-            throw new IllegalArgumentException(String.format("Could not find world \"%s\"", config.world()));
-        }
+        Preconditions.checkArgument(world != null, "Could not find world \"%s\"", config.world());
         startingLocation = config.startingLocation().toLocation(world);
         this.spleefConfig = config;
     }

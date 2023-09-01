@@ -42,9 +42,7 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
     @Override
     protected void setConfig(MechaConfig config) {
         world = Bukkit.getWorld(config.world());
-        if (world == null) {
-            throw new IllegalArgumentException(String.format("Could not find world \"%s\"", config.world()));
-        }
+        Preconditions.checkArgument(world != null, "Could not find world \"%s\"", config.world());
         List<MechaConfig.WeightedNamespacedKey> weightedNamespacedKeys = config.weightedMechaLootTables();
         weightedMechaLootTables = new HashMap<>(weightedNamespacedKeys.size());
         for (MechaConfig.WeightedNamespacedKey weightedNamespacedKey : weightedNamespacedKeys) {
@@ -55,17 +53,12 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
             weightedMechaLootTables.put(lootTable, weight);
         }
         platformsStructure = Bukkit.getStructureManager().loadStructure(config.platformsStructure());
-        if (platformsStructure == null) {
-            throw new IllegalArgumentException(String.format("Can't find platformsStructure %s", config.platformsStructure()));
-        }
+        Preconditions.checkArgument(platformsStructure != null, "Can't find platformsStructure %s", config.platformsStructure());
         platformsRemovedStructure = Bukkit.getStructureManager().loadStructure(mechaConfig.platformsRemovedStructure());
-        if (platformsRemovedStructure == null) {
-            throw new IllegalArgumentException(String.format("Can't find platformsRemovedStructure %s", config.platformsRemovedStructure()));
-        }
+        Preconditions.checkArgument(platformsRemovedStructure != null, "Can't find platformsRemovedStructure %s", config.platformsRemovedStructure());
         platformsOrigin = config.platformsOrigin().toLocation(world);
         description = GsonComponentSerializer.gson().deserializeFromTree(config.description());
         this.mechaConfig = config;
-        
     }
     
     @Override

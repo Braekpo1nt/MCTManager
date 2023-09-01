@@ -64,9 +64,7 @@ public class CaptureTheFlagStorageUtil extends GameConfigStorageUtil<CaptureTheF
     @Override
     protected void setConfig(CaptureTheFlagConfig config) {
         world = Bukkit.getWorld(config.world());
-        if (world == null) {
-            throw new IllegalArgumentException(String.format("Could not find world \"%s\"", config.world()));
-        }
+        Preconditions.checkArgument(world != null, "Could not find world \"%s\"", config.world());
         spawnObservatory = config.spawnObservatory().toLocation(world);
         this.arenas = toArenas(config.arenas(), world);
         this.captureTheFlagConfig = config;

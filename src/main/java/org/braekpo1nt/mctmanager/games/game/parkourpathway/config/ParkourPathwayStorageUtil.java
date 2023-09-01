@@ -31,6 +31,7 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
     @Override
     protected void setConfig(ParkourPathwayConfig config) {
         world = Bukkit.getWorld(config.world());
+        Preconditions.checkArgument(world != null, "Could not find world \"%s\"", config.world());
         checkPoints = new ArrayList<>();
         for (ParkourPathwayConfig.CheckPointDTO checkpointDTO : config.checkpoints()) {
             Vector configRespawn = checkpointDTO.respawn();
