@@ -78,5 +78,6 @@
     "x": -13,
     "y": -43,
     "z": -13
-  }
+  },
+  "description": {"text":"MECHA description","color":"dark_blue","bold": true}
 }

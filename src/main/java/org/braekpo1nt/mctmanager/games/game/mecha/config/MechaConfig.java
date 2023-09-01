@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.mecha.config;
 
+import com.google.gson.JsonObject;
 import org.braekpo1nt.mctmanager.games.game.config.BoundingBoxDTO;
 import org.bukkit.NamespacedKey;
 import org.bukkit.util.BoundingBox;
@@ -20,7 +21,7 @@ import java.util.List;
  * @param platformsRemovedStructure the structure to remove the platforms
  * @param platformsOrigin the origin to place the platformsStructure at
  */
-record MechaConfig (String world, NamespacedKey spawnLootTable, BoundingBoxDTO removeArea, List<WeightedNamespacedKey> weightedMechaLootTables, double initialBorderSize, List<BorderStage> borderStages, List<Vector> spawnChestCoords, List<Vector> mapChestCoords, NamespacedKey platformsStructure, NamespacedKey platformsRemovedStructure, Vector platformsOrigin) {
+record MechaConfig (String world, NamespacedKey spawnLootTable, BoundingBoxDTO removeArea, List<WeightedNamespacedKey> weightedMechaLootTables, double initialBorderSize, List<BorderStage> borderStages, List<Vector> spawnChestCoords, List<Vector> mapChestCoords, NamespacedKey platformsStructure, NamespacedKey platformsRemovedStructure, Vector platformsOrigin, JsonObject description) {
     
     public BoundingBox getRemoveArea() {
         return removeArea.getBoundingBox();

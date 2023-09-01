@@ -1,5 +1,9 @@
 package org.braekpo1nt.mctmanager.games.game.mecha.config;
 
+import com.google.gson.JsonIOException;
+import com.google.gson.JsonSyntaxException;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.braekpo1nt.mctmanager.games.game.config.GameConfigStorageUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -23,6 +27,7 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
     private Location platformsOrigin;
     private Structure platformsStructure;
     private Structure platformsRemovedStructure;
+    private Component description;
 
     public MechaStorageUtil(File configDirectory) {
         super(configDirectory, "mechaConfig.json", MechaConfig.class);
@@ -57,6 +62,7 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
             throw new IllegalArgumentException(String.format("Can't find platformsRemovedStructure %s", config.platformsRemovedStructure()));
         }
         platformsOrigin = config.platformsOrigin().toLocation(world);
+        description = GsonComponentSerializer.gson().deserializeFromTree(config.description());
         this.mechaConfig = config;
         
     }
@@ -154,6 +160,11 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
         if (config.platformsOrigin() == null) {
             throw new IllegalArgumentException("platformsOrigin can't be null");
         }
+        try {
+            GsonComponentSerializer.gson().deserializeFromTree(config.description());
+        } catch (JsonIOException | JsonSyntaxException e) {
+            throw new IllegalArgumentException("description is invalid", e);
+        }
         return true;
     }
     
@@ -244,5 +255,9 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
     
     public Location getPlatformsOrigin() {
         return platformsOrigin;
+    }
+    
+    public Component getDescription() {
+        return description;
     }
 }
