@@ -70,118 +70,84 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
     
     @Override
     protected boolean configIsValid(@Nullable MechaConfig config) {
-        if (config == null) {
-            throw new IllegalArgumentException("Saved config is null");
-        }
-        if (Bukkit.getWorld(config.world()) == null) {
-            throw new IllegalArgumentException(String.format("Could not find world \"%s\"", config.world()));
-        }
-        if (config.spectatorArea() == null) {
-            throw new IllegalArgumentException("spectatorArea can't be null");
-        }
-        if (config.getSpectatorArea().getVolume() < 1.0) {
-            throw new IllegalArgumentException(String.format("getSpectatorArea's volume (%s) can't be less than 1. %s", config.getSpectatorArea().getVolume(), config.getSpectatorArea()));
-        }
-        if (config.removeArea() == null) {
-            throw new IllegalArgumentException("removeArea can't be null");
-        }
-        if (config.getRemoveArea().getVolume() < 1.0) {
-            throw new IllegalArgumentException(String.format("removeArea (%s) volume (%s) can't be less than 1.0", config.getRemoveArea(), config.getRemoveArea().getVolume()));
-        }
-        if (config.initialBorderSize() < 1.0) {
-            throw new IllegalArgumentException(String.format("initialBorderSize can't be less than 1.0: %s", config.initialBorderSize()));
-        }
-        if (config.borderStages() == null) {
-            throw new IllegalArgumentException("borderStages can't be null");
-        }
-        if (config.borderStages().size() < 1) {
-            throw new IllegalArgumentException("borderStages must have at least one stage");
-        }
+        Preconditions.checkArgument(config != null, "Saved config is null");
+        Preconditions.checkArgument(Bukkit.getWorld(config.world()) != null, 
+                "Could not find world \"%s\"", config.world());
+        Preconditions.checkArgument(config.spectatorArea() != null, 
+                "spectatorArea can't be null");
+        Preconditions.checkArgument(config.getSpectatorArea().getVolume() >= 1.0, 
+                "getSpectatorArea's volume (%s) can't be less than 1. %s", config.getSpectatorArea().getVolume(), config.getSpectatorArea());
+        Preconditions.checkArgument(config.removeArea() != null, 
+                "removeArea can't be null");
+        Preconditions.checkArgument(config.getRemoveArea().getVolume() >= 1.0, 
+                "removeArea (%s) volume (%s) can't be less than 1.0", config.getRemoveArea(), config.getRemoveArea().getVolume());
+        Preconditions.checkArgument(config.initialBorderSize() >= 1.0, 
+                "initialBorderSize can't be less than 1.0: %s", config.initialBorderSize());
+        Preconditions.checkArgument(config.borderStages() != null, 
+                "borderStages can't be null");
+        Preconditions.checkArgument(config.borderStages().size() >= 1, 
+                "borderStages must have at least one stage");
         for (MechaConfig.BorderStage borderStage : config.borderStages()) {
-            if (borderStage.size() < 1.0) {
-                throw new IllegalArgumentException(String.format("border stage size (%s) can't be less than 1.0", borderStage.size()));
-            }
-            if (borderStage.delay() < 0) {
-                throw new IllegalArgumentException(String.format("border stage delay (%s) can't be less than 0", borderStage.delay()));
-            }
-            if (borderStage.duration() < 0) {
-                throw new IllegalArgumentException(String.format("border stage duration (%s) can't be less than 0", borderStage.duration()));
-            }
+            Preconditions.checkArgument(borderStage.size() >= 1.0, 
+                    "border stage size (%s) can't be less than 1.0", borderStage.size());
+            Preconditions.checkArgument(borderStage.delay() >= 0, 
+                    "borderStage.delay (%S) can't be negative", borderStage.delay());
+            Preconditions.checkArgument(borderStage.duration() >= 0, 
+                    "borderStage.duration (%S) can't be negative", borderStage.duration());
         }
-        if (lootTableDoesNotExist(config.spawnLootTable())) {
-            throw new IllegalArgumentException(String.format("Could not find spawn loot table \"%s\"", config.spawnLootTable()));
-        }
-        if (config.weightedMechaLootTables() == null) {
-            throw new IllegalArgumentException("weightedMechaLootTables can't be null");
-        }
-        // weightedNamespacedKey list can be empty and still be valid
+        Preconditions.checkArgument(!lootTableDoesNotExist(config.spawnLootTable()), 
+                "Could not find spawn loot table \"%s\"", config.spawnLootTable());
+        Preconditions.checkArgument(config.weightedMechaLootTables() != null, 
+                "weightedMechaLootTables can't be null");
+        Preconditions.checkArgument(config.weightedMechaLootTables().size() >= 1, 
+                "weightedMechaLootTables must have at least 1 entry");
         for (MechaConfig.WeightedNamespacedKey weightedNamespacedKey : config.weightedMechaLootTables()) {
-            if (weightedNamespacedKey.namespace() == null) {
-                throw new IllegalArgumentException("weightedNamespacedKey.namespace can't be null");
-            }
-            if (weightedNamespacedKey.key() == null) {
-                throw new IllegalArgumentException("weightedNamespacedKey.key can't be null");
-            }
+            Preconditions.checkArgument(weightedNamespacedKey.namespace() != null, 
+                    "weightedNamespacedKey.namespace can't be null");
+            Preconditions.checkArgument(weightedNamespacedKey.key() != null, 
+                    "weightedNamespacedKey.key can't be null");
             NamespacedKey namespacedKey = new NamespacedKey(weightedNamespacedKey.namespace(), weightedNamespacedKey.key());
-            if (lootTableDoesNotExist(namespacedKey)) {
-                throw new IllegalArgumentException(String.format("Could not find loot table \"%s\"", namespacedKey));
-            }
-            if (weightedNamespacedKey.weight() < 1) {
-                throw new IllegalArgumentException(String.format("weightedNamespacedKey (%s) can't have a weight (%s) less than 1", namespacedKey, weightedNamespacedKey.weight()));
-            }
+            Preconditions.checkArgument(!lootTableDoesNotExist(namespacedKey), 
+                    "Could not find loot table \"%s\"", namespacedKey);
+            Preconditions.checkArgument(weightedNamespacedKey.weight() >= 1, 
+                    "weightedNamespacedKey (%s) can't have a weight (%s) less than 1", namespacedKey, weightedNamespacedKey.weight());
         }
-        if (config.spawnChestCoords() == null) {
-            throw new IllegalArgumentException("spawnChestCoords can't be null");
-        }
-        if (config.spawnChestCoords().contains(null)) {
-            throw new IllegalArgumentException("spawnChestCoords can't contain a null position");
-        }
+        Preconditions.checkArgument(config.spawnChestCoords() != null, 
+                "spawnChestCoords can't be null");
+        Preconditions.checkArgument(!config.spawnChestCoords().contains(null), 
+                "spawnChestCoords can't contain a null position");
         for (Vector pos : config.spawnChestCoords()) {
-            if (!config.getRemoveArea().contains(pos)) {
-                throw new IllegalArgumentException(String.format("spawnChestCoord (%s) is not inside removeArea (%s)", pos, config.getRemoveArea()));
-            }
+            Preconditions.checkArgument(config.getRemoveArea().contains(pos), 
+                    "spawnChestCoord (%s) is not inside removeArea (%s)", pos, config.getRemoveArea());
         }
-        if (config.mapChestCoords() == null) {
-            throw new IllegalArgumentException("mapChestCoords can't be null");
-        }
-        if (config.mapChestCoords().contains(null)) {
-            throw new IllegalArgumentException("mapChestCoords can't contain a null position");
-        }
+        Preconditions.checkArgument(config.mapChestCoords() != null, 
+                "mapChestCoords can't be null");
+        Preconditions.checkArgument(!config.mapChestCoords().contains(null), 
+                "mapChestCoords can't contain a null position");
         for (Vector pos : config.mapChestCoords()) {
-            if (!config.getRemoveArea().contains(pos)) {
-                throw new IllegalArgumentException(String.format("mapChestCoord (%s) is not inside removeArea (%s)", pos, config.getRemoveArea()));
-            }
+            Preconditions.checkArgument(config.getRemoveArea().contains(pos), 
+                    "mapChestCoord (%s) is not inside removeArea (%s)", pos, config.getRemoveArea());
         }
-        if (config.platformsStructure() == null) {
-            throw new IllegalArgumentException("platformsStructure can't be null");
-        }
-        if (Bukkit.getStructureManager().loadStructure(config.platformsStructure()) == null) {
-            throw new IllegalArgumentException(String.format("Can't find platformsStructure %s", config.platformsStructure()));
-        }
-        if (config.platformsRemovedStructure() == null) {
-            throw new IllegalArgumentException("platformsRemovedStructure can't be null");
-        }
-        if (Bukkit.getStructureManager().loadStructure(config.platformsRemovedStructure()) == null) {
-            throw new IllegalArgumentException(String.format("Can't find platformsRemovedStructure %s", config.platformsRemovedStructure()));
-        }
-        if (config.platformsOrigin() == null) {
-            throw new IllegalArgumentException("platformsOrigin can't be null");
-        }
-        if (config.scores() == null) {
-            throw new IllegalArgumentException("scores can't be null");
-        }
-        if (config.durations() == null) {
-            throw new IllegalArgumentException("durations can't be null");
-        }
-        if (config.durations().start() < 0) {
-            throw new IllegalArgumentException(String.format("durations.start (%s) can't be negative", config.durations().start()));
-        }
-        if (config.durations().invulnerability() < 0) {
-            throw new IllegalArgumentException(String.format("durations.invulnerability (%s) can't be negative", config.durations().invulnerability()));
-        }
-        if (config.durations().end() < 0) {
-            throw new IllegalArgumentException(String.format("durations.end (%s) can't be negative", config.durations().end()));
-        }
+        Preconditions.checkArgument(config.platformsStructure() != null, 
+                "platformsStructure can't be null");
+        Preconditions.checkArgument(Bukkit.getStructureManager().loadStructure(config.platformsStructure()) != null, 
+                "Can't find platformsStructure %s", config.platformsStructure());
+        Preconditions.checkArgument(config.platformsRemovedStructure() != null, 
+                "platformsRemovedStructure can't be null");
+        Preconditions.checkArgument(Bukkit.getStructureManager().loadStructure(config.platformsRemovedStructure()) != null, 
+                "Can't find platformsRemovedStructure %s", config.platformsRemovedStructure());
+        Preconditions.checkArgument(config.platformsOrigin() != null, 
+                "platformsOrigin can't be null");
+        Preconditions.checkArgument(config.scores() != null, 
+                "scores can't be null");
+        Preconditions.checkArgument(config.durations() != null, 
+                "durations can't be null");
+        Preconditions.checkArgument(config.durations().start() >= 0, 
+                "durations.start (%s) can't be negative", config.durations().start());
+        Preconditions.checkArgument(config.durations().invulnerability() >= 0, 
+                "durations.invulnerability (%s) can't be negative", config.durations().invulnerability());
+        Preconditions.checkArgument(config.durations().end() >= 0, 
+                "durations.end (%s) can't be negative", config.durations().end());
         try {
             GsonComponentSerializer.gson().deserializeFromTree(config.description());
         } catch (JsonIOException | JsonSyntaxException e) {
