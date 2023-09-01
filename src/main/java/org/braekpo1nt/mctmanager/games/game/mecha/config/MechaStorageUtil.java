@@ -30,9 +30,9 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
     @Override
     protected void setConfig(MechaConfig config) {
         world = Bukkit.getWorld(config.world());
-        List<WeightedNamespacedKey> weightedNamespacedKeys = config.weightedMechaLootTables();
+        List<MechaConfig.WeightedNamespacedKey> weightedNamespacedKeys = config.weightedMechaLootTables();
         weightedMechaLootTables = new HashMap<>(weightedNamespacedKeys.size());
-        for (WeightedNamespacedKey weightedNamespacedKey : weightedNamespacedKeys) {
+        for (MechaConfig.WeightedNamespacedKey weightedNamespacedKey : weightedNamespacedKeys) {
             String namespace = weightedNamespacedKey.namespace();
             String key = weightedNamespacedKey.key();
             int weight = weightedNamespacedKey.weight();
@@ -59,7 +59,7 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
             throw new IllegalArgumentException("weightedMechaLootTables can't be null");
         }
         // weightedNamespacedKey list can be empty and still be valid
-        for (WeightedNamespacedKey weightedNamespacedKey : config.weightedMechaLootTables()) {
+        for (MechaConfig.WeightedNamespacedKey weightedNamespacedKey : config.weightedMechaLootTables()) {
             if (weightedNamespacedKey.namespace() == null) {
                 throw new IllegalArgumentException("weightedNamespacedKey.namespace can't be null");
             }
@@ -83,7 +83,7 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
         if (config.borderStages().size() < 1) {
             throw new IllegalArgumentException("borderStages must have at least one stage");
         }
-        for (BorderStage borderStage : config.borderStages()) {
+        for (MechaConfig.BorderStage borderStage : config.borderStages()) {
             if (borderStage.size() < 1.0) {
                 throw new IllegalArgumentException(String.format("border stage size (%s) can't be less than 1.0", borderStage.size()));
             }
@@ -148,7 +148,7 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
     }
     
     public int[] getSizes() {
-        List<BorderStage> borderStages = mechaConfig.borderStages();
+        List<MechaConfig.BorderStage> borderStages = mechaConfig.borderStages();
         int[] sizes = new int[borderStages.size()];
         for (int i = 0; i < borderStages.size(); i++) {
             sizes[i] = borderStages.get(i).size();
@@ -157,7 +157,7 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
     }
     
     public int[] getDelays() {
-        List<BorderStage> borderStages = mechaConfig.borderStages();
+        List<MechaConfig.BorderStage> borderStages = mechaConfig.borderStages();
         int[] delays = new int[borderStages.size()];
         for (int i = 0; i < borderStages.size(); i++) {
             delays[i] = borderStages.get(i).delay();
@@ -166,7 +166,7 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
     }
     
     public int[] getDurations() {
-        List<BorderStage> borderStages = mechaConfig.borderStages();
+        List<MechaConfig.BorderStage> borderStages = mechaConfig.borderStages();
         int[] durations = new int[borderStages.size()];
         for (int i = 0; i < borderStages.size(); i++) {
             durations[i] = borderStages.get(i).duration();
