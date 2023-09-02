@@ -7,7 +7,12 @@ import org.bukkit.util.Vector;
 
 import java.util.List;
 
-public record ParkourPathwayConfig  (String world, Vector startingLocation, Durations durations, List<CheckPointDTO> checkpoints) {
+public record ParkourPathwayConfig  (String world, Vector startingLocation, BoundingBoxDTO spectatorArea, Durations durations, List<CheckPointDTO> checkpoints) {
+    
+    public BoundingBox getSpectatorArea() {
+        return spectatorArea.getBoundingBox();
+    }
+    
     public record Durations(int timeLimit, int checkpointCounter, int checkpointCounterAlert) {
     }
     
