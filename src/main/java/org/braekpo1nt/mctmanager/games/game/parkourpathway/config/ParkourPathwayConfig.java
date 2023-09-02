@@ -7,7 +7,7 @@ import org.bukkit.util.Vector;
 
 import java.util.List;
 
-public record ParkourPathwayConfig  (String world, Durations durations, List<CheckPointDTO> checkpoints) {
+public record ParkourPathwayConfig  (String world, Vector startingLocation, Durations durations, List<CheckPointDTO> checkpoints) {
     public record Durations(int timeLimit, int checkpointCounter, int checkpointCounterAlert) {
     }
     

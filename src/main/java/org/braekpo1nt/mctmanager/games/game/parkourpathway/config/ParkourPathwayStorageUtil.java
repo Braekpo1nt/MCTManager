@@ -18,6 +18,7 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
     protected ParkourPathwayConfig parkourPathwayConfig = getExampleConfig();
     private List<CheckPoint> checkPoints;
     private World world;
+    private Location startingLocation;
     
     public ParkourPathwayStorageUtil(File configDirectory) {
         super(configDirectory, "parkourPathwayConfig.json", ParkourPathwayConfig.class);
@@ -32,6 +33,7 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
     protected void setConfig(ParkourPathwayConfig config) {
         world = Bukkit.getWorld(config.world());
         Preconditions.checkArgument(world != null, "Could not find world \"%s\"", config.world());
+        startingLocation = config.startingLocation().toLocation(world);
         checkPoints = new ArrayList<>();
         for (ParkourPathwayConfig.CheckPointDTO checkpointDTO : config.checkpoints()) {
             Vector configRespawn = checkpointDTO.respawn();
@@ -45,6 +47,7 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
     protected boolean configIsValid(@Nullable ParkourPathwayConfig config) {
         Preconditions.checkArgument(config != null, "Saved config is null");
         Preconditions.checkArgument(Bukkit.getWorld(config.world()) != null, "Could not find world \"%s\"", config.world());
+        Preconditions.checkArgument(config.startingLocation() != null, "startingLocation can't be null");
         Preconditions.checkArgument(config.durations() != null, "durations can't be null");
         Preconditions.checkArgument(config.durations().timeLimit() >= 2, "durations.timeLimit (%s) can't be less than 2", config.durations().timeLimit());
         Preconditions.checkArgument(config.durations().checkpointCounter() >= 1, "durations.checkpointCounter (%s) can't be less than 1", config.durations().checkpointCounter());
@@ -99,5 +102,9 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
     
     public World getWorld() {
         return world;
+    }
+    
+    public Location getStartingLocation() {
+        return startingLocation;
     }
 }

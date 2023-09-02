@@ -5,6 +5,11 @@
     "checkpointCounter": 120,
     "checkpointCounterAlert": 30
   },
+  "startingLocation" : {
+    "x": 1003,
+    "y": 0,
+    "z": 0
+  },
   "checkpoints": [
     {
       "yValue": 0,
