@@ -30,7 +30,7 @@ record CaptureTheFlagConfig(String world, Vector spawnObservatory, List<ArenaDTO
     
     /**
      * Holds durations for the game
-     * @param matchesStarting the duration (in seconds) for the "matches roundStarting" period (i.e. waiting in the lobby for the match to start)
+     * @param matchesStarting the duration (in seconds) for the "matches starting" period (i.e. waiting in the lobby for the match to start)
      * @param classSelection the duration (in seconds) of the class selection period
      * @param roundTimer the duration (in seconds) of each round
      */

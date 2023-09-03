@@ -250,7 +250,7 @@ public class HubManager implements Listener {
     }
     
     /**
-     * Detects when the player moves out of bounds of the hub, and teleports them back to the roundStarting place
+     * Detects when the player moves out of bounds of the hub, and teleports them back to the starting place
      * @param event A player move event
      */
     @EventHandler

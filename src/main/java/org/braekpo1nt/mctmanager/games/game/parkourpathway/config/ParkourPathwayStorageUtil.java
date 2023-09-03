@@ -59,7 +59,7 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
         Preconditions.checkArgument(config.scores().win() != null, "scores.win can't be null");
         Preconditions.checkArgument(config.scores().win().length >= 2, "scores.win must have at least two elements");
         Preconditions.checkArgument(config.durations() != null, "durations can't be null");
-        Preconditions.checkArgument(config.durations().starting() >= 0, "durations.roundStarting (%s) can't be negative", config.durations().starting());
+        Preconditions.checkArgument(config.durations().starting() >= 0, "durations.starting (%s) can't be negative", config.durations().starting());
         Preconditions.checkArgument(config.durations().timeLimit() >= 2, "durations.timeLimit (%s) can't be less than 2", config.durations().timeLimit());
         Preconditions.checkArgument(config.durations().checkpointCounter() >= 1, "durations.checkpointCounter (%s) can't be less than 1", config.durations().checkpointCounter());
         Preconditions.checkArgument(config.durations().checkpointCounterAlert() >= 1 && config.durations().checkpointCounter() >= config.durations().checkpointCounterAlert(), "durations.checkpointCounterAlert (%s) can't be less than 0 or greater than durations.checkpointCounter", config.durations().checkpointCounterAlert());
