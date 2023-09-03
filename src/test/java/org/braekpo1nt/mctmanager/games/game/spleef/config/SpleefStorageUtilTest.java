@@ -20,7 +20,7 @@ public class SpleefStorageUtilTest {
     String configFileName = "spleefConfig.json";
     Main plugin;
     SpleefStorageUtil storageUtil;
-
+    
     @BeforeEach
     void setupServerAndPlugin() {
         ServerMock server = MockBukkit.mock(new MyCustomServerMock());

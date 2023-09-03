@@ -26,4 +26,28 @@ public class BoundingBoxDTO {
         }
         return boundingBox;
     }
+    
+    @Override
+    public String toString() {
+        StringBuilder s = new StringBuilder("(BoundingBoxDTO [");
+        s.append("minX=");
+        s.append(minX);
+        s.append(", ");
+        s.append("minY=");
+        s.append(minY);
+        s.append(", ");
+        s.append("minZ=");
+        s.append(minZ);
+        s.append(", ");
+        s.append("maxX=");
+        s.append(maxX);
+        s.append(", ");
+        s.append("maxY=");
+        s.append(maxY);
+        s.append(", ");
+        s.append("maxZ=");
+        s.append(maxZ);
+        s.append("])");
+        return s.toString();
+    }
 }
