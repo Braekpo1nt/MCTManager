@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.parkourpathway.config;
 
+import com.google.gson.JsonObject;
 import org.braekpo1nt.mctmanager.games.game.config.BoundingBoxDTO;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.CheckPoint;
 import org.bukkit.util.BoundingBox;
@@ -7,8 +8,21 @@ import org.bukkit.util.Vector;
 
 import java.util.List;
 
-public record ParkourPathwayConfig  (String world, Durations durations, List<CheckPointDTO> checkpoints) {
-    public record Durations(int timeLimit, int checkpointCounter, int checkpointCounterAlert) {
+record ParkourPathwayConfig  (String world, Vector startingLocation, BoundingBoxDTO spectatorArea, Scores scores, Durations durations, List<CheckPointDTO> checkpoints, JsonObject description) {
+    
+    BoundingBox getSpectatorArea() {
+        return spectatorArea.getBoundingBox();
+    }
+    
+    /**
+     * 
+     * @param checkpoint points for reaching checkpoints. for x elements, nth score will be awarded unless n is greater than or equal to x in which case the xth score will be awarded 
+     * @param win points for winning. for x elements, nth score will be awarded unless n is greater than or equal to x in which case the xth score will be awarded 
+     */
+    record Scores(int[] checkpoint, int[] win) {
+    }
+    
+    record Durations(int starting, int timeLimit, int checkpointCounter, int checkpointCounterAlert) {
     }
     
     /**
@@ -18,8 +32,8 @@ public record ParkourPathwayConfig  (String world, Durations durations, List<Che
      * @param detectionBox the box that is checked to see if the player entered this checkpoint
      * @param respawn the position to teleport back to if the player falls below the yValue
      */
-    public record CheckPointDTO(double yValue, BoundingBoxDTO detectionBox, Vector respawn) {
-        public BoundingBox getDetectionBox() {
+    record CheckPointDTO(double yValue, BoundingBoxDTO detectionBox, Vector respawn) {
+        BoundingBox getDetectionBox() {
             return detectionBox.getBoundingBox();
         }
     }

@@ -1,6 +1,9 @@
 package org.braekpo1nt.mctmanager.games.game.parkourpathway.config;
 
 import com.google.common.base.Preconditions;
+import com.google.gson.JsonIOException;
+import com.google.gson.JsonSyntaxException;
+import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.braekpo1nt.mctmanager.games.game.config.GameConfigStorageUtil;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.CheckPoint;
 import org.bukkit.Bukkit;
@@ -18,6 +21,7 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
     protected ParkourPathwayConfig parkourPathwayConfig = getExampleConfig();
     private List<CheckPoint> checkPoints;
     private World world;
+    private Location startingLocation;
     
     public ParkourPathwayStorageUtil(File configDirectory) {
         super(configDirectory, "parkourPathwayConfig.json", ParkourPathwayConfig.class);
@@ -32,6 +36,7 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
     protected void setConfig(ParkourPathwayConfig config) {
         world = Bukkit.getWorld(config.world());
         Preconditions.checkArgument(world != null, "Could not find world \"%s\"", config.world());
+        startingLocation = config.startingLocation().toLocation(world);
         checkPoints = new ArrayList<>();
         for (ParkourPathwayConfig.CheckPointDTO checkpointDTO : config.checkpoints()) {
             Vector configRespawn = checkpointDTO.respawn();
@@ -45,7 +50,16 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
     protected boolean configIsValid(@Nullable ParkourPathwayConfig config) {
         Preconditions.checkArgument(config != null, "Saved config is null");
         Preconditions.checkArgument(Bukkit.getWorld(config.world()) != null, "Could not find world \"%s\"", config.world());
+        Preconditions.checkArgument(config.startingLocation() != null, "startingLocation can't be null");
+        Preconditions.checkArgument(config.spectatorArea() != null, "spectatorArea can't be null");
+        Preconditions.checkArgument(config.getSpectatorArea().getVolume() >= 1.0, "getSpectatorArea's volume (%s) can't be less than 1. %s", config.getSpectatorArea().getVolume(), config.getSpectatorArea());
+        Preconditions.checkArgument(config.scores() != null, "scores can't be null");
+        Preconditions.checkArgument(config.scores().checkpoint() != null, "scores.checkpoint can't be null");
+        Preconditions.checkArgument(config.scores().checkpoint().length >= 2, "scores.checkpoint must have at least two elements");
+        Preconditions.checkArgument(config.scores().win() != null, "scores.win can't be null");
+        Preconditions.checkArgument(config.scores().win().length >= 2, "scores.win must have at least two elements");
         Preconditions.checkArgument(config.durations() != null, "durations can't be null");
+        Preconditions.checkArgument(config.durations().starting() >= 0, "durations.starting (%s) can't be negative", config.durations().starting());
         Preconditions.checkArgument(config.durations().timeLimit() >= 2, "durations.timeLimit (%s) can't be less than 2", config.durations().timeLimit());
         Preconditions.checkArgument(config.durations().checkpointCounter() >= 1, "durations.checkpointCounter (%s) can't be less than 1", config.durations().checkpointCounter());
         Preconditions.checkArgument(config.durations().checkpointCounterAlert() >= 1 && config.durations().checkpointCounter() >= config.durations().checkpointCounterAlert(), "durations.checkpointCounterAlert (%s) can't be less than 0 or greater than durations.checkpointCounter", config.durations().checkpointCounterAlert());
@@ -63,6 +77,11 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
                 
                 Preconditions.checkArgument(!checkPoint.getDetectionBox().contains(lastCheckPoint.respawn()), "checkpoint %s's detectionBox (%s) can't contain checkpoint %s's respawn (%s)", i, checkPoint.getDetectionBox(), i-1, lastCheckPoint.respawn());
             }
+            try {
+                GsonComponentSerializer.gson().deserializeFromTree(config.description());
+            } catch (JsonIOException | JsonSyntaxException e) {
+                throw new IllegalArgumentException("description is invalid", e);
+            }
         }
         return true;
     }
@@ -76,28 +95,44 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
         return checkPoints;
     }
     
+    public int getStartingDuration() {
+        return parkourPathwayConfig.durations().starting();
+    }
+    
     /**
      * @return the time limit for the entire game
      */
-    public int getTimeLimit() {
+    public int getTimeLimitDuration() {
         return parkourPathwayConfig.durations().timeLimit();
     }
     
     /**
      * @return how long (in seconds) the game should wait before declaring that no one has made it to a new checkpoint and ending the game
      */
-    public int getCheckpointCounter() {
+    public int getCheckpointCounterDuration() {
         return parkourPathwayConfig.durations().checkpointCounter();
     }
     
     /**
      * @return How much time (seconds) should be left in the checkpointCounter before you start displaying the countdown to the users
      */
-    public int getCheckpointCounterAlert() {
+    public int getCheckpointCounterAlertDuration() {
         return parkourPathwayConfig.durations().checkpointCounterAlert();
     }
     
     public World getWorld() {
         return world;
+    }
+    
+    public Location getStartingLocation() {
+        return startingLocation;
+    }
+    
+    public int[] getCheckpointScore() {
+        return parkourPathwayConfig.scores().checkpoint();
+    }
+    
+    public int[] getWinScore() {
+        return parkourPathwayConfig.scores().win();
     }
 }
