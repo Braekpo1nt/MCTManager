@@ -10,13 +10,13 @@ import java.util.List;
 
 /**
  * 
- * @param world
+ * @param world the world the game is in
  * @param startingLocations a set of starting locations that the players will be sent to a random one of
- * @param spectatorArea
- * @param layers
- * @param scores
- * @param durations
- * @param description
+ * @param spectatorArea the area the spectators shouldn't be able to leave
+ * @param layers the layers of spleef
+ * @param scores the scores for spleef
+ * @param durations the durations for spleef
+ * @param description the description of spleef
  */
 record SpleefConfig(String world, List<Vector> startingLocations, BoundingBoxDTO spectatorArea, List<Layer> layers, Scores scores, Durations durations, JsonObject description) {
     
