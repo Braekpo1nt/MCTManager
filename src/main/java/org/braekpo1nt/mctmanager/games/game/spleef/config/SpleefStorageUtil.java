@@ -8,16 +8,25 @@ import org.braekpo1nt.mctmanager.games.game.config.GameConfigStorageUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.structure.Structure;
+import org.bukkit.util.BoundingBox;
+import org.bukkit.util.Vector;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
     
     protected SpleefConfig spleefConfig = null;
     private World world;
-    private Location startingLocation;
+    private List<Location> startingLocations;
+    private List<Structure> structures;
+    private List<Location> structureOrigins;
+    private List<BoundingBox> decayLayers;
+    private List<Integer> decayRates;
     
     public SpleefStorageUtil(File configDirectory) {
         super(configDirectory, "spleefConfig.json", SpleefConfig.class);
@@ -32,7 +41,24 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
     protected void setConfig(SpleefConfig config) {
         world = Bukkit.getWorld(config.world());
         Preconditions.checkArgument(world != null, "Could not find world \"%s\"", config.world());
-        startingLocation = config.startingLocation().toLocation(world);
+        startingLocations = new ArrayList<>(config.startingLocations().size());
+        for (Vector startingLocation : config.startingLocations()) {
+            startingLocations.add(startingLocation.toLocation(world));
+        }
+        
+        structures = new ArrayList<>(config.layers().size());
+        structureOrigins = new ArrayList<>(config.layers().size());
+        decayLayers = new ArrayList<>(config.layers().size());
+        decayRates = new ArrayList<>(config.layers().size());
+        for (SpleefConfig.Layer layer : config.layers()) {
+            Structure structure = Bukkit.getStructureManager().loadStructure(layer.structure());
+            Preconditions.checkArgument(structure != null, "can't find structure %s", layer.structure());
+            structures.add(structure);
+            structureOrigins.add(layer.structureOrigin().toLocation(world));
+            decayLayers.add(layer.getDecayArea());
+            decayRates.add(layer.decayRate());
+        }
+        
         this.spleefConfig = config;
     }
     
@@ -40,7 +66,9 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
     protected boolean configIsValid(@Nullable SpleefConfig config) throws IllegalArgumentException {
         Preconditions.checkArgument(config != null, "Saved config is null");
         Preconditions.checkArgument(Bukkit.getWorld(config.world()) != null, "Could not find world \"%s\"", config.world());
-        Preconditions.checkArgument(config.startingLocation() != null, "startingLocation can't be null");
+        Preconditions.checkArgument(config.startingLocations() != null, "startingLocations can't be null");
+        Preconditions.checkArgument(config.startingLocations().size() >= 1, "startingLocations must have at least one entry");
+        Preconditions.checkArgument(!config.startingLocations().contains(null), "startingLocations can't contain any null elements");
         Preconditions.checkArgument(config.spectatorArea() != null, "spectatorArea can't be null");
         Preconditions.checkArgument(config.getSpectatorArea().getVolume() >= 1.0, "spectatorArea (%s) must have a volume (%s) of at least 1.0", config.spectatorArea(), config.getSpectatorArea().getVolume());
         Preconditions.checkArgument(config.layers() != null, "layers can't be null");
@@ -51,6 +79,7 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
             Preconditions.checkArgument(Bukkit.getStructureManager().loadStructure(layer.structure()) != null, "Can't find structure %s", layer.structure());
             Preconditions.checkArgument(layer.structureOrigin() != null, "layer.structureOrigin can't be null");
             Preconditions.checkArgument(layer.decayArea() != null, "layer.decayArea can't be null");
+            Preconditions.checkArgument(layer.decayRate() >= 0, "layer.decayRate can't be negative");
         }
         Preconditions.checkArgument(config.scores() != null, "scores can't be null");
         Preconditions.checkArgument(config.durations() != null, "durations can't be null");
@@ -71,8 +100,8 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
         return SpleefStorageUtil.class.getResourceAsStream("exampleSpleefConfig.json");
     }
     
-    public Location getStartingLocation() {
-        return startingLocation;
+    public List<Location> getStartingLocations() {
+        return startingLocations;
     }
     
     public World getWorld() {
@@ -97,5 +126,21 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
     
     public int getSurviveScore() {
         return spleefConfig.scores().survive();
+    }
+    
+    public List<Structure> getStructures() {
+        return structures;
+    }
+    
+    public List<Location> getStructureOrigins() {
+        return structureOrigins;
+    }
+    
+    public List<BoundingBox> getDecayLayers() {
+        return decayLayers;
+    }
+    
+    public List<Integer> getDecayRates() {
+        return decayRates;
     }
 }

@@ -9,9 +9,7 @@ import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
-import org.bukkit.Location;
 import org.bukkit.Bukkit;
-import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
 import org.bukkit.block.structure.Mirror;
 import org.bukkit.block.structure.StructureRotation;
@@ -50,7 +48,6 @@ public class SpleefRound implements Listener {
     private int startCountDownTaskID;
     private final String title = ChatColor.BLUE+"Spleef";
     private final BoundingBox spleefArea = new BoundingBox(-20, 25, -1981, 21, 0, -2021);
-    private final List<BoundingBox> layers;
     private int decayTaskId;
     
     public SpleefRound(Main plugin, GameManager gameManager, SpleefGame spleefGame, SpleefStorageUtil spleefStorageUtil) {
@@ -58,7 +55,6 @@ public class SpleefRound implements Listener {
         this.gameManager = gameManager;
         this.spleefGame = spleefGame;
         this.storageUtil = spleefStorageUtil;
-        this.layers = createLayers();
     }
     
     public void start(List<Player> newParticipants) {
@@ -81,7 +77,7 @@ public class SpleefRound implements Listener {
         participants.add(participant);
         participantsAlive.put(participantUniqueId, true);
         initializeFastBoard(participant);
-        teleportPlayerToStartingPosition(participant);
+        teleportPlayerToRandomStartingPosition(participant);
         participant.getInventory().clear();
         participant.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearStatusEffects(participant);
@@ -253,6 +249,7 @@ public class SpleefRound implements Listener {
     }
     
     private void startDecayTask() {
+        int halfLayerCount = storageUtil.getDecayLayers().size() / 2;
         this.decayTaskId = new BukkitRunnable() {
             private final Random random = new Random();
             private DecayStage decayStage = DecayStage.NONE;
@@ -264,7 +261,9 @@ public class SpleefRound implements Listener {
                         if (count <= 0) {
                             count = storageUtil.getDecayBottomLayersDuration();
                             decayStage = DecayStage.TOP_HALF;
-                            messageAllParticipants(Component.text("Top two levels are decaying")
+                            messageAllParticipants(Component.text("The first ")
+                                    .append(Component.text(halfLayerCount))
+                                    .append(Component.text(" layers are decaying"))
                                     .color(NamedTextColor.YELLOW));
                             return;
                         }
@@ -279,14 +278,14 @@ public class SpleefRound implements Listener {
                         }
                         count--;
                         
-                        decayLayer(layers.get(0), 8);
-                        decayLayer(layers.get(1), 6);
+                        for (int i = 0; i < halfLayerCount; i++) {
+                            decayLayer(storageUtil.getDecayLayers().get(i), storageUtil.getDecayRates().get(i));
+                        }
                     }
                     case BOTTOM_HALF -> {
-                        decayLayer(layers.get(0), 8);
-                        decayLayer(layers.get(1), 6);
-                        decayLayer(layers.get(2), 4);
-                        decayLayer(layers.get(3), 2);
+                        for (int i = 0; i < storageUtil.getDecayLayers().size(); i++) {
+                            decayLayer(storageUtil.getDecayLayers().get(i), storageUtil.getDecayRates().get(i));
+                        }
                     }
                 }
             }
@@ -382,32 +381,10 @@ public class SpleefRound implements Listener {
     }
     
     private void placeLayers() {
-        Structure layer1 = Bukkit.getStructureManager().loadStructure(new NamespacedKey("mctdatapack", "spleef/spleef_layer1"));
-        Structure layer2 = Bukkit.getStructureManager().loadStructure(new NamespacedKey("mctdatapack", "spleef/spleef_layer2"));
-        Structure layer3 = Bukkit.getStructureManager().loadStructure(new NamespacedKey("mctdatapack", "spleef/spleef_layer3"));
-        Structure layer4 = Bukkit.getStructureManager().loadStructure(new NamespacedKey("mctdatapack", "spleef/spleef_layer4"));
-        
-        if (layer1 != null) {
-            layer1.place(new Location(storageUtil.getWorld(), -22, 37, -2022), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
+        for (int i = 0; i < storageUtil.getStructures().size(); i++) {
+            Structure layer = storageUtil.getStructures().get(i);
+            layer.place(storageUtil.getStructureOrigins().get(i), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
         }
-        if (layer2 != null) {
-            layer2.place(new Location(storageUtil.getWorld(), -22, 30, -2022), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
-        }
-        if (layer3 != null) {
-            layer3.place(new Location(storageUtil.getWorld(), -22, 24, -2022), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
-        }
-        if (layer4 != null) {
-            layer4.place(new Location(storageUtil.getWorld(), -22, 19, -2022), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
-        }
-    }
-    
-    private List<BoundingBox> createLayers() {
-        List<BoundingBox> layers = new ArrayList<>(4);
-        layers.add(new BoundingBox(-22, 37, -2022, 22, 37, -1978));
-        layers.add(new BoundingBox(-22, 30, -2022, 22, 30, -1978));
-        layers.add(new BoundingBox(-22, 24, -2022, 22, 24, -1978));
-        layers.add(new BoundingBox(-22, 19, -2022, 22, 19, -1978));
-        return layers;
     }
     
     @EventHandler
@@ -492,9 +469,10 @@ public class SpleefRound implements Listener {
         );
     }
     
-    private void teleportPlayerToStartingPosition(Player player) {
+    private void teleportPlayerToRandomStartingPosition(Player player) {
         player.sendMessage("Teleporting to Spleef");
-        player.teleport(storageUtil.getStartingLocation());
+        int index = new Random().nextInt(storageUtil.getStartingLocations().size());
+        player.teleport(storageUtil.getStartingLocations().get(index));
     }
     
     private void cancelAllTasks() {

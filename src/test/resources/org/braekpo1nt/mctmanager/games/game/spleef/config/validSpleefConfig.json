@@ -1,10 +1,12 @@
 {
   "world": "World",
-  "startingLocation": {
-    "x": 0,
-    "y": 38,
-    "z": -2000
-  },
+  "startingLocations": [
+    {
+      "x": 0,
+      "y": 38,
+      "z": -2000
+    }
+  ],
   "spectatorArea": {
     "minX": 32,
     "minY": 46,
@@ -31,7 +33,8 @@
         "maxX": 22,
         "maxY": 37,
         "maxZ": -1978
-      }
+      },
+      "decayRate": 8
     },
     {
       "structure": {
@@ -50,7 +53,8 @@
         "maxX": 22,
         "maxY": 30,
         "maxZ": -1978
-      }
+      },
+      "decayRate": 6
     },
     {
       "structure": {
@@ -69,7 +73,8 @@
         "maxX": 22,
         "maxY": 24,
         "maxZ": -1978
-      }
+      },
+      "decayRate": 4
     },
     {
       "structure": {
@@ -88,7 +93,8 @@
         "maxX": 22,
         "maxY": 19,
         "maxZ": -1978
-      }
+      },
+      "decayRate": 2
     }
   ],
   "scores": {
