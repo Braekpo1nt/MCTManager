@@ -1,5 +1,32 @@
 {
   "world": "World",
+  "startingLocation" : {
+    "x": 1003,
+    "y": 0,
+    "z": 0
+  },
+  "spectatorArea": {
+    "minX": 0,
+    "minY": 0,
+    "minZ": 0,
+    "maxX": 2,
+    "maxY": 2,
+    "maxZ": 2
+  },
+  "scores": {
+    "checkpoint": [
+      50,
+      45,
+      40,
+      35
+    ],
+    "win": [
+      400,
+      300,
+      200,
+      60
+    ]
+  },
   "durations": {
     "timeLimit": 600,
     "checkpointCounter": 120,
@@ -70,5 +97,6 @@
         "z": 2
       }
     }
-  ]
+  ],
+  "description": {"text":"Parkour Pathway description","color":"dark_blue","bold": true}
 }
