@@ -97,5 +97,6 @@
         "z": 2
       }
     }
-  ]
+  ],
+  "description": {"text":"Parkour Pathway description","color":"dark_blue","bold": true}
 }

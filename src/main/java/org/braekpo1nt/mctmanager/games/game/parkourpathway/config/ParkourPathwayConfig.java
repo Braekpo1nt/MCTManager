@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.parkourpathway.config;
 
+import com.google.gson.JsonObject;
 import org.braekpo1nt.mctmanager.games.game.config.BoundingBoxDTO;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.CheckPoint;
 import org.bukkit.util.BoundingBox;
@@ -7,7 +8,7 @@ import org.bukkit.util.Vector;
 
 import java.util.List;
 
-record ParkourPathwayConfig  (String world, Vector startingLocation, BoundingBoxDTO spectatorArea, Scores scores, Durations durations, List<CheckPointDTO> checkpoints) {
+record ParkourPathwayConfig  (String world, Vector startingLocation, BoundingBoxDTO spectatorArea, Scores scores, Durations durations, List<CheckPointDTO> checkpoints, JsonObject description) {
     
     BoundingBox getSpectatorArea() {
         return spectatorArea.getBoundingBox();

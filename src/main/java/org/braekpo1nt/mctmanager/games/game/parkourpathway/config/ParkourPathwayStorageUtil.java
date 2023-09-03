@@ -1,6 +1,9 @@
 package org.braekpo1nt.mctmanager.games.game.parkourpathway.config;
 
 import com.google.common.base.Preconditions;
+import com.google.gson.JsonIOException;
+import com.google.gson.JsonSyntaxException;
+import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.braekpo1nt.mctmanager.games.game.config.GameConfigStorageUtil;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.CheckPoint;
 import org.bukkit.Bukkit;
@@ -73,6 +76,11 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
                 Preconditions.checkArgument(checkPoint.getDetectionBox().getMaxY() >= lastCheckPoint.yValue(), "checkpoint %s's detectionBox (%s) can't have a maxY (%s) lower than checkpoint %s's yValue (%s)", i, checkPoint.getDetectionBox(), checkPoint.getDetectionBox().getMaxY(), i-1, lastCheckPoint.yValue());
                 
                 Preconditions.checkArgument(!checkPoint.getDetectionBox().contains(lastCheckPoint.respawn()), "checkpoint %s's detectionBox (%s) can't contain checkpoint %s's respawn (%s)", i, checkPoint.getDetectionBox(), i-1, lastCheckPoint.respawn());
+            }
+            try {
+                GsonComponentSerializer.gson().deserializeFromTree(config.description());
+            } catch (JsonIOException | JsonSyntaxException e) {
+                throw new IllegalArgumentException("description is invalid", e);
             }
         }
         return true;
