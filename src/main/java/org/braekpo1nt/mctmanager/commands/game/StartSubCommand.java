@@ -13,7 +13,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 /**
- * Handles starting games
+ * Handles roundStarting games
  */
 public class StartSubCommand implements TabExecutor {
     

@@ -12,7 +12,7 @@ import org.bukkit.util.BoundingBox;
 
 public class BlockPlacementUtils {
     /**
-     * Make a cube of the given material in the given world starting at the given origin and with the given size. 
+     * Make a cube of the given material in the given world roundStarting at the given origin and with the given size. 
      * @param world The world to make the cube in
      * @param xOrigin The minimum x origin of the cube
      * @param yOrigin The minimum y origin of the cube

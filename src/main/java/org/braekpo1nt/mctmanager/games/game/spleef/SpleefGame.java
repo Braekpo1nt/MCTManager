@@ -86,12 +86,24 @@ public class SpleefGame implements MCTGame, Configurable {
     
     @Override
     public void onParticipantJoin(Player participant) {
-        
+        if (!gameActive) {
+            return;
+        }
+        if (currentRoundIndex < rounds.size() && currentRoundIndex >= rounds.size() - 1) {
+            SpleefRound currentRound = rounds.get(currentRoundIndex);
+            currentRound.onParticipantJoin(participant);
+        }
     }
     
     @Override
     public void onParticipantQuit(Player participant) {
-        
+        if (!gameActive) {
+            return;
+        }
+        if (currentRoundIndex < rounds.size() && currentRoundIndex >= rounds.size() - 1) {
+            SpleefRound currentRound = rounds.get(currentRoundIndex);
+            currentRound.onParticipantQuit(participant);
+        }
     }
     
     public void roundIsOver() {
@@ -100,7 +112,7 @@ public class SpleefGame implements MCTGame, Configurable {
             return;
         }
         currentRoundIndex++;
-        this.roundDelayTaskId = Bukkit.getScheduler().runTaskLater(plugin, this::startNextRound, 5*20L).getTaskId();
+        this.roundDelayTaskId = Bukkit.getScheduler().runTaskLater(plugin, this::startNextRound, spleefStorageUtil.getRoundEndingDuration()*20L).getTaskId();
     }
     
     public void startNextRound() {

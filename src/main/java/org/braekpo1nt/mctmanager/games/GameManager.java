@@ -38,7 +38,7 @@ import java.util.*;
 
 /**
  * Responsible for overall game management. 
- * Creating new game instances, starting/stopping games, and handling game events.
+ * Creating new game instances, roundStarting/stopping games, and handling game events.
  */
 public class GameManager implements Listener {
     

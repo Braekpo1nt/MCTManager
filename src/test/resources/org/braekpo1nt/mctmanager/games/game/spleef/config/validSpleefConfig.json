@@ -5,7 +5,7 @@
     "y": 0.0,
     "z": 0.0
   },
-  "spectatorBoundary": {
+  "spectatorArea": {
     "minX": -2.0,
     "minY": -2.0,
     "minZ": -2.0,
@@ -17,7 +17,9 @@
     "survive": 10
   },
   "durations": {
+    "roundStarting": 10,
     "decayTopLayers": 60,
-    "decayBottomLayers": 60
+    "decayBottomLayers": 60,
+    "roundEnding": 5
   }
 }

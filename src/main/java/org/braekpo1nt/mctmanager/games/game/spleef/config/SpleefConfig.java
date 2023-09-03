@@ -3,17 +3,16 @@ package org.braekpo1nt.mctmanager.games.game.spleef.config;
 import org.braekpo1nt.mctmanager.games.game.config.BoundingBoxDTO;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
-import org.jetbrains.annotations.NotNull;
 
-public record SpleefConfig(String world, Vector startingLocation, BoundingBoxDTO spectatorBoundary, Scores scores, Durations durations) {
+public record SpleefConfig(String world, Vector startingLocation, BoundingBoxDTO spectatorArea, Scores scores, Durations durations) {
     
-    public BoundingBox getSpectatorBoundary() {
-        return spectatorBoundary.getBoundingBox();
+    public BoundingBox getSpectatorArea() {
+        return spectatorArea.getBoundingBox();
     }
     
     public record Scores(int survive) {
     }
     
-    public record Durations(int decayTopLayers, int decayBottomLayers) {
+    public record Durations(int roundStarting, int decayTopLayers, int decayBottomLayers, int roundEnding) {
     }
 }
