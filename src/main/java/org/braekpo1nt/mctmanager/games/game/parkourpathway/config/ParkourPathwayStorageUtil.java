@@ -50,7 +50,13 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
         Preconditions.checkArgument(config.startingLocation() != null, "startingLocation can't be null");
         Preconditions.checkArgument(config.spectatorArea() != null, "spectatorArea can't be null");
         Preconditions.checkArgument(config.getSpectatorArea().getVolume() >= 1.0, "getSpectatorArea's volume (%s) can't be less than 1. %s", config.getSpectatorArea().getVolume(), config.getSpectatorArea());
+        Preconditions.checkArgument(config.scores() != null, "scores can't be null");
+        Preconditions.checkArgument(config.scores().checkpoint() != null, "scores.checkpoint can't be null");
+        Preconditions.checkArgument(config.scores().checkpoint().length >= 2, "scores.checkpoint must have at least two elements");
+        Preconditions.checkArgument(config.scores().win() != null, "scores.win can't be null");
+        Preconditions.checkArgument(config.scores().win().length >= 2, "scores.win must have at least two elements");
         Preconditions.checkArgument(config.durations() != null, "durations can't be null");
+        Preconditions.checkArgument(config.durations().starting() >= 0, "durations.starting (%s) can't be negative", config.durations().starting());
         Preconditions.checkArgument(config.durations().timeLimit() >= 2, "durations.timeLimit (%s) can't be less than 2", config.durations().timeLimit());
         Preconditions.checkArgument(config.durations().checkpointCounter() >= 1, "durations.checkpointCounter (%s) can't be less than 1", config.durations().checkpointCounter());
         Preconditions.checkArgument(config.durations().checkpointCounterAlert() >= 1 && config.durations().checkpointCounter() >= config.durations().checkpointCounterAlert(), "durations.checkpointCounterAlert (%s) can't be less than 0 or greater than durations.checkpointCounter", config.durations().checkpointCounterAlert());
@@ -81,24 +87,28 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
         return checkPoints;
     }
     
+    public int getStartingDuration() {
+        return parkourPathwayConfig.durations().starting();
+    }
+    
     /**
      * @return the time limit for the entire game
      */
-    public int getTimeLimit() {
+    public int getTimeLimitDuration() {
         return parkourPathwayConfig.durations().timeLimit();
     }
     
     /**
      * @return how long (in seconds) the game should wait before declaring that no one has made it to a new checkpoint and ending the game
      */
-    public int getCheckpointCounter() {
+    public int getCheckpointCounterDuration() {
         return parkourPathwayConfig.durations().checkpointCounter();
     }
     
     /**
      * @return How much time (seconds) should be left in the checkpointCounter before you start displaying the countdown to the users
      */
-    public int getCheckpointCounterAlert() {
+    public int getCheckpointCounterAlertDuration() {
         return parkourPathwayConfig.durations().checkpointCounterAlert();
     }
     
@@ -108,5 +118,13 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
     
     public Location getStartingLocation() {
         return startingLocation;
+    }
+    
+    public int[] getCheckpointScore() {
+        return parkourPathwayConfig.scores().checkpoint();
+    }
+    
+    public int[] getWinScore() {
+        return parkourPathwayConfig.scores().win();
     }
 }

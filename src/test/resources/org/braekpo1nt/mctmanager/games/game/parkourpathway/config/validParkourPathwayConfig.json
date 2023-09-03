@@ -1,10 +1,5 @@
 {
   "world": "World",
-  "durations": {
-    "timeLimit": 600,
-    "checkpointCounter": 120,
-    "checkpointCounterAlert": 30
-  },
   "startingLocation" : {
     "x": 1003,
     "y": 0,
@@ -17,6 +12,25 @@
     "maxX": 2,
     "maxY": 2,
     "maxZ": 2
+  },
+  "scores": {
+    "checkpoint": [
+      50,
+      45,
+      40,
+      35
+    ],
+    "win": [
+      400,
+      300,
+      200,
+      60
+    ]
+  },
+  "durations": {
+    "timeLimit": 600,
+    "checkpointCounter": 120,
+    "checkpointCounterAlert": 30
   },
   "checkpoints": [
     {

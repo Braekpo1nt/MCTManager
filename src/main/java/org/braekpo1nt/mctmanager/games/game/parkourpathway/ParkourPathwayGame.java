@@ -89,7 +89,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener {
     
     private void startStartGameCountDown() {
         this.startParkourPathwayTaskId = new BukkitRunnable() {
-            int count = 10;
+            int count = storageUtil.getStartingDuration();
             @Override
             public void run() {
                 if (count <= 0) {
@@ -213,7 +213,8 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener {
                         .append(Component.text(nextCheckpointIndex))
                         .append(Component.text("/"))
                         .append(Component.text(storageUtil.getCheckPoints().size()-1)));
-                int points = calculatePointsForCheckpoint(playerUUID);
+                int playersCheckpoint = currentCheckpoints.get(playerUUID);
+                int points = calculatePointsForCheckpoint(playersCheckpoint, storageUtil.getCheckpointScore());
                 gameManager.awardPointsToParticipant(player, points);
             }
             if (allPlayersHaveFinished()) {
@@ -235,7 +236,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener {
         messageAllParticipants(Component.empty()
                 .append(Component.text(participant.getName()))
                 .append(Component.text(" finished!")));
-        int points = calculatePointsForWin(participant.getUniqueId());
+        int points = calculatePointsForWin(storageUtil.getWinScore());
         gameManager.awardPointsToParticipant(participant, points);
         participant.setGameMode(GameMode.SPECTATOR);
         finishedParticipants.add(participant.getUniqueId());
@@ -252,51 +253,43 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener {
         //all players are at finish line
         return true;
     }
-
-    private int calculatePointsForCheckpoint(UUID playerUUID) {
-        int playersCheckpoint = currentCheckpoints.get(playerUUID);
-        int count = 0;
+    
+    /**
+     * Calculates the points for playersCheckpoint based on how many players have reached or passed that playersCheckpoint. If checkpointScores has x elements, the nth player to arrive at playersCheckpoint gets the checkpointScores[n-1], unless n is greater than or equal to x, in which case they get checkpointScores[x-1]
+     * @param playersCheckpoint the checkpoint to get the points for
+     * @param checkpointScores the scores to progress through. The last score is to give to everyone who didn't make the one of the other specified scores.
+     * @return the points for playersCheckpoint
+     */
+    private int calculatePointsForCheckpoint(int playersCheckpoint, int[] checkpointScores) {
+        int numWhoReachedOrPassedCheckpoint = 0;
         for (int checkpointIndex : currentCheckpoints.values()) {
             if (checkpointIndex >= playersCheckpoint) {
-                count++;
+                numWhoReachedOrPassedCheckpoint++;
             }
         }
-        switch (count) {
-            case 1 -> {
-                return 50;
-            }
-            case 2 -> {
-                return 45;
-            }
-            case 3 -> {
-                return 40;
-            }
-            default -> {
-                return 35;
-            }
+        if (numWhoReachedOrPassedCheckpoint < checkpointScores.length) {
+            return checkpointScores[numWhoReachedOrPassedCheckpoint - 1];
+        } else {
+            return checkpointScores[checkpointScores.length - 1];
         }
     }
     
-    private int calculatePointsForWin(UUID playerUUID) {
+    /**
+     * Calculates the number of points for a win, based on how many players have currently won. If winScores has x elements, the nth player to win will get winScores[n-1] points, unless n is greater than or equal to x in which case they get winScores[x-1]
+     * @param winScores the scores to progress through. The last score is to give to everyone who didn't make one of the other specified scores. 
+     * @return the points for the most recent player win
+     */
+    private int calculatePointsForWin(int[] winScores) {
         int numberOfWins = 0;
         for (int checkpointIndex : currentCheckpoints.values()) {
             if (checkpointIndex >= storageUtil.getCheckPoints().size() - 1) {
                 numberOfWins++;
             }
         }
-        switch (numberOfWins) {
-            case 1 -> {
-                return 400;
-            }
-            case 2 -> {
-                return 300;
-            }
-            case 3 -> {
-                return 200;
-            }
-            default -> {
-                return 60;
-            }
+        if (numberOfWins < winScores.length) {
+            return winScores[numberOfWins - 1];
+        } else {
+            return winScores[winScores.length - 1];
         }
     }
     
@@ -305,8 +298,8 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener {
         for (Player participant : participants){
             resetCheckpointFastBoardTimer(participant);
         }
-        int checkpointCounter = storageUtil.getCheckpointCounter();
-        int checkpointCounterAlert = storageUtil.getCheckpointCounterAlert();
+        int checkpointCounter = storageUtil.getCheckpointCounterDuration();
+        int checkpointCounterAlert = storageUtil.getCheckpointCounterAlertDuration();
         this.checkpointCounterTask = new BukkitRunnable() {
             int count = checkpointCounter;
             @Override
@@ -341,7 +334,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener {
     }
 
     private void startParkourPathwayTimer() {
-        int timeLimit = storageUtil.getTimeLimit();
+        int timeLimit = storageUtil.getTimeLimitDuration();
         this.startNextRoundTimerTaskId = new BukkitRunnable() {
             int count = timeLimit;
             @Override

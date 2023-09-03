@@ -7,13 +7,21 @@ import org.bukkit.util.Vector;
 
 import java.util.List;
 
-public record ParkourPathwayConfig  (String world, Vector startingLocation, BoundingBoxDTO spectatorArea, Durations durations, List<CheckPointDTO> checkpoints) {
+record ParkourPathwayConfig  (String world, Vector startingLocation, BoundingBoxDTO spectatorArea, Scores scores, Durations durations, List<CheckPointDTO> checkpoints) {
     
-    public BoundingBox getSpectatorArea() {
+    BoundingBox getSpectatorArea() {
         return spectatorArea.getBoundingBox();
     }
     
-    public record Durations(int timeLimit, int checkpointCounter, int checkpointCounterAlert) {
+    /**
+     * 
+     * @param checkpoint points for reaching checkpoints. for x elements, nth score will be awarded unless n is greater than or equal to x in which case the xth score will be awarded 
+     * @param win points for winning. for x elements, nth score will be awarded unless n is greater than or equal to x in which case the xth score will be awarded 
+     */
+    record Scores(int[] checkpoint, int[] win) {
+    }
+    
+    record Durations(int starting, int timeLimit, int checkpointCounter, int checkpointCounterAlert) {
     }
     
     /**
@@ -23,7 +31,7 @@ public record ParkourPathwayConfig  (String world, Vector startingLocation, Boun
      * @param detectionBox the box that is checked to see if the player entered this checkpoint
      * @param respawn the position to teleport back to if the player falls below the yValue
      */
-    public record CheckPointDTO(double yValue, BoundingBoxDTO detectionBox, Vector respawn) {
+    record CheckPointDTO(double yValue, BoundingBoxDTO detectionBox, Vector respawn) {
         public BoundingBox getDetectionBox() {
             return detectionBox.getBoundingBox();
         }
