@@ -33,7 +33,7 @@ record ParkourPathwayConfig  (String world, Vector startingLocation, BoundingBox
      * @param respawn the position to teleport back to if the player falls below the yValue
      */
     record CheckPointDTO(double yValue, BoundingBoxDTO detectionBox, Vector respawn) {
-        public BoundingBox getDetectionBox() {
+        BoundingBox getDetectionBox() {
             return detectionBox.getBoundingBox();
         }
     }
