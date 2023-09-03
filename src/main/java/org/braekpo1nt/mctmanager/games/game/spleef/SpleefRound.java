@@ -401,6 +401,15 @@ public class SpleefRound implements Listener {
         }
     }
     
+    private List<BoundingBox> createLayers() {
+        List<BoundingBox> layers = new ArrayList<>(4);
+        layers.add(new BoundingBox(-22, 37, -2022, 22, 37, -1978));
+        layers.add(new BoundingBox(-22, 30, -2022, 22, 30, -1978));
+        layers.add(new BoundingBox(-22, 24, -2022, 22, 24, -1978));
+        layers.add(new BoundingBox(-22, 19, -2022, 22, 19, -1978));
+        return layers;
+    }
+    
     @EventHandler
     public void onBlockBreak(BlockBreakEvent event) {
         if (!roundActive) {
@@ -504,14 +513,5 @@ public class SpleefRound implements Listener {
     private int calculateExpPoints(int level) {
         int maxExpPoints = level > 7 ? 100 : level * 7;
         return maxExpPoints / 10;
-    }
-    
-    private List<BoundingBox> createLayers() {
-        List<BoundingBox> layers = new ArrayList<>(4);
-        layers.add(new BoundingBox(-22, 37, -2023, 22, 37, -1978));
-        layers.add(new BoundingBox(-22, 30, -2023, 22, 30, -1978));
-        layers.add(new BoundingBox(-22, 24, -2023, 22, 24, -1978));
-        layers.add(new BoundingBox(-22, 19, -2023, 22, 19, -1978));
-        return layers;
     }
 }

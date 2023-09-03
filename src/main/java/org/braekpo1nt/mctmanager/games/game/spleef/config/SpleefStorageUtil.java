@@ -43,6 +43,15 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
         Preconditions.checkArgument(config.startingLocation() != null, "startingLocation can't be null");
         Preconditions.checkArgument(config.spectatorArea() != null, "spectatorArea can't be null");
         Preconditions.checkArgument(config.getSpectatorArea().getVolume() >= 1.0, "spectatorArea (%s) must have a volume (%s) of at least 1.0", config.spectatorArea(), config.getSpectatorArea().getVolume());
+        Preconditions.checkArgument(config.layers() != null, "layers can't be null");
+        Preconditions.checkArgument(config.layers().size() >= 2, "there must be at least 2 layers");
+        for (SpleefConfig.Layer layer : config.layers()) {
+            Preconditions.checkArgument(layer != null, "layers can't contain any null elements");
+            Preconditions.checkArgument(layer.structure() != null, "layer.structure can't be null");
+            Preconditions.checkArgument(Bukkit.getStructureManager().loadStructure(layer.structure()) != null, "Can't find structure %s", layer.structure());
+            Preconditions.checkArgument(layer.structureOrigin() != null, "layer.structureOrigin can't be null");
+            Preconditions.checkArgument(layer.decayArea() != null, "layer.decayArea can't be null");
+        }
         Preconditions.checkArgument(config.scores() != null, "scores can't be null");
         Preconditions.checkArgument(config.durations() != null, "durations can't be null");
         Preconditions.checkArgument(config.durations().roundStarting() >= 0, "durations.roundStarting (%s) can't be negative", config.durations().roundStarting());

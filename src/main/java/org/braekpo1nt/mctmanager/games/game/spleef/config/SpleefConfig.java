@@ -2,18 +2,32 @@ package org.braekpo1nt.mctmanager.games.game.spleef.config;
 
 import com.google.gson.JsonObject;
 import org.braekpo1nt.mctmanager.games.game.config.BoundingBoxDTO;
+import org.bukkit.NamespacedKey;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
-public record SpleefConfig(String world, Vector startingLocation, BoundingBoxDTO spectatorArea, Scores scores, Durations durations, JsonObject description) {
+import java.util.List;
+
+record SpleefConfig(String world, Vector startingLocation, BoundingBoxDTO spectatorArea, List<Layer> layers, Scores scores, Durations durations, JsonObject description) {
     
-    public BoundingBox getSpectatorArea() {
+    BoundingBox getSpectatorArea() {
         return spectatorArea.getBoundingBox();
     }
     
-    public record Scores(int survive) {
+    /**
+     * @param structure the NamespacedKey of the structure to place for this layer
+     * @param structureOrigin the origin to place the structure at
+     * @param decayArea the area in which to decay blocks for this layer
+     */
+    record Layer(NamespacedKey structure, Vector structureOrigin, BoundingBoxDTO decayArea) {
+        BoundingBox getDecayArea() {
+            return decayArea.getBoundingBox();
+        }
     }
     
-    public record Durations(int roundStarting, int decayTopLayers, int decayBottomLayers, int roundEnding) {
+    record Scores(int survive) {
+    }
+    
+    record Durations(int roundStarting, int decayTopLayers, int decayBottomLayers, int roundEnding) {
     }
 }
