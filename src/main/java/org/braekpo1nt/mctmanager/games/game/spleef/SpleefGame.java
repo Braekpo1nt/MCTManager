@@ -16,7 +16,7 @@ import java.util.*;
 public class SpleefGame implements MCTGame, Configurable {
     private final Main plugin;
     private final GameManager gameManager;
-    private final SpleefStorageUtil spleefStorageUtil;
+    private final SpleefStorageUtil storageUtil;
     private final String title = ChatColor.BLUE+"Spleef";
     private List<Player> participants = new ArrayList<>();
     private List<SpleefRound> rounds;
@@ -27,7 +27,7 @@ public class SpleefGame implements MCTGame, Configurable {
     public SpleefGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
         this.gameManager = gameManager;
-        this.spleefStorageUtil = new SpleefStorageUtil(plugin.getDataFolder());
+        this.storageUtil = new SpleefStorageUtil(plugin.getDataFolder());
     }
     
     @Override
@@ -37,16 +37,16 @@ public class SpleefGame implements MCTGame, Configurable {
     
     @Override
     public boolean loadConfig() throws IllegalArgumentException {
-        return spleefStorageUtil.loadConfig();
+        return storageUtil.loadConfig();
     }
     
     @Override
     public void start(List<Player> newParticipants) {
         participants = new ArrayList<>(newParticipants.size());
         rounds = new ArrayList<>(3);
-        rounds.add(new SpleefRound(plugin, gameManager, this, spleefStorageUtil));
-        rounds.add(new SpleefRound(plugin, gameManager, this, spleefStorageUtil));
-        rounds.add(new SpleefRound(plugin, gameManager, this, spleefStorageUtil));
+        rounds.add(new SpleefRound(plugin, gameManager, this, storageUtil));
+        rounds.add(new SpleefRound(plugin, gameManager, this, storageUtil));
+        rounds.add(new SpleefRound(plugin, gameManager, this, storageUtil));
         currentRoundIndex = 0;
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
@@ -112,7 +112,7 @@ public class SpleefGame implements MCTGame, Configurable {
             return;
         }
         currentRoundIndex++;
-        this.roundDelayTaskId = Bukkit.getScheduler().runTaskLater(plugin, this::startNextRound, spleefStorageUtil.getRoundEndingDuration()*20L).getTaskId();
+        this.roundDelayTaskId = Bukkit.getScheduler().runTaskLater(plugin, this::startNextRound, storageUtil.getRoundEndingDuration()*20L).getTaskId();
     }
     
     public void startNextRound() {

@@ -21,5 +21,6 @@
     "decayTopLayers": 60,
     "decayBottomLayers": 60,
     "roundEnding": 5
-  }
+  },
+  "description": {"text":"Spleef description","color":"dark_blue","bold": true}
 }

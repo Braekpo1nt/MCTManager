@@ -5,19 +5,22 @@
     "y": 0.0,
     "z": 0.0
   },
-  "spectatorBoundary": {
-    "minX": 0.0,
-    "minY": 0.0,
-    "minZ": 0.0,
-    "maxX": 0.0,
-    "maxY": 0.0,
-    "maxZ": 0.0
+  "spectatorArea": {
+    "minX": 0,
+    "minY": 0,
+    "minZ": 0,
+    "maxX": 0,
+    "maxY": 0,
+    "maxZ": 0
   },
   "scores": {
     "survive": 10
   },
   "durations": {
+    "roundStarting": 10,
     "decayTopLayers": 60,
-    "decayBottomLayers": 60
-  }
+    "decayBottomLayers": 60,
+    "roundEnding": 5
+  },
+  "description": {"text":"Spleef description","color":"dark_blue","bold": true}
 }

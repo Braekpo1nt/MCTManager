@@ -1,6 +1,9 @@
 package org.braekpo1nt.mctmanager.games.game.spleef.config;
 
 import com.google.common.base.Preconditions;
+import com.google.gson.JsonIOException;
+import com.google.gson.JsonSyntaxException;
+import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.braekpo1nt.mctmanager.games.game.config.GameConfigStorageUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -46,6 +49,11 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
         Preconditions.checkArgument(config.durations().decayTopLayers() >= 0, "durations.decayTopLayers (%s) can't be negative", config.durations().decayTopLayers());
         Preconditions.checkArgument(config.durations().decayBottomLayers() >= 0, "duration.decayBottomLayers (%s) can't be negative", config.durations().decayBottomLayers());
         Preconditions.checkArgument(config.durations().roundEnding() >= 0, "duration.roundEnding (%s) can't be negative", config.durations().roundEnding());
+        try {
+            GsonComponentSerializer.gson().deserializeFromTree(config.description());
+        } catch (JsonIOException | JsonSyntaxException e) {
+            throw new IllegalArgumentException("description is invalid", e);
+        }
         return true;
     }
     
