@@ -43,10 +43,10 @@ public class SpleefGame implements MCTGame, Configurable {
     @Override
     public void start(List<Player> newParticipants) {
         participants = new ArrayList<>(newParticipants.size());
-        rounds = new ArrayList<>(3);
-        rounds.add(new SpleefRound(plugin, gameManager, this, storageUtil));
-        rounds.add(new SpleefRound(plugin, gameManager, this, storageUtil));
-        rounds.add(new SpleefRound(plugin, gameManager, this, storageUtil));
+        rounds = new ArrayList<>(storageUtil.getRounds());
+        for (int i = 0; i < storageUtil.getRounds(); i++) {
+            rounds.add(new SpleefRound(plugin, gameManager, this, storageUtil));
+        }
         currentRoundIndex = 0;
         for (Player participant : newParticipants) {
             initializeParticipant(participant);

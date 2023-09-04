@@ -81,6 +81,7 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
             Preconditions.checkArgument(layer.decayArea() != null, "layer.decayArea can't be null");
             Preconditions.checkArgument(layer.decayRate() >= 0, "layer.decayRate can't be negative");
         }
+        Preconditions.checkArgument(config.rounds() >= 1, "rounds must be greater than 0");
         Preconditions.checkArgument(config.scores() != null, "scores can't be null");
         Preconditions.checkArgument(config.durations() != null, "durations can't be null");
         Preconditions.checkArgument(config.durations().roundStarting() >= 0, "durations.roundStarting (%s) can't be negative", config.durations().roundStarting());
@@ -142,5 +143,9 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
     
     public List<Integer> getDecayRates() {
         return decayRates;
+    }
+
+    public int getRounds() {
+        return spleefConfig.rounds();
     }
 }

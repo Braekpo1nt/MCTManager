@@ -97,6 +97,7 @@
       "decayRate": 2
     }
   ],
+  "rounds": 3,
   "scores": {
     "survive": 10
   },
