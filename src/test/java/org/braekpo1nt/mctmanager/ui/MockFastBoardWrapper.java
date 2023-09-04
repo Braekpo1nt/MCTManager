@@ -1,6 +1,6 @@
 package org.braekpo1nt.mctmanager.ui;
 
-public class MockFastBoardWrapper extends FastBoardWrapper {
+class MockFastBoardWrapper extends FastBoardWrapper {
     
     private String[] lines;
     

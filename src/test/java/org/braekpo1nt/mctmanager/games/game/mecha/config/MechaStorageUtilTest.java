@@ -14,7 +14,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.util.logging.Level;
 
-public class MechaStorageUtilTest {
+class MechaStorageUtilTest {
     String validConfigFile = "validMechaConfig.json";
     String invalidConfigFile = "invalidMechaConfig.json";
     String configFileName = "mechaConfig.json";

@@ -8,11 +8,6 @@ import org.braekpo1nt.mctmanager.MyCustomServerMock;
 import org.braekpo1nt.mctmanager.MyPlayerMock;
 import org.braekpo1nt.mctmanager.TestUtils;
 import org.braekpo1nt.mctmanager.games.GameManager;
-import org.braekpo1nt.mctmanager.games.game.capturetheflag.CaptureTheFlagGame;
-import org.braekpo1nt.mctmanager.games.game.capturetheflag.CaptureTheFlagMatch;
-import org.braekpo1nt.mctmanager.games.game.capturetheflag.CaptureTheFlagRound;
-import org.braekpo1nt.mctmanager.games.game.capturetheflag.ClassPicker;
-import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlagStorageUtilTest;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.gamestate.MockGameStateStorageUtil;
 import org.braekpo1nt.mctmanager.ui.MockFastBoardManager;
@@ -27,7 +22,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
 
-public class CaptureTheFlagTest {
+class CaptureTheFlagTest {
     
     private ServerMock server;
     private Main plugin;
@@ -53,7 +48,7 @@ public class CaptureTheFlagTest {
         MockGameStateStorageUtil mockGameStateStorageUtil = new MockGameStateStorageUtil(plugin);
         gameManager.setGameStateStorageUtil(mockGameStateStorageUtil);
         sender = server.getConsoleSender();
-        InputStream inputStream = CaptureTheFlagStorageUtilTest.class.getResourceAsStream("validCaptureTheFlagConfig.json");
+        InputStream inputStream = CaptureTheFlagTest.class.getResourceAsStream("config/validCaptureTheFlagConfig.json");
         TestUtils.copyInputStreamToFile(inputStream, new File(plugin.getDataFolder(), "captureTheFlagConfig.json"));
     }
     

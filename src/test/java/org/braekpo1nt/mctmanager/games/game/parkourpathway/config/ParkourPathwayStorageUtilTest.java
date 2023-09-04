@@ -14,7 +14,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.util.logging.Level;
 
-public class ParkourPathwayStorageUtilTest {
+class ParkourPathwayStorageUtilTest {
     String validConfigFile = "validParkourPathwayConfig.json";
     String invalidConfigFile = "invalidParkourPathwayConfig.json";
     String configFileName = "parkourPathwayConfig.json";

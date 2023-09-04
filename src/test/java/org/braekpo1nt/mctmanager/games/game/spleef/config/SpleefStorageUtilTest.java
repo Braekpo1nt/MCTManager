@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
 import java.io.*;
 import java.util.logging.Level;
 
-public class SpleefStorageUtilTest {
+class SpleefStorageUtilTest {
 
     String validConfigFile = "validSpleefConfig.json";
     String invalidConfigFile = "invalidSpleefConfig.json";
