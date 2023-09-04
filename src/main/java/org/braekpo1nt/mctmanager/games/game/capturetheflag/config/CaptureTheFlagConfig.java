@@ -10,12 +10,12 @@ import java.util.List;
 
 record CaptureTheFlagConfig(String world, Vector spawnObservatory, List<ArenaDTO> arenas, BoundingBoxDTO spectatorArea, Scores scores, Durations durations) {
     
-    public BoundingBox getSpectatorArea() {
+    BoundingBox getSpectatorArea() {
         return spectatorArea.getBoundingBox();
     }
     
-    public record ArenaDTO(Vector northSpawn, Vector southSpawn, Vector northFlag, Vector southFlag, Vector northBarrier, Vector southBarrier, Arena.BarrierSize barrierSize, BoundingBoxDTO boundingBox) {
-        public BoundingBox getBoundingBox() {
+    record ArenaDTO(Vector northSpawn, Vector southSpawn, Vector northFlag, Vector southFlag, Vector northBarrier, Vector southBarrier, Arena.BarrierSize barrierSize, BoundingBoxDTO boundingBox) {
+        BoundingBox getBoundingBox() {
             return boundingBox.getBoundingBox();
         }
     }
@@ -25,7 +25,7 @@ record CaptureTheFlagConfig(String world, Vector spawnObservatory, List<ArenaDTO
      * @param kill the number of points to award for getting a kill
      * @param win the number of points to award for winning a match
      */
-    public record Scores(int kill, int win) {
+    record Scores(int kill, int win) {
     }
     
     /**
@@ -34,6 +34,6 @@ record CaptureTheFlagConfig(String world, Vector spawnObservatory, List<ArenaDTO
      * @param classSelection the duration (in seconds) of the class selection period
      * @param roundTimer the duration (in seconds) of each round
      */
-    public record Durations(int matchesStarting, int classSelection, int roundTimer) {
+    record Durations(int matchesStarting, int classSelection, int roundTimer) {
     }
 }

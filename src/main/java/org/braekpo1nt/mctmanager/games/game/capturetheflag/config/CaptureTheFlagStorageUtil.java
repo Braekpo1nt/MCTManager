@@ -111,4 +111,24 @@ public class CaptureTheFlagStorageUtil extends GameConfigStorageUtil<CaptureTheF
     public List<Arena> getArenas() {
         return arenas;
     }
+    
+    public int getMatchesStartingDuration() {
+        return captureTheFlagConfig.durations().matchesStarting();
+    }
+    
+    public int getRoundTimerDuration() {
+        return captureTheFlagConfig.durations().roundTimer();
+    }
+    
+    public int getClassSelectionDuration() {
+        return captureTheFlagConfig.durations().classSelection();
+    }
+    
+    public int getWinScore() {
+        return captureTheFlagConfig.scores().win();
+    }
+    
+    public int getKillScore() {
+        return captureTheFlagConfig.scores().kill();
+    }
 }

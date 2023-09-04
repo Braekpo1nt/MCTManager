@@ -58,4 +58,11 @@ public class ParkourPathwayStorageUtilTest {
         TestUtils.copyInputStreamToFile(inputStream, new File(plugin.getDataFolder(), configFileName));
         Assertions.assertThrows(IllegalArgumentException.class, storageUtil::loadConfig);
     }
+    
+    @Test
+    void exampleJson() {
+        InputStream inputStream = storageUtil.getExampleResourceStream();
+        TestUtils.copyInputStreamToFile(inputStream, new File(plugin.getDataFolder(), configFileName));
+        Assertions.assertTrue(storageUtil.loadConfig());
+    }
 }

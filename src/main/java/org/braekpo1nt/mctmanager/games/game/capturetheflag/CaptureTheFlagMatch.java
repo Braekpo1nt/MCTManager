@@ -370,7 +370,7 @@ public class CaptureTheFlagMatch implements Listener {
             return;
         }
         addKill(killer.getUniqueId());
-        gameManager.awardPointsToParticipant(killer, storageUtil.getScores().kill());
+        gameManager.awardPointsToParticipant(killer, storageUtil.getKillScore());
     }
     
     private void addKill(UUID killerUniqueId) {
@@ -657,7 +657,7 @@ public class CaptureTheFlagMatch implements Listener {
                 .append(losingTeamDisplayName)
                 .append(Component.text("'s flag!"))
                 .color(NamedTextColor.YELLOW));
-        gameManager.awardPointsToTeam(winningTeam, storageUtil.getScores().win());
+        gameManager.awardPointsToTeam(winningTeam, storageUtil.getWinScore());
         matchIsOver();
     }
     
@@ -673,7 +673,7 @@ public class CaptureTheFlagMatch implements Listener {
         southClassPicker.start(plugin, southParticipants);
         
         this.classSelectionCountdownTaskIt = new BukkitRunnable() {
-            private int count = storageUtil.getDurations().classSelection();
+            private int count = storageUtil.getClassSelectionDuration();
             @Override
             public void run() {
                 if (count <= 0) {
@@ -694,7 +694,7 @@ public class CaptureTheFlagMatch implements Listener {
     
     private void startMatchTimer() {
         this.matchTimerTaskId = new BukkitRunnable() {
-            int count = storageUtil.getDurations().roundTimer();
+            int count = storageUtil.getRoundTimerDuration();
             @Override
             public void run() {
                 if (count <= 0) {
