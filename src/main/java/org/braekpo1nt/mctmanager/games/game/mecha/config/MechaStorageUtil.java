@@ -41,28 +41,6 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
     }
     
     @Override
-    protected void setConfig(MechaConfig config) {
-        world = Bukkit.getWorld(config.world());
-        Preconditions.checkArgument(world != null, "Could not find world \"%s\"", config.world());
-        List<MechaConfig.WeightedNamespacedKey> weightedNamespacedKeys = config.weightedMechaLootTables();
-        weightedMechaLootTables = new HashMap<>(weightedNamespacedKeys.size());
-        for (MechaConfig.WeightedNamespacedKey weightedNamespacedKey : weightedNamespacedKeys) {
-            String namespace = weightedNamespacedKey.namespace();
-            String key = weightedNamespacedKey.key();
-            int weight = weightedNamespacedKey.weight();
-            LootTable lootTable = Bukkit.getLootTable(new NamespacedKey(namespace, key));
-            weightedMechaLootTables.put(lootTable, weight);
-        }
-        platformsStructure = Bukkit.getStructureManager().loadStructure(config.platformsStructure());
-        Preconditions.checkArgument(platformsStructure != null, "Can't find platformsStructure %s", config.platformsStructure());
-        platformsRemovedStructure = Bukkit.getStructureManager().loadStructure(mechaConfig.platformsRemovedStructure());
-        Preconditions.checkArgument(platformsRemovedStructure != null, "Can't find platformsRemovedStructure %s", config.platformsRemovedStructure());
-        platformsOrigin = config.platformsOrigin().toLocation(world);
-        description = GsonComponentSerializer.gson().deserializeFromTree(config.description());
-        this.mechaConfig = config;
-    }
-    
-    @Override
     protected boolean configIsValid(@Nullable MechaConfig config) {
         Preconditions.checkArgument(config != null, "Saved config is null");
         Preconditions.checkArgument(config.version() != null, 
@@ -93,7 +71,7 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
             Preconditions.checkArgument(borderStage.duration() >= 0, 
                     "borderStage.duration (%S) can't be negative", borderStage.duration());
         }
-        Preconditions.checkArgument(!lootTableDoesNotExist(config.spawnLootTable()), 
+        Preconditions.checkArgument(lootTableExists(config.spawnLootTable()), 
                 "Could not find spawn loot table \"%s\"", config.spawnLootTable());
         Preconditions.checkArgument(config.weightedMechaLootTables() != null, 
                 "weightedMechaLootTables can't be null");
@@ -105,7 +83,7 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
             Preconditions.checkArgument(weightedNamespacedKey.key() != null, 
                     "weightedNamespacedKey.key can't be null");
             NamespacedKey namespacedKey = new NamespacedKey(weightedNamespacedKey.namespace(), weightedNamespacedKey.key());
-            Preconditions.checkArgument(!lootTableDoesNotExist(namespacedKey), 
+            Preconditions.checkArgument(lootTableExists(namespacedKey), 
                     "Could not find loot table \"%s\"", namespacedKey);
             Preconditions.checkArgument(weightedNamespacedKey.weight() >= 1, 
                     "weightedNamespacedKey (%s) can't have a weight (%s) less than 1", namespacedKey, weightedNamespacedKey.weight());
@@ -154,8 +132,37 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
         return true;
     }
     
-    private boolean lootTableDoesNotExist(@Nullable NamespacedKey lootTable) {
-        return lootTable != null && Bukkit.getLootTable(lootTable) == null;
+    @Override
+    protected void setConfig(MechaConfig config) {
+        World newWorld = Bukkit.getWorld(config.world());
+        Preconditions.checkArgument(newWorld != null, "Could not find world \"%s\"", config.world());
+        List<MechaConfig.WeightedNamespacedKey> weightedNamespacedKeys = config.weightedMechaLootTables();
+        HashMap<LootTable, Integer> newWeightedMechaLootTables  = new HashMap<>(weightedNamespacedKeys.size());
+        for (MechaConfig.WeightedNamespacedKey weightedNamespacedKey : weightedNamespacedKeys) {
+            String namespace = weightedNamespacedKey.namespace();
+            String key = weightedNamespacedKey.key();
+            int weight = weightedNamespacedKey.weight();
+            LootTable lootTable = Bukkit.getLootTable(new NamespacedKey(namespace, key));
+            newWeightedMechaLootTables.put(lootTable, weight);
+        }
+        Structure newPlatformsStructure = Bukkit.getStructureManager().loadStructure(config.platformsStructure());
+        Preconditions.checkArgument(newPlatformsStructure != null, "Can't find platformsStructure %s", config.platformsStructure());
+        Structure newPlatformsRemovedStructure = Bukkit.getStructureManager().loadStructure(mechaConfig.platformsRemovedStructure());
+        Preconditions.checkArgument(newPlatformsRemovedStructure != null, "Can't find platformsRemovedStructure %s", config.platformsRemovedStructure());
+        Location newPlatformsOrigin = config.platformsOrigin().toLocation(newWorld);
+        Component newDescription = GsonComponentSerializer.gson().deserializeFromTree(config.description());
+        // now it's confirmed everything works, so set the actual fields
+        this.world = newWorld;
+        this.weightedMechaLootTables = newWeightedMechaLootTables;
+        this.platformsStructure = newPlatformsStructure;
+        this.platformsRemovedStructure = newPlatformsRemovedStructure;
+        this.platformsOrigin = newPlatformsOrigin;
+        this.description = newDescription;
+        this.mechaConfig = config;
+    }
+    
+    private boolean lootTableExists(@Nullable NamespacedKey lootTable) {
+        return lootTable == null || Bukkit.getLootTable(lootTable) != null;
     }
     
     @Override

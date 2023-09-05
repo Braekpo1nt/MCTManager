@@ -40,26 +40,32 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
     
     @Override
     protected void setConfig(SpleefConfig config) {
-        world = Bukkit.getWorld(config.world());
-        Preconditions.checkArgument(world != null, "Could not find world \"%s\"", config.world());
-        startingLocations = new ArrayList<>(config.startingLocations().size());
+        World newWorld = Bukkit.getWorld(config.world());
+        Preconditions.checkArgument(newWorld != null, "Could not find world \"%s\"", config.world());
+        List<Location> newStartingLocations = new ArrayList<>(config.startingLocations().size());
         for (Vector startingLocation : config.startingLocations()) {
-            startingLocations.add(startingLocation.toLocation(world));
+            newStartingLocations.add(startingLocation.toLocation(newWorld));
         }
         
-        structures = new ArrayList<>(config.layers().size());
-        structureOrigins = new ArrayList<>(config.layers().size());
-        decayLayers = new ArrayList<>(config.layers().size());
-        decayRates = new ArrayList<>(config.layers().size());
+        List<Structure> newStructures = new ArrayList<>(config.layers().size());
+        List<Location> newStructureOrigins = new ArrayList<>(config.layers().size());
+        List<BoundingBox> newDecayLayers = new ArrayList<>(config.layers().size());
+        List<Integer> newDecayRates = new ArrayList<>(config.layers().size());
         for (SpleefConfig.Layer layer : config.layers()) {
             Structure structure = Bukkit.getStructureManager().loadStructure(layer.structure());
             Preconditions.checkArgument(structure != null, "can't find structure %s", layer.structure());
-            structures.add(structure);
-            structureOrigins.add(layer.structureOrigin().toLocation(world));
-            decayLayers.add(layer.getDecayArea());
-            decayRates.add(layer.decayRate());
+            newStructures.add(structure);
+            newStructureOrigins.add(layer.structureOrigin().toLocation(newWorld));
+            newDecayLayers.add(layer.getDecayArea());
+            newDecayRates.add(layer.decayRate());
         }
-        
+        // now it's confirmed everything works, so set the actual fields
+        this.world = newWorld;
+        this.startingLocations = newStartingLocations;
+        this.structures = newStructures;
+        this.structureOrigins = newStructureOrigins;
+        this.decayLayers = newDecayLayers;
+        this.decayRates = newDecayRates;
         this.spleefConfig = config;
     }
     

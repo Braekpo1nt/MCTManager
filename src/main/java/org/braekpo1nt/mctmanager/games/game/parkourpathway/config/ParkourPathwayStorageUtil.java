@@ -34,20 +34,6 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
     }
     
     @Override
-    protected void setConfig(ParkourPathwayConfig config) {
-        world = Bukkit.getWorld(config.world());
-        Preconditions.checkArgument(world != null, "Could not find world \"%s\"", config.world());
-        startingLocation = config.startingLocation().toLocation(world);
-        checkPoints = new ArrayList<>();
-        for (ParkourPathwayConfig.CheckPointDTO checkpointDTO : config.checkpoints()) {
-            Vector configRespawn = checkpointDTO.respawn();
-            Location respawn = new Location(world, configRespawn.getX(), configRespawn.getY(), configRespawn.getZ());
-            checkPoints.add(new CheckPoint(checkpointDTO.yValue(), checkpointDTO.getDetectionBox(), respawn));
-        }
-        this.parkourPathwayConfig = config;
-    }
-    
-    @Override
     protected boolean configIsValid(@Nullable ParkourPathwayConfig config) {
         Preconditions.checkArgument(config != null, "Saved config is null");
         Preconditions.checkArgument(config.version() != null, "version can't be null");
@@ -87,6 +73,24 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
             }
         }
         return true;
+    }
+    
+    @Override
+    protected void setConfig(ParkourPathwayConfig config) {
+        World newWorld = Bukkit.getWorld(config.world());
+        Preconditions.checkArgument(newWorld != null, "Could not find world \"%s\"", config.world());
+        Location newStartingLocation = config.startingLocation().toLocation(newWorld);
+        List<CheckPoint> newCheckPoints = new ArrayList<>();
+        for (ParkourPathwayConfig.CheckPointDTO checkpointDTO : config.checkpoints()) {
+            Vector configRespawn = checkpointDTO.respawn();
+            Location respawn = new Location(newWorld, configRespawn.getX(), configRespawn.getY(), configRespawn.getZ());
+            newCheckPoints.add(new CheckPoint(checkpointDTO.yValue(), checkpointDTO.getDetectionBox(), respawn));
+        }
+        // now it's confirmed everything works, so set the actual fields
+        this.world = newWorld;
+        this.startingLocation = newStartingLocation;
+        this.checkPoints = newCheckPoints;
+        this.parkourPathwayConfig = config;
     }
     
     @Override
