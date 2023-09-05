@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.games.game.capturetheflag.config;
 
 
+import com.google.gson.JsonObject;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.Arena;
 import org.braekpo1nt.mctmanager.games.game.config.BoundingBoxDTO;
 import org.bukkit.util.BoundingBox;
@@ -8,7 +9,7 @@ import org.bukkit.util.Vector;
 
 import java.util.List;
 
-record CaptureTheFlagConfig(String version, String world, Vector spawnObservatory, List<ArenaDTO> arenas, BoundingBoxDTO spectatorArea, Scores scores, Durations durations) {
+record CaptureTheFlagConfig(String version, String world, Vector spawnObservatory, List<ArenaDTO> arenas, BoundingBoxDTO spectatorArea, Scores scores, Durations durations, JsonObject description) {
     
     BoundingBox getSpectatorArea() {
         return spectatorArea.getBoundingBox();

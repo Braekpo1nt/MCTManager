@@ -1,6 +1,9 @@
 package org.braekpo1nt.mctmanager.games.game.capturetheflag.config;
 
 import com.google.common.base.Preconditions;
+import com.google.gson.JsonIOException;
+import com.google.gson.JsonSyntaxException;
+import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.Arena;
 import org.braekpo1nt.mctmanager.games.game.config.GameConfigStorageUtil;
@@ -61,6 +64,11 @@ public class CaptureTheFlagStorageUtil extends GameConfigStorageUtil<CaptureTheF
         Preconditions.checkArgument(config.durations().matchesStarting() >= 0, "durations.matchesStarting (%s) can't be negative", config.durations().matchesStarting());
         Preconditions.checkArgument(config.durations().classSelection() >= 0, "durations.classSelection (%s) can't be negative", config.durations().classSelection());
         Preconditions.checkArgument(config.durations().roundTimer() >= 0, "durations.roundTimer (%s) can't be negative", config.durations().roundTimer());
+        try {
+            GsonComponentSerializer.gson().deserializeFromTree(config.description());
+        } catch (JsonIOException | JsonSyntaxException e) {
+            throw new IllegalArgumentException("description is invalid", e);
+        }
         return true;
     }
     
