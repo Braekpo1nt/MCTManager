@@ -1,0 +1,17 @@
+{
+  "multipliers": [
+    1,
+    1.5,
+    1.5,
+    2,
+    2,
+    2.5
+  ],
+  "durations": {
+    "waitingInHub": 20,
+    "halftimeBreak": 300,
+    "voting": 20,
+    "startingGame": 5,
+    "backToHub": 10
+  }
+}
