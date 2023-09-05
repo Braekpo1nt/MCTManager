@@ -8,7 +8,7 @@ import org.bukkit.util.Vector;
 
 import java.util.List;
 
-record CaptureTheFlagConfig(String world, Vector spawnObservatory, List<ArenaDTO> arenas, BoundingBoxDTO spectatorArea, Scores scores, Durations durations) {
+record CaptureTheFlagConfig(String version, String world, Vector spawnObservatory, List<ArenaDTO> arenas, BoundingBoxDTO spectatorArea, Scores scores, Durations durations) {
     
     BoundingBox getSpectatorArea() {
         return spectatorArea.getBoundingBox();

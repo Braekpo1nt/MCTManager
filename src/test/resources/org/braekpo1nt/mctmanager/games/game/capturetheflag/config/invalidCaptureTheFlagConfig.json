@@ -1,4 +1,5 @@
 {
+  "version": "0.1.0",
   "world": "World",
   "spawnObservatory": {
     "x": 0,
@@ -195,5 +196,6 @@
     "matchesStarting": 10,
     "classSelection": 20,
     "roundTimer": 180
-  }
+  },
+  "description": {"text":"Capture the Flag description","color":"dark_blue","bold": true}
 }

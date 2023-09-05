@@ -5,6 +5,7 @@ import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
+import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.config.GameConfigStorageUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -64,6 +65,10 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
     @Override
     protected boolean configIsValid(@Nullable MechaConfig config) {
         Preconditions.checkArgument(config != null, "Saved config is null");
+        Preconditions.checkArgument(config.version() != null, 
+                "version can't be null");
+        Preconditions.checkArgument(config.version().equals(Main.CONFIG_VERSION), 
+                "Config version %s not supported. %s required.", config.version(), Main.CONFIG_VERSION);
         Preconditions.checkArgument(Bukkit.getWorld(config.world()) != null, 
                 "Could not find world \"%s\"", config.world());
         Preconditions.checkArgument(config.spectatorArea() != null, 

@@ -19,7 +19,7 @@ import java.util.List;
  * @param durations the durations for spleef
  * @param description the description of spleef
  */
-record SpleefConfig(String world, List<Vector> startingLocations, BoundingBoxDTO spectatorArea, List<Layer> layers, int rounds, Scores scores, Durations durations, JsonObject description) {
+record SpleefConfig(String version, String world, List<Vector> startingLocations, BoundingBoxDTO spectatorArea, List<Layer> layers, int rounds, Scores scores, Durations durations, JsonObject description) {
     
     BoundingBox getSpectatorArea() {
         return spectatorArea.getBoundingBox();

@@ -18,7 +18,8 @@ import org.bukkit.scoreboard.Scoreboard;
 import java.io.IOException;
 
 public class Main extends JavaPlugin {
-    
+
+    public static final String CONFIG_VERSION = "0.1.0";
     public static MultiverseCore multiverseCore;
     private GameManager gameManager;
     private boolean saveGameStateOnDisable = true;
