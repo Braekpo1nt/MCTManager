@@ -62,10 +62,14 @@ public class FootRaceStorageUtil extends GameConfigStorageUtil<FootRaceConfig> {
     
     @Override
     protected void setConfig(FootRaceConfig config) {
-        description = GsonComponentSerializer.gson().deserializeFromTree(config.description());
-        world = Bukkit.getWorld(config.world());
-        Preconditions.checkArgument(world != null, "Could not find world \"%s\"", config.world());
-        startingLocation = config.startingLocation().toLocation(world);
+        Component newDescription = GsonComponentSerializer.gson().deserializeFromTree(config.description());
+        World newWorld = Bukkit.getWorld(config.world());
+        Preconditions.checkArgument(newWorld != null, "Could not find world \"%s\"", config.world());
+        Location newStartingLocation = config.startingLocation().toLocation(newWorld);
+        // now it's confirmed everything works, so set the actual fields
+        this.description = newDescription;
+        this.world = newWorld;
+        this.startingLocation = newStartingLocation;
         this.footRaceConfig = config;
     }
     
