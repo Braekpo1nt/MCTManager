@@ -11,7 +11,7 @@ import org.junit.jupiter.api.*;
 
 import java.util.logging.Level;
 
-public class MCTCommandTest {
+class MCTCommandTest {
     
     private ServerMock server;
     private Main plugin;

@@ -1,4 +1,5 @@
 {
+  "version": "0.1.0",
   "world": "World",
   "startingLocations": [
     {
@@ -100,6 +101,7 @@
   "scores": {
     "survive": 10
   },
+  "rounds": 3,
   "durations": {
     "roundStarting": 10,
     "decayTopLayers": 60,

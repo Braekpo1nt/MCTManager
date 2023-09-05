@@ -14,7 +14,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.util.logging.Level;
 
-public class ParkourPathwayStorageUtilTest {
+class ParkourPathwayStorageUtilTest {
     String validConfigFile = "validParkourPathwayConfig.json";
     String invalidConfigFile = "invalidParkourPathwayConfig.json";
     String configFileName = "parkourPathwayConfig.json";
@@ -57,5 +57,12 @@ public class ParkourPathwayStorageUtilTest {
         InputStream inputStream = getClass().getResourceAsStream(invalidConfigFile);
         TestUtils.copyInputStreamToFile(inputStream, new File(plugin.getDataFolder(), configFileName));
         Assertions.assertThrows(IllegalArgumentException.class, storageUtil::loadConfig);
+    }
+    
+    @Test
+    void exampleJson() {
+        InputStream inputStream = storageUtil.getExampleResourceStream();
+        TestUtils.copyInputStreamToFile(inputStream, new File(plugin.getDataFolder(), configFileName));
+        Assertions.assertTrue(storageUtil.loadConfig());
     }
 }

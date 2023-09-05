@@ -1,4 +1,5 @@
 {
+  "version": "0.1.0",
   "world": "World",
   "startingLocation": {
     "x": 2400,

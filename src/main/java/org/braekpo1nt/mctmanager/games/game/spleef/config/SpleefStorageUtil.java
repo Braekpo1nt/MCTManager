@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
+import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.config.GameConfigStorageUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -65,6 +66,8 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
     @Override
     protected boolean configIsValid(@Nullable SpleefConfig config) throws IllegalArgumentException {
         Preconditions.checkArgument(config != null, "Saved config is null");
+        Preconditions.checkArgument(config.version() != null, "version can't be null");
+        Preconditions.checkArgument(config.version().equals(Main.CONFIG_VERSION), "Config version %s not supported. %s required.", config.version(), Main.CONFIG_VERSION);
         Preconditions.checkArgument(Bukkit.getWorld(config.world()) != null, "Could not find world \"%s\"", config.world());
         Preconditions.checkArgument(config.startingLocations() != null, "startingLocations can't be null");
         Preconditions.checkArgument(config.startingLocations().size() >= 1, "startingLocations must have at least one entry");
@@ -81,6 +84,7 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
             Preconditions.checkArgument(layer.decayArea() != null, "layer.decayArea can't be null");
             Preconditions.checkArgument(layer.decayRate() >= 0, "layer.decayRate can't be negative");
         }
+        Preconditions.checkArgument(config.rounds() >= 1, "rounds must be greater than 0");
         Preconditions.checkArgument(config.scores() != null, "scores can't be null");
         Preconditions.checkArgument(config.durations() != null, "durations can't be null");
         Preconditions.checkArgument(config.durations().roundStarting() >= 0, "durations.roundStarting (%s) can't be negative", config.durations().roundStarting());
@@ -142,5 +146,9 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
     
     public List<Integer> getDecayRates() {
         return decayRates;
+    }
+
+    public int getRounds() {
+        return spleefConfig.rounds();
     }
 }

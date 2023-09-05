@@ -14,11 +14,12 @@ import java.util.List;
  * @param startingLocations a set of starting locations that the players will be sent to a random one of
  * @param spectatorArea the area the spectators shouldn't be able to leave
  * @param layers the layers of spleef
+ * @param rounds the number of rounds
  * @param scores the scores for spleef
  * @param durations the durations for spleef
  * @param description the description of spleef
  */
-record SpleefConfig(String world, List<Vector> startingLocations, BoundingBoxDTO spectatorArea, List<Layer> layers, Scores scores, Durations durations, JsonObject description) {
+record SpleefConfig(String version, String world, List<Vector> startingLocations, BoundingBoxDTO spectatorArea, List<Layer> layers, int rounds, Scores scores, Durations durations, JsonObject description) {
     
     BoundingBox getSpectatorArea() {
         return spectatorArea.getBoundingBox();

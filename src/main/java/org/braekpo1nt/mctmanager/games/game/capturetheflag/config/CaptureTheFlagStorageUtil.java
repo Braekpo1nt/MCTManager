@@ -1,6 +1,10 @@
 package org.braekpo1nt.mctmanager.games.game.capturetheflag.config;
 
 import com.google.common.base.Preconditions;
+import com.google.gson.JsonIOException;
+import com.google.gson.JsonSyntaxException;
+import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
+import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.Arena;
 import org.braekpo1nt.mctmanager.games.game.config.GameConfigStorageUtil;
 import org.bukkit.Bukkit;
@@ -31,6 +35,8 @@ public class CaptureTheFlagStorageUtil extends GameConfigStorageUtil<CaptureTheF
     @Override
     protected boolean configIsValid(@Nullable CaptureTheFlagConfig config) throws IllegalArgumentException {
         Preconditions.checkArgument(config != null, "Saved config is null");
+        Preconditions.checkArgument(config.version() != null, "version can't be null");
+        Preconditions.checkArgument(config.version().equals(Main.CONFIG_VERSION), "Config version %s not supported. %s required.", config.version(), Main.CONFIG_VERSION);
         Preconditions.checkArgument(Bukkit.getWorld(config.world()) != null, "Could not find world \"%s\"", config.world());
         Preconditions.checkArgument(config.arenas() != null, "arenas can't be null");
         Preconditions.checkArgument(config.arenas().size() >= 1, "there must be at least 1 arena");
@@ -58,6 +64,11 @@ public class CaptureTheFlagStorageUtil extends GameConfigStorageUtil<CaptureTheF
         Preconditions.checkArgument(config.durations().matchesStarting() >= 0, "durations.matchesStarting (%s) can't be negative", config.durations().matchesStarting());
         Preconditions.checkArgument(config.durations().classSelection() >= 0, "durations.classSelection (%s) can't be negative", config.durations().classSelection());
         Preconditions.checkArgument(config.durations().roundTimer() >= 0, "durations.roundTimer (%s) can't be negative", config.durations().roundTimer());
+        try {
+            GsonComponentSerializer.gson().deserializeFromTree(config.description());
+        } catch (JsonIOException | JsonSyntaxException e) {
+            throw new IllegalArgumentException("description is invalid", e);
+        }
         return true;
     }
     
@@ -110,5 +121,25 @@ public class CaptureTheFlagStorageUtil extends GameConfigStorageUtil<CaptureTheF
     
     public List<Arena> getArenas() {
         return arenas;
+    }
+    
+    public int getMatchesStartingDuration() {
+        return captureTheFlagConfig.durations().matchesStarting();
+    }
+    
+    public int getRoundTimerDuration() {
+        return captureTheFlagConfig.durations().roundTimer();
+    }
+    
+    public int getClassSelectionDuration() {
+        return captureTheFlagConfig.durations().classSelection();
+    }
+    
+    public int getWinScore() {
+        return captureTheFlagConfig.scores().win();
+    }
+    
+    public int getKillScore() {
+        return captureTheFlagConfig.scores().kill();
     }
 }

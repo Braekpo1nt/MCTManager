@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
 import java.io.*;
 import java.util.logging.Level;
 
-public class SpleefStorageUtilTest {
+class SpleefStorageUtilTest {
 
     String validConfigFile = "validSpleefConfig.json";
     String invalidConfigFile = "invalidSpleefConfig.json";
@@ -57,6 +57,13 @@ public class SpleefStorageUtilTest {
         InputStream inputStream = getClass().getResourceAsStream(invalidConfigFile);
         TestUtils.copyInputStreamToFile(inputStream, new File(plugin.getDataFolder(), configFileName));
         Assertions.assertThrows(IllegalArgumentException.class, storageUtil::loadConfig);
+    }
+    
+    @Test
+    void exampleJson() {
+        InputStream inputStream = storageUtil.getExampleResourceStream();
+        TestUtils.copyInputStreamToFile(inputStream, new File(plugin.getDataFolder(), configFileName));
+        Assertions.assertTrue(storageUtil.loadConfig());
     }
 
 }
