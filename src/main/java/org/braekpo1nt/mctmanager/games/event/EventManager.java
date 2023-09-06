@@ -306,6 +306,9 @@ public class EventManager {
     private void startWaitingInHub() {
         currentState = EventState.WAITING_IN_HUB;
         gameManager.returnAllParticipantsToHub();
+        double scoreMultiplier = this.matchProgressPointMultiplier();
+        gameManager.messageOnlineParticipants(Component.text("Score multiplier: ")
+                .append(Component.text(scoreMultiplier)));
         this.waitingInHubTaskId = new BukkitRunnable() {
             int count = storageUtil.getWaitingInHubDuration();
             @Override

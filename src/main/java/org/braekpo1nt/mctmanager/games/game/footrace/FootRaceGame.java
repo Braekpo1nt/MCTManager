@@ -8,8 +8,10 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.footrace.config.FootRaceStorageUtil;
+import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
+import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.bukkit.*;
 import org.bukkit.block.structure.Mirror;
 import org.bukkit.block.structure.StructureRotation;
@@ -33,7 +35,7 @@ import java.util.*;
 /**
  * Handles all the Foot Race game logic.
  */
-public class FootRaceGame implements Listener, MCTGame {
+public class FootRaceGame implements Listener, MCTGame, Configurable {
     
     private final int MAX_LAPS = 3;
     private final FootRaceStorageUtil footRaceStorageUtil;
@@ -71,6 +73,11 @@ public class FootRaceGame implements Listener, MCTGame {
     @Override
     public GameType getType() {
         return GameType.FOOT_RACE;
+    }
+    
+    @Override
+    public boolean loadConfig() throws IllegalArgumentException {
+        return footRaceStorageUtil.loadConfig();
     }
     
     @Override
@@ -426,11 +433,14 @@ public class FootRaceGame implements Listener, MCTGame {
         gameManager.awardPointsToParticipant(player, points);
         String placementTitle = getPlacementTitle(placement);
         String timeString = getTimeString(elapsedTime);
+        String endCountDown = TimeStringUtils.getTimeString(footRaceStorageUtil.getRaceEndCountdownDuration());
         if (placements.size() == 1) {
             messageAllParticipants(Component.text(player.getName())
                     .append(Component.text(" finished 1st in "))
                     .append(Component.text(timeString))
-                    .append(Component.text("! Only 1 minute remains!")
+                    .append(Component.text("! Only ")
+                            .append(Component.text(endCountDown))
+                            .append(Component.text(" remains!"))
                             .color(NamedTextColor.RED))
                     .color(NamedTextColor.GREEN));
             startEndRaceCountDown();
