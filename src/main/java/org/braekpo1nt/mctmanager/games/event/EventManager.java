@@ -115,6 +115,11 @@ public class EventManager {
                     .color(NamedTextColor.RED));
             return;
         }
+        if (currentState == EventState.PLAYING_GAME) {
+            sender.sendMessage(Component.text("Can't stop the event mid-game.")
+                    .color(NamedTextColor.RED));
+            return;
+        }
         currentState = null;
         Component message = Component.text("Ending event. ")
                 .append(Component.text(currentGameNumber - 1))
