@@ -8,9 +8,11 @@ import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.colossalcolosseum.ColossalColosseumGame;
+import org.braekpo1nt.mctmanager.games.event.config.EventStorageUtil;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.voting.VoteManager;
+import org.braekpo1nt.mctmanager.ui.FastBoardManager;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -28,19 +30,13 @@ public class EventManager {
     private final GameManager gameManager;
     private final VoteManager voteManager;
     private final ColossalColosseumGame colossalColosseumGame;
+    private final EventStorageUtil storageUtil;
     private EventState currentState;
     private EventState lastStateBeforePause;
     private int maxGames = 6;
     private int currentGameNumber = 1;
     private final List<GameType> playedGames = new ArrayList<>();
     private final Map<GameType, ScoreKeeper> scoreKeepers = new HashMap<>();
-    // Config stuff
-    // Durations in seconds
-    private final int WAITING_IN_HUB_DURATION = 20;
-    private final int HALFTIME_BREAK_DURATION = 60;
-    private final int VOTING_DURATION = 20;
-    private final int STARTING_GAME_COUNT_DOWN_DURATION = 5;
-    private final int BACK_TO_HUB_DELAY_DURATION = 10;
     // Task IDs
     private int waitingInHubTaskId;
     private int toColossalColosseumDelayTaskId;
@@ -53,29 +49,23 @@ public class EventManager {
         this.plugin = plugin;
         this.gameManager = gameManager;
         this.voteManager = voteManager;
+        this.storageUtil = new EventStorageUtil(plugin.getDataFolder());
         this.colossalColosseumGame = new ColossalColosseumGame(plugin, gameManager);
     }
-
+        
     /**
-     * Return point multiplier according to match progress:
-     * Game 1 No multiplier
-     * Game 2 1.5 multiplier
-     * Game 3 1.5
-     * Game 4 2
-     * Game 5 2
-     * Game 6 2.5
-     * */
+     * The nth multiplier is used on the nth game in the event. If there are x multipliers, and we're on game z where z is greater than x, the xth multiplier is used.
+     * @return a multiplier for the score based on the progression in the match.
+     */
     public double matchProgressPointMultiplier() {
-        if (currentGameNumber <= 1) {
+        if (currentGameNumber <= 0) {
             return 1;
         }
-        if (currentGameNumber <= 3) {
-            return 1.5;
+        double[] multipliers = storageUtil.getMultipliers();
+        if (currentGameNumber > multipliers.length) {
+            return multipliers[multipliers.length - 1];
         }
-        if (currentGameNumber <= 5) {
-            return 2;
-        }
-        return 2.5;
+        return multipliers[currentGameNumber - 1];
     }
     
     /**
@@ -94,10 +84,23 @@ public class EventManager {
                     .color(NamedTextColor.RED));
             return;
         }
+        
+        try {
+            storageUtil.loadConfig();
+        } catch (IllegalArgumentException e) {
+            Bukkit.getLogger().severe(e.getMessage());
+            e.printStackTrace();
+            sender.sendMessage(Component.text("Can't start event. Error loading config file. See console for details:\n")
+                    .append(Component.text(e.getMessage()))
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        
         maxGames = numberOfGames;
         currentGameNumber = 1;
         playedGames.clear();
         scoreKeepers.clear();
+        gameManager.getFastBoardManager().updateTitle(storageUtil.getTitle());
         messageAllAdmins(Component.text("Starting event. On game ")
                 .append(Component.text(currentGameNumber))
                 .append(Component.text("/"))
@@ -109,6 +112,11 @@ public class EventManager {
     public void stopEvent(CommandSender sender) {
         if (currentState == null) {
             sender.sendMessage(Component.text("There is no event running.")
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        if (currentState == EventState.PLAYING_GAME) {
+            sender.sendMessage(Component.text("Can't stop the event mid-game.")
                     .color(NamedTextColor.RED));
             return;
         }
@@ -128,6 +136,7 @@ public class EventManager {
             hideFastBoard(participant);
         }
         cancelAllTasks();
+        gameManager.getFastBoardManager().updateTitle(FastBoardManager.DEFAULT_TITLE);
         currentGameNumber = 1;
         maxGames = 6;
     }
@@ -302,8 +311,11 @@ public class EventManager {
     private void startWaitingInHub() {
         currentState = EventState.WAITING_IN_HUB;
         gameManager.returnAllParticipantsToHub();
+        double scoreMultiplier = this.matchProgressPointMultiplier();
+        gameManager.messageOnlineParticipants(Component.text("Score multiplier: ")
+                .append(Component.text(scoreMultiplier)));
         this.waitingInHubTaskId = new BukkitRunnable() {
-            int count = WAITING_IN_HUB_DURATION;
+            int count = storageUtil.getWaitingInHubDuration();
             @Override
             public void run() {
                 if (currentState == EventState.PAUSED) {
@@ -332,7 +344,7 @@ public class EventManager {
         currentState = EventState.WAITING_IN_HUB;
         gameManager.returnAllParticipantsToHub();
         this.halftimeBreakTaskId = new BukkitRunnable() {
-            int count = HALFTIME_BREAK_DURATION;
+            int count = storageUtil.getHalftimeBreakDuration();
             @Override
             public void run() {
                 if (currentState == EventState.PAUSED) {
@@ -352,7 +364,7 @@ public class EventManager {
     private void toPodiumDelay(String winningTeam) {
         currentState = EventState.DELAY;
         this.toPodiumDelayTaskId = new BukkitRunnable() {
-            int count = BACK_TO_HUB_DELAY_DURATION;
+            int count = storageUtil.getBackToHubDuration();
             @Override
             public void run() {
                 if (currentState == EventState.PAUSED) {
@@ -374,13 +386,13 @@ public class EventManager {
         currentState = EventState.VOTING;
         List<GameType> votingPool = new ArrayList<>(List.of(GameType.values()));
         votingPool.removeAll(playedGames);
-        voteManager.startVote(gameManager.getOnlineParticipants(), votingPool, VOTING_DURATION, this::startingGameDelay);
+        voteManager.startVote(gameManager.getOnlineParticipants(), votingPool, storageUtil.getVotingDuration(), this::startingGameDelay);
     }
     
     private void startingGameDelay(GameType gameType) {
         currentState = EventState.DELAY;
         this.startingGameCountdownTaskId = new BukkitRunnable() {
-            int count = STARTING_GAME_COUNT_DOWN_DURATION;
+            int count = storageUtil.getStartingGameDuration();
             @Override
             public void run() {
                 if (currentState == EventState.PAUSED) {
@@ -409,7 +421,7 @@ public class EventManager {
         playedGames.add(finishedGameType);
         currentGameNumber += 1;
         this.backToHubDelayTaskId = new BukkitRunnable() {
-            int count = BACK_TO_HUB_DELAY_DURATION;
+            int count = storageUtil.getBackToHubDuration();
             @Override
             public void run() {
                 if (currentState == EventState.PAUSED) {
@@ -433,7 +445,7 @@ public class EventManager {
     private void toColossalColosseumDelay() {
         currentState = EventState.DELAY;
         this.toColossalColosseumDelayTaskId = new BukkitRunnable() {
-            int count = STARTING_GAME_COUNT_DOWN_DURATION;
+            int count = storageUtil.getStartingGameDuration();
             @Override
             public void run() {
                 if (currentState == EventState.PAUSED) {
@@ -562,7 +574,9 @@ public class EventManager {
         NamedTextColor teamColor = gameManager.getTeamNamedTextColor(winningTeam);
         Bukkit.getServer().sendMessage(Component.empty()
                 .append(gameManager.getFormattedTeamDisplayName(winningTeam))
-                .append(Component.text(" wins MCT #5!"))
+                .append(Component.text(" wins ")
+                    .append(Component.text(storageUtil.getTitle()))
+                    .append(Component.text("!")))
                 .color(teamColor)
                 .decorate(TextDecoration.BOLD));
         toPodiumDelay(winningTeam);

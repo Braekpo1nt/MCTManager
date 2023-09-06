@@ -29,6 +29,7 @@
     ]
   },
   "durations": {
+    "starting": 10,
     "timeLimit": 600,
     "checkpointCounter": 120,
     "checkpointCounterAlert": 30

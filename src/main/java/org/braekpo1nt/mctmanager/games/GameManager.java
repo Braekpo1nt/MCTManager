@@ -673,13 +673,14 @@ public class GameManager implements Listener {
             return;
         }
         String teamName = gameStateStorageUtil.getPlayerTeamName(participantUUID);
-        addScore(participantUUID, (int) (points * eventManager.matchProgressPointMultiplier()));
-        addScore(teamName, (int) (points * eventManager.matchProgressPointMultiplier()));
-        eventManager.trackPoints(participantUUID, points, activeGame.getType());
-        eventManager.trackPoints(teamName, points, activeGame.getType());
+        int multipliedPoints = (int) (points * eventManager.matchProgressPointMultiplier());
+        addScore(participantUUID, multipliedPoints);
+        addScore(teamName, multipliedPoints);
+        eventManager.trackPoints(participantUUID, multipliedPoints, activeGame.getType());
+        eventManager.trackPoints(teamName, multipliedPoints, activeGame.getType());
         
         participant.sendMessage(Component.text("+")
-                .append(Component.text(points))
+                .append(Component.text(multipliedPoints))
                 .append(Component.text(" points"))
                 .decorate(TextDecoration.BOLD)
                 .color(NamedTextColor.GOLD));
@@ -696,14 +697,15 @@ public class GameManager implements Listener {
         if (!gameStateStorageUtil.containsTeam(teamName)) {
             return;
         }
-        addScore(teamName, (int) (points * eventManager.matchProgressPointMultiplier()));
-        eventManager.trackPoints(teamName, points, activeGame.getType());
+        int multipliedPoints = (int) (points * eventManager.matchProgressPointMultiplier());
+        addScore(teamName, multipliedPoints);
+        eventManager.trackPoints(teamName, multipliedPoints, activeGame.getType());
         
         Component displayName = getFormattedTeamDisplayName(teamName);
         List<Player> playersOnTeam = getOnlinePlayersOnTeam(teamName);
         for (Player playerOnTeam : playersOnTeam) {
             playerOnTeam.sendMessage(Component.text("+")
-                    .append(Component.text(points))
+                    .append(Component.text(multipliedPoints))
                     .append(Component.text(" points for "))
                     .append(displayName)
                     .decorate(TextDecoration.BOLD)

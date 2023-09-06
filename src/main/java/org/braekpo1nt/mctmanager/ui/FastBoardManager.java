@@ -4,7 +4,9 @@ import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
+
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -13,7 +15,11 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class FastBoardManager {
     
-    protected final String EVENT_TITLE = ChatColor.BOLD + "" + ChatColor.DARK_RED + "MCT #5";
+    public static final String DEFAULT_TITLE = ChatColor.BOLD + "" + ChatColor.DARK_RED + "MCT";
+    /**
+     * The event title to be used at the top of the sidebar
+     */
+    protected String title = DEFAULT_TITLE;
     protected final ConcurrentHashMap<UUID, FastBoardWrapper> boards = new ConcurrentHashMap<>();
     /**
      * Used to store for each user which header type to show. See {@link HeaderType} 
@@ -23,6 +29,17 @@ public class FastBoardManager {
     
     public FastBoardManager(GameStateStorageUtil gameStateStorageUtil) {
         this.gameStateStorageUtil = gameStateStorageUtil;
+    }
+    
+    /**
+     * Set the title for all the FastBoards 
+     * @param title the new title
+     */
+    public synchronized void updateTitle(String title) {
+        this.title = title;
+        for (FastBoardWrapper board : boards.values()) {
+            board.updateTitle(title);
+        }
     }
     
     public synchronized void updateMainBoards() {
@@ -109,7 +126,7 @@ public class FastBoardManager {
     protected synchronized void addBoard(Player player) {
         FastBoardWrapper newBoard = new FastBoardWrapper();
         newBoard.setPlayer(player);
-        newBoard.updateTitle(this.EVENT_TITLE);
+        newBoard.updateTitle(this.title);
         String[] header = getHeader(player.getUniqueId(), HeaderType.PERSONAL);
         newBoard.updateLines(header);
         boards.put(player.getUniqueId(), newBoard);
