@@ -5,7 +5,7 @@ package org.braekpo1nt.mctmanager.games.event.config;
  * @param multipliers must have at least one element. The nth multiplier is used on the nth game in the event. If there are x multipliers, and we're on game z where z is greater than x, the xth multiplier is used. A multiplier will be multiplied by all points awarded during it's paired game.
  * @param durations various durations during the event
  */
-record EventConfig(String title, double[] multipliers, Durations durations) {
+record EventConfig(String version, String title, double[] multipliers, Durations durations) {
     
     /**
      * All units are seconds, none can be negative.

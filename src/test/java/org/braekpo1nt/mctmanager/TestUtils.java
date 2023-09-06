@@ -1,13 +1,14 @@
 package org.braekpo1nt.mctmanager;
 
 import be.seeseemelk.mockbukkit.command.ConsoleCommandSenderMock;
+import com.google.gson.*;
 import net.kyori.adventure.text.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -95,6 +96,23 @@ public class TestUtils {
             writer.write(fileContents);
         } catch (IOException e) {
             Assertions.fail(String.format("Unable to create file %s in %s with contents %s", fileName, directory, fileContents));
+        }
+    }
+    
+    public static JsonObject inputStreamToJson(InputStream inputStream) {
+        JsonElement element = JsonParser.parseReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
+        return element.getAsJsonObject();
+    }
+    
+    public static void saveJsonToFile(JsonObject json, File toFile) {
+        // Create Gson instance with pretty printing
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        
+        // Write the modified JSON to a new file
+        try (FileWriter writer = new FileWriter(toFile)) {
+            gson.toJson(json, writer);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }
