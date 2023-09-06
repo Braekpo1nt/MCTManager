@@ -24,7 +24,7 @@ public class MockFastBoardManager extends FastBoardManager {
     @Override
     protected synchronized void addBoard(Player player) {
         MockFastBoardWrapper newBoard = new MockFastBoardWrapper();
-        newBoard.updateTitle(this.eventTitle);
+        newBoard.updateTitle(this.title);
         String[] mainLines = getHeader(player.getUniqueId(), HeaderType.PERSONAL);
         String teamLine = mainLines[0];
         String scoreLine = mainLines[1];

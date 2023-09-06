@@ -10,9 +10,9 @@ import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.colossalcolosseum.ColossalColosseumGame;
 import org.braekpo1nt.mctmanager.games.event.config.EventStorageUtil;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
-import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.voting.VoteManager;
+import org.braekpo1nt.mctmanager.ui.FastBoardManager;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -24,7 +24,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public class EventManager implements Configurable {
+public class EventManager {
     
     private final Main plugin;
     private final GameManager gameManager;
@@ -52,12 +52,7 @@ public class EventManager implements Configurable {
         this.storageUtil = new EventStorageUtil(plugin.getDataFolder());
         this.colossalColosseumGame = new ColossalColosseumGame(plugin, gameManager);
     }
-    
-    @Override
-    public boolean loadConfig() throws IllegalArgumentException {
-        return storageUtil.loadConfig();
-    }
-
+        
     /**
      * The nth multiplier is used on the nth game in the event. If there are x multipliers, and we're on game z where z is greater than x, the xth multiplier is used.
      * @return a multiplier for the score based on the progression in the match.
@@ -89,11 +84,23 @@ public class EventManager implements Configurable {
                     .color(NamedTextColor.RED));
             return;
         }
+        
+        try {
+            storageUtil.loadConfig();
+        } catch (IllegalArgumentException e) {
+            Bukkit.getLogger().severe(e.getMessage());
+            e.printStackTrace();
+            sender.sendMessage(Component.text("Can't start event. Error loading config file. See console for details:\n")
+                    .append(Component.text(e.getMessage()))
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        
         maxGames = numberOfGames;
         currentGameNumber = 1;
         playedGames.clear();
         scoreKeepers.clear();
-        gameManager.getFastBoardManager().setEventTitle(storageUtil.getTitle());
+        gameManager.getFastBoardManager().updateTitle(storageUtil.getTitle());
         messageAllAdmins(Component.text("Starting event. On game ")
                 .append(Component.text(currentGameNumber))
                 .append(Component.text("/"))
@@ -124,6 +131,7 @@ public class EventManager implements Configurable {
             hideFastBoard(participant);
         }
         cancelAllTasks();
+        gameManager.getFastBoardManager().updateTitle(FastBoardManager.DEFAULT_TITLE);
         currentGameNumber = 1;
         maxGames = 6;
     }
