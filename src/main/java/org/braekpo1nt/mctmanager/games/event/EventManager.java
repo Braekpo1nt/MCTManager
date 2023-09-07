@@ -36,7 +36,17 @@ public class EventManager {
     private int maxGames = 6;
     private int currentGameNumber = 1;
     private final List<GameType> playedGames = new ArrayList<>();
-    private final Map<GameType, ScoreKeeper> scoreKeepers = new HashMap<>();
+    /**
+     * contains the ScoreKeepers for the games played during the event. Cleared on start and end of event. 
+     * <p>
+     * If a given key doesn't exist, no score was kept for that game. 
+     * <p>
+     * If a given key does exist, it is pared with a list of ScoreKeepers which contain the scores
+     * tracked for a given iteration of the game. Iterations are in order of play, first to last.
+     * If a given iteration is null, then no points were tracked for that iteration. 
+     * Otherwise, it contains the scores tracked for the given iteration. 
+     */
+    private final Map<GameType, List<ScoreKeeper>> scoreKeepers = new HashMap<>();
     // Task IDs
     private int waitingInHubTaskId;
     private int toColossalColosseumDelayTaskId;
@@ -189,7 +199,13 @@ public class EventManager {
         gameManager.messageOnlineParticipants(pauseMessage);
     }
     
-    public void undoGame(@NotNull CommandSender sender, @NotNull GameType gameType) {
+    /**
+     * 
+     * @param sender the sender
+     * @param gameType the GameType to undo
+     * @param iterationIndex the index of the iteration of the game to undo (0 or more). if gameType has been played n times, and you want to undo the ith play-through, [1, i]&[i, n], pass in iteration=i-1
+     */
+    public void undoGame(@NotNull CommandSender sender, @NotNull GameType gameType, int iterationIndex) {
         if (currentState == null) {
             sender.sendMessage(Component.text("There isn't an event going on.")
                     .color(NamedTextColor.RED));
@@ -203,12 +219,6 @@ public class EventManager {
                     .color(NamedTextColor.RED));
             return;
         }
-        if (!playedGames.contains(gameType)) {
-            sender.sendMessage(Component.empty()
-                    .append(Component.text("This game has not been played yet."))
-                    .color(NamedTextColor.RED));
-            return;
-        }
         if (!scoreKeepers.containsKey(gameType)) {
             sender.sendMessage(Component.empty()
                     .append(Component.text("No points were tracked for "))
@@ -218,10 +228,40 @@ public class EventManager {
                     .color(NamedTextColor.YELLOW));
             return;
         }
-        
-        ScoreKeeper scoreKeeper = scoreKeepers.remove(gameType);
-        undoScores(scoreKeeper);
-        Component report = createUndoReport(gameType, scoreKeeper);
+        List<ScoreKeeper> gameScoreKeepers = scoreKeepers.get(gameType);
+        if (iterationIndex < 0) {
+            sender.sendMessage(Component.empty()
+                    .append(Component.text(iterationIndex+1)
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(" is not a valid play-through"))
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        if (iterationIndex >= gameScoreKeepers.size()) {
+            sender.sendMessage(Component.text(gameType.getTitle())
+                    .append(Component.text(" has only been played "))
+                    .append(Component.text(gameScoreKeepers.size()))
+                    .append(Component.text(" time(s). Can't undo play-through "))
+                    .append(Component.text(iterationIndex + 1))
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        ScoreKeeper iterationScoreKeeper = gameScoreKeepers.get(iterationIndex);
+        if (iterationScoreKeeper == null) {
+            sender.sendMessage(Component.empty()
+                    .append(Component.text("No points were tracked for play-through "))
+                    .append(Component.text(iterationIndex + 1)
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(" of "))
+                    .append(Component.text(gameType.getTitle())
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text("."))
+                    .color(NamedTextColor.YELLOW));
+            return;
+        }
+        undoScores(iterationScoreKeeper);
+        gameScoreKeepers.set(iterationIndex, null); // remove tracked points for this iteration
+        Component report = createScoreKeeperReport(gameType, iterationScoreKeeper);
         sender.sendMessage(report);
         Bukkit.getConsoleSender().sendMessage(report);
     }
@@ -259,10 +299,10 @@ public class EventManager {
      * @return A component with a report of the ScoreKeeper's scores
      */
     @NotNull
-    private Component createUndoReport(@NotNull GameType gameType, @NotNull ScoreKeeper scoreKeeper) {
+    private Component createScoreKeeperReport(@NotNull GameType gameType, @NotNull ScoreKeeper scoreKeeper) {
         Set<String> teamNames = gameManager.getTeamNames();
         TextComponent.Builder reportBuilder = Component.text()
-                .append(Component.text("|Scores removed ("))
+                .append(Component.text("|Scores for ("))
                 .append(Component.text(gameType.getTitle())
                         .decorate(TextDecoration.BOLD))
                 .append(Component.text("):\n"))
@@ -296,6 +336,33 @@ public class EventManager {
             }
         }
         return reportBuilder.build();
+    }
+    
+    public void addGameToVotingPool(@NotNull CommandSender sender, @NotNull GameType gameToAdd) {
+        if (currentState == null) {
+            sender.sendMessage(Component.text("There isn't an event going on.")
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        if (!playedGames.contains(gameToAdd)) {
+            sender.sendMessage(Component.text("This game is already in the voting pool.")
+                    .color(NamedTextColor.YELLOW));
+            return;
+        }
+        playedGames.remove(gameToAdd);
+        sender.sendMessage(Component.text(gameToAdd.getTitle())
+                .append(Component.text(" has been added to the voting pool.")));
+    }
+    
+    public void removeGameFromVotingPool(@NotNull CommandSender sender, @NotNull GameType gameToRemove) {
+        if (currentState == null) {
+            sender.sendMessage(Component.text("There isn't an event going on.")
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        playedGames.add(gameToRemove);
+        sender.sendMessage(Component.text(gameToRemove.getTitle())
+                .append(Component.text(" has been removed from the voting pool")));
     }
     
     public void cancelAllTasks() {
@@ -400,6 +467,7 @@ public class EventManager {
                 }
                 if (count <= 0) {
                     currentState = EventState.PLAYING_GAME;
+                    createScoreKeeperForGame(gameType);
                     gameManager.startGame(gameType, Bukkit.getConsoleSender());
                     this.cancel();
                     return;
@@ -409,6 +477,20 @@ public class EventManager {
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+    }
+    
+    /**
+     * Adds a ScoreKeeper to track the game's points. If no ScoreKeepers exist for gameType, creates a new list of iterations for the game.
+     * @param gameType the game to add a ScoreKeeper for
+     */
+    private void createScoreKeeperForGame(GameType gameType) {
+        if (!scoreKeepers.containsKey(gameType)) {
+            List<ScoreKeeper> iterationScoreKeepers = new ArrayList<>(List.of(new ScoreKeeper()));
+            scoreKeepers.put(gameType, iterationScoreKeepers);
+        } else {
+            List<ScoreKeeper> iterationScoreKeepers = scoreKeepers.get(gameType);
+            iterationScoreKeepers.add(new ScoreKeeper());
+        }
     }
     
     /**
@@ -593,11 +675,9 @@ public class EventManager {
         if (currentState == null) {
             return;
         }
-        if (!scoreKeepers.containsKey(gameType)) {
-            scoreKeepers.put(gameType, new ScoreKeeper());
-        }
-        ScoreKeeper scoreKeeper = scoreKeepers.get(gameType);
-        scoreKeeper.addPoints(teamName, points);
+        List<ScoreKeeper> iterationScoreKeepers = scoreKeepers.get(gameType);
+        ScoreKeeper iteration = iterationScoreKeepers.get(iterationScoreKeepers.size() - 1);
+        iteration.addPoints(teamName, points);
     }
     
     /**
@@ -611,11 +691,9 @@ public class EventManager {
         if (currentState == null) {
             return;
         }
-        if (!scoreKeepers.containsKey(gameType)) {
-            scoreKeepers.put(gameType, new ScoreKeeper());
-        }
-        ScoreKeeper scoreKeeper = scoreKeepers.get(gameType);
-        scoreKeeper.addPoints(participantUUID, points);
+        List<ScoreKeeper> iterationScoreKeepers = scoreKeepers.get(gameType);
+        ScoreKeeper iteration = iterationScoreKeepers.get(iterationScoreKeepers.size() - 1);
+        iteration.addPoints(participantUUID, points);
     }
     
     // FastBoard start
