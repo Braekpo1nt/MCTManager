@@ -16,8 +16,6 @@ import java.io.InputStream;
 import java.util.logging.Level;
 
 class CaptureTheFlagStorageUtilTest {
-    String validConfigFile = "validCaptureTheFlagConfig.json";
-    String invalidConfigFile = "invalidCaptureTheFlagConfig.json";
     String configFileName = "captureTheFlagConfig.json";
     Main plugin;
     CaptureTheFlagStorageUtil storageUtil;

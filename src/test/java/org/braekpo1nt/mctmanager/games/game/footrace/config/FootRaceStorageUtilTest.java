@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.games.game.footrace.config;
 
 import be.seeseemelk.mockbukkit.MockBukkit;
 import be.seeseemelk.mockbukkit.ServerMock;
+import com.google.gson.JsonObject;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.MyCustomServerMock;
 import org.braekpo1nt.mctmanager.TestUtils;
@@ -15,8 +16,6 @@ import java.util.logging.Level;
 
 class FootRaceStorageUtilTest {
     
-    String validConfigFile = "validFootRaceConfig.json";
-    String invalidConfigFile = "invalidFootRaceConfig.json";
     String configFileName = "footRaceConfig.json";
     Main plugin;
     FootRaceStorageUtil storageUtil;
@@ -47,23 +46,25 @@ class FootRaceStorageUtilTest {
     
     @Test
     void wellFormedJsonValidData() {
-        InputStream inputStream = getClass().getResourceAsStream(validConfigFile);
+        InputStream inputStream = storageUtil.getExampleResourceStream();
         TestUtils.copyInputStreamToFile(inputStream, new File(plugin.getDataFolder(), configFileName));
         Assertions.assertTrue(storageUtil.loadConfig());
     }
     
     @Test
     void wellFormedJsonInvalidData() {
-        InputStream inputStream = getClass().getResourceAsStream(invalidConfigFile);
-        TestUtils.copyInputStreamToFile(inputStream, new File(plugin.getDataFolder(), configFileName));
-        Assertions.assertThrows(IllegalArgumentException.class, storageUtil::loadConfig);
-    }
-    
-    @Test
-    void exampleJson() {
         InputStream inputStream = storageUtil.getExampleResourceStream();
-        TestUtils.copyInputStreamToFile(inputStream, new File(plugin.getDataFolder(), configFileName));
-        Assertions.assertTrue(storageUtil.loadConfig());
+        JsonObject json = TestUtils.inputStreamToJson(inputStream);
+        JsonObject finishLine = new JsonObject();
+        finishLine.addProperty("minX", 0);
+        finishLine.addProperty("minY", 0);
+        finishLine.addProperty("minZ", 0);
+        finishLine.addProperty("maxX", 0);
+        finishLine.addProperty("maxY", 0);
+        finishLine.addProperty("maxZ", 0);
+        json.add("finishLine", finishLine);
+        TestUtils.saveJsonToFile(json, new File(plugin.getDataFolder(), configFileName));
+        Assertions.assertThrows(IllegalArgumentException.class, storageUtil::loadConfig);
     }
     
 }
