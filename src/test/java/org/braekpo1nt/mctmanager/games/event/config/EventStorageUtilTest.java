@@ -16,6 +16,7 @@ import java.util.logging.Level;
 
 class EventStorageUtilTest {
     String configFileName = "eventConfig.json";
+    String exampleConfigFileName = "exampleEventConfig.json";
     Main plugin;
     EventStorageUtil storageUtil;
     
@@ -45,14 +46,14 @@ class EventStorageUtilTest {
     
     @Test
     void wellFormedJsonValidData() {
-        InputStream inputStream = storageUtil.getExampleResourceStream();
+        InputStream inputStream = storageUtil.getClass().getResourceAsStream(exampleConfigFileName);
         TestUtils.copyInputStreamToFile(inputStream, new File(plugin.getDataFolder(), configFileName));
         Assertions.assertTrue(storageUtil.loadConfig());
     }
     
     @Test
     void wellFormedJsonInvalidData() {
-        InputStream inputStream = storageUtil.getExampleResourceStream();
+        InputStream inputStream = storageUtil.getClass().getResourceAsStream(exampleConfigFileName);
         JsonObject json = TestUtils.inputStreamToJson(inputStream);
         json.addProperty("title", "");
         TestUtils.saveJsonToFile(json, new File(plugin.getDataFolder(), configFileName));

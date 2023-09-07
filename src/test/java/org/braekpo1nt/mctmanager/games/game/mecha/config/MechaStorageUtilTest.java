@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.games.game.mecha.config;
 
 import be.seeseemelk.mockbukkit.MockBukkit;
 import be.seeseemelk.mockbukkit.ServerMock;
+import com.google.gson.JsonObject;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.MyCustomServerMock;
 import org.braekpo1nt.mctmanager.TestUtils;
@@ -15,9 +16,8 @@ import java.io.InputStream;
 import java.util.logging.Level;
 
 class MechaStorageUtilTest {
-    String validConfigFile = "validMechaConfig.json";
-    String invalidConfigFile = "invalidMechaConfig.json";
     String configFileName = "mechaConfig.json";
+    String exampleConfigFileName = "exampleMechaConfig.json";
     Main plugin;
     MechaStorageUtil storageUtil;
 
@@ -44,25 +44,20 @@ class MechaStorageUtilTest {
         TestUtils.createFileInDirectory(plugin.getDataFolder(), configFileName, "{,");
         Assertions.assertThrows(IllegalArgumentException.class, storageUtil::loadConfig);
     }
-
+    
     @Test
     void wellFormedJsonValidData() {
-        InputStream inputStream = getClass().getResourceAsStream(validConfigFile);
+        InputStream inputStream = storageUtil.getClass().getResourceAsStream(exampleConfigFileName);
         TestUtils.copyInputStreamToFile(inputStream, new File(plugin.getDataFolder(), configFileName));
         Assertions.assertTrue(storageUtil.loadConfig());
-    }
-
-    @Test
-    void wellFormedJsonInvalidData() {
-        InputStream inputStream = getClass().getResourceAsStream(invalidConfigFile);
-        TestUtils.copyInputStreamToFile(inputStream, new File(plugin.getDataFolder(), configFileName));
-        Assertions.assertThrows(IllegalArgumentException.class, storageUtil::loadConfig);
     }
     
     @Test
-    void exampleJson() {
-        InputStream inputStream = storageUtil.getExampleResourceStream();
-        TestUtils.copyInputStreamToFile(inputStream, new File(plugin.getDataFolder(), configFileName));
-        Assertions.assertTrue(storageUtil.loadConfig());
+    void wellFormedJsonInvalidData() {
+        InputStream inputStream = storageUtil.getClass().getResourceAsStream(exampleConfigFileName);
+        JsonObject json = TestUtils.inputStreamToJson(inputStream);
+        json.add("mapChestCoords", null);
+        TestUtils.saveJsonToFile(json, new File(plugin.getDataFolder(), configFileName));
+        Assertions.assertThrows(IllegalArgumentException.class, storageUtil::loadConfig);
     }
 }
