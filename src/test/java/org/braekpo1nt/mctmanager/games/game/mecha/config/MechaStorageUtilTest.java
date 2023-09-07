@@ -17,6 +17,7 @@ import java.util.logging.Level;
 
 class MechaStorageUtilTest {
     String configFileName = "mechaConfig.json";
+    String exampleConfigFileName = "exampleMechaConfig.json";
     Main plugin;
     MechaStorageUtil storageUtil;
 
@@ -46,14 +47,14 @@ class MechaStorageUtilTest {
     
     @Test
     void wellFormedJsonValidData() {
-        InputStream inputStream = storageUtil.getExampleResourceStream();
+        InputStream inputStream = storageUtil.getClass().getResourceAsStream(exampleConfigFileName);
         TestUtils.copyInputStreamToFile(inputStream, new File(plugin.getDataFolder(), configFileName));
         Assertions.assertTrue(storageUtil.loadConfig());
     }
     
     @Test
     void wellFormedJsonInvalidData() {
-        InputStream inputStream = storageUtil.getExampleResourceStream();
+        InputStream inputStream = storageUtil.getClass().getResourceAsStream(exampleConfigFileName);
         JsonObject json = TestUtils.inputStreamToJson(inputStream);
         json.add("mapChestCoords", null);
         TestUtils.saveJsonToFile(json, new File(plugin.getDataFolder(), configFileName));

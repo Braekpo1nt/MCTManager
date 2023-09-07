@@ -17,6 +17,7 @@ import java.util.logging.Level;
 
 class ParkourPathwayStorageUtilTest {
     String configFileName = "parkourPathwayConfig.json";
+    String exampleConfigFileName = "exampleParkourPathwayConfig.json";
     Main plugin;
     ParkourPathwayStorageUtil storageUtil;
 
@@ -46,14 +47,14 @@ class ParkourPathwayStorageUtilTest {
     
     @Test
     void wellFormedJsonValidData() {
-        InputStream inputStream = storageUtil.getExampleResourceStream();
+        InputStream inputStream = storageUtil.getClass().getResourceAsStream(exampleConfigFileName);
         TestUtils.copyInputStreamToFile(inputStream, new File(plugin.getDataFolder(), configFileName));
         Assertions.assertTrue(storageUtil.loadConfig());
     }
     
     @Test
     void wellFormedJsonInvalidData() {
-        InputStream inputStream = storageUtil.getExampleResourceStream();
+        InputStream inputStream = storageUtil.getClass().getResourceAsStream(exampleConfigFileName);
         JsonObject json = TestUtils.inputStreamToJson(inputStream);
         JsonObject spectatorArea = new JsonObject();
         spectatorArea.addProperty("minX", 0);

@@ -17,6 +17,7 @@ import java.util.logging.Level;
 
 class CaptureTheFlagStorageUtilTest {
     String configFileName = "captureTheFlagConfig.json";
+    String exampleConfigFileName = "exampleCaptureTheFlagConfig.json";
     Main plugin;
     CaptureTheFlagStorageUtil storageUtil;
     
@@ -46,14 +47,14 @@ class CaptureTheFlagStorageUtilTest {
     
     @Test
     void wellFormedJsonValidData() {
-        InputStream inputStream = storageUtil.getExampleResourceStream();
+        InputStream inputStream = storageUtil.getClass().getResourceAsStream(exampleConfigFileName);
         TestUtils.copyInputStreamToFile(inputStream, new File(plugin.getDataFolder(), configFileName));
         Assertions.assertTrue(storageUtil.loadConfig());
     }
     
     @Test
     void wellFormedJsonInvalidData() {
-        InputStream inputStream = storageUtil.getExampleResourceStream();
+        InputStream inputStream = storageUtil.getClass().getResourceAsStream(exampleConfigFileName);
         JsonObject json = TestUtils.inputStreamToJson(inputStream);
         JsonObject spectatorArea = new JsonObject();
         spectatorArea.addProperty("minX", 0);

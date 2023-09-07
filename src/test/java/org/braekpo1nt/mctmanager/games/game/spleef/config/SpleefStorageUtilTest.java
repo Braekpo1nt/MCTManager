@@ -17,6 +17,7 @@ import java.util.logging.Level;
 class SpleefStorageUtilTest {
 
     String configFileName = "spleefConfig.json";
+    String exampleConfigFileName = "exampleSpleefConfig.json";
     Main plugin;
     SpleefStorageUtil storageUtil;
     
@@ -46,14 +47,14 @@ class SpleefStorageUtilTest {
     
     @Test
     void wellFormedJsonValidData() {
-        InputStream inputStream = storageUtil.getExampleResourceStream();
+        InputStream inputStream = storageUtil.getClass().getResourceAsStream(exampleConfigFileName);
         TestUtils.copyInputStreamToFile(inputStream, new File(plugin.getDataFolder(), configFileName));
         Assertions.assertTrue(storageUtil.loadConfig());
     }
     
     @Test
     void wellFormedJsonInvalidData() {
-        InputStream inputStream = storageUtil.getExampleResourceStream();
+        InputStream inputStream = storageUtil.getClass().getResourceAsStream(exampleConfigFileName);
         JsonObject json = TestUtils.inputStreamToJson(inputStream);
         JsonObject spectatorArea = new JsonObject();
         spectatorArea.addProperty("minX", 0);
