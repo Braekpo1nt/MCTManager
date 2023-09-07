@@ -188,6 +188,14 @@
       }
     }
   ],
+  "spectatorArea": {
+    "minX": 26,
+    "minY": 4,
+    "minZ": -1042,
+    "maxX": -26,
+    "maxY": -17,
+    "maxZ": -958
+  },
   "scores": {
     "kill": 20,
     "win": 100
