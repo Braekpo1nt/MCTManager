@@ -219,12 +219,6 @@ public class EventManager {
                     .color(NamedTextColor.RED));
             return;
         }
-        if (!playedGames.contains(gameType)) {
-            sender.sendMessage(Component.empty()
-                    .append(Component.text("This game has not been played yet."))
-                    .color(NamedTextColor.RED));
-            return;
-        }
         if (!scoreKeepers.containsKey(gameType)) {
             sender.sendMessage(Component.empty()
                     .append(Component.text("No points were tracked for "))
