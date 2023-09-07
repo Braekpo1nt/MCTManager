@@ -221,7 +221,7 @@ public class EventManager {
         
         ScoreKeeper scoreKeeper = scoreKeepers.remove(gameType);
         undoScores(scoreKeeper);
-        Component report = createUndoReport(gameType, scoreKeeper);
+        Component report = createScoreKeeperReport(gameType, scoreKeeper);
         sender.sendMessage(report);
         Bukkit.getConsoleSender().sendMessage(report);
     }
@@ -259,10 +259,10 @@ public class EventManager {
      * @return A component with a report of the ScoreKeeper's scores
      */
     @NotNull
-    private Component createUndoReport(@NotNull GameType gameType, @NotNull ScoreKeeper scoreKeeper) {
+    private Component createScoreKeeperReport(@NotNull GameType gameType, @NotNull ScoreKeeper scoreKeeper) {
         Set<String> teamNames = gameManager.getTeamNames();
         TextComponent.Builder reportBuilder = Component.text()
-                .append(Component.text("|Scores removed ("))
+                .append(Component.text("|Scores for ("))
                 .append(Component.text(gameType.getTitle())
                         .decorate(TextDecoration.BOLD))
                 .append(Component.text("):\n"))
@@ -296,6 +296,46 @@ public class EventManager {
             }
         }
         return reportBuilder.build();
+    }
+    
+    public void addGameToVotingPool(@NotNull CommandSender sender, @NotNull GameType gameToAdd) {
+        if (currentState == null) {
+            sender.sendMessage(Component.text("There isn't an event going on.")
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        if (!playedGames.contains(gameToAdd)) {
+            sender.sendMessage(Component.text("This game is already in the voting pool.")
+                    .color(NamedTextColor.YELLOW));
+            return;
+        }
+        playedGames.remove(gameToAdd);
+        ScoreKeeper scoreKeeper = scoreKeepers.remove(gameToAdd);
+        sender.sendMessage(Component.text(gameToAdd.getTitle())
+                .append(Component.text(" has been added to the voting pool.")));
+        if (scoreKeeper != null) {
+            Component report = createScoreKeeperReport(gameToAdd, scoreKeeper);
+            Component message = Component.text("")
+                    .append(Component.text(gameToAdd.getTitle()))
+                    .append(Component.text(" has been played in this event, but since it may be played again you can no longer undo the scores from the previous play-through of "))
+                    .append(Component.text(gameToAdd.getTitle()))
+                    .append(Component.text(". These are the scores collected from the previous play-through:"));
+            sender.sendMessage(message);
+            sender.sendMessage(report);
+            Bukkit.getConsoleSender().sendMessage(message);
+            Bukkit.getConsoleSender().sendMessage(report);
+        }
+    }
+    
+    public void removeGameFromVotingPool(@NotNull CommandSender sender, @NotNull GameType gameToRemove) {
+        if (currentState == null) {
+            sender.sendMessage(Component.text("There isn't an event going on.")
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        playedGames.add(gameToRemove);
+        sender.sendMessage(Component.text(gameToRemove.getTitle())
+                .append(Component.text(" has been removed from the voting pool")));
     }
     
     public void cancelAllTasks() {

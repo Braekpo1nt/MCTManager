@@ -85,6 +85,7 @@ public class EventSubCommand extends CommandManager {
             gameManager.getEventManager().undoGame(sender, gameType);
             return true;
         });
+        subCommands.put("vote", new VoteSubCommand(gameManager));
     }
     
     @Override
