@@ -6,7 +6,7 @@ import org.bukkit.util.BoundingBox;
 
 public class Wedge {
     private final BoundingBox boundingBox;
-
+    
     public Wedge(BoundingBox boundingBox) {
         this.boundingBox = boundingBox;
     }

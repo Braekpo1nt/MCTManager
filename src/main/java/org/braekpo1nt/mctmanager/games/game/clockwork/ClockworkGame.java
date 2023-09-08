@@ -24,6 +24,11 @@ public class ClockworkGame implements MCTGame, Configurable {
     }
     
     @Override
+    public boolean loadConfig() throws IllegalArgumentException {
+        return false;
+    }
+    
+    @Override
     public void start(List<Player> newParticipants) {
         
     }
@@ -41,10 +46,5 @@ public class ClockworkGame implements MCTGame, Configurable {
     @Override
     public void onParticipantQuit(Player participant) {
         
-    }
-    
-    @Override
-    public boolean loadConfig() throws IllegalArgumentException {
-        return false;
     }
 }
