@@ -47,7 +47,6 @@ public class SpleefRound implements Listener {
     private int statusEffectsTaskId;
     private int startCountDownTaskID;
     private final String title = ChatColor.BLUE+"Spleef";
-    private final BoundingBox spleefArea = new BoundingBox(-20, 25, -1981, 21, 0, -2021);
     private int decayTaskId;
     
     public SpleefRound(Main plugin, GameManager gameManager, SpleefGame spleefGame, SpleefStorageUtil spleefStorageUtil) {
@@ -191,12 +190,39 @@ public class SpleefRound implements Listener {
             Bukkit.getServer().sendMessage(deathMessage);
         }
         onParticipantDeath(killed);
-        if (lessThanTwoPlayersAlive()) {
+        if (lessThanTwoPlayersAlive() || exactlyOneTeamIsAlive()) {
             roundIsOver();
         }
     }
-
-
+    
+    /**
+     * @return true if exactly one team is alive, false otherwise
+     */
+    private boolean exactlyOneTeamIsAlive() {
+        String onlyTeam = null;
+        for (Player participant : participants) {
+            if (participantsAlive.get(participant.getUniqueId())) {
+                String livingTeam = gameManager.getTeamName(participant.getUniqueId());
+                if (onlyTeam == null) {
+                    onlyTeam = livingTeam;
+                } else if (!onlyTeam.equals(livingTeam)) {
+                    return false;
+                }
+            }
+        }
+        return onlyTeam != null;
+    }
+    
+    private boolean lessThanTwoPlayersAlive() {
+        int aliveCount = 0;
+        for (boolean isAlive : participantsAlive.values()) {
+            if (isAlive) {
+                aliveCount += 1;
+            }
+        }
+        return aliveCount < 2;
+    }
+    
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
         if (!roundActive) {
@@ -212,22 +238,16 @@ public class SpleefRound implements Listener {
         }
     }
     
-    private boolean lessThanTwoPlayersAlive() {
-        int aliveCount = 0;
-        for (boolean isAlive : participantsAlive.values()) {
-            if (isAlive) {
-                aliveCount += 1;
-            }
-        }
-        return aliveCount < 2;
-    }
-    
     private void onParticipantDeath(Player killed) {
         participantsAlive.put(killed.getUniqueId(), false);
+        String killedTeam = gameManager.getTeamName(killed.getUniqueId());
         int count = participants.size();
         for (Player participant : participants) {
             if (participantsAlive.get(participant.getUniqueId())) {
-                gameManager.awardPointsToParticipant(participant, storageUtil.getSurviveScore());
+                String teamName = gameManager.getTeamName(participant.getUniqueId());
+                if (!teamName.equals(killedTeam)) {
+                    gameManager.awardPointsToParticipant(participant, storageUtil.getSurviveScore());
+                }
             } else {
                 count--;
             }
