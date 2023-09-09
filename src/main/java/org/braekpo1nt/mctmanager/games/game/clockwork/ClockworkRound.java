@@ -25,4 +25,8 @@ public class ClockworkRound {
     public void start(List<Player> newParticipants) {
         
     }
+    
+    public void stop() {
+        
+    }
 }
