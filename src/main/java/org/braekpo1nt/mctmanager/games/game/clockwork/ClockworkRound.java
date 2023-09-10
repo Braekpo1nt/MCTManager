@@ -4,11 +4,13 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.clockwork.config.ClockworkStorageUtil;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
+import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 
@@ -24,6 +26,7 @@ public class ClockworkRound implements Listener {
     private List<Player> participants = new ArrayList<>();
     private Map<UUID, Boolean> participantsAreAlive = new HashMap<>();
     private boolean roundActive = false;
+    private int breatherDelayTaskId;
     
     public ClockworkRound(Main plugin, GameManager gameManager, ClockworkGame clockworkGame, ClockworkStorageUtil storageUtil) {
         this.plugin = plugin;
@@ -81,10 +84,27 @@ public class ClockworkRound implements Listener {
     }
     
     private void cancelAllTasks() {
-        
+        Bukkit.getScheduler().cancelTask(breatherDelayTaskId);
     }
     
     private void startBreatherDelay() {
+        this.breatherDelayTaskId = new BukkitRunnable() {
+            int count = storageUtil.getBreatherDuration();
+            @Override
+            public void run() {
+                if (count <= 0) {
+                    startClockChime();
+                    this.cancel();
+                    return;
+                }
+                updateTimerFastBoard(String.format("Clock chimes in: %s",
+                        TimeStringUtils.getTimeString(count)));
+                count--;
+            }
+        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+    }
+    
+    private void startClockChime() {
         
     }
     
@@ -98,6 +118,20 @@ public class ClockworkRound implements Listener {
                 participant.getUniqueId(),
                 3,
                 ""
+        );
+    }
+    
+    private void updateTimerFastBoard(String time) {
+        for (Player participant : participants) {
+            updateTimerFastBoard(participant, time);
+        }
+    }
+    
+    private void updateTimerFastBoard(Player participant, String time) {
+        gameManager.getFastBoardManager().updateLine(
+                participant.getUniqueId(),
+                2,
+                time
         );
     }
     

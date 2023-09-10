@@ -25,6 +25,6 @@ record ClockworkConfig(String version, String world, Vector startingLocation, Bo
     record Scores(int playerElimination, int teamElimination, int winRound) {
     }
     
-    record Durations() {
+    record Durations(int breather, int getToWedge) {
     }
 }

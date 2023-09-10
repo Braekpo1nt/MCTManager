@@ -143,7 +143,8 @@
     "winRound": 50
   },
   "durations": {
-    
+    "breather": 5,
+    "getToWedge": 8
   },
   "description": {"text":"Clockwork description","color":"dark_blue","bold": true}
 }

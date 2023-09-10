@@ -55,6 +55,8 @@ public class ClockworkStorageUtil extends GameConfigStorageUtil<ClockworkConfig>
         Preconditions.checkArgument(config.rounds() >= 1, "rounds must be at least 1");
         Preconditions.checkArgument(config.scores() != null, "scores can't be null");
         Preconditions.checkArgument(config.durations() != null, "durations can't be null");
+        Preconditions.checkArgument(config.durations().breather() >= 0, "durations.breather can't be negative");
+        Preconditions.checkArgument(config.durations().getToWedge() >= 0, "durations.getToWedge can't be negative");
         try {
             GsonComponentSerializer.gson().deserializeFromTree(config.description());
         } catch (JsonIOException | JsonSyntaxException e) {
@@ -110,5 +112,13 @@ public class ClockworkStorageUtil extends GameConfigStorageUtil<ClockworkConfig>
     
     public int getWinRoundScore() {
         return clockworkConfig.scores().winRound();
+    }
+    
+    public int getBreatherDuration() {
+        return clockworkConfig.durations().breather();
+    }
+    
+    public int getGetToWedgeDuration() {
+        return clockworkConfig.durations().getToWedge();
     }
 }
