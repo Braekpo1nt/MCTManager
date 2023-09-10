@@ -92,6 +92,8 @@ public class SpleefRound implements Listener {
     
     private void resetParticipant(Player participant) {
         participant.getInventory().clear();
+        ParticipantInitializer.clearStatusEffects(participant);
+        ParticipantInitializer.resetHealthAndHunger(participant);
         hideFastBoard(participant);
     }
     

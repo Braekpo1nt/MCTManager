@@ -85,6 +85,15 @@ public class ClockworkGame implements MCTGame, Configurable {
         hideFastBoard(participant);
     }
     
+    public void roundIsOver() {
+        if (currentRoundIndex+1 >= rounds.size()) {
+            stop();
+            return;
+        }
+        currentRoundIndex++;
+        startNextRound();
+    }
+    
     public void startNextRound() {
         ClockworkRound nextRound = rounds.get(currentRoundIndex);
         nextRound.start(participants);
@@ -110,11 +119,11 @@ public class ClockworkGame implements MCTGame, Configurable {
     private void initializeFastBoard(Player participant) {
         gameManager.getFastBoardManager().updateLines(
                 participant.getUniqueId(),
-                title,
-                String.format("Round %d/%d", currentRoundIndex+1, rounds.size()),
-                "", // number of players left
-                "", // countdown
-                ""
+                title, // 0
+                String.format("Round %d/%d", currentRoundIndex+1, rounds.size()), // 1
+                "", // number of players left // 2
+                "", // countdown // 3
+                "" // 4
         );
     }
     
