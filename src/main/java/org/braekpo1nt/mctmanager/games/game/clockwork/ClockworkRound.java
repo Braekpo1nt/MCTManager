@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.games.game.clockwork;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.clockwork.config.ClockworkStorageUtil;
@@ -9,6 +10,7 @@ import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
@@ -218,6 +220,75 @@ public class ClockworkRound implements Listener {
         Bukkit.getLogger().info("increasing chaos (placeholder)");
     }
     
+    @EventHandler
+    public void onPlayerDeath(PlayerDeathEvent event) {
+        if (!roundActive) {
+            return;
+        }
+        Player killed = event.getPlayer();
+        if (!participants.contains(killed)) {
+            return;
+        }
+        killed.setGameMode(GameMode.SPECTATOR);
+        killed.getInventory().clear();
+        ParticipantInitializer.clearStatusEffects(killed);
+        ParticipantInitializer.resetHealthAndHunger(killed);
+        if (event.getDeathSound() != null && event.getDeathSoundCategory() != null) {
+            killed.getWorld().playSound(killed.getLocation(), event.getDeathSound(), event.getDeathSoundCategory(), event.getDeathSoundVolume(), event.getDeathSoundPitch());
+        }
+        Component deathMessage = event.deathMessage();
+        if (deathMessage != null) {
+            Bukkit.getServer().sendMessage(deathMessage);
+        }
+        onParticipantDeath(killed);
+    }
+    
+    private void onParticipantDeath(Player killed) {
+        participantsAreAlive.put(killed.getUniqueId(), false);
+        String killedTeam = gameManager.getTeamName(killed.getUniqueId());
+        boolean killedTeamIsFullyDead = true;
+        for (Player participant : participants) {
+            if (participantsAreAlive.get(participant.getUniqueId())) {
+                gameManager.awardPointsToParticipant(participant, storageUtil.getPlayerEliminationScore());
+                String livingTeam = gameManager.getTeamName(participant.getUniqueId());
+                if (killedTeam.equals(livingTeam)) {
+                    killedTeamIsFullyDead = false;
+                }
+            }
+        }
+        if (killedTeamIsFullyDead) {
+            Component teamDisplayName = gameManager.getFormattedTeamDisplayName(killedTeam);
+            messageAllParticipants(Component.text(killedTeam)
+                    .append(Component.text(" has been eliminated")));
+            Set<String> livingTeams = new HashSet<>();
+            for (Player participant : participants) {
+                if (participantsAreAlive.get(participant.getUniqueId())) {
+                    String team = gameManager.getTeamName(participant.getUniqueId());
+                    livingTeams.add(team);
+                }
+            }
+            for (String livingTeam : livingTeams) {
+                gameManager.awardPointsToTeam(livingTeam, storageUtil.getTeamEliminationScore());
+            }
+            if (livingTeams.size() == 0) {
+                onAllTeamsLoseRound();
+                return;
+            }
+            if (livingTeams.size() == 1) {
+                String winningTeam = livingTeams.iterator().next();
+                onTeamWinsRound(winningTeam);
+            }
+        }
+    }
+    
+    private void onAllTeamsLoseRound() {
+        
+    }
+    
+    private void onTeamWinsRound(String winningTeam) {
+        
+    }
+    
     private void initializeFastBoard(Player participant) {
         gameManager.getFastBoardManager().updateLine(
                 participant.getUniqueId(),
@@ -276,6 +347,13 @@ public class ClockworkRound implements Listener {
             team.setOption(Team.Option.DEATH_MESSAGE_VISIBILITY, Team.OptionStatus.ALWAYS);
             team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.ALWAYS);
         }
+    }
+    
+    private void messageAllParticipants(Component message) {
+        for (Player participant : participants) {
+            participant.sendMessage(message);
+        }
+        gameManager.messageAdmins(message);
     }
     
 }
