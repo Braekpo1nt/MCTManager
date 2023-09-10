@@ -7,6 +7,7 @@ import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
@@ -27,6 +28,10 @@ public class ClockworkRound implements Listener {
     private Map<UUID, Boolean> participantsAreAlive = new HashMap<>();
     private boolean roundActive = false;
     private int breatherDelayTaskId;
+    private int clockChimeTaskId;
+    private final Random random = new Random();
+    private int numberOfChimes = 1;
+    private long chimeInterval = 20L;
     
     public ClockworkRound(Main plugin, GameManager gameManager, ClockworkGame clockworkGame, ClockworkStorageUtil storageUtil) {
         this.plugin = plugin;
@@ -85,6 +90,7 @@ public class ClockworkRound implements Listener {
     
     private void cancelAllTasks() {
         Bukkit.getScheduler().cancelTask(breatherDelayTaskId);
+        Bukkit.getScheduler().cancelTask(clockChimeTaskId);
     }
     
     private void startBreatherDelay() {
@@ -105,6 +111,31 @@ public class ClockworkRound implements Listener {
     }
     
     private void startClockChime() {
+        this.numberOfChimes = random.nextInt(1, 13);
+        this.clockChimeTaskId = new BukkitRunnable() {
+            int count = numberOfChimes;
+            @Override
+            public void run() {
+                if (count <= 0) {
+                    startGetToWedgeDelay();
+                    this.cancel();
+                    return;
+                }
+                playChimeSound();
+                count--;
+            }
+        }.runTaskTimer(plugin, 0L, chimeInterval).getTaskId();
+        
+    }
+    
+    private void playChimeSound() {
+        for (Player participant : participants) {
+            participant.playSound(participant.getLocation(), storageUtil.getClockChimeSound(), storageUtil.getClockChimeVolume(), storageUtil.getClockChimePitch());
+        }
+        gameManager.playSoundForAdmins(storageUtil.getClockChimeSound(), storageUtil.getClockChimeVolume(), storageUtil.getClockChimePitch());
+    }
+    
+    private void startGetToWedgeDelay() {
         
     }
     

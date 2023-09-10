@@ -954,7 +954,13 @@ public class GameManager implements Listener {
         }
     }
     
-    public void playSoundForAdmins(Sound sound, int volume, int pitch) {
+    public void playSoundForAdmins(@NotNull Sound sound, float volume, float pitch) {
+        for (Player admin : onlineAdmins) {
+            admin.playSound(admin.getLocation(), sound, volume, pitch);
+        }
+    }
+    
+    public void playSoundForAdmins(@NotNull String sound, float volume, float pitch) {
         for (Player admin : onlineAdmins) {
             admin.playSound(admin.getLocation(), sound, volume, pitch);
         }

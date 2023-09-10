@@ -137,6 +137,11 @@
     }
   ],
   "rounds": 3,
+  "clockChime": {
+    "sound": "block.bell.use",
+    "volume": 100.0,
+    "pitch": 2.0
+  },
   "scores": {
     "playerElimination": 5,
     "teamElimination": 20,

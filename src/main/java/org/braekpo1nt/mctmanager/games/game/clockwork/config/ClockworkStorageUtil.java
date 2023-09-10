@@ -53,6 +53,8 @@ public class ClockworkStorageUtil extends GameConfigStorageUtil<ClockworkConfig>
             Preconditions.checkArgument(wedgeDTO.getDetectionArea().getVolume() >= 1.0, "wedge.detectionArea (%s) volume (%s) must be at least 1.0", wedgeDTO.detectionArea(), wedgeDTO.getDetectionArea().getVolume());
         }
         Preconditions.checkArgument(config.rounds() >= 1, "rounds must be at least 1");
+        Preconditions.checkArgument(config.clockChime() != null, "clockChime can't be null");
+        Preconditions.checkArgument(config.clockChime().sound() != null, "clockChime.sound can't be null");
         Preconditions.checkArgument(config.scores() != null, "scores can't be null");
         Preconditions.checkArgument(config.durations() != null, "durations can't be null");
         Preconditions.checkArgument(config.durations().breather() >= 0, "durations.breather can't be negative");
@@ -120,5 +122,17 @@ public class ClockworkStorageUtil extends GameConfigStorageUtil<ClockworkConfig>
     
     public int getGetToWedgeDuration() {
         return clockworkConfig.durations().getToWedge();
+    }
+    
+    public String getClockChimeSound() {
+        return clockworkConfig.clockChime().sound();
+    }
+    
+    public float getClockChimeVolume() {
+        return clockworkConfig.clockChime().volume();
+    }
+    
+    public float getClockChimePitch() {
+        return clockworkConfig.clockChime().pitch();
     }
 }
