@@ -14,6 +14,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
@@ -206,18 +207,41 @@ public class ClockworkRound implements Listener {
             participantsAreAlive.put(participant.getUniqueId(), false);
         }
         for (Player participant : participantsToKill) {
-            List<ItemStack> drops = Arrays.stream(participant.getInventory().getContents())
-                    .filter(Objects::nonNull)
-                    .toList();
-            Component deathMessage = Component.text(participant.getName())
-                    .append(Component.text("'s time has come."));
-            PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(participant, drops, 0, deathMessage);
-            Bukkit.getServer().getPluginManager().callEvent(fakeDeathEvent);
+            killParticipant(participant);
         }
+    }
+    
+    private static void killParticipant(Player participant) {
+        List<ItemStack> drops = Arrays.stream(participant.getInventory().getContents())
+                .filter(Objects::nonNull)
+                .toList();
+        Component deathMessage = Component.text(participant.getName())
+                .append(Component.text("'s time has come."));
+        PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(participant, drops, 0, deathMessage);
+        Bukkit.getServer().getPluginManager().callEvent(fakeDeathEvent);
     }
     
     private void incrementChaos() {
         Bukkit.getLogger().info("increasing chaos (placeholder)");
+        Bukkit.getLogger().info("increasing chime speed (placeholder)");
+    }
+    
+    @EventHandler
+    public void onPlayerMove(PlayerMoveEvent event) {
+        if (!roundActive) {
+            return;
+        }
+        if (!mustStayOnWedge) {
+            return;
+        }
+        Player participant = event.getPlayer();
+        if (!participants.contains(participant)) {
+            return;
+        }
+        Wedge currentWedge = storageUtil.getWedges().get(numberOfChimes - 1);
+        if (!currentWedge.contains(participant.getLocation().toVector())) {
+            killParticipant(participant);
+        }
     }
     
     @EventHandler
