@@ -258,7 +258,8 @@ public class ClockworkRound implements Listener {
         }
         if (killedTeamIsFullyDead) {
             Component teamDisplayName = gameManager.getFormattedTeamDisplayName(killedTeam);
-            messageAllParticipants(Component.text(teamDisplayName)
+            messageAllParticipants(Component.empty()
+                    .append(teamDisplayName)
                     .append(Component.text(" has been eliminated")));
             Set<String> livingTeams = new HashSet<>();
             for (Player participant : participants) {
