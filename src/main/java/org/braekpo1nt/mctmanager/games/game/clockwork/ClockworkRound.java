@@ -283,11 +283,17 @@ public class ClockworkRound implements Listener {
     }
     
     private void onAllTeamsLoseRound() {
-        
+        messageAllParticipants(Component.text("All teams have been eliminated."));
+        roundIsOver();
     }
     
     private void onTeamWinsRound(String winningTeam) {
-        
+        gameManager.awardPointsToTeam(winningTeam, storageUtil.getWinRoundScore());
+        Component teamDisplayName = gameManager.getFormattedTeamDisplayName(winningTeam);
+        messageAllParticipants(Component.empty()
+                .append(teamDisplayName)
+                .append(Component.text(" wins this round!")));
+        roundIsOver();
     }
     
     private void initializeFastBoard(Player participant) {
