@@ -29,6 +29,7 @@ public class ClockworkRound implements Listener {
     private boolean roundActive = false;
     private int breatherDelayTaskId;
     private int clockChimeTaskId;
+    private int getToWedgeDelayTaskId;
     private final Random random = new Random();
     private int numberOfChimes = 1;
     private long chimeInterval = 20L;
@@ -91,6 +92,7 @@ public class ClockworkRound implements Listener {
     private void cancelAllTasks() {
         Bukkit.getScheduler().cancelTask(breatherDelayTaskId);
         Bukkit.getScheduler().cancelTask(clockChimeTaskId);
+        Bukkit.getScheduler().cancelTask(getToWedgeDelayTaskId);
     }
     
     private void startBreatherDelay() {
@@ -136,6 +138,23 @@ public class ClockworkRound implements Listener {
     }
     
     private void startGetToWedgeDelay() {
+        this.getToWedgeDelayTaskId = new BukkitRunnable() {
+            int count = storageUtil.getGetToWedgeDuration();
+            @Override
+            public void run() {
+                if (count <= 0) {
+                    startStayOnWedgeDelay();
+                    this.cancel();
+                    return;
+                }
+                updateTimerFastBoard(String.format("Get to wedge! %s",
+                        TimeStringUtils.getTimeString(count)));
+                count--;
+            }
+        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+    }
+    
+    private void startStayOnWedgeDelay() {
         
     }
     
