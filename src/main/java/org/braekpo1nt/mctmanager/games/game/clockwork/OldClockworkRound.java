@@ -293,7 +293,7 @@ public class OldClockworkRound implements Listener {
         for (Player participant : participants) {
             Component deathMessage = Component.text(participant.getName())
                     .append(Component.text(" was eliminated"));
-            if (!wedge.isInside(participant)) {
+            if (!wedge.contains(participant.getLocation().toVector())) {
                 PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(participant, Collections.emptyList(), 0, deathMessage);
                 Bukkit.getPluginManager().callEvent(fakeDeathEvent);
             }

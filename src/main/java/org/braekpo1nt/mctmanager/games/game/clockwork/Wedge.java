@@ -1,8 +1,7 @@
 package org.braekpo1nt.mctmanager.games.game.clockwork;
 
-import org.bukkit.Location;
-import org.bukkit.entity.Player;
 import org.bukkit.util.BoundingBox;
+import org.bukkit.util.Vector;
 
 public class Wedge {
     private final BoundingBox boundingBox;
@@ -11,8 +10,7 @@ public class Wedge {
         this.boundingBox = boundingBox;
     }
     
-    public boolean isInside(Player participant) {
-        Location playerLocation = participant.getLocation();
-        return boundingBox.contains(playerLocation.toVector());
+    public boolean contains(Vector position) {
+        return boundingBox.contains(position);
     }
 }
