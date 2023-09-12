@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.games.game.clockwork;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.clockwork.config.ClockworkStorageUtil;
@@ -282,7 +283,7 @@ public class ClockworkRound implements Listener {
             ParticipantInitializer.clearStatusEffects(killed);
             ParticipantInitializer.resetHealthAndHunger(killed);
             Bukkit.getServer().sendMessage(Component.text(killed.getName())
-                    .append(Component.text(" didn't make it")));
+                    .append(Component.text(" was claimed by time")));
             participantsAreAlive.put(killed.getUniqueId(), false);
             for (Player participant : participants) {
                 if (participantsAreAlive.get(participant.getUniqueId()) && !killedParticipants.contains(participant)) {
@@ -313,9 +314,20 @@ public class ClockworkRound implements Listener {
         List<String> allTeams = gameManager.getTeamNames(participants);
         for (String newlyKilledTeam : newlyKilledTeams) {
             Component teamDisplayName = gameManager.getFormattedTeamDisplayName(newlyKilledTeam);
-            messageAllParticipants(Component.empty()
-                    .append(teamDisplayName)
-                    .append(Component.text(" has been eliminated")));
+            for (Player participant : participants) {
+                String team = gameManager.getTeamName(participant.getUniqueId());
+                if (team.equals(newlyKilledTeam)) {
+                    participant.sendMessage(Component.empty()
+                            .append(teamDisplayName)
+                            .append(Component.text(" has been eliminated"))
+                            .color(NamedTextColor.DARK_RED));
+                } else {
+                    participant.sendMessage(Component.empty()
+                            .append(teamDisplayName)
+                            .append(Component.text(" has been eliminated"))
+                            .color(NamedTextColor.GREEN));
+                }
+            }
             for (String team : allTeams) {
                 if (teamsLivingMembers.get(team) > 0 && !newlyKilledTeams.contains(team)) {
                     gameManager.awardPointsToTeam(team, storageUtil.getTeamEliminationScore());
@@ -341,16 +353,28 @@ public class ClockworkRound implements Listener {
     }
     
     private void onAllTeamsLoseRound() {
-        messageAllParticipants(Component.text("All teams have been eliminated."));
+        messageAllParticipants(Component.text("All teams have been eliminated.")
+                .color(NamedTextColor.DARK_RED));
         roundIsOver();
     }
     
     private void onTeamWinsRound(String winningTeam) {
         gameManager.awardPointsToTeam(winningTeam, storageUtil.getWinRoundScore());
         Component teamDisplayName = gameManager.getFormattedTeamDisplayName(winningTeam);
-        messageAllParticipants(Component.empty()
-                .append(teamDisplayName)
-                .append(Component.text(" wins this round!")));
+        for (Player participant : participants) {
+            String team = gameManager.getTeamName(participant.getUniqueId());
+            if (team.equals(winningTeam)) {
+                participant.sendMessage(Component.empty()
+                        .append(teamDisplayName)
+                        .append(Component.text(" wins this round!"))
+                        .color(NamedTextColor.GREEN));
+            } else {
+                participant.sendMessage(Component.empty()
+                        .append(teamDisplayName)
+                        .append(Component.text(" wins this round"))
+                        .color(NamedTextColor.DARK_RED));
+            }
+        }
         roundIsOver();
     }
     
