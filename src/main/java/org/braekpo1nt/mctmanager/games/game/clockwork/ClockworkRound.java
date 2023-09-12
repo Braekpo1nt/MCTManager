@@ -182,10 +182,9 @@ public class ClockworkRound implements Listener {
     }
     
     private void startStayOnWedgeDelay() {
-        killParticipantsNotOnWedge();
         mustStayOnWedge = true;
         this.stayOnWedgeDelayTaskId = new BukkitRunnable() {
-            int count = storageUtil.getGetToWedgeDuration();
+            int count = storageUtil.getStayOnWedgeDuration();
             @Override
             public void run() {
                 if (count <= 0) {
@@ -200,6 +199,7 @@ public class ClockworkRound implements Listener {
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+        killParticipantsNotOnWedge();
     }
     
     private void killParticipantsNotOnWedge() {

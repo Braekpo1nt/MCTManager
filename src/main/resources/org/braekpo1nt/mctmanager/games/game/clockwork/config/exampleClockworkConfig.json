@@ -149,7 +149,8 @@
   },
   "durations": {
     "breather": 5,
-    "getToWedge": 8
+    "getToWedge": 8,
+    "stayOnWedge": 5
   },
   "description": {"text":"Clockwork description","color":"dark_blue","bold": true}
 }
