@@ -1,7 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.clockwork;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.TextComponent;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.clockwork.config.ClockworkStorageUtil;
@@ -14,9 +13,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
@@ -33,6 +30,7 @@ public class ClockworkRound implements Listener {
     private final int roundNumber;
     private List<Player> participants = new ArrayList<>();
     private Map<UUID, Boolean> participantsAreAlive = new HashMap<>();
+    private Map<String, Integer> teamsLivingMembers = new HashMap<>();
     private boolean roundActive = false;
     private int breatherDelayTaskId;
     private int clockChimeTaskId;
@@ -57,6 +55,7 @@ public class ClockworkRound implements Listener {
     public void start(List<Player> newParticipants) {
         this.participants = new ArrayList<>(newParticipants.size());
         this.participantsAreAlive = new HashMap<>(newParticipants.size());
+        this.teamsLivingMembers = new HashMap<>();
         mustStayOnWedge = false;
         roundActive = true;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
@@ -71,6 +70,13 @@ public class ClockworkRound implements Listener {
     private void initializeParticipant(Player participant) {
         participants.add(participant);
         participantsAreAlive.put(participant.getUniqueId(), true);
+        String team = gameManager.getTeamName(participant.getUniqueId());
+        if (teamsLivingMembers.containsKey(team)) {
+            int livingMembers = teamsLivingMembers.get(team);
+            teamsLivingMembers.put(team, livingMembers + 1);
+        } else {
+            teamsLivingMembers.put(team, 1);
+        }
         initializeFastBoard(participant);
         participant.getInventory().clear();
         participant.setGameMode(GameMode.ADVENTURE);
@@ -91,6 +97,7 @@ public class ClockworkRound implements Listener {
         }
         participants.clear();
         participantsAreAlive.clear();
+        teamsLivingMembers.clear();
         roundActive = false;
         Bukkit.getLogger().info("Stopping Clockwork round " + roundNumber);
     }
@@ -208,22 +215,7 @@ public class ClockworkRound implements Listener {
         if (participantsToKill.isEmpty()) {
             return;
         }
-        for (Player participant : participantsToKill) {
-            participantsAreAlive.put(participant.getUniqueId(), false);
-        }
-        for (Player participant : participantsToKill) {
-            killParticipant(participant);
-        }
-    }
-    
-    private static void killParticipant(Player participant) {
-        List<ItemStack> drops = Arrays.stream(participant.getInventory().getContents())
-                .filter(Objects::nonNull)
-                .toList();
-        Component deathMessage = Component.text(participant.getName())
-                .append(Component.text("'s time has come."));
-        PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(participant, drops, 0, deathMessage);
-        Bukkit.getServer().getPluginManager().callEvent(fakeDeathEvent);
+        killParticipants(participantsToKill);
     }
     
     private void incrementChaos() {
@@ -266,69 +258,73 @@ public class ClockworkRound implements Listener {
         }
         Wedge currentWedge = storageUtil.getWedges().get(numberOfChimes - 1);
         if (!currentWedge.contains(participant.getLocation().toVector())) {
-            killParticipant(participant);
+            killParticipants(Collections.singletonList(participant));
         }
     }
     
-    @EventHandler
-    public void onPlayerDeath(PlayerDeathEvent event) {
-        if (!roundActive) {
-            return;
-        }
-        Player killed = event.getPlayer();
-        if (!participants.contains(killed)) {
-            return;
-        }
-        killed.setGameMode(GameMode.SPECTATOR);
-        killed.getInventory().clear();
-        ParticipantInitializer.clearStatusEffects(killed);
-        ParticipantInitializer.resetHealthAndHunger(killed);
-        if (event.getDeathSound() != null && event.getDeathSoundCategory() != null) {
-            killed.getWorld().playSound(killed.getLocation(), event.getDeathSound(), event.getDeathSoundCategory(), event.getDeathSoundVolume(), event.getDeathSoundPitch());
-        }
-        Component deathMessage = event.deathMessage();
-        if (deathMessage != null) {
-            Bukkit.getServer().sendMessage(deathMessage);
-        }
-        onParticipantDeath(killed);
-    }
-    
-    private void onParticipantDeath(Player killed) {
-        participantsAreAlive.put(killed.getUniqueId(), false);
-        String killedTeam = gameManager.getTeamName(killed.getUniqueId());
-        boolean killedTeamIsFullyDead = true;
-        for (Player participant : participants) {
-            if (participantsAreAlive.get(participant.getUniqueId())) {
-                gameManager.awardPointsToParticipant(participant, storageUtil.getPlayerEliminationScore());
-                String livingTeam = gameManager.getTeamName(participant.getUniqueId());
-                if (killedTeam.equals(livingTeam)) {
-                    killedTeamIsFullyDead = false;
+    public void killParticipants(List<Player> killedParticipants) {
+        Map<String, Integer> teamsKilledMembers = new HashMap<>();
+        for (Player killed : killedParticipants) {
+            killed.setGameMode(GameMode.SPECTATOR);
+            killed.getInventory().clear();
+            ParticipantInitializer.clearStatusEffects(killed);
+            ParticipantInitializer.resetHealthAndHunger(killed);
+            Bukkit.getServer().sendMessage(Component.text(killed.getName())
+                    .append(Component.text(" didn't make it")));
+            participantsAreAlive.put(killed.getUniqueId(), false);
+            for (Player participant : participants) {
+                if (participantsAreAlive.get(participant.getUniqueId()) && !killedParticipants.contains(participant)) {
+                    gameManager.awardPointsToParticipant(participant, storageUtil.getPlayerEliminationScore());
                 }
             }
+            String team = gameManager.getTeamName(killed.getUniqueId());
+            if (!teamsKilledMembers.containsKey(team)) {
+                teamsKilledMembers.put(team, 1);
+            } else {
+                teamsKilledMembers.put(team, teamsKilledMembers.get(team) + 1);
+            }
         }
-        if (killedTeamIsFullyDead) {
-            Component teamDisplayName = gameManager.getFormattedTeamDisplayName(killedTeam);
+        List<String> newlyKilledTeams = new ArrayList<>();
+        for (Map.Entry<String, Integer> entry : teamsKilledMembers.entrySet()) {
+            String team = entry.getKey();
+            int killedMembers = entry.getValue();
+            int livingMembers = teamsLivingMembers.get(team);
+            int newLivingMembers = livingMembers - killedMembers;
+            if (newLivingMembers <= 0) {
+                teamsLivingMembers.put(team, 0);
+                newlyKilledTeams.add(team);
+            }
+        }
+        if (newlyKilledTeams.isEmpty()) {
+            return;
+        }
+        List<String> allTeams = gameManager.getTeamNames(participants);
+        for (String newlyKilledTeam : newlyKilledTeams) {
+            Component teamDisplayName = gameManager.getFormattedTeamDisplayName(newlyKilledTeam);
             messageAllParticipants(Component.empty()
                     .append(teamDisplayName)
                     .append(Component.text(" has been eliminated")));
-            Set<String> livingTeams = new HashSet<>();
-            for (Player participant : participants) {
-                if (participantsAreAlive.get(participant.getUniqueId())) {
-                    String team = gameManager.getTeamName(participant.getUniqueId());
-                    livingTeams.add(team);
+            for (String team : allTeams) {
+                if (teamsLivingMembers.get(team) > 0 && !newlyKilledTeams.contains(team)) {
+                    gameManager.awardPointsToTeam(team, storageUtil.getTeamEliminationScore());
                 }
             }
-            for (String livingTeam : livingTeams) {
-                gameManager.awardPointsToTeam(livingTeam, storageUtil.getTeamEliminationScore());
+        }
+        List<String> livingTeams = new ArrayList<>();
+        for (Map.Entry<String, Integer> entry : teamsLivingMembers.entrySet()) {
+            String team = entry.getKey();
+            int livingMembers = entry.getValue();
+            if (livingMembers > 0) {
+                livingTeams.add(team);
             }
-            if (livingTeams.size() == 0) {
-                onAllTeamsLoseRound();
-                return;
-            }
-            if (livingTeams.size() == 1) {
-                String winningTeam = livingTeams.iterator().next();
-                onTeamWinsRound(winningTeam);
-            }
+        }
+        if (livingTeams.isEmpty()) {
+            onAllTeamsLoseRound();
+            return;
+        }
+        if (livingTeams.size() == 1) {
+            String winningTeam = livingTeams.get(0);
+            onTeamWinsRound(winningTeam);
         }
     }
     
