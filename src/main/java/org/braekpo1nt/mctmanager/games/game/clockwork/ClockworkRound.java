@@ -39,7 +39,7 @@ public class ClockworkRound implements Listener {
     private int stayOnWedgeDelayTaskId;
     private final Random random = new Random();
     private int numberOfChimes = 1;
-    private long chimeInterval = 20L;
+    private double chimeInterval = 20;
     /**
      * indicates whether players should be killed if they step off of the wedge indicated by numberOfChimes
      */
@@ -63,6 +63,7 @@ public class ClockworkRound implements Listener {
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
         }
+        chimeInterval = storageUtil.getInitialChimeInterval();
         setupTeamOptions();
         startBreatherDelay();
         Bukkit.getLogger().info("Starting Clockwork Round " + roundNumber);
@@ -154,8 +155,7 @@ public class ClockworkRound implements Listener {
                 playChimeSound();
                 count--;
             }
-        }.runTaskTimer(plugin, 0L, chimeInterval).getTaskId();
-        
+        }.runTaskTimer(plugin, 0L, (long) chimeInterval).getTaskId();
     }
     
     private void playChimeSound() {
@@ -227,7 +227,10 @@ public class ClockworkRound implements Listener {
     }
     
     private void incrementChaos() {
-        Bukkit.getLogger().info("increasing chaos (placeholder)");
+        chimeInterval -= storageUtil.getChimeIntervalDecrement();
+        if (chimeInterval < 0) {
+            chimeInterval = 0;
+        }
     }
     
     @EventHandler

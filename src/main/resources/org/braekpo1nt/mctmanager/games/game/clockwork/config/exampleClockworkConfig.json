@@ -142,6 +142,8 @@
     "volume": 100.0,
     "pitch": 2.0
   },
+  "initialChimeInterval": 20.0,
+  "chimeIntervalDecrement": 0.5,
   "scores": {
     "playerElimination": 5,
     "teamElimination": 20,

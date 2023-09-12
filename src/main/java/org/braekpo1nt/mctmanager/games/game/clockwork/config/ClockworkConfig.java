@@ -8,7 +8,7 @@ import org.bukkit.util.Vector;
 
 import java.util.List;
 
-record ClockworkConfig(String version, String world, Vector startingLocation, BoundingBoxDTO spectatorArea, List<WedgeDTO> wedges, int rounds, Sound clockChime, Scores scores, Durations durations, JsonObject description) {
+record ClockworkConfig(String version, String world, Vector startingLocation, BoundingBoxDTO spectatorArea, List<WedgeDTO> wedges, int rounds, Sound clockChime, double initialChimeInterval, double chimeIntervalDecrement, Scores scores, Durations durations, JsonObject description) {
     
     BoundingBox getSpectatorArea() {
         return spectatorArea.getBoundingBox();
