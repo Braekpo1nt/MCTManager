@@ -46,7 +46,7 @@ public class ClockworkGame implements MCTGame, Configurable {
         participants = new ArrayList<>(newParticipants.size());
         rounds = new ArrayList<>(storageUtil.getRounds());
         for (int i = 0; i < storageUtil.getRounds(); i++) {
-            rounds.add(new ClockworkRound(plugin, gameManager, this, storageUtil));
+            rounds.add(new ClockworkRound(plugin, gameManager, this, storageUtil, i+1));
         }
         currentRoundIndex = 0;
         for (Player participant : newParticipants) {

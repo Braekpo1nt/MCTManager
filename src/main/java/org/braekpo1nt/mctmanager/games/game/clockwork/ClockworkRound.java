@@ -30,6 +30,7 @@ public class ClockworkRound implements Listener {
     private final GameManager gameManager;
     private final ClockworkGame clockworkGame;
     private final ClockworkStorageUtil storageUtil;
+    private final int roundNumber;
     private List<Player> participants = new ArrayList<>();
     private Map<UUID, Boolean> participantsAreAlive = new HashMap<>();
     private boolean roundActive = false;
@@ -45,11 +46,12 @@ public class ClockworkRound implements Listener {
      */
     private boolean mustStayOnWedge = false;
     
-    public ClockworkRound(Main plugin, GameManager gameManager, ClockworkGame clockworkGame, ClockworkStorageUtil storageUtil) {
+    public ClockworkRound(Main plugin, GameManager gameManager, ClockworkGame clockworkGame, ClockworkStorageUtil storageUtil, int roundNumber) {
         this.plugin = plugin;
         this.gameManager = gameManager;
         this.clockworkGame = clockworkGame;
         this.storageUtil = storageUtil;
+        this.roundNumber = roundNumber;
     }
     
     public void start(List<Player> newParticipants) {
@@ -63,7 +65,7 @@ public class ClockworkRound implements Listener {
         }
         setupTeamOptions();
         startBreatherDelay();
-        Bukkit.getLogger().info("Starting Clockwork Round");
+        Bukkit.getLogger().info("Starting Clockwork Round " + roundNumber);
     }
     
     private void initializeParticipant(Player participant) {
@@ -90,7 +92,7 @@ public class ClockworkRound implements Listener {
         participants.clear();
         participantsAreAlive.clear();
         roundActive = false;
-        Bukkit.getLogger().info("Stopping Clockwork round");
+        Bukkit.getLogger().info("Stopping Clockwork round " + roundNumber);
     }
     
     private void resetParticipant(Player participant) {
@@ -226,7 +228,6 @@ public class ClockworkRound implements Listener {
     
     private void incrementChaos() {
         Bukkit.getLogger().info("increasing chaos (placeholder)");
-        Bukkit.getLogger().info("increasing chime speed (placeholder)");
     }
     
     @EventHandler
