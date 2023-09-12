@@ -79,6 +79,7 @@ public class ClockworkRound implements Listener {
         } else {
             teamsLivingMembers.put(team, 1);
         }
+        participant.teleport(storageUtil.getStartingLocation());
         initializeFastBoard(participant);
         participant.getInventory().clear();
         participant.setGameMode(GameMode.ADVENTURE);
@@ -120,9 +121,6 @@ public class ClockworkRound implements Listener {
     }
     
     private void startBreatherDelay() {
-        for (Player participant : participants) {
-            participant.teleport(storageUtil.getStartingLocation());
-        }
         mustStayOnWedge = false;
         this.breatherDelayTaskId = new BukkitRunnable() {
             int count = storageUtil.getBreatherDuration();
