@@ -64,7 +64,7 @@ public class HubManager implements Listener {
     public void returnParticipantsToHubWithDelay(List<Player> newParticipants) {
         headingToHub.addAll(newParticipants);
         this.returnToHubTaskId = new BukkitRunnable() {
-            private int count = 5;
+            private int count = 10;
             @Override
             public void run() {
                 if (count <= 0) {
