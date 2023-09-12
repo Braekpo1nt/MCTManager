@@ -17,6 +17,7 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -182,13 +183,19 @@ public class ClockworkRound implements Listener {
     }
     
     private void startStayOnWedgeDelay() {
-        mustStayOnWedge = true;
         this.stayOnWedgeDelayTaskId = new BukkitRunnable() {
             int count = storageUtil.getStayOnWedgeDuration();
             @Override
             public void run() {
                 if (count <= 0) {
                     mustStayOnWedge = false;
+                    List<String> livingTeams = getLivingTeams();
+                    if (livingTeams.size() == 1) {
+                        String winningTeam = livingTeams.get(0);
+                        onTeamWinsRound(winningTeam);
+                        this.cancel();
+                        return;
+                    }
                     incrementChaos();
                     startBreatherDelay();
                     this.cancel();
@@ -200,6 +207,7 @@ public class ClockworkRound implements Listener {
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
         killParticipantsNotOnWedge();
+        mustStayOnWedge = true;
     }
     
     private void killParticipantsNotOnWedge() {
@@ -256,6 +264,9 @@ public class ClockworkRound implements Listener {
         if (!participants.contains(participant)) {
             return;
         }
+        if (!participantsAreAlive.get(participant.getUniqueId())) {
+            return;
+        }
         Wedge currentWedge = storageUtil.getWedges().get(numberOfChimes - 1);
         if (!currentWedge.contains(participant.getLocation().toVector())) {
             killParticipants(Collections.singletonList(participant));
@@ -310,6 +321,13 @@ public class ClockworkRound implements Listener {
                 }
             }
         }
+        List<String> livingTeams = getLivingTeams();
+        if (livingTeams.isEmpty()) {
+            onAllTeamsLoseRound();
+        }
+    }
+    
+    private @NotNull List<String> getLivingTeams() {
         List<String> livingTeams = new ArrayList<>();
         for (Map.Entry<String, Integer> entry : teamsLivingMembers.entrySet()) {
             String team = entry.getKey();
@@ -318,14 +336,7 @@ public class ClockworkRound implements Listener {
                 livingTeams.add(team);
             }
         }
-        if (livingTeams.isEmpty()) {
-            onAllTeamsLoseRound();
-            return;
-        }
-        if (livingTeams.size() == 1) {
-            String winningTeam = livingTeams.get(0);
-            onTeamWinsRound(winningTeam);
-        }
+        return livingTeams;
     }
     
     private void onAllTeamsLoseRound() {

@@ -148,7 +148,7 @@ public class EventManager {
         cancelAllTasks();
         scoreKeepers.clear();
         gameManager.getFastBoardManager().updateTitle(FastBoardManager.DEFAULT_TITLE);
-        currentGameNumber = 1;
+        currentGameNumber = 0;
         maxGames = 6;
     }
     
