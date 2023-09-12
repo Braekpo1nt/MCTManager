@@ -101,6 +101,7 @@ public class ClockworkRound implements Listener {
     }
     
     private void cancelAllTasks() {
+        Bukkit.getLogger().info("Cancelling tasks ");
         Bukkit.getScheduler().cancelTask(breatherDelayTaskId);
         Bukkit.getScheduler().cancelTask(clockChimeTaskId);
         Bukkit.getScheduler().cancelTask(getToWedgeDelayTaskId);
@@ -129,6 +130,7 @@ public class ClockworkRound implements Listener {
     }
     
     private void startClockChime() {
+        updateTimerFastBoard("");
         this.numberOfChimes = random.nextInt(1, 13);
         this.clockChimeTaskId = new BukkitRunnable() {
             int count = numberOfChimes;
@@ -196,7 +198,7 @@ public class ClockworkRound implements Listener {
         Wedge currentWedge = storageUtil.getWedges().get(numberOfChimes - 1);
         for (Player participant : participants) {
             if (participantsAreAlive.get(participant.getUniqueId())) {
-                if (currentWedge.contains(participant.getLocation().toVector())) {
+                if (!currentWedge.contains(participant.getLocation().toVector())) {
                     participantsToKill.add(participant);
                 }
             }
