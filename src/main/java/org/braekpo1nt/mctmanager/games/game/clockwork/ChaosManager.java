@@ -21,12 +21,12 @@ import java.util.Random;
 public class ChaosManager implements Listener {
     private int minArrows = 1;
     private int maxArrows = 5;
-    private long minDelay = 20L;
-    private long maxDelay = 40L;
-    private Location center;
-    private int radius = 22;
-    private int minY = 7;
-    private int maxY = 13;
+    private long minDelay = 15L;
+    private long maxDelay = 30L;
+    private final Location center;
+    private final int radius = 23;
+    private final int minY = 7;
+    private final int maxY = 13;
     private int scheduleArrowsSummonTaskId;
     private final Random random = new Random();
     
@@ -37,9 +37,23 @@ public class ChaosManager implements Listener {
         this.center = center;
     }
     
+    public void incrementChaos() {
+        minArrows += 3;
+        maxArrows += 4;
+        
+        minDelay -= 3L;
+        if (minDelay < 5L) {
+            minDelay = 5L;
+        }
+        maxDelay -= 4L;
+        if (maxDelay < 10L) {
+            maxDelay = 10L;
+        }
+        Bukkit.getLogger().info(String.format("Delay[%s, %s] - Arrows[%s, %s]", minDelay, maxDelay, minArrows, maxArrows));
+    }
+    
     public void start() {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
-//        this.arrowsTaskId = Bukkit.getScheduler().runTaskTimer(plugin, this::summonArrows, 0L, random.nextLong() % (maxDelay - minDelay + 1) + minDelay).getTaskId();
         scheduleArrowSummonTask();
     }
     
@@ -82,7 +96,7 @@ public class ChaosManager implements Listener {
     public void onProjectileHit(ProjectileHitEvent event) {
         if (event.getEntityType() == EntityType.ARROW) {
             Arrow arrow = (Arrow) event.getEntity();
-            Bukkit.getScheduler().runTaskLater(plugin, arrow::remove, 10L);
+            Bukkit.getScheduler().runTaskLater(plugin, arrow::remove, 5L);
         }
     }
     
@@ -91,7 +105,7 @@ public class ChaosManager implements Listener {
         if (event.getEntity() instanceof FallingBlock fallingBlock) {
             Material material = fallingBlock.getBlockData().getMaterial();
             switch (material) {
-                case SAND, ANVIL -> Bukkit.getScheduler().runTaskLater(plugin, () -> event.getBlock().setType(Material.AIR), 10L);
+                case SAND, ANVIL -> Bukkit.getScheduler().runTaskLater(plugin, () -> event.getBlock().setType(Material.AIR), 5L);
             }
         }
     }

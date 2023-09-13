@@ -234,6 +234,7 @@ public class ClockworkRound implements Listener {
         if (chimeInterval < 0) {
             chimeInterval = 0;
         }
+        chaosManager.incrementChaos();
     }
     
     @EventHandler
