@@ -7,9 +7,11 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.FallingBlock;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
@@ -81,6 +83,16 @@ public class ChaosManager implements Listener {
         if (event.getEntityType() == EntityType.ARROW) {
             Arrow arrow = (Arrow) event.getEntity();
             Bukkit.getScheduler().runTaskLater(plugin, arrow::remove, 10L);
+        }
+    }
+    
+    @EventHandler
+    public void onFallingBlockEntityLand(EntityChangeBlockEvent event) {
+        if (event.getEntity() instanceof FallingBlock fallingBlock) {
+            Material material = fallingBlock.getBlockData().getMaterial();
+            switch (material) {
+                case SAND, ANVIL -> Bukkit.getScheduler().runTaskLater(plugin, () -> event.getBlock().setType(Material.AIR), 10L);
+            }
         }
     }
     
