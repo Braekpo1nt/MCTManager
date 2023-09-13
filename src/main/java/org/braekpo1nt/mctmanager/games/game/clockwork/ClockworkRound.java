@@ -209,8 +209,8 @@ public class ClockworkRound implements Listener {
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
-        killParticipantsNotOnWedge();
-        mustStayOnWedge = true;
+//        killParticipantsNotOnWedge();
+//        mustStayOnWedge = true;
     }
     
     private void killParticipantsNotOnWedge() {

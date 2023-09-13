@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.game.clockwork;
 import org.braekpo1nt.mctmanager.Main;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.EntityType;
@@ -20,7 +21,7 @@ public class ChaosManager implements Listener {
     private long minDelay = 40L;
     private long maxDelay = 80L;
     private Location center;
-    private int radius = 16;
+    private int radius = 22;
     private int minY = 7;
     private int maxY = 13;
     private int arrowsTaskId;
@@ -41,6 +42,7 @@ public class ChaosManager implements Listener {
     public void stop() {
         HandlerList.unregisterAll(this);
         Bukkit.getScheduler().cancelTask(arrowsTaskId);
+        removeAllArrowsInCylinder();
     }
     
     @EventHandler
@@ -55,13 +57,24 @@ public class ChaosManager implements Listener {
         int numArrows = new Random().nextInt(maxArrows - minArrows + 1) + minArrows;
         World world = center.getWorld();
         for (int i = 0; i < numArrows; i++) {
-            double x = center.getX() + (Math.random() * 2 - 1) * radius; // Random x within the cylinder
-            double z = center.getZ() + (Math.random() * 2 - 1) * radius; // Random z within the cylinder
+            double randomRadius = radius * Math.sqrt(random.nextDouble()); // generate a "uniformly random" radius (see https://stackoverflow.com/questions/5837572/generate-a-random-point-within-a-circle-uniformly)
+            double randomAngle = random.nextDouble() * 2 * Math.PI;
+            double x = center.getX() + randomRadius * Math.cos(randomAngle);
+            double z = center.getZ() + randomRadius * Math.sin(randomAngle);
             double y = Math.random() * (maxY - minY + 1) + minY; // Random y within the defined range
             Location spawnLocation = new Location(world, x, y, z);
-            Arrow arrow = world.spawnArrow(spawnLocation, new Vector(0, -1, 0), 0, 0);
-            arrow.setGravity(true);
-            arrow.setPickupStatus(Arrow.PickupStatus.DISALLOWED); // Prevent players from picking up the arrows
+            if (spawnLocation.getBlock().getType().equals(Material.AIR)) {
+                Arrow arrow = world.spawnArrow(spawnLocation, new Vector(0, -1, 0), 0, 0);
+                arrow.setGravity(true);
+                arrow.setPickupStatus(Arrow.PickupStatus.DISALLOWED);
+            }
+        }
+    }
+    
+    private void removeAllArrowsInCylinder() {
+        World world = center.getWorld();
+        for (Arrow arrow : world.getNearbyEntitiesByType(Arrow.class, center, radius)) {
+            arrow.remove();
         }
     }
     
