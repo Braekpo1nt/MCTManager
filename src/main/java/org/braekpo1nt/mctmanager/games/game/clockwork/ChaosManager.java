@@ -15,12 +15,15 @@ import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Random;
 
 public class ChaosManager implements Listener {
-    private int minArrows = 1;
-    private int maxArrows = 5;
+    private int minArrows = 3;
+    private int maxArrows = 7;
+    private int minFallingBlocks = 0;
+    private int maxFallingBlocks = 0;
     private long minDelay = 15L;
     private long maxDelay = 30L;
     private final Location center;
@@ -49,7 +52,7 @@ public class ChaosManager implements Listener {
         if (maxDelay < 10L) {
             maxDelay = 10L;
         }
-        Bukkit.getLogger().info(String.format("Delay[%s, %s] - Arrows[%s, %s]", minDelay, maxDelay, minArrows, maxArrows));
+//        Bukkit.getLogger().info(String.format("Delay[%s, %s] - Arrows[%s, %s]", minDelay, maxDelay, minArrows, maxArrows));
     }
     
     public void start() {
@@ -78,16 +81,33 @@ public class ChaosManager implements Listener {
         int numArrows = random.nextInt(minArrows, maxArrows + 1);
         World world = center.getWorld();
         for (int i = 0; i < numArrows; i++) {
-            double randomRadius = radius * Math.sqrt(random.nextDouble()); // generate a "uniformly random" radius (see https://stackoverflow.com/questions/5837572/generate-a-random-point-within-a-circle-uniformly)
-            double randomAngle = random.nextDouble() * 2 * Math.PI;
-            double x = center.getX() + randomRadius * Math.cos(randomAngle);
-            double z = center.getZ() + randomRadius * Math.sin(randomAngle);
-            double y = random.nextDouble(minY, maxY);
-            Location spawnLocation = new Location(world, x, y, z);
+            Location spawnLocation = randomLocationInCylinder(world);
             if (spawnLocation.getBlock().getType().equals(Material.AIR)) {
                 Arrow arrow = world.spawnArrow(spawnLocation, new Vector(0, -1, 0), 0.6f, 12);
                 arrow.setGravity(true);
                 arrow.setPickupStatus(Arrow.PickupStatus.DISALLOWED);
+            }
+        }
+    }
+    
+    @NotNull
+    private Location randomLocationInCylinder(World world) {
+        double randomRadius = radius * Math.sqrt(random.nextDouble()); // generate a "uniformly random" radius (see https://stackoverflow.com/questions/5837572/generate-a-random-point-within-a-circle-uniformly)
+        double randomAngle = random.nextDouble() * 2 * Math.PI;
+        double x = center.getX() + randomRadius * Math.cos(randomAngle);
+        double z = center.getZ() + randomRadius * Math.sin(randomAngle);
+        double y = random.nextDouble(minY, maxY);
+        Location spawnLocation = new Location(world, x, y, z);
+        return spawnLocation;
+    }
+    
+    private void summonFallingBlocks() {
+        int numOfFallingBlocks = random.nextInt(minFallingBlocks, maxFallingBlocks + 1);
+        World world = center.getWorld();
+        for (int i = 0; i < numOfFallingBlocks; i++) {
+            Location spawnLocation = randomLocationInCylinder(world);
+            if (spawnLocation.getBlock().getType().equals(Material.AIR)) {
+                world.spawnFallingBlock(spawnLocation, Material.SAND.createBlockData());
             }
         }
     }
