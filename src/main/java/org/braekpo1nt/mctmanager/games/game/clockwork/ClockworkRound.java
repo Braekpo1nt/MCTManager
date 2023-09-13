@@ -29,6 +29,7 @@ public class ClockworkRound implements Listener {
     private final GameManager gameManager;
     private final ClockworkGame clockworkGame;
     private final ClockworkStorageUtil storageUtil;
+    private final ChaosManager chaosManager;
     private final int roundNumber;
     private List<Player> participants = new ArrayList<>();
     private Map<UUID, Boolean> participantsAreAlive = new HashMap<>();
@@ -52,6 +53,7 @@ public class ClockworkRound implements Listener {
         this.clockworkGame = clockworkGame;
         this.storageUtil = storageUtil;
         this.roundNumber = roundNumber;
+        this.chaosManager = new ChaosManager(plugin, storageUtil.getStartingLocation());
     }
     
     public void start(List<Player> newParticipants) {
@@ -67,6 +69,7 @@ public class ClockworkRound implements Listener {
         chimeInterval = storageUtil.getInitialChimeInterval();
         setupTeamOptions();
         startBreatherDelay();
+        chaosManager.start();
         Bukkit.getLogger().info("Starting Clockwork Round " + roundNumber);
     }
     
@@ -95,6 +98,7 @@ public class ClockworkRound implements Listener {
     
     public void stop() {
         HandlerList.unregisterAll(this);
+        chaosManager.stop();
         cancelAllTasks();
         for (Player participant : participants) {
             resetParticipant(participant);
