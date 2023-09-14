@@ -1,12 +1,11 @@
 package org.braekpo1nt.mctmanager.games.game.clockwork;
 
 import org.braekpo1nt.mctmanager.Main;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
+import org.bukkit.*;
+import org.bukkit.block.BlockState;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Arrow;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.FallingBlock;
 import org.bukkit.event.EventHandler;
@@ -18,16 +17,19 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Random;
 
 public class ChaosManager implements Listener {
     private final BlockData sandBlockData = Material.SAND.createBlockData();
     private final BlockData anvilBlockData = Material.ANVIL.createBlockData();
     private final World world;
-    private int minArrows = 3;
-    private int maxArrows = 7;
-    private int minFallingBlocks = 0;
-    private int maxFallingBlocks = 0;
+    private int minArrows = 10;//3;
+    private int maxArrows = 10;//7;
+    private int minFallingBlocks = 5;//0;
+    private int maxFallingBlocks = 5;//0;
     private long minDelay = 15L;
     private long maxDelay = 30L;
     private final Location center;
@@ -148,12 +150,58 @@ public class ChaosManager implements Listener {
     }
     
     private void clearChaos() {
-        removeAllArrowsInCylinder();
+        removeArrowsAndFallingBlocks();
+//        removeSandAndAnvils();
     }
     
-    private void removeAllArrowsInCylinder() {
-        for (Arrow arrow : world.getNearbyEntitiesByType(Arrow.class, center, radius)) {
-            arrow.remove();
+    private void removeSandAndAnvils() {
+        List<Chunk> chunksInRadius = getChunksInRadius(center, radius);
+        for (Chunk chunk : chunksInRadius) {
+            Collection<BlockState> sandAndAnvils = chunk.getTileEntities(block -> block.getType().equals(Material.SAND) || block.getType().equals(Material.ANVIL), false);
+            for (BlockState sandAndAnvil : sandAndAnvils) {
+                sandAndAnvil.setType(Material.AIR);
+            }
         }
+    }
+    
+    private void removeArrowsAndFallingBlocks() {
+        for (Entity entity : getEntitiesInCylinder(world, center.x(), center.z(), radius, Arrow.class, FallingBlock.class)) {
+            entity.remove();
+        }
+    }
+    
+    public static List<Chunk> getChunksInRadius(Location center, int radius) {
+        World centerWorld = center.getWorld();
+        int centerX = center.getBlockX() >> 4; // Convert block coordinates to chunk coordinates
+        int centerZ = center.getBlockZ() >> 4;
+        List<Chunk> chunks = new ArrayList<>();
+        for (int x = centerX - radius; x <= centerX + radius; x++) {
+            for (int z = centerZ - radius; z <= centerZ + radius; z++) {
+                Chunk chunk = centerWorld.getChunkAt(x, z);
+                chunks.add(chunk);
+            }
+        }
+        Bukkit.getLogger().info(String.format("%s chunks", chunks.size()));
+        
+        return chunks;
+    }
+    
+    public static List<Entity> getEntitiesInCylinder(World world, double centerX, double centerZ, double radius, Class<?>... types) {
+        Collection<Entity> entities = world.getEntitiesByClasses(types);
+        List<Entity> entitiesInCylinder = new ArrayList<>();
+        
+        double radiusSquared = radius * radius;
+        for (Entity entity : entities) {
+            double entityX = entity.getLocation().getX();
+            double entityZ = entity.getLocation().getZ();
+            
+            double distanceSquared = (entityX - centerX) * (entityX - centerX) + (entityZ - centerZ) * (entityZ - centerZ);
+            
+            if (distanceSquared <= radiusSquared) {
+                entitiesInCylinder.add(entity);
+            }
+        }
+        Bukkit.getLogger().info(String.format("%s entities in cylinder (%s, %s, %s)", entitiesInCylinder.size(), centerX, centerZ, radius));
+        return entitiesInCylinder;
     }
 }
