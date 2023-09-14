@@ -26,10 +26,10 @@ public class ChaosManager implements Listener {
     private final BlockData sandBlockData = Material.SAND.createBlockData();
     private final BlockData anvilBlockData = Material.ANVIL.createBlockData();
     private final World world;
-    private int minArrows = 10;//3;
-    private int maxArrows = 10;//7;
-    private int minFallingBlocks = 5;//0;
-    private int maxFallingBlocks = 5;//0;
+    private int minArrows = 3;
+    private int maxArrows = 7;
+    private int minFallingBlocks = 0;
+    private int maxFallingBlocks = 0;
     private long minDelay = 15L;
     private long maxDelay = 30L;
     private final Location center;
@@ -71,9 +71,12 @@ public class ChaosManager implements Listener {
     }
     
     public void stop() {
-        HandlerList.unregisterAll(this);
+        // the order of these three lines is very important
         cancelAllTasks();
-        clearChaos();
+        removeArrowsAndFallingBlocks();
+        HandlerList.unregisterAll(this);
+        // the order of the above three lines is very important
+        // cancel tasks that create FallingBlock entities, then kill all falling block entities, then cancel the listener that causes FallingBlock entities to be removed a few moments after they have landed. 
     }
     
     private void scheduleSummonTask() {
@@ -149,41 +152,10 @@ public class ChaosManager implements Listener {
         Bukkit.getScheduler().cancelTask(scheduleArrowsSummonTaskId);
     }
     
-    private void clearChaos() {
-        removeArrowsAndFallingBlocks();
-//        removeSandAndAnvils();
-    }
-    
-    private void removeSandAndAnvils() {
-        List<Chunk> chunksInRadius = getChunksInRadius(center, radius);
-        for (Chunk chunk : chunksInRadius) {
-            Collection<BlockState> sandAndAnvils = chunk.getTileEntities(block -> block.getType().equals(Material.SAND) || block.getType().equals(Material.ANVIL), false);
-            for (BlockState sandAndAnvil : sandAndAnvils) {
-                sandAndAnvil.setType(Material.AIR);
-            }
-        }
-    }
-    
     private void removeArrowsAndFallingBlocks() {
         for (Entity entity : getEntitiesInCylinder(world, center.x(), center.z(), radius, Arrow.class, FallingBlock.class)) {
             entity.remove();
         }
-    }
-    
-    public static List<Chunk> getChunksInRadius(Location center, int radius) {
-        World centerWorld = center.getWorld();
-        int centerX = center.getBlockX() >> 4; // Convert block coordinates to chunk coordinates
-        int centerZ = center.getBlockZ() >> 4;
-        List<Chunk> chunks = new ArrayList<>();
-        for (int x = centerX - radius; x <= centerX + radius; x++) {
-            for (int z = centerZ - radius; z <= centerZ + radius; z++) {
-                Chunk chunk = centerWorld.getChunkAt(x, z);
-                chunks.add(chunk);
-            }
-        }
-        Bukkit.getLogger().info(String.format("%s chunks", chunks.size()));
-        
-        return chunks;
     }
     
     public static List<Entity> getEntitiesInCylinder(World world, double centerX, double centerZ, double radius, Class<?>... types) {
