@@ -79,15 +79,24 @@ public class ClockworkStorageUtil extends GameConfigStorageUtil<ClockworkConfig>
         Preconditions.checkArgument(chaos.cylinder().spawnY() != null, "chaos.cylinder.spawnY can't be null");
         Preconditions.checkArgument(chaos.cylinder().spawnY().min() < chaos.cylinder().spawnY().max(), "chaos.cylinder.spawnY min must be less than max");
         
+        Preconditions.checkArgument(chaos.arrows() != null, "chaos.arrows can't be null");
+        Preconditions.checkArgument(chaos.arrows().initial() != null, "chaos.arrows.initial can't be null");
+        Preconditions.checkArgument(chaos.arrows().increment() != null, "chaos.arrows.increment can't be null");
         Preconditions.checkArgument(((int) chaos.arrows().initial().min()) < ((int) chaos.arrows().initial().max())+1, "chaos.arrows.initial floor(min) must be less than floor(max)+1");
         Preconditions.checkArgument(chaos.arrows().increment().min() <= chaos.arrows().increment().max(), "chaos.arrows.increment min must be less than or equal to max");
     
+        Preconditions.checkArgument(chaos.fallingBlocks() != null, "chaos.fallingBlocks can't be null");
+        Preconditions.checkArgument(chaos.fallingBlocks().initial() != null, "chaos.fallingBlocks.initial can't be null");
+        Preconditions.checkArgument(chaos.fallingBlocks().increment() != null, "chaos.fallingBlocks.increment can't be null");
         Preconditions.checkArgument(((int) chaos.fallingBlocks().initial().min()) < ((int) chaos.fallingBlocks().initial().max())+1, "chaos.fallingBlocks.initial floor(min) must be less than floor(max)+1");
         Preconditions.checkArgument(chaos.fallingBlocks().increment().min() <= chaos.fallingBlocks().increment().max(), "chaos.fallingBlocks.increment min must be less than or equal to max");
     
+        Preconditions.checkArgument(chaos.summonDelay() != null, "chaos.summonDelay can't be null");
+        Preconditions.checkArgument(chaos.summonDelay().initial() != null, "chaos.summonDelay.initial can't be null");
+        Preconditions.checkArgument(chaos.summonDelay().decrement() != null, "chaos.summonDelay.decrement can't be null");
         Preconditions.checkArgument(chaos.summonDelay().initial().min() >= 5, "chaos.summonDelay.initial.min must be greater than or equal to 5");
         Preconditions.checkArgument(((long) chaos.summonDelay().initial().min()) < ((long) chaos.summonDelay().initial().min() + 1), "chaos.summonDelay.initial floor(min) must be less than floor(max)+1");
-        Preconditions.checkArgument(chaos.summonDelay().increment().min() <= chaos.summonDelay().increment().max(), "chaos.summonDelay.increment min must be less than or equal to max");
+        Preconditions.checkArgument(chaos.summonDelay().decrement().min() <= chaos.summonDelay().decrement().max(), "chaos.summonDelay.decrement min must be less than or equal to max");
     }
     
     @Override

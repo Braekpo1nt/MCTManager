@@ -66,12 +66,12 @@ public class ChaosManager implements Listener {
         if ((int) minFallingBlocks >= ((int) maxFallingBlocks + 1)) {
             maxFallingBlocks = minFallingBlocks;
         }
-    
-        minDelay += storageUtil.getChaos().summonDelay().increment().min();
+        
+        minDelay -= storageUtil.getChaos().summonDelay().decrement().min();
         if (((long) minDelay) < 5.0) {
             minDelay = 5.0;
         }
-        maxDelay += storageUtil.getChaos().summonDelay().increment().max();
+        maxDelay -= storageUtil.getChaos().summonDelay().decrement().max();
         if (((long) minDelay) >= ((long) maxDelay + 1)) {
             maxDelay = minDelay;
         }

@@ -37,14 +37,17 @@ record ClockworkConfig(String version, String world, Vector startingLocation, Bo
     record Sound(String sound, float volume, float pitch) {
     }
     
-    public record Chaos(Cylinder cylinder, MinMaxInc arrows, MinMaxInc fallingBlocks, MinMaxInc summonDelay) {
+    public record Chaos(Cylinder cylinder, MinMaxInc arrows, MinMaxInc fallingBlocks, MinMaxDec summonDelay) {
         public record Cylinder(double centerX, double centerZ, double radius, MinMax spawnY) {
         }
         
         public record MinMax(double min, double max) {
         }
-    
+        
         public record MinMaxInc(MinMax initial, MinMax increment) {
+        }
+        
+        public record MinMaxDec(MinMax initial, MinMax decrement) {
         }
     }
 }
