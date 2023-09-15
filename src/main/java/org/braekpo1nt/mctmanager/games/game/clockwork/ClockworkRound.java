@@ -192,13 +192,13 @@ public class ClockworkRound implements Listener {
             public void run() {
                 if (count <= 0) {
                     mustStayOnWedge = false;
-//                    List<String> livingTeams = getLivingTeams();
-//                    if (livingTeams.size() == 1) {
-//                        String winningTeam = livingTeams.get(0);
-//                        onTeamWinsRound(winningTeam);
-//                        this.cancel();
-//                        return;
-//                    }
+                    List<String> livingTeams = getLivingTeams();
+                    if (livingTeams.size() == 1) {
+                        String winningTeam = livingTeams.get(0);
+                        onTeamWinsRound(winningTeam);
+                        this.cancel();
+                        return;
+                    }
                     incrementChaos();
                     startBreatherDelay();
                     this.cancel();
@@ -209,8 +209,8 @@ public class ClockworkRound implements Listener {
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
-//        killParticipantsNotOnWedge();
-//        mustStayOnWedge = true;
+        killParticipantsNotOnWedge();
+        mustStayOnWedge = true;
     }
     
     private void killParticipantsNotOnWedge() {
