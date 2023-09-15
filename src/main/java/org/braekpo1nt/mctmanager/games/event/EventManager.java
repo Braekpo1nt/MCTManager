@@ -34,7 +34,7 @@ public class EventManager {
     private EventState currentState;
     private EventState lastStateBeforePause;
     private int maxGames = 6;
-    private int currentGameNumber = 1;
+    private int currentGameNumber = 0;
     private final List<GameType> playedGames = new ArrayList<>();
     /**
      * contains the ScoreKeepers for the games played during the event. Cleared on start and end of event. 
@@ -148,7 +148,7 @@ public class EventManager {
         cancelAllTasks();
         scoreKeepers.clear();
         gameManager.getFastBoardManager().updateTitle(FastBoardManager.DEFAULT_TITLE);
-        currentGameNumber = 1;
+        currentGameNumber = 0;
         maxGames = 6;
     }
     

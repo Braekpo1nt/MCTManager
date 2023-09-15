@@ -1,0 +1,211 @@
+{
+  "version": "0.1.0",
+  "world": "World",
+  "startingLocation": {
+    "x": 0,
+    "y": 0,
+    "z": 0
+  },
+  "spectatorArea": {
+    "minX": 0,
+    "minY": 0,
+    "minZ": 0,
+    "maxX": 2,
+    "maxY": 2,
+    "maxZ": 2
+  },
+  "chaos": {
+    "cylinder": {
+      "centerX": -1000,
+      "centerZ": -1000,
+      "radius": 23.0,
+      "spawnY": {
+        "min": 7,
+        "max": 13
+      }
+    },
+    "arrows": {
+      "initial": {
+        "min": 3.0,
+        "max": 7.0
+      },
+      "increment": {
+        "min": 3.0,
+        "max": 4.0
+      }
+    },
+    "fallingBlocks": {
+      "initial": {
+        "min": -1.0,
+        "max": 0.0
+      },
+      "increment": {
+        "min": 0.5,
+        "max": 1.5
+      },
+      "limit": {
+        "min": 0,
+        "max": 0
+      }
+    },
+    "summonDelay": {
+      "initial": {
+        "min": 15.0,
+        "max": 30.0
+      },
+      "decrement": {
+        "min": 3,
+        "max": 4.0
+      }
+    },
+    "arrowSpeed": {
+      "min": 0.6,
+      "max": 0.8
+    },
+    "arrowSpread": {
+      "min": 10,
+      "max": 12
+    }
+  },
+  "wedges": [
+    {
+      "detectionArea": {
+        "minX": -1013,
+        "minY": -1,
+        "minZ": -984,
+        "maxX": -1010,
+        "maxY": 9,
+        "maxZ": -981
+      }
+    },
+    {
+      "detectionArea": {
+        "minX": -1018,
+        "minY": -1,
+        "minZ": -989,
+        "maxX": -1015,
+        "maxY": 9,
+        "maxZ": -986
+      }
+    },
+    {
+      "detectionArea": {
+        "minX": -1020,
+        "minY": -1,
+        "minZ": -1001,
+        "maxX": -1017,
+        "maxY": 9,
+        "maxZ": -998
+      }
+    },
+    {
+      "detectionArea": {
+        "minX": -1018,
+        "minY": -1,
+        "minZ": -1013,
+        "maxX": -1015,
+        "maxY": 9,
+        "maxZ": -1010
+      }
+    },
+    {
+      "detectionArea": {
+        "minX": -1013,
+        "minY": -1,
+        "minZ": -1018,
+        "maxX": -1010,
+        "maxY": 9,
+        "maxZ": -1015
+      }
+    },
+    {
+      "detectionArea": {
+        "minX": -1001,
+        "minY": -1,
+        "minZ": -1020,
+        "maxX": -998,
+        "maxY": 9,
+        "maxZ": -1017
+      }
+    },
+    {
+      "detectionArea": {
+        "minX": -989,
+        "minY": -1,
+        "minZ": -1018,
+        "maxX": -986,
+        "maxY": 9,
+        "maxZ": -1015
+      }
+    },
+    {
+      "detectionArea": {
+        "minX": -984,
+        "minY": -1,
+        "minZ": -1013,
+        "maxX": -981,
+        "maxY": 9,
+        "maxZ": -1010
+      }
+    },
+    {
+      "detectionArea": {
+        "minX": -982,
+        "minY": -1,
+        "minZ": -1001,
+        "maxX": -979,
+        "maxY": 9,
+        "maxZ": -998
+      }
+    },
+    {
+      "detectionArea": {
+        "minX": -984,
+        "minY": -1,
+        "minZ": -989,
+        "maxX": -981,
+        "maxY": 9,
+        "maxZ": -986
+      }
+    },
+    {
+      "detectionArea": {
+        "minX": -989,
+        "minY": -1,
+        "minZ": -984,
+        "maxX": -986,
+        "maxY": 9,
+        "maxZ": -981
+      }
+    },
+    {
+      "detectionArea": {
+        "minX": -1001,
+        "minY": -1,
+        "minZ": -982,
+        "maxX": -998,
+        "maxY": 9,
+        "maxZ": -979
+      }
+    }
+  ],
+  "rounds": 3,
+  "clockChime": {
+    "sound": "block.bell.use",
+    "volume": 100.0,
+    "pitch": 2.0
+  },
+  "initialChimeInterval": 20.0,
+  "chimeIntervalDecrement": 0.5,
+  "scores": {
+    "playerElimination": 5,
+    "teamElimination": 20,
+    "winRound": 50
+  },
+  "durations": {
+    "breather": 5,
+    "getToWedge": 8,
+    "stayOnWedge": 5
+  },
+  "description": {"text":"Clockwork description","color":"dark_blue","bold": true}
+}

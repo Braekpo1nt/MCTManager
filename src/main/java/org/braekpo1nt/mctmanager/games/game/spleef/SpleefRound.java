@@ -57,8 +57,8 @@ public class SpleefRound implements Listener {
     }
     
     public void start(List<Player> newParticipants) {
-        this.participants = new ArrayList<>();
-        participantsAlive = new HashMap<>();
+        this.participants = new ArrayList<>(newParticipants.size());
+        participantsAlive = new HashMap<>(newParticipants.size());
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         placeLayers();
         for (Player participant : newParticipants) {
@@ -92,6 +92,8 @@ public class SpleefRound implements Listener {
     
     private void resetParticipant(Player participant) {
         participant.getInventory().clear();
+        ParticipantInitializer.clearStatusEffects(participant);
+        ParticipantInitializer.resetHealthAndHunger(participant);
         hideFastBoard(participant);
     }
     
