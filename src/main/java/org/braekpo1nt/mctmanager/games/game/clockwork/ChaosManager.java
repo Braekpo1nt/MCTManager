@@ -114,7 +114,9 @@ public class ChaosManager implements Listener {
         for (int i = 0; i < numArrows; i++) {
             Location spawnLocation = randomLocationInCylinder();
             if (spawnLocation.getBlock().getType().equals(Material.AIR)) {
-                Arrow arrow = storageUtil.getWorld().spawnArrow(spawnLocation, new Vector(0, -1, 0), 0.6f, 12);
+                float arrowSpeed = random.nextFloat(storageUtil.getChaos().arrowSpeed().min(), storageUtil.getChaos().arrowSpeed().max());
+                float arrowSpread = random.nextFloat(storageUtil.getChaos().arrowSpread().min(), storageUtil.getChaos().arrowSpread().max());
+                Arrow arrow = storageUtil.getWorld().spawnArrow(spawnLocation, new Vector(0, -1, 0), arrowSpeed, arrowSpread);
                 arrow.setGravity(true);
                 arrow.setPickupStatus(Arrow.PickupStatus.DISALLOWED);
             }

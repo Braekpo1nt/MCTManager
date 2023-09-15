@@ -97,6 +97,14 @@ public class ClockworkStorageUtil extends GameConfigStorageUtil<ClockworkConfig>
         Preconditions.checkArgument(chaos.summonDelay().initial().min() >= 5, "chaos.summonDelay.initial.min must be greater than or equal to 5");
         Preconditions.checkArgument(((long) chaos.summonDelay().initial().min()) < ((long) chaos.summonDelay().initial().min() + 1), "chaos.summonDelay.initial floor(min) must be less than floor(max)+1");
         Preconditions.checkArgument(chaos.summonDelay().decrement().min() <= chaos.summonDelay().decrement().max(), "chaos.summonDelay.decrement min must be less than or equal to max");
+        
+        Preconditions.checkArgument(chaos.arrowSpeed() != null, "chaos.arrowSpeed can't be null");
+        Preconditions.checkArgument(chaos.arrowSpeed().min() >= 0f, "chaos.arrowSpeed.min can't be negative");
+        Preconditions.checkArgument(chaos.arrowSpeed().max() >= 0f, "chaos.arrowSpeed.max can't be negative");
+    
+        Preconditions.checkArgument(chaos.arrowSpread() != null, "chaos.arrowSpread can't be null");
+        Preconditions.checkArgument(chaos.arrowSpread().min() >= 0f, "chaos.arrowSpread.min can't be negative");
+        Preconditions.checkArgument(chaos.arrowSpread().max() >= 0f, "chaos.arrowSpread.max can't be negative");
     }
     
     @Override

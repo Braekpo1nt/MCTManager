@@ -57,6 +57,14 @@
         "min": 3,
         "max": 4.0
       }
+    },
+    "arrowSpeed": {
+      "min": 0.6,
+      "max": 0.8
+    },
+    "arrowSpread": {
+      "min": 10,
+      "max": 12
     }
   },
   "wedges": [
