@@ -10,6 +10,7 @@ import org.braekpo1nt.mctmanager.games.game.config.GameConfigStorageUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -45,6 +46,7 @@ public class ClockworkStorageUtil extends GameConfigStorageUtil<ClockworkConfig>
         Preconditions.checkArgument(config.startingLocation() != null, "startingLocation can't be null");
         Preconditions.checkArgument(config.spectatorArea() != null, "spectatorArea can't be null");
         Preconditions.checkArgument(config.getSpectatorArea().getVolume() >= 1.0, "spectatorArea (%s) must have a volume (%s) of at least 1.0", config.spectatorArea(), config.getSpectatorArea().getVolume());
+        validateChaos(config.chaos());
         Preconditions.checkArgument(config.wedges() != null, "wedges can't be null");
         Preconditions.checkArgument(config.wedges().size() == 12, "wedges must have 12 entries");
         for (ClockworkConfig.WedgeDTO wedgeDTO : config.wedges()) {
@@ -69,6 +71,23 @@ public class ClockworkStorageUtil extends GameConfigStorageUtil<ClockworkConfig>
             throw new IllegalArgumentException("description is invalid", e);
         }
         return true;
+    }
+    
+    private void validateChaos(ClockworkConfig.Chaos chaos) {
+        Preconditions.checkArgument(chaos != null, "chaos can't be null");
+        Preconditions.checkArgument(chaos.cylinder() != null, "chaos.cylinder can't be null");
+        Preconditions.checkArgument(chaos.cylinder().spawnY() != null, "chaos.cylinder.spawnY can't be null");
+        Preconditions.checkArgument(chaos.cylinder().spawnY().min() < chaos.cylinder().spawnY().max(), "chaos.cylinder.spawnY min must be less than max");
+        
+        Preconditions.checkArgument(((int) chaos.arrows().initial().min()) < ((int) chaos.arrows().initial().max())+1, "chaos.arrows.initial floor(min) must be less than floor(max)+1");
+        Preconditions.checkArgument(chaos.arrows().increment().min() <= chaos.arrows().increment().max(), "chaos.arrows.increment min must be less than or equal to max");
+    
+        Preconditions.checkArgument(((int) chaos.fallingBlocks().initial().min()) < ((int) chaos.fallingBlocks().initial().max())+1, "chaos.fallingBlocks.initial floor(min) must be less than floor(max)+1");
+        Preconditions.checkArgument(chaos.fallingBlocks().increment().min() <= chaos.fallingBlocks().increment().max(), "chaos.fallingBlocks.increment min must be less than or equal to max");
+    
+        Preconditions.checkArgument(chaos.summonDelay().initial().min() >= 5, "chaos.summonDelay.initial.min must be greater than or equal to 5");
+        Preconditions.checkArgument(((long) chaos.summonDelay().initial().min()) < ((long) chaos.summonDelay().initial().min() + 1), "chaos.summonDelay.initial floor(min) must be less than floor(max)+1");
+        Preconditions.checkArgument(chaos.summonDelay().increment().min() <= chaos.summonDelay().increment().max(), "chaos.summonDelay.increment min must be less than or equal to max");
     }
     
     @Override
@@ -150,5 +169,9 @@ public class ClockworkStorageUtil extends GameConfigStorageUtil<ClockworkConfig>
     
     public double getChimeIntervalDecrement() {
         return clockworkConfig.chimeIntervalDecrement();
+    }
+    
+    public ClockworkConfig.Chaos getChaos() {
+        return clockworkConfig.chaos();
     }
 }

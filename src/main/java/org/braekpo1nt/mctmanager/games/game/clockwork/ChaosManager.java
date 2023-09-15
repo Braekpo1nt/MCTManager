@@ -1,8 +1,8 @@
 package org.braekpo1nt.mctmanager.games.game.clockwork;
 
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.games.game.clockwork.config.ClockworkStorageUtil;
 import org.bukkit.*;
-import org.bukkit.block.BlockState;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Entity;
@@ -25,44 +25,56 @@ import java.util.Random;
 public class ChaosManager implements Listener {
     private final BlockData sandBlockData = Material.SAND.createBlockData();
     private final BlockData anvilBlockData = Material.ANVIL.createBlockData();
-    private final World world;
-    private int minArrows = 3;
-    private int maxArrows = 7;
-    private int minFallingBlocks = 0;
-    private int maxFallingBlocks = 0;
-    private long minDelay = 15L;
-    private long maxDelay = 30L;
-    private final Location center;
-    private final int radius = 23;
-    private final int minY = 7;
-    private final int maxY = 13;
+    private final ClockworkStorageUtil storageUtil;
+    private double minArrows;
+    private double maxArrows;
+    private double minFallingBlocks;
+    private double maxFallingBlocks;
+    private double minDelay;
+    private double maxDelay;
     private int scheduleArrowsSummonTaskId;
     private final Random random = new Random();
     
     private final Main plugin;
     
-    public ChaosManager(Main plugin, Location center) {
+    public ChaosManager(Main plugin, ClockworkStorageUtil storageUtil) {
         this.plugin = plugin;
-        this.center = center;
-        world = this.center.getWorld();
+        this.storageUtil = storageUtil;
+        minArrows = storageUtil.getChaos().arrows().initial().min();
+        maxArrows = storageUtil.getChaos().arrows().initial().max();
+        minFallingBlocks = storageUtil.getChaos().fallingBlocks().initial().min();
+        maxFallingBlocks = storageUtil.getChaos().fallingBlocks().initial().max();
+        minDelay += storageUtil.getChaos().summonDelay().initial().min();
+        maxDelay += storageUtil.getChaos().summonDelay().initial().max();
     }
     
     public void incrementChaos() {
-        minArrows += 3;
-        maxArrows += 4;
-        minFallingBlocks += 1;
-        maxFallingBlocks += 2;
-    
-        minDelay -= 3L;
-        if (minDelay < 5L) {
-            minDelay = 5L;
+        minArrows += storageUtil.getChaos().arrows().increment().min();
+        maxArrows += storageUtil.getChaos().arrows().increment().max();
+        if (minArrows < 0) {
+            minArrows = 0;
         }
-        maxDelay -= 4L;
-        if (maxDelay < 10L) {
-            maxDelay = 10L;
+        if (((int) minArrows) >= ((int) maxArrows + 1)) {
+            maxArrows = minArrows;
         }
         
-//        Bukkit.getLogger().info(String.format("Delay[%s, %s] - Arrows[%s, %s]", minDelay, maxDelay, minArrows, maxArrows));
+        minFallingBlocks += storageUtil.getChaos().fallingBlocks().increment().min();
+        maxFallingBlocks += storageUtil.getChaos().fallingBlocks().increment().max();
+        if (minFallingBlocks < 0) {
+            minFallingBlocks = 0;
+        }
+        if ((int) minFallingBlocks >= ((int) maxFallingBlocks + 1)) {
+            maxFallingBlocks = minFallingBlocks;
+        }
+    
+        minDelay += storageUtil.getChaos().summonDelay().increment().min();
+        if (((long) minDelay) < 5.0) {
+            minDelay = 5.0;
+        }
+        maxDelay += storageUtil.getChaos().summonDelay().increment().max();
+        if (((long) minDelay) >= ((long) maxDelay + 1)) {
+            maxDelay = minDelay;
+        }
     }
     
     public void start() {
@@ -80,7 +92,10 @@ public class ChaosManager implements Listener {
     }
     
     private void scheduleSummonTask() {
-        long randomDelay = random.nextLong(minDelay, maxDelay);
+        if (((long) minDelay) >= ((long) maxDelay + 1)) {
+            return;
+        }
+        long randomDelay = random.nextLong((long) minDelay, (long) maxDelay + 1);
         this.scheduleArrowsSummonTaskId = new BukkitRunnable() {
             @Override
             public void run() {
@@ -92,42 +107,42 @@ public class ChaosManager implements Listener {
     }
     
     private void summonArrows() {
-        if (maxArrows <= 0) {
+        if (minArrows < 0 || ((int) minArrows) >= ((int) maxArrows + 1)) {
             return;
         }
-        int numArrows = random.nextInt(minArrows, maxArrows + 1);
+        int numArrows = random.nextInt((int) minArrows, (int) (maxArrows + 1));
         for (int i = 0; i < numArrows; i++) {
             Location spawnLocation = randomLocationInCylinder();
             if (spawnLocation.getBlock().getType().equals(Material.AIR)) {
-                Arrow arrow = world.spawnArrow(spawnLocation, new Vector(0, -1, 0), 0.6f, 12);
+                Arrow arrow = storageUtil.getWorld().spawnArrow(spawnLocation, new Vector(0, -1, 0), 0.6f, 12);
                 arrow.setGravity(true);
                 arrow.setPickupStatus(Arrow.PickupStatus.DISALLOWED);
             }
         }
     }
     
-    @NotNull
-    private Location randomLocationInCylinder() {
-        double randomRadius = radius * Math.sqrt(random.nextDouble()); // generate a "uniformly random" radius (see https://stackoverflow.com/questions/5837572/generate-a-random-point-within-a-circle-uniformly)
-        double randomAngle = random.nextDouble() * 2 * Math.PI;
-        double x = center.getX() + randomRadius * Math.cos(randomAngle);
-        double z = center.getZ() + randomRadius * Math.sin(randomAngle);
-        double y = random.nextDouble(minY, maxY);
-        return new Location(world, x, y, z);
-    }
-    
     private void summonFallingBlocks() {
-        if (maxFallingBlocks <= 0) {
+        if (minFallingBlocks < 0 || (int) minFallingBlocks >= ((int) maxFallingBlocks + 1)) {
             return;
         }
-        int numOfFallingBlocks = random.nextInt(minFallingBlocks, maxFallingBlocks + 1);
+        int numOfFallingBlocks = random.nextInt((int) minFallingBlocks, (int) maxFallingBlocks + 1);
         for (int i = 0; i < numOfFallingBlocks; i++) {
             Location spawnLocation = randomLocationInCylinder();
             if (spawnLocation.getBlock().getType().equals(Material.AIR)) {
-                FallingBlock fallingBlock = world.spawnFallingBlock(spawnLocation, random.nextBoolean() ? sandBlockData : anvilBlockData);
+                FallingBlock fallingBlock = storageUtil.getWorld().spawnFallingBlock(spawnLocation, random.nextBoolean() ? sandBlockData : anvilBlockData);
                 fallingBlock.setDropItem(false);
             }
         }
+    }
+    
+    @NotNull
+    private Location randomLocationInCylinder() {
+        double randomRadius = storageUtil.getChaos().cylinder().radius() * Math.sqrt(random.nextDouble()); // generate a "uniformly random" radius (see https://stackoverflow.com/questions/5837572/generate-a-random-point-within-a-circle-uniformly)
+        double randomAngle = random.nextDouble() * 2 * Math.PI;
+        double x = storageUtil.getChaos().cylinder().centerX() + randomRadius * Math.cos(randomAngle);
+        double z = storageUtil.getChaos().cylinder().centerZ() + randomRadius * Math.sin(randomAngle);
+        double y = random.nextDouble(storageUtil.getChaos().cylinder().spawnY().min(), storageUtil.getChaos().cylinder().spawnY().max());
+        return new Location(storageUtil.getWorld(), x, y, z);
     }
     
     @EventHandler
@@ -153,7 +168,7 @@ public class ChaosManager implements Listener {
     }
     
     private void removeArrowsAndFallingBlocks() {
-        for (Entity entity : getEntitiesInCylinder(world, center.x(), center.z(), radius, Arrow.class, FallingBlock.class)) {
+        for (Entity entity : getEntitiesInCylinder(storageUtil.getWorld(), storageUtil.getChaos().cylinder().centerX(), storageUtil.getChaos().cylinder().centerZ(), storageUtil.getChaos().cylinder().radius(), Arrow.class, FallingBlock.class)) {
             entity.remove();
         }
     }

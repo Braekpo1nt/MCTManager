@@ -53,7 +53,7 @@ public class ClockworkRound implements Listener {
         this.clockworkGame = clockworkGame;
         this.storageUtil = storageUtil;
         this.roundNumber = roundNumber;
-        this.chaosManager = new ChaosManager(plugin, storageUtil.getStartingLocation());
+        this.chaosManager = new ChaosManager(plugin, storageUtil);
     }
     
     public void start(List<Player> newParticipants) {
