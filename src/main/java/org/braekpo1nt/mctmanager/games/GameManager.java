@@ -99,7 +99,7 @@ public class GameManager implements Listener {
         this.fastBoardUpdaterTaskId = new BukkitRunnable() {
             @Override
             public void run() {
-                fastBoardManager.updateMainBoards();
+                fastBoardManager.updateHeaders();
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
     }
@@ -159,7 +159,7 @@ public class GameManager implements Listener {
     
     private void onAdminJoin(@NotNull Player admin) {
         onlineAdmins.add(admin);
-        fastBoardManager.updateMainBoards();
+        fastBoardManager.updateHeaders();
     }
     
     /**
@@ -172,7 +172,7 @@ public class GameManager implements Listener {
      */
     private void onParticipantJoin(@NotNull Player participant) {
         onlineParticipants.add(participant);
-        fastBoardManager.updateMainBoards();
+        fastBoardManager.updateHeaders();
         if (gameIsRunning()) {
             activeGame.onParticipantJoin(participant);
             return;

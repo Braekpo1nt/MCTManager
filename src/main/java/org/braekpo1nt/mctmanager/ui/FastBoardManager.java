@@ -42,13 +42,13 @@ public class FastBoardManager {
         }
     }
     
-    public synchronized void updateMainBoards() {
+    public synchronized void updateHeaders() {
         for (Player player : Bukkit.getOnlinePlayers()) {
-            updateMainBoardForPlayer(player);
+            updateHeaderForPlayer(player);
         }
     }
     
-    protected synchronized void updateMainBoardForPlayer(Player player) {
+    protected synchronized void updateHeaderForPlayer(Player player) {
         boolean playerHasBoard = givePlayerBoardIfAbsent(player);
         if (!playerHasBoard) {
             return;
@@ -66,9 +66,9 @@ public class FastBoardManager {
     
     /**
      * Retrieve the header 
-     * @param playerUniqueId
-     * @param headerType
-     * @return
+     * @param playerUniqueId the player
+     * @param headerType the header type
+     * @return the header for the given player with the given type
      */
     protected String[] getHeader(UUID playerUniqueId, HeaderType headerType) {
         if (headerType == HeaderType.ALL) {
