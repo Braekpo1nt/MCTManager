@@ -5,15 +5,15 @@ import org.braekpo1nt.mctmanager.ui.FastBoardWrapper;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class SidebarManager {
     
-    protected final List<String> orderedKeys = new ArrayList<>();
-    protected final Map<String, String> lineContents = new HashMap<>();
+    protected final Map<String, Integer> keyToIndex = new HashMap<>();
+    protected final List<String> lines = new ArrayList<>();
+    protected final Map<UUID, Map<String, String>> personalLines = new HashMap<>();
     
     protected final Map<UUID, FastBoardWrapper> boards = new ConcurrentHashMap<>();
 
@@ -59,15 +59,14 @@ public class SidebarManager {
      * @throws IllegalArgumentException if the key exists, or the position is out of range ({@code index < 0 || index > size()})
      */
     public synchronized void addLine(@NotNull String key, int position, @NotNull String contents) {
-        Preconditions.checkArgument(!orderedKeys.contains(key), "can't add a line with an existing key (%s)", key);
+        Preconditions.checkArgument(!keyToIndex.containsKey(key), "can't add a line with an existing key (%s)", key);
         Preconditions.checkArgument(position >= 0, "position (%s) can't be negative", position);
-        Preconditions.checkArgument(position < orderedKeys.size(), "position (%s) can't be greater than the size of the sidebar", position);
-        orderedKeys.add(position, key);
-        lineContents.put(key, contents);
+        Preconditions.checkArgument(position < lines.size(), "position (%s) can't be greater than the size of the sidebar", position);
+        lines.add(contents);
+        keyToIndex.put(key, lines.size() - 1);
+        String[] linesArray = lines.toArray(new String[0]);
         for (FastBoardWrapper board : boards.values()) {
-            for (int i = position; i < orderedKeys.size(); i++) {
-                board.updateLine(i, lineContents.get(orderedKeys.get(i)));
-            }
+            board.updateLines(linesArray);
         }
     }
     
@@ -77,21 +76,27 @@ public class SidebarManager {
      * @param contents the contents of the line
      */
     public synchronized void addLine(@NotNull String key, @NotNull String contents) {
-        Preconditions.checkArgument(!orderedKeys.contains(key), "attempted to add a line with an existing key (%s)", key);
-        orderedKeys.add(key);
-        int index = orderedKeys.size() - 1;
-        lineContents.put(key, contents);
+        Preconditions.checkArgument(!keyToIndex.containsKey(key), "attempted to add a line with an existing key (%s)", key);
+        lines.add(contents);
+        int index = lines.size() - 1;
+        keyToIndex.put(key, index);
         for (FastBoardWrapper board : boards.values()) {
             board.updateLine(index, contents);
         }
     }
-
+    
     /**
      * Deletes the line from all FastBoards
      * @param key the key for the line (must exist)
      */
     public synchronized void deleteLine(@NotNull String key) {
-        
+        Preconditions.checkArgument(keyToIndex.containsKey(key), "can't delete line with nonexistent key (%s)", key);
+        int index = keyToIndex.remove(key);
+        lines.remove(index);
+        String[] linesArray = lines.toArray(new String[0]);
+        for (FastBoardWrapper board : boards.values()) {
+            board.updateLines(linesArray);
+        }
     }
 
     /**
@@ -99,7 +104,28 @@ public class SidebarManager {
      * @param keys the keys for the lines (each key must exist)
      */
     public synchronized void deleteLines(@NotNull String... keys) {
-        
+        for (String key : keys) {
+            Preconditions.checkArgument(keyToIndex.containsKey(key), "can't delete line with nonexistent key (%s)", key);
+        }
+        for (String key : keys) {
+            int index = keyToIndex.remove(key);
+            lines.remove(index);
+        }
+        String[] linesArray = lines.toArray(new String[0]);
+        for (FastBoardWrapper board : boards.values()) {
+            board.updateLines(linesArray);
+        }
+    }
+
+    /**
+     * Deletes all the lines from all FastBoards
+     */
+    public synchronized void deleteAllLines() {
+        lines.clear();
+        keyToIndex.clear();
+        for (FastBoardWrapper board : boards.values()) {
+            board.updateLines();
+        }
     }
 
     /**
@@ -108,8 +134,9 @@ public class SidebarManager {
      * @param contents the contents of the line
      */
     public synchronized void updateLine(@NotNull String key, @NotNull String contents) {
-        Preconditions.checkArgument(orderedKeys.contains(key), "can't update a line with nonexistent key (%s)", key);
-        int index = orderedKeys.indexOf(key);
+        Preconditions.checkArgument(keyToIndex.containsKey(key), "can't update a line with nonexistent key (%s)", key);
+        int index = keyToIndex.get(key);
+        lines.set(index, contents);
         for (FastBoardWrapper board : boards.values()) {
             board.updateLine(index, contents);
         }
@@ -122,10 +149,12 @@ public class SidebarManager {
      * @param contents the contents of the line
      */
     public synchronized void updateLine(@NotNull UUID playerUUID, @NotNull String key, @NotNull String contents) {
-        Preconditions.checkArgument(lineContents.containsKey(key), "can't update a line with nonexistent key (%s)", key);
-        Preconditions.checkArgument(boards.containsKey(playerUUID),  "can't find board for player with UUID (%s)", playerUUID);
-        int index = orderedKeys.indexOf(key);
+        Preconditions.checkArgument(keyToIndex.containsKey(key), "can't update a line with nonexistent key (%s)", key);
+        Preconditions.checkArgument(boards.containsKey(playerUUID), "player with UUID \"%s\" does not have a board in this manager", playerUUID);
+        Map<String, String> personalContents = personalLines.get(playerUUID);
+        personalContents.put(key, contents);
         FastBoardWrapper board = boards.get(playerUUID);
+        int index = keyToIndex.get(key);
         board.updateLine(index, contents);
     }
     
