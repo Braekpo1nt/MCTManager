@@ -108,7 +108,11 @@ public class SidebarManager {
      * @param contents the contents of the line
      */
     public synchronized void updateLine(@NotNull String key, @NotNull String contents) {
-        
+        Preconditions.checkArgument(orderedKeys.contains(key), "can't update a line with nonexistent key (%s)", key);
+        int index = orderedKeys.indexOf(key);
+        for (FastBoardWrapper board : boards.values()) {
+            board.updateLine(index, contents);
+        }
     }
 
     /**
@@ -118,7 +122,11 @@ public class SidebarManager {
      * @param contents the contents of the line
      */
     public synchronized void updateLine(@NotNull UUID playerUUID, @NotNull String key, @NotNull String contents) {
-        
+        Preconditions.checkArgument(lineContents.containsKey(key), "can't update a line with nonexistent key (%s)", key);
+        Preconditions.checkArgument(boards.containsKey(playerUUID),  "can't find board for player with UUID (%s)", playerUUID);
+        int index = orderedKeys.indexOf(key);
+        FastBoardWrapper board = boards.get(playerUUID);
+        board.updateLine(index, contents);
     }
     
 }
