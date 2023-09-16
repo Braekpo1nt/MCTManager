@@ -1,24 +1,53 @@
 package org.braekpo1nt.mctmanager.ui.sidebar;
 
+import org.braekpo1nt.mctmanager.ui.FastBoardWrapper;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class SidebarManager {
     
+    protected final List<String> orderedKeys = new ArrayList<>();
+    protected final Map<String, String> lineContents = new HashMap<>();
+    
+    protected final Map<UUID, FastBoardWrapper> boards = new ConcurrentHashMap<>();
+
+    public static final String DEFAULT_TITLE = ChatColor.BOLD + "" + ChatColor.DARK_RED + "MCT";
+    /**
+     * The title to be used at the top of the FastBoard
+     */
+    protected String title = DEFAULT_TITLE;
     
     /**
-     * Adds a player to this SidebarManager. All existing lines will be shown to the player's FastBoard.
-     * @param player the player to add to this manager and give a FastBoard (must not already be in this manager)
+     * Adds a player to this SidebarManager. All existing lines will be shown to the player's FastBoard. If the player is already present, nothing happens. 
+     * @param player the player to add to this manager and give a FastBoard
      */
     public synchronized void addPlayer(@NotNull Player player) {
-        
+        if (boards.containsKey(player.getUniqueId())) {
+            return;
+        }
+        FastBoardWrapper newBoard = new FastBoardWrapper();
+        newBoard.setPlayer(player);
+        newBoard.updateTitle(this.title);
+        boards.put(player.getUniqueId(), newBoard);
     }
-    
-    public synchronized void removePlayer(@NotNull Player player) {
-        
+
+    /**
+     * Removes the player from this SidebarManager. If the player is not already present, nothing happens.
+     * @param playerUUID the player to remove from this manager.
+     */
+    public synchronized void removePlayer(@NotNull UUID playerUUID) {
+        if (!boards.containsKey(playerUUID)) {
+            return;
+        }
+        FastBoardWrapper board = boards.remove(playerUUID);
+        if (board != null && !board.isDeleted()) {
+            board.delete();
+        }
     }
     
     /**

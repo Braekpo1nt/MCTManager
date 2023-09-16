@@ -190,6 +190,7 @@ public class FastBoardManager {
         if (board != null && !board.isDeleted()) {
             board.delete();
         }
+        headerTypes.remove(playerUniqueId);
     }
     
     public synchronized void removeAllBoards() {
