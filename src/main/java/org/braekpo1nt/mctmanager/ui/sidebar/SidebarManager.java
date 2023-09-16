@@ -64,20 +64,13 @@ public class SidebarManager {
         Preconditions.checkArgument(position < orderedKeys.size(), "position (%s) can't be greater than the size of the sidebar", position);
         orderedKeys.add(position, key);
         lineContents.put(key, contents);
-        String[] lines = createLines();
         for (FastBoardWrapper board : boards.values()) {
-            board.updateLines(lines);
+            for (int i = position; i < orderedKeys.size(); i++) {
+                board.updateLine(i, lineContents.get(orderedKeys.get(i)));
+            }
         }
     }
-
-    private synchronized String[] createLines() {
-        List<String> lines = new ArrayList<>(orderedKeys.size());
-        for (String key : orderedKeys) {
-            lines.add(lineContents.get(key));
-        }
-        return lines.toArray(new String[0]);
-    }
-
+    
     /**
      * Adds a line to all FastBoards at the bottom of existing lines
      * @param key the key for the line (must not already exist)
