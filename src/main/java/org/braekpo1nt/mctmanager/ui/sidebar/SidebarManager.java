@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.ui.sidebar;
 
+import com.google.common.base.Preconditions;
 import org.braekpo1nt.mctmanager.ui.FastBoardWrapper;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -35,7 +36,7 @@ public class SidebarManager {
         newBoard.updateTitle(this.title);
         boards.put(player.getUniqueId(), newBoard);
     }
-
+    
     /**
      * Removes the player from this SidebarManager. If the player is not already present, nothing happens.
      * @param playerUUID the player to remove from this manager.
@@ -53,20 +54,43 @@ public class SidebarManager {
     /**
      * Adds a line to all FastBoards at the given position (counted from the top). all lines that were after that position are bumped down to make room.
      * @param key the key for the line (must not already exist)
-     * @param position the position (or line number) for the line, starting from the top. Must be within the size of the line. 
-     * @param contents the contents of the line (null will be empty)
+     * @param position the position of the line from the top (starting at 0).
+     * @param contents the contents of the line
+     * @throws IllegalArgumentException if the key exists, or the position is out of range ({@code index < 0 || index > size()})
      */
-    public synchronized void addLine(@NotNull String key, int position, @Nullable String contents) {
-        
+    public synchronized void addLine(@NotNull String key, int position, @NotNull String contents) {
+        Preconditions.checkArgument(!orderedKeys.contains(key), "can't add a line with an existing key (%s)", key);
+        Preconditions.checkArgument(position >= 0, "position (%s) can't be negative", position);
+        Preconditions.checkArgument(position < orderedKeys.size(), "position (%s) can't be greater than the size of the sidebar", position);
+        orderedKeys.add(position, key);
+        lineContents.put(key, contents);
+        String[] lines = createLines();
+        for (FastBoardWrapper board : boards.values()) {
+            board.updateLines(lines);
+        }
+    }
+
+    private synchronized String[] createLines() {
+        List<String> lines = new ArrayList<>(orderedKeys.size());
+        for (String key : orderedKeys) {
+            lines.add(lineContents.get(key));
+        }
+        return lines.toArray(new String[0]);
     }
 
     /**
      * Adds a line to all FastBoards at the bottom of existing lines
      * @param key the key for the line (must not already exist)
-     * @param contents the contents of the line (null will be empty)
+     * @param contents the contents of the line
      */
-    public synchronized void addLine(@NotNull String key, @Nullable String contents) {
-        
+    public synchronized void addLine(@NotNull String key, @NotNull String contents) {
+        Preconditions.checkArgument(!orderedKeys.contains(key), "attempted to add a line with an existing key (%s)", key);
+        orderedKeys.add(key);
+        int index = orderedKeys.size() - 1;
+        lineContents.put(key, contents);
+        for (FastBoardWrapper board : boards.values()) {
+            board.updateLine(index, contents);
+        }
     }
 
     /**
@@ -88,9 +112,9 @@ public class SidebarManager {
     /**
      * Updates the line associated with the key for all FastBoards
      * @param key the key for the line (must exist)
-     * @param contents the contents of the line (null will be empty)
+     * @param contents the contents of the line
      */
-    public synchronized void updateLine(@NotNull String key, @Nullable String contents) {
+    public synchronized void updateLine(@NotNull String key, @NotNull String contents) {
         
     }
 
@@ -98,9 +122,9 @@ public class SidebarManager {
      * Updates the line associate with the key for the player with the given ID's FastBoard.
      * @param playerUUID the player UUID to update the line for (must have a FastBoard)
      * @param key the key for the line (must exist)
-     * @param contents the contents of the line (null will be empty)
+     * @param contents the contents of the line
      */
-    public synchronized void updateLine(@NotNull UUID playerUUID, @NotNull String key, @Nullable String contents) {
+    public synchronized void updateLine(@NotNull UUID playerUUID, @NotNull String key, @NotNull String contents) {
         
     }
     
