@@ -8,6 +8,7 @@ import org.braekpo1nt.mctmanager.games.game.clockwork.config.ClockworkStorageUti
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -363,6 +364,7 @@ public class ClockworkRound implements Listener {
     
     private void onTeamWinsRound(String winningTeam) {
         gameManager.awardPointsToTeam(winningTeam, storageUtil.getWinRoundScore());
+        updateScoreSidebar();
         Component teamDisplayName = gameManager.getFormattedTeamDisplayName(winningTeam);
         for (Player participant : participants) {
             String team = gameManager.getTeamName(participant.getUniqueId());
@@ -381,6 +383,23 @@ public class ClockworkRound implements Listener {
         roundIsOver();
     }
     
+    private void updateScoreSidebar() {
+        for (Player participant : participants) {
+            updateScoreSidebar(participant);
+        }
+    }
+    
+    private void updateScoreSidebar(Player participant) {
+        UUID playerUUID = participant.getUniqueId();
+        String teamName = gameManager.getTeamName(playerUUID);
+        String teamDisplayName = gameManager.getTeamDisplayName(teamName);
+        ChatColor teamChatColor = gameManager.getTeamChatColor(teamName);
+        int teamScore = gameManager.getScore(teamName);
+        int playerScore = gameManager.getScore(playerUUID);
+        gameManager.getSidebarManager().updateLine(playerUUID, "team", String.format("%s%s: %s", teamChatColor, teamDisplayName, teamScore));
+        gameManager.getSidebarManager().updateLine(playerUUID, "points", String.format("%sPoints: %s", ChatColor.GOLD, playerScore));
+    }
+
     private void setupTeamOptions() {
         Scoreboard mctScoreboard = gameManager.getMctScoreboard();
         for (Team team : mctScoreboard.getTeams()) {

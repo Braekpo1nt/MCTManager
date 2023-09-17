@@ -15,6 +15,7 @@ import org.bukkit.scoreboard.Team;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class ClockworkGame implements MCTGame, Configurable {
     private final Main plugin;
@@ -118,11 +119,27 @@ public class ClockworkGame implements MCTGame, Configurable {
     
     private void initializeSidebar() {
         gameManager.getSidebarManager().addLines(
+                new KeyLine("team", ""),
+                new KeyLine("points", ""),
                 new KeyLine("round", String.format("Round %d/%d", currentRoundIndex+1, rounds.size())),
                 new KeyLine("title", title),
                 new KeyLine("playerCount", ""),
                 new KeyLine("timer", "")
         );
+        for (Player participant : participants) {
+            updateScoreSidebar(participant);
+        }
+    }
+    
+    private void updateScoreSidebar(Player participant) {
+        UUID playerUUID = participant.getUniqueId();
+        String teamName = gameManager.getTeamName(playerUUID);
+        String teamDisplayName = gameManager.getTeamDisplayName(teamName);
+        ChatColor teamChatColor = gameManager.getTeamChatColor(teamName);
+        int teamScore = gameManager.getScore(teamName);
+        int playerScore = gameManager.getScore(playerUUID);
+        gameManager.getSidebarManager().updateLine(playerUUID, "team", String.format("%s%s: %s", teamChatColor, teamDisplayName, teamScore));
+        gameManager.getSidebarManager().updateLine(playerUUID, "points", String.format("%sPoints: %s", ChatColor.GOLD, playerScore));
     }
     
     private void updateRoundFastBoard() {
