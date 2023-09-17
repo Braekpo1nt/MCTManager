@@ -62,7 +62,6 @@ public class GameManager implements Listener {
     private final Scoreboard mctScoreboard;
     private final Main plugin;
     private boolean shouldTeleportToHub = true;
-    private int fastBoardUpdaterTaskId;
     /**
      * used to store a list of participants who left mid-game and didn't log back before the game ended, 
      * so we can send them back to the hub rather than whatever game the player left from
@@ -235,7 +234,6 @@ public class GameManager implements Listener {
      * Cancel the return to hub if it's in progress
      */
     public void cancelAllTasks() {
-        Bukkit.getScheduler().cancelTask(this.fastBoardUpdaterTaskId);
         cancelStartGameWithDelayTask();
         eventManager.cancelAllTasks();
         hubManager.cancelAllTasks();
@@ -934,7 +932,6 @@ public class GameManager implements Listener {
             admin.playSound(admin.getLocation(), sound, volume, pitch);
         }
     }
-    
     
     public void messageOnlineParticipants(Component message) {
         for (Player participant : onlineParticipants) {
