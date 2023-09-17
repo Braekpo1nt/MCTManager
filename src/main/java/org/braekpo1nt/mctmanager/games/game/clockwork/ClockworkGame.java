@@ -126,9 +126,6 @@ public class ClockworkGame implements MCTGame, Configurable {
                 new KeyLine("playerCount", ""),
                 new KeyLine("timer", "")
         );
-        for (Player participant : participants) {
-            updateScoreSidebar(participant);
-        }
     }
     
     private void updateScoreSidebar(Player participant) {

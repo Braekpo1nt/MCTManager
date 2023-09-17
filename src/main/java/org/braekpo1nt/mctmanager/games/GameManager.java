@@ -51,7 +51,7 @@ public class GameManager implements Listener {
     private final CaptureTheFlagGame captureTheFlagGame;
     private final ClockworkGame clockworkGame;
     private final HubManager hubManager;
-    private SidebarManager sidebarManager;
+    private final SidebarManager sidebarManager;
     private GameStateStorageUtil gameStateStorageUtil;
     /**
      * Scoreboard for holding the teams. This private scoreboard can't be
@@ -92,7 +92,6 @@ public class GameManager implements Listener {
         this.eventManager = new EventManager(plugin, this, voteManager);
     }
     
-    
     @EventHandler
     public void playerQuitEvent(PlayerQuitEvent event) {
         Player player = event.getPlayer();
@@ -125,6 +124,7 @@ public class GameManager implements Listener {
             return;
         }
         hubManager.onParticipantQuit(participant);
+        sidebarManager.removePlayer(participant.getUniqueId());
     }
     
     @EventHandler
@@ -153,6 +153,7 @@ public class GameManager implements Listener {
      */
     private void onParticipantJoin(@NotNull Player participant) {
         onlineParticipants.add(participant);
+        sidebarManager.addPlayer(participant);
         if (gameIsRunning()) {
             activeGame.onParticipantJoin(participant);
             return;
