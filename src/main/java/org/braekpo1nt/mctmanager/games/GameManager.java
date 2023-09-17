@@ -52,7 +52,6 @@ public class GameManager implements Listener {
     private final CaptureTheFlagGame captureTheFlagGame;
     private final ClockworkGame clockworkGame;
     private final HubManager hubManager;
-    private FastBoardManager fastBoardManager;
     private SidebarManager sidebarManager;
     private GameStateStorageUtil gameStateStorageUtil;
     /**
@@ -90,27 +89,11 @@ public class GameManager implements Listener {
         this.parkourPathwayGame = new ParkourPathwayGame(plugin, this);
         this.captureTheFlagGame = new CaptureTheFlagGame(plugin, this);
         this.clockworkGame = new ClockworkGame(plugin, this);
-        this.fastBoardManager = new FastBoardManager(gameStateStorageUtil);
         this.sidebarManager = new SidebarManager();
         this.hubManager = new HubManager(plugin, mctScoreboard, this);
         this.eventManager = new EventManager(plugin, this, voteManager);
-        this.fastBoardManager = new FastBoardManager(gameStateStorageUtil);
-//        kickOffFastBoardManager();
     }
     
-    private void kickOffFastBoardManager() {
-        this.fastBoardUpdaterTaskId = new BukkitRunnable() {
-            @Override
-            public void run() {
-                fastBoardManager.updateHeaders();
-            }
-        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
-    }
-    
-    public void cancelFastBoardManager() {
-        Bukkit.getScheduler().cancelTask(this.fastBoardUpdaterTaskId);
-        fastBoardManager.removeAllBoards();
-    }
     
     @EventHandler
     public void playerQuitEvent(PlayerQuitEvent event) {
@@ -126,7 +109,6 @@ public class GameManager implements Listener {
     
     private void onAdminQuit(@NotNull Player admin) {
         onlineAdmins.remove(admin);
-        fastBoardManager.removeBoard(admin.getUniqueId());
     }
     
     /**
@@ -139,7 +121,6 @@ public class GameManager implements Listener {
      */
     private void onParticipantQuit(@NotNull Player participant) {
         onlineParticipants.remove(participant);
-        fastBoardManager.removeBoard(participant.getUniqueId());
         if (gameIsRunning()) {
             activeGame.onParticipantQuit(participant);
             participantsWhoLeftMidGame.add(participant.getUniqueId());
@@ -162,7 +143,6 @@ public class GameManager implements Listener {
     
     private void onAdminJoin(@NotNull Player admin) {
         onlineAdmins.add(admin);
-        fastBoardManager.updateHeaders();
     }
     
     /**
@@ -175,7 +155,6 @@ public class GameManager implements Listener {
      */
     private void onParticipantJoin(@NotNull Player participant) {
         onlineParticipants.add(participant);
-        fastBoardManager.updateHeaders();
         if (gameIsRunning()) {
             activeGame.onParticipantJoin(participant);
             return;
@@ -190,10 +169,6 @@ public class GameManager implements Listener {
     
     public Scoreboard getMctScoreboard() {
         return mctScoreboard;
-    }
-    
-    public FastBoardManager getFastBoardManager() {
-        return fastBoardManager;
     }
     
     public SidebarManager getSidebarManager() {
@@ -249,15 +224,6 @@ public class GameManager implements Listener {
         voteManager.startVote(onlineParticipants, votingPool, 60, this::startGameWithDelay);
     }
     
-    private void updateStartGameDelayFastBoard(Player voter, String gameTitle, String timeString) {
-        fastBoardManager.updateLines(
-                voter.getUniqueId(),
-                "",
-                gameTitle,
-                timeString
-        );
-    }
-    
     /**
      * Cancel the vote if a vote is in progress
      */
@@ -304,9 +270,7 @@ public class GameManager implements Listener {
                     return;
                 }
                 String timeString = TimeStringUtils.getTimeString(count);
-                for (Player voter : onlineParticipants) {
-                    updateStartGameDelayFastBoard(voter, gameTitle, timeString);
-                }
+                //TODO: display countdown to users in sidebar
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -652,7 +616,6 @@ public class GameManager implements Listener {
         }
         Team team = mctScoreboard.getTeam(teamName);
         team.removePlayer(offlinePlayer);
-        fastBoardManager.removeBoard(playerUniqueId);
     }
     
     private void leavePlayersOnTeam(String teamName) {
@@ -925,7 +888,6 @@ public class GameManager implements Listener {
         }
         Team team = mctScoreboard.getTeam(ADMIN_TEAM);
         team.removePlayer(offlineAdmin);
-        fastBoardManager.removeBoard(adminUniqueId);
     }
     
     public Material getTeamPowderColor(String teamName) {
@@ -982,14 +944,8 @@ public class GameManager implements Listener {
     
     // Test methods
     
-    public void setFastBoardManager(FastBoardManager fastBoardManager) {
-        this.fastBoardManager = fastBoardManager;
-        this.fastBoardManager.setGameStateStorageUtil(this.gameStateStorageUtil);
-    }
-    
     public void setGameStateStorageUtil(GameStateStorageUtil gameStateStorageUtil) {
         this.gameStateStorageUtil = gameStateStorageUtil;
-        this.fastBoardManager.setGameStateStorageUtil(gameStateStorageUtil);
     }
     
     private void reportGameStateIOException(String attemptedOperation, IOException ioException) {
