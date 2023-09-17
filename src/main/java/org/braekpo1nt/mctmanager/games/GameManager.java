@@ -10,6 +10,7 @@ import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
+import org.braekpo1nt.mctmanager.ui.sidebar.SidebarManager;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.CaptureTheFlagGame;
 import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceGame;
@@ -52,6 +53,7 @@ public class GameManager implements Listener {
     private final ClockworkGame clockworkGame;
     private final HubManager hubManager;
     private FastBoardManager fastBoardManager;
+    private SidebarManager sidebarManager;
     private GameStateStorageUtil gameStateStorageUtil;
     /**
      * Scoreboard for holding the teams. This private scoreboard can't be
@@ -89,6 +91,7 @@ public class GameManager implements Listener {
         this.captureTheFlagGame = new CaptureTheFlagGame(plugin, this);
         this.clockworkGame = new ClockworkGame(plugin, this);
         this.fastBoardManager = new FastBoardManager(gameStateStorageUtil);
+        this.sidebarManager = new SidebarManager();
         this.hubManager = new HubManager(plugin, mctScoreboard, this);
         this.eventManager = new EventManager(plugin, this, voteManager);
         this.fastBoardManager = new FastBoardManager(gameStateStorageUtil);
@@ -191,6 +194,10 @@ public class GameManager implements Listener {
     
     public FastBoardManager getFastBoardManager() {
         return fastBoardManager;
+    }
+    
+    public SidebarManager getSidebarManager() {
+        return sidebarManager;
     }
     
     public boolean loadGameState() {
