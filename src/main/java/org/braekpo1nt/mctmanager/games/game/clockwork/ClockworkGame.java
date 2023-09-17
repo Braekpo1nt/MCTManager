@@ -119,8 +119,6 @@ public class ClockworkGame implements MCTGame, Configurable {
     
     private void initializeSidebar() {
         gameManager.getSidebarManager().addLines(
-                new KeyLine("team", ""),
-                new KeyLine("points", ""),
                 new KeyLine("round", String.format("Round %d/%d", currentRoundIndex+1, rounds.size())),
                 new KeyLine("title", title),
                 new KeyLine("playerCount", ""),
