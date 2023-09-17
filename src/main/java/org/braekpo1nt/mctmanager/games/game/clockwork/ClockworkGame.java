@@ -6,6 +6,7 @@ import org.braekpo1nt.mctmanager.games.game.clockwork.config.ClockworkStorageUti
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
+import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -116,10 +117,12 @@ public class ClockworkGame implements MCTGame, Configurable {
     }
     
     private void initializeSidebar() {
-        gameManager.getSidebarManager().addLine("round", String.format("Round %d/%d", currentRoundIndex+1, rounds.size()));
-        gameManager.getSidebarManager().addLine("title", title);
-        gameManager.getSidebarManager().addLine("playerCount", "");
-        gameManager.getSidebarManager().addLine("timer", "");
+        gameManager.getSidebarManager().addLines(
+                new KeyLine("round", String.format("Round %d/%d", currentRoundIndex+1, rounds.size())),
+                new KeyLine("title", title),
+                new KeyLine("playerCount", ""),
+                new KeyLine("timer", "")
+        );
     }
     
     private void updateRoundFastBoard() {

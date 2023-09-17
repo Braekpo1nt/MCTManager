@@ -109,6 +109,32 @@ public class SidebarManager {
             board.updateLines(lines.toArray(new String[0]));
         }
     }
+
+    /**
+     * Bulk add all the lines with the given keys to the end of the Sidebar
+     * @param keyLines a list of {@link KeyLine} key-to-content pairs to add all at once to all the FastBoards
+     */
+    public synchronized void addLines(@NotNull KeyLine... keyLines) {
+        List<String> keys = new ArrayList<>(keyLines.length);
+        List<String> lineContents = new ArrayList<>(keyLines.length);
+        for (KeyLine keyLine : keyLines) {
+            Preconditions.checkArgument(!keys.contains(keyLine.key()), "duplicate key found in keyLines (%s)", keyLine.key());
+            keys.add(keyLine.key());
+            lineContents.add(keyLine.contents());
+        }
+        for (KeyLine keyLine : keyLines) {
+            int index = size;
+            size++;
+            keyToIndex.put(keyLine.key(), index);
+        }
+        for (Map.Entry<UUID, List<String>> entry : boardsLines.entrySet()) {
+            UUID playerUUID = entry.getKey();
+            List<String> lines = entry.getValue();
+            lines.addAll(lineContents);
+            FastBoardWrapper board = boards.get(playerUUID);
+            board.updateLines(lines.toArray(new String[0]));
+        }
+    }
     
     /**
      * Deletes the line from all FastBoards
@@ -130,6 +156,52 @@ public class SidebarManager {
             lines.remove(removeIndex);
             FastBoardWrapper board = boards.get(playerUUID);
             board.updateLines(lines.toArray(new String[0]));
+        }
+    }
+
+    /**
+     * Delete the lines associated with the given keys
+     * @param keys the keys for the lines to delete
+     */
+    public synchronized void deleteLines(@NotNull String... keys) {
+        List<String> keysToDelete = new ArrayList<>(keys.length);
+        for (String key : keys) {
+            Preconditions.checkArgument(keyToIndex.containsKey(key), "can't delete line with nonexistent key (%S)", key);
+            Preconditions.checkArgument(!keysToDelete.contains(key), "duplicate key (%S) found in keys", key);
+            keysToDelete.add(key);
+        }
+        List<Integer> removeIndexes = new ArrayList<>(keys.length);
+        for (String key : keys) {
+            int removeIndex = keyToIndex.remove(key);
+            size--;
+            removeIndexes.add(removeIndex);
+        }
+        adjustValues(keyToIndex);
+        for (Map.Entry<UUID, List<String>> entry : boardsLines.entrySet()) {
+            UUID playerUUID = entry.getKey();
+            List<String> lines = entry.getValue();
+            for (int removeIndex : removeIndexes) {
+                lines.remove(removeIndex);
+            }
+            FastBoardWrapper board = boards.get(playerUUID);
+            board.updateLines(lines.toArray(new String[0]));
+        }
+    }
+    
+    /**
+     * Adjusts the values in a given keyToIndex by reassigning them based on their order in ascending order.
+     * The keys in the map remain unchanged.
+     * keyToIndex will have new values, adjusted to start from 0 and increase by 1 in ascending order according to the original values.
+     * @param keyToIndex a {@link java.util.Map} where keys are strings and values are integers.
+     */
+    private synchronized void adjustValues(Map<String, Integer> keyToIndex) {
+        List<Map.Entry<String, Integer>> sortedEntries = keyToIndex.entrySet().stream()
+                .sorted(Map.Entry.comparingByValue())
+                .toList();
+        int index = 0;
+        for (Map.Entry<String, Integer> entry : sortedEntries) {
+            keyToIndex.put(entry.getKey(), index);
+            index++;
         }
     }
 
