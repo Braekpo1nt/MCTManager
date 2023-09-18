@@ -162,6 +162,7 @@ public class CaptureTheFlagMatch implements Listener {
         for (Player participant : allParticipants) {
             resetParticipant(participant);
         }
+        clearSidebar();
         allParticipants.clear();
         northParticipants.clear();
         southParticipants.clear();
@@ -380,7 +381,7 @@ public class CaptureTheFlagMatch implements Listener {
         killCounts.put(killerUniqueId, newKillCount);
         gameManager.getSidebarManager().updateLine(
                 killerUniqueId,
-                "kill",
+                "kills",
                 ChatColor.RED+"Kills: " + newKillCount
         );
     }
@@ -713,7 +714,11 @@ public class CaptureTheFlagMatch implements Listener {
     }
     
     private void initializeSidebar(Player participant) {
-        gameManager.getSidebarManager().updateLine("kills", ChatColor.RED+"Kills: 0");
+        gameManager.getSidebarManager().updateLine(participant.getUniqueId(),"kills", ChatColor.RED+"Kills: 0");
+    }
+    
+    private void clearSidebar() {
+        gameManager.getSidebarManager().updateLine("kills", "");
     }
     
     private void placeFlags() {

@@ -282,7 +282,7 @@ public class CaptureTheFlagRound {
             String enemyTeam = getOppositeTeam(teamName);
             ChatColor enemyColor = gameManager.getTeamChatColor(enemyTeam);
             String enemyDisplayName = gameManager.getTeamDisplayName(enemyTeam);
-            gameManager.getSidebarManager().updateLine(participant.getUniqueId(), "enemy", String.format("%s%s%s", ChatColor.BOLD, enemyColor, enemyDisplayName));
+            gameManager.getSidebarManager().updateLine(participant.getUniqueId(), "enemy", String.format("%svs: %s%s", ChatColor.BOLD, enemyColor, enemyDisplayName));
         }
         gameManager.getSidebarManager().updateLine("timer", "");
         for (Player onDeckParticipant : onDeckParticipants) {
