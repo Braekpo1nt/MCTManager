@@ -110,7 +110,7 @@ public class EventManager {
         currentGameNumber = 1;
         playedGames.clear();
         scoreKeepers.clear();
-        gameManager.getSidebarManager().updateTitle(storageUtil.getTitle());
+        initializeSidebar();
         messageAllAdmins(Component.text("Starting event. On game ")
                 .append(Component.text(currentGameNumber))
                 .append(Component.text("/"))
@@ -145,7 +145,6 @@ public class EventManager {
         clearSidebar();
         cancelAllTasks();
         scoreKeepers.clear();
-        gameManager.getSidebarManager().updateTitle(FastBoardManager.DEFAULT_TITLE);
         currentGameNumber = 0;
         maxGames = 6;
     }
@@ -701,20 +700,19 @@ public class EventManager {
         iteration.addPoints(participantUUID, points);
     }
     
-    // FastBoard start
-    
     private void initializeSidebar() {
+        gameManager.getSidebarManager().updateTitle(storageUtil.getTitle());
         gameManager.getSidebarManager().addLine("timer", "");
     }
     
     private void clearSidebar() {
-        gameManager.getSidebarManager().deleteLine("timer");
         if (currentState == EventState.PODIUM) {
-            gameManager.getSidebarManager().deleteLine("winner");
+            gameManager.getSidebarManager().deleteLines("timer", "winner");
+        } else {
+            gameManager.getSidebarManager().deleteLine("timer");
         }
+        gameManager.getSidebarManager().updateTitle(FastBoardManager.DEFAULT_TITLE);
     }
-    
-    // FastBoard end
     
     public boolean eventIsActive() {
         return currentState != null;

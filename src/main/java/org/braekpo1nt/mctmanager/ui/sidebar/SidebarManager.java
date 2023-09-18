@@ -7,6 +7,7 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.stream.Stream;
 
 public class SidebarManager {
 
@@ -184,14 +185,30 @@ public class SidebarManager {
             removeIndexes.add(removeIndex);
         }
         adjustValues(keyToIndex);
+        removeIndexes.sort(Comparator.reverseOrder());
+        for (List<String> lines : boardsLines.values()) {
+            removeIndexes(lines, removeIndexes);
+        }
         for (Map.Entry<UUID, List<String>> entry : boardsLines.entrySet()) {
             UUID playerUUID = entry.getKey();
             List<String> lines = entry.getValue();
-            for (int removeIndex : removeIndexes) {
-                lines.remove(removeIndex);
-            }
             FastBoardWrapper board = boards.get(playerUUID);
             board.updateLines(lines.toArray(new String[0]));
+        }
+    }
+    
+    /**
+     * Removes the indexes in the provided list of removeIndexes from the given list of lines
+     * @param lines the lines from which to remove the indexes
+     * @param removeIndexes the indexes to remove from lines. Must be sorted in reverse order (higher indexes first) or this will throw {@link IndexOutOfBoundsException}
+     * @throws IndexOutOfBoundsException if {@code removeIndexes} is not sorted in order from greatest to least (i.e. {@code removeIndexes[n] > removeIndexes[n+1]}
+     */
+    private void removeIndexes(List<String> lines, List<Integer> removeIndexes) {
+        List<Integer> reverseSortedIndexesToRemove = removeIndexes.stream().sorted(Comparator.reverseOrder()).toList();
+        for (int indexToRemove : reverseSortedIndexesToRemove) {
+            if (indexToRemove >= 0 && indexToRemove < lines.size()) {
+                lines.remove(indexToRemove);
+            }
         }
     }
     
