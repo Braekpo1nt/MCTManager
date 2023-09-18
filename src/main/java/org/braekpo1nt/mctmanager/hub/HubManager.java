@@ -6,7 +6,6 @@ import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
-import org.braekpo1nt.mctmanager.ui.HeaderType;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
@@ -63,20 +62,20 @@ public class HubManager implements Listener {
     
     public void returnParticipantsToHubWithDelay(List<Player> newParticipants) {
         headingToHub.addAll(newParticipants);
+        gameManager.getSidebarManager().addLine("backToHub", "");
         this.returnToHubTaskId = new BukkitRunnable() {
             private int count = 10;
             @Override
             public void run() {
                 if (count <= 0) {
+                    gameManager.getSidebarManager().deleteLine("backToHub");
                     returnParticipantsToHub(newParticipants);
                     headingToHub.clear();
                     this.cancel();
                     return;
                 }
-                String timeString = TimeStringUtils.getTimeString(count);
-                for (Player participant : newParticipants) {
-                    updateReturnToHubTimerFastBoard(participant, timeString);
-                }
+                String timeLeft = TimeStringUtils.getTimeString(count);
+                gameManager.getSidebarManager().updateLine("backToHub", String.format("Back to Hub: %s", timeLeft));
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -99,38 +98,17 @@ public class HubManager implements Listener {
         initializeParticipant(participant);
     }
     
-    public void sendParticipantsToPodium(List<Player> winningTeamParticipants, String winningTeam, ChatColor winningChatColor, List<Player> otherParticipants) {
-        headingToHub.addAll(winningTeamParticipants);
-        headingToHub.addAll(otherParticipants);
-        this.returnToHubTaskId = new BukkitRunnable() {
-            private int count = 10;
-            @Override
-            public void run() {
-                if (count <= 0) {
-                    setupTeamOptions();
-                    for (Player participant : otherParticipants) {
-                        sendParticipantToPedestal(participant, false, winningTeam, winningChatColor);
-                    }
-                    for (Player winningParticipant : winningTeamParticipants) {
-                        sendParticipantToPedestal(winningParticipant, true, winningTeam, winningChatColor);
-                    }
-                    headingToHub.clear();
-                    this.cancel();
-                    return;
-                }
-                String timeString = TimeStringUtils.getTimeString(count);
-                for (Player participant : winningTeamParticipants) {
-                    updateReturnToHubTimerFastBoard(participant, timeString);
-                }
-                for (Player participant : otherParticipants) {
-                    updateReturnToHubTimerFastBoard(participant, timeString);
-                }
-                count--;
-            }
-        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+    public void sendParticipantsToPodium(List<Player> winningTeamParticipants, List<Player> otherParticipants) {
+        setupTeamOptions();
+        for (Player participant : otherParticipants) {
+            sendParticipantToPedestal(participant, false);
+        }
+        for (Player winningParticipant : winningTeamParticipants) {
+            sendParticipantToPedestal(winningParticipant, true);
+        }
     }
     
-    private void sendParticipantToPedestal(Player participant, boolean winner, String winningTeam, ChatColor winningChatColor) {
+    private void sendParticipantToPedestal(Player participant, boolean winner) {
         participant.sendMessage(Component.text("Returning to hub"));
         if (winner) {
             participant.teleport(pedestalLocation);
@@ -138,13 +116,10 @@ public class HubManager implements Listener {
             participant.teleport(observePedestalLocation);
         }
         initializeParticipant(participant);
-        showWinningFastBoard(participant, winningTeam, winningChatColor);
     }
     
     private void initializeParticipant(Player participant) {
         participants.add(participant);
-        gameManager.getFastBoardManager().setHeaderType(participant.getUniqueId(), HeaderType.ALL);
-        initializeFastBoard(participant);
         participant.getInventory().clear();
         participant.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearStatusEffects(participant);
@@ -158,7 +133,6 @@ public class HubManager implements Listener {
      */
     public void removeParticipantsFromHub(List<Player> participantsToRemove) {
         for (Player participant : participantsToRemove) {
-            gameManager.getFastBoardManager().setHeaderType(participant.getUniqueId(), HeaderType.PERSONAL);
             this.participants.remove(participant);
         }
     }
@@ -176,43 +150,11 @@ public class HubManager implements Listener {
             return;
         }
         participants.add(participant);
-        gameManager.getFastBoardManager().setHeaderType(participant.getUniqueId(), HeaderType.ALL);
     }
     
     public void cancelAllTasks() {
         Bukkit.getScheduler().cancelTask(returnToHubTaskId);
     }
-    
-    private void updateReturnToHubTimerFastBoard(Player participant, String timeString) {
-        gameManager.getFastBoardManager().updateLines(
-                participant.getUniqueId(),
-                "",
-                "Back to Hub:",
-                timeString
-        );
-    }
-    
-    private void showWinningFastBoard(Player participant, String winningTeam, ChatColor chatColor) {
-        gameManager.getFastBoardManager().updateLines(
-                participant.getUniqueId(),
-                "",
-                chatColor+"Winners:",
-                chatColor+winningTeam
-        );
-    }
-    
-    private void initializeFastBoard(Player participant) {
-        gameManager.getFastBoardManager().updateLines(
-                participant.getUniqueId()
-        );
-    }
-    
-    private void hideFastBoard(Player participant) {
-        gameManager.getFastBoardManager().updateLines(
-                participant.getUniqueId()
-        );
-    }
-    
     
     private void setupTeamOptions() {
         for (Team team : mctScoreboard.getTeams()) {

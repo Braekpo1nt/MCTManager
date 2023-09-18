@@ -429,6 +429,8 @@ public class EventManager {
     
     private void toPodiumDelay(String winningTeam) {
         currentState = EventState.DELAY;
+        ChatColor winningChatColor = gameManager.getTeamChatColor(winningTeam);
+        String winningDisplayName = gameManager.getTeamDisplayName(winningTeam);
         this.toPodiumDelayTaskId = new BukkitRunnable() {
             int count = storageUtil.getBackToHubDuration();
             @Override
@@ -437,8 +439,9 @@ public class EventManager {
                     return;
                 }
                 if (count <= 0) {
+                    currentState = EventState.PODIUM;
+                    gameManager.getSidebarManager().addLine("winner", String.format("%sWinner: %s", winningChatColor, winningDisplayName));
                     gameManager.returnAllParticipantsToPodium(winningTeam);
-                    stopEvent(Bukkit.getConsoleSender());
                     this.cancel();
                     return;
                 }
@@ -706,6 +709,9 @@ public class EventManager {
     
     private void clearSidebar() {
         gameManager.getSidebarManager().deleteLine("timer");
+        if (currentState == EventState.PODIUM) {
+            gameManager.getSidebarManager().deleteLine("winner");
+        }
     }
     
     // FastBoard end

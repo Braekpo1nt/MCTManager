@@ -413,14 +413,13 @@ public class GameManager implements Listener {
     
     public void returnAllParticipantsToPodium(String winningTeam) {
         List<Player> winningTeamParticipants = getOnlinePlayersOnTeam(winningTeam);
-        ChatColor winningTeamChatColor = getTeamChatColor(winningTeam);
         List<Player> otherParticipants = new ArrayList<>();
         for (Player participant : getOnlineParticipants()) {
             if (!winningTeamParticipants.contains(participant)) {
                 otherParticipants.add(participant);
             }
         }
-        hubManager.sendParticipantsToPodium(winningTeamParticipants, winningTeam, winningTeamChatColor, otherParticipants);
+        hubManager.sendParticipantsToPodium(winningTeamParticipants, otherParticipants);
     }
     
     //====================================================
