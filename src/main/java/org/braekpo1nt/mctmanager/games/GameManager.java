@@ -251,24 +251,26 @@ public class GameManager implements Listener {
         hubManager.removeParticipantsFromHub(onlineParticipants);
     }
     
-    public void startGameWithDelay(GameType mctGame) {
-        String gameTitle = ChatColor.BLUE+""+ChatColor.BOLD+ mctGame.getTitle();
+    public void startGameWithDelay(GameType gameType) {
+        String gameTitle = ChatColor.BLUE+""+ChatColor.BOLD+ gameType.getTitle();
         messageOnlineParticipants(Component.empty()
                 .append(Component.text(gameTitle)
                         .decorate(TextDecoration.BOLD))
                 .append(Component.text(" was selected"))
                 .color(NamedTextColor.BLUE));
+        sidebarManager.addLine("startingGame", String.format("Starting %s:", gameType.getTitle()));
         this.startGameWithDelayTaskId = new BukkitRunnable() {
             int count = 5;
             @Override
             public void run() {
                 if (count <= 0) {
-                    startGame(mctGame, Bukkit.getConsoleSender());
+                    sidebarManager.deleteLine("startingGame");
+                    startGame(gameType, Bukkit.getConsoleSender());
                     this.cancel();
                     return;
                 }
-                String timeString = TimeStringUtils.getTimeString(count);
-                //TODO: display countdown to users in sidebar
+                String timeLeft = TimeStringUtils.getTimeString(count);
+                sidebarManager.addLine("startingGame", String.format("Starting %s: %s", gameType.getTitle(), timeLeft));
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
