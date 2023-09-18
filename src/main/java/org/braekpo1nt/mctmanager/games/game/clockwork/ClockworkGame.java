@@ -63,7 +63,6 @@ public class ClockworkGame implements MCTGame, Configurable {
     
     private void initializeParticipant(Player participant) {
         participants.add(participant);
-        gameManager.getSidebarManager().addPlayer(participant);
     }
     
     @Override

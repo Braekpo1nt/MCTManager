@@ -101,7 +101,6 @@ public class FootRaceGame implements Listener, MCTGame, Configurable {
         participants.add(participant);
         lapCooldowns.put(participantUniqueId, System.currentTimeMillis());
         laps.put(participantUniqueId, 1);
-        gameManager.getSidebarManager().addPlayer(participant);
         participant.sendMessage("Teleporting to Foot Race");
         participant.teleport(footRaceStorageUtil.getStartingLocation());
         participant.getInventory().clear();
@@ -163,7 +162,6 @@ public class FootRaceGame implements Listener, MCTGame, Configurable {
             showRaceCompleteFastBoard(uniqueId);
             return;
         }
-        gameManager.getSidebarManager().addPlayer(participant);
         giveBoots(participant);
     }
     
