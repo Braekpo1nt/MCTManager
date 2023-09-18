@@ -134,37 +134,39 @@ public class VoteManager implements Listener {
         }
         Material clickedItem = event.getCurrentItem().getType();
         switch (clickedItem) {
-            case FEATHER:
+            case FEATHER -> {
                 votes.put(participant.getUniqueId(), GameType.FOOT_RACE);
                 participant.sendMessage(Component.text("Voted for Foot Race")
                         .color(NamedTextColor.GREEN));
-                break;
-            case IRON_SWORD:
+            }
+            case IRON_SWORD -> {
                 votes.put(participant.getUniqueId(), GameType.MECHA);
                 participant.sendMessage(Component.text("Voted for MECHA")
                         .color(NamedTextColor.GREEN));
-                break;
-            case GRAY_BANNER:
+            }
+            case GRAY_BANNER -> {
                 votes.put(participant.getUniqueId(), GameType.CAPTURE_THE_FLAG);
                 participant.sendMessage(Component.text("Voted for Capture the Flag")
                         .color(NamedTextColor.GREEN));
-                break;
-            case DIAMOND_SHOVEL:
+            }
+            case DIAMOND_SHOVEL -> {
                 votes.put(participant.getUniqueId(), GameType.SPLEEF);
                 participant.sendMessage(Component.text("Voted for Spleef")
                         .color(NamedTextColor.GREEN));
-                break;
-            case LEATHER_BOOTS:
+            }
+            case LEATHER_BOOTS -> {
                 votes.put(participant.getUniqueId(), GameType.PARKOUR_PATHWAY);
                 participant.sendMessage(Component.text("Voted for Parkour Pathway")
                         .color(NamedTextColor.GREEN));
-                break;
-            case CLOCK:
+            }
+            case CLOCK -> {
                 votes.put(participant.getUniqueId(), GameType.CLOCKWORK);
                 participant.sendMessage(Component.text("Voted for Clockwork")
                         .color(NamedTextColor.GREEN));
-            default:
+            }
+            default -> {
                 return;
+            }
         }
         participant.closeInventory();
     }
