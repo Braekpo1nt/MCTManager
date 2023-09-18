@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games;
 
+import com.google.common.base.Preconditions;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -587,9 +588,10 @@ public class GameManager implements Listener {
         }
         Team team = mctScoreboard.getTeam(teamName);
         OfflinePlayer newPlayer = Bukkit.getOfflinePlayer(playerUniqueId);
+        Preconditions.checkState(team != null, "Something is wrong with the team Scoreboard. Could not find team with name %s", teamName);
         team.addPlayer(newPlayer);
-        if (newPlayer.isOnline()) {
-            Player onlineNewPlayer = newPlayer.getPlayer();
+        Player onlineNewPlayer = newPlayer.getPlayer();
+        if (onlineNewPlayer != null) {
             onParticipantJoin(onlineNewPlayer);
         }
     }
