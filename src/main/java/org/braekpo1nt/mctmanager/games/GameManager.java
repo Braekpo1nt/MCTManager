@@ -145,7 +145,7 @@ public class GameManager implements Listener {
     }
     
     /**
-     * Handles when a participant joins the event. 
+     * Handles when a participant joins. 
      * Should be called when an existing participant joins the server
      * (see {@link GameManager#playerJoinEvent(PlayerJoinEvent)})
      * or when an online player is added to the participants list
@@ -190,11 +190,10 @@ public class GameManager implements Listener {
         onlineAdmins.clear();
         for (Player player : Bukkit.getOnlinePlayers()) {
             if (gameStateStorageUtil.isAdmin(player.getUniqueId())) {
-                onlineAdmins.add(player);
+                onAdminJoin(player);
             }
             if (gameStateStorageUtil.containsPlayer(player.getUniqueId())) {
-                onlineParticipants.add(player);
-                hubManager.onParticipantJoin(player);
+                onParticipantJoin(player);
             }
         }
         return true;
