@@ -67,12 +67,12 @@ public class CaptureTheFlagRound {
         for (Player onDeck : newOnDeckParticipants) {
             initializeOnDeckParticipant(onDeck);
         }
+        initializeSidebar();
         startMatchesStartingCountDown();
     }
     
     private void initializeParticipant(Player participant) {
         participants.add(participant);
-        initializeFastBoard(participant);
         participant.teleport(storageUtil.getSpawnObservatory());
         participant.getInventory().clear();
         participant.setGameMode(GameMode.ADVENTURE);
@@ -82,7 +82,6 @@ public class CaptureTheFlagRound {
     
     private void initializeOnDeckParticipant(Player onDeckParticipant) {
         onDeckParticipants.add(onDeckParticipant);
-        initializeOndDeckFastBoard(onDeckParticipant);
         onDeckParticipant.teleport(storageUtil.getSpawnObservatory());
         onDeckParticipant.getInventory().clear();
         onDeckParticipant.setGameMode(GameMode.ADVENTURE);
@@ -208,9 +207,7 @@ public class CaptureTheFlagRound {
                     return;
                 }
                 String timeLeft = TimeStringUtils.getTimeString(count);
-                for (Player onDeckParticipant : onDeckParticipants) {
-                    updateOnDeckClassSelectionTimerFastBoard(onDeckParticipant, timeLeft);
-                }
+                gameManager.getSidebarManager().updateLine("timer", String.format("Class selection: %s", timeLeft));
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -226,38 +223,10 @@ public class CaptureTheFlagRound {
                     return;
                 }
                 String timeLeft = TimeStringUtils.getTimeString(count);
-                for (Player onDeckParticipant : onDeckParticipants) {
-                    updateOnDeckMatchTimerFastBoard(onDeckParticipant, timeLeft);
-                }
+                gameManager.getSidebarManager().updateLine("timer", String.format("Round: %s", timeLeft));
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
-    }
-    
-    private void updateOnDeckMatchTimerFastBoard(Player onDeckParticipant, String timeLeft) {
-        gameManager.getFastBoardManager().updateLine(
-                onDeckParticipant.getUniqueId(),
-                4,
-                "Round:"
-        );
-        gameManager.getFastBoardManager().updateLine(
-                onDeckParticipant.getUniqueId(),
-                5,
-                timeLeft
-        );
-    }
-    
-    private void updateOnDeckClassSelectionTimerFastBoard(Player onDeckParticipant, String timeLeft) {
-        gameManager.getFastBoardManager().updateLine(
-                onDeckParticipant.getUniqueId(),
-                4,
-                "Class selection:"
-        );
-        gameManager.getFastBoardManager().updateLine(
-                onDeckParticipant.getUniqueId(),
-                5,
-                timeLeft
-        );
     }
     
     private void startMatchesStartingCountDown() {
@@ -270,7 +239,8 @@ public class CaptureTheFlagRound {
                     this.cancel();
                     return;
                 }
-                displayMatchesStartingCountDown(count);
+                String timeLeft = TimeStringUtils.getTimeString(count);
+                gameManager.getSidebarManager().updateLine("timer", String.format("Starting: %s", timeLeft));
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -305,67 +275,19 @@ public class CaptureTheFlagRound {
         Bukkit.getScheduler().cancelTask(onDeckClassSelectionTimerTaskId);
         Bukkit.getScheduler().cancelTask(onDeckMatchTimerTaskId);
     }
-    
-    /**
-     * Displays the given seconds left before the matches start to the user via the FastBoards
-     * @param secondsLeft The seconds left before the matches start
-     */
-    private void displayMatchesStartingCountDown(int secondsLeft) {
-        String timeString = TimeStringUtils.getTimeString(secondsLeft);
+
+    private void initializeSidebar() {
         for (Player participant : participants) {
-            gameManager.getFastBoardManager().updateLine(
-                    participant.getUniqueId(),
-                    5,
-                    timeString
-            );
+            String teamName = gameManager.getTeamName(participant.getUniqueId());
+            String enemyTeam = getOppositeTeam(teamName);
+            ChatColor enemyColor = gameManager.getTeamChatColor(enemyTeam);
+            String enemyDisplayName = gameManager.getTeamDisplayName(enemyTeam);
+            gameManager.getSidebarManager().updateLine(participant.getUniqueId(), "enemy", String.format("%s%s%s", ChatColor.BOLD, enemyColor, enemyDisplayName));
         }
-        for (Player participant : onDeckParticipants) {
-            gameManager.getFastBoardManager().updateLine(
-                    participant.getUniqueId(),
-                    5,
-                    timeString
-            );
+        gameManager.getSidebarManager().updateLine("timer", "");
+        for (Player onDeckParticipant : onDeckParticipants) {
+            gameManager.getSidebarManager().updateLine(onDeckParticipant.getUniqueId(), "enemy", "On Deck");
         }
-    }
-    
-    private void initializeFastBoard(Player participant) {
-        String teamName = gameManager.getTeamName(participant.getUniqueId());
-        String enemyTeam = getOppositeTeam(teamName);
-        ChatColor enemyColor = gameManager.getTeamChatColor(enemyTeam);
-        String enemyDisplayName = gameManager.getTeamDisplayName(enemyTeam);
-        gameManager.getFastBoardManager().updateLine(
-                participant.getUniqueId(),
-                1,
-                "vs: "+ChatColor.BOLD+enemyColor+enemyDisplayName
-        );
-        gameManager.getFastBoardManager().updateLine(
-                participant.getUniqueId(),
-                4,
-                "Starting in:"
-        );
-        gameManager.getFastBoardManager().updateLine(
-                participant.getUniqueId(),
-                5,
-                "0"
-        );
-    }
-    
-    private void initializeOndDeckFastBoard(Player participant) {
-        gameManager.getFastBoardManager().updateLine(
-                participant.getUniqueId(),
-                1,
-                "On Deck"
-        );
-        gameManager.getFastBoardManager().updateLine(
-                participant.getUniqueId(),
-                4,
-                "Starting in:"
-        );
-        gameManager.getFastBoardManager().updateLine(
-                participant.getUniqueId(),
-                5,
-                "0"
-        );
     }
     
     /**

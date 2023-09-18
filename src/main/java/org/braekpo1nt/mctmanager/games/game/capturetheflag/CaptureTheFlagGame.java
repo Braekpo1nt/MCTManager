@@ -7,6 +7,7 @@ import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlag
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
+import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -342,14 +343,20 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
     private void initializeFastBoard(Player participant) {
         gameManager.getFastBoardManager().updateLines(
                 participant.getUniqueId(),
-                title,
-                "", // current enemy team
-                String.format("Round %d/%d", currentRoundIndex+1, maxRounds), //current round
-                "",
-                "", // timer name
-                "", // timer
-                "",
-                ""
+                title, //0
+                "", // current enemy team //1
+                String.format("Round %d/%d", currentRoundIndex+1, maxRounds), //current round //2
+                "", //3
+                "", // timer name //4
+                "", // timer //5
+                "", //6
+                "" //7
+        );
+        gameManager.getSidebarManager().addLines(
+                new KeyLine("title", title),
+                new KeyLine("enemy", ""),
+                new KeyLine("round", String.format("Round %d/%d", currentRoundIndex+1, maxRounds)),
+                new KeyLine("timer", "")
         );
     }
     
