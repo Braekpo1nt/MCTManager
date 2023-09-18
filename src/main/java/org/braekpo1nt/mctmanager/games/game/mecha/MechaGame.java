@@ -620,7 +620,7 @@ public class MechaGame implements MCTGame, Configurable, Listener {
                             return;
                         }
                         delay = delays[stage];
-                        sendBorderDelayAnouncement(delay);
+                        sendBorderDelayAnnouncement(delay);
                         return;
                     }
                     duration--;
@@ -648,7 +648,7 @@ public class MechaGame implements MCTGame, Configurable, Listener {
      * Sends a chat message to all participants saying the border is delaying
      * @param delay The delay in seconds
      */
-    private void sendBorderDelayAnouncement(int delay) {
+    private void sendBorderDelayAnnouncement(int delay) {
         String timeString = TimeStringUtils.getTimeString(delay);
         messageAllParticipants(Component.text("Border will not shrink for "+timeString));
     }

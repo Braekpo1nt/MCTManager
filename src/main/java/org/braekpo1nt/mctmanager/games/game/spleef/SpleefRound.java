@@ -382,6 +382,7 @@ public class SpleefRound implements Listener {
             @Override
             public void run() {
                 if (count <= 0) {
+                    gameManager.getSidebarManager().updateLine("timer", "");
                     startSpleef();
                     this.cancel();
                     return;

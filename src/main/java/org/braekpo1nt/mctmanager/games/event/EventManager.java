@@ -111,6 +111,7 @@ public class EventManager {
         playedGames.clear();
         scoreKeepers.clear();
         initializeSidebar();
+        gameManager.getSidebarManager().updateTitle(storageUtil.getTitle());
         messageAllAdmins(Component.text("Starting event. On game ")
                 .append(Component.text(currentGameNumber))
                 .append(Component.text("/"))
@@ -143,6 +144,7 @@ public class EventManager {
             colossalColosseumGame.stop(null);
         }
         clearSidebar();
+        gameManager.getSidebarManager().updateTitle(FastBoardManager.DEFAULT_TITLE);
         cancelAllTasks();
         scoreKeepers.clear();
         currentGameNumber = 0;
@@ -454,13 +456,13 @@ public class EventManager {
         currentState = EventState.VOTING;
         List<GameType> votingPool = new ArrayList<>(List.of(GameType.values()));
         votingPool.removeAll(playedGames);
-        gameManager.getSidebarManager().deleteLine("timer");
+        clearSidebar();
         voteManager.startVote(gameManager.getOnlineParticipants(), votingPool, storageUtil.getVotingDuration(), this::startingGameDelay);
     }
     
     private void startingGameDelay(GameType gameType) {
         currentState = EventState.DELAY;
-        gameManager.getSidebarManager().addLine("timer", "");
+        initializeSidebar();
         this.startingGameCountdownTaskId = new BukkitRunnable() {
             int count = storageUtil.getStartingGameDuration();
             @Override
@@ -471,7 +473,7 @@ public class EventManager {
                 if (count <= 0) {
                     currentState = EventState.PLAYING_GAME;
                     createScoreKeeperForGame(gameType);
-                    gameManager.getSidebarManager().deleteLine("timer");
+                    clearSidebar();
                     gameManager.startGame(gameType, Bukkit.getConsoleSender());
                     this.cancel();
                     return;
@@ -506,6 +508,7 @@ public class EventManager {
         currentState = EventState.DELAY;
         playedGames.add(finishedGameType);
         currentGameNumber += 1;
+        initializeSidebar();
         this.backToHubDelayTaskId = new BukkitRunnable() {
             int count = storageUtil.getBackToHubDuration();
             @Override
@@ -701,17 +704,14 @@ public class EventManager {
     }
     
     private void initializeSidebar() {
-        gameManager.getSidebarManager().updateTitle(storageUtil.getTitle());
         gameManager.getSidebarManager().addLine("timer", "");
     }
     
     private void clearSidebar() {
+        gameManager.getSidebarManager().deleteLine("timer");
         if (currentState == EventState.PODIUM) {
             gameManager.getSidebarManager().deleteLines("timer", "winner");
-        } else {
-            gameManager.getSidebarManager().deleteLine("timer");
         }
-        gameManager.getSidebarManager().updateTitle(FastBoardManager.DEFAULT_TITLE);
     }
     
     public boolean eventIsActive() {
