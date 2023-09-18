@@ -67,6 +67,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
         }
+        initializeSidebar();
         gameActive = true;
         startNextRound();
         Bukkit.getLogger().info("Starting Capture the Flag");
@@ -74,7 +75,6 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
     
     private void initializeParticipant(Player participant) {
         participants.add(participant);
-        initializeFastBoard(participant);
     }
     
     @Override
@@ -87,6 +87,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
         for (Player participant : participants) {
             resetParticipant(participant);
         }
+        clearSidebar();
         participants.clear();
         gameManager.gameIsOver();
         Bukkit.getLogger().info("Stopping Capture the Flag");
@@ -94,7 +95,6 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
     
     private void resetParticipant(Player participant) {
         participant.getInventory().clear();
-        hideFastBoard(participant);
     }
     
     @Override
@@ -169,9 +169,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
         currentRoundIndex = 0;
         maxRounds = newRounds.size();
         rounds = newRounds;
-        for (Player participant : participants) {
-            updateRoundFastBoard(participant);
-        }
+        gameManager.getSidebarManager().updateLine("round", String.format("Round %d/%d", currentRoundIndex+1, maxRounds));
     }
     
     /**
@@ -205,9 +203,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
         combinedRounds.addAll(newRounds);
         maxRounds = combinedRounds.size();
         rounds = combinedRounds;
-        for (Player participant : participants) {
-            updateRoundFastBoard(participant);
-        }
+        gameManager.getSidebarManager().updateLine("round", String.format("Round %d/%d", currentRoundIndex+1, maxRounds));
     }
     
     /**
@@ -277,9 +273,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
             }
         }
         nextRound.start(roundParticipants, onDeckParticipants);
-        for (Player participant : participants) {
-            updateRoundFastBoard(participant);
-        }
+        gameManager.getSidebarManager().updateLine("round", String.format("Round %d/%d", currentRoundIndex+1, maxRounds));
     }
 
     /**
@@ -340,38 +334,18 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
         event.setCancelled(true);
     }
     
-    private void initializeFastBoard(Player participant) {
-        gameManager.getFastBoardManager().updateLines(
-                participant.getUniqueId(),
-                title, //0
-                "", // current enemy team //1
-                String.format("Round %d/%d", currentRoundIndex+1, maxRounds), //current round //2
-                "", //3
-                "", // timer name //4
-                "", // timer //5
-                "", //6
-                "" //7
-        );
+    private void initializeSidebar() {
         gameManager.getSidebarManager().addLines(
                 new KeyLine("title", title),
                 new KeyLine("enemy", ""),
                 new KeyLine("round", String.format("Round %d/%d", currentRoundIndex+1, maxRounds)),
-                new KeyLine("timer", "")
+                new KeyLine("timer", ""),
+                new KeyLine("kills", "")
         );
     }
     
-    private void updateRoundFastBoard(Player participant) {
-        gameManager.getFastBoardManager().updateLine(
-                participant.getUniqueId(),
-                2,
-                String.format("Round %d/%d", currentRoundIndex+1, maxRounds) //current round
-        );
-    }
-    
-    private void hideFastBoard(Player participant) {
-        gameManager.getFastBoardManager().updateLines(
-                participant.getUniqueId()
-        );
+    private void clearSidebar() {
+        gameManager.getSidebarManager().deleteLines("title", "enemy", "round", "timer", "kills");
     }
     
     /**

@@ -100,6 +100,7 @@ public class CaptureTheFlagMatch implements Listener {
         for (Player southParticipant : newSouthParticipants) {
             initializeParticipant(southParticipant, false);
         }
+        initializeSidebar();
         setupTeamOptions();
         matchActive = true;
         startClassSelectionPeriod();
@@ -119,8 +120,8 @@ public class CaptureTheFlagMatch implements Listener {
             participant.teleport(arena.southSpawn());
             participant.lookAt(arena.northSpawn().getX(), arena.northSpawn().getY(), arena.northSpawn().getZ(), LookAnchor.EYES);
         }
+        initializeSidebar(participant);
         allParticipants.add(participant);
-        initializeFastBoard(participant);
         participant.getInventory().clear();
         participant.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearStatusEffects(participant);
@@ -136,8 +137,8 @@ public class CaptureTheFlagMatch implements Listener {
             southParticipants.add(participant);
             lookLocation = arena.southFlag();
         }
+        initializeSidebar(participant);
         allParticipants.add(participant);
-        initializeFastBoard(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
         ParticipantInitializer.clearStatusEffects(participant);
         participant.teleport(storageUtil.getSpawnObservatory());
@@ -377,9 +378,9 @@ public class CaptureTheFlagMatch implements Listener {
         int oldKillCount = killCounts.get(killerUniqueId);
         int newKillCount = oldKillCount + 1;
         killCounts.put(killerUniqueId, newKillCount);
-        gameManager.getFastBoardManager().updateLine(
+        gameManager.getSidebarManager().updateLine(
                 killerUniqueId,
-                7,
+                "kill",
                 ChatColor.RED+"Kills: " + newKillCount
         );
     }
@@ -684,9 +685,7 @@ public class CaptureTheFlagMatch implements Listener {
                     return;
                 }
                 String timeLeft = TimeStringUtils.getTimeString(count);
-                for (Player participant : allParticipants) {
-                    updateClassSelectionTimerFastBoard(participant, timeLeft);
-                }
+                gameManager.getSidebarManager().updateLine("timer", String.format("Class selection: %s", timeLeft));
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -703,56 +702,18 @@ public class CaptureTheFlagMatch implements Listener {
                     return;
                 }
                 String timeLeft = TimeStringUtils.getTimeString(count);
-                for (Player participant : allParticipants) {
-                    updateMatchTimerFastBoard(participant, timeLeft);
-                }
+                gameManager.getSidebarManager().updateLine("timer", String.format("Round: %s", timeLeft));
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
     }
     
-    private void initializeFastBoard(Player participant) {
-        gameManager.getFastBoardManager().updateLine(
-                participant.getUniqueId(),
-                4,
-                "Round:"
-        );
-        gameManager.getFastBoardManager().updateLine(
-                participant.getUniqueId(),
-                5,
-                "3:00"
-        );
-        gameManager.getFastBoardManager().updateLine(
-                participant.getUniqueId(),
-                7,
-                ChatColor.RED+"Kills: 0"
-        );
+    private void initializeSidebar() {
+        gameManager.getSidebarManager().updateLine("timer", "Round: ");
     }
     
-    private void updateClassSelectionTimerFastBoard(Player participant, String timeLeft) {
-        gameManager.getFastBoardManager().updateLine(
-                participant.getUniqueId(),
-                4,
-                "Class selection:"
-        );
-        gameManager.getFastBoardManager().updateLine(
-                participant.getUniqueId(),
-                5,
-                timeLeft
-        );
-    }
-    
-    private void updateMatchTimerFastBoard(Player participant, String timeLeft) {
-        gameManager.getFastBoardManager().updateLine(
-                participant.getUniqueId(),
-                4,
-                "Round:"
-        );
-        gameManager.getFastBoardManager().updateLine(
-                participant.getUniqueId(),
-                5,
-                timeLeft
-        );
+    private void initializeSidebar(Player participant) {
+        gameManager.getSidebarManager().updateLine("kills", ChatColor.RED+"Kills: 0");
     }
     
     private void placeFlags() {
