@@ -575,7 +575,7 @@ public class MechaGame implements MCTGame, Configurable, Listener {
         int oldKillCount = killCounts.get(killerUniqueId);
         int newKillCount = oldKillCount + 1;
         killCounts.put(killerUniqueId, newKillCount);
-        gameManager.getSidebarManager().updateLine("kills", String.format("%sKills: %s", ChatColor.RED, newKillCount));
+        gameManager.getSidebarManager().updateLine(killerUniqueId, "kills", String.format("%sKills: %s", ChatColor.RED, newKillCount));
     }
     
     private void initializeWorldBorder() {
