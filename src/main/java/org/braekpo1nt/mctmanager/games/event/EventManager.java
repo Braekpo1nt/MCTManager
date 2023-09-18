@@ -110,7 +110,7 @@ public class EventManager {
         currentGameNumber = 1;
         playedGames.clear();
         scoreKeepers.clear();
-        gameManager.getFastBoardManager().updateTitle(storageUtil.getTitle());
+        gameManager.getSidebarManager().updateTitle(storageUtil.getTitle());
         messageAllAdmins(Component.text("Starting event. On game ")
                 .append(Component.text(currentGameNumber))
                 .append(Component.text("/"))
@@ -142,12 +142,10 @@ public class EventManager {
         if (colossalColosseumGame.isActive()) {
             colossalColosseumGame.stop(null);
         }
-        for (Player participant : gameManager.getOnlineParticipants()) {
-            hideFastBoard(participant);
-        }
+        clearSidebar();
         cancelAllTasks();
         scoreKeepers.clear();
-        gameManager.getFastBoardManager().updateTitle(FastBoardManager.DEFAULT_TITLE);
+        gameManager.getSidebarManager().updateTitle(FastBoardManager.DEFAULT_TITLE);
         currentGameNumber = 0;
         maxGames = 6;
     }
@@ -399,9 +397,9 @@ public class EventManager {
                     return;
                 }
                 if (!allGamesHaveBeenPlayed()) {
-                    updateTimerFastBoard(String.format("Vote starts in: %s", TimeStringUtils.getTimeString(count)));
+                    gameManager.getSidebarManager().updateLine("timer", String.format("Vote starts in: %s", TimeStringUtils.getTimeString(count)));
                 } else {
-                    updateTimerFastBoard(String.format("Final round: %s", TimeStringUtils.getTimeString(count)));
+                    gameManager.getSidebarManager().updateLine("timer", String.format("Final round: %s", TimeStringUtils.getTimeString(count)));
                 }
                 count--;
             }
@@ -423,7 +421,7 @@ public class EventManager {
                     this.cancel();
                     return;
                 }
-                updateTimerFastBoard(String.format(ChatColor.YELLOW+"Break: %s", TimeStringUtils.getTimeString(count)));
+                gameManager.getSidebarManager().updateLine("timer", String.format(ChatColor.YELLOW+"Break: %s", TimeStringUtils.getTimeString(count)));
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -444,7 +442,7 @@ public class EventManager {
                     this.cancel();
                     return;
                 }
-                updateTimerFastBoard(String.format("Heading to Podium: %s", TimeStringUtils.getTimeString(count)));
+                gameManager.getSidebarManager().updateLine("timer", String.format("Heading to Podium: %s", TimeStringUtils.getTimeString(count)));
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -473,7 +471,7 @@ public class EventManager {
                     this.cancel();
                     return;
                 }
-                updateTimerFastBoard(String.format("%s: %s", gameType.getTitle(),
+                gameManager.getSidebarManager().updateLine("timer", String.format("%s: %s", gameType.getTitle(),
                         TimeStringUtils.getTimeString(count)));
                 count--;
             }
@@ -519,7 +517,7 @@ public class EventManager {
                     this.cancel();
                     return;
                 }
-                updateTimerFastBoard(String.format("Back to Hub: %s", TimeStringUtils.getTimeString(count)));
+                gameManager.getSidebarManager().updateLine("timer", String.format("Back to Hub: %s", TimeStringUtils.getTimeString(count)));
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -541,7 +539,7 @@ public class EventManager {
                     this.cancel();
                     return;
                 }
-                updateTimerFastBoard(String.format("Colossal Colosseum: %s", TimeStringUtils.getTimeString(count)));
+                gameManager.getSidebarManager().updateLine("timer", String.format("Colossal Colosseum: %s", TimeStringUtils.getTimeString(count)));
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -699,21 +697,12 @@ public class EventManager {
     
     // FastBoard start
     
-    private void updateTimerFastBoard(String time) {
-        for (Player participant : gameManager.getOnlineParticipants()) {
-            updateTimerFastBoard(participant, time);
-        }
-    }
-    private void updateTimerFastBoard(Player participant, String time) {
-        gameManager.getFastBoardManager().updateLine(
-                participant.getUniqueId(),
-                1,
-                time
-        );
+    private void initializeSidebar() {
+        gameManager.getSidebarManager().addLine("timer", "");
     }
     
-    private void hideFastBoard(Player participant) {
-        gameManager.getFastBoardManager().updateLines(participant.getUniqueId());
+    private void clearSidebar() {
+        gameManager.getSidebarManager().deleteLine("timer");
     }
     
     // FastBoard end

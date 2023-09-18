@@ -32,6 +32,13 @@ public class SidebarManager {
      */
     protected String title = DEFAULT_TITLE;
     
+    public synchronized void updateTitle(String title) {
+        this.title = title;
+        for (FastBoardWrapper board : boards.values()) {
+            board.updateTitle(title);
+        }
+    }
+    
     /**
      * Adds a player to this SidebarManager. The lines will be empty. You'll need to manually update the line contents for the new player using {@link SidebarManager#updateLine(UUID, String, String)}.
      * @param player the player to add to this manager and give a FastBoard
