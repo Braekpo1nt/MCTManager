@@ -4,6 +4,7 @@ import com.onarandombox.MultiverseCore.api.MVWorldManager;
 import com.onarandombox.MultiverseCore.utils.AnchorManager;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.bukkit.*;
@@ -85,6 +86,7 @@ public class ColossalColosseumGame implements Listener {
         for (Player spectator : newSpectators) {
             initializeSpectator(spectator);
         }
+        initializeSidebar();
         setupTeamOptions();
         startNextRound();
         gameIsActive = true;
@@ -93,21 +95,18 @@ public class ColossalColosseumGame implements Listener {
     
     private void initializeFirstPlaceParticipant(Player first) {
         firstPlaceParticipants.add(first);
-        initializeFastBoard(first);
         first.teleport(firstPlaceSpawn);
         first.setGameMode(GameMode.ADVENTURE);
     }
     
     private void initializeSecondPlaceParticipant(Player second) {
         secondPlaceParticipants.add(second);
-        initializeFastBoard(second);
         second.teleport(secondPlaceSpawn);
         second.setGameMode(GameMode.ADVENTURE);
     }
     
     private void initializeSpectator(Player spectator) {
         spectators.add(spectator);
-        initializeFastBoard(spectator);
         spectator.teleport(spectatorSpawn);
         spectator.setGameMode(GameMode.ADVENTURE);
     }
@@ -115,15 +114,7 @@ public class ColossalColosseumGame implements Listener {
     private void startNextRound() {
         ColossalColosseumRound nextRound = rounds.get(currentRoundIndex);
         nextRound.start(firstPlaceParticipants, secondPlaceParticipants, spectators);
-        for (Player participant : firstPlaceParticipants) {
-            updateRoundFastBoard(participant);
-        }
-        for (Player participant : secondPlaceParticipants) {
-            updateRoundFastBoard(participant);
-        }
-        for (Player participant : spectators) {
-            updateRoundFastBoard(participant);
-        }
+        gameManager.getSidebarManager().updateLine("round", String.format("Round: %s", currentRoundIndex+1));
     }
     
     public void onFirstPlaceWinRound() {
@@ -184,6 +175,7 @@ public class ColossalColosseumGame implements Listener {
         for (Player participant : spectators) {
             resetParticipant(participant);
         }
+        clearSidebar();
         spectators.clear();
         gameManager.getEventManager().colossalColosseumIsOver(winningTeam);
         Bukkit.getLogger().info("Stopping Colossal Colosseum");
@@ -191,7 +183,6 @@ public class ColossalColosseumGame implements Listener {
     
     private void resetParticipant(Player participant) {
         participant.getInventory().clear();
-        hideFastBoard(participant);
     }
     
     private void cancelAllTasks() {
@@ -225,49 +216,26 @@ public class ColossalColosseumGame implements Listener {
         String firstDisplayName = ChatColor.BOLD + "" +  firstChatColor + gameManager.getTeamDisplayName(firstTeamName);
         ChatColor secondChatColor = gameManager.getTeamChatColor(secondTeamName);
         String secondDisplayName = ChatColor.BOLD + "" +  secondChatColor + gameManager.getTeamDisplayName(secondTeamName);
-        gameManager.getFastBoardManager().updateLine(
-                participant.getUniqueId(),
-                2,
-                String.format("%s: %s/3", firstDisplayName, firstPlaceRoundWins)
-        );
-        gameManager.getFastBoardManager().updateLine(
-                participant.getUniqueId(),
-                3,
-                String.format("%s: %s/3", secondDisplayName, secondPlaceRoundWins)
-        );
+        gameManager.getSidebarManager().updateLine("firstWinCount", String.format("%s: 0/3", firstDisplayName));
+        gameManager.getSidebarManager().updateLine("secondWinCount", String.format("%s: 0/3", secondDisplayName));
     }
     
-    private void initializeFastBoard(Player participant) {
+    private void initializeSidebar() {
         ChatColor firstChatColor = gameManager.getTeamChatColor(firstTeamName);
         String firstDisplayName = ChatColor.BOLD + "" +  firstChatColor + gameManager.getTeamDisplayName(firstTeamName);
         ChatColor secondChatColor = gameManager.getTeamChatColor(secondTeamName);
         String secondDisplayName = ChatColor.BOLD + "" +  secondChatColor + gameManager.getTeamDisplayName(secondTeamName);
-        gameManager.getFastBoardManager().updateLines(
-                participant.getUniqueId(),
-                title,
-                "",
-                String.format("%s: 0/3", firstDisplayName), // first team win count
-                String.format("%s: 0/3", secondDisplayName), // second team win count
-                "",
-                "Round: 1", // Round: x
-                "",
-                "", //Starting:
-                "" // time countdown
+        gameManager.getSidebarManager().addLines(
+                new KeyLine("title", title),
+                new KeyLine("firstWinCount", String.format("%s: 0/3", firstDisplayName)),
+                new KeyLine("secondWinCount", String.format("%s: 0/3", secondDisplayName)),
+                new KeyLine("round", "Round: 1"),
+                new KeyLine("timer", "")
         );
     }
     
-    private void hideFastBoard(Player participant) {
-        gameManager.getFastBoardManager().updateLines(
-                participant.getUniqueId()
-        );
-    }
-    
-    private void updateRoundFastBoard(Player participant) {
-        gameManager.getFastBoardManager().updateLine(
-                participant.getUniqueId(),
-                5,
-                String.format("Round: %s", currentRoundIndex+1)
-        );
+    private void clearSidebar() {
+        gameManager.getSidebarManager().deleteLines("title", "firstWinCount", "secondWinCount", "round", "timer");
     }
     
     private void closeFirstGate() {
