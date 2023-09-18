@@ -38,6 +38,11 @@ public class StartSubCommand implements TabExecutor {
                         .color(NamedTextColor.RED));
                 return true;
             }
+            if (gameManager.getEventManager().eventIsActive()) {
+                sender.sendMessage(Component.text("Can't manually start a game while an event is active.")
+                        .color(NamedTextColor.RED));
+                return true;
+            }
             gameManager.startGame(gameType, sender);
         }
         return true;

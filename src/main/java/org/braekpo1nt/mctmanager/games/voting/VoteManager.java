@@ -75,6 +75,7 @@ public class VoteManager implements Listener {
             participant.sendMessage(Component.text("Vote for the game you want to play")
                     .color(NamedTextColor.GREEN));
         }
+        initializeSidebar();
         startVoteCountDown();
     }
     
@@ -92,29 +93,20 @@ public class VoteManager implements Listener {
                     this.cancel();
                     return;
                 }
-                String timeString = "Voting: " + TimeStringUtils.getTimeString(count);
-                for (Player participant : voters) {
-                    updateVoteTimerFastBoard(participant, timeString);
-                }
+                String timeLeft = TimeStringUtils.getTimeString(count);
+                gameManager.getSidebarManager().updateLine("timer", String.format("Voting: %s", timeLeft));
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
     }
     
-    private void updateVoteTimerFastBoard(Player participant, String timer) {
-        gameManager.getFastBoardManager().updateLines(
-                participant.getUniqueId(),
-                "",
-                timer
-        );
+    private void initializeSidebar() {
+        gameManager.getSidebarManager().addLine("timer", "");
     }
     
-    private void hideFastBoard(Player participant) {
-        gameManager.getFastBoardManager().updateLines(
-                participant.getUniqueId()
-        );
+    private void clearSidebar() {
+        gameManager.getSidebarManager().deleteLine("timer");
     }
-    
     
     @EventHandler
     private void clickVoteInventory(InventoryClickEvent event) {
@@ -257,8 +249,8 @@ public class VoteManager implements Listener {
         for (Player voter : voters) {
             voter.closeInventory();
             voter.getInventory().clear();
-            hideFastBoard(voter);
         }
+        clearSidebar();
         messageAllVoters(Component.text("Cancelling vote"));
         HandlerList.unregisterAll(this);
         votes.clear();
@@ -272,13 +264,12 @@ public class VoteManager implements Listener {
         for (Player voter : voters) {
             voter.closeInventory();
             voter.getInventory().clear();
-            hideFastBoard(voter);
         }
         GameType gameType = getVotedForGame();
         HandlerList.unregisterAll(this);
         votes.clear();
         voters.clear();
-//        gameManager.startGameWithDelay(gameType);
+        clearSidebar();
         executeMethod.accept(gameType);
     }
     

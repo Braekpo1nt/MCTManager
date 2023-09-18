@@ -452,11 +452,13 @@ public class EventManager {
         currentState = EventState.VOTING;
         List<GameType> votingPool = new ArrayList<>(List.of(GameType.values()));
         votingPool.removeAll(playedGames);
+        gameManager.getSidebarManager().deleteLine("timer");
         voteManager.startVote(gameManager.getOnlineParticipants(), votingPool, storageUtil.getVotingDuration(), this::startingGameDelay);
     }
     
     private void startingGameDelay(GameType gameType) {
         currentState = EventState.DELAY;
+        gameManager.getSidebarManager().addLine("timer", "");
         this.startingGameCountdownTaskId = new BukkitRunnable() {
             int count = storageUtil.getStartingGameDuration();
             @Override
@@ -467,6 +469,7 @@ public class EventManager {
                 if (count <= 0) {
                     currentState = EventState.PLAYING_GAME;
                     createScoreKeeperForGame(gameType);
+                    gameManager.getSidebarManager().deleteLine("timer");
                     gameManager.startGame(gameType, Bukkit.getConsoleSender());
                     this.cancel();
                     return;
