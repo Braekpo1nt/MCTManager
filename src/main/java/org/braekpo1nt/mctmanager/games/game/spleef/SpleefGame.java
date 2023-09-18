@@ -6,6 +6,7 @@ import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.game.spleef.config.SpleefStorageUtil;
+import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Scoreboard;
@@ -51,6 +52,7 @@ public class SpleefGame implements MCTGame, Configurable {
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
         }
+        initializeSidebar();
         setupTeamOptions();
         startNextRound();
         gameActive = true;
@@ -59,7 +61,6 @@ public class SpleefGame implements MCTGame, Configurable {
     
     private void initializeParticipant(Player participant) {
         participants.add(participant);
-        initializeFastBoard(participant);
     }
     
     @Override
@@ -74,6 +75,7 @@ public class SpleefGame implements MCTGame, Configurable {
         for (Player participant : participants) {
             resetParticipant(participant);
         }
+        clearSidebar();
         participants.clear();
         gameManager.gameIsOver();
         Bukkit.getLogger().info("Stopping Spleef");
@@ -81,7 +83,6 @@ public class SpleefGame implements MCTGame, Configurable {
     
     private void resetParticipant(Player participant) {
         participant.getInventory().clear();
-        hideFastBoard(participant);
     }
     
     @Override
@@ -118,38 +119,23 @@ public class SpleefGame implements MCTGame, Configurable {
     public void startNextRound() {
         SpleefRound nextRound = rounds.get(currentRoundIndex);
         nextRound.start(participants);
-        for (Player participant : participants) {
-            updateRoundFastBoard(participant);
-        }
+        gameManager.getSidebarManager().updateLine("round", String.format("Round %d/%d", currentRoundIndex+1, rounds.size()));
     }
     
     private void cancelAllTasks() {
         Bukkit.getScheduler().cancelTask(roundDelayTaskId);
     }
     
-    private void updateRoundFastBoard(Player participant) {
-        gameManager.getFastBoardManager().updateLine(
-                participant.getUniqueId(),
-                1,
-                String.format("Round %d/%d", currentRoundIndex+1, rounds.size())
+    private void initializeSidebar() {
+        gameManager.getSidebarManager().addLines(
+                new KeyLine("title", title),
+                new KeyLine("round", String.format("Round %d/%d", currentRoundIndex+1, rounds.size())),
+                new KeyLine("timer", "")
         );
     }
     
-    private void initializeFastBoard(Player participant) {
-        gameManager.getFastBoardManager().updateLines(
-                participant.getUniqueId(),
-                title,
-                String.format("Round %d/%d", currentRoundIndex+1, rounds.size()),
-                "",
-                "Starting in",
-                ""
-        );
-    }
-    
-    private void hideFastBoard(Player participant) {
-        gameManager.getFastBoardManager().updateLines(
-                participant.getUniqueId()
-        );
+    private void clearSidebar() {
+        gameManager.getSidebarManager().deleteLines("title", "round", "timer");
     }
     
     private void setupTeamOptions() {

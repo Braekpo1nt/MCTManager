@@ -64,6 +64,7 @@ public class SpleefRound implements Listener {
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
         }
+        initializeSidebar();
         setupTeamOptions();
         startStatusEffectsTask();
         startRoundStartingCountDown();
@@ -75,7 +76,6 @@ public class SpleefRound implements Listener {
         UUID participantUniqueId = participant.getUniqueId();
         participants.add(participant);
         participantsAlive.put(participantUniqueId, true);
-        initializeFastBoard(participant);
         teleportPlayerToRandomStartingPosition(participant);
         participant.getInventory().clear();
         participant.setGameMode(GameMode.ADVENTURE);
@@ -86,7 +86,6 @@ public class SpleefRound implements Listener {
     private void rejoinParticipant(Player participant) {
         participant.sendMessage(ChatColor.YELLOW + "You have rejoined Spleef");
         participants.add(participant);
-        initializeFastBoard(participant);
         participant.setGameMode(GameMode.SPECTATOR);
     }
     
@@ -94,7 +93,6 @@ public class SpleefRound implements Listener {
         participant.getInventory().clear();
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
-        hideFastBoard(participant);
     }
     
     private void roundIsOver() {
@@ -109,6 +107,7 @@ public class SpleefRound implements Listener {
         for (Player participant : participants) {
             resetParticipant(participant);
         }
+        clearSidebar();
         participants.clear();
         participantsAlive.clear();
         roundActive = false;
@@ -254,18 +253,12 @@ public class SpleefRound implements Listener {
                 count--;
             }
         }
-        for (Player participant : participants) {
-            updateAliveCountFastBoard(participant, ""+count);
-        }
+        gameManager.getSidebarManager().updateLine("alive", String.format("Alive: %s", count));
     }
     
     private void startSpleef() {
         placeLayers();
-        String count = "" + participants.size();
-        for (Player participant : participants) {
-            participant.setGameMode(GameMode.SURVIVAL);
-            initializeAliveCountFastBoard(participant, count);
-        }
+        gameManager.getSidebarManager().updateLine("alive", String.format("Alive: %s", participants.size()));
         givePlayersShovels();
         startDecayTask();
     }
@@ -394,9 +387,7 @@ public class SpleefRound implements Listener {
                     return;
                 }
                 String timeLeft = TimeStringUtils.getTimeString(count);
-                for (Player participant : participants) {
-                    updateCountDownFastBoard(participant, timeLeft);
-                }
+                gameManager.getSidebarManager().updateLine("timer", String.format("Starting in: %s", timeLeft));
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -448,47 +439,12 @@ public class SpleefRound implements Listener {
         }
     }
     
-    private void initializeFastBoard(Player participant) {
-        gameManager.getFastBoardManager().updateLine(
-                participant.getUniqueId(),
-                3,
-                "Starting in"
-        );
+    private void initializeSidebar() {
+        gameManager.getSidebarManager().addLine("alive", "Alive: " + participants.size());
     }
     
-    private void initializeAliveCountFastBoard(Player participant, String count) {
-        gameManager.getFastBoardManager().updateLine(
-                participant.getUniqueId(),
-                3,
-                "Alive:"
-        );
-        gameManager.getFastBoardManager().updateLine(
-                participant.getUniqueId(),
-                4,
-                count
-        );
-    }
-    
-    private void updateAliveCountFastBoard(Player participant, String count) {
-        gameManager.getFastBoardManager().updateLine(
-                participant.getUniqueId(),
-                4,
-                count
-        );
-    }
-    
-    private void updateCountDownFastBoard(Player participant, String timeLeft) {
-        gameManager.getFastBoardManager().updateLine(
-                participant.getUniqueId(),
-                4,
-                timeLeft
-        );
-    }
-    
-    private void hideFastBoard(Player participant) {
-        gameManager.getFastBoardManager().updateLines(
-                participant.getUniqueId()
-        );
+    private void clearSidebar() {
+        gameManager.getSidebarManager().deleteLine("alive");
     }
     
     private void teleportPlayerToRandomStartingPosition(Player player) {
