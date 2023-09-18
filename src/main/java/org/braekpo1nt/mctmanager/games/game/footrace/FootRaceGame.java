@@ -89,6 +89,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable {
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
         }
+        initializeSidebar();
         startStatusEffectsTask();
         setupTeamOptions();
         startStartRaceCountdownTask();
