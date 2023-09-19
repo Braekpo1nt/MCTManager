@@ -260,6 +260,9 @@ public class SpleefRound implements Listener {
         placeLayers();
         gameManager.getSidebarManager().updateLine("alive", String.format("Alive: %s", participants.size()));
         givePlayersShovels();
+        for (Player participant : participants) {
+            participant.setGameMode(GameMode.SURVIVAL);
+        }
         startDecayTask();
     }
     
@@ -403,6 +406,7 @@ public class SpleefRound implements Listener {
     
     @EventHandler
     public void onBlockBreak(BlockBreakEvent event) {
+        Bukkit.getLogger().info("block break event " + event.getBlock());
         if (!roundActive) {
             return;
         }
