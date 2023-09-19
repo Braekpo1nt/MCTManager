@@ -42,7 +42,7 @@ class TeamSubCommandTest {
         gameManager.setGameStateStorageUtil(mockGameStateStorageUtil);
         
         MockFastBoardManager mockFastBoardManager = new MockFastBoardManager();
-        gameManager.setFastBoardManager(mockFastBoardManager);
+//        gameManager.setFastBoardManager(mockFastBoardManager);
         
         command = plugin.getCommand("mct");
         sender = server.getConsoleSender();

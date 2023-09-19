@@ -218,8 +218,8 @@ public class ColossalColosseumGame implements Listener {
         String firstDisplayName = ChatColor.BOLD + "" +  firstChatColor + gameManager.getTeamDisplayName(firstTeamName);
         ChatColor secondChatColor = gameManager.getTeamChatColor(secondTeamName);
         String secondDisplayName = ChatColor.BOLD + "" +  secondChatColor + gameManager.getTeamDisplayName(secondTeamName);
-        gameManager.getSidebarManager().updateLine("firstWinCount", String.format("%s: 0/3", firstDisplayName));
-        gameManager.getSidebarManager().updateLine("secondWinCount", String.format("%s: 0/3", secondDisplayName));
+        gameManager.getSidebarManager().updateLine("firstWinCount", String.format("%s: %s/3", firstDisplayName, firstPlaceRoundWins));
+        gameManager.getSidebarManager().updateLine("secondWinCount", String.format("%s: %s/3", secondDisplayName, secondPlaceRoundWins));
     }
     
     private void initializeSidebar() {

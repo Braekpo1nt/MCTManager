@@ -45,7 +45,7 @@ class CaptureTheFlagTest {
         }
         gameManager = plugin.getGameManager();
         mockFastBoardManager = new MockFastBoardManager();
-        gameManager.setFastBoardManager(mockFastBoardManager);
+//        gameManager.setFastBoardManager(mockFastBoardManager);
         MockGameStateStorageUtil mockGameStateStorageUtil = new MockGameStateStorageUtil(plugin);
         gameManager.setGameStateStorageUtil(mockGameStateStorageUtil);
         sender = server.getConsoleSender();

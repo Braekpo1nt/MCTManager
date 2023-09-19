@@ -131,7 +131,6 @@ public class EventManager {
                     .color(NamedTextColor.RED));
             return;
         }
-        currentState = null;
         Component message = Component.text("Ending event. ")
                 .append(Component.text(currentGameNumber - 1))
                 .append(Component.text("/"))
@@ -144,6 +143,7 @@ public class EventManager {
             colossalColosseumGame.stop(null);
         }
         clearSidebar();
+        currentState = null;
         gameManager.getSidebarManager().updateTitle(FastBoardManager.DEFAULT_TITLE);
         cancelAllTasks();
         scoreKeepers.clear();
@@ -432,6 +432,7 @@ public class EventManager {
         currentState = EventState.DELAY;
         ChatColor winningChatColor = gameManager.getTeamChatColor(winningTeam);
         String winningDisplayName = gameManager.getTeamDisplayName(winningTeam);
+        initializeSidebar();
         this.toPodiumDelayTaskId = new BukkitRunnable() {
             int count = storageUtil.getBackToHubDuration();
             @Override
@@ -442,6 +443,7 @@ public class EventManager {
                 if (count <= 0) {
                     currentState = EventState.PODIUM;
                     gameManager.getSidebarManager().addLine("winner", String.format("%sWinner: %s", winningChatColor, winningDisplayName));
+                    gameManager.getSidebarManager().updateLine("timer", "");
                     gameManager.returnAllParticipantsToPodium(winningTeam);
                     this.cancel();
                     return;
@@ -598,6 +600,7 @@ public class EventManager {
             return;
         }
         String secondPlace = secondPlaces[0];
+        clearSidebar();
         startColossalColosseum(Bukkit.getConsoleSender(), firstPlace, secondPlace);
     }
     
@@ -710,7 +713,7 @@ public class EventManager {
     private void clearSidebar() {
         gameManager.getSidebarManager().deleteLine("timer");
         if (currentState == EventState.PODIUM) {
-            gameManager.getSidebarManager().deleteLines("timer", "winner");
+            gameManager.getSidebarManager().deleteLines("winner");
         }
     }
     

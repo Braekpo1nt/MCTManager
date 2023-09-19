@@ -174,7 +174,7 @@ public class SidebarManager {
     public synchronized void deleteLines(@NotNull String... keys) {
         List<String> keysToDelete = new ArrayList<>(keys.length);
         for (String key : keys) {
-            Preconditions.checkArgument(keyToIndex.containsKey(key), "can't delete line with nonexistent key (%S)", key);
+            Preconditions.checkArgument(keyToIndex.containsKey(key), "can't delete line with nonexistent key (%s)", key);
             Preconditions.checkArgument(!keysToDelete.contains(key), "duplicate key (%S) found in keys", key);
             keysToDelete.add(key);
         }
