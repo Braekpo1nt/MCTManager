@@ -70,7 +70,9 @@ public class ClockworkGame implements MCTGame, Configurable {
         cancelAllTasks();
         if (currentRoundIndex < rounds.size()) {
             ClockworkRound currentRound = rounds.get(currentRoundIndex);
-            currentRound.stop();
+            if (currentRound.isActive()) {
+                currentRound.stop();
+            }
         }
         rounds.clear();
         gameActive = false;

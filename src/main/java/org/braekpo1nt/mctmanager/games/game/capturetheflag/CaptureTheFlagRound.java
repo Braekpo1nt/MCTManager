@@ -31,6 +31,7 @@ public class CaptureTheFlagRound {
     private int matchesStartingCountDownTaskId;
     private int onDeckClassSelectionTimerTaskId;
     private int onDeckMatchTimerTaskId;
+    private boolean roundActive = false;
     
     public CaptureTheFlagRound(CaptureTheFlagGame captureTheFlagGame, Main plugin, GameManager gameManager,
                                CaptureTheFlagStorageUtil storageUtil) {
@@ -58,6 +59,10 @@ public class CaptureTheFlagRound {
         }
     }
     
+    public boolean isActive() {
+        return roundActive;
+    }
+    
     public void start(List<Player> newParticipants, List<Player> newOnDeckParticipants) {
         participants = new ArrayList<>();
         onDeckParticipants = new ArrayList<>();
@@ -68,6 +73,7 @@ public class CaptureTheFlagRound {
             initializeOnDeckParticipant(onDeck);
         }
         initializeSidebar();
+        roundActive = true;
         startMatchesStartingCountDown();
     }
     
@@ -95,6 +101,7 @@ public class CaptureTheFlagRound {
     }
     public void stop() {
         cancelAllTasks();
+        roundActive = false;
         for (CaptureTheFlagMatch match : matches) {
             match.stop();
         }

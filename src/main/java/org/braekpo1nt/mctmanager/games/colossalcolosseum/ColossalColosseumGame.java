@@ -161,7 +161,9 @@ public class ColossalColosseumGame implements Listener {
         HandlerList.unregisterAll(this);
         if (currentRoundIndex < rounds.size()) {
             ColossalColosseumRound currentRound = rounds.get(currentRoundIndex);
-            currentRound.stop();
+            if (currentRound.isActive()) {
+                currentRound.stop();
+            }
         }
         rounds.clear();
         for (Player participant : firstPlaceParticipants) {

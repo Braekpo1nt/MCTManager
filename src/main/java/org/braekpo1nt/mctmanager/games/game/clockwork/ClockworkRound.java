@@ -57,6 +57,10 @@ public class ClockworkRound implements Listener {
         this.chaosManager = new ChaosManager(plugin, storageUtil);
     }
     
+    public boolean isActive() {
+        return roundActive;
+    }
+    
     public void start(List<Player> newParticipants) {
         this.participants = new ArrayList<>(newParticipants.size());
         this.participantsAreAlive = new HashMap<>(newParticipants.size());

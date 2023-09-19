@@ -68,7 +68,9 @@ public class SpleefGame implements MCTGame, Configurable {
         cancelAllTasks();
         if (currentRoundIndex < rounds.size()) {
             SpleefRound currentRound = rounds.get(currentRoundIndex);
-            currentRound.stop();
+            if (currentRound.isActive()) {
+                currentRound.stop();
+            }
         }
         rounds.clear();
         gameActive = false;

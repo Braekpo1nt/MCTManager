@@ -40,6 +40,7 @@ public class ColossalColosseumRound implements Listener {
     private List<Player> secondPlaceParticipants = new ArrayList<>();
     private List<Player> spectators = new ArrayList<>();
     private int startCountDownTaskId;
+    private boolean roundActive = false;
     
     public ColossalColosseumRound(Main plugin, GameManager gameManager, ColossalColosseumGame colossalColosseumGame) {
         this.plugin = plugin;
@@ -74,6 +75,7 @@ public class ColossalColosseumRound implements Listener {
         }
         initializeSidebar();
         setupTeamOptions();
+        roundActive = true;
         startRoundStartingCountDown();
         Bukkit.getLogger().info("Starting Colossal Colosseum round");
     }
@@ -117,11 +119,16 @@ public class ColossalColosseumRound implements Listener {
         colossalColosseumGame.onSecondPlaceWinRound();
     }
     
+    public boolean isActive() {
+        return roundActive;
+    }
+    
     public void stop() {
         HandlerList.unregisterAll(this);
         cancelAllTasks();
         closeFirstGate();
         closeSecondGate();
+        roundActive = false;
         for (Player participant : firstPlaceParticipants) {
             resetParticipant(participant);
         }
