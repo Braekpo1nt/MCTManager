@@ -11,6 +11,7 @@ import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.game.mecha.config.MechaStorageUtil;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
+import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
@@ -92,6 +93,7 @@ public class MechaGame implements MCTGame, Configurable, Listener {
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
         }
+        initializeSidebar();
         setUpTeamOptions();
         initializeWorldBorder();
         startStartMechaCountdownTask();
@@ -109,7 +111,6 @@ public class MechaGame implements MCTGame, Configurable, Listener {
         participant.getInventory().clear();
         ParticipantInitializer.resetHealthAndHunger(participant);
         ParticipantInitializer.clearStatusEffects(participant);
-        initializeFastBoard(participant);
     }
     
     @Override
@@ -125,6 +126,7 @@ public class MechaGame implements MCTGame, Configurable, Listener {
         for (Player participant : participants) {
             resetParticipant(participant);
         }
+        clearSidebar();
         participants.clear();
         mechaHasStarted = false;
         gameActive = false;
@@ -134,7 +136,6 @@ public class MechaGame implements MCTGame, Configurable, Listener {
     
     private void resetParticipant(Player participant) {
         participant.getInventory().clear();
-        hideFastBoard(participant);
     }
     
     private void clearContainers() {
@@ -197,7 +198,6 @@ public class MechaGame implements MCTGame, Configurable, Listener {
     private void rejoinParticipant(Player participant) {
         participant.sendMessage(ChatColor.YELLOW + "You have rejoined MECHA");
         participants.add(participant);
-        initializeFastBoard(participant);
         participant.setGameMode(GameMode.SPECTATOR);
     }
     
@@ -267,9 +267,7 @@ public class MechaGame implements MCTGame, Configurable, Listener {
                     return;
                 }
                 String timeLeft = TimeStringUtils.getTimeString(count);
-                for (Player participant : participants) {
-                    updateCountDownFastBoard(participant, timeLeft);
-                }
+                gameManager.getSidebarManager().updateLine("timer", String.format("Starting: %s", timeLeft));
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -329,7 +327,7 @@ public class MechaGame implements MCTGame, Configurable, Listener {
     }
     
     private void startSuddenDeath() {
-        displaySuddenDeath();
+        gameManager.getSidebarManager().updateLine("timer", String.format("%sSudden death", ChatColor.RED));
         messageAllParticipants(Component.text("Sudden death!"));
     }
     
@@ -577,10 +575,7 @@ public class MechaGame implements MCTGame, Configurable, Listener {
         int oldKillCount = killCounts.get(killerUniqueId);
         int newKillCount = oldKillCount + 1;
         killCounts.put(killerUniqueId, newKillCount);
-        gameManager.getFastBoardManager().updateLine(
-                killerUniqueId,
-                2, 
-                ChatColor.RED+"Kills: " + newKillCount);
+        gameManager.getSidebarManager().updateLine(killerUniqueId, "kills", String.format("%sKills: %s", ChatColor.RED, newKillCount));
     }
     
     private void initializeWorldBorder() {
@@ -608,7 +603,7 @@ public class MechaGame implements MCTGame, Configurable, Listener {
                         duration = durations[stage];
                         int size = sizes[stage];
                         worldBorder.setSize(size, duration);
-                        sendBorderShrinkAnouncement(duration, size);
+                        sendBorderShrinkAnnouncement(duration, size);
                         return;
                     }
                     delay--;
@@ -625,7 +620,7 @@ public class MechaGame implements MCTGame, Configurable, Listener {
                             return;
                         }
                         delay = delays[stage];
-                        sendBorderDelayAnouncement(delay);
+                        sendBorderDelayAnnouncement(delay);
                         return;
                     }
                     duration--;
@@ -638,42 +633,22 @@ public class MechaGame implements MCTGame, Configurable, Listener {
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
     }
     
-    private void initializeFastBoard(Player participant) {
-        int killCount = killCounts.get(participant.getUniqueId());
-        gameManager.getFastBoardManager().updateLines(
-                participant.getUniqueId(),
-                title,
-                "",
-                ChatColor.RED+"Kills: "+killCount,
-                "",
-                ChatColor.LIGHT_PURPLE+"Border",
-                ChatColor.LIGHT_PURPLE+"0:00"
+    private void initializeSidebar() {
+        gameManager.getSidebarManager().addLines(
+                new KeyLine("title", title), // 0
+                new KeyLine("kills", ChatColor.RED+"Kills: 0"), // 2
+                new KeyLine("timer", ChatColor.LIGHT_PURPLE+"Border: 0:00") // 4, 5
         );
     }
     
-    private void updateCountDownFastBoard(Player participant, String timeLeft) {
-        gameManager.getFastBoardManager().updateLine(
-                participant.getUniqueId(),
-                4,
-                "Starting:"
-        );
-        gameManager.getFastBoardManager().updateLine(
-                participant.getUniqueId(),
-                5,
-                timeLeft
-        );
-    }
-    
-    private void hideFastBoard(Player participant) {
-        gameManager.getFastBoardManager().updateLines(
-                participant.getUniqueId()
-        );
+    private void clearSidebar() {
+        gameManager.getSidebarManager().deleteLines("title", "kills", "timer");
     }
     /**
      * Sends a chat message to all participants saying the border is delaying
      * @param delay The delay in seconds
      */
-    private void sendBorderDelayAnouncement(int delay) {
+    private void sendBorderDelayAnnouncement(int delay) {
         String timeString = TimeStringUtils.getTimeString(delay);
         messageAllParticipants(Component.text("Border will not shrink for "+timeString));
     }
@@ -683,7 +658,7 @@ public class MechaGame implements MCTGame, Configurable, Listener {
      * @param duration The duration of the shrink in seconds
      * @param size The size of the border in blocks
      */
-    private void sendBorderShrinkAnouncement(int duration, int size) {
+    private void sendBorderShrinkAnnouncement(int duration, int size) {
         String timeString = TimeStringUtils.getTimeString(duration);
         messageAllParticipants(Component.text("Border shrinking to ")
                 .append(Component.text(size))
@@ -697,15 +672,7 @@ public class MechaGame implements MCTGame, Configurable, Listener {
      */
     private void displayBorderShrinkingFor(int duration) {
         String timeString = TimeStringUtils.getTimeString(duration);
-        String borderPhase = ChatColor.RED+"Shrinking";
-        String shrinkDuration = ChatColor.RED+timeString;
-        for (Player participant : participants) {
-            UUID playerUniqueId = participant.getUniqueId();
-            gameManager.getFastBoardManager().updateLine(playerUniqueId, 
-                    4, borderPhase);
-            gameManager.getFastBoardManager().updateLine(playerUniqueId, 
-                    5, shrinkDuration);
-        }
+        gameManager.getSidebarManager().updateLine("timer", String.format("%sShrinking: %s", ChatColor.RED, timeString));
     }
     
     /**
@@ -714,29 +681,7 @@ public class MechaGame implements MCTGame, Configurable, Listener {
      */
     private void displayBorderDelayFor(int delay) {
         String timeString = TimeStringUtils.getTimeString(delay);
-        String borderPhase = ChatColor.LIGHT_PURPLE+"Border";
-        String boardDelay = ChatColor.LIGHT_PURPLE+timeString;
-        for (Player participant : participants) {
-            UUID playerUniqueId = participant.getUniqueId();
-            gameManager.getFastBoardManager().updateLine(playerUniqueId,
-                    4, borderPhase);
-            gameManager.getFastBoardManager().updateLine(playerUniqueId, 
-                    5, boardDelay);
-        }
-    }
-    
-    /**
-     * Displays the sudden death message on the FastBoards
-     */
-    private void displaySuddenDeath() {
-        String borderPhase = ChatColor.RED+"Sudden death";
-        for (Player participant : participants) {
-            UUID playerUniqueId = participant.getUniqueId();
-            gameManager.getFastBoardManager().updateLine(playerUniqueId,
-                    4, borderPhase);
-            gameManager.getFastBoardManager().updateLine(playerUniqueId,
-                    5, "");
-        }
+        gameManager.getSidebarManager().updateLine("timer", String.format("%sBorder: %s", ChatColor.LIGHT_PURPLE, timeString));
     }
     
     private void teleportParticipantToStartingPosition(Player participant) {

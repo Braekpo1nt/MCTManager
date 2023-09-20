@@ -1,6 +1,8 @@
 package org.braekpo1nt.mctmanager.ui;
 
 import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
+import org.braekpo1nt.mctmanager.ui.sidebar.FastBoardWrapper;
+import org.braekpo1nt.mctmanager.ui.sidebar.SidebarManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -12,7 +14,9 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Responsible for displaying the MCT sidebar FastBoard
  * Utilizes the <a href="https://github.com/MrMicky-FR/FastBoard">FastBoard api</a>
+ * @deprecated This is deprecated in favor of {@link SidebarManager}
  */
+@Deprecated
 public class FastBoardManager {
     
     public static final String DEFAULT_TITLE = ChatColor.BOLD + "" + ChatColor.DARK_RED + "MCT";
@@ -42,13 +46,13 @@ public class FastBoardManager {
         }
     }
     
-    public synchronized void updateMainBoards() {
+    public synchronized void updateHeaders() {
         for (Player player : Bukkit.getOnlinePlayers()) {
-            updateMainBoardForPlayer(player);
+            updateHeaderForPlayer(player);
         }
     }
     
-    protected synchronized void updateMainBoardForPlayer(Player player) {
+    protected synchronized void updateHeaderForPlayer(Player player) {
         boolean playerHasBoard = givePlayerBoardIfAbsent(player);
         if (!playerHasBoard) {
             return;
@@ -66,9 +70,9 @@ public class FastBoardManager {
     
     /**
      * Retrieve the header 
-     * @param playerUniqueId
-     * @param headerType
-     * @return
+     * @param playerUniqueId the player
+     * @param headerType the header type
+     * @return the header for the given player with the given type
      */
     protected String[] getHeader(UUID playerUniqueId, HeaderType headerType) {
         if (headerType == HeaderType.ALL) {
@@ -190,6 +194,7 @@ public class FastBoardManager {
         if (board != null && !board.isDeleted()) {
             board.delete();
         }
+        headerTypes.remove(playerUniqueId);
     }
     
     public synchronized void removeAllBoards() {

@@ -40,6 +40,7 @@ public class ColossalColosseumRound implements Listener {
     private List<Player> secondPlaceParticipants = new ArrayList<>();
     private List<Player> spectators = new ArrayList<>();
     private int startCountDownTaskId;
+    private boolean roundActive = false;
     
     public ColossalColosseumRound(Main plugin, GameManager gameManager, ColossalColosseumGame colossalColosseumGame) {
         this.plugin = plugin;
@@ -72,7 +73,9 @@ public class ColossalColosseumRound implements Listener {
         for (Player spectator : newSpectators) {
             initializeSpectator(spectator);
         }
+        initializeSidebar();
         setupTeamOptions();
+        roundActive = true;
         startRoundStartingCountDown();
         Bukkit.getLogger().info("Starting Colossal Colosseum round");
     }
@@ -92,7 +95,6 @@ public class ColossalColosseumRound implements Listener {
     }
     
     private void initializeParticipant(Player participant) {
-        initializeFastBoard(participant);
         participant.getInventory().clear();
         participant.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearStatusEffects(participant);
@@ -101,7 +103,6 @@ public class ColossalColosseumRound implements Listener {
     
     private void initializeSpectator(Player spectator) {
         spectators.add(spectator);
-        initializeFastBoard(spectator);
         spectator.getInventory().clear();
         spectator.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearStatusEffects(spectator);
@@ -118,11 +119,16 @@ public class ColossalColosseumRound implements Listener {
         colossalColosseumGame.onSecondPlaceWinRound();
     }
     
+    public boolean isActive() {
+        return roundActive;
+    }
+    
     public void stop() {
         HandlerList.unregisterAll(this);
         cancelAllTasks();
         closeFirstGate();
         closeSecondGate();
+        roundActive = false;
         for (Player participant : firstPlaceParticipants) {
             resetParticipant(participant);
         }
@@ -226,71 +232,20 @@ public class ColossalColosseumRound implements Listener {
             @Override
             public void run() {
                 if (count <= 0) {
-                    for (Player participant : firstPlaceParticipants) {
-                        hideCountDownFastBoard(participant);
-                    }
-                    for (Player participant : secondPlaceParticipants) {
-                        hideCountDownFastBoard(participant);
-                    }
-                    for (Player participant : spectators) {
-                        hideCountDownFastBoard(participant);
-                    }
+                    gameManager.getSidebarManager().updateLine("timer", "");
                     startRound();
                     this.cancel();
                     return;
                 }
                 String timeLeft = TimeStringUtils.getTimeString(count);
-                for (Player participant : firstPlaceParticipants) {
-                    updateCountDownFastBoard(participant, timeLeft);
-                }
-                for (Player participant : secondPlaceParticipants) {
-                    updateCountDownFastBoard(participant, timeLeft);
-                }
-                for (Player participant : spectators) {
-                    updateCountDownFastBoard(participant, timeLeft);
-                }
+                gameManager.getSidebarManager().updateLine("timer", String.format("Starting: %s", timeLeft));
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
     }
     
-    private void initializeFastBoard(Player participant) {
-        gameManager.getFastBoardManager().updateLine(
-                participant.getUniqueId(),
-                7,
-                ChatColor.BOLD+"Starting:"
-        );
-        gameManager.getFastBoardManager().updateLine(
-                participant.getUniqueId(),
-                8,
-                ""
-        );
-    }
-    
-    private void updateCountDownFastBoard(Player participant, String timeLeft) {
-        gameManager.getFastBoardManager().updateLine(
-                participant.getUniqueId(),
-                7,
-                ChatColor.BOLD+"Starting:"
-        );
-        gameManager.getFastBoardManager().updateLine(
-                participant.getUniqueId(),
-                8,
-                ChatColor.BOLD+timeLeft
-        );
-    }
-    
-    private void hideCountDownFastBoard(Player participant) {
-        gameManager.getFastBoardManager().updateLine(
-                participant.getUniqueId(),
-                7,
-                ""
-        );
-        gameManager.getFastBoardManager().updateLine(
-                participant.getUniqueId(),
-                8,
-                ""
-        );
+    private void initializeSidebar() {
+        gameManager.getSidebarManager().updateLine("timer", "Starting:");
     }
     
     private void openGates() {

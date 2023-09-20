@@ -75,6 +75,7 @@ public class VoteManager implements Listener {
             participant.sendMessage(Component.text("Vote for the game you want to play")
                     .color(NamedTextColor.GREEN));
         }
+        initializeSidebar();
         startVoteCountDown();
     }
     
@@ -92,29 +93,20 @@ public class VoteManager implements Listener {
                     this.cancel();
                     return;
                 }
-                String timeString = "Voting: " + TimeStringUtils.getTimeString(count);
-                for (Player participant : voters) {
-                    updateVoteTimerFastBoard(participant, timeString);
-                }
+                String timeLeft = TimeStringUtils.getTimeString(count);
+                gameManager.getSidebarManager().updateLine("timer", String.format("Voting: %s", timeLeft));
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
     }
     
-    private void updateVoteTimerFastBoard(Player participant, String timer) {
-        gameManager.getFastBoardManager().updateLines(
-                participant.getUniqueId(),
-                "",
-                timer
-        );
+    private void initializeSidebar() {
+        gameManager.getSidebarManager().addLine("timer", "");
     }
     
-    private void hideFastBoard(Player participant) {
-        gameManager.getFastBoardManager().updateLines(
-                participant.getUniqueId()
-        );
+    private void clearSidebar() {
+        gameManager.getSidebarManager().deleteLine("timer");
     }
-    
     
     @EventHandler
     private void clickVoteInventory(InventoryClickEvent event) {
@@ -142,37 +134,39 @@ public class VoteManager implements Listener {
         }
         Material clickedItem = event.getCurrentItem().getType();
         switch (clickedItem) {
-            case FEATHER:
+            case FEATHER -> {
                 votes.put(participant.getUniqueId(), GameType.FOOT_RACE);
                 participant.sendMessage(Component.text("Voted for Foot Race")
                         .color(NamedTextColor.GREEN));
-                break;
-            case IRON_SWORD:
+            }
+            case IRON_SWORD -> {
                 votes.put(participant.getUniqueId(), GameType.MECHA);
                 participant.sendMessage(Component.text("Voted for MECHA")
                         .color(NamedTextColor.GREEN));
-                break;
-            case GRAY_BANNER:
+            }
+            case GRAY_BANNER -> {
                 votes.put(participant.getUniqueId(), GameType.CAPTURE_THE_FLAG);
                 participant.sendMessage(Component.text("Voted for Capture the Flag")
                         .color(NamedTextColor.GREEN));
-                break;
-            case DIAMOND_SHOVEL:
+            }
+            case DIAMOND_SHOVEL -> {
                 votes.put(participant.getUniqueId(), GameType.SPLEEF);
                 participant.sendMessage(Component.text("Voted for Spleef")
                         .color(NamedTextColor.GREEN));
-                break;
-            case LEATHER_BOOTS:
+            }
+            case LEATHER_BOOTS -> {
                 votes.put(participant.getUniqueId(), GameType.PARKOUR_PATHWAY);
                 participant.sendMessage(Component.text("Voted for Parkour Pathway")
                         .color(NamedTextColor.GREEN));
-                break;
-            case CLOCK:
+            }
+            case CLOCK -> {
                 votes.put(participant.getUniqueId(), GameType.CLOCKWORK);
                 participant.sendMessage(Component.text("Voted for Clockwork")
                         .color(NamedTextColor.GREEN));
-            default:
+            }
+            default -> {
                 return;
+            }
         }
         participant.closeInventory();
     }
@@ -257,8 +251,8 @@ public class VoteManager implements Listener {
         for (Player voter : voters) {
             voter.closeInventory();
             voter.getInventory().clear();
-            hideFastBoard(voter);
         }
+        clearSidebar();
         messageAllVoters(Component.text("Cancelling vote"));
         HandlerList.unregisterAll(this);
         votes.clear();
@@ -272,13 +266,12 @@ public class VoteManager implements Listener {
         for (Player voter : voters) {
             voter.closeInventory();
             voter.getInventory().clear();
-            hideFastBoard(voter);
         }
         GameType gameType = getVotedForGame();
         HandlerList.unregisterAll(this);
         votes.clear();
         voters.clear();
-//        gameManager.startGameWithDelay(gameType);
+        clearSidebar();
         executeMethod.accept(gameType);
     }
     

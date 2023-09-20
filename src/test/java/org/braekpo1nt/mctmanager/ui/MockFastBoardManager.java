@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.ui;
 
+import org.braekpo1nt.mctmanager.ui.sidebar.MockFastBoardWrapper;
 import org.bukkit.entity.Player;
 import org.junit.jupiter.api.Assertions;
 
@@ -14,7 +15,7 @@ public class MockFastBoardManager extends FastBoardManager {
     }
     
     @Override
-    protected synchronized void updateMainBoardForPlayer(Player player) {
+    protected synchronized void updateHeaderForPlayer(Player player) {
         boolean playerHasBoard = givePlayerBoardIfAbsent(player);
         if (!playerHasBoard) {
             return;

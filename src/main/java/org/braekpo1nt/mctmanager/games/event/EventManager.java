@@ -110,7 +110,8 @@ public class EventManager {
         currentGameNumber = 1;
         playedGames.clear();
         scoreKeepers.clear();
-        gameManager.getFastBoardManager().updateTitle(storageUtil.getTitle());
+        initializeSidebar();
+        gameManager.getSidebarManager().updateTitle(storageUtil.getTitle());
         messageAllAdmins(Component.text("Starting event. On game ")
                 .append(Component.text(currentGameNumber))
                 .append(Component.text("/"))
@@ -130,7 +131,6 @@ public class EventManager {
                     .color(NamedTextColor.RED));
             return;
         }
-        currentState = null;
         Component message = Component.text("Ending event. ")
                 .append(Component.text(currentGameNumber - 1))
                 .append(Component.text("/"))
@@ -142,12 +142,11 @@ public class EventManager {
         if (colossalColosseumGame.isActive()) {
             colossalColosseumGame.stop(null);
         }
-        for (Player participant : gameManager.getOnlineParticipants()) {
-            hideFastBoard(participant);
-        }
+        clearSidebar();
+        currentState = null;
+        gameManager.getSidebarManager().updateTitle(FastBoardManager.DEFAULT_TITLE);
         cancelAllTasks();
         scoreKeepers.clear();
-        gameManager.getFastBoardManager().updateTitle(FastBoardManager.DEFAULT_TITLE);
         currentGameNumber = 0;
         maxGames = 6;
     }
@@ -399,9 +398,9 @@ public class EventManager {
                     return;
                 }
                 if (!allGamesHaveBeenPlayed()) {
-                    updateTimerFastBoard(String.format("Vote starts in: %s", TimeStringUtils.getTimeString(count)));
+                    gameManager.getSidebarManager().updateLine("timer", String.format("Vote starts in: %s", TimeStringUtils.getTimeString(count)));
                 } else {
-                    updateTimerFastBoard(String.format("Final round: %s", TimeStringUtils.getTimeString(count)));
+                    gameManager.getSidebarManager().updateLine("timer", String.format("Final round: %s", TimeStringUtils.getTimeString(count)));
                 }
                 count--;
             }
@@ -423,7 +422,7 @@ public class EventManager {
                     this.cancel();
                     return;
                 }
-                updateTimerFastBoard(String.format(ChatColor.YELLOW+"Break: %s", TimeStringUtils.getTimeString(count)));
+                gameManager.getSidebarManager().updateLine("timer", String.format(ChatColor.YELLOW+"Break: %s", TimeStringUtils.getTimeString(count)));
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -431,6 +430,9 @@ public class EventManager {
     
     private void toPodiumDelay(String winningTeam) {
         currentState = EventState.DELAY;
+        ChatColor winningChatColor = gameManager.getTeamChatColor(winningTeam);
+        String winningDisplayName = gameManager.getTeamDisplayName(winningTeam);
+        initializeSidebar();
         this.toPodiumDelayTaskId = new BukkitRunnable() {
             int count = storageUtil.getBackToHubDuration();
             @Override
@@ -439,12 +441,14 @@ public class EventManager {
                     return;
                 }
                 if (count <= 0) {
+                    currentState = EventState.PODIUM;
+                    gameManager.getSidebarManager().addLine("winner", String.format("%sWinner: %s", winningChatColor, winningDisplayName));
+                    gameManager.getSidebarManager().updateLine("timer", "");
                     gameManager.returnAllParticipantsToPodium(winningTeam);
-                    stopEvent(Bukkit.getConsoleSender());
                     this.cancel();
                     return;
                 }
-                updateTimerFastBoard(String.format("Heading to Podium: %s", TimeStringUtils.getTimeString(count)));
+                gameManager.getSidebarManager().updateLine("timer", String.format("Heading to Podium: %s", TimeStringUtils.getTimeString(count)));
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -454,11 +458,13 @@ public class EventManager {
         currentState = EventState.VOTING;
         List<GameType> votingPool = new ArrayList<>(List.of(GameType.values()));
         votingPool.removeAll(playedGames);
+        clearSidebar();
         voteManager.startVote(gameManager.getOnlineParticipants(), votingPool, storageUtil.getVotingDuration(), this::startingGameDelay);
     }
     
     private void startingGameDelay(GameType gameType) {
         currentState = EventState.DELAY;
+        initializeSidebar();
         this.startingGameCountdownTaskId = new BukkitRunnable() {
             int count = storageUtil.getStartingGameDuration();
             @Override
@@ -469,11 +475,12 @@ public class EventManager {
                 if (count <= 0) {
                     currentState = EventState.PLAYING_GAME;
                     createScoreKeeperForGame(gameType);
+                    clearSidebar();
                     gameManager.startGame(gameType, Bukkit.getConsoleSender());
                     this.cancel();
                     return;
                 }
-                updateTimerFastBoard(String.format("%s: %s", gameType.getTitle(),
+                gameManager.getSidebarManager().updateLine("timer", String.format("%s: %s", gameType.getTitle(),
                         TimeStringUtils.getTimeString(count)));
                 count--;
             }
@@ -503,6 +510,7 @@ public class EventManager {
         currentState = EventState.DELAY;
         playedGames.add(finishedGameType);
         currentGameNumber += 1;
+        initializeSidebar();
         this.backToHubDelayTaskId = new BukkitRunnable() {
             int count = storageUtil.getBackToHubDuration();
             @Override
@@ -519,7 +527,7 @@ public class EventManager {
                     this.cancel();
                     return;
                 }
-                updateTimerFastBoard(String.format("Back to Hub: %s", TimeStringUtils.getTimeString(count)));
+                gameManager.getSidebarManager().updateLine("timer", String.format("Back to Hub: %s", TimeStringUtils.getTimeString(count)));
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -541,7 +549,7 @@ public class EventManager {
                     this.cancel();
                     return;
                 }
-                updateTimerFastBoard(String.format("Colossal Colosseum: %s", TimeStringUtils.getTimeString(count)));
+                gameManager.getSidebarManager().updateLine("timer", String.format("Colossal Colosseum: %s", TimeStringUtils.getTimeString(count)));
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -592,6 +600,7 @@ public class EventManager {
             return;
         }
         String secondPlace = secondPlaces[0];
+        clearSidebar();
         startColossalColosseum(Bukkit.getConsoleSender(), firstPlace, secondPlace);
     }
     
@@ -697,26 +706,16 @@ public class EventManager {
         iteration.addPoints(participantUUID, points);
     }
     
-    // FastBoard start
+    private void initializeSidebar() {
+        gameManager.getSidebarManager().addLine("timer", "");
+    }
     
-    private void updateTimerFastBoard(String time) {
-        for (Player participant : gameManager.getOnlineParticipants()) {
-            updateTimerFastBoard(participant, time);
+    private void clearSidebar() {
+        gameManager.getSidebarManager().deleteLine("timer");
+        if (currentState == EventState.PODIUM) {
+            gameManager.getSidebarManager().deleteLines("winner");
         }
     }
-    private void updateTimerFastBoard(Player participant, String time) {
-        gameManager.getFastBoardManager().updateLine(
-                participant.getUniqueId(),
-                1,
-                time
-        );
-    }
-    
-    private void hideFastBoard(Player participant) {
-        gameManager.getFastBoardManager().updateLines(participant.getUniqueId());
-    }
-    
-    // FastBoard end
     
     public boolean eventIsActive() {
         return currentState != null;

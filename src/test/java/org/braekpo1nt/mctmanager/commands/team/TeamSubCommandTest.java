@@ -9,6 +9,7 @@ import org.braekpo1nt.mctmanager.MyPlayerMock;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.gamestate.MockGameStateStorageUtil;
 import org.braekpo1nt.mctmanager.ui.MockFastBoardManager;
+import org.braekpo1nt.mctmanager.ui.sidebar.MockSidebarManager;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginCommand;
 import org.junit.jupiter.api.*;
@@ -41,8 +42,8 @@ class TeamSubCommandTest {
         gameManager = plugin.getGameManager();
         gameManager.setGameStateStorageUtil(mockGameStateStorageUtil);
         
-        MockFastBoardManager mockFastBoardManager = new MockFastBoardManager();
-        gameManager.setFastBoardManager(mockFastBoardManager);
+        MockSidebarManager mockSidebarManager = new MockSidebarManager();
+        gameManager.setSidebarManager(mockSidebarManager);
         
         command = plugin.getCommand("mct");
         sender = server.getConsoleSender();

@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games;
 
+import com.google.common.base.Preconditions;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -10,6 +11,7 @@ import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
+import org.braekpo1nt.mctmanager.ui.sidebar.SidebarManager;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.CaptureTheFlagGame;
 import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceGame;
@@ -20,7 +22,6 @@ import org.braekpo1nt.mctmanager.games.game.parkourpathway.ParkourPathwayGame;
 import org.braekpo1nt.mctmanager.games.game.spleef.SpleefGame;
 import org.braekpo1nt.mctmanager.games.voting.VoteManager;
 import org.braekpo1nt.mctmanager.hub.HubManager;
-import org.braekpo1nt.mctmanager.ui.FastBoardManager;
 import org.bukkit.*;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -51,7 +52,7 @@ public class GameManager implements Listener {
     private final CaptureTheFlagGame captureTheFlagGame;
     private final ClockworkGame clockworkGame;
     private final HubManager hubManager;
-    private FastBoardManager fastBoardManager;
+    private SidebarManager sidebarManager;
     private GameStateStorageUtil gameStateStorageUtil;
     /**
      * Scoreboard for holding the teams. This private scoreboard can't be
@@ -61,7 +62,6 @@ public class GameManager implements Listener {
     private final Scoreboard mctScoreboard;
     private final Main plugin;
     private boolean shouldTeleportToHub = true;
-    private int fastBoardUpdaterTaskId;
     /**
      * used to store a list of participants who left mid-game and didn't log back before the game ended, 
      * so we can send them back to the hub rather than whatever game the player left from
@@ -88,25 +88,10 @@ public class GameManager implements Listener {
         this.parkourPathwayGame = new ParkourPathwayGame(plugin, this);
         this.captureTheFlagGame = new CaptureTheFlagGame(plugin, this);
         this.clockworkGame = new ClockworkGame(plugin, this);
-        this.fastBoardManager = new FastBoardManager(gameStateStorageUtil);
+        this.sidebarManager = new SidebarManager();
+        initializePersonalSidebar();
         this.hubManager = new HubManager(plugin, mctScoreboard, this);
         this.eventManager = new EventManager(plugin, this, voteManager);
-        this.fastBoardManager = new FastBoardManager(gameStateStorageUtil);
-        kickOffFastBoardManager();
-    }
-    
-    private void kickOffFastBoardManager() {
-        this.fastBoardUpdaterTaskId = new BukkitRunnable() {
-            @Override
-            public void run() {
-                fastBoardManager.updateMainBoards();
-            }
-        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
-    }
-    
-    public void cancelFastBoardManager() {
-        Bukkit.getScheduler().cancelTask(this.fastBoardUpdaterTaskId);
-        fastBoardManager.removeAllBoards();
     }
     
     @EventHandler
@@ -123,7 +108,6 @@ public class GameManager implements Listener {
     
     private void onAdminQuit(@NotNull Player admin) {
         onlineAdmins.remove(admin);
-        fastBoardManager.removeBoard(admin.getUniqueId());
     }
     
     /**
@@ -136,7 +120,7 @@ public class GameManager implements Listener {
      */
     private void onParticipantQuit(@NotNull Player participant) {
         onlineParticipants.remove(participant);
-        fastBoardManager.removeBoard(participant.getUniqueId());
+        sidebarManager.removePlayer(participant.getUniqueId());
         if (gameIsRunning()) {
             activeGame.onParticipantQuit(participant);
             participantsWhoLeftMidGame.add(participant.getUniqueId());
@@ -159,11 +143,10 @@ public class GameManager implements Listener {
     
     private void onAdminJoin(@NotNull Player admin) {
         onlineAdmins.add(admin);
-        fastBoardManager.updateMainBoards();
     }
     
     /**
-     * Handles when a participant joins the event. 
+     * Handles when a participant joins. 
      * Should be called when an existing participant joins the server
      * (see {@link GameManager#playerJoinEvent(PlayerJoinEvent)})
      * or when an online player is added to the participants list
@@ -172,7 +155,9 @@ public class GameManager implements Listener {
      */
     private void onParticipantJoin(@NotNull Player participant) {
         onlineParticipants.add(participant);
-        fastBoardManager.updateMainBoards();
+        sidebarManager.addPlayer(participant);
+        updateTeamScore(participant);
+        updatePersonalScore(participant);
         if (gameIsRunning()) {
             activeGame.onParticipantJoin(participant);
             return;
@@ -189,8 +174,8 @@ public class GameManager implements Listener {
         return mctScoreboard;
     }
     
-    public FastBoardManager getFastBoardManager() {
-        return fastBoardManager;
+    public SidebarManager getSidebarManager() {
+        return sidebarManager;
     }
     
     public boolean loadGameState() {
@@ -208,11 +193,10 @@ public class GameManager implements Listener {
         onlineAdmins.clear();
         for (Player player : Bukkit.getOnlinePlayers()) {
             if (gameStateStorageUtil.isAdmin(player.getUniqueId())) {
-                onlineAdmins.add(player);
+                onAdminJoin(player);
             }
             if (gameStateStorageUtil.containsPlayer(player.getUniqueId())) {
-                onlineParticipants.add(player);
-                hubManager.onParticipantJoin(player);
+                onParticipantJoin(player);
             }
         }
         return true;
@@ -242,15 +226,6 @@ public class GameManager implements Listener {
         voteManager.startVote(onlineParticipants, votingPool, 60, this::startGameWithDelay);
     }
     
-    private void updateStartGameDelayFastBoard(Player voter, String gameTitle, String timeString) {
-        fastBoardManager.updateLines(
-                voter.getUniqueId(),
-                "",
-                gameTitle,
-                timeString
-        );
-    }
-    
     /**
      * Cancel the vote if a vote is in progress
      */
@@ -262,7 +237,6 @@ public class GameManager implements Listener {
      * Cancel the return to hub if it's in progress
      */
     public void cancelAllTasks() {
-        Bukkit.getScheduler().cancelTask(this.fastBoardUpdaterTaskId);
         cancelStartGameWithDelayTask();
         eventManager.cancelAllTasks();
         hubManager.cancelAllTasks();
@@ -280,26 +254,26 @@ public class GameManager implements Listener {
         hubManager.removeParticipantsFromHub(onlineParticipants);
     }
     
-    public void startGameWithDelay(GameType mctGame) {
-        String gameTitle = ChatColor.BLUE+""+ChatColor.BOLD+ mctGame.getTitle();
+    public void startGameWithDelay(GameType gameType) {
+        String gameTitle = ChatColor.BLUE+""+ChatColor.BOLD+ gameType.getTitle();
         messageOnlineParticipants(Component.empty()
                 .append(Component.text(gameTitle)
                         .decorate(TextDecoration.BOLD))
                 .append(Component.text(" was selected"))
                 .color(NamedTextColor.BLUE));
+        sidebarManager.addLine("startingGame", String.format("Starting %s:", gameType.getTitle()));
         this.startGameWithDelayTaskId = new BukkitRunnable() {
             int count = 5;
             @Override
             public void run() {
                 if (count <= 0) {
-                    startGame(mctGame, Bukkit.getConsoleSender());
+                    sidebarManager.deleteLine("startingGame");
+                    startGame(gameType, Bukkit.getConsoleSender());
                     this.cancel();
                     return;
                 }
-                String timeString = TimeStringUtils.getTimeString(count);
-                for (Player voter : onlineParticipants) {
-                    updateStartGameDelayFastBoard(voter, gameTitle, timeString);
-                }
+                String timeLeft = TimeStringUtils.getTimeString(count);
+                sidebarManager.addLine("startingGame", String.format("Starting %s: %s", gameType.getTitle(), timeLeft));
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -444,14 +418,13 @@ public class GameManager implements Listener {
     
     public void returnAllParticipantsToPodium(String winningTeam) {
         List<Player> winningTeamParticipants = getOnlinePlayersOnTeam(winningTeam);
-        ChatColor winningTeamChatColor = getTeamChatColor(winningTeam);
         List<Player> otherParticipants = new ArrayList<>();
         for (Player participant : getOnlineParticipants()) {
             if (!winningTeamParticipants.contains(participant)) {
                 otherParticipants.add(participant);
             }
         }
-        hubManager.sendParticipantsToPodium(winningTeamParticipants, winningTeam, winningTeamChatColor, otherParticipants);
+        hubManager.sendParticipantsToPodium(winningTeamParticipants, otherParticipants);
     }
     
     //====================================================
@@ -617,9 +590,10 @@ public class GameManager implements Listener {
         }
         Team team = mctScoreboard.getTeam(teamName);
         OfflinePlayer newPlayer = Bukkit.getOfflinePlayer(playerUniqueId);
+        Preconditions.checkState(team != null, "Something is wrong with the team Scoreboard. Could not find team with name %s", teamName);
         team.addPlayer(newPlayer);
-        if (newPlayer.isOnline()) {
-            Player onlineNewPlayer = newPlayer.getPlayer();
+        Player onlineNewPlayer = newPlayer.getPlayer();
+        if (onlineNewPlayer != null) {
             onParticipantJoin(onlineNewPlayer);
         }
     }
@@ -645,7 +619,6 @@ public class GameManager implements Listener {
         }
         Team team = mctScoreboard.getTeam(teamName);
         team.removePlayer(offlinePlayer);
-        fastBoardManager.removeBoard(playerUniqueId);
     }
     
     private void leavePlayersOnTeam(String teamName) {
@@ -678,12 +651,14 @@ public class GameManager implements Listener {
         addScore(teamName, multipliedPoints);
         eventManager.trackPoints(participantUUID, multipliedPoints, activeGame.getType());
         eventManager.trackPoints(teamName, multipliedPoints, activeGame.getType());
-        
+    
         participant.sendMessage(Component.text("+")
                 .append(Component.text(multipliedPoints))
                 .append(Component.text(" points"))
                 .decorate(TextDecoration.BOLD)
                 .color(NamedTextColor.GOLD));
+        updateTeamScore(participant);
+        updatePersonalScore(participant);
     }
     
     /**
@@ -710,6 +685,7 @@ public class GameManager implements Listener {
                     .append(displayName)
                     .decorate(TextDecoration.BOLD)
                     .color(NamedTextColor.GOLD));
+            updateTeamScore(playerOnTeam);
         }
     }
     
@@ -792,12 +768,16 @@ public class GameManager implements Listener {
     
     /**
      * Adds the given score to the participant with the given UUID
-     * @param participantUniqueId The UUID of the participant to add the score to
+     * @param participantUUID The UUID of the participant to add the score to
      * @param score The score to add. Could be positive or negative.
      */
-    public void addScore(UUID participantUniqueId, int score) {
+    public void addScore(UUID participantUUID, int score) {
         try {
-            gameStateStorageUtil.addScore(participantUniqueId, score);
+            gameStateStorageUtil.addScore(participantUUID, score);
+            Player participant = Bukkit.getPlayer(participantUUID);
+            if (participant != null && onlineParticipants.contains(participant)) {
+                updatePersonalScore(participant);
+            }
         } catch (IOException e) {
             reportGameStateIOException("adding score to player", e);
         }
@@ -811,6 +791,10 @@ public class GameManager implements Listener {
     public void addScore(String teamName, int score) {
         try {
             gameStateStorageUtil.addScore(teamName, score);
+            gameStateStorageUtil.setScore(teamName, score);
+            for (Player participant : getOnlinePlayersOnTeam(teamName)) {
+                updateTeamScore(participant);
+            }
         } catch (IOException e) {
             reportGameStateIOException("adding score to team", e);
         }
@@ -818,16 +802,20 @@ public class GameManager implements Listener {
     
     /**
      * Sets the score of the participant with the given UUID to the given value
-     * @param participantUniqueId The UUID of the participant to set the score to
+     * @param participantUUID The UUID of the participant to set the score to
      * @param score The score to set to. If the score is negative, the score will be set to 0.
      */
-    public void setScore(UUID participantUniqueId, int score) {
+    public void setScore(UUID participantUUID, int score) {
         try {
             if (score < 0) {
-                gameStateStorageUtil.setScore(participantUniqueId, 0);
+                gameStateStorageUtil.setScore(participantUUID, 0);
                 return;
             }
-            gameStateStorageUtil.setScore(participantUniqueId, score);
+            gameStateStorageUtil.setScore(participantUUID, score);
+            Player participant = Bukkit.getPlayer(participantUUID);
+            if (participant != null && onlineParticipants.contains(participant)) {
+                updatePersonalScore(participant);
+            }
         } catch (IOException e) {
             reportGameStateIOException("setting a player's score", e);
         }
@@ -845,6 +833,9 @@ public class GameManager implements Listener {
                 return;
             }
             gameStateStorageUtil.setScore(teamName, score);
+            for (Player participant : getOnlinePlayersOnTeam(teamName)) {
+                updateTeamScore(participant);
+            }
         } catch (IOException e) {
             reportGameStateIOException("adding score to team", e);
         }
@@ -918,7 +909,6 @@ public class GameManager implements Listener {
         }
         Team team = mctScoreboard.getTeam(ADMIN_TEAM);
         team.removePlayer(offlineAdmin);
-        fastBoardManager.removeBoard(adminUniqueId);
     }
     
     public Material getTeamPowderColor(String teamName) {
@@ -966,7 +956,6 @@ public class GameManager implements Listener {
         }
     }
     
-    
     public void messageOnlineParticipants(Component message) {
         for (Player participant : onlineParticipants) {
             participant.sendMessage(message);
@@ -975,14 +964,8 @@ public class GameManager implements Listener {
     
     // Test methods
     
-    public void setFastBoardManager(FastBoardManager fastBoardManager) {
-        this.fastBoardManager = fastBoardManager;
-        this.fastBoardManager.setGameStateStorageUtil(this.gameStateStorageUtil);
-    }
-    
     public void setGameStateStorageUtil(GameStateStorageUtil gameStateStorageUtil) {
         this.gameStateStorageUtil = gameStateStorageUtil;
-        this.fastBoardManager.setGameStateStorageUtil(gameStateStorageUtil);
     }
     
     private void reportGameStateIOException(String attemptedOperation, IOException ioException) {
@@ -996,5 +979,28 @@ public class GameManager implements Listener {
     
     public MCTGame getActiveGame() {
         return activeGame;
+    }
+    
+    public void setSidebarManager(SidebarManager sidebarManager) {
+        this.sidebarManager = sidebarManager;
+        initializePersonalSidebar();
+    }
+    
+    private void initializePersonalSidebar() {
+        sidebarManager.addLine("personalTeam", 0, "");
+        sidebarManager.addLine("personalScore", 1, "");
+    }
+    
+    private void updateTeamScore(Player participant) {
+        String team = getTeamName(participant.getUniqueId());
+        String displayName = getTeamDisplayName(team);
+        ChatColor teamChatColor = getTeamChatColor(team);
+        int teamScore = getScore(team);
+        sidebarManager.updateLine(participant.getUniqueId(), "personalTeam", String.format("%s%s: %s", teamChatColor, displayName, teamScore));
+    }
+    
+    private void updatePersonalScore(Player participant) {
+        int score = getScore(participant.getUniqueId());
+        sidebarManager.updateLine(participant.getUniqueId(), "personalScore", String.format("%sPoints: %s", ChatColor.GOLD, score));
     }
 }

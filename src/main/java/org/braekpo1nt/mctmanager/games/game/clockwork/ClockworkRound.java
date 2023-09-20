@@ -8,6 +8,7 @@ import org.braekpo1nt.mctmanager.games.game.clockwork.config.ClockworkStorageUti
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -56,6 +57,10 @@ public class ClockworkRound implements Listener {
         this.chaosManager = new ChaosManager(plugin, storageUtil);
     }
     
+    public boolean isActive() {
+        return roundActive;
+    }
+    
     public void start(List<Player> newParticipants) {
         this.participants = new ArrayList<>(newParticipants.size());
         this.participantsAreAlive = new HashMap<>(newParticipants.size());
@@ -84,7 +89,6 @@ public class ClockworkRound implements Listener {
             teamsLivingMembers.put(team, 1);
         }
         participant.teleport(storageUtil.getStartingLocation());
-        initializeFastBoard(participant);
         participant.getInventory().clear();
         participant.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearStatusEffects(participant);
@@ -114,7 +118,6 @@ public class ClockworkRound implements Listener {
         participant.getInventory().clear();
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
-        hideFastBoard(participant);
     }
     
     private void cancelAllTasks() {
@@ -136,7 +139,7 @@ public class ClockworkRound implements Listener {
                     this.cancel();
                     return;
                 }
-                updateTimerFastBoard(String.format("Clock chimes in: %s",
+                gameManager.getSidebarManager().updateLine("timer", String.format("Clock chimes in: %s",
                         TimeStringUtils.getTimeString(count)));
                 count--;
             }
@@ -144,7 +147,7 @@ public class ClockworkRound implements Listener {
     }
     
     private void startClockChime() {
-        updateTimerFastBoard("");
+        gameManager.getSidebarManager().updateLine("timer", "Chiming...");
         this.numberOfChimes = random.nextInt(1, 13);
         this.clockChimeTaskId = new BukkitRunnable() {
             int count = numberOfChimes;
@@ -178,7 +181,7 @@ public class ClockworkRound implements Listener {
                     this.cancel();
                     return;
                 }
-                updateTimerFastBoard(String.format("Get to wedge! %s",
+                gameManager.getSidebarManager().updateLine("timer", String.format("Get to wedge! %s",
                         TimeStringUtils.getTimeString(count)));
                 count--;
             }
@@ -204,7 +207,7 @@ public class ClockworkRound implements Listener {
                     this.cancel();
                     return;
                 }
-                updateTimerFastBoard(String.format("Stay on wedge: %s",
+                gameManager.getSidebarManager().updateLine("timer", String.format("Stay on wedge: %s",
                         TimeStringUtils.getTimeString(count)));
                 count--;
             }
@@ -382,56 +385,7 @@ public class ClockworkRound implements Listener {
         }
         roundIsOver();
     }
-    
-    private void initializeFastBoard(Player participant) {
-        gameManager.getFastBoardManager().updateLine(
-                participant.getUniqueId(),
-                2,
-                ""
-        );
-        gameManager.getFastBoardManager().updateLine(
-                participant.getUniqueId(),
-                3,
-                ""
-        );
-    }
-    
-    private void updateTimerFastBoard(String time) {
-        for (Player participant : participants) {
-            updateTimerFastBoard(participant, time);
-        }
-    }
-    
-    private void updateTimerFastBoard(Player participant, String time) {
-        gameManager.getFastBoardManager().updateLine(
-                participant.getUniqueId(),
-                2,
-                time
-        );
-    }
-    
-    private void initializeAliveCountFastBoard(Player participant, String countLine) {
-        gameManager.getFastBoardManager().updateLine(
-                participant.getUniqueId(),
-                2,
-                countLine
-        );
-    }
-    
-    private void updateAliveCountFastBoard(Player participant, String countLine) {
-        gameManager.getFastBoardManager().updateLine(
-                participant.getUniqueId(),
-                2,
-                countLine
-        );
-    }
-    
-    private void hideFastBoard(Player participant) {
-        gameManager.getFastBoardManager().updateLines(
-                participant.getUniqueId()
-        );
-    }
-    
+
     private void setupTeamOptions() {
         Scoreboard mctScoreboard = gameManager.getMctScoreboard();
         for (Team team : mctScoreboard.getTeams()) {

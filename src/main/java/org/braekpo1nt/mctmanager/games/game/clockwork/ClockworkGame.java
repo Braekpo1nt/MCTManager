@@ -6,6 +6,7 @@ import org.braekpo1nt.mctmanager.games.game.clockwork.config.ClockworkStorageUti
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
+import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -14,6 +15,7 @@ import org.bukkit.scoreboard.Team;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class ClockworkGame implements MCTGame, Configurable {
     private final Main plugin;
@@ -52,6 +54,7 @@ public class ClockworkGame implements MCTGame, Configurable {
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
         }
+        initializeSidebar();
         setupTeamOptions();
         startNextRound();
         gameActive = true;
@@ -60,7 +63,6 @@ public class ClockworkGame implements MCTGame, Configurable {
     
     private void initializeParticipant(Player participant) {
         participants.add(participant);
-        initializeFastBoard(participant);
     }
     
     @Override
@@ -68,13 +70,16 @@ public class ClockworkGame implements MCTGame, Configurable {
         cancelAllTasks();
         if (currentRoundIndex < rounds.size()) {
             ClockworkRound currentRound = rounds.get(currentRoundIndex);
-            currentRound.stop();
+            if (currentRound.isActive()) {
+                currentRound.stop();
+            }
         }
         rounds.clear();
         gameActive = false;
         for (Player participant : participants) {
             resetParticipant(participant);
         }
+        gameManager.getSidebarManager().deleteAllLines();
         participants.clear();
         gameManager.gameIsOver();
         Bukkit.getLogger().info("Stopping Clockwork");
@@ -82,7 +87,6 @@ public class ClockworkGame implements MCTGame, Configurable {
     
     private void resetParticipant(Player participant) {
         participant.getInventory().clear();
-        hideFastBoard(participant);
     }
     
     public void roundIsOver() {
@@ -97,9 +101,7 @@ public class ClockworkGame implements MCTGame, Configurable {
     public void startNextRound() {
         ClockworkRound nextRound = rounds.get(currentRoundIndex);
         nextRound.start(participants);
-        for (Player participant : participants) {
-            updateRoundFastBoard(participant);
-        }
+        updateRoundFastBoard();
     }
     
     @Override
@@ -116,29 +118,28 @@ public class ClockworkGame implements MCTGame, Configurable {
         
     }
     
-    private void initializeFastBoard(Player participant) {
-        gameManager.getFastBoardManager().updateLines(
-                participant.getUniqueId(),
-                title, // 0
-                String.format("Round %d/%d", currentRoundIndex+1, rounds.size()), // 1
-                "", // number of players left // 2
-                "", // countdown // 3
-                "" // 4
+    private void initializeSidebar() {
+        gameManager.getSidebarManager().addLines(
+                new KeyLine("round", String.format("Round %d/%d", currentRoundIndex+1, rounds.size())),
+                new KeyLine("title", title),
+                new KeyLine("playerCount", ""),
+                new KeyLine("timer", "")
         );
     }
     
-    private void updateRoundFastBoard(Player participant) {
-        gameManager.getFastBoardManager().updateLine(
-                participant.getUniqueId(),
-                1,
-                String.format("Round %d/%d", currentRoundIndex+1, rounds.size())
-        );
+    private void updateScoreSidebar(Player participant) {
+        UUID playerUUID = participant.getUniqueId();
+        String teamName = gameManager.getTeamName(playerUUID);
+        String teamDisplayName = gameManager.getTeamDisplayName(teamName);
+        ChatColor teamChatColor = gameManager.getTeamChatColor(teamName);
+        int teamScore = gameManager.getScore(teamName);
+        int playerScore = gameManager.getScore(playerUUID);
+        gameManager.getSidebarManager().updateLine(playerUUID, "team", String.format("%s%s: %s", teamChatColor, teamDisplayName, teamScore));
+        gameManager.getSidebarManager().updateLine(playerUUID, "points", String.format("%sPoints: %s", ChatColor.GOLD, playerScore));
     }
     
-    private void hideFastBoard(Player participant) {
-        gameManager.getFastBoardManager().updateLines(
-                participant.getUniqueId()
-        );
+    private void updateRoundFastBoard() {
+        gameManager.getSidebarManager().updateLine("round", String.format("Round %d/%d", currentRoundIndex+1, rounds.size()));
     }
     
     private void setupTeamOptions() {

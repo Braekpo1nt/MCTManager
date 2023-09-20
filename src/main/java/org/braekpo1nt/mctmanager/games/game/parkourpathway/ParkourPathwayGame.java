@@ -10,6 +10,7 @@ import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.config.ParkourPathwayStorageUtil;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
+import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
@@ -80,6 +81,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener {
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
         }
+        initializeSidebar();
         startStatusEffectsTask();
         setupTeamOptions();
         startStartGameCountDown();
@@ -101,9 +103,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener {
                     return;
                 }
                 String timeLeft = TimeStringUtils.getTimeString(count);
-                for (Player participant : participants) {
-                    updateCountDownFastBoard(participant, timeLeft);
-                }
+                gameManager.getSidebarManager().updateLine("timer", String.format("Starting: %s", timeLeft));
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -122,7 +122,6 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener {
         UUID participantUniqueId = participant.getUniqueId();
         participants.add(participant);
         currentCheckpoints.put(participantUniqueId, 0);
-        initializeFastBoard(participant);
         teleportPlayerToStartingPosition(participant);
         participant.getInventory().clear();
         giveBoots(participant);
@@ -133,7 +132,6 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener {
 
     private void resetParticipant(Player participant) {
         participant.getInventory().clear();
-        hideFastBoard(participant);
     }
     
     @Override
@@ -143,6 +141,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener {
         for (Player participant : participants) {
             resetParticipant(participant);
         }
+        clearSidebar();
         participants.clear();
         finishedParticipants.clear();
         gameActive = false;
@@ -203,7 +202,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener {
         if (nextCheckpoint.boundingBox().contains(player.getLocation().toVector())) {
             // Player got to the next checkpoint
             currentCheckpoints.put(playerUUID, nextCheckpointIndex);
-            updateCheckpointFastBoard(player);
+            updateCheckpointSidebar(player);
             if (nextCheckpointIndex >= storageUtil.getCheckPoints().size()-1) {
                 onParticipantFinish(player);
             } else {
@@ -295,9 +294,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener {
     
     private void restartCheckpointCounter() {
         Bukkit.getScheduler().cancelTask(this.checkpointCounterTask);
-        for (Player participant : participants){
-            resetCheckpointFastBoardTimer(participant);
-        }
+        gameManager.getSidebarManager().updateLine("ending", "");
         int checkpointCounter = storageUtil.getCheckpointCounterDuration();
         int checkpointCounterAlert = storageUtil.getCheckpointCounterAlertDuration();
         this.checkpointCounterTask = new BukkitRunnable() {
@@ -324,9 +321,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener {
                 }
                 if (count <= checkpointCounterAlert) {
                     String timeString = TimeStringUtils.getTimeString(count);
-                    for (Player participant : participants){
-                        updateCheckpointFastBoardTimer(participant, timeString);
-                    }
+                    gameManager.getSidebarManager().updateLine("ending", String.format("%sEnding in: %s", ChatColor.RED, timeString));
                 }
                 count--;
             }
@@ -345,9 +340,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener {
                     return;
                 }
                 String timeString = TimeStringUtils.getTimeString(count);
-                for (Player participant : participants){
-                    updateParkourPathwayFastBoardTimer(participant, timeString);
-                }
+                gameManager.getSidebarManager().updateLine("timer", timeString);
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -401,75 +394,23 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener {
         Bukkit.getScheduler().cancelTask(startParkourPathwayTaskId);
     }
 
-    private void initializeFastBoard(Player participant) {
-        gameManager.getFastBoardManager().updateLines(
-                participant.getUniqueId(),
-                title,
-                "", //timer
-                "",
-                "0/" + (storageUtil.getCheckPoints().size()-1),
-                "",
-                "",
-                ""
+    private void initializeSidebar() {
+        gameManager.getSidebarManager().addLines(
+                new KeyLine("title", title),
+                new KeyLine("timer", ""),
+                new KeyLine("checkpoint", String.format("0/%s", storageUtil.getCheckPoints().size() - 1)),
+                new KeyLine("ending", "")
         );
     }
     
-    private void updateCountDownFastBoard(Player participant, String timeLeft) {
-        gameManager.getFastBoardManager().updateLine(
-                participant.getUniqueId(),
-                1,
-                "Starting: "+timeLeft
-        );
-    }
-    
-    private void updateParkourPathwayFastBoardTimer(Player participant, String timerString) {
-        gameManager.getFastBoardManager().updateLine(
-                participant.getUniqueId(),
-                1,
-                timerString
-        );
-    }
-    
-    private void updateCheckpointFastBoardTimer(Player participant, String timerString) {
-        gameManager.getFastBoardManager().updateLine(
-                participant.getUniqueId(),
-                5,
-                ChatColor.RED+"Ending in:"
-        );
-        gameManager.getFastBoardManager().updateLine(
-                participant.getUniqueId(),
-                6,
-                ChatColor.RED+timerString
-        );
-    }
-    
-    private void resetCheckpointFastBoardTimer(Player participant) {
-        gameManager.getFastBoardManager().updateLine(
-                participant.getUniqueId(),
-                5,
-                ""
-        );
-        gameManager.getFastBoardManager().updateLine(
-                participant.getUniqueId(),
-                6,
-                ""
-        );
-    }
-    
-    private void updateCheckpointFastBoard(Player participant) {
+    private void updateCheckpointSidebar(Player participant) {
         int currentCheckpoint = currentCheckpoints.get(participant.getUniqueId());
         int lastCheckpoint = storageUtil.getCheckPoints().size()-1;
-        gameManager.getFastBoardManager().updateLine(
-                participant.getUniqueId(),
-                3,
-                currentCheckpoint + "/" + lastCheckpoint
-        );
+        gameManager.getSidebarManager().updateLine("checkpoint", String.format("%s/%s", currentCheckpoint, lastCheckpoint));
     }
 
-    private void hideFastBoard(Player participant) {
-        gameManager.getFastBoardManager().updateLines(
-                participant.getUniqueId()
-        );
+    private void clearSidebar() {
+        gameManager.getSidebarManager().deleteLines("title", "timer", "checkpoint", "ending");
     }
 
     private void messageAllParticipants(Component message) {

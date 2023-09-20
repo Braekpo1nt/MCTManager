@@ -1,6 +1,7 @@
-package org.braekpo1nt.mctmanager.ui;
+package org.braekpo1nt.mctmanager.ui.sidebar;
 
 import fr.mrmicky.fastboard.FastBoard;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 /**
@@ -18,7 +19,12 @@ public class FastBoardWrapper {
      * @param player the owner of the scoreboard
      */
     public void setPlayer(Player player) {
-        this.board = new FastBoard(player);
+        try {
+            this.board = new FastBoard(player);
+        } catch (ExceptionInInitializerError e) {
+            Bukkit.getLogger().severe(String.format("Critical error, unable to add player to FastBoardWrapper. Failing gracefully, see below for details. \n%s", e.getMessage()));
+            e.printStackTrace();
+        }
     }
     
     /**
