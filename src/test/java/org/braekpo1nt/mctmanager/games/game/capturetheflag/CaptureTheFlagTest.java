@@ -11,7 +11,7 @@ import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlagStorageUtil;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.gamestate.MockGameStateStorageUtil;
-import org.braekpo1nt.mctmanager.ui.MockFastBoardManager;
+import org.braekpo1nt.mctmanager.ui.sidebar.MockSidebarManager;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.junit.jupiter.api.*;
@@ -28,7 +28,7 @@ class CaptureTheFlagTest {
     private ServerMock server;
     private Main plugin;
     private CommandSender sender;
-    private MockFastBoardManager mockFastBoardManager;
+    private MockSidebarManager mockSidebarManager;
     private GameManager gameManager;
     
     
@@ -44,8 +44,8 @@ class CaptureTheFlagTest {
             System.exit(1);
         }
         gameManager = plugin.getGameManager();
-        mockFastBoardManager = new MockFastBoardManager();
-//        gameManager.setFastBoardManager(mockFastBoardManager);
+        mockSidebarManager = new MockSidebarManager();
+        gameManager.setSidebarManager(mockSidebarManager);
         MockGameStateStorageUtil mockGameStateStorageUtil = new MockGameStateStorageUtil(plugin);
         gameManager.setGameStateStorageUtil(mockGameStateStorageUtil);
         sender = server.getConsoleSender();
@@ -133,7 +133,7 @@ class CaptureTheFlagTest {
             Assertions.assertTrue(player1.receivedMessagePlaintext("Red is competing against Blue this round."));
             Assertions.assertTrue(player2.receivedMessagePlaintext("Blue is competing against Red this round."));
             Assertions.assertTrue(player3.receivedMessagePlaintext("Green is not competing in this round. Their next round is 1"));
-            mockFastBoardManager.assertLine(player3.getUniqueId(), 1, "On Deck");
+            mockSidebarManager.assertLine(player3.getUniqueId(), 1, "On Deck");
         } catch (UnimplementedOperationException ex) {
             ex.printStackTrace();
             Assertions.fail(ex.getMessage());
@@ -407,9 +407,9 @@ class CaptureTheFlagTest {
             List<Player> onDeckParticipants = currentRound.getOnDeckParticipants();
             Assertions.assertEquals(1, onDeckParticipants.size());
             Assertions.assertTrue(onDeckParticipants.contains(player3));
-            mockFastBoardManager.assertLine(player1.getUniqueId(), 2, "Round 1/3");
-            mockFastBoardManager.assertLine(player2.getUniqueId(), 2, "Round 1/3");
-            mockFastBoardManager.assertLine(player3.getUniqueId(), 2, "Round 1/3");
+            mockSidebarManager.assertLine(player1.getUniqueId(), 2, "Round 1/3");
+            mockSidebarManager.assertLine(player2.getUniqueId(), 2, "Round 1/3");
+            mockSidebarManager.assertLine(player3.getUniqueId(), 2, "Round 1/3");
             
             player3.disconnect();
     
@@ -419,8 +419,8 @@ class CaptureTheFlagTest {
             Assertions.assertSame(currentRound, currentRoundAfterDisconnect);
             Assertions.assertEquals(2, currentRoundAfterDisconnect.getParticipants().size());
             Assertions.assertEquals(0, currentRoundAfterDisconnect.getOnDeckParticipants().size());
-            mockFastBoardManager.assertLine(player1.getUniqueId(), 2, "Round 1/1");
-            mockFastBoardManager.assertLine(player2.getUniqueId(), 2, "Round 1/1");
+            mockSidebarManager.assertLine(player1.getUniqueId(), 2, "Round 1/1");
+            mockSidebarManager.assertLine(player2.getUniqueId(), 2, "Round 1/1");
             
         } catch (UnimplementedOperationException ex) {
             ex.printStackTrace();
@@ -920,21 +920,21 @@ class CaptureTheFlagTest {
         gameManager.startGame(GameType.CAPTURE_THE_FLAG, sender);
         
         speedThroughHalfRoundCountdown();
-        mockFastBoardManager.assertLine(player1.getUniqueId(), 5, "0:05");
-        mockFastBoardManager.assertLine(player2.getUniqueId(), 5, "0:05");
-        mockFastBoardManager.assertLine(player3.getUniqueId(), 5, "0:05");
+        mockSidebarManager.assertLine(player1.getUniqueId(), 5, "0:05");
+        mockSidebarManager.assertLine(player2.getUniqueId(), 5, "0:05");
+        mockSidebarManager.assertLine(player3.getUniqueId(), 5, "0:05");
         speedThroughHalfRoundCountdown();
         
         speedThroughHalfClassSelection();
-        mockFastBoardManager.assertLine(player1.getUniqueId(), 5, "0:10");
-        mockFastBoardManager.assertLine(player2.getUniqueId(), 5, "0:10");
-        mockFastBoardManager.assertLine(player3.getUniqueId(), 5, "0:10");
+        mockSidebarManager.assertLine(player1.getUniqueId(), 5, "0:10");
+        mockSidebarManager.assertLine(player2.getUniqueId(), 5, "0:10");
+        mockSidebarManager.assertLine(player3.getUniqueId(), 5, "0:10");
         speedThroughHalfClassSelection();
         
         speedThroughHalfRound();
-        mockFastBoardManager.assertLine(player1.getUniqueId(), 5, "1:30");
-        mockFastBoardManager.assertLine(player2.getUniqueId(), 5, "1:30");
-        mockFastBoardManager.assertLine(player3.getUniqueId(), 5, "1:30");
+        mockSidebarManager.assertLine(player1.getUniqueId(), 5, "1:30");
+        mockSidebarManager.assertLine(player2.getUniqueId(), 5, "1:30");
+        mockSidebarManager.assertLine(player3.getUniqueId(), 5, "1:30");
     }
     
 }

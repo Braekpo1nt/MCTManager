@@ -52,7 +52,7 @@ public class GameManager implements Listener {
     private final CaptureTheFlagGame captureTheFlagGame;
     private final ClockworkGame clockworkGame;
     private final HubManager hubManager;
-    private final SidebarManager sidebarManager;
+    private SidebarManager sidebarManager;
     private GameStateStorageUtil gameStateStorageUtil;
     /**
      * Scoreboard for holding the teams. This private scoreboard can't be
@@ -958,5 +958,9 @@ public class GameManager implements Listener {
     
     public MCTGame getActiveGame() {
         return activeGame;
+    }
+    
+    public void setSidebarManager(SidebarManager sidebarManager) {
+        this.sidebarManager = sidebarManager;
     }
 }
