@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.ui;
 
 import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
+import org.braekpo1nt.mctmanager.ui.sidebar.SidebarManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -12,7 +13,9 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Responsible for displaying the MCT sidebar FastBoard
  * Utilizes the <a href="https://github.com/MrMicky-FR/FastBoard">FastBoard api</a>
+ * @deprecated This is deprecated in favor of {@link SidebarManager}
  */
+@Deprecated
 public class FastBoardManager {
     
     public static final String DEFAULT_TITLE = ChatColor.BOLD + "" + ChatColor.DARK_RED + "MCT";
