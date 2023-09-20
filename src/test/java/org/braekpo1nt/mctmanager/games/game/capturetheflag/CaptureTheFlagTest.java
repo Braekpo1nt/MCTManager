@@ -133,7 +133,7 @@ class CaptureTheFlagTest {
             Assertions.assertTrue(player1.receivedMessagePlaintext("Red is competing against Blue this round."));
             Assertions.assertTrue(player2.receivedMessagePlaintext("Blue is competing against Red this round."));
             Assertions.assertTrue(player3.receivedMessagePlaintext("Green is not competing in this round. Their next round is 1"));
-            mockSidebarManager.assertLine(player3.getUniqueId(), 1, "On Deck");
+            mockSidebarManager.assertLine(player3.getUniqueId(), "enemy", "On Deck");
         } catch (UnimplementedOperationException ex) {
             ex.printStackTrace();
             Assertions.fail(ex.getMessage());
@@ -407,9 +407,9 @@ class CaptureTheFlagTest {
             List<Player> onDeckParticipants = currentRound.getOnDeckParticipants();
             Assertions.assertEquals(1, onDeckParticipants.size());
             Assertions.assertTrue(onDeckParticipants.contains(player3));
-            mockSidebarManager.assertLine(player1.getUniqueId(), 2, "Round 1/3");
-            mockSidebarManager.assertLine(player2.getUniqueId(), 2, "Round 1/3");
-            mockSidebarManager.assertLine(player3.getUniqueId(), 2, "Round 1/3");
+            mockSidebarManager.assertLine(player1.getUniqueId(), "round", "Round 1/3");
+            mockSidebarManager.assertLine(player2.getUniqueId(), "round", "Round 1/3");
+            mockSidebarManager.assertLine(player3.getUniqueId(), "round", "Round 1/3");
             
             player3.disconnect();
     
@@ -419,8 +419,8 @@ class CaptureTheFlagTest {
             Assertions.assertSame(currentRound, currentRoundAfterDisconnect);
             Assertions.assertEquals(2, currentRoundAfterDisconnect.getParticipants().size());
             Assertions.assertEquals(0, currentRoundAfterDisconnect.getOnDeckParticipants().size());
-            mockSidebarManager.assertLine(player1.getUniqueId(), 2, "Round 1/1");
-            mockSidebarManager.assertLine(player2.getUniqueId(), 2, "Round 1/1");
+            mockSidebarManager.assertLine(player1.getUniqueId(), "round", "Round 1/1");
+            mockSidebarManager.assertLine(player2.getUniqueId(), "round", "Round 1/1");
             
         } catch (UnimplementedOperationException ex) {
             ex.printStackTrace();
@@ -920,21 +920,21 @@ class CaptureTheFlagTest {
         gameManager.startGame(GameType.CAPTURE_THE_FLAG, sender);
         
         speedThroughHalfRoundCountdown();
-        mockSidebarManager.assertLine(player1.getUniqueId(), 5, "0:05");
-        mockSidebarManager.assertLine(player2.getUniqueId(), 5, "0:05");
-        mockSidebarManager.assertLine(player3.getUniqueId(), 5, "0:05");
+        mockSidebarManager.assertLine(player1.getUniqueId(), "timer", "Starting: 0:05");
+        mockSidebarManager.assertLine(player2.getUniqueId(), "timer", "Starting: 0:05");
+        mockSidebarManager.assertLine(player3.getUniqueId(), "timer", "Starting: 0:05");
         speedThroughHalfRoundCountdown();
         
         speedThroughHalfClassSelection();
-        mockSidebarManager.assertLine(player1.getUniqueId(), 5, "0:10");
-        mockSidebarManager.assertLine(player2.getUniqueId(), 5, "0:10");
-        mockSidebarManager.assertLine(player3.getUniqueId(), 5, "0:10");
+        mockSidebarManager.assertLine(player1.getUniqueId(), "timer", "Class selection: 0:10");
+        mockSidebarManager.assertLine(player2.getUniqueId(), "timer", "Class selection: 0:10");
+        mockSidebarManager.assertLine(player3.getUniqueId(), "timer", "Class selection: 0:10");
         speedThroughHalfClassSelection();
         
         speedThroughHalfRound();
-        mockSidebarManager.assertLine(player1.getUniqueId(), 5, "1:30");
-        mockSidebarManager.assertLine(player2.getUniqueId(), 5, "1:30");
-        mockSidebarManager.assertLine(player3.getUniqueId(), 5, "1:30");
+        mockSidebarManager.assertLine(player1.getUniqueId(), "timer", "Round: 1:30");
+        mockSidebarManager.assertLine(player2.getUniqueId(), "timer", "Round: 1:30");
+        mockSidebarManager.assertLine(player3.getUniqueId(), "timer", "Round: 1:30");
     }
     
 }

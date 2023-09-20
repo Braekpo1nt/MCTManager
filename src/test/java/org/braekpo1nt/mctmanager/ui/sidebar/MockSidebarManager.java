@@ -8,7 +8,6 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Assertions;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -28,18 +27,11 @@ public class MockSidebarManager extends SidebarManager {
         boardsLines.put(player.getUniqueId(), lines);
     }
     
-    public void assertLines(UUID playerUniqueId, String... expectedLines) {
+    public void assertLine(UUID playerUniqueId, String key, String expectedText) {
         MockFastBoardWrapper board = (MockFastBoardWrapper) boards.get(playerUniqueId);
         Assertions.assertNotNull(board);
-        String[] lines = board.getLines();
-        Assertions.assertEquals(expectedLines, Arrays.copyOfRange(lines, 2, lines.length));
-    }
-    
-    public void assertLine(UUID playerUniqueId, int line, String expectedText) {
-        MockFastBoardWrapper board = (MockFastBoardWrapper) boards.get(playerUniqueId);
-        Assertions.assertNotNull(board);
-        int subLine = line + 2;
-        String text = board.getLine(subLine);
+        int index = keyToIndex.get(key);
+        String text = board.getLine(index);
         Assertions.assertEquals(expectedText, text);
     }
 }

@@ -119,13 +119,13 @@ public class GameManager implements Listener {
      */
     private void onParticipantQuit(@NotNull Player participant) {
         onlineParticipants.remove(participant);
+        sidebarManager.removePlayer(participant.getUniqueId());
         if (gameIsRunning()) {
             activeGame.onParticipantQuit(participant);
             participantsWhoLeftMidGame.add(participant.getUniqueId());
             return;
         }
         hubManager.onParticipantQuit(participant);
-        sidebarManager.removePlayer(participant.getUniqueId());
     }
     
     @EventHandler
