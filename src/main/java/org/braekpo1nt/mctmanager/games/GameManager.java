@@ -983,6 +983,7 @@ public class GameManager implements Listener {
     
     public void setSidebarManager(SidebarManager sidebarManager) {
         this.sidebarManager = sidebarManager;
+        initializePersonalSidebar();
     }
     
     private void initializePersonalSidebar() {
