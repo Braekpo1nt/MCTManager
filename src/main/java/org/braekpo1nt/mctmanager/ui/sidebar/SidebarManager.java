@@ -100,7 +100,7 @@ public class SidebarManager {
     public synchronized void addLine(@NotNull String key, int index, @NotNull String contents) {
         Preconditions.checkArgument(!keyToIndex.containsKey(key), "can't add a line with an existing key (%s)", key);
         Preconditions.checkArgument(index >= 0, "index (%s) can't be negative", index);
-        Preconditions.checkArgument(index < size, "index (%s) can't be greater than or equal to the size (%s) of the Sidebar", index, size);
+        Preconditions.checkArgument(index <= size, "index (%s) can't be greater than the size (%s) of the Sidebar", index, size);
         size++;
         for (String existingKey : keyToIndex.keySet()) {
             int oldIndex = keyToIndex.get(existingKey);

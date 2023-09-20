@@ -89,6 +89,7 @@ public class GameManager implements Listener {
         this.captureTheFlagGame = new CaptureTheFlagGame(plugin, this);
         this.clockworkGame = new ClockworkGame(plugin, this);
         this.sidebarManager = new SidebarManager();
+        initializePersonalSidebar();
         this.hubManager = new HubManager(plugin, mctScoreboard, this);
         this.eventManager = new EventManager(plugin, this, voteManager);
     }
@@ -155,6 +156,8 @@ public class GameManager implements Listener {
     private void onParticipantJoin(@NotNull Player participant) {
         onlineParticipants.add(participant);
         sidebarManager.addPlayer(participant);
+        updateTeamScore(participant);
+        updatePersonalScore(participant);
         if (gameIsRunning()) {
             activeGame.onParticipantJoin(participant);
             return;
@@ -648,12 +651,14 @@ public class GameManager implements Listener {
         addScore(teamName, multipliedPoints);
         eventManager.trackPoints(participantUUID, multipliedPoints, activeGame.getType());
         eventManager.trackPoints(teamName, multipliedPoints, activeGame.getType());
-        
+    
         participant.sendMessage(Component.text("+")
                 .append(Component.text(multipliedPoints))
                 .append(Component.text(" points"))
                 .decorate(TextDecoration.BOLD)
                 .color(NamedTextColor.GOLD));
+        updateTeamScore(participant);
+        updatePersonalScore(participant);
     }
     
     /**
@@ -680,6 +685,7 @@ public class GameManager implements Listener {
                     .append(displayName)
                     .decorate(TextDecoration.BOLD)
                     .color(NamedTextColor.GOLD));
+            updateTeamScore(playerOnTeam);
         }
     }
     
@@ -762,12 +768,16 @@ public class GameManager implements Listener {
     
     /**
      * Adds the given score to the participant with the given UUID
-     * @param participantUniqueId The UUID of the participant to add the score to
+     * @param participantUUID The UUID of the participant to add the score to
      * @param score The score to add. Could be positive or negative.
      */
-    public void addScore(UUID participantUniqueId, int score) {
+    public void addScore(UUID participantUUID, int score) {
         try {
-            gameStateStorageUtil.addScore(participantUniqueId, score);
+            gameStateStorageUtil.addScore(participantUUID, score);
+            Player participant = Bukkit.getPlayer(participantUUID);
+            if (participant != null && onlineParticipants.contains(participant)) {
+                updatePersonalScore(participant);
+            }
         } catch (IOException e) {
             reportGameStateIOException("adding score to player", e);
         }
@@ -781,6 +791,10 @@ public class GameManager implements Listener {
     public void addScore(String teamName, int score) {
         try {
             gameStateStorageUtil.addScore(teamName, score);
+            gameStateStorageUtil.setScore(teamName, score);
+            for (Player participant : getOnlinePlayersOnTeam(teamName)) {
+                updateTeamScore(participant);
+            }
         } catch (IOException e) {
             reportGameStateIOException("adding score to team", e);
         }
@@ -788,16 +802,20 @@ public class GameManager implements Listener {
     
     /**
      * Sets the score of the participant with the given UUID to the given value
-     * @param participantUniqueId The UUID of the participant to set the score to
+     * @param participantUUID The UUID of the participant to set the score to
      * @param score The score to set to. If the score is negative, the score will be set to 0.
      */
-    public void setScore(UUID participantUniqueId, int score) {
+    public void setScore(UUID participantUUID, int score) {
         try {
             if (score < 0) {
-                gameStateStorageUtil.setScore(participantUniqueId, 0);
+                gameStateStorageUtil.setScore(participantUUID, 0);
                 return;
             }
-            gameStateStorageUtil.setScore(participantUniqueId, score);
+            gameStateStorageUtil.setScore(participantUUID, score);
+            Player participant = Bukkit.getPlayer(participantUUID);
+            if (participant != null && onlineParticipants.contains(participant)) {
+                updatePersonalScore(participant);
+            }
         } catch (IOException e) {
             reportGameStateIOException("setting a player's score", e);
         }
@@ -815,6 +833,9 @@ public class GameManager implements Listener {
                 return;
             }
             gameStateStorageUtil.setScore(teamName, score);
+            for (Player participant : getOnlinePlayersOnTeam(teamName)) {
+                updateTeamScore(participant);
+            }
         } catch (IOException e) {
             reportGameStateIOException("adding score to team", e);
         }
@@ -962,5 +983,23 @@ public class GameManager implements Listener {
     
     public void setSidebarManager(SidebarManager sidebarManager) {
         this.sidebarManager = sidebarManager;
+    }
+    
+    private void initializePersonalSidebar() {
+        sidebarManager.addLine("personalTeam", 0, "");
+        sidebarManager.addLine("personalScore", 1, "");
+    }
+    
+    private void updateTeamScore(Player participant) {
+        String team = getTeamName(participant.getUniqueId());
+        String displayName = getTeamDisplayName(team);
+        ChatColor teamChatColor = getTeamChatColor(team);
+        int teamScore = getScore(team);
+        sidebarManager.updateLine(participant.getUniqueId(), "personalTeam", String.format("%s%s: %s", teamChatColor, displayName, teamScore));
+    }
+    
+    private void updatePersonalScore(Player participant) {
+        int score = getScore(participant.getUniqueId());
+        sidebarManager.updateLine(participant.getUniqueId(), "personalScore", String.format("%sPoints: %s", ChatColor.GOLD, score));
     }
 }
