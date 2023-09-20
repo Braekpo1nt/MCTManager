@@ -1,4 +1,4 @@
-package org.braekpo1nt.mctmanager.ui;
+package org.braekpo1nt.mctmanager.ui.sidebar;
 
 import fr.mrmicky.fastboard.FastBoard;
 import org.bukkit.Bukkit;

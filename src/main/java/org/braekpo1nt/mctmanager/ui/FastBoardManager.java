@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.ui;
 
 import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
+import org.braekpo1nt.mctmanager.ui.sidebar.FastBoardWrapper;
 import org.braekpo1nt.mctmanager.ui.sidebar.SidebarManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;

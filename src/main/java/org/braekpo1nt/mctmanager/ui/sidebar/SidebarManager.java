@@ -1,13 +1,11 @@
 package org.braekpo1nt.mctmanager.ui.sidebar;
 
 import com.google.common.base.Preconditions;
-import org.braekpo1nt.mctmanager.ui.FastBoardWrapper;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
-import java.util.stream.Stream;
 
 public class SidebarManager {
 

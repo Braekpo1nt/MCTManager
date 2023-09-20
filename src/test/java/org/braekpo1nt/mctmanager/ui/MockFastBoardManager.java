@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.ui;
 
+import org.braekpo1nt.mctmanager.ui.sidebar.MockFastBoardWrapper;
 import org.bukkit.entity.Player;
 import org.junit.jupiter.api.Assertions;
 

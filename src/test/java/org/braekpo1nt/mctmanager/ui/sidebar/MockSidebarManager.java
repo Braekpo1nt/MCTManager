@@ -1,8 +1,6 @@
 package org.braekpo1nt.mctmanager.ui.sidebar;
 
 import com.google.common.base.Preconditions;
-import org.braekpo1nt.mctmanager.ui.FastBoardWrapper;
-import org.braekpo1nt.mctmanager.ui.MockFastBoardWrapper;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Assertions;
