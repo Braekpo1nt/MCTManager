@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.commands.game;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.braekpo1nt.mctmanager.commands.CommandUtils;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.bukkit.command.Command;
@@ -23,13 +24,29 @@ public class VoteSubCommand implements TabExecutor {
     
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (args.length == 0) {
-            sender.sendMessage(Component.text("Usage: /mct game vote [one or more games]")
+        if (args.length < 2) {
+            sender.sendMessage(Component.text("Usage: /mct game vote <duration> <one or more games...>")
+                    .color(NamedTextColor.RED));
+            return true;
+        }
+        String durationString = args[0];
+        if (!CommandUtils.isInteger(durationString)) {
+            sender.sendMessage(Component.text("Duration ")
+                    .append(Component.text(durationString)
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(" is not an integer"))
+                    .color(NamedTextColor.RED));
+            return true;
+        }
+        int duration = Integer.parseInt(durationString);
+        if (duration <= 0) {
+            sender.sendMessage(Component.text("Duration must be greater than 0")
                     .color(NamedTextColor.RED));
             return true;
         }
         List<GameType> votingPool = new ArrayList<>();
-        for (String gameID : args) {
+        for (int i = 1; i < args.length; i++) {
+            String gameID = args[i];
             GameType gameType = GameType.fromID(gameID);
             if (gameType == null) {
                 sender.sendMessage(Component.empty()
@@ -41,7 +58,7 @@ public class VoteSubCommand implements TabExecutor {
             }
             votingPool.add(gameType);
         }
-        gameManager.manuallyStartVote(sender, votingPool);
+        gameManager.manuallyStartVote(sender, votingPool, duration);
         return true;
     }
 

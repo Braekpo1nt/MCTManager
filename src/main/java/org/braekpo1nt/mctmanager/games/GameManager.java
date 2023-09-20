@@ -215,7 +215,7 @@ public class GameManager implements Listener {
      * @param sender The sender of the command
      * @param votingPool The games to vote between
      */
-    public void manuallyStartVote(@NotNull CommandSender sender, List<GameType> votingPool) {
+    public void manuallyStartVote(@NotNull CommandSender sender, List<GameType> votingPool, int duration) {
         if (onlineParticipants.isEmpty()) {
             sender.sendMessage(Component.text("There are no online participants. You can add participants using:\n")
                     .append(Component.text("/mct team join <team> <member>")
@@ -223,7 +223,7 @@ public class GameManager implements Listener {
                             .clickEvent(ClickEvent.suggestCommand("/mct team join "))));
             return;
         }
-        voteManager.startVote(onlineParticipants, votingPool, 60, this::startGameWithDelay);
+        voteManager.startVote(onlineParticipants, votingPool, duration, this::startGameWithDelay);
     }
     
     /**
