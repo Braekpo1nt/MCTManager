@@ -5,6 +5,7 @@ import com.onarandombox.MultiverseCore.utils.AnchorManager;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.bukkit.*;
@@ -24,7 +25,7 @@ import org.bukkit.scoreboard.Team;
 import java.util.ArrayList;
 import java.util.List;
 
-public class HubManager implements Listener {
+public class HubManager implements Listener, Configurable {
     
     private final PotionEffect RESISTANCE = new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 70, 200, true, false, false);
     private final PotionEffect REGENERATION = new PotionEffect(PotionEffectType.REGENERATION, 70, 200, true, false, false);
@@ -256,5 +257,10 @@ public class HubManager implements Listener {
         for (Player participant : participants) {
             participant.sendMessage(message);
         }
+    }
+    
+    @Override
+    public boolean loadConfig() throws IllegalArgumentException {
+        return storageUtil.loadConfig();
     }
 }
