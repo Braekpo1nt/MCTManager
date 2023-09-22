@@ -14,6 +14,7 @@ import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.voting.VoteManager;
 import org.braekpo1nt.mctmanager.ui.FastBoardManager;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
+import org.braekpo1nt.mctmanager.ui.sidebar.SidebarManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
@@ -144,7 +145,7 @@ public class EventManager {
         }
         clearSidebar();
         currentState = null;
-        gameManager.getSidebarManager().updateTitle(FastBoardManager.DEFAULT_TITLE);
+        gameManager.getSidebarManager().updateTitle(SidebarManager.DEFAULT_TITLE);
         cancelAllTasks();
         scoreKeepers.clear();
         currentGameNumber = 0;
@@ -380,7 +381,8 @@ public class EventManager {
         gameManager.returnAllParticipantsToHub();
         double scoreMultiplier = this.matchProgressPointMultiplier();
         gameManager.messageOnlineParticipants(Component.text("Score multiplier: ")
-                .append(Component.text(scoreMultiplier)));
+                .append(Component.text(scoreMultiplier))
+                .color(NamedTextColor.GOLD));
         this.waitingInHubTaskId = new BukkitRunnable() {
             int count = storageUtil.getWaitingInHubDuration();
             @Override

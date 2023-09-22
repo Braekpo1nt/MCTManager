@@ -90,7 +90,7 @@ public class GameManager implements Listener {
         this.clockworkGame = new ClockworkGame(plugin, this);
         this.sidebarManager = new SidebarManager();
         initializePersonalSidebar();
-        this.hubManager = new HubManager(plugin, mctScoreboard, this);
+        this.hubManager = new HubManager(plugin, this);
         this.eventManager = new EventManager(plugin, this, voteManager);
     }
     
@@ -176,6 +176,15 @@ public class GameManager implements Listener {
     
     public SidebarManager getSidebarManager() {
         return sidebarManager;
+    }
+    
+    /**
+     * Load the hub config
+     * @return true if the config succeeded in loaded
+     * @throws IllegalArgumentException if any problem occurred loading the hub config
+     */
+    public boolean loadHubConfig() throws IllegalArgumentException {
+        return hubManager.loadConfig();
     }
     
     public boolean loadGameState() {
@@ -632,14 +641,14 @@ public class GameManager implements Listener {
     public String getTeamName(UUID playerUniqueId) {
         return gameStateStorageUtil.getPlayerTeamName(playerUniqueId);
     }
-
+    
     /**
      * Awards points to the participant and their team and announces to that participant how many points they received. 
      * If the participant does not exist, nothing happens.
      * @param participant The participant to award points to
      * @param points The points to award to the participant
      */
-
+    
     public void awardPointsToParticipant(Player participant, int points) {
         UUID participantUUID = participant.getUniqueId();
         if (!gameStateStorageUtil.containsPlayer(participantUUID)) {

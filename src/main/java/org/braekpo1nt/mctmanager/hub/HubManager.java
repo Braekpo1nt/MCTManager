@@ -1,42 +1,33 @@
 package org.braekpo1nt.mctmanager.hub;
 
-import com.onarandombox.MultiverseCore.api.MVWorldManager;
-import com.onarandombox.MultiverseCore.utils.AnchorManager;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
+import org.braekpo1nt.mctmanager.hub.config.HubStorageUtil;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class HubManager implements Listener {
+public class HubManager implements Listener, Configurable {
     
-    private final PotionEffect RESISTANCE = new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 70, 200, true, false, false);
-    private final PotionEffect REGENERATION = new PotionEffect(PotionEffectType.REGENERATION, 70, 200, true, false, false);
-    private final PotionEffect FIRE_RESISTANCE = new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 70, 1, true, false, false);
-    private final PotionEffect SATURATION = new PotionEffect(PotionEffectType.SATURATION, 70, 250, true, false, false);
-    private final World hubWorld;
     private final Main plugin;
-    private final Scoreboard mctScoreboard;
     private final GameManager gameManager;
+    private final HubStorageUtil storageUtil;
     private int returnToHubTaskId;
-    private final Location observePedestalLocation;
-    private final Location pedestalLocation;
     /**
      * Contains a list of the players who are about to be sent to the hub and can see the countdown from the {@link HubManager#returnParticipantsToHubWithDelay(List)}
      */
@@ -47,17 +38,11 @@ public class HubManager implements Listener {
      */
     private final List<Player> participants = new ArrayList<>();
     
-    public HubManager(Main plugin, Scoreboard mctScoreboard, GameManager gameManager) {
+    public HubManager(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
-        this.mctScoreboard = mctScoreboard;
         this.gameManager = gameManager;
+        this.storageUtil = new HubStorageUtil(plugin.getDataFolder());
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
-        MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
-        this.hubWorld = worldManager.getMVWorld("Hub").getCBWorld();
-        AnchorManager anchorManager = Main.multiverseCore.getAnchorManager();
-        observePedestalLocation = anchorManager.getAnchorLocation("pedestal-view");
-        pedestalLocation = anchorManager.getAnchorLocation("pedestal");
-        initializedStatusEffectLoop();
     }
     
     public void returnParticipantsToHubWithDelay(List<Player> newParticipants) {
@@ -94,26 +79,26 @@ public class HubManager implements Listener {
     
     public void returnParticipantToHub(Player participant) {
         participant.sendMessage(Component.text("Returning to hub"));
-        participant.teleport(hubWorld.getSpawnLocation());
+        participant.teleport(storageUtil.getSpawn());
         initializeParticipant(participant);
     }
     
     public void sendParticipantsToPodium(List<Player> winningTeamParticipants, List<Player> otherParticipants) {
         setupTeamOptions();
         for (Player participant : otherParticipants) {
-            sendParticipantToPedestal(participant, false);
+            sendParticipantToPodium(participant, false);
         }
         for (Player winningParticipant : winningTeamParticipants) {
-            sendParticipantToPedestal(winningParticipant, true);
+            sendParticipantToPodium(winningParticipant, true);
         }
     }
     
-    private void sendParticipantToPedestal(Player participant, boolean winner) {
+    private void sendParticipantToPodium(Player participant, boolean winner) {
         participant.sendMessage(Component.text("Returning to hub"));
         if (winner) {
-            participant.teleport(pedestalLocation);
+            participant.teleport(storageUtil.getPodium());
         } else {
-            participant.teleport(observePedestalLocation);
+            participant.teleport(storageUtil.getPodiumObservation());
         }
         initializeParticipant(participant);
     }
@@ -124,7 +109,6 @@ public class HubManager implements Listener {
         participant.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
-        giveAmbientStatusEffects(participant);
     }
     
     /**
@@ -146,7 +130,7 @@ public class HubManager implements Listener {
      * @param participant the participant to add
      */
     public void onParticipantJoin(Player participant) {
-        if (!participant.getWorld().equals(hubWorld)) {
+        if (!participant.getWorld().equals(storageUtil.getWorld())) {
             return;
         }
         participants.add(participant);
@@ -157,7 +141,7 @@ public class HubManager implements Listener {
     }
     
     private void setupTeamOptions() {
-        for (Team team : mctScoreboard.getTeams()) {
+        for (Team team : gameManager.getMctScoreboard().getTeams()) {
             team.setAllowFriendlyFire(false);
             team.setCanSeeFriendlyInvisibles(true);
             team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.ALWAYS);
@@ -169,10 +153,9 @@ public class HubManager implements Listener {
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-        if (!player.getWorld().equals(this.hubWorld)) {
+        if (!player.getWorld().equals(storageUtil.getWorld())) {
             return;
         }
-        giveAmbientStatusEffects(player);
     }
     
     @EventHandler
@@ -186,9 +169,24 @@ public class HubManager implements Listener {
         if (!participants.contains(participant)) {
             return;
         }
-        if (headingToHub.contains(participant) || participant.getWorld().equals(hubWorld)) {
+        if (headingToHub.contains(participant) || participant.getWorld().equals(storageUtil.getWorld())) {
             event.setCancelled(true);
         }
+    }
+    
+    @EventHandler
+    public void onPlayerLoseHunger(FoodLevelChangeEvent event) {
+        if (!(event.getEntity() instanceof Player participant)) {
+            return;
+        }
+        if (!participants.contains(participant)) {
+            return;
+        }
+        if (!headingToHub.contains(participant)) {
+            return;
+        }
+        participant.setFoodLevel(20);
+        event.setCancelled(true);
     }
     
     /**
@@ -204,12 +202,12 @@ public class HubManager implements Listener {
         if (!participants.contains(participant)) {
             return;
         }
-        if (!participant.getWorld().equals(hubWorld)) {
+        if (!participant.getWorld().equals(storageUtil.getWorld())) {
             return;
         }
         Location location = participant.getLocation();
-        if (location.getY() < 130) {
-            participant.teleport(hubWorld.getSpawnLocation());
+        if (location.getY() < storageUtil.getYLimit()) {
+            participant.teleport(storageUtil.getSpawn());
             participant.sendMessage("You fell out of the hub boundary");
         }
     }
@@ -220,31 +218,13 @@ public class HubManager implements Listener {
         if (!participants.contains(participant)) {
             return;
         }
-        if (event.getTo().getWorld().equals(hubWorld)) {
-            if (!event.getFrom().getWorld().equals(hubWorld)) {
+        if (event.getTo().getWorld().equals(storageUtil.getWorld())) {
+            if (!event.getFrom().getWorld().equals(storageUtil.getWorld())) {
                 initializeParticipant(participant);
             }
         } else {
             this.participants.remove(participant);
         }
-    }
-    
-    private void giveAmbientStatusEffects(Player player) {
-        player.addPotionEffect(RESISTANCE);
-        player.addPotionEffect(REGENERATION);
-        player.addPotionEffect(FIRE_RESISTANCE);
-        player.addPotionEffect(SATURATION);
-    }
-    
-    private void initializedStatusEffectLoop() {
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                for(Player participant : participants) {
-                    giveAmbientStatusEffects(participant);
-                }
-            }
-        }.runTaskTimer(plugin, 0L, 60L);
     }
     
     public void setBoundaryEnabled(boolean boundaryEnabled) {
@@ -256,5 +236,10 @@ public class HubManager implements Listener {
         for (Player participant : participants) {
             participant.sendMessage(message);
         }
+    }
+    
+    @Override
+    public boolean loadConfig() throws IllegalArgumentException {
+        return storageUtil.loadConfig();
     }
 }

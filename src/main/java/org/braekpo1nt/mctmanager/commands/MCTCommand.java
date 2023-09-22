@@ -32,7 +32,7 @@ public class MCTCommand extends CommandManager {
         });
         subCommands.put("load", (sender, command, label, args) -> {
             gameManager.loadGameState();
-            sender.sendMessage("Loaded game state.");
+            sender.sendMessage("Loaded gameState.json");
             return true;
         });
     }

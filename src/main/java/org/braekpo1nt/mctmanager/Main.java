@@ -40,6 +40,15 @@ public class Main extends JavaPlugin {
         Scoreboard mctScoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
         
         gameManager = new GameManager(this, mctScoreboard);
+        try {
+            gameManager.loadHubConfig();
+        } catch (IllegalArgumentException e) {
+            Bukkit.getLogger().severe(String.format("[MCTManager] Could not load hub config, see console for details. %s", e.getMessage()));
+            e.printStackTrace();
+            saveGameStateOnDisable = false;
+            Bukkit.getPluginManager().disablePlugin(this);
+            return;
+        }
         boolean ableToLoadGameSate = gameManager.loadGameState();
         if (!ableToLoadGameSate) {
             Bukkit.getLogger().severe("[MCTManager] Could not load game state from memory. Disabling plugin.");
