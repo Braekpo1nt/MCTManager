@@ -1,7 +1,5 @@
 package org.braekpo1nt.mctmanager.hub;
 
-import com.onarandombox.MultiverseCore.api.MVWorldManager;
-import com.onarandombox.MultiverseCore.utils.AnchorManager;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
@@ -32,14 +30,11 @@ public class HubManager implements Listener, Configurable {
     private final PotionEffect REGENERATION = new PotionEffect(PotionEffectType.REGENERATION, 70, 200, true, false, false);
     private final PotionEffect FIRE_RESISTANCE = new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 70, 1, true, false, false);
     private final PotionEffect SATURATION = new PotionEffect(PotionEffectType.SATURATION, 70, 250, true, false, false);
-    private final World hubWorld;
     private final Main plugin;
     private final Scoreboard mctScoreboard;
     private final GameManager gameManager;
     private final HubStorageUtil storageUtil;
     private int returnToHubTaskId;
-    private final Location observePedestalLocation;
-    private final Location pedestalLocation;
     /**
      * Contains a list of the players who are about to be sent to the hub and can see the countdown from the {@link HubManager#returnParticipantsToHubWithDelay(List)}
      */
@@ -56,11 +51,6 @@ public class HubManager implements Listener, Configurable {
         this.gameManager = gameManager;
         this.storageUtil = new HubStorageUtil(plugin.getDataFolder());
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
-        MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
-        this.hubWorld = worldManager.getMVWorld("Hub").getCBWorld();
-        AnchorManager anchorManager = Main.multiverseCore.getAnchorManager();
-        observePedestalLocation = anchorManager.getAnchorLocation("pedestal-view");
-        pedestalLocation = anchorManager.getAnchorLocation("pedestal");
         initializedStatusEffectLoop();
     }
     
@@ -98,26 +88,26 @@ public class HubManager implements Listener, Configurable {
     
     public void returnParticipantToHub(Player participant) {
         participant.sendMessage(Component.text("Returning to hub"));
-        participant.teleport(hubWorld.getSpawnLocation());
+        participant.teleport(storageUtil.getSpawn());
         initializeParticipant(participant);
     }
     
     public void sendParticipantsToPodium(List<Player> winningTeamParticipants, List<Player> otherParticipants) {
         setupTeamOptions();
         for (Player participant : otherParticipants) {
-            sendParticipantToPedestal(participant, false);
+            sendParticipantToPodium(participant, false);
         }
         for (Player winningParticipant : winningTeamParticipants) {
-            sendParticipantToPedestal(winningParticipant, true);
+            sendParticipantToPodium(winningParticipant, true);
         }
     }
     
-    private void sendParticipantToPedestal(Player participant, boolean winner) {
+    private void sendParticipantToPodium(Player participant, boolean winner) {
         participant.sendMessage(Component.text("Returning to hub"));
         if (winner) {
-            participant.teleport(pedestalLocation);
+            participant.teleport(storageUtil.getPodium());
         } else {
-            participant.teleport(observePedestalLocation);
+            participant.teleport(storageUtil.getPodiumObservation());
         }
         initializeParticipant(participant);
     }
@@ -150,7 +140,7 @@ public class HubManager implements Listener, Configurable {
      * @param participant the participant to add
      */
     public void onParticipantJoin(Player participant) {
-        if (!participant.getWorld().equals(hubWorld)) {
+        if (!participant.getWorld().equals(storageUtil.getWorld())) {
             return;
         }
         participants.add(participant);
@@ -173,7 +163,7 @@ public class HubManager implements Listener, Configurable {
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-        if (!player.getWorld().equals(this.hubWorld)) {
+        if (!player.getWorld().equals(storageUtil.getWorld())) {
             return;
         }
         giveAmbientStatusEffects(player);
@@ -190,7 +180,7 @@ public class HubManager implements Listener, Configurable {
         if (!participants.contains(participant)) {
             return;
         }
-        if (headingToHub.contains(participant) || participant.getWorld().equals(hubWorld)) {
+        if (headingToHub.contains(participant) || participant.getWorld().equals(storageUtil.getWorld())) {
             event.setCancelled(true);
         }
     }
@@ -208,12 +198,12 @@ public class HubManager implements Listener, Configurable {
         if (!participants.contains(participant)) {
             return;
         }
-        if (!participant.getWorld().equals(hubWorld)) {
+        if (!participant.getWorld().equals(storageUtil.getWorld())) {
             return;
         }
         Location location = participant.getLocation();
         if (location.getY() < 130) {
-            participant.teleport(hubWorld.getSpawnLocation());
+            participant.teleport(storageUtil.getSpawn());
             participant.sendMessage("You fell out of the hub boundary");
         }
     }
@@ -224,8 +214,8 @@ public class HubManager implements Listener, Configurable {
         if (!participants.contains(participant)) {
             return;
         }
-        if (event.getTo().getWorld().equals(hubWorld)) {
-            if (!event.getFrom().getWorld().equals(hubWorld)) {
+        if (event.getTo().getWorld().equals(storageUtil.getWorld())) {
+            if (!event.getFrom().getWorld().equals(storageUtil.getWorld())) {
                 initializeParticipant(participant);
             }
         } else {
