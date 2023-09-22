@@ -18,7 +18,7 @@ public class BoundingBoxDTO {
     
     /**
      * Get the {@link BoundingBox} this DTO was storing. If this is the first request, creates the BoundingBox from the min and max values stored in this DTO's fields.
-     * @return the BoundingBox this DTO was storing
+     * @return the BoundingBox this DTO was storing. Modifying the return value will not modify the DTO.
      */
     public BoundingBox getBoundingBox() {
         if (boundingBox == null) {
