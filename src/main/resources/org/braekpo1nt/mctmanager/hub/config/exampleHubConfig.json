@@ -1,0 +1,32 @@
+{
+  "version": "0.1.0",
+  "world": "World",
+  "spawn": {
+    "x": -0.5,
+    "y": 150,
+    "z": -0.5
+  },
+  "podium": {
+    "x": 61,
+    "y": 150,
+    "z": -42,
+    "yaw": 90,
+    "pitch": 0
+  },
+  "podiumObservation": {
+    "x": 48,
+    "y": 148,
+    "z": -42,
+    "yaw": -90,
+    "pitch": 0
+  },
+  "leaderBoard": {
+    "x": 0,
+    "y": 0,
+    "z": 0
+  },
+  "yLimit": 130,
+  "durations": {
+    "tpToHub": 10
+  }
+}

@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.hub.config;
 
 import com.google.common.base.Preconditions;
+import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.config.GameConfigStorageUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -33,7 +34,20 @@ public class HubStorageUtil extends GameConfigStorageUtil<HubConfig> {
     
     @Override
     protected boolean configIsValid(@Nullable HubConfig config) throws IllegalArgumentException {
-        return false;
+        Preconditions.checkArgument(config != null, "Saved config is null");
+        Preconditions.checkArgument(config.version() != null, "version can't be null");
+        Preconditions.checkArgument(config.version().equals(Main.CONFIG_VERSION), "Config version %s not supported. %s required.", config.version(), Main.CONFIG_VERSION);
+        Preconditions.checkArgument(Bukkit.getWorld(config.world()) != null, "Could not find world \"%s\"", config.world());
+        Preconditions.checkArgument(config.spawn() != null, "spawn can't be null");
+        Preconditions.checkArgument(config.podium() != null, "podium can't be null");
+        Preconditions.checkArgument(config.leaderBoard() != null, "leaderBoard can't be null");
+        Preconditions.checkArgument(config.yLimit() < config.spawn().getY(), "yLimit (%s) must be less than spawn.y (%s)", config.yLimit(), config.spawn().getY());
+        Preconditions.checkArgument(config.yLimit() < config.podium().getY(), "yLimit (%s) must be less than podium.y (%s)", config.yLimit(), config.podium().getY());
+        Preconditions.checkArgument(config.yLimit() < config.podiumObservation().getY(), "yLimit (%s) must be less than podiumObservation.y (%s)", config.yLimit(), config.podiumObservation().getY());
+        Preconditions.checkArgument(config.yLimit() < config.podiumObservation().getY(), "yLimit (%s) must be less than podiumObservation.y (%s)", config.yLimit(), config.podiumObservation().getY());
+        Preconditions.checkArgument(config.durations() != null, "durations can't be null");
+        Preconditions.checkArgument(config.durations().tpToHub() > 0, "durations.tpToHub must be greater than 0");
+        return true;
     }
     
     @Override
@@ -45,7 +59,7 @@ public class HubStorageUtil extends GameConfigStorageUtil<HubConfig> {
         Location newPodiumObservation = config.podiumObservation().toLocation(newWorld);
         Location newLeaderBoard = config.leaderBoard().toLocation(newWorld);
         
-        //now that we know everything is valid
+        //now that we know everything is valid, store the real values
         this.world = newWorld;
         this.spawn = newSpawn;
         this.podium = newPodium;
@@ -56,7 +70,7 @@ public class HubStorageUtil extends GameConfigStorageUtil<HubConfig> {
     
     @Override
     protected InputStream getExampleResourceStream() {
-        return null;
+        return HubStorageUtil.class.getResourceAsStream("exampleHubConfig.json");
     }
     
     public World getWorld() {
@@ -77,5 +91,9 @@ public class HubStorageUtil extends GameConfigStorageUtil<HubConfig> {
     
     public Location getLeaderBoard() {
         return leaderBoard;
+    }
+    
+    public double getYLimit() {
+        return hubConfig.yLimit();
     }
 }

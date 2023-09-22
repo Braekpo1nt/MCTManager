@@ -29,6 +29,26 @@ public class LocationDTO {
         return new Location(world, x, y, z, yaw, pitch);
     }
     
+    public double getX() {
+        return x;
+    }
+    
+    public double getY() {
+        return y;
+    }
+    
+    public double getZ() {
+        return z;
+    }
+    
+    public float getPitch() {
+        return pitch;
+    }
+    
+    public float getYaw() {
+        return yaw;
+    }
+    
     @Override
     public String toString() {
         if (yaw == 0 && pitch == 0) {

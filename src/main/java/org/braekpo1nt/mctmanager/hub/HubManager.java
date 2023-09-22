@@ -202,7 +202,7 @@ public class HubManager implements Listener, Configurable {
             return;
         }
         Location location = participant.getLocation();
-        if (location.getY() < 130) {
+        if (location.getY() < storageUtil.getYLimit()) {
             participant.teleport(storageUtil.getSpawn());
             participant.sendMessage("You fell out of the hub boundary");
         }
