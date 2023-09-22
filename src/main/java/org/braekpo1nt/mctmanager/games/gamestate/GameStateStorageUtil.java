@@ -64,7 +64,7 @@ public class GameStateStorageUtil {
             newGameState = new GameState();
         }
         this.gameState = newGameState;
-        Bukkit.getLogger().info("[MCTManager] Loaded game state.");
+        Bukkit.getLogger().info("[MCTManager] Loaded gameState.json");
     }
     
     /**
