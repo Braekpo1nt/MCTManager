@@ -22,7 +22,7 @@ import java.util.List;
 record SpleefConfig(String version, String world, List<Vector> startingLocations, BoundingBoxDTO spectatorArea, List<Layer> layers, int rounds, Scores scores, Durations durations, JsonObject description) {
     
     BoundingBox getSpectatorArea() {
-        return spectatorArea.getBoundingBox();
+        return spectatorArea.toBoundingBox();
     }
     
     /**
@@ -33,7 +33,7 @@ record SpleefConfig(String version, String world, List<Vector> startingLocations
      */
     record Layer(NamespacedKey structure, Vector structureOrigin, BoundingBoxDTO decayArea, int decayRate) {
         BoundingBox getDecayArea() {
-            return decayArea.getBoundingBox();
+            return decayArea.toBoundingBox();
         }
     }
     

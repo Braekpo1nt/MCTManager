@@ -11,13 +11,13 @@ import java.util.List;
 record ClockworkConfig(String version, String world, Vector startingLocation, BoundingBoxDTO spectatorArea, Chaos chaos, List<WedgeDTO> wedges, int rounds, Sound clockChime, double initialChimeInterval, double chimeIntervalDecrement, Scores scores, Durations durations, JsonObject description) {
     
     BoundingBox getSpectatorArea() {
-        return spectatorArea.getBoundingBox();
+        return spectatorArea.toBoundingBox();
     }
     
     record WedgeDTO(BoundingBoxDTO detectionArea) {
         
         BoundingBox getDetectionArea() {
-            return detectionArea.getBoundingBox();
+            return detectionArea.toBoundingBox();
         }
         
     }

@@ -11,7 +11,7 @@ import java.util.List;
 record ParkourPathwayConfig  (String version, String world, Vector startingLocation, BoundingBoxDTO spectatorArea, Scores scores, Durations durations, List<CheckPointDTO> checkpoints, JsonObject description) {
     
     BoundingBox getSpectatorArea() {
-        return spectatorArea.getBoundingBox();
+        return spectatorArea.toBoundingBox();
     }
     
     /**
@@ -34,7 +34,7 @@ record ParkourPathwayConfig  (String version, String world, Vector startingLocat
      */
     record CheckPointDTO(double yValue, BoundingBoxDTO detectionBox, Vector respawn) {
         BoundingBox getDetectionBox() {
-            return detectionBox.getBoundingBox();
+            return detectionBox.toBoundingBox();
         }
     }
 }
