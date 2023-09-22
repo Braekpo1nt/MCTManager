@@ -380,7 +380,8 @@ public class EventManager {
         gameManager.returnAllParticipantsToHub();
         double scoreMultiplier = this.matchProgressPointMultiplier();
         gameManager.messageOnlineParticipants(Component.text("Score multiplier: ")
-                .append(Component.text(scoreMultiplier)));
+                .append(Component.text(scoreMultiplier))
+                .color(NamedTextColor.GOLD));
         this.waitingInHubTaskId = new BukkitRunnable() {
             int count = storageUtil.getWaitingInHubDuration();
             @Override
