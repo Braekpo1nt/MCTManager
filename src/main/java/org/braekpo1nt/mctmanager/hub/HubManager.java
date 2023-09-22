@@ -7,6 +7,7 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
+import org.braekpo1nt.mctmanager.hub.config.HubStorageUtil;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
@@ -35,6 +36,7 @@ public class HubManager implements Listener, Configurable {
     private final Main plugin;
     private final Scoreboard mctScoreboard;
     private final GameManager gameManager;
+    private final HubStorageUtil storageUtil;
     private int returnToHubTaskId;
     private final Location observePedestalLocation;
     private final Location pedestalLocation;
@@ -52,6 +54,7 @@ public class HubManager implements Listener, Configurable {
         this.plugin = plugin;
         this.mctScoreboard = mctScoreboard;
         this.gameManager = gameManager;
+        this.storageUtil = new HubStorageUtil(plugin.getDataFolder());
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
         this.hubWorld = worldManager.getMVWorld("Hub").getCBWorld();
