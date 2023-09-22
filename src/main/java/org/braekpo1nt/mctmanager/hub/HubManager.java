@@ -12,11 +12,10 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Team;
 
@@ -25,10 +24,6 @@ import java.util.List;
 
 public class HubManager implements Listener, Configurable {
     
-    private final PotionEffect RESISTANCE = new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 70, 200, true, false, false);
-    private final PotionEffect REGENERATION = new PotionEffect(PotionEffectType.REGENERATION, 70, 200, true, false, false);
-    private final PotionEffect FIRE_RESISTANCE = new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 70, 1, true, false, false);
-    private final PotionEffect SATURATION = new PotionEffect(PotionEffectType.SATURATION, 70, 250, true, false, false);
     private final Main plugin;
     private final GameManager gameManager;
     private final HubStorageUtil storageUtil;
@@ -48,7 +43,6 @@ public class HubManager implements Listener, Configurable {
         this.gameManager = gameManager;
         this.storageUtil = new HubStorageUtil(plugin.getDataFolder());
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
-        initializedStatusEffectLoop();
     }
     
     public void returnParticipantsToHubWithDelay(List<Player> newParticipants) {
@@ -115,7 +109,6 @@ public class HubManager implements Listener, Configurable {
         participant.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
-        giveAmbientStatusEffects(participant);
     }
     
     /**
@@ -163,7 +156,6 @@ public class HubManager implements Listener, Configurable {
         if (!player.getWorld().equals(storageUtil.getWorld())) {
             return;
         }
-        giveAmbientStatusEffects(player);
     }
     
     @EventHandler
@@ -180,6 +172,21 @@ public class HubManager implements Listener, Configurable {
         if (headingToHub.contains(participant) || participant.getWorld().equals(storageUtil.getWorld())) {
             event.setCancelled(true);
         }
+    }
+    
+    @EventHandler
+    public void onPlayerLoseHunger(FoodLevelChangeEvent event) {
+        if (!(event.getEntity() instanceof Player participant)) {
+            return;
+        }
+        if (!participants.contains(participant)) {
+            return;
+        }
+        if (!headingToHub.contains(participant)) {
+            return;
+        }
+        participant.setFoodLevel(20);
+        event.setCancelled(true);
     }
     
     /**
@@ -218,24 +225,6 @@ public class HubManager implements Listener, Configurable {
         } else {
             this.participants.remove(participant);
         }
-    }
-    
-    private void giveAmbientStatusEffects(Player player) {
-        player.addPotionEffect(RESISTANCE);
-        player.addPotionEffect(REGENERATION);
-        player.addPotionEffect(FIRE_RESISTANCE);
-        player.addPotionEffect(SATURATION);
-    }
-    
-    private void initializedStatusEffectLoop() {
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                for(Player participant : participants) {
-                    giveAmbientStatusEffects(participant);
-                }
-            }
-        }.runTaskTimer(plugin, 0L, 60L);
     }
     
     public void setBoundaryEnabled(boolean boundaryEnabled) {
