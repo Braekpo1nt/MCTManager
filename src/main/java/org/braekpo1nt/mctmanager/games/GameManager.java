@@ -90,7 +90,7 @@ public class GameManager implements Listener {
         this.clockworkGame = new ClockworkGame(plugin, this);
         this.sidebarManager = new SidebarManager();
         initializePersonalSidebar();
-        this.hubManager = new HubManager(plugin, mctScoreboard, this);
+        this.hubManager = new HubManager(plugin, this);
         this.eventManager = new EventManager(plugin, this, voteManager);
     }
     

@@ -31,7 +31,6 @@ public class HubManager implements Listener, Configurable {
     private final PotionEffect FIRE_RESISTANCE = new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 70, 1, true, false, false);
     private final PotionEffect SATURATION = new PotionEffect(PotionEffectType.SATURATION, 70, 250, true, false, false);
     private final Main plugin;
-    private final Scoreboard mctScoreboard;
     private final GameManager gameManager;
     private final HubStorageUtil storageUtil;
     private int returnToHubTaskId;
@@ -45,9 +44,8 @@ public class HubManager implements Listener, Configurable {
      */
     private final List<Player> participants = new ArrayList<>();
     
-    public HubManager(Main plugin, Scoreboard mctScoreboard, GameManager gameManager) {
+    public HubManager(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
-        this.mctScoreboard = mctScoreboard;
         this.gameManager = gameManager;
         this.storageUtil = new HubStorageUtil(plugin.getDataFolder());
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
@@ -151,7 +149,7 @@ public class HubManager implements Listener, Configurable {
     }
     
     private void setupTeamOptions() {
-        for (Team team : mctScoreboard.getTeams()) {
+        for (Team team : gameManager.getMctScoreboard().getTeams()) {
             team.setAllowFriendlyFire(false);
             team.setCanSeeFriendlyInvisibles(true);
             team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.ALWAYS);
