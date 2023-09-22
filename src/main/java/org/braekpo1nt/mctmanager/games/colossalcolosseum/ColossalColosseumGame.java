@@ -25,10 +25,6 @@ public class ColossalColosseumGame implements Listener {
     private final Main plugin;
     private final GameManager gameManager;
     private final String title = ChatColor.BLUE+"Colossal Colosseum";
-    private final Location firstPlaceSpawn;
-    private final Location secondPlaceSpawn;
-    private final Location spectatorSpawn;
-    private final World colossalColosseumWorld;
     private List<Player> firstPlaceParticipants = new ArrayList<>();
     private List<Player> secondPlaceParticipants = new ArrayList<>();
     private List<Player> spectators = new ArrayList<>();
@@ -45,12 +41,6 @@ public class ColossalColosseumGame implements Listener {
     public ColossalColosseumGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
         this.gameManager = gameManager;
-        MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
-        this.colossalColosseumWorld = worldManager.getMVWorld("FT").getCBWorld();
-        AnchorManager anchorManager = Main.multiverseCore.getAnchorManager();
-        this.firstPlaceSpawn = anchorManager.getAnchorLocation("cc-first-place-spawn");
-        this.secondPlaceSpawn = anchorManager.getAnchorLocation("cc-second-place-spawn");
-        this.spectatorSpawn = anchorManager.getAnchorLocation("cc-spectator-spawn");
     }
     
     /**
