@@ -11,14 +11,7 @@ import java.util.List;
 
 record CaptureTheFlagConfig(String version, String world, Vector spawnObservatory, List<ArenaDTO> arenas, BoundingBoxDTO spectatorArea, Scores scores, Durations durations, JsonObject description) {
     
-    BoundingBox getSpectatorArea() {
-        return spectatorArea.toBoundingBox();
-    }
-    
     record ArenaDTO(Vector northSpawn, Vector southSpawn, Vector northFlag, Vector southFlag, Vector northBarrier, Vector southBarrier, Arena.BarrierSize barrierSize, BoundingBoxDTO boundingBox) {
-        BoundingBox getBoundingBox() {
-            return boundingBox.toBoundingBox();
-        }
     }
     
     /**

@@ -23,14 +23,6 @@ import java.util.List;
  */
 record MechaConfig (String version, String world, BoundingBoxDTO spectatorArea, BoundingBoxDTO removeArea, double initialBorderSize, List<BorderStage> borderStages, NamespacedKey spawnLootTable, List<WeightedNamespacedKey> weightedMechaLootTables, List<Vector> spawnChestCoords, List<Vector> mapChestCoords, NamespacedKey platformsStructure, NamespacedKey platformsRemovedStructure, Vector platformsOrigin, Scores scores, Durations durations,JsonObject description) {
     
-    BoundingBox getRemoveArea() {
-        return removeArea.toBoundingBox();
-    }
-    
-    BoundingBox getSpectatorArea() {
-        return spectatorArea.toBoundingBox();
-    }
-    
     record WeightedNamespacedKey(String namespace, String key, int weight) {
     }
     

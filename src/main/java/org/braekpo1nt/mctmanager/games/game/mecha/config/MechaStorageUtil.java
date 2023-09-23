@@ -51,12 +51,12 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
                 "Could not find world \"%s\"", config.world());
         Preconditions.checkArgument(config.spectatorArea() != null, 
                 "spectatorArea can't be null");
-        Preconditions.checkArgument(config.getSpectatorArea().getVolume() >= 1.0, 
-                "getSpectatorArea's volume (%s) can't be less than 1. %s", config.getSpectatorArea().getVolume(), config.getSpectatorArea());
+        Preconditions.checkArgument(config.spectatorArea().toBoundingBox().getVolume() >= 1.0, 
+                "getSpectatorArea's volume (%s) can't be less than 1. %s", config.spectatorArea().toBoundingBox().getVolume(), config.spectatorArea().toBoundingBox());
         Preconditions.checkArgument(config.removeArea() != null, 
                 "removeArea can't be null");
-        Preconditions.checkArgument(config.getRemoveArea().getVolume() >= 1.0, 
-                "removeArea (%s) volume (%s) can't be less than 1.0", config.getRemoveArea(), config.getRemoveArea().getVolume());
+        Preconditions.checkArgument(config.removeArea().toBoundingBox().getVolume() >= 1.0, 
+                "removeArea (%s) volume (%s) can't be less than 1.0", config.removeArea().toBoundingBox(), config.removeArea().toBoundingBox().getVolume());
         Preconditions.checkArgument(config.initialBorderSize() >= 1.0, 
                 "initialBorderSize can't be less than 1.0: %s", config.initialBorderSize());
         Preconditions.checkArgument(config.borderStages() != null, 
@@ -93,16 +93,16 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
         Preconditions.checkArgument(!config.spawnChestCoords().contains(null), 
                 "spawnChestCoords can't contain a null position");
         for (Vector pos : config.spawnChestCoords()) {
-            Preconditions.checkArgument(config.getRemoveArea().contains(pos), 
-                    "spawnChestCoord (%s) is not inside removeArea (%s)", pos, config.getRemoveArea());
+            Preconditions.checkArgument(config.removeArea().toBoundingBox().contains(pos), 
+                    "spawnChestCoord (%s) is not inside removeArea (%s)", pos, config.removeArea().toBoundingBox());
         }
         Preconditions.checkArgument(config.mapChestCoords() != null, 
                 "mapChestCoords can't be null");
         Preconditions.checkArgument(!config.mapChestCoords().contains(null), 
                 "mapChestCoords can't contain a null position");
         for (Vector pos : config.mapChestCoords()) {
-            Preconditions.checkArgument(config.getRemoveArea().contains(pos), 
-                    "mapChestCoord (%s) is not inside removeArea (%s)", pos, config.getRemoveArea());
+            Preconditions.checkArgument(config.removeArea().toBoundingBox().contains(pos), 
+                    "mapChestCoord (%s) is not inside removeArea (%s)", pos, config.removeArea().toBoundingBox());
         }
         Preconditions.checkArgument(config.platformsStructure() != null, 
                 "platformsStructure can't be null");
@@ -235,7 +235,7 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
     }
 
     public BoundingBox getRemoveArea() {
-        return mechaConfig.getRemoveArea();
+        return mechaConfig.removeArea().toBoundingBox();
     }
     
     public Structure getPlatformStructure() {

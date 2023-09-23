@@ -6,13 +6,6 @@ import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
 record FootRaceConfig(String version, String world, Vector startingLocation, BoundingBoxDTO finishLine, BoundingBoxDTO spectatorArea, Scores scores, Durations durations, JsonObject description) {
-    BoundingBox getFinishLine() {
-        return finishLine.toBoundingBox();
-    }
-    
-    BoundingBox getSpectatorArea() {
-        return spectatorArea.toBoundingBox();
-    }
     
     record Scores(int completeLap, int[] placementPoints, int detriment) {
     }

@@ -21,10 +21,6 @@ import java.util.List;
  */
 record SpleefConfig(String version, String world, List<Vector> startingLocations, BoundingBoxDTO spectatorArea, List<Layer> layers, int rounds, Scores scores, Durations durations, JsonObject description) {
     
-    BoundingBox getSpectatorArea() {
-        return spectatorArea.toBoundingBox();
-    }
-    
     /**
      * @param structure the NamespacedKey of the structure to place for this layer
      * @param structureOrigin the origin to place the structure at
@@ -32,9 +28,6 @@ record SpleefConfig(String version, String world, List<Vector> startingLocations
      * @param decayRate the blocks/second to decay at
      */
     record Layer(NamespacedKey structure, Vector structureOrigin, BoundingBoxDTO decayArea, int decayRate) {
-        BoundingBox getDecayArea() {
-            return decayArea.toBoundingBox();
-        }
     }
     
     record Scores(int survive) {
