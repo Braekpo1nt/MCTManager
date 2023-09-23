@@ -21,6 +21,7 @@ public class FootRaceStorageUtil extends GameConfigStorageUtil<FootRaceConfig> {
     private World world;
     private Location startingLocation;
     private Component description;
+    private BoundingBox finishLine;
     
     public FootRaceStorageUtil(File configDirectory) {
         super(configDirectory, "footRaceConfig.json", FootRaceConfig.class);
@@ -71,6 +72,7 @@ public class FootRaceStorageUtil extends GameConfigStorageUtil<FootRaceConfig> {
         this.description = newDescription;
         this.world = newWorld;
         this.startingLocation = newStartingLocation;
+        this.finishLine = config.finishLine().toBoundingBox();
         this.footRaceConfig = config;
     }
     
@@ -92,7 +94,7 @@ public class FootRaceStorageUtil extends GameConfigStorageUtil<FootRaceConfig> {
     }
     
     public BoundingBox getFinishLine() {
-        return footRaceConfig.finishLine().toBoundingBox();
+        return finishLine;
     }
     
     public int getStartRaceDuration() {

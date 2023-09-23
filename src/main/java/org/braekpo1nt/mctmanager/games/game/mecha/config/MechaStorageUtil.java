@@ -24,13 +24,14 @@ import java.util.*;
 public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
     
     protected MechaConfig mechaConfig = getExampleConfig();
+    private BoundingBox removeArea;
     private Map<LootTable, Integer> weightedMechaLootTables;
     private World world;
     private Location platformsOrigin;
     private Structure platformsStructure;
     private Structure platformsRemovedStructure;
     private Component description;
-
+    
     public MechaStorageUtil(File configDirectory) {
         super(configDirectory, "mechaConfig.json", MechaConfig.class);
     }
@@ -158,6 +159,7 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
         this.platformsRemovedStructure = newPlatformsRemovedStructure;
         this.platformsOrigin = newPlatformsOrigin;
         this.description = newDescription;
+        this.removeArea = config.removeArea().toBoundingBox();
         this.mechaConfig = config;
     }
     
@@ -235,7 +237,7 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
     }
 
     public BoundingBox getRemoveArea() {
-        return mechaConfig.removeArea().toBoundingBox();
+        return removeArea;
     }
     
     public Structure getPlatformStructure() {
