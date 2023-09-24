@@ -6,6 +6,7 @@ import com.google.gson.JsonObject;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.MyCustomServerMock;
 import org.braekpo1nt.mctmanager.TestUtils;
+import org.braekpo1nt.mctmanager.hub.config.HubStorageUtil;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,7 +21,7 @@ public class ColossalColosseumStorageUtilTest {
     String exampleConfigFileName = "exampleColossalColosseumConfig.json";
     Main plugin;
     ColossalColosseumStorageUtil storageUtil;
-
+    
     @BeforeEach
     void setupServerAndPlugin() {
         ServerMock server = MockBukkit.mock(new MyCustomServerMock());
@@ -44,7 +45,7 @@ public class ColossalColosseumStorageUtilTest {
         TestUtils.createFileInDirectory(plugin.getDataFolder(), configFileName, "{,");
         Assertions.assertThrows(IllegalArgumentException.class, storageUtil::loadConfig);
     }
-
+    
     @Test
     void wellFormedJsonValidData() {
         InputStream inputStream = storageUtil.getClass().getResourceAsStream(exampleConfigFileName);

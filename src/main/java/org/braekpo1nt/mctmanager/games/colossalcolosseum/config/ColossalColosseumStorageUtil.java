@@ -26,7 +26,7 @@ public class ColossalColosseumStorageUtil extends GameConfigStorageUtil<Colossal
      * @param configDirectory The directory that the config should be located in (e.g. the plugin's data folder)
      */
     public ColossalColosseumStorageUtil(File configDirectory) {
-        super(configDirectory, "colossalColosseum.json", ColossalColosseumConfig.class);
+        super(configDirectory, "colossalColosseumConfig.json", ColossalColosseumConfig.class);
     }
     
     @Override

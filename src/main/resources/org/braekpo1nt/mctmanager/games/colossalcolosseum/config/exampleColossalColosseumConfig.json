@@ -21,5 +21,7 @@
     "z": 0,
     "pitch": -90,
     "yaw": 6
-  }
+  },
+  "maxRoundWins": 3,
+  "description": {"text":"Colossal Colosseum description","color":"dark_blue","bold": true}
 }
