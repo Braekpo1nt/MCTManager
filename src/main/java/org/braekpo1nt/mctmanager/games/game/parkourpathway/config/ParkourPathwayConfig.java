@@ -10,10 +10,6 @@ import java.util.List;
 
 record ParkourPathwayConfig  (String version, String world, Vector startingLocation, BoundingBoxDTO spectatorArea, Scores scores, Durations durations, List<CheckPointDTO> checkpoints, JsonObject description) {
     
-    BoundingBox getSpectatorArea() {
-        return spectatorArea.getBoundingBox();
-    }
-    
     /**
      * 
      * @param checkpoint points for reaching checkpoints. for x elements, nth score will be awarded unless n is greater than or equal to x in which case the xth score will be awarded 
@@ -33,8 +29,5 @@ record ParkourPathwayConfig  (String version, String world, Vector startingLocat
      * @param respawn the position to teleport back to if the player falls below the yValue
      */
     record CheckPointDTO(double yValue, BoundingBoxDTO detectionBox, Vector respawn) {
-        BoundingBox getDetectionBox() {
-            return detectionBox.getBoundingBox();
-        }
     }
 }

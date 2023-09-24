@@ -21,6 +21,7 @@ public class FootRaceStorageUtil extends GameConfigStorageUtil<FootRaceConfig> {
     private World world;
     private Location startingLocation;
     private Component description;
+    private BoundingBox finishLine;
     
     public FootRaceStorageUtil(File configDirectory) {
         super(configDirectory, "footRaceConfig.json", FootRaceConfig.class);
@@ -40,10 +41,11 @@ public class FootRaceStorageUtil extends GameConfigStorageUtil<FootRaceConfig> {
         Preconditions.checkArgument(Bukkit.getWorld(config.world()) != null, "Could not find world \"%s\"", config.world());
         Preconditions.checkArgument(config.startingLocation() != null, "startingLocation can't be null");
         Preconditions.checkArgument(config.finishLine() != null, "finishLine can't be null");
-        Preconditions.checkArgument(config.getFinishLine().getVolume() >= 1.0, "finishLine's volume (%s) can't be less than 1. %s", config.getFinishLine().getVolume(), config.getFinishLine());
-        Preconditions.checkArgument(!config.getFinishLine().contains(config.startingLocation()), "startingLocation (%S) can't be inside finishLine (%S)", config.startingLocation(), config.getFinishLine());
+        BoundingBox finishLine = config.finishLine().toBoundingBox();
+        Preconditions.checkArgument(finishLine.getVolume() >= 1.0, "finishLine's volume (%s) can't be less than 1. %s", finishLine.getVolume(), finishLine);
+        Preconditions.checkArgument(!finishLine.contains(config.startingLocation()), "startingLocation (%S) can't be inside finishLine (%S)", config.startingLocation(), finishLine);
         Preconditions.checkArgument(config.spectatorArea() != null, "spectatorArea can't be null");
-        Preconditions.checkArgument(config.getSpectatorArea().getVolume() >= 1.0, "getSpectatorArea's volume (%s) can't be less than 1. %s", config.getSpectatorArea().getVolume(), config.getSpectatorArea());
+        Preconditions.checkArgument(config.spectatorArea().toBoundingBox().getVolume() >= 1.0, "getSpectatorArea's volume (%s) can't be less than 1. %s", config.spectatorArea().toBoundingBox().getVolume(), config.spectatorArea().toBoundingBox());
         Preconditions.checkArgument(config.scores() != null, "scores can't be null");
         Preconditions.checkArgument(config.scores().placementPoints() != null, "placementPoints can't be null");
         Preconditions.checkArgument(config.scores().placementPoints().length >= 1, "placementPoints must have at least one entry");
@@ -70,6 +72,7 @@ public class FootRaceStorageUtil extends GameConfigStorageUtil<FootRaceConfig> {
         this.description = newDescription;
         this.world = newWorld;
         this.startingLocation = newStartingLocation;
+        this.finishLine = config.finishLine().toBoundingBox();
         this.footRaceConfig = config;
     }
     
@@ -91,7 +94,7 @@ public class FootRaceStorageUtil extends GameConfigStorageUtil<FootRaceConfig> {
     }
     
     public BoundingBox getFinishLine() {
-        return footRaceConfig.getFinishLine();
+        return finishLine;
     }
     
     public int getStartRaceDuration() {

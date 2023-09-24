@@ -800,7 +800,6 @@ public class GameManager implements Listener {
     public void addScore(String teamName, int score) {
         try {
             gameStateStorageUtil.addScore(teamName, score);
-            gameStateStorageUtil.setScore(teamName, score);
             for (Player participant : getOnlinePlayersOnTeam(teamName)) {
                 updateTeamScore(participant);
             }
