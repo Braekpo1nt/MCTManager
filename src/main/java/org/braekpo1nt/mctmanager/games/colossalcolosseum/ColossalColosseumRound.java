@@ -1,7 +1,5 @@
 package org.braekpo1nt.mctmanager.games.colossalcolosseum;
 
-import com.onarandombox.MultiverseCore.api.MVWorldManager;
-import com.onarandombox.MultiverseCore.utils.AnchorManager;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -31,7 +29,6 @@ public class ColossalColosseumRound implements Listener {
     private final GameManager gameManager;
     private final ColossalColosseumGame colossalColosseumGame;
     private final ColossalColosseumStorageUtil storageUtil;
-    private final World colossalColosseumWorld;
     private String firstTeamName;
     private String secondTeamName;
     private Map<UUID, Boolean> firstPlaceParticipantsAlive = new HashMap<>();
@@ -47,9 +44,6 @@ public class ColossalColosseumRound implements Listener {
         this.gameManager = gameManager;
         this.colossalColosseumGame = colossalColosseumGame;
         this.storageUtil = storageUtil;
-        MVWorldManager worldManager = Main.multiverseCore.getMVWorldManager();
-        this.colossalColosseumWorld = worldManager.getMVWorld("FT").getCBWorld();
-        AnchorManager anchorManager = Main.multiverseCore.getAnchorManager();
     }
     
     public void start(List<Player> newFirstPlaceParticipants, List<Player> newSecondPlaceParticipants, List<Player> newSpectators) {
@@ -249,33 +243,33 @@ public class ColossalColosseumRound implements Listener {
     
     private void openGates() {
         //first
-        BlockPlacementUtils.createCube(colossalColosseumWorld, -1002, 1, -19, 5, 1, 1, Material.AIR);
+        BlockPlacementUtils.createCube(storageUtil.getWorld(), -1002, 1, -19, 5, 1, 1, Material.AIR);
         //second
-        BlockPlacementUtils.createCube(colossalColosseumWorld, -1002, 1, 19, 5, 1, 1, Material.AIR);
+        BlockPlacementUtils.createCube(storageUtil.getWorld(), -1002, 1, 19, 5, 1, 1, Material.AIR);
     }
     
     private void closeFirstGate() {
         //replace powder with air
         for (Material powderColor : ColorMap.getAllConcretePowderColors()) {
-            BlockPlacementUtils.createCubeReplace(colossalColosseumWorld, -1002, -3, -19, 5, 10, 1, powderColor, Material.AIR);
+            BlockPlacementUtils.createCubeReplace(storageUtil.getWorld(), -1002, -3, -19, 5, 10, 1, powderColor, Material.AIR);
         }
         //place stone under
-        BlockPlacementUtils.createCube(colossalColosseumWorld, -1002, 1, -19, 5, 1, 1, Material.STONE);
+        BlockPlacementUtils.createCube(storageUtil.getWorld(), -1002, 1, -19, 5, 1, 1, Material.STONE);
         //place team color sand
         Material teamPowderColor = gameManager.getTeamPowderColor(firstTeamName);
-        BlockPlacementUtils.createCubeReplace(colossalColosseumWorld, -1002, 2, -19, 5, 4, 1, Material.AIR, teamPowderColor);
+        BlockPlacementUtils.createCubeReplace(storageUtil.getWorld(), -1002, 2, -19, 5, 4, 1, Material.AIR, teamPowderColor);
     }
     
     private void closeSecondGate() {
         //replace powder with air
         for (Material powderColor : ColorMap.getAllConcretePowderColors()) {
-            BlockPlacementUtils.createCubeReplace(colossalColosseumWorld, -1002, -3, 19, 5, 10, 1, powderColor, Material.AIR);
+            BlockPlacementUtils.createCubeReplace(storageUtil.getWorld(), -1002, -3, 19, 5, 10, 1, powderColor, Material.AIR);
         }
         //place stone under
-        BlockPlacementUtils.createCube(colossalColosseumWorld, -1002, 1, 19, 5, 1, 1, Material.STONE);
+        BlockPlacementUtils.createCube(storageUtil.getWorld(), -1002, 1, 19, 5, 1, 1, Material.STONE);
         //place team color sand
         Material teamPowderColor = gameManager.getTeamPowderColor(secondTeamName);
-        BlockPlacementUtils.createCubeReplace(colossalColosseumWorld, -1002, 2, 19, 5, 4, 1, Material.AIR, teamPowderColor);
+        BlockPlacementUtils.createCubeReplace(storageUtil.getWorld(), -1002, 2, 19, 5, 4, 1, Material.AIR, teamPowderColor);
     }
     
     private void setupTeamOptions() {
