@@ -3,13 +3,16 @@ package org.braekpo1nt.mctmanager.hub.config;
 import com.google.common.base.Preconditions;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.config.GameConfigStorageUtil;
+import org.braekpo1nt.mctmanager.games.game.config.LocationDTO;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.InputStream;
+import java.util.Optional;
 
 public class HubStorageUtil extends GameConfigStorageUtil<HubConfig> {
     
@@ -30,6 +33,32 @@ public class HubStorageUtil extends GameConfigStorageUtil<HubConfig> {
     @Override
     protected HubConfig getConfig() {
         return hubConfig;
+    }
+    
+    @Override
+    public boolean loadConfig() throws IllegalArgumentException {
+        if (!configFile.exists()) {
+            HubConfig defaultConfig = createDefaultConfig();
+            setConfig(defaultConfig);
+            return true;
+        }
+        return super.loadConfig();
+    }
+    
+    /**
+     * @return a default config with the first world in the list of `Bukkit.getWorld()` and the spawn as all the locations. 
+     * @throws IllegalArgumentException if no worlds exist in the server
+     */
+    @NotNull
+    private HubConfig createDefaultConfig() {
+        Optional<World> optionalWorld = Bukkit.getWorlds().stream().findFirst();
+        Preconditions.checkArgument(optionalWorld.isPresent(), "No worlds exist in server.");
+        World defaultWorld = optionalWorld.get();
+        Location defaultSpawn = defaultWorld.getSpawnLocation();
+        LocationDTO defaultLocation = new LocationDTO(defaultSpawn);
+        int yLimit = -64;
+        HubConfig.Durations durations = new HubConfig.Durations(10);
+        return new HubConfig(Main.CONFIG_VERSION, defaultWorld.getName(), defaultLocation, defaultLocation, defaultLocation, defaultSpawn.toVector(), yLimit, durations);
     }
     
     @Override

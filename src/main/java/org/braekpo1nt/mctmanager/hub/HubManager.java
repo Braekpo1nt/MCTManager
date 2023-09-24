@@ -45,6 +45,11 @@ public class HubManager implements Listener, Configurable {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
     
+    @Override
+    public boolean loadConfig() throws IllegalArgumentException {
+        return storageUtil.loadConfig();
+    }
+    
     public void returnParticipantsToHubWithDelay(List<Player> newParticipants) {
         headingToHub.addAll(newParticipants);
         gameManager.getSidebarManager().addLine("backToHub", "");
@@ -236,10 +241,5 @@ public class HubManager implements Listener, Configurable {
         for (Player participant : participants) {
             participant.sendMessage(message);
         }
-    }
-    
-    @Override
-    public boolean loadConfig() throws IllegalArgumentException {
-        return storageUtil.loadConfig();
     }
 }

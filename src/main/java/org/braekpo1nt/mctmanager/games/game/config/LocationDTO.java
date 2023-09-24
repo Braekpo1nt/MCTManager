@@ -21,6 +21,17 @@ public class LocationDTO {
      */
     private float yaw;
     
+    public LocationDTO() {
+    }
+    
+    public LocationDTO(Location location) {
+        this.x = location.getX();
+        this.y = location.getY();
+        this.z = location.getZ();
+        this.pitch = location.getPitch();
+        this.yaw = location.getYaw();
+    }
+    
     /**
      * @param world the world the location should be in
      * @return A new {@link Location} with the values this DTO was storing and the given world
