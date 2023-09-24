@@ -1,0 +1,25 @@
+{
+  "version": "0.1.0",
+  "world": "World",
+  "firstPlaceSpawn": {
+    "x": -1000,
+    "y": 2,
+    "z": -22,
+    "pitch": 0,
+    "yaw": 0
+  },
+  "secondPlaceSpawn": {
+    "x": -1000,
+    "y": 2,
+    "z": 22,
+    "pitch": 180,
+    "yaw": 0
+  },
+  "spectatorSpawn": {
+    "x": -1021,
+    "y": 9,
+    "z": 0,
+    "pitch": -90,
+    "yaw": 6
+  }
+}
