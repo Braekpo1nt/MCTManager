@@ -4,6 +4,8 @@ import com.onarandombox.MultiverseCore.api.MVWorldManager;
 import com.onarandombox.MultiverseCore.utils.AnchorManager;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.colossalcolosseum.config.ColossalColosseumStorageUtil;
+import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
@@ -20,10 +22,11 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ColossalColosseumGame implements Listener {
+public class ColossalColosseumGame implements Listener, Configurable {
     
     private final Main plugin;
     private final GameManager gameManager;
+    private final ColossalColosseumStorageUtil storageUtil;
     private final String title = ChatColor.BLUE+"Colossal Colosseum";
     private List<Player> firstPlaceParticipants = new ArrayList<>();
     private List<Player> secondPlaceParticipants = new ArrayList<>();
@@ -41,6 +44,12 @@ public class ColossalColosseumGame implements Listener {
     public ColossalColosseumGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
         this.gameManager = gameManager;
+        this.storageUtil = new ColossalColosseumStorageUtil(plugin.getDataFolder());
+    }
+    
+    @Override
+    public boolean loadConfig() throws IllegalArgumentException {
+        return storageUtil.loadConfig();
     }
     
     /**
@@ -85,19 +94,19 @@ public class ColossalColosseumGame implements Listener {
     
     private void initializeFirstPlaceParticipant(Player first) {
         firstPlaceParticipants.add(first);
-        first.teleport(firstPlaceSpawn);
+        first.teleport(storageUtil.getFirstPlaceSpawn());
         first.setGameMode(GameMode.ADVENTURE);
     }
     
     private void initializeSecondPlaceParticipant(Player second) {
         secondPlaceParticipants.add(second);
-        second.teleport(secondPlaceSpawn);
+        second.teleport(storageUtil.getSecondPlaceSpawn());
         second.setGameMode(GameMode.ADVENTURE);
     }
     
     private void initializeSpectator(Player spectator) {
         spectators.add(spectator);
-        spectator.teleport(spectatorSpawn);
+        spectator.teleport(storageUtil.getSpectatorSpawn());
         spectator.setGameMode(GameMode.ADVENTURE);
     }
     
@@ -233,25 +242,25 @@ public class ColossalColosseumGame implements Listener {
     private void closeFirstGate() {
         //replace powder with air
         for (Material powderColor : ColorMap.getAllConcretePowderColors()) {
-            BlockPlacementUtils.createCubeReplace(colossalColosseumWorld, -1002, -3, -19, 5, 10, 1, powderColor, Material.AIR);
+            BlockPlacementUtils.createCubeReplace(storageUtil.getWorld(), -1002, -3, -19, 5, 10, 1, powderColor, Material.AIR);
         }
         //place stone under
-        BlockPlacementUtils.createCube(colossalColosseumWorld, -1002, 1, -19, 5, 1, 1, Material.STONE);
+        BlockPlacementUtils.createCube(storageUtil.getWorld(), -1002, 1, -19, 5, 1, 1, Material.STONE);
         //place team color sand
         Material teamPowderColor = gameManager.getTeamPowderColor(secondTeamName);
-        BlockPlacementUtils.createCubeReplace(colossalColosseumWorld, -1002, 2, -19, 5, 4, 1, Material.AIR, teamPowderColor);
+        BlockPlacementUtils.createCubeReplace(storageUtil.getWorld(), -1002, 2, -19, 5, 4, 1, Material.AIR, teamPowderColor);
     }
     
     private void closeSecondGate() {
         //replace powder with air
         for (Material powderColor : ColorMap.getAllConcretePowderColors()) {
-            BlockPlacementUtils.createCubeReplace(colossalColosseumWorld, -1002, -3, 19, 5, 10, 1, powderColor, Material.AIR);
+            BlockPlacementUtils.createCubeReplace(storageUtil.getWorld(), -1002, -3, 19, 5, 10, 1, powderColor, Material.AIR);
         }
         //place stone under
-        BlockPlacementUtils.createCube(colossalColosseumWorld, -1002, 1, 19, 5, 1, 1, Material.STONE);
+        BlockPlacementUtils.createCube(storageUtil.getWorld(), -1002, 1, 19, 5, 1, 1, Material.STONE);
         //place team color sand
         Material teamPowderColor = gameManager.getTeamPowderColor(firstTeamName);
-        BlockPlacementUtils.createCubeReplace(colossalColosseumWorld, -1002, 2, 19, 5, 4, 1, Material.AIR, teamPowderColor);
+        BlockPlacementUtils.createCubeReplace(storageUtil.getWorld(), -1002, 2, 19, 5, 4, 1, Material.AIR, teamPowderColor);
     }
     
     private void setupTeamOptions() {

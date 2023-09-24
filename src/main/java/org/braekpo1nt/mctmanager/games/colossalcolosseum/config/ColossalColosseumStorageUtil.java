@@ -50,7 +50,7 @@ public class ColossalColosseumStorageUtil extends GameConfigStorageUtil<Colossal
 
     @Override
     protected InputStream getExampleResourceStream() {
-        return null;
+        return ColossalColosseumStorageUtil.class.getResourceAsStream("exampleColossalColosseumConfig.json");
     }
 
     public World getWorld() {
