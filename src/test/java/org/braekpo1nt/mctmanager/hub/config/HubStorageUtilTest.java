@@ -35,8 +35,19 @@ public class HubStorageUtilTest {
     }
     
     @Test
-    void configDoesNotExist() {
-        Assertions.assertThrows(IllegalArgumentException.class, storageUtil::loadConfig);
+    void defaultConfigIsCreatedIfConfigDoesNotExist() {
+        Assertions.assertDoesNotThrow(() -> {
+            Assertions.assertTrue(storageUtil.loadConfig());
+            Assertions.assertTrue(new File(plugin.getDataFolder(), configFileName).exists());
+        });
+    }
+    
+    @Test
+    void defaultConfigIsValid() {
+        Assertions.assertDoesNotThrow(() -> {
+            HubConfig defaultConfig = storageUtil.createDefaultConfig();
+            Assertions.assertTrue(storageUtil.configIsValid(defaultConfig));
+        });
     }
     
     @Test

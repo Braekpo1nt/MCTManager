@@ -39,8 +39,8 @@ public class HubStorageUtil extends GameConfigStorageUtil<HubConfig> {
     public boolean loadConfig() throws IllegalArgumentException {
         if (!configFile.exists()) {
             HubConfig defaultConfig = createDefaultConfig();
-            setConfig(defaultConfig);
-            return true;
+            Bukkit.getLogger().warning(String.format("%s not found, creating default %s.", configFile, configFileName));
+            saveConfig(defaultConfig);
         }
         return super.loadConfig();
     }
@@ -50,7 +50,7 @@ public class HubStorageUtil extends GameConfigStorageUtil<HubConfig> {
      * @throws IllegalArgumentException if no worlds exist in the server
      */
     @NotNull
-    private HubConfig createDefaultConfig() {
+    protected HubConfig createDefaultConfig() {
         Optional<World> optionalWorld = Bukkit.getWorlds().stream().findFirst();
         Preconditions.checkArgument(optionalWorld.isPresent(), "No worlds exist in server.");
         World defaultWorld = optionalWorld.get();
