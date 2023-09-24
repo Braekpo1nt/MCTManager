@@ -70,11 +70,11 @@ public class ColossalColosseumGame implements Listener, Configurable {
         spectators = new ArrayList<>(newSpectators.size());
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         rounds = new ArrayList<>(3);
-        rounds.add(new ColossalColosseumRound(plugin, gameManager, this));
-        rounds.add(new ColossalColosseumRound(plugin, gameManager, this));
-        rounds.add(new ColossalColosseumRound(plugin, gameManager, this));
-        rounds.add(new ColossalColosseumRound(plugin, gameManager, this));
-        rounds.add(new ColossalColosseumRound(plugin, gameManager, this));
+        rounds.add(new ColossalColosseumRound(plugin, gameManager, this, storageUtil));
+        rounds.add(new ColossalColosseumRound(plugin, gameManager, this, storageUtil));
+        rounds.add(new ColossalColosseumRound(plugin, gameManager, this, storageUtil));
+        rounds.add(new ColossalColosseumRound(plugin, gameManager, this, storageUtil));
+        rounds.add(new ColossalColosseumRound(plugin, gameManager, this, storageUtil));
         currentRoundIndex = 0;
         for (Player first : newFirstPlaceParticipants) {
             initializeFirstPlaceParticipant(first);
