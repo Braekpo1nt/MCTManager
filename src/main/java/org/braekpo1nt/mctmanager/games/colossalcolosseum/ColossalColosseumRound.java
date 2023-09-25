@@ -243,33 +243,33 @@ public class ColossalColosseumRound implements Listener {
     
     private void openGates() {
         //first
-        BlockPlacementUtils.createCube(storageUtil.getWorld(), -1002, 1, -19, 5, 1, 1, Material.AIR);
+        BlockPlacementUtils.createCube(storageUtil.getWorld(), storageUtil.getFirstPlaceStone(), Material.AIR);
         //second
-        BlockPlacementUtils.createCube(storageUtil.getWorld(), -1002, 1, 19, 5, 1, 1, Material.AIR);
+        BlockPlacementUtils.createCube(storageUtil.getWorld(), storageUtil.getSecondPlaceStone(), Material.AIR);
     }
     
     private void closeFirstGate() {
         //replace powder with air
         for (Material powderColor : ColorMap.getAllConcretePowderColors()) {
-            BlockPlacementUtils.createCubeReplace(storageUtil.getWorld(), -1002, -3, -19, 5, 10, 1, powderColor, Material.AIR);
+            BlockPlacementUtils.createCubeReplace(storageUtil.getWorld(), storageUtil.getFirstPlaceClearArea(), powderColor, Material.AIR);
         }
         //place stone under
-        BlockPlacementUtils.createCube(storageUtil.getWorld(), -1002, 1, -19, 5, 1, 1, Material.STONE);
-        //place team color sand
-        Material teamPowderColor = gameManager.getTeamPowderColor(firstTeamName);
-        BlockPlacementUtils.createCubeReplace(storageUtil.getWorld(), -1002, 2, -19, 5, 4, 1, Material.AIR, teamPowderColor);
+        BlockPlacementUtils.createCube(storageUtil.getWorld(), storageUtil.getFirstPlaceStone(), Material.STONE);
+        //place team color powder
+        Material teamPowderColor = gameManager.getTeamPowderColor(secondTeamName);
+        BlockPlacementUtils.createCubeReplace(storageUtil.getWorld(), storageUtil.getFirstPlacePlaceArea(), Material.AIR, teamPowderColor);
     }
     
     private void closeSecondGate() {
         //replace powder with air
         for (Material powderColor : ColorMap.getAllConcretePowderColors()) {
-            BlockPlacementUtils.createCubeReplace(storageUtil.getWorld(), -1002, -3, 19, 5, 10, 1, powderColor, Material.AIR);
+            BlockPlacementUtils.createCubeReplace(storageUtil.getWorld(), storageUtil.getSecondPlaceClearArea(), powderColor, Material.AIR);
         }
         //place stone under
-        BlockPlacementUtils.createCube(storageUtil.getWorld(), -1002, 1, 19, 5, 1, 1, Material.STONE);
-        //place team color sand
-        Material teamPowderColor = gameManager.getTeamPowderColor(secondTeamName);
-        BlockPlacementUtils.createCubeReplace(storageUtil.getWorld(), -1002, 2, 19, 5, 4, 1, Material.AIR, teamPowderColor);
+        BlockPlacementUtils.createCube(storageUtil.getWorld(), storageUtil.getSecondPlaceStone(), Material.STONE);
+        //place team color powder
+        Material teamPowderColor = gameManager.getTeamPowderColor(firstTeamName);
+        BlockPlacementUtils.createCubeReplace(storageUtil.getWorld(), storageUtil.getSecondPlacePlaceArea(), Material.AIR, teamPowderColor);
     }
     
     private void setupTeamOptions() {

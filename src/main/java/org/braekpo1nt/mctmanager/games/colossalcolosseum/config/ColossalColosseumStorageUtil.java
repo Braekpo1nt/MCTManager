@@ -10,7 +10,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.util.BoundingBox;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -23,6 +22,12 @@ public class ColossalColosseumStorageUtil extends GameConfigStorageUtil<Colossal
     private Location firstPlaceSpawn;
     private Location secondPlaceSpawn;
     private Location spectatorSpawn;
+    private BoundingBox firstPlaceClearArea;
+    private BoundingBox firstPlacePlaceArea;
+    private BoundingBox firstPlaceStone;
+    private BoundingBox secondPlaceClearArea;
+    private BoundingBox secondPlacePlaceArea;
+    private BoundingBox secondPlaceStone;
     
     /**
      * @param configDirectory The directory that the config should be located in (e.g. the plugin's data folder)
@@ -89,6 +94,12 @@ public class ColossalColosseumStorageUtil extends GameConfigStorageUtil<Colossal
         this.firstPlaceSpawn = newFirstPlaceSpawn;
         this.secondPlaceSpawn = newSecondPlaceSpawn;
         this.spectatorSpawn = newSpectatorSpawn;
+        this.firstPlaceClearArea = config.firstPlaceGate().clearArea().getBoundingBox();
+        this.firstPlacePlaceArea = config.firstPlaceGate().clearArea().getBoundingBox();
+        this.firstPlaceStone = config.firstPlaceGate().clearArea().getBoundingBox();
+        this.secondPlaceClearArea = config.secondPlaceGate().clearArea().getBoundingBox();
+        this.secondPlacePlaceArea = config.secondPlaceGate().clearArea().getBoundingBox();
+        this.secondPlaceStone = config.secondPlaceGate().clearArea().getBoundingBox();
         this.colossalColosseumConfig = config;
     }
 
@@ -115,5 +126,29 @@ public class ColossalColosseumStorageUtil extends GameConfigStorageUtil<Colossal
     
     public int getRequiredWins() {
         return colossalColosseumConfig.requiredWins();
+    }
+    
+    public BoundingBox getFirstPlaceClearArea() {
+        return firstPlaceClearArea;
+    }
+    
+    public BoundingBox getFirstPlacePlaceArea() {
+        return firstPlacePlaceArea;
+    }
+    
+    public BoundingBox getFirstPlaceStone() {
+        return firstPlaceStone;
+    }
+    
+    public BoundingBox getSecondPlaceClearArea() {
+        return secondPlaceClearArea;
+    }
+    
+    public BoundingBox getSecondPlacePlaceArea() {
+        return secondPlacePlaceArea;
+    }
+    
+    public BoundingBox getSecondPlaceStone() {
+        return secondPlaceStone;
     }
 }
