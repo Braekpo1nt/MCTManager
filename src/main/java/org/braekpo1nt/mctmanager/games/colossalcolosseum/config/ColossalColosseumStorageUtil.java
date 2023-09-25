@@ -9,6 +9,7 @@ import org.braekpo1nt.mctmanager.games.game.config.GameConfigStorageUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -44,12 +45,33 @@ public class ColossalColosseumStorageUtil extends GameConfigStorageUtil<Colossal
         Preconditions.checkArgument(config.secondPlaceSpawn() != null, "secondPlaceSpawn can't be null");
         Preconditions.checkArgument(config.spectatorSpawn() != null, "spectatorSpawn can't be null");
         Preconditions.checkArgument(config.requiredWins() > 0, "requiredWins must be greater than 0");
+        gateIsValid(config.firstPlaceGate());
+        gateIsValid(config.secondPlaceGate());
         try {
             GsonComponentSerializer.gson().deserializeFromTree(config.description());
         } catch (JsonIOException | JsonSyntaxException e) {
             throw new IllegalArgumentException("description is invalid", e);
         }
         return true;
+    }
+    
+    private void gateIsValid(ColossalColosseumConfig.Gate gate) {
+        Preconditions.checkArgument(gate != null, "gate can't be null");
+        
+        Preconditions.checkArgument(gate.clearArea() != null, "clearArea can't be null");
+        Preconditions.checkArgument(gate.clearArea().xSize() >= 1, "clearArea.xSize must be >= 1");
+        Preconditions.checkArgument(gate.clearArea().ySize() >= 1, "clearArea.ySize must be >= 1");
+        Preconditions.checkArgument(gate.clearArea().zSize() >= 1, "clearArea.zSize must be >= 1");
+        
+        Preconditions.checkArgument(gate.placeArea() != null, "placeArea can't be null");
+        Preconditions.checkArgument(gate.placeArea().xSize() >= 1, "placeArea.xSize must be >= 1");
+        Preconditions.checkArgument(gate.placeArea().ySize() >= 1, "placeArea.ySize must be >= 1");
+        Preconditions.checkArgument(gate.placeArea().zSize() >= 1, "placeArea.zSize must be >= 1");
+        
+        Preconditions.checkArgument(gate.stone() != null, "stone can't be null");
+        Preconditions.checkArgument(gate.stone().xSize() >= 1, "stone.xSize must be >= 1");
+        Preconditions.checkArgument(gate.stone().ySize() >= 1, "stone.ySize must be >= 1");
+        Preconditions.checkArgument(gate.stone().zSize() >= 1, "stone.zSize must be >= 1");
     }
 
     @Override
