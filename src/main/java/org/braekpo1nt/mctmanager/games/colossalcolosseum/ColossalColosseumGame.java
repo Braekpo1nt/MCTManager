@@ -199,8 +199,8 @@ public class ColossalColosseumGame implements Listener, Configurable {
         String firstDisplayName = ChatColor.BOLD + "" +  firstChatColor + gameManager.getTeamDisplayName(firstTeamName);
         ChatColor secondChatColor = gameManager.getTeamChatColor(secondTeamName);
         String secondDisplayName = ChatColor.BOLD + "" +  secondChatColor + gameManager.getTeamDisplayName(secondTeamName);
-        gameManager.getSidebarManager().updateLine("firstWinCount", String.format("%s: %s/3", firstDisplayName, firstPlaceRoundWins));
-        gameManager.getSidebarManager().updateLine("secondWinCount", String.format("%s: %s/3", secondDisplayName, secondPlaceRoundWins));
+        gameManager.getSidebarManager().updateLine("firstWinCount", String.format("%s: %s/%s", firstDisplayName, firstPlaceRoundWins, storageUtil.getRequiredWins()));
+        gameManager.getSidebarManager().updateLine("secondWinCount", String.format("%s: %s/%s", secondDisplayName, secondPlaceRoundWins, storageUtil.getRequiredWins()));
     }
     
     private void initializeSidebar() {
@@ -210,8 +210,8 @@ public class ColossalColosseumGame implements Listener, Configurable {
         String secondDisplayName = ChatColor.BOLD + "" +  secondChatColor + gameManager.getTeamDisplayName(secondTeamName);
         gameManager.getSidebarManager().addLines(
                 new KeyLine("title", title),
-                new KeyLine("firstWinCount", String.format("%s: 0/3", firstDisplayName)),
-                new KeyLine("secondWinCount", String.format("%s: 0/3", secondDisplayName)),
+                new KeyLine("firstWinCount", String.format("%s: 0/%s", firstDisplayName, storageUtil.getRequiredWins())),
+                new KeyLine("secondWinCount", String.format("%s: 0/%s", secondDisplayName, storageUtil.getRequiredWins())),
                 new KeyLine("round", "Round: 1"),
                 new KeyLine("timer", "")
         );
