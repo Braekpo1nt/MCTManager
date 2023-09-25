@@ -55,9 +55,9 @@ public class BlockPlacementUtils {
      * @param blockType the type of material to place in the cube
      */
     public static void createCube(World world, BoundingBox box, Material blockType) {
-        int xOrigin = (int) box.getMinX();
-        int yOrigin = (int) box.getMinY();
-        int zOrigin = (int) box.getMinX();
+        int xOrigin = box.getMin().getBlockX();
+        int yOrigin = box.getMin().getBlockY();
+        int zOrigin = box.getMin().getBlockZ();
         // calculate size
         int xSize = (int) box.getWidthX();
         int ySize = (int) box.getHeight();
