@@ -228,7 +228,7 @@ public class ColossalColosseumGame implements Listener, Configurable {
         }
         //place stone under
         BlockPlacementUtils.createCube(storageUtil.getWorld(), -1002, 1, -19, 5, 1, 1, Material.STONE);
-        //place team color sand
+        //place team color powder
         Material teamPowderColor = gameManager.getTeamPowderColor(secondTeamName);
         BlockPlacementUtils.createCubeReplace(storageUtil.getWorld(), -1002, 2, -19, 5, 4, 1, Material.AIR, teamPowderColor);
     }
@@ -240,7 +240,7 @@ public class ColossalColosseumGame implements Listener, Configurable {
         }
         //place stone under
         BlockPlacementUtils.createCube(storageUtil.getWorld(), -1002, 1, 19, 5, 1, 1, Material.STONE);
-        //place team color sand
+        //place team color powder
         Material teamPowderColor = gameManager.getTeamPowderColor(firstTeamName);
         BlockPlacementUtils.createCubeReplace(storageUtil.getWorld(), -1002, 2, 19, 5, 4, 1, Material.AIR, teamPowderColor);
     }
