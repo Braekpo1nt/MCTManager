@@ -158,7 +158,11 @@ public class GameManager implements Listener {
         sidebarManager.addPlayer(participant);
         updateTeamScore(participant);
         updatePersonalScore(participant);
-        participant.displayName(Component.text(participant.getName(), getTeamNamedTextColor(getTeamName(participant.getUniqueId()))));
+        String teamName = getTeamName(participant.getUniqueId());
+        NamedTextColor teamNamedTextColor = getTeamNamedTextColor(teamName);
+        Component displayName = Component.text(participant.getName(), teamNamedTextColor);
+        participant.displayName(displayName);
+        participant.playerListName(displayName);
         if (gameIsRunning()) {
             activeGame.onParticipantJoin(participant);
             return;
