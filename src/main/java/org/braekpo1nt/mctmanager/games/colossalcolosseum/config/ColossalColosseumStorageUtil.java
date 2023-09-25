@@ -43,6 +43,7 @@ public class ColossalColosseumStorageUtil extends GameConfigStorageUtil<Colossal
         Preconditions.checkArgument(config.firstPlaceSpawn() != null, "firstPlaceSpawn can't be null");
         Preconditions.checkArgument(config.secondPlaceSpawn() != null, "secondPlaceSpawn can't be null");
         Preconditions.checkArgument(config.spectatorSpawn() != null, "spectatorSpawn can't be null");
+        Preconditions.checkArgument(config.requiredWins() > 0, "requiredWins must be greater than 0");
         try {
             GsonComponentSerializer.gson().deserializeFromTree(config.description());
         } catch (JsonIOException | JsonSyntaxException e) {
@@ -84,5 +85,9 @@ public class ColossalColosseumStorageUtil extends GameConfigStorageUtil<Colossal
 
     public Location getSpectatorSpawn() {
         return spectatorSpawn;
+    }
+    
+    public int getRequiredWins() {
+        return colossalColosseumConfig.requiredWins();
     }
 }

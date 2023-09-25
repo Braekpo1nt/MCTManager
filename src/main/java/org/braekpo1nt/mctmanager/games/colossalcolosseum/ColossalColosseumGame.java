@@ -33,7 +33,6 @@ public class ColossalColosseumGame implements Listener, Configurable {
     private List<Player> spectators = new ArrayList<>();
     private List<ColossalColosseumRound> rounds = new ArrayList<>();
     private int currentRoundIndex = 0;
-    private final int MAX_ROUND_WINS = 3;
     private int firstPlaceRoundWins = 0;
     private int secondPlaceRoundWins = 0;
     private String firstTeamName;
@@ -69,12 +68,11 @@ public class ColossalColosseumGame implements Listener, Configurable {
         secondPlaceParticipants = new ArrayList<>(newSecondPlaceParticipants.size());
         spectators = new ArrayList<>(newSpectators.size());
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
-        rounds = new ArrayList<>(3);
-        rounds.add(new ColossalColosseumRound(plugin, gameManager, this, storageUtil));
-        rounds.add(new ColossalColosseumRound(plugin, gameManager, this, storageUtil));
-        rounds.add(new ColossalColosseumRound(plugin, gameManager, this, storageUtil));
-        rounds.add(new ColossalColosseumRound(plugin, gameManager, this, storageUtil));
-        rounds.add(new ColossalColosseumRound(plugin, gameManager, this, storageUtil));
+        int numOfRounds = (storageUtil.getRequiredWins() * 2) - 1;
+        rounds = new ArrayList<>(numOfRounds);
+        for (int i = 0; i < numOfRounds; i++) {
+            rounds.add(new ColossalColosseumRound(plugin, gameManager, this, storageUtil));
+        }
         currentRoundIndex = 0;
         for (Player first : newFirstPlaceParticipants) {
             initializeFirstPlaceParticipant(first);
@@ -127,7 +125,7 @@ public class ColossalColosseumGame implements Listener, Configurable {
         for (Player participant : spectators) {
             updateRoundWinFastBoard(participant);
         }
-        if (firstPlaceRoundWins >= MAX_ROUND_WINS) {
+        if (firstPlaceRoundWins >= storageUtil.getRequiredWins()) {
             stop(firstTeamName);
             return;
         }
@@ -146,7 +144,7 @@ public class ColossalColosseumGame implements Listener, Configurable {
         for (Player participant : spectators) {
             updateRoundWinFastBoard(participant);
         }
-        if (secondPlaceRoundWins >= MAX_ROUND_WINS) {
+        if (secondPlaceRoundWins >= storageUtil.getRequiredWins()) {
             stop(secondTeamName);
             return;
         }
