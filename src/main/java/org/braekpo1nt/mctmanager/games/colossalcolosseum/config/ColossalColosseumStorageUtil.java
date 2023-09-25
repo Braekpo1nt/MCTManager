@@ -9,6 +9,7 @@ import org.braekpo1nt.mctmanager.games.game.config.GameConfigStorageUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -59,19 +60,22 @@ public class ColossalColosseumStorageUtil extends GameConfigStorageUtil<Colossal
         Preconditions.checkArgument(gate != null, "gate can't be null");
         
         Preconditions.checkArgument(gate.clearArea() != null, "clearArea can't be null");
-        Preconditions.checkArgument(gate.clearArea().xSize() >= 1, "clearArea.xSize must be >= 1");
-        Preconditions.checkArgument(gate.clearArea().ySize() >= 1, "clearArea.ySize must be >= 1");
-        Preconditions.checkArgument(gate.clearArea().zSize() >= 1, "clearArea.zSize must be >= 1");
+        BoundingBox clearArea = gate.clearArea().getBoundingBox();
+        Preconditions.checkArgument(clearArea.getWidthX() >= 1, "clearArea x-width must be >= 1");
+        Preconditions.checkArgument(clearArea.getHeight() >= 1, "clearArea height must be >= 1");
+        Preconditions.checkArgument(clearArea.getWidthZ() >= 1, "clearArea z-width must be >= 1");
         
         Preconditions.checkArgument(gate.placeArea() != null, "placeArea can't be null");
-        Preconditions.checkArgument(gate.placeArea().xSize() >= 1, "placeArea.xSize must be >= 1");
-        Preconditions.checkArgument(gate.placeArea().ySize() >= 1, "placeArea.ySize must be >= 1");
-        Preconditions.checkArgument(gate.placeArea().zSize() >= 1, "placeArea.zSize must be >= 1");
+        BoundingBox placeArea = gate.placeArea().getBoundingBox();
+        Preconditions.checkArgument(placeArea.getWidthX() >= 1, "placeArea x-width must be >= 1");
+        Preconditions.checkArgument(placeArea.getHeight() >= 1, "placeArea height must be >= 1");
+        Preconditions.checkArgument(placeArea.getWidthZ() >= 1, "placeArea z-width must be >= 1");
         
         Preconditions.checkArgument(gate.stone() != null, "stone can't be null");
-        Preconditions.checkArgument(gate.stone().xSize() >= 1, "stone.xSize must be >= 1");
-        Preconditions.checkArgument(gate.stone().ySize() >= 1, "stone.ySize must be >= 1");
-        Preconditions.checkArgument(gate.stone().zSize() >= 1, "stone.zSize must be >= 1");
+        BoundingBox stone = gate.stone().getBoundingBox();
+        Preconditions.checkArgument(stone.getWidthX() >= 1, "stone x-width must be >= 1");
+        Preconditions.checkArgument(stone.getHeight() >= 1, "stone height must be >= 1");
+        Preconditions.checkArgument(stone.getWidthZ() >= 1, "stone z-width must be >= 1");
     }
 
     @Override

@@ -65,6 +65,16 @@ public class BlockPlacementUtils {
         createCube(world, xOrigin, yOrigin, zOrigin, xSize, ySize, zSize, blockType);
     }
 
+    public static void createCubeReplace(World world, BoundingBox area, Material replace, Material with) {
+        int xOrigin = area.getMin().getBlockX();
+        int yOrigin = area.getMin().getBlockY();
+        int zOrigin = area.getMin().getBlockZ();
+        int xSize = (int) area.getWidthX();
+        int ySize = (int) area.getHeight();
+        int zSize = (int) area.getWidthZ();
+        createCubeReplace(world, xOrigin, yOrigin, zOrigin, xSize, ySize, zSize, replace, with);
+    }
+    
     public static void createCubeReplace(World world, int xOrigin, int yOrigin, int zOrigin, int xSize, int ySize, int zSize, Material replace, Material with) {
         int xEnd = xOrigin + xSize - 1;
         int yEnd = yOrigin + ySize - 1;
