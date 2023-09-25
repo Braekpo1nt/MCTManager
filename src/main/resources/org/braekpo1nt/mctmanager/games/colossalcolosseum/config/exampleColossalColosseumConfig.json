@@ -23,5 +23,57 @@
     "yaw": 6
   },
   "requiredWins": 3,
+  "firstPlaceGate": {
+    "clearArea": {
+      "xOrigin": -1002,
+      "yOrigin": -3,
+      "zOrigin": -19,
+      "xSize": 5,
+      "ySize": 10,
+      "zSize": 1
+    },
+    "placeArea": {
+      "xOrigin": -1002,
+      "yOrigin": 2,
+      "zOrigin": -19,
+      "xSize": 5,
+      "ySize": 4,
+      "zSize": 1
+    },
+    "stone": {
+      "xOrigin": -1002,
+      "yOrigin": 1,
+      "zOrigin": -19,
+      "xSize": 5,
+      "ySize": 1,
+      "zSize": 1
+    }
+  },
+  "secondPlaceGate": {
+    "clearArea": {
+      "xOrigin": -1002,
+      "yOrigin": -3,
+      "zOrigin": 19,
+      "xSize": 5,
+      "ySize": 10,
+      "zSize": 1
+    },
+    "placeArea": {
+      "xOrigin": -1002,
+      "yOrigin": 2,
+      "zOrigin": 19,
+      "xSize": 5,
+      "ySize": 4,
+      "zSize": 1
+    },
+    "stone": {
+      "xOrigin": -1002,
+      "yOrigin": 1,
+      "zOrigin": 19,
+      "xSize": 5,
+      "ySize": 1,
+      "zSize": 1
+    }
+  },
   "description": {"text":"Colossal Colosseum description","color":"dark_blue","bold": true}
 }
