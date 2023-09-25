@@ -116,15 +116,7 @@ public class ColossalColosseumGame implements Listener, Configurable {
     
     public void onFirstPlaceWinRound() {
         firstPlaceRoundWins++;
-        for (Player participant : firstPlaceParticipants) {
-            updateRoundWinFastBoard(participant);
-        }
-        for (Player participant : secondPlaceParticipants) {
-            updateRoundWinFastBoard(participant);
-        }
-        for (Player participant : spectators) {
-            updateRoundWinFastBoard(participant);
-        }
+        updateRoundWinFastBoard();
         if (firstPlaceRoundWins >= storageUtil.getRequiredWins()) {
             stop(firstTeamName);
             return;
@@ -135,15 +127,7 @@ public class ColossalColosseumGame implements Listener, Configurable {
     
     public void onSecondPlaceWinRound() {
         secondPlaceRoundWins++;
-        for (Player participant : firstPlaceParticipants) {
-            updateRoundWinFastBoard(participant);
-        }
-        for (Player participant : secondPlaceParticipants) {
-            updateRoundWinFastBoard(participant);
-        }
-        for (Player participant : spectators) {
-            updateRoundWinFastBoard(participant);
-        }
+        updateRoundWinFastBoard();
         if (secondPlaceRoundWins >= storageUtil.getRequiredWins()) {
             stop(secondTeamName);
             return;
@@ -210,7 +194,7 @@ public class ColossalColosseumGame implements Listener, Configurable {
         event.setCancelled(true);
     }
     
-    private void updateRoundWinFastBoard(Player participant) {
+    private void updateRoundWinFastBoard() {
         ChatColor firstChatColor = gameManager.getTeamChatColor(firstTeamName);
         String firstDisplayName = ChatColor.BOLD + "" +  firstChatColor + gameManager.getTeamDisplayName(firstTeamName);
         ChatColor secondChatColor = gameManager.getTeamChatColor(secondTeamName);
