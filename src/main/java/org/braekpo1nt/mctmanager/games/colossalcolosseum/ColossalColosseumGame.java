@@ -5,6 +5,7 @@ import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.colossalcolosseum.config.ColossalColosseumStorageUtil;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
+import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.bukkit.*;
@@ -25,6 +26,7 @@ public class ColossalColosseumGame implements Listener, Configurable {
     
     private final Main plugin;
     private final GameManager gameManager;
+    private Sidebar sidebar;
     private final ColossalColosseumStorageUtil storageUtil;
     private final String title = ChatColor.BLUE+"Colossal Colosseum";
     private List<Player> firstPlaceParticipants = new ArrayList<>();
@@ -68,7 +70,7 @@ public class ColossalColosseumGame implements Listener, Configurable {
         int numOfRounds = (storageUtil.getRequiredWins() * 2) - 1;
         rounds = new ArrayList<>(numOfRounds);
         for (int i = 0; i < numOfRounds; i++) {
-            rounds.add(new ColossalColosseumRound(plugin, gameManager, this, storageUtil));
+            rounds.add(new ColossalColosseumRound(plugin, gameManager, this, storageUtil, sidebar));
         }
         currentRoundIndex = 0;
         for (Player first : newFirstPlaceParticipants) {
@@ -108,7 +110,7 @@ public class ColossalColosseumGame implements Listener, Configurable {
     private void startNextRound() {
         ColossalColosseumRound nextRound = rounds.get(currentRoundIndex);
         nextRound.start(firstPlaceParticipants, secondPlaceParticipants, spectators);
-        gameManager.getSidebarManager().updateLine("round", String.format("Round: %s", currentRoundIndex+1));
+        sidebar.updateLine("round", String.format("Round: %s", currentRoundIndex+1));
     }
     
     public void onFirstPlaceWinRound() {
@@ -191,16 +193,20 @@ public class ColossalColosseumGame implements Listener, Configurable {
         String firstDisplayName = ChatColor.BOLD + "" +  firstChatColor + gameManager.getTeamDisplayName(firstTeamName);
         ChatColor secondChatColor = gameManager.getTeamChatColor(secondTeamName);
         String secondDisplayName = ChatColor.BOLD + "" +  secondChatColor + gameManager.getTeamDisplayName(secondTeamName);
-        gameManager.getSidebarManager().updateLine("firstWinCount", String.format("%s: %s/%s", firstDisplayName, firstPlaceRoundWins, storageUtil.getRequiredWins()));
-        gameManager.getSidebarManager().updateLine("secondWinCount", String.format("%s: %s/%s", secondDisplayName, secondPlaceRoundWins, storageUtil.getRequiredWins()));
+        sidebar.updateLine("firstWinCount", String.format("%s: %s/%s", firstDisplayName, firstPlaceRoundWins, storageUtil.getRequiredWins()));
+        sidebar.updateLine("secondWinCount", String.format("%s: %s/%s", secondDisplayName, secondPlaceRoundWins, storageUtil.getRequiredWins()));
     }
     
     private void initializeSidebar() {
+        sidebar = gameManager.getSidebarFactory().createSidebar();
+        sidebar.addPlayers(firstPlaceParticipants);
+        sidebar.addPlayers(secondPlaceParticipants);
+        sidebar.addPlayers(spectators);
         ChatColor firstChatColor = gameManager.getTeamChatColor(firstTeamName);
         String firstDisplayName = ChatColor.BOLD + "" +  firstChatColor + gameManager.getTeamDisplayName(firstTeamName);
         ChatColor secondChatColor = gameManager.getTeamChatColor(secondTeamName);
         String secondDisplayName = ChatColor.BOLD + "" +  secondChatColor + gameManager.getTeamDisplayName(secondTeamName);
-        gameManager.getSidebarManager().addLines(
+        sidebar.addLines(
                 new KeyLine("title", title),
                 new KeyLine("firstWinCount", String.format("%s: 0/%s", firstDisplayName, storageUtil.getRequiredWins())),
                 new KeyLine("secondWinCount", String.format("%s: 0/%s", secondDisplayName, storageUtil.getRequiredWins())),
@@ -210,7 +216,11 @@ public class ColossalColosseumGame implements Listener, Configurable {
     }
     
     private void clearSidebar() {
-        gameManager.getSidebarManager().deleteLines("title", "firstWinCount", "secondWinCount", "round", "timer");
+        sidebar.removePlayers(firstPlaceParticipants);
+        sidebar.removePlayers(secondPlaceParticipants);
+        sidebar.removePlayers(spectators);
+        sidebar.deleteLines("title", "firstWinCount", "secondWinCount", "round", "timer");
+        sidebar = null;
     }
     
     void closeGates() {

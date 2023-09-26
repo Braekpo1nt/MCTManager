@@ -8,6 +8,7 @@ import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.colossalcolosseum.config.ColossalColosseumStorageUtil;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
+import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.bukkit.*;
@@ -28,9 +29,8 @@ public class ColossalColosseumRound implements Listener {
     private final Main plugin;
     private final GameManager gameManager;
     private final ColossalColosseumGame colossalColosseumGame;
+    private final Sidebar sidebar;
     private final ColossalColosseumStorageUtil storageUtil;
-    private String firstTeamName;
-    private String secondTeamName;
     private Map<UUID, Boolean> firstPlaceParticipantsAlive = new HashMap<>();
     private Map<UUID, Boolean> secondPlaceParticipantsAlive = new HashMap<>();
     private List<Player> firstPlaceParticipants = new ArrayList<>();
@@ -39,16 +39,15 @@ public class ColossalColosseumRound implements Listener {
     private int startCountDownTaskId;
     private boolean roundActive = false;
     
-    public ColossalColosseumRound(Main plugin, GameManager gameManager, ColossalColosseumGame colossalColosseumGame, ColossalColosseumStorageUtil storageUtil) {
+    public ColossalColosseumRound(Main plugin, GameManager gameManager, ColossalColosseumGame colossalColosseumGame, ColossalColosseumStorageUtil storageUtil, Sidebar sidebar) {
         this.plugin = plugin;
         this.gameManager = gameManager;
         this.colossalColosseumGame = colossalColosseumGame;
         this.storageUtil = storageUtil;
+        this.sidebar = sidebar;
     }
     
     public void start(List<Player> newFirstPlaceParticipants, List<Player> newSecondPlaceParticipants, List<Player> newSpectators) {
-        firstTeamName = gameManager.getTeamName(newFirstPlaceParticipants.get(0).getUniqueId());
-        secondTeamName = gameManager.getTeamName(newSecondPlaceParticipants.get(0).getUniqueId());
         firstPlaceParticipants = new ArrayList<>(newFirstPlaceParticipants.size());
         secondPlaceParticipants = new ArrayList<>(newSecondPlaceParticipants.size());
         firstPlaceParticipantsAlive = new HashMap<>();
@@ -223,20 +222,20 @@ public class ColossalColosseumRound implements Listener {
             @Override
             public void run() {
                 if (count <= 0) {
-                    gameManager.getSidebarManager().updateLine("timer", "");
+                    sidebar.updateLine("timer", "");
                     startRound();
                     this.cancel();
                     return;
                 }
                 String timeLeft = TimeStringUtils.getTimeString(count);
-                gameManager.getSidebarManager().updateLine("timer", String.format("Starting: %s", timeLeft));
+                sidebar.updateLine("timer", String.format("Starting: %s", timeLeft));
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
     }
     
     private void initializeSidebar() {
-        gameManager.getSidebarManager().updateLine("timer", "Starting:");
+        sidebar.updateLine("timer", "Starting:");
     }
     
     private void openGates() {
