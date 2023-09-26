@@ -680,11 +680,15 @@ public class EventManager {
             }
             return;
         }
+        String theTitle = "MCT";
+        if (storageUtil != null) {
+            theTitle = storageUtil.getTitle();
+        }
         NamedTextColor teamColor = gameManager.getTeamNamedTextColor(winningTeam);
         Bukkit.getServer().sendMessage(Component.empty()
                 .append(gameManager.getFormattedTeamDisplayName(winningTeam))
                 .append(Component.text(" wins ")
-                    .append(Component.text(storageUtil.getTitle()))
+                    .append(Component.text(theTitle))
                     .append(Component.text("!")))
                 .color(teamColor)
                 .decorate(TextDecoration.BOLD));
