@@ -20,59 +20,59 @@
     "y": 9,
     "z": 0,
     "yaw": -90,
-    "pitch": 6,
+    "pitch": 6
   },
   "requiredWins": 3,
   "firstPlaceGate": {
     "clearArea": {
       "minX": -1002,
-      "minY": -3,
+      "minY": -2,
       "minZ": -19,
-      "maxX": -997,
-      "maxY": 7,
-      "maxZ": -18
+      "maxX": -998,
+      "maxY": 6,
+      "maxZ": -19
     },
     "placeArea": {
       "minX": -1002,
       "minY": 2,
       "minZ": -19,
-      "maxX": -997,
+      "maxX": -998,
       "maxY": 6,
-      "maxZ": -18
+      "maxZ": -19
     },
     "stone": {
       "minX": -1002,
       "minY": 1,
       "minZ": -19,
-      "maxX": -997,
-      "maxY": 2,
-      "maxZ": -18
+      "maxX": -998,
+      "maxY": 1,
+      "maxZ": -19
     }
   },
   "secondPlaceGate": {
     "clearArea": {
       "minX": -1002,
-      "minY": -3,
+      "minY": -2,
       "minZ": 19,
-      "maxX": -997,
-      "maxY": 7,
-      "maxZ": 20
+      "maxX": -998,
+      "maxY": 6,
+      "maxZ": 19
     },
     "placeArea": {
       "minX": -1002,
       "minY": 2,
       "minZ": 19,
-      "maxX": -997,
+      "maxX": -998,
       "maxY": 6,
-      "maxZ": 20
+      "maxZ": 19
     },
     "stone": {
       "minX": -1002,
       "minY": 1,
       "minZ": 19,
-      "maxX": -997,
-      "maxY": 2,
-      "maxZ": 20
+      "maxX": -998,
+      "maxY": 1,
+      "maxZ": 19
     }
   },
   "description": {"text":"Colossal Colosseum description","color":"dark_blue","bold": true}

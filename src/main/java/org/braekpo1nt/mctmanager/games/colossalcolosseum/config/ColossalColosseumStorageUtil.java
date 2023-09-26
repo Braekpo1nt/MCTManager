@@ -51,8 +51,16 @@ public class ColossalColosseumStorageUtil extends GameConfigStorageUtil<Colossal
         Preconditions.checkArgument(config.secondPlaceSpawn() != null, "secondPlaceSpawn can't be null");
         Preconditions.checkArgument(config.spectatorSpawn() != null, "spectatorSpawn can't be null");
         Preconditions.checkArgument(config.requiredWins() > 0, "requiredWins must be greater than 0");
-        gateIsValid(config.firstPlaceGate());
-        gateIsValid(config.secondPlaceGate());
+        
+        Preconditions.checkArgument(config.firstPlaceGate() != null, "firstPlaceGate can't be null");
+        Preconditions.checkArgument(config.firstPlaceGate().clearArea() != null, "firstPlaceGate.clearArea can't be null");
+        Preconditions.checkArgument(config.firstPlaceGate().placeArea() != null, "firstPlaceGate.placeArea can't be null");
+        Preconditions.checkArgument(config.firstPlaceGate().stone() != null, "firstPlaceGate.stone can't be null");
+        
+        Preconditions.checkArgument(config.secondPlaceGate() != null, "secondPlaceGate can't be null");
+        Preconditions.checkArgument(config.secondPlaceGate().clearArea() != null, "secondPlaceGate.clearArea can't be null");
+        Preconditions.checkArgument(config.secondPlaceGate().placeArea() != null, "secondPlaceGate.placeArea can't be null");
+        Preconditions.checkArgument(config.secondPlaceGate().stone() != null, "secondPlaceGate.stone can't be null");
         try {
             GsonComponentSerializer.gson().deserializeFromTree(config.description());
         } catch (JsonIOException | JsonSyntaxException e) {
@@ -61,28 +69,6 @@ public class ColossalColosseumStorageUtil extends GameConfigStorageUtil<Colossal
         return true;
     }
     
-    private void gateIsValid(ColossalColosseumConfig.Gate gate) {
-        Preconditions.checkArgument(gate != null, "gate can't be null");
-        
-        Preconditions.checkArgument(gate.clearArea() != null, "clearArea can't be null");
-        BoundingBox clearArea = gate.clearArea().getBoundingBox();
-        Preconditions.checkArgument(clearArea.getWidthX() >= 1, "clearArea x-width must be >= 1");
-        Preconditions.checkArgument(clearArea.getHeight() >= 1, "clearArea height must be >= 1");
-        Preconditions.checkArgument(clearArea.getWidthZ() >= 1, "clearArea z-width must be >= 1");
-        
-        Preconditions.checkArgument(gate.placeArea() != null, "placeArea can't be null");
-        BoundingBox placeArea = gate.placeArea().getBoundingBox();
-        Preconditions.checkArgument(placeArea.getWidthX() >= 1, "placeArea x-width must be >= 1");
-        Preconditions.checkArgument(placeArea.getHeight() >= 1, "placeArea height must be >= 1");
-        Preconditions.checkArgument(placeArea.getWidthZ() >= 1, "placeArea z-width must be >= 1");
-        
-        Preconditions.checkArgument(gate.stone() != null, "stone can't be null");
-        BoundingBox stone = gate.stone().getBoundingBox();
-        Preconditions.checkArgument(stone.getWidthX() >= 1, "stone x-width must be >= 1");
-        Preconditions.checkArgument(stone.getHeight() >= 1, "stone height must be >= 1");
-        Preconditions.checkArgument(stone.getWidthZ() >= 1, "stone z-width must be >= 1");
-    }
-
     @Override
     protected void setConfig(ColossalColosseumConfig config) throws IllegalArgumentException {
         World newWorld = Bukkit.getWorld(config.world());

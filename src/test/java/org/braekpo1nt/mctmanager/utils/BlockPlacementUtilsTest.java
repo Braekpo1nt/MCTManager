@@ -2,7 +2,9 @@ package org.braekpo1nt.mctmanager.utils;
 
 import be.seeseemelk.mockbukkit.MockBukkit;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.WorldCreator;
+import org.bukkit.block.Block;
 import org.bukkit.util.BoundingBox;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -40,6 +42,18 @@ class BlockPlacementUtilsTest {
         Assertions.assertDoesNotThrow(() -> {
             BlockPlacementUtils.createCube(WorldCreator.name("World").createWorld(), new BoundingBox(0, 0, 0, 1, 2, 3), Material.GLASS_PANE);
         });
+    }
+    
+    @Test
+    void createCubeBoundingBoxIntFlat() {
+        Assertions.assertDoesNotThrow(() -> {
+            BlockPlacementUtils.createCube(WorldCreator.name("World").createWorld(), new BoundingBox(0, 0, 0, 0, 2, 2), Material.GLASS_PANE);
+        });
+    }
+    
+    @Test
+    void createCubeBoundingBox() {
+        BlockPlacementUtils.createCubeReplace(WorldCreator.name("World").createWorld(), new BoundingBox(0, 0, 0, 0, 2, 2), Material.AIR, Material.STONE);
     }
     
     @Test

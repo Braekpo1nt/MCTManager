@@ -1,7 +1,5 @@
 package org.braekpo1nt.mctmanager.games.colossalcolosseum;
 
-import com.onarandombox.MultiverseCore.api.MVWorldManager;
-import com.onarandombox.MultiverseCore.utils.AnchorManager;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.colossalcolosseum.config.ColossalColosseumStorageUtil;
@@ -17,6 +15,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
+import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -62,8 +61,7 @@ public class ColossalColosseumGame implements Listener, Configurable {
         secondTeamName = gameManager.getTeamName(newSecondPlaceParticipants.get(0).getUniqueId());
         firstPlaceRoundWins = 0;
         secondPlaceRoundWins = 0;
-        closeFirstGate();
-        closeSecondGate();
+        closeGates();
         firstPlaceParticipants = new ArrayList<>(newFirstPlaceParticipants.size());
         secondPlaceParticipants = new ArrayList<>(newSecondPlaceParticipants.size());
         spectators = new ArrayList<>(newSpectators.size());
@@ -221,28 +219,30 @@ public class ColossalColosseumGame implements Listener, Configurable {
         gameManager.getSidebarManager().deleteLines("title", "firstWinCount", "secondWinCount", "round", "timer");
     }
     
-    private void closeFirstGate() {
-        //replace powder with air
-        for (Material powderColor : ColorMap.getAllConcretePowderColors()) {
-            BlockPlacementUtils.createCubeReplace(storageUtil.getWorld(), storageUtil.getFirstPlaceClearArea(), powderColor, Material.AIR);
-        }
-        //place stone under
-        BlockPlacementUtils.createCube(storageUtil.getWorld(), storageUtil.getFirstPlaceStone(), Material.STONE);
-        //place team color powder
-        Material teamPowderColor = gameManager.getTeamPowderColor(secondTeamName);
-        BlockPlacementUtils.createCubeReplace(storageUtil.getWorld(), storageUtil.getFirstPlacePlaceArea(), Material.AIR, teamPowderColor);
+    void closeGates() {
+        closeGate(
+                storageUtil.getFirstPlaceClearArea(), 
+                storageUtil.getFirstPlaceStone(), 
+                storageUtil.getFirstPlacePlaceArea(), 
+                gameManager.getTeamPowderColor(firstTeamName)
+        );
+        closeGate(
+                storageUtil.getSecondPlaceClearArea(), 
+                storageUtil.getSecondPlaceStone(), 
+                storageUtil.getSecondPlacePlaceArea(), 
+                gameManager.getTeamPowderColor(secondTeamName)
+        );
     }
     
-    private void closeSecondGate() {
+    private void closeGate(BoundingBox clearArea, BoundingBox stoneArea, BoundingBox placeArea, Material teamPowderColor) {
         //replace powder with air
         for (Material powderColor : ColorMap.getAllConcretePowderColors()) {
-            BlockPlacementUtils.createCubeReplace(storageUtil.getWorld(), storageUtil.getSecondPlaceClearArea(), powderColor, Material.AIR);
+            BlockPlacementUtils.createCubeReplace(storageUtil.getWorld(), clearArea, powderColor, Material.AIR);
         }
-        //place stone under
-        BlockPlacementUtils.createCube(storageUtil.getWorld(), storageUtil.getSecondPlaceStone(), Material.STONE);
-        //place team color powder
-        Material teamPowderColor = gameManager.getTeamPowderColor(firstTeamName);
-        BlockPlacementUtils.createCubeReplace(storageUtil.getWorld(), storageUtil.getSecondPlacePlaceArea(), Material.AIR, teamPowderColor);
+        //place stone under the powder area
+        BlockPlacementUtils.createCube(storageUtil.getWorld(), stoneArea, Material.STONE);
+        //replace air with team powder color
+        BlockPlacementUtils.createCubeReplace(storageUtil.getWorld(), placeArea, Material.AIR, teamPowderColor);
     }
     
     private void setupTeamOptions() {
