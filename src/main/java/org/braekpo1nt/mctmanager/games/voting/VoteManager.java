@@ -6,6 +6,7 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
+import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.Material;
@@ -31,6 +32,7 @@ public class VoteManager implements Listener {
     private final Component TITLE = Component.text("Vote for a Game");
     
     private final GameManager gameManager;
+    private Sidebar sidebar;
     private final Map<UUID, GameType> votes = new HashMap<>();
     private final Main plugin;
     private final List<Player> voters = new ArrayList<>();
@@ -94,18 +96,22 @@ public class VoteManager implements Listener {
                     return;
                 }
                 String timeLeft = TimeStringUtils.getTimeString(count);
-                gameManager.getSidebarManager().updateLine("timer", String.format("Voting: %s", timeLeft));
+                sidebar.updateLine("timer", String.format("Voting: %s", timeLeft));
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
     }
     
     private void initializeSidebar() {
-        gameManager.getSidebarManager().addLine("timer", "");
+        sidebar = gameManager.getSidebarFactory().createSidebar();
+        sidebar.addPlayers(voters);
+        sidebar.addLine("timer", "");
     }
     
     private void clearSidebar() {
-        gameManager.getSidebarManager().deleteLine("timer");
+        sidebar.removePlayers(voters);
+        sidebar.deleteLine("timer");
+        sidebar = null;
     }
     
     @EventHandler
