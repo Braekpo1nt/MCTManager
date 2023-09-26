@@ -26,7 +26,7 @@ public class CaptureTheFlagRound {
     private final Main plugin;
     private final GameManager gameManager;
     private final CaptureTheFlagStorageUtil storageUtil;
-    private Sidebar sidebar;
+    private final Sidebar sidebar;
     private List<CaptureTheFlagMatch> matches;
     private List<Player> participants = new ArrayList<>();
     private List<Player> onDeckParticipants;
@@ -36,11 +36,12 @@ public class CaptureTheFlagRound {
     private boolean roundActive = false;
     
     public CaptureTheFlagRound(CaptureTheFlagGame captureTheFlagGame, Main plugin, GameManager gameManager,
-                               CaptureTheFlagStorageUtil storageUtil) {
+                               CaptureTheFlagStorageUtil storageUtil, Sidebar sidebar) {
         this.captureTheFlagGame = captureTheFlagGame;
         this.plugin = plugin;
         this.gameManager = gameManager;
         this.storageUtil = storageUtil;
+        this.sidebar = sidebar;
     }
     
     /**
@@ -56,18 +57,13 @@ public class CaptureTheFlagRound {
             MatchPairing matchPairing = matchPairings.get(i);
             Arena arena = arenas.get(i);
             CaptureTheFlagMatch match = new CaptureTheFlagMatch(this, plugin, gameManager, 
-                    matchPairing, arena, storageUtil);
-            match.setSidebar(sidebar);
+                    matchPairing, arena, storageUtil, sidebar);
             matches.add(match);
         }
     }
     
     public boolean isActive() {
         return roundActive;
-    }
-    
-    public void setSidebar(Sidebar sidebar) {
-        this.sidebar = sidebar;
     }
     
     public void start(List<Player> newParticipants, List<Player> newOnDeckParticipants) {

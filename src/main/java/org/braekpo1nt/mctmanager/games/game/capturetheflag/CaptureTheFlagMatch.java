@@ -40,7 +40,7 @@ public class CaptureTheFlagMatch implements Listener {
     private final CaptureTheFlagStorageUtil storageUtil;
     private final MatchPairing matchPairing;
     private final Arena arena;
-    private Sidebar sidebar;
+    private final Sidebar sidebar;
     private List<Player> northParticipants = new ArrayList<>();
     private List<Player> southParticipants = new ArrayList<>();
     private List<Player> allParticipants = new ArrayList<>();
@@ -72,7 +72,7 @@ public class CaptureTheFlagMatch implements Listener {
     
     public CaptureTheFlagMatch(CaptureTheFlagRound captureTheFlagRound, Main plugin,
                                GameManager gameManager, MatchPairing matchPairing, Arena arena,
-                               CaptureTheFlagStorageUtil storageUtil) {
+                               CaptureTheFlagStorageUtil storageUtil, Sidebar sidebar) {
         this.captureTheFlagRound = captureTheFlagRound;
         this.plugin = plugin;
         this.gameManager = gameManager;
@@ -81,9 +81,6 @@ public class CaptureTheFlagMatch implements Listener {
         this.arena = arena;
         this.northClassPicker = new ClassPicker();
         this.southClassPicker = new ClassPicker();
-    }
-    
-    public void setSidebar(Sidebar sidebar) {
         this.sidebar = sidebar;
     }
     
