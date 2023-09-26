@@ -2,7 +2,7 @@ package org.braekpo1nt.mctmanager.ui;
 
 import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
 import org.braekpo1nt.mctmanager.ui.sidebar.FastBoardWrapper;
-import org.braekpo1nt.mctmanager.ui.sidebar.SidebarManager;
+import org.braekpo1nt.mctmanager.ui.sidebar.SidebarFactory;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -14,7 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Responsible for displaying the MCT sidebar FastBoard
  * Utilizes the <a href="https://github.com/MrMicky-FR/FastBoard">FastBoard api</a>
- * @deprecated This is deprecated in favor of {@link SidebarManager}
+ * @deprecated This is deprecated in favor of {@link SidebarFactory}
  */
 @Deprecated
 public class FastBoardManager {

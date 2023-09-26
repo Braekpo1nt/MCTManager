@@ -11,7 +11,8 @@ import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
-import org.braekpo1nt.mctmanager.ui.sidebar.SidebarManager;
+import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
+import org.braekpo1nt.mctmanager.ui.sidebar.SidebarFactory;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.CaptureTheFlagGame;
 import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceGame;
@@ -52,7 +53,8 @@ public class GameManager implements Listener {
     private final CaptureTheFlagGame captureTheFlagGame;
     private final ClockworkGame clockworkGame;
     private final HubManager hubManager;
-    private SidebarManager sidebarManager;
+    private SidebarFactory sidebarFactory;
+    private Sidebar defaultSidebar;
     private GameStateStorageUtil gameStateStorageUtil;
     /**
      * Scoreboard for holding the teams. This private scoreboard can't be
@@ -88,8 +90,9 @@ public class GameManager implements Listener {
         this.parkourPathwayGame = new ParkourPathwayGame(plugin, this);
         this.captureTheFlagGame = new CaptureTheFlagGame(plugin, this);
         this.clockworkGame = new ClockworkGame(plugin, this);
-        this.sidebarManager = new SidebarManager();
-        initializePersonalSidebar();
+        this.sidebarFactory = new SidebarFactory();
+        this.defaultSidebar = sidebarFactory.createSidebar();
+        initializeDefaultSidebar();
         this.hubManager = new HubManager(plugin, this);
         this.eventManager = new EventManager(plugin, this, voteManager);
     }
@@ -120,7 +123,7 @@ public class GameManager implements Listener {
      */
     private void onParticipantQuit(@NotNull Player participant) {
         onlineParticipants.remove(participant);
-        sidebarManager.removePlayer(participant.getUniqueId());
+        defaultSidebar.removePlayer(participant.getUniqueId());
         if (gameIsRunning()) {
             activeGame.onParticipantQuit(participant);
             participantsWhoLeftMidGame.add(participant.getUniqueId());
@@ -162,7 +165,7 @@ public class GameManager implements Listener {
         onlineParticipants.add(participant);
         participant.setScoreboard(mctScoreboard);
         participant.addPotionEffect(Main.NIGHT_VISION);
-        sidebarManager.addPlayer(participant);
+        defaultSidebar.addPlayer(participant);
         updateTeamScore(participant);
         updatePersonalScore(participant);
         String teamName = getTeamName(participant.getUniqueId());
@@ -186,8 +189,8 @@ public class GameManager implements Listener {
         return mctScoreboard;
     }
     
-    public SidebarManager getSidebarManager() {
-        return sidebarManager;
+    public SidebarFactory getSidebarFactory() {
+        return sidebarFactory;
     }
     
     /**
@@ -282,19 +285,19 @@ public class GameManager implements Listener {
                         .decorate(TextDecoration.BOLD))
                 .append(Component.text(" was selected"))
                 .color(NamedTextColor.BLUE));
-        sidebarManager.addLine("startingGame", String.format("Starting %s:", gameType.getTitle()));
+        defaultSidebar.addLine("startingGame", String.format("Starting %s:", gameType.getTitle()));
         this.startGameWithDelayTaskId = new BukkitRunnable() {
             int count = 5;
             @Override
             public void run() {
                 if (count <= 0) {
-                    sidebarManager.deleteLine("startingGame");
+                    defaultSidebar.deleteLine("startingGame");
                     startGame(gameType, Bukkit.getConsoleSender());
                     this.cancel();
                     return;
                 }
                 String timeLeft = TimeStringUtils.getTimeString(count);
-                sidebarManager.addLine("startingGame", String.format("Starting %s: %s", gameType.getTitle(), timeLeft));
+                defaultSidebar.addLine("startingGame", String.format("Starting %s: %s", gameType.getTitle(), timeLeft));
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -392,6 +395,7 @@ public class GameManager implements Listener {
         }
         
         hubManager.removeParticipantsFromHub(onlineParticipants);
+        defaultSidebar.removePlayers(onlineParticipants);
         selectedGame.start(onlineParticipants);
         activeGame = selectedGame;
         
@@ -425,6 +429,7 @@ public class GameManager implements Listener {
             activeGame = null;
             return;
         }
+        defaultSidebar.addPlayers(onlineParticipants);
         activeGame = null;
         if (!shouldTeleportToHub) {
             shouldTeleportToHub = true;
@@ -1000,14 +1005,15 @@ public class GameManager implements Listener {
         return activeGame;
     }
     
-    public void setSidebarManager(SidebarManager sidebarManager) {
-        this.sidebarManager = sidebarManager;
-        initializePersonalSidebar();
+    public void setSidebarFactory(SidebarFactory sidebarFactory) {
+        this.sidebarFactory = sidebarFactory;
+        this.defaultSidebar = sidebarFactory.createSidebar();
+        initializeDefaultSidebar();
     }
     
-    private void initializePersonalSidebar() {
-        sidebarManager.addLine("personalTeam", 0, "");
-        sidebarManager.addLine("personalScore", 1, "");
+    private void initializeDefaultSidebar() {
+        defaultSidebar.addLine("personalTeam", 0, "");
+        defaultSidebar.addLine("personalScore", 1, "");
     }
     
     private void updateTeamScore(Player participant) {
@@ -1015,11 +1021,11 @@ public class GameManager implements Listener {
         String displayName = getTeamDisplayName(team);
         ChatColor teamChatColor = getTeamChatColor(team);
         int teamScore = getScore(team);
-        sidebarManager.updateLine(participant.getUniqueId(), "personalTeam", String.format("%s%s: %s", teamChatColor, displayName, teamScore));
+        defaultSidebar.updateLine(participant.getUniqueId(), "personalTeam", String.format("%s%s: %s", teamChatColor, displayName, teamScore));
     }
     
     private void updatePersonalScore(Player participant) {
         int score = getScore(participant.getUniqueId());
-        sidebarManager.updateLine(participant.getUniqueId(), "personalScore", String.format("%sPoints: %s", ChatColor.GOLD, score));
+        defaultSidebar.updateLine(participant.getUniqueId(), "personalScore", String.format("%sPoints: %s", ChatColor.GOLD, score));
     }
 }

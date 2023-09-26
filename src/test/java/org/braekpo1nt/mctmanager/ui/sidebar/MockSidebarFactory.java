@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public class MockSidebarManager extends SidebarManager {
+public class MockSidebarFactory extends SidebarFactory {
     
     @Override
     public synchronized void addPlayer(@NotNull Player player) {

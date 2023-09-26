@@ -8,12 +8,19 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 
 public class Sidebar {
+    
+    /**
+     * Sidebar should not be instantiated outside the {@link SidebarFactory}. This prevents it from happening outside this package.
+     */
+    Sidebar() {
+    }
+    
     /**
      * Maps keys to their index, or their line number (starts at 0). 
      */
     protected final Map<String, Integer> keyToIndex = new HashMap<>();
     /**
-     * Holds the lines for the FastBoards for each player. This is kept in parallel to the actual visual lines held in {@link SidebarManager#boards} for the purposes of reordering
+     * Holds the lines for the FastBoards for each player. This is kept in parallel to the actual visual lines held in {@link Sidebar#boards} for the purposes of reordering
      */
     protected final Map<UUID, List<String>> boardsLines = new HashMap<>();
     /**
@@ -37,8 +44,14 @@ public class Sidebar {
         }
     }
     
+    public synchronized void addPlayers(@NotNull List<@NotNull Player> players) {
+        for (Player player : players) {
+            addPlayer(player);
+        }
+    }
+    
     /**
-     * Adds a player to this SidebarManager. The lines will be empty. You'll need to manually update the line contents for the new player using {@link SidebarManager#updateLine(UUID, String, String)}.
+     * Adds a player to this Sidebar. The lines will be empty. You'll need to manually update the line contents for the new player using {@link Sidebar#updateLine(UUID, String, String)}.
      * @param player the player to add to this manager and give a FastBoard
      */
     public synchronized void addPlayer(@NotNull Player player) {
@@ -54,8 +67,18 @@ public class Sidebar {
         boardsLines.put(player.getUniqueId(), lines);
     }
     
+    public synchronized void removePlayers(@NotNull List<@NotNull Player> players) {
+        for (Player player : players) {
+            removePlayer(player);
+        }
+    }
+    
+    public synchronized void removePlayer(@NotNull Player player) {
+        removePlayer(player.getUniqueId());
+    }
+    
     /**
-     * Removes the player from this SidebarManager.
+     * Removes the player from this Sidebar.
      * @param playerUUID the player to remove from this manager (must be present in the manager)
      * @throws IllegalArgumentException if the playerUUID doesn't exist in this manager
      */
