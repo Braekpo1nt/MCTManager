@@ -12,9 +12,9 @@ import org.braekpo1nt.mctmanager.games.event.config.EventStorageUtil;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.voting.VoteManager;
-import org.braekpo1nt.mctmanager.ui.FastBoardManager;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
-import org.braekpo1nt.mctmanager.ui.sidebar.SidebarManager;
+import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
+import org.braekpo1nt.mctmanager.ui.sidebar.SidebarFactory;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
@@ -29,6 +29,7 @@ public class EventManager {
     
     private final Main plugin;
     private final GameManager gameManager;
+    private Sidebar sidebar;
     private final VoteManager voteManager;
     private final ColossalColosseumGame colossalColosseumGame;
     private final EventStorageUtil storageUtil;
@@ -112,7 +113,7 @@ public class EventManager {
         playedGames.clear();
         scoreKeepers.clear();
         initializeSidebar();
-        gameManager.getSidebarManager().updateTitle(storageUtil.getTitle());
+        sidebar.updateTitle(storageUtil.getTitle());
         messageAllAdmins(Component.text("Starting event. On game ")
                 .append(Component.text(currentGameNumber))
                 .append(Component.text("/"))
@@ -145,7 +146,7 @@ public class EventManager {
         }
         clearSidebar();
         currentState = null;
-        gameManager.getSidebarManager().updateTitle(SidebarManager.DEFAULT_TITLE);
+        sidebar.updateTitle(Sidebar.DEFAULT_TITLE);
         cancelAllTasks();
         scoreKeepers.clear();
         currentGameNumber = 0;
@@ -400,9 +401,9 @@ public class EventManager {
                     return;
                 }
                 if (!allGamesHaveBeenPlayed()) {
-                    gameManager.getSidebarManager().updateLine("timer", String.format("Vote starts in: %s", TimeStringUtils.getTimeString(count)));
+                    sidebar.updateLine("timer", String.format("Vote starts in: %s", TimeStringUtils.getTimeString(count)));
                 } else {
-                    gameManager.getSidebarManager().updateLine("timer", String.format("Final round: %s", TimeStringUtils.getTimeString(count)));
+                    sidebar.updateLine("timer", String.format("Final round: %s", TimeStringUtils.getTimeString(count)));
                 }
                 count--;
             }
@@ -424,7 +425,7 @@ public class EventManager {
                     this.cancel();
                     return;
                 }
-                gameManager.getSidebarManager().updateLine("timer", String.format(ChatColor.YELLOW+"Break: %s", TimeStringUtils.getTimeString(count)));
+                sidebar.updateLine("timer", String.format(ChatColor.YELLOW+"Break: %s", TimeStringUtils.getTimeString(count)));
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -444,13 +445,13 @@ public class EventManager {
                 }
                 if (count <= 0) {
                     currentState = EventState.PODIUM;
-                    gameManager.getSidebarManager().addLine("winner", String.format("%sWinner: %s", winningChatColor, winningDisplayName));
-                    gameManager.getSidebarManager().updateLine("timer", "");
+                    sidebar.addLine("winner", String.format("%sWinner: %s", winningChatColor, winningDisplayName));
+                    sidebar.updateLine("timer", "");
                     gameManager.returnAllParticipantsToPodium(winningTeam);
                     this.cancel();
                     return;
                 }
-                gameManager.getSidebarManager().updateLine("timer", String.format("Heading to Podium: %s", TimeStringUtils.getTimeString(count)));
+                sidebar.updateLine("timer", String.format("Heading to Podium: %s", TimeStringUtils.getTimeString(count)));
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -482,7 +483,7 @@ public class EventManager {
                     this.cancel();
                     return;
                 }
-                gameManager.getSidebarManager().updateLine("timer", String.format("%s: %s", gameType.getTitle(),
+                sidebar.updateLine("timer", String.format("%s: %s", gameType.getTitle(),
                         TimeStringUtils.getTimeString(count)));
                 count--;
             }
@@ -529,7 +530,7 @@ public class EventManager {
                     this.cancel();
                     return;
                 }
-                gameManager.getSidebarManager().updateLine("timer", String.format("Back to Hub: %s", TimeStringUtils.getTimeString(count)));
+                sidebar.updateLine("timer", String.format("Back to Hub: %s", TimeStringUtils.getTimeString(count)));
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -554,7 +555,7 @@ public class EventManager {
                     this.cancel();
                     return;
                 }
-                gameManager.getSidebarManager().updateLine("timer", String.format("Colossal Colosseum: %s", TimeStringUtils.getTimeString(count)));
+                sidebar.updateLine("timer", String.format("Colossal Colosseum: %s", TimeStringUtils.getTimeString(count)));
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -745,14 +746,18 @@ public class EventManager {
     }
     
     private void initializeSidebar() {
-        gameManager.getSidebarManager().addLine("timer", "");
+        sidebar = gameManager.getSidebarFactory().createSidebar();
+        sidebar.addPlayers(gameManager.getOnlineParticipants());
+        sidebar.addLine("timer", "");
     }
     
     private void clearSidebar() {
-        gameManager.getSidebarManager().deleteLine("timer");
+        sidebar.removePlayers(gameManager.getOnlineParticipants());
+        sidebar.deleteLine("timer");
         if (currentState == EventState.PODIUM) {
-            gameManager.getSidebarManager().deleteLines("winner");
+            sidebar.deleteLines("winner");
         }
+        sidebar = null;
     }
     
     public boolean eventIsActive() {
