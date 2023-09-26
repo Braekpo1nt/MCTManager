@@ -56,7 +56,7 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
             Preconditions.checkArgument(structure != null, "can't find structure %s", layer.structure());
             newStructures.add(structure);
             newStructureOrigins.add(layer.structureOrigin().toLocation(newWorld));
-            newDecayLayers.add(layer.getDecayArea());
+            newDecayLayers.add(layer.decayArea().toBoundingBox());
             newDecayRates.add(layer.decayRate());
         }
         // now it's confirmed everything works, so set the actual fields
@@ -79,7 +79,7 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
         Preconditions.checkArgument(config.startingLocations().size() >= 1, "startingLocations must have at least one entry");
         Preconditions.checkArgument(!config.startingLocations().contains(null), "startingLocations can't contain any null elements");
         Preconditions.checkArgument(config.spectatorArea() != null, "spectatorArea can't be null");
-        Preconditions.checkArgument(config.getSpectatorArea().getVolume() >= 1.0, "spectatorArea (%s) must have a volume (%s) of at least 1.0", config.spectatorArea(), config.getSpectatorArea().getVolume());
+        Preconditions.checkArgument(config.spectatorArea().toBoundingBox().getVolume() >= 1.0, "spectatorArea (%s) must have a volume (%s) of at least 1.0", config.spectatorArea(), config.spectatorArea().toBoundingBox().getVolume());
         Preconditions.checkArgument(config.layers() != null, "layers can't be null");
         Preconditions.checkArgument(config.layers().size() >= 2, "there must be at least 2 layers");
         for (SpleefConfig.Layer layer : config.layers()) {

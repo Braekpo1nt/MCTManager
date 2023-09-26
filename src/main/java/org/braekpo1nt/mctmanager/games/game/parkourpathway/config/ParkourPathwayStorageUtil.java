@@ -10,6 +10,7 @@ import org.braekpo1nt.mctmanager.games.game.parkourpathway.CheckPoint;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,7 +42,7 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
         Preconditions.checkArgument(Bukkit.getWorld(config.world()) != null, "Could not find world \"%s\"", config.world());
         Preconditions.checkArgument(config.startingLocation() != null, "startingLocation can't be null");
         Preconditions.checkArgument(config.spectatorArea() != null, "spectatorArea can't be null");
-        Preconditions.checkArgument(config.getSpectatorArea().getVolume() >= 1.0, "getSpectatorArea's volume (%s) can't be less than 1. %s", config.getSpectatorArea().getVolume(), config.getSpectatorArea());
+        Preconditions.checkArgument(config.spectatorArea().toBoundingBox().getVolume() >= 1.0, "getSpectatorArea's volume (%s) can't be less than 1. %s", config.spectatorArea().toBoundingBox().getVolume(), config.spectatorArea().toBoundingBox());
         Preconditions.checkArgument(config.scores() != null, "scores can't be null");
         Preconditions.checkArgument(config.scores().checkpoint() != null, "scores.checkpoint can't be null");
         Preconditions.checkArgument(config.scores().checkpoint().length >= 2, "scores.checkpoint must have at least two elements");
@@ -57,14 +58,15 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
         for (int i = 0; i < config.checkpoints().size(); i++) {
             ParkourPathwayConfig.CheckPointDTO checkPoint = config.checkpoints().get(i);
             Preconditions.checkArgument(checkPoint != null, "checkpoint %s is null", i);
-            Preconditions.checkArgument(checkPoint.getDetectionBox() != null, "checkpoint %s's detectionBox is null", i);
-            Preconditions.checkArgument(checkPoint.getDetectionBox().getVolume() >= 1, "detectionBox's volume (%s) can't be less than 1. %s", checkPoint.getDetectionBox().getVolume(), checkPoint.getDetectionBox());
+            Preconditions.checkArgument(checkPoint.detectionBox() != null, "checkpoint %s's detectionBox is null", i);
+            BoundingBox detectionBox = checkPoint.detectionBox().toBoundingBox();
+            Preconditions.checkArgument(detectionBox.getVolume() >= 1, "detectionBox's volume (%s) can't be less than 1. %s", detectionBox.getVolume(), detectionBox);
             Preconditions.checkArgument(checkPoint.respawn().getY() >= checkPoint.yValue(), "checkpoint's respawn's y-value (%s) can't be lower than its yValue (%s)", checkPoint.respawn().getY(), checkPoint.yValue());
             if (i-1 >= 0) {
                 ParkourPathwayConfig.CheckPointDTO lastCheckPoint = config.checkpoints().get(i-1);
-                Preconditions.checkArgument(checkPoint.getDetectionBox().getMaxY() >= lastCheckPoint.yValue(), "checkpoint %s's detectionBox (%s) can't have a maxY (%s) lower than checkpoint %s's yValue (%s)", i, checkPoint.getDetectionBox(), checkPoint.getDetectionBox().getMaxY(), i-1, lastCheckPoint.yValue());
+                Preconditions.checkArgument(detectionBox.getMaxY() >= lastCheckPoint.yValue(), "checkpoint %s's detectionBox (%s) can't have a maxY (%s) lower than checkpoint %s's yValue (%s)", i, detectionBox, detectionBox.getMaxY(), i-1, lastCheckPoint.yValue());
                 
-                Preconditions.checkArgument(!checkPoint.getDetectionBox().contains(lastCheckPoint.respawn()), "checkpoint %s's detectionBox (%s) can't contain checkpoint %s's respawn (%s)", i, checkPoint.getDetectionBox(), i-1, lastCheckPoint.respawn());
+                Preconditions.checkArgument(!detectionBox.contains(lastCheckPoint.respawn()), "checkpoint %s's detectionBox (%s) can't contain checkpoint %s's respawn (%s)", i, detectionBox, i-1, lastCheckPoint.respawn());
             }
             try {
                 GsonComponentSerializer.gson().deserializeFromTree(config.description());
@@ -84,7 +86,7 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
         for (ParkourPathwayConfig.CheckPointDTO checkpointDTO : config.checkpoints()) {
             Vector configRespawn = checkpointDTO.respawn();
             Location respawn = new Location(newWorld, configRespawn.getX(), configRespawn.getY(), configRespawn.getZ());
-            newCheckPoints.add(new CheckPoint(checkpointDTO.yValue(), checkpointDTO.getDetectionBox(), respawn));
+            newCheckPoints.add(new CheckPoint(checkpointDTO.yValue(), checkpointDTO.detectionBox().toBoundingBox(), respawn));
         }
         // now it's confirmed everything works, so set the actual fields
         this.world = newWorld;

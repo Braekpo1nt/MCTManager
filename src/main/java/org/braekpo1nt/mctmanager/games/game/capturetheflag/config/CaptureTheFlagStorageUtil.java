@@ -10,6 +10,7 @@ import org.braekpo1nt.mctmanager.games.game.config.GameConfigStorageUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -53,12 +54,14 @@ public class CaptureTheFlagStorageUtil extends GameConfigStorageUtil<CaptureTheF
                     && arena.barrierSize().ySize() >= 1
                     && arena.barrierSize().zSize() >= 1, "barrierSize can't have a dimension less than 1 (%s)", arena.barrierSize());
             Preconditions.checkArgument(arena.boundingBox() != null, "boundingBox can't be null");
-            Preconditions.checkArgument(arena.getBoundingBox().getVolume() >= 2.0, "boundingBox (%s) volume (%s) must be at least 2.0", arena.getBoundingBox(), arena.getBoundingBox().getVolume());
-            Preconditions.checkArgument(arena.getBoundingBox().contains(arena.northFlag()), "boundingBox (%s) must contain northFlag (%s)", arena.getBoundingBox(), arena.northFlag());
-            Preconditions.checkArgument(arena.getBoundingBox().contains(arena.southFlag()), "boundingBox (%s) must contain southFlag (%s)", arena.getBoundingBox(), arena.southFlag());
+            BoundingBox arenaBoundingBox = arena.boundingBox().toBoundingBox();
+            Preconditions.checkArgument(arenaBoundingBox.getVolume() >= 2.0, "boundingBox (%s) volume (%s) must be at least 2.0", arenaBoundingBox, arenaBoundingBox.getVolume());
+            Preconditions.checkArgument(arenaBoundingBox.contains(arena.northFlag()), "boundingBox (%s) must contain northFlag (%s)", arenaBoundingBox, arena.northFlag());
+            Preconditions.checkArgument(arenaBoundingBox.contains(arena.southFlag()), "boundingBox (%s) must contain southFlag (%s)", arenaBoundingBox, arena.southFlag());
         }
         Preconditions.checkArgument(config.spectatorArea() != null, "spectatorArea can't be null");
-        Preconditions.checkArgument(config.getSpectatorArea().getVolume() >= 1.0, "spectatorArea (%s) volume (%s) must be at least 1.0", config.getSpectatorArea(), config.getSpectatorArea().getVolume());
+        BoundingBox spectatorArea = config.spectatorArea().toBoundingBox();
+        Preconditions.checkArgument(spectatorArea.getVolume() >= 1.0, "spectatorArea (%s) volume (%s) must be at least 1.0", spectatorArea, spectatorArea.getVolume());
         Preconditions.checkArgument(config.scores() != null, "scores can't be null");
         Preconditions.checkArgument(config.durations() != null, "durations can't be null");
         Preconditions.checkArgument(config.durations().matchesStarting() >= 0, "durations.matchesStarting (%s) can't be negative", config.durations().matchesStarting());
@@ -95,7 +98,7 @@ public class CaptureTheFlagStorageUtil extends GameConfigStorageUtil<CaptureTheF
                     arenaDTO.northBarrier().toLocation(arenaWorld),
                     arenaDTO.southBarrier().toLocation(arenaWorld),
                     arenaDTO.barrierSize(),
-                    arenaDTO.getBoundingBox()
+                    arenaDTO.boundingBox().toBoundingBox()
             ));
         }
         return newArenas;

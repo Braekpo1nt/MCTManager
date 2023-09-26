@@ -410,7 +410,6 @@ public class SpleefRound implements Listener {
     
     @EventHandler
     public void onBlockBreak(BlockBreakEvent event) {
-        Bukkit.getLogger().info("block break event " + event.getBlock());
         if (!roundActive) {
             return;
         }
