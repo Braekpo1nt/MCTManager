@@ -138,11 +138,16 @@ public class GameManager implements Listener {
         }
         if (isParticipant(player.getUniqueId())) {
             onParticipantJoin(player);
+            return;
         }
+        player.setScoreboard(mctScoreboard);
+        player.addPotionEffect(Main.NIGHT_VISION);
     }
     
     private void onAdminJoin(@NotNull Player admin) {
         onlineAdmins.add(admin);
+        admin.setScoreboard(mctScoreboard);
+        admin.addPotionEffect(Main.NIGHT_VISION);
     }
     
     /**
@@ -155,6 +160,8 @@ public class GameManager implements Listener {
      */
     private void onParticipantJoin(@NotNull Player participant) {
         onlineParticipants.add(participant);
+        participant.setScoreboard(mctScoreboard);
+        participant.addPotionEffect(Main.NIGHT_VISION);
         sidebarManager.addPlayer(participant);
         updateTeamScore(participant);
         updatePersonalScore(participant);
