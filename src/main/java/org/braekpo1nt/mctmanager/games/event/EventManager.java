@@ -546,8 +546,11 @@ public class EventManager {
                 }
                 if (count <= 0) {
                     // start selected game
-                    currentState = EventState.PLAYING_GAME;
-                    identifyWinnersAndStartColossalColosseum();
+                    if (identifyWinnersAndStartColossalColosseum()) {
+                        currentState = EventState.PLAYING_GAME;
+                    } else {
+                        messageAllAdmins(Component.text("Unable to start Colossal Colosseum."));
+                    }
                     this.cancel();
                     return;
                 }
@@ -557,7 +560,10 @@ public class EventManager {
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
     }
     
-    public void identifyWinnersAndStartColossalColosseum() {
+    /**
+     * @return true if two teams were picked and Colossal Colosseum started successfully. False if anything went wrong.
+     */
+    public boolean identifyWinnersAndStartColossalColosseum() {
         Set<String> allTeams = gameManager.getTeamNames();
         if (allTeams.size() < 2) {
             messageAllAdmins(Component.empty()
@@ -566,7 +572,7 @@ public class EventManager {
                             .clickEvent(ClickEvent.suggestCommand("/mct game finalgame "))
                             .decorate(TextDecoration.BOLD))
                     .append(Component.text(" to start the final game with the two chosen teams.")));
-            return;
+            return false;
         }
         Map<String, Integer> teamScores = new HashMap<>();
         for (String teamName : allTeams) {
@@ -578,7 +584,7 @@ public class EventManager {
             String firstPlace = firstPlaces[0];
             String secondPlace = firstPlaces[1];
             startColossalColosseum(Bukkit.getConsoleSender(), firstPlace, secondPlace);
-            return;
+            return false;
         }
         if (firstPlaces.length > 2) {
             messageAllAdmins(Component.text("There are more than 2 teams tied for first place. A tie breaker is needed. Use ")
@@ -587,7 +593,7 @@ public class EventManager {
                             .decorate(TextDecoration.BOLD))
                     .append(Component.text(" to start the final game with the two chosen teams."))
                     .color(NamedTextColor.RED));
-            return;
+            return false;
         }
         String firstPlace = firstPlaces[0];
         teamScores.remove(firstPlace);
@@ -599,14 +605,30 @@ public class EventManager {
                             .decorate(TextDecoration.BOLD))
                     .append(Component.text(" to start the final game with the two chosen teams."))
                     .color(NamedTextColor.RED));
-            return;
+            return false;
         }
         String secondPlace = secondPlaces[0];
         clearSidebar();
         startColossalColosseum(Bukkit.getConsoleSender(), firstPlace, secondPlace);
+        return true;
     }
     
     public void startColossalColosseum(CommandSender sender, String firstPlaceTeamName, String secondPlaceTeamName) {
+        try {
+            if (!colossalColosseumGame.loadConfig()) {
+                throw new IllegalArgumentException("Config could not be loaded.");
+            }
+        } catch (IllegalArgumentException e) {
+            Bukkit.getLogger().severe(e.getMessage());
+            e.printStackTrace();
+            messageAllAdmins(Component.text("Can't start ")
+                    .append(Component.text("Colossal Colosseum")
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(". Error loading config file. See console for details:\n"))
+                    .append(Component.text(e.getMessage()))
+                    .color(NamedTextColor.RED));
+            return;
+        }
         gameManager.removeOnlineParticipantsFromHub();
         if (colossalColosseumGame.isActive()) {
             sender.sendMessage(Component.text("Colossal Colosseum is already running").color(NamedTextColor.RED));
@@ -660,14 +682,28 @@ public class EventManager {
      */
     public void colossalColosseumIsOver(@Nullable String winningTeam) {
         if (winningTeam == null) {
+            Component message = Component.text("No winner declared.");
+            messageAllAdmins(message);
+            gameManager.messageOnlineParticipants(message);
             if (currentState != null) {
                 startWaitingInHub();
             }
             return;
         }
         NamedTextColor teamColor = gameManager.getTeamNamedTextColor(winningTeam);
+        Component formattedTeamDisplayName = gameManager.getFormattedTeamDisplayName(winningTeam);
+        if (currentState == null) {
+            Component message = Component.empty()
+                    .append(formattedTeamDisplayName)
+                    .append(Component.text(" wins!"))
+                    .color(teamColor)
+                    .decorate(TextDecoration.BOLD);
+            messageAllAdmins(message);
+            gameManager.messageOnlineParticipants(message);
+            return;
+        }
         Bukkit.getServer().sendMessage(Component.empty()
-                .append(gameManager.getFormattedTeamDisplayName(winningTeam))
+                .append(formattedTeamDisplayName)
                 .append(Component.text(" wins ")
                     .append(Component.text(storageUtil.getTitle()))
                     .append(Component.text("!")))

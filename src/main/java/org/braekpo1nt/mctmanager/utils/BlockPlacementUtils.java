@@ -51,20 +51,45 @@ public class BlockPlacementUtils {
     /**
      * Create a cube in the given bounding box. Doubles will be truncated to ints and passed to {@link BlockPlacementUtils#createCube(World, int, int, int, int, int, int, Material)}
      * @param world the world to place the cube in
-     * @param box the bounding box whose min pos will be the origin, and whose x-width, y-height, and z-width will be the size 
-     * @param blockType the type of material to place in the cube
+     * @param area the bounding box whose min pos will be the origin, and whose x-width, y-height, and z-width will be the size 
+     * @param material the type of material to place in the cube
      */
-    public static void createCube(World world, BoundingBox box, Material blockType) {
-        int xOrigin = (int) box.getMinX();
-        int yOrigin = (int) box.getMinY();
-        int zOrigin = (int) box.getMinX();
-        // calculate size
-        int xSize = (int) box.getWidthX();
-        int ySize = (int) box.getHeight();
-        int zSize = (int) box.getWidthZ();
-        createCube(world, xOrigin, yOrigin, zOrigin, xSize, ySize, zSize, blockType);
+    public static void createCube(World world, BoundingBox area, Material material) {
+        int minX = area.getMin().getBlockX();
+        int minY = area.getMin().getBlockY();
+        int minZ = area.getMin().getBlockZ();
+        int maxX = area.getMax().getBlockX();
+        int maxY = area.getMax().getBlockY();
+        int maxZ = area.getMax().getBlockZ();
+        for (int x = minX; x <= maxX; x++) {
+            for (int y = minY; y <= maxY; y++) {
+                for (int z = minZ; z <= maxZ; z++) {
+                    Block block = world.getBlockAt(x, y, z);
+                    block.setType(material);
+                }
+            }
+        }
     }
-
+    
+    public static void createCubeReplace(World world, BoundingBox area, Material replace, Material with) {
+        int minX = area.getMin().getBlockX();
+        int minY = area.getMin().getBlockY();
+        int minZ = area.getMin().getBlockZ();
+        int maxX = area.getMax().getBlockX();
+        int maxY = area.getMax().getBlockY();
+        int maxZ = area.getMax().getBlockZ();
+        for (int x = minX; x <= maxX; x++) {
+            for (int y = minY; y <= maxY; y++) {
+                for (int z = minZ; z <= maxZ; z++) {
+                    Block block = world.getBlockAt(x, y, z);
+                    if (block.getType().equals(replace)) {
+                        block.setType(with);
+                    }
+                }
+            }
+        }
+    }
+    
     public static void createCubeReplace(World world, int xOrigin, int yOrigin, int zOrigin, int xSize, int ySize, int zSize, Material replace, Material with) {
         int xEnd = xOrigin + xSize - 1;
         int yEnd = yOrigin + ySize - 1;
