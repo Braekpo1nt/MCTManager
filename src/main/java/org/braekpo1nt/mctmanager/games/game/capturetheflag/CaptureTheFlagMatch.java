@@ -8,6 +8,7 @@ import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlagStorageUtil;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
+import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.braekpo1nt.mctmanager.utils.MaterialUtils;
 import org.bukkit.*;
@@ -39,6 +40,7 @@ public class CaptureTheFlagMatch implements Listener {
     private final CaptureTheFlagStorageUtil storageUtil;
     private final MatchPairing matchPairing;
     private final Arena arena;
+    private final Sidebar sidebar;
     private List<Player> northParticipants = new ArrayList<>();
     private List<Player> southParticipants = new ArrayList<>();
     private List<Player> allParticipants = new ArrayList<>();
@@ -70,7 +72,7 @@ public class CaptureTheFlagMatch implements Listener {
     
     public CaptureTheFlagMatch(CaptureTheFlagRound captureTheFlagRound, Main plugin,
                                GameManager gameManager, MatchPairing matchPairing, Arena arena,
-                               CaptureTheFlagStorageUtil storageUtil) {
+                               CaptureTheFlagStorageUtil storageUtil, Sidebar sidebar) {
         this.captureTheFlagRound = captureTheFlagRound;
         this.plugin = plugin;
         this.gameManager = gameManager;
@@ -79,6 +81,7 @@ public class CaptureTheFlagMatch implements Listener {
         this.arena = arena;
         this.northClassPicker = new ClassPicker();
         this.southClassPicker = new ClassPicker();
+        this.sidebar = sidebar;
     }
     
     public MatchPairing getMatchPairing() {
@@ -379,7 +382,7 @@ public class CaptureTheFlagMatch implements Listener {
         int oldKillCount = killCounts.get(killerUniqueId);
         int newKillCount = oldKillCount + 1;
         killCounts.put(killerUniqueId, newKillCount);
-        gameManager.getSidebarManager().updateLine(
+        sidebar.updateLine(
                 killerUniqueId,
                 "kills",
                 ChatColor.RED+"Kills: " + newKillCount
@@ -686,7 +689,7 @@ public class CaptureTheFlagMatch implements Listener {
                     return;
                 }
                 String timeLeft = TimeStringUtils.getTimeString(count);
-                gameManager.getSidebarManager().updateLine("timer", String.format("Class selection: %s", timeLeft));
+                sidebar.updateLine("timer", String.format("Class selection: %s", timeLeft));
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -703,22 +706,22 @@ public class CaptureTheFlagMatch implements Listener {
                     return;
                 }
                 String timeLeft = TimeStringUtils.getTimeString(count);
-                gameManager.getSidebarManager().updateLine("timer", String.format("Round: %s", timeLeft));
+                sidebar.updateLine("timer", String.format("Round: %s", timeLeft));
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
     }
     
     private void initializeSidebar() {
-        gameManager.getSidebarManager().updateLine("timer", "Round: ");
+        sidebar.updateLine("timer", "Round: ");
     }
     
     private void initializeSidebar(Player participant) {
-        gameManager.getSidebarManager().updateLine(participant.getUniqueId(),"kills", ChatColor.RED+"Kills: 0");
+        sidebar.updateLine(participant.getUniqueId(),"kills", ChatColor.RED+"Kills: 0");
     }
     
     private void clearSidebar() {
-        gameManager.getSidebarManager().updateLine("kills", "");
+        sidebar.updateLine("kills", "");
     }
     
     private void placeFlags() {

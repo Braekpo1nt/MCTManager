@@ -8,6 +8,7 @@ import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
+import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -31,6 +32,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
     
     private final Main plugin;
     private final GameManager gameManager;
+    private Sidebar sidebar;
     private final CaptureTheFlagStorageUtil storageUtil;
     private int currentRoundIndex;
     private int maxRounds;
@@ -171,7 +173,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
         currentRoundIndex = 0;
         maxRounds = newRounds.size();
         rounds = newRounds;
-        gameManager.getSidebarManager().updateLine("round", String.format("Round %d/%d", currentRoundIndex+1, maxRounds));
+        sidebar.updateLine("round", String.format("Round %d/%d", currentRoundIndex+1, maxRounds));
     }
     
     /**
@@ -205,7 +207,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
         combinedRounds.addAll(newRounds);
         maxRounds = combinedRounds.size();
         rounds = combinedRounds;
-        gameManager.getSidebarManager().updateLine("round", String.format("Round %d/%d", currentRoundIndex+1, maxRounds));
+        sidebar.updateLine("round", String.format("Round %d/%d", currentRoundIndex+1, maxRounds));
     }
     
     /**
@@ -275,7 +277,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
             }
         }
         nextRound.start(roundParticipants, onDeckParticipants);
-        gameManager.getSidebarManager().updateLine("round", String.format("Round %d/%d", currentRoundIndex+1, maxRounds));
+        sidebar.updateLine("round", String.format("Round %d/%d", currentRoundIndex+1, maxRounds));
     }
 
     /**
@@ -306,7 +308,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
         List<CaptureTheFlagRound> rounds = new ArrayList<>();
         List<List<MatchPairing>> roundMatchPairingsList = CaptureTheFlagUtils.generateRoundMatchPairings(matchPairings, storageUtil.getArenas().size());
         for (List<MatchPairing> roundMatchPairings : roundMatchPairingsList) {
-            CaptureTheFlagRound newRound = new CaptureTheFlagRound(this, plugin, gameManager, storageUtil);
+            CaptureTheFlagRound newRound = new CaptureTheFlagRound(this, plugin, gameManager, storageUtil, sidebar);
             newRound.createMatches(roundMatchPairings, storageUtil.getArenas().subList(0, roundMatchPairings.size()));
             rounds.add(newRound);
         }
@@ -337,7 +339,9 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
     }
     
     private void initializeSidebar() {
-        gameManager.getSidebarManager().addLines(
+        sidebar = gameManager.getSidebarFactory().createSidebar();
+        sidebar.addPlayers(participants);
+        sidebar.addLines(
                 new KeyLine("title", title),
                 new KeyLine("enemy", ""),
                 new KeyLine("round", String.format("Round %d/%d", currentRoundIndex+1, maxRounds)),
@@ -347,7 +351,9 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
     }
     
     private void clearSidebar() {
-        gameManager.getSidebarManager().deleteLines("title", "enemy", "round", "timer", "kills");
+        sidebar.removePlayers(participants);
+        sidebar.deleteLines("title", "enemy", "round", "timer", "kills");
+        sidebar = null;
     }
     
     /**

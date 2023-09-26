@@ -11,7 +11,7 @@ import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlagStorageUtil;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.gamestate.MockGameStateStorageUtil;
-import org.braekpo1nt.mctmanager.ui.sidebar.MockSidebarManager;
+import org.braekpo1nt.mctmanager.ui.sidebar.MockSidebarFactory;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.junit.jupiter.api.*;
@@ -28,7 +28,7 @@ class CaptureTheFlagTest {
     private ServerMock server;
     private Main plugin;
     private CommandSender sender;
-    private MockSidebarManager mockSidebarManager;
+    private MockSidebarFactory mockSidebarManager;
     private GameManager gameManager;
     
     
@@ -44,8 +44,8 @@ class CaptureTheFlagTest {
             System.exit(1);
         }
         gameManager = plugin.getGameManager();
-        mockSidebarManager = new MockSidebarManager();
-        gameManager.setSidebarManager(mockSidebarManager);
+        mockSidebarManager = new MockSidebarFactory();
+        gameManager.setSidebarFactory(mockSidebarManager);
         MockGameStateStorageUtil mockGameStateStorageUtil = new MockGameStateStorageUtil(plugin);
         gameManager.setGameStateStorageUtil(mockGameStateStorageUtil);
         sender = server.getConsoleSender();
