@@ -28,6 +28,8 @@ public class ColossalColosseumStorageUtil extends GameConfigStorageUtil<Colossal
     private BoundingBox secondPlaceClearArea;
     private BoundingBox secondPlacePlaceArea;
     private BoundingBox secondPlaceStone;
+    private BoundingBox firstPlaceSupport;
+    private BoundingBox secondPlaceSupport;
     
     /**
      * @param configDirectory The directory that the config should be located in (e.g. the plugin's data folder)
@@ -67,6 +69,14 @@ public class ColossalColosseumStorageUtil extends GameConfigStorageUtil<Colossal
         Preconditions.checkArgument(config.secondPlaceGate().placeArea() != null, "secondPlaceGate.placeArea can't be null");
         Preconditions.checkArgument(config.secondPlaceGate().stone() != null, "secondPlaceGate.stone can't be null");
         
+        Preconditions.checkArgument(config.firstPlaceSupport() != null, "firstPlaceSupport can't be null");
+        BoundingBox firstPlaceSupport = config.firstPlaceSupport().toBoundingBox();
+        Preconditions.checkArgument(firstPlaceSupport.getVolume() > 0, "firstPlaceSupport volume (%s) must be greater than 0", firstPlaceSupport.getVolume());
+        Preconditions.checkArgument(config.secondPlaceSupport() != null, "secondPlaceSupport can't be null");
+        BoundingBox secondPlaceSupport = config.secondPlaceSupport().toBoundingBox();
+        Preconditions.checkArgument(secondPlaceSupport.getVolume() > 0, "secondPlaceSupport volume (%s) must be greater than 0", secondPlaceSupport.getVolume());
+        Preconditions.checkArgument(!firstPlaceSupport.overlaps(secondPlaceSupport), "firstPlaceSupport and secondPlaceSupport can't overlap");
+    
         Preconditions.checkArgument(config.durations() != null, "durations can't be null");
         Preconditions.checkArgument(config.durations().roundStarting() >= 1, "durations.roundStarting must be at least 1");
         
@@ -95,6 +105,8 @@ public class ColossalColosseumStorageUtil extends GameConfigStorageUtil<Colossal
         this.secondPlaceClearArea = config.secondPlaceGate().clearArea().toBoundingBox();
         this.secondPlacePlaceArea = config.secondPlaceGate().placeArea().toBoundingBox();
         this.secondPlaceStone = config.secondPlaceGate().stone().toBoundingBox();
+        this.firstPlaceSupport = config.firstPlaceSupport().toBoundingBox();
+        this.secondPlaceSupport = config.secondPlaceSupport().toBoundingBox();
         this.colossalColosseumConfig = config;
     }
 
@@ -149,5 +161,13 @@ public class ColossalColosseumStorageUtil extends GameConfigStorageUtil<Colossal
     
     public int getRoundStartingDuration() {
         return colossalColosseumConfig.durations().roundStarting();
+    }
+    
+    public BoundingBox getFirstPlaceSupport() {
+        return firstPlaceSupport;
+    }
+    
+    public BoundingBox getSecondPlaceSupport() {
+        return secondPlaceSupport;
     }
 }

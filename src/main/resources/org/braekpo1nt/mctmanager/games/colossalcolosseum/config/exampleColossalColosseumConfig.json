@@ -83,6 +83,22 @@
       "maxZ": 19
     }
   },
+  "firstPlaceSupport": {
+    "minX": 0,
+    "minY": 0,
+    "minZ": 0,
+    "maxX": 1,
+    "maxY": 1,
+    "maxZ": 1
+  },
+  "secondPlaceSupport": {
+    "minX": 2,
+    "minY": 2,
+    "minZ": 2,
+    "maxX": 3,
+    "maxY": 3,
+    "maxZ": 3
+  },
   "durations": {
     "roundStarting": 10
   },
