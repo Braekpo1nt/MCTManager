@@ -410,7 +410,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener {
     private void updateCheckpointSidebar(Player participant) {
         int currentCheckpoint = currentCheckpoints.get(participant.getUniqueId());
         int lastCheckpoint = storageUtil.getCheckPoints().size()-1;
-        sidebar.updateLine("checkpoint", String.format("%s/%s", currentCheckpoint, lastCheckpoint));
+        sidebar.updateLine(participant.getUniqueId(), "checkpoint", String.format("%s/%s", currentCheckpoint, lastCheckpoint));
     }
 
     private void clearSidebar() {

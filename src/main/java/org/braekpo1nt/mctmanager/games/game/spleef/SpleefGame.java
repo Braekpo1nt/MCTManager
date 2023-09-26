@@ -46,15 +46,15 @@ public class SpleefGame implements MCTGame, Configurable {
     @Override
     public void start(List<Player> newParticipants) {
         participants = new ArrayList<>(newParticipants.size());
+        for (Player participant : newParticipants) {
+            initializeParticipant(participant);
+        }
+        initializeSidebar();
         rounds = new ArrayList<>(storageUtil.getRounds());
         for (int i = 0; i < storageUtil.getRounds(); i++) {
             rounds.add(new SpleefRound(plugin, gameManager, this, storageUtil, sidebar));
         }
         currentRoundIndex = 0;
-        for (Player participant : newParticipants) {
-            initializeParticipant(participant);
-        }
-        initializeSidebar();
         setupTeamOptions();
         startNextRound();
         gameActive = true;
@@ -135,7 +135,7 @@ public class SpleefGame implements MCTGame, Configurable {
         sidebar.addPlayers(participants);
         sidebar.addLines(
                 new KeyLine("title", title),
-                new KeyLine("round", String.format("Round %d/%d", currentRoundIndex+1, rounds.size())),
+                new KeyLine("round", String.format("Round %d/%d", 1, storageUtil.getRounds())),
                 new KeyLine("timer", "")
         );
     }
