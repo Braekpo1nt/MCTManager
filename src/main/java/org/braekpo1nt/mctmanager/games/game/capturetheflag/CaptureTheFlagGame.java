@@ -62,14 +62,14 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         List<String> teamNames = gameManager.getTeamNames(newParticipants);
         List<MatchPairing> matchPairings = CaptureTheFlagUtils.generateMatchPairings(teamNames);
-        rounds = generateRounds(matchPairings);
-        currentRoundIndex = 0;
-        maxRounds = rounds.size();
         participants = new ArrayList<>();
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
         }
         initializeSidebar();
+        currentRoundIndex = 0;
+        rounds = generateRounds(matchPairings);
+        maxRounds = rounds.size();
         gameActive = true;
         startNextRound();
         Bukkit.getLogger().info("Starting Capture the Flag");
