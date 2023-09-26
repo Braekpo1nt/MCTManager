@@ -38,7 +38,7 @@ public class Main extends JavaPlugin {
         
         gameManager = new GameManager(this, mctScoreboard);
         try {
-            if (gameManager.loadHubConfig()) {
+            if (!gameManager.loadHubConfig()) {
                 throw new IllegalArgumentException("Could not load config");
             }
         } catch (IllegalArgumentException e) {
