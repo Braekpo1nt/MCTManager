@@ -47,6 +47,11 @@ public class ColossalColosseumStorageUtil extends GameConfigStorageUtil<Colossal
         Preconditions.checkArgument(config.version() != null, "version can't be null");
         Preconditions.checkArgument(config.version().equals(Main.CONFIG_VERSION), "Config version %s not supported. %s required.", config.version(), Main.CONFIG_VERSION);
         Preconditions.checkArgument(Bukkit.getWorld(config.world()) != null, "Could not find world \"%s\"", config.world());
+    
+        Preconditions.checkArgument(config.spectatorArea() != null, "spectatorArea can't be null");
+        BoundingBox spectatorArea = config.spectatorArea().toBoundingBox();
+        Preconditions.checkArgument(spectatorArea.getVolume() >= 1.0, "spectatorArea (%s) volume (%s) must be at least 1.0", spectatorArea, spectatorArea.getVolume());
+        
         Preconditions.checkArgument(config.firstPlaceSpawn() != null, "firstPlaceSpawn can't be null");
         Preconditions.checkArgument(config.secondPlaceSpawn() != null, "secondPlaceSpawn can't be null");
         Preconditions.checkArgument(config.spectatorSpawn() != null, "spectatorSpawn can't be null");
