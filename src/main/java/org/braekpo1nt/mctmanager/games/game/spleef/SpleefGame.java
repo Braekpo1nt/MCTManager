@@ -7,6 +7,7 @@ import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.game.spleef.config.SpleefStorageUtil;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
+import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Scoreboard;
@@ -17,6 +18,7 @@ import java.util.*;
 public class SpleefGame implements MCTGame, Configurable {
     private final Main plugin;
     private final GameManager gameManager;
+    private Sidebar sidebar;
     private final SpleefStorageUtil storageUtil;
     private final String title = ChatColor.BLUE+"Spleef";
     private List<Player> participants = new ArrayList<>();
@@ -46,7 +48,7 @@ public class SpleefGame implements MCTGame, Configurable {
         participants = new ArrayList<>(newParticipants.size());
         rounds = new ArrayList<>(storageUtil.getRounds());
         for (int i = 0; i < storageUtil.getRounds(); i++) {
-            rounds.add(new SpleefRound(plugin, gameManager, this, storageUtil));
+            rounds.add(new SpleefRound(plugin, gameManager, this, storageUtil, sidebar));
         }
         currentRoundIndex = 0;
         for (Player participant : newParticipants) {
@@ -121,7 +123,7 @@ public class SpleefGame implements MCTGame, Configurable {
     public void startNextRound() {
         SpleefRound nextRound = rounds.get(currentRoundIndex);
         nextRound.start(participants);
-        gameManager.getSidebarManager().updateLine("round", String.format("Round %d/%d", currentRoundIndex+1, rounds.size()));
+        sidebar.updateLine("round", String.format("Round %d/%d", currentRoundIndex+1, rounds.size()));
     }
     
     private void cancelAllTasks() {
@@ -129,7 +131,9 @@ public class SpleefGame implements MCTGame, Configurable {
     }
     
     private void initializeSidebar() {
-        gameManager.getSidebarManager().addLines(
+        sidebar = gameManager.getSidebarFactory().createSidebar();
+        sidebar.addPlayers(participants);
+        sidebar.addLines(
                 new KeyLine("title", title),
                 new KeyLine("round", String.format("Round %d/%d", currentRoundIndex+1, rounds.size())),
                 new KeyLine("timer", "")
@@ -137,7 +141,9 @@ public class SpleefGame implements MCTGame, Configurable {
     }
     
     private void clearSidebar() {
-        gameManager.getSidebarManager().deleteLines("title", "round", "timer");
+        sidebar.removePlayers(participants);
+        sidebar.deleteLines("title", "round", "timer");
+        sidebar = null;
     }
     
     private void setupTeamOptions() {
