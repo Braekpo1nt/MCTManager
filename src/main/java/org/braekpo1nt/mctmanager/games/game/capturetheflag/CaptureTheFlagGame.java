@@ -62,14 +62,14 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         List<String> teamNames = gameManager.getTeamNames(newParticipants);
         List<MatchPairing> matchPairings = CaptureTheFlagUtils.generateMatchPairings(teamNames);
+        currentRoundIndex = 0;
+        rounds = generateRounds(matchPairings);
+        maxRounds = rounds.size();
         participants = new ArrayList<>();
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
         }
         initializeSidebar();
-        currentRoundIndex = 0;
-        rounds = generateRounds(matchPairings);
-        maxRounds = rounds.size();
         gameActive = true;
         startNextRound();
         Bukkit.getLogger().info("Starting Capture the Flag");
@@ -308,7 +308,8 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
         List<CaptureTheFlagRound> rounds = new ArrayList<>();
         List<List<MatchPairing>> roundMatchPairingsList = CaptureTheFlagUtils.generateRoundMatchPairings(matchPairings, storageUtil.getArenas().size());
         for (List<MatchPairing> roundMatchPairings : roundMatchPairingsList) {
-            CaptureTheFlagRound newRound = new CaptureTheFlagRound(this, plugin, gameManager, storageUtil, sidebar);
+            CaptureTheFlagRound newRound = new CaptureTheFlagRound(this, plugin, gameManager, storageUtil);
+            newRound.setSidebar(sidebar);
             newRound.createMatches(roundMatchPairings, storageUtil.getArenas().subList(0, roundMatchPairings.size()));
             rounds.add(newRound);
         }
@@ -348,6 +349,9 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
                 new KeyLine("timer", ""),
                 new KeyLine("kills", "")
         );
+        for (CaptureTheFlagRound round : rounds) {
+            round.setSidebar(sidebar);
+        }
     }
     
     private void clearSidebar() {
