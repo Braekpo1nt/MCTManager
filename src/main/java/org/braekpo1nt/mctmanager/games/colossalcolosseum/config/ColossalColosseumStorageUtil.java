@@ -81,11 +81,11 @@ public class ColossalColosseumStorageUtil extends GameConfigStorageUtil<Colossal
         this.secondPlaceSpawn = newSecondPlaceSpawn;
         this.spectatorSpawn = newSpectatorSpawn;
         this.firstPlaceClearArea = config.firstPlaceGate().clearArea().getBoundingBox();
-        this.firstPlacePlaceArea = config.firstPlaceGate().clearArea().getBoundingBox();
-        this.firstPlaceStone = config.firstPlaceGate().clearArea().getBoundingBox();
+        this.firstPlacePlaceArea = config.firstPlaceGate().placeArea().getBoundingBox();
+        this.firstPlaceStone = config.firstPlaceGate().stone().getBoundingBox();
         this.secondPlaceClearArea = config.secondPlaceGate().clearArea().getBoundingBox();
-        this.secondPlacePlaceArea = config.secondPlaceGate().clearArea().getBoundingBox();
-        this.secondPlaceStone = config.secondPlaceGate().clearArea().getBoundingBox();
+        this.secondPlacePlaceArea = config.secondPlaceGate().placeArea().getBoundingBox();
+        this.secondPlaceStone = config.secondPlaceGate().stone().getBoundingBox();
         this.colossalColosseumConfig = config;
     }
 
