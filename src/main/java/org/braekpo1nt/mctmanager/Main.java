@@ -5,7 +5,6 @@ import org.braekpo1nt.mctmanager.commands.MCTCommand;
 import org.braekpo1nt.mctmanager.commands.MCTDebugCommand;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.listeners.BlockEffectsListener;
-import org.braekpo1nt.mctmanager.listeners.PlayerJoinListener;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -14,8 +13,6 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
-
-import java.io.IOException;
 
 public class Main extends JavaPlugin {
 
@@ -59,7 +56,6 @@ public class Main extends JavaPlugin {
         
         // Listeners
         BlockEffectsListener blockEffectsListener = new BlockEffectsListener(this);
-        new PlayerJoinListener(this, mctScoreboard);
         
         // Commands
         new MCTDebugCommand(this);
