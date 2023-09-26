@@ -36,7 +36,6 @@ public class ColossalColosseumGame implements Listener, Configurable {
     private int secondPlaceRoundWins = 0;
     private String firstTeamName;
     private String secondTeamName;
-    private int roundDelayTaskId;
     private boolean gameIsActive = false;
     
     public ColossalColosseumGame(Main plugin, GameManager gameManager) {
@@ -120,7 +119,7 @@ public class ColossalColosseumGame implements Listener, Configurable {
             return;
         }
         currentRoundIndex++;
-        this.roundDelayTaskId = Bukkit.getScheduler().runTaskLater(plugin, this::startNextRound, 5*20L).getTaskId();
+        startNextRound();
     }
     
     public void onSecondPlaceWinRound() {
@@ -131,12 +130,11 @@ public class ColossalColosseumGame implements Listener, Configurable {
             return;
         }
         currentRoundIndex++;
-        this.roundDelayTaskId = Bukkit.getScheduler().runTaskLater(plugin, this::startNextRound, 5*20L).getTaskId();
+        startNextRound();
     }
     
     public void stop(@Nullable String winningTeam) {
         gameIsActive = false;
-        cancelAllTasks();
         HandlerList.unregisterAll(this);
         if (currentRoundIndex < rounds.size()) {
             ColossalColosseumRound currentRound = rounds.get(currentRoundIndex);
@@ -164,10 +162,6 @@ public class ColossalColosseumGame implements Listener, Configurable {
     
     private void resetParticipant(Player participant) {
         participant.getInventory().clear();
-    }
-    
-    private void cancelAllTasks() {
-        Bukkit.getScheduler().cancelTask(roundDelayTaskId);
     }
     
     public void onParticipantJoin(Player participant) {

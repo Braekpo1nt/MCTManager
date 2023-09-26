@@ -218,7 +218,7 @@ public class ColossalColosseumRound implements Listener {
     
     private void startRoundStartingCountDown() {
         this.startCountDownTaskId = new BukkitRunnable() {
-            private int count = 10;
+            private int count = storageUtil.getRoundStartingDuration();
     
             @Override
             public void run() {

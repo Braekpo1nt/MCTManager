@@ -66,6 +66,10 @@ public class ColossalColosseumStorageUtil extends GameConfigStorageUtil<Colossal
         Preconditions.checkArgument(config.secondPlaceGate().clearArea() != null, "secondPlaceGate.clearArea can't be null");
         Preconditions.checkArgument(config.secondPlaceGate().placeArea() != null, "secondPlaceGate.placeArea can't be null");
         Preconditions.checkArgument(config.secondPlaceGate().stone() != null, "secondPlaceGate.stone can't be null");
+        
+        Preconditions.checkArgument(config.durations() != null, "durations can't be null");
+        Preconditions.checkArgument(config.durations().roundStarting() >= 1, "durations.roundStarting must be at least 1");
+        
         try {
             GsonComponentSerializer.gson().deserializeFromTree(config.description());
         } catch (JsonIOException | JsonSyntaxException e) {
@@ -141,5 +145,9 @@ public class ColossalColosseumStorageUtil extends GameConfigStorageUtil<Colossal
     
     public BoundingBox getSecondPlaceStone() {
         return secondPlaceStone;
+    }
+    
+    public int getRoundStartingDuration() {
+        return colossalColosseumConfig.durations().roundStarting();
     }
 }

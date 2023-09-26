@@ -83,5 +83,8 @@
       "maxZ": 19
     }
   },
+  "durations": {
+    "roundStarting": 10
+  },
   "description": {"text":"Colossal Colosseum description","color":"dark_blue","bold": true}
 }
