@@ -7,6 +7,7 @@ import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.clockwork.config.ClockworkStorageUtil;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
+import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
@@ -28,6 +29,7 @@ public class ClockworkRound implements Listener {
     
     private final Main plugin;
     private final GameManager gameManager;
+    private final Sidebar sidebar;
     private final ClockworkGame clockworkGame;
     private final ClockworkStorageUtil storageUtil;
     private final ChaosManager chaosManager;
@@ -48,13 +50,14 @@ public class ClockworkRound implements Listener {
      */
     private boolean mustStayOnWedge = false;
     
-    public ClockworkRound(Main plugin, GameManager gameManager, ClockworkGame clockworkGame, ClockworkStorageUtil storageUtil, int roundNumber) {
+    public ClockworkRound(Main plugin, GameManager gameManager, ClockworkGame clockworkGame, ClockworkStorageUtil storageUtil, int roundNumber, Sidebar sidebar) {
         this.plugin = plugin;
         this.gameManager = gameManager;
         this.clockworkGame = clockworkGame;
         this.storageUtil = storageUtil;
         this.roundNumber = roundNumber;
         this.chaosManager = new ChaosManager(plugin, storageUtil);
+        this.sidebar = sidebar;
     }
     
     public boolean isActive() {
@@ -139,7 +142,7 @@ public class ClockworkRound implements Listener {
                     this.cancel();
                     return;
                 }
-                gameManager.getSidebarManager().updateLine("timer", String.format("Clock chimes in: %s",
+                sidebar.updateLine("timer", String.format("Clock chimes in: %s",
                         TimeStringUtils.getTimeString(count)));
                 count--;
             }
@@ -147,7 +150,7 @@ public class ClockworkRound implements Listener {
     }
     
     private void startClockChime() {
-        gameManager.getSidebarManager().updateLine("timer", "Chiming...");
+        sidebar.updateLine("timer", "Chiming...");
         this.numberOfChimes = random.nextInt(1, 13);
         this.clockChimeTaskId = new BukkitRunnable() {
             int count = numberOfChimes;
@@ -181,7 +184,7 @@ public class ClockworkRound implements Listener {
                     this.cancel();
                     return;
                 }
-                gameManager.getSidebarManager().updateLine("timer", String.format("Get to wedge! %s",
+                sidebar.updateLine("timer", String.format("Get to wedge! %s",
                         TimeStringUtils.getTimeString(count)));
                 count--;
             }
@@ -207,7 +210,7 @@ public class ClockworkRound implements Listener {
                     this.cancel();
                     return;
                 }
-                gameManager.getSidebarManager().updateLine("timer", String.format("Stay on wedge: %s",
+                sidebar.updateLine("timer", String.format("Stay on wedge: %s",
                         TimeStringUtils.getTimeString(count)));
                 count--;
             }
