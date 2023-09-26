@@ -10,8 +10,6 @@ import org.braekpo1nt.mctmanager.games.game.clockwork.ClockworkGame;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
-import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
-import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.sidebar.SidebarFactory;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.CaptureTheFlagGame;
@@ -30,7 +28,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.NotNull;
@@ -54,7 +51,6 @@ public class GameManager implements Listener {
     private final ClockworkGame clockworkGame;
     private final HubManager hubManager;
     private SidebarFactory sidebarFactory;
-    private Sidebar defaultSidebar;
     private GameStateStorageUtil gameStateStorageUtil;
     /**
      * Scoreboard for holding the teams. This private scoreboard can't be
@@ -62,13 +58,7 @@ public class GameManager implements Listener {
      * with the game state.
      */
     private final Scoreboard mctScoreboard;
-    private final Main plugin;
     private boolean shouldTeleportToHub = true;
-    /**
-     * used to store a list of participants who left mid-game and didn't log back before the game ended, 
-     * so we can send them back to the hub rather than whatever game the player left from
-     */
-    private final List<UUID> participantsWhoLeftMidGame = new ArrayList<>();
     private final VoteManager voteManager;
     private final EventManager eventManager;
     /**
@@ -76,10 +66,8 @@ public class GameManager implements Listener {
      */
     private final List<Player> onlineParticipants = new ArrayList<>();
     private final List<Player> onlineAdmins = new ArrayList<>();
-    private int startGameWithDelayTaskId;
     
     public GameManager(Main plugin, Scoreboard mctScoreboard) {
-        this.plugin = plugin;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         this.mctScoreboard = mctScoreboard;
         this.gameStateStorageUtil = new GameStateStorageUtil(plugin);
@@ -91,9 +79,8 @@ public class GameManager implements Listener {
         this.captureTheFlagGame = new CaptureTheFlagGame(plugin, this);
         this.clockworkGame = new ClockworkGame(plugin, this);
         this.sidebarFactory = new SidebarFactory();
-        this.defaultSidebar = sidebarFactory.createSidebar();
-        initializeDefaultSidebar();
         this.hubManager = new HubManager(plugin, this);
+        hubManager.initializeSidebar(sidebarFactory);
         this.eventManager = new EventManager(plugin, this, voteManager);
     }
     
@@ -123,10 +110,8 @@ public class GameManager implements Listener {
      */
     private void onParticipantQuit(@NotNull Player participant) {
         onlineParticipants.remove(participant);
-        defaultSidebar.removePlayer(participant.getUniqueId());
         if (gameIsRunning()) {
             activeGame.onParticipantQuit(participant);
-            participantsWhoLeftMidGame.add(participant.getUniqueId());
             return;
         }
         hubManager.onParticipantQuit(participant);
@@ -165,7 +150,6 @@ public class GameManager implements Listener {
         onlineParticipants.add(participant);
         participant.setScoreboard(mctScoreboard);
         participant.addPotionEffect(Main.NIGHT_VISION);
-        defaultSidebar.addPlayer(participant);
         updateTeamScore(participant);
         updatePersonalScore(participant);
         String teamName = getTeamName(participant.getUniqueId());
@@ -175,14 +159,9 @@ public class GameManager implements Listener {
         participant.playerListName(displayName);
         if (gameIsRunning()) {
             activeGame.onParticipantJoin(participant);
-            return;
+        } else {
+            hubManager.onParticipantJoin(participant);
         }
-        if (participantsWhoLeftMidGame.contains(participant.getUniqueId())) {
-            participantsWhoLeftMidGame.remove(participant.getUniqueId());
-            hubManager.returnParticipantToHub(participant);
-            return;
-        }
-        hubManager.onParticipantJoin(participant);
     }
     
     public Scoreboard getMctScoreboard() {
@@ -247,7 +226,7 @@ public class GameManager implements Listener {
                             .clickEvent(ClickEvent.suggestCommand("/mct team join "))));
             return;
         }
-        voteManager.startVote(onlineParticipants, votingPool, duration, this::startGameWithDelay);
+        voteManager.startVote(onlineParticipants, votingPool, duration, (gameType) -> startGame(gameType, sender));
     }
     
     /**
@@ -261,13 +240,8 @@ public class GameManager implements Listener {
      * Cancel the return to hub if it's in progress
      */
     public void cancelAllTasks() {
-        cancelStartGameWithDelayTask();
         eventManager.cancelAllTasks();
         hubManager.cancelAllTasks();
-    }
-    
-    public void cancelStartGameWithDelayTask() {
-        Bukkit.getScheduler().cancelTask(this.startGameWithDelayTaskId);
     }
     
     public EventManager getEventManager() {
@@ -276,31 +250,6 @@ public class GameManager implements Listener {
     
     public void removeOnlineParticipantsFromHub() {
         hubManager.removeParticipantsFromHub(onlineParticipants);
-    }
-    
-    public void startGameWithDelay(GameType gameType) {
-        String gameTitle = ChatColor.BLUE+""+ChatColor.BOLD+ gameType.getTitle();
-        messageOnlineParticipants(Component.empty()
-                .append(Component.text(gameTitle)
-                        .decorate(TextDecoration.BOLD))
-                .append(Component.text(" was selected"))
-                .color(NamedTextColor.BLUE));
-        defaultSidebar.addLine("startingGame", String.format("Starting %s:", gameType.getTitle()));
-        this.startGameWithDelayTaskId = new BukkitRunnable() {
-            int count = 5;
-            @Override
-            public void run() {
-                if (count <= 0) {
-                    defaultSidebar.deleteLine("startingGame");
-                    startGame(gameType, Bukkit.getConsoleSender());
-                    this.cancel();
-                    return;
-                }
-                String timeLeft = TimeStringUtils.getTimeString(count);
-                defaultSidebar.addLine("startingGame", String.format("Starting %s: %s", gameType.getTitle(), timeLeft));
-                count--;
-            }
-        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
     }
     
     /**
@@ -395,7 +344,6 @@ public class GameManager implements Listener {
         }
         
         hubManager.removeParticipantsFromHub(onlineParticipants);
-        defaultSidebar.removePlayers(onlineParticipants);
         selectedGame.start(onlineParticipants);
         activeGame = selectedGame;
         
@@ -429,17 +377,16 @@ public class GameManager implements Listener {
             activeGame = null;
             return;
         }
-        defaultSidebar.addPlayers(onlineParticipants);
         activeGame = null;
         if (!shouldTeleportToHub) {
             shouldTeleportToHub = true;
             return;
         }
-        hubManager.returnParticipantsToHubWithDelay(onlineParticipants);
+        hubManager.returnParticipantsToHub(onlineParticipants, true);
     }
     
     public void returnAllParticipantsToHub() {
-        hubManager.returnParticipantsToHub(onlineParticipants);
+        hubManager.returnParticipantsToHub(onlineParticipants, false);
     }
     
     public void returnAllParticipantsToPodium(String winningTeam) {
@@ -966,14 +913,6 @@ public class GameManager implements Listener {
         }
     }
     
-    public void messageAdmins(Component message, CommandSender except) {
-        for (Player admin : onlineAdmins) {
-            if (!admin.equals(except)) {
-                admin.sendMessage(message);
-            }
-        }
-    }
-    
     public void playSoundForAdmins(@NotNull String sound, float volume, float pitch) {
         for (Player admin : onlineAdmins) {
             admin.playSound(admin.getLocation(), sound, volume, pitch);
@@ -1007,13 +946,7 @@ public class GameManager implements Listener {
     
     public void setSidebarFactory(SidebarFactory sidebarFactory) {
         this.sidebarFactory = sidebarFactory;
-        this.defaultSidebar = sidebarFactory.createSidebar();
-        initializeDefaultSidebar();
-    }
-    
-    private void initializeDefaultSidebar() {
-        defaultSidebar.addLine("personalTeam", 0, "");
-        defaultSidebar.addLine("personalScore", 1, "");
+        hubManager.initializeSidebar(sidebarFactory);
     }
     
     private void updateTeamScore(Player participant) {
@@ -1021,11 +954,11 @@ public class GameManager implements Listener {
         String displayName = getTeamDisplayName(team);
         ChatColor teamChatColor = getTeamChatColor(team);
         int teamScore = getScore(team);
-        defaultSidebar.updateLine(participant.getUniqueId(), "personalTeam", String.format("%s%s: %s", teamChatColor, displayName, teamScore));
+//        defaultSidebar.updateLine(participant.getUniqueId(), "personalTeam", String.format("%s%s: %s", teamChatColor, displayName, teamScore));
     }
     
     private void updatePersonalScore(Player participant) {
         int score = getScore(participant.getUniqueId());
-        defaultSidebar.updateLine(participant.getUniqueId(), "personalScore", String.format("%sPoints: %s", ChatColor.GOLD, score));
+//        defaultSidebar.updateLine(participant.getUniqueId(), "personalScore", String.format("%sPoints: %s", ChatColor.GOLD, score));
     }
 }

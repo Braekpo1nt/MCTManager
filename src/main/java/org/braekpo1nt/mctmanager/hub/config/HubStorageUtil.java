@@ -125,4 +125,8 @@ public class HubStorageUtil extends GameConfigStorageUtil<HubConfig> {
     public double getYLimit() {
         return hubConfig.yLimit();
     }
+    
+    public int getTpToHubDuration() {
+        return hubConfig.durations().tpToHub();
+    }
 }
