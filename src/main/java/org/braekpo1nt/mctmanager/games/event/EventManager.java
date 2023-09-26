@@ -607,6 +607,21 @@ public class EventManager {
     }
     
     public void startColossalColosseum(CommandSender sender, String firstPlaceTeamName, String secondPlaceTeamName) {
+        try {
+            if (!colossalColosseumGame.loadConfig()) {
+                throw new IllegalArgumentException("Config could not be loaded.");
+            }
+        } catch (IllegalArgumentException e) {
+            Bukkit.getLogger().severe(e.getMessage());
+            e.printStackTrace();
+            messageAllAdmins(Component.text("Can't start ")
+                    .append(Component.text("Colossal Colosseum")
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(". Error loading config file. See console for details:\n"))
+                    .append(Component.text(e.getMessage()))
+                    .color(NamedTextColor.RED));
+            return;
+        }
         gameManager.removeOnlineParticipantsFromHub();
         if (colossalColosseumGame.isActive()) {
             sender.sendMessage(Component.text("Colossal Colosseum is already running").color(NamedTextColor.RED));
