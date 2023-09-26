@@ -38,7 +38,9 @@ public class Main extends JavaPlugin {
         
         gameManager = new GameManager(this, mctScoreboard);
         try {
-            gameManager.loadHubConfig();
+            if (gameManager.loadHubConfig()) {
+                throw new IllegalArgumentException("Could not load config");
+            }
         } catch (IllegalArgumentException e) {
             Bukkit.getLogger().severe(String.format("[MCTManager] Could not load hub config, see console for details. %s", e.getMessage()));
             e.printStackTrace();

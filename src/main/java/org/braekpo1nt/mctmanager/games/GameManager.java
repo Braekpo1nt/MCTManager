@@ -570,8 +570,10 @@ public class GameManager implements Listener {
     
         OfflinePlayer player = Bukkit.getOfflinePlayer(playerUniqueId);
         Team oldTeam = mctScoreboard.getTeam(oldTeamName);
+        Preconditions.checkState(oldTeam != null, "mctScoreboard could not find team \"%s\"", oldTeamName);
         oldTeam.removePlayer(player);
         Team newTeam = mctScoreboard.getTeam(newTeamName);
+        Preconditions.checkState(newTeam != null, "mctScoreboard could not find team \"%s\"", newTeamName);
         newTeam.addPlayer(player);
     }
     
@@ -639,6 +641,7 @@ public class GameManager implements Listener {
             reportGameStateIOException("leaving player", e);
         }
         Team team = mctScoreboard.getTeam(teamName);
+        Preconditions.checkState(team != null, "mctScoreboard could not find team \"%s\"", teamName);
         team.removePlayer(offlinePlayer);
     }
     
@@ -904,6 +907,7 @@ public class GameManager implements Listener {
             reportGameStateIOException("adding new admin", e);
         }
         Team adminTeam = mctScoreboard.getTeam(ADMIN_TEAM);
+        Preconditions.checkState(adminTeam != null, "mctScoreboard could not find team \"%s\"", ADMIN_TEAM);
         adminTeam.addPlayer(newAdmin);
         if (newAdmin.isOnline()) {
             onAdminJoin(newAdmin);
@@ -927,8 +931,9 @@ public class GameManager implements Listener {
         } catch (IOException e) {
             reportGameStateIOException("removing admin", e);
         }
-        Team team = mctScoreboard.getTeam(ADMIN_TEAM);
-        team.removePlayer(offlineAdmin);
+        Team adminTeam = mctScoreboard.getTeam(ADMIN_TEAM);
+        Preconditions.checkState(adminTeam != null, "mctScoreboard could not find team \"%s\"", ADMIN_TEAM);
+        adminTeam.removePlayer(offlineAdmin);
     }
     
     public Material getTeamPowderColor(String teamName) {
@@ -961,12 +966,6 @@ public class GameManager implements Listener {
             if (!admin.equals(except)) {
                 admin.sendMessage(message);
             }
-        }
-    }
-    
-    public void playSoundForAdmins(@NotNull Sound sound, float volume, float pitch) {
-        for (Player admin : onlineAdmins) {
-            admin.playSound(admin.getLocation(), sound, volume, pitch);
         }
     }
     
