@@ -13,13 +13,13 @@ public class LocationDTO {
     private double y;
     private double z;
     /**
-     * The absolute rotation on the y-plane, in degrees
-     */
-    private float pitch;
-    /**
      * The absolute rotation on the x-plane, in degrees
      */
     private float yaw;
+    /**
+     * The absolute rotation on the y-plane, in degrees
+     */
+    private float pitch;
     
     public LocationDTO() {
     }
@@ -28,8 +28,8 @@ public class LocationDTO {
         this.x = location.getX();
         this.y = location.getY();
         this.z = location.getZ();
-        this.pitch = location.getPitch();
         this.yaw = location.getYaw();
+        this.pitch = location.getPitch();
     }
     
     /**
@@ -52,12 +52,12 @@ public class LocationDTO {
         return z;
     }
     
-    public float getPitch() {
-        return pitch;
-    }
-    
     public float getYaw() {
         return yaw;
+    }
+    
+    public float getPitch() {
+        return pitch;
     }
     
     @Override

@@ -5,22 +5,22 @@
     "x": -1000,
     "y": 2,
     "z": -22,
-    "pitch": 0,
-    "yaw": 0
+    "yaw": 0,
+    "pitch": 0
   },
   "secondPlaceSpawn": {
     "x": -1000,
     "y": 2,
     "z": 22,
-    "pitch": 180,
-    "yaw": 0
+    "yaw": 180,
+    "pitch": 0
   },
   "spectatorSpawn": {
     "x": -1021,
     "y": 9,
     "z": 0,
-    "pitch": -90,
-    "yaw": 6
+    "yaw": -90,
+    "pitch": 6,
   },
   "requiredWins": 3,
   "firstPlaceGate": {
