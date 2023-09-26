@@ -81,7 +81,7 @@ public class ClockworkGame implements MCTGame, Configurable {
         for (Player participant : participants) {
             resetParticipant(participant);
         }
-        sidebar.deleteAllLines();
+        clearSidebar();
         participants.clear();
         gameManager.gameIsOver();
         Bukkit.getLogger().info("Stopping Clockwork");
@@ -131,10 +131,14 @@ public class ClockworkGame implements MCTGame, Configurable {
         );
     }
     
-    private void updateRoundFastBoard() {
+    private void clearSidebar() {
         sidebar.removePlayers(participants);
-        sidebar.updateLine("round", String.format("Round %d/%d", currentRoundIndex+1, rounds.size()));
+        sidebar.deleteLines("title", "round", "playerCount", "timer");
         sidebar = null;
+    }
+    
+    private void updateRoundFastBoard() {
+        sidebar.updateLine("round", String.format("Round %d/%d", currentRoundIndex+1, rounds.size()));
     }
     
     private void setupTeamOptions() {
