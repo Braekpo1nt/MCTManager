@@ -12,6 +12,7 @@ import org.braekpo1nt.mctmanager.games.game.mecha.config.MechaStorageUtil;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
+import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
@@ -45,6 +46,7 @@ public class MechaGame implements MCTGame, Configurable, Listener {
     
     private final Main plugin;
     private final GameManager gameManager;
+    private Sidebar sidebar;
     private final MechaStorageUtil mechaStorageUtil;
     private boolean gameActive = false;
     private boolean mechaHasStarted = false;
@@ -267,7 +269,7 @@ public class MechaGame implements MCTGame, Configurable, Listener {
                     return;
                 }
                 String timeLeft = TimeStringUtils.getTimeString(count);
-                gameManager.getSidebarManager().updateLine("timer", String.format("Starting: %s", timeLeft));
+                sidebar.updateLine("timer", String.format("Starting: %s", timeLeft));
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -327,7 +329,7 @@ public class MechaGame implements MCTGame, Configurable, Listener {
     }
     
     private void startSuddenDeath() {
-        gameManager.getSidebarManager().updateLine("timer", String.format("%sSudden death", ChatColor.RED));
+        sidebar.updateLine("timer", String.format("%sSudden death", ChatColor.RED));
         messageAllParticipants(Component.text("Sudden death!"));
     }
     
@@ -575,7 +577,7 @@ public class MechaGame implements MCTGame, Configurable, Listener {
         int oldKillCount = killCounts.get(killerUniqueId);
         int newKillCount = oldKillCount + 1;
         killCounts.put(killerUniqueId, newKillCount);
-        gameManager.getSidebarManager().updateLine(killerUniqueId, "kills", String.format("%sKills: %s", ChatColor.RED, newKillCount));
+        sidebar.updateLine(killerUniqueId, "kills", String.format("%sKills: %s", ChatColor.RED, newKillCount));
     }
     
     private void initializeWorldBorder() {
@@ -634,7 +636,9 @@ public class MechaGame implements MCTGame, Configurable, Listener {
     }
     
     private void initializeSidebar() {
-        gameManager.getSidebarManager().addLines(
+        sidebar = gameManager.getSidebarFactory().createSidebar();
+        sidebar.addPlayers(participants);
+        sidebar.addLines(
                 new KeyLine("title", title), // 0
                 new KeyLine("kills", ChatColor.RED+"Kills: 0"), // 2
                 new KeyLine("timer", ChatColor.LIGHT_PURPLE+"Border: 0:00") // 4, 5
@@ -642,7 +646,9 @@ public class MechaGame implements MCTGame, Configurable, Listener {
     }
     
     private void clearSidebar() {
-        gameManager.getSidebarManager().deleteLines("title", "kills", "timer");
+        sidebar.removePlayers(participants);
+        sidebar.deleteLines("title", "kills", "timer");
+        sidebar = null;
     }
     /**
      * Sends a chat message to all participants saying the border is delaying
@@ -672,7 +678,7 @@ public class MechaGame implements MCTGame, Configurable, Listener {
      */
     private void displayBorderShrinkingFor(int duration) {
         String timeString = TimeStringUtils.getTimeString(duration);
-        gameManager.getSidebarManager().updateLine("timer", String.format("%sShrinking: %s", ChatColor.RED, timeString));
+        sidebar.updateLine("timer", String.format("%sShrinking: %s", ChatColor.RED, timeString));
     }
     
     /**
@@ -681,7 +687,7 @@ public class MechaGame implements MCTGame, Configurable, Listener {
      */
     private void displayBorderDelayFor(int delay) {
         String timeString = TimeStringUtils.getTimeString(delay);
-        gameManager.getSidebarManager().updateLine("timer", String.format("%sBorder: %s", ChatColor.LIGHT_PURPLE, timeString));
+        sidebar.updateLine("timer", String.format("%sBorder: %s", ChatColor.LIGHT_PURPLE, timeString));
     }
     
     private void teleportParticipantToStartingPosition(Player participant) {
