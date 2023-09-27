@@ -86,6 +86,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable {
         lapCooldowns = new HashMap<>();
         laps = new HashMap<>();
         placements = new ArrayList<>();
+        sidebar = gameManager.getSidebarFactory().createSidebar();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         closeGlassBarrier();
         for (Player participant : newParticipants) {
@@ -104,6 +105,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable {
         participants.add(participant);
         lapCooldowns.put(participantUniqueId, System.currentTimeMillis());
         laps.put(participantUniqueId, 1);
+        sidebar.addPlayer(participant);
         participant.sendMessage("Teleporting to Foot Race");
         participant.teleport(footRaceStorageUtil.getStartingLocation());
         participant.getInventory().clear();
@@ -121,7 +123,8 @@ public class FootRaceGame implements Listener, MCTGame, Configurable {
         for (Player participant : participants) {
             resetParticipant(participant);
         }
-        clearSidebar();
+        sidebar.deleteAllLines();
+        sidebar = null;
         participants.clear();
         raceHasStarted = false;
         gameActive = false;
@@ -133,6 +136,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable {
         participant.getInventory().clear();
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
+        sidebar.removePlayer(participant);
     }
     
     @Override
@@ -140,7 +144,6 @@ public class FootRaceGame implements Listener, MCTGame, Configurable {
         if (!gameActive) {
             return;
         }
-        sidebar.addPlayer(participant);
         if (participantShouldRejoin(participant)) {
             rejoinParticipant(participant);
         } else {
@@ -149,6 +152,14 @@ public class FootRaceGame implements Listener, MCTGame, Configurable {
                     .color(NamedTextColor.YELLOW));
             initializeParticipant(participant);
         }
+        sidebar.updateLine(participant.getUniqueId(), "title", title);
+        
+        Integer currentLap = laps.get(participant.getUniqueId());
+        if (currentLap > MAX_LAPS) {
+            showRaceCompleteFastBoard(participant.getUniqueId());
+        } else {
+            sidebar.updateLine(participant.getUniqueId(), "lap", String.format("Lap: %d/%d", currentLap, MAX_LAPS));
+        }
     }
     
     /**
@@ -156,6 +167,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable {
      * @param participant The participant who is rejoining
      */
     private void rejoinParticipant(Player participant) {
+        sidebar.addPlayer(participant);
         participant.sendMessage(ChatColor.YELLOW + "You have rejoined Foot Race");
         messageAllParticipants(Component.text(participant.getName())
                 .append(Component.text(" is rejoining the game!"))
@@ -193,7 +205,6 @@ public class FootRaceGame implements Listener, MCTGame, Configurable {
                 .color(NamedTextColor.YELLOW));
         resetParticipant(participant);
         participants.remove(participant);
-        sidebar.removePlayer(participant);
     }
     
     private void cancelAllTasks() {
@@ -319,8 +330,6 @@ public class FootRaceGame implements Listener, MCTGame, Configurable {
     }
     
     private void initializeSidebar() {
-        sidebar = gameManager.getSidebarFactory().createSidebar();
-        sidebar.addPlayers(participants);
         sidebar.addLines(
                 new KeyLine("title", title),
                 new KeyLine("timer", "00:00:000"),
@@ -328,16 +337,12 @@ public class FootRaceGame implements Listener, MCTGame, Configurable {
         );
     }
     
-    private void clearSidebar() {
-        sidebar.removePlayers(participants);
-        sidebar.deleteLines("title", "timer", "lap");
-        sidebar = null;
-    }
-    
     private void showRaceCompleteFastBoard(UUID playerUUID) {
         long elapsedTime = System.currentTimeMillis() - raceStartTime;
-        sidebar.updateLine(playerUUID, "timer", getTimeString(elapsedTime));
-        sidebar.updateLine(playerUUID, "lap", String.format("Finished %s!", getPlacementTitle(placements.indexOf(playerUUID) + 1)));
+        sidebar.updateLines(playerUUID, 
+                new KeyLine("timer", getTimeString(elapsedTime)), 
+                new KeyLine("lap", String.format("Finished %s!", getPlacementTitle(placements.indexOf(playerUUID) + 1)))
+        );
     }
     
     @EventHandler
