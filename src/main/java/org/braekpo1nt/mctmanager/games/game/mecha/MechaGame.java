@@ -88,6 +88,7 @@ public class MechaGame implements MCTGame, Configurable, Listener {
         killCounts = new HashMap<>(newParticipants.size());
         worldBorder = mechaStorageUtil.getWorld().getWorldBorder();
         resistance = new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, mechaStorageUtil.getInvulnerabilityDuration(), 200, true, false, true);
+        sidebar = gameManager.getSidebarFactory().createSidebar();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         placePlatforms();
         fillAllChests();
@@ -108,6 +109,7 @@ public class MechaGame implements MCTGame, Configurable, Listener {
         UUID participantUniqueId = participant.getUniqueId();
         livingPlayers.add(participantUniqueId);
         killCounts.put(participantUniqueId, 0);
+        sidebar.addPlayer(participant);
         teleportParticipantToStartingPosition(participant);
         participant.setGameMode(GameMode.ADVENTURE);
         participant.getInventory().clear();
@@ -138,6 +140,7 @@ public class MechaGame implements MCTGame, Configurable, Listener {
     
     private void resetParticipant(Player participant) {
         participant.getInventory().clear();
+        sidebar.removePlayer(participant.getUniqueId());
     }
     
     private void clearContainers() {
@@ -189,18 +192,23 @@ public class MechaGame implements MCTGame, Configurable, Listener {
                     .append(Component.text(" is rejoining MECHA!"))
                     .color(NamedTextColor.YELLOW));
             rejoinParticipant(participant);
-            return;
+        } else {
+            messageAllParticipants(Component.text(participant.getName())
+                    .append(Component.text(" is joining MECHA!"))
+                    .color(NamedTextColor.YELLOW));
+            initializeParticipant(participant);
         }
-        messageAllParticipants(Component.text(participant.getName())
-                .append(Component.text(" is joining MECHA!"))
-                .color(NamedTextColor.YELLOW));
-        initializeParticipant(participant);
+        sidebar.updateLines(participant.getUniqueId(),
+                new KeyLine("title", title),
+                new KeyLine("kills", String.format("%sKills: %s", ChatColor.RED, killCounts.get(participant.getUniqueId())))
+        );
     }
     
     private void rejoinParticipant(Player participant) {
         participant.sendMessage(ChatColor.YELLOW + "You have rejoined MECHA");
         participants.add(participant);
         participant.setGameMode(GameMode.SPECTATOR);
+        sidebar.addPlayer(participant);
     }
     
     /**
@@ -226,6 +234,7 @@ public class MechaGame implements MCTGame, Configurable, Listener {
             UUID participantUniqueId = participant.getUniqueId();
             livingPlayers.remove(participantUniqueId);
             killCounts.remove(participantUniqueId);
+            sidebar.removePlayer(participant);
             return;
         }
         List<ItemStack> drops = Arrays.stream(participant.getInventory().getContents())
@@ -636,20 +645,18 @@ public class MechaGame implements MCTGame, Configurable, Listener {
     }
     
     private void initializeSidebar() {
-        sidebar = gameManager.getSidebarFactory().createSidebar();
-        sidebar.addPlayers(participants);
         sidebar.addLines(
-                new KeyLine("title", title), // 0
-                new KeyLine("kills", ChatColor.RED+"Kills: 0"), // 2
-                new KeyLine("timer", ChatColor.LIGHT_PURPLE+"Border: 0:00") // 4, 5
+                new KeyLine("title", title),
+                new KeyLine("kills", ChatColor.RED+"Kills: 0"),
+                new KeyLine("timer", ChatColor.LIGHT_PURPLE+"Border: 0:00")
         );
     }
     
     private void clearSidebar() {
-        sidebar.removePlayers(participants);
-        sidebar.deleteLines("title", "kills", "timer");
+        sidebar.deleteAllLines();
         sidebar = null;
     }
+    
     /**
      * Sends a chat message to all participants saying the border is delaying
      * @param delay The delay in seconds
