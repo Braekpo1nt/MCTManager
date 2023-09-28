@@ -107,11 +107,13 @@ public class EventManager {
                     .color(NamedTextColor.RED));
             return;
         }
-        
+    
         maxGames = numberOfGames;
         currentGameNumber = 1;
         playedGames.clear();
         scoreKeepers.clear();
+        sidebar = gameManager.getSidebarFactory().createSidebar();
+        sidebar.addPlayers(gameManager.getOnlineParticipants());
         initializeSidebar();
         sidebar.updateTitle(storageUtil.getTitle());
         messageAllAdmins(Component.text("Starting event. On game ")
@@ -375,11 +377,18 @@ public class EventManager {
         if (colossalColosseumGame.isActive()) {
             colossalColosseumGame.onParticipantJoin(participant);
         }
+        if (currentState == null) {
+            return;
+        }
+        
     }
     
     public void onParticipantQuit(Player participant) {
         if (colossalColosseumGame.isActive()) {
             colossalColosseumGame.onParticipantQuit(participant);
+        }
+        if (currentState == null) {
+            return;
         }
     }
     
@@ -477,7 +486,6 @@ public class EventManager {
         currentState = EventState.VOTING;
         List<GameType> votingPool = new ArrayList<>(List.of(GameType.values()));
         votingPool.removeAll(playedGames);
-        clearSidebar();
         voteManager.startVote(gameManager.getOnlineParticipants(), votingPool, storageUtil.getVotingDuration(), this::startingGameDelay);
     }
     
@@ -494,7 +502,6 @@ public class EventManager {
                 if (count <= 0) {
                     currentState = EventState.PLAYING_GAME;
                     createScoreKeeperForGame(gameType);
-                    clearSidebar();
                     gameManager.startGame(gameType, Bukkit.getConsoleSender());
                     this.cancel();
                     return;
@@ -625,7 +632,6 @@ public class EventManager {
             return false;
         }
         String secondPlace = secondPlaces[0];
-        clearSidebar();
         startColossalColosseum(Bukkit.getConsoleSender(), firstPlace, secondPlace);
         return true;
     }
@@ -762,17 +768,11 @@ public class EventManager {
     }
     
     private void initializeSidebar() {
-        sidebar = gameManager.getSidebarFactory().createSidebar();
-        sidebar.addPlayers(gameManager.getOnlineParticipants());
         sidebar.addLine("timer", "");
     }
     
     private void clearSidebar() {
-        sidebar.removePlayers(gameManager.getOnlineParticipants());
-        sidebar.deleteLine("timer");
-        if (currentState == EventState.PODIUM) {
-            sidebar.deleteLines("winner");
-        }
+        sidebar.deleteAllLines();
         sidebar = null;
     }
     

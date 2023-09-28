@@ -255,8 +255,11 @@ public class Sidebar {
     public synchronized void deleteAllLines() {
         size = 0;
         keyToIndex.clear();
-        boardsLines.clear();
-        for (FastBoardWrapper board : boards.values()) {
+        for (Map.Entry<UUID, List<String>> entry : boardsLines.entrySet()) {
+            UUID playerUUID = entry.getKey();
+            List<String> lines = entry.getValue();
+            lines.clear();
+            FastBoardWrapper board = boards.get(playerUUID);
             board.updateLines();
         }
     }

@@ -16,7 +16,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Team;
 
@@ -27,11 +26,10 @@ public class HubManager implements Listener, Configurable {
     
     private final Main plugin;
     private final GameManager gameManager;
-    private Sidebar sidebar;
     private final HubStorageUtil storageUtil;
     private int returnToHubTaskId;
     /**
-     * Contains a list of the players who are about to be sent to the hub and can see the countdown from the {@link HubManager#returnParticipantsToHubWithDelay(List)}
+     * Contains a list of the players who are about to be sent to the hub and can see the countdown from the {@link HubManager#returnParticipantsToHub(List, int)}
      */
     private final List<Player> headingToHub = new ArrayList<>();
     private boolean boundaryEnabled = true;
@@ -67,14 +65,16 @@ public class HubManager implements Listener, Configurable {
     
     private void returnParticipantsToHub(List<Player> newParticipants, int duration) {
         headingToHub.addAll(newParticipants);
+        Sidebar sidebar = gameManager.getSidebarFactory().createSidebar();
         sidebar.addPlayers(newParticipants);
-        sidebar.addLine("backToHub", "");
+        sidebar.addLine("backToHub", String.format("Back to Hub: %s", duration));
         this.returnToHubTaskId = new BukkitRunnable() {
             private int count = duration;
             @Override
             public void run() {
                 if (count <= 0) {
-                    sidebar.deleteLine("backToHub");
+                    sidebar.deleteAllLines();
+                    sidebar.removePlayers(newParticipants);
                     for (Player participant : newParticipants) {
                         returnParticipantToHub(participant);
                     }
@@ -131,14 +131,14 @@ public class HubManager implements Listener, Configurable {
     public void removeParticipantsFromHub(List<Player> participantsToRemove) {
         for (Player participant : participantsToRemove) {
             if (this.participants.remove(participant)) {
-                sidebar.removePlayer(participant.getUniqueId());
+//                sidebar.removePlayer(participant.getUniqueId());
             }
         }
     }
     
     public void onParticipantQuit(Player participant) {
         if (this.participants.remove(participant)) {
-            sidebar.removePlayer(participant.getUniqueId());
+//            sidebar.removePlayer(participant.getUniqueId());
         }
     }
     
@@ -148,7 +148,7 @@ public class HubManager implements Listener, Configurable {
      */
     public void onParticipantJoin(Player participant) {
         participants.add(participant);
-        sidebar.addPlayer(participant);
+//        sidebar.addPlayer(participant);
     }
     
     public void cancelAllTasks() {
@@ -224,6 +224,6 @@ public class HubManager implements Listener, Configurable {
     }
     
     public void initializeSidebar(SidebarFactory sidebarFactory) {
-        sidebar = sidebarFactory.createSidebar();
+//        sidebar = sidebarFactory.createSidebar();
     }
 }
