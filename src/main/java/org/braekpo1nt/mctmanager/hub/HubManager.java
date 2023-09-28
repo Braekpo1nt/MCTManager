@@ -130,8 +130,9 @@ public class HubManager implements Listener, Configurable {
      */
     public void removeParticipantsFromHub(List<Player> participantsToRemove) {
         for (Player participant : participantsToRemove) {
-            this.participants.remove(participant);
-            sidebar.removePlayer(participant.getUniqueId());
+            if (this.participants.remove(participant)) {
+                sidebar.removePlayer(participant.getUniqueId());
+            }
         }
     }
     
