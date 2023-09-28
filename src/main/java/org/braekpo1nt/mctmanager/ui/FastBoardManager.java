@@ -18,7 +18,6 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Deprecated
 public class FastBoardManager {
-    
     public static final String DEFAULT_TITLE = ChatColor.BOLD + "" + ChatColor.DARK_RED + "MCT";
     /**
      * The event title to be used at the top of the sidebar
