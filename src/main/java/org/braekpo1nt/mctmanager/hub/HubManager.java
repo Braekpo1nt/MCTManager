@@ -59,7 +59,7 @@ public class HubManager implements Listener, Configurable {
         if (delay) {
             returnParticipantsToHub(newParticipants, storageUtil.getTpToHubDuration());
         } else {
-            returnParticipantsToHub(newParticipants, -1);
+            returnParticipantsToHubInstantly(newParticipants);
         }
     }
     
@@ -75,10 +75,7 @@ public class HubManager implements Listener, Configurable {
                 if (count <= 0) {
                     sidebar.deleteAllLines();
                     sidebar.removePlayers(newParticipants);
-                    for (Player participant : newParticipants) {
-                        returnParticipantToHub(participant);
-                    }
-                    setupTeamOptions();
+                    returnParticipantsToHubInstantly(newParticipants);
                     headingToHub.clear();
                     this.cancel();
                     return;
@@ -88,6 +85,13 @@ public class HubManager implements Listener, Configurable {
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+    }
+    
+    private void returnParticipantsToHubInstantly(List<Player> newParticipants) {
+        for (Player participant : newParticipants) {
+            returnParticipantToHub(participant);
+        }
+        setupTeamOptions();
     }
     
     private void returnParticipantToHub(Player participant) {

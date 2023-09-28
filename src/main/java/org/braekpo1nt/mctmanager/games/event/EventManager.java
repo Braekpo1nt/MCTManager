@@ -458,9 +458,9 @@ public class EventManager {
     
     private void toPodiumDelay(String winningTeam) {
         currentState = EventState.DELAY;
+        sidebar.addPlayers(gameManager.getOnlineParticipants());
         ChatColor winningChatColor = gameManager.getTeamChatColor(winningTeam);
         String winningDisplayName = gameManager.getTeamDisplayName(winningTeam);
-        initializeSidebar();
         this.toPodiumDelayTaskId = new BukkitRunnable() {
             int count = storageUtil.getBackToHubDuration();
             @Override
@@ -486,12 +486,13 @@ public class EventManager {
         currentState = EventState.VOTING;
         List<GameType> votingPool = new ArrayList<>(List.of(GameType.values()));
         votingPool.removeAll(playedGames);
+        sidebar.removePlayers(gameManager.getOnlineParticipants());
         voteManager.startVote(gameManager.getOnlineParticipants(), votingPool, storageUtil.getVotingDuration(), this::startingGameDelay);
     }
     
     private void startingGameDelay(GameType gameType) {
         currentState = EventState.DELAY;
-        initializeSidebar();
+        sidebar.addPlayers(gameManager.getOnlineParticipants());
         this.startingGameCountdownTaskId = new BukkitRunnable() {
             int count = storageUtil.getStartingGameDuration();
             @Override
@@ -502,6 +503,7 @@ public class EventManager {
                 if (count <= 0) {
                     currentState = EventState.PLAYING_GAME;
                     createScoreKeeperForGame(gameType);
+                    sidebar.removePlayers(gameManager.getOnlineParticipants());
                     gameManager.startGame(gameType, Bukkit.getConsoleSender());
                     this.cancel();
                     return;
@@ -534,9 +536,9 @@ public class EventManager {
      */
     public void gameIsOver(GameType finishedGameType) {
         currentState = EventState.DELAY;
+        sidebar.addPlayers(gameManager.getOnlineParticipants());
         playedGames.add(finishedGameType);
         currentGameNumber += 1;
-        initializeSidebar();
         this.backToHubDelayTaskId = new BukkitRunnable() {
             int count = storageUtil.getBackToHubDuration();
             @Override
@@ -587,7 +589,7 @@ public class EventManager {
     /**
      * @return true if two teams were picked and Colossal Colosseum started successfully. False if anything went wrong.
      */
-    public boolean identifyWinnersAndStartColossalColosseum() {
+    private boolean identifyWinnersAndStartColossalColosseum() {
         Set<String> allTeams = gameManager.getTeamNames();
         if (allTeams.size() < 2) {
             messageAllAdmins(Component.empty()
@@ -632,6 +634,7 @@ public class EventManager {
             return false;
         }
         String secondPlace = secondPlaces[0];
+        sidebar.removePlayers(gameManager.getOnlineParticipants());
         startColossalColosseum(Bukkit.getConsoleSender(), firstPlace, secondPlace);
         return true;
     }
@@ -704,6 +707,9 @@ public class EventManager {
      * @param winningTeam The name of the winning team. If this is null, nothing happens.
      */
     public void colossalColosseumIsOver(@Nullable String winningTeam) {
+        if (currentState != null) {
+            sidebar.addPlayers(gameManager.getOnlineParticipants());
+        }
         if (winningTeam == null) {
             Component message = Component.text("No winner declared.");
             messageAllAdmins(message);
