@@ -28,7 +28,6 @@ class CaptureTheFlagTest {
     private ServerMock server;
     private Main plugin;
     private CommandSender sender;
-    private MockSidebarFactory mockSidebarManager;
     private GameManager gameManager;
     
     
@@ -44,8 +43,8 @@ class CaptureTheFlagTest {
             System.exit(1);
         }
         gameManager = plugin.getGameManager();
-        mockSidebarManager = new MockSidebarFactory();
-        gameManager.setSidebarFactory(mockSidebarManager);
+        MockSidebarFactory mockSidebarFactory = new MockSidebarFactory();
+        gameManager.setSidebarFactory(mockSidebarFactory);
         MockGameStateStorageUtil mockGameStateStorageUtil = new MockGameStateStorageUtil(plugin);
         gameManager.setGameStateStorageUtil(mockGameStateStorageUtil);
         sender = server.getConsoleSender();
