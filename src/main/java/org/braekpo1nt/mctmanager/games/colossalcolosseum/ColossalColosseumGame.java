@@ -195,6 +195,11 @@ public class ColossalColosseumGame implements Listener, Configurable {
                 currentRound.onParticipantJoin(participant);
             }
         }
+        updateRoundWinFastBoard();
+        sidebar.updateLines(participant.getUniqueId(),
+                new KeyLine("title", title),
+                new KeyLine("round", String.format("Round: %s", currentRoundIndex+1))
+        );
     }
     
     public void onParticipantQuit(Player participant) {
