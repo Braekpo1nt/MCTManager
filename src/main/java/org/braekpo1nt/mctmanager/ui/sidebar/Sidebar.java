@@ -71,8 +71,15 @@ public class Sidebar {
      * Removes all players from this Sidebar
      */
     public synchronized  void removeAllPlayers() {
-        for (UUID playerUUID : boardsLines.keySet()) {
-            removePlayer(playerUUID);
+        Iterator<Map.Entry<UUID, List<String>>> iterator = boardsLines.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<UUID, List<String>> entry = iterator.next();
+            UUID playerUUID = entry.getKey();
+            iterator.remove();
+            FastBoardWrapper board = boards.remove(playerUUID);
+            if (board != null && !board.isDeleted()) {
+                board.delete();
+            }
         }
     }
     
