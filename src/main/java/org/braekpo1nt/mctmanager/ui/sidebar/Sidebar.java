@@ -67,6 +67,15 @@ public class Sidebar {
         boardsLines.put(player.getUniqueId(), lines);
     }
     
+    /**
+     * Removes all players from this Sidebar
+     */
+    public synchronized  void removeAllPlayers() {
+        for (UUID playerUUID : boardsLines.keySet()) {
+            removePlayer(playerUUID);
+        }
+    }
+    
     public synchronized void removePlayers(@NotNull List<@NotNull Player> players) {
         for (Player player : players) {
             removePlayer(player);

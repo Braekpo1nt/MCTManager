@@ -115,7 +115,6 @@ public class EventManager {
         sidebar = gameManager.getSidebarFactory().createSidebar();
         sidebar.addPlayers(gameManager.getOnlineParticipants());
         initializeSidebar();
-        sidebar.updateTitle(storageUtil.getTitle());
         messageAllAdmins(Component.text("Starting event. On game ")
                 .append(Component.text(currentGameNumber))
                 .append(Component.text("/"))
@@ -148,7 +147,6 @@ public class EventManager {
         }
         clearSidebar();
         currentState = null;
-        sidebar.updateTitle(Sidebar.DEFAULT_TITLE);
         cancelAllTasks();
         scoreKeepers.clear();
         currentGameNumber = 0;
@@ -707,9 +705,6 @@ public class EventManager {
      * @param winningTeam The name of the winning team. If this is null, nothing happens.
      */
     public void colossalColosseumIsOver(@Nullable String winningTeam) {
-        if (currentState != null) {
-            sidebar.addPlayers(gameManager.getOnlineParticipants());
-        }
         if (winningTeam == null) {
             Component message = Component.text("No winner declared.");
             messageAllAdmins(message);
@@ -775,9 +770,12 @@ public class EventManager {
     
     private void initializeSidebar() {
         sidebar.addLine("timer", "");
+        sidebar.updateTitle(storageUtil.getTitle());
     }
     
     private void clearSidebar() {
+        sidebar.updateTitle(Sidebar.DEFAULT_TITLE);
+        sidebar.removeAllPlayers();
         sidebar.deleteAllLines();
         sidebar = null;
     }
