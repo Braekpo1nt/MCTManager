@@ -131,7 +131,7 @@ public class SpleefGame implements MCTGame, Configurable {
             return;
         }
         currentRoundIndex++;
-        this.roundDelayTaskId = Bukkit.getScheduler().runTaskLater(plugin, this::startNextRound, storageUtil.getRoundEndingDuration()*20L).getTaskId();
+        startNextRound();
     }
     
     public void startNextRound() {
