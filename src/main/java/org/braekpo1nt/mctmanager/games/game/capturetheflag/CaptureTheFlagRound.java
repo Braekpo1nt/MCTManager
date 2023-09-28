@@ -6,6 +6,7 @@ import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlagStorageUtil;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
+import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
@@ -136,14 +137,17 @@ public class CaptureTheFlagRound {
         CaptureTheFlagMatch match = getMatch(teamName);
         if (match == null) {
             initializeOnDeckParticipant(participant);
-            return;
-        }
-        if (!match.isActive()) {
-            initializeParticipant(participant);
+            sidebar.updateLine(participant.getUniqueId(), "enemy", "On Deck");
             return;
         }
         initializeParticipant(participant);
-        match.onParticipantJoin(participant);
+        String enemyTeam = getOppositeTeam(teamName);
+        ChatColor enemyColor = gameManager.getTeamChatColor(enemyTeam);
+        String enemyDisplayName = gameManager.getTeamDisplayName(enemyTeam);
+        sidebar.updateLine(participant.getUniqueId(), "enemy", String.format("%svs: %s%s", ChatColor.BOLD, enemyColor, enemyDisplayName));
+        if (match.isActive()) {
+            match.onParticipantJoin(participant);
+        }
     }
     
     public void onParticipantQuit(Player participant) {

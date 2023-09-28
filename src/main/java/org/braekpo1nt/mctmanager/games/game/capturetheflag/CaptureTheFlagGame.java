@@ -61,6 +61,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
     public void start(List<Player> newParticipants) {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         participants = new ArrayList<>();
+        sidebar = gameManager.getSidebarFactory().createSidebar();
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
         }
@@ -77,6 +78,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
     
     private void initializeParticipant(Player participant) {
         participants.add(participant);
+        sidebar.addPlayer(participant);
     }
     
     @Override
@@ -99,12 +101,17 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
     
     private void resetParticipant(Player participant) {
         participant.getInventory().clear();
+        sidebar.removePlayer(participant.getUniqueId());
     }
     
     @Override
     public void onParticipantJoin(Player participant) {
         if (currentRoundIndex < 0) {
             initializeParticipant(participant);
+            sidebar.updateLines(participant.getUniqueId(),
+                new KeyLine("title", title),
+                new KeyLine("round", String.format("Round %d/%d", currentRoundIndex+1, maxRounds))
+            );
             return;
         }
         // TODO: if the joining player is on a team that is not currently in the list of rounds/matches, we must add its matches to the lineup. If the team is one that completely left, and is now rejoining, we must check for its matches that have already been played out and make sure they aren't duplicated in the new lineup. 
@@ -113,10 +120,18 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
         if (teamIsNew(teamName)) {
             initializeParticipant(participant);
             addFutureMatchesForTeam(teamName);
+            sidebar.updateLines(participant.getUniqueId(),
+                new KeyLine("title", title),
+                new KeyLine("round", String.format("Round %d/%d", currentRoundIndex+1, maxRounds))
+            );
             currentRound.onParticipantJoin(participant);
             return;
         }
         initializeParticipant(participant);
+        sidebar.updateLines(participant.getUniqueId(),
+            new KeyLine("title", title),
+            new KeyLine("round", String.format("Round %d/%d", currentRoundIndex+1, maxRounds))
+        );
         currentRound.onParticipantJoin(participant);
     }
     
@@ -339,8 +354,6 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
     }
     
     private void initializeSidebar() {
-        sidebar = gameManager.getSidebarFactory().createSidebar();
-        sidebar.addPlayers(participants);
         sidebar.addLines(
                 new KeyLine("title", title),
                 new KeyLine("enemy", ""),
@@ -351,8 +364,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
     }
     
     private void clearSidebar() {
-        sidebar.removePlayers(participants);
-        sidebar.deleteLines("title", "enemy", "round", "timer", "kills");
+        sidebar.deleteAllLines();
         sidebar = null;
     }
     
