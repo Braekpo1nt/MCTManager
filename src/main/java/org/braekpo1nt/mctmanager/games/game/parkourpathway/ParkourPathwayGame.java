@@ -79,6 +79,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener {
         currentCheckpoints = new HashMap<>();
         finishedParticipants = new ArrayList<>();
         closeGlassBarriers();
+        sidebar = gameManager.getSidebarFactory().createSidebar();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
@@ -121,9 +122,9 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener {
     }
     
     private void initializeParticipant(Player participant) {
-        UUID participantUniqueId = participant.getUniqueId();
         participants.add(participant);
-        currentCheckpoints.put(participantUniqueId, 0);
+        currentCheckpoints.put(participant.getUniqueId(), 0);
+        sidebar.addPlayer(participant);
         teleportPlayerToStartingPosition(participant);
         participant.getInventory().clear();
         giveBoots(participant);
@@ -131,9 +132,10 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener {
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
     }
-
+    
     private void resetParticipant(Player participant) {
         participant.getInventory().clear();
+        sidebar.removePlayer(participant.getUniqueId());
     }
     
     @Override
@@ -153,12 +155,22 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener {
     
     @Override
     public void onParticipantJoin(Player participant) {
-        
+        participants.add(participant);
+        currentCheckpoints.putIfAbsent(participant.getUniqueId(), 0);
+        sidebar.addPlayer(participant);
+        participant.getInventory().clear();
+        giveBoots(participant);
+        participant.setGameMode(GameMode.ADVENTURE);
+        ParticipantInitializer.clearStatusEffects(participant);
+        ParticipantInitializer.resetHealthAndHunger(participant);
+        sidebar.updateLine(participant.getUniqueId(), "title", title);
+        updateCheckpointSidebar(participant);
     }
     
     @Override
     public void onParticipantQuit(Player participant) {
-        
+        resetParticipant(participant);
+        participants.remove(participant);
     }
     
     @EventHandler
@@ -397,8 +409,6 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener {
     }
 
     private void initializeSidebar() {
-        sidebar = gameManager.getSidebarFactory().createSidebar();
-        sidebar.addPlayers(participants);
         sidebar.addLines(
                 new KeyLine("title", title),
                 new KeyLine("timer", ""),
@@ -412,10 +422,9 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener {
         int lastCheckpoint = storageUtil.getCheckPoints().size()-1;
         sidebar.updateLine(participant.getUniqueId(), "checkpoint", String.format("%s/%s", currentCheckpoint, lastCheckpoint));
     }
-
+    
     private void clearSidebar() {
-        sidebar.removePlayers(participants);
-        sidebar.deleteLines("title", "timer", "checkpoint", "ending");
+        sidebar.deleteAllLines();
         sidebar = null;
     }
 
