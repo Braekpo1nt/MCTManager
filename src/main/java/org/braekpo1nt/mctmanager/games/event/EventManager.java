@@ -367,6 +367,22 @@ public class EventManager {
                 .append(Component.text(" has been removed from the voting pool")));
     }
     
+    public boolean colossalColosseumIsActive() {
+        return colossalColosseumGame.isActive();
+    }
+    
+    public void onParticipantJoin(Player participant) {
+        if (colossalColosseumGame.isActive()) {
+            colossalColosseumGame.onParticipantJoin(participant);
+        }
+    }
+    
+    public void onParticipantQuit(Player participant) {
+        if (colossalColosseumGame.isActive()) {
+            colossalColosseumGame.onParticipantQuit(participant);
+        }
+    }
+    
     public void cancelAllTasks() {
         Bukkit.getScheduler().cancelTask(waitingInHubTaskId);
         Bukkit.getScheduler().cancelTask(toColossalColosseumDelayTaskId);

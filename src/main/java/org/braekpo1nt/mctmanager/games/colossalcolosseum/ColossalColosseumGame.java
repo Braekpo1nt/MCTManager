@@ -38,7 +38,7 @@ public class ColossalColosseumGame implements Listener, Configurable {
     private int secondPlaceRoundWins = 0;
     private String firstTeamName;
     private String secondTeamName;
-    private boolean gameIsActive = false;
+    private boolean gameActive = false;
     
     public ColossalColosseumGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
@@ -66,6 +66,7 @@ public class ColossalColosseumGame implements Listener, Configurable {
         firstPlaceParticipants = new ArrayList<>(newFirstPlaceParticipants.size());
         secondPlaceParticipants = new ArrayList<>(newSecondPlaceParticipants.size());
         spectators = new ArrayList<>(newSpectators.size());
+        sidebar = gameManager.getSidebarFactory().createSidebar();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         int numOfRounds = (storageUtil.getRequiredWins() * 2) - 1;
         rounds = new ArrayList<>(numOfRounds);
@@ -85,7 +86,7 @@ public class ColossalColosseumGame implements Listener, Configurable {
         initializeSidebar();
         setupTeamOptions();
         startNextRound();
-        gameIsActive = true;
+        gameActive = true;
         Bukkit.getLogger().info("Started Colossal Colosseum");
     }
     
@@ -93,23 +94,26 @@ public class ColossalColosseumGame implements Listener, Configurable {
         firstPlaceParticipants.add(first);
         first.teleport(storageUtil.getFirstPlaceSpawn());
         first.setGameMode(GameMode.ADVENTURE);
+        sidebar.addPlayer(first);
     }
     
     private void initializeSecondPlaceParticipant(Player second) {
         secondPlaceParticipants.add(second);
         second.teleport(storageUtil.getSecondPlaceSpawn());
         second.setGameMode(GameMode.ADVENTURE);
+        sidebar.addPlayer(second);
     }
     
     private void initializeSpectator(Player spectator) {
         spectators.add(spectator);
         spectator.teleport(storageUtil.getSpectatorSpawn());
         spectator.setGameMode(GameMode.ADVENTURE);
+        sidebar.addPlayer(spectator);
     }
     
     private void startNextRound() {
         ColossalColosseumRound nextRound = rounds.get(currentRoundIndex);
-        nextRound.start(firstPlaceParticipants, secondPlaceParticipants, spectators);
+        nextRound.start(firstPlaceParticipants, secondPlaceParticipants, spectators, firstTeamName, secondTeamName);
         sidebar.updateLine("round", String.format("Round: %s", currentRoundIndex+1));
     }
     
@@ -136,7 +140,7 @@ public class ColossalColosseumGame implements Listener, Configurable {
     }
     
     public void stop(@Nullable String winningTeam) {
-        gameIsActive = false;
+        gameActive = false;
         HandlerList.unregisterAll(this);
         if (currentRoundIndex < rounds.size()) {
             ColossalColosseumRound currentRound = rounds.get(currentRoundIndex);
@@ -164,14 +168,54 @@ public class ColossalColosseumGame implements Listener, Configurable {
     
     private void resetParticipant(Player participant) {
         participant.getInventory().clear();
+        sidebar.removePlayer(participant.getUniqueId());
     }
     
     public void onParticipantJoin(Player participant) {
-        
+        if (!gameActive) {
+            return;
+        }
+        String teamName = gameManager.getTeamName(participant.getUniqueId());
+        if (firstTeamName.equals(teamName)) {
+            firstPlaceParticipants.add(participant);
+            participant.setGameMode(GameMode.SPECTATOR);
+            participant.teleport(storageUtil.getFirstPlaceSpawn());
+        } else if (secondTeamName.equals(teamName)) {
+            secondPlaceParticipants.add(participant);
+            participant.setGameMode(GameMode.SPECTATOR);
+            participant.teleport(storageUtil.getSecondPlaceSpawn());
+        } else {
+            spectators.add(participant);
+            participant.teleport(storageUtil.getSpectatorSpawn());
+        }
+        sidebar.addPlayer(participant);
+        if (currentRoundIndex < rounds.size()) {
+            ColossalColosseumRound currentRound = rounds.get(currentRoundIndex);
+            if (currentRound.isActive()) {
+                currentRound.onParticipantJoin(participant);
+            }
+        }
     }
     
     public void onParticipantQuit(Player participant) {
-        
+        if (!gameActive) {
+            return;
+        }
+        resetParticipant(participant);
+        String teamName = gameManager.getTeamName(participant.getUniqueId());
+        if (firstTeamName.equals(teamName)) {
+            firstPlaceParticipants.remove(participant);
+        } else if (secondTeamName.equals(teamName)) {
+            secondPlaceParticipants.remove(participant);
+        } else {
+            spectators.remove(participant);
+        }
+        if (currentRoundIndex < rounds.size()) {
+            ColossalColosseumRound currentRound = rounds.get(currentRoundIndex);
+            if (currentRound.isActive()) {
+                currentRound.onParticipantQuit(participant);
+            }
+        }
     }
     
     @EventHandler
@@ -198,10 +242,6 @@ public class ColossalColosseumGame implements Listener, Configurable {
     }
     
     private void initializeSidebar() {
-        sidebar = gameManager.getSidebarFactory().createSidebar();
-        sidebar.addPlayers(firstPlaceParticipants);
-        sidebar.addPlayers(secondPlaceParticipants);
-        sidebar.addPlayers(spectators);
         ChatColor firstChatColor = gameManager.getTeamChatColor(firstTeamName);
         String firstDisplayName = ChatColor.BOLD + "" +  firstChatColor + gameManager.getTeamDisplayName(firstTeamName);
         ChatColor secondChatColor = gameManager.getTeamChatColor(secondTeamName);
@@ -216,10 +256,7 @@ public class ColossalColosseumGame implements Listener, Configurable {
     }
     
     private void clearSidebar() {
-        sidebar.removePlayers(firstPlaceParticipants);
-        sidebar.removePlayers(secondPlaceParticipants);
-        sidebar.removePlayers(spectators);
-        sidebar.deleteLines("title", "firstWinCount", "secondWinCount", "round", "timer");
+        sidebar.deleteAllLines();
         sidebar = null;
     }
     
@@ -261,6 +298,6 @@ public class ColossalColosseumGame implements Listener, Configurable {
     }
     
     public boolean isActive() {
-        return gameIsActive;
+        return gameActive;
     }
 }

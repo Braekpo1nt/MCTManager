@@ -112,7 +112,8 @@ public class GameManager implements Listener {
         onlineParticipants.remove(participant);
         if (gameIsRunning()) {
             activeGame.onParticipantQuit(participant);
-            return;
+        } else if (eventManager.colossalColosseumIsActive()) {
+            eventManager.onParticipantQuit(participant);
         }
         hubManager.onParticipantQuit(participant);
     }
@@ -157,10 +158,13 @@ public class GameManager implements Listener {
         Component displayName = Component.text(participant.getName(), teamNamedTextColor);
         participant.displayName(displayName);
         participant.playerListName(displayName);
+        hubManager.onParticipantJoin(participant);
         if (gameIsRunning()) {
+            hubManager.removeParticipantsFromHub(Collections.singletonList(participant));
             activeGame.onParticipantJoin(participant);
-        } else {
-            hubManager.onParticipantJoin(participant);
+        } else if (eventManager.colossalColosseumIsActive()) {
+            hubManager.removeParticipantsFromHub(Collections.singletonList(participant));
+            eventManager.onParticipantJoin(participant);
         }
     }
     
