@@ -111,6 +111,9 @@ public class ClockworkGame implements MCTGame, Configurable {
     
     @Override
     public void onParticipantJoin(Player participant) {
+        if (!gameActive) {
+            return;
+        }
         initializeParticipant(participant);
         sidebar.updateLines(participant.getUniqueId(), 
                 new KeyLine("title", title),
@@ -126,6 +129,9 @@ public class ClockworkGame implements MCTGame, Configurable {
     
     @Override
     public void onParticipantQuit(Player participant) {
+        if (!gameActive) {
+            return;
+        }
         resetParticipant(participant);
         participants.remove(participant);
         if (currentRoundIndex < rounds.size()) {

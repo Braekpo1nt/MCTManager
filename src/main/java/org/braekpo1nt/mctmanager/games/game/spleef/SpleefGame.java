@@ -46,6 +46,7 @@ public class SpleefGame implements MCTGame, Configurable {
     @Override
     public void start(List<Player> newParticipants) {
         participants = new ArrayList<>(newParticipants.size());
+        sidebar = gameManager.getSidebarFactory().createSidebar();
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
         }
@@ -63,6 +64,7 @@ public class SpleefGame implements MCTGame, Configurable {
     
     private void initializeParticipant(Player participant) {
         participants.add(participant);
+        sidebar.addPlayer(participant);
     }
     
     @Override
@@ -87,6 +89,7 @@ public class SpleefGame implements MCTGame, Configurable {
     
     private void resetParticipant(Player participant) {
         participant.getInventory().clear();
+        sidebar.removePlayer(participant.getUniqueId());
     }
     
     @Override
@@ -94,9 +97,16 @@ public class SpleefGame implements MCTGame, Configurable {
         if (!gameActive) {
             return;
         }
-        if (currentRoundIndex < rounds.size() && currentRoundIndex >= rounds.size() - 1) {
+        initializeParticipant(participant);
+        sidebar.updateLines(participant.getUniqueId(),
+                new KeyLine("title", title),
+                new KeyLine("round", String.format("Round %d/%d", currentRoundIndex+1, storageUtil.getRounds()))
+        );
+        if (currentRoundIndex < rounds.size()) {
             SpleefRound currentRound = rounds.get(currentRoundIndex);
-            currentRound.onParticipantJoin(participant);
+            if (currentRound.isActive()) {
+                currentRound.onParticipantJoin(participant);
+            }
         }
     }
     
@@ -105,9 +115,13 @@ public class SpleefGame implements MCTGame, Configurable {
         if (!gameActive) {
             return;
         }
-        if (currentRoundIndex < rounds.size() && currentRoundIndex >= rounds.size() - 1) {
+        resetParticipant(participant);
+        participants.remove(participant);
+        if (currentRoundIndex < rounds.size()) {
             SpleefRound currentRound = rounds.get(currentRoundIndex);
-            currentRound.onParticipantQuit(participant);
+            if (currentRound.isActive()) {
+                currentRound.onParticipantQuit(participant);
+            }
         }
     }
     
@@ -131,8 +145,6 @@ public class SpleefGame implements MCTGame, Configurable {
     }
     
     private void initializeSidebar() {
-        sidebar = gameManager.getSidebarFactory().createSidebar();
-        sidebar.addPlayers(participants);
         sidebar.addLines(
                 new KeyLine("title", title),
                 new KeyLine("round", String.format("Round %d/%d", 1, storageUtil.getRounds())),
@@ -141,8 +153,7 @@ public class SpleefGame implements MCTGame, Configurable {
     }
     
     private void clearSidebar() {
-        sidebar.removePlayers(participants);
-        sidebar.deleteLines("title", "round", "timer");
+        sidebar.deleteAllLines();
         sidebar = null;
     }
     

@@ -43,12 +43,12 @@ public class SpleefRound implements Listener {
     private final SpleefStorageUtil storageUtil;
     private List<Player> participants = new ArrayList<>();
     private Map<UUID, Boolean> participantsAlive;
+    private boolean spleefHasStarted = false;
     private boolean roundActive = false;
     private final SpleefGame spleefGame;
     private final PotionEffect SATURATION = new PotionEffect(PotionEffectType.SATURATION, 70, 250, true, false, false);
     private int statusEffectsTaskId;
     private int startCountDownTaskID;
-    private final String title = ChatColor.BLUE+"Spleef";
     private int decayTaskId;
     
     public SpleefRound(Main plugin, GameManager gameManager, SpleefGame spleefGame, SpleefStorageUtil spleefStorageUtil, Sidebar sidebar) {
@@ -71,6 +71,7 @@ public class SpleefRound implements Listener {
         setupTeamOptions();
         startStatusEffectsTask();
         startRoundStartingCountDown();
+        spleefHasStarted = false;
         roundActive = true;
         Bukkit.getLogger().info("Starting Spleef round");
     }
@@ -104,6 +105,8 @@ public class SpleefRound implements Listener {
     }
     
     public void stop() {
+        spleefHasStarted = false;
+        roundActive = false;
         HandlerList.unregisterAll(this);
         placeLayers();
         cancelAllTasks();
@@ -113,7 +116,6 @@ public class SpleefRound implements Listener {
         clearSidebar();
         participants.clear();
         participantsAlive.clear();
-        roundActive = false;
         Bukkit.getLogger().info("Stopping Spleef round");
     }
     
@@ -126,16 +128,22 @@ public class SpleefRound implements Listener {
             return;
         }
         if (participantShouldRejoin(participant)) {
+            rejoinParticipant(participant);
             messageAllParticipants(Component.text(participant.getName())
                     .append(Component.text(" is rejoining Spleef!"))
                     .color(NamedTextColor.YELLOW));
-            rejoinParticipant(participant);
-            return;
+        } else {
+            initializeParticipant(participant);
+            if (spleefHasStarted) {
+                giveParticipantShovel(participant);
+                participant.setGameMode(GameMode.SURVIVAL);
+            }
+            messageAllParticipants(Component.text(participant.getName())
+                    .append(Component.text(" is joining Spleef!"))
+                    .color(NamedTextColor.YELLOW));
         }
-        messageAllParticipants(Component.text(participant.getName())
-                .append(Component.text(" is joining Spleef!"))
-                .color(NamedTextColor.YELLOW));
-        initializeParticipant(participant);
+        long aliveCount = participantsAlive.values().stream().filter((alive) -> alive).count();
+        sidebar.updateLine("alive", String.format("Alive: %s", aliveCount));
     }
     
     private boolean participantShouldRejoin(Player participant) {
@@ -157,6 +165,7 @@ public class SpleefRound implements Listener {
                 .append(Component.text(" left early. Their life is forfeit."));
         PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(participant, drops, droppedExp, deathMessage);
         Bukkit.getServer().getPluginManager().callEvent(fakeDeathEvent);
+        resetParticipant(participant);
         participants.remove(participant);
     }
     
@@ -177,6 +186,10 @@ public class SpleefRound implements Listener {
         EntityDamageEvent.DamageCause cause = event.getCause();
         if (!cause.equals(EntityDamageEvent.DamageCause.LAVA)
                 && !cause.equals(EntityDamageEvent.DamageCause.FIRE)) {
+            event.setCancelled(true);
+            return;
+        }
+        if (!spleefHasStarted) {
             event.setCancelled(true);
         }
     }
@@ -270,6 +283,7 @@ public class SpleefRound implements Listener {
         for (Player participant : participants) {
             participant.setGameMode(GameMode.SURVIVAL);
         }
+        spleefHasStarted = true;
         startDecayTask();
     }
     
@@ -451,7 +465,7 @@ public class SpleefRound implements Listener {
     }
     
     private void initializeSidebar() {
-        sidebar.addLine("alive", "Alive: " + participants.size());
+        sidebar.addLine("alive", "Alive: ");
     }
     
     private void clearSidebar() {
