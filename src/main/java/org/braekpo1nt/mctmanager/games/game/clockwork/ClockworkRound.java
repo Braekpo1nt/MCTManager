@@ -123,6 +123,15 @@ public class ClockworkRound implements Listener {
         ParticipantInitializer.resetHealthAndHunger(participant);
     }
     
+    public void onParticipantJoin(Player participant) {
+        initializeParticipant(participant);
+    }
+    
+    public void onParticipantQuit(Player participant) {
+        resetParticipant(participant);
+        participants.remove(participant);
+    }
+    
     private void cancelAllTasks() {
         Bukkit.getLogger().info("Cancelling tasks ");
         Bukkit.getScheduler().cancelTask(breatherDelayTaskId);
