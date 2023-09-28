@@ -6,6 +6,8 @@ import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlagStorageUtil;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
+import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
+import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -25,6 +27,7 @@ public class CaptureTheFlagRound {
     private final Main plugin;
     private final GameManager gameManager;
     private final CaptureTheFlagStorageUtil storageUtil;
+    private final Sidebar sidebar;
     private List<CaptureTheFlagMatch> matches;
     private List<Player> participants = new ArrayList<>();
     private List<Player> onDeckParticipants;
@@ -34,11 +37,12 @@ public class CaptureTheFlagRound {
     private boolean roundActive = false;
     
     public CaptureTheFlagRound(CaptureTheFlagGame captureTheFlagGame, Main plugin, GameManager gameManager,
-                               CaptureTheFlagStorageUtil storageUtil) {
+                               CaptureTheFlagStorageUtil storageUtil, Sidebar sidebar) {
         this.captureTheFlagGame = captureTheFlagGame;
         this.plugin = plugin;
         this.gameManager = gameManager;
         this.storageUtil = storageUtil;
+        this.sidebar = sidebar;
     }
     
     /**
@@ -54,7 +58,7 @@ public class CaptureTheFlagRound {
             MatchPairing matchPairing = matchPairings.get(i);
             Arena arena = arenas.get(i);
             CaptureTheFlagMatch match = new CaptureTheFlagMatch(this, plugin, gameManager, 
-                    matchPairing, arena, storageUtil);
+                    matchPairing, arena, storageUtil, sidebar);
             matches.add(match);
         }
     }
@@ -133,14 +137,17 @@ public class CaptureTheFlagRound {
         CaptureTheFlagMatch match = getMatch(teamName);
         if (match == null) {
             initializeOnDeckParticipant(participant);
-            return;
-        }
-        if (!match.isActive()) {
-            initializeParticipant(participant);
+            sidebar.updateLine(participant.getUniqueId(), "enemy", "On Deck");
             return;
         }
         initializeParticipant(participant);
-        match.onParticipantJoin(participant);
+        String enemyTeam = getOppositeTeam(teamName);
+        ChatColor enemyColor = gameManager.getTeamChatColor(enemyTeam);
+        String enemyDisplayName = gameManager.getTeamDisplayName(enemyTeam);
+        sidebar.updateLine(participant.getUniqueId(), "enemy", String.format("%svs: %s%s", ChatColor.BOLD, enemyColor, enemyDisplayName));
+        if (match.isActive()) {
+            match.onParticipantJoin(participant);
+        }
     }
     
     public void onParticipantQuit(Player participant) {
@@ -214,7 +221,7 @@ public class CaptureTheFlagRound {
                     return;
                 }
                 String timeLeft = TimeStringUtils.getTimeString(count);
-                gameManager.getSidebarManager().updateLine("timer", String.format("Class selection: %s", timeLeft));
+                sidebar.updateLine("timer", String.format("Class selection: %s", timeLeft));
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -230,7 +237,7 @@ public class CaptureTheFlagRound {
                     return;
                 }
                 String timeLeft = TimeStringUtils.getTimeString(count);
-                gameManager.getSidebarManager().updateLine("timer", String.format("Round: %s", timeLeft));
+                sidebar.updateLine("timer", String.format("Round: %s", timeLeft));
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -247,7 +254,7 @@ public class CaptureTheFlagRound {
                     return;
                 }
                 String timeLeft = TimeStringUtils.getTimeString(count);
-                gameManager.getSidebarManager().updateLine("timer", String.format("Starting: %s", timeLeft));
+                sidebar.updateLine("timer", String.format("Starting: %s", timeLeft));
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -289,11 +296,11 @@ public class CaptureTheFlagRound {
             String enemyTeam = getOppositeTeam(teamName);
             ChatColor enemyColor = gameManager.getTeamChatColor(enemyTeam);
             String enemyDisplayName = gameManager.getTeamDisplayName(enemyTeam);
-            gameManager.getSidebarManager().updateLine(participant.getUniqueId(), "enemy", String.format("%svs: %s%s", ChatColor.BOLD, enemyColor, enemyDisplayName));
+            sidebar.updateLine(participant.getUniqueId(), "enemy", String.format("%svs: %s%s", ChatColor.BOLD, enemyColor, enemyDisplayName));
         }
-        gameManager.getSidebarManager().updateLine("timer", "");
+        sidebar.updateLine("timer", "");
         for (Player onDeckParticipant : onDeckParticipants) {
-            gameManager.getSidebarManager().updateLine(onDeckParticipant.getUniqueId(), "enemy", "On Deck");
+            sidebar.updateLine(onDeckParticipant.getUniqueId(), "enemy", "On Deck");
         }
     }
     

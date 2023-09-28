@@ -8,6 +8,7 @@ import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
+import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -31,6 +32,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
     
     private final Main plugin;
     private final GameManager gameManager;
+    private Sidebar sidebar;
     private final CaptureTheFlagStorageUtil storageUtil;
     private int currentRoundIndex;
     private int maxRounds;
@@ -58,16 +60,17 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
     @Override
     public void start(List<Player> newParticipants) {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
-        List<String> teamNames = gameManager.getTeamNames(newParticipants);
-        List<MatchPairing> matchPairings = CaptureTheFlagUtils.generateMatchPairings(teamNames);
-        rounds = generateRounds(matchPairings);
-        currentRoundIndex = 0;
-        maxRounds = rounds.size();
         participants = new ArrayList<>();
+        sidebar = gameManager.getSidebarFactory().createSidebar();
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
         }
         initializeSidebar();
+        List<String> teamNames = gameManager.getTeamNames(newParticipants);
+        List<MatchPairing> matchPairings = CaptureTheFlagUtils.generateMatchPairings(teamNames);
+        currentRoundIndex = 0;
+        rounds = generateRounds(matchPairings);
+        maxRounds = rounds.size();
         gameActive = true;
         startNextRound();
         Bukkit.getLogger().info("Starting Capture the Flag");
@@ -75,6 +78,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
     
     private void initializeParticipant(Player participant) {
         participants.add(participant);
+        sidebar.addPlayer(participant);
     }
     
     @Override
@@ -97,12 +101,17 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
     
     private void resetParticipant(Player participant) {
         participant.getInventory().clear();
+        sidebar.removePlayer(participant.getUniqueId());
     }
     
     @Override
     public void onParticipantJoin(Player participant) {
         if (currentRoundIndex < 0) {
             initializeParticipant(participant);
+            sidebar.updateLines(participant.getUniqueId(),
+                new KeyLine("title", title),
+                new KeyLine("round", String.format("Round %d/%d", currentRoundIndex+1, maxRounds))
+            );
             return;
         }
         // TODO: if the joining player is on a team that is not currently in the list of rounds/matches, we must add its matches to the lineup. If the team is one that completely left, and is now rejoining, we must check for its matches that have already been played out and make sure they aren't duplicated in the new lineup. 
@@ -111,10 +120,18 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
         if (teamIsNew(teamName)) {
             initializeParticipant(participant);
             addFutureMatchesForTeam(teamName);
+            sidebar.updateLines(participant.getUniqueId(),
+                new KeyLine("title", title),
+                new KeyLine("round", String.format("Round %d/%d", currentRoundIndex+1, maxRounds))
+            );
             currentRound.onParticipantJoin(participant);
             return;
         }
         initializeParticipant(participant);
+        sidebar.updateLines(participant.getUniqueId(),
+            new KeyLine("title", title),
+            new KeyLine("round", String.format("Round %d/%d", currentRoundIndex+1, maxRounds))
+        );
         currentRound.onParticipantJoin(participant);
     }
     
@@ -171,7 +188,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
         currentRoundIndex = 0;
         maxRounds = newRounds.size();
         rounds = newRounds;
-        gameManager.getSidebarManager().updateLine("round", String.format("Round %d/%d", currentRoundIndex+1, maxRounds));
+        sidebar.updateLine("round", String.format("Round %d/%d", currentRoundIndex+1, maxRounds));
     }
     
     /**
@@ -205,7 +222,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
         combinedRounds.addAll(newRounds);
         maxRounds = combinedRounds.size();
         rounds = combinedRounds;
-        gameManager.getSidebarManager().updateLine("round", String.format("Round %d/%d", currentRoundIndex+1, maxRounds));
+        sidebar.updateLine("round", String.format("Round %d/%d", currentRoundIndex+1, maxRounds));
     }
     
     /**
@@ -275,7 +292,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
             }
         }
         nextRound.start(roundParticipants, onDeckParticipants);
-        gameManager.getSidebarManager().updateLine("round", String.format("Round %d/%d", currentRoundIndex+1, maxRounds));
+        sidebar.updateLine("round", String.format("Round %d/%d", currentRoundIndex+1, maxRounds));
     }
 
     /**
@@ -306,7 +323,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
         List<CaptureTheFlagRound> rounds = new ArrayList<>();
         List<List<MatchPairing>> roundMatchPairingsList = CaptureTheFlagUtils.generateRoundMatchPairings(matchPairings, storageUtil.getArenas().size());
         for (List<MatchPairing> roundMatchPairings : roundMatchPairingsList) {
-            CaptureTheFlagRound newRound = new CaptureTheFlagRound(this, plugin, gameManager, storageUtil);
+            CaptureTheFlagRound newRound = new CaptureTheFlagRound(this, plugin, gameManager, storageUtil, sidebar);
             newRound.createMatches(roundMatchPairings, storageUtil.getArenas().subList(0, roundMatchPairings.size()));
             rounds.add(newRound);
         }
@@ -337,17 +354,18 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
     }
     
     private void initializeSidebar() {
-        gameManager.getSidebarManager().addLines(
+        sidebar.addLines(
                 new KeyLine("title", title),
                 new KeyLine("enemy", ""),
-                new KeyLine("round", String.format("Round %d/%d", currentRoundIndex+1, maxRounds)),
+                new KeyLine("round", ""),
                 new KeyLine("timer", ""),
                 new KeyLine("kills", "")
         );
     }
     
     private void clearSidebar() {
-        gameManager.getSidebarManager().deleteLines("title", "enemy", "round", "timer", "kills");
+        sidebar.deleteAllLines();
+        sidebar = null;
     }
     
     /**

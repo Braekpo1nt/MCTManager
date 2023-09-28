@@ -11,6 +11,7 @@ import org.braekpo1nt.mctmanager.games.game.parkourpathway.config.ParkourPathway
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
+import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
@@ -33,6 +34,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener {
 
     private final Main plugin;
     private final GameManager gameManager;
+    private Sidebar sidebar;
     private final ParkourPathwayStorageUtil storageUtil;
     private final String title = ChatColor.BLUE+"Parkour Pathway";
     private final PotionEffect INVISIBILITY = new PotionEffect(PotionEffectType.INVISIBILITY, 10000, 1, true, false, false);
@@ -77,6 +79,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener {
         currentCheckpoints = new HashMap<>();
         finishedParticipants = new ArrayList<>();
         closeGlassBarriers();
+        sidebar = gameManager.getSidebarFactory().createSidebar();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
@@ -103,7 +106,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener {
                     return;
                 }
                 String timeLeft = TimeStringUtils.getTimeString(count);
-                gameManager.getSidebarManager().updateLine("timer", String.format("Starting: %s", timeLeft));
+                sidebar.updateLine("timer", String.format("Starting: %s", timeLeft));
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -119,9 +122,9 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener {
     }
     
     private void initializeParticipant(Player participant) {
-        UUID participantUniqueId = participant.getUniqueId();
         participants.add(participant);
-        currentCheckpoints.put(participantUniqueId, 0);
+        currentCheckpoints.put(participant.getUniqueId(), 0);
+        sidebar.addPlayer(participant);
         teleportPlayerToStartingPosition(participant);
         participant.getInventory().clear();
         giveBoots(participant);
@@ -129,9 +132,10 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener {
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
     }
-
+    
     private void resetParticipant(Player participant) {
         participant.getInventory().clear();
+        sidebar.removePlayer(participant.getUniqueId());
     }
     
     @Override
@@ -151,12 +155,22 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener {
     
     @Override
     public void onParticipantJoin(Player participant) {
-        
+        participants.add(participant);
+        currentCheckpoints.putIfAbsent(participant.getUniqueId(), 0);
+        sidebar.addPlayer(participant);
+        participant.getInventory().clear();
+        giveBoots(participant);
+        participant.setGameMode(GameMode.ADVENTURE);
+        ParticipantInitializer.clearStatusEffects(participant);
+        ParticipantInitializer.resetHealthAndHunger(participant);
+        sidebar.updateLine(participant.getUniqueId(), "title", title);
+        updateCheckpointSidebar(participant);
     }
     
     @Override
     public void onParticipantQuit(Player participant) {
-        
+        resetParticipant(participant);
+        participants.remove(participant);
     }
     
     @EventHandler
@@ -294,7 +308,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener {
     
     private void restartCheckpointCounter() {
         Bukkit.getScheduler().cancelTask(this.checkpointCounterTask);
-        gameManager.getSidebarManager().updateLine("ending", "");
+        sidebar.updateLine("ending", "");
         int checkpointCounter = storageUtil.getCheckpointCounterDuration();
         int checkpointCounterAlert = storageUtil.getCheckpointCounterAlertDuration();
         this.checkpointCounterTask = new BukkitRunnable() {
@@ -321,7 +335,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener {
                 }
                 if (count <= checkpointCounterAlert) {
                     String timeString = TimeStringUtils.getTimeString(count);
-                    gameManager.getSidebarManager().updateLine("ending", String.format("%sEnding in: %s", ChatColor.RED, timeString));
+                    sidebar.updateLine("ending", String.format("%sEnding in: %s", ChatColor.RED, timeString));
                 }
                 count--;
             }
@@ -340,7 +354,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener {
                     return;
                 }
                 String timeString = TimeStringUtils.getTimeString(count);
-                gameManager.getSidebarManager().updateLine("timer", timeString);
+                sidebar.updateLine("timer", timeString);
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -395,7 +409,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener {
     }
 
     private void initializeSidebar() {
-        gameManager.getSidebarManager().addLines(
+        sidebar.addLines(
                 new KeyLine("title", title),
                 new KeyLine("timer", ""),
                 new KeyLine("checkpoint", String.format("0/%s", storageUtil.getCheckPoints().size() - 1)),
@@ -406,11 +420,12 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener {
     private void updateCheckpointSidebar(Player participant) {
         int currentCheckpoint = currentCheckpoints.get(participant.getUniqueId());
         int lastCheckpoint = storageUtil.getCheckPoints().size()-1;
-        gameManager.getSidebarManager().updateLine("checkpoint", String.format("%s/%s", currentCheckpoint, lastCheckpoint));
+        sidebar.updateLine(participant.getUniqueId(), "checkpoint", String.format("%s/%s", currentCheckpoint, lastCheckpoint));
     }
-
+    
     private void clearSidebar() {
-        gameManager.getSidebarManager().deleteLines("title", "timer", "checkpoint", "ending");
+        sidebar.deleteAllLines();
+        sidebar = null;
     }
 
     private void messageAllParticipants(Component message) {

@@ -7,6 +7,7 @@ import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
+import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -20,6 +21,7 @@ import java.util.UUID;
 public class ClockworkGame implements MCTGame, Configurable {
     private final Main plugin;
     private final GameManager gameManager;
+    private Sidebar sidebar;
     private final ClockworkStorageUtil storageUtil;
     private final String title = ChatColor.BLUE+"Clockwork";
     private List<Player> participants = new ArrayList<>();
@@ -46,15 +48,16 @@ public class ClockworkGame implements MCTGame, Configurable {
     @Override
     public void start(List<Player> newParticipants) {
         participants = new ArrayList<>(newParticipants.size());
-        rounds = new ArrayList<>(storageUtil.getRounds());
-        for (int i = 0; i < storageUtil.getRounds(); i++) {
-            rounds.add(new ClockworkRound(plugin, gameManager, this, storageUtil, i+1));
-        }
-        currentRoundIndex = 0;
+        sidebar = gameManager.getSidebarFactory().createSidebar();
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
         }
         initializeSidebar();
+        rounds = new ArrayList<>(storageUtil.getRounds());
+        for (int i = 0; i < storageUtil.getRounds(); i++) {
+            rounds.add(new ClockworkRound(plugin, gameManager, this, storageUtil, i+1, sidebar));
+        }
+        currentRoundIndex = 0;
         setupTeamOptions();
         startNextRound();
         gameActive = true;
@@ -63,6 +66,7 @@ public class ClockworkGame implements MCTGame, Configurable {
     
     private void initializeParticipant(Player participant) {
         participants.add(participant);
+        sidebar.addPlayer(participant);
     }
     
     @Override
@@ -79,7 +83,7 @@ public class ClockworkGame implements MCTGame, Configurable {
         for (Player participant : participants) {
             resetParticipant(participant);
         }
-        gameManager.getSidebarManager().deleteAllLines();
+        clearSidebar();
         participants.clear();
         gameManager.gameIsOver();
         Bukkit.getLogger().info("Stopping Clockwork");
@@ -87,6 +91,7 @@ public class ClockworkGame implements MCTGame, Configurable {
     
     private void resetParticipant(Player participant) {
         participant.getInventory().clear();
+        sidebar.removePlayer(participant.getUniqueId());
     }
     
     public void roundIsOver() {
@@ -106,12 +111,35 @@ public class ClockworkGame implements MCTGame, Configurable {
     
     @Override
     public void onParticipantJoin(Player participant) {
-        
+        if (!gameActive) {
+            return;
+        }
+        initializeParticipant(participant);
+        sidebar.updateLines(participant.getUniqueId(), 
+                new KeyLine("title", title),
+                new KeyLine("round", String.format("Round %d/%d", currentRoundIndex+1, rounds.size()))
+        );
+        if (currentRoundIndex < rounds.size()) {
+            ClockworkRound currentRound = rounds.get(currentRoundIndex);
+            if (currentRound.isActive()) {
+                currentRound.onParticipantJoin(participant);
+            }
+        }
     }
     
     @Override
     public void onParticipantQuit(Player participant) {
-        
+        if (!gameActive) {
+            return;
+        }
+        resetParticipant(participant);
+        participants.remove(participant);
+        if (currentRoundIndex < rounds.size()) {
+            ClockworkRound currentRound = rounds.get(currentRoundIndex);
+            if (currentRound.isActive()) {
+                currentRound.onParticipantQuit(participant);
+            }
+        }
     }
     
     private void cancelAllTasks() {
@@ -119,27 +147,21 @@ public class ClockworkGame implements MCTGame, Configurable {
     }
     
     private void initializeSidebar() {
-        gameManager.getSidebarManager().addLines(
-                new KeyLine("round", String.format("Round %d/%d", currentRoundIndex+1, rounds.size())),
+        sidebar.addLines(
                 new KeyLine("title", title),
+                new KeyLine("round", ""),
                 new KeyLine("playerCount", ""),
                 new KeyLine("timer", "")
         );
     }
     
-    private void updateScoreSidebar(Player participant) {
-        UUID playerUUID = participant.getUniqueId();
-        String teamName = gameManager.getTeamName(playerUUID);
-        String teamDisplayName = gameManager.getTeamDisplayName(teamName);
-        ChatColor teamChatColor = gameManager.getTeamChatColor(teamName);
-        int teamScore = gameManager.getScore(teamName);
-        int playerScore = gameManager.getScore(playerUUID);
-        gameManager.getSidebarManager().updateLine(playerUUID, "team", String.format("%s%s: %s", teamChatColor, teamDisplayName, teamScore));
-        gameManager.getSidebarManager().updateLine(playerUUID, "points", String.format("%sPoints: %s", ChatColor.GOLD, playerScore));
+    private void clearSidebar() {
+        sidebar.deleteAllLines();
+        sidebar = null;
     }
     
     private void updateRoundFastBoard() {
-        gameManager.getSidebarManager().updateLine("round", String.format("Round %d/%d", currentRoundIndex+1, rounds.size()));
+        sidebar.updateLine("round", String.format("Round %d/%d", currentRoundIndex+1, rounds.size()));
     }
     
     private void setupTeamOptions() {

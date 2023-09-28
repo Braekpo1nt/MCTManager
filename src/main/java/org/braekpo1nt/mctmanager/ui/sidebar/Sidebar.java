@@ -7,14 +7,20 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-public class SidebarManager {
-
+public class Sidebar {
+    
+    /**
+     * Sidebar should not be instantiated outside the {@link SidebarFactory}. This prevents it from happening outside this package.
+     */
+    Sidebar() {
+    }
+    
     /**
      * Maps keys to their index, or their line number (starts at 0). 
      */
     protected final Map<String, Integer> keyToIndex = new HashMap<>();
     /**
-     * Holds the lines for the FastBoards for each player. This is kept in parallel to the actual visual lines held in {@link SidebarManager#boards} for the purposes of reordering
+     * Holds the lines for the FastBoards for each player. This is kept in parallel to the actual visual lines held in {@link Sidebar#boards} for the purposes of reordering
      */
     protected final Map<UUID, List<String>> boardsLines = new HashMap<>();
     /**
@@ -38,8 +44,14 @@ public class SidebarManager {
         }
     }
     
+    public synchronized void addPlayers(@NotNull List<@NotNull Player> players) {
+        for (Player player : players) {
+            addPlayer(player);
+        }
+    }
+    
     /**
-     * Adds a player to this SidebarManager. The lines will be empty. You'll need to manually update the line contents for the new player using {@link SidebarManager#updateLine(UUID, String, String)}.
+     * Adds a player to this Sidebar. The lines will be empty. You'll need to manually update the line contents for the new player using {@link Sidebar#updateLine(UUID, String, String)}.
      * @param player the player to add to this manager and give a FastBoard
      */
     public synchronized void addPlayer(@NotNull Player player) {
@@ -56,7 +68,33 @@ public class SidebarManager {
     }
     
     /**
-     * Removes the player from this SidebarManager.
+     * Removes all players from this Sidebar
+     */
+    public synchronized  void removeAllPlayers() {
+        Iterator<Map.Entry<UUID, List<String>>> iterator = boardsLines.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<UUID, List<String>> entry = iterator.next();
+            UUID playerUUID = entry.getKey();
+            iterator.remove();
+            FastBoardWrapper board = boards.remove(playerUUID);
+            if (board != null && !board.isDeleted()) {
+                board.delete();
+            }
+        }
+    }
+    
+    public synchronized void removePlayers(@NotNull List<@NotNull Player> players) {
+        for (Player player : players) {
+            removePlayer(player);
+        }
+    }
+    
+    public synchronized void removePlayer(@NotNull Player player) {
+        removePlayer(player.getUniqueId());
+    }
+    
+    /**
+     * Removes the player from this Sidebar.
      * @param playerUUID the player to remove from this manager (must be present in the manager)
      * @throws IllegalArgumentException if the playerUUID doesn't exist in this manager
      */
@@ -115,12 +153,12 @@ public class SidebarManager {
             board.updateLines(lines.toArray(new String[0]));
         }
     }
-
+    
     /**
      * Bulk add all the lines with the given keys to the end of the Sidebar
      * @param keyLines a list of {@link KeyLine} key-to-content pairs to add all at once to all the FastBoards
      */
-    public synchronized void addLines(@NotNull KeyLine... keyLines) {
+    public synchronized void addLines(@NotNull KeyLine @NotNull... keyLines) {
         List<String> keys = new ArrayList<>(keyLines.length);
         List<String> lineContents = new ArrayList<>(keyLines.length);
         for (KeyLine keyLine : keyLines) {
@@ -164,7 +202,7 @@ public class SidebarManager {
             board.updateLines(lines.toArray(new String[0]));
         }
     }
-
+    
     /**
      * Delete the lines associated with the given keys
      * @param keys the keys for the lines to delete
@@ -226,19 +264,22 @@ public class SidebarManager {
             index++;
         }
     }
-
+    
     /**
      * Deletes all the lines from all FastBoards
      */
     public synchronized void deleteAllLines() {
         size = 0;
         keyToIndex.clear();
-        boardsLines.clear();
-        for (FastBoardWrapper board : boards.values()) {
+        for (Map.Entry<UUID, List<String>> entry : boardsLines.entrySet()) {
+            UUID playerUUID = entry.getKey();
+            List<String> lines = entry.getValue();
+            lines.clear();
+            FastBoardWrapper board = boards.get(playerUUID);
             board.updateLines();
         }
     }
-
+    
     /**
      * Updates the line associated with the key for all FastBoards
      * @param key the key for the line (must exist)
@@ -255,7 +296,27 @@ public class SidebarManager {
             board.updateLine(index, contents);
         }
     }
-
+    
+    /**
+     * Updates the line associated with the KeyLine pair for all FastBoards
+     * @param keyLines the KeyLine pair (all keys must exist)
+     */
+    public synchronized  void updateLines(@NotNull KeyLine @NotNull... keyLines) {
+        for (KeyLine keyLine : keyLines) {
+            Preconditions.checkArgument(keyToIndex.containsKey(keyLine.key()), "can't update a line with nonexistent key (%s)", keyLine.key());
+        }
+        for (Map.Entry<UUID, List<String>> entry : boardsLines.entrySet()) {
+            UUID playerUUID = entry.getKey();
+            List<String> lines = entry.getValue();
+            FastBoardWrapper board = boards.get(playerUUID);
+            for (KeyLine keyLine : keyLines) {
+                int index = keyToIndex.get(keyLine.key());
+                lines.set(index, keyLine.contents());
+                board.updateLine(index, keyLine.contents());
+            }
+        }
+    }
+    
     /**
      * Updates the line associate with the key for the player with the given ID's FastBoard.
      * @param playerUUID the player UUID to update the line for (must have a FastBoard)
@@ -272,4 +333,21 @@ public class SidebarManager {
         board.updateLine(index, contents);
     }
     
+    /**
+     * Updates the lines associated with the KeyLine pairs for the given player's FastBoard.
+     * @param playerUUID THe player UUID to update the lines for (must have a FastBoard)
+     * @param keyLines the KeyLine pairs to update (each key must exist)
+     */
+    public synchronized void updateLines(@NotNull UUID playerUUID, @NotNull KeyLine @NotNull... keyLines) {
+        for (KeyLine keyLine : keyLines) {
+            Preconditions.checkArgument(keyToIndex.containsKey(keyLine.key()), "can't update a line with nonexistent key (%s)", keyLine.key());
+        }
+        List<String> lines = boardsLines.get(playerUUID);
+        FastBoardWrapper board = boards.get(playerUUID);
+        for (KeyLine keyLine : keyLines) {
+            int index = keyToIndex.get(keyLine.key());
+            lines.set(index, keyLine.contents());
+            board.updateLine(index, keyLine.contents());
+        }
+    }
 }

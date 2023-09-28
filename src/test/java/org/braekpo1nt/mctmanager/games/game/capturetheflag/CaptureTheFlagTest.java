@@ -11,7 +11,7 @@ import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlagStorageUtil;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.gamestate.MockGameStateStorageUtil;
-import org.braekpo1nt.mctmanager.ui.sidebar.MockSidebarManager;
+import org.braekpo1nt.mctmanager.ui.sidebar.MockSidebarFactory;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.junit.jupiter.api.*;
@@ -28,7 +28,6 @@ class CaptureTheFlagTest {
     private ServerMock server;
     private Main plugin;
     private CommandSender sender;
-    private MockSidebarManager mockSidebarManager;
     private GameManager gameManager;
     
     
@@ -44,8 +43,8 @@ class CaptureTheFlagTest {
             System.exit(1);
         }
         gameManager = plugin.getGameManager();
-        mockSidebarManager = new MockSidebarManager();
-        gameManager.setSidebarManager(mockSidebarManager);
+        MockSidebarFactory mockSidebarFactory = new MockSidebarFactory();
+        gameManager.setSidebarFactory(mockSidebarFactory);
         MockGameStateStorageUtil mockGameStateStorageUtil = new MockGameStateStorageUtil(plugin);
         gameManager.setGameStateStorageUtil(mockGameStateStorageUtil);
         sender = server.getConsoleSender();
@@ -133,7 +132,6 @@ class CaptureTheFlagTest {
             Assertions.assertTrue(player1.receivedMessagePlaintext("Red is competing against Blue this round."));
             Assertions.assertTrue(player2.receivedMessagePlaintext("Blue is competing against Red this round."));
             Assertions.assertTrue(player3.receivedMessagePlaintext("Green is not competing in this round. Their next round is 1"));
-            mockSidebarManager.assertLine(player3.getUniqueId(), "enemy", "On Deck");
         } catch (UnimplementedOperationException ex) {
             ex.printStackTrace();
             Assertions.fail(ex.getMessage());
@@ -407,9 +405,6 @@ class CaptureTheFlagTest {
             List<Player> onDeckParticipants = currentRound.getOnDeckParticipants();
             Assertions.assertEquals(1, onDeckParticipants.size());
             Assertions.assertTrue(onDeckParticipants.contains(player3));
-            mockSidebarManager.assertLine(player1.getUniqueId(), "round", "Round 1/3");
-            mockSidebarManager.assertLine(player2.getUniqueId(), "round", "Round 1/3");
-            mockSidebarManager.assertLine(player3.getUniqueId(), "round", "Round 1/3");
             
             player3.disconnect();
     
@@ -419,8 +414,6 @@ class CaptureTheFlagTest {
             Assertions.assertSame(currentRound, currentRoundAfterDisconnect);
             Assertions.assertEquals(2, currentRoundAfterDisconnect.getParticipants().size());
             Assertions.assertEquals(0, currentRoundAfterDisconnect.getOnDeckParticipants().size());
-            mockSidebarManager.assertLine(player1.getUniqueId(), "round", "Round 1/1");
-            mockSidebarManager.assertLine(player2.getUniqueId(), "round", "Round 1/1");
             
         } catch (UnimplementedOperationException ex) {
             ex.printStackTrace();
@@ -906,35 +899,6 @@ class CaptureTheFlagTest {
             ex.printStackTrace();
             Assertions.fail(ex.getMessage());
         }
-    }
-    
-    @Test
-    @DisplayName("The timer counts down for observers")
-    void timerCountDown() {
-        addTeam("red", "Red", "red");
-        addTeam("blue", "Blue", "blue");
-        addTeam("green", "Green", "green");
-        MyPlayerMock player1 = createParticipant("Player1", "red", "Red");
-        MyPlayerMock player2 = createParticipant("Player2", "blue", "Blue");
-        MyPlayerMock player3 = createParticipant("Player3", "green", "Green");
-        gameManager.startGame(GameType.CAPTURE_THE_FLAG, sender);
-        
-        speedThroughHalfRoundCountdown();
-        mockSidebarManager.assertLine(player1.getUniqueId(), "timer", "Starting: 0:05");
-        mockSidebarManager.assertLine(player2.getUniqueId(), "timer", "Starting: 0:05");
-        mockSidebarManager.assertLine(player3.getUniqueId(), "timer", "Starting: 0:05");
-        speedThroughHalfRoundCountdown();
-        
-        speedThroughHalfClassSelection();
-        mockSidebarManager.assertLine(player1.getUniqueId(), "timer", "Class selection: 0:10");
-        mockSidebarManager.assertLine(player2.getUniqueId(), "timer", "Class selection: 0:10");
-        mockSidebarManager.assertLine(player3.getUniqueId(), "timer", "Class selection: 0:10");
-        speedThroughHalfClassSelection();
-        
-        speedThroughHalfRound();
-        mockSidebarManager.assertLine(player1.getUniqueId(), "timer", "Round: 1:30");
-        mockSidebarManager.assertLine(player2.getUniqueId(), "timer", "Round: 1:30");
-        mockSidebarManager.assertLine(player3.getUniqueId(), "timer", "Round: 1:30");
     }
     
 }

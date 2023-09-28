@@ -11,6 +11,7 @@ import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
+import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.bukkit.*;
 import org.bukkit.block.structure.Mirror;
 import org.bukkit.block.structure.StructureRotation;
@@ -37,6 +38,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable {
     
     private final int MAX_LAPS = 3;
     private final FootRaceStorageUtil footRaceStorageUtil;
+    private Sidebar sidebar;
     
     private boolean gameActive = false;
     private boolean raceHasStarted = false;
@@ -84,16 +86,17 @@ public class FootRaceGame implements Listener, MCTGame, Configurable {
         lapCooldowns = new HashMap<>();
         laps = new HashMap<>();
         placements = new ArrayList<>();
+        sidebar = gameManager.getSidebarFactory().createSidebar();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         closeGlassBarrier();
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
         }
+        gameActive = true;
         initializeSidebar();
         startStatusEffectsTask();
         setupTeamOptions();
         startStartRaceCountdownTask();
-        gameActive = true;
         Bukkit.getLogger().info("Starting Foot Race game");
     }
     
@@ -102,6 +105,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable {
         participants.add(participant);
         lapCooldowns.put(participantUniqueId, System.currentTimeMillis());
         laps.put(participantUniqueId, 1);
+        sidebar.addPlayer(participant);
         participant.sendMessage("Teleporting to Foot Race");
         participant.teleport(footRaceStorageUtil.getStartingLocation());
         participant.getInventory().clear();
@@ -119,7 +123,8 @@ public class FootRaceGame implements Listener, MCTGame, Configurable {
         for (Player participant : participants) {
             resetParticipant(participant);
         }
-        clearSidebar();
+        sidebar.deleteAllLines();
+        sidebar = null;
         participants.clear();
         raceHasStarted = false;
         gameActive = false;
@@ -131,6 +136,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable {
         participant.getInventory().clear();
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
+        sidebar.removePlayer(participant);
     }
     
     @Override
@@ -146,6 +152,14 @@ public class FootRaceGame implements Listener, MCTGame, Configurable {
                     .color(NamedTextColor.YELLOW));
             initializeParticipant(participant);
         }
+        sidebar.updateLine(participant.getUniqueId(), "title", title);
+        
+        Integer currentLap = laps.get(participant.getUniqueId());
+        if (currentLap > MAX_LAPS) {
+            showRaceCompleteFastBoard(participant.getUniqueId());
+        } else {
+            sidebar.updateLine(participant.getUniqueId(), "lap", String.format("Lap: %d/%d", currentLap, MAX_LAPS));
+        }
     }
     
     /**
@@ -153,6 +167,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable {
      * @param participant The participant who is rejoining
      */
     private void rejoinParticipant(Player participant) {
+        sidebar.addPlayer(participant);
         participant.sendMessage(ChatColor.YELLOW + "You have rejoined Foot Race");
         messageAllParticipants(Component.text(participant.getName())
                 .append(Component.text(" is rejoining the game!"))
@@ -186,7 +201,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable {
             return;
         }
         messageAllParticipants(Component.text(participant.getName())
-                .append(Component.text(" has left the game!"))
+                .append(Component.text(" has left mid-game!"))
                 .color(NamedTextColor.YELLOW));
         resetParticipant(participant);
         participants.remove(participant);
@@ -286,7 +301,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable {
                 String timeString = getTimeString(elapsedTime);
                 for (Player participant : participants) {
                     if (!placements.contains(participant.getUniqueId())) {
-                        gameManager.getSidebarManager().updateLine(
+                        sidebar.updateLine(
                                 participant.getUniqueId(), 
                                 "timer",
                                 timeString
@@ -315,21 +330,19 @@ public class FootRaceGame implements Listener, MCTGame, Configurable {
     }
     
     private void initializeSidebar() {
-        gameManager.getSidebarManager().addLines(
+        sidebar.addLines(
                 new KeyLine("title", title),
                 new KeyLine("timer", "00:00:000"),
                 new KeyLine("lap", String.format("Lap: %d/%d", 1, MAX_LAPS))
         );
     }
     
-    private void clearSidebar() {
-        gameManager.getSidebarManager().deleteLines("title", "timer", "lap");
-    }
-    
     private void showRaceCompleteFastBoard(UUID playerUUID) {
         long elapsedTime = System.currentTimeMillis() - raceStartTime;
-        gameManager.getSidebarManager().updateLine(playerUUID, "timer", getTimeString(elapsedTime));
-        gameManager.getSidebarManager().updateLine(playerUUID, "lap", String.format("Finished %s!", getPlacementTitle(placements.indexOf(playerUUID) + 1)));
+        sidebar.updateLines(playerUUID, 
+                new KeyLine("timer", getTimeString(elapsedTime)), 
+                new KeyLine("lap", String.format("Finished %s!", getPlacementTitle(placements.indexOf(playerUUID) + 1)))
+        );
     }
     
     @EventHandler
@@ -364,7 +377,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable {
                 long elapsedTime = System.currentTimeMillis() - raceStartTime;
                 int newLap = currentLap + 1;
                 laps.put(playerUUID, newLap);
-                gameManager.getSidebarManager().updateLine(
+                sidebar.updateLine(
                         playerUUID,
                         "lap",
                         String.format("Lap: %d/%d", laps.get(playerUUID), MAX_LAPS)

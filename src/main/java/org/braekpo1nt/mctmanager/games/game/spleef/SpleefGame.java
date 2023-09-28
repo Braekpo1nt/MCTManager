@@ -7,6 +7,7 @@ import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.game.spleef.config.SpleefStorageUtil;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
+import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Scoreboard;
@@ -17,6 +18,7 @@ import java.util.*;
 public class SpleefGame implements MCTGame, Configurable {
     private final Main plugin;
     private final GameManager gameManager;
+    private Sidebar sidebar;
     private final SpleefStorageUtil storageUtil;
     private final String title = ChatColor.BLUE+"Spleef";
     private List<Player> participants = new ArrayList<>();
@@ -44,15 +46,16 @@ public class SpleefGame implements MCTGame, Configurable {
     @Override
     public void start(List<Player> newParticipants) {
         participants = new ArrayList<>(newParticipants.size());
-        rounds = new ArrayList<>(storageUtil.getRounds());
-        for (int i = 0; i < storageUtil.getRounds(); i++) {
-            rounds.add(new SpleefRound(plugin, gameManager, this, storageUtil));
-        }
-        currentRoundIndex = 0;
+        sidebar = gameManager.getSidebarFactory().createSidebar();
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
         }
         initializeSidebar();
+        rounds = new ArrayList<>(storageUtil.getRounds());
+        for (int i = 0; i < storageUtil.getRounds(); i++) {
+            rounds.add(new SpleefRound(plugin, gameManager, this, storageUtil, sidebar));
+        }
+        currentRoundIndex = 0;
         setupTeamOptions();
         startNextRound();
         gameActive = true;
@@ -61,6 +64,7 @@ public class SpleefGame implements MCTGame, Configurable {
     
     private void initializeParticipant(Player participant) {
         participants.add(participant);
+        sidebar.addPlayer(participant);
     }
     
     @Override
@@ -85,6 +89,7 @@ public class SpleefGame implements MCTGame, Configurable {
     
     private void resetParticipant(Player participant) {
         participant.getInventory().clear();
+        sidebar.removePlayer(participant.getUniqueId());
     }
     
     @Override
@@ -92,9 +97,16 @@ public class SpleefGame implements MCTGame, Configurable {
         if (!gameActive) {
             return;
         }
-        if (currentRoundIndex < rounds.size() && currentRoundIndex >= rounds.size() - 1) {
+        initializeParticipant(participant);
+        sidebar.updateLines(participant.getUniqueId(),
+                new KeyLine("title", title),
+                new KeyLine("round", String.format("Round %d/%d", currentRoundIndex+1, storageUtil.getRounds()))
+        );
+        if (currentRoundIndex < rounds.size()) {
             SpleefRound currentRound = rounds.get(currentRoundIndex);
-            currentRound.onParticipantJoin(participant);
+            if (currentRound.isActive()) {
+                currentRound.onParticipantJoin(participant);
+            }
         }
     }
     
@@ -103,9 +115,13 @@ public class SpleefGame implements MCTGame, Configurable {
         if (!gameActive) {
             return;
         }
-        if (currentRoundIndex < rounds.size() && currentRoundIndex >= rounds.size() - 1) {
+        resetParticipant(participant);
+        participants.remove(participant);
+        if (currentRoundIndex < rounds.size()) {
             SpleefRound currentRound = rounds.get(currentRoundIndex);
-            currentRound.onParticipantQuit(participant);
+            if (currentRound.isActive()) {
+                currentRound.onParticipantQuit(participant);
+            }
         }
     }
     
@@ -115,13 +131,13 @@ public class SpleefGame implements MCTGame, Configurable {
             return;
         }
         currentRoundIndex++;
-        this.roundDelayTaskId = Bukkit.getScheduler().runTaskLater(plugin, this::startNextRound, storageUtil.getRoundEndingDuration()*20L).getTaskId();
+        startNextRound();
     }
     
     public void startNextRound() {
         SpleefRound nextRound = rounds.get(currentRoundIndex);
         nextRound.start(participants);
-        gameManager.getSidebarManager().updateLine("round", String.format("Round %d/%d", currentRoundIndex+1, rounds.size()));
+        sidebar.updateLine("round", String.format("Round %d/%d", currentRoundIndex+1, rounds.size()));
     }
     
     private void cancelAllTasks() {
@@ -129,15 +145,16 @@ public class SpleefGame implements MCTGame, Configurable {
     }
     
     private void initializeSidebar() {
-        gameManager.getSidebarManager().addLines(
+        sidebar.addLines(
                 new KeyLine("title", title),
-                new KeyLine("round", String.format("Round %d/%d", currentRoundIndex+1, rounds.size())),
+                new KeyLine("round", String.format("Round %d/%d", 1, storageUtil.getRounds())),
                 new KeyLine("timer", "")
         );
     }
     
     private void clearSidebar() {
-        gameManager.getSidebarManager().deleteLines("title", "round", "timer");
+        sidebar.deleteAllLines();
+        sidebar = null;
     }
     
     private void setupTeamOptions() {

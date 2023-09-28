@@ -9,8 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public class MockSidebarManager extends SidebarManager {
-    
+class MockSidebar extends Sidebar {
     @Override
     public synchronized void addPlayer(@NotNull Player player) {
         Preconditions.checkArgument(!boardsLines.containsKey(player.getUniqueId()), "player with UUID \"%s\" already has a board in this manager", player.getUniqueId());
