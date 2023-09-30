@@ -397,14 +397,6 @@ public class ClockworkRound implements Listener {
         }
         roundIsOver();
     }
-    
-    public void updatePersonalScore(UUID participantUUID, String contents) {
-        sidebar.updateLine(participantUUID, "personalScore", contents);
-    }
-    
-    public void updateTeamScore(UUID participantUUID, String contents) {
-        sidebar.updateLine(participantUUID, "personalTeam", contents);
-    }
 
     private void setupTeamOptions() {
         Scoreboard mctScoreboard = gameManager.getMctScoreboard();
