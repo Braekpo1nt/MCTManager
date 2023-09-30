@@ -953,16 +953,17 @@ public class GameManager implements Listener {
         hubManager.initializeSidebar(sidebarFactory);
     }
     
-    private void updateTeamScore(Player participant) {
-        String team = getTeamName(participant.getUniqueId());
+    private void updateTeamScore(String team) {
         String displayName = getTeamDisplayName(team);
         ChatColor teamChatColor = getTeamChatColor(team);
         int teamScore = getScore(team);
-//        defaultSidebar.updateLine(participant.getUniqueId(), "personalTeam", String.format("%s%s: %s", teamChatColor, displayName, teamScore));
+        for (UUID playerUUID : getParticipantUUIDsOnTeam(team)) {
+            sidebar.updateLine(playerUUID, "personalTeam", String.format("%s%s: %s", teamChatColor, displayName, teamScore));
+        }
     }
     
     private void updatePersonalScore(Player participant) {
         int score = getScore(participant.getUniqueId());
-//        defaultSidebar.updateLine(participant.getUniqueId(), "personalScore", String.format("%sPoints: %s", ChatColor.GOLD, score));
+        sidebar.updateLine(participant.getUniqueId(), "personalScore", String.format("%sPoints: %s", ChatColor.GOLD, score));
     }
 }
