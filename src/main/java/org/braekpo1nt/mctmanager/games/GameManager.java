@@ -960,6 +960,9 @@ public class GameManager implements Listener {
             if (activeGame != null && activeGame instanceof Headerable headerable) {
                 headerable.updateTeamScore(participant, String.format("%s%s: %s", teamChatColor, displayName, teamScore));
             }
+            if (eventManager.eventIsActive()) {
+                // update the event manager Sidebar header
+            }
         }
     }
     
@@ -967,6 +970,9 @@ public class GameManager implements Listener {
         int score = getScore(participant.getUniqueId());
         if (activeGame != null && activeGame instanceof Headerable headerable) {
             headerable.updatePersonalScore(participant, String.format("%sPoints: %s", ChatColor.GOLD, score));
+        }
+        if (eventManager.eventIsActive()) {
+            // update the event manager Sidebar header
         }
     }
 }

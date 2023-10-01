@@ -168,9 +168,10 @@ public class ClockworkGame implements MCTGame, Configurable, Headerable {
         if (sidebar == null) {
             return;
         }
-        if (participants.contains(participant)) {
-            sidebar.updateLine(participant.getUniqueId(), "personalScore", contents);
+        if (!participants.contains(participant)) {
+            return;
         }
+        sidebar.updateLine(participant.getUniqueId(), "personalScore", contents);
     }
     
     @Override
@@ -178,9 +179,10 @@ public class ClockworkGame implements MCTGame, Configurable, Headerable {
         if (sidebar == null) {
             return;
         }
-        if (participants.contains(participant)) {
-            sidebar.updateLine(participant.getUniqueId(), "personalTeam", contents);
+        if (!participants.contains(participant)) {
+            return;
         }
+        sidebar.updateLine(participant.getUniqueId(), "personalTeam", contents);
     }
     
     private void updateRoundFastBoard() {
