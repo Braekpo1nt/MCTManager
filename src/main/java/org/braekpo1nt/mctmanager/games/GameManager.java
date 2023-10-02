@@ -965,9 +965,11 @@ public class GameManager implements Listener {
             if (activeGame != null && activeGame instanceof Headerable headerable) {
                 headerable.updateTeamScore(participant, String.format("%s%s: %s", teamChatColor, displayName, teamScore));
             }
-            if (eventManager.eventIsActive()) {
-                eventManager.updateTeamScores();
-            }
+        }
+        Bukkit.getLogger().info("updateTeamScore in gameManager");
+        if (eventManager.eventIsActive()) {
+            Bukkit.getLogger().info("eventIsActive should update team scores");
+            eventManager.updateTeamScores();
         }
     }
     

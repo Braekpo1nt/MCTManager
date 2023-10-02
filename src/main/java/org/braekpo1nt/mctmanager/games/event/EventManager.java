@@ -15,7 +15,6 @@ import org.braekpo1nt.mctmanager.games.voting.VoteManager;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
-import org.braekpo1nt.mctmanager.ui.sidebar.SidebarFactory;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
@@ -771,15 +770,21 @@ public class EventManager {
     }
     
     private void initializeSidebar() {
-        numberOfTeams = gameManager.getTeamNames().size();
+        List<String> sortedTeamNames = sortTeamNames(gameManager.getTeamNames());
+        numberOfTeams = sortedTeamNames.size();
         KeyLine[] teamLines = new KeyLine[numberOfTeams];
         for (int i = 0; i < numberOfTeams; i++) {
-            teamLines[i] = new KeyLine("team"+i, "");
+            String teamName = sortedTeamNames.get(i);
+            String teamDisplayName = gameManager.getTeamDisplayName(teamName);
+            ChatColor teamChatColor = gameManager.getTeamChatColor(teamName);
+            int teamScore = gameManager.getScore(teamName);
+            teamLines[i] = new KeyLine("team"+i, String.format("%s%s: %s", teamChatColor, teamDisplayName, teamScore));
         }
         sidebar.addLines(teamLines);
         sidebar.addLine("personalScore", "");
         sidebar.addLine("timer", "");
         sidebar.updateTitle(storageUtil.getTitle());
+        updatePersonalScores();
     }
     
     private void clearSidebar() {
@@ -790,9 +795,12 @@ public class EventManager {
     }
     
     public void updateTeamScores() {
+        if (sidebar == null) {
+            return;
+        }
         List<String> sortedTeamNames = sortTeamNames(gameManager.getTeamNames());
         if (numberOfTeams != sortedTeamNames.size()) {
-            reOrderTeamLines(sortedTeamNames);
+            reorderTeamLines(sortedTeamNames);
             return;
         }
         KeyLine[] teamLines = new KeyLine[numberOfTeams];
@@ -806,7 +814,7 @@ public class EventManager {
         sidebar.updateLines(teamLines);
     }
     
-    private void reOrderTeamLines(List<String> sortedTeamNames) {
+    private void reorderTeamLines(List<String> sortedTeamNames) {
         String[] teamKeys = new String[numberOfTeams];
         for (int i = 0; i < numberOfTeams; i++) {
             teamKeys[i] = "team"+i;
@@ -825,8 +833,19 @@ public class EventManager {
         sidebar.addLines(0, teamLines);
     }
     
+    private void updatePersonalScores() {
+        for (Player participant : gameManager.getOnlineParticipants()) {
+            int score = gameManager.getScore(participant.getUniqueId());
+            String contents = String.format("%sPoints: %s", ChatColor.GOLD, score);
+            updatePersonalScore(participant, contents);
+        }
+    }
+    
     public void updatePersonalScore(Player participant, String contents) {
-        
+        if (sidebar == null) {
+            return;
+        }
+        sidebar.updateLine(participant.getUniqueId(), "personalScore", contents);
     }
     
     protected List<String> sortTeamNames(Set<String> teamNames) {
