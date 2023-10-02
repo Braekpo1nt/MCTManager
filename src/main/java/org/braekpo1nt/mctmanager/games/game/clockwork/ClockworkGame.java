@@ -149,8 +149,8 @@ public class ClockworkGame implements MCTGame, Configurable, Headerable {
     
     private void initializeSidebar() {
         sidebar.addLines(
-                new KeyLine("personalScore", ""),
                 new KeyLine("personalTeam", ""),
+                new KeyLine("personalScore", ""),
                 new KeyLine("title", title),
                 new KeyLine("round", ""),
                 new KeyLine("playerCount", ""),
@@ -164,17 +164,6 @@ public class ClockworkGame implements MCTGame, Configurable, Headerable {
     }
     
     @Override
-    public void updatePersonalScore(Player participant, String contents) {
-        if (sidebar == null) {
-            return;
-        }
-        if (!participants.contains(participant)) {
-            return;
-        }
-        sidebar.updateLine(participant.getUniqueId(), "personalScore", contents);
-    }
-    
-    @Override
     public void updateTeamScore(Player participant, String contents) {
         if (sidebar == null) {
             return;
@@ -183,6 +172,17 @@ public class ClockworkGame implements MCTGame, Configurable, Headerable {
             return;
         }
         sidebar.updateLine(participant.getUniqueId(), "personalTeam", contents);
+    }
+    
+    @Override
+    public void updatePersonalScore(Player participant, String contents) {
+        if (sidebar == null) {
+            return;
+        }
+        if (!participants.contains(participant)) {
+            return;
+        }
+        sidebar.updateLine(participant.getUniqueId(), "personalScore", contents);
     }
     
     private void updateRoundFastBoard() {

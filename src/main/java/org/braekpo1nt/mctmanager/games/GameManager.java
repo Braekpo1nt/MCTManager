@@ -354,6 +354,9 @@ public class GameManager implements Listener {
         for (String teamName : getTeamNames(onlineParticipants)) {
             updateTeamScore(teamName);
         }
+        for (Player participant : onlineParticipants) {
+            updatePersonalScore(participant);
+        }
     }
     
     /**
