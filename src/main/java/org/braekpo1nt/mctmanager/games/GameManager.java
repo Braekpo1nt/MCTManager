@@ -433,6 +433,7 @@ public class GameManager implements Listener {
         if (team != null){
             team.unregister();
         }
+        updateTeamScore(teamName);
         return true;
     }
     
@@ -455,6 +456,7 @@ public class GameManager implements Listener {
         newTeam.displayName(Component.text(teamDisplayName));
         NamedTextColor color = ColorMap.getNamedTextColor(colorString);
         newTeam.color(color);
+        updateTeamScore(teamName);
         return true;
     }
     
@@ -964,18 +966,19 @@ public class GameManager implements Listener {
                 headerable.updateTeamScore(participant, String.format("%s%s: %s", teamChatColor, displayName, teamScore));
             }
             if (eventManager.eventIsActive()) {
-                // update the event manager Sidebar header
+                eventManager.updateTeamScores();
             }
         }
     }
     
     private void updatePersonalScore(Player participant) {
         int score = getScore(participant.getUniqueId());
+        String contents = String.format("%sPoints: %s", ChatColor.GOLD, score);
         if (activeGame != null && activeGame instanceof Headerable headerable) {
-            headerable.updatePersonalScore(participant, String.format("%sPoints: %s", ChatColor.GOLD, score));
+            headerable.updatePersonalScore(participant, contents);
         }
         if (eventManager.eventIsActive()) {
-            // update the event manager Sidebar header
+            eventManager.updatePersonalScore(participant, contents);
         }
     }
 }

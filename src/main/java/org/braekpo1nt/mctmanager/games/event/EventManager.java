@@ -13,6 +13,7 @@ import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.voting.VoteManager;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
+import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.sidebar.SidebarFactory;
 import org.bukkit.Bukkit;
@@ -30,6 +31,7 @@ public class EventManager {
     private final Main plugin;
     private final GameManager gameManager;
     private Sidebar sidebar;
+    private int numberOfTeams = 0;
     private final VoteManager voteManager;
     private final ColossalColosseumGame colossalColosseumGame;
     private final EventStorageUtil storageUtil;
@@ -769,6 +771,13 @@ public class EventManager {
     }
     
     private void initializeSidebar() {
+        numberOfTeams = gameManager.getTeamNames().size();
+        KeyLine[] teamLines = new KeyLine[numberOfTeams];
+        for (int i = 0; i < numberOfTeams; i++) {
+            teamLines[i] = new KeyLine("team"+i, "");
+        }
+        sidebar.addLines(teamLines);
+        sidebar.addLine("personalScore", "");
         sidebar.addLine("timer", "");
         sidebar.updateTitle(storageUtil.getTitle());
     }
@@ -778,6 +787,52 @@ public class EventManager {
         sidebar.removeAllPlayers();
         sidebar.deleteAllLines();
         sidebar = null;
+    }
+    
+    public void updateTeamScores() {
+        List<String> sortedTeamNames = sortTeamNames(gameManager.getTeamNames());
+        if (numberOfTeams != sortedTeamNames.size()) {
+            reOrderTeamLines(sortedTeamNames);
+            return;
+        }
+        KeyLine[] teamLines = new KeyLine[numberOfTeams];
+        for (int i = 0; i < numberOfTeams; i++) {
+            String teamName = sortedTeamNames.get(i);
+            String teamDisplayName = gameManager.getTeamDisplayName(teamName);
+            ChatColor teamChatColor = gameManager.getTeamChatColor(teamName);
+            int teamScore = gameManager.getScore(teamName);
+            teamLines[i] = new KeyLine("team"+i, String.format("%s%s: %s", teamChatColor, teamDisplayName, teamScore));
+        }
+        sidebar.updateLines(teamLines);
+    }
+    
+    private void reOrderTeamLines(List<String> sortedTeamNames) {
+        String[] teamKeys = new String[numberOfTeams];
+        for (int i = 0; i < numberOfTeams; i++) {
+            teamKeys[i] = "team"+i;
+        }
+        sidebar.deleteLines(teamKeys);
+        
+        numberOfTeams = sortedTeamNames.size();
+        KeyLine[] teamLines = new KeyLine[numberOfTeams];
+        for (int i = 0; i < numberOfTeams; i++) {
+            String teamName = sortedTeamNames.get(i);
+            String teamDisplayName = gameManager.getTeamDisplayName(teamName);
+            ChatColor teamChatColor = gameManager.getTeamChatColor(teamName);
+            int teamScore = gameManager.getScore(teamName);
+            teamLines[i] = new KeyLine("team"+i, String.format("%s%s: %s", teamChatColor, teamDisplayName, teamScore));
+        }
+        sidebar.addLines(teamLines);
+    }
+    
+    public void updatePersonalScore(Player participant, String contents) {
+        
+    }
+    
+    protected List<String> sortTeamNames(Set<String> teamNames) {
+        List<String> sortedTeamNames = new ArrayList<>(teamNames);
+        sortedTeamNames.sort(Comparator.comparing(gameManager::getScore, Comparator.reverseOrder()));
+        return sortedTeamNames;
     }
     
     public boolean eventIsActive() {
