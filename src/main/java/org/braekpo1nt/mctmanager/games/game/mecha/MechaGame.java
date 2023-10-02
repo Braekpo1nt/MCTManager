@@ -11,6 +11,7 @@ import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.game.mecha.config.MechaStorageUtil;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
+import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.bukkit.*;
@@ -42,7 +43,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public class MechaGame implements MCTGame, Configurable, Listener {
+public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     
     private final Main plugin;
     private final GameManager gameManager;
@@ -646,6 +647,8 @@ public class MechaGame implements MCTGame, Configurable, Listener {
     
     private void initializeSidebar() {
         sidebar.addLines(
+                new KeyLine("personalTeam", ""),
+                new KeyLine("personalScore", ""),
                 new KeyLine("title", title),
                 new KeyLine("kills", ChatColor.RED+"Kills: 0"),
                 new KeyLine("timer", ChatColor.LIGHT_PURPLE+"Border: 0:00")
@@ -655,6 +658,28 @@ public class MechaGame implements MCTGame, Configurable, Listener {
     private void clearSidebar() {
         sidebar.deleteAllLines();
         sidebar = null;
+    }
+    
+    @Override
+    public void updateTeamScore(Player participant, String contents) {
+        if (sidebar == null) {
+            return;
+        }
+        if (!participants.contains(participant)) {
+            return;
+        }
+        sidebar.updateLine(participant.getUniqueId(), "personalTeam", contents);
+    }
+    
+    @Override
+    public void updatePersonalScore(Player participant, String contents) {
+        if (sidebar == null) {
+            return;
+        }
+        if (!participants.contains(participant)) {
+            return;
+        }
+        sidebar.updateLine(participant.getUniqueId(), "personalScore", contents);
     }
     
     /**
