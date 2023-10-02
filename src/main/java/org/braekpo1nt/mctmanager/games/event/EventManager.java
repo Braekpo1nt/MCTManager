@@ -822,7 +822,7 @@ public class EventManager {
             int teamScore = gameManager.getScore(teamName);
             teamLines[i] = new KeyLine("team"+i, String.format("%s%s: %s", teamChatColor, teamDisplayName, teamScore));
         }
-        sidebar.addLines(teamLines);
+        sidebar.addLines(0, teamLines);
     }
     
     public void updatePersonalScore(Player participant, String contents) {
