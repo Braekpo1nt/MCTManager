@@ -851,6 +851,11 @@ public class EventManager {
     protected List<String> sortTeamNames(Set<String> teamNames) {
         List<String> sortedTeamNames = new ArrayList<>(teamNames);
         sortedTeamNames.sort(Comparator.comparing(gameManager::getScore, Comparator.reverseOrder()));
+        sortedTeamNames.sort(Comparator
+                .comparing(teamName -> gameManager.getScore((String) teamName))
+                .reversed()
+                .thenComparing(teamName -> ((String) teamName))
+        );
         return sortedTeamNames;
     }
     
