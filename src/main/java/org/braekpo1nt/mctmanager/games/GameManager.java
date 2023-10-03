@@ -433,7 +433,9 @@ public class GameManager implements Listener {
         if (team != null){
             team.unregister();
         }
-        updateTeamScore(teamName);
+        if (eventManager.eventIsActive()) {
+            eventManager.updateTeamScores();
+        }
         return true;
     }
     
@@ -966,9 +968,7 @@ public class GameManager implements Listener {
                 headerable.updateTeamScore(participant, String.format("%s%s: %s", teamChatColor, displayName, teamScore));
             }
         }
-        Bukkit.getLogger().info("updateTeamScore in gameManager");
         if (eventManager.eventIsActive()) {
-            Bukkit.getLogger().info("eventIsActive should update team scores");
             eventManager.updateTeamScores();
         }
     }
