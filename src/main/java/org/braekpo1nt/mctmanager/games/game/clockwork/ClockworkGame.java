@@ -6,6 +6,7 @@ import org.braekpo1nt.mctmanager.games.game.clockwork.config.ClockworkStorageUti
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
+import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.bukkit.Bukkit;
@@ -18,7 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public class ClockworkGame implements MCTGame, Configurable {
+public class ClockworkGame implements MCTGame, Configurable, Headerable {
     private final Main plugin;
     private final GameManager gameManager;
     private Sidebar sidebar;
@@ -148,6 +149,8 @@ public class ClockworkGame implements MCTGame, Configurable {
     
     private void initializeSidebar() {
         sidebar.addLines(
+                new KeyLine("personalTeam", ""),
+                new KeyLine("personalScore", ""),
                 new KeyLine("title", title),
                 new KeyLine("round", ""),
                 new KeyLine("playerCount", ""),
@@ -158,6 +161,28 @@ public class ClockworkGame implements MCTGame, Configurable {
     private void clearSidebar() {
         sidebar.deleteAllLines();
         sidebar = null;
+    }
+    
+    @Override
+    public void updateTeamScore(Player participant, String contents) {
+        if (sidebar == null) {
+            return;
+        }
+        if (!participants.contains(participant)) {
+            return;
+        }
+        sidebar.updateLine(participant.getUniqueId(), "personalTeam", contents);
+    }
+    
+    @Override
+    public void updatePersonalScore(Player participant, String contents) {
+        if (sidebar == null) {
+            return;
+        }
+        if (!participants.contains(participant)) {
+            return;
+        }
+        sidebar.updateLine(participant.getUniqueId(), "personalScore", contents);
     }
     
     private void updateRoundFastBoard() {

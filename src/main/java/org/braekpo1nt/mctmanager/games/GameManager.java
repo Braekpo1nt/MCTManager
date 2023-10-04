@@ -10,6 +10,7 @@ import org.braekpo1nt.mctmanager.games.game.clockwork.ClockworkGame;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
+import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.SidebarFactory;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.CaptureTheFlagGame;
@@ -151,9 +152,9 @@ public class GameManager implements Listener {
         onlineParticipants.add(participant);
         participant.setScoreboard(mctScoreboard);
         participant.addPotionEffect(Main.NIGHT_VISION);
-        updateTeamScore(participant);
-        updatePersonalScore(participant);
         String teamName = getTeamName(participant.getUniqueId());
+        updateTeamScore(teamName);
+        updatePersonalScore(participant);
         NamedTextColor teamNamedTextColor = getTeamNamedTextColor(teamName);
         Component displayName = Component.text(participant.getName(), teamNamedTextColor);
         participant.displayName(displayName);
@@ -350,7 +351,12 @@ public class GameManager implements Listener {
         hubManager.removeParticipantsFromHub(onlineParticipants);
         selectedGame.start(onlineParticipants);
         activeGame = selectedGame;
-        
+        for (String teamName : getTeamNames(onlineParticipants)) {
+            updateTeamScore(teamName);
+        }
+        for (Player participant : onlineParticipants) {
+            updatePersonalScore(participant);
+        }
     }
     
     /**
@@ -427,6 +433,9 @@ public class GameManager implements Listener {
         if (team != null){
             team.unregister();
         }
+        if (eventManager.eventIsActive()) {
+            eventManager.updateTeamScores();
+        }
         return true;
     }
     
@@ -449,6 +458,7 @@ public class GameManager implements Listener {
         newTeam.displayName(Component.text(teamDisplayName));
         NamedTextColor color = ColorMap.getNamedTextColor(colorString);
         newTeam.color(color);
+        updateTeamScore(teamName);
         return true;
     }
     
@@ -637,7 +647,7 @@ public class GameManager implements Listener {
                 .append(Component.text(" points"))
                 .decorate(TextDecoration.BOLD)
                 .color(NamedTextColor.GOLD));
-        updateTeamScore(participant);
+        updateTeamScore(teamName);
         updatePersonalScore(participant);
     }
     
@@ -665,8 +675,8 @@ public class GameManager implements Listener {
                     .append(displayName)
                     .decorate(TextDecoration.BOLD)
                     .color(NamedTextColor.GOLD));
-            updateTeamScore(playerOnTeam);
         }
+        updateTeamScore(teamName);
     }
     
     public Color getTeamColor(UUID playerUniqueId) {
@@ -771,9 +781,7 @@ public class GameManager implements Listener {
     public void addScore(String teamName, int score) {
         try {
             gameStateStorageUtil.addScore(teamName, score);
-            for (Player participant : getOnlinePlayersOnTeam(teamName)) {
-                updateTeamScore(participant);
-            }
+            updateTeamScore(teamName);
         } catch (IOException e) {
             reportGameStateIOException("adding score to team", e);
         }
@@ -812,9 +820,7 @@ public class GameManager implements Listener {
                 return;
             }
             gameStateStorageUtil.setScore(teamName, score);
-            for (Player participant : getOnlinePlayersOnTeam(teamName)) {
-                updateTeamScore(participant);
-            }
+            updateTeamScore(teamName);
         } catch (IOException e) {
             reportGameStateIOException("adding score to team", e);
         }
@@ -953,16 +959,28 @@ public class GameManager implements Listener {
         hubManager.initializeSidebar(sidebarFactory);
     }
     
-    private void updateTeamScore(Player participant) {
-        String team = getTeamName(participant.getUniqueId());
+    private void updateTeamScore(String team) {
         String displayName = getTeamDisplayName(team);
         ChatColor teamChatColor = getTeamChatColor(team);
         int teamScore = getScore(team);
-//        defaultSidebar.updateLine(participant.getUniqueId(), "personalTeam", String.format("%s%s: %s", teamChatColor, displayName, teamScore));
+        for (Player participant : getOnlinePlayersOnTeam(team)) {
+            if (activeGame != null && activeGame instanceof Headerable headerable) {
+                headerable.updateTeamScore(participant, String.format("%s%s: %s", teamChatColor, displayName, teamScore));
+            }
+        }
+        if (eventManager.eventIsActive()) {
+            eventManager.updateTeamScores();
+        }
     }
     
     private void updatePersonalScore(Player participant) {
         int score = getScore(participant.getUniqueId());
-//        defaultSidebar.updateLine(participant.getUniqueId(), "personalScore", String.format("%sPoints: %s", ChatColor.GOLD, score));
+        String contents = String.format("%sPoints: %s", ChatColor.GOLD, score);
+        if (activeGame != null && activeGame instanceof Headerable headerable) {
+            headerable.updatePersonalScore(participant, contents);
+        }
+        if (eventManager.eventIsActive()) {
+            eventManager.updatePersonalScore(participant, contents);
+        }
     }
 }

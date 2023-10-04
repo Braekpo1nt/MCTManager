@@ -10,6 +10,7 @@ import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
+import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.bukkit.*;
@@ -34,7 +35,7 @@ import java.util.*;
 /**
  * Handles all the Foot Race game logic.
  */
-public class FootRaceGame implements Listener, MCTGame, Configurable {
+public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable {
     
     private final int MAX_LAPS = 3;
     private final FootRaceStorageUtil footRaceStorageUtil;
@@ -123,8 +124,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable {
         for (Player participant : participants) {
             resetParticipant(participant);
         }
-        sidebar.deleteAllLines();
-        sidebar = null;
+        clearSidebar();
         participants.clear();
         raceHasStarted = false;
         gameActive = false;
@@ -331,10 +331,39 @@ public class FootRaceGame implements Listener, MCTGame, Configurable {
     
     private void initializeSidebar() {
         sidebar.addLines(
+                new KeyLine("personalTeam", ""),
+                new KeyLine("personalScore", ""),
                 new KeyLine("title", title),
                 new KeyLine("timer", "00:00:000"),
                 new KeyLine("lap", String.format("Lap: %d/%d", 1, MAX_LAPS))
         );
+    }
+    
+    private void clearSidebar() {
+        sidebar.deleteAllLines();
+        sidebar = null;
+    }
+    
+    @Override
+    public void updateTeamScore(Player participant, String contents) {
+        if (sidebar == null) {
+            return;
+        }
+        if (!participants.contains(participant)) {
+            return;
+        }
+        sidebar.updateLine(participant.getUniqueId(), "personalTeam", contents);
+    }
+    
+    @Override
+    public void updatePersonalScore(Player participant, String contents) {
+        if (sidebar == null) {
+            return;
+        }
+        if (!participants.contains(participant)) {
+            return;
+        }
+        sidebar.updateLine(participant.getUniqueId(), "personalScore", contents);
     }
     
     private void showRaceCompleteFastBoard(UUID playerUUID) {

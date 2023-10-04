@@ -13,8 +13,8 @@ import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.voting.VoteManager;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
+import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
-import org.braekpo1nt.mctmanager.ui.sidebar.SidebarFactory;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
@@ -30,6 +30,7 @@ public class EventManager {
     private final Main plugin;
     private final GameManager gameManager;
     private Sidebar sidebar;
+    private int numberOfTeams = 0;
     private final VoteManager voteManager;
     private final ColossalColosseumGame colossalColosseumGame;
     private final EventStorageUtil storageUtil;
@@ -49,6 +50,7 @@ public class EventManager {
      * Otherwise, it contains the scores tracked for the given iteration. 
      */
     private final Map<GameType, List<ScoreKeeper>> scoreKeepers = new HashMap<>();
+    private List<Player> participants = new ArrayList<>();
     // Task IDs
     private int waitingInHubTaskId;
     private int toColossalColosseumDelayTaskId;
@@ -107,13 +109,17 @@ public class EventManager {
                     .color(NamedTextColor.RED));
             return;
         }
-    
+        
         maxGames = numberOfGames;
         currentGameNumber = 1;
         playedGames.clear();
         scoreKeepers.clear();
         sidebar = gameManager.getSidebarFactory().createSidebar();
-        sidebar.addPlayers(gameManager.getOnlineParticipants());
+        participants = new ArrayList<>();
+        for (Player participant : gameManager.getOnlineParticipants()) {
+            participants.add(participant);
+            sidebar.addPlayer(participant);
+        }
         initializeSidebar();
         messageAllAdmins(Component.text("Starting event. On game ")
                 .append(Component.text(currentGameNumber))
@@ -456,7 +462,12 @@ public class EventManager {
     
     private void toPodiumDelay(String winningTeam) {
         currentState = EventState.DELAY;
-        sidebar.addPlayers(gameManager.getOnlineParticipants());
+        for (Player participant : gameManager.getOnlineParticipants()) {
+            participants.add(participant);
+            sidebar.addPlayer(participant);
+        }
+        updateTeamScores();
+        updatePersonalScores();
         ChatColor winningChatColor = gameManager.getTeamChatColor(winningTeam);
         String winningDisplayName = gameManager.getTeamDisplayName(winningTeam);
         this.toPodiumDelayTaskId = new BukkitRunnable() {
@@ -484,13 +495,21 @@ public class EventManager {
         currentState = EventState.VOTING;
         List<GameType> votingPool = new ArrayList<>(List.of(GameType.values()));
         votingPool.removeAll(playedGames);
-        sidebar.removePlayers(gameManager.getOnlineParticipants());
-        voteManager.startVote(gameManager.getOnlineParticipants(), votingPool, storageUtil.getVotingDuration(), this::startingGameDelay);
+        for (Player participant : participants) {
+            sidebar.removePlayer(participant);
+        }
+        voteManager.startVote(participants, votingPool, storageUtil.getVotingDuration(), this::startingGameDelay);
+        participants.clear();
     }
     
     private void startingGameDelay(GameType gameType) {
         currentState = EventState.DELAY;
-        sidebar.addPlayers(gameManager.getOnlineParticipants());
+        for (Player participant : gameManager.getOnlineParticipants()) {
+            participants.add(participant);
+            sidebar.addPlayer(participant);
+        }
+        updateTeamScores();
+        updatePersonalScores();
         this.startingGameCountdownTaskId = new BukkitRunnable() {
             int count = storageUtil.getStartingGameDuration();
             @Override
@@ -501,7 +520,10 @@ public class EventManager {
                 if (count <= 0) {
                     currentState = EventState.PLAYING_GAME;
                     createScoreKeeperForGame(gameType);
-                    sidebar.removePlayers(gameManager.getOnlineParticipants());
+                    for (Player participant : participants) {
+                        sidebar.removePlayer(participant);
+                    }
+                    participants.clear();
                     gameManager.startGame(gameType, Bukkit.getConsoleSender());
                     this.cancel();
                     return;
@@ -534,7 +556,12 @@ public class EventManager {
      */
     public void gameIsOver(GameType finishedGameType) {
         currentState = EventState.DELAY;
-        sidebar.addPlayers(gameManager.getOnlineParticipants());
+        for (Player participant : gameManager.getOnlineParticipants()) {
+            participants.add(participant);
+            sidebar.addPlayer(participant);
+        }
+        updateTeamScores();
+        updatePersonalScores();
         playedGames.add(finishedGameType);
         currentGameNumber += 1;
         this.backToHubDelayTaskId = new BukkitRunnable() {
@@ -632,8 +659,11 @@ public class EventManager {
             return false;
         }
         String secondPlace = secondPlaces[0];
-        sidebar.removePlayers(gameManager.getOnlineParticipants());
+        for (Player participant : participants) {
+            sidebar.removePlayer(participant);
+        }
         startColossalColosseum(Bukkit.getConsoleSender(), firstPlace, secondPlace);
+        participants.clear();
         return true;
     }
     
@@ -666,7 +696,13 @@ public class EventManager {
         List<Player> firstPlaceParticipants = new ArrayList<>();
         List<Player> secondPlaceParticipants = new ArrayList<>();
         List<Player> spectators = new ArrayList<>();
-        for (Player participant : gameManager.getOnlineParticipants()) {
+        List<Player> participantPool;
+        if (eventIsActive()) {
+            participantPool = new ArrayList<>(participants);
+        } else {
+            participantPool = new ArrayList<>(gameManager.getOnlineParticipants());
+        }
+        for (Player participant : participantPool) {
             String teamName = gameManager.getTeamName(participant.getUniqueId());
             if (teamName.equals(firstPlaceTeamName)) {
                 firstPlaceParticipants.add(participant);
@@ -769,8 +805,21 @@ public class EventManager {
     }
     
     private void initializeSidebar() {
+        List<String> sortedTeamNames = sortTeamNames(gameManager.getTeamNames());
+        numberOfTeams = sortedTeamNames.size();
+        KeyLine[] teamLines = new KeyLine[numberOfTeams];
+        for (int i = 0; i < numberOfTeams; i++) {
+            String teamName = sortedTeamNames.get(i);
+            String teamDisplayName = gameManager.getTeamDisplayName(teamName);
+            ChatColor teamChatColor = gameManager.getTeamChatColor(teamName);
+            int teamScore = gameManager.getScore(teamName);
+            teamLines[i] = new KeyLine("team"+i, String.format("%s%s: %s", teamChatColor, teamDisplayName, teamScore));
+        }
+        sidebar.addLines(teamLines);
+        sidebar.addLine("personalScore", "");
         sidebar.addLine("timer", "");
         sidebar.updateTitle(storageUtil.getTitle());
+        updatePersonalScores();
     }
     
     private void clearSidebar() {
@@ -778,6 +827,74 @@ public class EventManager {
         sidebar.removeAllPlayers();
         sidebar.deleteAllLines();
         sidebar = null;
+    }
+    
+    public void updateTeamScores() {
+        if (sidebar == null) {
+            return;
+        }
+        List<String> sortedTeamNames = sortTeamNames(gameManager.getTeamNames());
+        if (numberOfTeams != sortedTeamNames.size()) {
+            reorderTeamLines(sortedTeamNames);
+            return;
+        }
+        KeyLine[] teamLines = new KeyLine[numberOfTeams];
+        for (int i = 0; i < numberOfTeams; i++) {
+            String teamName = sortedTeamNames.get(i);
+            String teamDisplayName = gameManager.getTeamDisplayName(teamName);
+            ChatColor teamChatColor = gameManager.getTeamChatColor(teamName);
+            int teamScore = gameManager.getScore(teamName);
+            teamLines[i] = new KeyLine("team"+i, String.format("%s%s: %s", teamChatColor, teamDisplayName, teamScore));
+        }
+        sidebar.updateLines(teamLines);
+    }
+    
+    private void reorderTeamLines(List<String> sortedTeamNames) {
+        String[] teamKeys = new String[numberOfTeams];
+        for (int i = 0; i < numberOfTeams; i++) {
+            teamKeys[i] = "team"+i;
+        }
+        sidebar.deleteLines(teamKeys);
+        
+        numberOfTeams = sortedTeamNames.size();
+        KeyLine[] teamLines = new KeyLine[numberOfTeams];
+        for (int i = 0; i < numberOfTeams; i++) {
+            String teamName = sortedTeamNames.get(i);
+            String teamDisplayName = gameManager.getTeamDisplayName(teamName);
+            ChatColor teamChatColor = gameManager.getTeamChatColor(teamName);
+            int teamScore = gameManager.getScore(teamName);
+            teamLines[i] = new KeyLine("team"+i, String.format("%s%s: %s", teamChatColor, teamDisplayName, teamScore));
+        }
+        sidebar.addLines(0, teamLines);
+    }
+    
+    private void updatePersonalScores() {
+        for (Player participant : participants) {
+            int score = gameManager.getScore(participant.getUniqueId());
+            String contents = String.format("%sPoints: %s", ChatColor.GOLD, score);
+            updatePersonalScore(participant, contents);
+        }
+    }
+    
+    public void updatePersonalScore(Player participant, String contents) {
+        if (sidebar == null) {
+            return;
+        }
+        if (!participants.contains(participant)) {
+            return;
+        }
+        sidebar.updateLine(participant.getUniqueId(), "personalScore", contents);
+    }
+    
+    protected List<String> sortTeamNames(Set<String> teamNames) {
+        List<String> sortedTeamNames = new ArrayList<>(teamNames);
+        sortedTeamNames.sort(Comparator.comparing(gameManager::getScore, Comparator.reverseOrder()));
+        sortedTeamNames.sort(Comparator
+                .comparing(teamName -> gameManager.getScore((String) teamName))
+                .reversed()
+                .thenComparing(teamName -> ((String) teamName))
+        );
+        return sortedTeamNames;
     }
     
     public boolean eventIsActive() {

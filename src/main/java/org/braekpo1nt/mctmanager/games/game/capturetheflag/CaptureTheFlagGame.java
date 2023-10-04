@@ -7,6 +7,7 @@ import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlag
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
+import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.bukkit.Bukkit;
@@ -28,7 +29,7 @@ import java.util.List;
  * - Rounds: A round of the game, contains multiple matches. Kicks off the matches, and only ends when all matches are done.
  * - Matches: a match of two teams in a specific arena. Handles kills, points, and respawns within that specific arena with those two teams and nothing else. Tells the round when it's over. 
  */
-public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
+public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Headerable {
     
     private final Main plugin;
     private final GameManager gameManager;
@@ -355,6 +356,8 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
     
     private void initializeSidebar() {
         sidebar.addLines(
+                new KeyLine("personalTeam", ""),
+                new KeyLine("personalScore", ""),
                 new KeyLine("title", title),
                 new KeyLine("enemy", ""),
                 new KeyLine("round", ""),
@@ -366,6 +369,28 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener {
     private void clearSidebar() {
         sidebar.deleteAllLines();
         sidebar = null;
+    }
+    
+    @Override
+    public void updateTeamScore(Player participant, String contents) {
+        if (sidebar == null) {
+            return;
+        }
+        if (!participants.contains(participant)) {
+            return;
+        }
+        sidebar.updateLine(participant.getUniqueId(), "personalTeam", contents);
+    }
+    
+    @Override
+    public void updatePersonalScore(Player participant, String contents) {
+        if (sidebar == null) {
+            return;
+        }
+        if (!participants.contains(participant)) {
+            return;
+        }
+        sidebar.updateLine(participant.getUniqueId(), "personalScore", contents);
     }
     
     /**

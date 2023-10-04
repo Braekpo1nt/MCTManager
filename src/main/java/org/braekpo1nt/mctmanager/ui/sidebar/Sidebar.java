@@ -129,7 +129,7 @@ public class Sidebar {
     /**
      * Adds a line to all FastBoards at the given index. all lines that were after that index are bumped down to make room.
      * @param key the key for the line (must not already exist)
-     * @param index the index of the line (starting at 0, higher numbers go down the board).
+     * @param index the index of the new line (starting at 0, higher numbers go down the board, can't be greater than the size of the board).
      * @param contents the contents of the line
      * @throws IllegalArgumentException if the key exists, or the index is out of range ({@code index < 0 || index > size()})
      */
@@ -163,6 +163,7 @@ public class Sidebar {
         List<String> lineContents = new ArrayList<>(keyLines.length);
         for (KeyLine keyLine : keyLines) {
             Preconditions.checkArgument(!keys.contains(keyLine.key()), "duplicate key found in keyLines (%s)", keyLine.key());
+            Preconditions.checkArgument(!keyToIndex.containsKey(keyLine.key()), "can't add a line with an existing key (%s)", keyLine.key());
             keys.add(keyLine.key());
             lineContents.add(keyLine.contents());
         }
@@ -175,6 +176,44 @@ public class Sidebar {
             UUID playerUUID = entry.getKey();
             List<String> lines = entry.getValue();
             lines.addAll(lineContents);
+            FastBoardWrapper board = boards.get(playerUUID);
+            board.updateLines(lines.toArray(new String[0]));
+        }
+    }
+    
+    /**
+     * Adds the given lines to all FastBoards at the given index. All lines that were after that index are bumped down to make room.
+     * @param index the index of the first new line (starting at 0, higher numbers go down the board, can't be greater than the size of the board)
+     * @param keyLines the KeyLine pairs
+     */
+    public synchronized void addLines(int index, @NotNull KeyLine @NotNull... keyLines) {
+        Preconditions.checkArgument(index >= 0, "index (%s) can't be negative", index);
+        Preconditions.checkArgument(index <= size, "index (%s) can't be greater than the size (%s) of the Sidebar", index, size);
+        List<String> keys = new ArrayList<>(keyLines.length);
+        List<String> lineContents = new ArrayList<>(keyLines.length);
+        for (KeyLine keyLine : keyLines) {
+            Preconditions.checkArgument(!keys.contains(keyLine.key()), "duplicate key found in keyLines (%s)", keyLine.key());
+            Preconditions.checkArgument(!keyToIndex.containsKey(keyLine.key()), "can't add a line with an existing key (%s)", keyLine.key());
+            keys.add(keyLine.key());
+            lineContents.add(keyLine.contents());
+        }
+        int indexShift = keyLines.length;
+        for (String existingKey : keyToIndex.keySet()) {
+            int oldIndex = keyToIndex.get(existingKey);
+            if (oldIndex >= index) {
+                keyToIndex.put(existingKey, oldIndex + indexShift);
+            }
+        }
+        int putIndex = index;
+        for (String key : keys) {
+            keyToIndex.put(key, putIndex);
+            putIndex++;
+        }
+        size += keyLines.length;
+        for (Map.Entry<UUID, List<String>> entry : boardsLines.entrySet()) {
+            UUID playerUUID = entry.getKey();
+            List<String> lines = entry.getValue();
+            lines.addAll(index, lineContents);
             FastBoardWrapper board = boards.get(playerUUID);
             board.updateLines(lines.toArray(new String[0]));
         }

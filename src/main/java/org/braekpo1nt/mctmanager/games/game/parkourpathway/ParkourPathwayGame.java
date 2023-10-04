@@ -10,6 +10,7 @@ import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.config.ParkourPathwayStorageUtil;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
+import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
@@ -30,7 +31,7 @@ import org.bukkit.scoreboard.Team;
 
 import java.util.*;
 
-public class ParkourPathwayGame implements MCTGame, Configurable, Listener {
+public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Headerable {
 
     private final Main plugin;
     private final GameManager gameManager;
@@ -410,6 +411,8 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener {
 
     private void initializeSidebar() {
         sidebar.addLines(
+                new KeyLine("personalTeam", ""),
+                new KeyLine("personalScore", ""),
                 new KeyLine("title", title),
                 new KeyLine("timer", ""),
                 new KeyLine("checkpoint", String.format("0/%s", storageUtil.getCheckPoints().size() - 1)),
@@ -426,6 +429,28 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener {
     private void clearSidebar() {
         sidebar.deleteAllLines();
         sidebar = null;
+    }
+    
+    @Override
+    public void updateTeamScore(Player participant, String contents) {
+        if (sidebar == null) {
+            return;
+        }
+        if (!participants.contains(participant)) {
+            return;
+        }
+        sidebar.updateLine(participant.getUniqueId(), "personalTeam", contents);
+    }
+    
+    @Override
+    public void updatePersonalScore(Player participant, String contents) {
+        if (sidebar == null) {
+            return;
+        }
+        if (!participants.contains(participant)) {
+            return;
+        }
+        sidebar.updateLine(participant.getUniqueId(), "personalScore", contents);
     }
 
     private void messageAllParticipants(Component message) {

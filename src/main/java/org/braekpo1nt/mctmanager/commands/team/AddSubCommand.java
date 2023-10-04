@@ -115,7 +115,6 @@ public class AddSubCommand implements TabExecutor {
                     .color(NamedTextColor.RED));
             return true;
         }
-        sender.sendMessage(String.format("Created team \"%s\" with display name \"%s\"", teamName, teamDisplayName));
         sender.sendMessage(Component.text("Created team ")
                 .append(Component.text(teamName))
                 .append(Component.text("\" with display name \""))
