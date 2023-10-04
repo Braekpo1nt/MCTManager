@@ -40,6 +40,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     private final int MAX_LAPS = 3;
     private final FootRaceStorageUtil footRaceStorageUtil;
     private Sidebar sidebar;
+    private Sidebar adminSidebar;
     
     private boolean gameActive = false;
     private boolean raceHasStarted = false;
@@ -52,6 +53,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     private int endRaceCountDownId;
     private int timerRefreshTaskId;
     private List<Player> participants;
+    private List<Player> admins;
     private Map<UUID, Long> lapCooldowns;
     private Map<UUID, Integer> laps;
     private ArrayList<UUID> placements;
@@ -80,19 +82,49 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     public boolean loadConfig() throws IllegalArgumentException {
         return footRaceStorageUtil.loadConfig();
     }
+
+    public void startAdmins(List<Player> newAdmins) {
+        this.admins = new ArrayList<>(newAdmins.size());
+        adminSidebar = gameManager.getSidebarFactory().createSidebar();
+        for (Player admin : newAdmins) {
+            initializeAdmin(admin);
+        }
+        initializeAdminSidebar();
+    }
+
+    private void initializeAdmin(Player admin) {
+        admins.add(admin);
+        adminSidebar.addPlayer(admin);
+        admin.setGameMode(GameMode.SPECTATOR);
+        admin.teleport(footRaceStorageUtil.getStartingLocation());
+    }
+
+    private void resetAdmin(Player admin) {
+        adminSidebar.removePlayer(admin);
+    }
     
+    private void stopAdmins() {
+        for (Player admin : admins) {
+            resetAdmin(admin);
+        }
+        clearAdminSidebar();
+        admins.clear();
+    }
+
     @Override
     public void start(List<Player> newParticipants) {
         this.participants = new ArrayList<>();
         lapCooldowns = new HashMap<>();
         laps = new HashMap<>();
         placements = new ArrayList<>();
+        admins = new ArrayList<>();
         sidebar = gameManager.getSidebarFactory().createSidebar();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         closeGlassBarrier();
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
         }
+        startAdmins(gameManager.getOnlineAdmins());
         gameActive = true;
         initializeSidebar();
         startStatusEffectsTask();
@@ -121,6 +153,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         HandlerList.unregisterAll(this);
         closeGlassBarrier();
         cancelAllTasks();
+        stopAdmins();
         for (Player participant : participants) {
             resetParticipant(participant);
         }
@@ -327,6 +360,18 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     private void closeGlassBarrier() {
         Structure structure = Bukkit.getStructureManager().loadStructure(new NamespacedKey("mctdatapack", "footrace/gateclosed"));
         structure.place(new Location(footRaceStorageUtil.getWorld(), 2397, 76, 317), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
+    }
+    
+    private void initializeAdminSidebar() {
+        sidebar.addLines(
+                new KeyLine("title", title),
+                new KeyLine("timer", "00:00:000")
+        );
+    }
+    
+    private void clearAdminSidebar() {
+        adminSidebar.deleteAllLines();
+        adminSidebar = null;
     }
     
     private void initializeSidebar() {

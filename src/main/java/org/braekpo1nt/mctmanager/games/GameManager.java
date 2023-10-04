@@ -712,6 +712,13 @@ public class GameManager implements Listener {
     }
     
     /**
+     * @return a copy of the list of online admins. Modifying this will not change the online admins.
+     */
+    public List<Player> getOnlineAdmins() {
+        return new ArrayList<>(onlineAdmins);
+    }
+    
+    /**
      * Returns the names of all online participants
      * @return A list of the names of all online participants. Empty list if none are online.
      */
