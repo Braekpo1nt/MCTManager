@@ -137,7 +137,6 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         admin.teleport(teamLocations.get("yellow"));
     }
     
-    
     @Override
     public void stop() {
         HandlerList.unregisterAll(this);

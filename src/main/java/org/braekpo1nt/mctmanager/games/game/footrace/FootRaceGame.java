@@ -99,16 +99,16 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         admin.teleport(storageUtil.getStartingLocation());
     }
     
-    private void resetAdmin(Player admin) {
-        adminSidebar.removePlayer(admin);
-    }
-    
     private void stopAdmins() {
         for (Player admin : admins) {
             resetAdmin(admin);
         }
         clearAdminSidebar();
         admins.clear();
+    }
+    
+    private void resetAdmin(Player admin) {
+        adminSidebar.removePlayer(admin);
     }
     
     private void initializeAdminSidebar() {
