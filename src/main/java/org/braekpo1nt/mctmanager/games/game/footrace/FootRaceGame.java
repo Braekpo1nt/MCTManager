@@ -83,7 +83,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         return storageUtil.loadConfig();
     }
     
-    public void startAdmins(List<Player> newAdmins) {
+    private void startAdmins(List<Player> newAdmins) {
         this.admins = new ArrayList<>(newAdmins.size());
         adminSidebar = gameManager.getSidebarFactory().createSidebar();
         for (Player admin : newAdmins) {
@@ -109,6 +109,19 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         }
         clearAdminSidebar();
         admins.clear();
+    }
+    
+    private void initializeAdminSidebar() {
+        adminSidebar.addLines(
+                new KeyLine("title", title),
+                new KeyLine("elapsedTime", "00:00:000"),
+                new KeyLine("timer", "")
+        );
+    }
+    
+    private void clearAdminSidebar() {
+        adminSidebar.deleteAllLines();
+        adminSidebar = null;
     }
     
     @Override
@@ -366,19 +379,6 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     private void closeGlassBarrier() {
         Structure structure = Bukkit.getStructureManager().loadStructure(new NamespacedKey("mctdatapack", "footrace/gateclosed"));
         structure.place(new Location(storageUtil.getWorld(), 2397, 76, 317), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
-    }
-    
-    private void initializeAdminSidebar() {
-        adminSidebar.addLines(
-                new KeyLine("title", title),
-                new KeyLine("elapsedTime", "00:00:000"),
-                new KeyLine("timer", "")
-        );
-    }
-    
-    private void clearAdminSidebar() {
-        adminSidebar.deleteAllLines();
-        adminSidebar = null;
     }
     
     private void initializeSidebar() {
