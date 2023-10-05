@@ -82,7 +82,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     public boolean loadConfig() throws IllegalArgumentException {
         return footRaceStorageUtil.loadConfig();
     }
-
+    
     public void startAdmins(List<Player> newAdmins) {
         this.admins = new ArrayList<>(newAdmins.size());
         adminSidebar = gameManager.getSidebarFactory().createSidebar();
@@ -91,14 +91,14 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         }
         initializeAdminSidebar();
     }
-
+    
     private void initializeAdmin(Player admin) {
         admins.add(admin);
         adminSidebar.addPlayer(admin);
         admin.setGameMode(GameMode.SPECTATOR);
         admin.teleport(footRaceStorageUtil.getStartingLocation());
     }
-
+    
     private void resetAdmin(Player admin) {
         adminSidebar.removePlayer(admin);
     }
@@ -110,7 +110,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         clearAdminSidebar();
         admins.clear();
     }
-
+    
     @Override
     public void start(List<Player> newParticipants) {
         this.participants = new ArrayList<>();
@@ -285,23 +285,19 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     
     private void startStartRaceCountdownTask() {
         this.startCountDownTaskID = new BukkitRunnable() {
-            private int count = footRaceStorageUtil.getStartRaceDuration();
-            
+            int count = footRaceStorageUtil.getStartRaceDuration();
+    
             @Override
             public void run() {
-                for (Player participant : participants) {
-                    if (count <= 0) {
-                        participant.sendMessage(Component.text("Go!"));
-                        
-                    } else {
-                        participant.sendMessage(Component.text(count));
-                    }
-                }
                 if (count <= 0) {
+                    messageAllParticipants(Component.text("Go!"));
                     startRace();
                     this.cancel();
                     return;
                 }
+                String timeLeft = TimeStringUtils.getTimeString(count);
+                sidebar.updateLine("timer", String.format("Starting: %s", timeLeft));
+                adminSidebar.updateLine("timer", String.format("Starting: %s", timeLeft));
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -336,10 +332,17 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
                     if (!placements.contains(participant.getUniqueId())) {
                         sidebar.updateLine(
                                 participant.getUniqueId(), 
-                                "timer",
+                                "elapsedTime",
                                 timeString
                         );
                     }
+                }
+                for (Player admin : admins) {
+                    adminSidebar.updateLine(
+                            admin.getUniqueId(),
+                            "elapsedTime",
+                            timeString
+                    );
                 }
             }
         }.runTaskTimer(plugin, 0, 1).getTaskId();
@@ -363,9 +366,9 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     }
     
     private void initializeAdminSidebar() {
-        sidebar.addLines(
+        adminSidebar.addLines(
                 new KeyLine("title", title),
-                new KeyLine("timer", "00:00:000")
+                new KeyLine("elapsedTime", "00:00:000")
         );
     }
     
@@ -379,7 +382,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
                 new KeyLine("personalTeam", ""),
                 new KeyLine("personalScore", ""),
                 new KeyLine("title", title),
-                new KeyLine("timer", "00:00:000"),
+                new KeyLine("elapsedTime", "00:00:000"),
                 new KeyLine("lap", String.format("Lap: %d/%d", 1, MAX_LAPS))
         );
     }
@@ -414,7 +417,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     private void showRaceCompleteFastBoard(UUID playerUUID) {
         long elapsedTime = System.currentTimeMillis() - raceStartTime;
         sidebar.updateLines(playerUUID, 
-                new KeyLine("timer", getTimeString(elapsedTime)), 
+                new KeyLine("elapsedTime", getTimeString(elapsedTime)), 
                 new KeyLine("lap", String.format("Finished %s!", getPlacementTitle(placements.indexOf(playerUUID) + 1)))
         );
     }
