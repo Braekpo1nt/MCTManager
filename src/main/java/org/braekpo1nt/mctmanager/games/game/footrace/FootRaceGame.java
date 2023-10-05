@@ -38,7 +38,7 @@ import java.util.*;
 public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable {
     
     private final int MAX_LAPS = 3;
-    private final FootRaceStorageUtil footRaceStorageUtil;
+    private final FootRaceStorageUtil storageUtil;
     private Sidebar sidebar;
     private Sidebar adminSidebar;
     
@@ -70,7 +70,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     public FootRaceGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
         this.gameManager = gameManager;
-        this.footRaceStorageUtil = new FootRaceStorageUtil(plugin.getDataFolder());
+        this.storageUtil = new FootRaceStorageUtil(plugin.getDataFolder());
     }
     
     @Override
@@ -80,7 +80,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     
     @Override
     public boolean loadConfig() throws IllegalArgumentException {
-        return footRaceStorageUtil.loadConfig();
+        return storageUtil.loadConfig();
     }
     
     public void startAdmins(List<Player> newAdmins) {
@@ -96,7 +96,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         admins.add(admin);
         adminSidebar.addPlayer(admin);
         admin.setGameMode(GameMode.SPECTATOR);
-        admin.teleport(footRaceStorageUtil.getStartingLocation());
+        admin.teleport(storageUtil.getStartingLocation());
     }
     
     private void resetAdmin(Player admin) {
@@ -140,7 +140,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         laps.put(participantUniqueId, 1);
         sidebar.addPlayer(participant);
         participant.sendMessage("Teleporting to Foot Race");
-        participant.teleport(footRaceStorageUtil.getStartingLocation());
+        participant.teleport(storageUtil.getStartingLocation());
         participant.getInventory().clear();
         giveBoots(participant);
         participant.setGameMode(GameMode.ADVENTURE);
@@ -285,7 +285,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     
     private void startStartRaceCountdownTask() {
         this.startCountDownTaskID = new BukkitRunnable() {
-            int count = footRaceStorageUtil.getStartRaceDuration();
+            int count = storageUtil.getStartRaceDuration();
     
             @Override
             public void run() {
@@ -307,7 +307,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     
     private void startEndRaceCountDown() {
         this.endRaceCountDownId = new BukkitRunnable() {
-            int count = footRaceStorageUtil.getRaceEndCountdownDuration();
+            int count = storageUtil.getRaceEndCountdownDuration();
             @Override
             public void run() {
                 if (count <= 0) {
@@ -360,12 +360,12 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     
     private void openGlassBarrier() {
         Structure structure = Bukkit.getStructureManager().loadStructure(new NamespacedKey("mctdatapack", "footrace/gateopen"));
-        structure.place(new Location(footRaceStorageUtil.getWorld(), 2397, 76, 317), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
+        structure.place(new Location(storageUtil.getWorld(), 2397, 76, 317), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
     }
     
     private void closeGlassBarrier() {
         Structure structure = Bukkit.getStructureManager().loadStructure(new NamespacedKey("mctdatapack", "footrace/gateclosed"));
-        structure.place(new Location(footRaceStorageUtil.getWorld(), 2397, 76, 317), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
+        structure.place(new Location(storageUtil.getWorld(), 2397, 76, 317), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
     }
     
     private void initializeAdminSidebar() {
@@ -440,7 +440,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         if (!participants.contains(player)) {
             return;
         }
-        if (!player.getWorld().equals(footRaceStorageUtil.getWorld())) {
+        if (!player.getWorld().equals(storageUtil.getWorld())) {
             return;
         }
         
@@ -505,7 +505,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         gameManager.awardPointsToParticipant(player, points);
         String placementTitle = getPlacementTitle(placement);
         String timeString = getTimeString(elapsedTime);
-        String endCountDown = TimeStringUtils.getTimeString(footRaceStorageUtil.getRaceEndCountdownDuration());
+        String endCountDown = TimeStringUtils.getTimeString(storageUtil.getRaceEndCountdownDuration());
         if (placements.size() == 1) {
             messageAllParticipants(Component.text(player.getName())
                     .append(Component.text(" finished 1st in "))
@@ -541,12 +541,12 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         if (placement < 1) {
             throw new IllegalArgumentException("placement can't be less than 1");
         }
-        int[] placementPoints = footRaceStorageUtil.getPlacementPoints();
+        int[] placementPoints = storageUtil.getPlacementPoints();
         if (placement <= placementPoints.length) {
             return placementPoints[placement-1];
         }
         int minPlacementPoints = placementPoints[placementPoints.length-1];
-        int points = minPlacementPoints - ((placement-placementPoints.length) * footRaceStorageUtil.getDetriment());
+        int points = minPlacementPoints - ((placement-placementPoints.length) * storageUtil.getDetriment());
         return Math.max(points, 0);
     }
     
@@ -570,6 +570,6 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     }
     
     private boolean isInFinishLineBoundingBox(Player player) {
-        return footRaceStorageUtil.getFinishLine().contains(player.getLocation().toVector());
+        return storageUtil.getFinishLine().contains(player.getLocation().toVector());
     }
 }
