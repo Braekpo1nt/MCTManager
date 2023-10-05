@@ -81,7 +81,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     }
     
     @Override
-    public void start(List<Player> newParticipants) {
+    public void start(List<Player> newParticipants, List<Player> newAdmins) {
         this.participants = new ArrayList<>(newParticipants.size());
         livingPlayers = new ArrayList<>(newParticipants.size());
         deadPlayers = new ArrayList<>();

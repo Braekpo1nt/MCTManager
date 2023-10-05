@@ -10,7 +10,7 @@ import java.util.List;
  */
 public interface MCTGame {
     GameType getType();
-    void start(List<Player> newParticipants);
+    void start(List<Player> newParticipants, List<Player> newAdmins);
     void stop();
     void onParticipantJoin(Player participant);
     void onParticipantQuit(Player participant);

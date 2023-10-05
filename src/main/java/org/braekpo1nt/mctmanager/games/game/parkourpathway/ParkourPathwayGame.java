@@ -75,7 +75,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
     }
     
     @Override
-    public void start(List<Player> newParticipants) {
+    public void start(List<Player> newParticipants, List<Player> newAdmins) {
         participants = new ArrayList<>();
         currentCheckpoints = new HashMap<>();
         finishedParticipants = new ArrayList<>();

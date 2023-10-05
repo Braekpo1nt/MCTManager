@@ -59,7 +59,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     }
     
     @Override
-    public void start(List<Player> newParticipants) {
+    public void start(List<Player> newParticipants, List<Player> newAdmins) {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         participants = new ArrayList<>();
         sidebar = gameManager.getSidebarFactory().createSidebar();

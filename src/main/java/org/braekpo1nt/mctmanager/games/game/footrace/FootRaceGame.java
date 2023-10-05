@@ -112,7 +112,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     }
     
     @Override
-    public void start(List<Player> newParticipants) {
+    public void start(List<Player> newParticipants, List<Player> newAdmins) {
         this.participants = new ArrayList<>();
         lapCooldowns = new HashMap<>();
         laps = new HashMap<>();
@@ -124,7 +124,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
         }
-        startAdmins(gameManager.getOnlineAdmins());
+        startAdmins(newAdmins);
         gameActive = true;
         initializeSidebar();
         startStatusEffectsTask();

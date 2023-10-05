@@ -45,7 +45,7 @@ public class SpleefGame implements MCTGame, Configurable, Headerable {
     }
     
     @Override
-    public void start(List<Player> newParticipants) {
+    public void start(List<Player> newParticipants, List<Player> newAdmins) {
         participants = new ArrayList<>(newParticipants.size());
         sidebar = gameManager.getSidebarFactory().createSidebar();
         for (Player participant : newParticipants) {

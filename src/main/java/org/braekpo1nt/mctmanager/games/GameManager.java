@@ -349,7 +349,7 @@ public class GameManager implements Listener {
         }
         
         hubManager.removeParticipantsFromHub(onlineParticipants);
-        selectedGame.start(onlineParticipants);
+        selectedGame.start(onlineParticipants, onlineAdmins);
         activeGame = selectedGame;
         for (String teamName : getTeamNames(onlineParticipants)) {
             updateTeamScore(teamName);
@@ -709,13 +709,6 @@ public class GameManager implements Listener {
      */
     public List<Player> getOnlineParticipants() {
         return new ArrayList<>(onlineParticipants);
-    }
-    
-    /**
-     * @return a copy of the list of online admins. Modifying this will not change the online admins.
-     */
-    public List<Player> getOnlineAdmins() {
-        return new ArrayList<>(onlineAdmins);
     }
     
     /**
