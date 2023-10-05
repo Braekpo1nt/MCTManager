@@ -291,6 +291,8 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
             public void run() {
                 if (count <= 0) {
                     messageAllParticipants(Component.text("Go!"));
+                    sidebar.updateLine("timer", "");
+                    adminSidebar.updateLine("timer", "");
                     startRace();
                     this.cancel();
                     return;
@@ -305,18 +307,19 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     
     private void startEndRaceCountDown() {
         this.endRaceCountDownId = new BukkitRunnable() {
-            private int count = footRaceStorageUtil.getRaceEndCountdownDuration();
+            int count = footRaceStorageUtil.getRaceEndCountdownDuration();
             @Override
             public void run() {
                 if (count <= 0) {
-                    this.cancel();
+                    sidebar.updateLine("timer", "");
+                    adminSidebar.updateLine("timer", "");
                     stop();
+                    this.cancel();
                     return;
                 }
-                if (count <= 10) {
-                    messageAllParticipants(Component.text("Ending in ")
-                            .append(Component.text(count)));
-                }
+                String timeLeft = TimeStringUtils.getTimeString(count);
+                sidebar.updateLine("timer", String.format("Ending: %s", timeLeft));
+                adminSidebar.updateLine("timer", String.format("Ending: %s", timeLeft));
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -368,7 +371,8 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     private void initializeAdminSidebar() {
         adminSidebar.addLines(
                 new KeyLine("title", title),
-                new KeyLine("elapsedTime", "00:00:000")
+                new KeyLine("elapsedTime", "00:00:000"),
+                new KeyLine("timer", "")
         );
     }
     
@@ -383,7 +387,8 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
                 new KeyLine("personalScore", ""),
                 new KeyLine("title", title),
                 new KeyLine("elapsedTime", "00:00:000"),
-                new KeyLine("lap", String.format("Lap: %d/%d", 1, MAX_LAPS))
+                new KeyLine("lap", String.format("Lap: %d/%d", 1, MAX_LAPS)),
+                new KeyLine("timer", "")
         );
     }
     
