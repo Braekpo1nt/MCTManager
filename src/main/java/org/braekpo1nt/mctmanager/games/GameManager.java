@@ -704,11 +704,18 @@ public class GameManager implements Listener {
     }
     
     /**
-     * @return a copy of the list of online participants. Modifying the returned list will not change
+     * @return a copy of the list of online participants. Modifying this will not change
      * the online participants
      */
     public List<Player> getOnlineParticipants() {
         return new ArrayList<>(onlineParticipants);
+    }
+    
+    /**
+     * @return a copy of the list of online admins. Modifying this will not change the online admins. 
+     */
+    public List<Player> getOnlineAdmins() {
+        return new ArrayList<>(onlineAdmins);
     }
     
     /**

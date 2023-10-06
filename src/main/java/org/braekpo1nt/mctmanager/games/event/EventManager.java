@@ -30,6 +30,7 @@ public class EventManager {
     private final Main plugin;
     private final GameManager gameManager;
     private Sidebar sidebar;
+    private Sidebar adminSidebar;
     private int numberOfTeams = 0;
     private final VoteManager voteManager;
     private final ColossalColosseumGame colossalColosseumGame;
@@ -51,6 +52,7 @@ public class EventManager {
      */
     private final Map<GameType, List<ScoreKeeper>> scoreKeepers = new HashMap<>();
     private List<Player> participants = new ArrayList<>();
+    private List<Player> admins = new ArrayList<>();
     // Task IDs
     private int waitingInHubTaskId;
     private int toColossalColosseumDelayTaskId;
@@ -121,6 +123,13 @@ public class EventManager {
             sidebar.addPlayer(participant);
         }
         initializeSidebar();
+        admins = new ArrayList<>();
+        adminSidebar = gameManager.getSidebarFactory().createSidebar();
+        for (Player admin : gameManager.getOnlineAdmins()) {
+            admins.add(admin);
+            adminSidebar.addPlayer(admin);
+        }
+        initializeAdminSidebar();
         messageAllAdmins(Component.text("Starting event. On game ")
                 .append(Component.text(currentGameNumber))
                 .append(Component.text("/"))
@@ -152,6 +161,8 @@ public class EventManager {
             colossalColosseumGame.stop(null);
         }
         clearSidebar();
+        admins.clear();
+        clearAdminSidebar();
         currentState = null;
         cancelAllTasks();
         scoreKeepers.clear();
@@ -431,8 +442,10 @@ public class EventManager {
                 }
                 if (!allGamesHaveBeenPlayed()) {
                     sidebar.updateLine("timer", String.format("Vote starts in: %s", TimeStringUtils.getTimeString(count)));
+                    adminSidebar.updateLine("timer", String.format("Vote starts in: %s", TimeStringUtils.getTimeString(count)));
                 } else {
                     sidebar.updateLine("timer", String.format("Final round: %s", TimeStringUtils.getTimeString(count)));
+                    adminSidebar.updateLine("timer", String.format("Final round: %s", TimeStringUtils.getTimeString(count)));
                 }
                 count--;
             }
@@ -455,6 +468,7 @@ public class EventManager {
                     return;
                 }
                 sidebar.updateLine("timer", String.format(ChatColor.YELLOW+"Break: %s", TimeStringUtils.getTimeString(count)));
+                adminSidebar.updateLine("timer", String.format(ChatColor.YELLOW+"Break: %s", TimeStringUtils.getTimeString(count)));
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -465,6 +479,10 @@ public class EventManager {
         for (Player participant : gameManager.getOnlineParticipants()) {
             participants.add(participant);
             sidebar.addPlayer(participant);
+        }
+        for (Player admin : gameManager.getOnlineAdmins()) {
+            admins.add(admin);
+            adminSidebar.addPlayer(admin);
         }
         updateTeamScores();
         updatePersonalScores();
@@ -481,11 +499,14 @@ public class EventManager {
                     currentState = EventState.PODIUM;
                     sidebar.addLine("winner", String.format("%sWinner: %s", winningChatColor, winningDisplayName));
                     sidebar.updateLine("timer", "");
+                    adminSidebar.addLine("winner", String.format("%sWinner: %s", winningChatColor, winningDisplayName));
+                    adminSidebar.updateLine("timer", "");
                     gameManager.returnAllParticipantsToPodium(winningTeam);
                     this.cancel();
                     return;
                 }
                 sidebar.updateLine("timer", String.format("Heading to Podium: %s", TimeStringUtils.getTimeString(count)));
+                adminSidebar.updateLine("timer", String.format("Heading to Podium: %s", TimeStringUtils.getTimeString(count)));
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -498,8 +519,12 @@ public class EventManager {
         for (Player participant : participants) {
             sidebar.removePlayer(participant);
         }
+        for (Player admin : admins) {
+            adminSidebar.removePlayer(admin);
+        }
         voteManager.startVote(participants, votingPool, storageUtil.getVotingDuration(), this::startingGameDelay);
         participants.clear();
+        admins.clear();
     }
     
     private void startingGameDelay(GameType gameType) {
@@ -507,6 +532,10 @@ public class EventManager {
         for (Player participant : gameManager.getOnlineParticipants()) {
             participants.add(participant);
             sidebar.addPlayer(participant);
+        }
+        for (Player admin : gameManager.getOnlineAdmins()) {
+            admins.add(admin);
+            adminSidebar.addPlayer(admin);
         }
         updateTeamScores();
         updatePersonalScores();
@@ -523,13 +552,17 @@ public class EventManager {
                     for (Player participant : participants) {
                         sidebar.removePlayer(participant);
                     }
+                    for (Player admin : admins) {
+                        adminSidebar.removePlayer(admin);
+                    }
                     participants.clear();
+                    admins.clear();
                     gameManager.startGame(gameType, Bukkit.getConsoleSender());
                     this.cancel();
                     return;
                 }
-                sidebar.updateLine("timer", String.format("%s: %s", gameType.getTitle(),
-                        TimeStringUtils.getTimeString(count)));
+                sidebar.updateLine("timer", String.format("%s: %s", gameType.getTitle(), TimeStringUtils.getTimeString(count)));
+                adminSidebar.updateLine("timer", String.format("%s: %s", gameType.getTitle(), TimeStringUtils.getTimeString(count)));
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -560,6 +593,10 @@ public class EventManager {
             participants.add(participant);
             sidebar.addPlayer(participant);
         }
+        for (Player admin : gameManager.getOnlineAdmins()) {
+            admins.add(admin);
+            adminSidebar.addPlayer(admin);
+        }
         updateTeamScores();
         updatePersonalScores();
         playedGames.add(finishedGameType);
@@ -581,6 +618,7 @@ public class EventManager {
                     return;
                 }
                 sidebar.updateLine("timer", String.format("Back to Hub: %s", TimeStringUtils.getTimeString(count)));
+                adminSidebar.updateLine("timer", String.format("Back to Hub: %s", TimeStringUtils.getTimeString(count)));
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -606,6 +644,7 @@ public class EventManager {
                     return;
                 }
                 sidebar.updateLine("timer", String.format("Colossal Colosseum: %s", TimeStringUtils.getTimeString(count)));
+                adminSidebar.updateLine("timer", String.format("Colossal Colosseum: %s", TimeStringUtils.getTimeString(count)));
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -662,8 +701,12 @@ public class EventManager {
         for (Player participant : participants) {
             sidebar.removePlayer(participant);
         }
+        for (Player admin : admins) {
+            adminSidebar.removePlayer(admin);
+        }
         startColossalColosseum(Bukkit.getConsoleSender(), firstPlace, secondPlace);
         participants.clear();
+        admins.clear();
         return true;
     }
     
@@ -804,6 +847,29 @@ public class EventManager {
         iteration.addPoints(participantUUID, points);
     }
     
+    private void initializeAdminSidebar() {
+        List<String> sortedTeamNames = sortTeamNames(gameManager.getTeamNames());
+        numberOfTeams = sortedTeamNames.size();
+        KeyLine[] teamLines = new KeyLine[numberOfTeams];
+        for (int i = 0; i < numberOfTeams; i++) {
+            String teamName = sortedTeamNames.get(i);
+            String teamDisplayName = gameManager.getTeamDisplayName(teamName);
+            ChatColor teamChatColor = gameManager.getTeamChatColor(teamName);
+            int teamScore = gameManager.getScore(teamName);
+            teamLines[i] = new KeyLine("team"+i, String.format("%s%s: %s", teamChatColor, teamDisplayName, teamScore));
+        }
+        adminSidebar.addLines(teamLines);
+        adminSidebar.addLine("timer", "");
+        adminSidebar.updateTitle(storageUtil.getTitle());
+    }
+    
+    private void clearAdminSidebar() {
+        adminSidebar.updateTitle(Sidebar.DEFAULT_TITLE);
+        adminSidebar.removeAllPlayers();
+        adminSidebar.deleteAllLines();
+        adminSidebar = null;
+    }
+    
     private void initializeSidebar() {
         List<String> sortedTeamNames = sortTeamNames(gameManager.getTeamNames());
         numberOfTeams = sortedTeamNames.size();
@@ -847,6 +913,7 @@ public class EventManager {
             teamLines[i] = new KeyLine("team"+i, String.format("%s%s: %s", teamChatColor, teamDisplayName, teamScore));
         }
         sidebar.updateLines(teamLines);
+        adminSidebar.updateLines(teamLines);
     }
     
     private void reorderTeamLines(List<String> sortedTeamNames) {
@@ -855,6 +922,7 @@ public class EventManager {
             teamKeys[i] = "team"+i;
         }
         sidebar.deleteLines(teamKeys);
+        adminSidebar.deleteLines(teamKeys);
         
         numberOfTeams = sortedTeamNames.size();
         KeyLine[] teamLines = new KeyLine[numberOfTeams];
@@ -866,6 +934,7 @@ public class EventManager {
             teamLines[i] = new KeyLine("team"+i, String.format("%s%s: %s", teamChatColor, teamDisplayName, teamScore));
         }
         sidebar.addLines(0, teamLines);
+        adminSidebar.addLines(0, teamLines);
     }
     
     private void updatePersonalScores() {
