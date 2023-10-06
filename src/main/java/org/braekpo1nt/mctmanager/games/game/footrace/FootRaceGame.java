@@ -83,46 +83,6 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         return storageUtil.loadConfig();
     }
     
-    private void startAdmins(List<Player> newAdmins) {
-        this.admins = new ArrayList<>(newAdmins.size());
-        for (Player admin : newAdmins) {
-            initializeAdmin(admin);
-        }
-        initializeAdminSidebar();
-    }
-    
-    private void initializeAdmin(Player admin) {
-        admins.add(admin);
-        adminSidebar.addPlayer(admin);
-        admin.setGameMode(GameMode.SPECTATOR);
-        admin.teleport(storageUtil.getStartingLocation());
-    }
-    
-    private void stopAdmins() {
-        for (Player admin : admins) {
-            resetAdmin(admin);
-        }
-        clearAdminSidebar();
-        admins.clear();
-    }
-    
-    private void resetAdmin(Player admin) {
-        adminSidebar.removePlayer(admin);
-    }
-    
-    private void initializeAdminSidebar() {
-        adminSidebar.addLines(
-                new KeyLine("title", title),
-                new KeyLine("elapsedTime", "00:00:000"),
-                new KeyLine("timer", "")
-        );
-    }
-    
-    private void clearAdminSidebar() {
-        adminSidebar.deleteAllLines();
-        adminSidebar = null;
-    }
-    
     @Override
     public void start(List<Player> newParticipants, List<Player> newAdmins) {
         this.participants = new ArrayList<>();
@@ -161,6 +121,21 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         ParticipantInitializer.resetHealthAndHunger(participant);
     }
     
+    private void startAdmins(List<Player> newAdmins) {
+        this.admins = new ArrayList<>(newAdmins.size());
+        for (Player admin : newAdmins) {
+            initializeAdmin(admin);
+        }
+        initializeAdminSidebar();
+    }
+    
+    private void initializeAdmin(Player admin) {
+        admins.add(admin);
+        adminSidebar.addPlayer(admin);
+        admin.setGameMode(GameMode.SPECTATOR);
+        admin.teleport(storageUtil.getStartingLocation());
+    }
+    
     @Override
     public void stop() {
         HandlerList.unregisterAll(this);
@@ -176,6 +151,18 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         gameActive = false;
         gameManager.gameIsOver();
         Bukkit.getLogger().info("Stopping Foot Race game");
+    }
+    
+    private void stopAdmins() {
+        for (Player admin : admins) {
+            resetAdmin(admin);
+        }
+        clearAdminSidebar();
+        admins.clear();
+    }
+    
+    private void resetAdmin(Player admin) {
+        adminSidebar.removePlayer(admin);
     }
     
     private void resetParticipant(Player participant) {
@@ -379,6 +366,19 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     private void closeGlassBarrier() {
         Structure structure = Bukkit.getStructureManager().loadStructure(new NamespacedKey("mctdatapack", "footrace/gateclosed"));
         structure.place(new Location(storageUtil.getWorld(), 2397, 76, 317), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
+    }
+    
+    private void initializeAdminSidebar() {
+        adminSidebar.addLines(
+                new KeyLine("title", title),
+                new KeyLine("elapsedTime", "00:00:000"),
+                new KeyLine("timer", "")
+        );
+    }
+    
+    private void clearAdminSidebar() {
+        adminSidebar.deleteAllLines();
+        adminSidebar = null;
     }
     
     private void initializeSidebar() {
