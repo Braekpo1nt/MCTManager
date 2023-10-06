@@ -33,9 +33,11 @@ public class VoteManager implements Listener {
     
     private final GameManager gameManager;
     private Sidebar sidebar;
+    private Sidebar adminSidebar;
     private final Map<UUID, GameType> votes = new HashMap<>();
     private final Main plugin;
     private final List<Player> voters = new ArrayList<>();
+    private final List<Player> admins = new ArrayList<>();
     private boolean voting = false;
     private final Component NETHER_STAR_NAME = Component.text("Vote");
     private final ItemStack NETHER_STAR;
@@ -55,14 +57,14 @@ public class VoteManager implements Listener {
     
     /**
      *Starts a voting phase with the given list of participants using the given voting pool
-     * @param participants The participants who should vote
+     * @param newParticipants The participants who should vote
      * @param votingPool The games to vote between
      * @param duration how long (in seconds) the vote should last
      * @param executeMethod the method to execute when the voting is over (either because the duration
      *                      is up or all voters have voted). It will be passed the voted for
      *                      GameType.
      */
-    public void startVote(List<Player> participants, List<GameType> votingPool, int duration, Consumer<GameType> executeMethod) {
+    public void startVote(List<Player> newParticipants, List<GameType> votingPool, int duration, Consumer<GameType> executeMethod, List<Player> newAdmins) {
         this.executeMethod = executeMethod;
         this.voteCountDownDuration = duration;
         voting = true;
@@ -70,14 +72,22 @@ public class VoteManager implements Listener {
         votes.clear();
         voters.clear();
         this.votingPool = votingPool;
+        sidebar = gameManager.getSidebarFactory().createSidebar();
+        adminSidebar = gameManager.getSidebarFactory().createSidebar();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
-        for (Player participant : participants) {
+        for (Player participant : newParticipants) {
             this.voters.add(participant);
+            sidebar.addPlayer(participant);
             showVoteGui(participant);
             participant.sendMessage(Component.text("Vote for the game you want to play")
                     .color(NamedTextColor.GREEN));
         }
         initializeSidebar();
+        for (Player admin : newAdmins) {
+            this.admins.add(admin);
+            adminSidebar.addPlayer(admin);
+        }
+        initializeAdminSidebar();
         startVoteCountDown();
     }
     
@@ -97,20 +107,29 @@ public class VoteManager implements Listener {
                 }
                 String timeLeft = TimeStringUtils.getTimeString(count);
                 sidebar.updateLine("timer", String.format("Voting: %s", timeLeft));
+                adminSidebar.updateLine("timer", String.format("Voting: %s", timeLeft));
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
     }
     
+    private void initializeAdminSidebar() {
+        adminSidebar.addLine("timer", "");
+    }
+    
+    private void clearAdminSidebar() {
+        adminSidebar.removeAllPlayers();
+        adminSidebar.deleteAllLines();
+        adminSidebar = null;
+    }
+    
     private void initializeSidebar() {
-        sidebar = gameManager.getSidebarFactory().createSidebar();
-        sidebar.addPlayers(voters);
         sidebar.addLine("timer", "");
     }
     
     private void clearSidebar() {
-        sidebar.removePlayers(voters);
-        sidebar.deleteLine("timer");
+        sidebar.removeAllPlayers();
+        sidebar.deleteAllLines();
         sidebar = null;
     }
     
@@ -259,10 +278,12 @@ public class VoteManager implements Listener {
             voter.getInventory().clear();
         }
         clearSidebar();
+        clearAdminSidebar();
         messageAllVoters(Component.text("Cancelling vote"));
         HandlerList.unregisterAll(this);
         votes.clear();
         voters.clear();
+        admins.clear();
     }
     
     private void executeVote() {
@@ -278,6 +299,8 @@ public class VoteManager implements Listener {
         votes.clear();
         voters.clear();
         clearSidebar();
+        admins.clear();
+        clearAdminSidebar();
         executeMethod.accept(gameType);
     }
     

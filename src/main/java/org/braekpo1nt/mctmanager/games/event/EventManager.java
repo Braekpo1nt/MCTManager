@@ -522,7 +522,7 @@ public class EventManager {
         for (Player admin : admins) {
             adminSidebar.removePlayer(admin);
         }
-        voteManager.startVote(participants, votingPool, storageUtil.getVotingDuration(), this::startingGameDelay);
+        voteManager.startVote(participants, votingPool, storageUtil.getVotingDuration(), this::startingGameDelay, admins);
         participants.clear();
         admins.clear();
     }

@@ -231,7 +231,7 @@ public class GameManager implements Listener {
                             .clickEvent(ClickEvent.suggestCommand("/mct team join "))));
             return;
         }
-        voteManager.startVote(onlineParticipants, votingPool, duration, (gameType) -> startGame(gameType, sender));
+        voteManager.startVote(onlineParticipants, votingPool, duration, (gameType) -> startGame(gameType, sender), onlineAdmins);
     }
     
     /**
