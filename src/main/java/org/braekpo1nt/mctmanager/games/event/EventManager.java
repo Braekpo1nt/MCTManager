@@ -766,7 +766,7 @@ public class EventManager {
             return;
         }
         
-        colossalColosseumGame.start(firstPlaceParticipants, secondPlaceParticipants, spectators);
+        colossalColosseumGame.start(firstPlaceParticipants, secondPlaceParticipants, spectators, admins);
     }
     
     public void stopColossalColosseum(CommandSender sender) {

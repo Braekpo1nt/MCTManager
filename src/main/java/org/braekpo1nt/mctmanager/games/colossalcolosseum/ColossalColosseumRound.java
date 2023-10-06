@@ -29,6 +29,7 @@ public class ColossalColosseumRound implements Listener {
     private final GameManager gameManager;
     private final ColossalColosseumGame colossalColosseumGame;
     private final Sidebar sidebar;
+    private final Sidebar adminSidebar;
     private final ColossalColosseumStorageUtil storageUtil;
     private Map<UUID, Boolean> firstPlaceParticipantsAlive = new HashMap<>();
     private Map<UUID, Boolean> secondPlaceParticipantsAlive = new HashMap<>();
@@ -41,12 +42,13 @@ public class ColossalColosseumRound implements Listener {
     private boolean roundActive = false;
     private boolean roundHasStarted = false;
     
-    public ColossalColosseumRound(Main plugin, GameManager gameManager, ColossalColosseumGame colossalColosseumGame, ColossalColosseumStorageUtil storageUtil, Sidebar sidebar) {
+    public ColossalColosseumRound(Main plugin, GameManager gameManager, ColossalColosseumGame colossalColosseumGame, ColossalColosseumStorageUtil storageUtil, Sidebar sidebar, Sidebar adminSidebar) {
         this.plugin = plugin;
         this.gameManager = gameManager;
         this.colossalColosseumGame = colossalColosseumGame;
         this.storageUtil = storageUtil;
         this.sidebar = sidebar;
+        this.adminSidebar = adminSidebar;
     }
     
     public void start(List<Player> newFirstPlaceParticipants, List<Player> newSecondPlaceParticipants, List<Player> newSpectators, String firstTeamName, String secondTeamName) {
@@ -329,12 +331,14 @@ public class ColossalColosseumRound implements Listener {
             public void run() {
                 if (count <= 0) {
                     sidebar.updateLine("timer", "");
+                    adminSidebar.updateLine("timer", "");
                     startRound();
                     this.cancel();
                     return;
                 }
                 String timeLeft = TimeStringUtils.getTimeString(count);
                 sidebar.updateLine("timer", String.format("Starting: %s", timeLeft));
+                adminSidebar.updateLine("timer", String.format("Starting: %s", timeLeft));
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -342,6 +346,7 @@ public class ColossalColosseumRound implements Listener {
     
     private void initializeSidebar() {
         sidebar.updateLine("timer", "Starting:");
+        adminSidebar.updateLine("timer", "Starting:");
     }
     
     private void openGates() {
