@@ -29,7 +29,7 @@ public class HubManager implements Listener, Configurable {
     private final HubStorageUtil storageUtil;
     private int returnToHubTaskId;
     /**
-     * Contains a list of the players who are about to be sent to the hub and can see the countdown from the {@link HubManager#returnParticipantsToHub(List, int)}
+     * Contains a list of the players who are about to be sent to the hub and can see the countdown
      */
     private final List<Player> headingToHub = new ArrayList<>();
     private boolean boundaryEnabled = true;
@@ -55,18 +55,19 @@ public class HubManager implements Listener, Configurable {
      * @param newParticipants the participants to send to the hub
      * @param delay false will perform the teleport instantaneously, true will teleport with a delay
      */
-    public void returnParticipantsToHub(List<Player> newParticipants, boolean delay) {
+    public void returnParticipantsToHub(List<Player> newParticipants, List<Player> newAdmins, boolean delay) {
         if (delay) {
-            returnParticipantsToHub(newParticipants, storageUtil.getTpToHubDuration());
+            returnParticipantsToHub(newParticipants, newAdmins, storageUtil.getTpToHubDuration());
         } else {
-            returnParticipantsToHubInstantly(newParticipants);
+            returnParticipantsToHubInstantly(newParticipants, newAdmins);
         }
     }
     
-    private void returnParticipantsToHub(List<Player> newParticipants, int duration) {
+    private void returnParticipantsToHub(List<Player> newParticipants, List<Player> newAdmins, int duration) {
         headingToHub.addAll(newParticipants);
         Sidebar sidebar = gameManager.getSidebarFactory().createSidebar();
         sidebar.addPlayers(newParticipants);
+        sidebar.addPlayers(newAdmins);
         sidebar.addLine("backToHub", String.format("Back to Hub: %s", duration));
         this.returnToHubTaskId = new BukkitRunnable() {
             private int count = duration;
@@ -75,7 +76,7 @@ public class HubManager implements Listener, Configurable {
                 if (count <= 0) {
                     sidebar.deleteAllLines();
                     sidebar.removePlayers(newParticipants);
-                    returnParticipantsToHubInstantly(newParticipants);
+                    returnParticipantsToHubInstantly(newParticipants, newAdmins);
                     headingToHub.clear();
                     this.cancel();
                     return;
@@ -87,9 +88,12 @@ public class HubManager implements Listener, Configurable {
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
     }
     
-    private void returnParticipantsToHubInstantly(List<Player> newParticipants) {
+    private void returnParticipantsToHubInstantly(List<Player> newParticipants, List<Player> newAdmins) {
         for (Player participant : newParticipants) {
             returnParticipantToHub(participant);
+        }
+        for (Player admin : newAdmins) {
+            returnAdminToHub(admin);
         }
         setupTeamOptions();
     }
@@ -100,13 +104,34 @@ public class HubManager implements Listener, Configurable {
         initializeParticipant(participant);
     }
     
-    public void sendParticipantsToPodium(List<Player> winningTeamParticipants, List<Player> otherParticipants) {
+    private void initializeParticipant(Player participant) {
+        participants.add(participant);
+        participant.getInventory().clear();
+        participant.setGameMode(GameMode.ADVENTURE);
+        ParticipantInitializer.clearStatusEffects(participant);
+        ParticipantInitializer.resetHealthAndHunger(participant);
+    }
+    
+    private void returnAdminToHub(Player admin) {
+        admin.sendMessage(Component.text("Returning to hub"));
+        admin.teleport(storageUtil.getSpawn());
+        initializeAdmin(admin);
+    }
+    
+    private void initializeAdmin(Player admin) {
+        admin.setGameMode(GameMode.SPECTATOR);
+    }
+    
+    public void sendParticipantsToPodium(List<Player> winningTeamParticipants, List<Player> otherParticipants, List<Player> newAdmins) {
         setupTeamOptions();
         for (Player participant : otherParticipants) {
             sendParticipantToPodium(participant, false);
         }
         for (Player winningParticipant : winningTeamParticipants) {
             sendParticipantToPodium(winningParticipant, true);
+        }
+        for (Player admin : newAdmins) {
+            sendAdminToPodium(admin);
         }
     }
     
@@ -120,12 +145,9 @@ public class HubManager implements Listener, Configurable {
         initializeParticipant(participant);
     }
     
-    private void initializeParticipant(Player participant) {
-        participants.add(participant);
-        participant.getInventory().clear();
-        participant.setGameMode(GameMode.ADVENTURE);
-        ParticipantInitializer.clearStatusEffects(participant);
-        ParticipantInitializer.resetHealthAndHunger(participant);
+    private void sendAdminToPodium(Player admin) {
+        admin.sendMessage(Component.text("Returning to hub"));
+        admin.teleport(storageUtil.getPodiumObservation());
     }
     
     /**

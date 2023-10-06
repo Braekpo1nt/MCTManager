@@ -231,7 +231,7 @@ public class GameManager implements Listener {
                             .clickEvent(ClickEvent.suggestCommand("/mct team join "))));
             return;
         }
-        voteManager.startVote(onlineParticipants, votingPool, duration, (gameType) -> startGame(gameType, sender));
+        voteManager.startVote(onlineParticipants, votingPool, duration, (gameType) -> startGame(gameType, sender), onlineAdmins);
     }
     
     /**
@@ -349,7 +349,7 @@ public class GameManager implements Listener {
         }
         
         hubManager.removeParticipantsFromHub(onlineParticipants);
-        selectedGame.start(onlineParticipants);
+        selectedGame.start(onlineParticipants, onlineAdmins);
         activeGame = selectedGame;
         for (String teamName : getTeamNames(onlineParticipants)) {
             updateTeamScore(teamName);
@@ -392,11 +392,11 @@ public class GameManager implements Listener {
             shouldTeleportToHub = true;
             return;
         }
-        hubManager.returnParticipantsToHub(onlineParticipants, true);
+        hubManager.returnParticipantsToHub(onlineParticipants, onlineAdmins, true);
     }
     
     public void returnAllParticipantsToHub() {
-        hubManager.returnParticipantsToHub(onlineParticipants, false);
+        hubManager.returnParticipantsToHub(onlineParticipants, onlineAdmins, false);
     }
     
     public void returnAllParticipantsToPodium(String winningTeam) {
@@ -407,7 +407,7 @@ public class GameManager implements Listener {
                 otherParticipants.add(participant);
             }
         }
-        hubManager.sendParticipantsToPodium(winningTeamParticipants, otherParticipants);
+        hubManager.sendParticipantsToPodium(winningTeamParticipants, otherParticipants, onlineAdmins);
     }
     
     //====================================================
@@ -704,11 +704,18 @@ public class GameManager implements Listener {
     }
     
     /**
-     * @return a copy of the list of online participants. Modifying the returned list will not change
+     * @return a copy of the list of online participants. Modifying this will not change
      * the online participants
      */
     public List<Player> getOnlineParticipants() {
         return new ArrayList<>(onlineParticipants);
+    }
+    
+    /**
+     * @return a copy of the list of online admins. Modifying this will not change the online admins. 
+     */
+    public List<Player> getOnlineAdmins() {
+        return new ArrayList<>(onlineAdmins);
     }
     
     /**

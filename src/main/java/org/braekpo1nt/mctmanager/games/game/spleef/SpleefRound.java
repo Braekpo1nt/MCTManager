@@ -40,6 +40,7 @@ public class SpleefRound implements Listener {
     private final Main plugin;
     private final GameManager gameManager;
     private final Sidebar sidebar;
+    private final Sidebar adminSidebar;
     private final SpleefStorageUtil storageUtil;
     private List<Player> participants = new ArrayList<>();
     private Map<UUID, Boolean> participantsAlive;
@@ -51,12 +52,13 @@ public class SpleefRound implements Listener {
     private int startCountDownTaskID;
     private int decayTaskId;
     
-    public SpleefRound(Main plugin, GameManager gameManager, SpleefGame spleefGame, SpleefStorageUtil spleefStorageUtil, Sidebar sidebar) {
+    public SpleefRound(Main plugin, GameManager gameManager, SpleefGame spleefGame, SpleefStorageUtil spleefStorageUtil, Sidebar sidebar, Sidebar adminSidebar) {
         this.plugin = plugin;
         this.gameManager = gameManager;
         this.spleefGame = spleefGame;
         this.storageUtil = spleefStorageUtil;
         this.sidebar = sidebar;
+        this.adminSidebar = adminSidebar;
     }
     
     public void start(List<Player> newParticipants) {
@@ -68,6 +70,7 @@ public class SpleefRound implements Listener {
             initializeParticipant(participant);
         }
         initializeSidebar();
+        initializeAdminSidebar();
         setupTeamOptions();
         startStatusEffectsTask();
         startRoundStartingCountDown();
@@ -114,6 +117,7 @@ public class SpleefRound implements Listener {
             resetParticipant(participant);
         }
         clearSidebar();
+        clearAdminSidebar();
         participants.clear();
         participantsAlive.clear();
         Bukkit.getLogger().info("Stopping Spleef round");
@@ -143,7 +147,9 @@ public class SpleefRound implements Listener {
                     .color(NamedTextColor.YELLOW));
         }
         long aliveCount = participantsAlive.values().stream().filter((alive) -> alive).count();
-        sidebar.updateLine("alive", String.format("Alive: %s", aliveCount));
+        String alive = String.format("Alive: %s", aliveCount);
+        sidebar.updateLine("alive", alive);
+        adminSidebar.updateLine("alive", alive);
     }
     
     private boolean participantShouldRejoin(Player participant) {
@@ -260,6 +266,9 @@ public class SpleefRound implements Listener {
     }
     
     private void onParticipantDeath(Player killed) {
+        ParticipantInitializer.clearStatusEffects(killed);
+        ParticipantInitializer.resetHealthAndHunger(killed);
+        killed.getInventory().clear();
         participantsAlive.put(killed.getUniqueId(), false);
         String killedTeam = gameManager.getTeamName(killed.getUniqueId());
         int count = participants.size();
@@ -273,12 +282,16 @@ public class SpleefRound implements Listener {
                 count--;
             }
         }
-        sidebar.updateLine("alive", String.format("Alive: %s", count));
+        String alive = String.format("Alive: %s", count);
+        sidebar.updateLine("alive", alive);
+        adminSidebar.updateLine("alive", alive);
     }
     
     private void startSpleef() {
         placeLayers();
-        sidebar.updateLine("alive", String.format("Alive: %s", participants.size()));
+        String alive = String.format("Alive: %s", participants.size());
+        sidebar.updateLine("alive", alive);
+        adminSidebar.updateLine("alive", alive);
         givePlayersShovels();
         for (Player participant : participants) {
             participant.setGameMode(GameMode.SURVIVAL);
@@ -407,12 +420,15 @@ public class SpleefRound implements Listener {
             public void run() {
                 if (count <= 0) {
                     sidebar.updateLine("timer", "");
+                    adminSidebar.updateLine("timer", "");
                     startSpleef();
                     this.cancel();
                     return;
                 }
                 String timeLeft = TimeStringUtils.getTimeString(count);
-                sidebar.updateLine("timer", String.format("Starting in: %s", timeLeft));
+                String timer = String.format("Starting in: %s", timeLeft);
+                sidebar.updateLine("timer", timer);
+                adminSidebar.updateLine("timer", timer);
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -462,6 +478,14 @@ public class SpleefRound implements Listener {
             team.setOption(Team.Option.DEATH_MESSAGE_VISIBILITY, Team.OptionStatus.ALWAYS);
             team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER);
         }
+    }
+    
+    private void initializeAdminSidebar() {
+        adminSidebar.addLine("alive", "Alive: ");
+    }
+    
+    private void clearAdminSidebar() {
+        adminSidebar.deleteLine("alive");
     }
     
     private void initializeSidebar() {

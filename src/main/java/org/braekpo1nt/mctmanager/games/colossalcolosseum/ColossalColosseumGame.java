@@ -27,11 +27,13 @@ public class ColossalColosseumGame implements Listener, Configurable {
     private final Main plugin;
     private final GameManager gameManager;
     private Sidebar sidebar;
+    private Sidebar adminSidebar;
     private final ColossalColosseumStorageUtil storageUtil;
     private final String title = ChatColor.BLUE+"Colossal Colosseum";
     private List<Player> firstPlaceParticipants = new ArrayList<>();
     private List<Player> secondPlaceParticipants = new ArrayList<>();
     private List<Player> spectators = new ArrayList<>();
+    private List<Player> admins = new ArrayList<>();
     private List<ColossalColosseumRound> rounds = new ArrayList<>();
     private int currentRoundIndex = 0;
     private int firstPlaceRoundWins = 0;
@@ -56,8 +58,9 @@ public class ColossalColosseumGame implements Listener, Configurable {
      * @param newFirstPlaceParticipants The participants in the first place team
      * @param newSecondPlaceParticipants The participants in the second place team
      * @param newSpectators The participants who are third place and on, who should spectate the game
+     * @param newAdmins The admins
      */
-    public void start(List<Player> newFirstPlaceParticipants, List<Player> newSecondPlaceParticipants, List<Player> newSpectators) {
+    public void start(List<Player> newFirstPlaceParticipants, List<Player> newSecondPlaceParticipants, List<Player> newSpectators, List<Player> newAdmins) {
         firstTeamName = gameManager.getTeamName(newFirstPlaceParticipants.get(0).getUniqueId());
         secondTeamName = gameManager.getTeamName(newSecondPlaceParticipants.get(0).getUniqueId());
         firstPlaceRoundWins = 0;
@@ -67,11 +70,12 @@ public class ColossalColosseumGame implements Listener, Configurable {
         secondPlaceParticipants = new ArrayList<>(newSecondPlaceParticipants.size());
         spectators = new ArrayList<>(newSpectators.size());
         sidebar = gameManager.getSidebarFactory().createSidebar();
+        adminSidebar = gameManager.getSidebarFactory().createSidebar();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         int numOfRounds = (storageUtil.getRequiredWins() * 2) - 1;
         rounds = new ArrayList<>(numOfRounds);
         for (int i = 0; i < numOfRounds; i++) {
-            rounds.add(new ColossalColosseumRound(plugin, gameManager, this, storageUtil, sidebar));
+            rounds.add(new ColossalColosseumRound(plugin, gameManager, this, storageUtil, sidebar, adminSidebar));
         }
         currentRoundIndex = 0;
         for (Player first : newFirstPlaceParticipants) {
@@ -85,6 +89,7 @@ public class ColossalColosseumGame implements Listener, Configurable {
         }
         initializeSidebar();
         setupTeamOptions();
+        startAdmins(newAdmins);
         startNextRound();
         gameActive = true;
         Bukkit.getLogger().info("Started Colossal Colosseum");
@@ -111,15 +116,31 @@ public class ColossalColosseumGame implements Listener, Configurable {
         sidebar.addPlayer(spectator);
     }
     
+    private void startAdmins(List<Player> newAdmins) {
+        this.admins = new ArrayList<>(newAdmins.size());
+        for (Player admin : newAdmins) {
+            initializeAdmin(admin);
+        }
+        initializeAdminSidebar();
+    }
+    
+    private void initializeAdmin(Player admin) {
+        admins.add(admin);
+        adminSidebar.addPlayer(admin);
+        admin.setGameMode(GameMode.SPECTATOR);
+        admin.teleport(storageUtil.getSpectatorSpawn());
+    }
+    
     private void startNextRound() {
         ColossalColosseumRound nextRound = rounds.get(currentRoundIndex);
         nextRound.start(firstPlaceParticipants, secondPlaceParticipants, spectators, firstTeamName, secondTeamName);
         sidebar.updateLine("round", String.format("Round: %s", currentRoundIndex+1));
+        adminSidebar.updateLine("round", String.format("Round: %s", currentRoundIndex+1));
     }
     
     public void onFirstPlaceWinRound() {
         firstPlaceRoundWins++;
-        updateRoundWinFastBoard();
+        updateRoundWinSidebar();
         if (firstPlaceRoundWins >= storageUtil.getRequiredWins()) {
             stop(firstTeamName);
             return;
@@ -130,7 +151,7 @@ public class ColossalColosseumGame implements Listener, Configurable {
     
     public void onSecondPlaceWinRound() {
         secondPlaceRoundWins++;
-        updateRoundWinFastBoard();
+        updateRoundWinSidebar();
         if (secondPlaceRoundWins >= storageUtil.getRequiredWins()) {
             stop(secondTeamName);
             return;
@@ -161,6 +182,7 @@ public class ColossalColosseumGame implements Listener, Configurable {
             resetParticipant(participant);
         }
         clearSidebar();
+        stopAdmins();
         spectators.clear();
         gameManager.getEventManager().colossalColosseumIsOver(winningTeam);
         Bukkit.getLogger().info("Stopping Colossal Colosseum");
@@ -169,6 +191,18 @@ public class ColossalColosseumGame implements Listener, Configurable {
     private void resetParticipant(Player participant) {
         participant.getInventory().clear();
         sidebar.removePlayer(participant.getUniqueId());
+    }
+    
+    private void stopAdmins() {
+        for (Player admin : admins) {
+            resetAdmin(admin);
+        }
+        clearAdminSidebar();
+        admins.clear();
+    }
+    
+    private void resetAdmin(Player admin) {
+        adminSidebar.removePlayer(admin);
     }
     
     public void onParticipantJoin(Player participant) {
@@ -195,7 +229,7 @@ public class ColossalColosseumGame implements Listener, Configurable {
                 currentRound.onParticipantJoin(participant);
             }
         }
-        updateRoundWinFastBoard();
+        updateRoundWinSidebar();
         sidebar.updateLines(participant.getUniqueId(),
                 new KeyLine("title", title),
                 new KeyLine("round", String.format("Round: %s", currentRoundIndex+1))
@@ -237,13 +271,34 @@ public class ColossalColosseumGame implements Listener, Configurable {
         event.setCancelled(true);
     }
     
-    private void updateRoundWinFastBoard() {
+    private void updateRoundWinSidebar() {
         ChatColor firstChatColor = gameManager.getTeamChatColor(firstTeamName);
         String firstDisplayName = ChatColor.BOLD + "" +  firstChatColor + gameManager.getTeamDisplayName(firstTeamName);
         ChatColor secondChatColor = gameManager.getTeamChatColor(secondTeamName);
         String secondDisplayName = ChatColor.BOLD + "" +  secondChatColor + gameManager.getTeamDisplayName(secondTeamName);
         sidebar.updateLine("firstWinCount", String.format("%s: %s/%s", firstDisplayName, firstPlaceRoundWins, storageUtil.getRequiredWins()));
         sidebar.updateLine("secondWinCount", String.format("%s: %s/%s", secondDisplayName, secondPlaceRoundWins, storageUtil.getRequiredWins()));
+        adminSidebar.updateLine("firstWinCount", String.format("%s: %s/%s", firstDisplayName, firstPlaceRoundWins, storageUtil.getRequiredWins()));
+        adminSidebar.updateLine("secondWinCount", String.format("%s: %s/%s", secondDisplayName, secondPlaceRoundWins, storageUtil.getRequiredWins()));
+    }
+    
+    private void initializeAdminSidebar() {
+        ChatColor firstChatColor = gameManager.getTeamChatColor(firstTeamName);
+        String firstDisplayName = ChatColor.BOLD + "" +  firstChatColor + gameManager.getTeamDisplayName(firstTeamName);
+        ChatColor secondChatColor = gameManager.getTeamChatColor(secondTeamName);
+        String secondDisplayName = ChatColor.BOLD + "" +  secondChatColor + gameManager.getTeamDisplayName(secondTeamName);
+        adminSidebar.addLines(
+                new KeyLine("title", title),
+                new KeyLine("firstWinCount", String.format("%s: 0/%s", firstDisplayName, storageUtil.getRequiredWins())),
+                new KeyLine("secondWinCount", String.format("%s: 0/%s", secondDisplayName, storageUtil.getRequiredWins())),
+                new KeyLine("round", "Round: 1"),
+                new KeyLine("timer", "")
+        );
+    }
+    
+    private void clearAdminSidebar() {
+        adminSidebar.deleteAllLines();
+        adminSidebar = null;
     }
     
     private void initializeSidebar() {

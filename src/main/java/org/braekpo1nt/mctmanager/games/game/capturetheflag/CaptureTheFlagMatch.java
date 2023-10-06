@@ -41,6 +41,7 @@ public class CaptureTheFlagMatch implements Listener {
     private final MatchPairing matchPairing;
     private final Arena arena;
     private final Sidebar sidebar;
+    private final Sidebar adminSidebar;
     private List<Player> northParticipants = new ArrayList<>();
     private List<Player> southParticipants = new ArrayList<>();
     private List<Player> allParticipants = new ArrayList<>();
@@ -72,7 +73,7 @@ public class CaptureTheFlagMatch implements Listener {
     
     public CaptureTheFlagMatch(CaptureTheFlagRound captureTheFlagRound, Main plugin,
                                GameManager gameManager, MatchPairing matchPairing, Arena arena,
-                               CaptureTheFlagStorageUtil storageUtil, Sidebar sidebar) {
+                               CaptureTheFlagStorageUtil storageUtil, Sidebar sidebar, Sidebar adminSidebar) {
         this.captureTheFlagRound = captureTheFlagRound;
         this.plugin = plugin;
         this.gameManager = gameManager;
@@ -82,6 +83,7 @@ public class CaptureTheFlagMatch implements Listener {
         this.northClassPicker = new ClassPicker();
         this.southClassPicker = new ClassPicker();
         this.sidebar = sidebar;
+        this.adminSidebar = adminSidebar;
     }
     
     public MatchPairing getMatchPairing() {
@@ -689,7 +691,9 @@ public class CaptureTheFlagMatch implements Listener {
                     return;
                 }
                 String timeLeft = TimeStringUtils.getTimeString(count);
-                sidebar.updateLine("timer", String.format("Class selection: %s", timeLeft));
+                String timer = String.format("Class selection: %s", timeLeft);
+                sidebar.updateLine("timer", timer);
+                adminSidebar.updateLine("timer", timer);
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -706,7 +710,9 @@ public class CaptureTheFlagMatch implements Listener {
                     return;
                 }
                 String timeLeft = TimeStringUtils.getTimeString(count);
-                sidebar.updateLine("timer", String.format("Round: %s", timeLeft));
+                String timer = String.format("Round: %s", timeLeft);
+                sidebar.updateLine("timer", timer);
+                adminSidebar.updateLine("timer", timer);
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -714,6 +720,7 @@ public class CaptureTheFlagMatch implements Listener {
     
     private void initializeSidebar() {
         sidebar.updateLine("timer", "Round: ");
+        adminSidebar.updateLine("timer", "Round: ");
     }
     
     private void initializeSidebar(Player participant) {

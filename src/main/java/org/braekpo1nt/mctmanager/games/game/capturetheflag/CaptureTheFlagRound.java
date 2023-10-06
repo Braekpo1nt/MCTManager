@@ -28,6 +28,7 @@ public class CaptureTheFlagRound {
     private final GameManager gameManager;
     private final CaptureTheFlagStorageUtil storageUtil;
     private final Sidebar sidebar;
+    private final Sidebar adminSidebar;
     private List<CaptureTheFlagMatch> matches;
     private List<Player> participants = new ArrayList<>();
     private List<Player> onDeckParticipants;
@@ -36,13 +37,13 @@ public class CaptureTheFlagRound {
     private int onDeckMatchTimerTaskId;
     private boolean roundActive = false;
     
-    public CaptureTheFlagRound(CaptureTheFlagGame captureTheFlagGame, Main plugin, GameManager gameManager,
-                               CaptureTheFlagStorageUtil storageUtil, Sidebar sidebar) {
+    public CaptureTheFlagRound(CaptureTheFlagGame captureTheFlagGame, Main plugin, GameManager gameManager, CaptureTheFlagStorageUtil storageUtil, Sidebar sidebar, Sidebar adminSidebar) {
         this.captureTheFlagGame = captureTheFlagGame;
         this.plugin = plugin;
         this.gameManager = gameManager;
         this.storageUtil = storageUtil;
         this.sidebar = sidebar;
+        this.adminSidebar = adminSidebar;
     }
     
     /**
@@ -58,7 +59,7 @@ public class CaptureTheFlagRound {
             MatchPairing matchPairing = matchPairings.get(i);
             Arena arena = arenas.get(i);
             CaptureTheFlagMatch match = new CaptureTheFlagMatch(this, plugin, gameManager, 
-                    matchPairing, arena, storageUtil, sidebar);
+                    matchPairing, arena, storageUtil, sidebar, adminSidebar);
             matches.add(match);
         }
     }
@@ -221,7 +222,9 @@ public class CaptureTheFlagRound {
                     return;
                 }
                 String timeLeft = TimeStringUtils.getTimeString(count);
-                sidebar.updateLine("timer", String.format("Class selection: %s", timeLeft));
+                String timer = String.format("Class selection: %s", timeLeft);
+                sidebar.updateLine("timer", timer);
+                adminSidebar.updateLine("timer", timer);
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -237,7 +240,9 @@ public class CaptureTheFlagRound {
                     return;
                 }
                 String timeLeft = TimeStringUtils.getTimeString(count);
-                sidebar.updateLine("timer", String.format("Round: %s", timeLeft));
+                String timer = String.format("Round: %s", timeLeft);
+                sidebar.updateLine("timer", timer);
+                adminSidebar.updateLine("timer", timer);
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -254,7 +259,9 @@ public class CaptureTheFlagRound {
                     return;
                 }
                 String timeLeft = TimeStringUtils.getTimeString(count);
-                sidebar.updateLine("timer", String.format("Starting: %s", timeLeft));
+                String timer = String.format("Starting: %s", timeLeft);
+                sidebar.updateLine("timer", timer);
+                adminSidebar.updateLine("timer", timer);
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -299,6 +306,7 @@ public class CaptureTheFlagRound {
             sidebar.updateLine(participant.getUniqueId(), "enemy", String.format("%svs: %s%s", ChatColor.BOLD, enemyColor, enemyDisplayName));
         }
         sidebar.updateLine("timer", "");
+        adminSidebar.updateLine("timer", "");
         for (Player onDeckParticipant : onDeckParticipants) {
             sidebar.updateLine(onDeckParticipant.getUniqueId(), "enemy", "On Deck");
         }

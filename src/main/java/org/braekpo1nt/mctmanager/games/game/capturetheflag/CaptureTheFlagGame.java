@@ -12,6 +12,7 @@ import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
@@ -34,12 +35,14 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     private final Main plugin;
     private final GameManager gameManager;
     private Sidebar sidebar;
+    private Sidebar adminSidebar;
     private final CaptureTheFlagStorageUtil storageUtil;
     private int currentRoundIndex;
     private int maxRounds;
     private List<CaptureTheFlagRound> rounds;
     private final String title = ChatColor.BLUE+"Capture the Flag";
-    private List<Player> participants;
+    private List<Player> participants = new ArrayList<>();
+    private List<Player> admins = new ArrayList<>();
     private boolean gameActive = false;
     
     public CaptureTheFlagGame(Main plugin, GameManager gameManager) {
@@ -59,14 +62,16 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     }
     
     @Override
-    public void start(List<Player> newParticipants) {
+    public void start(List<Player> newParticipants, List<Player> newAdmins) {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         participants = new ArrayList<>();
         sidebar = gameManager.getSidebarFactory().createSidebar();
+        adminSidebar = gameManager.getSidebarFactory().createSidebar();
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
         }
         initializeSidebar();
+        startAdmins(newAdmins);
         List<String> teamNames = gameManager.getTeamNames(newParticipants);
         List<MatchPairing> matchPairings = CaptureTheFlagUtils.generateMatchPairings(teamNames);
         currentRoundIndex = 0;
@@ -82,6 +87,21 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         sidebar.addPlayer(participant);
     }
     
+    private void startAdmins(List<Player> newAdmins) {
+        this.admins = new ArrayList<>(newAdmins.size());
+        for (Player admin : newAdmins) {
+            initializeAdmin(admin);
+        }
+        initializeAdminSidebar();
+    }
+    
+    private void initializeAdmin(Player admin) {
+        admins.add(admin);
+        adminSidebar.addPlayer(admin);
+        admin.setGameMode(GameMode.SPECTATOR);
+        admin.teleport(storageUtil.getSpawnObservatory());
+    }
+    
     @Override
     public void stop() {
         HandlerList.unregisterAll(this);
@@ -95,6 +115,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
             resetParticipant(participant);
         }
         clearSidebar();
+        stopAdmins();
         participants.clear();
         gameManager.gameIsOver();
         Bukkit.getLogger().info("Stopping Capture the Flag");
@@ -103,6 +124,18 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     private void resetParticipant(Player participant) {
         participant.getInventory().clear();
         sidebar.removePlayer(participant.getUniqueId());
+    }
+    
+    private void stopAdmins() {
+        for (Player admin : admins) {
+            resetAdmin(admin);
+        }
+        clearAdminSidebar();
+        admins.clear();
+    }
+    
+    private void resetAdmin(Player admin) {
+        adminSidebar.removePlayer(admin);
     }
     
     @Override
@@ -189,7 +222,9 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         currentRoundIndex = 0;
         maxRounds = newRounds.size();
         rounds = newRounds;
-        sidebar.updateLine("round", String.format("Round %d/%d", currentRoundIndex+1, maxRounds));
+        String round = String.format("Round %d/%d", currentRoundIndex + 1, maxRounds);
+        sidebar.updateLine("round", round);
+        adminSidebar.updateLine("round", round);
     }
     
     /**
@@ -223,7 +258,9 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         combinedRounds.addAll(newRounds);
         maxRounds = combinedRounds.size();
         rounds = combinedRounds;
-        sidebar.updateLine("round", String.format("Round %d/%d", currentRoundIndex+1, maxRounds));
+        String round = String.format("Round %d/%d", currentRoundIndex + 1, maxRounds);
+        sidebar.updateLine("round", round);
+        adminSidebar.updateLine("round", round);
     }
     
     /**
@@ -293,7 +330,9 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
             }
         }
         nextRound.start(roundParticipants, onDeckParticipants);
-        sidebar.updateLine("round", String.format("Round %d/%d", currentRoundIndex+1, maxRounds));
+        String round = String.format("Round %d/%d", currentRoundIndex + 1, maxRounds);
+        sidebar.updateLine("round", round);
+        adminSidebar.updateLine("round", round);
     }
 
     /**
@@ -324,7 +363,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         List<CaptureTheFlagRound> rounds = new ArrayList<>();
         List<List<MatchPairing>> roundMatchPairingsList = CaptureTheFlagUtils.generateRoundMatchPairings(matchPairings, storageUtil.getArenas().size());
         for (List<MatchPairing> roundMatchPairings : roundMatchPairingsList) {
-            CaptureTheFlagRound newRound = new CaptureTheFlagRound(this, plugin, gameManager, storageUtil, sidebar);
+            CaptureTheFlagRound newRound = new CaptureTheFlagRound(this, plugin, gameManager, storageUtil, sidebar, adminSidebar);
             newRound.createMatches(roundMatchPairings, storageUtil.getArenas().subList(0, roundMatchPairings.size()));
             rounds.add(newRound);
         }
@@ -352,6 +391,19 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
             return;
         }
         event.setCancelled(true);
+    }
+    
+    private void initializeAdminSidebar() {
+        adminSidebar.addLines(
+                new KeyLine("title", title),
+                new KeyLine("round", ""),
+                new KeyLine("timer", "")
+        );
+    }
+    
+    private void clearAdminSidebar() {
+        adminSidebar.deleteAllLines();
+        adminSidebar = null;
     }
     
     private void initializeSidebar() {

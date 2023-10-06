@@ -7,6 +7,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
+/**
+ * Note that a sidebar can only have 15 lines
+ */
 public class Sidebar {
     
     /**
