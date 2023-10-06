@@ -392,11 +392,11 @@ public class GameManager implements Listener {
             shouldTeleportToHub = true;
             return;
         }
-        hubManager.returnParticipantsToHub(onlineParticipants, true);
+        hubManager.returnParticipantsToHub(onlineParticipants, onlineAdmins, true);
     }
     
     public void returnAllParticipantsToHub() {
-        hubManager.returnParticipantsToHub(onlineParticipants, false);
+        hubManager.returnParticipantsToHub(onlineParticipants, onlineAdmins, false);
     }
     
     public void returnAllParticipantsToPodium(String winningTeam) {
@@ -407,7 +407,7 @@ public class GameManager implements Listener {
                 otherParticipants.add(participant);
             }
         }
-        hubManager.sendParticipantsToPodium(winningTeamParticipants, otherParticipants);
+        hubManager.sendParticipantsToPodium(winningTeamParticipants, otherParticipants, onlineAdmins);
     }
     
     //====================================================
