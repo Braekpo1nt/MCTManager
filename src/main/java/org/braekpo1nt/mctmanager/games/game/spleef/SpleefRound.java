@@ -266,6 +266,9 @@ public class SpleefRound implements Listener {
     }
     
     private void onParticipantDeath(Player killed) {
+        ParticipantInitializer.clearStatusEffects(killed);
+        ParticipantInitializer.resetHealthAndHunger(killed);
+        killed.getInventory().clear();
         participantsAlive.put(killed.getUniqueId(), false);
         String killedTeam = gameManager.getTeamName(killed.getUniqueId());
         int count = participants.size();
