@@ -30,6 +30,7 @@ public class ClockworkRound implements Listener {
     private final Main plugin;
     private final GameManager gameManager;
     private final Sidebar sidebar;
+    private final Sidebar adminSidebar;
     private final ClockworkGame clockworkGame;
     private final ClockworkStorageUtil storageUtil;
     private final ChaosManager chaosManager;
@@ -50,7 +51,7 @@ public class ClockworkRound implements Listener {
      */
     private boolean mustStayOnWedge = false;
     
-    public ClockworkRound(Main plugin, GameManager gameManager, ClockworkGame clockworkGame, ClockworkStorageUtil storageUtil, int roundNumber, Sidebar sidebar) {
+    public ClockworkRound(Main plugin, GameManager gameManager, ClockworkGame clockworkGame, ClockworkStorageUtil storageUtil, int roundNumber, Sidebar sidebar, Sidebar adminSidebar) {
         this.plugin = plugin;
         this.gameManager = gameManager;
         this.clockworkGame = clockworkGame;
@@ -58,6 +59,7 @@ public class ClockworkRound implements Listener {
         this.roundNumber = roundNumber;
         this.chaosManager = new ChaosManager(plugin, storageUtil);
         this.sidebar = sidebar;
+        this.adminSidebar = adminSidebar;
     }
     
     public boolean isActive() {
@@ -151,8 +153,10 @@ public class ClockworkRound implements Listener {
                     this.cancel();
                     return;
                 }
-                sidebar.updateLine("timer", String.format("Clock chimes in: %s",
-                        TimeStringUtils.getTimeString(count)));
+                String timer = String.format("Clock chimes in: %s",
+                        TimeStringUtils.getTimeString(count));
+                sidebar.updateLine("timer", timer);
+                adminSidebar.updateLine("timer", timer);
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -160,6 +164,7 @@ public class ClockworkRound implements Listener {
     
     private void startClockChime() {
         sidebar.updateLine("timer", "Chiming...");
+        adminSidebar.updateLine("timer", "Chiming...");
         this.numberOfChimes = random.nextInt(1, 13);
         this.clockChimeTaskId = new BukkitRunnable() {
             int count = numberOfChimes;
@@ -193,8 +198,10 @@ public class ClockworkRound implements Listener {
                     this.cancel();
                     return;
                 }
-                sidebar.updateLine("timer", String.format("Get to wedge! %s",
-                        TimeStringUtils.getTimeString(count)));
+                String timer = String.format("Get to wedge! %s",
+                        TimeStringUtils.getTimeString(count));
+                sidebar.updateLine("timer", timer);
+                adminSidebar.updateLine("timer", timer);
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -219,8 +226,10 @@ public class ClockworkRound implements Listener {
                     this.cancel();
                     return;
                 }
-                sidebar.updateLine("timer", String.format("Stay on wedge: %s",
-                        TimeStringUtils.getTimeString(count)));
+                String timer = String.format("Stay on wedge: %s",
+                        TimeStringUtils.getTimeString(count));
+                sidebar.updateLine("timer", timer);
+                adminSidebar.updateLine("timer", timer);
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
