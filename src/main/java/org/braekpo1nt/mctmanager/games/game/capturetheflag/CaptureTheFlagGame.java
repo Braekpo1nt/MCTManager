@@ -66,6 +66,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         participants = new ArrayList<>();
         sidebar = gameManager.getSidebarFactory().createSidebar();
+        adminSidebar = gameManager.getSidebarFactory().createSidebar();
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
         }
@@ -88,7 +89,6 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     
     private void startAdmins(List<Player> newAdmins) {
         this.admins = new ArrayList<>(newAdmins.size());
-        adminSidebar = gameManager.getSidebarFactory().createSidebar();
         for (Player admin : newAdmins) {
             initializeAdmin(admin);
         }

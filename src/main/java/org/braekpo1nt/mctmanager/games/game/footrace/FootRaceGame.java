@@ -85,7 +85,6 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     
     private void startAdmins(List<Player> newAdmins) {
         this.admins = new ArrayList<>(newAdmins.size());
-        adminSidebar = gameManager.getSidebarFactory().createSidebar();
         for (Player admin : newAdmins) {
             initializeAdmin(admin);
         }
@@ -132,14 +131,15 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         placements = new ArrayList<>();
         admins = new ArrayList<>();
         sidebar = gameManager.getSidebarFactory().createSidebar();
+        adminSidebar = gameManager.getSidebarFactory().createSidebar();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         closeGlassBarrier();
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
         }
         startAdmins(newAdmins);
-        gameActive = true;
         initializeSidebar();
+        gameActive = true;
         startStatusEffectsTask();
         setupTeamOptions();
         startStartRaceCountdownTask();

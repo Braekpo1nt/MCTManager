@@ -92,6 +92,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         worldBorder = storageUtil.getWorld().getWorldBorder();
         resistance = new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, storageUtil.getInvulnerabilityDuration(), 200, true, false, true);
         sidebar = gameManager.getSidebarFactory().createSidebar();
+        adminSidebar = gameManager.getSidebarFactory().createSidebar();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         placePlatforms();
         fillAllChests();
@@ -123,7 +124,6 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     
     private void startAdmins(List<Player> newAdmins) {
         this.admins = new ArrayList<>(newAdmins.size());
-        adminSidebar = gameManager.getSidebarFactory().createSidebar();
         for (Player admin : newAdmins) {
             initializeAdmin(admin);
         }
