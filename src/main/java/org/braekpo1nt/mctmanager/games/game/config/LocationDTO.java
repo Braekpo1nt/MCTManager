@@ -2,6 +2,8 @@ package org.braekpo1nt.mctmanager.games.game.config;
 
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.util.BoundingBox;
+import org.bukkit.util.Vector;
 
 /**
  * An abstraction of {@link Location} for gson serialization/deserialization purposes.
@@ -76,5 +78,9 @@ public class LocationDTO {
                 ", pitch=" + pitch +
                 ", yaw=" + yaw +
                 '}';
+    }
+    
+    public Vector toVector() {
+        return new Vector(x, y, z);
     }
 }

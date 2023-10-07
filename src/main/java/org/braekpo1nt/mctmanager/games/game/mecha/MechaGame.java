@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.mecha;
 
+import com.google.common.base.Preconditions;
 import com.onarandombox.MultiverseCore.utils.AnchorManager;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -14,6 +15,7 @@ import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
+import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
@@ -94,7 +96,8 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         sidebar = gameManager.getSidebarFactory().createSidebar();
         adminSidebar = gameManager.getSidebarFactory().createSidebar();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
-        placePlatforms();
+        List<String> teams = gameManager.getTeamNames(newParticipants);
+        placePlatforms(teams);
         fillAllChests();
         initializeTeamLocations();
         for (Player participant : newParticipants) {
@@ -142,7 +145,6 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         HandlerList.unregisterAll(this);
         cancelAllTasks();
         clearFloorItems();
-        placePlatforms();
         clearAllChests();
         clearContainers();
         lastKilledTeam = null;
@@ -627,7 +629,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     }
     
     private void initializeWorldBorder() {
-        worldBorder.setCenter(0, 0);
+        worldBorder.setCenter(storageUtil.getWorldBorderCenterX(), storageUtil.getWorldBorderCenterZ());
         worldBorder.setSize(storageUtil.getInitialBorderSize());
     }
     
@@ -780,12 +782,47 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         participant.teleport(teamLocation);
     }
     
-    private void placePlatforms() {
-        storageUtil.getPlatformStructure().place(storageUtil.getPlatformsOrigin(), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
+    /**
+     * Places the platforms for the teams, with floors of the concrete colors of the teams. 
+     * Only places as many platforms as there are teams.
+     * <p>
+     * Note: If there are more teams than there are platforms, will wrap around.
+     * @param teams the teams to place the platforms for
+     */
+    private void placePlatforms(List<String> teams) {
+        List<BoundingBox> platformBarriers = storageUtil.getPlatformBarriers();
+        for (int i = 0; i < teams.size(); i++) {
+            int barrierIndex = wrapIndex(i, platformBarriers.size());
+            BoundingBox barrier = platformBarriers.get(barrierIndex);
+            BlockPlacementUtils.createHollowCube(storageUtil.getWorld(), barrier, Material.GLASS);
+            String team = teams.get(i);
+            Material concreteColor = gameManager.getTeamConcreteColor(team);
+            BoundingBox concreteArea = new BoundingBox(
+                    barrier.getMinX(), 
+                    barrier.getMinY(), 
+                    barrier.getMinZ(), 
+                    barrier.getMaxX(), 
+                    barrier.getMinY(), 
+                    barrier.getMaxZ());
+            BlockPlacementUtils.createCube(storageUtil.getWorld(), concreteArea, concreteColor);
+        }
+    }
+    
+    /**
+     * @param index the index to wrap
+     * @param size the size to wrap around
+     * @return the wrapped version of the index. e.g. if index is 1, and size is 4, returns 1; if index is 6, and size is 4, returns 1;
+     */
+    private int wrapIndex(int index, int size) {
+        Preconditions.checkArgument(size > 0, "size must be greater than 0");
+        return (index % size + size) % size; 
     }
     
     private void removePlatforms() {
-        storageUtil.getPlatformRemovedStructure().place(storageUtil.getPlatformsOrigin(), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
+        List<BoundingBox> platformBarriers = storageUtil.getPlatformBarriers();
+        for (BoundingBox barrier : platformBarriers) {
+            BlockPlacementUtils.createCube(storageUtil.getWorld(), barrier, Material.AIR);
+        }
     }
     
     /**

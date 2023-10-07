@@ -17,14 +17,20 @@
     "maxY": 255,
     "maxZ": 150
   },
-  "initialBorderSize": 400,
-  "borderStages": [
-    {
-      "size": 50,
-      "delay": 80,
-      "duration": 15
-    }
-  ],
+  "border": {
+    "center": {
+      "x": 0,
+      "z": 0
+    },
+    "initialBorderSize": 400,
+    "borderStages": [
+      {
+        "size": 50,
+        "delay": 80,
+        "duration": 15
+      }
+    ]
+  },
   "spawnLootTable": {
     "namespace": "mctdatapack",
     "key": "mecha/spawn-chest"
@@ -75,19 +81,25 @@
       "z": -44.0
     }
   ],
-  "platformsStructure": {
-    "namespace": "mctdatapack",
-    "key": "mecha/platforms"
-  },
-  "platformsRemovedStructure": {
-    "namespace": "mctdatapack",
-    "key": "mecha/platforms_removed"
-  },
-  "platformsOrigin": {
-    "x": -13,
-    "y": -43,
-    "z": -13
-  },
+  "platforms": [
+    {
+      "barrier": {
+        "minX": 9,
+        "minY": -43,
+        "minZ": -3,
+        "maxX": 12,
+        "maxY": -40,
+        "maxZ": 2
+      },
+      "spawn": {
+        "x": 10.5,
+        "y": -42,
+        "z": 0,
+        "yaw": 90,
+        "pitch": 0
+      }
+    }
+  ],
   "scores": {
     "kill": 40,
     "surviveTeam": 40,

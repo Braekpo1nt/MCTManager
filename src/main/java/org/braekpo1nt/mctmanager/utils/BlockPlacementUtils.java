@@ -5,8 +5,6 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.block.data.BlockData;
-import org.bukkit.block.data.Directional;
 import org.bukkit.block.data.MultipleFacing;
 import org.bukkit.util.BoundingBox;
 
@@ -90,6 +88,25 @@ public class BlockPlacementUtils {
         }
     }
     
+    public static void createHollowCube(World world, BoundingBox area, Material material) {
+        int minX = area.getMin().getBlockX();
+        int minY = area.getMin().getBlockY();
+        int minZ = area.getMin().getBlockZ();
+        int maxX = area.getMax().getBlockX();
+        int maxY = area.getMax().getBlockY();
+        int maxZ = area.getMax().getBlockZ();
+        for (int x = minX; x <= maxX; x++) {
+            for (int y = minY; y <= maxY; y++) {
+                for (int z = minZ; z <= maxZ; z++) {
+                    if (x == minX || y == minY || z == minZ) {
+                        Block block = world.getBlockAt(x, y, z);
+                        block.setType(material);
+                    }
+                }
+            }
+        }
+    }
+    
     public static void createCubeReplace(World world, int xOrigin, int yOrigin, int zOrigin, int xSize, int ySize, int zSize, Material replace, Material with) {
         int xEnd = xOrigin + xSize - 1;
         int yEnd = yOrigin + ySize - 1;
@@ -139,6 +156,4 @@ public class BlockPlacementUtils {
             }
         }
     }
-    
-    
 }
