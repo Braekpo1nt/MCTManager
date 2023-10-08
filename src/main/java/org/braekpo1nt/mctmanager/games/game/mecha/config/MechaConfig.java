@@ -27,7 +27,7 @@ record MechaConfig (String version, String world, BoundingBoxDTO spectatorArea, 
     record BorderDTO(Center center, double initialBorderSize, List<BorderStage> borderStages) {
         record Center(double x, double z) {
         }
-    
+        
         /**
          * 
          * @param size The size (in blocks) the border will be at this stage. The border will shrink from the previous stage's size to this stage's size over this stage's duration

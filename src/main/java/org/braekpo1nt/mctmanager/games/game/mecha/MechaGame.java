@@ -24,6 +24,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.event.hanging.HangingBreakByEntityEvent;
@@ -88,7 +89,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         lastKilledTeam = null;
         killCounts = new HashMap<>(newParticipants.size());
         worldBorder = storageUtil.getWorld().getWorldBorder();
-        resistance = new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, storageUtil.getInvulnerabilityDuration(), 200, true, false, true);
+        resistance = new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, storageUtil.getInvulnerabilityDuration()*20, 200, true, false, true);
         sidebar = gameManager.getSidebarFactory().createSidebar();
         adminSidebar = gameManager.getSidebarFactory().createSidebar();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
@@ -350,7 +351,9 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     }
     
     private void giveInvulnerabilityForTenSeconds() {
+        Bukkit.getLogger().info("giveInvulnerabilityForTenSeconds: " + resistance);
         for (Player participant : participants) {
+            Bukkit.getLogger().info("resistance for " + participant.getName());
             participant.addPotionEffect(resistance);
         }
         String invulnerabilityDuration = TimeStringUtils.getTimeString(storageUtil.getInvulnerabilityDuration());
@@ -372,6 +375,25 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         sidebar.updateLine("timer", message);
         adminSidebar.updateLine("timer", message);
         messageAllParticipants(Component.text("Sudden death!"));
+    }
+    
+    @EventHandler
+    public void onPlayerDamage(EntityDamageEvent event) {
+        if (!gameActive) {
+            return;
+        }
+        if (event.getCause().equals(EntityDamageEvent.DamageCause.VOID)) {
+            return;
+        }
+        if (!(event.getEntity() instanceof Player participant)) {
+            return;
+        }
+        if (!participants.contains(participant)) {
+            return;
+        }
+        if (!mechaHasStarted) {
+            event.setCancelled(true);
+        }
     }
     
     @EventHandler
@@ -405,7 +427,9 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
             onTeamWin(winningTeam);
         }
     }
-
+    
+    
+    
     /**
      * Called when:
      * Right-clicking an armor stand
