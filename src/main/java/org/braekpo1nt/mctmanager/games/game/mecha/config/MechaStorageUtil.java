@@ -102,6 +102,13 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
             Preconditions.checkArgument(platform.spawn() != null, "spawn can't be null");
             Preconditions.checkArgument(barrier.contains(platform.spawn().toVector()), "spawn must be inside barrier");
         }
+        for (int i = 0; i < config.platforms().size()-1; i++) {
+            BoundingBox boxA = config.platforms().get(i).barrier().toBoundingBox();
+            for (int j = i+1; j < config.platforms().size(); j++) {
+                BoundingBox boxB = config.platforms().get(j).barrier().toBoundingBox();
+                Preconditions.checkArgument(!boxA.contains(boxB), "barrier \"%s\" overlaps barrier \"%s\"", boxA, boxB);
+            }
+        }
         Preconditions.checkArgument(config.scores() != null, 
                 "scores can't be null");
         Preconditions.checkArgument(config.durations() != null, 
