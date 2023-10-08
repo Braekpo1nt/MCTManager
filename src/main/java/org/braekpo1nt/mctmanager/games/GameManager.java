@@ -910,6 +910,11 @@ public class GameManager implements Listener {
         return ColorMap.getConcretePowderColor(colorString);
     }
     
+    public Material getTeamConcreteColor(String teamName) {
+        String colorString = gameStateStorageUtil.getTeamColorString(teamName);
+        return ColorMap.getConcreteColor(colorString);
+    }
+    
     public ChatColor getTeamChatColor(String teamName) {
         String colorString = gameStateStorageUtil.getTeamColorString(teamName);
         return ColorMap.getChatColor(colorString);

@@ -81,6 +81,26 @@ public class ColorMap {
         POWDER_TYPE_MAP.put("yellow", Material.YELLOW_CONCRETE_POWDER);
     }
     
+    private static final Map<String, Material> CONCRETE_TYPE_MAP = new HashMap<>();
+    static {
+        CONCRETE_TYPE_MAP.put("aqua", Material.LIGHT_BLUE_CONCRETE);
+        CONCRETE_TYPE_MAP.put("black", Material.BLACK_CONCRETE);
+        CONCRETE_TYPE_MAP.put("dark_aqua", Material.CYAN_CONCRETE);
+        CONCRETE_TYPE_MAP.put("dark_blue", Material.BLUE_CONCRETE);
+        CONCRETE_TYPE_MAP.put("dark_gray", Material.GRAY_CONCRETE);
+        CONCRETE_TYPE_MAP.put("dark_green", Material.GREEN_CONCRETE);
+        CONCRETE_TYPE_MAP.put("dark_purple", Material.PURPLE_CONCRETE);
+        CONCRETE_TYPE_MAP.put("dark_red", Material.RED_CONCRETE);
+        CONCRETE_TYPE_MAP.put("gold", Material.YELLOW_CONCRETE);
+        CONCRETE_TYPE_MAP.put("gray", Material.LIGHT_GRAY_CONCRETE);
+        CONCRETE_TYPE_MAP.put("green", Material.LIME_CONCRETE);
+        CONCRETE_TYPE_MAP.put("light_purple", Material.MAGENTA_CONCRETE);
+        CONCRETE_TYPE_MAP.put("red", Material.RED_CONCRETE);
+        CONCRETE_TYPE_MAP.put("white", Material.WHITE_CONCRETE);
+        CONCRETE_TYPE_MAP.put("blue", Material.LIGHT_BLUE_CONCRETE);
+        CONCRETE_TYPE_MAP.put("yellow", Material.YELLOW_CONCRETE);
+    }
+    
     private static final Map<String, Material> BANNER_TYPE_MAP = new HashMap<>();
     static {
         BANNER_TYPE_MAP.put("aqua", Material.LIGHT_BLUE_BANNER);
@@ -137,6 +157,17 @@ public class ColorMap {
      */
     public static Material getConcretePowderColor(String colorString) {
         return POWDER_TYPE_MAP.getOrDefault(colorString, Material.WHITE_CONCRETE_POWDER);
+    }
+    
+    /**
+     * Returns the type of concrete which most closely matches the given colorString.
+     * Note that some color strings are duplicates.
+     * @param colorString The color string to get the concrete for. Should be the color strings matching
+     *                    the ChatColor values.
+     * @return The concrete color that best matches the given color string. White if unrecognized.
+     */
+    public static Material getConcreteColor(String colorString) {
+        return CONCRETE_TYPE_MAP.getOrDefault(colorString, Material.WHITE_CONCRETE);
     }
     
     /**

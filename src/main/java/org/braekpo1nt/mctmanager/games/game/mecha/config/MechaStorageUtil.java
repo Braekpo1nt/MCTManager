@@ -27,9 +27,8 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
     private BoundingBox removeArea;
     private Map<LootTable, Integer> weightedMechaLootTables;
     private World world;
-    private Location platformsOrigin;
-    private Structure platformsStructure;
-    private Structure platformsRemovedStructure;
+    private List<BoundingBox> platformBarriers;
+    private List<Location> platformSpawns;
     private Component description;
     
     public MechaStorageUtil(File configDirectory) {
@@ -58,20 +57,7 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
                 "removeArea can't be null");
         Preconditions.checkArgument(config.removeArea().toBoundingBox().getVolume() >= 1.0, 
                 "removeArea (%s) volume (%s) can't be less than 1.0", config.removeArea().toBoundingBox(), config.removeArea().toBoundingBox().getVolume());
-        Preconditions.checkArgument(config.initialBorderSize() >= 1.0, 
-                "initialBorderSize can't be less than 1.0: %s", config.initialBorderSize());
-        Preconditions.checkArgument(config.borderStages() != null, 
-                "borderStages can't be null");
-        Preconditions.checkArgument(config.borderStages().size() >= 1, 
-                "borderStages must have at least one stage");
-        for (MechaConfig.BorderStage borderStage : config.borderStages()) {
-            Preconditions.checkArgument(borderStage.size() >= 1.0, 
-                    "border stage size (%s) can't be less than 1.0", borderStage.size());
-            Preconditions.checkArgument(borderStage.delay() >= 0, 
-                    "borderStage.delay (%S) can't be negative", borderStage.delay());
-            Preconditions.checkArgument(borderStage.duration() >= 0, 
-                    "borderStage.duration (%S) can't be negative", borderStage.duration());
-        }
+        borderIsValid(config.border());
         Preconditions.checkArgument(lootTableExists(config.spawnLootTable()), 
                 "Could not find spawn loot table \"%s\"", config.spawnLootTable());
         Preconditions.checkArgument(config.weightedMechaLootTables() != null, 
@@ -105,16 +91,24 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
             Preconditions.checkArgument(config.removeArea().toBoundingBox().contains(pos), 
                     "mapChestCoord (%s) is not inside removeArea (%s)", pos, config.removeArea().toBoundingBox());
         }
-        Preconditions.checkArgument(config.platformsStructure() != null, 
-                "platformsStructure can't be null");
-        Preconditions.checkArgument(Bukkit.getStructureManager().loadStructure(config.platformsStructure()) != null, 
-                "Can't find platformsStructure %s", config.platformsStructure());
-        Preconditions.checkArgument(config.platformsRemovedStructure() != null, 
-                "platformsRemovedStructure can't be null");
-        Preconditions.checkArgument(Bukkit.getStructureManager().loadStructure(config.platformsRemovedStructure()) != null, 
-                "Can't find platformsRemovedStructure %s", config.platformsRemovedStructure());
-        Preconditions.checkArgument(config.platformsOrigin() != null, 
-                "platformsOrigin can't be null");
+        Preconditions.checkArgument(config.platforms() != null, "platforms can't be null");
+        Preconditions.checkArgument(config.platforms().size() > 0, "platforms must have at least one element");
+        for (MechaConfig.Platform platform : config.platforms()) {
+            Preconditions.checkArgument(platform.barrier() != null, "barrier can't be null");
+            BoundingBox barrier = platform.barrier().toBoundingBox();
+            Preconditions.checkArgument(barrier.getHeight() >= 3, "barrier must have a height of at least 3");
+            Preconditions.checkArgument(barrier.getWidthX() >= 2, "barrier must have an x width of at least 2");
+            Preconditions.checkArgument(barrier.getWidthZ() >= 2, "barrier must have an z width of at least 2");
+            Preconditions.checkArgument(platform.spawn() != null, "spawn can't be null");
+            Preconditions.checkArgument(barrier.contains(platform.spawn().toVector()), "spawn must be inside barrier");
+        }
+        for (int i = 0; i < config.platforms().size()-1; i++) {
+            BoundingBox boxA = config.platforms().get(i).barrier().toBoundingBox();
+            for (int j = i+1; j < config.platforms().size(); j++) {
+                BoundingBox boxB = config.platforms().get(j).barrier().toBoundingBox();
+                Preconditions.checkArgument(!boxA.contains(boxB), "barrier \"%s\" overlaps barrier \"%s\"", boxA, boxB);
+            }
+        }
         Preconditions.checkArgument(config.scores() != null, 
                 "scores can't be null");
         Preconditions.checkArgument(config.durations() != null, 
@@ -133,6 +127,25 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
         return true;
     }
     
+    private static void borderIsValid(MechaConfig.BorderDTO border) {
+        Preconditions.checkArgument(border != null, "border can't be null");
+        Preconditions.checkArgument(border.center() != null, "border.center can't be null");
+        Preconditions.checkArgument(border.initialBorderSize() >= 1.0, 
+                "border.initialBorderSize can't be less than 1.0: %s", border.initialBorderSize());
+        Preconditions.checkArgument(border.borderStages() != null, 
+                "border.borderStages can't be null");
+        Preconditions.checkArgument(border.borderStages().size() >= 1, 
+                "border.borderStages must have at least one stage");
+        for (MechaConfig.BorderDTO.BorderStage borderStage : border.borderStages()) {
+            Preconditions.checkArgument(borderStage.size() >= 1.0, 
+                    "borderStage size (%s) can't be less than 1.0", borderStage.size());
+            Preconditions.checkArgument(borderStage.delay() >= 0, 
+                    "borderStage.delay (%S) can't be negative", borderStage.delay());
+            Preconditions.checkArgument(borderStage.duration() >= 0, 
+                    "borderStage.duration (%S) can't be negative", borderStage.duration());
+        }
+    }
+    
     @Override
     protected void setConfig(MechaConfig config) {
         World newWorld = Bukkit.getWorld(config.world());
@@ -146,18 +159,18 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
             LootTable lootTable = Bukkit.getLootTable(new NamespacedKey(namespace, key));
             newWeightedMechaLootTables.put(lootTable, weight);
         }
-        Structure newPlatformsStructure = Bukkit.getStructureManager().loadStructure(config.platformsStructure());
-        Preconditions.checkArgument(newPlatformsStructure != null, "Can't find platformsStructure %s", config.platformsStructure());
-        Structure newPlatformsRemovedStructure = Bukkit.getStructureManager().loadStructure(mechaConfig.platformsRemovedStructure());
-        Preconditions.checkArgument(newPlatformsRemovedStructure != null, "Can't find platformsRemovedStructure %s", config.platformsRemovedStructure());
-        Location newPlatformsOrigin = config.platformsOrigin().toLocation(newWorld);
+        List<BoundingBox> newPlatformBarriers = new ArrayList<>();
+        List<Location> newPlatformSpawns = new ArrayList<>();
+        for (MechaConfig.Platform platform : config.platforms()) {
+            newPlatformBarriers.add(platform.barrier().toBoundingBox());
+            newPlatformSpawns.add(platform.spawn().toLocation(newWorld));
+        }
         Component newDescription = GsonComponentSerializer.gson().deserializeFromTree(config.description());
         // now it's confirmed everything works, so set the actual fields
         this.world = newWorld;
         this.weightedMechaLootTables = newWeightedMechaLootTables;
-        this.platformsStructure = newPlatformsStructure;
-        this.platformsRemovedStructure = newPlatformsRemovedStructure;
-        this.platformsOrigin = newPlatformsOrigin;
+        this.platformBarriers = newPlatformBarriers;
+        this.platformSpawns = newPlatformSpawns;
         this.description = newDescription;
         this.removeArea = config.removeArea().toBoundingBox();
         this.mechaConfig = config;
@@ -202,7 +215,7 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
     }
     
     public int[] getSizes() {
-        List<MechaConfig.BorderStage> borderStages = mechaConfig.borderStages();
+        List<MechaConfig.BorderDTO.BorderStage> borderStages = mechaConfig.border().borderStages();
         int[] sizes = new int[borderStages.size()];
         for (int i = 0; i < borderStages.size(); i++) {
             sizes[i] = borderStages.get(i).size();
@@ -211,7 +224,7 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
     }
     
     public int[] getDelays() {
-        List<MechaConfig.BorderStage> borderStages = mechaConfig.borderStages();
+        List<MechaConfig.BorderDTO.BorderStage> borderStages = mechaConfig.border().borderStages();
         int[] delays = new int[borderStages.size()];
         for (int i = 0; i < borderStages.size(); i++) {
             delays[i] = borderStages.get(i).delay();
@@ -220,7 +233,7 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
     }
     
     public int[] getDurations() {
-        List<MechaConfig.BorderStage> borderStages = mechaConfig.borderStages();
+        List<MechaConfig.BorderDTO.BorderStage> borderStages = mechaConfig.border().borderStages();
         int[] durations = new int[borderStages.size()];
         for (int i = 0; i < borderStages.size(); i++) {
             durations[i] = borderStages.get(i).duration();
@@ -232,24 +245,28 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
         return world;
     }
     
+    public double getWorldBorderCenterX() {
+        return mechaConfig.border().center().x();
+    }
+    
+    public double getWorldBorderCenterZ() {
+        return mechaConfig.border().center().z();
+    }
+    
     public double getInitialBorderSize() {
-        return mechaConfig.initialBorderSize();
+        return mechaConfig.border().initialBorderSize();
     }
 
     public BoundingBox getRemoveArea() {
         return removeArea;
     }
     
-    public Structure getPlatformStructure() {
-        return platformsStructure;
+    public List<BoundingBox> getPlatformBarriers() {
+        return platformBarriers;
     }
     
-    public Structure getPlatformRemovedStructure() {
-        return platformsRemovedStructure;
-    }
-    
-    public Location getPlatformsOrigin() {
-        return platformsOrigin;
+    public List<Location> getPlatformSpawns() {
+        return platformSpawns;
     }
     
     public Component getDescription() {

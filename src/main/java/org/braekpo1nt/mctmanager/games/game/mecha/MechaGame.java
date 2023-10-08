@@ -1,6 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.mecha;
 
-import com.onarandombox.MultiverseCore.utils.AnchorManager;
+import com.google.common.base.Preconditions;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
@@ -14,17 +14,17 @@ import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
+import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Chest;
-import org.bukkit.block.structure.Mirror;
-import org.bukkit.block.structure.StructureRotation;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.event.hanging.HangingBreakByEntityEvent;
@@ -32,8 +32,6 @@ import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.loot.LootTable;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
@@ -52,10 +50,12 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     private final MechaStorageUtil storageUtil;
     private boolean gameActive = false;
     private boolean mechaHasStarted = false;
+    private boolean isInvulnerable = false;
     private List<Player> participants = new ArrayList<>();
     private List<Player> admins = new ArrayList<>();
     private int startMechaTaskId;
     private int stopMechaCountdownTaskId;
+    private int startInvulnerableTaskID;
     private WorldBorder worldBorder;
     private int borderShrinkingTaskId;
     private String lastKilledTeam;
@@ -63,8 +63,6 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     private List<UUID> deadPlayers;
     private Map<UUID, Integer> killCounts;
     private final String title = ChatColor.BLUE+"MECHA";
-    private Map<String, Location> teamLocations;
-    private PotionEffect resistance = new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 200, 200, true, false, true);
     
     public MechaGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
@@ -90,16 +88,15 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         lastKilledTeam = null;
         killCounts = new HashMap<>(newParticipants.size());
         worldBorder = storageUtil.getWorld().getWorldBorder();
-        resistance = new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, storageUtil.getInvulnerabilityDuration(), 200, true, false, true);
+        isInvulnerable = false;
         sidebar = gameManager.getSidebarFactory().createSidebar();
         adminSidebar = gameManager.getSidebarFactory().createSidebar();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
-        placePlatforms();
         fillAllChests();
-        initializeTeamLocations();
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
         }
+        initializeAndTeleportToPlatforms();
         initializeSidebar();
         setUpTeamOptions();
         initializeWorldBorder();
@@ -108,14 +105,13 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         gameActive = true;
         Bukkit.getLogger().info("Started mecha");
     }
-    
+
     private void initializeParticipant(Player participant) {
         participants.add(participant);
         UUID participantUniqueId = participant.getUniqueId();
         livingPlayers.add(participantUniqueId);
         killCounts.put(participantUniqueId, 0);
         sidebar.addPlayer(participant);
-        teleportParticipantToStartingPosition(participant);
         participant.setGameMode(GameMode.ADVENTURE);
         participant.getInventory().clear();
         ParticipantInitializer.resetHealthAndHunger(participant);
@@ -134,7 +130,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         admins.add(admin);
         adminSidebar.addPlayer(admin);
         admin.setGameMode(GameMode.SPECTATOR);
-        admin.teleport(teamLocations.get("yellow"));
+        admin.teleport(storageUtil.getPlatformSpawns().get(0));
     }
     
     @Override
@@ -142,9 +138,9 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         HandlerList.unregisterAll(this);
         cancelAllTasks();
         clearFloorItems();
-        placePlatforms();
         clearAllChests();
         clearContainers();
+        removePlatforms();
         lastKilledTeam = null;
         worldBorder.reset();
         stopAdmins();
@@ -297,6 +293,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         Bukkit.getScheduler().cancelTask(startMechaTaskId);
         Bukkit.getScheduler().cancelTask(borderShrinkingTaskId);
         Bukkit.getScheduler().cancelTask(stopMechaCountdownTaskId);
+        Bukkit.getScheduler().cancelTask(startInvulnerableTaskID);
     }
     
     private void startStartMechaCountdownTask() {
@@ -351,17 +348,35 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         kickOffBorderShrinking();
         removePlatforms();
         messageAllParticipants(Component.text("Go!"));
-        giveInvulnerabilityForTenSeconds();
+        startInvulnerableTimer();
     }
     
-    private void giveInvulnerabilityForTenSeconds() {
-        for (Player participant : participants) {
-            participant.addPotionEffect(resistance);
-        }
+    private void startInvulnerableTimer() {
+        isInvulnerable = true;
         String invulnerabilityDuration = TimeStringUtils.getTimeString(storageUtil.getInvulnerabilityDuration());
         messageAllParticipants(Component.text("Invulnerable for ")
                 .append(Component.text(invulnerabilityDuration))
                 .append(Component.text("!")));
+        this.startInvulnerableTaskID = new BukkitRunnable() {
+            private int count = storageUtil.getInvulnerabilityDuration();
+            
+            @Override
+            public void run() {
+                if (count <= 0) {
+                    sidebar.updateLine("invuln", "");
+                    adminSidebar.updateLine("invuln", "");
+                    isInvulnerable = false;
+                    messageAllParticipants(Component.text("Invulnerability has ended!"));
+                    this.cancel();
+                    return;
+                }
+                String timeLeft = TimeStringUtils.getTimeString(count);
+                String timer = String.format("Invulnerable: %s", timeLeft);
+                sidebar.updateLine("invuln", timer);
+                adminSidebar.updateLine("invuln", timer);
+                count--;
+            }
+        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
     }
     
     private void onTeamWin(String winningTeamName) {
@@ -377,6 +392,29 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         sidebar.updateLine("timer", message);
         adminSidebar.updateLine("timer", message);
         messageAllParticipants(Component.text("Sudden death!"));
+    }
+    
+    @EventHandler
+    public void onPlayerDamage(EntityDamageEvent event) {
+        if (!gameActive) {
+            return;
+        }
+        if (event.getCause().equals(EntityDamageEvent.DamageCause.VOID)) {
+            return;
+        }
+        if (!(event.getEntity() instanceof Player participant)) {
+            return;
+        }
+        if (!participants.contains(participant)) {
+            return;
+        }
+        if (!mechaHasStarted) {
+            event.setCancelled(true);
+            return;
+        }
+        if (isInvulnerable) {
+            event.setCancelled(true);
+        }
     }
     
     @EventHandler
@@ -410,7 +448,9 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
             onTeamWin(winningTeam);
         }
     }
-
+    
+    
+    
     /**
      * Called when:
      * Right-clicking an armor stand
@@ -627,7 +667,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     }
     
     private void initializeWorldBorder() {
-        worldBorder.setCenter(0, 0);
+        worldBorder.setCenter(storageUtil.getWorldBorderCenterX(), storageUtil.getWorldBorderCenterZ());
         worldBorder.setSize(storageUtil.getInitialBorderSize());
     }
     
@@ -684,7 +724,8 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     private void initializeAdminSidebar() {
         adminSidebar.addLines(
                 new KeyLine("title", title),
-                new KeyLine("timer", "")
+                new KeyLine("timer", ""),
+                new KeyLine("invuln", "")
         );
     }
     
@@ -699,7 +740,8 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
                 new KeyLine("personalScore", ""),
                 new KeyLine("title", title),
                 new KeyLine("kills", ChatColor.RED+"Kills: 0"),
-                new KeyLine("timer", ChatColor.LIGHT_PURPLE+"Border: 0:00")
+                new KeyLine("timer", ChatColor.LIGHT_PURPLE+"Border: 0:00"),
+                new KeyLine("invuln", "")
         );
     }
     
@@ -774,18 +816,55 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         adminSidebar.updateLine("timer", message);
     }
     
-    private void teleportParticipantToStartingPosition(Player participant) {
-        String team = gameManager.getTeamName(participant.getUniqueId());
-        Location teamLocation = teamLocations.getOrDefault(team, teamLocations.get("yellow"));
-        participant.teleport(teamLocation);
+    /**
+     * Places the platforms for the teams, with floors of the concrete colors of the teams. 
+     * Only places as many platforms as there are teams. Also teleports participants to the appropriate spawn location. 
+     * <p>
+     * Note: If there are more teams than there are platforms, will wrap around.
+     */
+    private void initializeAndTeleportToPlatforms() {
+        List<String> teams = gameManager.getTeamNames(participants);
+        List<BoundingBox> platformBarriers = storageUtil.getPlatformBarriers();
+        List<Location> platformSpawns = storageUtil.getPlatformSpawns();
+        Map<String, Location> teamToSpawn = new HashMap<>();
+        for (int i = 0; i < teams.size(); i++) {
+            int platformIndex = wrapIndex(i, platformBarriers.size());
+            BoundingBox barrier = platformBarriers.get(platformIndex);
+            BlockPlacementUtils.createHollowCube(storageUtil.getWorld(), barrier, Material.BARRIER);
+            String team = teams.get(i);
+            Material concreteColor = gameManager.getTeamConcreteColor(team);
+            BoundingBox concreteArea = new BoundingBox(
+                    barrier.getMinX()+1, 
+                    barrier.getMinY(), 
+                    barrier.getMinZ()+1, 
+                    barrier.getMaxX()-1, 
+                    barrier.getMinY(), 
+                    barrier.getMaxZ()-1);
+            BlockPlacementUtils.createCube(storageUtil.getWorld(), concreteArea, concreteColor);
+            teamToSpawn.put(team, platformSpawns.get(platformIndex));
+        }
+        for (Player participant : participants) {
+            String team = gameManager.getTeamName(participant.getUniqueId());
+            Location spawn = teamToSpawn.get(team);
+            participant.teleport(spawn);
+        }
     }
     
-    private void placePlatforms() {
-        storageUtil.getPlatformStructure().place(storageUtil.getPlatformsOrigin(), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
+    /**
+     * @param index the index to wrap
+     * @param size the size to wrap around
+     * @return the wrapped version of the index. e.g. if index is 1, and size is 4, returns 1; if index is 6, and size is 4, returns 1;
+     */
+    private int wrapIndex(int index, int size) {
+        Preconditions.checkArgument(size > 0, "size must be greater than 0");
+        return (index % size + size) % size; 
     }
     
     private void removePlatforms() {
-        storageUtil.getPlatformRemovedStructure().place(storageUtil.getPlatformsOrigin(), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
+        List<BoundingBox> platformBarriers = storageUtil.getPlatformBarriers();
+        for (BoundingBox barrier : platformBarriers) {
+            BlockPlacementUtils.createCube(storageUtil.getWorld(), barrier, Material.AIR);
+        }
     }
     
     /**
@@ -862,19 +941,6 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         for (Player participant : participants) {
             participant.sendMessage(message);
         }
-    }
-    
-    private void initializeTeamLocations() {
-        AnchorManager anchorManager = Main.multiverseCore.getAnchorManager();
-        teamLocations = new HashMap<>();
-        teamLocations.put("orange", anchorManager.getAnchorLocation("mecha-orange"));
-        teamLocations.put("yellow", anchorManager.getAnchorLocation("mecha-yellow"));
-        teamLocations.put("green", anchorManager.getAnchorLocation("mecha-green"));
-        teamLocations.put("dark-green", anchorManager.getAnchorLocation("mecha-dark-green"));
-        teamLocations.put("cyan", anchorManager.getAnchorLocation("mecha-cyan"));
-        teamLocations.put("blue", anchorManager.getAnchorLocation("mecha-blue"));
-        teamLocations.put("purple", anchorManager.getAnchorLocation("mecha-purple"));
-        teamLocations.put("red", anchorManager.getAnchorLocation("mecha-red"));
     }
     
 }
