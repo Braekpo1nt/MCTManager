@@ -771,7 +771,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     
     /**
      * Places the platforms for the teams, with floors of the concrete colors of the teams. 
-     * Only places as many platforms as there are teams.
+     * Only places as many platforms as there are teams. Also teleports participants to the appropriate spawn location. 
      * <p>
      * Note: If there are more teams than there are platforms, will wrap around.
      */

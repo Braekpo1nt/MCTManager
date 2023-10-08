@@ -98,7 +98,10 @@ public class BlockPlacementUtils {
         for (int x = minX; x <= maxX; x++) {
             for (int y = minY; y <= maxY; y++) {
                 for (int z = minZ; z <= maxZ; z++) {
-                    if (x == minX || y == minY || z == minZ) {
+                    if (
+                            x == minX || x == maxX
+                            || y == minY || y == maxY
+                            || z == minZ || z == maxZ) {
                         Block block = world.getBlockAt(x, y, z);
                         block.setType(material);
                     }
