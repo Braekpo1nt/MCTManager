@@ -415,7 +415,7 @@ public class SpleefRound implements Listener {
     private void startRoundStartingCountDown() {
         this.startCountDownTaskID = new BukkitRunnable() {
             private int count = storageUtil.getRoundStartingDuration();
-            
+
             @Override
             public void run() {
                 if (count <= 0) {

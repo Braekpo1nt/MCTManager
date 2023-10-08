@@ -32,8 +32,6 @@ import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.loot.LootTable;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
@@ -52,10 +50,12 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     private final MechaStorageUtil storageUtil;
     private boolean gameActive = false;
     private boolean mechaHasStarted = false;
+    private boolean isInvulnerable = false;
     private List<Player> participants = new ArrayList<>();
     private List<Player> admins = new ArrayList<>();
     private int startMechaTaskId;
     private int stopMechaCountdownTaskId;
+    private int startInvulnerableTaskID;
     private WorldBorder worldBorder;
     private int borderShrinkingTaskId;
     private String lastKilledTeam;
@@ -63,7 +63,6 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     private List<UUID> deadPlayers;
     private Map<UUID, Integer> killCounts;
     private final String title = ChatColor.BLUE+"MECHA";
-    private PotionEffect resistance = new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 200, 200, true, false, true);
     
     public MechaGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
@@ -89,7 +88,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         lastKilledTeam = null;
         killCounts = new HashMap<>(newParticipants.size());
         worldBorder = storageUtil.getWorld().getWorldBorder();
-        resistance = new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, storageUtil.getInvulnerabilityDuration()*20, 200, true, false, true);
+        isInvulnerable = false;
         sidebar = gameManager.getSidebarFactory().createSidebar();
         adminSidebar = gameManager.getSidebarFactory().createSidebar();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
@@ -294,6 +293,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         Bukkit.getScheduler().cancelTask(startMechaTaskId);
         Bukkit.getScheduler().cancelTask(borderShrinkingTaskId);
         Bukkit.getScheduler().cancelTask(stopMechaCountdownTaskId);
+        Bukkit.getScheduler().cancelTask(startInvulnerableTaskID);
     }
     
     private void startStartMechaCountdownTask() {
@@ -348,19 +348,35 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         kickOffBorderShrinking();
         removePlatforms();
         messageAllParticipants(Component.text("Go!"));
-        giveInvulnerabilityForTenSeconds();
+        startInvulnerableTimer();
     }
     
-    private void giveInvulnerabilityForTenSeconds() {
-        Bukkit.getLogger().info("giveInvulnerabilityForTenSeconds: " + resistance);
-        for (Player participant : participants) {
-            Bukkit.getLogger().info("resistance for " + participant.getName());
-            participant.addPotionEffect(resistance);
-        }
+    private void startInvulnerableTimer() {
+        isInvulnerable = true;
         String invulnerabilityDuration = TimeStringUtils.getTimeString(storageUtil.getInvulnerabilityDuration());
         messageAllParticipants(Component.text("Invulnerable for ")
                 .append(Component.text(invulnerabilityDuration))
                 .append(Component.text("!")));
+        this.startInvulnerableTaskID = new BukkitRunnable() {
+            private int count = storageUtil.getInvulnerabilityDuration();
+            
+            @Override
+            public void run() {
+                if (count <= 0) {
+                    sidebar.updateLine("invuln", "");
+                    adminSidebar.updateLine("invuln", "");
+                    isInvulnerable = false;
+                    messageAllParticipants(Component.text("Invulnerability has ended!"));
+                    this.cancel();
+                    return;
+                }
+                String timeLeft = TimeStringUtils.getTimeString(count);
+                String timer = String.format("Invulnerable: %s", timeLeft);
+                sidebar.updateLine("invuln", timer);
+                adminSidebar.updateLine("invuln", timer);
+                count--;
+            }
+        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
     }
     
     private void onTeamWin(String winningTeamName) {
@@ -393,6 +409,10 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
             return;
         }
         if (!mechaHasStarted) {
+            event.setCancelled(true);
+            return;
+        }
+        if (isInvulnerable) {
             event.setCancelled(true);
         }
     }
@@ -704,7 +724,8 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     private void initializeAdminSidebar() {
         adminSidebar.addLines(
                 new KeyLine("title", title),
-                new KeyLine("timer", "")
+                new KeyLine("timer", ""),
+                new KeyLine("invuln", "")
         );
     }
     
@@ -719,7 +740,8 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
                 new KeyLine("personalScore", ""),
                 new KeyLine("title", title),
                 new KeyLine("kills", ChatColor.RED+"Kills: 0"),
-                new KeyLine("timer", ChatColor.LIGHT_PURPLE+"Border: 0:00")
+                new KeyLine("timer", ChatColor.LIGHT_PURPLE+"Border: 0:00"),
+                new KeyLine("invuln", "")
         );
     }
     
