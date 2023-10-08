@@ -141,6 +141,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         clearFloorItems();
         clearAllChests();
         clearContainers();
+        removePlatforms();
         lastKilledTeam = null;
         worldBorder.reset();
         stopAdmins();
@@ -807,7 +808,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         for (int i = 0; i < teams.size(); i++) {
             int platformIndex = wrapIndex(i, platformBarriers.size());
             BoundingBox barrier = platformBarriers.get(platformIndex);
-            BlockPlacementUtils.createHollowCube(storageUtil.getWorld(), barrier, Material.GLASS);
+            BlockPlacementUtils.createHollowCube(storageUtil.getWorld(), barrier, Material.BARRIER);
             String team = teams.get(i);
             Material concreteColor = gameManager.getTeamConcreteColor(team);
             BoundingBox concreteArea = new BoundingBox(
