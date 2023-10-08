@@ -834,12 +834,12 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
             String team = teams.get(i);
             Material concreteColor = gameManager.getTeamConcreteColor(team);
             BoundingBox concreteArea = new BoundingBox(
-                    barrier.getMinX(), 
+                    barrier.getMinX()+1, 
                     barrier.getMinY(), 
-                    barrier.getMinZ(), 
-                    barrier.getMaxX(), 
+                    barrier.getMinZ()+1, 
+                    barrier.getMaxX()-1, 
                     barrier.getMinY(), 
-                    barrier.getMaxZ());
+                    barrier.getMaxZ()-1);
             BlockPlacementUtils.createCube(storageUtil.getWorld(), concreteArea, concreteColor);
             teamToSpawn.put(team, platformSpawns.get(platformIndex));
         }
