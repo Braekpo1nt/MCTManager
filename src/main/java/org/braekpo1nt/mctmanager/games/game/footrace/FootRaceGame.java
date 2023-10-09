@@ -13,6 +13,7 @@ import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
+import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.bukkit.*;
 import org.bukkit.block.structure.Mirror;
 import org.bukkit.block.structure.StructureRotation;
@@ -359,13 +360,12 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     }
     
     private void openGlassBarrier() {
-        Structure structure = Bukkit.getStructureManager().loadStructure(new NamespacedKey("mctdatapack", "footrace/gateopen"));
-        structure.place(new Location(storageUtil.getWorld(), 2397, 76, 317), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
+        BlockPlacementUtils.createCubeReplace(storageUtil.getWorld(), storageUtil.getGlassBarrier(), Material.WHITE_STAINED_GLASS_PANE, Material.AIR);
     }
     
     private void closeGlassBarrier() {
-        Structure structure = Bukkit.getStructureManager().loadStructure(new NamespacedKey("mctdatapack", "footrace/gateclosed"));
-        structure.place(new Location(storageUtil.getWorld(), 2397, 76, 317), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
+        BlockPlacementUtils.createCubeReplace(storageUtil.getWorld(), storageUtil.getGlassBarrier(), Material.AIR, Material.WHITE_STAINED_GLASS_PANE);
+        BlockPlacementUtils.updateDirection(storageUtil.getWorld(), storageUtil.getGlassBarrier());
     }
     
     private void initializeAdminSidebar() {

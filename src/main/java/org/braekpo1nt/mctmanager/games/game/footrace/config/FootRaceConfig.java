@@ -5,7 +5,7 @@ import org.braekpo1nt.mctmanager.games.game.config.BoundingBoxDTO;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
-record FootRaceConfig(String version, String world, Vector startingLocation, BoundingBoxDTO finishLine, BoundingBoxDTO spectatorArea, Scores scores, Durations durations, JsonObject description) {
+record FootRaceConfig(String version, String world, Vector startingLocation, BoundingBoxDTO finishLine, BoundingBoxDTO spectatorArea, BoundingBoxDTO glassBarrier, Scores scores, Durations durations, JsonObject description) {
     
     record Scores(int completeLap, int[] placementPoints, int detriment) {
     }

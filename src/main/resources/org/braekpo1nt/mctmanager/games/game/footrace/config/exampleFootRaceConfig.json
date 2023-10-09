@@ -22,6 +22,14 @@
     "maxY": 113,
     "maxZ": 439
   },
+  "glassBarrier": {
+    "minX": 2397,
+    "minY": 76,
+    "minZ": 317,
+    "maxX": 2403,
+    "maxY": 80,
+    "maxZ": 317
+  },
   "scores": {
     "completeLap": 5,
     "placementPoints": [

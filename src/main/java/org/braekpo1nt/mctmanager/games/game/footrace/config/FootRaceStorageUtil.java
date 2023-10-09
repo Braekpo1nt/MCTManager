@@ -46,6 +46,7 @@ public class FootRaceStorageUtil extends GameConfigStorageUtil<FootRaceConfig> {
         Preconditions.checkArgument(!finishLine.contains(config.startingLocation()), "startingLocation (%S) can't be inside finishLine (%S)", config.startingLocation(), finishLine);
         Preconditions.checkArgument(config.spectatorArea() != null, "spectatorArea can't be null");
         Preconditions.checkArgument(config.spectatorArea().toBoundingBox().getVolume() >= 1.0, "getSpectatorArea's volume (%s) can't be less than 1. %s", config.spectatorArea().toBoundingBox().getVolume(), config.spectatorArea().toBoundingBox());
+        Preconditions.checkArgument(config.glassBarrier() != null, "glassBarrier can't be null");
         Preconditions.checkArgument(config.scores() != null, "scores can't be null");
         Preconditions.checkArgument(config.scores().placementPoints() != null, "placementPoints can't be null");
         Preconditions.checkArgument(config.scores().placementPoints().length >= 1, "placementPoints must have at least one entry");
@@ -117,4 +118,7 @@ public class FootRaceStorageUtil extends GameConfigStorageUtil<FootRaceConfig> {
         return description;
     }
     
+    public BoundingBox getGlassBarrier() {
+        return footRaceConfig.glassBarrier().toBoundingBox();
+    }
 }
