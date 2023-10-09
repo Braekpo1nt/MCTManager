@@ -159,4 +159,28 @@ public class BlockPlacementUtils {
             }
         }
     }
+    
+    public static void updateDirection(World world, BoundingBox area) {
+        int minX = area.getMin().getBlockX();
+        int minY = area.getMin().getBlockY();
+        int minZ = area.getMin().getBlockZ();
+        int maxX = area.getMax().getBlockX();
+        int maxY = area.getMax().getBlockY();
+        int maxZ = area.getMax().getBlockZ();
+        for (int x = minX; x <= maxX; x++) {
+            for (int y = minY; y <= maxY; y++) {
+                for (int z = minZ; z <= maxZ; z++) {
+                    Block block = world.getBlockAt(x, y, z);
+                    if (block.getBlockData() instanceof MultipleFacing multipleFacing) {
+                        for (BlockFace direction : cardinalDirections) {
+                            if (block.getRelative(direction).isSolid()) {
+                                multipleFacing.setFace(direction, true);
+                                block.setBlockData(multipleFacing);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
