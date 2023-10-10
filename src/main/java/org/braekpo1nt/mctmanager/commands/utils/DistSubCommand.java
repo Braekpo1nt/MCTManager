@@ -79,7 +79,6 @@ class DistSubCommand implements TabExecutor {
             return Collections.emptyList();
         }
         if (!(sender instanceof Player player)) {
-            sender.sendMessage("This command can only be run by a player.");
             return Collections.emptyList();
         }
         Block targetBlock = player.getTargetBlock(transparent, 5);
