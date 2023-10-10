@@ -20,7 +20,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-public class DistSubCommand implements TabExecutor {
+class DistSubCommand implements TabExecutor {
     
     private final Set<Material> transparent = Set.of(Material.AIR, Material.WATER, Material.LAVA);
     
