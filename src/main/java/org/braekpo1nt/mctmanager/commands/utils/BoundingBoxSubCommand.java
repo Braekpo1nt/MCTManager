@@ -85,18 +85,6 @@ class BoundingBoxSubCommand implements TabExecutor {
     }
     
     
-    static class DoubleSerializer implements JsonSerializer<Double> {
-        @Override
-        public JsonElement serialize(Double src, java.lang.reflect.Type typeOfSrc, JsonSerializationContext context) {
-            if (src == Math.floor(src)) {
-                // If the double value is equivalent to an integer, convert it to an integer
-                return new JsonPrimitive((int) src.doubleValue());
-            } else {
-                return new JsonPrimitive(src);
-            }
-        }
-    }
-    
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length == 0 || args.length > 6) {

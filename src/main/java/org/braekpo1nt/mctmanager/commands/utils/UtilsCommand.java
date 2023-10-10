@@ -11,6 +11,7 @@ public class UtilsCommand extends CommandManager {
         plugin.getCommand("utils").setExecutor(this);
         subCommands.put("dist", new DistSubCommand());
         subCommands.put("boundingbox", new BoundingBoxSubCommand());
+        subCommands.put("location", new LocationSubCommand());
     }
     
     @Override
