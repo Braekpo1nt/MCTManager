@@ -19,4 +19,8 @@ commands:
     usage: "/debug <args>"
     permission: mctmanager.mctdebug
     permission-message: "You do not have permission to use this command"
+  utils:
+    description: Utilities useful for working with MCT
+    permission: mctmanager.utils
+    permission-message: "You do not have permission to use this command"
   

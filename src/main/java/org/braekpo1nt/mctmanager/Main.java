@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager;
 import com.onarandombox.MultiverseCore.MultiverseCore;
 import org.braekpo1nt.mctmanager.commands.MCTCommand;
 import org.braekpo1nt.mctmanager.commands.MCTDebugCommand;
+import org.braekpo1nt.mctmanager.commands.utils.UtilsCommand;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.listeners.BlockEffectsListener;
 import org.bukkit.Bukkit;
@@ -62,6 +63,7 @@ public class Main extends JavaPlugin {
         // Commands
         new MCTDebugCommand(this);
         mctCommand = new MCTCommand(this, gameManager, blockEffectsListener);
+        new UtilsCommand(this);
     
         alwaysGiveNightVision();
     }
