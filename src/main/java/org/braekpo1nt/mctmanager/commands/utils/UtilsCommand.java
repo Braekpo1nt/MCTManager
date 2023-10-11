@@ -9,6 +9,10 @@ public class UtilsCommand extends CommandManager {
     
     public UtilsCommand(Main plugin) {
         plugin.getCommand("utils").setExecutor(this);
+        subCommands.put("dist", new DistSubCommand());
+        subCommands.put("boundingbox", new BoundingBoxSubCommand());
+        subCommands.put("location", new LocationSubCommand());
+        subCommands.put("vector", new VectorSubCommand());
     }
     
     @Override
