@@ -62,20 +62,20 @@ class LocationSubCommand implements CommandExecutor {
         LocationDTO block = new LocationDTO(blockLocation);
         String blockJson = gson.toJson(block);
         
-        LocationDTO nearestHalf = new LocationDTO(new Location(
+        LocationDTO rounded = new LocationDTO(new Location(
                 player.getLocation().getWorld(),
                 roundToNearestHalf(player.getLocation().getX()),
                 roundToNearestHalf(player.getLocation().getY()),
                 roundToNearestHalf(player.getLocation().getZ()),
-                (float) roundToNearestHalf(player.getLocation().getYaw()),
-                (float) roundToNearestHalf(player.getLocation().getPitch())
+                specialRound(player.getLocation().getYaw(), 45),
+                specialRound(player.getLocation().getPitch(), 45)
         ));
-        String nearestHalfJson = gson.toJson(nearestHalf);
+        String roundedJson = gson.toJson(rounded);
         
         sender.sendMessage(Component.empty()
                 .append(attribute("Precise", preciseJson, NamedTextColor.WHITE))
                 .append(attribute("Block", blockJson, NamedTextColor.WHITE))
-                .append(attribute("Nearest Half", nearestHalfJson, NamedTextColor.WHITE))
+                .append(attribute("Rounded", roundedJson, NamedTextColor.WHITE))
         );
         return false;
     }
@@ -102,5 +102,10 @@ class LocationSubCommand implements CommandExecutor {
         } else {
             return floor + 1.0;
         }
+    }
+    
+    private static float specialRound(float value, float increment) {
+        float multiple = Math.round(value / increment);
+        return multiple * increment;
     }
 }
