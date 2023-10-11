@@ -3,8 +3,6 @@ package org.braekpo1nt.mctmanager.commands.utils;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.event.ClickEvent;
-import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.games.game.config.LocationDTO;
@@ -64,54 +62,19 @@ class LocationSubCommand implements CommandExecutor {
         
         LocationDTO rounded = new LocationDTO(new Location(
                 player.getLocation().getWorld(),
-                roundToNearestHalf(player.getLocation().getX()),
-                roundToNearestHalf(player.getLocation().getY()),
-                roundToNearestHalf(player.getLocation().getZ()),
-                specialRound(player.getLocation().getYaw(), 45),
-                specialRound(player.getLocation().getPitch(), 45)
+                UtilsUtils.specialRound(player.getLocation().getX(), 0.5),
+                UtilsUtils.specialRound(player.getLocation().getY(), 0.5),
+                UtilsUtils.specialRound(player.getLocation().getZ(), 0.5),
+                UtilsUtils.specialRound(player.getLocation().getYaw(), 45),
+                UtilsUtils.specialRound(player.getLocation().getPitch(), 45)
         ));
         String roundedJson = gson.toJson(rounded);
         
         sender.sendMessage(Component.empty()
-                .append(attribute("Precise", preciseJson, NamedTextColor.WHITE))
-                .append(attribute("Block", blockJson, NamedTextColor.WHITE))
-                .append(attribute("Rounded", roundedJson, NamedTextColor.WHITE))
+                .append(UtilsUtils.attribute("Precise", preciseJson, NamedTextColor.WHITE))
+                .append(UtilsUtils.attribute("Block", blockJson, NamedTextColor.WHITE))
+                .append(UtilsUtils.attribute("Rounded", roundedJson, NamedTextColor.WHITE))
         );
         return false;
-    }
-    
-    private Component attribute(String title, String value, NamedTextColor color) {
-        return Component.empty()
-                .append(Component.text("\n"))
-                .append(Component.text(title))
-                .append(Component.text(": "))
-                .append(Component.text(value)
-                        .hoverEvent(HoverEvent.showText(Component.text("Copy to clipboard")))
-                        .clickEvent(ClickEvent.copyToClipboard(""+value)))
-                .color(color);
-    }
-    
-    private double roundToNearestHalf(double value) {
-        double floor = Math.floor(value);
-        double decimalPart = value - floor;
-        
-        if (decimalPart < 0.25) {
-            return floor;
-        } else if (decimalPart >= 0.25 && decimalPart < 0.75) {
-            return floor + 0.5;
-        } else {
-            return floor + 1.0;
-        }
-    }
-    
-    /**
-     * Rounds a given float value to the closest multiple of the specified increment
-     * @param value The float value to be rounded
-     * @param increment The increment to which the value should be rounded
-     * @return The closest number to the input value that is a multiple of the increment
-     */
-    private static float specialRound(float value, float increment) {
-        float multiple = Math.round(value / increment);
-        return multiple * increment;
     }
 }

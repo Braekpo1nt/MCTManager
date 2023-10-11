@@ -54,31 +54,14 @@ class BoundingBoxSubCommand implements TabExecutor {
                 .create();
         String boundingBoxJson = gson.toJson(boundingBox);
         sender.sendMessage(Component.empty()
-                .append(attribute("BoundingBox", boundingBoxJson, NamedTextColor.WHITE))
-                .append(attribute("Height", boundingBox.getHeight(), NamedTextColor.GREEN))
-                .append(attribute("WidthX", boundingBox.getWidthX(), NamedTextColor.RED))
-                .append(attribute("WidthZ", boundingBox.getWidthZ(), NamedTextColor.BLUE))
-                .append(attribute("Volume", boundingBox.getVolume(), NamedTextColor.WHITE))
-                .append(attribute("Center", String.format("%s, %s, %s", boundingBox.getCenterX(), boundingBox.getCenterY(), boundingBox.getCenterZ()), NamedTextColor.WHITE))
+                .append(UtilsUtils.attribute("BoundingBox", boundingBoxJson, NamedTextColor.WHITE))
+                .append(UtilsUtils.attribute("Height", boundingBox.getHeight(), NamedTextColor.GREEN))
+                .append(UtilsUtils.attribute("WidthX", boundingBox.getWidthX(), NamedTextColor.RED))
+                .append(UtilsUtils.attribute("WidthZ", boundingBox.getWidthZ(), NamedTextColor.BLUE))
+                .append(UtilsUtils.attribute("Volume", boundingBox.getVolume(), NamedTextColor.WHITE))
+                .append(UtilsUtils.attribute("Center", String.format("%s, %s, %s", boundingBox.getCenterX(), boundingBox.getCenterY(), boundingBox.getCenterZ()), NamedTextColor.WHITE))
         );
         return true;
-    }
-    
-    
-    private Component attribute(String title, double value, NamedTextColor color) {
-        String valueStr = value == Math.floor(value) ? ""+(int)value : ""+value;
-        return attribute(title, valueStr, color);
-    }
-    
-    private Component attribute(String title, String value, NamedTextColor color) {
-        return Component.empty()
-                .append(Component.text("\n"))
-                .append(Component.text(title))
-                .append(Component.text(": "))
-                .append(Component.text(value)
-                        .hoverEvent(HoverEvent.showText(Component.text("Copy to clipboard")))
-                        .clickEvent(ClickEvent.copyToClipboard(""+value)))
-                .color(color);
     }
     
     
