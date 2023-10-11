@@ -63,7 +63,8 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     private List<UUID> deadPlayers;
     private Map<UUID, Integer> killCounts;
     private final String title = ChatColor.BLUE+"MECHA";
-    
+    boolean toggle = true; // For blinkPlatforms()
+
     public MechaGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
         this.gameManager = gameManager;
@@ -295,6 +296,51 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         Bukkit.getScheduler().cancelTask(stopMechaCountdownTaskId);
         Bukkit.getScheduler().cancelTask(startInvulnerableTaskID);
     }
+
+    private void blinkPlatforms(boolean toggle) {
+        if (toggle) {
+            // makePlatformsOff
+
+            List<String> teams = gameManager.getTeamNames(participants);
+            List<BoundingBox> platformBarriers = storageUtil.getPlatformBarriers();
+            if (platformBarriers.isEmpty() || teams.isEmpty()) {
+                return;
+            }
+            for (int i = 0; i < platformBarriers.size(); i++) {
+                BoundingBox barrier = platformBarriers.get(i);
+                String team = teams.get(i);
+                Material concreteColor = gameManager.getTeamConcreteColor(team);
+//                Material concreteColor = Material.WHITE_CONCRETE;
+                BoundingBox concreteArea = new BoundingBox(
+                        barrier.getMinX()+1,
+                        barrier.getMinY(),
+                        barrier.getMinZ()+1,
+                        barrier.getMaxX()-1,
+                        barrier.getMinY(),
+                        barrier.getMaxZ()-1);
+                BlockPlacementUtils.createCube(storageUtil.getWorld(), concreteArea, concreteColor);
+            }
+
+        }
+        if (!toggle) {
+            //  makePlatformsOn
+            List<BoundingBox> platformBarriers = storageUtil.getPlatformBarriers();
+            if (platformBarriers.isEmpty()) {
+                return;
+            }
+            for (int i = 0; i < platformBarriers.size(); i++) {
+                BoundingBox barrier = platformBarriers.get(i);
+                BoundingBox concreteArea = new BoundingBox(
+                        barrier.getMinX() + 1,
+                        barrier.getMinY(),
+                        barrier.getMinZ() + 1,
+                        barrier.getMaxX() - 1,
+                        barrier.getMinY(),
+                        barrier.getMaxZ() - 1);
+                BlockPlacementUtils.createCube(storageUtil.getWorld(), concreteArea, Material.BARRIER);
+            }
+        }
+    }
     
     private void startStartMechaCountdownTask() {
         this.startMechaTaskId = new BukkitRunnable() {
@@ -302,6 +348,10 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
             
             @Override
             public void run() {
+                if (count <= 5) {
+                    blinkPlatforms(toggle);
+                    toggle = !toggle;
+                }
                 if (count <= 0) {
                     startMecha();
                     this.cancel();
