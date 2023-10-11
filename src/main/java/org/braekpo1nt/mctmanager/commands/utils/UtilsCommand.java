@@ -12,6 +12,7 @@ public class UtilsCommand extends CommandManager {
         subCommands.put("dist", new DistSubCommand());
         subCommands.put("boundingbox", new BoundingBoxSubCommand());
         subCommands.put("location", new LocationSubCommand());
+        subCommands.put("vector", new VectorSubCommand());
     }
     
     @Override

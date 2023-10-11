@@ -52,12 +52,9 @@ class BoundingBoxSubCommand implements TabExecutor {
                 .setPrettyPrinting()
                 .registerTypeAdapter(Double.class, new DoubleSerializer())
                 .create();
-        String json = gson.toJson(boundingBox);
+        String boundingBoxJson = gson.toJson(boundingBox);
         sender.sendMessage(Component.empty()
-                .append(Component.text("BoundingBox:\n"))
-                .append(Component.text(json)
-                        .hoverEvent(HoverEvent.showText(Component.text("Copy to clipboard")))
-                        .clickEvent(ClickEvent.copyToClipboard(json)))
+                .append(attribute("BoundingBox", boundingBoxJson, NamedTextColor.WHITE))
                 .append(attribute("Height", boundingBox.getHeight(), NamedTextColor.GREEN))
                 .append(attribute("WidthX", boundingBox.getWidthX(), NamedTextColor.RED))
                 .append(attribute("WidthZ", boundingBox.getWidthZ(), NamedTextColor.BLUE))
