@@ -104,6 +104,12 @@ class LocationSubCommand implements CommandExecutor {
         }
     }
     
+    /**
+     * Rounds a given float value to the closest multiple of the specified increment
+     * @param value The float value to be rounded
+     * @param increment The increment to which the value should be rounded
+     * @return The closest number to the input value that is a multiple of the increment
+     */
     private static float specialRound(float value, float increment) {
         float multiple = Math.round(value / increment);
         return multiple * increment;
