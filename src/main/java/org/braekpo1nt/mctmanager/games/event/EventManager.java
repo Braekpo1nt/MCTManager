@@ -19,13 +19,17 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.HandlerList;
+import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public class EventManager {
+public class EventManager implements Listener {
     
     private final Main plugin;
     private final GameManager gameManager;
@@ -112,6 +116,7 @@ public class EventManager {
             return;
         }
         
+        plugin.getServer().getPluginManager().registerEvents(this, plugin);
         maxGames = numberOfGames;
         currentGameNumber = 1;
         playedGames.clear();
@@ -135,6 +140,7 @@ public class EventManager {
                 .append(Component.text("/"))
                 .append(Component.text(maxGames))
                 .append(Component.text(".")));
+        gameManager.removeParticipantsFromHub(participants);
         startWaitingInHub();
     }
     
@@ -149,6 +155,7 @@ public class EventManager {
                     .color(NamedTextColor.RED));
             return;
         }
+        HandlerList.unregisterAll(this);
         Component message = Component.text("Ending event. ")
                 .append(Component.text(currentGameNumber - 1))
                 .append(Component.text("/"))
@@ -726,7 +733,6 @@ public class EventManager {
                     .color(NamedTextColor.RED));
             return;
         }
-        gameManager.removeOnlineParticipantsFromHub();
         if (colossalColosseumGame.isActive()) {
             sender.sendMessage(Component.text("Colossal Colosseum is already running").color(NamedTextColor.RED));
             return;
@@ -735,7 +741,7 @@ public class EventManager {
             sender.sendMessage(Component.text("Please specify the first and second place teams.").color(NamedTextColor.RED));
             return;
         }
-        
+    
         List<Player> firstPlaceParticipants = new ArrayList<>();
         List<Player> secondPlaceParticipants = new ArrayList<>();
         List<Player> spectators = new ArrayList<>();
@@ -765,7 +771,8 @@ public class EventManager {
             sender.sendMessage(Component.text("There are no members of the second place team online.").color(NamedTextColor.RED));
             return;
         }
-        
+    
+        gameManager.removeParticipantsFromHub(participantPool);
         colossalColosseumGame.start(firstPlaceParticipants, secondPlaceParticipants, spectators, admins);
     }
     
@@ -813,6 +820,25 @@ public class EventManager {
                 .color(teamColor)
                 .decorate(TextDecoration.BOLD));
         toPodiumDelay(winningTeam);
+    }
+    
+    @EventHandler
+    public void onPlayerDamage(EntityDamageEvent event) {
+        if (currentState == null) {
+            return;
+        }
+        if (event.getCause().equals(EntityDamageEvent.DamageCause.VOID)) {
+            return;
+        }
+        if (!(event.getEntity() instanceof Player participant)) {
+            return;
+        }
+        if (!participants.contains(participant)) {
+            return;
+        }
+        if (currentState.equals(EventState.DELAY)) {
+            event.setCancelled(true);
+        }
     }
     
     /**

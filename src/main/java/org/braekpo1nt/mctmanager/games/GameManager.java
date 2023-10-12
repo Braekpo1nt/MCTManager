@@ -253,8 +253,8 @@ public class GameManager implements Listener {
         return eventManager;
     }
     
-    public void removeOnlineParticipantsFromHub() {
-        hubManager.removeParticipantsFromHub(onlineParticipants);
+    public void removeParticipantsFromHub(List<Player> participantsToRemove) {
+        hubManager.removeParticipantsFromHub(participantsToRemove);
     }
     
     /**

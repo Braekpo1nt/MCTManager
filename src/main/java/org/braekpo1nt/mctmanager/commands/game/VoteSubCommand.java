@@ -64,7 +64,7 @@ public class VoteSubCommand implements TabExecutor {
 
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (args.length == 0) {
+        if (args.length <= 1) {
             return Collections.emptyList();
         }
         return getGamesNotInArgs(args).stream().toList();
