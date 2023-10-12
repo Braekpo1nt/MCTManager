@@ -159,30 +159,6 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         }
         resetParticipant(participant);
         participants.remove(participant);
-        
-        String teamName = gameManager.getTeamName(participant.getUniqueId());
-        if (getTeamsNextRoundIndex(teamName) == -1) {
-            return;
-        }
-        if (!entireTeamHasQuit(teamName)) {
-            return;
-        }
-        // the entire team has quit, and they have rounds left. Those rounds must be removed.
-    }
-    
-    /**
-     * Check if the entire team has quit (no participants exist with the given team)
-     * @param teamName The team name to check for
-     * @return True if there are no participants on the given team. False otherwise.
-     */
-    private boolean entireTeamHasQuit(String teamName) {
-        for (Player participant : participants) {
-            String participantTeamName = gameManager.getTeamName(participant.getUniqueId());
-            if (participantTeamName.equals(teamName)) {
-                return false;
-            }
-        }
-        return true;
     }
     
     /**
