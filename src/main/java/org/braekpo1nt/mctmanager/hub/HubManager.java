@@ -156,16 +156,12 @@ public class HubManager implements Listener, Configurable {
      */
     public void removeParticipantsFromHub(List<Player> participantsToRemove) {
         for (Player participant : participantsToRemove) {
-            if (this.participants.remove(participant)) {
-//                sidebar.removePlayer(participant.getUniqueId());
-            }
+            participants.remove(participant);
         }
     }
     
     public void onParticipantQuit(Player participant) {
-        if (this.participants.remove(participant)) {
-//            sidebar.removePlayer(participant.getUniqueId());
-        }
+        participants.remove(participant);
     }
     
     /**
@@ -174,7 +170,6 @@ public class HubManager implements Listener, Configurable {
      */
     public void onParticipantJoin(Player participant) {
         participants.add(participant);
-//        sidebar.addPlayer(participant);
     }
     
     public void cancelAllTasks() {
@@ -199,10 +194,11 @@ public class HubManager implements Listener, Configurable {
         if (!(event.getEntity() instanceof Player participant)) {
             return;
         }
-        if (!participants.contains(participant)) {
+        if (participants.contains(participant)) {
+            event.setCancelled(true);
             return;
         }
-        if (headingToHub.contains(participant) || participant.getWorld().equals(storageUtil.getWorld())) {
+        if (headingToHub.contains(participant)) {
             event.setCancelled(true);
         }
     }
