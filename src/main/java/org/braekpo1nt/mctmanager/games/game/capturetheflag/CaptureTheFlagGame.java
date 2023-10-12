@@ -179,7 +179,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     }
     
     private void startNextRound() {
-        List<MatchPairing> roundMatchPairings = generateRoundMatchPairings();
+        List<MatchPairing> roundMatchPairings = chooseNextMatchPairings();
         currentRound = new CaptureTheFlagRound(this, plugin, gameManager, storageUtil, roundMatchPairings, sidebar, adminSidebar);
         playedRounds++;
         List<Player> roundParticipants = new ArrayList<>();
@@ -217,8 +217,16 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         adminSidebar.updateLine("round", round);
     }
     
-    private List<MatchPairing> generateRoundMatchPairings() {
-        throw new UnsupportedOperationException("implement generateRoundMatchPairings()");
+    /**
+     * Chooses the MatchPairings from the unPlayedMatchPairings for the next round (based on the number of arenas)
+     * prioritizing teams which have been on-deck the longest
+     * @return the match pairings that the next round should have (size will match the number of arenas in the config)
+     */
+    private List<MatchPairing> chooseNextMatchPairings() {
+        // have a Map<String, Integer> onDeckRounds which is a map of team names to the number of rounds they spent on-deck, update it when they go on-deck and reset it when they play 
+        // sort the existing unPlayedMatchPairings list by the number of on-deck rounds they have 
+        // pop off the top n items where n is the number of arenas, and return
+        throw new UnsupportedOperationException("implement chooseNextMatchPairings()");
     }
     
     /**
