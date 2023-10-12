@@ -37,9 +37,13 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     private Sidebar sidebar;
     private Sidebar adminSidebar;
     private final CaptureTheFlagStorageUtil storageUtil;
-    private int currentRoundIndex;
+    /**
+     * The number of rounds that have been played
+     */
+    private int playedRounds = 0;
+    private List<MatchPairing> unPlayedMatchPairings;
     private int maxRounds;
-    private List<CaptureTheFlagRound> rounds;
+    private CaptureTheFlagRound currentRound;
     private final String title = ChatColor.BLUE+"Capture the Flag";
     private List<Player> participants = new ArrayList<>();
     private List<Player> admins = new ArrayList<>();
@@ -73,10 +77,9 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         initializeSidebar();
         startAdmins(newAdmins);
         List<String> teamNames = gameManager.getTeamNames(newParticipants);
-        List<MatchPairing> matchPairings = CaptureTheFlagUtils.generateMatchPairings(teamNames);
-        currentRoundIndex = 0;
-        rounds = generateRounds(matchPairings);
-        maxRounds = rounds.size();
+        unPlayedMatchPairings = CaptureTheFlagUtils.generateMatchPairings(teamNames);
+        maxRounds = unPlayedMatchPairings.size() / storageUtil.getArenas().size();
+        playedRounds = 0;
         gameActive = true;
         startNextRound();
         Bukkit.getLogger().info("Starting Capture the Flag");
@@ -105,11 +108,9 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     @Override
     public void stop() {
         HandlerList.unregisterAll(this);
-        CaptureTheFlagRound currentRound = rounds.get(currentRoundIndex);
-        if (currentRound.isActive()) {
+        if (currentRound != null && currentRound.isActive()) {
             currentRound.stop();
         }
-        rounds.clear();
         gameActive = false;
         for (Player participant : participants) {
             resetParticipant(participant);
@@ -143,19 +144,17 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         initializeParticipant(participant);
         sidebar.updateLines(participant.getUniqueId(),
                 new KeyLine("title", title),
-                new KeyLine("round", String.format("Round %d/%d", currentRoundIndex+1, maxRounds))
+                new KeyLine("round", String.format("Round %d/%d", playedRounds, maxRounds))
         );
-        if (currentRoundIndex >= 0) {
-            CaptureTheFlagRound currentRound = rounds.get(currentRoundIndex);
+        if (currentRound != null) {
             currentRound.onParticipantJoin(participant);
         }
     }
     
     @Override
     public void onParticipantQuit(Player participant) {
-        if (currentRoundIndex >= 0) {
-            CaptureTheFlagRound currentRound = rounds.get(currentRoundIndex);
-            currentRound.onParticipantQuit(participant);
+        if (currentRound != null) {
+            currentRound.onParticipantJoin(participant);
         }
         resetParticipant(participant);
         participants.remove(participant);
@@ -165,30 +164,30 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
      * Tells the game that the current round is over. If there are no rounds left, ends the game. If there are rounds left, starts the next round.
      */
     public void roundIsOver() {
-        if (allRoundsAreOver()) {
+        if (allMatchPairingsArePlayed()) {
             stop();
             return;
         }
-        currentRoundIndex++;
         startNextRound();
     }
 
     /**
-     * Checks if all rounds are over
-     * @return true if all rounds are over, i.e. there is no next round, false otherwise
+     * @return true if there are no more un-played match pairings
      */
-    private boolean allRoundsAreOver() {
-        return currentRoundIndex+1 >= rounds.size();
+    private boolean allMatchPairingsArePlayed() {
+        return unPlayedMatchPairings.isEmpty();
     }
     
     private void startNextRound() {
-        CaptureTheFlagRound nextRound = rounds.get(currentRoundIndex);
+        List<MatchPairing> roundMatchPairings = generateRoundMatchPairings();
+        currentRound = new CaptureTheFlagRound(this, plugin, gameManager, storageUtil, roundMatchPairings, sidebar, adminSidebar);
+        playedRounds++;
         List<Player> roundParticipants = new ArrayList<>();
         List<Player> onDeckParticipants = new ArrayList<>();
         for (Player participant : participants) {
             String teamName = gameManager.getTeamName(participant.getUniqueId());
             Component teamDisplayName = gameManager.getFormattedTeamDisplayName(teamName);
-            String oppositeTeam = nextRound.getOppositeTeam(teamName);
+            String oppositeTeam = currentRound.getOppositeTeam(teamName);
             if (oppositeTeam != null) {
                 roundParticipants.add(participant);
                 Component oppositeTeamDisplayName = gameManager.getFormattedTeamDisplayName(oppositeTeam);
@@ -212,45 +211,23 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
                 }
             }
         }
-        nextRound.start(roundParticipants, onDeckParticipants);
-        String round = String.format("Round %d/%d", currentRoundIndex + 1, maxRounds);
+        currentRound.start(roundParticipants, onDeckParticipants);
+        String round = String.format("Round %d/%d", playedRounds, maxRounds);
         sidebar.updateLine("round", round);
         adminSidebar.updateLine("round", round);
     }
-
+    
+    private List<MatchPairing> generateRoundMatchPairings() {
+        throw new UnsupportedOperationException("implement generateRoundMatchPairings()");
+    }
+    
     /**
      * Gets the index of the next round the given team is in, if they are in a successive round.
      * @param teamName The teamName to search for
      * @return The index of the next round the given team is in, -1 if they are not in any of the next rounds.
      */
     private int getTeamsNextRoundIndex(@NotNull String teamName) {
-        for (int i = currentRoundIndex + 1; i < rounds.size(); i++) {
-            CaptureTheFlagRound round = rounds.get(i);
-            String oppositeTeam = round.getOppositeTeam(teamName);
-            if (oppositeTeam != null) {
-                return i;
-            }
-        }
-        return -1;
-    }
-
-    /**
-     * Given n {@link MatchPairing}s, where x is the number of arenas in {@link CaptureTheFlagStorageUtil#getArenas()}
-     * if n>=x, returns ceiling(n/x) rounds. Each round should hold between 1 and x matches.
-     * if n<x, returns 1 round with n matches.
-     * Note: If ceiling(n/x) is not a multiple of x, the last round in the list will hold the remainder of n/x (between 1 and x-1) {@link CaptureTheFlagMatch}s so that all matches are accounted for.
-     * @param matchPairings The match parings to create the rounds for
-     * @return A list of {@link CaptureTheFlagRound}s containing n {@link CaptureTheFlagMatch}s between them, where n is the number of given {@link MatchPairing}s
-     */
-    private @NotNull List<CaptureTheFlagRound> generateRounds(@NotNull List<MatchPairing> matchPairings) {
-        List<CaptureTheFlagRound> rounds = new ArrayList<>();
-        List<List<MatchPairing>> roundMatchPairingsList = CaptureTheFlagUtils.generateRoundMatchPairings(matchPairings, storageUtil.getArenas().size());
-        for (List<MatchPairing> roundMatchPairings : roundMatchPairingsList) {
-            CaptureTheFlagRound newRound = new CaptureTheFlagRound(this, plugin, gameManager, storageUtil, sidebar, adminSidebar);
-            newRound.createMatches(roundMatchPairings, storageUtil.getArenas().subList(0, roundMatchPairings.size()));
-            rounds.add(newRound);
-        }
-        return rounds;
+        throw new UnsupportedOperationException("implement getTeamsNextRoundIndex()");
     }
     
     @EventHandler
@@ -267,10 +244,10 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         if (!participants.contains(participant)) {
             return;
         }
-        if (currentRoundIndex >= rounds.size()) {
+        if (currentRound == null) {
             return;
         }
-        if (rounds.get(currentRoundIndex).isAliveInMatch(participant)) {
+        if (currentRound.isAliveInMatch(participant)) {
             return;
         }
         event.setCancelled(true);
@@ -350,20 +327,6 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     }
     
     public @Nullable CaptureTheFlagRound getCurrentRound() {
-        if (currentRoundIndex < 0) {
-            return null;
-        }
-        return rounds.get(currentRoundIndex);
-    }
-    
-    /**
-     * @return a copy of the rounds list
-     */
-    public List<CaptureTheFlagRound> getRounds() {
-        return new ArrayList<>(rounds);
-    }
-    
-    public int getCurrentRoundIndex() {
-        return currentRoundIndex;
+        return currentRound;
     }
 }

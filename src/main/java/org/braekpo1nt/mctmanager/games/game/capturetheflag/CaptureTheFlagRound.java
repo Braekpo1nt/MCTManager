@@ -37,13 +37,14 @@ public class CaptureTheFlagRound {
     private int onDeckMatchTimerTaskId;
     private boolean roundActive = false;
     
-    public CaptureTheFlagRound(CaptureTheFlagGame captureTheFlagGame, Main plugin, GameManager gameManager, CaptureTheFlagStorageUtil storageUtil, Sidebar sidebar, Sidebar adminSidebar) {
+    public CaptureTheFlagRound(CaptureTheFlagGame captureTheFlagGame, Main plugin, GameManager gameManager, CaptureTheFlagStorageUtil storageUtil, List<MatchPairing> matchPairings, Sidebar sidebar, Sidebar adminSidebar) {
         this.captureTheFlagGame = captureTheFlagGame;
         this.plugin = plugin;
         this.gameManager = gameManager;
         this.storageUtil = storageUtil;
         this.sidebar = sidebar;
         this.adminSidebar = adminSidebar;
+        matches = createMatches(matchPairings, storageUtil.getArenas());
     }
     
     /**
@@ -53,15 +54,16 @@ public class CaptureTheFlagRound {
      * @param arenas The arenas to assign to each {@link CaptureTheFlagMatch}
      * @throws NullPointerException if matchPairings.size() is greater than arenas.size()
      */
-    public void createMatches(List<MatchPairing> matchPairings, List<Arena> arenas) {
-        matches = new ArrayList<>();
+    public List<CaptureTheFlagMatch> createMatches(List<MatchPairing> matchPairings, List<Arena> arenas) {
+        List<CaptureTheFlagMatch> newMatches = new ArrayList<>();
         for (int i = 0; i < matchPairings.size(); i++) {
             MatchPairing matchPairing = matchPairings.get(i);
             Arena arena = arenas.get(i);
             CaptureTheFlagMatch match = new CaptureTheFlagMatch(this, plugin, gameManager, 
                     matchPairing, arena, storageUtil, sidebar, adminSidebar);
-            matches.add(match);
+            newMatches.add(match);
         }
+        return newMatches;
     }
     
     public boolean isActive() {
