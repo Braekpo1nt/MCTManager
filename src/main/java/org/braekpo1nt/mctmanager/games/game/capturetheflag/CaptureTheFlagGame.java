@@ -21,8 +21,7 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Capture the flag games are broken down into the following hierarchy:
@@ -44,6 +43,8 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     private List<MatchPairing> unPlayedMatchPairings;
     private int maxRounds;
     private CaptureTheFlagRound currentRound;
+    private Map<String, OnDeckRounds> onDeckRounds = new HashMap<>();
+    private List<MatchPairing> playedMatchPairings = new ArrayList<>();
     private final String title = ChatColor.BLUE+"Capture the Flag";
     private List<Player> participants = new ArrayList<>();
     private List<Player> admins = new ArrayList<>();
@@ -223,10 +224,39 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
      * @return the match pairings that the next round should have (size will match the number of arenas in the config)
      */
     private List<MatchPairing> chooseNextMatchPairings() {
-        // have a Map<String, Integer> onDeckRounds which is a map of team names to the number of rounds they spent on-deck, update it when they go on-deck and reset it when they play 
-        // sort the existing unPlayedMatchPairings list by the number of on-deck rounds they have 
-        // pop off the top n items where n is the number of arenas, and return
-        throw new UnsupportedOperationException("implement chooseNextMatchPairings()");
+        List<String> sortedTeams = onDeckRounds.entrySet()
+                .stream()
+                .sorted(Comparator.comparing((Map.Entry<String, OnDeckRounds> entry) -> entry.getValue().roundsSpentOnDeck()).reversed()
+                        .thenComparing(entry -> entry.getValue().lastPlayedRound()))
+                .map(Map.Entry::getKey)
+                .toList();
+        int numOfArenas = storageUtil.getArenas().size();
+        List<MatchPairing> newMatchPairings = new ArrayList<>(numOfArenas);
+        for (int i = 0; i < Math.min(numOfArenas, sortedTeams.size()); i++) {
+            String teamA = sortedTeams.get(i);
+            for (int j = i+1; j < sortedTeams.size(); j++) {
+                String teamB = sortedTeams.get(j);
+                MatchPairing newMatchPairing = new MatchPairing(teamA, teamB);
+                if (!listContainsMatchPairing(playedMatchPairings, newMatchPairing) && !listContainsMatchPairing(newMatchPairings, newMatchPairing)) {
+                    newMatchPairings.add(newMatchPairing);
+                }
+            }
+        }
+        return newMatchPairings;
+    }
+    
+    /**
+     * @param matchPairings the list to check if it contains matchPairing
+     * @param matchPairing the MatchPairing to check if matchPairings contains
+     * @return true if matchPairings contains a MatchPairing (agnostic of which team is north or south)
+     */
+    private boolean listContainsMatchPairing(List<MatchPairing> matchPairings, MatchPairing matchPairing) {
+        for (MatchPairing eachMatchPairing : matchPairings) {
+            if (eachMatchPairing.containsTeam(matchPairing.northTeam()) && eachMatchPairing.containsTeam(matchPairing.southTeam())) {
+                return true;
+            }
+        }
+        return false;
     }
     
     /**
