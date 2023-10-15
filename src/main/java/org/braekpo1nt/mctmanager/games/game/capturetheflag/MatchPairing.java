@@ -48,4 +48,9 @@ public record MatchPairing(@NotNull String northTeam, @NotNull String southTeam)
         Set<String> teams = Set.of(northTeam, southTeam);
         return Objects.hash(teams);
     }
+    
+    @Override
+    public String toString() {
+        return String.format("{%s vs %s}", northTeam, southTeam);
+    }
 }

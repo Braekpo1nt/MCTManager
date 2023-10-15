@@ -18,7 +18,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -199,8 +198,8 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
                         .append(Component.text(" this round.")));
             } else {
                 onDeckParticipants.add(participant);
-                int participantsNextRoundIndex = getTeamsNextRoundIndex(teamName);
-                if (participantsNextRoundIndex < 0) {
+                int participantsNextRoundIndex = getNextRoundNumber();
+                if (participantsNextRoundIndex <= 0) {
                     participant.sendMessage(Component.empty()
                             .append(teamDisplayName)
                             .append(Component.text(" has no more rounds. They've competed against every team.")));
@@ -260,12 +259,12 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     }
     
     /**
-     * Gets the index of the next round the given team is in, if they are in a successive round.
-     * @param teamName The teamName to search for
-     * @return The index of the next round the given team is in, -1 if they are not in any of the next rounds.
+     * Gets the number of the next round if there is a next round.
+     * @return The index of the next round, 0 if there are no more next rounds.
      */
-    private int getTeamsNextRoundIndex(@NotNull String teamName) {
-        throw new UnsupportedOperationException("implement getTeamsNextRoundIndex()");
+    private int getNextRoundNumber() {
+        int nextRound = playedRounds + 2;
+        return nextRound > maxRounds ? 0 : nextRound;
     }
     
     @EventHandler
