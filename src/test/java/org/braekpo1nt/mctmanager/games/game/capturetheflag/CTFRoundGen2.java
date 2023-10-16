@@ -13,10 +13,6 @@ public class CTFRoundGen2 {
         CTFRound currentRound;
         Map<String, Integer> roundsSpentOnDeck;
         Set<MatchPairing> playedMatchPairings;
-        /**
-         * Stores which teams the players must fight
-         */
-        Map<String, List<String>> teamsToFight;
         final int numOfArenas;
         /**
          * Set in the constructor for testing purposes. The game simulation will stop after maxRounds rounds are played so you can check the state of the game in between rounds. If this value is -1, then all rounds will be played as calculated without restriction.
@@ -78,12 +74,33 @@ public class CTFRoundGen2 {
             }
             return teams.stream().toList();
         }
-    
+        
         private List<MatchPairing> generateRoundMatchPairings() {
-            List<MatchPairing> matchPairings = new ArrayList<>();
             List<String> sortedTeams = teams.stream().sorted(Comparator.comparing(team -> roundsSpentOnDeck.get(team)).reversed()).toList();
+            List<MatchPairing> result = new ArrayList<>();
             
-            return matchPairings;
+            for (int i = 0; i < sortedTeams.size() - 1 && result.size() < numOfArenas; i++) {
+                for (int j = i + 1; j < sortedTeams.size() && result.size() < numOfArenas; j++) {
+                    String team1 = sortedTeams.get(i);
+                    String team2 = sortedTeams.get(j);
+                    MatchPairing newPairing = new MatchPairing(team1, team2);
+                    
+                    // Check if the new pairing is not equivalent to any in playedMatchPairings
+                    boolean isUnique = true;
+                    for (MatchPairing playedPairing : playedMatchPairings) {
+                        if (newPairing.isEquivalent(playedPairing)) {
+                            isUnique = false;
+                            break;
+                        }
+                    }
+                    
+                    if (isUnique) {
+                        result.add(newPairing);
+                    }
+                }
+            }
+            
+            return result;
         }
         
         public void roundIsOver() {
@@ -141,5 +158,41 @@ public class CTFRoundGen2 {
                 "b", 0,
                 "c", 1
                 ), ctf.roundsSpentOnDeck);
+    }
+    
+    @Test
+    void testGenerateMatchPairings() {
+        List<MatchPairing> generated = generateMatchPairings(List.of("a", "b", "c"), Collections.emptyList(), 4);
+        Assertions.assertEquals(List.of(
+                new MatchPairing("a", "b")
+        ), generated);
+    }
+    
+    List<MatchPairing> generateMatchPairings(
+            List<String> sortedTeams, List<MatchPairing> playedMatchPairings, int numOfArenas) {
+        List<MatchPairing> result = new ArrayList<>();
+        
+        for (int i = 0; i < sortedTeams.size() - 1 && result.size() < numOfArenas; i++) {
+            for (int j = i + 1; j < sortedTeams.size() && result.size() < numOfArenas; j++) {
+                String team1 = sortedTeams.get(i);
+                String team2 = sortedTeams.get(j);
+                MatchPairing newPairing = new MatchPairing(team1, team2);
+                
+                // Check if the new pairing is not equivalent to any in playedMatchPairings
+                boolean isUnique = true;
+                for (MatchPairing playedPairing : playedMatchPairings) {
+                    if (newPairing.isEquivalent(playedPairing)) {
+                        isUnique = false;
+                        break;
+                    }
+                }
+                
+                if (isUnique) {
+                    result.add(newPairing);
+                }
+            }
+        }
+        
+        return result;
     }
 }
