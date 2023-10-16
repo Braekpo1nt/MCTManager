@@ -171,28 +171,35 @@ public class CTFRoundGen2 {
     List<MatchPairing> generateMatchPairings(
             List<String> sortedTeams, List<MatchPairing> playedMatchPairings, int numOfArenas) {
         List<MatchPairing> result = new ArrayList<>();
+        Set<String> teamsUsed = new HashSet<>();
         
         for (int i = 0; i < sortedTeams.size() - 1 && result.size() < numOfArenas; i++) {
-            for (int j = i + 1; j < sortedTeams.size() && result.size() < numOfArenas; j++) {
-                String team1 = sortedTeams.get(i);
-                String team2 = sortedTeams.get(j);
-                MatchPairing newPairing = new MatchPairing(team1, team2);
-                
-                // Check if the new pairing is not equivalent to any in playedMatchPairings
-                boolean isUnique = true;
-                for (MatchPairing playedPairing : playedMatchPairings) {
-                    if (newPairing.isEquivalent(playedPairing)) {
-                        isUnique = false;
-                        break;
+            String team1 = sortedTeams.get(i);
+            if (!teamsUsed.contains(team1)) {
+                for (int j = i + 1; j < sortedTeams.size() && result.size() < numOfArenas; j++) {
+                    String team2 = sortedTeams.get(j);
+                    if (!teamsUsed.contains(team2)) {
+                        MatchPairing newPairing = new MatchPairing(team1, team2);
+                        
+                        // Check if the new pairing is not equivalent to any in playedMatchPairings
+                        boolean isUnique = true;
+                        for (MatchPairing playedPairing : playedMatchPairings) {
+                            if (newPairing.isEquivalent(playedPairing)) {
+                                isUnique = false;
+                                break;
+                            }
+                        }
+                        
+                        if (isUnique) {
+                            result.add(newPairing);
+                            teamsUsed.add(team1);
+                            teamsUsed.add(team2);
+                        }
                     }
-                }
-                
-                if (isUnique) {
-                    result.add(newPairing);
                 }
             }
         }
-        
+    
         return result;
     }
 }
