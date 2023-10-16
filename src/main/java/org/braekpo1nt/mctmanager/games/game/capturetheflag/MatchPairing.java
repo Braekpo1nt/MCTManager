@@ -20,7 +20,12 @@ public record MatchPairing(@NotNull String northTeam, @NotNull String southTeam)
     }
     
     public boolean isEquivalent(@NotNull MatchPairing other) {
-        return other.containsTeam(northTeam) && other.containsTeam(southTeam);
+        if (this.northTeam.equals(other.northTeam)) {
+            return this.southTeam.equals(other.southTeam);
+        } else if (this.northTeam.equals((other.southTeam))) {
+            return this.southTeam.equals((other.northTeam));
+        }
+        return false;
     }
     
     /**
