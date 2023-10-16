@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.capturetheflag;
 
+import com.google.common.base.Preconditions;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -40,7 +41,7 @@ public class CTFRoundGen2 {
         
         public void start(int pauseAfterRounds, String... newTeams) {
             this.pauseRounds = pauseAfterRounds;
-            teams = new ArrayList<>(List.of(newTeams));
+            teams = new ArrayList<>(newTeams.length);
             roundsSpentOnDeck = new HashMap<>();
             teamsToFight = new HashMap<>();
             // reporting
@@ -49,9 +50,10 @@ public class CTFRoundGen2 {
             lastOnDeck = new ArrayList<>();
             totalOnDeckRounds = new HashMap<>();
             // reporting
-            for (String team : teams) {
+            for (String team : newTeams) {
+                teams.add(team);
                 roundsSpentOnDeck.put(team, 0);
-                List<String> opposingTeams = new ArrayList<>(teams);
+                List<String> opposingTeams = new ArrayList<>(List.of(newTeams));
                 opposingTeams.remove(team);
                 teamsToFight.put(team, opposingTeams);
                 // reporting
@@ -69,6 +71,23 @@ public class CTFRoundGen2 {
             this.pauseRounds = pauseAfterRounds;
             playedRounds--;
             roundIsOver();
+        }
+        
+        public void onTeamJoin(String team) {
+            Preconditions.checkState(!teams.contains(team), "tried to join a team that was already in the game");
+            teams.add(team);
+            roundsSpentOnDeck.putIfAbsent(team, 0);
+            if (!teamsToFight.containsKey(team)) {
+                List<String> opposingTeams = new ArrayList<>(teams);
+                opposingTeams.remove(team);
+                teamsToFight.put(team, opposingTeams);
+            }
+            // reporting
+            longestOnDeckStreak.putIfAbsent(team, 0);
+            onDeckStreak.putIfAbsent(team, 0);
+            totalOnDeckRounds.putIfAbsent(team, 0);
+            // reporting
+            System.out.printf("%s joined the game\n", team);
         }
         
         public void startNextRound() {
@@ -242,9 +261,9 @@ public class CTFRoundGen2 {
         System.out.printf("Longest On-Deck Streak: %s%n", ctf.longestOnDeckStreak);
         System.out.printf("Total on-deck rounds: %s%n", ctf.totalOnDeckRounds);
         Assertions.assertEquals(6, ctf.playedRounds);
-        
+        ctf.onTeamJoin("orange");
         ctf.resume(-1);
-        Assertions.assertEquals(11, ctf.playedRounds);
+        Assertions.assertEquals(14, ctf.playedRounds);
     }
     
     @Test
