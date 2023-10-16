@@ -17,9 +17,9 @@ public class CTFRoundGen2 {
         Map<String, List<String>> teamsToFight;
         final int numOfArenas;
         /**
-         * Set in the constructor for testing purposes. The game simulation will stop after maxRounds rounds are played, so you can check the state of the game in between rounds. If this value is -1, then all rounds will be played as calculated without restriction.
+         * Set in the constructor for testing purposes. The game simulation will stop after pauseRounds rounds are played, so you can check the state of the game in between rounds. If this value is -1, then all rounds will be played as calculated without restriction.
          */
-        final int maxRounds;
+        int pauseRounds;
         // reporting
         Map<String, Integer> longestOnDeckStreak; 
         Map<String, Integer> onDeckStreak;
@@ -29,23 +29,17 @@ public class CTFRoundGen2 {
         
         /**
          * @param numOfArenas the number of arenas there are
-         * @param maxRounds the maximum number of rounds to play (-1 to play all rounds)
-         */
-        CTFGame(int numOfArenas, int maxRounds) {
-            this.numOfArenas = numOfArenas;
-            this.maxRounds = maxRounds;
-        }
-        
-        /**
-         * @param numOfArenas the number of arenas there are
          */
         CTFGame(int numOfArenas) {
             this.numOfArenas = numOfArenas;
-            // play all rounds
-            this.maxRounds = -1;
         }
         
         public void start(String... newTeams) {
+            start(-1, newTeams);
+        }
+        
+        public void start(int pauseAfterRounds, String... newTeams) {
+            this.pauseRounds = pauseAfterRounds;
             teams = new ArrayList<>(List.of(newTeams));
             roundsSpentOnDeck = new HashMap<>();
             teamsToFight = new HashMap<>();
@@ -69,6 +63,12 @@ public class CTFRoundGen2 {
             playedMatchPairings = new HashSet<>();
             System.out.println("Start game");
             startNextRound();
+        }
+        
+        public void resume(int pauseAfterRounds) {
+            this.pauseRounds = pauseAfterRounds;
+            playedRounds--;
+            roundIsOver();
         }
         
         public void startNextRound() {
@@ -148,8 +148,13 @@ public class CTFRoundGen2 {
                     break;
                 }
             }
-            if (maxRounds >= 0) {
-                return playedRounds < maxRounds;
+            if (pauseRounds >= 0) {
+                if (roundsAreLeft) {
+                    if (playedRounds >= pauseRounds) {
+                        System.out.println("Paused after round " + playedRounds);
+                        return false;
+                    }
+                }
             }
             return roundsAreLeft;
         }
@@ -185,8 +190,8 @@ public class CTFRoundGen2 {
     
     @Test
     void teams_3_rounds_1() {
-        CTFGame ctf = new CTFGame(4, 1);
-        ctf.start("a", "b", "c");
+        CTFGame ctf = new CTFGame(4);
+        ctf.start(1, "a", "b", "c");
         
         Assertions.assertEquals(1, ctf.playedRounds);
         Assertions.assertEquals(Set.of(
@@ -227,6 +232,18 @@ public class CTFRoundGen2 {
         ctf.start("black", "grey", "red", "yellow", "blue", "green", "pink");
         System.out.printf("Longest On-Deck Streak: %s%n", ctf.longestOnDeckStreak);
         System.out.printf("Total on-deck rounds: %s%n", ctf.totalOnDeckRounds);
+        Assertions.assertEquals(11, ctf.playedRounds);
+    }
+    
+    @Test
+    void teams_7_leave_join() {
+        CTFGame ctf = new CTFGame(2);
+        ctf.start(6, "black", "grey", "red", "yellow", "blue", "green", "pink");
+        System.out.printf("Longest On-Deck Streak: %s%n", ctf.longestOnDeckStreak);
+        System.out.printf("Total on-deck rounds: %s%n", ctf.totalOnDeckRounds);
+        Assertions.assertEquals(6, ctf.playedRounds);
+        
+        ctf.resume(-1);
         Assertions.assertEquals(11, ctf.playedRounds);
     }
     
