@@ -14,12 +14,19 @@ public class CTFRoundGen2 {
         CTFRound currentRound;
         Map<String, Integer> roundsSpentOnDeck;
         Set<MatchPairing> playedMatchPairings;
+        Map<String, List<String>> teamsToFight;
         final int numOfArenas;
         /**
-         * Set in the constructor for testing purposes. The game simulation will stop after maxRounds rounds are played so you can check the state of the game in between rounds. If this value is -1, then all rounds will be played as calculated without restriction.
+         * Set in the constructor for testing purposes. The game simulation will stop after maxRounds rounds are played, so you can check the state of the game in between rounds. If this value is -1, then all rounds will be played as calculated without restriction.
          */
         final int maxRounds;
-    
+        // reporting
+        Map<String, Integer> longestOnDeckStreak; 
+        Map<String, Integer> onDeckStreak;
+        List<String> lastOnDeck;
+        Map<String, Integer> totalOnDeckRounds; 
+        // reporting
+        
         /**
          * @param numOfArenas the number of arenas there are
          * @param maxRounds the maximum number of rounds to play (-1 to play all rounds)
@@ -28,7 +35,7 @@ public class CTFRoundGen2 {
             this.numOfArenas = numOfArenas;
             this.maxRounds = maxRounds;
         }
-    
+        
         /**
          * @param numOfArenas the number of arenas there are
          */
@@ -41,8 +48,23 @@ public class CTFRoundGen2 {
         public void start(String... newTeams) {
             teams = new ArrayList<>(List.of(newTeams));
             roundsSpentOnDeck = new HashMap<>();
+            teamsToFight = new HashMap<>();
+            // reporting
+            longestOnDeckStreak = new HashMap<>();
+            onDeckStreak = new HashMap<>();
+            lastOnDeck = new ArrayList<>();
+            totalOnDeckRounds = new HashMap<>();
+            // reporting
             for (String team : teams) {
                 roundsSpentOnDeck.put(team, 0);
+                List<String> opposingTeams = new ArrayList<>(teams);
+                opposingTeams.remove(team);
+                teamsToFight.put(team, opposingTeams);
+                // reporting
+                longestOnDeckStreak.put(team, 0);
+                onDeckStreak.put(team, 0);
+                totalOnDeckRounds.put(team, 0);
+                // reporting
             }
             playedMatchPairings = new HashSet<>();
             System.out.println("Start game");
@@ -64,9 +86,37 @@ public class CTFRoundGen2 {
                 roundsSpentOnDeck.put(onDeckTeam, oldRoundsSpentOnDeck + 1);
             }
             playedMatchPairings.addAll(roundMatchPairings);
+            for (MatchPairing roundMP : roundMatchPairings) {
+                List<String> northTTF = teamsToFight.get(roundMP.northTeam());
+                northTTF.remove(roundMP.southTeam());
+                List<String> southTTF = teamsToFight.get(roundMP.southTeam());
+                southTTF.remove(roundMP.northTeam());
+            }
+            // reporting
+            for (String team : onDeckTeams) {
+                int old = totalOnDeckRounds.get(team);
+                totalOnDeckRounds.put(team, old+1);
+                if (lastOnDeck.contains(team)) {
+                    int streak = onDeckStreak.get(team);
+                    streak++;
+                    if (streak > longestOnDeckStreak.get(team)) {
+                        longestOnDeckStreak.put(team, streak);
+                    }
+                } else {
+                    onDeckStreak.put(team, 1);
+                    if (longestOnDeckStreak.get(team) < 1) {
+                        longestOnDeckStreak.put(team, 1);
+                    }
+                }
+            }
+            for (String team : participantTeams) {
+                onDeckStreak.put(team, 0);
+            }
+            lastOnDeck = new ArrayList<>(onDeckTeams);
+            // reporting
             currentRound.start(participantTeams, roundMatchPairings, onDeckTeams);
         }
-    
+        
         private List<String> getTeamsFromMatchPairings(List<MatchPairing> matchPairings) {
             Set<String> teams = new HashSet<>(matchPairings.size()*2);
             for (MatchPairing matchPairing : matchPairings) {
@@ -89,16 +139,27 @@ public class CTFRoundGen2 {
             }
             stop();
         }
-    
+        
         private boolean thereAreRoundsLeft() {
+            boolean roundsAreLeft = false;
+            for (List<String> value : teamsToFight.values()) {
+                if (!value.isEmpty()) {
+                    roundsAreLeft = true;
+                    break;
+                }
+            }
             if (maxRounds >= 0) {
                 return playedRounds < maxRounds;
             }
-            return false;
+            return roundsAreLeft;
         }
         
         public void stop() {
             System.out.println("Stop game");
+        }
+        
+        static int calculateRounds(int numOfTeams, int numOfArenas) {
+            return ((int) Math.ceil((numOfTeams * (numOfTeams - 1) / 2.0) / numOfArenas));
         }
         
     }
@@ -112,7 +173,7 @@ public class CTFRoundGen2 {
         
         public void start(List<String> newTeams, List<MatchPairing> matchPairings, List<String> onDeckTeams) {
             teams = new ArrayList<>(newTeams);
-            System.out.printf("Start with Pairs:%s; Deck:%s%n", matchPairings, onDeckTeams);
+            System.out.printf("Start round with:%s; On-Deck:%s%n", matchPairings, onDeckTeams);
             stop();
         }
         
@@ -143,7 +204,7 @@ public class CTFRoundGen2 {
         CTFGame ctf = new CTFGame(4);
         ctf.start("a", "b", "c");
         
-        Assertions.assertEquals(1, ctf.playedRounds);
+        Assertions.assertEquals(3, ctf.playedRounds);
         assertSetsAreEqual(
                 Set.of(
                     new MatchPairing("a", "b"),
@@ -158,6 +219,15 @@ public class CTFRoundGen2 {
                 "b", 1,
                 "c", 1
         ), ctf.roundsSpentOnDeck);
+    }
+    
+    @Test
+    void teams_7_rounds_all_arenas_2() {
+        CTFGame ctf = new CTFGame(2);
+        ctf.start("black", "grey", "red", "yellow", "blue", "green", "pink");
+        System.out.printf("Longest On-Deck Streak: %s%n", ctf.longestOnDeckStreak);
+        System.out.printf("Total on-deck rounds: %s%n", ctf.totalOnDeckRounds);
+        Assertions.assertEquals(11, ctf.playedRounds);
     }
     
     @Test
