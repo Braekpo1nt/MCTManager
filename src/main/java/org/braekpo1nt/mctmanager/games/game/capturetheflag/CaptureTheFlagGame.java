@@ -225,8 +225,8 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     private List<MatchPairing> chooseNextMatchPairings() {
         List<String> sortedTeams = onDeckRounds.entrySet()
                 .stream()
-                .sorted(Comparator.comparing((Map.Entry<String, OnDeckRounds> entry) -> entry.getValue().roundsSpentOnDeck()).reversed()
-                        .thenComparing(entry -> entry.getValue().lastPlayedRound()))
+                .sorted(Comparator.comparing((Map.Entry<String, OnDeckRounds> entry) -> entry.getValue().getRoundsSpentOnDeck()).reversed()
+                        .thenComparing(entry -> entry.getValue().getLastPlayedRound()))
                 .map(Map.Entry::getKey)
                 .toList();
         int numOfArenas = storageUtil.getArenas().size();

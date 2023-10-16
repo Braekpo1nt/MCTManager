@@ -18,7 +18,11 @@ public record MatchPairing(@NotNull String northTeam, @NotNull String southTeam)
     public boolean containsTeam(@NotNull String teamName) {
         return northTeam.equals(teamName) || southTeam.equals(teamName);
     }
-
+    
+    public boolean isEquivalent(@NotNull MatchPairing other) {
+        return other.containsTeam(northTeam) && other.containsTeam(southTeam);
+    }
+    
     /**
      * Gets the opposite team of the given team, if the MatchPairing contains the given team. 
      * If you give the team name of the northTeam, you get the southTeam, and vice versa.
@@ -33,20 +37,6 @@ public record MatchPairing(@NotNull String northTeam, @NotNull String southTeam)
             return northTeam;
         }
         return null;
-    }
-    
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        MatchPairing that = (MatchPairing) o;
-        return this.containsTeam(that.northTeam) && this.containsTeam(that.southTeam);
-    }
-    
-    @Override
-    public int hashCode() {
-        Set<String> teams = Set.of(northTeam, southTeam);
-        return Objects.hash(teams);
     }
     
     @Override

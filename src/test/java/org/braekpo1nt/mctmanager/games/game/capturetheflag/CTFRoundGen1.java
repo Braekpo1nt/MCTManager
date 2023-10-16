@@ -5,10 +5,10 @@ import org.junit.jupiter.api.Test;
 
 import java.util.*;
 
-class CaptureTheFlagGameTest {
+class CTFRoundGen1 {
     
     @Test
-    void nextMatchPairing() {
+    void threeTeamsFirstMatch() {
         List<String> teams = List.of("a", "b", "c");
         Map<String, OnDeckRounds> onDeckRounds = new HashMap<>();
         for (String team : teams) {
@@ -16,12 +16,18 @@ class CaptureTheFlagGameTest {
         }
         List<MatchPairing> playedMatchPairings = new ArrayList<>();
         int numOfArenas = 4;
-        List<MatchPairing> nextMatchPairings = chooseNextMatchPairings(onDeckRounds, playedMatchPairings, numOfArenas);
-        Assertions.assertEquals(List.of(new MatchPairing("a", "b")), nextMatchPairings);
+        List<MatchPairing> firstMatchPairings = chooseNextMatchPairings(onDeckRounds, playedMatchPairings, numOfArenas);
+        Assertions.assertEquals(List.of(new MatchPairing("a", "b")), firstMatchPairings);
+    
+        playedMatchPairings.addAll(firstMatchPairings);
+        OnDeckRounds c = onDeckRounds.get("c");
+        c.incrementRoundsSpentOnDeck();
+        List<MatchPairing> secondMatchPairings = chooseNextMatchPairings(onDeckRounds, playedMatchPairings, numOfArenas);
+        Assertions.assertEquals(List.of(new MatchPairing("a", "c")), secondMatchPairings);
     }
     
     @Test
-    void nextMatchPairing2() {
+    void threeTeamsSecondMatch() {
         List<String> teams = List.of("a", "b", "c");
         Map<String, OnDeckRounds> onDeckRounds = new HashMap<>();
         for (String team : teams) {
@@ -41,8 +47,8 @@ class CaptureTheFlagGameTest {
     private List<MatchPairing> chooseNextMatchPairings(Map<String, OnDeckRounds> onDeckRounds, List<MatchPairing> playedMatchPairings, int numOfArenas) {
         List<String> sortedTeams = onDeckRounds.entrySet()
                 .stream()
-                .sorted(Comparator.comparing((Map.Entry<String, OnDeckRounds> entry) -> entry.getValue().roundsSpentOnDeck()).reversed()
-                        .thenComparing(entry -> entry.getValue().lastPlayedRound()))
+                .sorted(Comparator.comparing((Map.Entry<String, OnDeckRounds> entry) -> entry.getValue().getRoundsSpentOnDeck()).reversed()
+                        .thenComparing(entry -> entry.getValue().getLastPlayedRound()))
                 .map(Map.Entry::getKey)
                 .toList();
         List<MatchPairing> newMatchPairings = new ArrayList<>(numOfArenas);
