@@ -42,7 +42,6 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     private List<MatchPairing> unPlayedMatchPairings;
     private int maxRounds;
     private CaptureTheFlagRound currentRound;
-    private Map<String, OnDeckRounds> onDeckRounds = new HashMap<>();
     private List<MatchPairing> playedMatchPairings = new ArrayList<>();
     private final String title = ChatColor.BLUE+"Capture the Flag";
     private List<Player> participants = new ArrayList<>();
@@ -223,25 +222,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
      * @return the match pairings that the next round should have (size will match the number of arenas in the config)
      */
     private List<MatchPairing> chooseNextMatchPairings() {
-        List<String> sortedTeams = onDeckRounds.entrySet()
-                .stream()
-                .sorted(Comparator.comparing((Map.Entry<String, OnDeckRounds> entry) -> entry.getValue().getRoundsSpentOnDeck()).reversed()
-                        .thenComparing(entry -> entry.getValue().getLastPlayedRound()))
-                .map(Map.Entry::getKey)
-                .toList();
-        int numOfArenas = storageUtil.getArenas().size();
-        List<MatchPairing> newMatchPairings = new ArrayList<>(numOfArenas);
-        for (int i = 0; i < Math.min(numOfArenas, sortedTeams.size()); i++) {
-            String teamA = sortedTeams.get(i);
-            for (int j = i+1; j < sortedTeams.size(); j++) {
-                String teamB = sortedTeams.get(j);
-                MatchPairing newMatchPairing = new MatchPairing(teamA, teamB);
-                if (!listContainsMatchPairing(playedMatchPairings, newMatchPairing) && !listContainsMatchPairing(newMatchPairings, newMatchPairing)) {
-                    newMatchPairings.add(newMatchPairing);
-                }
-            }
-        }
-        return newMatchPairings;
+        throw new UnsupportedOperationException("implement chooseNextMatchPairings()");
     }
     
     /**

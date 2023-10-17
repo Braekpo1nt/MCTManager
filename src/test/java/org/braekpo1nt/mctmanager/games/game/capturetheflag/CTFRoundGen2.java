@@ -408,7 +408,7 @@ public class CTFRoundGen2 {
         for (int i = 0; i < sortedTeams.size() - 1 && result.size() < numOfArenas; i++) {
             String team1 = sortedTeams.get(i);
             if (!teamsUsed.contains(team1)) {
-                for (int j = i + 1; j < sortedTeams.size() && result.size() < numOfArenas; j++) {
+                for (int j = i + 1; j < sortedTeams.size(); j++) {
                     String team2 = sortedTeams.get(j);
                     if (!teamsUsed.contains(team2)) {
                         MatchPairing newPairing = new MatchPairing(team1, team2);
