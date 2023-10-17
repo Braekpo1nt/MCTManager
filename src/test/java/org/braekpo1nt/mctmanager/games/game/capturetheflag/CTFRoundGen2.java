@@ -296,24 +296,42 @@ public class CTFRoundGen2 {
     void teams_7_join() {
         CTFGame ctf = new CTFGame(2);
         ctf.start(6, "black", "grey", "red", "yellow", "blue", "green", "pink");
-        System.out.printf("Longest On-Deck Streak: %s%n", ctf.longestOnDeckStreak);
-        System.out.printf("Total on-deck rounds: %s%n", ctf.totalOnDeckRounds);
         ctf.onTeamJoin("orange");
         ctf.resume(-1);
-        System.out.printf("Longest On-Deck Streak: %s%n", ctf.longestOnDeckStreak);
-        System.out.printf("Total on-deck rounds: %s%n", ctf.totalOnDeckRounds);
+        Set<MatchPairing> expectedPlayedMatchPairings = createAllMatchPairings("black", "grey", "red", "yellow", "blue", "green", "pink", "orange");
+    
         Assertions.assertEquals(14, ctf.playedRounds);
+        assertSetsAreEqual(expectedPlayedMatchPairings, ctf.playedMatchPairings, this::matchPairingEquivalent);
     }
     
     @Test
     void teams_7_leave_join() {
         CTFGame ctf = new CTFGame(2);
-        ctf.start(3, "black", "grey", "red", "yellow", "blue", "green", "pink");
+        String[] teams = {"black", "grey", "red", "yellow", "blue", "green", "pink"};
+        ctf.start(3, teams);
         ctf.onTeamQuit("black");
         ctf.resume(5);
         ctf.onTeamJoin("black");
         ctf.resume(-1);
+        Set<MatchPairing> expectedPlayedMatchPairings = createAllMatchPairings(teams);
+    
         Assertions.assertEquals(11, ctf.playedRounds);
+        assertSetsAreEqual(expectedPlayedMatchPairings, ctf.playedMatchPairings, this::matchPairingEquivalent);
+    }
+    
+    @Test
+    void teams_7_leave_join_late() {
+        CTFGame ctf = new CTFGame(2);
+        String[] teams = {"black", "grey", "red", "yellow", "blue", "green", "pink"};
+        ctf.start(3, teams);
+        ctf.onTeamQuit("black");
+        ctf.resume(5);
+        ctf.onTeamJoin("black");
+        ctf.resume(-1);
+        Set<MatchPairing> expectedPlayedMatchPairings = createAllMatchPairings(teams);
+        
+        Assertions.assertEquals(11, ctf.playedRounds);
+        assertSetsAreEqual(expectedPlayedMatchPairings, ctf.playedMatchPairings, this::matchPairingEquivalent);
     }
     
     @Test
@@ -368,6 +386,18 @@ public class CTFRoundGen2 {
         Assertions.assertEquals(List.of(
                 new MatchPairing("a", "b")
         ), generated);
+    }
+    
+    Set<MatchPairing> createAllMatchPairings(String... teams) {
+        Set<MatchPairing> matchPairings = new HashSet<>();
+        for (int i = 0; i < teams.length; i++) {
+            String team1 = teams[i];
+            for (int j = i+1; j < teams.length; j++) {
+                String team2 = teams[j];
+                matchPairings.add(new MatchPairing(team1, team2));
+            }
+        }
+        return matchPairings;
     }
     
     List<MatchPairing> generateMatchPairings(
