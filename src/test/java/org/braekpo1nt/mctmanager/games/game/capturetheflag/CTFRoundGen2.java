@@ -63,7 +63,7 @@ public class CTFRoundGen2 {
                 // reporting
             }
             playedMatchPairings = new HashSet<>();
-            System.out.println("Start game");
+//            System.out.println("Start game");
             startNextRound();
         }
         
@@ -76,6 +76,7 @@ public class CTFRoundGen2 {
         public void onTeamQuit(String team) {
             Preconditions.checkState(teams.contains(team), "tried to quit a team that was not in the game");
             teams.remove(team);
+            System.out.printf("%s quit the game\n", team);
         }
         
         public void onTeamJoin(String team) {
@@ -205,7 +206,7 @@ public class CTFRoundGen2 {
         }
         
         public void stop() {
-            System.out.println("Stop game");
+//            System.out.println("Stop game");
         }
         
         static int calculateRounds(int numOfTeams, int numOfArenas) {
@@ -228,7 +229,7 @@ public class CTFRoundGen2 {
         }
         
         public void stop() {
-            System.out.println("Stop round");
+//            System.out.println("Stop round");
             ctfGame.roundIsOver();
         }
     }
@@ -272,7 +273,7 @@ public class CTFRoundGen2 {
     }
     
     @Test
-    void teams_7_rounds_all_arenas_2() {
+    void teams_7_arenas_2() {
         CTFGame ctf = new CTFGame(2);
         ctf.start("black", "grey", "red", "yellow", "blue", "green", "pink");
         System.out.printf("Longest On-Deck Streak: %s%n", ctf.longestOnDeckStreak);
@@ -308,14 +309,11 @@ public class CTFRoundGen2 {
     void teams_7_leave_join() {
         CTFGame ctf = new CTFGame(2);
         ctf.start(3, "black", "grey", "red", "yellow", "blue", "green", "pink");
-        System.out.printf("Longest On-Deck Streak: %s%n", ctf.longestOnDeckStreak);
-        System.out.printf("Total on-deck rounds: %s%n", ctf.totalOnDeckRounds);
-        Assertions.assertEquals(3, ctf.playedRounds);
-        ctf.onTeamJoin("orange");
+        ctf.onTeamQuit("black");
+        ctf.resume(5);
+        ctf.onTeamJoin("black");
         ctf.resume(-1);
-        System.out.printf("Longest On-Deck Streak: %s%n", ctf.longestOnDeckStreak);
-        System.out.printf("Total on-deck rounds: %s%n", ctf.totalOnDeckRounds);
-        Assertions.assertEquals(CTFGame.calculateRounds(7, 2), ctf.playedRounds);
+        Assertions.assertEquals(11, ctf.playedRounds);
     }
     
     @Test
