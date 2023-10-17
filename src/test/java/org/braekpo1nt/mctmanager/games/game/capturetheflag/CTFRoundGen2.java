@@ -73,24 +73,44 @@ public class CTFRoundGen2 {
             roundIsOver();
         }
         
+        public void onTeamQuit(String team) {
+            Preconditions.checkState(teams.contains(team), "tried to quit a team that was not in the game");
+            teams.remove(team);
+        }
+        
         public void onTeamJoin(String team) {
             Preconditions.checkState(!teams.contains(team), "tried to join a team that was already in the game");
+            if (teamShouldRejoin(team)) {
+                onTeamRejoin(team);
+                return;
+            }
             teams.add(team);
-            roundsSpentOnDeck.putIfAbsent(team, playedRounds); // even though they weren't technically on-deck for this many rounds, this lets the algorithm prioritize fitting them into games so that there is not a string of "new team" vs "a single team at a time" matches.
-            if (!teamsToFight.containsKey(team)) {
-                List<String> opposingTeams = new ArrayList<>(teamsToFight.keySet());
-                teamsToFight.put(team, opposingTeams);
-                for (String opposingTeam : opposingTeams) {
-                    List<String> value = teamsToFight.get(opposingTeam);
-                    value.add(team);
-                }
+            int maxRoundsOnDeck = roundsSpentOnDeck.values().stream().mapToInt(Integer::intValue).max().orElse(0);
+            roundsSpentOnDeck.put(team, maxRoundsOnDeck); // give them the same sorting priority as the player who has spent the longest time on-deck, to help prevent a string of matches with just "<new team> vs <a single team at a time>"
+            List<String> opposingTeams = new ArrayList<>(teamsToFight.keySet());
+            teamsToFight.put(team, opposingTeams);
+            for (String opposingTeam : opposingTeams) {
+                List<String> value = teamsToFight.get(opposingTeam);
+                value.add(team);
             }
             // reporting
             longestOnDeckStreak.putIfAbsent(team, 0);
             onDeckStreak.putIfAbsent(team, 0);
-            totalOnDeckRounds.putIfAbsent(team, 0);
+            totalOnDeckRounds.putIfAbsent(team, roundsSpentOnDeck.get(team));
             // reporting
             System.out.printf("%s joined the game\n", team);
+        }
+        
+        /**
+         * @param team the team
+         * @return true if the team was in the game then left previously and should thus rejoin
+         */
+        private boolean teamShouldRejoin(String team) {
+            return teamsToFight.containsKey(team);
+        }
+    
+        private void onTeamRejoin(String team) {
+            teams.add(team);
         }
         
         public void startNextRound() {
@@ -149,7 +169,10 @@ public class CTFRoundGen2 {
         }
         
         private List<MatchPairing> generateRoundMatchPairings() {
-            List<String> sortedTeams = teams.stream().sorted(Comparator.comparing(team -> roundsSpentOnDeck.get(team)).reversed()).toList();
+            List<String> sortedTeams = teams.stream().sorted(Comparator.<String, Integer>
+                            comparing(team -> teamsToFight.get(team).size(), Comparator.reverseOrder())
+                            .thenComparing(roundsSpentOnDeck::get, Comparator.reverseOrder())
+            ).toList();
             return generateMatchPairings(sortedTeams, playedMatchPairings, numOfArenas);
         }
         
@@ -258,15 +281,41 @@ public class CTFRoundGen2 {
     }
     
     @Test
-    void teams_7_leave_join() {
+    void pause_resume() {
+        CTFGame ctf = new CTFGame(2);
+        ctf.start(6, "black", "grey", "red", "yellow", "blue", "green", "pink");
+        Assertions.assertEquals(6, ctf.playedRounds);
+        ctf.resume(8);
+        Assertions.assertEquals(8, ctf.playedRounds);
+        ctf.resume(-1);
+        Assertions.assertEquals(11, ctf.playedRounds);
+    }
+    
+    @Test
+    void teams_7_join() {
         CTFGame ctf = new CTFGame(2);
         ctf.start(6, "black", "grey", "red", "yellow", "blue", "green", "pink");
         System.out.printf("Longest On-Deck Streak: %s%n", ctf.longestOnDeckStreak);
         System.out.printf("Total on-deck rounds: %s%n", ctf.totalOnDeckRounds);
-        Assertions.assertEquals(6, ctf.playedRounds);
         ctf.onTeamJoin("orange");
         ctf.resume(-1);
-        Assertions.assertEquals(CTFGame.calculateRounds(8, 2), ctf.playedRounds);
+        System.out.printf("Longest On-Deck Streak: %s%n", ctf.longestOnDeckStreak);
+        System.out.printf("Total on-deck rounds: %s%n", ctf.totalOnDeckRounds);
+        Assertions.assertEquals(14, ctf.playedRounds);
+    }
+    
+    @Test
+    void teams_7_leave_join() {
+        CTFGame ctf = new CTFGame(2);
+        ctf.start(3, "black", "grey", "red", "yellow", "blue", "green", "pink");
+        System.out.printf("Longest On-Deck Streak: %s%n", ctf.longestOnDeckStreak);
+        System.out.printf("Total on-deck rounds: %s%n", ctf.totalOnDeckRounds);
+        Assertions.assertEquals(3, ctf.playedRounds);
+        ctf.onTeamJoin("orange");
+        ctf.resume(-1);
+        System.out.printf("Longest On-Deck Streak: %s%n", ctf.longestOnDeckStreak);
+        System.out.printf("Total on-deck rounds: %s%n", ctf.totalOnDeckRounds);
+        Assertions.assertEquals(CTFGame.calculateRounds(7, 2), ctf.playedRounds);
     }
     
     @Test
