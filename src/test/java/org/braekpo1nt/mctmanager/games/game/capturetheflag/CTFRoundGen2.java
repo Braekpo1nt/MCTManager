@@ -69,18 +69,21 @@ public class CTFRoundGen2 {
         
         public void resume(int pauseAfterRounds) {
             this.pauseRounds = pauseAfterRounds;
-            playedRounds--;
+            playedRounds--; // roundIsOver increases this, but it's already increased, so decrease for consistency
             roundIsOver();
         }
         
         public void onTeamJoin(String team) {
             Preconditions.checkState(!teams.contains(team), "tried to join a team that was already in the game");
             teams.add(team);
-            roundsSpentOnDeck.putIfAbsent(team, 0);
+            roundsSpentOnDeck.putIfAbsent(team, playedRounds); // even though they weren't technically on-deck for this many rounds, this lets the algorithm prioritize fitting them into games so that there is not a string of "new team" vs "a single team at a time" matches.
             if (!teamsToFight.containsKey(team)) {
-                List<String> opposingTeams = new ArrayList<>(teams);
-                opposingTeams.remove(team);
+                List<String> opposingTeams = new ArrayList<>(teamsToFight.keySet());
                 teamsToFight.put(team, opposingTeams);
+                for (String opposingTeam : opposingTeams) {
+                    List<String> value = teamsToFight.get(opposingTeam);
+                    value.add(team);
+                }
             }
             // reporting
             longestOnDeckStreak.putIfAbsent(team, 0);
@@ -263,7 +266,7 @@ public class CTFRoundGen2 {
         Assertions.assertEquals(6, ctf.playedRounds);
         ctf.onTeamJoin("orange");
         ctf.resume(-1);
-        Assertions.assertEquals(14, ctf.playedRounds);
+        Assertions.assertEquals(CTFGame.calculateRounds(8, 2), ctf.playedRounds);
     }
     
     @Test
