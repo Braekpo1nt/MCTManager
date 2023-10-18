@@ -35,6 +35,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     private Sidebar sidebar;
     private Sidebar adminSidebar;
     private final CaptureTheFlagStorageUtil storageUtil;
+    private RoundManager roundManager;
     /**
      * The number of rounds that have been played
      */
@@ -70,6 +71,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         participants = new ArrayList<>();
         sidebar = gameManager.getSidebarFactory().createSidebar();
         adminSidebar = gameManager.getSidebarFactory().createSidebar();
+        roundManager = new RoundManager(this, storageUtil.getArenas().size());
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
         }
@@ -80,7 +82,8 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         maxRounds = unPlayedMatchPairings.size() / storageUtil.getArenas().size();
         playedRounds = 0;
         gameActive = true;
-        startNextRound();
+        List<String> teams = gameManager.getTeamNames(participants);
+        roundManager.start(teams);
         Bukkit.getLogger().info("Starting Capture the Flag");
     }
     
@@ -167,7 +170,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
             stop();
             return;
         }
-        startNextRound();
+        roundManager.roundIsOver();
     }
 
     /**
@@ -177,41 +180,20 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         return unPlayedMatchPairings.isEmpty();
     }
     
-    private void startNextRound() {
-        List<MatchPairing> roundMatchPairings = chooseNextMatchPairings();
+    public void startNextRound(List<String> participantTeams, List<MatchPairing> roundMatchPairings) {
         currentRound = new CaptureTheFlagRound(this, plugin, gameManager, storageUtil, roundMatchPairings, sidebar, adminSidebar);
-        playedRounds++;
         List<Player> roundParticipants = new ArrayList<>();
         List<Player> onDeckParticipants = new ArrayList<>();
         for (Player participant : participants) {
-            String teamName = gameManager.getTeamName(participant.getUniqueId());
-            Component teamDisplayName = gameManager.getFormattedTeamDisplayName(teamName);
-            String oppositeTeam = currentRound.getOppositeTeam(teamName);
-            if (oppositeTeam != null) {
+            String team = gameManager.getTeamName(participant.getUniqueId());
+            if (participantTeams.contains(team)) {
                 roundParticipants.add(participant);
-                Component oppositeTeamDisplayName = gameManager.getFormattedTeamDisplayName(oppositeTeam);
-                participant.sendMessage(Component.empty()
-                        .append(teamDisplayName)
-                        .append(Component.text(" is competing against "))
-                        .append(oppositeTeamDisplayName)
-                        .append(Component.text(" this round.")));
             } else {
                 onDeckParticipants.add(participant);
-                int participantsNextRoundIndex = getNextRoundNumber();
-                if (participantsNextRoundIndex <= 0) {
-                    participant.sendMessage(Component.empty()
-                            .append(teamDisplayName)
-                            .append(Component.text(" has no more rounds. They've competed against every team.")));
-                } else {
-                    participant.sendMessage(Component.empty()
-                            .append(teamDisplayName)
-                            .append(Component.text(" is not competing in this round. Their next round is "))
-                            .append(Component.text(participantsNextRoundIndex)));
-                }
             }
         }
         currentRound.start(roundParticipants, onDeckParticipants);
-        String round = String.format("Round %d/%d", playedRounds, maxRounds);
+        String round = String.format("Round %d/%d", roundManager.getPlayedRounds() + 1, roundManager.getMaxRounds());
         sidebar.updateLine("round", round);
         adminSidebar.updateLine("round", round);
     }

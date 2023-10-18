@@ -19,6 +19,10 @@ public record MatchPairing(@NotNull String northTeam, @NotNull String southTeam)
         return northTeam.equals(teamName) || southTeam.equals(teamName);
     }
     
+    public boolean containsEitherTeam(@NotNull MatchPairing other) {
+        return containsTeam(other.northTeam) || containsTeam(other.southTeam);
+    }
+    
     public boolean isEquivalent(@NotNull MatchPairing other) {
         if (this.northTeam.equals(other.northTeam)) {
             return this.southTeam.equals(other.southTeam);

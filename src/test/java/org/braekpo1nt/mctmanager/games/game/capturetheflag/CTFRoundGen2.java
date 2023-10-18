@@ -42,8 +42,9 @@ public class CTFRoundGen2 {
         public void start(int pauseAfterRounds, String... newTeams) {
             this.pauseRounds = pauseAfterRounds;
             teams = new ArrayList<>(newTeams.length);
-            roundsSpentOnDeck = new HashMap<>();
-            teamsToFight = new HashMap<>();
+            roundsSpentOnDeck = new HashMap<>(newTeams.length);
+            teamsToFight = new HashMap<>(newTeams.length);
+            playedMatchPairings = new HashSet<>();
             // reporting
             longestOnDeckStreak = new HashMap<>();
             onDeckStreak = new HashMap<>();
@@ -62,7 +63,6 @@ public class CTFRoundGen2 {
                 totalOnDeckRounds.put(team, 0);
                 // reporting
             }
-            playedMatchPairings = new HashSet<>();
 //            System.out.println("Start game");
             startNextRound();
         }
@@ -76,7 +76,7 @@ public class CTFRoundGen2 {
         public void onTeamQuit(String team) {
             Preconditions.checkState(teams.contains(team), "tried to quit a team that was not in the game");
             teams.remove(team);
-            System.out.printf("%s quit the game\n", team);
+//            System.out.printf("%s quit the game\n", team);
         }
         
         public void onTeamJoin(String team) {
@@ -99,7 +99,7 @@ public class CTFRoundGen2 {
             onDeckStreak.putIfAbsent(team, 0);
             totalOnDeckRounds.putIfAbsent(team, roundsSpentOnDeck.get(team));
             // reporting
-            System.out.printf("%s joined the game\n", team);
+//            System.out.printf("%s joined the game\n", team);
         }
         
         /**
@@ -114,8 +114,7 @@ public class CTFRoundGen2 {
             teams.add(team);
         }
         
-        public void startNextRound() {
-            currentRound = new CTFRound(this);
+        private void startNextRound() {
             List<MatchPairing> roundMatchPairings = generateRoundMatchPairings();
             List<String> participantTeams = getTeamsFromMatchPairings(roundMatchPairings);
             List<String> onDeckTeams = new ArrayList<>();
@@ -157,6 +156,7 @@ public class CTFRoundGen2 {
             }
             lastOnDeck = new ArrayList<>(onDeckTeams);
             // reporting
+            currentRound = new CTFRound(this);
             currentRound.start(participantTeams, roundMatchPairings, onDeckTeams);
         }
         
@@ -197,7 +197,7 @@ public class CTFRoundGen2 {
             if (pauseRounds >= 0) {
                 if (roundsAreLeft) {
                     if (playedRounds >= pauseRounds) {
-                        System.out.println("Paused after round " + playedRounds);
+//                        System.out.println("Paused after round " + playedRounds);
                         return false;
                     }
                 }
@@ -276,8 +276,8 @@ public class CTFRoundGen2 {
     void teams_7_arenas_2() {
         CTFGame ctf = new CTFGame(2);
         ctf.start("black", "grey", "red", "yellow", "blue", "green", "pink");
-        System.out.printf("Longest On-Deck Streak: %s%n", ctf.longestOnDeckStreak);
-        System.out.printf("Total on-deck rounds: %s%n", ctf.totalOnDeckRounds);
+//        System.out.printf("Longest On-Deck Streak: %s%n", ctf.longestOnDeckStreak);
+//        System.out.printf("Total on-deck rounds: %s%n", ctf.totalOnDeckRounds);
         Assertions.assertEquals(11, ctf.playedRounds);
     }
     
