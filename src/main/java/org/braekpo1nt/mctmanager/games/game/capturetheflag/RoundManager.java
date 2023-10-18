@@ -81,6 +81,24 @@ public class RoundManager {
         game.startNextRound(participantTeams, roundMatchPairings);
     }
     
+    public void roundIsOver() {
+        playedRounds++;
+        if (thereAreRoundsLeft()) {
+            startNextRound();
+            return;
+        }
+        game.stop();
+    }
+    
+    private boolean thereAreRoundsLeft() {
+        for (List<String> value : teamsToFight.values()) {
+            if (!value.isEmpty()) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
     /**
      * @param matchPairings the matchPairings to extract the teams from
      * @return a list of unique teams from the given matchPairings
