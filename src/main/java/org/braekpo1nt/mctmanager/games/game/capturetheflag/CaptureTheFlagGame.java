@@ -36,14 +36,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     private Sidebar adminSidebar;
     private final CaptureTheFlagStorageUtil storageUtil;
     private RoundManager roundManager;
-    /**
-     * The number of rounds that have been played
-     */
-    private int playedRounds = 0;
-    private List<MatchPairing> unPlayedMatchPairings;
-    private int maxRounds;
     private CaptureTheFlagRound currentRound;
-    private List<MatchPairing> playedMatchPairings = new ArrayList<>();
     private final String title = ChatColor.BLUE+"Capture the Flag";
     private List<Player> participants = new ArrayList<>();
     private List<Player> admins = new ArrayList<>();
@@ -77,10 +70,6 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         }
         initializeSidebar();
         startAdmins(newAdmins);
-        List<String> teamNames = gameManager.getTeamNames(newParticipants);
-        unPlayedMatchPairings = CaptureTheFlagUtils.generateMatchPairings(teamNames);
-        maxRounds = unPlayedMatchPairings.size() / storageUtil.getArenas().size();
-        playedRounds = 0;
         gameActive = true;
         List<String> teams = gameManager.getTeamNames(participants);
         roundManager.start(teams);
@@ -146,7 +135,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         initializeParticipant(participant);
         sidebar.updateLines(participant.getUniqueId(),
                 new KeyLine("title", title),
-                new KeyLine("round", String.format("Round %d/%d", playedRounds, maxRounds))
+                new KeyLine("round", String.format("Round %d/%d", roundManager.getPlayedRounds(), roundManager.getMaxRounds()))
         );
         if (currentRound != null) {
             currentRound.onParticipantJoin(participant);
@@ -166,20 +155,9 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
      * Tells the game that the current round is over. If there are no rounds left, ends the game. If there are rounds left, starts the next round.
      */
     public void roundIsOver() {
-        if (allMatchPairingsArePlayed()) {
-            stop();
-            return;
-        }
         roundManager.roundIsOver();
     }
-
-    /**
-     * @return true if there are no more un-played match pairings
-     */
-    private boolean allMatchPairingsArePlayed() {
-        return unPlayedMatchPairings.isEmpty();
-    }
-    
+        
     public void startNextRound(List<String> participantTeams, List<MatchPairing> roundMatchPairings) {
         currentRound = new CaptureTheFlagRound(this, plugin, gameManager, storageUtil, roundMatchPairings, sidebar, adminSidebar);
         List<Player> roundParticipants = new ArrayList<>();
@@ -196,38 +174,6 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         String round = String.format("Round %d/%d", roundManager.getPlayedRounds() + 1, roundManager.getMaxRounds());
         sidebar.updateLine("round", round);
         adminSidebar.updateLine("round", round);
-    }
-    
-    /**
-     * Chooses the MatchPairings from the unPlayedMatchPairings for the next round (based on the number of arenas)
-     * prioritizing teams which have been on-deck the longest
-     * @return the match pairings that the next round should have (size will match the number of arenas in the config)
-     */
-    private List<MatchPairing> chooseNextMatchPairings() {
-        throw new UnsupportedOperationException("implement chooseNextMatchPairings()");
-    }
-    
-    /**
-     * @param matchPairings the list to check if it contains matchPairing
-     * @param matchPairing the MatchPairing to check if matchPairings contains
-     * @return true if matchPairings contains a MatchPairing (agnostic of which team is north or south)
-     */
-    private boolean listContainsMatchPairing(List<MatchPairing> matchPairings, MatchPairing matchPairing) {
-        for (MatchPairing eachMatchPairing : matchPairings) {
-            if (eachMatchPairing.containsTeam(matchPairing.northTeam()) && eachMatchPairing.containsTeam(matchPairing.southTeam())) {
-                return true;
-            }
-        }
-        return false;
-    }
-    
-    /**
-     * Gets the number of the next round if there is a next round.
-     * @return The index of the next round, 0 if there are no more next rounds.
-     */
-    private int getNextRoundNumber() {
-        int nextRound = playedRounds + 2;
-        return nextRound > maxRounds ? 0 : nextRound;
     }
     
     @EventHandler
