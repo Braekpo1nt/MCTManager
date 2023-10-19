@@ -1,6 +1,5 @@
 package org.braekpo1nt.mctmanager.games.game.capturetheflag;
 
-import com.google.common.base.Preconditions;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -9,7 +8,7 @@ import java.util.function.BiPredicate;
 
 public class CTFRoundGen2 {
     
-    class CTFGame {
+    class MockCTFGame extends CaptureTheFlagGame {
         final int numOfArenas;
         List<String> teams;
         CTFRound currentRound;
@@ -28,8 +27,13 @@ public class CTFRoundGen2 {
         /**
          * @param numOfArenas the number of arenas there are
          */
-        CTFGame(int numOfArenas) {
+        MockCTFGame(int numOfArenas) {
+            super(null, null);
             this.numOfArenas = numOfArenas;
+        }
+        
+        @Override
+        public void stop() {
         }
         
         public void start(String... newTeams) {
@@ -58,117 +62,43 @@ public class CTFRoundGen2 {
             roundManager.start(List.of(newTeams));
         }
         
+        public void onTeamJoin(String team) {
+            roundManager.onTeamJoin(team);
+        }
+        
+        public void onTeamQuit(String team) {
+            roundManager.onTeamQuit(team);
+        }
+        
         public void resume(int pauseAfterRounds) {
             this.pauseRounds = pauseAfterRounds;
-            playedRounds--; // roundIsOver increases this, but it's already increased, so decrease for consistency
+            roundManager.setPlayedRounds(roundManager.getPlayedRounds() - 1); // roundIsOver increases this, but it's already increased, so decrease for consistency
             roundIsOver();
         }
         
-        private void startNextRound() {
-            List<MatchPairing> roundMatchPairings = generateRoundMatchPairings();
-            List<String> participantTeams = getTeamsFromMatchPairings(roundMatchPairings);
-            List<String> onDeckTeams = new ArrayList<>();
-            for (String team : teams) {
-                if (!participantTeams.contains(team)) {
-                    onDeckTeams.add(team);
+        @Override
+        public void roundIsOver() {
+            if (pauseRounds >= 0) {
+                if (roundManager.getPlayedRounds() >= pauseRounds) {
+                    return;
                 }
             }
-            for (String onDeckTeam : onDeckTeams) {
-                int oldRoundsSpentOnDeck = roundsSpentOnDeck.get(onDeckTeam);
-                roundsSpentOnDeck.put(onDeckTeam, oldRoundsSpentOnDeck + 1);
-            }
-            playedMatchPairings.addAll(roundMatchPairings);
-            for (MatchPairing roundMP : roundMatchPairings) {
-                List<String> northTTF = teamsToFight.get(roundMP.northTeam());
-                northTTF.remove(roundMP.southTeam());
-                List<String> southTTF = teamsToFight.get(roundMP.southTeam());
-                southTTF.remove(roundMP.northTeam());
-            }
-            // reporting
-            for (String team : onDeckTeams) {
-                int old = totalOnDeckRounds.get(team);
-                totalOnDeckRounds.put(team, old+1);
-                if (lastOnDeck.contains(team)) {
-                    int streak = onDeckStreak.get(team);
-                    streak++;
-                    if (streak > longestOnDeckStreak.get(team)) {
-                        longestOnDeckStreak.put(team, streak);
-                    }
-                } else {
-                    onDeckStreak.put(team, 1);
-                    if (longestOnDeckStreak.get(team) < 1) {
-                        longestOnDeckStreak.put(team, 1);
-                    }
-                }
-            }
-            for (String team : participantTeams) {
-                onDeckStreak.put(team, 0);
-            }
-            lastOnDeck = new ArrayList<>(onDeckTeams);
-            // reporting
+            roundManager.roundIsOver();
+        }
+        
+        @Override
+        public void startNextRound(List<String> participantTeams, List<MatchPairing> roundMatchPairings) {
             currentRound = new CTFRound(this);
+            List<String> onDeckTeams = new ArrayList<>(teams);
+            onDeckTeams.removeAll(participantTeams);
             currentRound.start(participantTeams, roundMatchPairings, onDeckTeams);
         }
-        
-        private List<String> getTeamsFromMatchPairings(List<MatchPairing> matchPairings) {
-            Set<String> teams = new HashSet<>(matchPairings.size()*2);
-            for (MatchPairing matchPairing : matchPairings) {
-                teams.add(matchPairing.northTeam());
-                teams.add(matchPairing.southTeam());
-            }
-            return teams.stream().toList();
-        }
-        
-        private List<MatchPairing> generateRoundMatchPairings() {
-            List<String> sortedTeams = teams.stream().sorted(Comparator.<String, Integer>
-                            comparing(team -> teamsToFight.get(team).size(), Comparator.reverseOrder())
-                            .thenComparing(roundsSpentOnDeck::get, Comparator.reverseOrder())
-            ).toList();
-            return generateMatchPairings(sortedTeams, playedMatchPairings, numOfArenas);
-        }
-        
-        public void roundIsOver() {
-            playedRounds++;
-            if (thereAreRoundsLeft()) {
-                startNextRound();
-                return;
-            }
-            stop();
-        }
-        
-        private boolean thereAreRoundsLeft() {
-            boolean roundsAreLeft = false;
-            for (List<String> value : teamsToFight.values()) {
-                if (!value.isEmpty()) {
-                    roundsAreLeft = true;
-                    break;
-                }
-            }
-            if (pauseRounds >= 0) {
-                if (roundsAreLeft) {
-                    if (playedRounds >= pauseRounds) {
-//                        System.out.println("Paused after round " + playedRounds);
-                        return false;
-                    }
-                }
-            }
-            return roundsAreLeft;
-        }
-        
-        public void stop() {
-//            System.out.println("Stop game");
-        }
-        
-        static int calculateRounds(int numOfTeams, int numOfArenas) {
-            return ((int) Math.ceil((numOfTeams * (numOfTeams - 1) / 2.0) / numOfArenas));
-        }
-        
     }
     
     class CTFRound {
-        final CTFGame ctfGame;
+        final MockCTFGame ctfGame;
         List<String> teams;
-        CTFRound(CTFGame ctfGame) {
+        CTFRound(MockCTFGame ctfGame) {
             this.ctfGame = ctfGame;
         }
         
@@ -186,77 +116,77 @@ public class CTFRoundGen2 {
     
     @Test
     void teams_3_rounds_1() {
-        CTFGame ctf = new CTFGame(4);
+        MockCTFGame ctf = new MockCTFGame(4);
         ctf.start(1, "a", "b", "c");
         
-        Assertions.assertEquals(1, ctf.playedRounds);
+        Assertions.assertEquals(1, ctf.roundManager.getPlayedRounds());
         Assertions.assertEquals(Set.of(
                 new MatchPairing("a", "b")
-        ), ctf.playedMatchPairings);
+        ), ctf.roundManager.getPlayedMatchPairings());
         Assertions.assertEquals(Map.of(
                 "a", 0,
                 "b", 0,
                 "c", 1
-                ), ctf.roundsSpentOnDeck);
+                ), ctf.roundManager.getRoundsSpentOnDeck());
     }
     
     @Test
     void teams_3_rounds_all() {
-        CTFGame ctf = new CTFGame(4);
+        MockCTFGame ctf = new MockCTFGame(4);
         ctf.start("a", "b", "c");
         
-        Assertions.assertEquals(3, ctf.playedRounds);
+        Assertions.assertEquals(3, ctf.roundManager.getPlayedRounds());
         assertSetsAreEqual(
                 Set.of(
                     new MatchPairing("a", "b"),
                     new MatchPairing("a", "c"),
                     new MatchPairing("b", "c")
                 ), 
-                ctf.playedMatchPairings, 
+                ctf.roundManager.getPlayedMatchPairings(), 
                 this::matchPairingEquivalent
         );
         Assertions.assertEquals(Map.of(
                 "a", 1,
                 "b", 1,
                 "c", 1
-        ), ctf.roundsSpentOnDeck);
+        ), ctf.roundManager.getRoundsSpentOnDeck());
     }
     
     @Test
     void teams_7_arenas_2() {
-        CTFGame ctf = new CTFGame(2);
+        MockCTFGame ctf = new MockCTFGame(2);
         ctf.start("black", "grey", "red", "yellow", "blue", "green", "pink");
 //        System.out.printf("Longest On-Deck Streak: %s%n", ctf.longestOnDeckStreak);
 //        System.out.printf("Total on-deck rounds: %s%n", ctf.totalOnDeckRounds);
-        Assertions.assertEquals(11, ctf.playedRounds);
+        Assertions.assertEquals(11, ctf.roundManager.getPlayedRounds());
     }
     
     @Test
     void pause_resume() {
-        CTFGame ctf = new CTFGame(2);
+        MockCTFGame ctf = new MockCTFGame(2);
         ctf.start(6, "black", "grey", "red", "yellow", "blue", "green", "pink");
-        Assertions.assertEquals(6, ctf.playedRounds);
+        Assertions.assertEquals(6, ctf.roundManager.getPlayedRounds());
         ctf.resume(8);
-        Assertions.assertEquals(8, ctf.playedRounds);
+        Assertions.assertEquals(8, ctf.roundManager.getPlayedRounds());
         ctf.resume(-1);
-        Assertions.assertEquals(11, ctf.playedRounds);
+        Assertions.assertEquals(11, ctf.roundManager.getPlayedRounds());
     }
     
     @Test
     void teams_7_join() {
-        CTFGame ctf = new CTFGame(2);
+        MockCTFGame ctf = new MockCTFGame(2);
         ctf.start(6, "black", "grey", "red", "yellow", "blue", "green", "pink");
         ctf.onTeamJoin("orange");
         ctf.resume(-1);
         Set<MatchPairing> expectedPlayedMatchPairings = createAllMatchPairings("black", "grey", "red", "yellow", "blue", "green", "pink", "orange");
     
-        Assertions.assertEquals(14, ctf.playedRounds);
-        assertSetsAreEqual(expectedPlayedMatchPairings, ctf.playedMatchPairings, this::matchPairingEquivalent);
+        Assertions.assertEquals(14, ctf.roundManager.getPlayedRounds());
+        assertSetsAreEqual(expectedPlayedMatchPairings, ctf.roundManager.getPlayedMatchPairings(), this::matchPairingEquivalent);
     }
     
     @Test
     void teams_7_leave_join() {
-        CTFGame ctf = new CTFGame(2);
+        MockCTFGame ctf = new MockCTFGame(2);
         String[] teams = {"black", "grey", "red", "yellow", "blue", "green", "pink"};
         ctf.start(3, teams);
         ctf.onTeamQuit("black");
@@ -265,13 +195,13 @@ public class CTFRoundGen2 {
         ctf.resume(-1);
         Set<MatchPairing> expectedPlayedMatchPairings = createAllMatchPairings(teams);
     
-        Assertions.assertEquals(11, ctf.playedRounds);
-        assertSetsAreEqual(expectedPlayedMatchPairings, ctf.playedMatchPairings, this::matchPairingEquivalent);
+        Assertions.assertEquals(11, ctf.roundManager.getPlayedRounds());
+        assertSetsAreEqual(expectedPlayedMatchPairings, ctf.roundManager.getPlayedMatchPairings(), this::matchPairingEquivalent);
     }
     
     @Test
     void teams_7_leave_join_late() {
-        CTFGame ctf = new CTFGame(2);
+        MockCTFGame ctf = new MockCTFGame(2);
         String[] teams = {"black", "grey", "red", "yellow", "blue", "green", "pink"};
         ctf.start(3, teams);
         ctf.onTeamQuit("black");
@@ -280,8 +210,8 @@ public class CTFRoundGen2 {
         ctf.resume(-1);
         Set<MatchPairing> expectedPlayedMatchPairings = createAllMatchPairings(teams);
         
-        Assertions.assertEquals(11, ctf.playedRounds);
-        assertSetsAreEqual(expectedPlayedMatchPairings, ctf.playedMatchPairings, this::matchPairingEquivalent);
+        Assertions.assertEquals(11, ctf.roundManager.getPlayedRounds());
+        assertSetsAreEqual(expectedPlayedMatchPairings, ctf.roundManager.getPlayedMatchPairings(), this::matchPairingEquivalent);
     }
     
     @Test

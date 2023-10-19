@@ -215,4 +215,18 @@ public class RoundManager {
     private int calculateRounds(int numOfTeams, int numOfArenas) {
         return ((int) Math.ceil((numOfTeams * (numOfTeams - 1) / 2.0) / numOfArenas));
     }
+    
+    //testing
+    
+    public void setPlayedRounds(int playedRounds) {
+        this.playedRounds = playedRounds;
+    }
+    
+    public Set<MatchPairing> getPlayedMatchPairings() {
+        return playedMatchPairings;
+    }
+    
+    public Map<String, Integer> getRoundsSpentOnDeck() {
+        return roundsSpentOnDeck;
+    }
 }
