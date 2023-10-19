@@ -271,8 +271,4 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     public List<Player> getParticipants() {
         return new ArrayList<>(participants);
     }
-    
-    public @Nullable CaptureTheFlagRound getCurrentRound() {
-        return currentRound;
-    }
 }
