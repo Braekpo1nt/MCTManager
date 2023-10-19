@@ -10,13 +10,10 @@ import java.util.function.BiPredicate;
 public class CTFRoundGen2 {
     
     class CTFGame {
-        List<String> teams;
-        int playedRounds = 0;
-        CTFRound currentRound;
-        Map<String, Integer> roundsSpentOnDeck;
-        Set<MatchPairing> playedMatchPairings;
-        Map<String, List<String>> teamsToFight;
         final int numOfArenas;
+        List<String> teams;
+        CTFRound currentRound;
+        RoundManager roundManager;
         /**
          * Set in the constructor for testing purposes. The game simulation will stop after pauseRounds rounds are played, so you can check the state of the game in between rounds. If this value is -1, then all rounds will be played as calculated without restriction.
          */
@@ -42,9 +39,6 @@ public class CTFRoundGen2 {
         public void start(int pauseAfterRounds, String... newTeams) {
             this.pauseRounds = pauseAfterRounds;
             teams = new ArrayList<>(newTeams.length);
-            roundsSpentOnDeck = new HashMap<>(newTeams.length);
-            teamsToFight = new HashMap<>(newTeams.length);
-            playedMatchPairings = new HashSet<>();
             // reporting
             longestOnDeckStreak = new HashMap<>();
             onDeckStreak = new HashMap<>();
@@ -53,10 +47,6 @@ public class CTFRoundGen2 {
             // reporting
             for (String team : newTeams) {
                 teams.add(team);
-                roundsSpentOnDeck.put(team, 0);
-                List<String> opposingTeams = new ArrayList<>(List.of(newTeams));
-                opposingTeams.remove(team);
-                teamsToFight.put(team, opposingTeams);
                 // reporting
                 longestOnDeckStreak.put(team, 0);
                 onDeckStreak.put(team, 0);
@@ -64,54 +54,14 @@ public class CTFRoundGen2 {
                 // reporting
             }
 //            System.out.println("Start game");
-            startNextRound();
+            roundManager = new RoundManager(this, numOfArenas);
+            roundManager.start(List.of(newTeams));
         }
         
         public void resume(int pauseAfterRounds) {
             this.pauseRounds = pauseAfterRounds;
             playedRounds--; // roundIsOver increases this, but it's already increased, so decrease for consistency
             roundIsOver();
-        }
-        
-        public void onTeamQuit(String team) {
-            Preconditions.checkState(teams.contains(team), "tried to quit a team that was not in the game");
-            teams.remove(team);
-//            System.out.printf("%s quit the game\n", team);
-        }
-        
-        public void onTeamJoin(String team) {
-            Preconditions.checkState(!teams.contains(team), "tried to join a team that was already in the game");
-            if (teamShouldRejoin(team)) {
-                onTeamRejoin(team);
-                return;
-            }
-            teams.add(team);
-            int maxRoundsOnDeck = roundsSpentOnDeck.values().stream().mapToInt(Integer::intValue).max().orElse(0);
-            roundsSpentOnDeck.put(team, maxRoundsOnDeck); // give them the same sorting priority as the player who has spent the longest time on-deck, to help prevent a string of matches with just "<new team> vs <a single team at a time>"
-            List<String> opposingTeams = new ArrayList<>(teamsToFight.keySet());
-            teamsToFight.put(team, opposingTeams);
-            for (String opposingTeam : opposingTeams) {
-                List<String> value = teamsToFight.get(opposingTeam);
-                value.add(team);
-            }
-            // reporting
-            longestOnDeckStreak.putIfAbsent(team, 0);
-            onDeckStreak.putIfAbsent(team, 0);
-            totalOnDeckRounds.putIfAbsent(team, roundsSpentOnDeck.get(team));
-            // reporting
-//            System.out.printf("%s joined the game\n", team);
-        }
-        
-        /**
-         * @param team the team
-         * @return true if the team was in the game then left previously and should thus rejoin
-         */
-        private boolean teamShouldRejoin(String team) {
-            return teamsToFight.containsKey(team);
-        }
-    
-        private void onTeamRejoin(String team) {
-            teams.add(team);
         }
         
         private void startNextRound() {

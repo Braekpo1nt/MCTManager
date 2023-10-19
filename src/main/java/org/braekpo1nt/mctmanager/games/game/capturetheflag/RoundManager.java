@@ -1,5 +1,7 @@
 package org.braekpo1nt.mctmanager.games.game.capturetheflag;
 
+import com.google.common.base.Preconditions;
+
 import java.util.*;
 
 /**
@@ -56,6 +58,42 @@ public class RoundManager {
             teamsToFight.put(team, enemyTeams);
         }
         startNextRound();
+    }
+    
+    public void onTeamQuit(String team) {
+        teams.remove(team);
+    }
+    
+    public void onTeamJoin(String team) {
+        if (teams.contains(team)) {
+            teams.remove(team);
+            return;
+        }
+        if (teamShouldRejoin(team)) {
+            onTeamRejoin(team);
+            return;
+        }
+        teams.add(team);
+        int maxRoundsOnDeck = roundsSpentOnDeck.values().stream().mapToInt(Integer::intValue).max().orElse(0);
+        roundsSpentOnDeck.put(team, maxRoundsOnDeck); // give them the same sorting priority as the player who has spent the longest time on-deck, to help prevent a string of matches with just "<new team> vs <a single team at a time>"
+        List<String> opposingTeams = new ArrayList<>(teamsToFight.keySet());
+        teamsToFight.put(team, opposingTeams);
+        for (String opposingTeam : opposingTeams) {
+            List<String> value = teamsToFight.get(opposingTeam);
+            value.add(team);
+        }
+    }
+    
+    /**
+     * @param team the team
+     * @return true if the team was in the game then left previously and should thus rejoin
+     */
+    private boolean teamShouldRejoin(String team) {
+        return teamsToFight.containsKey(team);
+    }
+    
+    private void onTeamRejoin(String team) {
+        teams.add(team);
     }
     
     private void startNextRound() {

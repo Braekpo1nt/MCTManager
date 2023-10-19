@@ -18,7 +18,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -140,6 +139,8 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         if (currentRound != null) {
             currentRound.onParticipantJoin(participant);
         }
+        String team = gameManager.getTeamName(participant.getUniqueId());
+        roundManager.onTeamJoin(team);
     }
     
     @Override
@@ -149,6 +150,14 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         }
         resetParticipant(participant);
         participants.remove(participant);
+        String quittingTeam = gameManager.getTeamName(participant.getUniqueId());
+        for (Player player : participants) {
+            String team = gameManager.getTeamName(player.getUniqueId());
+            if (quittingTeam.equals(team)) {
+                return;
+            }
+        }
+        roundManager.onTeamQuit(quittingTeam);
     }
     
     /**
