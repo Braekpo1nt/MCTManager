@@ -45,7 +45,12 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     public CaptureTheFlagGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
         this.gameManager = gameManager;
-        this.storageUtil = new CaptureTheFlagStorageUtil(plugin.getDataFolder());
+        if (plugin != null) {
+            this.storageUtil = new CaptureTheFlagStorageUtil(plugin.getDataFolder());
+        } else {
+            System.out.println("unimplemented branch for testing only in CaptureTheFlagGame constructor");
+            this.storageUtil = new CaptureTheFlagStorageUtil(new File(""));
+        }
     }
     
     @Override

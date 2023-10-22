@@ -79,7 +79,8 @@ public class CTFRoundGen2 {
         @Override
         public void roundIsOver() {
             if (pauseRounds >= 0) {
-                if (roundManager.getPlayedRounds() >= pauseRounds) {
+                int playedRounds = roundManager.getPlayedRounds();
+                if (playedRounds >= pauseRounds) {
                     return;
                 }
             }
