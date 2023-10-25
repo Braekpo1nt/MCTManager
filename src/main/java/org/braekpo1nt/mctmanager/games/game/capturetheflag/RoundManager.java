@@ -1,7 +1,5 @@
 package org.braekpo1nt.mctmanager.games.game.capturetheflag;
 
-import com.google.common.base.Preconditions;
-
 import java.util.*;
 
 /**
@@ -37,6 +35,13 @@ public class RoundManager {
     private Map<String, List<String>> teamsToFight = new HashMap<>();
     private final int numOfArenas;
     
+    // reporting
+    Map<String, Integer> longestOnDeckStreak;
+    Map<String, Integer> onDeckStreak;
+    List<String> lastOnDeck;
+    Map<String, Integer> totalOnDeckRounds;
+    // reporting
+    
     public RoundManager(CaptureTheFlagGame game, int numOfArenas) {
         this.game = game;
         this.numOfArenas = numOfArenas;
@@ -50,12 +55,23 @@ public class RoundManager {
         roundsSpentOnDeck = new HashMap<>(newTeams.size());
         teamsToFight = new HashMap<>(newTeams.size());
         playedMatchPairings = new HashSet<>();
+        // reporting
+        longestOnDeckStreak = new HashMap<>();
+        onDeckStreak = new HashMap<>();
+        lastOnDeck = new ArrayList<>();
+        totalOnDeckRounds = new HashMap<>();
+        // reporting
         for (String team : newTeams) {
             teams.add(team);
             roundsSpentOnDeck.put(team, 0);
             List<String> enemyTeams = new ArrayList<>(newTeams);
             enemyTeams.remove(team);
             teamsToFight.put(team, enemyTeams);
+            // reporting
+            longestOnDeckStreak.put(team, 0);
+            onDeckStreak.put(team, 0);
+            totalOnDeckRounds.put(team, 0);
+            // reporting
         }
         startNextRound();
     }
@@ -65,8 +81,7 @@ public class RoundManager {
     }
     
     public void onTeamJoin(String team) {
-        if (teams.contains(team)) {
-            teams.remove(team);
+        if (teamExistsInGame(team)) {
             return;
         }
         if (teamShouldRejoin(team)) {
@@ -82,6 +97,10 @@ public class RoundManager {
             List<String> value = teamsToFight.get(opposingTeam);
             value.add(team);
         }
+    }
+    
+    private boolean teamExistsInGame(String team) {
+        return teams.contains(team);
     }
     
     /**
@@ -168,7 +187,7 @@ public class RoundManager {
      * It will ensure that no MatchPairings will be generated that are in the set of playedMatchPairings.
      * @return zero to numOfArenas MatchPairings for the given teams, assuming the provided playedMatchPairings.
      */
-    private List<MatchPairing> generateMatchPairings(
+    protected static List<MatchPairing> generateMatchPairings(
             List<String> sortedTeams, Set<MatchPairing> playedMatchPairings, int numOfArenas) {
         List<MatchPairing> result = new ArrayList<>();
         Set<String> teamsUsed = new HashSet<>();

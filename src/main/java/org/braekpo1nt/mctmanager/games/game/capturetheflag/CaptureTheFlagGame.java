@@ -157,13 +157,24 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         resetParticipant(participant);
         participants.remove(participant);
         String quittingTeam = gameManager.getTeamName(participant.getUniqueId());
+        if (entireTeamHasQuit(quittingTeam)) {
+            roundManager.onTeamQuit(quittingTeam);
+        }
+    }
+    
+    /**
+     * @param quittingTeam the team of the quitting player
+     * @return false if there is at least one member of quittingTeam in the game, true otherwise
+     */
+    private boolean entireTeamHasQuit(String quittingTeam) {
         for (Player player : participants) {
             String team = gameManager.getTeamName(player.getUniqueId());
+            // if there is still at least one team member in the game who is on this team
             if (quittingTeam.equals(team)) {
-                return;
+                return false;
             }
         }
-        roundManager.onTeamQuit(quittingTeam);
+        return true;
     }
     
     /**

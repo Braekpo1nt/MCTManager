@@ -17,12 +17,6 @@ public class CTFRoundGen2 {
          * Set in the constructor for testing purposes. The game simulation will stop after pauseRounds rounds are played, so you can check the state of the game in between rounds. If this value is -1, then all rounds will be played as calculated without restriction.
          */
         int pauseRounds;
-        // reporting
-        Map<String, Integer> longestOnDeckStreak; 
-        Map<String, Integer> onDeckStreak;
-        List<String> lastOnDeck;
-        Map<String, Integer> totalOnDeckRounds; 
-        // reporting
         
         /**
          * @param numOfArenas the number of arenas there are
@@ -43,19 +37,8 @@ public class CTFRoundGen2 {
         public void start(int pauseAfterRounds, String... newTeams) {
             this.pauseRounds = pauseAfterRounds;
             teams = new ArrayList<>(newTeams.length);
-            // reporting
-            longestOnDeckStreak = new HashMap<>();
-            onDeckStreak = new HashMap<>();
-            lastOnDeck = new ArrayList<>();
-            totalOnDeckRounds = new HashMap<>();
-            // reporting
             for (String team : newTeams) {
                 teams.add(team);
-                // reporting
-                longestOnDeckStreak.put(team, 0);
-                onDeckStreak.put(team, 0);
-                totalOnDeckRounds.put(team, 0);
-                // reporting
             }
 //            System.out.println("Start game");
             roundManager = new RoundManager(this, numOfArenas);
@@ -157,8 +140,8 @@ public class CTFRoundGen2 {
     void teams_7_arenas_2() {
         MockCTFGame ctf = new MockCTFGame(2);
         ctf.start("black", "grey", "red", "yellow", "blue", "green", "pink");
-//        System.out.printf("Longest On-Deck Streak: %s%n", ctf.longestOnDeckStreak);
-//        System.out.printf("Total on-deck rounds: %s%n", ctf.totalOnDeckRounds);
+        System.out.printf("Longest On-Deck Streak: %s%n", ctf.roundManager.longestOnDeckStreak);
+        System.out.printf("Total on-deck rounds: %s%n", ctf.roundManager.totalOnDeckRounds);
         Assertions.assertEquals(11, ctf.roundManager.getPlayedRounds());
     }
     
@@ -263,7 +246,7 @@ public class CTFRoundGen2 {
     
     @Test
     void testGenerateMatchPairings() {
-        List<MatchPairing> generated = generateMatchPairings(List.of("a", "b", "c"), Collections.emptySet(), 4);
+        List<MatchPairing> generated = RoundManager.generateMatchPairings(List.of("a", "b", "c"), Collections.emptySet(), 4);
         Assertions.assertEquals(List.of(
                 new MatchPairing("a", "b")
         ), generated);
@@ -279,41 +262,5 @@ public class CTFRoundGen2 {
             }
         }
         return matchPairings;
-    }
-    
-    List<MatchPairing> generateMatchPairings(
-            List<String> sortedTeams, Set<MatchPairing> playedMatchPairings, int numOfArenas) {
-        List<MatchPairing> result = new ArrayList<>();
-        Set<String> teamsUsed = new HashSet<>();
-        
-        for (int i = 0; i < sortedTeams.size() - 1 && result.size() < numOfArenas; i++) {
-            String team1 = sortedTeams.get(i);
-            if (!teamsUsed.contains(team1)) {
-                for (int j = i + 1; j < sortedTeams.size(); j++) {
-                    String team2 = sortedTeams.get(j);
-                    if (!teamsUsed.contains(team2)) {
-                        MatchPairing newPairing = new MatchPairing(team1, team2);
-                        
-                        // Check if the new pairing is not equivalent to any in playedMatchPairings
-                        boolean isUnique = true;
-                        for (MatchPairing playedPairing : playedMatchPairings) {
-                            if (newPairing.isEquivalent(playedPairing)) {
-                                isUnique = false;
-                                break;
-                            }
-                        }
-                        
-                        if (isUnique) {
-                            result.add(newPairing);
-                            teamsUsed.add(team1);
-                            teamsUsed.add(team2);
-                            break;  // Exit the inner loop after a successful pairing
-                        }
-                    }
-                }
-            }
-        }
-    
-        return result;
     }
 }
