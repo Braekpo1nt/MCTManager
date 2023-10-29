@@ -191,7 +191,7 @@ public class RoundManager {
             List<String> sortedTeams, Set<MatchPairing> playedMatchPairings, int numOfArenas) {
         List<MatchPairing> result = new ArrayList<>();
         Set<String> teamsUsed = new HashSet<>();
-    
+        
         for (int i = 0; i < sortedTeams.size() - 1 && result.size() < numOfArenas; i++) {
             String team1 = sortedTeams.get(i);
             if (!teamsUsed.contains(team1)) {
@@ -199,7 +199,7 @@ public class RoundManager {
                     String team2 = sortedTeams.get(j);
                     if (!teamsUsed.contains(team2)) {
                         MatchPairing newPairing = new MatchPairing(team1, team2);
-                    
+                        
                         // Check if the new pairing is not equivalent to any in playedMatchPairings
                         boolean isUnique = true;
                         for (MatchPairing playedPairing : playedMatchPairings) {
@@ -208,7 +208,7 @@ public class RoundManager {
                                 break;
                             }
                         }
-                    
+                        
                         if (isUnique) {
                             result.add(newPairing);
                             teamsUsed.add(team1);
@@ -219,7 +219,7 @@ public class RoundManager {
                 }
             }
         }
-    
+        
         return result;
     }
     
