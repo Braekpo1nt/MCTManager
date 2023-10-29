@@ -17,6 +17,7 @@ public class CTFRoundGen2 {
          * Set in the constructor for testing purposes. The game simulation will stop after pauseRounds rounds are played, so you can check the state of the game in between rounds. If this value is -1, then all rounds will be played as calculated without restriction.
          */
         int pauseRounds;
+        boolean isPaused = false;
         
         /**
          * @param numOfArenas the number of arenas there are
@@ -28,9 +29,11 @@ public class CTFRoundGen2 {
         
         @Override
         public void stop() {
+            this.isPaused = false;
         }
         
         public void start(String... newTeams) {
+            this.isPaused = false;
             start(-1, newTeams);
         }
         
@@ -53,17 +56,26 @@ public class CTFRoundGen2 {
             roundManager.onTeamQuit(team);
         }
         
+        public int getPlayedRounds() {
+            if (isPaused) {
+                return roundManager.getPlayedRounds() + 1;
+            }
+            return roundManager.getPlayedRounds();
+        }
+        
         public void resume(int pauseAfterRounds) {
             this.pauseRounds = pauseAfterRounds;
-            roundManager.setPlayedRounds(roundManager.getPlayedRounds() - 1); // roundIsOver increases this, but it's already increased, so decrease for consistency
-            roundIsOver();
+            this.isPaused = false;
+            //            roundManager.setPlayedRounds(roundManager.getPlayedRounds() - 1); // roundIsOver increases this, but it's already increased, so decrease for consistency
+            roundManager.roundIsOver();
         }
         
         @Override
         public void roundIsOver() {
             if (pauseRounds >= 0) {
-                int playedRounds = roundManager.getPlayedRounds();
+                int playedRounds = roundManager.getPlayedRounds() + 1;
                 if (playedRounds >= pauseRounds) {
+                    this.isPaused = true;
                     return;
                 }
             }
@@ -88,7 +100,7 @@ public class CTFRoundGen2 {
         
         public void start(List<String> newTeams, List<MatchPairing> matchPairings, List<String> onDeckTeams) {
             teams = new ArrayList<>(newTeams);
-            System.out.printf("Start round with:%s; On-Deck:%s%n", matchPairings, onDeckTeams);
+//            System.out.printf("Start round with:%s; On-Deck:%s%n", matchPairings, onDeckTeams);
             stop();
         }
         
@@ -99,11 +111,19 @@ public class CTFRoundGen2 {
     }
     
     @Test
+    void testGenerateMatchPairings() {
+        List<MatchPairing> generated = RoundManager.generateMatchPairings(List.of("a", "b", "c"), Collections.emptySet(), 4);
+        Assertions.assertEquals(List.of(
+                new MatchPairing("a", "b")
+        ), generated);
+    }
+    
+    @Test
     void teams_3_rounds_1() {
         MockCTFGame ctf = new MockCTFGame(4);
         ctf.start(1, "a", "b", "c");
         
-        Assertions.assertEquals(1, ctf.roundManager.getPlayedRounds());
+        Assertions.assertEquals(1, ctf.getPlayedRounds());
         Assertions.assertEquals(Set.of(
                 new MatchPairing("a", "b")
         ), ctf.roundManager.getPlayedMatchPairings());
@@ -119,7 +139,7 @@ public class CTFRoundGen2 {
         MockCTFGame ctf = new MockCTFGame(4);
         ctf.start("a", "b", "c");
         
-        Assertions.assertEquals(3, ctf.roundManager.getPlayedRounds());
+        Assertions.assertEquals(3, ctf.getPlayedRounds());
         assertSetsAreEqual(
                 Set.of(
                     new MatchPairing("a", "b"),
@@ -140,20 +160,20 @@ public class CTFRoundGen2 {
     void teams_7_arenas_2() {
         MockCTFGame ctf = new MockCTFGame(2);
         ctf.start("black", "grey", "red", "yellow", "blue", "green", "pink");
-        System.out.printf("Longest On-Deck Streak: %s%n", ctf.roundManager.longestOnDeckStreak);
-        System.out.printf("Total on-deck rounds: %s%n", ctf.roundManager.totalOnDeckRounds);
-        Assertions.assertEquals(11, ctf.roundManager.getPlayedRounds());
+//        System.out.printf("Longest On-Deck Streak: %s%n", ctf.roundManager.longestOnDeckStreak);
+//        System.out.printf("Total on-deck rounds: %s%n", ctf.roundManager.totalOnDeckRounds);
+        Assertions.assertEquals(11, ctf.getPlayedRounds());
     }
     
     @Test
     void pause_resume() {
         MockCTFGame ctf = new MockCTFGame(2);
         ctf.start(6, "black", "grey", "red", "yellow", "blue", "green", "pink");
-        Assertions.assertEquals(6, ctf.roundManager.getPlayedRounds());
+        Assertions.assertEquals(6, ctf.getPlayedRounds());
         ctf.resume(8);
-        Assertions.assertEquals(8, ctf.roundManager.getPlayedRounds());
+        Assertions.assertEquals(8, ctf.getPlayedRounds());
         ctf.resume(-1);
-        Assertions.assertEquals(11, ctf.roundManager.getPlayedRounds());
+        Assertions.assertEquals(11, ctf.getPlayedRounds());
     }
     
     @Test
@@ -164,7 +184,7 @@ public class CTFRoundGen2 {
         ctf.resume(-1);
         Set<MatchPairing> expectedPlayedMatchPairings = createAllMatchPairings("black", "grey", "red", "yellow", "blue", "green", "pink", "orange");
     
-        Assertions.assertEquals(14, ctf.roundManager.getPlayedRounds());
+        Assertions.assertEquals(14, ctf.getPlayedRounds());
         assertSetsAreEqual(expectedPlayedMatchPairings, ctf.roundManager.getPlayedMatchPairings(), this::matchPairingEquivalent);
     }
     
@@ -179,7 +199,7 @@ public class CTFRoundGen2 {
         ctf.resume(-1);
         Set<MatchPairing> expectedPlayedMatchPairings = createAllMatchPairings(teams);
     
-        Assertions.assertEquals(11, ctf.roundManager.getPlayedRounds());
+        Assertions.assertEquals(11, ctf.getPlayedRounds());
         assertSetsAreEqual(expectedPlayedMatchPairings, ctf.roundManager.getPlayedMatchPairings(), this::matchPairingEquivalent);
     }
     
@@ -194,7 +214,7 @@ public class CTFRoundGen2 {
         ctf.resume(-1);
         Set<MatchPairing> expectedPlayedMatchPairings = createAllMatchPairings(teams);
         
-        Assertions.assertEquals(11, ctf.roundManager.getPlayedRounds());
+        Assertions.assertEquals(11, ctf.getPlayedRounds());
         assertSetsAreEqual(expectedPlayedMatchPairings, ctf.roundManager.getPlayedMatchPairings(), this::matchPairingEquivalent);
     }
     
@@ -242,14 +262,6 @@ public class CTFRoundGen2 {
         }
         
         Assertions.assertTrue(true);
-    }
-    
-    @Test
-    void testGenerateMatchPairings() {
-        List<MatchPairing> generated = RoundManager.generateMatchPairings(List.of("a", "b", "c"), Collections.emptySet(), 4);
-        Assertions.assertEquals(List.of(
-                new MatchPairing("a", "b")
-        ), generated);
     }
     
     Set<MatchPairing> createAllMatchPairings(String... teams) {
