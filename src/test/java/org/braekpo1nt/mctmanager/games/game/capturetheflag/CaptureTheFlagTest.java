@@ -128,10 +128,10 @@ class CaptureTheFlagTest {
             MyPlayerMock player2 = createParticipant("Player2", "blue", "Blue");
             MyPlayerMock player3 = createParticipant("Player3", "green", "Green");
             gameManager.startGame(GameType.CAPTURE_THE_FLAG, sender);
-
+            
             Assertions.assertTrue(player1.receivedMessagePlaintext("Red is competing against Blue this round."));
             Assertions.assertTrue(player2.receivedMessagePlaintext("Blue is competing against Red this round."));
-            Assertions.assertTrue(player3.receivedMessagePlaintext("Green is not competing in this round. Their next round is 1"));
+            Assertions.assertTrue(player3.receivedMessagePlaintext("Green is on-deck this round."));
         } catch (UnimplementedOperationException ex) {
             ex.printStackTrace();
             Assertions.fail(ex.getMessage());
@@ -178,10 +178,10 @@ class CaptureTheFlagTest {
             MyPlayerMock player4 = createParticipant("Player4", "purple", "Purple");
             MyPlayerMock player5 = createParticipant("Player5", "black", "Black");
             gameManager.startGame(GameType.CAPTURE_THE_FLAG, sender);
-
+            
             CaptureTheFlagGame ctf = ((CaptureTheFlagGame) gameManager.getActiveGame());
             Assertions.assertEquals(7, ctf.getPlayedRounds());
-
+            
         } catch (UnimplementedOperationException ex) {
             ex.printStackTrace();
             Assertions.fail(ex.getMessage());

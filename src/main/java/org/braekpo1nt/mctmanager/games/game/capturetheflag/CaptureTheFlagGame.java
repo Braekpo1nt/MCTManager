@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.games.game.capturetheflag;
 
 import net.kyori.adventure.text.*;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlagStorageUtil;
@@ -190,9 +191,15 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         List<Player> onDeckParticipants = new ArrayList<>();
         for (Player participant : participants) {
             String team = gameManager.getTeamName(participant.getUniqueId());
+            Component teamDisplayName = gameManager.getFormattedTeamDisplayName(team);
             if (participantTeams.contains(team)) {
+                announceMatchToParticipant(participant, team, teamDisplayName);
                 roundParticipants.add(participant);
             } else {
+                participant.sendMessage(Component.empty()
+                        .append(teamDisplayName)
+                        .append(Component.text(" is on-deck this round."))
+                        .color(NamedTextColor.YELLOW));
                 onDeckParticipants.add(participant);
             }
         }
@@ -200,6 +207,22 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         String round = String.format("Round %d", roundManager.getPlayedRounds() + 1);
         sidebar.updateLine("round", round);
         adminSidebar.updateLine("round", round);
+    }
+    
+    /**
+     * Send a message to the participant who they are fighting against in the current match
+     * @param participant the participant to send the message to
+     * @param team the team that the participant is on
+     */
+    private void announceMatchToParticipant(Player participant, String team, Component teamDisplayName) {
+        String oppositeTeam = currentRound.getOppositeTeam(team);
+        Component oppositeTeamDisplayName = gameManager.getFormattedTeamDisplayName(oppositeTeam);
+        participant.sendMessage(Component.empty()
+                .append(teamDisplayName)
+                .append(Component.text(" is competing against "))
+                .append(oppositeTeamDisplayName)
+                .append(Component.text(" this round."))
+                .color(NamedTextColor.YELLOW));
     }
     
     @EventHandler
