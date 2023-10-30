@@ -46,12 +46,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     public CaptureTheFlagGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
         this.gameManager = gameManager;
-        if (plugin != null) {
-            this.storageUtil = new CaptureTheFlagStorageUtil(plugin.getDataFolder());
-        } else {
-            System.out.println("unimplemented branch for testing only in CaptureTheFlagGame constructor");
-            this.storageUtil = new CaptureTheFlagStorageUtil(new File(""));
-        }
+        this.storageUtil = new CaptureTheFlagStorageUtil(plugin.getDataFolder());
     }
     
     @Override
@@ -315,6 +310,16 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     }
     
     // Testing methods
+    
+    /**
+     * No-arg constructor for testing purposes only
+     */
+    CaptureTheFlagGame() {
+        this.plugin = null;
+        this.gameManager = null;
+        this.storageUtil = null;
+    }
+    
     /**
      * Returns a copy of the list of participants. Not the actual list, modifying the return value
      * of this function does not modify the actual list of participants.

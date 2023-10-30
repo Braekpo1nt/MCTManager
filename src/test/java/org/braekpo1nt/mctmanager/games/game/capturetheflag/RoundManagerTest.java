@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 import java.util.*;
 import java.util.function.BiPredicate;
 
-public class CTFRoundGen2 {
+public class RoundManagerTest {
     
     class MockCTFGame extends CaptureTheFlagGame {
         final int numOfArenas;
@@ -23,7 +23,7 @@ public class CTFRoundGen2 {
          * @param numOfArenas the number of arenas there are
          */
         MockCTFGame(int numOfArenas) {
-            super(null, null);
+            super();
             this.numOfArenas = numOfArenas;
         }
         
@@ -43,7 +43,6 @@ public class CTFRoundGen2 {
             for (String team : newTeams) {
                 teams.add(team);
             }
-//            System.out.println("Start game");
             roundManager = new RoundManager(this, numOfArenas);
             roundManager.start(List.of(newTeams));
         }
@@ -66,7 +65,6 @@ public class CTFRoundGen2 {
         public void resume(int pauseAfterRounds) {
             this.pauseRounds = pauseAfterRounds;
             this.isPaused = false;
-            //            roundManager.setPlayedRounds(roundManager.getPlayedRounds() - 1); // roundIsOver increases this, but it's already increased, so decrease for consistency
             roundManager.roundIsOver();
         }
         
@@ -100,12 +98,10 @@ public class CTFRoundGen2 {
         
         public void start(List<String> newTeams, List<MatchPairing> matchPairings, List<String> onDeckTeams) {
             teams = new ArrayList<>(newTeams);
-//            System.out.printf("Start round with:%s; On-Deck:%s%n", matchPairings, onDeckTeams);
             stop();
         }
         
         public void stop() {
-//            System.out.println("Stop round");
             ctfGame.roundIsOver();
         }
     }
@@ -140,7 +136,6 @@ public class CTFRoundGen2 {
     void testCreateMatches_7_teams() {
         Map<String, List<String>> teamsToFight = createTeamsToFight("black", "grey", "red", "yellow", "blue", "green", "pink");
         Set<Set<String>> matches = RoundManager.createMatches(teamsToFight);
-        System.out.println(matches);
         Assertions.assertEquals(21, matches.size());
     }
     
