@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.games.game.capturetheflag;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlagStorageUtil;
@@ -139,9 +140,14 @@ public class CaptureTheFlagRound {
     
     public void onParticipantJoin(Player participant) {
         String teamName = gameManager.getTeamName(participant.getUniqueId());
+        Component teamDisplayName = gameManager.getFormattedTeamDisplayName(teamName);
         CaptureTheFlagMatch match = getMatch(teamName);
         if (match == null) {
             initializeOnDeckParticipant(participant);
+            participant.sendMessage(Component.empty()
+                    .append(teamDisplayName)
+                    .append(Component.text(" is on-deck this round."))
+                    .color(NamedTextColor.YELLOW));
             sidebar.updateLine(participant.getUniqueId(), "enemy", "On Deck");
             return;
         }

@@ -342,27 +342,6 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         return currentRound;
     }
     
-    /**
-     * @return the duration in seconds of the class selection period
-     */
-    public int getClassSelectionDuration() {
-        return storageUtil.getClassSelectionDuration();
-    }
-    
-    /**
-     * @return the duration in seconds of the round
-     */
-    public int getRoundTimerDuration() {
-        return storageUtil.getRoundTimerDuration();
-    }
-    
-    /**
-     * @return the duration in seconds of the matches-starting countdown
-     */
-    public int getMatchesStartingDuration() {
-        return storageUtil.getMatchesStartingDuration();
-    }
-    
     public boolean isGameActive() {
         return gameActive;
     }

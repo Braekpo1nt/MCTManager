@@ -101,7 +101,7 @@ public class RoundManager {
         }
     }
     
-    private boolean teamExistsInGame(String team) {
+    public boolean teamExistsInGame(String team) {
         return teams.contains(team);
     }
     

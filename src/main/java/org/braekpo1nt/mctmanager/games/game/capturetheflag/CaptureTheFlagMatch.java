@@ -216,6 +216,7 @@ public class CaptureTheFlagMatch implements Listener {
         String teamName = gameManager.getTeamName(participant.getUniqueId());
         if (matchPairing.northTeam().equals(teamName)) {
             onNorthParticipantJoin(participant);
+            
             return;
         }
         if (matchPairing.southTeam().equals(teamName)) {
@@ -225,6 +226,7 @@ public class CaptureTheFlagMatch implements Listener {
     }
     
     private void onNorthParticipantJoin(Player northParticipant) {
+        announceMatchToParticipant(northParticipant, matchPairing.northTeam(), matchPairing.southTeam());
         if (northClassPicker.isActive()) {
             initializeParticipant(northParticipant, true);
             northClassPicker.addTeamMate(northParticipant);
@@ -235,6 +237,7 @@ public class CaptureTheFlagMatch implements Listener {
     }
     
     private void onSouthParticipantJoin(Player southParticipant) {
+        announceMatchToParticipant(southParticipant, matchPairing.southTeam(), matchPairing.northTeam());
         if (southClassPicker.isActive()) {
             initializeParticipant(southParticipant, false);
             southClassPicker.addTeamMate(southParticipant);
@@ -242,6 +245,17 @@ public class CaptureTheFlagMatch implements Listener {
         }
         participantsAreAlive.put(southParticipant.getUniqueId(), false);
         initializeDeadParticipant(southParticipant, false);
+    }
+    
+    private void announceMatchToParticipant(Player participant, String team, String oppositeTeam) {
+        Component teamDisplayName = gameManager.getFormattedTeamDisplayName(team);
+        Component oppositeTeamDisplayName = gameManager.getFormattedTeamDisplayName(oppositeTeam);
+        participant.sendMessage(Component.empty()
+                .append(teamDisplayName)
+                .append(Component.text(" is competing against "))
+                .append(oppositeTeamDisplayName)
+                .append(Component.text("."))
+                .color(NamedTextColor.YELLOW));
     }
     
     public void onParticipantQuit(Player participant) {
