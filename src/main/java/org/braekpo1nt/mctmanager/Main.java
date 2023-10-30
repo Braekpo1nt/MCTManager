@@ -1,6 +1,5 @@
 package org.braekpo1nt.mctmanager;
 
-import com.onarandombox.MultiverseCore.MultiverseCore;
 import org.braekpo1nt.mctmanager.commands.MCTCommand;
 import org.braekpo1nt.mctmanager.commands.MCTDebugCommand;
 import org.braekpo1nt.mctmanager.commands.utils.UtilsCommand;
@@ -8,7 +7,6 @@ import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.listeners.BlockEffectsListener;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -18,7 +16,6 @@ import org.bukkit.scoreboard.Scoreboard;
 public class Main extends JavaPlugin {
 
     public static final String CONFIG_VERSION = "0.1.0";
-    public static MultiverseCore multiverseCore;
     private GameManager gameManager;
     private boolean saveGameStateOnDisable = true;
     public final static PotionEffect NIGHT_VISION = new PotionEffect(PotionEffectType.NIGHT_VISION, 300, 3, true, false, false);
@@ -27,14 +24,6 @@ public class Main extends JavaPlugin {
     @Override
     public void onEnable() {
         
-        Plugin multiversePlugin = Bukkit.getPluginManager().getPlugin("Multiverse-Core");
-        if (multiversePlugin == null) {
-            Bukkit.getLogger().severe("[MCTManager] Cannot find Multiverse-Core. [MCTManager] depends on it and cannot proceed without it.");
-            Bukkit.getPluginManager().disablePlugin(this);
-            return;
-        }
-        Main.multiverseCore = ((MultiverseCore) multiversePlugin);
-    
         Scoreboard mctScoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
         
         gameManager = new GameManager(this, mctScoreboard);

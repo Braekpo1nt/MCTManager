@@ -1,6 +1,6 @@
 {
   "version": "0.1.0",
-  "world": "World",
+  "world": "TestWorld",
   "startingLocations": [
     {
       "x": 0,
