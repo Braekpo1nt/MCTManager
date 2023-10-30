@@ -202,7 +202,7 @@ class CaptureTheFlagTest {
             gameManager.startGame(GameType.CAPTURE_THE_FLAG, sender);
             speedThroughHalfRoundCountdown();
             player3.disconnect();
-
+            
             CaptureTheFlagGame ctf = ((CaptureTheFlagGame) gameManager.getActiveGame());
             List<Player> participants = ctf.getParticipants();
             Assertions.assertEquals(2, participants.size());
@@ -217,7 +217,7 @@ class CaptureTheFlagTest {
             Assertions.fail(ex.getMessage());
         }
     }
-
+    
     @Test
     @DisplayName("if an entire team quits during round countdown, the round is cancelled")
     void teamQuitDuringRoundCountdownTest() {
@@ -231,7 +231,7 @@ class CaptureTheFlagTest {
             player2.disconnect();
             speedThroughHalfRoundCountdown();
             speedThroughClassSelection();
-
+            
             CaptureTheFlagGame ctf = ((CaptureTheFlagGame) gameManager.getActiveGame());
             Assertions.assertEquals(1, ctf.getParticipants().size());
             CaptureTheFlagRound currentRound = ctf.getCurrentRound();

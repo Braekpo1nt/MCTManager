@@ -139,15 +139,15 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     @Override
     public void onParticipantJoin(Player participant) {
         initializeParticipant(participant);
-        sidebar.updateLines(participant.getUniqueId(),
-                new KeyLine("title", title),
-                new KeyLine("round", String.format("Round %d", roundManager.getPlayedRounds()))
-        );
         if (currentRound != null) {
             currentRound.onParticipantJoin(participant);
         }
         String team = gameManager.getTeamName(participant.getUniqueId());
         roundManager.onTeamJoin(team);
+        sidebar.updateLines(participant.getUniqueId(),
+                new KeyLine("title", title),
+                new KeyLine("round", String.format("Round %d/%d", roundManager.getPlayedRounds() + 1, roundManager.getMaxRounds()))
+        );
     }
     
     @Override
@@ -204,7 +204,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
             }
         }
         currentRound.start(roundParticipants, onDeckParticipants);
-        String round = String.format("Round %d", roundManager.getPlayedRounds() + 1);
+        String round = String.format("Round %d/%d", roundManager.getPlayedRounds() + 1, roundManager.getMaxRounds());
         sidebar.updateLine("round", round);
         adminSidebar.updateLine("round", round);
     }
