@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.games.game.capturetheflag;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlagStorageUtil;
@@ -37,13 +38,14 @@ public class CaptureTheFlagRound {
     private int onDeckMatchTimerTaskId;
     private boolean roundActive = false;
     
-    public CaptureTheFlagRound(CaptureTheFlagGame captureTheFlagGame, Main plugin, GameManager gameManager, CaptureTheFlagStorageUtil storageUtil, Sidebar sidebar, Sidebar adminSidebar) {
+    public CaptureTheFlagRound(CaptureTheFlagGame captureTheFlagGame, Main plugin, GameManager gameManager, CaptureTheFlagStorageUtil storageUtil, List<MatchPairing> matchPairings, Sidebar sidebar, Sidebar adminSidebar) {
         this.captureTheFlagGame = captureTheFlagGame;
         this.plugin = plugin;
         this.gameManager = gameManager;
         this.storageUtil = storageUtil;
         this.sidebar = sidebar;
         this.adminSidebar = adminSidebar;
+        matches = createMatches(matchPairings, storageUtil.getArenas());
     }
     
     /**
@@ -53,15 +55,16 @@ public class CaptureTheFlagRound {
      * @param arenas The arenas to assign to each {@link CaptureTheFlagMatch}
      * @throws NullPointerException if matchPairings.size() is greater than arenas.size()
      */
-    public void createMatches(List<MatchPairing> matchPairings, List<Arena> arenas) {
-        matches = new ArrayList<>();
+    public List<CaptureTheFlagMatch> createMatches(List<MatchPairing> matchPairings, List<Arena> arenas) {
+        List<CaptureTheFlagMatch> newMatches = new ArrayList<>();
         for (int i = 0; i < matchPairings.size(); i++) {
             MatchPairing matchPairing = matchPairings.get(i);
             Arena arena = arenas.get(i);
             CaptureTheFlagMatch match = new CaptureTheFlagMatch(this, plugin, gameManager, 
                     matchPairing, arena, storageUtil, sidebar, adminSidebar);
-            matches.add(match);
+            newMatches.add(match);
         }
+        return newMatches;
     }
     
     public boolean isActive() {
@@ -108,7 +111,9 @@ public class CaptureTheFlagRound {
         cancelAllTasks();
         roundActive = false;
         for (CaptureTheFlagMatch match : matches) {
-            match.stop();
+            if (match.isActive()) {
+                match.stop();
+            }
         }
         for (Player participant : participants) {
             resetParticipant(participant);
@@ -135,9 +140,14 @@ public class CaptureTheFlagRound {
     
     public void onParticipantJoin(Player participant) {
         String teamName = gameManager.getTeamName(participant.getUniqueId());
+        Component teamDisplayName = gameManager.getFormattedTeamDisplayName(teamName);
         CaptureTheFlagMatch match = getMatch(teamName);
         if (match == null) {
             initializeOnDeckParticipant(participant);
+            participant.sendMessage(Component.empty()
+                    .append(teamDisplayName)
+                    .append(Component.text(" is on-deck this round."))
+                    .color(NamedTextColor.YELLOW));
             sidebar.updateLine(participant.getUniqueId(), "enemy", "On Deck");
             return;
         }
@@ -266,7 +276,7 @@ public class CaptureTheFlagRound {
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
     }
-
+    
     /**
      * Starts the matches that are in this round
      */
