@@ -110,7 +110,9 @@ public class CaptureTheFlagRound {
         cancelAllTasks();
         roundActive = false;
         for (CaptureTheFlagMatch match : matches) {
-            match.stop();
+            if (match.isActive()) {
+                match.stop();
+            }
         }
         for (Player participant : participants) {
             resetParticipant(participant);
