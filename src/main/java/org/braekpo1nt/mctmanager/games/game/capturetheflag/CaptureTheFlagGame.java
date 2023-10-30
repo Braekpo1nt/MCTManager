@@ -140,7 +140,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         initializeParticipant(participant);
         sidebar.updateLines(participant.getUniqueId(),
                 new KeyLine("title", title),
-                new KeyLine("round", String.format("Round %d/%d", roundManager.getPlayedRounds(), roundManager.getMaxRounds()))
+                new KeyLine("round", String.format("Round %d", roundManager.getPlayedRounds()))
         );
         if (currentRound != null) {
             currentRound.onParticipantJoin(participant);
@@ -152,7 +152,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     @Override
     public void onParticipantQuit(Player participant) {
         if (currentRound != null) {
-            currentRound.onParticipantJoin(participant);
+            currentRound.onParticipantQuit(participant);
         }
         resetParticipant(participant);
         participants.remove(participant);
@@ -197,7 +197,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
             }
         }
         currentRound.start(roundParticipants, onDeckParticipants);
-        String round = String.format("Round %d/%d", roundManager.getPlayedRounds() + 1, roundManager.getMaxRounds());
+        String round = String.format("Round %d", roundManager.getPlayedRounds() + 1);
         sidebar.updateLine("round", round);
         adminSidebar.updateLine("round", round);
     }
@@ -296,5 +296,16 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
      */
     public List<Player> getParticipants() {
         return new ArrayList<>(participants);
+    }
+    
+    /**
+     * @return The number of rounds that have been played already in this game
+     */
+    public int getPlayedRounds() {
+        return roundManager.getPlayedRounds();
+    }
+    
+    public CaptureTheFlagRound getCurrentRound() {
+        return currentRound;
     }
 }

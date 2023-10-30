@@ -223,29 +223,19 @@ public class RoundManager {
         return result;
     }
     
+    /**
+     * @return The number of rounds that have been played already in this game
+     */
     public int getPlayedRounds() {
         return playedRounds;
     }
     
-    public int getMaxRounds() {
-        return calculateRounds(teams.size(), numOfArenas); 
-    }
-    
-    private int calculateRounds(int numOfTeams, int numOfArenas) {
-        return ((int) Math.ceil((numOfTeams * (numOfTeams - 1) / 2.0) / numOfArenas));
-    }
-    
     //testing
-    
-    public void setPlayedRounds(int playedRounds) {
-        this.playedRounds = playedRounds;
-    }
-    
-    public Set<MatchPairing> getPlayedMatchPairings() {
+    Set<MatchPairing> getPlayedMatchPairings() {
         return playedMatchPairings;
     }
     
-    public Map<String, Integer> getRoundsSpentOnDeck() {
+    Map<String, Integer> getRoundsSpentOnDeck() {
         return roundsSpentOnDeck;
     }
 }
