@@ -118,6 +118,62 @@ public class CTFRoundGen2 {
         ), generated);
     }
     
+    Map<String, List<String>> createTeamsToFight(String... teams) {
+        Map<String, List<String>> teamsToFight = new HashMap<>();
+        List<String> teamsAsList = List.of(teams);
+        for (String team : teams) {
+            List<String> enemyTeams = new ArrayList<>(teamsAsList);
+            enemyTeams.remove(team);
+            teamsToFight.put(team, enemyTeams);
+        }
+        return teamsToFight;
+    }
+    
+    @Test
+    void testCreateMatches_3_teams() {
+        Map<String, List<String>> teamsToFight = createTeamsToFight("a", "b", "c");
+        Set<Set<String>> matches = RoundManager.createMatches(teamsToFight);
+        Assertions.assertEquals(3, matches.size());
+    }
+    
+    @Test
+    void testCreateMatches_7_teams() {
+        Map<String, List<String>> teamsToFight = createTeamsToFight("black", "grey", "red", "yellow", "blue", "green", "pink");
+        Set<Set<String>> matches = RoundManager.createMatches(teamsToFight);
+        System.out.println(matches);
+        Assertions.assertEquals(21, matches.size());
+    }
+    
+    @Test
+    void testRoundsLeft_3_teams() {
+        Map<String, List<String>> teamsToFight = createTeamsToFight("a", "b", "c");
+        Assertions.assertEquals(3, RoundManager.calculateRoundsLeft(teamsToFight, 4));
+    }
+    
+    @Test
+    void testRoundsLeft_7_teams() {
+        Map<String, List<String>> teamsToFight = createTeamsToFight("black", "grey", "red", "yellow", "blue", "green", "pink");
+        Assertions.assertEquals(11, RoundManager.calculateRoundsLeft(teamsToFight, 2));
+    }
+    
+    @Test
+    void testRoundsLeft_7_teams_roundsPlayed() {
+        Map<String, List<String>> teamsToFight = createTeamsToFight("black", "grey", "red", "yellow", "blue", "green", "pink");
+        // a round was played in two arenas between 4 different teams
+        teamsToFight.get("black").remove("grey");
+        teamsToFight.get("grey").remove("black");
+        teamsToFight.get("red").remove("yellow");
+        teamsToFight.get("yellow").remove("red");
+        
+        Assertions.assertEquals(10, RoundManager.calculateRoundsLeft(teamsToFight, 2));
+    }
+    
+    @Test
+    void testRoundsLeft_5_teams_4_arenas() {
+        Map<String, List<String>> teamsToFight = createTeamsToFight("red", "blue", "green", "purple", "black");
+        Assertions.assertEquals(6, RoundManager.calculateRoundsLeft(teamsToFight, 4));
+    }
+    
     @Test
     void teams_3_rounds_1() {
         MockCTFGame ctf = new MockCTFGame(4);

@@ -328,6 +328,13 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         return roundManager.getPlayedRounds();
     }
     
+    /**
+     * @return the maximum number of rounds
+     */
+    public int getMaxRounds() {
+        return roundManager.getMaxRounds();
+    }
+    
     public CaptureTheFlagRound getCurrentRound() {
         return currentRound;
     }

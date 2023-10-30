@@ -230,6 +230,56 @@ public class RoundManager {
         return playedRounds;
     }
     
+    /**
+     * @return the maximum number of rounds played
+     */
+    public int getMaxRounds() {
+        return getPlayedRounds() + calculateRoundsLeft(teamsToFight, numOfArenas) + 1;
+    }
+    
+    public static int calculateRoundsLeft(Map<String, List<String>> teamsToFight, int numOfArenas) {
+        Set<Set<String>> matches = createMatches(teamsToFight);
+        int roundsLeft = 0;
+        while (!matches.isEmpty()) {
+            Iterator<Set<String>> iterator = matches.iterator();
+            Set<String> roundTeams = new HashSet<>();
+            while (iterator.hasNext() && roundTeams.size() < numOfArenas*2) {
+                Set<String> matchPair = iterator.next();
+                if (roundTeamsContainsNoTeamsFromPair(roundTeams, matchPair)) {
+                    roundTeams.addAll(matchPair);
+                    iterator.remove();
+                }
+            }
+            roundsLeft++;
+        }
+        return roundsLeft;
+    }
+    
+    private static boolean roundTeamsContainsNoTeamsFromPair(Set<String> roundTeams, Set<String> pair) {
+        for (String team : pair) {
+            if (roundTeams.contains(team)) {
+                return false;
+            }
+        }
+        return true;
+    }
+    
+    public static Set<Set<String>> createMatches(Map<String, List<String>> teamsToFight) {
+        Set<Set<String>> pairs = new HashSet<>();
+        
+        for (Map.Entry<String, List<String>> entry : teamsToFight.entrySet()) {
+            String team = entry.getKey();
+            List<String> opponents = entry.getValue();
+            
+            for (String opponent : opponents) {
+                Set<String> pair = Set.of(team, opponent);
+                pairs.add(pair);
+            }
+        }
+        
+        return pairs;
+    }
+    
     //testing
     Set<MatchPairing> getPlayedMatchPairings() {
         return playedMatchPairings;
