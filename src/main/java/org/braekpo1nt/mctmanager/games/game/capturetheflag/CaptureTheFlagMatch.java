@@ -91,6 +91,11 @@ public class CaptureTheFlagMatch implements Listener {
     }
     
     public void start(List<Player> newNorthParticipants, List<Player> newSouthParticipants) {
+        if (newNorthParticipants.isEmpty() || newSouthParticipants.isEmpty()) {
+            Bukkit.getLogger().info(String.format("Skipping capture the flag match %s one of the teams is offline", matchPairing));
+            matchIsOver();
+            return;
+        }
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         northParticipants = new ArrayList<>();
         southParticipants = new ArrayList<>();

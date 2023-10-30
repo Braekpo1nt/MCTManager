@@ -1,5 +1,7 @@
 package org.braekpo1nt.mctmanager.games.game.capturetheflag;
 
+import org.bukkit.Bukkit;
+
 import java.util.*;
 
 /**
@@ -147,10 +149,19 @@ public class RoundManager {
         game.stop();
     }
     
+    /**
+     * @return true if 
+     */
     private boolean thereAreRoundsLeft() {
-        for (List<String> value : teamsToFight.values()) {
-            if (!value.isEmpty()) {
-                return true;
+        for (String team : teams) {
+            List<String> toFight = teamsToFight.get(team);
+            if (!toFight.isEmpty()) {
+                for (String enemyTeam : toFight) {
+                    // if the enemy team is online and in the game
+                    if (teams.contains(enemyTeam)) {
+                        return true;
+                    }
+                }
             }
         }
         return false;

@@ -66,7 +66,7 @@ class CaptureTheFlagTest {
             createParticipant("Player1", "red", "Red");
             createParticipant("Player2", "blue", "Blue");
             gameManager.startGame(GameType.CAPTURE_THE_FLAG, sender);
-            speedThroughRoundCountdown();
+            speedThroughMatchesStarting();
             speedThroughClassSelection();
 
         } catch (UnimplementedOperationException ex) {
@@ -78,29 +78,33 @@ class CaptureTheFlagTest {
             Assertions.fail(ex.getMessage());
         }
     }
-
-    void speedThroughRoundCountdown() {
-        server.getScheduler().performTicks((20 * 10) + 1); // speed through the startMatchesStartingCountDown()
+    
+    void performSeconds(int seconds) {
+        server.getScheduler().performTicks((20L * seconds) + 1);
     }
-
-    void speedThroughHalfRoundCountdown() {
-        server.getScheduler().performTicks((20 * 5) + 1); // speed through the startMatchesStartingCountDown()
+    
+    void speedThroughMatchesStarting() {
+        performSeconds(10); // speed through the startMatchesStartingCountDown()
     }
-
+    
+    void speedThroughHalfMatchesStarting() {
+        performSeconds(5); // speed through the startMatchesStartingCountDown()
+    }
+    
     void speedThroughClassSelection() {
-        server.getScheduler().performTicks((20 * 20) + 1); // speed through the startClassSelectionPeriod()
+        performSeconds(20); // speed through the startClassSelectionPeriod()
     }
-
+    
     void speedThroughHalfClassSelection() {
-        server.getScheduler().performTicks((20 * 10) + 1); // speed through the startClassSelectionPeriod()
+        performSeconds(10);; // speed through the startClassSelectionPeriod()
     }
-
-    void speedThroughRound() {
-        server.getScheduler().performTicks((20*60*3)+1); // speed through the round
+    
+    void speedThroughRoundTimer() {
+        performSeconds(180); // speed through the round timer
     }
-
-    void speedThroughHalfRound() {
-        server.getScheduler().performTicks((20*30*3)+1); // speed through half the round
+    
+    void speedThroughHalfRoundTimer() {
+        performSeconds(90);; // speed through half the round timer
     }
 
 
@@ -200,7 +204,7 @@ class CaptureTheFlagTest {
             MyPlayerMock player2 = createParticipant("Player2", "blue", "Blue");
             MyPlayerMock player3 = createParticipant("Player3", "blue", "Blue");
             gameManager.startGame(GameType.CAPTURE_THE_FLAG, sender);
-            speedThroughHalfRoundCountdown();
+            speedThroughHalfMatchesStarting();
             player3.disconnect();
             
             CaptureTheFlagGame ctf = ((CaptureTheFlagGame) gameManager.getActiveGame());
@@ -211,39 +215,6 @@ class CaptureTheFlagTest {
             List<CaptureTheFlagMatch> currentMatches = currentRound.getMatches();
             Assertions.assertEquals(1, currentMatches.size());
 
-
-        } catch (UnimplementedOperationException ex) {
-            ex.printStackTrace();
-            Assertions.fail(ex.getMessage());
-        }
-    }
-    
-    @Test
-    @DisplayName("if an entire team quits during round countdown, the round is cancelled")
-    void teamQuitDuringRoundCountdownTest() {
-        try {
-            addTeam("red", "Red", "red");
-            addTeam("blue", "Blue", "blue");
-            MyPlayerMock player1 = createParticipant("Player1", "red", "Red");
-            MyPlayerMock player2 = createParticipant("Player2", "blue", "Blue");
-            gameManager.startGame(GameType.CAPTURE_THE_FLAG, sender);
-            speedThroughHalfRoundCountdown();
-            player2.disconnect();
-            speedThroughHalfRoundCountdown();
-            speedThroughClassSelection();
-            
-            CaptureTheFlagGame ctf = ((CaptureTheFlagGame) gameManager.getActiveGame());
-            Assertions.assertEquals(1, ctf.getParticipants().size());
-            CaptureTheFlagRound currentRound = ctf.getCurrentRound();
-            Assertions.assertNotNull(currentRound);
-            Assertions.assertEquals(1, currentRound.getParticipants().size());
-            List<CaptureTheFlagMatch> matches = currentRound.getMatches();
-            Assertions.assertEquals(1, matches.size());
-            CaptureTheFlagMatch match = matches.get(0);
-            Assertions.assertTrue(match.isAliveInMatch(player1));
-            Assertions.assertFalse(match.isAliveInMatch(player2));
-            Assertions.assertEquals(1, match.getNorthParticipants().size());
-            Assertions.assertEquals(0, match.getSouthParticipants().size());
 
         } catch (UnimplementedOperationException ex) {
             ex.printStackTrace();
@@ -261,7 +232,7 @@ class CaptureTheFlagTest {
             MyPlayerMock player2 = createParticipant("Player2", "blue", "Blue");
             MyPlayerMock player3 = createParticipant("Player3", "blue", "Blue");
             gameManager.startGame(GameType.CAPTURE_THE_FLAG, sender);
-            speedThroughRoundCountdown();
+            speedThroughMatchesStarting();
             speedThroughHalfClassSelection();
             player3.disconnect();
 
@@ -295,7 +266,7 @@ class CaptureTheFlagTest {
             MyPlayerMock player1 = createParticipant("Player1", "red", "Red");
             MyPlayerMock player2 = createParticipant("Player2", "blue", "Blue");
             gameManager.startGame(GameType.CAPTURE_THE_FLAG, sender);
-            speedThroughRoundCountdown();
+            speedThroughMatchesStarting();
             speedThroughHalfClassSelection();
             player2.disconnect();
             speedThroughHalfClassSelection();
@@ -329,7 +300,7 @@ class CaptureTheFlagTest {
             MyPlayerMock player2 = createParticipant("Player2", "blue", "Blue");
             MyPlayerMock player3 = createParticipant("Player3", "blue", "Blue");
             gameManager.startGame(GameType.CAPTURE_THE_FLAG, sender);
-            speedThroughRoundCountdown();
+            speedThroughMatchesStarting();
             speedThroughClassSelection();
             player3.disconnect();
 
@@ -360,7 +331,7 @@ class CaptureTheFlagTest {
             MyPlayerMock player1 = createParticipant("Player1", "red", "Red");
             MyPlayerMock player2 = createParticipant("Player2", "blue", "Blue");
             gameManager.startGame(GameType.CAPTURE_THE_FLAG, sender);
-            speedThroughRoundCountdown();
+            speedThroughMatchesStarting();
             speedThroughClassSelection();
             player2.disconnect();
 
@@ -375,56 +346,6 @@ class CaptureTheFlagTest {
             Assertions.assertEquals(1, match.getNorthParticipants().size());
             Assertions.assertEquals(0, match.getSouthParticipants().size());
 
-
-        } catch (UnimplementedOperationException ex) {
-            ex.printStackTrace();
-            Assertions.fail(ex.getMessage());
-        }
-    }
-    
-    @Test
-    @DisplayName("if an entire team quits while they still have a round, the current round is unchanged")
-    void teamQuitCurrentRoundUnchangedTest() {
-        try {
-            addTeam("red", "Red", "red");
-            addTeam("blue", "Blue", "blue");
-            addTeam("green", "Green", "green");
-            addTeam("purple", "Purple", "dark_purple");
-            MyPlayerMock player1 = createParticipant("Player1", "red", "Red");
-            MyPlayerMock player2 = createParticipant("Player2", "blue", "Blue");
-            MyPlayerMock player3 = createParticipant("Player3", "green", "Green");
-            MyPlayerMock player4 = createParticipant("Player4", "purple", "Purple");
-            gameManager.startGame(GameType.CAPTURE_THE_FLAG, sender);
-
-            CaptureTheFlagGame ctf = ((CaptureTheFlagGame) gameManager.getActiveGame());
-            Assertions.assertEquals(4, ctf.getParticipants().size());
-            
-            CaptureTheFlagRound currentRoundBeforeDisconnect = ctf.getCurrentRound();
-            Assertions.assertNotNull(currentRoundBeforeDisconnect);
-            List<Player> currentRoundParticipants = currentRoundBeforeDisconnect.getParticipants();
-            Assertions.assertEquals(4, currentRoundParticipants.size());
-            Assertions.assertTrue(currentRoundParticipants.contains(player1));
-            Assertions.assertTrue(currentRoundParticipants.contains(player2));
-            Assertions.assertTrue(currentRoundParticipants.contains(player3));
-            Assertions.assertTrue(currentRoundParticipants.contains(player4));
-            Assertions.assertEquals(0, currentRoundBeforeDisconnect.getOnDeckParticipants().size());
-
-            player4.disconnect();
-
-            CaptureTheFlagRound currentRoundAfterDisconnect = ctf.getCurrentRound();
-            Assertions.assertSame(currentRoundBeforeDisconnect, currentRoundAfterDisconnect);
-            Assertions.assertEquals(3, currentRoundAfterDisconnect.getParticipants().size());
-            Assertions.assertEquals(0, currentRoundAfterDisconnect.getOnDeckParticipants().size());
-            List<CaptureTheFlagMatch> currentMatchesAfterDisconnect = currentRoundAfterDisconnect.getMatches();
-            Assertions.assertEquals(2, currentMatchesAfterDisconnect.size());
-
-            speedThroughRoundCountdown();
-            speedThroughClassSelection();
-
-            Assertions.assertTrue(currentMatchesAfterDisconnect.get(0).isAliveInMatch(player1));
-            Assertions.assertTrue(currentMatchesAfterDisconnect.get(0).isAliveInMatch(player2));
-            Assertions.assertTrue(currentMatchesAfterDisconnect.get(1).isAliveInMatch(player3));
-            Assertions.assertFalse(currentMatchesAfterDisconnect.get(1).isAliveInMatch(player4));
 
         } catch (UnimplementedOperationException ex) {
             ex.printStackTrace();
@@ -452,10 +373,10 @@ class CaptureTheFlagTest {
             
             player4.disconnect();
             
-            speedThroughRoundCountdown();
+            speedThroughMatchesStarting();
             speedThroughClassSelection();
-            speedThroughRound();
-            speedThroughRoundCountdown();
+            speedThroughRoundTimer();
+            speedThroughMatchesStarting();
             speedThroughClassSelection();
             
             Assertions.assertEquals(4, ctf.getMaxRounds());
@@ -467,6 +388,42 @@ class CaptureTheFlagTest {
             Assertions.assertEquals(1, secondRound.getOnDeckParticipants().size());
             Assertions.assertTrue(secondRound.getOnDeckParticipants().contains(player2));
             
+        } catch (UnimplementedOperationException ex) {
+            ex.printStackTrace();
+            Assertions.fail(ex.getMessage());
+        }
+    }
+    
+    @Test
+    @DisplayName("if a match begins with an offline team, the match is skipped")
+    void teamQuitRoundsCancelled() {
+        try {
+            addTeam("red", "Red", "red");
+            addTeam("blue", "Blue", "blue");
+            addTeam("green", "Green", "green");
+            MyPlayerMock player1 = createParticipant("Player1", "red", "Red");
+            MyPlayerMock player2 = createParticipant("Player2", "blue", "Blue");
+            MyPlayerMock player3 = createParticipant("Player3", "green", "Green");
+            gameManager.startGame(GameType.CAPTURE_THE_FLAG, sender);
+            
+            CaptureTheFlagGame ctf = ((CaptureTheFlagGame) gameManager.getActiveGame());
+            speedThroughHalfMatchesStarting();
+            
+            player2.disconnect();
+            
+            speedThroughHalfMatchesStarting();
+            speedThroughClassSelection();
+    
+            Assertions.assertTrue(ctf.isGameActive());
+            Assertions.assertTrue(ctf.getCurrentRound().containsTeam("red"));
+            Assertions.assertTrue(ctf.getCurrentRound().containsTeam("green"));
+    
+            speedThroughRoundTimer();
+            speedThroughMatchesStarting();
+            speedThroughClassSelection();
+            speedThroughRoundTimer();
+    
+            Assertions.assertFalse(ctf.isGameActive());
         } catch (UnimplementedOperationException ex) {
             ex.printStackTrace();
             Assertions.fail(ex.getMessage());
@@ -487,7 +444,7 @@ class CaptureTheFlagTest {
             player3.disconnect();
             gameManager.startGame(GameType.CAPTURE_THE_FLAG, sender);
             
-            speedThroughHalfRoundCountdown();
+            speedThroughHalfMatchesStarting();
             
             CaptureTheFlagGame ctf = ((CaptureTheFlagGame) gameManager.getActiveGame());
             Assertions.assertEquals(1, ctf.getMaxRounds());
@@ -525,7 +482,7 @@ class CaptureTheFlagTest {
             player4.disconnect();
             gameManager.startGame(GameType.CAPTURE_THE_FLAG, sender);
 
-            speedThroughRoundCountdown();
+            speedThroughMatchesStarting();
             speedThroughHalfClassSelection();
 
             CaptureTheFlagGame ctf = ((CaptureTheFlagGame) gameManager.getActiveGame());
@@ -562,9 +519,9 @@ class CaptureTheFlagTest {
             player3.disconnect();
             gameManager.startGame(GameType.CAPTURE_THE_FLAG, sender);
 
-            speedThroughRoundCountdown();
+            speedThroughMatchesStarting();
             speedThroughClassSelection();
-            speedThroughHalfRound();
+            speedThroughHalfRoundTimer();
 
             CaptureTheFlagGame ctf = ((CaptureTheFlagGame) gameManager.getActiveGame());
 
@@ -602,7 +559,7 @@ class CaptureTheFlagTest {
             player3.disconnect();
             gameManager.startGame(GameType.CAPTURE_THE_FLAG, sender);
             
-            speedThroughRoundCountdown();
+            speedThroughMatchesStarting();
             speedThroughHalfClassSelection();
             
             CaptureTheFlagGame ctf = ((CaptureTheFlagGame) gameManager.getActiveGame());
@@ -643,9 +600,9 @@ class CaptureTheFlagTest {
             player3.disconnect();
             gameManager.startGame(GameType.CAPTURE_THE_FLAG, sender);
 
-            speedThroughRoundCountdown();
+            speedThroughMatchesStarting();
             speedThroughClassSelection();
-            speedThroughHalfRound();
+            speedThroughHalfRoundTimer();
 
             player3.reconnect();
 
@@ -699,9 +656,9 @@ class CaptureTheFlagTest {
             MyPlayerMock player3 = createParticipant("Player3", "blue", "Blue");
             gameManager.startGame(GameType.CAPTURE_THE_FLAG, sender);
 
-            speedThroughRoundCountdown();
+            speedThroughMatchesStarting();
             speedThroughClassSelection();
-            speedThroughHalfRound();
+            speedThroughHalfRoundTimer();
 
             CaptureTheFlagGame ctf = ((CaptureTheFlagGame) gameManager.getActiveGame());
 

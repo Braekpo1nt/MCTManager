@@ -144,10 +144,10 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         }
         String team = gameManager.getTeamName(participant.getUniqueId());
         roundManager.onTeamJoin(team);
-        sidebar.updateLines(participant.getUniqueId(),
-                new KeyLine("title", title),
-                new KeyLine("round", String.format("Round %d/%d", roundManager.getPlayedRounds() + 1, roundManager.getMaxRounds()))
-        );
+        sidebar.updateLine(participant.getUniqueId(), "title", title);
+        String roundLine = String.format("Round %d/%d", roundManager.getPlayedRounds() + 1, roundManager.getMaxRounds());
+        sidebar.updateLine("round", roundLine);
+        adminSidebar.updateLine("round", roundLine);
     }
     
     @Override
@@ -161,6 +161,9 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         if (entireTeamHasQuit(quittingTeam)) {
             roundManager.onTeamQuit(quittingTeam);
         }
+        String roundLine = String.format("Round %d/%d", roundManager.getPlayedRounds() + 1, roundManager.getMaxRounds());
+        sidebar.updateLine("round", roundLine);
+        adminSidebar.updateLine("round", roundLine);
     }
     
     /**
@@ -337,5 +340,30 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     
     public CaptureTheFlagRound getCurrentRound() {
         return currentRound;
+    }
+    
+    /**
+     * @return the duration in seconds of the class selection period
+     */
+    public int getClassSelectionDuration() {
+        return storageUtil.getClassSelectionDuration();
+    }
+    
+    /**
+     * @return the duration in seconds of the round
+     */
+    public int getRoundTimerDuration() {
+        return storageUtil.getRoundTimerDuration();
+    }
+    
+    /**
+     * @return the duration in seconds of the matches-starting countdown
+     */
+    public int getMatchesStartingDuration() {
+        return storageUtil.getMatchesStartingDuration();
+    }
+    
+    public boolean isGameActive() {
+        return gameActive;
     }
 }

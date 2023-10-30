@@ -270,7 +270,7 @@ public class CaptureTheFlagRound {
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
     }
-
+    
     /**
      * Starts the matches that are in this round
      */
