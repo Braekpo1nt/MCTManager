@@ -31,16 +31,10 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter:5.9.2'
     testImplementation 'org.mockito:mockito-core:5.2.0'
     testImplementation 'io.papermc.paper:paper-api:1.19.3-R0.1-SNAPSHOT'
-    testImplementation 'com.onarandombox.multiversecore:Multiverse-Core:4.3.1'
     testImplementation 'com.github.seeseemelk:MockBukkit-v1.19:2.146.1'
     testImplementation 'org.slf4j:slf4j-jdk14:2.0.5'
     
     compileOnly 'io.papermc.paper:paper-api:1.19.3-R0.1-SNAPSHOT'
-    
-//    Multiverse-Core API: 
-//    https://github.com/Multiverse/Multiverse-Core/wiki/Developer-API-Starter
-//    http://ci.onarandombox.com/job/Multiverse-Core/javadoc/
-    compileOnly 'com.onarandombox.multiversecore:Multiverse-Core:4.3.1'
     
 //    FastBoard
 //    https://github.com/MrMicky-FR/FastBoard
@@ -54,7 +48,6 @@ shadowJar {
     exclude 'org/junit/jupiter'
     exclude 'org/mockito'
     exclude 'io/papermc/paper'
-    exclude 'com/onarandombox/multiversecore'
     exclude 'com/github/seeseemelk'
     exclude 'org/slf4j'
     
