@@ -25,11 +25,6 @@ repositories {
         name = "jitpack"
         url = 'https://jitpack.io'
     }
-    maven {
-        // used for ProtocolLib
-        name = "dmulloy2"
-        url = "https://repo.dmulloy2.net/repository/public/"
-    }
     mavenLocal()
 }
 
@@ -55,6 +50,7 @@ dependencies {
     // https://github.com/Xezard/XGlow
 //    implementation 'com.github.Xezard.XGlow:XGlowAPI:1.1.0'
     implementation 'org.braekpo1nt:xglow-api-modified:1.2.0'
+//    implementation 'com.github.Braekpo1nt.XGlow:XGlow:v1.2.0'
     
     implementation 'com.google.code.gson:gson:2.10.1'
 }
