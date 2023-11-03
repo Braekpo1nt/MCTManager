@@ -31,70 +31,68 @@ public class MCTDebugCommand implements TabExecutor {
         plugin.getCommand("mctdebug").setExecutor(this);
     }
     
-    
-    
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (args.length != 1) {
-            return false;
-        }
-        String arg = args[0];
-        Player braekpo1nt = Bukkit.getPlayer("Braekpo1nt");
-        Player rstln = Bukkit.getPlayer("rstln");
-        Player kbelleflash = Bukkit.getPlayer("Kbelleflash");
-        if (braekpo1nt == null || rstln == null || kbelleflash == null) {
-            return true;
-        }
-        switch (arg) {
-            case "show" -> {
-                if (yellow == null) {
-                    yellow = Glow.builder()
-                            .color(ChatColor.YELLOW)
-                            .name("yellowGlow")
-                            .build();
-                }
-                yellow.addHolders(rstln);
-                yellow.display(rstln);
-                yellow.display(braekpo1nt);
-                
-                if (cyan == null) {
-                    cyan = Glow.builder()
-                            .color(ChatColor.AQUA)
-                            .name("cyanGlow")
-                            .build();
-                }
-                cyan.addHolders(kbelleflash);
-                cyan.display(kbelleflash);
-                cyan.display(braekpo1nt);
-                
-                if (white == null) {
-                    white = Glow.builder()
-                            .color(ChatColor.WHITE)
-                            .name("adminGlow")
-                            .build();
-                }
-                white.addHolders(braekpo1nt);
-                white.display(kbelleflash);
-                white.display(braekpo1nt);
-                white.display(rstln);
-            }
-            case "hide" -> {
-                GlowsManager.getInstance().clear();
-                yellow = null;
-                cyan = null;
-                white = null;
-            }
-            case "hideyellow" -> {
-                if (yellow != null) {
-                    yellow.hideFrom(rstln);
-                }
-            }
-            case "showyellow" -> {
-                if (yellow != null) {
-                    yellow.display(rstln);
-                }
-            }
-        }
+//        if (args.length != 1) {
+//            return false;
+//        }
+//        String arg = args[0];
+//        Player braekpo1nt = Bukkit.getPlayer("Braekpo1nt");
+//        Player rstln = Bukkit.getPlayer("rstln");
+//        Player kbelleflash = Bukkit.getPlayer("Kbelleflash");
+//        if (braekpo1nt == null || rstln == null || kbelleflash == null) {
+//            return true;
+//        }
+//        switch (arg) {
+//            case "show" -> {
+//                if (yellow == null) {
+//                    yellow = Glow.builder()
+//                            .color(ChatColor.YELLOW)
+//                            .name("yellowGlow")
+//                            .build();
+//                }
+//                yellow.addHolders(rstln);
+//                yellow.display(rstln);
+//                yellow.display(braekpo1nt);
+//                
+//                if (cyan == null) {
+//                    cyan = Glow.builder()
+//                            .color(ChatColor.AQUA)
+//                            .name("cyanGlow")
+//                            .build();
+//                }
+//                cyan.addHolders(kbelleflash);
+//                cyan.display(kbelleflash);
+//                cyan.display(braekpo1nt);
+//                
+//                if (white == null) {
+//                    white = Glow.builder()
+//                            .color(ChatColor.WHITE)
+//                            .name("adminGlow")
+//                            .build();
+//                }
+//                white.addHolders(braekpo1nt);
+//                white.display(kbelleflash);
+//                white.display(braekpo1nt);
+//                white.display(rstln);
+//            }
+//            case "hide" -> {
+//                GlowsManager.getInstance().clear();
+//                yellow = null;
+//                cyan = null;
+//                white = null;
+//            }
+//            case "hideyellow" -> {
+//                if (yellow != null) {
+//                    yellow.hideFrom(rstln);
+//                }
+//            }
+//            case "showyellow" -> {
+//                if (yellow != null) {
+//                    yellow.display(rstln);
+//                }
+//            }
+//        }
     
 //        Player player = ((Player) sender).getPlayer();
         

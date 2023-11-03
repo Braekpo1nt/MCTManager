@@ -235,9 +235,10 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         }
         
         String team = gameManager.getTeamName(participant.getUniqueId());
-        Glow glow = glows.get(team);
-        glow.addHolders(participant);
-        glow.display(participant);
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            // second delay because packet doesn't show up if this is called instantly
+            resetGlowingForTeam(team);
+        }, 20L);
         
         sidebar.updateLines(participant.getUniqueId(),
                 new KeyLine("title", title),
@@ -270,18 +271,14 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         if (!gameActive) {
             return;
         }
-        
         String team = gameManager.getTeamName(participant.getUniqueId());
-        Glow glow = glows.get(team);
-        glow.removeHolders(participant);
-        glow.hideFrom(participant);
-        
         if (!mechaHasStarted) {
             participants.remove(participant);
             UUID participantUniqueId = participant.getUniqueId();
             livingPlayers.remove(participantUniqueId);
             killCounts.remove(participantUniqueId);
             sidebar.removePlayer(participant);
+            resetGlowingForTeam(team);
             return;
         }
         List<ItemStack> drops = Arrays.stream(participant.getInventory().getContents())
@@ -294,6 +291,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         Bukkit.getServer().getPluginManager().callEvent(fakeDeathEvent);
         resetParticipant(participant);
         participants.remove(participant);
+        resetGlowingForTeam(team);
     }
     
     private void setUpTeamOptions() {
@@ -307,30 +305,57 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         }
     }
     
+    /**
+     * Sets up the glowing affect so that players can see their teammates glowing, but not other teams, and admins can see all
+     */
     private void setupGlowing() {
         List<String> teams = gameManager.getTeamNames(participants);
         glows = new HashMap<>();
-        Bukkit.getLogger().info(String.format("%s admins: %s", admins.size(), admins));
         for (String team : teams) {
-            ChatColor teamChatColor = gameManager.getTeamChatColor(team);
-            Glow glow = Glow.builder()
-                    .color(teamChatColor) // doesn't actually change color, color reflects teamColor
-                    .name(team+"Glow") // can't match team name exactly, causes visual errors
-                    .build();
-            glow.display(admins);
-            for (Player participant : participants) {
-                String participantTeam = gameManager.getTeamName(participant.getUniqueId());
-                if (participantTeam.equals(team)) {
-                    glow.addHolders(participant);
-                    glow.display(participant);
-                }
-            }
-            glows.put(team, glow);
+            setupGlowingForTeam(team);
         }
     }
     
+    /**
+     * Sets up the team-specific glowing effect
+     * @param team the team to glow
+     */
+    private void setupGlowingForTeam(String team) {
+        ChatColor teamChatColor = gameManager.getTeamChatColor(team);
+        Glow glow = Glow.builder()
+                .color(teamChatColor) // doesn't actually change color, color reflects teamColor
+                .name(team +"Glow") // can't match team name exactly, causes visual errors
+                .build();
+        glow.display(admins);
+        for (Player participant : participants) {
+            String participantTeam = gameManager.getTeamName(participant.getUniqueId());
+            if (participantTeam.equals(team)) {
+                glow.addHolders(participant);
+                glow.display(participant);
+            }
+        }
+        glows.put(team, glow);
+    }
+    
+    /**
+     * Reset the team-specific glowing effect. Used for when participants quit/join
+     * @param team the team to glow
+     */
+    public void resetGlowingForTeam(String team) {
+        Glow oldGlow = glows.remove(team);
+        if (oldGlow != null) {
+            oldGlow.destroy();
+        }
+        setupGlowingForTeam(team);
+    }
+    
+    /**
+     * Cancels the glowing effects 
+     */
     private void cancelGlowing() {
-        GlowsManager.getInstance().clear();
+        for (Glow glow : glows.values()) {
+            glow.destroy();
+        }
         glows.clear();
     }
     

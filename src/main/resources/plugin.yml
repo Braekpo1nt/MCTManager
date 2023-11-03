@@ -5,7 +5,7 @@ description: The plugin that manages MCT
 author: Braekpo1nt
 api-version: 1.19
 
-depend: [ProtocolLib, XGlow]
+depend: [XGlow]
 softdepend: [LuckPerms]
 
 commands:

@@ -1,7 +1,5 @@
 package org.braekpo1nt.mctmanager;
 
-import com.comphenix.protocol.ProtocolLibrary;
-import com.comphenix.protocol.ProtocolManager;
 import org.braekpo1nt.mctmanager.commands.MCTCommand;
 import org.braekpo1nt.mctmanager.commands.MCTDebugCommand;
 import org.braekpo1nt.mctmanager.commands.utils.UtilsCommand;
@@ -14,6 +12,7 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
+import ru.xezard.glow.data.glow.manager.GlowsManager;
 
 public class Main extends JavaPlugin {
 
@@ -22,12 +21,9 @@ public class Main extends JavaPlugin {
     private boolean saveGameStateOnDisable = true;
     public final static PotionEffect NIGHT_VISION = new PotionEffect(PotionEffectType.NIGHT_VISION, 300, 3, true, false, false);
     private MCTCommand mctCommand;
-    private ProtocolManager protocolManager;
     
     @Override
     public void onEnable() {
-        
-        protocolManager = ProtocolLibrary.getProtocolManager();
         
         Scoreboard mctScoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
         
@@ -87,6 +83,7 @@ public class Main extends JavaPlugin {
             if (gameManager.gameIsRunning()) {
                 gameManager.manuallyStopGame(false);
             }
+            GlowsManager.getInstance().clear();
         } else {
             Bukkit.getLogger().info("[MCTManager] Skipping save game state.");
         }

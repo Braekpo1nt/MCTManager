@@ -46,9 +46,6 @@ dependencies {
     testImplementation 'org.slf4j:slf4j-jdk14:2.0.5'
     
     compileOnly 'io.papermc.paper:paper-api:1.19.3-R0.1-SNAPSHOT'
-    // ProtocolLib
-    // https://github.com/dmulloy2/ProtocolLib
-    compileOnly 'com.comphenix.protocol:ProtocolLib:5.1.0'
     
     // FastBoard
     // https://github.com/MrMicky-FR/FastBoard
@@ -70,7 +67,6 @@ shadowJar {
     exclude 'com/github/seeseemelk'
     exclude 'org/slf4j'
     exclude 'com/github/Xezard'
-    exclude 'com/comphenix/protocol'
     
     relocate 'fr.mrmicky.fastboard', 'org.braekpo1nt.mctmanager'
 }
