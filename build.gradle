@@ -20,6 +20,17 @@ repositories {
         name = "onarandombox"
         url = "https://repo.onarandombox.com/content/groups/public/"
     }
+    maven {
+        // used for XGlow dependency
+        name = "jitpack"
+        url = 'https://jitpack.io'
+    }
+    maven {
+        // used for ProtocolLib
+        name = "dmulloy2"
+        url = "https://repo.dmulloy2.net/repository/public/"
+    }
+    mavenLocal()
 }
 
 dependencies {
@@ -35,10 +46,18 @@ dependencies {
     testImplementation 'org.slf4j:slf4j-jdk14:2.0.5'
     
     compileOnly 'io.papermc.paper:paper-api:1.19.3-R0.1-SNAPSHOT'
+    // ProtocolLib
+    // https://github.com/dmulloy2/ProtocolLib
+    compileOnly 'com.comphenix.protocol:ProtocolLib:5.1.0'
     
-//    FastBoard
-//    https://github.com/MrMicky-FR/FastBoard
+    // FastBoard
+    // https://github.com/MrMicky-FR/FastBoard
     implementation 'fr.mrmicky:fastboard:1.2.1'
+    
+    // XGlow
+    // https://github.com/Xezard/XGlow
+//    implementation 'com.github.Xezard.XGlow:XGlowAPI:1.1.0'
+    implementation 'org.braekpo1nt:xglow-api-modified:1.2.0'
     
     implementation 'com.google.code.gson:gson:2.10.1'
 }
@@ -50,6 +69,8 @@ shadowJar {
     exclude 'io/papermc/paper'
     exclude 'com/github/seeseemelk'
     exclude 'org/slf4j'
+    exclude 'com/github/Xezard'
+    exclude 'com/comphenix/protocol'
     
     relocate 'fr.mrmicky.fastboard', 'org.braekpo1nt.mctmanager'
 }

@@ -38,6 +38,8 @@ import org.bukkit.scoreboard.Team;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.Nullable;
+import ru.xezard.glow.data.glow.Glow;
+import ru.xezard.glow.data.glow.manager.GlowsManager;
 
 import java.util.*;
 
@@ -63,6 +65,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     private List<UUID> deadPlayers;
     private Map<UUID, Integer> killCounts;
     private final String title = ChatColor.BLUE+"MECHA";
+    private Map<String, Glow> glows = new HashMap<>();
     
     public MechaGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
@@ -98,6 +101,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         }
         initializeAndTeleportToPlatforms();
         initializeSidebar();
+        setupGlowing();
         setUpTeamOptions();
         initializeWorldBorder();
         startAdmins(newAdmins);
@@ -148,6 +152,8 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
             resetParticipant(participant);
         }
         clearSidebar();
+        GlowsManager.getInstance().clear();
+        cancelGlowing();
         participants.clear();
         mechaHasStarted = false;
         gameActive = false;
@@ -227,6 +233,10 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
                     .color(NamedTextColor.YELLOW));
             initializeParticipant(participant);
         }
+        String team = gameManager.getTeamName(participant.getUniqueId());
+        Glow glow = glows.get(team);
+        glow.addHolders(participant);
+        glow.display(participant);
         sidebar.updateLines(participant.getUniqueId(),
                 new KeyLine("title", title),
                 new KeyLine("kills", String.format("%sKills: %s", ChatColor.RED, killCounts.get(participant.getUniqueId())))
@@ -258,6 +268,12 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         if (!gameActive) {
             return;
         }
+        
+        String team = gameManager.getTeamName(participant.getUniqueId());
+        Glow glow = glows.get(team);
+        glow.removeHolders(participant);
+        glow.hideFrom(participant);
+        
         if (!mechaHasStarted) {
             participants.remove(participant);
             UUID participantUniqueId = participant.getUniqueId();
@@ -283,10 +299,38 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         for (Team team : mctScoreboard.getTeams()) {
             team.setAllowFriendlyFire(false);
             team.setCanSeeFriendlyInvisibles(true);
-            team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.FOR_OTHER_TEAMS);
+            team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.ALWAYS);
             team.setOption(Team.Option.DEATH_MESSAGE_VISIBILITY, Team.OptionStatus.ALWAYS);
             team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.ALWAYS);
         }
+    }
+    
+    private void setupGlowing() {
+        List<String> teams = gameManager.getTeamNames(participants);
+        glows = new HashMap<>();
+        for (String team : teams) {
+            ChatColor teamChatColor = gameManager.getTeamChatColor(team);
+            Glow glow = Glow.builder()
+                    .color(teamChatColor)
+                    .name(team)
+                    .build();
+            glows.put(team, glow);
+            glow.display(admins);
+            for (Player participant : participants) {
+                String participantTeam = gameManager.getTeamName(participant.getUniqueId());
+                if (participantTeam.equals(team)) {
+                    glow.addHolders(participant);
+                    glow.display(participant);
+                }
+            }
+        }
+    }
+    
+    private void cancelGlowing() {
+//        for (Glow glow : glows.values()) {
+//            glow.destroy();
+//        }
+        glows.clear();
     }
     
     private void cancelAllTasks() {

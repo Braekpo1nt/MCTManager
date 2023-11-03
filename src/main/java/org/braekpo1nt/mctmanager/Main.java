@@ -1,5 +1,7 @@
 package org.braekpo1nt.mctmanager;
 
+import com.comphenix.protocol.ProtocolLibrary;
+import com.comphenix.protocol.ProtocolManager;
 import org.braekpo1nt.mctmanager.commands.MCTCommand;
 import org.braekpo1nt.mctmanager.commands.MCTDebugCommand;
 import org.braekpo1nt.mctmanager.commands.utils.UtilsCommand;
@@ -20,9 +22,12 @@ public class Main extends JavaPlugin {
     private boolean saveGameStateOnDisable = true;
     public final static PotionEffect NIGHT_VISION = new PotionEffect(PotionEffectType.NIGHT_VISION, 300, 3, true, false, false);
     private MCTCommand mctCommand;
+    private ProtocolManager protocolManager;
     
     @Override
     public void onEnable() {
+        
+        protocolManager = ProtocolLibrary.getProtocolManager();
         
         Scoreboard mctScoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
         
