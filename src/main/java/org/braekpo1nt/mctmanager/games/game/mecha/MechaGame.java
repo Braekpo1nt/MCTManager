@@ -101,10 +101,10 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         }
         initializeAndTeleportToPlatforms();
         initializeSidebar();
-        setupGlowing();
         setUpTeamOptions();
         initializeWorldBorder();
         startAdmins(newAdmins);
+        setupGlowing();
         startStartMechaCountdownTask();
         gameActive = true;
         Bukkit.getLogger().info("Started mecha");
@@ -233,10 +233,12 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
                     .color(NamedTextColor.YELLOW));
             initializeParticipant(participant);
         }
+        
         String team = gameManager.getTeamName(participant.getUniqueId());
         Glow glow = glows.get(team);
         glow.addHolders(participant);
         glow.display(participant);
+        
         sidebar.updateLines(participant.getUniqueId(),
                 new KeyLine("title", title),
                 new KeyLine("kills", String.format("%sKills: %s", ChatColor.RED, killCounts.get(participant.getUniqueId())))
@@ -308,13 +310,13 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     private void setupGlowing() {
         List<String> teams = gameManager.getTeamNames(participants);
         glows = new HashMap<>();
+        Bukkit.getLogger().info(String.format("%s admins: %s", admins.size(), admins));
         for (String team : teams) {
             ChatColor teamChatColor = gameManager.getTeamChatColor(team);
             Glow glow = Glow.builder()
-                    .color(teamChatColor)
-                    .name(team)
+                    .color(teamChatColor) // doesn't actually change color, color reflects teamColor
+                    .name(team+"Glow") // can't match team name exactly, causes visual errors
                     .build();
-            glows.put(team, glow);
             glow.display(admins);
             for (Player participant : participants) {
                 String participantTeam = gameManager.getTeamName(participant.getUniqueId());
@@ -323,13 +325,12 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
                     glow.display(participant);
                 }
             }
+            glows.put(team, glow);
         }
     }
     
     private void cancelGlowing() {
-//        for (Glow glow : glows.values()) {
-//            glow.destroy();
-//        }
+        GlowsManager.getInstance().clear();
         glows.clear();
     }
     
