@@ -12,6 +12,7 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
+import ru.xezard.glow.data.glow.manager.GlowsManager;
 
 public class Main extends JavaPlugin {
 
@@ -82,6 +83,7 @@ public class Main extends JavaPlugin {
             if (gameManager.gameIsRunning()) {
                 gameManager.manuallyStopGame(false);
             }
+            GlowsManager.getInstance().clear();
         } else {
             Bukkit.getLogger().info("[MCTManager] Skipping save game state.");
         }

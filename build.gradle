@@ -20,6 +20,12 @@ repositories {
         name = "onarandombox"
         url = "https://repo.onarandombox.com/content/groups/public/"
     }
+    maven {
+        // used for XGlow dependency
+        name = "jitpack"
+        url = 'https://jitpack.io'
+    }
+    mavenLocal()
 }
 
 dependencies {
@@ -36,9 +42,15 @@ dependencies {
     
     compileOnly 'io.papermc.paper:paper-api:1.19.3-R0.1-SNAPSHOT'
     
-//    FastBoard
-//    https://github.com/MrMicky-FR/FastBoard
+    // FastBoard
+    // https://github.com/MrMicky-FR/FastBoard
     implementation 'fr.mrmicky:fastboard:1.2.1'
+    
+    // XGlow
+    // https://github.com/Xezard/XGlow
+//    implementation 'com.github.Xezard.XGlow:XGlowAPI:1.1.0'
+    implementation 'org.braekpo1nt:xglow-api-modified:1.2.0'
+//    implementation 'com.github.Braekpo1nt.XGlow:XGlow:v1.2.0'
     
     implementation 'com.google.code.gson:gson:2.10.1'
 }
@@ -50,6 +62,7 @@ shadowJar {
     exclude 'io/papermc/paper'
     exclude 'com/github/seeseemelk'
     exclude 'org/slf4j'
+    exclude 'com/github/Xezard'
     
     relocate 'fr.mrmicky.fastboard', 'org.braekpo1nt.mctmanager'
 }
