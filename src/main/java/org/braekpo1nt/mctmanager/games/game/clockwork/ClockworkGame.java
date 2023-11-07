@@ -18,7 +18,6 @@ import org.bukkit.scoreboard.Team;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 public class ClockworkGame implements MCTGame, Configurable, Headerable {
     private final Main plugin;
