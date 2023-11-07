@@ -9,7 +9,6 @@ import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -166,6 +165,9 @@ public class ClockworkRound implements Listener {
         sidebar.updateLine("timer", "Chiming...");
         adminSidebar.updateLine("timer", "Chiming...");
         this.numberOfChimes = random.nextInt(1, 13);
+        messageAllParticipants(Component.text("Clock chimes ")
+                .append(Component.text(numberOfChimes))
+                .append(Component.text(" times")));
         this.clockChimeTaskId = new BukkitRunnable() {
             int count = numberOfChimes;
             @Override
@@ -215,6 +217,7 @@ public class ClockworkRound implements Listener {
                 if (count <= 0) {
                     mustStayOnWedge = false;
                     List<String> livingTeams = getLivingTeams();
+                    Bukkit.getLogger().info(String.format("livingTeams.size() = %s", livingTeams.size()));
                     if (livingTeams.size() == 1) {
                         String winningTeam = livingTeams.get(0);
                         onTeamWinsRound(winningTeam);
@@ -335,6 +338,8 @@ public class ClockworkRound implements Listener {
             if (newLivingMembers <= 0) {
                 teamsLivingMembers.put(team, 0);
                 newlyKilledTeams.add(team);
+            } else {
+                teamsLivingMembers.put(team, newLivingMembers);
             }
         }
         if (newlyKilledTeams.isEmpty()) {
@@ -371,6 +376,7 @@ public class ClockworkRound implements Listener {
     
     private @NotNull List<String> getLivingTeams() {
         List<String> livingTeams = new ArrayList<>();
+        Bukkit.getLogger().info(String.format("teamsLivingMembers = %s", teamsLivingMembers.toString()));
         for (Map.Entry<String, Integer> entry : teamsLivingMembers.entrySet()) {
             String team = entry.getKey();
             int livingMembers = entry.getValue();
