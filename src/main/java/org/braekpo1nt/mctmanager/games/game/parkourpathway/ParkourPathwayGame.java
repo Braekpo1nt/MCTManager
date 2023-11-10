@@ -20,6 +20,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
@@ -220,6 +221,27 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
             return;
         }
         if (!participants.contains(participant)) {
+            return;
+        }
+        event.setCancelled(true);
+    }
+    
+    /**
+     * Stop players from removing their equipment
+     */
+    @EventHandler
+    public void onClickInventory(InventoryClickEvent event) {
+        if (!gameActive) {
+            return;
+        }
+        if (event.getClickedInventory() == null) {
+            return;
+        }
+        if (event.getCurrentItem() == null) {
+            return;
+        }
+        Player participant = ((Player) event.getWhoClicked());
+        if (!gameManager.isParticipant(participant.getUniqueId())) {
             return;
         }
         event.setCancelled(true);
