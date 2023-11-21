@@ -476,6 +476,9 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         }
     }
     
+    /**
+     * Stop players from removing their equipment
+     */
     @EventHandler
     public void onClickInventory(InventoryClickEvent event) {
         if (!gameActive) {
