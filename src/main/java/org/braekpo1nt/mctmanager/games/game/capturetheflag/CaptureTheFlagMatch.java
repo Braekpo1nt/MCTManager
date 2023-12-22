@@ -892,4 +892,23 @@ public class CaptureTheFlagMatch implements Listener {
     public List<Player> getAllParticipants() {
         return new ArrayList<>(allParticipants);
     }
+    
+    public void onClickInventory(Player participant, InventoryClickEvent event) {
+        if (!matchActive) {
+            return;
+        }
+        if (!allParticipants.contains(participant)) {
+            return;
+        }
+        if (northParticipants.contains(participant)) {
+            if (northClassPicker.isActive()) {
+                return;
+            }
+        } else {
+            if (southClassPicker.isActive()) {
+                return;
+            }
+        }
+        event.setCancelled(true);
+    }
 }

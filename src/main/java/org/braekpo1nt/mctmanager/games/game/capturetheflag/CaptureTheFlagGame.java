@@ -19,6 +19,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
 
 import java.io.File;
 import java.util.*;
@@ -242,6 +243,31 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         }
         if (currentRound.isAliveInMatch(participant)) {
             return;
+        }
+        event.setCancelled(true);
+    }
+    
+    /**
+     * Stop players from removing their equipment
+     */
+    @EventHandler
+    public void onClickInventory(InventoryClickEvent event) {
+        if (!gameActive) {
+            return;
+        }
+        if (event.getClickedInventory() == null) {
+            return;
+        }
+        if (event.getCurrentItem() == null) {
+            return;
+        }
+        Player participant = ((Player) event.getWhoClicked());
+        if (!participants.contains(participant)) {
+            return;
+        }
+        if (currentRound != null) {
+            currentRound.onClickInventory(participant, event);
+            return; // we don't want to interfere with the current round's inventory selection handling
         }
         event.setCancelled(true);
     }

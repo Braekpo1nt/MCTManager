@@ -491,7 +491,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
             return;
         }
         Player participant = ((Player) event.getWhoClicked());
-        if (!gameManager.isParticipant(participant.getUniqueId())) {
+        if (!participants.contains(participant)) {
             return;
         }
         event.setCancelled(true);
