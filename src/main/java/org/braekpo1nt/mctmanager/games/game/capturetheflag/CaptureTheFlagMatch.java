@@ -562,7 +562,7 @@ public class CaptureTheFlagMatch implements Listener {
     
     /**
      * Places the provided flag type at the given location facing the given direction
-     * @param flagBlock
+     * @param flagType
      * @param facing
      * @param flagType
      */
