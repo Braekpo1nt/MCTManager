@@ -265,11 +265,11 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         if (!participants.contains(participant)) {
             return;
         }
-        if (currentRound != null) {
-            currentRound.onClickInventory(participant, event);
-            return; // we don't want to interfere with the current round's inventory selection handling
+        if (currentRound == null) {
+            event.setCancelled(true);
+            return;
         }
-        event.setCancelled(true);
+        currentRound.onClickInventory(participant, event);
     }
     
     private void initializeAdminSidebar() {

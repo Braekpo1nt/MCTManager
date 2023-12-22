@@ -902,11 +902,11 @@ public class CaptureTheFlagMatch implements Listener {
         }
         if (northParticipants.contains(participant)) {
             if (northClassPicker.isActive()) {
-                return;
+                return; // don't interfere with class picking
             }
-        } else {
+        } else { // southParticipants must contain participant
             if (southClassPicker.isActive()) {
-                return;
+                return; // don't interfere with class picking
             }
         }
         event.setCancelled(true);

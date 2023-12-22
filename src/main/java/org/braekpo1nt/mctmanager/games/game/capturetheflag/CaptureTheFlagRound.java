@@ -38,6 +38,9 @@ public class CaptureTheFlagRound {
     private int onDeckClassSelectionTimerTaskId;
     private int onDeckMatchTimerTaskId;
     private boolean roundActive = false;
+    /**
+     * false if the countdown timer is still going and the matches haven't started yet for this round. False otherwise. 
+     */
     private boolean matchesStarted = false;
     
     public CaptureTheFlagRound(CaptureTheFlagGame captureTheFlagGame, Main plugin, GameManager gameManager, CaptureTheFlagStorageUtil storageUtil, List<MatchPairing> matchPairings, Sidebar sidebar, Sidebar adminSidebar) {
