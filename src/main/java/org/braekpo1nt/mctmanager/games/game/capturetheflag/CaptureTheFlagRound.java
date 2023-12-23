@@ -89,6 +89,7 @@ public class CaptureTheFlagRound {
         }
         initializeSidebar();
         roundActive = true;
+        matchesStarted = false;
         startMatchesStartingCountDown();
     }
     
