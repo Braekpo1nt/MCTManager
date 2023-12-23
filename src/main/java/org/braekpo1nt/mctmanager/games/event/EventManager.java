@@ -23,6 +23,8 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -833,6 +835,46 @@ public class EventManager implements Listener {
         if (!(event.getEntity() instanceof Player participant)) {
             return;
         }
+        if (!participants.contains(participant)) {
+            return;
+        }
+        if (currentState.equals(EventState.DELAY)) {
+            event.setCancelled(true);
+        }
+    }
+    
+    /**
+     * Stop players from removing their equipment
+     */
+    @EventHandler
+    public void onClickInventory(InventoryClickEvent event) {
+        if (currentState == null) {
+            return;
+        }
+        if (event.getClickedInventory() == null) {
+            return;
+        }
+        if (event.getCurrentItem() == null) {
+            return;
+        }
+        Player participant = ((Player) event.getWhoClicked());
+        if (!participants.contains(participant)) {
+            return;
+        }
+        if (currentState.equals(EventState.DELAY)) {
+            event.setCancelled(true);
+        }
+    }
+    
+    /**
+     * Stop players from dropping items
+     */
+    @EventHandler
+    public void onDropItem(PlayerDropItemEvent event) {
+        if (currentState == null) {
+            return;
+        }
+        Player participant = event.getPlayer();
         if (!participants.contains(participant)) {
             return;
         }
