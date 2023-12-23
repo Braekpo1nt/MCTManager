@@ -1,10 +1,18 @@
 package org.braekpo1nt.mctmanager.games.utils;
 
+import org.bukkit.event.inventory.InventoryAction;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
 public class GameManagerUtils {
+    
+    /**
+     * A list of all the {@link InventoryAction}s which constitute
+     * removing items from the player's inventory
+     */
+    public final static List<InventoryAction> INV_REMOVE_ACTIONS = List.of(InventoryAction.DROP_ALL_CURSOR, InventoryAction.DROP_ALL_SLOT, InventoryAction.DROP_ONE_CURSOR, InventoryAction.DROP_ONE_SLOT, InventoryAction.MOVE_TO_OTHER_INVENTORY);
+    
     /**
      * returns a list that contains the first place, or first place ties.
      * @param teamScores a map pairing teamNames with scores

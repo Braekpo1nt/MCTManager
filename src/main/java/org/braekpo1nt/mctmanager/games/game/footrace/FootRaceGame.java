@@ -500,11 +500,11 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     /**
      * Returns the given milliseconds as a string representing time in the format
      * MM:ss:mmm (or minutes:seconds:milliseconds)
-     * @param timeMilis The time in milliseconds
+     * @param timeMillis The time in milliseconds
      * @return Time string MM:ss:mmm
      */
-    private String getTimeString(long timeMilis) {
-        Duration duration = Duration.ofMillis(timeMilis);
+    private String getTimeString(long timeMillis) {
+        Duration duration = Duration.ofMillis(timeMillis);
         long minutes = duration.toMinutes();
         long seconds = duration.minusMinutes(minutes).getSeconds();
         long millis = duration.minusMinutes(minutes).minusSeconds(seconds).toMillis();
