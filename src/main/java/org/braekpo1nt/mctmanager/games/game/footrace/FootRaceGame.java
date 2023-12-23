@@ -15,12 +15,12 @@ import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.bukkit.*;
-import org.bukkit.block.structure.Mirror;
-import org.bukkit.block.structure.StructureRotation;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
@@ -28,7 +28,6 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.*;
-import org.bukkit.structure.Structure;
 
 import java.time.Duration;
 import java.util.*;
@@ -479,13 +478,49 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     }
     
     /**
+     * Stop players from removing their equipment
+     */
+    @EventHandler
+    public void onClickInventory(InventoryClickEvent event) {
+        if (!gameActive) {
+            return;
+        }
+        if (event.getClickedInventory() == null) {
+            return;
+        }
+        if (event.getCurrentItem() == null) {
+            return;
+        }
+        Player participant = ((Player) event.getWhoClicked());
+        if (!participants.contains(participant)) {
+            return;
+        }
+        event.setCancelled(true);
+    }
+    
+    /**
+     * Stop players from dropping items
+     */
+    @EventHandler
+    public void onDropItem(PlayerDropItemEvent event) {
+        if (!gameActive) {
+            return;
+        }
+        Player participant = event.getPlayer();
+        if (!participants.contains(participant)) {
+            return;
+        }
+        event.setCancelled(true);
+    }
+    
+    /**
      * Returns the given milliseconds as a string representing time in the format
      * MM:ss:mmm (or minutes:seconds:milliseconds)
-     * @param timeMilis The time in milliseconds
+     * @param timeMillis The time in milliseconds
      * @return Time string MM:ss:mmm
      */
-    private String getTimeString(long timeMilis) {
-        Duration duration = Duration.ofMillis(timeMilis);
+    private String getTimeString(long timeMillis) {
+        Duration duration = Duration.ofMillis(timeMillis);
         long minutes = duration.toMinutes();
         long seconds = duration.minusMinutes(minutes).getSeconds();
         long millis = duration.minusMinutes(minutes).minusSeconds(seconds).toMillis();

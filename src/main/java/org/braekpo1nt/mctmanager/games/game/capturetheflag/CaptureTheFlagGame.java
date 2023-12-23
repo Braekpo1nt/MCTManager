@@ -8,6 +8,7 @@ import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlag
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
+import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
@@ -19,6 +20,9 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.inventory.InventoryAction;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
 
 import java.io.File;
 import java.util.*;
@@ -241,6 +245,46 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
             return;
         }
         if (currentRound.isAliveInMatch(participant)) {
+            return;
+        }
+        event.setCancelled(true);
+    }
+    
+    /**
+     * Stop players from removing their equipment
+     */
+    @EventHandler
+    public void onClickInventory(InventoryClickEvent event) {
+        if (!gameActive) {
+            return;
+        }
+        if (event.getClickedInventory() == null) {
+            return;
+        }
+        if (event.getCurrentItem() == null) {
+            return;
+        }
+        Player participant = ((Player) event.getWhoClicked());
+        if (!participants.contains(participant)) {
+            return;
+        }
+        if (currentRound == null) {
+            event.setCancelled(true);
+            return;
+        }
+        currentRound.onClickInventory(participant, event);
+    }
+    
+    /**
+     * Stop players from dropping items
+     */
+    @EventHandler
+    public void onDropItem(PlayerDropItemEvent event) {
+        if (!gameActive) {
+            return;
+        }
+        Player participant = event.getPlayer();
+        if (!participants.contains(participant)) {
             return;
         }
         event.setCancelled(true);

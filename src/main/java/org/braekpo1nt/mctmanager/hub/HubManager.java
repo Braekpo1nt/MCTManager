@@ -15,6 +15,8 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Team;
@@ -204,18 +206,61 @@ public class HubManager implements Listener, Configurable {
     }
     
     @EventHandler
+    public void onClickInventory(InventoryClickEvent event) {
+        if (!gameManager.getEventManager().eventIsActive()) {
+            return;
+        }
+        if (gameManager.gameIsRunning()) {
+            return;
+        }
+        if (event.getClickedInventory() == null) {
+            return;
+        }
+        if (event.getCurrentItem() == null) {
+            return;
+        }
+        Player participant = ((Player) event.getWhoClicked());
+        if (participants.contains(participant)) {
+            event.setCancelled(true);
+            return;
+        }
+        if (headingToHub.contains(participant)) {
+            event.setCancelled(true);
+        }
+    }
+    
+    /**
+     * Stop players from dropping items
+     */
+    @EventHandler
+    public void onDropItem(PlayerDropItemEvent event) {
+        if (!gameManager.getEventManager().eventIsActive()) {
+            return;
+        }
+        Player participant = event.getPlayer();
+        if (participants.contains(participant)) {
+            event.setCancelled(true);
+            return;
+        }
+        if (headingToHub.contains(participant)) {
+            event.setCancelled(true);
+        }
+    }
+    
+    @EventHandler
     public void onPlayerLoseHunger(FoodLevelChangeEvent event) {
         if (!(event.getEntity() instanceof Player participant)) {
             return;
         }
-        if (!participants.contains(participant)) {
+        if (participants.contains(participant)) {
+            participant.setFoodLevel(20);
+            event.setCancelled(true);
             return;
         }
-        if (!headingToHub.contains(participant)) {
-            return;
+        if (headingToHub.contains(participant)) {
+            participant.setFoodLevel(20);
+            event.setCancelled(true);
         }
-        participant.setFoodLevel(20);
-        event.setCancelled(true);
     }
     
     /**

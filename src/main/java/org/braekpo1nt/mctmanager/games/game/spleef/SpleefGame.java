@@ -12,12 +12,17 @@ import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.HandlerList;
+import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 
 import java.util.*;
 
-public class SpleefGame implements MCTGame, Configurable, Headerable {
+public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
     private final Main plugin;
     private final GameManager gameManager;
     private Sidebar sidebar;
@@ -51,6 +56,7 @@ public class SpleefGame implements MCTGame, Configurable, Headerable {
         participants = new ArrayList<>(newParticipants.size());
         sidebar = gameManager.getSidebarFactory().createSidebar();
         adminSidebar = gameManager.getSidebarFactory().createSidebar();
+        plugin.getServer().getPluginManager().registerEvents(this, plugin);
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
         }
@@ -91,6 +97,7 @@ public class SpleefGame implements MCTGame, Configurable, Headerable {
     
     @Override
     public void stop() {
+        HandlerList.unregisterAll(this);
         cancelAllTasks();
         if (currentRoundIndex < rounds.size()) {
             SpleefRound currentRound = rounds.get(currentRoundIndex);
@@ -125,6 +132,42 @@ public class SpleefGame implements MCTGame, Configurable, Headerable {
     
     private void resetAdmin(Player admin) {
         adminSidebar.removePlayer(admin);
+    }
+    
+    /**
+     * Stop players from removing their equipment
+     */
+    @EventHandler
+    public void onClickInventory(InventoryClickEvent event) {
+        if (!gameActive) {
+            return;
+        }
+        if (event.getClickedInventory() == null) {
+            return;
+        }
+        if (event.getCurrentItem() == null) {
+            return;
+        }
+        Player participant = ((Player) event.getWhoClicked());
+        if (!participants.contains(participant)) {
+            return;
+        }
+        event.setCancelled(true);
+    }
+    
+    /**
+     * Stop players from dropping items
+     */
+    @EventHandler
+    public void onDropItem(PlayerDropItemEvent event) {
+        if (!gameActive) {
+            return;
+        }
+        Player participant = event.getPlayer();
+        if (!participants.contains(participant)) {
+            return;
+        }
+        event.setCancelled(true);
     }
     
     @Override

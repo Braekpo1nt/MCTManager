@@ -4,6 +4,7 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.colossalcolosseum.config.ColossalColosseumStorageUtil;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
+import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
@@ -14,6 +15,9 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 import org.bukkit.util.BoundingBox;
@@ -269,6 +273,52 @@ public class ColossalColosseumGame implements Listener, Configurable {
             return;
         }
         event.setCancelled(true);
+    }
+    
+    @EventHandler
+    public void onClickInventory(InventoryClickEvent event) {
+        if (!gameActive) {
+            return;
+        }
+        if (event.getClickedInventory() == null) {
+            return;
+        }
+        if (event.getCurrentItem() == null) {
+            return;
+        }
+        Player participant = ((Player) event.getWhoClicked());
+        if (spectators.contains(participant)) {
+            event.setCancelled(true);
+            return;
+        }
+        if (firstPlaceParticipants.contains(participant) 
+                || secondPlaceParticipants.contains(participant)) {
+            // don't let them drop items from their inventory
+            if (GameManagerUtils.INV_REMOVE_ACTIONS.contains(event.getAction())) {
+                event.setCancelled(true);
+                return;
+            }
+            // don't let them remove their armor
+            if (event.getSlotType() == InventoryType.SlotType.ARMOR) {
+                event.setCancelled(true);
+            }
+        }
+    }
+    
+    /**
+     * Stop players from dropping items
+     */
+    @EventHandler
+    public void onDropItem(PlayerDropItemEvent event) {
+        if (!gameActive) {
+            return;
+        }
+        Player participant = event.getPlayer();
+        if (firstPlaceParticipants.contains(participant)
+                || secondPlaceParticipants.contains(participant)
+                || spectators.contains(participant)) {
+            event.setCancelled(true);
+        }
     }
     
     private void updateRoundWinSidebar() {

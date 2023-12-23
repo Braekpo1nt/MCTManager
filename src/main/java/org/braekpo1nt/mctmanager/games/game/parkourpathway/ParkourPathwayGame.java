@@ -20,6 +20,8 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
@@ -219,6 +221,42 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         if (!(event.getEntity() instanceof Player participant)) {
             return;
         }
+        if (!participants.contains(participant)) {
+            return;
+        }
+        event.setCancelled(true);
+    }
+    
+    /**
+     * Stop players from removing their equipment
+     */
+    @EventHandler
+    public void onClickInventory(InventoryClickEvent event) {
+        if (!gameActive) {
+            return;
+        }
+        if (event.getClickedInventory() == null) {
+            return;
+        }
+        if (event.getCurrentItem() == null) {
+            return;
+        }
+        Player participant = ((Player) event.getWhoClicked());
+        if (!participants.contains(participant)) {
+            return;
+        }
+        event.setCancelled(true);
+    }
+    
+    /**
+     * Stop players from dropping items
+     */
+    @EventHandler
+    public void onDropItem(PlayerDropItemEvent event) {
+        if (!gameActive) {
+            return;
+        }
+        Player participant = event.getPlayer();
         if (!participants.contains(participant)) {
             return;
         }

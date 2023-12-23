@@ -6,6 +6,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlagStorageUtil;
+import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
@@ -23,6 +24,7 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -562,7 +564,7 @@ public class CaptureTheFlagMatch implements Listener {
     
     /**
      * Places the provided flag type at the given location facing the given direction
-     * @param flagBlock
+     * @param flagType
      * @param facing
      * @param flagType
      */
@@ -891,5 +893,32 @@ public class CaptureTheFlagMatch implements Listener {
      */
     public List<Player> getAllParticipants() {
         return new ArrayList<>(allParticipants);
+    }
+    
+    public void onClickInventory(Player participant, InventoryClickEvent event) {
+        if (!matchActive) {
+            return;
+        }
+        if (!allParticipants.contains(participant)) {
+            return;
+        }
+        if (northParticipants.contains(participant)) {
+            if (northClassPicker.isActive()) {
+                return; // don't interfere with class picking
+            }
+        } else { // southParticipants must contain participant
+            if (southClassPicker.isActive()) {
+                return; // don't interfere with class picking
+            }
+        }
+        // don't let them drop items from their inventory
+        if (GameManagerUtils.INV_REMOVE_ACTIONS.contains(event.getAction())) {
+            event.setCancelled(true);
+            return;
+        }
+        // don't let them remove their armor
+        if (event.getSlotType() == InventoryType.SlotType.ARMOR) {
+            event.setCancelled(true);
+        }
     }
 }
