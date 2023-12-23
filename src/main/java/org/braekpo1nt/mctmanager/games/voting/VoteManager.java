@@ -5,6 +5,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
+import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.bukkit.Bukkit;
@@ -141,14 +142,17 @@ public class VoteManager implements Listener {
         if (event.getClickedInventory() == null) {
             return;
         }
-        if (!event.getView().title().equals(TITLE)) {
-            return;
-        }
         if (event.getCurrentItem() == null) {
             return;
         }
         Player participant = ((Player) event.getWhoClicked());
-        if (!gameManager.isParticipant(participant.getUniqueId())) {
+        if (!voters.contains(participant)) {
+            return;
+        }
+        if (!event.getView().title().equals(TITLE)) {
+            if (GameManagerUtils.INV_REMOVE_ACTIONS.contains(event.getAction())) {
+                event.setCancelled(true);
+            }
             return;
         }
         event.setCancelled(true);
