@@ -16,6 +16,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Team;
@@ -219,6 +220,24 @@ public class HubManager implements Listener, Configurable {
             return;
         }
         Player participant = ((Player) event.getWhoClicked());
+        if (participants.contains(participant)) {
+            event.setCancelled(true);
+            return;
+        }
+        if (headingToHub.contains(participant)) {
+            event.setCancelled(true);
+        }
+    }
+    
+    /**
+     * Stop players from dropping items
+     */
+    @EventHandler
+    public void onDropItem(PlayerDropItemEvent event) {
+        if (!gameManager.getEventManager().eventIsActive()) {
+            return;
+        }
+        Player participant = event.getPlayer();
         if (participants.contains(participant)) {
             event.setCancelled(true);
             return;

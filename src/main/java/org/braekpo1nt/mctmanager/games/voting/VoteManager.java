@@ -17,6 +17,7 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -198,6 +199,21 @@ public class VoteManager implements Listener {
             }
         }
         participant.closeInventory();
+    }
+    
+    /**
+     * Stop players from dropping items
+     */
+    @EventHandler
+    public void onDropItem(PlayerDropItemEvent event) {
+        if (!voting) {
+            return;
+        }
+        Player participant = event.getPlayer();
+        if (!voters.contains(participant)) {
+            return;
+        }
+        event.setCancelled(true);
     }
     
     /**
