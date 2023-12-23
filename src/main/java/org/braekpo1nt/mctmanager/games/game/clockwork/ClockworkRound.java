@@ -165,9 +165,6 @@ public class ClockworkRound implements Listener {
         sidebar.updateLine("timer", "Chiming...");
         adminSidebar.updateLine("timer", "Chiming...");
         this.numberOfChimes = random.nextInt(1, 13);
-        messageAllParticipants(Component.text("Clock chimes ")
-                .append(Component.text(numberOfChimes))
-                .append(Component.text(" times")));
         this.clockChimeTaskId = new BukkitRunnable() {
             int count = numberOfChimes;
             @Override
