@@ -311,21 +311,21 @@ public class SpleefRound implements Listener {
             public void run() {
                 long livingNum = participantsAlive.values().stream().filter(value -> value).count();
                 // if time is up, or num of living players is below threshold
-                if (secondsLeft <= 0 || livingNum < currentStage.minParticipants()) {
-                    // no more stages
-                    if (stages.size() < currentStageIndex + 1) {
-                        this.cancel();
+                // the final stage will continue on forever, regardless of the value of the duration or minParticipants
+                if ((secondsLeft <= 0 || livingNum < currentStage.minParticipants())) {
+                    // if this is not the final stage in the list
+                    if (currentStageIndex + 1 < stages.size()) {
+                        // move to the next stage
+                        currentStageIndex++;
+                        currentStage = stages.get(currentStageIndex);
+                        secondsLeft = currentStage.duration();
+                        if (currentStage.startMessage() != null) {
+                            messageAllParticipants(Component.text(currentStage.startMessage())
+                                    .color(NamedTextColor.DARK_RED));
+                        }
                         return;
                     }
-                    // move to the next stage
-                    currentStageIndex++;
-                    currentStage = stages.get(currentStageIndex);
-                    secondsLeft = currentStage.duration();
-                    if (currentStage.startMessage() != null) {
-                        messageAllParticipants(Component.text(currentStage.startMessage())
-                                .color(NamedTextColor.DARK_RED));
-                    }
-                    return;
+                    // otherwise, the final stage continues indefinitely
                 }
                 secondsLeft--;
     

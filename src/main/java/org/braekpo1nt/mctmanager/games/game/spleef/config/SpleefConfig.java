@@ -14,7 +14,7 @@ import java.util.List;
  * @param startingLocations a set of starting locations that the players will be sent to a random one of
  * @param spectatorArea the area the spectators shouldn't be able to leave
  * @param layers the layers of spleef
- * @param decayStages the stages of decay (must have at least 1)
+ * @param decayStages the stages of decay (must have at least 1). The last stage will go on forever, regardless of the duration or minParticipants values
  * @param rounds the number of rounds
  * @param scores the scores for spleef
  * @param durations the durations for spleef
