@@ -321,7 +321,10 @@ public class SpleefRound implements Listener {
                     currentStageIndex++;
                     currentStage = stages.get(currentStageIndex);
                     secondsLeft = currentStage.duration();
-                    messageAllParticipants(Component.text(currentStage.startMessage()));
+                    if (currentStage.startMessage() != null) {
+                        messageAllParticipants(Component.text(currentStage.startMessage())
+                                .color(NamedTextColor.DARK_RED));
+                    }
                     return;
                 }
                 secondsLeft--;

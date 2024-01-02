@@ -18,7 +18,9 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
     
@@ -92,12 +94,15 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
         for (DecayStage decayStage : config.decayStages()) {
             Preconditions.checkArgument(decayStage.layerInfos() != null, "decayStages.layers can't be null");
             // make sure index is between 0 and the max index for decayLayers 
+            // also make sure there are no duplicate indexes
+            Set<Integer> usedIndexes = new HashSet<>(decayStage.layerInfos().size());
             for (DecayStage.LayerInfo layerInfo : decayStage.layerInfos()) {
                 Preconditions.checkArgument(0 <= layerInfo.index() && layerInfo.index() < numberOfLayers, "layerInfo.index must be at least 0, and at most 1 less than the number of elements in layers list");
                 Preconditions.checkArgument(layerInfo.blocksPerSecond() >= 0, "layerInfo.blocksPerSecond must be at least 0");
+                Preconditions.checkArgument(!usedIndexes.contains(layerInfo.index()), "decayStage.layerInfos entries can't have duplicate index values (%s)", layerInfo.index());
+                usedIndexes.add(layerInfo.index());
             }
             Preconditions.checkArgument(decayStage.duration() > 0, "decayStage.duration must be at least 1");
-            Preconditions.checkArgument(decayStage.startMessage() != null, "decayStage.startMessage can't be null");
         }
         Preconditions.checkArgument(config.rounds() >= 1, "rounds must be greater than 0");
         Preconditions.checkArgument(config.scores() != null, "scores can't be null");

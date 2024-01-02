@@ -53,8 +53,7 @@
         "maxX": 22,
         "maxY": 30,
         "maxZ": -1978
-      },
-      "decayRate": 6
+      }
     },
     {
       "structure": {
@@ -73,8 +72,7 @@
         "maxX": 22,
         "maxY": 24,
         "maxZ": -1978
-      },
-      "decayRate": 4
+      }
     },
     {
       "structure": {
@@ -93,8 +91,76 @@
         "maxX": 22,
         "maxY": 19,
         "maxZ": -1978
-      },
-      "decayRate": 2
+      }
+    }
+  ],
+  "decayStages": [
+    {
+      "startMessage": null,
+      "layerInfos": [],
+      "duration": 30,
+      "minParticipants": -1
+    },
+    {
+      "startMessage": "The top 2 layers are decaying!",
+      "layerInfos": [
+        {
+          "index": 0,
+          "blocksPerSecond": 8
+        },
+        {
+          "index": 1,
+          "blocksPerSecond": 6
+        }
+      ],
+      "duration": 60,
+      "minParticipants": 8
+    },
+    {
+      "startMessage": "All layers are decaying!",
+      "layerInfos": [
+        {
+          "index": 0,
+          "blocksPerSecond": 10
+        },
+        {
+          "index": 1,
+          "blocksPerSecond": 8
+        },
+        {
+          "index": 2,
+          "blocksPerSecond": 6
+        },
+        {
+          "index": 3,
+          "blocksPerSecond": 4
+        }
+      ],
+      "duration": 60,
+      "minParticipants": 3
+    },
+    {
+      "startMessage": "Only 3 players left, decaying faster!",
+      "layerInfos": [
+        {
+          "index": 0,
+          "blocksPerSecond": 10
+        },
+        {
+          "index": 1,
+          "blocksPerSecond": 8
+        },
+        {
+          "index": 2,
+          "blocksPerSecond": 6
+        },
+        {
+          "index": 3,
+          "blocksPerSecond": 4
+        }
+      ],
+      "duration": 300,
+      "minParticipants": 4
     }
   ],
   "scores": {
@@ -103,8 +169,6 @@
   "rounds": 3,
   "durations": {
     "roundStarting": 10,
-    "decayTopLayers": 60,
-    "decayBottomLayers": 60,
     "roundEnding": 5
   },
   "description": {"text":"Spleef description","color":"dark_blue","bold": true}

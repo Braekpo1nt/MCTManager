@@ -7,7 +7,7 @@ import java.util.List;
  * @param layerInfos info about which layers should decay in this stage and at what rate (empty list for no layers)
  * @param duration the duration (in seconds) for which this stage should last. The stage may not last the entire duration if the minPlayers is breached.
  * @param minParticipants the minimum number of participants for this stage. Negative value means there is no minimum number of players and the stage will not proceed until the duration is up.
- * @param startMessage the message to print to the chat when the phase begins
+ * @param startMessage the message to print to the chat when the phase begins (null means no message will be displayed)
  */
 public record DecayStage(List<LayerInfo> layerInfos, int duration, int minParticipants, String startMessage) {
     /**
