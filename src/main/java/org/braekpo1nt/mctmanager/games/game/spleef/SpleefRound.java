@@ -301,51 +301,46 @@ public class SpleefRound implements Listener {
     }
     
     private void startDecayTask() {
-        int halfLayerCount = storageUtil.getDecayLayers().size() / 2;
+        List<DecayStage> stages = storageUtil.getStages();
         this.decayTaskId = new BukkitRunnable() {
             private final Random random = new Random();
-            private DecayStage decayStage = DecayStage.NONE;
-            private int count = storageUtil.getDecayTopLayersDuration();
+            private int currentStageIndex = 0;
+            private DecayStage currentStage = stages.get(currentStageIndex);
+            private int secondsLeft = currentStage.duration();
             @Override
             public void run() {
-                switch (decayStage) {
-                    case NONE -> {
-                        if (count <= 0) {
-                            count = storageUtil.getDecayBottomLayersDuration();
-                            decayStage = DecayStage.TOP_HALF;
-                            messageAllParticipants(Component.text("The first ")
-                                    .append(Component.text(halfLayerCount))
-                                    .append(Component.text(" layers are decaying"))
-                                    .color(NamedTextColor.YELLOW));
-                            return;
-                        }
-                        count--;
+                long livingNum = participantsAlive.values().stream().filter(value -> value).count();
+                // if time is up, or num of living players is below threshold
+                if (secondsLeft <= 0 || livingNum < currentStage.minParticipants()) {
+                    // no more stages
+                    if (stages.size() < currentStageIndex + 1) {
+                        this.cancel();
+                        return;
                     }
-                    case TOP_HALF -> {
-                        if (count <= 0) {
-                            decayStage = DecayStage.BOTTOM_HALF;
-                            messageAllParticipants(Component.text("All levels are decaying")
-                                    .color(NamedTextColor.YELLOW));
-                            return;
-                        }
-                        count--;
-                        
-                        for (int i = 0; i < halfLayerCount; i++) {
-                            decayLayer(storageUtil.getDecayLayers().get(i), storageUtil.getDecayRates().get(i));
-                        }
-                    }
-                    case BOTTOM_HALF -> {
-                        for (int i = 0; i < storageUtil.getDecayLayers().size(); i++) {
-                            decayLayer(storageUtil.getDecayLayers().get(i), storageUtil.getDecayRates().get(i));
-                        }
-                    }
+                    // move to the next stage
+                    currentStageIndex++;
+                    currentStage = stages.get(currentStageIndex);
+                    secondsLeft = currentStage.duration();
+                    messageAllParticipants(Component.text(currentStage.startMessage()));
+                    return;
+                }
+                secondsLeft--;
+    
+                for (DecayStage.LayerInfo layerInfo : currentStage.layerInfos()) {
+                    BoundingBox decayLayer = storageUtil.getDecayLayers().get(layerInfo.index());
+                    decayLayer(decayLayer, layerInfo.blocksPerSecond());
                 }
             }
-            
-            private void decayLayer(BoundingBox layer1, int blocks) {
-                List<Block> coarseDirtBlocks = getCoarseDirtBlocks(layer1);
-                List<Block> dirtBlocks = getDirtBlocks(layer1);
-                
+    
+            /**
+             * 
+             * @param decayLayer the area to decay within
+             * @param blocks the number of blocks to decay
+             */
+            private void decayLayer(BoundingBox decayLayer, int blocks) {
+                List<Block> coarseDirtBlocks = getCoarseDirtBlocks(decayLayer);
+                List<Block> dirtBlocks = getDirtBlocks(decayLayer);
+        
                 // Decay coarse dirt blocks to air
                 if (!coarseDirtBlocks.isEmpty()) {
                     for (int i = 0; i < blocks; i++) {
@@ -353,7 +348,7 @@ public class SpleefRound implements Listener {
                         randomCoarseDirtBlock.setType(Material.AIR);
                     }
                 }
-                
+        
                 // Decay dirt blocks to coarse dirt
                 if (!dirtBlocks.isEmpty()) {
                     for (int i = 0; i < blocks; i++) {
@@ -362,10 +357,10 @@ public class SpleefRound implements Listener {
                     }
                 }
             }
-            
+    
             private List<Block> getDirtBlocks(BoundingBox layer) {
                 List<Block> dirtBlocks = new ArrayList<>();
-                
+        
                 for (int x = layer.getMin().getBlockX(); x <= layer.getMaxX(); x++) {
                     for (int y = layer.getMin().getBlockY(); y <= layer.getMaxY(); y++) {
                         for (int z = layer.getMin().getBlockZ(); z <= layer.getMaxZ(); z++) {
@@ -376,13 +371,13 @@ public class SpleefRound implements Listener {
                         }
                     }
                 }
-                
+        
                 return dirtBlocks;
             }
-            
+    
             private List<Block> getCoarseDirtBlocks(BoundingBox layer) {
                 List<Block> coarseDirtBlocks = new ArrayList<>();
-                
+        
                 for (int x = layer.getMin().getBlockX(); x <= layer.getMaxX(); x++) {
                     for (int y = layer.getMin().getBlockY(); y <= layer.getMaxY(); y++) {
                         for (int z = layer.getMin().getBlockZ(); z <= layer.getMaxZ(); z++) {
@@ -393,7 +388,7 @@ public class SpleefRound implements Listener {
                         }
                     }
                 }
-                
+        
                 return coarseDirtBlocks;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
