@@ -137,30 +137,30 @@
         }
       ],
       "duration": 60,
-      "minParticipants": 3
+      "minParticipants": 4
     },
     {
-      "startMessage": "Only 3 players left, decaying faster!",
+      "startMessage": "All layers are decaying faster!",
       "layerInfos": [
         {
           "index": 0,
-          "blocksPerSecond": 10
+          "blocksPerSecond": 20
         },
         {
           "index": 1,
-          "blocksPerSecond": 8
+          "blocksPerSecond": 14
         },
         {
           "index": 2,
-          "blocksPerSecond": 6
+          "blocksPerSecond": 12
         },
         {
           "index": 3,
-          "blocksPerSecond": 4
+          "blocksPerSecond": 10
         }
       ],
       "duration": 300,
-      "minParticipants": 4
+      "minParticipants": -1
     }
   ],
   "scores": {
