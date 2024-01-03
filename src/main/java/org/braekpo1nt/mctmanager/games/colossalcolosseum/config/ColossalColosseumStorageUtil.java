@@ -67,12 +67,14 @@ public class ColossalColosseumStorageUtil extends GameConfigStorageUtil<Colossal
         Preconditions.checkArgument(config.firstPlaceGate().placeArea() != null, "firstPlaceGate.placeArea can't be null");
         Preconditions.checkArgument(config.firstPlaceGate().stone() != null, "firstPlaceGate.stone can't be null");
         Preconditions.checkArgument(config.firstPlaceGate().antiSuffocationArea() != null, "firstPlaceGate.antiSuffocationArea can't be null");
+        Preconditions.checkArgument(config.firstPlaceGate().antiSuffocationArea().toBoundingBox().getVolume() != 0.0, "firstPlaceGate.antiSuffocationArea volume can't be 0.0");
     
         Preconditions.checkArgument(config.secondPlaceGate() != null, "secondPlaceGate can't be null");
         Preconditions.checkArgument(config.secondPlaceGate().clearArea() != null, "secondPlaceGate.clearArea can't be null");
         Preconditions.checkArgument(config.secondPlaceGate().placeArea() != null, "secondPlaceGate.placeArea can't be null");
         Preconditions.checkArgument(config.secondPlaceGate().stone() != null, "secondPlaceGate.stone can't be null");
         Preconditions.checkArgument(config.secondPlaceGate().antiSuffocationArea() != null, "secondPlaceGate.antiSuffocationArea can't be null");
+        Preconditions.checkArgument(config.secondPlaceGate().antiSuffocationArea().toBoundingBox().getVolume() != 0.0, "secondPlaceGate.antiSuffocationArea volume can't be 0.0");
     
         Preconditions.checkArgument(config.firstPlaceSupport() != null, "firstPlaceSupport can't be null");
         BoundingBox firstPlaceSupport = config.firstPlaceSupport().toBoundingBox();
