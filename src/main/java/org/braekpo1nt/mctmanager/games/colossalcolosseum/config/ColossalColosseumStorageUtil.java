@@ -66,11 +66,13 @@ public class ColossalColosseumStorageUtil extends GameConfigStorageUtil<Colossal
         Preconditions.checkArgument(config.firstPlaceGate().clearArea() != null, "firstPlaceGate.clearArea can't be null");
         Preconditions.checkArgument(config.firstPlaceGate().placeArea() != null, "firstPlaceGate.placeArea can't be null");
         Preconditions.checkArgument(config.firstPlaceGate().stone() != null, "firstPlaceGate.stone can't be null");
+        Preconditions.checkArgument(config.firstPlaceGate().antiSuffocationArea() != null, "firstPlaceGate.antiSuffocationArea can't be null");
     
         Preconditions.checkArgument(config.secondPlaceGate() != null, "secondPlaceGate can't be null");
         Preconditions.checkArgument(config.secondPlaceGate().clearArea() != null, "secondPlaceGate.clearArea can't be null");
         Preconditions.checkArgument(config.secondPlaceGate().placeArea() != null, "secondPlaceGate.placeArea can't be null");
         Preconditions.checkArgument(config.secondPlaceGate().stone() != null, "secondPlaceGate.stone can't be null");
+        Preconditions.checkArgument(config.secondPlaceGate().antiSuffocationArea() != null, "secondPlaceGate.antiSuffocationArea can't be null");
     
         Preconditions.checkArgument(config.firstPlaceSupport() != null, "firstPlaceSupport can't be null");
         BoundingBox firstPlaceSupport = config.firstPlaceSupport().toBoundingBox();
