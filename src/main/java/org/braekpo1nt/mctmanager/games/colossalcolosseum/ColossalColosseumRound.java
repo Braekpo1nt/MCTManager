@@ -16,6 +16,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
@@ -39,6 +40,8 @@ public class ColossalColosseumRound implements Listener {
     private List<Player> secondPlaceParticipants = new ArrayList<>();
     private List<Player> spectators = new ArrayList<>();
     private int startCountDownTaskId;
+    private int antiSuffocationTaskId;
+    private boolean antiSuffocation = false;
     private boolean roundActive = false;
     private boolean roundHasStarted = false;
     
@@ -60,6 +63,7 @@ public class ColossalColosseumRound implements Listener {
         secondPlaceParticipantsAlive = new HashMap<>();
         spectators = new ArrayList<>(newSpectators.size());
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
+        antiSuffocation = false;
         colossalColosseumGame.closeGates();
         for (Player first : newFirstPlaceParticipants) {
             initializeFirstPlaceParticipant(first);
@@ -141,6 +145,7 @@ public class ColossalColosseumRound implements Listener {
         cancelAllTasks();
         colossalColosseumGame.closeGates();
         roundActive = false;
+        antiSuffocation = false;
         for (Player participant : firstPlaceParticipants) {
             resetParticipant(participant);
         }
@@ -244,6 +249,7 @@ public class ColossalColosseumRound implements Listener {
     
     private void cancelAllTasks() {
         Bukkit.getScheduler().cancelTask(startCountDownTaskId);
+        Bukkit.getScheduler().cancelTask(antiSuffocationTaskId);
     }
     
     @EventHandler
@@ -350,10 +356,33 @@ public class ColossalColosseumRound implements Listener {
     }
     
     private void openGates() {
+        antiSuffocation = true;
+        Bukkit.getScheduler().runTaskLater(plugin, () -> antiSuffocation = false, storageUtil.getAntiSuffocationDuration());
         //first
         BlockPlacementUtils.createCube(storageUtil.getWorld(), storageUtil.getFirstPlaceStone(), Material.AIR);
         //second
         BlockPlacementUtils.createCube(storageUtil.getWorld(), storageUtil.getSecondPlaceStone(), Material.AIR);
+    }
+    
+    @EventHandler
+    public void antiSuffocationMovementDetection(PlayerMoveEvent event) {
+        if (!roundActive) {
+            return;
+        }
+        if (!antiSuffocation) {
+            return;
+        }
+        Location to = event.getTo();
+        Player participant = event.getPlayer();
+        if (firstPlaceParticipants.contains(participant)) {
+            if (storageUtil.getFirstPlaceAntiSuffocationArea().contains(to.toVector())) {
+                event.setCancelled(true);
+            }
+        } else if (secondPlaceParticipants.contains(participant)) {
+            if (storageUtil.getSecondPlaceAntiSuffocationArea().contains(to.toVector())) {
+                event.setCancelled(true);
+            }
+        }
     }
     
     private void setupTeamOptions() {

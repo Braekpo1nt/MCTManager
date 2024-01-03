@@ -5,6 +5,7 @@ import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.games.game.config.BoundingBoxDTO;
 import org.braekpo1nt.mctmanager.games.game.config.GameConfigStorageUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -30,6 +31,8 @@ public class ColossalColosseumStorageUtil extends GameConfigStorageUtil<Colossal
     private BoundingBox secondPlaceStone;
     private BoundingBox firstPlaceSupport;
     private BoundingBox secondPlaceSupport;
+    private BoundingBox firstPlaceAntiSuffocationArea;
+    private BoundingBox secondPlaceAntiSuffocationArea;
     
     /**
      * @param configDirectory The directory that the config should be located in (e.g. the plugin's data folder)
@@ -63,12 +66,12 @@ public class ColossalColosseumStorageUtil extends GameConfigStorageUtil<Colossal
         Preconditions.checkArgument(config.firstPlaceGate().clearArea() != null, "firstPlaceGate.clearArea can't be null");
         Preconditions.checkArgument(config.firstPlaceGate().placeArea() != null, "firstPlaceGate.placeArea can't be null");
         Preconditions.checkArgument(config.firstPlaceGate().stone() != null, "firstPlaceGate.stone can't be null");
-        
+    
         Preconditions.checkArgument(config.secondPlaceGate() != null, "secondPlaceGate can't be null");
         Preconditions.checkArgument(config.secondPlaceGate().clearArea() != null, "secondPlaceGate.clearArea can't be null");
         Preconditions.checkArgument(config.secondPlaceGate().placeArea() != null, "secondPlaceGate.placeArea can't be null");
         Preconditions.checkArgument(config.secondPlaceGate().stone() != null, "secondPlaceGate.stone can't be null");
-        
+    
         Preconditions.checkArgument(config.firstPlaceSupport() != null, "firstPlaceSupport can't be null");
         BoundingBox firstPlaceSupport = config.firstPlaceSupport().toBoundingBox();
         Preconditions.checkArgument(firstPlaceSupport.getVolume() > 0, "firstPlaceSupport volume (%s) must be greater than 0", firstPlaceSupport.getVolume());
@@ -79,6 +82,7 @@ public class ColossalColosseumStorageUtil extends GameConfigStorageUtil<Colossal
     
         Preconditions.checkArgument(config.durations() != null, "durations can't be null");
         Preconditions.checkArgument(config.durations().roundStarting() >= 1, "durations.roundStarting must be at least 1");
+        Preconditions.checkArgument(config.durations().antiSuffocation() >= 0, "durations.antiSuffocation can't be negative");
         
         try {
             GsonComponentSerializer.gson().deserializeFromTree(config.description());
@@ -102,9 +106,11 @@ public class ColossalColosseumStorageUtil extends GameConfigStorageUtil<Colossal
         this.firstPlaceClearArea = config.firstPlaceGate().clearArea().toBoundingBox();
         this.firstPlacePlaceArea = config.firstPlaceGate().placeArea().toBoundingBox();
         this.firstPlaceStone = config.firstPlaceGate().stone().toBoundingBox();
+        this.firstPlaceAntiSuffocationArea = config.firstPlaceGate().antiSuffocationArea().toBoundingBox();
         this.secondPlaceClearArea = config.secondPlaceGate().clearArea().toBoundingBox();
         this.secondPlacePlaceArea = config.secondPlaceGate().placeArea().toBoundingBox();
         this.secondPlaceStone = config.secondPlaceGate().stone().toBoundingBox();
+        this.secondPlaceAntiSuffocationArea = config.secondPlaceGate().antiSuffocationArea().toBoundingBox();
         this.firstPlaceSupport = config.firstPlaceSupport().toBoundingBox();
         this.secondPlaceSupport = config.secondPlaceSupport().toBoundingBox();
         this.colossalColosseumConfig = config;
@@ -147,6 +153,10 @@ public class ColossalColosseumStorageUtil extends GameConfigStorageUtil<Colossal
         return firstPlaceStone;
     }
     
+    public BoundingBox getFirstPlaceAntiSuffocationArea() {
+        return firstPlaceAntiSuffocationArea;
+    }
+    
     public BoundingBox getSecondPlaceClearArea() {
         return secondPlaceClearArea;
     }
@@ -157,6 +167,14 @@ public class ColossalColosseumStorageUtil extends GameConfigStorageUtil<Colossal
     
     public BoundingBox getSecondPlaceStone() {
         return secondPlaceStone;
+    }
+    
+    public BoundingBox getSecondPlaceAntiSuffocationArea() {
+        return secondPlaceAntiSuffocationArea;
+    }
+    
+    public long getAntiSuffocationDuration() {
+        return colossalColosseumConfig.durations().antiSuffocation();
     }
     
     public int getRoundStartingDuration() {
