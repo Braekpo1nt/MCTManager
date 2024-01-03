@@ -40,7 +40,6 @@ public class ColossalColosseumRound implements Listener {
     private List<Player> secondPlaceParticipants = new ArrayList<>();
     private List<Player> spectators = new ArrayList<>();
     private int startCountDownTaskId;
-    private int antiSuffocationTaskId;
     private boolean antiSuffocation = false;
     private boolean roundActive = false;
     private boolean roundHasStarted = false;
@@ -249,7 +248,6 @@ public class ColossalColosseumRound implements Listener {
     
     private void cancelAllTasks() {
         Bukkit.getScheduler().cancelTask(startCountDownTaskId);
-        Bukkit.getScheduler().cancelTask(antiSuffocationTaskId);
     }
     
     @EventHandler
