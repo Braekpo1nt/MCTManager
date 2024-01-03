@@ -40,6 +40,7 @@ public class ColossalColosseumRound implements Listener {
     private List<Player> secondPlaceParticipants = new ArrayList<>();
     private List<Player> spectators = new ArrayList<>();
     private int startCountDownTaskId;
+    private int antiSuffocationTaskId;
     private boolean antiSuffocation = false;
     private boolean roundActive = false;
     private boolean roundHasStarted = false;
@@ -248,6 +249,7 @@ public class ColossalColosseumRound implements Listener {
     
     private void cancelAllTasks() {
         Bukkit.getScheduler().cancelTask(startCountDownTaskId);
+        Bukkit.getScheduler().cancelTask(antiSuffocationTaskId);
     }
     
     @EventHandler
@@ -355,7 +357,7 @@ public class ColossalColosseumRound implements Listener {
     
     private void openGates() {
         antiSuffocation = true;
-        Bukkit.getScheduler().runTaskLater(plugin, () -> antiSuffocation = false, storageUtil.getAntiSuffocationDuration());
+        this.antiSuffocationTaskId = Bukkit.getScheduler().runTaskLater(plugin, () -> antiSuffocation = false, storageUtil.getAntiSuffocationDuration()).getTaskId();
         //first
         BlockPlacementUtils.createCube(storageUtil.getWorld(), storageUtil.getFirstPlaceStone(), Material.AIR);
         //second
