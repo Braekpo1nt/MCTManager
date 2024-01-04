@@ -275,6 +275,7 @@ public class ColossalColosseumRound implements Listener {
         killed.getInventory().clear();
         ParticipantInitializer.resetHealthAndHunger(killed);
         ParticipantInitializer.clearStatusEffects(killed);
+        Bukkit.getScheduler().runTaskLater(plugin, () -> ParticipantInitializer.clearStatusEffects(killed), 2L);
         if (firstPlaceParticipants.contains(killed)) {
             firstPlaceParticipantsAlive.put(killed.getUniqueId(), false);
             if (allParticipantsAreDead(firstPlaceParticipantsAlive)) {
