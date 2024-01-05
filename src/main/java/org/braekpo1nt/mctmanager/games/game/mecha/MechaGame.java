@@ -126,6 +126,18 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         initializeAdminSidebar();
     }
     
+    @Override
+    public void onAdminJoin(Player admin) {
+        initializeAdmin(admin);
+        adminSidebar.updateLine(admin.getUniqueId(), "title", title);
+    }
+    
+    @Override
+    public void onAdminQuit(Player admin) {
+        resetAdmin(admin);
+        admins.remove(admin);
+    }
+    
     private void initializeAdmin(Player admin) {
         admins.add(admin);
         adminSidebar.addPlayer(admin);
