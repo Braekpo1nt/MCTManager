@@ -96,9 +96,8 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     
     @Override
     public void onAdminJoin(Player admin) {
-        admins.add(admin);
         initializeAdmin(admin);
-        sidebar.updateLine(admin.getUniqueId(), "title", title);
+        adminSidebar.updateLine(admin.getUniqueId(), "title", title);
         String roundLine = String.format("Round %d/%d", roundManager.getPlayedRounds() + 1, roundManager.getMaxRounds());
         adminSidebar.updateLine("round", roundLine);
     }
