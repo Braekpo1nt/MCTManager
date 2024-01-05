@@ -416,6 +416,14 @@ public class EventManager implements Listener {
         }
     }
     
+    public void onAdminJoin(Player admin) {
+        
+    }
+    
+    public void onAdminQuit(Player admin) {
+        
+    }
+    
     public void cancelAllTasks() {
         Bukkit.getScheduler().cancelTask(waitingInHubTaskId);
         Bukkit.getScheduler().cancelTask(toColossalColosseumDelayTaskId);

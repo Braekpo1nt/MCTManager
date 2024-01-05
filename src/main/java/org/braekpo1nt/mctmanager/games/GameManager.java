@@ -99,6 +99,12 @@ public class GameManager implements Listener {
     
     private void onAdminQuit(@NotNull Player admin) {
         onlineAdmins.remove(admin);
+        if (gameIsRunning()) {
+            activeGame.onAdminQuit(admin);
+        } else if (eventManager.colossalColosseumIsActive()) {
+            eventManager.onAdminQuit(admin);
+        }
+        hubManager.onAdminQuit(admin);
     }
     
     /**
@@ -138,6 +144,15 @@ public class GameManager implements Listener {
         onlineAdmins.add(admin);
         admin.setScoreboard(mctScoreboard);
         admin.addPotionEffect(Main.NIGHT_VISION);
+        Component displayName = Component.text(admin.getName(), NamedTextColor.RED);
+        admin.displayName(displayName);
+        admin.playerListName(displayName);
+        hubManager.onAdminJoin(admin);
+        if (gameIsRunning()) {
+            activeGame.onAdminJoin(admin);
+        } else if (eventManager.colossalColosseumIsActive()) {
+            eventManager.onAdminJoin(admin);
+        }
     }
     
     /**
