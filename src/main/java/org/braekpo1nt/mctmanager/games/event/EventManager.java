@@ -417,11 +417,21 @@ public class EventManager implements Listener {
     }
     
     public void onAdminJoin(Player admin) {
-        
+        if (colossalColosseumGame.isActive()) {
+            colossalColosseumGame.onAdminJoin(admin);
+        }
+        if (currentState == null) {
+            return;
+        }
     }
     
     public void onAdminQuit(Player admin) {
-        
+        if (colossalColosseumGame.isActive()) {
+            colossalColosseumGame.onAdminQuit(admin);
+        }
+        if (currentState == null) {
+            return;
+        }
     }
     
     public void cancelAllTasks() {
