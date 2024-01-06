@@ -897,7 +897,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     }
     
     private void fillMapChests() {
-        for (Vector coords : storageUtil.getSpawnChestCoords()) {
+        for (Vector coords : storageUtil.getMapChestCoords()) {
             Block block = storageUtil.getWorld().getBlockAt(coords.getBlockX(), coords.getBlockY(), coords.getBlockZ());
             block.setType(Material.CHEST);
             fillMapChest(((Chest) block.getState()));
