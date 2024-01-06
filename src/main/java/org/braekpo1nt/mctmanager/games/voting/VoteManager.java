@@ -78,19 +78,32 @@ public class VoteManager implements Listener {
         adminSidebar = gameManager.getSidebarFactory().createSidebar();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         for (Player participant : newParticipants) {
-            this.voters.add(participant);
-            sidebar.addPlayer(participant);
-            showVoteGui(participant);
-            participant.sendMessage(Component.text("Vote for the game you want to play")
-                    .color(NamedTextColor.GREEN));
+            initializeParticipant(participant);
         }
         initializeSidebar();
+        startAdmins(newAdmins);
+        startVoteCountDown();
+    }
+    
+    private void startAdmins(List<Player> newAdmins) {
+        this.admins.clear();
         for (Player admin : newAdmins) {
-            this.admins.add(admin);
-            adminSidebar.addPlayer(admin);
+            initializeAdmin(admin);
         }
         initializeAdminSidebar();
-        startVoteCountDown();
+    }
+    
+    private void initializeAdmin(Player admin) {
+        this.admins.add(admin);
+        adminSidebar.addPlayer(admin);
+    }
+    
+    private void initializeParticipant(Player participant) {
+        this.voters.add(participant);
+        sidebar.addPlayer(participant);
+        showVoteGui(participant);
+        participant.sendMessage(Component.text("Vote for the game you want to play")
+                .color(NamedTextColor.GREEN));
     }
     
     private void startVoteCountDown() {
