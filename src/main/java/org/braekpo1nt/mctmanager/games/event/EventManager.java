@@ -404,7 +404,13 @@ public class EventManager implements Listener {
         if (currentState == null) {
             return;
         }
-        
+        if (currentState == EventState.DELAY) {
+            participants.add(participant);
+            if (sidebar != null) {
+                sidebar.addPlayer(participant);
+                updateTeamScores();
+            }
+        }
     }
     
     public void onParticipantQuit(Player participant) {
@@ -413,6 +419,10 @@ public class EventManager implements Listener {
         }
         if (currentState == null) {
             return;
+        }
+        participants.remove(participant);
+        if (currentState == EventState.DELAY && sidebar != null) {
+            sidebar.removePlayer(participant);
         }
     }
     
@@ -423,6 +433,13 @@ public class EventManager implements Listener {
         if (currentState == null) {
             return;
         }
+        if (currentState == EventState.DELAY) {
+            admins.add(admin);
+            if (adminSidebar != null) {
+                adminSidebar.addPlayer(admin);
+                updateTeamScores();
+            }
+        }
     }
     
     public void onAdminQuit(Player admin) {
@@ -431,6 +448,10 @@ public class EventManager implements Listener {
         }
         if (currentState == null) {
             return;
+        }
+        admins.remove(admin);
+        if (currentState == EventState.DELAY && adminSidebar != null) {
+            adminSidebar.removePlayer(admin);
         }
     }
     
@@ -999,6 +1020,9 @@ public class EventManager implements Listener {
             teamLines[i] = new KeyLine("team"+i, String.format("%s%s: %s", teamChatColor, teamDisplayName, teamScore));
         }
         sidebar.updateLines(teamLines);
+        if (adminSidebar == null) {
+            return;
+        }
         adminSidebar.updateLines(teamLines);
     }
     
