@@ -410,6 +410,8 @@ public class EventManager implements Listener {
                 sidebar.addPlayer(participant);
                 updateTeamScores();
             }
+        } else if (currentState == EventState.VOTING) {
+            voteManager.onParticipantJoin(participant);
         }
     }
     
@@ -421,8 +423,12 @@ public class EventManager implements Listener {
             return;
         }
         participants.remove(participant);
-        if (currentState == EventState.DELAY && sidebar != null) {
-            sidebar.removePlayer(participant);
+        if (currentState == EventState.DELAY) {
+            if (sidebar != null) {
+                sidebar.removePlayer(participant);
+            }
+        } else if (currentState == EventState.VOTING) {
+            voteManager.onParticipantQuit(participant);
         }
     }
     
@@ -439,6 +445,8 @@ public class EventManager implements Listener {
                 adminSidebar.addPlayer(admin);
                 updateTeamScores();
             }
+        } else if (currentState == EventState.VOTING) {
+            voteManager.onAdminJoin(admin);
         }
     }
     
@@ -450,8 +458,12 @@ public class EventManager implements Listener {
             return;
         }
         admins.remove(admin);
-        if (currentState == EventState.DELAY && adminSidebar != null) {
-            adminSidebar.removePlayer(admin);
+        if (currentState == EventState.DELAY) {
+            if (adminSidebar != null) {
+                adminSidebar.removePlayer(admin);
+            }
+        } else if (currentState == EventState.VOTING) {
+            voteManager.onAdminQuit(admin);
         }
     }
     
