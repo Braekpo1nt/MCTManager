@@ -108,8 +108,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     }
     
     private void displayDescription() {
-        Component description = storageUtil.getDescription();
-        messageAllParticipants(description);
+        messageAllParticipants(storageUtil.getDescription());
     }
     
     private void initializeParticipant(Player participant) {

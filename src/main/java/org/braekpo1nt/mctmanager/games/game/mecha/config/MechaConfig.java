@@ -1,6 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.mecha.config;
 
-import com.google.gson.JsonObject;
+import com.google.gson.JsonElement;
 import org.braekpo1nt.mctmanager.games.game.config.BoundingBoxDTO;
 import org.braekpo1nt.mctmanager.games.game.config.LocationDTO;
 import org.bukkit.NamespacedKey;
@@ -17,7 +17,7 @@ import java.util.List;
  * @param spawnChestCoords The coordinates of the spawn chests
  * @param mapChestCoords the coordinates of the map chests
  */
-record MechaConfig (String version, String world, BoundingBoxDTO spectatorArea, BoundingBoxDTO removeArea, BorderDTO border, NamespacedKey spawnLootTable, List<WeightedNamespacedKey> weightedMechaLootTables, List<Vector> spawnChestCoords, List<Vector> mapChestCoords, List<Platform> platforms, Scores scores, Durations durations, JsonObject description) {
+record MechaConfig (String version, String world, BoundingBoxDTO spectatorArea, BoundingBoxDTO removeArea, BorderDTO border, NamespacedKey spawnLootTable, List<WeightedNamespacedKey> weightedMechaLootTables, List<Vector> spawnChestCoords, List<Vector> mapChestCoords, List<Platform> platforms, Scores scores, Durations durations, JsonElement description) {
     
     /**
      * @param center the center of the world border

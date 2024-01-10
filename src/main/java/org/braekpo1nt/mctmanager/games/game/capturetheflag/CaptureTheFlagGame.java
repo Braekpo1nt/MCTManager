@@ -77,8 +77,13 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         startAdmins(newAdmins);
         gameActive = true;
         List<String> teams = gameManager.getTeamNames(participants);
+        displayDescription();
         roundManager.start(teams);
         Bukkit.getLogger().info("Starting Capture the Flag");
+    }
+    
+    private void displayDescription() {
+        messageAllParticipants(storageUtil.getDescription());
     }
     
     private void initializeParticipant(Player participant) {
