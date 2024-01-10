@@ -119,5 +119,5 @@
     "roundStarting": 10,
     "antiSuffocation": 30
   },
-  "description": {"text":"Colossal Colosseum description","color":"dark_blue","bold": true}
+  "description": ["",{"text":"-----------------------","bold":true,"color":"gray"},{"text":"\n"},{"text":"How To Play","bold":true,"color":"yellow"},{"text":" Colossal Combat","bold":true,"italic":true,"color":"yellow"},{"text":"\n"},{"text":"For each tournament the battle ground of this colosseum changes with each tournament, making each one special.\nWith this final game being the deciding victor between the top two teams, there is one simple goal: Win 3 rounds of pvp with ","color":"#FFFFDF"},{"text":"NO RESPAWNS","bold":true,"color":"#FFFFDF"},{"text":" against the opposing team.\n\n","color":"#FFFFDF"},{"text":"Punching is also removed for spectators during the duration of this game.","italic":true,"color":"#FFFFDF"},{"text":" \n"},{"text":"-----------------------","bold":true,"color":"gray"},{"text":" "}]
 }
