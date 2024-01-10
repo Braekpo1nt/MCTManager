@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.spleef;
 
+import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
@@ -69,8 +70,13 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
         setupTeamOptions();
         startAdmins(newAdmins);
         startNextRound();
+        displayDescription();
         gameActive = true;
         Bukkit.getLogger().info("Started Spleef");
+    }
+    
+    private void displayDescription() {
+        messageAllParticipants(storageUtil.getDescription());
     }
     
     private void initializeParticipant(Player participant) {
@@ -297,6 +303,13 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
             team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.ALWAYS);
             team.setOption(Team.Option.DEATH_MESSAGE_VISIBILITY, Team.OptionStatus.ALWAYS);
             team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER);
+        }
+    }
+    
+    private void messageAllParticipants(Component message) {
+        gameManager.messageAdmins(message);
+        for (Player participant : participants) {
+            participant.sendMessage(message);
         }
     }
 }

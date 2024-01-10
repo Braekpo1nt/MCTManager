@@ -95,8 +95,13 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         startStatusEffectsTask();
         setupTeamOptions();
         startStartGameCountDown();
+        displayDescription();
         gameActive = true;
         Bukkit.getLogger().info("Starting Parkour Pathway game");
+    }
+    
+    private void displayDescription() {
+        messageAllParticipants(storageUtil.getDescription());
     }
     
     private void initializeParticipant(Player participant) {
