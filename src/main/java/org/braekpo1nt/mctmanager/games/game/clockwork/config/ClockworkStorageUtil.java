@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.game.clockwork.config;
 import com.google.common.base.Preconditions;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.clockwork.Wedge;
@@ -23,6 +24,7 @@ public class ClockworkStorageUtil extends GameConfigStorageUtil<ClockworkConfig>
     private World world;
     private Location startingLocation;
     private List<Wedge> wedges;
+    private Component description;
     
     /**
      * @param configDirectory The directory that the config should be located in (e.g. the plugin's data folder)
@@ -115,10 +117,12 @@ public class ClockworkStorageUtil extends GameConfigStorageUtil<ClockworkConfig>
         for (ClockworkConfig.WedgeDTO wedgeDTO : config.wedges()) {
             newWedges.add(new Wedge(wedgeDTO.detectionArea().toBoundingBox()));
         }
+        Component newDescription = GsonComponentSerializer.gson().deserializeFromTree(config.description());
         // now it's confirmed everything works, so set the actual fields
         this.world = newWorld;
         this.startingLocation = newStartingLocation;
         this.wedges = newWedges;
+        this.description = newDescription;
         this.clockworkConfig = config;
     }
     
@@ -189,5 +193,9 @@ public class ClockworkStorageUtil extends GameConfigStorageUtil<ClockworkConfig>
     
     public ClockworkConfig.Chaos getChaos() {
         return clockworkConfig.chaos();
+    }
+    
+    public Component getDescription() {
+        return description;
     }
 }
