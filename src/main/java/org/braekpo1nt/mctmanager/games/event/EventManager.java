@@ -404,7 +404,15 @@ public class EventManager implements Listener {
         if (currentState == null) {
             return;
         }
-        
+        if (currentState == EventState.DELAY) {
+            participants.add(participant);
+            if (sidebar != null) {
+                sidebar.addPlayer(participant);
+                updateTeamScores();
+            }
+        } else if (currentState == EventState.VOTING) {
+            voteManager.onParticipantJoin(participant);
+        }
     }
     
     public void onParticipantQuit(Player participant) {
@@ -413,6 +421,49 @@ public class EventManager implements Listener {
         }
         if (currentState == null) {
             return;
+        }
+        participants.remove(participant);
+        if (currentState == EventState.DELAY) {
+            if (sidebar != null) {
+                sidebar.removePlayer(participant);
+            }
+        } else if (currentState == EventState.VOTING) {
+            voteManager.onParticipantQuit(participant);
+        }
+    }
+    
+    public void onAdminJoin(Player admin) {
+        if (colossalColosseumGame.isActive()) {
+            colossalColosseumGame.onAdminJoin(admin);
+        }
+        if (currentState == null) {
+            return;
+        }
+        if (currentState == EventState.DELAY) {
+            admins.add(admin);
+            if (adminSidebar != null) {
+                adminSidebar.addPlayer(admin);
+                updateTeamScores();
+            }
+        } else if (currentState == EventState.VOTING) {
+            voteManager.onAdminJoin(admin);
+        }
+    }
+    
+    public void onAdminQuit(Player admin) {
+        if (colossalColosseumGame.isActive()) {
+            colossalColosseumGame.onAdminQuit(admin);
+        }
+        if (currentState == null) {
+            return;
+        }
+        admins.remove(admin);
+        if (currentState == EventState.DELAY) {
+            if (adminSidebar != null) {
+                adminSidebar.removePlayer(admin);
+            }
+        } else if (currentState == EventState.VOTING) {
+            voteManager.onAdminQuit(admin);
         }
     }
     
@@ -981,6 +1032,9 @@ public class EventManager implements Listener {
             teamLines[i] = new KeyLine("team"+i, String.format("%s%s: %s", teamChatColor, teamDisplayName, teamScore));
         }
         sidebar.updateLines(teamLines);
+        if (adminSidebar == null) {
+            return;
+        }
         adminSidebar.updateLines(teamLines);
     }
     

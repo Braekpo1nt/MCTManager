@@ -128,6 +128,20 @@ public class ColossalColosseumGame implements Listener, Configurable {
         initializeAdminSidebar();
     }
     
+    public void onAdminJoin(Player admin) {
+        initializeAdmin(admin);
+        updateRoundWinSidebar();
+        adminSidebar.updateLines(admin.getUniqueId(),
+                new KeyLine("title", title),
+                new KeyLine("round", String.format("Round: %s", currentRoundIndex+1))
+        );
+    }
+    
+    public void onAdminQuit(Player admin) {
+        resetAdmin(admin);
+        admins.remove(admin);
+    }
+    
     private void initializeAdmin(Player admin) {
         admins.add(admin);
         adminSidebar.addPlayer(admin);

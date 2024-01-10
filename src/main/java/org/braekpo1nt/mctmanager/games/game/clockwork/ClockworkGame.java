@@ -88,6 +88,21 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
         initializeAdminSidebar();
     }
     
+    @Override
+    public void onAdminJoin(Player admin) {
+        initializeAdmin(admin);
+        adminSidebar.updateLines(admin.getUniqueId(),
+                new KeyLine("title", title),
+                new KeyLine("round", String.format("Round %d/%d", currentRoundIndex+1, rounds.size()))
+        );
+    }
+    
+    @Override
+    public void onAdminQuit(Player admin) {
+        resetAdmin(admin);
+        admins.remove(admin);
+    }
+    
     private void initializeAdmin(Player admin) {
         admins.add(admin);
         adminSidebar.addPlayer(admin);

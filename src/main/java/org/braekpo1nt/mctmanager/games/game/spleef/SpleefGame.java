@@ -88,6 +88,21 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
         initializeAdminSidebar();
     }
     
+    @Override
+    public void onAdminJoin(Player admin) {
+        initializeAdmin(admin);
+        adminSidebar.updateLines(admin.getUniqueId(),
+                new KeyLine("title", title),
+                new KeyLine("round", String.format("Round %d/%d", currentRoundIndex+1, storageUtil.getRounds()))
+        );
+    }
+    
+    @Override
+    public void onAdminQuit(Player admin) {
+        resetAdmin(admin);
+        admins.remove(admin);
+    }
+    
     private void initializeAdmin(Player admin) {
         admins.add(admin);
         adminSidebar.addPlayer(admin);

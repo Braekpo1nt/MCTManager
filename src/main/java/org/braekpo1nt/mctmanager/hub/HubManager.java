@@ -174,6 +174,14 @@ public class HubManager implements Listener, Configurable {
         participants.add(participant);
     }
     
+    public void onAdminJoin(Player admin) {
+        initializeAdmin(admin);
+    }
+    
+    public void onAdminQuit(Player admin) {
+        
+    }
+    
     public void cancelAllTasks() {
         Bukkit.getScheduler().cancelTask(returnToHubTaskId);
     }

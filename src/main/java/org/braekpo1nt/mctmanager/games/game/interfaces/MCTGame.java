@@ -14,4 +14,7 @@ public interface MCTGame {
     void stop();
     void onParticipantJoin(Player participant);
     void onParticipantQuit(Player participant);
+    
+    void onAdminJoin(Player admin);
+    void onAdminQuit(Player admin);
 }
