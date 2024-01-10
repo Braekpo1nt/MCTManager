@@ -102,8 +102,14 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         gameActive = true;
         startStatusEffectsTask();
         setupTeamOptions();
+        displayDescription();
         startStartRaceCountdownTask();
         Bukkit.getLogger().info("Starting Foot Race game");
+    }
+    
+    private void displayDescription() {
+        Component description = storageUtil.getDescription();
+        messageAllParticipants(description);
     }
     
     private void initializeParticipant(Player participant) {

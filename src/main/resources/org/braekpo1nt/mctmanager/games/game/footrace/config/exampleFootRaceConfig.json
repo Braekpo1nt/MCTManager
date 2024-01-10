@@ -45,5 +45,5 @@
     "startRace": 10,
     "raceEndCountdown": 60
   },
-  "description": {"text":"Foot Race description","color":"dark_blue","bold": true}
+  "description": ["",{"text":"-----------------------","bold":true,"color":"gray"},{"text":"\n"},{"text":"How To Play","bold":true,"color":"yellow"},{"text":" Foot Race","bold":true,"color":"yellow"},{"text":"\n"},{"text":"Circle the map a total of 3 times!\nWatch out for soul sand and warped stem!\nMake sure you stay up front, because the lead earns more points than everyone else!","color":"#FFFFDF"},{"text":"\n"},{"text":"-----------------------","bold":true,"color":"gray"}]
 }
