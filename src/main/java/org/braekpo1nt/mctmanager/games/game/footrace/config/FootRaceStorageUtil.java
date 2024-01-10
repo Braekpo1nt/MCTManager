@@ -21,6 +21,8 @@ public class FootRaceStorageUtil extends GameConfigStorageUtil<FootRaceConfig> {
     private World world;
     private Location startingLocation;
     private BoundingBox finishLine;
+    private Component description;
+    
     public FootRaceStorageUtil(File configDirectory) {
         super(configDirectory, "footRaceConfig.json", FootRaceConfig.class);
     }
@@ -61,8 +63,6 @@ public class FootRaceStorageUtil extends GameConfigStorageUtil<FootRaceConfig> {
         
     }
     
-    private Component description;
-    
     @Override
     protected void setConfig(FootRaceConfig config) {
         World newWorld = Bukkit.getWorld(config.world());
@@ -75,10 +75,6 @@ public class FootRaceStorageUtil extends GameConfigStorageUtil<FootRaceConfig> {
         this.finishLine = config.finishLine().toBoundingBox();
         this.description = newDescription;
         this.footRaceConfig = config;
-    }
-    
-    public Component getDescription() {
-        return description;
     }
     
     @Override
@@ -120,5 +116,9 @@ public class FootRaceStorageUtil extends GameConfigStorageUtil<FootRaceConfig> {
     
     public BoundingBox getGlassBarrier() {
         return footRaceConfig.glassBarrier().toBoundingBox();
+    }
+    
+    public Component getDescription() {
+        return description;
     }
 }
