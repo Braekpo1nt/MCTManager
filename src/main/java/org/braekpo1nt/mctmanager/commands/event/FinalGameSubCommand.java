@@ -48,7 +48,7 @@ public class FinalGameSubCommand extends CommandManager {
                             .color(NamedTextColor.RED));
                     return true;
                 }
-                gameManager.getEventManager().startColossalColosseum(sender, firstTeam, secondTeam);
+                gameManager.getEventManager().startColossalCombat(sender, firstTeam, secondTeam);
                 return true;
             }
             
@@ -66,7 +66,7 @@ public class FinalGameSubCommand extends CommandManager {
                         .color(NamedTextColor.RED));
                 return true;
             }
-            gameManager.getEventManager().stopColossalColosseum(sender);
+            gameManager.getEventManager().stopColossalCombat(sender);
             return true;
         });
     }

@@ -101,7 +101,7 @@ public class GameManager implements Listener {
         onlineAdmins.remove(admin);
         if (gameIsRunning()) {
             activeGame.onAdminQuit(admin);
-        } else if (eventManager.colossalColosseumIsActive()) {
+        } else if (eventManager.colossalCombatIsActive()) {
             eventManager.onAdminQuit(admin);
         } else if (voteManager.isVoting()) {
             voteManager.onAdminQuit(admin);
@@ -121,7 +121,7 @@ public class GameManager implements Listener {
         onlineParticipants.remove(participant);
         if (gameIsRunning()) {
             activeGame.onParticipantQuit(participant);
-        } else if (eventManager.colossalColosseumIsActive()) {
+        } else if (eventManager.colossalCombatIsActive()) {
             eventManager.onParticipantQuit(participant);
         } else if (voteManager.isVoting()) {
             voteManager.onParticipantQuit(participant);
@@ -154,7 +154,7 @@ public class GameManager implements Listener {
         hubManager.onAdminJoin(admin);
         if (gameIsRunning()) {
             activeGame.onAdminJoin(admin);
-        } else if (eventManager.colossalColosseumIsActive()) {
+        } else if (eventManager.colossalCombatIsActive()) {
             eventManager.onAdminJoin(admin);
         } else if (voteManager.isVoting()) {
             voteManager.onAdminJoin(admin);
@@ -184,7 +184,7 @@ public class GameManager implements Listener {
         if (gameIsRunning()) {
             hubManager.removeParticipantsFromHub(Collections.singletonList(participant));
             activeGame.onParticipantJoin(participant);
-        } else if (eventManager.colossalColosseumIsActive()) {
+        } else if (eventManager.colossalCombatIsActive()) {
             hubManager.removeParticipantsFromHub(Collections.singletonList(participant));
             eventManager.onParticipantJoin(participant);
         } else if (voteManager.isVoting()) {

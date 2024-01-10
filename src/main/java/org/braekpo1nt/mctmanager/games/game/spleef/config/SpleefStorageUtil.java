@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.game.spleef.config;
 import com.google.common.base.Preconditions;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.config.GameConfigStorageUtil;
@@ -30,6 +31,7 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
     private List<Structure> structures;
     private List<Location> structureOrigins;
     private List<BoundingBox> decayLayers;
+    private Component description;
     
     public SpleefStorageUtil(File configDirectory) {
         super(configDirectory, "spleefConfig.json", SpleefConfig.class);
@@ -59,12 +61,14 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
             newStructureOrigins.add(layer.structureOrigin().toLocation(newWorld));
             newDecayLayers.add(layer.decayArea().toBoundingBox());
         }
+        Component newDescription = GsonComponentSerializer.gson().deserializeFromTree(config.description());
         // now it's confirmed everything works, so set the actual fields
         this.world = newWorld;
         this.startingLocations = newStartingLocations;
         this.structures = newStructures;
         this.structureOrigins = newStructureOrigins;
         this.decayLayers = newDecayLayers;
+        this.description = newDescription;
         this.spleefConfig = config;
     }
     
@@ -156,5 +160,9 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
     
     public List<DecayStage> getStages() {
         return spleefConfig.decayStages();
+    }
+    
+    public Component getDescription() {
+        return description;
     }
 }

@@ -1,11 +1,11 @@
-package org.braekpo1nt.mctmanager.games.colossalcolosseum.config;
+package org.braekpo1nt.mctmanager.games.colossalcombat.config;
 
 import com.google.common.base.Preconditions;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.games.game.config.BoundingBoxDTO;
 import org.braekpo1nt.mctmanager.games.game.config.GameConfigStorageUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -16,9 +16,9 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.InputStream;
 
-public class ColossalColosseumStorageUtil extends GameConfigStorageUtil<ColossalColosseumConfig> {
+public class ColossalCombatStorageUtil extends GameConfigStorageUtil<ColossalCombatConfig> {
     
-    private ColossalColosseumConfig colossalColosseumConfig;
+    private ColossalCombatConfig colossalCombatConfig;
     private World world;
     private Location firstPlaceSpawn;
     private Location secondPlaceSpawn;
@@ -33,21 +33,22 @@ public class ColossalColosseumStorageUtil extends GameConfigStorageUtil<Colossal
     private BoundingBox secondPlaceSupport;
     private BoundingBox firstPlaceAntiSuffocationArea;
     private BoundingBox secondPlaceAntiSuffocationArea;
+    private Component description;
     
     /**
      * @param configDirectory The directory that the config should be located in (e.g. the plugin's data folder)
      */
-    public ColossalColosseumStorageUtil(File configDirectory) {
-        super(configDirectory, "colossalColosseumConfig.json", ColossalColosseumConfig.class);
+    public ColossalCombatStorageUtil(File configDirectory) {
+        super(configDirectory, "colossalCombatConfig.json", ColossalCombatConfig.class);
     }
     
     @Override
-    protected ColossalColosseumConfig getConfig() {
-        return colossalColosseumConfig;
+    protected ColossalCombatConfig getConfig() {
+        return colossalCombatConfig;
     }
     
     @Override
-    protected boolean configIsValid(@Nullable ColossalColosseumConfig config) throws IllegalArgumentException {
+    protected boolean configIsValid(@Nullable ColossalCombatConfig config) throws IllegalArgumentException {
         Preconditions.checkArgument(config != null, "Saved config is null");
         Preconditions.checkArgument(config.version() != null, "version can't be null");
         Preconditions.checkArgument(config.version().equals(Main.CONFIG_VERSION), "Config version %s not supported. %s required.", config.version(), Main.CONFIG_VERSION);
@@ -97,11 +98,12 @@ public class ColossalColosseumStorageUtil extends GameConfigStorageUtil<Colossal
     }
     
     @Override
-    protected void setConfig(ColossalColosseumConfig config) throws IllegalArgumentException {
+    protected void setConfig(ColossalCombatConfig config) throws IllegalArgumentException {
         World newWorld = Bukkit.getWorld(config.world());
         Location newFirstPlaceSpawn = config.firstPlaceSpawn().toLocation(newWorld);
         Location newSecondPlaceSpawn = config.secondPlaceSpawn().toLocation(newWorld);
         Location newSpectatorSpawn = config.spectatorSpawn().toLocation(newWorld);
+        Component newDescription = GsonComponentSerializer.gson().deserializeFromTree(config.description());
         //now that we know it's all valid
         this.world = newWorld;
         this.firstPlaceSpawn = newFirstPlaceSpawn;
@@ -117,12 +119,13 @@ public class ColossalColosseumStorageUtil extends GameConfigStorageUtil<Colossal
         this.secondPlaceAntiSuffocationArea = config.secondPlaceGate().antiSuffocationArea().toBoundingBox();
         this.firstPlaceSupport = config.firstPlaceSupport().toBoundingBox();
         this.secondPlaceSupport = config.secondPlaceSupport().toBoundingBox();
-        this.colossalColosseumConfig = config;
+        this.description = newDescription;
+        this.colossalCombatConfig = config;
     }
 
     @Override
     protected InputStream getExampleResourceStream() {
-        return ColossalColosseumStorageUtil.class.getResourceAsStream("exampleColossalColosseumConfig.json");
+        return ColossalCombatStorageUtil.class.getResourceAsStream("exampleColossalCombatConfig.json");
     }
 
     public World getWorld() {
@@ -142,7 +145,7 @@ public class ColossalColosseumStorageUtil extends GameConfigStorageUtil<Colossal
     }
     
     public int getRequiredWins() {
-        return colossalColosseumConfig.requiredWins();
+        return colossalCombatConfig.requiredWins();
     }
     
     public BoundingBox getFirstPlaceClearArea() {
@@ -178,11 +181,11 @@ public class ColossalColosseumStorageUtil extends GameConfigStorageUtil<Colossal
     }
     
     public long getAntiSuffocationDuration() {
-        return colossalColosseumConfig.durations().antiSuffocation();
+        return colossalCombatConfig.durations().antiSuffocation();
     }
     
     public int getRoundStartingDuration() {
-        return colossalColosseumConfig.durations().roundStarting();
+        return colossalCombatConfig.durations().roundStarting();
     }
     
     public BoundingBox getFirstPlaceSupport() {
@@ -191,5 +194,9 @@ public class ColossalColosseumStorageUtil extends GameConfigStorageUtil<Colossal
     
     public BoundingBox getSecondPlaceSupport() {
         return secondPlaceSupport;
+    }
+    
+    public Component getDescription() {
+        return description;
     }
 }

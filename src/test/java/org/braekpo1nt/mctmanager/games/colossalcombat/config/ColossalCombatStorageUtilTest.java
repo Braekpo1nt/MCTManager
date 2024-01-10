@@ -1,4 +1,4 @@
-package org.braekpo1nt.mctmanager.games.colossalcolosseum.config;
+package org.braekpo1nt.mctmanager.games.colossalcombat.config;
 
 import be.seeseemelk.mockbukkit.MockBukkit;
 import be.seeseemelk.mockbukkit.ServerMock;
@@ -15,18 +15,18 @@ import java.io.File;
 import java.io.InputStream;
 import java.util.logging.Level;
 
-public class ColossalColosseumStorageUtilTest {
-    String configFileName = "colossalColosseumConfig.json";
-    String exampleConfigFileName = "exampleColossalColosseumConfig.json";
+public class ColossalCombatStorageUtilTest {
+    String configFileName = "colossalCombatConfig.json";
+    String exampleConfigFileName = "exampleColossalCombatConfig.json";
     Main plugin;
-    ColossalColosseumStorageUtil storageUtil;
+    ColossalCombatStorageUtil storageUtil;
     
     @BeforeEach
     void setupServerAndPlugin() {
         ServerMock server = MockBukkit.mock(new MyCustomServerMock());
         server.getLogger().setLevel(Level.OFF);
         plugin = MockBukkit.load(Main.class);
-        storageUtil = new ColossalColosseumStorageUtil(plugin.getDataFolder());
+        storageUtil = new ColossalCombatStorageUtil(plugin.getDataFolder());
     }
 
     @AfterEach
