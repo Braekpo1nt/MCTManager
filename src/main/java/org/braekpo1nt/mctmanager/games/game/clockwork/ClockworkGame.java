@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.clockwork;
 
+import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.clockwork.config.ClockworkStorageUtil;
@@ -71,8 +72,13 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
         setupTeamOptions();
         startAdmins(newAdmins);
         startNextRound();
+        displayDescription();
         gameActive = true;
         Bukkit.getLogger().info("Started clockwork");
+    }
+    
+    private void displayDescription() {
+        messageAllParticipants(storageUtil.getDescription());
     }
     
     private void initializeParticipant(Player participant) {
@@ -303,6 +309,13 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
             team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.ALWAYS);
             team.setOption(Team.Option.DEATH_MESSAGE_VISIBILITY, Team.OptionStatus.ALWAYS);
             team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.ALWAYS);
+        }
+    }
+    
+    private void messageAllParticipants(Component message) {
+        gameManager.messageAdmins(message);
+        for (Player participant : participants) {
+            participant.sendMessage(message);
         }
     }
 }

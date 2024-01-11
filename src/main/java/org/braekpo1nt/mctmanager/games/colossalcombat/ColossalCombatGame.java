@@ -1,8 +1,9 @@
-package org.braekpo1nt.mctmanager.games.colossalcolosseum;
+package org.braekpo1nt.mctmanager.games.colossalcombat;
 
+import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
-import org.braekpo1nt.mctmanager.games.colossalcolosseum.config.ColossalColosseumStorageUtil;
+import org.braekpo1nt.mctmanager.games.colossalcombat.config.ColossalCombatStorageUtil;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
@@ -26,19 +27,19 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ColossalColosseumGame implements Listener, Configurable {
+public class ColossalCombatGame implements Listener, Configurable {
     
     private final Main plugin;
     private final GameManager gameManager;
     private Sidebar sidebar;
     private Sidebar adminSidebar;
-    private final ColossalColosseumStorageUtil storageUtil;
-    private final String title = ChatColor.BLUE+"Colossal Colosseum";
+    private final ColossalCombatStorageUtil storageUtil;
+    private final String title = ChatColor.BLUE+"Colossal Combat";
     private List<Player> firstPlaceParticipants = new ArrayList<>();
     private List<Player> secondPlaceParticipants = new ArrayList<>();
     private List<Player> spectators = new ArrayList<>();
     private List<Player> admins = new ArrayList<>();
-    private List<ColossalColosseumRound> rounds = new ArrayList<>();
+    private List<ColossalCombatRound> rounds = new ArrayList<>();
     private int currentRoundIndex = 0;
     private int firstPlaceRoundWins = 0;
     private int secondPlaceRoundWins = 0;
@@ -46,10 +47,10 @@ public class ColossalColosseumGame implements Listener, Configurable {
     private String secondTeamName;
     private boolean gameActive = false;
     
-    public ColossalColosseumGame(Main plugin, GameManager gameManager) {
+    public ColossalCombatGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
         this.gameManager = gameManager;
-        this.storageUtil = new ColossalColosseumStorageUtil(plugin.getDataFolder());
+        this.storageUtil = new ColossalCombatStorageUtil(plugin.getDataFolder());
     }
     
     @Override
@@ -79,7 +80,7 @@ public class ColossalColosseumGame implements Listener, Configurable {
         int numOfRounds = (storageUtil.getRequiredWins() * 2) - 1;
         rounds = new ArrayList<>(numOfRounds);
         for (int i = 0; i < numOfRounds; i++) {
-            rounds.add(new ColossalColosseumRound(plugin, gameManager, this, storageUtil, sidebar, adminSidebar));
+            rounds.add(new ColossalCombatRound(plugin, gameManager, this, storageUtil, sidebar, adminSidebar));
         }
         currentRoundIndex = 0;
         for (Player first : newFirstPlaceParticipants) {
@@ -95,8 +96,13 @@ public class ColossalColosseumGame implements Listener, Configurable {
         setupTeamOptions();
         startAdmins(newAdmins);
         startNextRound();
+        displayDescription();
         gameActive = true;
-        Bukkit.getLogger().info("Started Colossal Colosseum");
+        Bukkit.getLogger().info("Started Colossal Combat");
+    }
+    
+    private void displayDescription() {
+        messageAllParticipants(storageUtil.getDescription());
     }
     
     private void initializeFirstPlaceParticipant(Player first) {
@@ -150,7 +156,7 @@ public class ColossalColosseumGame implements Listener, Configurable {
     }
     
     private void startNextRound() {
-        ColossalColosseumRound nextRound = rounds.get(currentRoundIndex);
+        ColossalCombatRound nextRound = rounds.get(currentRoundIndex);
         nextRound.start(firstPlaceParticipants, secondPlaceParticipants, spectators, firstTeamName, secondTeamName);
         sidebar.updateLine("round", String.format("Round: %s", currentRoundIndex+1));
         adminSidebar.updateLine("round", String.format("Round: %s", currentRoundIndex+1));
@@ -182,7 +188,7 @@ public class ColossalColosseumGame implements Listener, Configurable {
         gameActive = false;
         HandlerList.unregisterAll(this);
         if (currentRoundIndex < rounds.size()) {
-            ColossalColosseumRound currentRound = rounds.get(currentRoundIndex);
+            ColossalCombatRound currentRound = rounds.get(currentRoundIndex);
             if (currentRound.isActive()) {
                 currentRound.stop();
             }
@@ -202,8 +208,8 @@ public class ColossalColosseumGame implements Listener, Configurable {
         clearSidebar();
         stopAdmins();
         spectators.clear();
-        gameManager.getEventManager().colossalColosseumIsOver(winningTeam);
-        Bukkit.getLogger().info("Stopping Colossal Colosseum");
+        gameManager.getEventManager().colossalCombatIsOver(winningTeam);
+        Bukkit.getLogger().info("Stopping Colossal Combat");
     }
     
     private void resetParticipant(Player participant) {
@@ -242,7 +248,7 @@ public class ColossalColosseumGame implements Listener, Configurable {
         }
         sidebar.addPlayer(participant);
         if (currentRoundIndex < rounds.size()) {
-            ColossalColosseumRound currentRound = rounds.get(currentRoundIndex);
+            ColossalCombatRound currentRound = rounds.get(currentRoundIndex);
             if (currentRound.isActive()) {
                 currentRound.onParticipantJoin(participant);
             }
@@ -268,7 +274,7 @@ public class ColossalColosseumGame implements Listener, Configurable {
             spectators.remove(participant);
         }
         if (currentRoundIndex < rounds.size()) {
-            ColossalColosseumRound currentRound = rounds.get(currentRoundIndex);
+            ColossalCombatRound currentRound = rounds.get(currentRoundIndex);
             if (currentRound.isActive()) {
                 currentRound.onParticipantQuit(participant);
             }
@@ -418,6 +424,19 @@ public class ColossalColosseumGame implements Listener, Configurable {
             team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.ALWAYS);
             team.setOption(Team.Option.DEATH_MESSAGE_VISIBILITY, Team.OptionStatus.ALWAYS);
             team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER);
+        }
+    }
+    
+    private void messageAllParticipants(Component message) {
+        gameManager.messageAdmins(message);
+        for (Player participant : firstPlaceParticipants) {
+            participant.sendMessage(message);
+        }
+        for (Player participant : secondPlaceParticipants) {
+            participant.sendMessage(message);
+        }
+        for (Player participant : spectators) {
+            participant.sendMessage(message);
         }
     }
     

@@ -29,7 +29,7 @@ There are a few things you need to do when adding a new game.
   - Initialize `newGame` in `GameManager`'s constructor. Use the other games as an example. 
   - Now is when you implement the case in the switch statement you made for `GameType.NEW_GAME` in `startGame()`. 
     - Use the others as an example. 
-    - Note: Colossal Colosseum is a special case, don't use that as an example.
+    - Note: Colossal Combat is a special case, don't use that as an example.
 - Now test and make sure you can 
   - run your game with `/mct game start new-game` (which is made possible with the addition to the `VoteSubCommand.java` above)
   - vote for your game with the vote system using `/mct game vote new-game <...any other games you want in the voting pool...>` (made possible by adding it to the `VoteManager.java`)

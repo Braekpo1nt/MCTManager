@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.game.parkourpathway.config;
 import com.google.common.base.Preconditions;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.config.GameConfigStorageUtil;
@@ -24,6 +25,7 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
     private List<CheckPoint> checkPoints;
     private World world;
     private Location startingLocation;
+    private Component description;
     
     public ParkourPathwayStorageUtil(File configDirectory) {
         super(configDirectory, "parkourPathwayConfig.json", ParkourPathwayConfig.class);
@@ -88,10 +90,12 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
             Location respawn = new Location(newWorld, configRespawn.getX(), configRespawn.getY(), configRespawn.getZ());
             newCheckPoints.add(new CheckPoint(checkpointDTO.yValue(), checkpointDTO.detectionBox().toBoundingBox(), respawn));
         }
+        Component newDescription = GsonComponentSerializer.gson().deserializeFromTree(config.description());
         // now it's confirmed everything works, so set the actual fields
         this.world = newWorld;
         this.startingLocation = newStartingLocation;
         this.checkPoints = newCheckPoints;
+        this.description = newDescription;
         this.parkourPathwayConfig = config;
     }
     
@@ -143,5 +147,9 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
     
     public int[] getWinScore() {
         return parkourPathwayConfig.scores().win();
+    }
+    
+    public Component getDescription() {
+        return description;
     }
 }

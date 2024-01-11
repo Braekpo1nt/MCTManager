@@ -1,11 +1,9 @@
-package org.braekpo1nt.mctmanager.games.colossalcolosseum;
+package org.braekpo1nt.mctmanager.games.colossalcombat;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
-import org.braekpo1nt.mctmanager.games.colossalcolosseum.config.ColossalColosseumStorageUtil;
+import org.braekpo1nt.mctmanager.games.colossalcombat.config.ColossalCombatStorageUtil;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
@@ -24,14 +22,14 @@ import org.bukkit.scoreboard.Team;
 
 import java.util.*;
 
-public class ColossalColosseumRound implements Listener {
+public class ColossalCombatRound implements Listener {
     
     private final Main plugin;
     private final GameManager gameManager;
-    private final ColossalColosseumGame colossalColosseumGame;
+    private final ColossalCombatGame colossalCombatGame;
     private final Sidebar sidebar;
     private final Sidebar adminSidebar;
-    private final ColossalColosseumStorageUtil storageUtil;
+    private final ColossalCombatStorageUtil storageUtil;
     private Map<UUID, Boolean> firstPlaceParticipantsAlive = new HashMap<>();
     private Map<UUID, Boolean> secondPlaceParticipantsAlive = new HashMap<>();
     private String firstTeamName;
@@ -45,10 +43,10 @@ public class ColossalColosseumRound implements Listener {
     private boolean roundActive = false;
     private boolean roundHasStarted = false;
     
-    public ColossalColosseumRound(Main plugin, GameManager gameManager, ColossalColosseumGame colossalColosseumGame, ColossalColosseumStorageUtil storageUtil, Sidebar sidebar, Sidebar adminSidebar) {
+    public ColossalCombatRound(Main plugin, GameManager gameManager, ColossalCombatGame colossalCombatGame, ColossalCombatStorageUtil storageUtil, Sidebar sidebar, Sidebar adminSidebar) {
         this.plugin = plugin;
         this.gameManager = gameManager;
-        this.colossalColosseumGame = colossalColosseumGame;
+        this.colossalCombatGame = colossalCombatGame;
         this.storageUtil = storageUtil;
         this.sidebar = sidebar;
         this.adminSidebar = adminSidebar;
@@ -64,7 +62,7 @@ public class ColossalColosseumRound implements Listener {
         spectators = new ArrayList<>(newSpectators.size());
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         antiSuffocation = false;
-        colossalColosseumGame.closeGates();
+        colossalCombatGame.closeGates();
         for (Player first : newFirstPlaceParticipants) {
             initializeFirstPlaceParticipant(first);
         }
@@ -79,7 +77,7 @@ public class ColossalColosseumRound implements Listener {
         roundActive = true;
         roundHasStarted = false;
         startRoundStartingCountDown();
-        Bukkit.getLogger().info("Starting Colossal Colosseum round");
+        Bukkit.getLogger().info("Starting Colossal Combat round");
     }
     
     private void initializeFirstPlaceParticipant(Player first) {
@@ -128,12 +126,12 @@ public class ColossalColosseumRound implements Listener {
     
     private void onFirstPlaceTeamWin() {
         stop();
-        colossalColosseumGame.onFirstPlaceWinRound();
+        colossalCombatGame.onFirstPlaceWinRound();
     }
     
     private void onSecondPlaceTeamWin() {
         stop();
-        colossalColosseumGame.onSecondPlaceWinRound();
+        colossalCombatGame.onSecondPlaceWinRound();
     }
     
     public boolean isActive() {
@@ -143,7 +141,7 @@ public class ColossalColosseumRound implements Listener {
     public void stop() {
         HandlerList.unregisterAll(this);
         cancelAllTasks();
-        colossalColosseumGame.closeGates();
+        colossalCombatGame.closeGates();
         roundActive = false;
         antiSuffocation = false;
         for (Player participant : firstPlaceParticipants) {
@@ -160,7 +158,7 @@ public class ColossalColosseumRound implements Listener {
         spectators.clear();
         firstTeamName = null;
         secondTeamName = null;
-        Bukkit.getLogger().info("Stopping Colossal Colosseum round");
+        Bukkit.getLogger().info("Stopping Colossal Combat round");
     }
     
     private void resetParticipant(Player participant) {

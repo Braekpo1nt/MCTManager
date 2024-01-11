@@ -101,9 +101,14 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         setUpTeamOptions();
         initializeWorldBorder();
         startAdmins(newAdmins);
+        displayDescription();
         startStartMechaCountdownTask();
         gameActive = true;
         Bukkit.getLogger().info("Started mecha");
+    }
+    
+    private void displayDescription() {
+        messageAllParticipants(storageUtil.getDescription());
     }
 
     private void initializeParticipant(Player participant) {

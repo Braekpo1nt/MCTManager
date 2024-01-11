@@ -7,7 +7,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
-import org.braekpo1nt.mctmanager.games.colossalcolosseum.ColossalColosseumGame;
+import org.braekpo1nt.mctmanager.games.colossalcombat.ColossalCombatGame;
 import org.braekpo1nt.mctmanager.games.event.config.EventStorageUtil;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
@@ -39,7 +39,7 @@ public class EventManager implements Listener {
     private Sidebar adminSidebar;
     private int numberOfTeams = 0;
     private final VoteManager voteManager;
-    private final ColossalColosseumGame colossalColosseumGame;
+    private final ColossalCombatGame colossalCombatGame;
     private final EventStorageUtil storageUtil;
     private EventState currentState;
     private EventState lastStateBeforePause;
@@ -61,7 +61,7 @@ public class EventManager implements Listener {
     private List<Player> admins = new ArrayList<>();
     // Task IDs
     private int waitingInHubTaskId;
-    private int toColossalColosseumDelayTaskId;
+    private int toColossalCombatDelayTaskId;
     private int backToHubDelayTaskId;
     private int startingGameCountdownTaskId;
     private int halftimeBreakTaskId;
@@ -72,7 +72,7 @@ public class EventManager implements Listener {
         this.gameManager = gameManager;
         this.voteManager = voteManager;
         this.storageUtil = new EventStorageUtil(plugin.getDataFolder());
-        this.colossalColosseumGame = new ColossalColosseumGame(plugin, gameManager);
+        this.colossalCombatGame = new ColossalCombatGame(plugin, gameManager);
     }
         
     /**
@@ -166,8 +166,8 @@ public class EventManager implements Listener {
         sender.sendMessage(message);
         messageAllAdmins(message);
         Bukkit.getLogger().info(String.format("Ending event. %d/%d games were played", currentGameNumber - 1, maxGames));
-        if (colossalColosseumGame.isActive()) {
-            colossalColosseumGame.stop(null);
+        if (colossalCombatGame.isActive()) {
+            colossalCombatGame.stop(null);
         }
         clearSidebar();
         admins.clear();
@@ -393,13 +393,13 @@ public class EventManager implements Listener {
                 .append(Component.text(" has been removed from the voting pool")));
     }
     
-    public boolean colossalColosseumIsActive() {
-        return colossalColosseumGame.isActive();
+    public boolean colossalCombatIsActive() {
+        return colossalCombatGame.isActive();
     }
     
     public void onParticipantJoin(Player participant) {
-        if (colossalColosseumGame.isActive()) {
-            colossalColosseumGame.onParticipantJoin(participant);
+        if (colossalCombatGame.isActive()) {
+            colossalCombatGame.onParticipantJoin(participant);
         }
         if (currentState == null) {
             return;
@@ -416,8 +416,8 @@ public class EventManager implements Listener {
     }
     
     public void onParticipantQuit(Player participant) {
-        if (colossalColosseumGame.isActive()) {
-            colossalColosseumGame.onParticipantQuit(participant);
+        if (colossalCombatGame.isActive()) {
+            colossalCombatGame.onParticipantQuit(participant);
         }
         if (currentState == null) {
             return;
@@ -433,8 +433,8 @@ public class EventManager implements Listener {
     }
     
     public void onAdminJoin(Player admin) {
-        if (colossalColosseumGame.isActive()) {
-            colossalColosseumGame.onAdminJoin(admin);
+        if (colossalCombatGame.isActive()) {
+            colossalCombatGame.onAdminJoin(admin);
         }
         if (currentState == null) {
             return;
@@ -451,8 +451,8 @@ public class EventManager implements Listener {
     }
     
     public void onAdminQuit(Player admin) {
-        if (colossalColosseumGame.isActive()) {
-            colossalColosseumGame.onAdminQuit(admin);
+        if (colossalCombatGame.isActive()) {
+            colossalCombatGame.onAdminQuit(admin);
         }
         if (currentState == null) {
             return;
@@ -469,7 +469,7 @@ public class EventManager implements Listener {
     
     public void cancelAllTasks() {
         Bukkit.getScheduler().cancelTask(waitingInHubTaskId);
-        Bukkit.getScheduler().cancelTask(toColossalColosseumDelayTaskId);
+        Bukkit.getScheduler().cancelTask(toColossalCombatDelayTaskId);
         Bukkit.getScheduler().cancelTask(backToHubDelayTaskId);
         Bukkit.getScheduler().cancelTask(startingGameCountdownTaskId);
         Bukkit.getScheduler().cancelTask(halftimeBreakTaskId);
@@ -493,7 +493,7 @@ public class EventManager implements Listener {
                 }
                 if (count <= 0) {
                     if (allGamesHaveBeenPlayed()) {
-                        toColossalColosseumDelay();
+                        toColossalCombatDelay();
                     } else {
                         startVoting();
                     }
@@ -684,9 +684,9 @@ public class EventManager implements Listener {
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
     }
     
-    private void toColossalColosseumDelay() {
+    private void toColossalCombatDelay() {
         currentState = EventState.DELAY;
-        this.toColossalColosseumDelayTaskId = new BukkitRunnable() {
+        this.toColossalCombatDelayTaskId = new BukkitRunnable() {
             int count = storageUtil.getStartingGameDuration();
             @Override
             public void run() {
@@ -695,25 +695,25 @@ public class EventManager implements Listener {
                 }
                 if (count <= 0) {
                     // start selected game
-                    if (identifyWinnersAndStartColossalColosseum()) {
+                    if (identifyWinnersAndStartColossalCombat()) {
                         currentState = EventState.PLAYING_GAME;
                     } else {
-                        messageAllAdmins(Component.text("Unable to start Colossal Colosseum."));
+                        messageAllAdmins(Component.text("Unable to start Colossal Combat."));
                     }
                     this.cancel();
                     return;
                 }
-                sidebar.updateLine("timer", String.format("Colossal Colosseum: %s", TimeStringUtils.getTimeString(count)));
-                adminSidebar.updateLine("timer", String.format("Colossal Colosseum: %s", TimeStringUtils.getTimeString(count)));
+                sidebar.updateLine("timer", String.format("Colossal Combat: %s", TimeStringUtils.getTimeString(count)));
+                adminSidebar.updateLine("timer", String.format("Colossal Combat: %s", TimeStringUtils.getTimeString(count)));
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
     }
     
     /**
-     * @return true if two teams were picked and Colossal Colosseum started successfully. False if anything went wrong.
+     * @return true if two teams were picked and Colossal Combat started successfully. False if anything went wrong.
      */
-    private boolean identifyWinnersAndStartColossalColosseum() {
+    private boolean identifyWinnersAndStartColossalCombat() {
         Set<String> allTeams = gameManager.getTeamNames();
         if (allTeams.size() < 2) {
             messageAllAdmins(Component.empty()
@@ -733,7 +733,7 @@ public class EventManager implements Listener {
         if (firstPlaces.length == 2) {
             String firstPlace = firstPlaces[0];
             String secondPlace = firstPlaces[1];
-            startColossalColosseum(Bukkit.getConsoleSender(), firstPlace, secondPlace);
+            startColossalCombat(Bukkit.getConsoleSender(), firstPlace, secondPlace);
             return false;
         }
         if (firstPlaces.length > 2) {
@@ -764,30 +764,30 @@ public class EventManager implements Listener {
         for (Player admin : admins) {
             adminSidebar.removePlayer(admin);
         }
-        startColossalColosseum(Bukkit.getConsoleSender(), firstPlace, secondPlace);
+        startColossalCombat(Bukkit.getConsoleSender(), firstPlace, secondPlace);
         participants.clear();
         admins.clear();
         return true;
     }
     
-    public void startColossalColosseum(CommandSender sender, String firstPlaceTeamName, String secondPlaceTeamName) {
+    public void startColossalCombat(CommandSender sender, String firstPlaceTeamName, String secondPlaceTeamName) {
         try {
-            if (!colossalColosseumGame.loadConfig()) {
+            if (!colossalCombatGame.loadConfig()) {
                 throw new IllegalArgumentException("Config could not be loaded.");
             }
         } catch (IllegalArgumentException e) {
             Bukkit.getLogger().severe(e.getMessage());
             e.printStackTrace();
             messageAllAdmins(Component.text("Can't start ")
-                    .append(Component.text("Colossal Colosseum")
+                    .append(Component.text("Colossal Combat")
                             .decorate(TextDecoration.BOLD))
                     .append(Component.text(". Error loading config file. See console for details:\n"))
                     .append(Component.text(e.getMessage()))
                     .color(NamedTextColor.RED));
             return;
         }
-        if (colossalColosseumGame.isActive()) {
-            sender.sendMessage(Component.text("Colossal Colosseum is already running").color(NamedTextColor.RED));
+        if (colossalCombatGame.isActive()) {
+            sender.sendMessage(Component.text("Colossal Combat is already running").color(NamedTextColor.RED));
             return;
         }
         if (firstPlaceTeamName == null || secondPlaceTeamName == null) {
@@ -826,24 +826,24 @@ public class EventManager implements Listener {
         }
     
         gameManager.removeParticipantsFromHub(participantPool);
-        colossalColosseumGame.start(firstPlaceParticipants, secondPlaceParticipants, spectators, admins);
+        colossalCombatGame.start(firstPlaceParticipants, secondPlaceParticipants, spectators, admins);
     }
     
-    public void stopColossalColosseum(CommandSender sender) {
-        if (!colossalColosseumGame.isActive()) {
-            sender.sendMessage(Component.text("Colossal Colosseum is not running")
+    public void stopColossalCombat(CommandSender sender) {
+        if (!colossalCombatGame.isActive()) {
+            sender.sendMessage(Component.text("Colossal Combat is not running")
                     .color(NamedTextColor.RED));
             return;
         }
-        colossalColosseumGame.stop(null);
+        colossalCombatGame.stop(null);
     }
     
     /**
-     * Called when Colossal Colosseum is over. If the passed in winningTeam name is null,
+     * Called when Colossal Combat is over. If the passed in winningTeam name is null,
      * nothing happens. Otherwise, this initiates the podium process for the winning team.
      * @param winningTeam The name of the winning team. If this is null, nothing happens.
      */
-    public void colossalColosseumIsOver(@Nullable String winningTeam) {
+    public void colossalCombatIsOver(@Nullable String winningTeam) {
         if (winningTeam == null) {
             Component message = Component.text("No winner declared.");
             messageAllAdmins(message);

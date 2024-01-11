@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.game.capturetheflag.config;
 import com.google.common.base.Preconditions;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.Arena;
@@ -23,6 +24,7 @@ public class CaptureTheFlagStorageUtil extends GameConfigStorageUtil<CaptureTheF
     private World world;
     private Location spawnObservatory;
     private List<Arena> arenas;
+    private Component description;
     
     public CaptureTheFlagStorageUtil(File configDirectory) {
         super(configDirectory, "captureTheFlagConfig.json", CaptureTheFlagConfig.class);
@@ -80,10 +82,12 @@ public class CaptureTheFlagStorageUtil extends GameConfigStorageUtil<CaptureTheF
         World newWorld = Bukkit.getWorld(config.world());
         Preconditions.checkArgument(newWorld != null, "Could not find world \"%s\"", config.world());
         Location newSpawnObservatory = config.spawnObservatory().toLocation(newWorld);
+        Component newDescription = GsonComponentSerializer.gson().deserializeFromTree(config.description());
         // now it's confirmed everything works, so set the actual fields
         this.world = newWorld;
         this.spawnObservatory = newSpawnObservatory;
         this.arenas = toArenas(config.arenas(), world);
+        this.description = newDescription;
         this.captureTheFlagConfig = config;
     }
     
@@ -147,5 +151,9 @@ public class CaptureTheFlagStorageUtil extends GameConfigStorageUtil<CaptureTheF
     
     public int getKillScore() {
         return captureTheFlagConfig.scores().kill();
+    }
+    
+    public Component getDescription() {
+        return description;
     }
 }

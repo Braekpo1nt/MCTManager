@@ -1,6 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.spleef.config;
 
-import com.google.gson.JsonObject;
+import com.google.gson.JsonElement;
 import org.braekpo1nt.mctmanager.games.game.config.BoundingBoxDTO;
 import org.braekpo1nt.mctmanager.games.game.spleef.DecayStage;
 import org.bukkit.NamespacedKey;
@@ -20,7 +20,7 @@ import java.util.List;
  * @param durations the durations for spleef
  * @param description the description of spleef
  */
-record SpleefConfig(String version, String world, List<Vector> startingLocations, BoundingBoxDTO spectatorArea, List<Layer> layers, List<DecayStage> decayStages, int rounds, Scores scores, Durations durations, JsonObject description) {
+record SpleefConfig(String version, String world, List<Vector> startingLocations, BoundingBoxDTO spectatorArea, List<Layer> layers, List<DecayStage> decayStages, int rounds, Scores scores, Durations durations, JsonElement description) {
     
     /**
      * @param structure the NamespacedKey of the structure to place for this layer
