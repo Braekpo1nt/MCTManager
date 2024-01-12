@@ -43,6 +43,7 @@ import java.util.*;
 public class GameManager implements Listener {
     
     public static final String ADMIN_TEAM = "_Admins";
+    public static final NamedTextColor ADMIN_COLOR = NamedTextColor.DARK_RED; 
     private MCTGame activeGame = null;
     private final FootRaceGame footRaceGame;
     private final MechaGame mechaGame;
@@ -107,6 +108,9 @@ public class GameManager implements Listener {
             voteManager.onAdminQuit(admin);
         }
         hubManager.onAdminQuit(admin);
+        Component displayName = Component.text(admin.getName(), NamedTextColor.WHITE);
+        admin.displayName(displayName);
+        admin.playerListName(displayName);
     }
     
     /**
@@ -151,7 +155,12 @@ public class GameManager implements Listener {
         onlineAdmins.add(admin);
         admin.setScoreboard(mctScoreboard);
         admin.addPotionEffect(Main.NIGHT_VISION);
-        Component displayName = Component.text(admin.getName(), NamedTextColor.RED);
+        Component displayName = Component.empty()
+                .append(Component.text("["))
+                .append(Component.text("Admin")
+                        .color(ADMIN_COLOR))
+                .append(Component.text("] "))
+                .append(Component.text(admin.getName()));
         admin.displayName(displayName);
         admin.playerListName(displayName);
         hubManager.onAdminJoin(admin);
