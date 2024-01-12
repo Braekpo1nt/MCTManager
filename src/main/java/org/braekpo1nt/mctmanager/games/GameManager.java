@@ -623,14 +623,16 @@ public class GameManager implements Listener {
      * @param offlinePlayer The player to remove from the team
      */
     public void leavePlayer(OfflinePlayer offlinePlayer) {
+        UUID playerUniqueId = offlinePlayer.getUniqueId();
+        String teamName = gameStateStorageUtil.getPlayerTeamName(playerUniqueId);
         if (offlinePlayer.isOnline()) {
             Player onlinePlayer = offlinePlayer.getPlayer();
             if (onlinePlayer != null) {
                 onParticipantQuit(onlinePlayer);
+                onlinePlayer.sendMessage(Component.text("You've been removed from ")
+                        .append(getFormattedTeamDisplayName(teamName)));
             }
         }
-        UUID playerUniqueId = offlinePlayer.getUniqueId();
-        String teamName = gameStateStorageUtil.getPlayerTeamName(playerUniqueId);
         try {
             gameStateStorageUtil.leavePlayer(playerUniqueId);
         } catch (IOException e) {
