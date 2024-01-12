@@ -112,5 +112,5 @@
     "invulnerability": 20,
     "end": 10
   },
-  "description": {"text":"MECHA description","color":"dark_blue","bold": true}
+  "description": ["",{"text":"-----------------------\n","bold":true,"color":"gray"},{"text":"How To Play MECHA","bold":true,"color":"yellow"},"\n",{"text":"MECHA stands for Majorly Epic Combat Hunting Arena, or just Survival Games.","color":"#FFFFDF"},"\n",{"text":"When the game starts you will have a number of seconds of immunity\nafter that you must race through the map to collect armor, weapons,\nand tools to carry you and your team to victory! Last team standing wins!","color":"#FFFFDF"},"\n",{"text":"-----------------------","bold":true,"color":"gray"}]
 }

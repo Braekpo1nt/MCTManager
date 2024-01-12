@@ -127,6 +127,9 @@ public class GameManager implements Listener {
             voteManager.onParticipantQuit(participant);
         }
         hubManager.onParticipantQuit(participant);
+        Component displayName = Component.text(participant.getName(), NamedTextColor.WHITE);
+        participant.displayName(displayName);
+        participant.playerListName(displayName);
     }
     
     @EventHandler
@@ -532,25 +535,29 @@ public class GameManager implements Listener {
      * Joins the player with the given UUID to the team with the given teamName, and adds them
      * to the game state. Note, this will not join a player to a team
      * if that player is an admin. 
-     * @param player The player to join to the given team
+     * @param participant The player to join to the given team
      * @param teamName The internal teamName of the team to join the player to. 
      *                 This method assumes the team exists, and will throw a 
      *                 null pointer exception if it doesn't.
      */
-    public void joinPlayerToTeam(Player player, String teamName) {
-        UUID playerUniqueId = player.getUniqueId();
+    public void joinPlayerToTeam(Player participant, String teamName) {
+        UUID playerUniqueId = participant.getUniqueId();
         if (isAdmin(playerUniqueId)) {
             return;
         }
         if (gameStateStorageUtil.containsPlayer(playerUniqueId)) {
             movePlayerToTeam(playerUniqueId, teamName);
-            player.sendMessage(Component.text("You've been moved to ")
+            participant.sendMessage(Component.text("You've been moved to ")
                     .append(getFormattedTeamDisplayName(teamName)));
-            return;
+        } else {
+            addNewPlayer(playerUniqueId, teamName);
+            participant.sendMessage(Component.text("You've been joined to ")
+                    .append(getFormattedTeamDisplayName(teamName)));
         }
-        addNewPlayer(playerUniqueId, teamName);
-        player.sendMessage(Component.text("You've been joined to ")
-                .append(getFormattedTeamDisplayName(teamName)));
+        NamedTextColor teamNamedTextColor = getTeamNamedTextColor(teamName);
+        Component displayName = Component.text(participant.getName(), teamNamedTextColor);
+        participant.displayName(displayName);
+        participant.playerListName(displayName);
     }
     
     private void movePlayerToTeam(UUID playerUniqueId, String newTeamName) {
@@ -616,14 +623,16 @@ public class GameManager implements Listener {
      * @param offlinePlayer The player to remove from the team
      */
     public void leavePlayer(OfflinePlayer offlinePlayer) {
+        UUID playerUniqueId = offlinePlayer.getUniqueId();
+        String teamName = gameStateStorageUtil.getPlayerTeamName(playerUniqueId);
         if (offlinePlayer.isOnline()) {
             Player onlinePlayer = offlinePlayer.getPlayer();
             if (onlinePlayer != null) {
                 onParticipantQuit(onlinePlayer);
+                onlinePlayer.sendMessage(Component.text("You've been removed from ")
+                        .append(getFormattedTeamDisplayName(teamName)));
             }
         }
-        UUID playerUniqueId = offlinePlayer.getUniqueId();
-        String teamName = gameStateStorageUtil.getPlayerTeamName(playerUniqueId);
         try {
             gameStateStorageUtil.leavePlayer(playerUniqueId);
         } catch (IOException e) {
