@@ -19,6 +19,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
@@ -524,6 +525,23 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
             return;
         }
         Player participant = event.getPlayer();
+        if (!participants.contains(participant)) {
+            return;
+        }
+        event.setCancelled(true);
+    }
+    
+    @EventHandler
+    public void onPlayerDamage(EntityDamageEvent event) {
+        if (!gameActive) {
+            return;
+        }
+        if (event.getCause().equals(EntityDamageEvent.DamageCause.VOID)) {
+            return;
+        }
+        if (!(event.getEntity() instanceof Player participant)) {
+            return;
+        }
         if (!participants.contains(participant)) {
             return;
         }
