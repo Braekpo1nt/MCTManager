@@ -858,9 +858,9 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
                     barrier.getMinY(), 
                     barrier.getMaxZ()-1);
             BlockPlacementUtils.createCube(storageUtil.getWorld(), concreteArea, concreteColor);
-            double spawnX = barrier.getCenterX();
+            double spawnX = barrier.getCenterX() + 0.5;
             double spawnY = concreteArea.getMin().getBlockY() + 1;
-            double spawnZ = barrier.getCenterZ();
+            double spawnZ = barrier.getCenterZ() + 0.5;
             Location platformSpawn = platformSpawns.get(platformIndex);
             Location spawnLocation = new Location(storageUtil.getWorld(), spawnX, spawnY, spawnZ, platformSpawn.getYaw(), platformSpawn.getPitch());
             teamToSpawn.put(team, spawnLocation);
