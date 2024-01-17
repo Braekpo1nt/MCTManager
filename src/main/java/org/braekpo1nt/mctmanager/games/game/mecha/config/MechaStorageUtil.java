@@ -7,12 +7,12 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.config.GameConfigStorageUtil;
+import org.braekpo1nt.mctmanager.games.game.config.YawPitch;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.loot.LootTable;
-import org.bukkit.structure.Structure;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.Nullable;
@@ -28,7 +28,8 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
     private Map<LootTable, Integer> weightedMechaLootTables;
     private World world;
     private List<BoundingBox> platformBarriers;
-    private List<Location> platformSpawns;
+    private List<YawPitch> facingDirections;
+    private Location adminSpawn;
     private Component description;
     
     public MechaStorageUtil(File configDirectory) {
@@ -99,8 +100,7 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
             Preconditions.checkArgument(barrier.getHeight() >= 3, "barrier must have a height of at least 3");
             Preconditions.checkArgument(barrier.getWidthX() >= 2, "barrier must have an x width of at least 2");
             Preconditions.checkArgument(barrier.getWidthZ() >= 2, "barrier must have an z width of at least 2");
-            Preconditions.checkArgument(platform.spawn() != null, "spawn can't be null");
-            Preconditions.checkArgument(barrier.contains(platform.spawn().toVector()), "spawn must be inside barrier");
+            Preconditions.checkArgument(platform.facingDirection() != null, "facingDirection can't be null");
         }
         for (int i = 0; i < config.platforms().size()-1; i++) {
             BoundingBox boxA = config.platforms().get(i).barrier().toBoundingBox();
@@ -160,19 +160,21 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
             newWeightedMechaLootTables.put(lootTable, weight);
         }
         List<BoundingBox> newPlatformBarriers = new ArrayList<>();
-        List<Location> newPlatformSpawns = new ArrayList<>();
+        List<YawPitch> newFacingDirections = new ArrayList<>();
         for (MechaConfig.Platform platform : config.platforms()) {
             newPlatformBarriers.add(platform.barrier().toBoundingBox());
-            newPlatformSpawns.add(platform.spawn().toLocation(newWorld));
+            newFacingDirections.add(platform.facingDirection());
         }
+        Location newAdminSpawn = newPlatformBarriers.get(0).getCenter().toLocation(newWorld);
         Component newDescription = GsonComponentSerializer.gson().deserializeFromTree(config.description());
         // now it's confirmed everything works, so set the actual fields
         this.world = newWorld;
         this.weightedMechaLootTables = newWeightedMechaLootTables;
         this.platformBarriers = newPlatformBarriers;
-        this.platformSpawns = newPlatformSpawns;
+        this.facingDirections = newFacingDirections;
         this.description = newDescription;
         this.removeArea = config.removeArea().toBoundingBox();
+        this.adminSpawn = newAdminSpawn;
         this.mechaConfig = config;
     }
     
@@ -265,8 +267,8 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
         return platformBarriers;
     }
     
-    public List<Location> getPlatformSpawns() {
-        return platformSpawns;
+    public List<YawPitch> getFacingDirections() {
+        return facingDirections;
     }
     
     public Component getDescription() {
@@ -291,5 +293,9 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
     
     public int getSurviveTeamScore() {
         return mechaConfig.scores().surviveTeam();
+    }
+    
+    public Location getAdminSpawn() {
+        return adminSpawn;
     }
 }

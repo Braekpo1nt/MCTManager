@@ -5,6 +5,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.game.config.YawPitch;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
@@ -96,7 +97,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
         }
-        initializeAndTeleportToPlatforms();
+        createPlatformsAndTeleportTeams();
         initializeSidebar();
         setUpTeamOptions();
         initializeWorldBorder();
@@ -147,7 +148,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         admins.add(admin);
         adminSidebar.addPlayer(admin);
         admin.setGameMode(GameMode.SPECTATOR);
-        admin.teleport(storageUtil.getPlatformSpawns().get(0));
+        admin.teleport(storageUtil.getAdminSpawn());
     }
     
     @Override
@@ -833,17 +834,22 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         adminSidebar.updateLine("timer", message);
     }
     
-    private Map<String, Location> initializePlatforms(List<String> teams) {
+    
+    /**
+     * For n teams and m platforms: 
+     * - place n platforms. If n is greater than m, m platforms are placed.
+     * - Teleport teams to those platforms. If n is greater than m, some multiple teams will be in the same platforms
+     */
+    private void createPlatformsAndTeleportTeams() {
+        List<String> teams = gameManager.getTeamNames(participants);
         List<BoundingBox> platformBarriers = storageUtil.getPlatformBarriers();
-        List<Location> facingDirections = storageUtil.getPlatformSpawns();
+        List<YawPitch> facingDirections = storageUtil.getFacingDirections();
         Map<String, Location> teamSpawnLocations = new HashMap<>(teams.size());
+        World world = storageUtil.getWorld();
         for (int i = 0; i < teams.size(); i++) {
+            String team = teams.get(i);
             int platformIndex = wrapIndex(i, platformBarriers.size());
             BoundingBox barrierArea = platformBarriers.get(platformIndex);
-            Location facingDirection = facingDirections.get(i);
-            BlockPlacementUtils.createHollowCube(storageUtil.getWorld(), barrierArea, Material.BARRIER);
-            String team = teams.get(i);
-            Material concreteColor = gameManager.getTeamConcreteColor(team);
             BoundingBox concreteArea = new BoundingBox(
                     barrierArea.getMinX()+1,
                     barrierArea.getMinY(),
@@ -851,61 +857,25 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
                     barrierArea.getMaxX()-1,
                     barrierArea.getMinY(),
                     barrierArea.getMaxZ()-1);
-            BlockPlacementUtils.createCube(storageUtil.getWorld(), concreteArea, concreteColor);
+            Material concreteColor = gameManager.getTeamConcreteColor(team);
+            BlockPlacementUtils.createHollowCube(world, barrierArea, Material.BARRIER);
+            BlockPlacementUtils.createCube(world, concreteArea, concreteColor);
+            
+            YawPitch facingDirection = facingDirections.get(i);
             double spawnX = barrierArea.getCenterX() + 0.5;
             double spawnY = concreteArea.getMin().getBlockY() + 1;
             double spawnZ = barrierArea.getCenterZ() + 0.5;
-            float spawnYaw = facingDirection.getYaw();
-            float spawnPitch = facingDirection.getPitch();
-            teamSpawnLocations.put(team, new Location(storageUtil.getWorld(), spawnX, spawnY, spawnZ, spawnYaw, spawnPitch));
+            float spawnYaw = facingDirection.yaw();
+            float spawnPitch = facingDirection.pitch();
+            teamSpawnLocations.put(team, new Location(world, spawnX, spawnY, spawnZ, spawnYaw, spawnPitch));
         }
-        return teamSpawnLocations;
+        teleportTeamsToPlatforms(teamSpawnLocations);
     }
     
     private void teleportTeamsToPlatforms(Map<String, Location> teamSpawnLocations) {
         for (Player participant : participants) {
             String team = gameManager.getTeamName(participant.getUniqueId());
             Location spawn = teamSpawnLocations.get(team);
-            participant.teleport(spawn);
-        }
-    }
-    
-    
-    /**
-     * Places the platforms for the teams, with floors of the concrete colors of the teams. 
-     * Only places as many platforms as there are teams. Also teleports participants to the appropriate spawn location. 
-     * <p>
-     * Note: If there are more teams than there are platforms, will wrap around.
-     */
-    private void initializeAndTeleportToPlatforms() {
-        List<String> teams = gameManager.getTeamNames(participants);
-        List<BoundingBox> platformBarriers = storageUtil.getPlatformBarriers();
-        List<Location> platformSpawns = storageUtil.getPlatformSpawns();
-        Map<String, Location> teamToSpawn = new HashMap<>();
-        for (int i = 0; i < teams.size(); i++) {
-            int platformIndex = wrapIndex(i, platformBarriers.size());
-            BoundingBox barrier = platformBarriers.get(platformIndex);
-            BlockPlacementUtils.createHollowCube(storageUtil.getWorld(), barrier, Material.BARRIER);
-            String team = teams.get(i);
-            Material concreteColor = gameManager.getTeamConcreteColor(team);
-            BoundingBox concreteArea = new BoundingBox(
-                    barrier.getMinX()+1, 
-                    barrier.getMinY(), 
-                    barrier.getMinZ()+1, 
-                    barrier.getMaxX()-1, 
-                    barrier.getMinY(), 
-                    barrier.getMaxZ()-1);
-            BlockPlacementUtils.createCube(storageUtil.getWorld(), concreteArea, concreteColor);
-            double spawnX = barrier.getCenterX() + 0.5;
-            double spawnY = concreteArea.getMin().getBlockY() + 1;
-            double spawnZ = barrier.getCenterZ() + 0.5;
-            Location platformSpawn = platformSpawns.get(platformIndex);
-            Location spawnLocation = new Location(storageUtil.getWorld(), spawnX, spawnY, spawnZ, platformSpawn.getYaw(), platformSpawn.getPitch());
-            teamToSpawn.put(team, spawnLocation);
-        }
-        for (Player participant : participants) {
-            String team = gameManager.getTeamName(participant.getUniqueId());
-            Location spawn = teamToSpawn.get(team);
             participant.teleport(spawn);
         }
     }

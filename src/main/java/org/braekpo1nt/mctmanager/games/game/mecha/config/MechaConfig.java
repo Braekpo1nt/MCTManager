@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.game.mecha.config;
 import com.google.gson.JsonElement;
 import org.braekpo1nt.mctmanager.games.game.config.BoundingBoxDTO;
 import org.braekpo1nt.mctmanager.games.game.config.LocationDTO;
+import org.braekpo1nt.mctmanager.games.game.config.YawPitch;
 import org.bukkit.NamespacedKey;
 import org.bukkit.util.Vector;
 
@@ -41,7 +42,7 @@ record MechaConfig (String version, String world, BoundingBoxDTO spectatorArea, 
     record WeightedNamespacedKey(String namespace, String key, int weight) {
     }
     
-    record Platform(BoundingBoxDTO barrier, LocationDTO spawn) {
+    record Platform(BoundingBoxDTO barrier, YawPitch facingDirection) {
     }
     
     record Scores(int kill, int surviveTeam, int firstPlace, int secondPlace, int thirdPlace) {
