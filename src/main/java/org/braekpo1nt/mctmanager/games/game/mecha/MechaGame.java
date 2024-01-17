@@ -833,10 +833,10 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         adminSidebar.updateLine("timer", message);
     }
     
-    private List<Location> initializePlatforms(List<String> teams) {
+    private Map<String, Location> initializePlatforms(List<String> teams) {
         List<BoundingBox> platformBarriers = storageUtil.getPlatformBarriers();
         List<Location> facingDirections = storageUtil.getPlatformSpawns();
-        List<Location> spawnLocations = new ArrayList<>(teams.size());
+        Map<String, Location> teamSpawnLocations = new HashMap<>(teams.size());
         for (int i = 0; i < teams.size(); i++) {
             int platformIndex = wrapIndex(i, platformBarriers.size());
             BoundingBox barrierArea = platformBarriers.get(platformIndex);
@@ -857,10 +857,19 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
             double spawnZ = barrierArea.getCenterZ() + 0.5;
             float spawnYaw = facingDirection.getYaw();
             float spawnPitch = facingDirection.getPitch();
-            spawnLocations.add(new Location(storageUtil.getWorld(), spawnX, spawnY, spawnZ, spawnYaw, spawnPitch));
+            teamSpawnLocations.put(team, new Location(storageUtil.getWorld(), spawnX, spawnY, spawnZ, spawnYaw, spawnPitch));
         }
-        return spawnLocations;
+        return teamSpawnLocations;
     }
+    
+    private void teleportTeamsToPlatforms(Map<String, Location> teamSpawnLocations) {
+        for (Player participant : participants) {
+            String team = gameManager.getTeamName(participant.getUniqueId());
+            Location spawn = teamSpawnLocations.get(team);
+            participant.teleport(spawn);
+        }
+    }
+    
     
     /**
      * Places the platforms for the teams, with floors of the concrete colors of the teams. 
