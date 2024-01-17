@@ -95,12 +95,12 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
         Preconditions.checkArgument(config.platforms() != null, "platforms can't be null");
         Preconditions.checkArgument(config.platforms().size() > 0, "platforms must have at least one element");
         for (MechaConfig.Platform platform : config.platforms()) {
-            Preconditions.checkArgument(platform.barrier() != null, "barrier can't be null");
+            Preconditions.checkArgument(platform.barrier() != null, "platforms.barrier can't be null");
             BoundingBox barrier = platform.barrier().toBoundingBox();
-            Preconditions.checkArgument(barrier.getHeight() >= 3, "barrier must have a height of at least 3");
-            Preconditions.checkArgument(barrier.getWidthX() >= 2, "barrier must have an x width of at least 2");
-            Preconditions.checkArgument(barrier.getWidthZ() >= 2, "barrier must have an z width of at least 2");
-            Preconditions.checkArgument(platform.facingDirection() != null, "facingDirection can't be null");
+            Preconditions.checkArgument(barrier.getHeight() >= 3, "platforms.barrier must have a height of at least 3");
+            Preconditions.checkArgument(barrier.getWidthX() >= 2, "platforms.barrier must have an x width of at least 2");
+            Preconditions.checkArgument(barrier.getWidthZ() >= 2, "platforms.barrier must have an z width of at least 2");
+            Preconditions.checkArgument(platform.facingDirection() != null, "platforms.facingDirection can't be null");
         }
         for (int i = 0; i < config.platforms().size()-1; i++) {
             BoundingBox boxA = config.platforms().get(i).barrier().toBoundingBox();
