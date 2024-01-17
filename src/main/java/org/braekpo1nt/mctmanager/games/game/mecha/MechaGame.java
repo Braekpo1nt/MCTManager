@@ -833,6 +833,35 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         adminSidebar.updateLine("timer", message);
     }
     
+    private List<Location> initializePlatforms(List<String> teams) {
+        List<BoundingBox> platformBarriers = storageUtil.getPlatformBarriers();
+        List<Location> facingDirections = storageUtil.getPlatformSpawns();
+        List<Location> spawnLocations = new ArrayList<>(teams.size());
+        for (int i = 0; i < teams.size(); i++) {
+            int platformIndex = wrapIndex(i, platformBarriers.size());
+            BoundingBox barrierArea = platformBarriers.get(platformIndex);
+            Location facingDirection = facingDirections.get(i);
+            BlockPlacementUtils.createHollowCube(storageUtil.getWorld(), barrierArea, Material.BARRIER);
+            String team = teams.get(i);
+            Material concreteColor = gameManager.getTeamConcreteColor(team);
+            BoundingBox concreteArea = new BoundingBox(
+                    barrierArea.getMinX()+1,
+                    barrierArea.getMinY(),
+                    barrierArea.getMinZ()+1,
+                    barrierArea.getMaxX()-1,
+                    barrierArea.getMinY(),
+                    barrierArea.getMaxZ()-1);
+            BlockPlacementUtils.createCube(storageUtil.getWorld(), concreteArea, concreteColor);
+            double spawnX = barrierArea.getCenterX() + 0.5;
+            double spawnY = concreteArea.getMin().getBlockY() + 1;
+            double spawnZ = barrierArea.getCenterZ() + 0.5;
+            float spawnYaw = facingDirection.getYaw();
+            float spawnPitch = facingDirection.getPitch();
+            spawnLocations.add(new Location(storageUtil.getWorld(), spawnX, spawnY, spawnZ, spawnYaw, spawnPitch));
+        }
+        return spawnLocations;
+    }
+    
     /**
      * Places the platforms for the teams, with floors of the concrete colors of the teams. 
      * Only places as many platforms as there are teams. Also teleports participants to the appropriate spawn location. 
