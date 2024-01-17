@@ -28,7 +28,7 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
     private Map<LootTable, Integer> weightedMechaLootTables;
     private World world;
     private List<BoundingBox> platformBarriers;
-    private List<YawPitch> facingDirections;
+    private List<Location> platformSpawns;
     private Location adminSpawn;
     private Component description;
     
@@ -100,7 +100,6 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
             Preconditions.checkArgument(barrier.getHeight() >= 3, "platforms.barrier must have a height of at least 3");
             Preconditions.checkArgument(barrier.getWidthX() >= 2, "platforms.barrier must have an x width of at least 2");
             Preconditions.checkArgument(barrier.getWidthZ() >= 2, "platforms.barrier must have an z width of at least 2");
-            Preconditions.checkArgument(platform.facingDirection() != null, "platforms.facingDirection can't be null");
         }
         for (int i = 0; i < config.platforms().size()-1; i++) {
             BoundingBox boxA = config.platforms().get(i).barrier().toBoundingBox();
@@ -160,10 +159,24 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
             newWeightedMechaLootTables.put(lootTable, weight);
         }
         List<BoundingBox> newPlatformBarriers = new ArrayList<>();
-        List<YawPitch> newFacingDirections = new ArrayList<>();
+        List<Location> newPlatformSpawns = new ArrayList<>();
+        Location platformCenter = null;
+        if (config.platformCenter() != null) {
+            platformCenter = config.platformCenter().toLocation(newWorld);
+        }
         for (MechaConfig.Platform platform : config.platforms()) {
-            newPlatformBarriers.add(platform.barrier().toBoundingBox());
-            newFacingDirections.add(platform.facingDirection());
+            BoundingBox barrierArea = platform.barrier().toBoundingBox();
+            newPlatformBarriers.add(barrierArea);
+            double spawnX = barrierArea.getCenterX() + 0.5;
+            double spawnY = barrierArea.getMin().getBlockY() + 1;
+            double spawnZ = barrierArea.getCenterZ() + 0.5;
+            if (platform.facingDirection() != null) {
+                float spawnYaw = platform.facingDirection().yaw();
+                float spawnPitch = platform.facingDirection().pitch();
+                newPlatformSpawns.add(new Location(newWorld, spawnX, spawnY, spawnZ, spawnYaw, spawnPitch));
+            } else if (platformCenter != null) {
+                
+            }
         }
         Location newAdminSpawn = newPlatformBarriers.get(0).getCenter().toLocation(newWorld);
         Component newDescription = GsonComponentSerializer.gson().deserializeFromTree(config.description());
@@ -171,7 +184,7 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
         this.world = newWorld;
         this.weightedMechaLootTables = newWeightedMechaLootTables;
         this.platformBarriers = newPlatformBarriers;
-        this.facingDirections = newFacingDirections;
+        this.platformSpawns = newPlatformSpawns;
         this.description = newDescription;
         this.removeArea = config.removeArea().toBoundingBox();
         this.adminSpawn = newAdminSpawn;
@@ -267,8 +280,8 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
         return platformBarriers;
     }
     
-    public List<YawPitch> getFacingDirections() {
-        return facingDirections;
+    public List<Location> getPlatformSpawns() {
+        return platformSpawns;
     }
     
     public Component getDescription() {

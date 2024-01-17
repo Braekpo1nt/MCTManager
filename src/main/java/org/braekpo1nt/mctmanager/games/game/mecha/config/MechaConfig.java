@@ -10,15 +10,22 @@ import org.bukkit.util.Vector;
 import java.util.List;
 
 /**
+ * @param version
  * @param world the world
+ * @param spectatorArea
  * @param removeArea The area to empty containers and remove floor items
  * @param border the information about the world border
  * @param spawnLootTable The loot table for the spawn chests
  * @param weightedMechaLootTables The loot tables for the chests, with weights for the weighted random selection
  * @param spawnChestCoords The coordinates of the spawn chests
  * @param mapChestCoords the coordinates of the map chests
+ * @param platformCenter the place where players will be looking when they spawn in at the start of the game. If this is null, then the Platforms.facingDirection() will be used. If Platforms.facingDirection is null, then they will face yaw=0,pitch=0.
+ * @param platforms
+ * @param scores
+ * @param durations
+ * @param description
  */
-record MechaConfig (String version, String world, BoundingBoxDTO spectatorArea, BoundingBoxDTO removeArea, BorderDTO border, NamespacedKey spawnLootTable, List<WeightedNamespacedKey> weightedMechaLootTables, List<Vector> spawnChestCoords, List<Vector> mapChestCoords, List<Platform> platforms, Scores scores, Durations durations, JsonElement description) {
+record MechaConfig (String version, String world, BoundingBoxDTO spectatorArea, BoundingBoxDTO removeArea, BorderDTO border, NamespacedKey spawnLootTable, List<WeightedNamespacedKey> weightedMechaLootTables, List<Vector> spawnChestCoords, List<Vector> mapChestCoords, Vector platformCenter, List<Platform> platforms, Scores scores, Durations durations, JsonElement description) {
     
     /**
      * @param center the center of the world border
@@ -42,6 +49,10 @@ record MechaConfig (String version, String world, BoundingBoxDTO spectatorArea, 
     record WeightedNamespacedKey(String namespace, String key, int weight) {
     }
     
+    /**
+     * @param barrier the BoundingBox of the spawn platform. A hollow box of Barrier blocks will be formed, with the bottom layer of blocks made of Concrete which matches the color of the appropriate team. Players will be spawned in the center of the box, standing on the Concrete blocks.
+     * @param facingDirection if this is not null, the players will be looking this direction when they spawn in at the start of the game (this overrides platformCenter). If this is null, then the players will be looking in the direction of platformCenter. If platformCenter is also null, the players will be looking at yaw=0,pitch=0.
+     */
     record Platform(BoundingBoxDTO barrier, YawPitch facingDirection) {
     }
     

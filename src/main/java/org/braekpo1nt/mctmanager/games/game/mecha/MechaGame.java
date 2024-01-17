@@ -843,13 +843,14 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     private void createPlatformsAndTeleportTeams() {
         List<String> teams = gameManager.getTeamNames(participants);
         List<BoundingBox> platformBarriers = storageUtil.getPlatformBarriers();
-        List<YawPitch> facingDirections = storageUtil.getFacingDirections();
+        List<Location> platformSpawns = storageUtil.getPlatformSpawns();
         Map<String, Location> teamSpawnLocations = new HashMap<>(teams.size());
         World world = storageUtil.getWorld();
         for (int i = 0; i < teams.size(); i++) {
             String team = teams.get(i);
             int platformIndex = wrapIndex(i, platformBarriers.size());
             BoundingBox barrierArea = platformBarriers.get(platformIndex);
+            Location platformSpawn = platformSpawns.get(platformIndex);
             BoundingBox concreteArea = new BoundingBox(
                     barrierArea.getMinX()+1,
                     barrierArea.getMinY(),
@@ -858,16 +859,10 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
                     barrierArea.getMinY(),
                     barrierArea.getMaxZ()-1);
             Material concreteColor = gameManager.getTeamConcreteColor(team);
+            
             BlockPlacementUtils.createHollowCube(world, barrierArea, Material.BARRIER);
             BlockPlacementUtils.createCube(world, concreteArea, concreteColor);
-            
-            YawPitch facingDirection = facingDirections.get(i);
-            double spawnX = barrierArea.getCenterX() + 0.5;
-            double spawnY = concreteArea.getMin().getBlockY() + 1;
-            double spawnZ = barrierArea.getCenterZ() + 0.5;
-            float spawnYaw = facingDirection.yaw();
-            float spawnPitch = facingDirection.pitch();
-            teamSpawnLocations.put(team, new Location(world, spawnX, spawnY, spawnZ, spawnYaw, spawnPitch));
+            teamSpawnLocations.put(team, platformSpawn);
         }
         teleportTeamsToPlatforms(teamSpawnLocations);
     }
