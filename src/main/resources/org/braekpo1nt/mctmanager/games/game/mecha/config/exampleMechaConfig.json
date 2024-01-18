@@ -81,22 +81,34 @@
       "z": -44.0
     }
   ],
+  "platformCenter": {
+    "x": 0,
+    "y": 79,
+    "z": 0
+  },
   "platforms": [
     {
       "barrier": {
-        "minX": 9,
-        "minY": -43,
-        "minZ": -3,
-        "maxX": 12,
-        "maxY": -40,
-        "maxZ": 2
+        "minX": 6,
+        "minY": 78,
+        "minZ": 7,
+        "maxX": 3,
+        "maxY": 82,
+        "maxZ": 10
       },
-      "spawn": {
-        "x": 10.5,
-        "y": -42,
-        "z": 0,
-        "yaw": 90,
+      "facingDirection": {
+        "yaw": 135,
         "pitch": 0
+      }
+    },
+    {
+      "barrier": {
+        "minX": 12,
+        "minY": 78,
+        "minZ": -2,
+        "maxX": 9,
+        "maxY": 83,
+        "maxZ": 1
       }
     }
   ],
