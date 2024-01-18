@@ -31,84 +31,17 @@ public class MCTDebugCommand implements TabExecutor {
     
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (!(sender instanceof Player player)) {
-            sender.sendMessage(Component.text("Must be a player to run this command")
-                    .color(NamedTextColor.RED));
-            return true;
-        }
+//        if (!(sender instanceof Player player)) {
+//            sender.sendMessage(Component.text("Must be a player to run this command")
+//                    .color(NamedTextColor.RED));
+//            return true;
+//        }
         
-        if (args.length < 1) {
-            sender.sendMessage(Component.text("Usage: /mctdebug <arg> [options]")
-                    .color(NamedTextColor.RED));
-            return true;
-        }
-        String arg = args[0];
-        switch (arg) {
-            case "setyaw" -> {
-                if (args.length != 2) {
-                    sender.sendMessage(Component.text("Usage: /mctdebug setyaw <yaw>")
-                            .color(NamedTextColor.RED));
-                    return true;
-                }
-                
-                if (!CommandUtils.isFloat(args[1])) {
-                    sender.sendMessage(Component.text(args[1])
-                            .append(Component.text(" is not a number"))
-                            .color(NamedTextColor.RED));
-                    return true;
-                }
-                
-                float newYaw = Float.parseFloat(args[1]);
-                Location location = player.getLocation();
-                float oldYaw = location.getYaw();
-                location.setYaw(newYaw);
-                sender.sendMessage(Component.text("New yaw: ")
-                        .append(Component.text(newYaw)));
-                player.teleport(location);
-                sender.sendMessage(Component.text("new yaw minus old yaw: ")
-                        .append(Component.text(newYaw - oldYaw)));
-    
-            }
-            case "lookat" -> {
-                if (args.length != 4) {
-                    sender.sendMessage(Component.text("Usage: /mctdebug lookat <x> <y> <z>")
-                            .color(NamedTextColor.RED));
-                    return true;
-                }
-    
-                for (int i = 1; i < 4; i++) {
-                    String coordinate = args[i];
-                    if (!CommandUtils.isDouble(coordinate)) {
-                        sender.sendMessage(Component.text(coordinate)
-                                .append(Component.text(" is not a number"))
-                                .color(NamedTextColor.RED));
-                        return true;
-                    }
-                }
-                
-                double x = Double.parseDouble(args[1]);
-                double y = Double.parseDouble(args[2]);
-                double z = Double.parseDouble(args[3]);
-                
-                Vector source = player.getLocation().toVector();
-                Vector target = new Vector(x, y, z);
-                YawPitch direction = EntityUtils.getPlayerLookAtYawPitch(source, target);
-                float yaw = direction.yaw();
-                float pitch = direction.pitch();
-                
-                sender.sendMessage(Component.text("yaw: ")
-                        .append(Component.text(yaw)));
-                sender.sendMessage(Component.text("pitch: ")
-                        .append(Component.text(pitch)));
-    
-                Location location = player.getLocation();
-                location.setYaw(yaw);
-                location.setPitch(pitch);
-                player.teleport(location);
-            }
-        }
-    
-        
+//        if (args.length < 1) {
+//            sender.sendMessage(Component.text("Usage: /mctdebug <arg> [options]")
+//                    .color(NamedTextColor.RED));
+//            return true;
+//        }
         
 //        player.teleport(source.toLocation(player.getWorld(), yawPitch.yaw(), yawPitch.pitch()));
         

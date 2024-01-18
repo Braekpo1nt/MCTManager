@@ -1,31 +1,35 @@
 package org.braekpo1nt.mctmanager.commands.utils;
 
-import com.google.gson.*;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.commands.CommandUtils;
+import org.braekpo1nt.mctmanager.games.game.config.YawPitch;
+import org.braekpo1nt.mctmanager.utils.EntityUtils;
+import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
-import org.bukkit.util.BoundingBox;
+import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
 
-class BoundingBoxSubCommand implements TabExecutor {
+public class YawPitchSubCommand implements TabExecutor {
     
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (args.length != 6) {
-            sender.sendMessage(Component.text("Usage: /utils boundingbox <x1> <y1> <z1> <x2> <y2> <z2>")
+        if (args.length != 3) {
+            sender.sendMessage(Component.text("Usage: /utils lookat <x> <y> <z>")
                     .color(NamedTextColor.RED));
             return true;
         }
-        
+    
         for (String coordinate : args) {
             if (!CommandUtils.isDouble(coordinate)) {
                 sender.sendMessage(Component.text(coordinate)
@@ -34,35 +38,50 @@ class BoundingBoxSubCommand implements TabExecutor {
                 return true;
             }
         }
+    
+        double x = Double.parseDouble(args[0]);
+        double y = Double.parseDouble(args[1]);
+        double z = Double.parseDouble(args[2]);
         
-        double x1 = Double.parseDouble(args[0]);
-        double y1 = Double.parseDouble(args[1]);
-        double z1 = Double.parseDouble(args[2]);
-        double x2 = Double.parseDouble(args[3]);
-        double y2 = Double.parseDouble(args[4]);
-        double z2 = Double.parseDouble(args[5]);
-        
-        BoundingBox boundingBox = new BoundingBox(x1, y1, z1, x2, y2, z2);
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(Component.text("Only a player can use this command")
+                    .color(NamedTextColor.RED));
+            return true;
+        }
+        return yawPitch(sender, x, y, z, player);
+    }
+    
+    private boolean yawPitch(@NotNull CommandSender sender, double x, double y, double z, Player player) {
         Gson gson = new GsonBuilder()
                 .setPrettyPrinting()
-                .registerTypeAdapter(Double.class, new DoubleSerializer())
+                .registerTypeAdapter(Float.class, new FloatSerializer())
                 .create();
-        String boundingBoxJson = gson.toJson(boundingBox);
+        
+        Vector source = player.getLocation().toVector();
+        Vector target = new Vector(x, y, z);
+        YawPitch precise = EntityUtils.getPlayerLookAtYawPitch(source, target);
+        Location location = player.getLocation();
+        location.setYaw(precise.yaw());
+        location.setPitch(precise.pitch());
+        player.teleport(location);
+        String preciseJson = gson.toJson(precise);
+        
+        YawPitch rounded = new YawPitch(
+                UtilsUtils.specialRound(precise.yaw(), 0.5f),
+                UtilsUtils.specialRound(precise.pitch(), 0.5f)
+        );
+        String roundedJson = gson.toJson(rounded);
+        
         sender.sendMessage(Component.empty()
-                .append(UtilsUtils.attribute("BoundingBox", boundingBoxJson, NamedTextColor.WHITE))
-                .append(UtilsUtils.attribute("Height", boundingBox.getHeight(), NamedTextColor.GREEN))
-                .append(UtilsUtils.attribute("WidthX", boundingBox.getWidthX(), NamedTextColor.RED))
-                .append(UtilsUtils.attribute("WidthZ", boundingBox.getWidthZ(), NamedTextColor.BLUE))
-                .append(UtilsUtils.attribute("Volume", boundingBox.getVolume(), NamedTextColor.WHITE))
-                .append(UtilsUtils.attribute("Center", String.format("%s, %s, %s", boundingBox.getCenterX(), boundingBox.getCenterY(), boundingBox.getCenterZ()), NamedTextColor.WHITE))
+                .append(UtilsUtils.attribute("Precise", preciseJson, NamedTextColor.WHITE))
+                .append(UtilsUtils.attribute("Rounded", roundedJson, NamedTextColor.WHITE))
         );
         return true;
     }
     
-    
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (args.length == 0 || args.length > 6) {
+        if (args.length == 0 || args.length > 3) {
             return Collections.emptyList();
         }
         if (!(sender instanceof Player player)) {
@@ -73,13 +92,13 @@ class BoundingBoxSubCommand implements TabExecutor {
             return Collections.emptyList();
         }
         switch (args.length) {
-            case 1, 4 -> {
+            case 1 -> {
                 return Collections.singletonList(""+targetBlock.getLocation().getBlockX());
             }
-            case 2, 5 -> {
+            case 2 -> {
                 return Collections.singletonList(""+targetBlock.getLocation().getBlockY());
             }
-            case 3, 6 -> {
+            case 3 -> {
                 return Collections.singletonList(""+targetBlock.getLocation().getBlockZ());
             }
         }
