@@ -28,5 +28,16 @@ public class CommandUtils {
         }
     }
     
-    
+    /**
+     * @param value the string to check if it is a float
+     * @return true if the string is a float, false if not
+     */
+    public static boolean isFloat(String value) {
+        try {
+            Float.parseFloat(value);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
 }

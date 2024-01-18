@@ -48,6 +48,14 @@ public class AddSubCommand implements TabExecutor {
                     .color(NamedTextColor.YELLOW));
             return true;
         }
+        if (gameManager.isParticipant(newAdmin.getUniqueId())) {
+            sender.sendMessage(Component.empty()
+                    .append(Component.text(name)
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(" is a participant, and can't be an admin"))
+                    .color(NamedTextColor.RED));
+            return true;
+        }
         gameManager.addAdmin(newAdmin);
         sender.sendMessage(Component.empty()
                 .append(Component.text("Added "))

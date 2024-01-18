@@ -7,12 +7,13 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.config.GameConfigStorageUtil;
+import org.braekpo1nt.mctmanager.games.game.config.YawPitch;
+import org.braekpo1nt.mctmanager.utils.EntityUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.loot.LootTable;
-import org.bukkit.structure.Structure;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.Nullable;
@@ -29,6 +30,7 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
     private World world;
     private List<BoundingBox> platformBarriers;
     private List<Location> platformSpawns;
+    private Location adminSpawn;
     private Component description;
     
     public MechaStorageUtil(File configDirectory) {
@@ -94,13 +96,11 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
         Preconditions.checkArgument(config.platforms() != null, "platforms can't be null");
         Preconditions.checkArgument(config.platforms().size() > 0, "platforms must have at least one element");
         for (MechaConfig.Platform platform : config.platforms()) {
-            Preconditions.checkArgument(platform.barrier() != null, "barrier can't be null");
+            Preconditions.checkArgument(platform.barrier() != null, "platforms.barrier can't be null");
             BoundingBox barrier = platform.barrier().toBoundingBox();
-            Preconditions.checkArgument(barrier.getHeight() >= 3, "barrier must have a height of at least 3");
-            Preconditions.checkArgument(barrier.getWidthX() >= 2, "barrier must have an x width of at least 2");
-            Preconditions.checkArgument(barrier.getWidthZ() >= 2, "barrier must have an z width of at least 2");
-            Preconditions.checkArgument(platform.spawn() != null, "spawn can't be null");
-            Preconditions.checkArgument(barrier.contains(platform.spawn().toVector()), "spawn must be inside barrier");
+            Preconditions.checkArgument(barrier.getHeight() >= 3, "platforms.barrier must have a height of at least 3");
+            Preconditions.checkArgument(barrier.getWidthX() >= 2, "platforms.barrier must have an x width of at least 2");
+            Preconditions.checkArgument(barrier.getWidthZ() >= 2, "platforms.barrier must have an z width of at least 2");
         }
         for (int i = 0; i < config.platforms().size()-1; i++) {
             BoundingBox boxA = config.platforms().get(i).barrier().toBoundingBox();
@@ -161,9 +161,31 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
         }
         List<BoundingBox> newPlatformBarriers = new ArrayList<>();
         List<Location> newPlatformSpawns = new ArrayList<>();
-        for (MechaConfig.Platform platform : config.platforms()) {
-            newPlatformBarriers.add(platform.barrier().toBoundingBox());
-            newPlatformSpawns.add(platform.spawn().toLocation(newWorld));
+        for (int i = 0; i < config.platforms().size(); i++) {
+            MechaConfig.Platform platform = config.platforms().get(i);
+            BoundingBox barrierArea = platform.barrier().toBoundingBox();
+            newPlatformBarriers.add(barrierArea);
+            double spawnX = barrierArea.getCenterX() + 0.5;
+            double spawnY = barrierArea.getMin().getBlockY() + 1;
+            double spawnZ = barrierArea.getCenterZ() + 0.5;
+            float spawnYaw = 0;
+            float spawnPitch = 0;
+            if (platform.facingDirection() != null) {
+                spawnYaw = platform.facingDirection().yaw();
+                spawnPitch = platform.facingDirection().pitch();
+            } else if (config.platformCenter() != null) {
+                YawPitch direction = EntityUtils.getPlayerLookAtYawPitch(new Vector(spawnX, spawnY, spawnZ), config.platformCenter());
+                spawnYaw = direction.yaw();
+                spawnPitch = direction.pitch();
+                Bukkit.getLogger().info(String.format("%s: yaw=%s, pitch=%s", i+1, spawnYaw, spawnPitch));
+            }
+            newPlatformSpawns.add(new Location(newWorld, spawnX, spawnY, spawnZ, spawnYaw, spawnPitch));
+        }
+        Location newAdminSpawn = newPlatformBarriers.get(0).getCenter().toLocation(newWorld);
+        if (config.platformCenter() != null) {
+            YawPitch direction = EntityUtils.getPlayerLookAtYawPitch(newAdminSpawn.toVector(), config.platformCenter());
+            newAdminSpawn.setYaw(direction.yaw());
+            newAdminSpawn.setPitch(direction.pitch());
         }
         Component newDescription = GsonComponentSerializer.gson().deserializeFromTree(config.description());
         // now it's confirmed everything works, so set the actual fields
@@ -173,6 +195,7 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
         this.platformSpawns = newPlatformSpawns;
         this.description = newDescription;
         this.removeArea = config.removeArea().toBoundingBox();
+        this.adminSpawn = newAdminSpawn;
         this.mechaConfig = config;
     }
     
@@ -291,5 +314,9 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
     
     public int getSurviveTeamScore() {
         return mechaConfig.scores().surviveTeam();
+    }
+    
+    public Location getAdminSpawn() {
+        return adminSpawn;
     }
 }

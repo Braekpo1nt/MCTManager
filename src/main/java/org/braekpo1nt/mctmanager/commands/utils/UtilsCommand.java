@@ -13,6 +13,7 @@ public class UtilsCommand extends CommandManager {
         subCommands.put("boundingbox", new BoundingBoxSubCommand());
         subCommands.put("location", new LocationSubCommand());
         subCommands.put("vector", new VectorSubCommand());
+        subCommands.put("yawpitch", new YawPitchSubCommand());
     }
     
     @Override

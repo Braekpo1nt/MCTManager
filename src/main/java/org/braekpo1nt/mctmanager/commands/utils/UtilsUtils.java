@@ -4,8 +4,13 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.bukkit.Material;
+
+import java.util.Set;
 
 abstract class UtilsUtils {
+    
+    static final Set<Material> TRANSPARENT = Set.of(Material.AIR, Material.WATER, Material.LAVA);
     
     /**
      * Rounds a given float value to the closest multiple of the specified increment

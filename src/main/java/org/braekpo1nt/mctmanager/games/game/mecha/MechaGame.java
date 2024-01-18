@@ -5,6 +5,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.game.config.YawPitch;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
@@ -96,7 +97,9 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
         }
-        initializeAndTeleportToPlatforms();
+        List<String> teams = gameManager.getTeamNames(participants);
+        createPlatforms(teams);
+        teleportTeams(teams);
         initializeSidebar();
         setUpTeamOptions();
         initializeWorldBorder();
@@ -147,7 +150,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         admins.add(admin);
         adminSidebar.addPlayer(admin);
         admin.setGameMode(GameMode.SPECTATOR);
-        admin.teleport(storageUtil.getPlatformSpawns().get(0));
+        admin.teleport(storageUtil.getAdminSpawn());
     }
     
     @Override
@@ -833,36 +836,51 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         adminSidebar.updateLine("timer", message);
     }
     
+    
     /**
-     * Places the platforms for the teams, with floors of the concrete colors of the teams. 
-     * Only places as many platforms as there are teams. Also teleports participants to the appropriate spawn location. 
-     * <p>
-     * Note: If there are more teams than there are platforms, will wrap around.
+     * Creates platforms for teams to spawn on made of a hollow rectangle of Barrier blocks where the bottom layer is Concrete that matches the color of the team
+     * <br>
+     * For n teams and m platforms in storageUtil.getPlatformBarriers():<br>
+     * - place n platforms, but no more than m platforms
+     * @param teams the teams that will be teleported
      */
-    private void initializeAndTeleportToPlatforms() {
-        List<String> teams = gameManager.getTeamNames(participants);
+    private void createPlatforms(List<String> teams) {
         List<BoundingBox> platformBarriers = storageUtil.getPlatformBarriers();
-        List<Location> platformSpawns = storageUtil.getPlatformSpawns();
-        Map<String, Location> teamToSpawn = new HashMap<>();
+        World world = storageUtil.getWorld();
         for (int i = 0; i < teams.size(); i++) {
-            int platformIndex = wrapIndex(i, platformBarriers.size());
-            BoundingBox barrier = platformBarriers.get(platformIndex);
-            BlockPlacementUtils.createHollowCube(storageUtil.getWorld(), barrier, Material.BARRIER);
             String team = teams.get(i);
-            Material concreteColor = gameManager.getTeamConcreteColor(team);
+            int platformIndex = wrapIndex(i, platformBarriers.size());
+            BoundingBox barrierArea = platformBarriers.get(platformIndex);
             BoundingBox concreteArea = new BoundingBox(
-                    barrier.getMinX()+1, 
-                    barrier.getMinY(), 
-                    barrier.getMinZ()+1, 
-                    barrier.getMaxX()-1, 
-                    barrier.getMinY(), 
-                    barrier.getMaxZ()-1);
-            BlockPlacementUtils.createCube(storageUtil.getWorld(), concreteArea, concreteColor);
-            teamToSpawn.put(team, platformSpawns.get(platformIndex));
+                    barrierArea.getMinX()+1,
+                    barrierArea.getMinY(),
+                    barrierArea.getMinZ()+1,
+                    barrierArea.getMaxX()-1,
+                    barrierArea.getMinY(),
+                    barrierArea.getMaxZ()-1);
+            Material concreteColor = gameManager.getTeamConcreteColor(team);
+            BlockPlacementUtils.createHollowCube(world, barrierArea, Material.BARRIER);
+            BlockPlacementUtils.createCube(world, concreteArea, concreteColor);
+        }
+    }
+    
+    /**
+     * For n teams and m platforms in storageUtil.getPlatformBarriers():<br>
+     * - teleport teams to their designated platforms. If n is greater than m, then it will start wrapping around and teleporting different teams to the same platforms, until all teams have a platform. 
+     * @param teams the teams to teleport (players will be selected from the participants list)
+     */
+    private void teleportTeams(List<String> teams) {
+        List<Location> platformSpawns = storageUtil.getPlatformSpawns();
+        Map<String, Location> teamSpawnLocations = new HashMap<>(teams.size());
+        for (int i = 0; i < teams.size(); i++) {
+            String team = teams.get(i);
+            int platformIndex = wrapIndex(i, platformSpawns.size());
+            Location platformSpawn = platformSpawns.get(platformIndex);
+            teamSpawnLocations.put(team, platformSpawn);
         }
         for (Player participant : participants) {
             String team = gameManager.getTeamName(participant.getUniqueId());
-            Location spawn = teamToSpawn.get(team);
+            Location spawn = teamSpawnLocations.get(team);
             participant.teleport(spawn);
         }
     }

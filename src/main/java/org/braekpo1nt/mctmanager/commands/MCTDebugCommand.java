@@ -1,9 +1,12 @@
 package org.braekpo1nt.mctmanager.commands;
 
 import org.braekpo1nt.mctmanager.Main;
+import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
+import org.bukkit.entity.Player;
+import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -24,7 +27,19 @@ public class MCTDebugCommand implements TabExecutor {
     
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-//        Player player = ((Player) sender).getPlayer();
+//        if (!(sender instanceof Player player)) {
+//            sender.sendMessage(Component.text("Must be a player to run this command")
+//                    .color(NamedTextColor.RED));
+//            return true;
+//        }
+        
+//        if (args.length < 1) {
+//            sender.sendMessage(Component.text("Usage: /mctdebug <arg> [options]")
+//                    .color(NamedTextColor.RED));
+//            return true;
+//        }
+        
+//        player.teleport(source.toLocation(player.getWorld(), yawPitch.yaw(), yawPitch.pitch()));
         
 //        Component mainTitle = Component.text("Main title");
 //        Component subTitle = Component.text("Subtitle");
@@ -34,7 +49,6 @@ public class MCTDebugCommand implements TabExecutor {
 //        sender.showTitle(title);
         return true;
     }
-    
     
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {

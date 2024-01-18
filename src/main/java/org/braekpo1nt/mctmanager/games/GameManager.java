@@ -555,6 +555,10 @@ public class GameManager implements Listener {
             return;
         }
         if (gameStateStorageUtil.containsPlayer(playerUniqueId)) {
+            String originalTeamName = getTeamName(playerUniqueId);
+            if (originalTeamName.equals(teamName)) {
+                return;
+            }
             movePlayerToTeam(playerUniqueId, teamName);
             participant.sendMessage(Component.text("You've been moved to ")
                     .append(getFormattedTeamDisplayName(teamName)));
@@ -903,11 +907,14 @@ public class GameManager implements Listener {
     }
     
     /**
-     * Adds the given player as an admin
+     * Adds the given player as an admin. If the player is a participant or already an admin, nothing happens.
      * @param newAdmin The player to add
      */
     public void addAdmin(Player newAdmin) {
         UUID uniqueId = newAdmin.getUniqueId();
+        if (gameStateStorageUtil.containsPlayer(uniqueId)) {
+            return;
+        }
         if (gameStateStorageUtil.isAdmin(uniqueId)) {
             return;
         }
@@ -920,6 +927,8 @@ public class GameManager implements Listener {
         Preconditions.checkState(adminTeam != null, "mctScoreboard could not find team \"%s\"", ADMIN_TEAM);
         adminTeam.addPlayer(newAdmin);
         if (newAdmin.isOnline()) {
+            newAdmin.sendMessage(Component.text("You were added as an admin")
+                    .color(NamedTextColor.YELLOW));
             onAdminJoin(newAdmin);
         }
     }
@@ -932,6 +941,8 @@ public class GameManager implements Listener {
         if (offlineAdmin.isOnline()) {
             Player onlineAdmin = offlineAdmin.getPlayer();
             if (onlineAdmin != null) {
+                onlineAdmin.sendMessage(Component.text("You were removed as an admin")
+                        .color(NamedTextColor.YELLOW));
                 onAdminQuit(onlineAdmin);
             }
         }
