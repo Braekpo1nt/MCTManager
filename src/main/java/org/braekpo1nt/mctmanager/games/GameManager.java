@@ -923,6 +923,8 @@ public class GameManager implements Listener {
         Preconditions.checkState(adminTeam != null, "mctScoreboard could not find team \"%s\"", ADMIN_TEAM);
         adminTeam.addPlayer(newAdmin);
         if (newAdmin.isOnline()) {
+            newAdmin.sendMessage(Component.text("You were added as an admin")
+                    .color(NamedTextColor.YELLOW));
             onAdminJoin(newAdmin);
         }
     }
@@ -935,6 +937,8 @@ public class GameManager implements Listener {
         if (offlineAdmin.isOnline()) {
             Player onlineAdmin = offlineAdmin.getPlayer();
             if (onlineAdmin != null) {
+                onlineAdmin.sendMessage(Component.text("You were removed as an admin")
+                        .color(NamedTextColor.YELLOW));
                 onAdminQuit(onlineAdmin);
             }
         }
