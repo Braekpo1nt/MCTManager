@@ -903,11 +903,14 @@ public class GameManager implements Listener {
     }
     
     /**
-     * Adds the given player as an admin
+     * Adds the given player as an admin. If the player is a participant or already an admin, nothing happens.
      * @param newAdmin The player to add
      */
     public void addAdmin(Player newAdmin) {
         UUID uniqueId = newAdmin.getUniqueId();
+        if (gameStateStorageUtil.containsPlayer(uniqueId)) {
+            return;
+        }
         if (gameStateStorageUtil.isAdmin(uniqueId)) {
             return;
         }
