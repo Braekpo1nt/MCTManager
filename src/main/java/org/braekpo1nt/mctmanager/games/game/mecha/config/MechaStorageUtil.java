@@ -182,6 +182,11 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
             newPlatformSpawns.add(new Location(newWorld, spawnX, spawnY, spawnZ, spawnYaw, spawnPitch));
         }
         Location newAdminSpawn = newPlatformBarriers.get(0).getCenter().toLocation(newWorld);
+        if (config.platformCenter() != null) {
+            YawPitch direction = EntityUtils.getPlayerLookAtYawPitch(newAdminSpawn.toVector(), config.platformCenter());
+            newAdminSpawn.setYaw(direction.yaw());
+            newAdminSpawn.setPitch(direction.pitch());
+        }
         Component newDescription = GsonComponentSerializer.gson().deserializeFromTree(config.description());
         // now it's confirmed everything works, so set the actual fields
         this.world = newWorld;
