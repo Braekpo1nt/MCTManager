@@ -91,21 +91,10 @@ public class MCTDebugCommand implements TabExecutor {
                 double z = Double.parseDouble(args[3]);
                 
                 Vector source = player.getLocation().toVector();
-                // adjust for player head height
-                source = source.add(new Vector(0, .62, 0));
                 Vector target = new Vector(x, y, z);
-                // x-axis distance from source to target
-                double deltaX = target.getX() - source.getX();
-                // vertical distance from source to target
-                double deltaY = target.getY() - source.getY();
-                // z-axis distance from source to target
-                double deltaZ = target.getZ() - source.getZ();
-                // yaw (horizontal rotation angle) in degrees
-                float yaw = (float) -Math.toDegrees(Math.atan2(deltaX, deltaZ));
-                // horizontal distance from source to target
-                double d = Math.sqrt(deltaX*deltaX + deltaZ*deltaZ);
-                // pitch (vertical rotation angle) in degrees
-                float pitch = (float) -Math.toDegrees(Math.atan2(deltaY, d));
+                YawPitch direction = EntityUtils.getPlayerLookAtYawPitch(source, target);
+                float yaw = direction.yaw();
+                float pitch = direction.pitch();
                 
                 sender.sendMessage(Component.text("yaw: ")
                         .append(Component.text(yaw)));

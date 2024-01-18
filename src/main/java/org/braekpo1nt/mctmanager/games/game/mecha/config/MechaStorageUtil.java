@@ -8,6 +8,7 @@ import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.config.GameConfigStorageUtil;
 import org.braekpo1nt.mctmanager.games.game.config.YawPitch;
+import org.braekpo1nt.mctmanager.utils.EntityUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
@@ -160,23 +161,25 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
         }
         List<BoundingBox> newPlatformBarriers = new ArrayList<>();
         List<Location> newPlatformSpawns = new ArrayList<>();
-        Location platformCenter = null;
-        if (config.platformCenter() != null) {
-            platformCenter = config.platformCenter().toLocation(newWorld);
-        }
-        for (MechaConfig.Platform platform : config.platforms()) {
+        for (int i = 0; i < config.platforms().size(); i++) {
+            MechaConfig.Platform platform = config.platforms().get(i);
             BoundingBox barrierArea = platform.barrier().toBoundingBox();
             newPlatformBarriers.add(barrierArea);
             double spawnX = barrierArea.getCenterX() + 0.5;
             double spawnY = barrierArea.getMin().getBlockY() + 1;
             double spawnZ = barrierArea.getCenterZ() + 0.5;
+            float spawnYaw = 0;
+            float spawnPitch = 0;
             if (platform.facingDirection() != null) {
-                float spawnYaw = platform.facingDirection().yaw();
-                float spawnPitch = platform.facingDirection().pitch();
-                newPlatformSpawns.add(new Location(newWorld, spawnX, spawnY, spawnZ, spawnYaw, spawnPitch));
-            } else if (platformCenter != null) {
-                
+                spawnYaw = platform.facingDirection().yaw();
+                spawnPitch = platform.facingDirection().pitch();
+            } else if (config.platformCenter() != null) {
+                YawPitch direction = EntityUtils.getPlayerLookAtYawPitch(new Vector(spawnX, spawnY, spawnZ), config.platformCenter());
+                spawnYaw = direction.yaw();
+                spawnPitch = direction.pitch();
+                Bukkit.getLogger().info(String.format("%s: yaw=%s, pitch=%s", i+1, spawnYaw, spawnPitch));
             }
+            newPlatformSpawns.add(new Location(newWorld, spawnX, spawnY, spawnZ, spawnYaw, spawnPitch));
         }
         Location newAdminSpawn = newPlatformBarriers.get(0).getCenter().toLocation(newWorld);
         Component newDescription = GsonComponentSerializer.gson().deserializeFromTree(config.description());
