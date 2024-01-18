@@ -53,12 +53,25 @@ public class JoinSubCommand implements TabExecutor {
                     .color(NamedTextColor.RED));
             return true;
         }
+        Component formattedTeamDisplayName = gameManager.getFormattedTeamDisplayName(teamName);
+        if (gameManager.isParticipant(playerToJoin.getUniqueId())) {
+            String oldTeamName = gameManager.getTeamName(playerToJoin.getUniqueId());
+            if (oldTeamName.equals(teamName)) {
+                sender.sendMessage(Component.empty()
+                        .append(Component.text(playerName)
+                                .decorate(TextDecoration.BOLD))
+                        .append(Component.text(" is already on team "))
+                        .append(formattedTeamDisplayName)
+                        .color(NamedTextColor.YELLOW));
+                return true;
+            }
+        }
         gameManager.joinPlayerToTeam(playerToJoin, teamName);
         sender.sendMessage(Component.text("Joined ")
                 .append(Component.text(playerName)
                         .decorate(TextDecoration.BOLD))
                 .append(Component.text(" to team "))
-                .append(gameManager.getFormattedTeamDisplayName(teamName)));
+                .append(formattedTeamDisplayName));
         return true;
     }
     

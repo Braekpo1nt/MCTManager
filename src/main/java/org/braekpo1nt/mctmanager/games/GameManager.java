@@ -555,6 +555,10 @@ public class GameManager implements Listener {
             return;
         }
         if (gameStateStorageUtil.containsPlayer(playerUniqueId)) {
+            String originalTeamName = getTeamName(playerUniqueId);
+            if (originalTeamName.equals(teamName)) {
+                return;
+            }
             movePlayerToTeam(playerUniqueId, teamName);
             participant.sendMessage(Component.text("You've been moved to ")
                     .append(getFormattedTeamDisplayName(teamName)));
