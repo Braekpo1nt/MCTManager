@@ -149,6 +149,9 @@ public class ClassPicker implements Listener {
         if (event.getCurrentItem() == null) {
             return;
         }
+        if (!event.getView().title().equals(TITLE)) {
+            return;
+        }
         Player teamMate = ((Player) event.getWhoClicked());
         if (!teamMates.contains(teamMate)) {
             return;
