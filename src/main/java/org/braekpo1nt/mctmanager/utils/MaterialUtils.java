@@ -3,6 +3,10 @@ package org.braekpo1nt.mctmanager.utils;
 import org.bukkit.Material;
 
 public class MaterialUtils {
+    /**
+     * @param itemType the type to check if it's a banner or not
+     * @return true if the given item type is a type of banner, false if not
+     */
     public static boolean isBanner(Material itemType) {
         switch (itemType) {
             case WHITE_BANNER,

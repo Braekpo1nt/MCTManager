@@ -11,6 +11,7 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -139,22 +140,49 @@ public class ClassPicker implements Listener {
     }
     
     @EventHandler
-    public void clickClassPickerInventory(InventoryClickEvent event) {
+    public void onClickInventory(InventoryClickEvent event) {
         if (!isActive()) {
             return;
         }
         if (event.getClickedInventory() == null) {
             return;
         }
-        if (event.getCurrentItem() == null) {
+        ItemStack clickedItem = event.getCurrentItem();
+        if (clickedItem == null) {
             return;
         }
         Player teamMate = ((Player) event.getWhoClicked());
         if (!teamMates.contains(teamMate)) {
             return;
         }
-        event.setCancelled(true);
-        Material itemType = event.getCurrentItem().getType();
+        if (event.getView().title().equals(TITLE)) {
+            event.setCancelled(true);
+            onClickClassPickerInventory(teamMate, clickedItem);
+            return;
+        }
+        Material clickedType = clickedItem.getType();
+        if (clickedType.equals(Material.NETHER_STAR)) {
+            ItemMeta netherStarMeta = clickedItem.getItemMeta();
+            if (netherStarMeta != null 
+                    && netherStarMeta.hasDisplayName() 
+                    && Objects.equals(netherStarMeta.displayName(), NETHER_STAR_NAME)) {
+                event.setCancelled(true);
+                onClickNetherStar(teamMate, clickedItem);
+            }
+        }
+        // don't let them remove their armor
+        if (event.getSlotType() == InventoryType.SlotType.ARMOR) {
+            event.setCancelled(true);
+        }
+    }
+    
+    /**
+     * To be called when the given teamMate clicks an item in the class picker inventory
+     * @param teamMate the player who clicked
+     * @param clickedItem the item they clicked on
+     */
+    public void onClickClassPickerInventory(Player teamMate, ItemStack clickedItem) {
+        Material itemType = clickedItem.getType();
         BattleClass battleClass = this.materialToBattleClass(itemType);
         if (battleClass == null) {
             return;
@@ -183,28 +211,6 @@ public class ClassPicker implements Listener {
         }
         giveNetherStar(teamMate);
         teamMate.sendMessage(Component.text("You didn't pick a class. Use the nether star to pick.").color(NamedTextColor.DARK_RED));
-    }
-    
-    @EventHandler
-    public void clickNetherStar(InventoryClickEvent event) {
-        if (!isActive()) {
-            return;
-        }
-        ItemStack netherStar = event.getCurrentItem();
-        if (netherStar == null ||
-                !netherStar.getType().equals(Material.NETHER_STAR)) {
-            return;
-        }
-        ItemMeta netherStarMeta = netherStar.getItemMeta();
-        if (netherStarMeta == null || !netherStarMeta.hasDisplayName() || !Objects.equals(netherStarMeta.displayName(), NETHER_STAR_NAME)) {
-            return;
-        }
-        Player teamMate = ((Player) event.getWhoClicked());
-        if (!teamMates.contains(teamMate)) {
-            return;
-        }
-        event.setCancelled(true);
-        onClickNetherStar(teamMate, netherStar);
     }
     
     @EventHandler
@@ -249,6 +255,11 @@ public class ClassPicker implements Listener {
         teamMate.getInventory().addItem(netherStar);
     }
     
+    /**
+     * To be called when a given teamMate clicks on, drops, or otherwise interacts with a nether star item
+     * @param teamMate the player who used the nether star
+     * @param netherStar the nether star item
+     */
     private void onClickNetherStar(@NotNull Player teamMate, @NotNull ItemStack netherStar) {
         ItemMeta netherStarMeta = netherStar.getItemMeta();
         if (netherStarMeta == null ||
