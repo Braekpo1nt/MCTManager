@@ -171,20 +171,14 @@ public class GameManager implements Listener {
     }
     
     /**
-     * Handles when a participant joins. 
-     * Should be called when an existing participant joins the server
-     * (see {@link GameManager#playerJoinEvent(PlayerJoinEvent)})
-     * or when an online player is added to the participants list
-     * (see {@link GameManager#addNewPlayer(UUID, String)})
-     * @param participant the participant
+     * Handles when a participant joins
+     * @param participant a player (who is an official participant) who joined
      */
     private void onParticipantJoin(@NotNull Player participant) {
         onlineParticipants.add(participant);
         participant.setScoreboard(mctScoreboard);
         participant.addPotionEffect(Main.NIGHT_VISION);
         String teamName = getTeamName(participant.getUniqueId());
-        updateTeamScore(teamName);
-        updatePersonalScore(participant);
         NamedTextColor teamNamedTextColor = getTeamNamedTextColor(teamName);
         Component displayName = Component.text(participant.getName(), teamNamedTextColor);
         participant.displayName(displayName);
@@ -199,6 +193,8 @@ public class GameManager implements Listener {
         } else if (voteManager.isVoting()) {
             voteManager.onParticipantJoin(participant);
         }
+        updateTeamScore(teamName);
+        updatePersonalScore(participant);
     }
     
     public Scoreboard getMctScoreboard() {
@@ -1024,8 +1020,8 @@ public class GameManager implements Listener {
         String displayName = getTeamDisplayName(team);
         ChatColor teamChatColor = getTeamChatColor(team);
         int teamScore = getScore(team);
-        for (Player participant : getOnlinePlayersOnTeam(team)) {
-            if (activeGame != null && activeGame instanceof Headerable headerable) {
+        if (activeGame != null && activeGame instanceof Headerable headerable) {
+            for (Player participant : getOnlinePlayersOnTeam(team)) {
                 headerable.updateTeamScore(participant, String.format("%s%s: %s", teamChatColor, displayName, teamScore));
             }
         }
