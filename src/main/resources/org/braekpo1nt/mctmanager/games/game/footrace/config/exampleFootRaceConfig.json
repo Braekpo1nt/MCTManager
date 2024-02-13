@@ -4,7 +4,9 @@
   "startingLocation": {
     "x": 2400,
     "y": 76,
-    "z": 312
+    "z": 312,
+    "yaw": -180,
+    "pitch": 0
   },
   "finishLine": {
     "minX": 2396,
