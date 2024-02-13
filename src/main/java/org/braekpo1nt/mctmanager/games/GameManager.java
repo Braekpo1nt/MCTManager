@@ -140,15 +140,16 @@ public class GameManager implements Listener {
     public void playerJoinEvent(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         if (isAdmin(player.getUniqueId())) {
+            player.setScoreboard(mctScoreboard);
+            player.addPotionEffect(Main.NIGHT_VISION);
             onAdminJoin(player);
             return;
         }
         if (isParticipant(player.getUniqueId())) {
+            player.setScoreboard(mctScoreboard);
+            player.addPotionEffect(Main.NIGHT_VISION);
             onParticipantJoin(player);
-            return;
         }
-        player.setScoreboard(mctScoreboard);
-        player.addPotionEffect(Main.NIGHT_VISION);
     }
     
     private void onAdminJoin(@NotNull Player admin) {
