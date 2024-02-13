@@ -448,11 +448,6 @@ public class SpleefRound implements Listener {
         if (!participants.contains(participant)) {
             return;
         }
-        Block block = event.getBlock();
-        Material type = block.getType();
-        if (!type.equals(Material.DIRT) && !type.equals(Material.COARSE_DIRT)) {
-            return;
-        }
         event.setDropItems(false);
     }
     
