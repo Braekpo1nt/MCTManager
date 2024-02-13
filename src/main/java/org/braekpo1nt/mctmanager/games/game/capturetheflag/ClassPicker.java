@@ -11,6 +11,7 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -162,11 +163,16 @@ public class ClassPicker implements Listener {
         Material clickedType = clickedItem.getType();
         if (clickedType.equals(Material.NETHER_STAR)) {
             ItemMeta netherStarMeta = clickedItem.getItemMeta();
-            if (netherStarMeta == null || !netherStarMeta.hasDisplayName() || !Objects.equals(netherStarMeta.displayName(), NETHER_STAR_NAME)) {
-                return;
+            if (netherStarMeta != null 
+                    && netherStarMeta.hasDisplayName() 
+                    && Objects.equals(netherStarMeta.displayName(), NETHER_STAR_NAME)) {
+                event.setCancelled(true);
+                onClickNetherStar(teamMate, clickedItem);
             }
+        }
+        // don't let them remove their armor
+        if (event.getSlotType() == InventoryType.SlotType.ARMOR) {
             event.setCancelled(true);
-            onClickNetherStar(teamMate, clickedItem);
         }
     }
     
