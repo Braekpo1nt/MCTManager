@@ -255,13 +255,12 @@ public class SpleefRound implements Listener {
         if (!roundActive) {
             return;
         }
-        if (event.getAction() == Action.RIGHT_CLICK_BLOCK && event.getPlayer().getInventory().getItemInMainHand().getType() == Material.DIAMOND_SHOVEL) {
-            if (event.getClickedBlock() != null) {
-                Material clickedBlockType = event.getClickedBlock().getType();
-                if (clickedBlockType == Material.DIRT || clickedBlockType == Material.COARSE_DIRT) {
-                    event.setCancelled(true);
-                }
-            }
+        Player participant = event.getPlayer();
+        if (!participants.contains(participant)) {
+            return;
+        }
+        if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+            event.setCancelled(true);
         }
     }
     
