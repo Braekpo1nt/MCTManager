@@ -34,22 +34,36 @@ public class ItemMetaDTO {
      * to this ItemMetaDTO's attributes
      */
     public ItemMeta toItemMeta(ItemMeta meta) {
-        Component newDisplayName = GsonComponentSerializer.gson().deserializeFromTree(displayName);
-        meta.displayName(newDisplayName);
-        List<Component> newLore = lore.stream().map(line -> GsonComponentSerializer.gson().deserializeFromTree(line)).toList();
-        meta.lore(newLore);
-        for (Map.Entry<String, Integer> enchant : enchants.entrySet()) {
-            meta.addEnchant(new EnchantmentWrapper(enchant.getKey()), enchant.getValue(), true);
+        if (displayName != null) {
+            Component newDisplayName = GsonComponentSerializer.gson().deserializeFromTree(displayName);
+            meta.displayName(newDisplayName);
         }
-        meta.addItemFlags(itemFlags.toArray(new ItemFlag[0]));
-        meta.setUnbreakable(unbreakable);
-        for (Map.Entry<Attribute, List<AttributeModifier>> entry : attributeModifiers.entrySet()) {
-            for (AttributeModifier modifier : entry.getValue()) {
-                meta.addAttributeModifier(entry.getKey(), modifier);
+        if (lore != null) {
+            List<Component> newLore = lore.stream().map(line -> GsonComponentSerializer.gson().deserializeFromTree(line)).toList();
+            meta.lore(newLore);
+        }
+        if (enchants != null) {
+            for (Map.Entry<String, Integer> enchant : enchants.entrySet()) {
+                meta.addEnchant(new EnchantmentWrapper(enchant.getKey()), enchant.getValue(), true);
             }
         }
-        meta.setDestroyableKeys(destroyableKeys);
-        meta.setPlaceableKeys(placeableKeys);
+        if (itemFlags != null) {
+            meta.addItemFlags(itemFlags.toArray(new ItemFlag[0]));
+        }
+        meta.setUnbreakable(unbreakable);
+        if (attributeModifiers != null) {
+            for (Map.Entry<Attribute, List<AttributeModifier>> entry : attributeModifiers.entrySet()) {
+                for (AttributeModifier modifier : entry.getValue()) {
+                    meta.addAttributeModifier(entry.getKey(), modifier);
+                }
+            }
+        }
+        if (destroyableKeys != null) {
+            meta.setDestroyableKeys(destroyableKeys);
+        }
+        if (placeableKeys != null) {
+            meta.setPlaceableKeys(placeableKeys);
+        }
         return meta;
     }
     

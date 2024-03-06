@@ -12,8 +12,10 @@ public class ItemStackDTO {
     
     public ItemStack toItemStack() {
         ItemStack stack = new ItemStack(type, amount);
-        ItemMeta meta = stack.getItemMeta();
-        stack.setItemMeta(itemMeta.toItemMeta(meta));
+        if (itemMeta != null) {
+            ItemMeta meta = stack.getItemMeta();
+            stack.setItemMeta(itemMeta.toItemMeta(meta));
+        }
         return stack;
     }
 }

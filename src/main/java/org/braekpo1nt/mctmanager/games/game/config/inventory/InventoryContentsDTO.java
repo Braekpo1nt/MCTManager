@@ -17,10 +17,12 @@ public record InventoryContentsDTO(Map<Integer, ItemStackDTO> contents) {
             return null;
         }
         int maxIndex = contents.keySet().stream().max(Integer::compareTo).orElse(0);
-        ItemStack[] result = new ItemStack[maxIndex];
+        ItemStack[] result = new ItemStack[maxIndex + 1];
         for (int i = 0; i <= maxIndex; i++) {
             ItemStackDTO itemStackDTO = contents.get(i);
-            result[i] = itemStackDTO.toItemStack();
+            if (itemStackDTO != null) {
+                result[i] = itemStackDTO.toItemStack();
+            }
         }
         return result;
     }

@@ -1,8 +1,8 @@
 {
   "contents": {
-    "0": {
-      "type": "STONE",
-      "amount": 3,
+    "36": {
+      "type": "LEATHER_BOOTS",
+      "amount": 1,
       "itemMeta": {
         "displayName": "test display name"
       }
