@@ -76,6 +76,15 @@ public class CaptureTheFlagStorageUtil extends GameConfigStorageUtil<CaptureTheF
         Preconditions.checkArgument(config.durations().classSelection() >= 0, "durations.classSelection (%s) can't be negative", config.durations().classSelection());
         Preconditions.checkArgument(config.durations().roundTimer() >= 0, "durations.roundTimer (%s) can't be negative", config.durations().roundTimer());
         Preconditions.checkArgument(config.loadouts() != null, "loadouts can't be null");
+        Preconditions.checkArgument(config.loadouts().keySet().containsAll(List.of(BattleClass.values())), "loadouts must contain an entry for each BattleClass");
+        for (BattleClass battleClass : BattleClass.values()) {
+            InventoryContentsDTO loadout = config.loadouts().get(battleClass);
+            Preconditions.checkArgument(loadout != null, "loadouts can't be null");
+            Preconditions.checkArgument(loadout.contents() != null, "loadout contents can't be null");
+            Preconditions.checkArgument(loadout.contents().size() <= 41, "loadout contents can't contain more than 41 entries");
+            Preconditions.checkArgument(loadout.contents().keySet().stream().max(Integer::compareTo).orElse(0) <= 40, "loadout contents indexes can't be greater than 40");
+            Preconditions.checkArgument(0 <= loadout.contents().keySet().stream().min(Integer::compareTo).orElse(0), "loadout contents indexes can't be less than 0");
+        }
         try {
             GsonComponentSerializer.gson().deserializeFromTree(config.description());
         } catch (JsonIOException | JsonSyntaxException e) {
