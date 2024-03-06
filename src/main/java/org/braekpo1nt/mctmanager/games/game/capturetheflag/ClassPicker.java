@@ -62,31 +62,6 @@ public class ClassPicker implements Listener {
     }
 
     /**
-     * Gets the pretty name of the battle class
-     * @param battleClass The battle class to get the name of
-     * @return The name of the battle class. Null if the battle class is not one with a name (shouldn't ever return null)
-     */
-    private @NotNull String getBattleClassName(@NotNull BattleClass battleClass) {
-        switch (battleClass) {
-            case KNIGHT -> {
-                return "Knight";
-            }
-            case ARCHER -> {
-                return "Archer";
-            }
-            case ASSASSIN -> {
-                return "Assassin";
-            }
-            case TANK -> {
-                return "Tank";
-            }
-            default -> {
-                return "";
-            }
-        }
-    }
-    
-    /**
      * Registers event listeners, and starts the class picking phase for the given list of teammates
      * @param plugin The plugin
      * @param newTeamMates The list of teammates. They are assumed to be on the same team. Weird things will happen if they are not. 
@@ -241,7 +216,7 @@ public class ClassPicker implements Listener {
         if (pickedBattleClasses.containsValue(battleClass)) {
             participant.sendMessage(Component.empty()
                             .append(Component.text("Someone on your team already selected "))
-                            .append(Component.text(getBattleClassName(battleClass)))
+                            .append(Component.text(battleClass.getName()))
                             .color(NamedTextColor.DARK_RED));
             return false;
         }
@@ -296,9 +271,8 @@ public class ClassPicker implements Listener {
         teamMate.getInventory().clear();
         ItemStack[] loadout = loadouts.get(battleClass);
         teamMate.getInventory().setContents(loadout);
-        String className = getBattleClassName(battleClass);
         teamMate.sendMessage(Component.text("Selected ")
-                .append(Component.text(className)));
+                .append(Component.text(battleClass.getName())));
     }
     
     private void unAssignClass(Player teamMate) {
