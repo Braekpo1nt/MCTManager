@@ -34,6 +34,7 @@ public class ClassPicker implements Listener {
     private final Map<UUID, BattleClass> pickedBattleClasses = new HashMap<>();
     private final List<Player> teamMates = new ArrayList<>();
     private boolean classPickingActive = false;
+    private Map<BattleClass, ItemStack[]> loadouts = new HashMap<>();
     
     /**
      * Converts a {@link Material} to a {@link BattleClass}
@@ -61,36 +62,12 @@ public class ClassPicker implements Listener {
     }
 
     /**
-     * Gets the pretty name of the battle class
-     * @param battleClass The battle class to get the name of
-     * @return The name of the battle class. Null if the battle class is not one with a name (shouldn't ever return null)
-     */
-    private @NotNull String getBattleClassName(@NotNull BattleClass battleClass) {
-        switch (battleClass) {
-            case KNIGHT -> {
-                return "Knight";
-            }
-            case ARCHER -> {
-                return "Archer";
-            }
-            case ASSASSIN -> {
-                return "Assassin";
-            }
-            case TANK -> {
-                return "Tank";
-            }
-            default -> {
-                return "";
-            }
-        }
-    }
-    
-    /**
      * Registers event listeners, and starts the class picking phase for the given list of teammates
      * @param plugin The plugin
      * @param newTeamMates The list of teammates. They are assumed to be on the same team. Weird things will happen if they are not. 
      */
-    public void start(Main plugin, List<Player> newTeamMates) {
+    public void start(Main plugin, List<Player> newTeamMates, Map<BattleClass, ItemStack[]> loadouts) {
+        this.loadouts = loadouts;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         teamMates.clear();
         teamMates.addAll(newTeamMates);
@@ -239,7 +216,7 @@ public class ClassPicker implements Listener {
         if (pickedBattleClasses.containsValue(battleClass)) {
             participant.sendMessage(Component.empty()
                             .append(Component.text("Someone on your team already selected "))
-                            .append(Component.text(getBattleClassName(battleClass)))
+                            .append(Component.text(battleClass.getName()))
                             .color(NamedTextColor.DARK_RED));
             return false;
         }
@@ -292,33 +269,10 @@ public class ClassPicker implements Listener {
     private void assignClass(Player teamMate, BattleClass battleClass) {
         pickedBattleClasses.put(teamMate.getUniqueId(), battleClass);
         teamMate.getInventory().clear();
-        switch (battleClass) {
-            case KNIGHT -> {
-                teamMate.getEquipment().setChestplate(new ItemStack(Material.LEATHER_CHESTPLATE));
-                teamMate.getEquipment().setBoots(new ItemStack(Material.LEATHER_BOOTS));
-                teamMate.getInventory().addItem(new ItemStack(Material.STONE_SWORD));
-                teamMate.sendMessage("Selected Knight");
-            }
-            case ARCHER -> {
-                teamMate.getEquipment().setChestplate(new ItemStack(Material.LEATHER_CHESTPLATE));
-                teamMate.getEquipment().setBoots(new ItemStack(Material.LEATHER_BOOTS));
-                teamMate.getInventory().addItem(new ItemStack(Material.BOW));
-                teamMate.getInventory().addItem(new ItemStack(Material.ARROW, 16));
-                teamMate.getInventory().addItem(new ItemStack(Material.WOODEN_SWORD));
-                teamMate.sendMessage("Selected Archer");
-            }
-            case ASSASSIN -> {
-                teamMate.getInventory().addItem(new ItemStack(Material.IRON_SWORD));
-                teamMate.sendMessage("Selected Assassin");
-            }
-            case TANK -> {
-                teamMate.getEquipment().setChestplate(new ItemStack(Material.LEATHER_CHESTPLATE));
-                teamMate.getEquipment().setLeggings(new ItemStack(Material.CHAINMAIL_LEGGINGS));
-                teamMate.getEquipment().setBoots(new ItemStack(Material.LEATHER_BOOTS));
-                teamMate.sendMessage("Selected Tank");
-            }
-        }
-        teamMate.getInventory().addItem(new ItemStack(Material.COOKED_BEEF, 8));
+        ItemStack[] loadout = loadouts.get(battleClass);
+        teamMate.getInventory().setContents(loadout);
+        teamMate.sendMessage(Component.text("Selected ")
+                .append(Component.text(battleClass.getName())));
     }
     
     private void unAssignClass(Player teamMate) {

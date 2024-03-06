@@ -7,17 +7,22 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.Arena;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.BattleClass;
 import org.braekpo1nt.mctmanager.games.game.config.GameConfigStorageUtil;
+import org.braekpo1nt.mctmanager.games.game.config.inventory.InventoryContentsDTO;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class CaptureTheFlagStorageUtil extends GameConfigStorageUtil<CaptureTheFlagConfig> {
     private CaptureTheFlagConfig captureTheFlagConfig = null;
@@ -25,6 +30,7 @@ public class CaptureTheFlagStorageUtil extends GameConfigStorageUtil<CaptureTheF
     private Location spawnObservatory;
     private List<Arena> arenas;
     private Component description;
+    private Map<BattleClass, ItemStack[]> loadouts;
     
     public CaptureTheFlagStorageUtil(File configDirectory) {
         super(configDirectory, "captureTheFlagConfig.json", CaptureTheFlagConfig.class);
@@ -69,6 +75,16 @@ public class CaptureTheFlagStorageUtil extends GameConfigStorageUtil<CaptureTheF
         Preconditions.checkArgument(config.durations().matchesStarting() >= 0, "durations.matchesStarting (%s) can't be negative", config.durations().matchesStarting());
         Preconditions.checkArgument(config.durations().classSelection() >= 0, "durations.classSelection (%s) can't be negative", config.durations().classSelection());
         Preconditions.checkArgument(config.durations().roundTimer() >= 0, "durations.roundTimer (%s) can't be negative", config.durations().roundTimer());
+        Preconditions.checkArgument(config.loadouts() != null, "loadouts can't be null");
+        Preconditions.checkArgument(config.loadouts().keySet().containsAll(List.of(BattleClass.values())), "loadouts must contain an entry for each BattleClass");
+        for (BattleClass battleClass : BattleClass.values()) {
+            InventoryContentsDTO loadout = config.loadouts().get(battleClass);
+            Preconditions.checkArgument(loadout != null, "loadouts can't be null");
+            Preconditions.checkArgument(loadout.contents() != null, "loadout contents can't be null");
+            Preconditions.checkArgument(loadout.contents().size() <= 41, "loadout contents can't contain more than 41 entries");
+            Preconditions.checkArgument(loadout.contents().keySet().stream().max(Integer::compareTo).orElse(0) <= 40, "loadout contents indexes can't be greater than 40");
+            Preconditions.checkArgument(0 <= loadout.contents().keySet().stream().min(Integer::compareTo).orElse(0), "loadout contents indexes can't be less than 0");
+        }
         try {
             GsonComponentSerializer.gson().deserializeFromTree(config.description());
         } catch (JsonIOException | JsonSyntaxException e) {
@@ -83,12 +99,17 @@ public class CaptureTheFlagStorageUtil extends GameConfigStorageUtil<CaptureTheF
         Preconditions.checkArgument(newWorld != null, "Could not find world \"%s\"", config.world());
         Location newSpawnObservatory = config.spawnObservatory().toLocation(newWorld);
         Component newDescription = GsonComponentSerializer.gson().deserializeFromTree(config.description());
+        Map<BattleClass, ItemStack[]> newLoadouts = new HashMap<>();
+        for (Map.Entry<BattleClass, InventoryContentsDTO> loadout : config.loadouts().entrySet()) {
+            newLoadouts.put(loadout.getKey(), loadout.getValue().toInventoryContents());
+        }
         // now it's confirmed everything works, so set the actual fields
         this.world = newWorld;
         this.spawnObservatory = newSpawnObservatory;
         this.arenas = toArenas(config.arenas(), world);
         this.description = newDescription;
         this.captureTheFlagConfig = config;
+        this.loadouts = newLoadouts;
     }
     
     private List<Arena> toArenas(List<CaptureTheFlagConfig.ArenaDTO> arenaDTOS, World arenaWorld) {
@@ -155,5 +176,9 @@ public class CaptureTheFlagStorageUtil extends GameConfigStorageUtil<CaptureTheF
     
     public Component getDescription() {
         return description;
+    }
+    
+    public Map<BattleClass, ItemStack[]> getLoadouts() {
+        return loadouts;
     }
 }

@@ -1,11 +1,20 @@
 package org.braekpo1nt.mctmanager.commands;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
+import org.bukkit.Bukkit;
+import org.bukkit.Color;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -27,17 +36,22 @@ public class MCTDebugCommand implements TabExecutor {
     
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-//        if (!(sender instanceof Player player)) {
-//            sender.sendMessage(Component.text("Must be a player to run this command")
-//                    .color(NamedTextColor.RED));
-//            return true;
-//        }
         
-//        if (args.length < 1) {
-//            sender.sendMessage(Component.text("Usage: /mctdebug <arg> [options]")
-//                    .color(NamedTextColor.RED));
-//            return true;
-//        }
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(Component.text("Must be a player to run this command")
+                    .color(NamedTextColor.RED));
+            return true;
+        }
+    
+        if (args.length < 1) {
+            sender.sendMessage(Component.text("Usage: /mctdebug <arg> [options]")
+                    .color(NamedTextColor.RED));
+            return true;
+        }
+    
+        int index = Integer.parseInt(args[0]);
+        player.getInventory().setItem(EquipmentSlot.LEGS, new ItemStack(Material.STONE));
+        
         
 //        player.teleport(source.toLocation(player.getWorld(), yawPitch.yaw(), yawPitch.pitch()));
         
