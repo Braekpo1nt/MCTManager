@@ -34,6 +34,7 @@ public class ClassPicker implements Listener {
     private final Map<UUID, BattleClass> pickedBattleClasses = new HashMap<>();
     private final List<Player> teamMates = new ArrayList<>();
     private boolean classPickingActive = false;
+    private Map<BattleClass, ItemStack[]> loadouts = new HashMap<>();
     
     /**
      * Converts a {@link Material} to a {@link BattleClass}
@@ -90,7 +91,8 @@ public class ClassPicker implements Listener {
      * @param plugin The plugin
      * @param newTeamMates The list of teammates. They are assumed to be on the same team. Weird things will happen if they are not. 
      */
-    public void start(Main plugin, List<Player> newTeamMates) {
+    public void start(Main plugin, List<Player> newTeamMates, Map<BattleClass, ItemStack[]> loadouts) {
+        this.loadouts = loadouts;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         teamMates.clear();
         teamMates.addAll(newTeamMates);
@@ -292,33 +294,11 @@ public class ClassPicker implements Listener {
     private void assignClass(Player teamMate, BattleClass battleClass) {
         pickedBattleClasses.put(teamMate.getUniqueId(), battleClass);
         teamMate.getInventory().clear();
-        switch (battleClass) {
-            case KNIGHT -> {
-                teamMate.getEquipment().setChestplate(new ItemStack(Material.LEATHER_CHESTPLATE));
-                teamMate.getEquipment().setBoots(new ItemStack(Material.LEATHER_BOOTS));
-                teamMate.getInventory().addItem(new ItemStack(Material.STONE_SWORD));
-                teamMate.sendMessage("Selected Knight");
-            }
-            case ARCHER -> {
-                teamMate.getEquipment().setChestplate(new ItemStack(Material.LEATHER_CHESTPLATE));
-                teamMate.getEquipment().setBoots(new ItemStack(Material.LEATHER_BOOTS));
-                teamMate.getInventory().addItem(new ItemStack(Material.BOW));
-                teamMate.getInventory().addItem(new ItemStack(Material.ARROW, 16));
-                teamMate.getInventory().addItem(new ItemStack(Material.WOODEN_SWORD));
-                teamMate.sendMessage("Selected Archer");
-            }
-            case ASSASSIN -> {
-                teamMate.getInventory().addItem(new ItemStack(Material.IRON_SWORD));
-                teamMate.sendMessage("Selected Assassin");
-            }
-            case TANK -> {
-                teamMate.getEquipment().setChestplate(new ItemStack(Material.LEATHER_CHESTPLATE));
-                teamMate.getEquipment().setLeggings(new ItemStack(Material.CHAINMAIL_LEGGINGS));
-                teamMate.getEquipment().setBoots(new ItemStack(Material.LEATHER_BOOTS));
-                teamMate.sendMessage("Selected Tank");
-            }
-        }
-        teamMate.getInventory().addItem(new ItemStack(Material.COOKED_BEEF, 8));
+        ItemStack[] loadout = loadouts.get(battleClass);
+        teamMate.getInventory().setContents(loadout);
+        String className = getBattleClassName(battleClass);
+        teamMate.sendMessage(Component.text("Selected ")
+                .append(Component.text(className)));
     }
     
     private void unAssignClass(Player teamMate) {

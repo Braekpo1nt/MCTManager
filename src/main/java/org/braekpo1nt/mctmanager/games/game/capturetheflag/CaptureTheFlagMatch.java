@@ -50,7 +50,7 @@ public class CaptureTheFlagMatch implements Listener {
     private Map<UUID, Boolean> participantsAreAlive;
     private Map<UUID, Integer> killCounts;
     private boolean matchActive = false;
-    private int classSelectionCountdownTaskIt;
+    private int classSelectionCountdownTaskId;
     private int matchTimerTaskId;
     private final ClassPicker northClassPicker;
     private final ClassPicker southClassPicker;
@@ -333,7 +333,7 @@ public class CaptureTheFlagMatch implements Listener {
     }
     
     private void cancelAllTasks() {
-        Bukkit.getScheduler().cancelTask(classSelectionCountdownTaskIt);
+        Bukkit.getScheduler().cancelTask(classSelectionCountdownTaskId);
         Bukkit.getScheduler().cancelTask(matchTimerTaskId);
     }
     
@@ -697,10 +697,10 @@ public class CaptureTheFlagMatch implements Listener {
     }
     
     public void startClassSelectionPeriod() {
-        northClassPicker.start(plugin, northParticipants);
-        southClassPicker.start(plugin, southParticipants);
+        northClassPicker.start(plugin, northParticipants, storageUtil.getLoadouts());
+        southClassPicker.start(plugin, southParticipants, storageUtil.getLoadouts());
         
-        this.classSelectionCountdownTaskIt = new BukkitRunnable() {
+        this.classSelectionCountdownTaskId = new BukkitRunnable() {
             private int count = storageUtil.getClassSelectionDuration();
             @Override
             public void run() {

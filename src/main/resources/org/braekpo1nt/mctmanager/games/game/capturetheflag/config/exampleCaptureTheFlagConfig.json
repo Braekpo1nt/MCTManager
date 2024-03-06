@@ -188,6 +188,88 @@
       }
     }
   ],
+  "loadouts": {
+    "KNIGHT": {
+      "contents": {
+        "36": {
+          "type": "LEATHER_BOOTS",
+          "amount": 1
+        },
+        "38": {
+          "type": "LEATHER_CHESTPLATE",
+          "amount": 1
+        },
+        "0": {
+          "type": "STONE_SWORD",
+          "amount": 1
+        },
+        "1": {
+          "type": "COOKED_BEEF",
+          "amount": 8
+        }
+      }
+    },
+    "ARCHER": {
+      "contents": {
+        "36": {
+          "type": "LEATHER_BOOTS",
+          "amount": 1
+        },
+        "38": {
+          "type": "LEATHER_CHESTPLATE",
+          "amount": 1
+        },
+        "0": {
+          "type": "BOW",
+          "amount": 1
+        },
+        "1": {
+          "type": "WOODEN_SWORD",
+          "amount": 1
+        },
+        "2": {
+          "type": "ARROW",
+          "amount": 16
+        },
+        "3": {
+          "type": "COOKED_BEEF",
+          "amount": 8
+        }
+      }
+    },
+    "ASSASSIN": {
+      "contents": {
+        "0": {
+          "type": "IRON_SWORD",
+          "amount": 1
+        },
+        "1": {
+          "type": "COOKED_BEEF",
+          "amount": 8
+        }
+      }
+    },
+    "TANK": {
+      "contents": {
+        "36": {
+          "type": "LEATHER_BOOTS",
+          "amount": 1
+        },
+        "37": {
+          "type": "CHAINMAIL_LEGGINGS",
+          "amount": 1
+        },
+        "38": {
+          "type": "LEATHER_CHESTPLATE",
+          "amount": 1
+        },
+        "0": {
+          "type": "COOKED_BEEF",
+          "amount": 8
+        }
+      }
+    }
+  },
   "spectatorArea": {
     "minX": 26,
     "minY": 4,
