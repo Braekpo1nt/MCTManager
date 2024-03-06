@@ -5,7 +5,7 @@ import org.bukkit.inventory.ItemStack;
 import java.util.Map;
 
 /**
- * @param contents a map of the inventory indexes to ItemStackDTOs, representing the contents of an inventory. Keys must not be negative. 
+ * @param contents a map of the inventory indexes to ItemStackDTOs, representing the contents of an inventory. Keys must not be negative. Keys should not be greater than or equal to the size of the inventory they are destined for.
  */
 public record InventoryContentsDTO(Map<Integer, ItemStackDTO> contents) {
     /**
