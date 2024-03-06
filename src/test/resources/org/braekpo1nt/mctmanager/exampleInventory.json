@@ -1,0 +1,11 @@
+{
+  "contents": {
+    "0": {
+      "type": "STONE",
+      "amount": 3,
+      "itemMeta": {
+        "displayName": "test display name"
+      }
+    }
+  }
+}
