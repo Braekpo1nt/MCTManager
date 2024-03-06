@@ -7,7 +7,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 public class ItemStackDTO {
     private Material type;
-    private int amount;
+    private int amount = 1;
     private ItemMetaDTO itemMeta;
     
     public ItemStack toItemStack() {
