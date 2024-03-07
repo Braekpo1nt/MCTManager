@@ -196,6 +196,11 @@ public class EventManager implements Listener {
                         .color(NamedTextColor.RED));
                 return;
             }
+            case PODIUM -> {
+                sender.sendMessage(Component.text("Can't pause the event after the final game.")
+                        .color(NamedTextColor.RED));
+                return;
+            }
         }
         lastStateBeforePause = currentState;
         currentState = EventState.PAUSED;
