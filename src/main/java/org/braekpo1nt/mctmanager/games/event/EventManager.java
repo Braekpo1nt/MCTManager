@@ -402,6 +402,7 @@ public class EventManager implements Listener {
     public void onParticipantJoin(Player participant) {
         if (colossalCombatGame.isActive()) {
             colossalCombatGame.onParticipantJoin(participant);
+            return;
         }
         if (currentState == null) {
             return;
@@ -747,7 +748,8 @@ public class EventManager implements Listener {
             return false;
         }
         if (firstPlaces.length > 2) {
-            messageAllAdmins(Component.text("There are more than 2 teams tied for first place. A tie breaker is needed. Use ")
+            messageAllAdmins(Component.empty()
+                    .append(Component.text("There are more than 2 teams tied for first place. A tie breaker is needed. Use "))
                     .append(Component.text("/mct game finalgame <first> <second>")
                             .clickEvent(ClickEvent.suggestCommand("/mct game finalgame "))
                             .decorate(TextDecoration.BOLD))
@@ -759,7 +761,8 @@ public class EventManager implements Listener {
         teamScores.remove(firstPlace);
         String[] secondPlaces = GameManagerUtils.calculateFirstPlace(teamScores);
         if (secondPlaces.length > 1) {
-            messageAllAdmins(Component.text("There is a tie second place. A tie breaker is needed. Use ")
+            messageAllAdmins(Component.empty()
+                    .append(Component.text("There is a tie second place. A tie breaker is needed. Use "))
                     .append(Component.text("/mct game finalgame <first> <second>")
                             .clickEvent(ClickEvent.suggestCommand("/mct game finalgame "))
                             .decorate(TextDecoration.BOLD))
@@ -768,6 +771,39 @@ public class EventManager implements Listener {
             return false;
         }
         String secondPlace = secondPlaces[0];
+        int onlineFirsts = 0;
+        int onlineSeconds = 0;
+        for (Player participant : participants) {
+            String team = gameManager.getTeamName(participant.getUniqueId());
+            if (team.equals(firstPlace)) {
+                onlineFirsts++;
+            }
+            if (team.equals(secondPlace)) {
+                onlineSeconds++;
+            }
+        }
+        if (onlineFirsts <= 0) {
+            messageAllAdmins(Component.empty()
+                    .append(Component.text("There are no members of the first place team online. Please use "))
+                    .append(Component.text("/mct event finalgame start <first> <second>")
+                            .clickEvent(ClickEvent.suggestCommand(String.format("/mct event finalgame start %s %s", firstPlace, secondPlace)))
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(" to manually start the final game."))
+                    .color(NamedTextColor.RED));
+            return false;
+        }
+    
+        if (onlineSeconds <= 0) {
+            messageAllAdmins(Component.empty()
+                    .append(Component.text("There are no members of the second place team online. Please use "))
+                    .append(Component.text("/mct event finalgame start <first> <second>")
+                            .clickEvent(ClickEvent.suggestCommand(String.format("/mct event finalgame start %s %s", firstPlace, secondPlace)))
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(" to manually start the final game."))
+                    .color(NamedTextColor.RED));
+            return false;
+        }
+        
         for (Player participant : participants) {
             sidebar.removePlayer(participant);
         }
@@ -826,12 +862,24 @@ public class EventManager implements Listener {
         }
         
         if (firstPlaceParticipants.isEmpty()) {
-            sender.sendMessage(Component.text("There are no members of the first place team online.").color(NamedTextColor.RED));
+            sender.sendMessage(Component.empty()
+                    .append(Component.text("There are no members of the first place team online. Please use "))
+                    .append(Component.text("/mct event finalgame start <first> <second>")
+                            .clickEvent(ClickEvent.suggestCommand(String.format("/mct event finalgame start %s %s", firstPlaceTeamName, secondPlaceTeamName)))
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(" to manually start the final game."))
+                    .color(NamedTextColor.RED));
             return;
         }
         
         if (secondPlaceParticipants.isEmpty()) {
-            sender.sendMessage(Component.text("There are no members of the second place team online.").color(NamedTextColor.RED));
+            sender.sendMessage(Component.empty()
+                            .append(Component.text("There are no members of the second place team online. Please use "))
+                            .append(Component.text("/mct event finalgame start <first> <second>")
+                                    .clickEvent(ClickEvent.suggestCommand(String.format("/mct event finalgame start %s %s", firstPlaceTeamName, secondPlaceTeamName)))
+                                    .decorate(TextDecoration.BOLD))
+                            .append(Component.text(" to manually start the final game."))
+                            .color(NamedTextColor.RED));
             return;
         }
     

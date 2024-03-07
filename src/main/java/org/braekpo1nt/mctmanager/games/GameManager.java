@@ -975,6 +975,7 @@ public class GameManager implements Listener {
     }
     
     public void messageAdmins(Component message) {
+        Bukkit.getConsoleSender().sendMessage(message);
         for (Player admin : onlineAdmins) {
             admin.sendMessage(message);
         }
