@@ -185,15 +185,22 @@ public class EventManager implements Listener {
                     .color(NamedTextColor.RED));
             return;
         }
-        if (currentState == EventState.PAUSED) {
-            sender.sendMessage(Component.text("The event is already paused.")
-                    .color(NamedTextColor.RED));
-            return;
-        }
-        if (currentState == EventState.PLAYING_GAME) {
-            sender.sendMessage(Component.text("Can't pause the event during a game.")
-                    .color(NamedTextColor.RED));
-            return;
+        switch (currentState) {
+            case PAUSED -> {
+                sender.sendMessage(Component.text("The event is already paused.")
+                        .color(NamedTextColor.RED));
+                return;
+            }
+            case PLAYING_GAME -> {
+                sender.sendMessage(Component.text("Can't pause the event during a game.")
+                        .color(NamedTextColor.RED));
+                return;
+            }
+            case PODIUM -> {
+                sender.sendMessage(Component.text("Can't pause the event after the final game.")
+                        .color(NamedTextColor.RED));
+                return;
+            }
         }
         lastStateBeforePause = currentState;
         currentState = EventState.PAUSED;
@@ -400,35 +407,41 @@ public class EventManager implements Listener {
     public void onParticipantJoin(Player participant) {
         if (colossalCombatGame.isActive()) {
             colossalCombatGame.onParticipantJoin(participant);
+            return;
         }
         if (currentState == null) {
             return;
         }
-        if (currentState == EventState.DELAY) {
-            participants.add(participant);
-            if (sidebar != null) {
-                sidebar.addPlayer(participant);
-                updateTeamScores();
+        EventState state = currentState == EventState.PAUSED ? lastStateBeforePause : currentState;
+        switch (state) {
+            case DELAY, WAITING_IN_HUB, PODIUM -> {
+                participants.add(participant);
+                if (sidebar != null) {
+                    sidebar.addPlayer(participant);
+                    updateTeamScores();
+                }
             }
-        } else if (currentState == EventState.VOTING) {
-            voteManager.onParticipantJoin(participant);
+            case VOTING -> voteManager.onParticipantJoin(participant);
         }
     }
     
     public void onParticipantQuit(Player participant) {
         if (colossalCombatGame.isActive()) {
             colossalCombatGame.onParticipantQuit(participant);
+            return;
         }
         if (currentState == null) {
             return;
         }
         participants.remove(participant);
-        if (currentState == EventState.DELAY) {
-            if (sidebar != null) {
-                sidebar.removePlayer(participant);
+        EventState state = currentState == EventState.PAUSED ? lastStateBeforePause : currentState;
+        switch (state) {
+            case DELAY, WAITING_IN_HUB, PODIUM -> {
+                if (sidebar != null) {
+                    sidebar.removePlayer(participant);
+                }
             }
-        } else if (currentState == EventState.VOTING) {
-            voteManager.onParticipantQuit(participant);
+            case VOTING -> voteManager.onParticipantQuit(participant);
         }
     }
     
@@ -439,14 +452,16 @@ public class EventManager implements Listener {
         if (currentState == null) {
             return;
         }
-        if (currentState == EventState.DELAY) {
-            admins.add(admin);
-            if (adminSidebar != null) {
-                adminSidebar.addPlayer(admin);
-                updateTeamScores();
+        EventState state = currentState == EventState.PAUSED ? lastStateBeforePause : currentState;
+        switch (state) {
+            case DELAY, WAITING_IN_HUB, PODIUM -> {
+                admins.add(admin);
+                if (adminSidebar != null) {
+                    adminSidebar.addPlayer(admin);
+                    updateTeamScores();
+                }
             }
-        } else if (currentState == EventState.VOTING) {
-            voteManager.onAdminJoin(admin);
+            case VOTING -> voteManager.onAdminJoin(admin);
         }
     }
     
@@ -458,12 +473,14 @@ public class EventManager implements Listener {
             return;
         }
         admins.remove(admin);
-        if (currentState == EventState.DELAY) {
-            if (adminSidebar != null) {
-                adminSidebar.removePlayer(admin);
+        EventState state = currentState == EventState.PAUSED ? lastStateBeforePause : currentState;
+        switch (state) {
+            case DELAY, WAITING_IN_HUB, PODIUM -> {
+                if (adminSidebar != null) {
+                    adminSidebar.removePlayer(admin);
+                }
             }
-        } else if (currentState == EventState.VOTING) {
-            voteManager.onAdminQuit(admin);
+            case VOTING -> voteManager.onAdminQuit(admin);
         }
     }
     
@@ -737,7 +754,8 @@ public class EventManager implements Listener {
             return false;
         }
         if (firstPlaces.length > 2) {
-            messageAllAdmins(Component.text("There are more than 2 teams tied for first place. A tie breaker is needed. Use ")
+            messageAllAdmins(Component.empty()
+                    .append(Component.text("There are more than 2 teams tied for first place. A tie breaker is needed. Use "))
                     .append(Component.text("/mct game finalgame <first> <second>")
                             .clickEvent(ClickEvent.suggestCommand("/mct game finalgame "))
                             .decorate(TextDecoration.BOLD))
@@ -749,7 +767,8 @@ public class EventManager implements Listener {
         teamScores.remove(firstPlace);
         String[] secondPlaces = GameManagerUtils.calculateFirstPlace(teamScores);
         if (secondPlaces.length > 1) {
-            messageAllAdmins(Component.text("There is a tie second place. A tie breaker is needed. Use ")
+            messageAllAdmins(Component.empty()
+                    .append(Component.text("There is a tie second place. A tie breaker is needed. Use "))
                     .append(Component.text("/mct game finalgame <first> <second>")
                             .clickEvent(ClickEvent.suggestCommand("/mct game finalgame "))
                             .decorate(TextDecoration.BOLD))
@@ -758,15 +777,48 @@ public class EventManager implements Listener {
             return false;
         }
         String secondPlace = secondPlaces[0];
+        int onlineFirsts = 0;
+        int onlineSeconds = 0;
         for (Player participant : participants) {
-            sidebar.removePlayer(participant);
+            String team = gameManager.getTeamName(participant.getUniqueId());
+            if (team.equals(firstPlace)) {
+                onlineFirsts++;
+            }
+            if (team.equals(secondPlace)) {
+                onlineSeconds++;
+            }
         }
-        for (Player admin : admins) {
-            adminSidebar.removePlayer(admin);
+        if (onlineFirsts <= 0) {
+            messageAllAdmins(Component.empty()
+                    .append(Component.text("There are no members of the first place team online. Please use "))
+                    .append(Component.text("/mct event finalgame start <first> <second>")
+                            .clickEvent(ClickEvent.suggestCommand(String.format("/mct event finalgame start %s %s", firstPlace, secondPlace)))
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(" to manually start the final game."))
+                    .color(NamedTextColor.RED));
+            return false;
         }
+    
+        if (onlineSeconds <= 0) {
+            messageAllAdmins(Component.empty()
+                    .append(Component.text("There are no members of the second place team online. Please use "))
+                    .append(Component.text("/mct event finalgame start <first> <second>")
+                            .clickEvent(ClickEvent.suggestCommand(String.format("/mct event finalgame start %s %s", firstPlace, secondPlace)))
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(" to manually start the final game."))
+                    .color(NamedTextColor.RED));
+            return false;
+        }
+        
+//        for (Player participant : participants) {
+//            sidebar.removePlayer(participant);
+//        }
+//        for (Player admin : admins) {
+//            adminSidebar.removePlayer(admin);
+//        }
         startColossalCombat(Bukkit.getConsoleSender(), firstPlace, secondPlace);
-        participants.clear();
-        admins.clear();
+//        participants.clear();
+//        admins.clear();
         return true;
     }
     
@@ -794,7 +846,7 @@ public class EventManager implements Listener {
             sender.sendMessage(Component.text("Please specify the first and second place teams.").color(NamedTextColor.RED));
             return;
         }
-    
+        
         List<Player> firstPlaceParticipants = new ArrayList<>();
         List<Player> secondPlaceParticipants = new ArrayList<>();
         List<Player> spectators = new ArrayList<>();
@@ -816,17 +868,41 @@ public class EventManager implements Listener {
         }
         
         if (firstPlaceParticipants.isEmpty()) {
-            sender.sendMessage(Component.text("There are no members of the first place team online.").color(NamedTextColor.RED));
+            sender.sendMessage(Component.empty()
+                    .append(Component.text("There are no members of the first place team online. Please use "))
+                    .append(Component.text("/mct event finalgame start <first> <second>")
+                            .clickEvent(ClickEvent.suggestCommand(String.format("/mct event finalgame start %s %s", firstPlaceTeamName, secondPlaceTeamName)))
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(" to manually start the final game."))
+                    .color(NamedTextColor.RED));
             return;
         }
         
         if (secondPlaceParticipants.isEmpty()) {
-            sender.sendMessage(Component.text("There are no members of the second place team online.").color(NamedTextColor.RED));
+            sender.sendMessage(Component.empty()
+                            .append(Component.text("There are no members of the second place team online. Please use "))
+                            .append(Component.text("/mct event finalgame start <first> <second>")
+                                    .clickEvent(ClickEvent.suggestCommand(String.format("/mct event finalgame start %s %s", firstPlaceTeamName, secondPlaceTeamName)))
+                                    .decorate(TextDecoration.BOLD))
+                            .append(Component.text(" to manually start the final game."))
+                            .color(NamedTextColor.RED));
             return;
         }
     
+        if (eventIsActive()) {
+            for (Player participant : participants) {
+                sidebar.removePlayer(participant);
+            }
+            for (Player admin : admins) {
+                adminSidebar.removePlayer(admin);
+            }
+        }
         gameManager.removeParticipantsFromHub(participantPool);
         colossalCombatGame.start(firstPlaceParticipants, secondPlaceParticipants, spectators, admins);
+        if (eventIsActive()) {
+            participants.clear();
+            admins.clear();
+        }
     }
     
     public void stopColossalCombat(CommandSender sender) {

@@ -119,6 +119,9 @@ public class VoteManager implements Listener {
         }
         this.voters.add(voter);
         sidebar.addPlayer(voter);
+        if (paused) {
+            return;
+        }
         showVoteGui(voter);
         voter.sendMessage(Component.text("Vote for the game you want to play")
                 .color(NamedTextColor.GREEN));
