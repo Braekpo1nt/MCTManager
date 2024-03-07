@@ -404,14 +404,15 @@ public class EventManager implements Listener {
         if (currentState == null) {
             return;
         }
-        if (currentState == EventState.DELAY) {
-            participants.add(participant);
-            if (sidebar != null) {
-                sidebar.addPlayer(participant);
-                updateTeamScores();
+        switch (currentState) {
+            case DELAY, WAITING_IN_HUB, PAUSED -> {
+                participants.add(participant);
+                if (sidebar != null) {
+                    sidebar.addPlayer(participant);
+                    updateTeamScores();
+                }
             }
-        } else if (currentState == EventState.VOTING) {
-            voteManager.onParticipantJoin(participant);
+            case VOTING -> voteManager.onParticipantJoin(participant);
         }
     }
     
@@ -423,12 +424,13 @@ public class EventManager implements Listener {
             return;
         }
         participants.remove(participant);
-        if (currentState == EventState.DELAY) {
-            if (sidebar != null) {
-                sidebar.removePlayer(participant);
+        switch (currentState) {
+            case DELAY, WAITING_IN_HUB, PAUSED -> {
+                if (sidebar != null) {
+                    sidebar.removePlayer(participant);
+                }
             }
-        } else if (currentState == EventState.VOTING) {
-            voteManager.onParticipantQuit(participant);
+            case VOTING -> voteManager.onParticipantQuit(participant);
         }
     }
     

@@ -125,7 +125,7 @@ public class GameManager implements Listener {
         onlineParticipants.remove(participant);
         if (gameIsRunning()) {
             activeGame.onParticipantQuit(participant);
-        } else if (eventManager.colossalCombatIsActive()) {
+        } else if (eventManager.eventIsActive() || eventManager.colossalCombatIsActive()) {
             eventManager.onParticipantQuit(participant);
         } else if (voteManager.isVoting()) {
             voteManager.onParticipantQuit(participant);
@@ -187,7 +187,7 @@ public class GameManager implements Listener {
         if (gameIsRunning()) {
             hubManager.removeParticipantsFromHub(Collections.singletonList(participant));
             activeGame.onParticipantJoin(participant);
-        } else if (eventManager.colossalCombatIsActive()) {
+        } else if (eventManager.eventIsActive() || eventManager.colossalCombatIsActive()) {
             hubManager.removeParticipantsFromHub(Collections.singletonList(participant));
             eventManager.onParticipantJoin(participant);
         } else if (voteManager.isVoting()) {
