@@ -409,7 +409,7 @@ public class EventManager implements Listener {
         }
         EventState state = currentState == EventState.PAUSED ? lastStateBeforePause : currentState;
         switch (state) {
-            case DELAY, WAITING_IN_HUB -> {
+            case DELAY, WAITING_IN_HUB, PODIUM -> {
                 participants.add(participant);
                 if (sidebar != null) {
                     sidebar.addPlayer(participant);
@@ -423,6 +423,7 @@ public class EventManager implements Listener {
     public void onParticipantQuit(Player participant) {
         if (colossalCombatGame.isActive()) {
             colossalCombatGame.onParticipantQuit(participant);
+            return;
         }
         if (currentState == null) {
             return;
@@ -430,7 +431,7 @@ public class EventManager implements Listener {
         participants.remove(participant);
         EventState state = currentState == EventState.PAUSED ? lastStateBeforePause : currentState;
         switch (state) {
-            case DELAY, WAITING_IN_HUB -> {
+            case DELAY, WAITING_IN_HUB, PODIUM -> {
                 if (sidebar != null) {
                     sidebar.removePlayer(participant);
                 }
@@ -448,7 +449,7 @@ public class EventManager implements Listener {
         }
         EventState state = currentState == EventState.PAUSED ? lastStateBeforePause : currentState;
         switch (state) {
-            case DELAY, WAITING_IN_HUB -> {
+            case DELAY, WAITING_IN_HUB, PODIUM -> {
                 admins.add(admin);
                 if (adminSidebar != null) {
                     adminSidebar.addPlayer(admin);
@@ -469,7 +470,7 @@ public class EventManager implements Listener {
         admins.remove(admin);
         EventState state = currentState == EventState.PAUSED ? lastStateBeforePause : currentState;
         switch (state) {
-            case DELAY, WAITING_IN_HUB -> {
+            case DELAY, WAITING_IN_HUB, PODIUM -> {
                 if (adminSidebar != null) {
                     adminSidebar.removePlayer(admin);
                 }
@@ -804,15 +805,15 @@ public class EventManager implements Listener {
             return false;
         }
         
-        for (Player participant : participants) {
-            sidebar.removePlayer(participant);
-        }
-        for (Player admin : admins) {
-            adminSidebar.removePlayer(admin);
-        }
+//        for (Player participant : participants) {
+//            sidebar.removePlayer(participant);
+//        }
+//        for (Player admin : admins) {
+//            adminSidebar.removePlayer(admin);
+//        }
         startColossalCombat(Bukkit.getConsoleSender(), firstPlace, secondPlace);
-        participants.clear();
-        admins.clear();
+//        participants.clear();
+//        admins.clear();
         return true;
     }
     
@@ -840,7 +841,7 @@ public class EventManager implements Listener {
             sender.sendMessage(Component.text("Please specify the first and second place teams.").color(NamedTextColor.RED));
             return;
         }
-    
+        
         List<Player> firstPlaceParticipants = new ArrayList<>();
         List<Player> secondPlaceParticipants = new ArrayList<>();
         List<Player> spectators = new ArrayList<>();
@@ -883,8 +884,20 @@ public class EventManager implements Listener {
             return;
         }
     
+        if (eventIsActive()) {
+            for (Player participant : participants) {
+                sidebar.removePlayer(participant);
+            }
+            for (Player admin : admins) {
+                adminSidebar.removePlayer(admin);
+            }
+        }
         gameManager.removeParticipantsFromHub(participantPool);
         colossalCombatGame.start(firstPlaceParticipants, secondPlaceParticipants, spectators, admins);
+        if (eventIsActive()) {
+            participants.clear();
+            admins.clear();
+        }
     }
     
     public void stopColossalCombat(CommandSender sender) {
