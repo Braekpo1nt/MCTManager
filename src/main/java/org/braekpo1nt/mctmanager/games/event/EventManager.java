@@ -185,15 +185,17 @@ public class EventManager implements Listener {
                     .color(NamedTextColor.RED));
             return;
         }
-        if (currentState == EventState.PAUSED) {
-            sender.sendMessage(Component.text("The event is already paused.")
-                    .color(NamedTextColor.RED));
-            return;
-        }
-        if (currentState == EventState.PLAYING_GAME) {
-            sender.sendMessage(Component.text("Can't pause the event during a game.")
-                    .color(NamedTextColor.RED));
-            return;
+        switch (currentState) {
+            case PAUSED -> {
+                sender.sendMessage(Component.text("The event is already paused.")
+                        .color(NamedTextColor.RED));
+                return;
+            }
+            case PLAYING_GAME -> {
+                sender.sendMessage(Component.text("Can't pause the event during a game.")
+                        .color(NamedTextColor.RED));
+                return;
+            }
         }
         lastStateBeforePause = currentState;
         currentState = EventState.PAUSED;
@@ -404,8 +406,9 @@ public class EventManager implements Listener {
         if (currentState == null) {
             return;
         }
-        switch (currentState) {
-            case DELAY, WAITING_IN_HUB, PAUSED -> {
+        EventState state = currentState == EventState.PAUSED ? lastStateBeforePause : currentState;
+        switch (state) {
+            case DELAY, WAITING_IN_HUB -> {
                 participants.add(participant);
                 if (sidebar != null) {
                     sidebar.addPlayer(participant);
@@ -424,8 +427,9 @@ public class EventManager implements Listener {
             return;
         }
         participants.remove(participant);
-        switch (currentState) {
-            case DELAY, WAITING_IN_HUB, PAUSED -> {
+        EventState state = currentState == EventState.PAUSED ? lastStateBeforePause : currentState;
+        switch (state) {
+            case DELAY, WAITING_IN_HUB -> {
                 if (sidebar != null) {
                     sidebar.removePlayer(participant);
                 }
@@ -441,8 +445,9 @@ public class EventManager implements Listener {
         if (currentState == null) {
             return;
         }
-        switch (currentState) {
-            case DELAY, WAITING_IN_HUB, PAUSED -> {
+        EventState state = currentState == EventState.PAUSED ? lastStateBeforePause : currentState;
+        switch (state) {
+            case DELAY, WAITING_IN_HUB -> {
                 admins.add(admin);
                 if (adminSidebar != null) {
                     adminSidebar.addPlayer(admin);
@@ -461,8 +466,9 @@ public class EventManager implements Listener {
             return;
         }
         admins.remove(admin);
-        switch (currentState) {
-            case DELAY, WAITING_IN_HUB, PAUSED -> {
+        EventState state = currentState == EventState.PAUSED ? lastStateBeforePause : currentState;
+        switch (state) {
+            case DELAY, WAITING_IN_HUB -> {
                 if (adminSidebar != null) {
                     adminSidebar.removePlayer(admin);
                 }
