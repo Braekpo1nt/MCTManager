@@ -441,14 +441,15 @@ public class EventManager implements Listener {
         if (currentState == null) {
             return;
         }
-        if (currentState == EventState.DELAY) {
-            admins.add(admin);
-            if (adminSidebar != null) {
-                adminSidebar.addPlayer(admin);
-                updateTeamScores();
+        switch (currentState) {
+            case DELAY, WAITING_IN_HUB, PAUSED -> {
+                admins.add(admin);
+                if (adminSidebar != null) {
+                    adminSidebar.addPlayer(admin);
+                    updateTeamScores();
+                }
             }
-        } else if (currentState == EventState.VOTING) {
-            voteManager.onAdminJoin(admin);
+            case VOTING -> voteManager.onAdminJoin(admin);
         }
     }
     
@@ -460,12 +461,13 @@ public class EventManager implements Listener {
             return;
         }
         admins.remove(admin);
-        if (currentState == EventState.DELAY) {
-            if (adminSidebar != null) {
-                adminSidebar.removePlayer(admin);
+        switch (currentState) {
+            case DELAY, WAITING_IN_HUB, PAUSED -> {
+                if (adminSidebar != null) {
+                    adminSidebar.removePlayer(admin);
+                }
             }
-        } else if (currentState == EventState.VOTING) {
-            voteManager.onAdminQuit(admin);
+            case VOTING -> voteManager.onAdminQuit(admin);
         }
     }
     

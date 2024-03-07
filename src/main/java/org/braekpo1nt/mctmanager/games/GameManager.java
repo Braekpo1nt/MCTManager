@@ -102,7 +102,7 @@ public class GameManager implements Listener {
         onlineAdmins.remove(admin);
         if (gameIsRunning()) {
             activeGame.onAdminQuit(admin);
-        } else if (eventManager.colossalCombatIsActive()) {
+        } else if (eventManager.eventIsActive() || eventManager.colossalCombatIsActive()) {
             eventManager.onAdminQuit(admin);
         } else if (voteManager.isVoting()) {
             voteManager.onAdminQuit(admin);
@@ -163,7 +163,7 @@ public class GameManager implements Listener {
         hubManager.onAdminJoin(admin);
         if (gameIsRunning()) {
             activeGame.onAdminJoin(admin);
-        } else if (eventManager.colossalCombatIsActive()) {
+        } else if (eventManager.eventIsActive() || eventManager.colossalCombatIsActive()) {
             eventManager.onAdminJoin(admin);
         } else if (voteManager.isVoting()) {
             voteManager.onAdminJoin(admin);
