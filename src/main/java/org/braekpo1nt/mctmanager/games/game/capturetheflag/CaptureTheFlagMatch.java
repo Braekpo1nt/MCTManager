@@ -218,7 +218,6 @@ public class CaptureTheFlagMatch implements Listener {
         String teamName = gameManager.getTeamName(participant.getUniqueId());
         if (matchPairing.northTeam().equals(teamName)) {
             onNorthParticipantJoin(participant);
-            
             return;
         }
         if (matchPairing.southTeam().equals(teamName)) {
@@ -234,7 +233,7 @@ public class CaptureTheFlagMatch implements Listener {
             northClassPicker.addTeamMate(northParticipant);
             return;
         }
-        participantsAreAlive.put(northParticipant.getUniqueId(), true);
+        participantsAreAlive.put(northParticipant.getUniqueId(), false);
         initializeDeadParticipant(northParticipant, true);
     }
     
