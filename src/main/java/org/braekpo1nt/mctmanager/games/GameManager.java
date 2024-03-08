@@ -289,17 +289,18 @@ public class GameManager implements Listener {
      * Starts the given game
      * @param gameType The game to start
      * @param sender The sender to send messages and alerts to
+     * @return true if the game started successfully, false otherwise
      */
-    public void startGame(GameType gameType, @NotNull CommandSender sender) {
+    public boolean startGame(GameType gameType, @NotNull CommandSender sender) {
         if (voteManager.isVoting()) {
             sender.sendMessage(Component.text("Can't start a game while a vote is going on.")
                     .color(NamedTextColor.RED));
-            return;
+            return false;
         }
         
         if (activeGame != null) {
             sender.sendMessage("There is already a game running. You must stop the game before you start a new one.");
-            return;
+            return false;
         }
         
         if (onlineParticipants.isEmpty()) {
@@ -307,7 +308,7 @@ public class GameManager implements Listener {
                     .append(Component.text("/mct team join <team> <member>")
                             .decorate(TextDecoration.BOLD)
                             .clickEvent(ClickEvent.suggestCommand("/mct team join "))));
-            return;
+            return false;
         }
         
         MCTGame selectedGame;
@@ -332,7 +333,7 @@ public class GameManager implements Listener {
             }
             default -> {
                 sender.sendMessage(Component.text("Can't find game for type " + gameType));
-                return;
+                return false;
             }
         }
         
@@ -345,13 +346,15 @@ public class GameManager implements Listener {
             } catch (IllegalArgumentException e) {
                 Bukkit.getLogger().severe(e.getMessage());
                 e.printStackTrace();
-                sender.sendMessage(Component.text("Can't start ")
+                Component message = Component.text("Can't start ")
                         .append(Component.text(gameType.name())
                                 .decorate(TextDecoration.BOLD))
                         .append(Component.text(". Error loading config file. See console for details:\n"))
                         .append(Component.text(e.getMessage()))
-                        .color(NamedTextColor.RED));
-                return;
+                        .color(NamedTextColor.RED);
+                sender.sendMessage(message);
+                messageAdmins(message);
+                return false;
             }
         }
         
@@ -371,7 +374,7 @@ public class GameManager implements Listener {
             case CAPTURE_THE_FLAG -> {
                 if (onlineTeams.size() < 2 || 8 < onlineTeams.size()) {
                     sender.sendMessage(Component.text("Capture the Flag needs at least 2 and at most 8 teams online to play.").color(NamedTextColor.RED));
-                    return;
+                    return false;
                 }
             }
         }
@@ -385,6 +388,7 @@ public class GameManager implements Listener {
         for (Player participant : onlineParticipants) {
             updatePersonalScore(participant);
         }
+        return true;
     }
     
     /**

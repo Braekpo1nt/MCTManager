@@ -506,7 +506,7 @@ public class EventManager implements Listener {
     private void startWaitingInHub() {
         currentState = EventState.WAITING_IN_HUB;
         gameManager.returnAllParticipantsToHub();
-        double scoreMultiplier = this.matchProgressPointMultiplier();
+        double scoreMultiplier = matchProgressPointMultiplier();
         gameManager.messageOnlineParticipants(Component.text("Score multiplier: ")
                 .append(Component.text(scoreMultiplier))
                 .color(NamedTextColor.GOLD));
@@ -627,12 +627,17 @@ public class EventManager implements Listener {
                     admins.clear();
                     boolean gameStarted = gameManager.startGame(gameType, Bukkit.getConsoleSender());
                     if (!gameStarted) {
-                        messageAllAdmins(Component.text("Event was unable to start the game ")
+                        messageAllAdmins(Component.text("Unable to start the game ")
                                 .append(Component.text(gameType.getTitle()))
-                                .append(Component.text(".")));
-                        currentState = EventState.PAUSED;
-                        count = storageUtil.getStartingGameDuration();
-                        
+                                .append(Component.text(". Returning to the hub in an effort to try again."))
+                                .color(NamedTextColor.RED));
+                        messageAllAdmins(Component.text("Use ")
+                                .append(Component.text("/mct event pause")
+                                        .clickEvent(ClickEvent.suggestCommand("/mct event pause"))
+                                        .decorate(TextDecoration.BOLD))
+                                .color(NamedTextColor.RED));
+                        initializeParticipantsAndAdmins();
+                        startWaitingInHub();
                     }
                     this.cancel();
                     return;
@@ -907,6 +912,7 @@ public class EventManager implements Listener {
             messageAllAdmins(message);
             gameManager.messageOnlineParticipants(message);
             if (currentState != null) {
+                initializeParticipantsAndAdmins();
                 startWaitingInHub();
             }
             return;
