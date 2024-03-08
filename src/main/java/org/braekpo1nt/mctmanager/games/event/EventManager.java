@@ -123,27 +123,36 @@ public class EventManager implements Listener {
         currentGameNumber = 1;
         playedGames.clear();
         scoreKeepers.clear();
-        sidebar = gameManager.getSidebarFactory().createSidebar();
         participants = new ArrayList<>();
-        for (Player participant : gameManager.getOnlineParticipants()) {
-            participants.add(participant);
-            sidebar.addPlayer(participant);
-        }
-        initializeSidebar();
+        sidebar = gameManager.getSidebarFactory().createSidebar();
         admins = new ArrayList<>();
         adminSidebar = gameManager.getSidebarFactory().createSidebar();
-        for (Player admin : gameManager.getOnlineAdmins()) {
-            admins.add(admin);
-            adminSidebar.addPlayer(admin);
-        }
+        initializeSidebar();
         initializeAdminSidebar();
+        initializeParticipantsAndAdmins();
+        gameManager.removeParticipantsFromHub(participants);
         messageAllAdmins(Component.text("Starting event. On game ")
                 .append(Component.text(currentGameNumber))
                 .append(Component.text("/"))
                 .append(Component.text(maxGames))
                 .append(Component.text(".")));
-        gameManager.removeParticipantsFromHub(participants);
         startWaitingInHub();
+    }
+    
+    /**
+     * Add the participants back to the {@link EventManager#participants} list and the {@link EventManager#sidebar}, add the admins back to the {@link EventManager#admins} list and the {@link EventManager#adminSidebar}, and update the scores on all sidebars.
+     */
+    private void initializeParticipantsAndAdmins() {
+        for (Player participant : gameManager.getOnlineParticipants()) {
+            participants.add(participant);
+            sidebar.addPlayer(participant);
+        }
+        for (Player admin : gameManager.getOnlineAdmins()) {
+            admins.add(admin);
+            adminSidebar.addPlayer(admin);
+        }
+        updateTeamScores();
+        updatePersonalScores();
     }
     
     public void stopEvent(CommandSender sender) {
@@ -553,16 +562,7 @@ public class EventManager implements Listener {
     
     private void toPodiumDelay(String winningTeam) {
         currentState = EventState.DELAY;
-        for (Player participant : gameManager.getOnlineParticipants()) {
-            participants.add(participant);
-            sidebar.addPlayer(participant);
-        }
-        for (Player admin : gameManager.getOnlineAdmins()) {
-            admins.add(admin);
-            adminSidebar.addPlayer(admin);
-        }
-        updateTeamScores();
-        updatePersonalScores();
+        initializeParticipantsAndAdmins();
         ChatColor winningChatColor = gameManager.getTeamChatColor(winningTeam);
         String winningDisplayName = gameManager.getTeamDisplayName(winningTeam);
         this.toPodiumDelayTaskId = new BukkitRunnable() {
@@ -606,16 +606,7 @@ public class EventManager implements Listener {
     
     private void startingGameDelay(GameType gameType) {
         currentState = EventState.DELAY;
-        for (Player participant : gameManager.getOnlineParticipants()) {
-            participants.add(participant);
-            sidebar.addPlayer(participant);
-        }
-        for (Player admin : gameManager.getOnlineAdmins()) {
-            admins.add(admin);
-            adminSidebar.addPlayer(admin);
-        }
-        updateTeamScores();
-        updatePersonalScores();
+        initializeParticipantsAndAdmins();
         this.startingGameCountdownTaskId = new BukkitRunnable() {
             int count = storageUtil.getStartingGameDuration();
             @Override
@@ -634,7 +625,15 @@ public class EventManager implements Listener {
                     }
                     participants.clear();
                     admins.clear();
-                    gameManager.startGame(gameType, Bukkit.getConsoleSender());
+                    boolean gameStarted = gameManager.startGame(gameType, Bukkit.getConsoleSender());
+                    if (!gameStarted) {
+                        messageAllAdmins(Component.text("Event was unable to start the game ")
+                                .append(Component.text(gameType.getTitle()))
+                                .append(Component.text(".")));
+                        currentState = EventState.PAUSED;
+                        count = storageUtil.getStartingGameDuration();
+                        
+                    }
                     this.cancel();
                     return;
                 }
@@ -666,16 +665,7 @@ public class EventManager implements Listener {
      */
     public void gameIsOver(GameType finishedGameType) {
         currentState = EventState.DELAY;
-        for (Player participant : gameManager.getOnlineParticipants()) {
-            participants.add(participant);
-            sidebar.addPlayer(participant);
-        }
-        for (Player admin : gameManager.getOnlineAdmins()) {
-            admins.add(admin);
-            adminSidebar.addPlayer(admin);
-        }
-        updateTeamScores();
-        updatePersonalScores();
+        initializeParticipantsAndAdmins();
         playedGames.add(finishedGameType);
         currentGameNumber += 1;
         this.backToHubDelayTaskId = new BukkitRunnable() {
@@ -810,15 +800,7 @@ public class EventManager implements Listener {
             return false;
         }
         
-//        for (Player participant : participants) {
-//            sidebar.removePlayer(participant);
-//        }
-//        for (Player admin : admins) {
-//            adminSidebar.removePlayer(admin);
-//        }
         startColossalCombat(Bukkit.getConsoleSender(), firstPlace, secondPlace);
-//        participants.clear();
-//        admins.clear();
         return true;
     }
     
