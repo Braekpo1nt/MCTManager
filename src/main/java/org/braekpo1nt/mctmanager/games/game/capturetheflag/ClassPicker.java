@@ -34,41 +34,32 @@ public class ClassPicker implements Listener {
     private final Map<UUID, BattleClass> pickedBattleClasses = new HashMap<>();
     private final List<Player> teamMates = new ArrayList<>();
     private boolean classPickingActive = false;
+    private Map<BattleClass, Material> menuItems = new HashMap<>();
+    private Map<Material, BattleClass> materialToBattleClass = new HashMap<>();
+    private Map<BattleClass, List<Component>> menuLores = new HashMap<>();
     private Map<BattleClass, ItemStack[]> loadouts = new HashMap<>();
     
     /**
-     * Converts a {@link Material} to a {@link BattleClass}
-     * @param material The material to get the associated battle class of. 
-     * @return The battle class associated with the given material. Null if the given material is not one of the associated material.
-     */
-    private BattleClass materialToBattleClass(@NotNull Material material) {
-        switch (material) {
-            case STONE_SWORD -> {
-                return BattleClass.KNIGHT;
-            }
-            case BOW -> {
-                return BattleClass.ARCHER;
-            }
-            case IRON_SWORD -> {
-                return BattleClass.ASSASSIN;
-            }
-            case LEATHER_CHESTPLATE -> {
-                return BattleClass.TANK;
-            }
-            default -> {
-                return null;
-            }
-        }
-    }
-
-    /**
      * Registers event listeners, and starts the class picking phase for the given list of teammates
+     * 
      * @param plugin The plugin
-     * @param newTeamMates The list of teammates. They are assumed to be on the same team. Weird things will happen if they are not. 
+     * @param newTeamMates The list of teammates. They are assumed to be on the same team. Weird things will happen if they are not.
+     * @param menuItems the Material types to be used in the menu to represent each BattleClass
+     * @param menuLores the lore to be added to the menu items to be used as a description for each BattleClass
+     * @param loadouts the inventory contents for each BattleClass
      */
-    public void start(Main plugin, List<Player> newTeamMates, Map<BattleClass, ItemStack[]> loadouts) {
-        this.loadouts = loadouts;
+    public void start(Main plugin, List<Player> newTeamMates, 
+                      Map<BattleClass, Material> menuItems, 
+                      Map<BattleClass, List<Component>> menuLores, 
+                      Map<BattleClass, ItemStack[]> loadouts) {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
+        this.menuItems = menuItems;
+        this.materialToBattleClass = new HashMap<>();
+        for (Map.Entry<BattleClass, Material> entry : menuItems.entrySet()) {
+            this.materialToBattleClass.put(entry.getValue(), entry.getKey());
+        }
+        this.menuLores = menuLores;
+        this.loadouts = loadouts;
         teamMates.clear();
         teamMates.addAll(newTeamMates);
         classPickingActive = true;
@@ -160,7 +151,7 @@ public class ClassPicker implements Listener {
      */
     public void onClickClassPickerInventory(Player teamMate, ItemStack clickedItem) {
         Material itemType = clickedItem.getType();
-        BattleClass battleClass = this.materialToBattleClass(itemType);
+        BattleClass battleClass = materialToBattleClass.get(itemType);
         if (battleClass == null) {
             return;
         }
@@ -303,54 +294,17 @@ public class ClassPicker implements Listener {
      * @param teamMate The teamMate to show the gui to
      */
     private void showClassPickerGui(Player teamMate) {
-        ItemStack knight = new ItemStack(Material.STONE_SWORD);
-        ItemStack archer = new ItemStack(Material.BOW);
-        ItemStack assassin = new ItemStack(Material.IRON_SWORD);
-        ItemStack tank = new ItemStack(Material.LEATHER_CHESTPLATE);
-        
-        ItemMeta knightMeta = knight.getItemMeta();
-        knightMeta.displayName(Component.text("Knight"));
-        knightMeta.lore(Arrays.asList(
-                Component.text("- Stone Sword"),
-                Component.text("- Chest Plate"),
-                Component.text("- Boots")
-        ));
-        knight.setItemMeta(knightMeta);
-        
-        ItemMeta archerMeta = archer.getItemMeta();
-        archerMeta.displayName(Component.text("Archer"));
-        archerMeta.lore(Arrays.asList(
-                Component.text("- Bow"),
-                Component.text("- 16 Arrows"),
-                Component.text("- Wooden Sword"),
-                Component.text("- Chest Plate"),
-                Component.text("- Boots")
-        ));
-        archer.setItemMeta(archerMeta);
-        
-        ItemMeta assassinMeta = assassin.getItemMeta();
-        assassinMeta.displayName(Component.text("Assassin"));
-        assassinMeta.lore(Arrays.asList(
-                Component.text("- Iron Sword"),
-                Component.text("- No Armor")
-        ));
-        assassin.setItemMeta(assassinMeta);
-        
-        ItemMeta tankMeta = tank.getItemMeta();
-        tankMeta.displayName(Component.text("Tank"));
-        tankMeta.lore(Arrays.asList(
-                Component.text("Comes with:"),
-                Component.text("- Full Leather Armor"),
-                Component.text("- Chainmail Leggings"),
-                Component.text("- No Sword")
-        ));
-        tank.setItemMeta(tankMeta);
-        
         Inventory newGui = Bukkit.createInventory(null, 9, TITLE);
-        newGui.setItem(getSlotIndex(1, 1), knight);
-        newGui.setItem(getSlotIndex(1, 2), archer);
-        newGui.setItem(getSlotIndex(1, 3), assassin);
-        newGui.setItem(getSlotIndex(1, 4), tank);
+        int column = 1;
+        for (BattleClass battleClass : BattleClass.values()) {
+            ItemStack menuItem = new ItemStack(menuItems.get(battleClass));
+            ItemMeta menuItemMeta = menuItem.getItemMeta();
+            menuItemMeta.displayName(Component.text(battleClass.getName()));
+            menuItemMeta.lore(menuLores.get(battleClass));
+            menuItem.setItemMeta(menuItemMeta);
+            newGui.setItem(getSlotIndex(1, column), menuItem);
+            column++;
+        }
         teamMate.openInventory(newGui);
     }
     

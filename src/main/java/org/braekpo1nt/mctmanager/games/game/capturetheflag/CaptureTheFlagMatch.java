@@ -696,8 +696,8 @@ public class CaptureTheFlagMatch implements Listener {
     }
     
     public void startClassSelectionPeriod() {
-        northClassPicker.start(plugin, northParticipants, storageUtil.getLoadouts());
-        southClassPicker.start(plugin, southParticipants, storageUtil.getLoadouts());
+        northClassPicker.start(plugin, northParticipants, storageUtil.getMenuItems(), storageUtil.getMenuLores(), storageUtil.getLoadouts());
+        southClassPicker.start(plugin, southParticipants, storageUtil.getMenuItems(), storageUtil.getMenuLores(), storageUtil.getLoadouts());
         
         this.classSelectionCountdownTaskId = new BukkitRunnable() {
             private int count = storageUtil.getClassSelectionDuration();
