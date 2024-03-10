@@ -9,7 +9,7 @@ import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.Arena;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.BattleClass;
-import org.braekpo1nt.mctmanager.games.game.config.ConfigUtil;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.Loadout;
 import org.braekpo1nt.mctmanager.games.game.config.GameConfigStorageUtil;
 import org.braekpo1nt.mctmanager.games.game.config.inventory.InventoryContentsDTO;
 import org.braekpo1nt.mctmanager.games.game.config.inventory.meta.ItemMetaDTO;
@@ -31,9 +31,7 @@ public class CaptureTheFlagStorageUtil extends GameConfigStorageUtil<CaptureTheF
     private Location spawnObservatory;
     private List<Arena> arenas;
     private Component description;
-    private Map<BattleClass, ItemStack[]> loadouts;
-    private Map<BattleClass, Material> menuItems;
-    private Map<BattleClass, List<Component>> menuLores;
+    private Map<BattleClass, Loadout> loadouts;
     
     public CaptureTheFlagStorageUtil(File configDirectory) {
         super(configDirectory, "captureTheFlagConfig.json", CaptureTheFlagConfig.class);
@@ -82,7 +80,7 @@ public class CaptureTheFlagStorageUtil extends GameConfigStorageUtil<CaptureTheF
         Preconditions.checkArgument(config.loadouts().keySet().containsAll(List.of(BattleClass.values())), "loadouts must contain an entry for each BattleClass");
         Set<Material> uniqueMenuItems = new HashSet<>();
         for (BattleClass battleClass : BattleClass.values()) {
-            CaptureTheFlagConfig.Loadout loadout = config.loadouts().get(battleClass);
+            CaptureTheFlagConfig.LoadoutDTO loadout = config.loadouts().get(battleClass);
             Preconditions.checkArgument(!uniqueMenuItems.contains(loadout.menuItem()), "loadout.menuItem %s for BattleClass %s is not unique", loadout.menuItem(), battleClass);
             uniqueMenuItems.add(loadout.menuItem());
             loadoutIsValid(loadout);
@@ -95,7 +93,7 @@ public class CaptureTheFlagStorageUtil extends GameConfigStorageUtil<CaptureTheF
         return true;
     }
     
-    private void loadoutIsValid(CaptureTheFlagConfig.Loadout loadout) {
+    private void loadoutIsValid(CaptureTheFlagConfig.LoadoutDTO loadout) {
         Preconditions.checkArgument(loadout.menuItem() != null, "loadout.menuItem can't be null");
         Preconditions.checkArgument(loadout.menuLore() != null, "loadout.menuLore can't be null");
         for (JsonElement line : loadout.menuLore()) {
@@ -119,16 +117,13 @@ public class CaptureTheFlagStorageUtil extends GameConfigStorageUtil<CaptureTheF
         Preconditions.checkArgument(newWorld != null, "Could not find world \"%s\"", config.world());
         Location newSpawnObservatory = config.spawnObservatory().toLocation(newWorld);
         Component newDescription = GsonComponentSerializer.gson().deserializeFromTree(config.description());
-        Map<BattleClass, ItemStack[]> newLoadouts = new HashMap<>();
-        Map<BattleClass, Material> newMenuItems = new HashMap<>();
-        Map<BattleClass, List<Component>> newMenuLores = new HashMap<>();
-        for (Map.Entry<BattleClass, CaptureTheFlagConfig.Loadout> entry : config.loadouts().entrySet()) {
+        Map<BattleClass, Loadout> newLoadouts = new HashMap<>();
+        for (Map.Entry<BattleClass, CaptureTheFlagConfig.LoadoutDTO> entry : config.loadouts().entrySet()) {
             BattleClass battleClass = entry.getKey();
-            CaptureTheFlagConfig.Loadout loadout = entry.getValue();
-            newLoadouts.put(battleClass, loadout.inventory().toInventoryContents());
-            newMenuItems.put(battleClass, loadout.menuItem());
-            List<Component> menuLore = ItemMetaDTO.toLore(loadout.menuLore());
-            newMenuLores.put(battleClass, menuLore);
+            CaptureTheFlagConfig.LoadoutDTO loadout = entry.getValue();
+            List<Component> menuDescription = ItemMetaDTO.toLore(loadout.menuLore());
+            Loadout newLoadout = new Loadout(battleClass.getName(), loadout.menuItem(), menuDescription, loadout.inventory().toInventoryContents());
+            newLoadouts.put(battleClass, newLoadout);
         }
         // now it's confirmed everything works, so set the actual fields
         this.world = newWorld;
@@ -137,8 +132,6 @@ public class CaptureTheFlagStorageUtil extends GameConfigStorageUtil<CaptureTheF
         this.description = newDescription;
         this.captureTheFlagConfig = config;
         this.loadouts = newLoadouts;
-        this.menuItems = newMenuItems;
-        this.menuLores = newMenuLores;
     }
     
     private List<Arena> toArenas(List<CaptureTheFlagConfig.ArenaDTO> arenaDTOS, World arenaWorld) {
@@ -207,15 +200,8 @@ public class CaptureTheFlagStorageUtil extends GameConfigStorageUtil<CaptureTheF
         return description;
     }
     
-    public Map<BattleClass, ItemStack[]> getLoadouts() {
+    public Map<BattleClass, Loadout> getLoadouts() {
         return loadouts;
     }
     
-    public Map<BattleClass, Material> getMenuItems() {
-        return menuItems;
-    }
-    
-    public Map<BattleClass, List<Component>> getMenuLores() {
-        return menuLores;
-    }
 }

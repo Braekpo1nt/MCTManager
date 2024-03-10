@@ -34,31 +34,23 @@ public class ClassPicker implements Listener {
     private final Map<UUID, BattleClass> pickedBattleClasses = new HashMap<>();
     private final List<Player> teamMates = new ArrayList<>();
     private boolean classPickingActive = false;
-    private Map<BattleClass, Material> menuItems = new HashMap<>();
+    private Map<BattleClass, Loadout> loadouts = new HashMap<>();
     private Map<Material, BattleClass> materialToBattleClass = new HashMap<>();
-    private Map<BattleClass, List<Component>> menuLores = new HashMap<>();
-    private Map<BattleClass, ItemStack[]> loadouts = new HashMap<>();
     
     /**
      * Registers event listeners, and starts the class picking phase for the given list of teammates
      * 
      * @param plugin The plugin
      * @param newTeamMates The list of teammates. They are assumed to be on the same team. Weird things will happen if they are not.
-     * @param menuItems the Material types to be used in the menu to represent each BattleClass
-     * @param menuLores the lore to be added to the menu items to be used as a description for each BattleClass
-     * @param loadouts the inventory contents for each BattleClass
+     * @param loadouts the loadouts for each BattleClass
      */
     public void start(Main plugin, List<Player> newTeamMates, 
-                      Map<BattleClass, Material> menuItems, 
-                      Map<BattleClass, List<Component>> menuLores, 
-                      Map<BattleClass, ItemStack[]> loadouts) {
+                      Map<BattleClass, Loadout> loadouts) {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
-        this.menuItems = menuItems;
         this.materialToBattleClass = new HashMap<>();
-        for (Map.Entry<BattleClass, Material> entry : menuItems.entrySet()) {
-            this.materialToBattleClass.put(entry.getValue(), entry.getKey());
+        for (Map.Entry<BattleClass, Loadout> entry : loadouts.entrySet()) {
+            this.materialToBattleClass.put(entry.getValue().getMenuItem().getType(), entry.getKey());
         }
-        this.menuLores = menuLores;
         this.loadouts = loadouts;
         teamMates.clear();
         teamMates.addAll(newTeamMates);
@@ -260,7 +252,7 @@ public class ClassPicker implements Listener {
     private void assignClass(Player teamMate, BattleClass battleClass) {
         pickedBattleClasses.put(teamMate.getUniqueId(), battleClass);
         teamMate.getInventory().clear();
-        ItemStack[] loadout = loadouts.get(battleClass);
+        ItemStack[] loadout = loadouts.get(battleClass).getContents();
         teamMate.getInventory().setContents(loadout);
         teamMate.sendMessage(Component.text("Selected ")
                 .append(Component.text(battleClass.getName())));
@@ -297,11 +289,7 @@ public class ClassPicker implements Listener {
         Inventory newGui = Bukkit.createInventory(null, 9, TITLE);
         int column = 1;
         for (BattleClass battleClass : BattleClass.values()) {
-            ItemStack menuItem = new ItemStack(menuItems.get(battleClass));
-            ItemMeta menuItemMeta = menuItem.getItemMeta();
-            menuItemMeta.displayName(Component.text(battleClass.getName()));
-            menuItemMeta.lore(menuLores.get(battleClass));
-            menuItem.setItemMeta(menuItemMeta);
+            ItemStack menuItem = loadouts.get(battleClass).getMenuItem();
             newGui.setItem(getSlotIndex(1, column), menuItem);
             column++;
         }
