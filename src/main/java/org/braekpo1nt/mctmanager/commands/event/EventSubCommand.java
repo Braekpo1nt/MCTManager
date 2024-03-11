@@ -13,6 +13,7 @@ import org.bukkit.command.TabExecutor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -115,10 +116,35 @@ public class EventSubCommand extends CommandManager {
             
             @Override
             public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-                return Collections.emptyList();
+                if (args.length != 2) {
+                    return Collections.emptyList();
+                }
+                String gameID = args[0];
+                GameType gameType = GameType.fromID(gameID);
+                if (gameType == null) {
+                    return Collections.emptyList();
+                }
+                int iterations = gameManager.getEventManager().getGameIterations(gameType);
+                if (iterations <= 0) {
+                    return Collections.emptyList();
+                }
+                return generateNumberList(iterations);
             }
         });
         subCommands.put("vote", new VoteSubCommand(gameManager));
+    }
+    
+    /**
+     * 
+     * @param n the number to generate numbers up to (must be at least 1 to get any entries)
+     * @return a list containing the numbers 1 through n inclusive as Strings, in increasing order. If n is less than 1, an empty list is produced. 
+     */
+    public static List<String> generateNumberList(int n) {
+        List<String> numbers = new ArrayList<>();
+        for (int i = 1; i <= n; i++) {
+            numbers.add(Integer.toString(i));
+        }
+        return numbers;
     }
     
     @Override
