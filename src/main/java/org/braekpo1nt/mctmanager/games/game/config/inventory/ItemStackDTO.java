@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.config.inventory;
 
+import com.google.common.base.Preconditions;
 import org.braekpo1nt.mctmanager.games.game.config.inventory.meta.ItemMetaDTO;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -25,11 +26,16 @@ public class ItemStackDTO {
      * @return the ItemStack object which was represented by this DTO 
      */
     public ItemStack toItemStack() {
+        Preconditions.checkArgument(type != null, "type (Material) cannot be null");
         ItemStack stack = new ItemStack(type, amount);
         if (itemMeta != null) {
             ItemMeta meta = stack.getItemMeta();
             stack.setItemMeta(itemMeta.toItemMeta(meta));
         }
         return stack;
+    }
+    
+    public Material getType() {
+        return type;
     }
 }

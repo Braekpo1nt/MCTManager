@@ -217,11 +217,11 @@
     "ARCHER": {
       "menuItem": "BOW",
       "menuLore": [
-        {"text":"- Bow"},
-        {"text":"- 16 Arrows"},
-        {"text":"- Wooden Sword"},
-        {"text":"- Chest Plate"},
-        {"text":"- Boots"}
+        "- Bow",
+        "- 16 Arrows",
+        "- Wooden Sword",
+        "- Chest Plate",
+        "- Boots"
       ],
       "inventory": {
         "contents": {
@@ -257,7 +257,10 @@
       "inventory": {
         "contents": {
           "0": {
-            "type": "IRON_SWORD"
+            "type": "IRON_SWORD",
+            "itemMeta": {
+              "displayName": "Assassin's Knife"
+            }
           },
           "1": {
             "type": "COOKED_BEEF",
@@ -271,7 +274,7 @@
       "menuLore": [
         {"text":"- Full Leather Armor"},
         {"text":"- Chainmail Leggings"},
-        {"text":"- No Sword"}
+        {"text":"- No Sword","italic":true}
       ],
       "inventory": {
         "contents": {

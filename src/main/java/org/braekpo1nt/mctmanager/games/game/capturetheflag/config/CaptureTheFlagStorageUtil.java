@@ -12,6 +12,7 @@ import org.braekpo1nt.mctmanager.games.game.capturetheflag.BattleClass;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.Loadout;
 import org.braekpo1nt.mctmanager.games.game.config.GameConfigStorageUtil;
 import org.braekpo1nt.mctmanager.games.game.config.inventory.InventoryContentsDTO;
+import org.braekpo1nt.mctmanager.games.game.config.inventory.ItemStackDTO;
 import org.braekpo1nt.mctmanager.games.game.config.inventory.meta.ItemMetaDTO;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -106,8 +107,18 @@ public class CaptureTheFlagStorageUtil extends GameConfigStorageUtil<CaptureTheF
         Preconditions.checkArgument(inventory != null, "loadout.inventory can't be null");
         Preconditions.checkArgument(inventory.contents() != null, "loadout.inventory.contents can't be null");
         Preconditions.checkArgument(inventory.contents().size() <= 41, "loadout.inventory.contents can't contain more than 41 entries");
-        Preconditions.checkArgument(inventory.contents().keySet().stream().max(Integer::compareTo).orElse(0) <= 40, "loadout.inventory.contents indexes can't be greater than 40");
-        Preconditions.checkArgument(0 <= inventory.contents().keySet().stream().min(Integer::compareTo).orElse(0), "loadout.inventory.contents indexes can't be less than 0");
+        for (Map.Entry<Integer, ItemStackDTO> entry : inventory.contents().entrySet()) {
+            int slot = entry.getKey();
+            Preconditions.checkArgument(0 <= slot && slot <= 40, "loadout.inventory.contents index (%s) must be between 0 and 40 (inclusive)", slot);
+            ItemStackDTO item = entry.getValue();
+            itemIsValid(item, slot);
+        }
+    }
+    
+    private void itemIsValid(@Nullable ItemStackDTO item, int slot) {
+        if (item != null) {
+            Preconditions.checkArgument(item.getType() != null, "loadout.inventory.contents item.type can't be null (slot index %s)", slot);
+        }
     }
     
     @Override
