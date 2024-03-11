@@ -17,7 +17,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.Nullable;
 
@@ -80,7 +79,7 @@ public class CaptureTheFlagStorageUtil extends GameConfigStorageUtil<CaptureTheF
         Preconditions.checkArgument(config.loadouts().keySet().containsAll(List.of(BattleClass.values())), "loadouts must contain an entry for each BattleClass");
         Set<Material> uniqueMenuItems = new HashSet<>();
         for (BattleClass battleClass : BattleClass.values()) {
-            CaptureTheFlagConfig.LoadoutDTO loadout = config.loadouts().get(battleClass);
+            LoadoutDTO loadout = config.loadouts().get(battleClass);
             Preconditions.checkArgument(!uniqueMenuItems.contains(loadout.menuItem()), "loadout.menuItem %s for BattleClass %s is not unique", loadout.menuItem(), battleClass);
             uniqueMenuItems.add(loadout.menuItem());
             loadoutIsValid(loadout);
@@ -93,7 +92,7 @@ public class CaptureTheFlagStorageUtil extends GameConfigStorageUtil<CaptureTheF
         return true;
     }
     
-    private void loadoutIsValid(CaptureTheFlagConfig.LoadoutDTO loadout) {
+    private void loadoutIsValid(LoadoutDTO loadout) {
         Preconditions.checkArgument(loadout.menuItem() != null, "loadout.menuItem can't be null");
         Preconditions.checkArgument(loadout.menuLore() != null, "loadout.menuLore can't be null");
         for (JsonElement line : loadout.menuLore()) {
@@ -118,9 +117,9 @@ public class CaptureTheFlagStorageUtil extends GameConfigStorageUtil<CaptureTheF
         Location newSpawnObservatory = config.spawnObservatory().toLocation(newWorld);
         Component newDescription = GsonComponentSerializer.gson().deserializeFromTree(config.description());
         Map<BattleClass, Loadout> newLoadouts = new HashMap<>();
-        for (Map.Entry<BattleClass, CaptureTheFlagConfig.LoadoutDTO> entry : config.loadouts().entrySet()) {
+        for (Map.Entry<BattleClass, LoadoutDTO> entry : config.loadouts().entrySet()) {
             BattleClass battleClass = entry.getKey();
-            CaptureTheFlagConfig.LoadoutDTO loadout = entry.getValue();
+            LoadoutDTO loadout = entry.getValue();
             List<Component> menuDescription = ItemMetaDTO.toLore(loadout.menuLore());
             Loadout newLoadout = new Loadout(battleClass.getName(), loadout.menuItem(), menuDescription, loadout.inventory().toInventoryContents());
             newLoadouts.put(battleClass, newLoadout);
