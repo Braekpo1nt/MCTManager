@@ -190,71 +190,104 @@
   ],
   "loadouts": {
     "KNIGHT": {
-      "contents": {
-        "36": {
-          "type": "LEATHER_BOOTS"
-        },
-        "38": {
-          "type": "LEATHER_CHESTPLATE"
-        },
-        "0": {
-          "type": "STONE_SWORD"
-        },
-        "1": {
-          "type": "COOKED_BEEF",
-          "amount": 8
+      "menuItem": "STONE_SWORD",
+      "menuLore": [
+        {"text":"- Stone Sword"},
+        {"text":"- Chest Plate"},
+        {"text":"- Boots"}
+      ],
+      "inventory": {
+        "contents": {
+          "36": {
+            "type": "LEATHER_BOOTS"
+          },
+          "38": {
+            "type": "LEATHER_CHESTPLATE"
+          },
+          "0": {
+            "type": "STONE_SWORD"
+          },
+          "1": {
+            "type": "COOKED_BEEF",
+            "amount": 8
+          }
         }
       }
     },
     "ARCHER": {
-      "contents": {
-        "36": {
-          "type": "LEATHER_BOOTS"
-        },
-        "38": {
-          "type": "LEATHER_CHESTPLATE"
-        },
-        "0": {
-          "type": "BOW"
-        },
-        "1": {
-          "type": "WOODEN_SWORD"
-        },
-        "2": {
-          "type": "ARROW",
-          "amount": 16
-        },
-        "3": {
-          "type": "COOKED_BEEF",
-          "amount": 8
+      "menuItem": "BOW",
+      "menuLore": [
+        {"text":"- Bow"},
+        {"text":"- 16 Arrows"},
+        {"text":"- Wooden Sword"},
+        {"text":"- Chest Plate"},
+        {"text":"- Boots"}
+      ],
+      "inventory": {
+        "contents": {
+          "36": {
+            "type": "LEATHER_BOOTS"
+          },
+          "38": {
+            "type": "LEATHER_CHESTPLATE"
+          },
+          "0": {
+            "type": "BOW"
+          },
+          "1": {
+            "type": "WOODEN_SWORD"
+          },
+          "2": {
+            "type": "ARROW",
+            "amount": 16
+          },
+          "3": {
+            "type": "COOKED_BEEF",
+            "amount": 8
+          }
         }
       }
     },
     "ASSASSIN": {
-      "contents": {
-        "0": {
-          "type": "IRON_SWORD"
-        },
-        "1": {
-          "type": "COOKED_BEEF",
-          "amount": 8
+      "menuItem": "IRON_SWORD",
+      "menuLore": [
+        {"text":"- Iron Sword"},
+        {"text":"- No Armor"}
+      ],
+      "inventory": {
+        "contents": {
+          "0": {
+            "type": "IRON_SWORD"
+          },
+          "1": {
+            "type": "COOKED_BEEF",
+            "amount": 8
+          }
         }
       }
     },
     "TANK": {
-      "contents": {
-        "36": {
-          "type": "LEATHER_BOOTS"
-        },
-        "37": {
-          "type": "CHAINMAIL_LEGGINGS"
-        },
-        "38": {
-          "type": "LEATHER_CHESTPLATE"
-        },
-        "0": {
-          "type": "COOKED_BEEF",
-          "amount": 8
+      "menuItem": "LEATHER_CHESTPLATE",
+      "menuLore": [
+        {"text":"- Full Leather Armor"},
+        {"text":"- Chainmail Leggings"},
+        {"text":"- No Sword"}
+      ],
+      "inventory": {
+        "contents": {
+          "36": {
+            "type": "LEATHER_BOOTS"
+          },
+          "37": {
+            "type": "CHAINMAIL_LEGGINGS"
+          },
+          "38": {
+            "type": "LEATHER_CHESTPLATE"
+          },
+          "0": {
+            "type": "COOKED_BEEF",
+            "amount": 8
+          }
         }
       }
     }
