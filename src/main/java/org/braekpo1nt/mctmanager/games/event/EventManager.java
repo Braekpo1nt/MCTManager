@@ -153,6 +153,8 @@ public class EventManager implements Listener {
         }
         updateTeamScores();
         updatePersonalScores();
+        sidebar.updateLine("currentGame", getCurrentGameLine());
+        adminSidebar.updateLine("currentGame", getCurrentGameLine());
     }
     
     public void stopEvent(CommandSender sender) {
@@ -311,6 +313,22 @@ public class EventManager implements Listener {
     }
     
     /**
+     * For use with the undo operation. Gets the number of times a game has been played this round.
+     * @param gameType the game to check for the iterations of
+     * @return the game iterations (the number of times a game has been played this event).
+     * -1 if an event isn't active, 0 if the gameType hasn't been played yet
+     */
+    public int getGameIterations(GameType gameType) {
+        if (currentState == null) {
+            return -1;
+        }
+        if (!scoreKeepers.containsKey(gameType)) {
+            return 0;
+        }
+        return scoreKeepers.get(gameType).size();
+    }
+    
+    /**
      * Removes the scores that were tracked by the given ScoreKeeper
      * @param scoreKeeper holds the tracked scores to be removed
      */
@@ -428,6 +446,7 @@ public class EventManager implements Listener {
                 if (sidebar != null) {
                     sidebar.addPlayer(participant);
                     updateTeamScores();
+                    sidebar.updateLine(participant.getUniqueId(), "currentGame", getCurrentGameLine());
                 }
             }
             case VOTING -> voteManager.onParticipantJoin(participant);
@@ -468,6 +487,7 @@ public class EventManager implements Listener {
                 if (adminSidebar != null) {
                     adminSidebar.addPlayer(admin);
                     updateTeamScores();
+                    adminSidebar.updateLine(admin.getUniqueId(), "currentGame", getCurrentGameLine());
                 }
             }
             case VOTING -> voteManager.onAdminJoin(admin);
@@ -673,6 +693,8 @@ public class EventManager implements Listener {
         initializeParticipantsAndAdmins();
         playedGames.add(finishedGameType);
         currentGameNumber += 1;
+        sidebar.updateLine("currentGame", getCurrentGameLine());
+        adminSidebar.updateLine("currentGame", getCurrentGameLine());
         this.backToHubDelayTaskId = new BukkitRunnable() {
             int count = storageUtil.getBackToHubDuration();
             @Override
@@ -1041,6 +1063,7 @@ public class EventManager implements Listener {
             int teamScore = gameManager.getScore(teamName);
             teamLines[i] = new KeyLine("team"+i, String.format("%s%s: %s", teamChatColor, teamDisplayName, teamScore));
         }
+        adminSidebar.addLine("currentGame", getCurrentGameLine());
         adminSidebar.addLines(teamLines);
         adminSidebar.addLine("timer", "");
         adminSidebar.updateTitle(storageUtil.getTitle());
@@ -1064,6 +1087,7 @@ public class EventManager implements Listener {
             int teamScore = gameManager.getScore(teamName);
             teamLines[i] = new KeyLine("team"+i, String.format("%s%s: %s", teamChatColor, teamDisplayName, teamScore));
         }
+        sidebar.addLine("currentGame", getCurrentGameLine());
         sidebar.addLines(teamLines);
         sidebar.addLine("personalScore", "");
         sidebar.addLine("timer", "");
@@ -1076,6 +1100,19 @@ public class EventManager implements Listener {
         sidebar.removeAllPlayers();
         sidebar.deleteAllLines();
         sidebar = null;
+    }
+    
+    /**
+     * @return a line for sidebars saying what the current game is
+     */
+    private String getCurrentGameLine() {
+        if (currentGameNumber <= maxGames) {
+            return String.format("Game %d/%d", currentGameNumber, maxGames);
+        }
+        if (currentState == EventState.PODIUM) {
+            return "Thanks for playing!";
+        }
+        return "Final Round";
     }
     
     public void updateTeamScores() {
