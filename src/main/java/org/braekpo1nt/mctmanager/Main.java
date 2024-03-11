@@ -79,6 +79,12 @@ public class Main extends JavaPlugin {
             gameManager.cancelVote();
             gameManager.cancelAllTasks();
             gameManager.saveGameState();
+            if (gameManager.getEventManager().eventIsActive()) {
+                gameManager.getEventManager().stopEvent(Bukkit.getConsoleSender());
+            }
+            if (gameManager.getEventManager().colossalCombatIsActive()) {
+                gameManager.getEventManager().stopColossalCombat(Bukkit.getConsoleSender());
+            }
             if (gameManager.gameIsRunning()) {
                 gameManager.manuallyStopGame(false);
             }

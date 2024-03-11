@@ -163,12 +163,8 @@ public class EventManager implements Listener {
                     .color(NamedTextColor.RED));
             return;
         }
-        if (currentState == EventState.PLAYING_GAME) {
-            sender.sendMessage(Component.text("Can't stop the event mid-game.")
-                    .color(NamedTextColor.RED));
-            return;
-        }
         HandlerList.unregisterAll(this);
+        currentState = null;
         Component message = Component.text("Ending event. ")
                 .append(Component.text(currentGameNumber - 1))
                 .append(Component.text("/"))
@@ -181,9 +177,9 @@ public class EventManager implements Listener {
             colossalCombatGame.stop(null);
         }
         clearSidebar();
-        admins.clear();
         clearAdminSidebar();
-        currentState = null;
+        participants.clear();
+        admins.clear();
         cancelAllTasks();
         scoreKeepers.clear();
         currentGameNumber = 0;
@@ -981,8 +977,9 @@ public class EventManager implements Listener {
         if (!participants.contains(participant)) {
             return;
         }
-        if (currentState.equals(EventState.DELAY)) {
-            event.setCancelled(true);
+        switch (currentState) {
+            case WAITING_IN_HUB, VOTING, DELAY, PAUSED, PODIUM 
+                    -> event.setCancelled(true);
         }
     }
     
