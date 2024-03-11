@@ -595,9 +595,15 @@ public class EventManager implements Listener {
                 if (count <= 0) {
                     currentState = EventState.PODIUM;
                     sidebar.addLine("winner", String.format("%sWinner: %s", winningChatColor, winningDisplayName));
-                    sidebar.updateLine("timer", "");
+                    sidebar.updateLines(
+                            new KeyLine("currentGame", getCurrentGameLine()),
+                            new KeyLine("timer", "")
+                    );
                     adminSidebar.addLine("winner", String.format("%sWinner: %s", winningChatColor, winningDisplayName));
-                    adminSidebar.updateLine("timer", "");
+                    adminSidebar.updateLines(
+                            new KeyLine("currentGame", getCurrentGameLine()),
+                            new KeyLine("timer", "")
+                    );
                     gameManager.returnAllParticipantsToPodium(winningTeam);
                     this.cancel();
                     return;

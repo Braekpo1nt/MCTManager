@@ -48,33 +48,41 @@ public class EventSubCommand extends CommandManager {
                 return Collections.emptyList();
             }
         });
-        subCommands.put("stop", (sender, command, label, args) -> {
-            if (!gameManager.getEventManager().eventIsActive()) {
-                sender.sendMessage(Component.text("There is no event running.")
-                        .color(NamedTextColor.RED));
+        subCommands.put("stop", new TabExecutor() {
+            @Override
+            public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+                if (!gameManager.getEventManager().eventIsActive()) {
+                    sender.sendMessage(Component.text("There is no event running.")
+                            .color(NamedTextColor.RED));
+                    return true;
+                }
+                if (args.length != 1) {
+                    sender.sendMessage(Component.text("Are you sure? Type ")
+                            .append(Component.empty()
+                                    .append(Component.text("/mct event stop "))
+                                    .append(Component.text("confirm")
+                                            .decorate(TextDecoration.BOLD))
+                                    .decorate(TextDecoration.ITALIC))
+                            .append(Component.text(" to confirm."))
+                            .color(NamedTextColor.YELLOW));
+                    return true;
+                }
+                String confirmString = args[0];
+                if (!confirmString.equals("confirm")) {
+                    sender.sendMessage(Component.empty()
+                            .append(Component.text(confirmString))
+                            .append(Component.text(" is not a recognized option."))
+                            .color(NamedTextColor.RED));
+                    return true;
+                }
+                gameManager.getEventManager().stopEvent(sender);
                 return true;
             }
-            if (args.length != 1) {
-                sender.sendMessage(Component.text("Are you sure? Type ")
-                        .append(Component.empty()
-                                .append(Component.text("/mct event stop "))
-                                .append(Component.text("confirm")
-                                        .decorate(TextDecoration.BOLD))
-                                .decorate(TextDecoration.ITALIC))
-                        .append(Component.text(" to confirm."))
-                        .color(NamedTextColor.YELLOW));
-                return true;
+            
+            @Override
+            public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+                    return Collections.emptyList();
             }
-            String confirmString = args[0];
-            if (!confirmString.equals("confirm")) {
-                sender.sendMessage(Component.empty()
-                        .append(Component.text(confirmString))
-                        .append(Component.text(" is not a recognized option."))
-                        .color(NamedTextColor.RED));
-                return true;
-            }
-            gameManager.getEventManager().stopEvent(sender);
-            return true;
         });
         subCommands.put("pause", (sender, command, label, args) -> {
             gameManager.getEventManager().pauseEvent(sender);
