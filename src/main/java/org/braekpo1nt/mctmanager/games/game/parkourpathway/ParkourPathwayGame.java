@@ -188,6 +188,8 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         participant.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
+        Location respawn = storageUtil.getCheckPoints().get(currentCheckpoints.get(participant.getUniqueId())).respawn();
+        participant.teleport(respawn);
         sidebar.updateLine(participant.getUniqueId(), "title", title);
         updateCheckpointSidebar(participant);
     }

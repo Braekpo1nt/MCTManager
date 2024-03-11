@@ -436,6 +436,12 @@ public class EventManager implements Listener {
             return;
         }
         EventState state = currentState == EventState.PAUSED ? lastStateBeforePause : currentState;
+        // make sure the participant isn't stuck in whatever location they last logged out from, if they aren't supposed to be
+        switch (state) {
+            case WAITING_IN_HUB, VOTING, PODIUM -> {
+                gameManager.returnParticipantToHubInstantly(participant);
+            }
+        }
         switch (state) {
             case DELAY, WAITING_IN_HUB, PODIUM -> {
                 participants.add(participant);
