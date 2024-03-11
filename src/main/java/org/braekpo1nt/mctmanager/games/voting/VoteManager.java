@@ -15,6 +15,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
@@ -300,6 +301,23 @@ public class VoteManager implements Listener {
             participant.sendMessage(Component.text("You didn't vote for a game. Use the nether star to vote.")
                     .color(NamedTextColor.YELLOW));
         }
+    }
+    
+    @EventHandler
+    public void onPlayerDamage(EntityDamageEvent event) {
+        if (!voting) {
+            return;
+        }
+        if (event.getCause().equals(EntityDamageEvent.DamageCause.VOID)) {
+            return;
+        }
+        if (!(event.getEntity() instanceof Player voter)) {
+            return;
+        }
+        if (!voters.contains(voter)) {
+            return;
+        }
+        event.setCancelled(true);
     }
     
     /**
