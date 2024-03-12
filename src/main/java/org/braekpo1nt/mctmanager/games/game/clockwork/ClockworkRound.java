@@ -99,6 +99,46 @@ public class ClockworkRound implements Listener {
         ParticipantInitializer.resetHealthAndHunger(participant);
     }
     
+    private void rejoinParticipant(Player participant) {
+        participants.add(participant);
+        participant.teleport(storageUtil.getStartingLocation());
+        participant.getInventory().clear();
+        participant.setGameMode(GameMode.SPECTATOR);
+        ParticipantInitializer.clearStatusEffects(participant);
+        ParticipantInitializer.resetHealthAndHunger(participant);
+    }
+    
+    /**
+     * Participants who join mid-game should be considered eliminated, but are free
+     * to join the next round and spectate until then.
+     * @param participant the participant
+     */
+    private void joinParticipantMidRound(Player participant) {
+        participants.add(participant);
+        participantsAreAlive.put(participant.getUniqueId(), false);
+        String team = gameManager.getTeamName(participant.getUniqueId());
+        if (!teamsLivingMembers.containsKey(team)) {
+            teamsLivingMembers.put(team, 0);
+        }
+        participant.teleport(storageUtil.getStartingLocation());
+        participant.getInventory().clear();
+        participant.setGameMode(GameMode.SPECTATOR);
+        ParticipantInitializer.clearStatusEffects(participant);
+        ParticipantInitializer.resetHealthAndHunger(participant);
+    }
+    
+    /**
+     * @param participant the participant
+     * @return true if the participant was in the game before, left, and should be
+     * considered as dead/eliminated
+     */
+    private boolean participantShouldRejoin(Player participant) {
+        if (!roundActive) {
+            return false;
+        }
+        return participantsAreAlive.containsKey(participant.getUniqueId());
+    }
+    
     private void roundIsOver() {
         stop();
         clockworkGame.roundIsOver();
@@ -125,10 +165,17 @@ public class ClockworkRound implements Listener {
     }
     
     public void onParticipantJoin(Player participant) {
-        initializeParticipant(participant);
+        if (participantShouldRejoin(participant)) {
+            rejoinParticipant(participant);
+        } else {
+            joinParticipantMidRound(participant);
+        }
     }
     
     public void onParticipantQuit(Player participant) {
+        if (participantsAreAlive.get(participant.getUniqueId())) {
+            killParticipants(Collections.singletonList(participant));
+        }
         resetParticipant(participant);
         participants.remove(participant);
     }

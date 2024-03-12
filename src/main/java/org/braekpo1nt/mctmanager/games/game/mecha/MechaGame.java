@@ -237,9 +237,6 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     @Override
     public void onParticipantJoin(Player participant) {
         if (participantShouldRejoin(participant)) {
-            messageAllParticipants(Component.text(participant.getName())
-                    .append(Component.text(" is rejoining MECHA!"))
-                    .color(NamedTextColor.YELLOW));
             rejoinParticipant(participant);
         } else {
             messageAllParticipants(Component.text(participant.getName())
