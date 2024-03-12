@@ -407,7 +407,6 @@ public class EventManager implements Listener {
                     .color(NamedTextColor.RED));
             return;
         }
-        Bukkit.getLogger().info(String.format("maxGames: %s, newMaxGames: %s, currentGameNumber: %s", maxGames, newMaxGames, currentGameNumber));
         if (newMaxGames == maxGames) {
             sender.sendMessage(Component.text("Max games is already ")
                     .append(Component.text(newMaxGames))
@@ -426,24 +425,44 @@ public class EventManager implements Listener {
         }
         EventState state = currentState == EventState.PAUSED ? lastStateBeforePause : currentState;
         switch (state) {
-            case WAITING_IN_HUB, PLAYING_GAME -> {
+            case WAITING_IN_HUB -> {
                 if (newMaxGames < currentGameNumber - 1) {
                     sender.sendMessage(Component.text("Can't set the max games for this event to less than ")
                             .append(Component.text(currentGameNumber - 1)
                                     .decorate(TextDecoration.BOLD))
-                            .append(Component.text(" because that's how many games have been played."))
+                            .append(Component.text(" because "))
+                            .append(Component.text(currentGameNumber - 1))
+                            .append(Component.text(" game(s) have been played."))
                             .color(NamedTextColor.RED));
                     return;
                 }
-                maxGames = newMaxGames;
-                sidebar.updateLine("currentGame", getCurrentGameLine());
-                adminSidebar.updateLine("currentGame", getCurrentGameLine());
-                sender.sendMessage(Component.text("Max games has been set to ")
-                        .append(Component.text(newMaxGames)));
+                modifyMaxGames(sender, newMaxGames);
+            }
+            case PLAYING_GAME -> {
+                if (newMaxGames < currentGameNumber) {
+                    sender.sendMessage(Component.text("Can't set the max games for this event to less than ")
+                            .append(Component.text(currentGameNumber)
+                                    .decorate(TextDecoration.BOLD))
+                            .append(Component.text(" because "))
+                            .append(Component.text(currentGameNumber))
+                            .append(Component.text(" game(s) have been played."))
+                            .color(NamedTextColor.RED));
+                    return;
+                }
+                modifyMaxGames(sender, newMaxGames);
             }
             case VOTING -> {
-                sender.sendMessage(Component.text("Can't change the max games while voting.")
-                        .color(NamedTextColor.RED));
+                if (newMaxGames < currentGameNumber) {
+                    sender.sendMessage(Component.text("Can't set the max games for this event to less than ")
+                            .append(Component.text(currentGameNumber)
+                                    .decorate(TextDecoration.BOLD))
+                            .append(Component.text(" because "))
+                            .append(Component.text(currentGameNumber - 1))
+                            .append(Component.text(" game(s) have been played and voting is in progress."))
+                            .color(NamedTextColor.RED));
+                    return;
+                }
+                modifyMaxGames(sender, newMaxGames);
             }
             case DELAY -> {
                 sender.sendMessage(Component.text("Can't change the max games during transition period.")
@@ -454,6 +473,14 @@ public class EventManager implements Listener {
                         .color(NamedTextColor.RED));
             }
         }
+    }
+    
+    private void modifyMaxGames(@NotNull CommandSender sender, int newMaxGames) {
+        maxGames = newMaxGames;
+        sidebar.updateLine("currentGame", getCurrentGameLine());
+        adminSidebar.updateLine("currentGame", getCurrentGameLine());
+        sender.sendMessage(Component.text("Max games has been set to ")
+                .append(Component.text(newMaxGames)));
     }
     
     public void addGameToVotingPool(@NotNull CommandSender sender, @NotNull GameType gameToAdd) {
