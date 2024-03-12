@@ -396,6 +396,66 @@ public class EventManager implements Listener {
         return reportBuilder.build();
     }
     
+    /**
+     * Set the max games for the event. Can't set the max games to be lower than the current number of played games.
+     * @param sender the sender
+     * @param newMaxGames the new number of max games. If this is lower than the number of games already played, nothing will happen and the sender will get an error message.
+     */
+    public void setMaxGames(@NotNull CommandSender sender, int newMaxGames) {
+        if (currentState == null) {
+            sender.sendMessage(Component.text("There isn't an event going on.")
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        Bukkit.getLogger().info(String.format("maxGames: %s, newMaxGames: %s, currentGameNumber: %s", maxGames, newMaxGames, currentGameNumber));
+        if (newMaxGames == maxGames) {
+            sender.sendMessage(Component.text("Max games is already ")
+                    .append(Component.text(newMaxGames))
+                    .append(Component.text(". No change was made.")));
+            return;
+        }
+        if (newMaxGames < 0) {
+            sender.sendMessage(Component.text("Can't set the max games to less than 0.")
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        if (colossalCombatIsActive()) {
+            sender.sendMessage(Component.text("Can't change the max games during the final game.")
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        EventState state = currentState == EventState.PAUSED ? lastStateBeforePause : currentState;
+        switch (state) {
+            case WAITING_IN_HUB, PLAYING_GAME -> {
+                if (newMaxGames < currentGameNumber - 1) {
+                    sender.sendMessage(Component.text("Can't set the max games for this event to less than ")
+                            .append(Component.text(currentGameNumber - 1)
+                                    .decorate(TextDecoration.BOLD))
+                            .append(Component.text(" because that's how many games have been played."))
+                            .color(NamedTextColor.RED));
+                    return;
+                }
+                maxGames = newMaxGames;
+                sidebar.updateLine("currentGame", getCurrentGameLine());
+                adminSidebar.updateLine("currentGame", getCurrentGameLine());
+                sender.sendMessage(Component.text("Max games has been set to ")
+                        .append(Component.text(newMaxGames)));
+            }
+            case VOTING -> {
+                sender.sendMessage(Component.text("Can't change the max games while voting.")
+                        .color(NamedTextColor.RED));
+            }
+            case DELAY -> {
+                sender.sendMessage(Component.text("Can't change the max games during transition period.")
+                        .color(NamedTextColor.RED));
+            }
+            case PODIUM -> {
+                sender.sendMessage(Component.text("The event is over, can't change the max games.")
+                        .color(NamedTextColor.RED));
+            }
+        }
+    }
+    
     public void addGameToVotingPool(@NotNull CommandSender sender, @NotNull GameType gameToAdd) {
         if (currentState == null) {
             sender.sendMessage(Component.text("There isn't an event going on.")
@@ -1226,4 +1286,5 @@ public class EventManager implements Listener {
     public int getMaxGames() {
         return maxGames;
     }
+    
 }

@@ -11,7 +11,6 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -140,6 +139,7 @@ public class EventSubCommand extends CommandManager {
             }
         });
         subCommands.put("vote", new VoteSubCommand(gameManager));
+        subCommands.put("modify", new ModifySubCommand(gameManager));
     }
     
     /**
@@ -159,5 +159,5 @@ public class EventSubCommand extends CommandManager {
     public Component getUsageMessage() {
         return Component.text("Usage: /mct event <options>");
     }
-       
+    
 }
