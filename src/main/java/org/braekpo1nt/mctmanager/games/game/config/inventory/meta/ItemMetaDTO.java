@@ -2,13 +2,17 @@ package org.braekpo1nt.mctmanager.games.game.config.inventory.meta;
 
 import com.destroystokyo.paper.Namespaced;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonIOException;
+import com.google.gson.JsonSyntaxException;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
+import org.braekpo1nt.mctmanager.games.game.config.ConfigUtil;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.enchantments.EnchantmentWrapper;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -32,6 +36,21 @@ public class ItemMetaDTO {
     protected @Nullable Set<Namespaced> placeableKeys;
     
     /**
+     * 
+     * @param loreDTO the list of {@link JsonElement}s that represent the 
+     *                list of {@link Component}s for an {@link ItemMeta}'s lore
+     * @return the loreDTO as a list of {@link Component}s for use as an {@link ItemMeta}'s lore
+     * @throws IllegalArgumentException if any of the given loreDTO elements can't be parsed as a {@link Component}
+     */
+    public static @NotNull List<Component> toLore(@NotNull List<@NotNull JsonElement> loreDTO) {
+        try {
+            return ConfigUtil.toComponents(loreDTO);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("lore is invalid", e);
+        }
+    }
+    
+    /**
      * Imbues the provided ItemMeta with the attributes of this ItemMetaDTO
      * @param meta the ItemMeta to be modified
      * @return the provided ItemMeta, after all the attributes have been set 
@@ -39,12 +58,11 @@ public class ItemMetaDTO {
      */
     public ItemMeta toItemMeta(ItemMeta meta) {
         if (displayName != null) {
-            Component newDisplayName = GsonComponentSerializer.gson().deserializeFromTree(displayName);
+            Component newDisplayName = ConfigUtil.toComponent(displayName);
             meta.displayName(newDisplayName);
         }
         if (lore != null) {
-            List<Component> newLore = lore.stream().map(line -> GsonComponentSerializer.gson().deserializeFromTree(line)).toList();
-            meta.lore(newLore);
+            meta.lore(ItemMetaDTO.toLore(lore));
         }
         if (enchants != null) {
             for (Map.Entry<String, Integer> enchant : enchants.entrySet()) {

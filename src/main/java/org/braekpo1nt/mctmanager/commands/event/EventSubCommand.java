@@ -11,8 +11,8 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -47,33 +47,41 @@ public class EventSubCommand extends CommandManager {
                 return Collections.emptyList();
             }
         });
-        subCommands.put("stop", (sender, command, label, args) -> {
-            if (!gameManager.getEventManager().eventIsActive()) {
-                sender.sendMessage(Component.text("There is no event running.")
-                        .color(NamedTextColor.RED));
+        subCommands.put("stop", new TabExecutor() {
+            @Override
+            public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+                if (!gameManager.getEventManager().eventIsActive()) {
+                    sender.sendMessage(Component.text("There is no event running.")
+                            .color(NamedTextColor.RED));
+                    return true;
+                }
+                if (args.length != 1) {
+                    sender.sendMessage(Component.text("Are you sure? Type ")
+                            .append(Component.empty()
+                                    .append(Component.text("/mct event stop "))
+                                    .append(Component.text("confirm")
+                                            .decorate(TextDecoration.BOLD))
+                                    .decorate(TextDecoration.ITALIC))
+                            .append(Component.text(" to confirm."))
+                            .color(NamedTextColor.YELLOW));
+                    return true;
+                }
+                String confirmString = args[0];
+                if (!confirmString.equals("confirm")) {
+                    sender.sendMessage(Component.empty()
+                            .append(Component.text(confirmString))
+                            .append(Component.text(" is not a recognized option."))
+                            .color(NamedTextColor.RED));
+                    return true;
+                }
+                gameManager.getEventManager().stopEvent(sender);
                 return true;
             }
-            if (args.length != 1) {
-                sender.sendMessage(Component.text("Are you sure? Type ")
-                        .append(Component.empty()
-                                .append(Component.text("/mct event stop "))
-                                .append(Component.text("confirm")
-                                        .decorate(TextDecoration.BOLD))
-                                .decorate(TextDecoration.ITALIC))
-                        .append(Component.text(" to confirm."))
-                        .color(NamedTextColor.YELLOW));
-                return true;
+            
+            @Override
+            public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+                    return Collections.emptyList();
             }
-            String confirmString = args[0];
-            if (!confirmString.equals("confirm")) {
-                sender.sendMessage(Component.empty()
-                        .append(Component.text(confirmString))
-                        .append(Component.text(" is not a recognized option."))
-                        .color(NamedTextColor.RED));
-                return true;
-            }
-            gameManager.getEventManager().stopEvent(sender);
-            return true;
         });
         subCommands.put("pause", (sender, command, label, args) -> {
             gameManager.getEventManager().pauseEvent(sender);
@@ -115,15 +123,41 @@ public class EventSubCommand extends CommandManager {
             
             @Override
             public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-                return Collections.emptyList();
+                if (args.length != 2) {
+                    return Collections.emptyList();
+                }
+                String gameID = args[0];
+                GameType gameType = GameType.fromID(gameID);
+                if (gameType == null) {
+                    return Collections.emptyList();
+                }
+                int iterations = gameManager.getEventManager().getGameIterations(gameType);
+                if (iterations <= 0) {
+                    return Collections.emptyList();
+                }
+                return generateNumberList(iterations);
             }
         });
         subCommands.put("vote", new VoteSubCommand(gameManager));
+        subCommands.put("modify", new ModifySubCommand(gameManager));
+    }
+    
+    /**
+     * 
+     * @param n the number to generate numbers up to (must be at least 1 to get any entries)
+     * @return a list containing the numbers 1 through n inclusive as Strings, in increasing order. If n is less than 1, an empty list is produced. 
+     */
+    public static List<String> generateNumberList(int n) {
+        List<String> numbers = new ArrayList<>();
+        for (int i = 1; i <= n; i++) {
+            numbers.add(Integer.toString(i));
+        }
+        return numbers;
     }
     
     @Override
     public Component getUsageMessage() {
         return Component.text("Usage: /mct event <options>");
     }
-       
+    
 }

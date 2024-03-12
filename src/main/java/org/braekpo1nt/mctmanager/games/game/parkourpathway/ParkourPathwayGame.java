@@ -161,6 +161,8 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
     
     private void resetParticipant(Player participant) {
         participant.getInventory().clear();
+        ParticipantInitializer.clearStatusEffects(participant);
+        ParticipantInitializer.resetHealthAndHunger(participant);
         sidebar.removePlayer(participant.getUniqueId());
     }
     
@@ -186,6 +188,8 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         participant.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
+        Location respawn = storageUtil.getCheckPoints().get(currentCheckpoints.get(participant.getUniqueId())).respawn();
+        participant.teleport(respawn);
         sidebar.updateLine(participant.getUniqueId(), "title", title);
         updateCheckpointSidebar(participant);
     }

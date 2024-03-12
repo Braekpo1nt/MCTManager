@@ -431,6 +431,14 @@ public class GameManager implements Listener {
         hubManager.returnParticipantsToHub(onlineParticipants, onlineAdmins, false);
     }
     
+    /**
+     * Instantly returns the given participant to the hub
+     * @param participant the participant to be returned to the hub
+     */
+    public void returnParticipantToHubInstantly(Player participant) {
+        hubManager.returnParticipantsToHub(Collections.singletonList(participant), Collections.emptyList(), false);
+    }
+    
     public void returnAllParticipantsToPodium(String winningTeam) {
         List<Player> winningTeamParticipants = getOnlinePlayersOnTeam(winningTeam);
         List<Player> otherParticipants = new ArrayList<>();

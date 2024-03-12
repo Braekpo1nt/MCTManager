@@ -233,19 +233,23 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
             }
         }
     }
-
+    
     @Override
     public void onParticipantJoin(Player participant) {
         if (participantShouldRejoin(participant)) {
-            messageAllParticipants(Component.text(participant.getName())
-                    .append(Component.text(" is rejoining MECHA!"))
-                    .color(NamedTextColor.YELLOW));
             rejoinParticipant(participant);
         } else {
             messageAllParticipants(Component.text(participant.getName())
                     .append(Component.text(" is joining MECHA!"))
                     .color(NamedTextColor.YELLOW));
             initializeParticipant(participant);
+            if (!mechaHasStarted) {
+                List<String> teams = gameManager.getTeamNames(participants);
+                createPlatforms(teams);
+                teleportTeams(teams);
+            } else {
+                participant.teleport(storageUtil.getPlatformSpawns().get(0));
+            }
         }
         sidebar.updateLines(participant.getUniqueId(),
                 new KeyLine("title", title),

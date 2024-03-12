@@ -153,6 +153,8 @@ public class EventManager implements Listener {
         }
         updateTeamScores();
         updatePersonalScores();
+        sidebar.updateLine("currentGame", getCurrentGameLine());
+        adminSidebar.updateLine("currentGame", getCurrentGameLine());
     }
     
     public void stopEvent(CommandSender sender) {
@@ -161,12 +163,8 @@ public class EventManager implements Listener {
                     .color(NamedTextColor.RED));
             return;
         }
-        if (currentState == EventState.PLAYING_GAME) {
-            sender.sendMessage(Component.text("Can't stop the event mid-game.")
-                    .color(NamedTextColor.RED));
-            return;
-        }
         HandlerList.unregisterAll(this);
+        currentState = null;
         Component message = Component.text("Ending event. ")
                 .append(Component.text(currentGameNumber - 1))
                 .append(Component.text("/"))
@@ -179,9 +177,9 @@ public class EventManager implements Listener {
             colossalCombatGame.stop(null);
         }
         clearSidebar();
-        admins.clear();
         clearAdminSidebar();
-        currentState = null;
+        participants.clear();
+        admins.clear();
         cancelAllTasks();
         scoreKeepers.clear();
         currentGameNumber = 0;
@@ -311,6 +309,22 @@ public class EventManager implements Listener {
     }
     
     /**
+     * For use with the undo operation. Gets the number of times a game has been played this round.
+     * @param gameType the game to check for the iterations of
+     * @return the game iterations (the number of times a game has been played this event).
+     * -1 if an event isn't active, 0 if the gameType hasn't been played yet
+     */
+    public int getGameIterations(GameType gameType) {
+        if (currentState == null) {
+            return -1;
+        }
+        if (!scoreKeepers.containsKey(gameType)) {
+            return 0;
+        }
+        return scoreKeepers.get(gameType).size();
+    }
+    
+    /**
      * Removes the scores that were tracked by the given ScoreKeeper
      * @param scoreKeeper holds the tracked scores to be removed
      */
@@ -382,6 +396,93 @@ public class EventManager implements Listener {
         return reportBuilder.build();
     }
     
+    /**
+     * Set the max games for the event. Can't set the max games to be lower than the current number of played games.
+     * @param sender the sender
+     * @param newMaxGames the new number of max games. If this is lower than the number of games already played, nothing will happen and the sender will get an error message.
+     */
+    public void setMaxGames(@NotNull CommandSender sender, int newMaxGames) {
+        if (currentState == null) {
+            sender.sendMessage(Component.text("There isn't an event going on.")
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        if (newMaxGames == maxGames) {
+            sender.sendMessage(Component.text("Max games is already ")
+                    .append(Component.text(newMaxGames))
+                    .append(Component.text(". No change was made.")));
+            return;
+        }
+        if (newMaxGames < 0) {
+            sender.sendMessage(Component.text("Can't set the max games to less than 0.")
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        if (colossalCombatIsActive()) {
+            sender.sendMessage(Component.text("Can't change the max games during the final game.")
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        EventState state = currentState == EventState.PAUSED ? lastStateBeforePause : currentState;
+        switch (state) {
+            case WAITING_IN_HUB -> {
+                if (newMaxGames < currentGameNumber - 1) {
+                    sender.sendMessage(Component.text("Can't set the max games for this event to less than ")
+                            .append(Component.text(currentGameNumber - 1)
+                                    .decorate(TextDecoration.BOLD))
+                            .append(Component.text(" because "))
+                            .append(Component.text(currentGameNumber - 1))
+                            .append(Component.text(" game(s) have been played."))
+                            .color(NamedTextColor.RED));
+                    return;
+                }
+                modifyMaxGames(sender, newMaxGames);
+            }
+            case PLAYING_GAME -> {
+                if (newMaxGames < currentGameNumber) {
+                    sender.sendMessage(Component.text("Can't set the max games for this event to less than ")
+                            .append(Component.text(currentGameNumber)
+                                    .decorate(TextDecoration.BOLD))
+                            .append(Component.text(" because "))
+                            .append(Component.text(currentGameNumber))
+                            .append(Component.text(" game(s) have been played."))
+                            .color(NamedTextColor.RED));
+                    return;
+                }
+                modifyMaxGames(sender, newMaxGames);
+            }
+            case VOTING -> {
+                if (newMaxGames < currentGameNumber) {
+                    sender.sendMessage(Component.text("Can't set the max games for this event to less than ")
+                            .append(Component.text(currentGameNumber)
+                                    .decorate(TextDecoration.BOLD))
+                            .append(Component.text(" because "))
+                            .append(Component.text(currentGameNumber - 1))
+                            .append(Component.text(" game(s) have been played and voting is in progress."))
+                            .color(NamedTextColor.RED));
+                    return;
+                }
+                modifyMaxGames(sender, newMaxGames);
+            }
+            case DELAY -> {
+                sender.sendMessage(Component.text("Can't change the max games during transition period.")
+                        .color(NamedTextColor.RED));
+            }
+            case PODIUM -> {
+                sender.sendMessage(Component.text("The event is over, can't change the max games.")
+                        .color(NamedTextColor.RED));
+            }
+        }
+    }
+    
+    private void modifyMaxGames(@NotNull CommandSender sender, int newMaxGames) {
+        maxGames = newMaxGames;
+        sidebar.updateLine("currentGame", getCurrentGameLine());
+        adminSidebar.updateLine("currentGame", getCurrentGameLine());
+        sender.sendMessage(Component.text("Max games has been set to ")
+                .append(Component.text(newMaxGames)));
+    }
+    
     public void addGameToVotingPool(@NotNull CommandSender sender, @NotNull GameType gameToAdd) {
         if (currentState == null) {
             sender.sendMessage(Component.text("There isn't an event going on.")
@@ -422,12 +523,19 @@ public class EventManager implements Listener {
             return;
         }
         EventState state = currentState == EventState.PAUSED ? lastStateBeforePause : currentState;
+        // make sure the participant isn't stuck in whatever location they last logged out from, if they aren't supposed to be
+        switch (state) {
+            case WAITING_IN_HUB, VOTING, PODIUM -> {
+                gameManager.returnParticipantToHubInstantly(participant);
+            }
+        }
         switch (state) {
             case DELAY, WAITING_IN_HUB, PODIUM -> {
                 participants.add(participant);
                 if (sidebar != null) {
                     sidebar.addPlayer(participant);
                     updateTeamScores();
+                    sidebar.updateLine(participant.getUniqueId(), "currentGame", getCurrentGameLine());
                 }
             }
             case VOTING -> voteManager.onParticipantJoin(participant);
@@ -468,6 +576,7 @@ public class EventManager implements Listener {
                 if (adminSidebar != null) {
                     adminSidebar.addPlayer(admin);
                     updateTeamScores();
+                    adminSidebar.updateLine(admin.getUniqueId(), "currentGame", getCurrentGameLine());
                 }
             }
             case VOTING -> voteManager.onAdminJoin(admin);
@@ -575,9 +684,15 @@ public class EventManager implements Listener {
                 if (count <= 0) {
                     currentState = EventState.PODIUM;
                     sidebar.addLine("winner", String.format("%sWinner: %s", winningChatColor, winningDisplayName));
-                    sidebar.updateLine("timer", "");
+                    sidebar.updateLines(
+                            new KeyLine("currentGame", getCurrentGameLine()),
+                            new KeyLine("timer", "")
+                    );
                     adminSidebar.addLine("winner", String.format("%sWinner: %s", winningChatColor, winningDisplayName));
-                    adminSidebar.updateLine("timer", "");
+                    adminSidebar.updateLines(
+                            new KeyLine("currentGame", getCurrentGameLine()),
+                            new KeyLine("timer", "")
+                    );
                     gameManager.returnAllParticipantsToPodium(winningTeam);
                     this.cancel();
                     return;
@@ -673,6 +788,8 @@ public class EventManager implements Listener {
         initializeParticipantsAndAdmins();
         playedGames.add(finishedGameType);
         currentGameNumber += 1;
+        sidebar.updateLine("currentGame", getCurrentGameLine());
+        adminSidebar.updateLine("currentGame", getCurrentGameLine());
         this.backToHubDelayTaskId = new BukkitRunnable() {
             int count = storageUtil.getBackToHubDuration();
             @Override
@@ -953,8 +1070,9 @@ public class EventManager implements Listener {
         if (!participants.contains(participant)) {
             return;
         }
-        if (currentState.equals(EventState.DELAY)) {
-            event.setCancelled(true);
+        switch (currentState) {
+            case WAITING_IN_HUB, VOTING, DELAY, PAUSED, PODIUM 
+                    -> event.setCancelled(true);
         }
     }
     
@@ -1041,6 +1159,7 @@ public class EventManager implements Listener {
             int teamScore = gameManager.getScore(teamName);
             teamLines[i] = new KeyLine("team"+i, String.format("%s%s: %s", teamChatColor, teamDisplayName, teamScore));
         }
+        adminSidebar.addLine("currentGame", getCurrentGameLine());
         adminSidebar.addLines(teamLines);
         adminSidebar.addLine("timer", "");
         adminSidebar.updateTitle(storageUtil.getTitle());
@@ -1064,6 +1183,7 @@ public class EventManager implements Listener {
             int teamScore = gameManager.getScore(teamName);
             teamLines[i] = new KeyLine("team"+i, String.format("%s%s: %s", teamChatColor, teamDisplayName, teamScore));
         }
+        sidebar.addLine("currentGame", getCurrentGameLine());
         sidebar.addLines(teamLines);
         sidebar.addLine("personalScore", "");
         sidebar.addLine("timer", "");
@@ -1076,6 +1196,19 @@ public class EventManager implements Listener {
         sidebar.removeAllPlayers();
         sidebar.deleteAllLines();
         sidebar = null;
+    }
+    
+    /**
+     * @return a line for sidebars saying what the current game is
+     */
+    private String getCurrentGameLine() {
+        if (currentGameNumber <= maxGames) {
+            return String.format("Game %d/%d", currentGameNumber, maxGames);
+        }
+        if (currentState == EventState.PODIUM) {
+            return "Thanks for playing!";
+        }
+        return "Final Round";
     }
     
     public void updateTeamScores() {
@@ -1180,4 +1313,5 @@ public class EventManager implements Listener {
     public int getMaxGames() {
         return maxGames;
     }
+    
 }

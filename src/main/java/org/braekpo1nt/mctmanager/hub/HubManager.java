@@ -53,7 +53,7 @@ public class HubManager implements Listener, Configurable {
     }
     
     /**
-     * Returns the participants to the hub instantly, without a delay
+     * Returns the participants to the hub (either instantly, or with a delay)
      * @param newParticipants the participants to send to the hub
      * @param delay false will perform the teleport instantaneously, true will teleport with a delay
      */
