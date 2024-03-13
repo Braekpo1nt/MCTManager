@@ -7,12 +7,13 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.config.GameConfigStorageUtil;
-import org.braekpo1nt.mctmanager.games.game.parkourpathway.CheckPoint;
+import org.braekpo1nt.mctmanager.games.game.parkourpathway.Puzzle;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
@@ -22,7 +23,7 @@ import java.util.List;
 public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPathwayConfig> {
     
     protected ParkourPathwayConfig parkourPathwayConfig = getExampleConfig();
-    private List<CheckPoint> checkPoints;
+    private List<Puzzle> puzzles;
     private World world;
     private Location startingLocation;
     private Component description;
@@ -55,46 +56,67 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
         Preconditions.checkArgument(config.durations().timeLimit() >= 2, "durations.timeLimit (%s) can't be less than 2", config.durations().timeLimit());
         Preconditions.checkArgument(config.durations().checkpointCounter() >= 1, "durations.checkpointCounter (%s) can't be less than 1", config.durations().checkpointCounter());
         Preconditions.checkArgument(config.durations().checkpointCounterAlert() >= 1 && config.durations().checkpointCounter() >= config.durations().checkpointCounterAlert(), "durations.checkpointCounterAlert (%s) can't be less than 0 or greater than durations.checkpointCounter", config.durations().checkpointCounterAlert());
-        Preconditions.checkArgument(config.checkpoints() != null, "checkpoints can't be null");
-        Preconditions.checkArgument(config.checkpoints().size() >= 3, "checkpoints must have at least 3 checkpoints");
-        for (int i = 0; i < config.checkpoints().size(); i++) {
-            ParkourPathwayConfig.CheckPointDTO checkPoint = config.checkpoints().get(i);
-            Preconditions.checkArgument(checkPoint != null, "checkpoint %s is null", i);
-            Preconditions.checkArgument(checkPoint.detectionBox() != null, "checkpoint %s's detectionBox is null", i);
-            BoundingBox detectionBox = checkPoint.detectionBox().toBoundingBox();
-            Preconditions.checkArgument(detectionBox.getVolume() >= 1, "detectionBox's volume (%s) can't be less than 1. %s", detectionBox.getVolume(), detectionBox);
-            Preconditions.checkArgument(checkPoint.respawn().getY() >= checkPoint.yValue(), "checkpoint's respawn's y-value (%s) can't be lower than its yValue (%s)", checkPoint.respawn().getY(), checkPoint.yValue());
-            if (i-1 >= 0) {
-                ParkourPathwayConfig.CheckPointDTO lastCheckPoint = config.checkpoints().get(i-1);
-                Preconditions.checkArgument(detectionBox.getMaxY() >= lastCheckPoint.yValue(), "checkpoint %s's detectionBox (%s) can't have a maxY (%s) lower than checkpoint %s's yValue (%s)", i, detectionBox, detectionBox.getMaxY(), i-1, lastCheckPoint.yValue());
-                
-                Preconditions.checkArgument(!detectionBox.contains(lastCheckPoint.respawn()), "checkpoint %s's detectionBox (%s) can't contain checkpoint %s's respawn (%s)", i, detectionBox, i-1, lastCheckPoint.respawn());
-            }
-            try {
-                GsonComponentSerializer.gson().deserializeFromTree(config.description());
-            } catch (JsonIOException | JsonSyntaxException e) {
-                throw new IllegalArgumentException("description is invalid", e);
-            }
+        Preconditions.checkArgument(config.puzzles() != null, "puzzles can't be null");
+        Preconditions.checkArgument(config.puzzles().size() >= 3, "puzzles must have at least 3 puzzles");
+        puzzlesAreValid(config.puzzles());
+        try {
+            GsonComponentSerializer.gson().deserializeFromTree(config.description());
+        } catch (JsonIOException | JsonSyntaxException e) {
+            throw new IllegalArgumentException("description is invalid", e);
         }
         return true;
     }
+    
+    private void puzzlesAreValid(List<ParkourPathwayConfig.PuzzleDTO> puzzles) {
+        for (int i = 0; i < puzzles.size(); i++) {
+            ParkourPathwayConfig.PuzzleDTO puzzle = puzzles.get(i);
+            Preconditions.checkArgument(puzzle != null, "puzzles[%s] can't be null", i);
+            puzzleIsValid(puzzle);
+            if (i - 1 >= 0) {
+                ParkourPathwayConfig.PuzzleDTO previousPuzzle = puzzles.get(i - 1);
+                BoundingBox previousInBounds = previousPuzzle.inBounds().toBoundingBox();
+                for (ParkourPathwayConfig.PuzzleDTO.CheckPointDTO checkPoint : puzzle.checkPoints()) {
+                    Preconditions.checkArgument(previousInBounds.contains(checkPoint.detectionArea().toBoundingBox()), "puzzles[%s].inBounds must contain all puzzles[%s].checkPoints detectionAreas", i - 1, i);
+                    Preconditions.checkArgument(previousInBounds.contains(checkPoint.respawn().toVector()), "puzzles[%s].inBounds must contain all puzzles[%s].checkPoints respawns", i - 1, i);
+                }
+            }
+        }
+    }
+    
+    private void puzzleIsValid(@NotNull ParkourPathwayConfig.PuzzleDTO puzzle) {
+        Preconditions.checkArgument(puzzle.inBounds() != null, "puzzle.inBounds can't be null");
+        BoundingBox inBounds = puzzle.inBounds().toBoundingBox();
+        Preconditions.checkArgument(inBounds.getVolume() >= 1, "puzzle.inBounds' volume (%s) can't be less than 1 (%s)", inBounds.getVolume(), inBounds);
+        Preconditions.checkArgument(puzzle.checkPoints() != null, "puzzle.checkPoints can't be null");
+        Preconditions.checkArgument(!puzzle.checkPoints().isEmpty(), "puzzle.checkPoints must have at least 1 element");
+        for (ParkourPathwayConfig.PuzzleDTO.CheckPointDTO checkPoint : puzzle.checkPoints()) {
+            Preconditions.checkArgument(checkPoint != null, "puzzle.checkPoints can't have null elements");
+            puzzleCheckPointIsValid(checkPoint);
+            Preconditions.checkArgument(inBounds.contains(checkPoint.detectionArea().toBoundingBox()), "puzzle.inBounds must contain all puzzle.checkPoints.detectionAreas");
+            Preconditions.checkArgument(inBounds.contains(checkPoint.respawn().toVector()), "puzzle.inBounds must contain all puzzle.checkPoints.respawns");
+        }
+        
+    }
+    
+    private void puzzleCheckPointIsValid(@NotNull ParkourPathwayConfig.PuzzleDTO.CheckPointDTO checkPoint) {
+        BoundingBox detectionArea = checkPoint.detectionArea().toBoundingBox();
+        Preconditions.checkArgument(detectionArea.getVolume() >= 1, "puzzle.checkPoints.detectionArea's volume (%s) can't be less than 1 (%s)", detectionArea.getVolume(), detectionArea);
+        Preconditions.checkArgument(detectionArea.contains(checkPoint.respawn().toVector()), "puzzle.checkPoints.detectionArea must contain respawn");
+        
+    }
+    
     
     @Override
     protected void setConfig(ParkourPathwayConfig config) {
         World newWorld = Bukkit.getWorld(config.world());
         Preconditions.checkArgument(newWorld != null, "Could not find world \"%s\"", config.world());
         Location newStartingLocation = config.startingLocation().toLocation(newWorld);
-        List<CheckPoint> newCheckPoints = new ArrayList<>();
-        for (ParkourPathwayConfig.CheckPointDTO checkpointDTO : config.checkpoints()) {
-            Vector configRespawn = checkpointDTO.respawn();
-            Location respawn = new Location(newWorld, configRespawn.getX(), configRespawn.getY(), configRespawn.getZ());
-            newCheckPoints.add(new CheckPoint(checkpointDTO.yValue(), checkpointDTO.detectionBox().toBoundingBox(), respawn));
-        }
+        List<Puzzle> newPuzzles = config.puzzles().stream().map(puzzleDTO -> puzzleDTO.toPuzzle(newWorld)).toList();
         Component newDescription = GsonComponentSerializer.gson().deserializeFromTree(config.description());
         // now it's confirmed everything works, so set the actual fields
         this.world = newWorld;
         this.startingLocation = newStartingLocation;
-        this.checkPoints = newCheckPoints;
+        this.puzzles = newPuzzles;
         this.description = newDescription;
         this.parkourPathwayConfig = config;
     }
@@ -104,8 +126,8 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
         return ParkourPathwayStorageUtil.class.getResourceAsStream("exampleParkourPathwayConfig.json");
     }
     
-    public List<CheckPoint> getCheckPoints() {
-        return checkPoints;
+    public List<Puzzle> getPuzzles() {
+        return puzzles;
     }
     
     public int getStartingDuration() {

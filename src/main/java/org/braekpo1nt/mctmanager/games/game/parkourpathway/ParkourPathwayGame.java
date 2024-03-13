@@ -58,9 +58,13 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
      */
     private List<UUID> finishedParticipants;
     /**
-     * UUID paired with index of checkpoint
+     * The index of the puzzle each participant is solving
      */
-    private Map<UUID, Integer> currentCheckpoints;
+    private Map<UUID, Integer> currentPuzzles;
+    /**
+     * The index of the checkpoint that a player is associated with for their current puzzle (since there can be multiple)
+     */
+    private Map<UUID, Integer> currentPuzzleCheckpoints;
     
     public ParkourPathwayGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
@@ -81,7 +85,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
     @Override
     public void start(List<Player> newParticipants, List<Player> newAdmins) {
         participants = new ArrayList<>();
-        currentCheckpoints = new HashMap<>();
+        currentPuzzles = new HashMap<>();
         finishedParticipants = new ArrayList<>();
         closeGlassBarriers();
         sidebar = gameManager.getSidebarFactory().createSidebar();
@@ -106,7 +110,8 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
     
     private void initializeParticipant(Player participant) {
         participants.add(participant);
-        currentCheckpoints.put(participant.getUniqueId(), 0);
+        currentPuzzles.put(participant.getUniqueId(), 0);
+        currentPuzzleCheckpoints.put(participant.getUniqueId(), 0);
         sidebar.addPlayer(participant);
         teleportPlayerToStartingPosition(participant);
         participant.getInventory().clear();
@@ -181,14 +186,15 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
     @Override
     public void onParticipantJoin(Player participant) {
         participants.add(participant);
-        currentCheckpoints.putIfAbsent(participant.getUniqueId(), 0);
+        currentPuzzles.putIfAbsent(participant.getUniqueId(), 0);
+        currentPuzzleCheckpoints.putIfAbsent(participant.getUniqueId(), 0);
         sidebar.addPlayer(participant);
         participant.getInventory().clear();
         giveBoots(participant);
         participant.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
-        Location respawn = storageUtil.getCheckPoints().get(currentCheckpoints.get(participant.getUniqueId())).respawn();
+        Location respawn = storageUtil.getPuzzles().get(currentPuzzles.get(participant.getUniqueId())).respawn();
         participant.teleport(respawn);
         sidebar.updateLine(participant.getUniqueId(), "title", title);
         updateCheckpointSidebar(participant);
@@ -297,31 +303,28 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         if (finishedParticipants.contains(playerUUID)) {
             return;
         }
-        if (!currentCheckpoints.containsKey(playerUUID)) {
-            currentCheckpoints.put(playerUUID, 0);
-        }
-        int currentCheckpointIndex = currentCheckpoints.get(playerUUID);
-        int nextCheckpointIndex = currentCheckpointIndex + 1;
-        if (nextCheckpointIndex >= storageUtil.getCheckPoints().size()) {
-            // the player is in the finish line and already won
+        int currentPuzzleIndex = currentPuzzles.get(playerUUID);
+        int nextPuzzleIndex = currentPuzzleIndex + 1;
+        if (nextPuzzleIndex >= storageUtil.getPuzzles().size()) {
+            // should not occur because of above check
             return;
         }
-        CheckPoint nextCheckpoint = storageUtil.getCheckPoints().get(nextCheckpointIndex);
-        if (nextCheckpoint.boundingBox().contains(player.getLocation().toVector())) {
-            // Player got to the next checkpoint
-            currentCheckpoints.put(playerUUID, nextCheckpointIndex);
+        Puzzle nextPuzzle = storageUtil.getPuzzles().get(nextPuzzleIndex);
+        if (nextPuzzle.boundingBox().contains(player.getLocation().toVector())) {
+            // Player got to the next puzzle
+            currentPuzzles.put(playerUUID, nextPuzzleIndex);
             updateCheckpointSidebar(player);
-            if (nextCheckpointIndex >= storageUtil.getCheckPoints().size()-1) {
+            if (nextPuzzleIndex >= storageUtil.getPuzzles().size()-1) {
                 onParticipantFinish(player);
             } else {
                 messageAllParticipants(Component.empty()
                         .append(Component.text(player.getName()))
                         .append(Component.text(" reached checkpoint "))
-                        .append(Component.text(nextCheckpointIndex))
+                        .append(Component.text(nextPuzzleIndex))
                         .append(Component.text("/"))
-                        .append(Component.text(storageUtil.getCheckPoints().size()-1)));
-                int playersCheckpoint = currentCheckpoints.get(playerUUID);
-                int points = calculatePointsForCheckpoint(playersCheckpoint, storageUtil.getCheckpointScore());
+                        .append(Component.text(storageUtil.getPuzzles().size()-1)));
+                int playersCheckpoint = currentPuzzles.get(playerUUID);
+                int points = calculatePointsForPuzzle(playersCheckpoint, storageUtil.getCheckpointScore());
                 gameManager.awardPointsToParticipant(player, points);
             }
             if (allPlayersHaveFinished()) {
@@ -331,11 +334,11 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
             restartCheckpointCounter();
             return;
         }
-        CheckPoint currentCheckpoint = storageUtil.getCheckPoints().get(currentCheckpointIndex);
+        Puzzle currentPuzzle = storageUtil.getPuzzles().get(currentPuzzleIndex);
         double yPos = player.getLocation().getY();
-        if (yPos < currentCheckpoint.yValue()) {
+        if (yPos < currentPuzzle.yValue()) {
             // Player fell, and must be teleported to checkpoint spawn
-            player.teleport(currentCheckpoint.respawn().setDirection(player.getLocation().getDirection()));
+            player.teleport(currentPuzzle.respawn().setDirection(player.getLocation().getDirection()));
         }
     }
     
@@ -351,8 +354,8 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
     
     private boolean allPlayersHaveFinished() {
         for (Player participant : participants) {
-            int currentCheckpoint = currentCheckpoints.get(participant.getUniqueId());
-            if (currentCheckpoint < storageUtil.getCheckPoints().size() - 1) {
+            int currentPuzzleIndex = currentPuzzles.get(participant.getUniqueId());
+            if (currentPuzzleIndex < storageUtil.getPuzzles().size() - 1) {
                 //at least one player is still playing
                 return false;
             }
@@ -362,22 +365,22 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
     }
     
     /**
-     * Calculates the points for playersCheckpoint based on how many players have reached or passed that playersCheckpoint. If checkpointScores has x elements, the nth player to arrive at playersCheckpoint gets the checkpointScores[n-1], unless n is greater than or equal to x, in which case they get checkpointScores[x-1]
-     * @param playersCheckpoint the checkpoint to get the points for
-     * @param checkpointScores the scores to progress through. The last score is to give to everyone who didn't make the one of the other specified scores.
-     * @return the points for playersCheckpoint
+     * Calculates the points for playersPuzzle based on how many players have reached or passed that playersPuzzle. If puzzleScores has x elements, the nth player to arrive at playersPuzzle gets the puzzleScores[n-1], unless n is greater than or equal to x, in which case they get puzzleScores[x-1]
+     * @param playersPuzzle the index of the puzzle to get the points for
+     * @param puzzleScores the scores to progress through. The last score is to give to everyone who didn't make the one of the other specified scores.
+     * @return the points for playersPuzzle
      */
-    private int calculatePointsForCheckpoint(int playersCheckpoint, int[] checkpointScores) {
+    private int calculatePointsForPuzzle(int playersPuzzle, int[] puzzleScores) {
         int numWhoReachedOrPassedCheckpoint = 0;
-        for (int checkpointIndex : currentCheckpoints.values()) {
-            if (checkpointIndex >= playersCheckpoint) {
+        for (int puzzleIndex : currentPuzzles.values()) {
+            if (puzzleIndex >= playersPuzzle) {
                 numWhoReachedOrPassedCheckpoint++;
             }
         }
-        if (numWhoReachedOrPassedCheckpoint < checkpointScores.length) {
-            return checkpointScores[numWhoReachedOrPassedCheckpoint - 1];
+        if (numWhoReachedOrPassedCheckpoint < puzzleScores.length) {
+            return puzzleScores[numWhoReachedOrPassedCheckpoint - 1];
         } else {
-            return checkpointScores[checkpointScores.length - 1];
+            return puzzleScores[puzzleScores.length - 1];
         }
     }
     
@@ -388,8 +391,8 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
      */
     private int calculatePointsForWin(int[] winScores) {
         int numberOfWins = 0;
-        for (int checkpointIndex : currentCheckpoints.values()) {
-            if (checkpointIndex >= storageUtil.getCheckPoints().size() - 1) {
+        for (int puzzleIndex : currentPuzzles.values()) {
+            if (puzzleIndex >= storageUtil.getPuzzles().size() - 1) {
                 numberOfWins++;
             }
         }
@@ -525,14 +528,14 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
                 new KeyLine("personalScore", ""),
                 new KeyLine("title", title),
                 new KeyLine("timer", ""),
-                new KeyLine("checkpoint", String.format("0/%s", storageUtil.getCheckPoints().size() - 1)),
+                new KeyLine("checkpoint", String.format("0/%s", storageUtil.getPuzzles().size() - 1)),
                 new KeyLine("ending", "")
         );
     }
     
     private void updateCheckpointSidebar(Player participant) {
-        int currentCheckpoint = currentCheckpoints.get(participant.getUniqueId());
-        int lastCheckpoint = storageUtil.getCheckPoints().size()-1;
+        int currentCheckpoint = currentPuzzles.get(participant.getUniqueId());
+        int lastCheckpoint = storageUtil.getPuzzles().size()-1;
         sidebar.updateLine(participant.getUniqueId(), "checkpoint", String.format("%s/%s", currentCheckpoint, lastCheckpoint));
     }
     
