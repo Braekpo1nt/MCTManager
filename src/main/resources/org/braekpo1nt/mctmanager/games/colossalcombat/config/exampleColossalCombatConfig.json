@@ -99,6 +99,14 @@
       "maxZ": 20
     }
   },
+  "removeArea": {
+    "minX": -1031,
+    "minY": -4,
+    "minZ": -31,
+    "maxX": -969,
+    "maxY": 33,
+    "maxZ": 32
+  },
   "firstPlaceSupport": {
     "minX": 0,
     "minY": 0,
