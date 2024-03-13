@@ -29,6 +29,7 @@ public class ColossalCombatStorageUtil extends GameConfigStorageUtil<ColossalCom
     private BoundingBox secondPlaceClearArea;
     private BoundingBox secondPlacePlaceArea;
     private BoundingBox secondPlaceStone;
+    private BoundingBox removeArea;
     private BoundingBox firstPlaceSupport;
     private BoundingBox secondPlaceSupport;
     private BoundingBox firstPlaceAntiSuffocationArea;
@@ -76,7 +77,11 @@ public class ColossalCombatStorageUtil extends GameConfigStorageUtil<ColossalCom
         Preconditions.checkArgument(config.secondPlaceGate().stone() != null, "secondPlaceGate.stone can't be null");
         Preconditions.checkArgument(config.secondPlaceGate().antiSuffocationArea() != null, "secondPlaceGate.antiSuffocationArea can't be null");
         Preconditions.checkArgument(config.secondPlaceGate().antiSuffocationArea().toBoundingBox().getVolume() != 0.0, "secondPlaceGate.antiSuffocationArea volume can't be 0.0");
-    
+        
+        Preconditions.checkArgument(config.removeArea() != null, "removeArea can't be null");
+        BoundingBox removeArea = config.removeArea().toBoundingBox();
+        Preconditions.checkArgument(removeArea.getVolume() >= 2.0, "boundingBox (%s) volume (%s) must be at least 2.0", removeArea, removeArea.getVolume());
+        
         Preconditions.checkArgument(config.firstPlaceSupport() != null, "firstPlaceSupport can't be null");
         BoundingBox firstPlaceSupport = config.firstPlaceSupport().toBoundingBox();
         Preconditions.checkArgument(firstPlaceSupport.getVolume() > 0, "firstPlaceSupport volume (%s) must be greater than 0", firstPlaceSupport.getVolume());
@@ -117,6 +122,7 @@ public class ColossalCombatStorageUtil extends GameConfigStorageUtil<ColossalCom
         this.secondPlacePlaceArea = config.secondPlaceGate().placeArea().toBoundingBox();
         this.secondPlaceStone = config.secondPlaceGate().stone().toBoundingBox();
         this.secondPlaceAntiSuffocationArea = config.secondPlaceGate().antiSuffocationArea().toBoundingBox();
+        this.removeArea = config.removeArea().toBoundingBox();
         this.firstPlaceSupport = config.firstPlaceSupport().toBoundingBox();
         this.secondPlaceSupport = config.secondPlaceSupport().toBoundingBox();
         this.description = newDescription;
@@ -186,6 +192,10 @@ public class ColossalCombatStorageUtil extends GameConfigStorageUtil<ColossalCom
     
     public int getRoundStartingDuration() {
         return colossalCombatConfig.durations().roundStarting();
+    }
+    
+    public BoundingBox getRemoveArea() {
+        return removeArea;
     }
     
     public BoundingBox getFirstPlaceSupport() {

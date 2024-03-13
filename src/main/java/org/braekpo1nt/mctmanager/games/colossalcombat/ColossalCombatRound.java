@@ -9,6 +9,8 @@ import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.bukkit.*;
+import org.bukkit.entity.Arrow;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
@@ -19,6 +21,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
+import org.bukkit.util.BoundingBox;
 
 import java.util.*;
 
@@ -141,9 +144,9 @@ public class ColossalCombatRound implements Listener {
     public void stop() {
         HandlerList.unregisterAll(this);
         cancelAllTasks();
-        colossalCombatGame.closeGates();
         roundActive = false;
         antiSuffocation = false;
+        resetArena();
         for (Player participant : firstPlaceParticipants) {
             resetParticipant(participant);
         }
@@ -159,6 +162,22 @@ public class ColossalCombatRound implements Listener {
         firstTeamName = null;
         secondTeamName = null;
         Bukkit.getLogger().info("Stopping Colossal Combat round");
+    }
+    
+    private void resetArena() {
+        colossalCombatGame.closeGates();
+        // remove items/arrows on the ground
+        BoundingBox removeArea = storageUtil.getRemoveArea();
+        for (Arrow arrow : storageUtil.getWorld().getEntitiesByClass(Arrow.class)) {
+            if (removeArea.contains(arrow.getLocation().toVector())) {
+                arrow.remove();
+            }
+        }
+        for (Item item : storageUtil.getWorld().getEntitiesByClass(Item.class)) {
+            if (removeArea.contains(item.getLocation().toVector())) {
+                item.remove();
+            }
+        }
     }
     
     private void resetParticipant(Player participant) {
