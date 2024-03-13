@@ -17,7 +17,9 @@ import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
@@ -25,6 +27,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -59,6 +62,8 @@ public class EventManager implements Listener {
     private final Map<GameType, List<ScoreKeeper>> scoreKeepers = new HashMap<>();
     private List<Player> participants = new ArrayList<>();
     private List<Player> admins = new ArrayList<>();
+    private final ItemStack crown = new ItemStack(Material.CARVED_PUMPKIN);
+    private String winningTeam;
     // Task IDs
     private int waitingInHubTaskId;
     private int toColossalCombatDelayTaskId;
@@ -73,6 +78,7 @@ public class EventManager implements Listener {
         this.voteManager = voteManager;
         this.storageUtil = new EventStorageUtil(plugin.getDataFolder());
         this.colossalCombatGame = new ColossalCombatGame(plugin, gameManager);
+        this.crown.editMeta(meta -> meta.setCustomModelData(1));
     }
         
     /**
@@ -119,6 +125,7 @@ public class EventManager implements Listener {
         }
         
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
+        winningTeam = null;
         maxGames = numberOfGames;
         currentGameNumber = 1;
         playedGames.clear();
@@ -176,6 +183,14 @@ public class EventManager implements Listener {
         if (colossalCombatGame.isActive()) {
             colossalCombatGame.stop(null);
         }
+        if (winningTeam != null) {
+            for (Player participant : participants) {
+                String team = gameManager.getTeamName(participant.getUniqueId());
+                if (team.equals(winningTeam)) {
+                    removeCrown(participant);
+                }
+            }
+        }
         clearSidebar();
         clearAdminSidebar();
         participants.clear();
@@ -184,6 +199,7 @@ public class EventManager implements Listener {
         scoreKeepers.clear();
         currentGameNumber = 0;
         maxGames = 6;
+        winningTeam = null;
     }
     
     public void pauseEvent(CommandSender sender) {
@@ -525,8 +541,20 @@ public class EventManager implements Listener {
         EventState state = currentState == EventState.PAUSED ? lastStateBeforePause : currentState;
         // make sure the participant isn't stuck in whatever location they last logged out from, if they aren't supposed to be
         switch (state) {
-            case WAITING_IN_HUB, VOTING, PODIUM -> {
+            case WAITING_IN_HUB, VOTING -> {
                 gameManager.returnParticipantToHubInstantly(participant);
+            }
+            case PODIUM -> {
+                if (winningTeam != null) {
+                    String team = gameManager.getTeamName(participant.getUniqueId());
+                    boolean winner = team.equals(winningTeam);
+                    gameManager.returnParticipantToPodium(participant, winner);
+                    if (winner) {
+                        giveCrown(participant);
+                    }
+                } else {
+                    gameManager.returnParticipantToPodium(participant, false);
+                }
             }
         }
         switch (state) {
@@ -559,6 +587,12 @@ public class EventManager implements Listener {
                 }
             }
             case VOTING -> voteManager.onParticipantQuit(participant);
+        }
+        if (winningTeam != null) {
+            String team = gameManager.getTeamName(participant.getUniqueId());
+            if (team.equals(winningTeam)) {
+                removeCrown(participant);
+            }
         }
     }
     
@@ -669,8 +703,9 @@ public class EventManager implements Listener {
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
     }
     
-    private void toPodiumDelay(String winningTeam) {
+    private void toPodiumDelay(@NotNull String winningTeam) {
         currentState = EventState.DELAY;
+        this.winningTeam = winningTeam;
         initializeParticipantsAndAdmins();
         ChatColor winningChatColor = gameManager.getTeamChatColor(winningTeam);
         String winningDisplayName = gameManager.getTeamDisplayName(winningTeam);
@@ -694,6 +729,12 @@ public class EventManager implements Listener {
                             new KeyLine("timer", "")
                     );
                     gameManager.returnAllParticipantsToPodium(winningTeam);
+                    for (Player participant : participants) {
+                        String team = gameManager.getTeamName(participant.getUniqueId());
+                        if (team.equals(winningTeam)) {
+                            giveCrown(participant);
+                        }
+                    }
                     this.cancel();
                     return;
                 }
@@ -702,6 +743,17 @@ public class EventManager implements Listener {
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+    }
+    
+    private void giveCrown(Player participant) {
+        participant.getInventory().setHelmet(crown);
+    }
+    
+    private void removeCrown(Player participant) {
+        ItemStack helmet = participant.getInventory().getHelmet();
+        if (helmet != null && helmet.equals(crown)) {
+            participant.getInventory().setHelmet(null);
+        }
     }
     
     private void startVoting() {
@@ -1021,7 +1073,7 @@ public class EventManager implements Listener {
     /**
      * Called when Colossal Combat is over. If the passed in winningTeam name is null,
      * nothing happens. Otherwise, this initiates the podium process for the winning team.
-     * @param winningTeam The name of the winning team. If this is null, nothing happens.
+     * @param winningTeam The name of the winning team. If this is null and an event is not active, nothing happens. If this is null and an event is active, then it initiates the startWaitingInHub sequence. 
      */
     public void colossalCombatIsOver(@Nullable String winningTeam) {
         if (winningTeam == null) {
@@ -1087,15 +1139,29 @@ public class EventManager implements Listener {
         if (event.getClickedInventory() == null) {
             return;
         }
-        if (event.getCurrentItem() == null) {
+        ItemStack currentItem = event.getCurrentItem();
+        if (currentItem == null) {
             return;
         }
         Player participant = ((Player) event.getWhoClicked());
         if (!participants.contains(participant)) {
             return;
         }
-        if (currentState.equals(EventState.DELAY)) {
-            event.setCancelled(true);
+        switch (currentState) {
+            case DELAY -> event.setCancelled(true);
+            case PODIUM -> {
+                if (winningTeam == null) {
+                    return;
+                }
+                String team = gameManager.getTeamName(participant.getUniqueId());
+                if (!team.equals(winningTeam)) {
+                    return;
+                }
+                if (!currentItem.equals(crown)) {
+                    return;
+                }
+                event.setCancelled(true);
+            }
         }
     }
     
@@ -1111,8 +1177,21 @@ public class EventManager implements Listener {
         if (!participants.contains(participant)) {
             return;
         }
-        if (currentState.equals(EventState.DELAY)) {
-            event.setCancelled(true);
+        switch (currentState) {
+            case DELAY -> event.setCancelled(true);
+            case PODIUM -> {
+                if (winningTeam == null) {
+                    return;
+                }
+                String team = gameManager.getTeamName(participant.getUniqueId());
+                if (!team.equals(winningTeam)) {
+                    return;
+                }
+                if (!event.getItemDrop().getItemStack().equals(crown)) {
+                    return;
+                }
+                event.setCancelled(true);
+            }
         }
     }
     

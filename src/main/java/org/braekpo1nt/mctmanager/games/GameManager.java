@@ -447,7 +447,11 @@ public class GameManager implements Listener {
                 otherParticipants.add(participant);
             }
         }
-        hubManager.sendParticipantsToPodium(winningTeamParticipants, otherParticipants, onlineAdmins);
+        hubManager.sendAllParticipantsToPodium(winningTeamParticipants, otherParticipants, onlineAdmins);
+    }
+    
+    public void returnParticipantToPodium(Player participant, boolean winner) {
+        hubManager.sendParticipantToPodium(participant, winner);
     }
     
     //====================================================

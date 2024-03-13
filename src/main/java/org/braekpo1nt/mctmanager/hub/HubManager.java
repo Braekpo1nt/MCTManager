@@ -124,7 +124,7 @@ public class HubManager implements Listener, Configurable {
         admin.setGameMode(GameMode.SPECTATOR);
     }
     
-    public void sendParticipantsToPodium(List<Player> winningTeamParticipants, List<Player> otherParticipants, List<Player> newAdmins) {
+    public void sendAllParticipantsToPodium(List<Player> winningTeamParticipants, List<Player> otherParticipants, List<Player> newAdmins) {
         setupTeamOptions();
         for (Player participant : otherParticipants) {
             sendParticipantToPodium(participant, false);
@@ -137,7 +137,7 @@ public class HubManager implements Listener, Configurable {
         }
     }
     
-    private void sendParticipantToPodium(Player participant, boolean winner) {
+    public void sendParticipantToPodium(Player participant, boolean winner) {
         participant.sendMessage(Component.text("Returning to hub"));
         if (winner) {
             participant.teleport(storageUtil.getPodium());
