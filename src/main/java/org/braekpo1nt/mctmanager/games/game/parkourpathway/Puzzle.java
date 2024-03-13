@@ -2,7 +2,6 @@ package org.braekpo1nt.mctmanager.games.game.parkourpathway;
 
 import org.bukkit.Location;
 import org.bukkit.util.BoundingBox;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
@@ -14,6 +13,7 @@ import java.util.List;
  *                 - Similarly, CheckPoint detectionAreas and respawns must be contained in the previous puzzle's inBounds area (or players won't reach this puzzle) <br>
  *                 - only the finish line (the last puzzle) doesn't need to contain the next puzzle's CheckPoint detectionAreas and respawns (because there isn't one)
  * @param checkPoints the list of checkpoints that players must reach to begin this puzzle. They contain the respawn point for if they go out of bounds, and the detectionArea which they must be inside to leave their previous puzzle and begin this one. Must have at least 1 element. Elements can't be null. detectionArea and respawn must be contained in the inBounds area. <br>
+ *                    - CheckPoints can't have conflicting detectionAreas (meaning they can't overlap and can't have their respawns within another CheckPoint's detectionArea)
  */
 public record Puzzle(BoundingBox inBounds, List<CheckPoint> checkPoints) {
     /**
