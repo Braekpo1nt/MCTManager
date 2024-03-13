@@ -30,6 +30,7 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
+import org.bukkit.util.Vector;
 
 import java.util.*;
 
@@ -84,8 +85,9 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
     
     @Override
     public void start(List<Player> newParticipants, List<Player> newAdmins) {
-        participants = new ArrayList<>();
-        currentPuzzles = new HashMap<>();
+        participants = new ArrayList<>(newParticipants.size());
+        currentPuzzles = new HashMap<>(newParticipants.size());
+        currentPuzzleCheckpoints = new HashMap<>(newParticipants.size());
         finishedParticipants = new ArrayList<>();
         closeGlassBarriers();
         sidebar = gameManager.getSidebarFactory().createSidebar();
@@ -186,17 +188,18 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
     @Override
     public void onParticipantJoin(Player participant) {
         participants.add(participant);
-        currentPuzzles.putIfAbsent(participant.getUniqueId(), 0);
-        currentPuzzleCheckpoints.putIfAbsent(participant.getUniqueId(), 0);
+        UUID uniqueId = participant.getUniqueId();
+        currentPuzzles.putIfAbsent(uniqueId, 0);
+        currentPuzzleCheckpoints.putIfAbsent(uniqueId, 0);
         sidebar.addPlayer(participant);
         participant.getInventory().clear();
         giveBoots(participant);
         participant.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
-        Location respawn = storageUtil.getPuzzles().get(currentPuzzles.get(participant.getUniqueId())).respawn();
+        Location respawn = storageUtil.getPuzzles().get(currentPuzzles.get(uniqueId)).checkPoints().get(currentPuzzleCheckpoints.get(uniqueId)).respawn();
         participant.teleport(respawn);
-        sidebar.updateLine(participant.getUniqueId(), "title", title);
+        sidebar.updateLine(uniqueId, "title", title);
         updateCheckpointSidebar(participant);
     }
     
@@ -295,51 +298,86 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         if (!gameActive) {
             return;
         }
-        Player player = event.getPlayer();
-        UUID playerUUID = player.getUniqueId();
-        if (!participants.contains(player)) {
+        Player participant = event.getPlayer();
+        UUID uuid = participant.getUniqueId();
+        if (!participants.contains(participant)) {
             return;
         }
-        if (finishedParticipants.contains(playerUUID)) {
+        if (finishedParticipants.contains(uuid)) {
             return;
         }
-        int currentPuzzleIndex = currentPuzzles.get(playerUUID);
+        int currentPuzzleIndex = currentPuzzles.get(uuid);
         int nextPuzzleIndex = currentPuzzleIndex + 1;
         if (nextPuzzleIndex >= storageUtil.getPuzzles().size()) {
             // should not occur because of above check
             return;
         }
+        Puzzle currentPuzzle = storageUtil.getPuzzles().get(currentPuzzleIndex);
+        if (!isParticipantOutOfBounds(participant, currentPuzzle)) {
+            onParticipantOutOfBounds(participant, currentPuzzle);
+        }
         Puzzle nextPuzzle = storageUtil.getPuzzles().get(nextPuzzleIndex);
-        if (nextPuzzle.boundingBox().contains(player.getLocation().toVector())) {
-            // Player got to the next puzzle
-            currentPuzzles.put(playerUUID, nextPuzzleIndex);
-            updateCheckpointSidebar(player);
-            if (nextPuzzleIndex >= storageUtil.getPuzzles().size()-1) {
-                onParticipantFinish(player);
-            } else {
-                messageAllParticipants(Component.empty()
-                        .append(Component.text(player.getName()))
-                        .append(Component.text(" reached checkpoint "))
-                        .append(Component.text(nextPuzzleIndex))
-                        .append(Component.text("/"))
-                        .append(Component.text(storageUtil.getPuzzles().size()-1)));
-                int playersCheckpoint = currentPuzzles.get(playerUUID);
-                int points = calculatePointsForPuzzle(playersCheckpoint, storageUtil.getCheckpointScore());
-                gameManager.awardPointsToParticipant(player, points);
-            }
-            if (allPlayersHaveFinished()) {
-                stop();
-                return;
-            }
-            restartCheckpointCounter();
+        int nextPuzzleCheckPointIndex = participantReachedCheckPoint(participant.getLocation().toVector(), nextPuzzle);
+        if (nextPuzzleCheckPointIndex >= 0) {
+            onParticipantReachCheckPoint(participant, nextPuzzleIndex, nextPuzzleCheckPointIndex);
+        }
+    }
+    
+    /**
+     * @param participant the participant who may be out of bounds
+     * @param puzzle the puzzle the player should be in the bounds of
+     * @return true if the given participant is out of bounds of the given puzzle
+     */
+    private static boolean isParticipantOutOfBounds(Player participant, Puzzle puzzle) {
+        return puzzle.inBounds().contains(participant.getLocation().toVector());
+    }
+    
+    private void onParticipantOutOfBounds(Player participant, Puzzle currentPuzzle) {
+        Puzzle.CheckPoint currentCheckPoint = currentPuzzle.checkPoints().get(currentPuzzleCheckpoints.get(participant.getUniqueId()));
+        Location respawn = currentCheckPoint.respawn().setDirection(participant.getLocation().getDirection());
+        participant.teleport(respawn);
+    }
+    
+    
+    private void onParticipantReachCheckPoint(Player participant, int puzzleIndex, int puzzleCheckPointIndex) {
+        UUID uuid = participant.getUniqueId();
+        currentPuzzles.put(uuid, puzzleIndex);
+        currentPuzzleCheckpoints.put(uuid, puzzleCheckPointIndex);
+        updateCheckpointSidebar(participant);
+        if (puzzleIndex >= storageUtil.getPuzzles().size()-1) {
+            onParticipantFinish(participant);
+        } else {
+            messageAllParticipants(Component.empty()
+                    .append(Component.text(participant.getName()))
+                    .append(Component.text(" reached checkpoint "))
+                    .append(Component.text(puzzleIndex))
+                    .append(Component.text("/"))
+                    .append(Component.text(storageUtil.getPuzzles().size()-1)));
+            int playersCheckpoint = currentPuzzles.get(uuid);
+            int points = calculatePointsForPuzzle(playersCheckpoint, storageUtil.getCheckpointScore());
+            gameManager.awardPointsToParticipant(participant, points);
+        }
+        if (allPlayersHaveFinished()) {
+            stop();
             return;
         }
-        Puzzle currentPuzzle = storageUtil.getPuzzles().get(currentPuzzleIndex);
-        double yPos = player.getLocation().getY();
-        if (yPos < currentPuzzle.yValue()) {
-            // Player fell, and must be teleported to checkpoint spawn
-            player.teleport(currentPuzzle.respawn().setDirection(player.getLocation().getDirection()));
+        restartCheckpointCounter();
+    }
+    
+    /**
+     * Check if the given location is inside the given puzzle's check points.
+     * @param v the location to check if it's inside the puzzle's detection areas or not.
+     * @param puzzle the puzzle to check if the player reached
+     * @return -1 if v isn't inside the given puzzle's detection areas. Otherwise, returns the index of the puzzle's CheckPoint that v is inside.
+     */
+    private static int participantReachedCheckPoint(Vector v, Puzzle puzzle) {
+        for (int i = 0; i < puzzle.checkPoints().size(); i++) {
+            Puzzle.CheckPoint nextCheckPoint = puzzle.checkPoints().get(i);
+            if (nextCheckPoint.detectionArea().contains(v)) {
+                return i;
+            }
         }
+        return -1;
     }
     
     private void onParticipantFinish(Player participant) {
