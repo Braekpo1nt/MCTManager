@@ -486,6 +486,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
                         .append(Component.text(currentLap))
                         .append(Component.text(" in "))
                         .append(Component.text(getTimeString(elapsedTime))));
+                gameManager.awardPointsToParticipant(player, storageUtil.getCompleteLap());
                 return;
             }
             if (currentLap == MAX_LAPS) {

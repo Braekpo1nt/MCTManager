@@ -121,4 +121,8 @@ public class FootRaceStorageUtil extends GameConfigStorageUtil<FootRaceConfig> {
     public Component getDescription() {
         return description;
     }
+    
+    public int getCompleteLap() {
+        return footRaceConfig.scores().completeLap();
+    }
 }
