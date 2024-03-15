@@ -111,7 +111,8 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
     private void puzzleCheckPointIsValid(@NotNull ParkourPathwayConfig.PuzzleDTO.CheckPointDTO checkPoint, int puzzleIndex, int checkPointIndex) {
         BoundingBox detectionArea = checkPoint.detectionArea().toBoundingBox();
         Preconditions.checkArgument(detectionArea.getVolume() >= 1, "puzzle[%s].checkPoints[%s].detectionArea's volume (%s) can't be less than 1 (%s)", puzzleIndex, checkPointIndex, detectionArea.getVolume(), detectionArea);
-        Preconditions.checkArgument(detectionArea.contains(checkPoint.respawn().toVector()), "puzzle[%s].checkPoints[%s].detectionArea must contain respawn", puzzleIndex, checkPointIndex);
+        Vector respawn = checkPoint.respawn().toVector();
+        Preconditions.checkArgument(detectionArea.contains(respawn), "puzzle[%s].checkPoints[%s].detectionArea (%s) must contain puzzle[%s].checkPoints[%s].respawn (%s)", puzzleIndex, checkPointIndex, detectionArea, puzzleIndex, checkPointIndex, respawn);
         
     }
     
