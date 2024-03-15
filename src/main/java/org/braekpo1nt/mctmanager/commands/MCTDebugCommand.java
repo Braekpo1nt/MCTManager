@@ -49,9 +49,25 @@ public class MCTDebugCommand implements TabExecutor {
         int duration = Integer.parseInt(args[1]); // in ticks
         int count = Integer.parseInt(args[2]); // 1
         float size = Float.parseFloat(args[3]); // 1.0
+    
+        float x1 = 1;
+        float y1 = 1;
+        float z1 = 1;
+        float x2 = 10;
+        float y2 = 10;
+        float z2 = 10;
+        if (args.length == 10) {
+            x1 = Float.parseFloat(args[4]);
+            y1 = Float.parseFloat(args[5]);
+            z1 = Float.parseFloat(args[6]);
+            x2 = Float.parseFloat(args[7]);
+            y2 = Float.parseFloat(args[8]);
+            z2 = Float.parseFloat(args[9]);
+        }
+        
         BoundingBox box = new BoundingBox(
-                1, 1, 1,
-                10, 10, 10
+                x1, y1, z1,
+                x2, y2, z2
         );
         List<Vector> hollowCube = createHollowCube(box);
         new BukkitRunnable() {
@@ -88,9 +104,10 @@ public class MCTDebugCommand implements TabExecutor {
             for (int y = minY; y <= maxY; y++) {
                 for (int z = minZ; z <= maxZ; z++) {
                     if (
-                            x == minX || x == maxX
-                                    || y == minY || y == maxY
-                                    || z == minZ || z == maxZ) {
+                        x == minX || x == maxX
+                        || y == minY || y == maxY
+                        || z == minZ || z == maxZ
+                    ) {
                         result.add(new Vector(x, y, z));
                     }
                 }
