@@ -3,6 +3,8 @@ package org.braekpo1nt.mctmanager.commands;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.display.geometry.Edge;
+import org.braekpo1nt.mctmanager.display.geometry.GeometryUtils;
 import org.bukkit.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -69,11 +71,7 @@ public class MCTDebugCommand implements TabExecutor {
                 x1, y1, z1, 
                 x2, y2, z2
         );
-        List<Edge> edges = createEdges(box);
-        List<Vector> points = new ArrayList<>(10*12);
-        for (Edge edge : edges) {
-            points.addAll(edge.pointsAlongEdgeWithDistance(1.0));
-        }
+        List<Vector> points = GeometryUtils.toPoints(box, 10);
         new BukkitRunnable() {
             int timeLeft = duration;
             @Override
@@ -118,150 +116,6 @@ public class MCTDebugCommand implements TabExecutor {
             }
         }
         return result;
-    }
-    
-    
-    static class Edge {
-        private final Vector a;
-        private final Vector b;
-        
-        public Edge(double x1, double y1, double z1, double x2, double y2, double z2) {
-            this.a = new Vector(x1, y1, z1);
-            this.b = new Vector(x2, y2, z2);
-        }
-        
-        public Edge(Vector a, double x2, double y2, double z2) {
-            this.a = a;
-            this.b = new Vector(x2, y2, z2);
-        }
-        
-        public Edge(double x1, double y1, double z1, Vector b) {
-            this.a = new Vector(x1, y1, z1);
-            this.b = b;
-        }
-        
-        public Edge(Vector a, Vector b) {
-            this.a = a;
-            this.b = b;
-        }
-        
-        public Vector getA() {
-            return a;
-        }
-        
-        public Vector getB() {
-            return b;
-        }
-        
-        public List<Vector> pointsAlongEdge(int n) {
-            return Edge.pointsAlongEdge(this, n);
-        }
-    
-        public List<Vector> pointsAlongEdgeWithDistance(double distance) {
-            return Edge.pointsAlongEdgeWithDistance(this, distance);
-        }
-        
-        public static List<Vector> pointsAlongEdge(Edge edge, int n) {
-            List<Vector> points = new ArrayList<>();
-            Vector a = edge.getA();
-            Vector b = edge.getB();
-            
-            double deltaX = (b.getX() - a.getX()) / (n - 1);
-            double deltaY = (b.getY() - a.getY()) / (n - 1);
-            double deltaZ = (b.getZ() - a.getZ()) / (n - 1);
-            
-            for (int i = 0; i < n; i++) {
-                double x = a.getX() + i * deltaX;
-                double y = a.getY() + i * deltaY;
-                double z = a.getZ() + i * deltaZ;
-                points.add(new Vector(x, y, z));
-            }
-            
-            return points;
-        }
-    
-        public static List<Vector> pointsAlongEdgeWithDistance(Edge edge, double distance) {
-            List<Vector> points = new ArrayList<>();
-            Vector a = edge.getA();
-            Vector b = edge.getB();
-            
-            double length = Math.sqrt(Math.pow(b.getX() - a.getX(), 2) +
-                    Math.pow(b.getY() - a.getY(), 2) +
-                    Math.pow(b.getZ() - a.getZ(), 2));
-            
-            int numPoints = (int) Math.ceil(length / distance);
-            
-            double deltaX = (b.getX() - a.getX()) / length * distance;
-            double deltaY = (b.getY() - a.getY()) / length * distance;
-            double deltaZ = (b.getZ() - a.getZ()) / length * distance;
-            
-            double x = a.getX();
-            double y = a.getY();
-            double z = a.getZ();
-            
-            for (int i = 0; i < numPoints; i++) {
-                points.add(new Vector(x, y, z));
-                x += deltaX;
-                y += deltaY;
-                z += deltaZ;
-            }
-            
-            return points;
-        }
-    
-        @Override
-        public String toString() {
-            return "[" +
-                    a +
-                    ", " +
-                    b +
-                    "]";
-        }
-    }
-    
-    /**
-     * 
-     * @param area a bounding box to create the edges for
-     * @return a list of 12 edges, where each edge is a list of two 
-     */
-    public static List<Edge> createEdges(BoundingBox area) {
-        Vector min = area.getMin();
-        Vector max = area.getMax();
-        double minX = min.getX();
-        double minY = min.getY();
-        double minZ = min.getZ();
-        double maxX = max.getX();
-        double maxY = max.getY();
-        double maxZ = max.getZ();
-        
-        List<Edge> edges = new ArrayList<>();
-        
-        Vector a = new Vector(minX, minY, minZ);
-        Vector b = new Vector(minX, minY, maxZ);
-        Vector c = new Vector(maxX, minY, minZ);
-        Vector d = new Vector(maxX, minY, maxZ);
-        Vector e = new Vector(minX, maxY, minZ);
-        Vector f = new Vector(minX, maxY, maxZ);
-        Vector g = new Vector(maxX, maxY, minZ);
-        Vector h = new Vector(maxX, maxY, maxZ);
-        
-        // Bottom edges
-        edges.add(new Edge(a, b));
-        edges.add(new Edge(b, d));
-        edges.add(new Edge(d, c));
-        edges.add(new Edge(c, a));
-        // Top edges
-        edges.add(new Edge(e, f));
-        edges.add(new Edge(f, h));
-        edges.add(new Edge(h, g));
-        edges.add(new Edge(g, e));
-        // Vertical edges
-        edges.add(new Edge(a, e));
-        edges.add(new Edge(b, f));
-        edges.add(new Edge(d, h));
-        edges.add(new Edge(c, g));
-        
-        return edges;
     }
     
     private void displayPoints(List<Vector> points, Player viewer, int count, float size) {
