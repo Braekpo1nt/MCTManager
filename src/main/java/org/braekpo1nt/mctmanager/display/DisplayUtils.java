@@ -35,9 +35,21 @@ public class DisplayUtils {
         }.runTaskTimerAsynchronously(plugin, 0L, period);
     }
     
-    protected static void displayPoints(List<Vector> points, Player viewer, int count, float size) {
+    public static void displayPoints(List<Vector> points, Player viewer) {
+        DisplayUtils.displayPoints(points, viewer, 1, 1.0F, Color.RED);
+    }
+    
+    public static void displayPoints(List<Vector> points, Player viewer, Color color) {
+        DisplayUtils.displayPoints(points, viewer, 1, 1.0F, color);
+    }
+    
+    public static void displayPoints(List<Vector> points, Player viewer, int count, float size) {
+        DisplayUtils.displayPoints(points, viewer, count, size, Color.RED);
+    }
+    
+    public static void displayPoints(List<Vector> points, Player viewer, int count, float size, Color color) {
         for (Vector v : points) {
-            viewer.spawnParticle(Particle.REDSTONE, v.getX(), v.getY(), v.getZ(), count, new Particle.DustOptions(Color.RED, size));
+            viewer.spawnParticle(Particle.REDSTONE, v.getX(), v.getY(), v.getZ(), count, new Particle.DustOptions(color, size));
         }
     }
     
