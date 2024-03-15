@@ -61,7 +61,7 @@ public class GeometryUtils {
         List<Edge> edges = GeometryUtils.toEdges(box);
         List<Vector> points = new ArrayList<>(n*12);
         for (Edge edge : edges) {
-            points.addAll(edge.pointsAlongEdgeWithDistance(1.0));
+            points.addAll(edge.pointsAlongEdge(n));
         }
         return points;
     }
