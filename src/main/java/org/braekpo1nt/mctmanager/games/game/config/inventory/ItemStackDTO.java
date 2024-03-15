@@ -4,7 +4,6 @@ import com.google.common.base.Preconditions;
 import org.braekpo1nt.mctmanager.games.game.config.inventory.meta.ItemMetaDTO;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.Nullable;
 
 public class ItemStackDTO {
@@ -17,6 +16,7 @@ public class ItemStackDTO {
      * (values of 0 or less are treated as zero, resulting in no items in the stack)
      */
     private int amount = 1;
+    private short damage = 0;
     /**
      * The ItemMeta of the item, can be null
      */
@@ -27,7 +27,7 @@ public class ItemStackDTO {
      */
     public ItemStack toItemStack() {
         Preconditions.checkArgument(type != null, "type (Material) cannot be null");
-        ItemStack stack = new ItemStack(type, amount);
+        ItemStack stack = new ItemStack(type, amount, damage);
         if (itemMeta != null) {
             stack.editMeta(meta -> itemMeta.toItemMeta(meta));
         }
