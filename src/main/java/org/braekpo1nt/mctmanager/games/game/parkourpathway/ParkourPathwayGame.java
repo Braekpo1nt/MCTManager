@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.parkourpathway;
 
+import com.google.common.base.Preconditions;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
@@ -122,8 +123,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         currentPuzzles.put(participant.getUniqueId(), 0);
         currentPuzzleCheckpoints.put(participant.getUniqueId(), 0);
         // debug
-        List<Vector> points = puzzleToPoints(storageUtil.getPuzzles().get(0));
-        Display display = new Display(plugin, points, 60 * 20);
+        Display display = puzzlesToDisplay(0, 1);
         displays.put(participant.getUniqueId(), display);
         display.show(participant);
         // debug
@@ -137,8 +137,24 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
     }
     
     // debug
-    private @NotNull List<Vector> puzzleToPoints(@NotNull Puzzle puzzle) {
-        return GeometryUtils.toPoints(puzzle.inBounds(), 10);
+    private @NotNull Display puzzlesToDisplay(int index, int nextIndex) {
+        int size = storageUtil.getPuzzles().size();
+        Preconditions.checkArgument(0 <= index && index < size, "index must be between [0, %s] inclusive", size);
+        Preconditions.checkArgument(0 <= nextIndex, "nextIndex must be at least 0");
+        Puzzle puzzle = storageUtil.getPuzzles().get(index);
+        Display display = new Display(plugin);
+        display.addChild(new Display(plugin, GeometryUtils.toPointsWithDistance(puzzle.inBounds(), 1), Color.fromRGB(255, 0, 0)));
+        display.addChild(new Display(plugin, GeometryUtils.toPointsWithDistance(puzzle.checkPoints().get(0).detectionArea(), 1), Color.fromRGB(0, 0, 255)));
+        display.addChild(new Display(plugin, Collections.singletonList(puzzle.checkPoints().get(0).respawn().toVector()), Color.fromRGB(0, 255, 0)));
+        
+        if (nextIndex < storageUtil.getPuzzles().size()) {
+            Puzzle nextPuzzle = storageUtil.getPuzzles().get(nextIndex);
+            display.addChild(new Display(plugin, GeometryUtils.toPointsWithDistance(nextPuzzle.inBounds(), 1), Color.fromRGB(127, 0, 127)));
+            display.addChild(new Display(plugin, GeometryUtils.toPointsWithDistance(nextPuzzle.checkPoints().get(0).detectionArea(), 1), Color.fromRGB(0, 127, 127)));
+            display.addChild(new Display(plugin, Collections.singletonList(nextPuzzle.checkPoints().get(0).respawn().toVector()), Color.fromRGB(127, 127, 0)));
+        }
+        
+        return display;
     }
     // debug
     
@@ -215,13 +231,12 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         currentPuzzles.putIfAbsent(uniqueId, 0);
         currentPuzzleCheckpoints.putIfAbsent(uniqueId, 0);
         // debug
-        List<Vector> points = puzzleToPoints(storageUtil.getPuzzles().get(currentPuzzles.get(uniqueId)));
         Display display = displays.get(uniqueId);
         if (display == null) {
-            display = new Display(plugin, points, 60*20);
+            int current = currentPuzzles.get(uniqueId);
+            display = puzzlesToDisplay(current, current + 1);
             displays.put(uniqueId, display);
         }
-        display.setPoints(points);
         display.show(participant);
         // debug
         sidebar.addPlayer(participant);
@@ -391,11 +406,11 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
             gameManager.awardPointsToParticipant(participant, points);
             
             // debug
-            Puzzle puzzle = storageUtil.getPuzzles().get(puzzleIndex);
-            List<Vector> puzzlePoints = puzzleToPoints(puzzle);
-            Display display = displays.get(uuid);
-            display.setPoints(puzzlePoints);
-            display.show(participant);
+            Display oldDisplay = displays.get(uuid);
+            oldDisplay.hide();
+            Display newDisplay = puzzlesToDisplay(puzzleIndex, puzzleIndex + 1);
+            displays.put(uuid, newDisplay);
+            newDisplay.show(participant);
             // debug
             
         }

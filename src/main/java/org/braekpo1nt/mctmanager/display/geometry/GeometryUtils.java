@@ -66,6 +66,21 @@ public class GeometryUtils {
         return points;
     }
     
+    /**
+     * 
+     * @param box the box to convert to points
+     * @param distance the distance between points
+     * @return a list of equidistant points (using the given distance) along the edges of the box
+     */
+    public static List<Vector> toPointsWithDistance(BoundingBox box, double distance) {
+        List<Edge> edges = GeometryUtils.toEdges(box);
+        List<Vector> points = new ArrayList<>();
+        for (Edge edge : edges) {
+            points.addAll(edge.pointsAlongEdgeWithDistance(distance));
+        }
+        return points;
+    }
+    
     private GeometryUtils() {
         // do not instantiate
     }
