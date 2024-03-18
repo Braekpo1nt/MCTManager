@@ -36,16 +36,12 @@ public class BlockEffectsListener implements Listener {
         }
         Material standingBlock = player.getLocation().add(0, -1, 0).getBlock().getType();
         switch (standingBlock) {
-            case MAGENTA_GLAZED_TERRACOTTA:
-                player.addPotionEffect(SPEED);
-                break;
-            case LIME_GLAZED_TERRACOTTA:
-                player.addPotionEffect(JUMP);
-                break;
-            case BEDROCK:
+            case MAGENTA_GLAZED_TERRACOTTA -> player.addPotionEffect(SPEED);
+            case LIME_GLAZED_TERRACOTTA -> player.addPotionEffect(JUMP);
+            case BEDROCK -> {
                 player.removePotionEffect(PotionEffectType.JUMP);
                 player.removePotionEffect(PotionEffectType.SPEED);
-                break;
+            }
         }
     }
     
