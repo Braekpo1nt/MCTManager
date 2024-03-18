@@ -57,7 +57,7 @@ public class GeometryUtils {
      * @param n the number of points along each edge (not the total number of points)
      * @return n*12 points which represent the edges of the given box. Points will be equidistant along each edge.
      */
-    public static List<Vector> toPoints(BoundingBox box, int n) {
+    public static List<Vector> toEdgePointsNumber(BoundingBox box, int n) {
         List<Edge> edges = GeometryUtils.toEdges(box);
         List<Vector> points = new ArrayList<>(n*12);
         for (Edge edge : edges) {
@@ -67,7 +67,6 @@ public class GeometryUtils {
     }
     
     /**
-     * 
      * @param box the box to convert to points
      * @param distance the distance between points
      * @return a list of equidistant points (using the given distance) along the edges of the box
@@ -79,6 +78,35 @@ public class GeometryUtils {
             points.addAll(edge.pointsAlongEdgeWithDistance(distance));
         }
         return points;
+    }
+    
+    /**
+     * Returns points along the faces of the cube, where each point is a block apart
+     * @param area the bounding area
+     * @return the points representing the faces of the cube
+     */
+    public static List<Vector> toFacePoints(BoundingBox area) {
+        List<Vector> result = new ArrayList<>();
+        int minX = area.getMin().getBlockX();
+        int minY = area.getMin().getBlockY();
+        int minZ = area.getMin().getBlockZ();
+        int maxX = area.getMax().getBlockX();
+        int maxY = area.getMax().getBlockY();
+        int maxZ = area.getMax().getBlockZ();
+        for (int x = minX; x <= maxX; x++) {
+            for (int y = minY; y <= maxY; y++) {
+                for (int z = minZ; z <= maxZ; z++) {
+                    if (
+                            x == minX || x == maxX
+                                    || y == minY || y == maxY
+                                    || z == minZ || z == maxZ
+                    ) {
+                        result.add(new Vector(x, y, z));
+                    }
+                }
+            }
+        }
+        return result;
     }
     
     private GeometryUtils() {

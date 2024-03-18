@@ -4,20 +4,16 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.display.DisplayUtils;
-import org.braekpo1nt.mctmanager.display.geometry.Edge;
 import org.braekpo1nt.mctmanager.display.geometry.GeometryUtils;
-import org.bukkit.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -69,7 +65,7 @@ public class MCTDebugCommand implements TabExecutor {
                 x1, y1, z1, 
                 x2, y2, z2
         );
-        List<Vector> points = GeometryUtils.toPoints(box, 10);
+        List<Vector> points = GeometryUtils.toEdgePointsNumber(box, 10);
         DisplayUtils.display(plugin, player, points, duration);
         
 //        Component mainTitle = Component.text("Main title");
