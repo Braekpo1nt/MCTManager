@@ -1,7 +1,6 @@
 package org.braekpo1nt.mctmanager.listeners;
 
 import org.braekpo1nt.mctmanager.Main;
-import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
