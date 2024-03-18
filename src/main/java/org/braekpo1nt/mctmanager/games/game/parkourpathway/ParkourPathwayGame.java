@@ -143,15 +143,15 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         Preconditions.checkArgument(0 <= nextIndex, "nextIndex must be at least 0");
         Puzzle puzzle = storageUtil.getPuzzles().get(index);
         Display display = new Display(plugin);
-        display.addChild(new Display(plugin, GeometryUtils.toPointsWithDistance(puzzle.inBounds(), 1), Color.fromRGB(255, 0, 0)));
+        display.addChild(new Display(plugin, GeometryUtils.toFacePoints(puzzle.inBounds(), 2), Color.fromRGB(255, 0, 0)));
         display.addChild(new Display(plugin, GeometryUtils.toPointsWithDistance(puzzle.checkPoints().get(0).detectionArea(), 1), Color.fromRGB(0, 0, 255)));
         display.addChild(new Display(plugin, Collections.singletonList(puzzle.checkPoints().get(0).respawn().toVector()), Color.fromRGB(0, 255, 0)));
         
         if (nextIndex < storageUtil.getPuzzles().size()) {
             Puzzle nextPuzzle = storageUtil.getPuzzles().get(nextIndex);
-            display.addChild(new Display(plugin, GeometryUtils.toPointsWithDistance(nextPuzzle.inBounds(), 1), Color.fromRGB(127, 0, 127)));
-            display.addChild(new Display(plugin, GeometryUtils.toPointsWithDistance(nextPuzzle.checkPoints().get(0).detectionArea(), 1), Color.fromRGB(0, 127, 127)));
-            display.addChild(new Display(plugin, Collections.singletonList(nextPuzzle.checkPoints().get(0).respawn().toVector()), Color.fromRGB(127, 127, 0)));
+            display.addChild(new Display(plugin, GeometryUtils.toFacePoints(nextPuzzle.inBounds(), 2), Color.fromRGB(100, 0, 0)));
+            display.addChild(new Display(plugin, GeometryUtils.toPointsWithDistance(nextPuzzle.checkPoints().get(0).detectionArea(), 1), Color.fromRGB(0, 0, 100)));
+            display.addChild(new Display(plugin, Collections.singletonList(nextPuzzle.checkPoints().get(0).respawn().toVector()), Color.fromRGB(0, 100, 0)));
         }
         
         return display;
