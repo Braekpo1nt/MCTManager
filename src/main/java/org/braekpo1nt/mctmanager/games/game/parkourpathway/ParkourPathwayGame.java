@@ -47,10 +47,6 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
     private final ParkourPathwayStorageUtil storageUtil;
     private final String title = ChatColor.BLUE+"Parkour Pathway";
     private final PotionEffect INVISIBILITY = new PotionEffect(PotionEffectType.INVISIBILITY, 10000, 1, true, false, false);
-    private final PotionEffect RESISTANCE = new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 70, 200, true, false, false);
-    private final PotionEffect REGENERATION = new PotionEffect(PotionEffectType.REGENERATION, 70, 200, true, false, false);
-    private final PotionEffect FIRE_RESISTANCE = new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 70, 1, true, false, false);
-    private final PotionEffect SATURATION = new PotionEffect(PotionEffectType.SATURATION, 70, 250, true, false, false);
     private int statusEffectsTaskId;
     private int startNextRoundTimerTaskId;
     private int checkpointCounterTask;
@@ -85,7 +81,24 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
     
     @Override
     public boolean loadConfig() throws IllegalArgumentException {
-        return storageUtil.loadConfig();
+        if (!storageUtil.loadConfig()) {
+            return false;
+        }
+        if (!gameActive) {
+            return true;
+        }
+        // debug
+        for (Player participant : participants) {
+            int currentPuzzleIndex = currentPuzzles.get(participant.getUniqueId());
+            Display newDisplay = puzzlesToDisplay(currentPuzzleIndex, currentPuzzleIndex + 1);
+            Display oldDisplay = displays.put(participant.getUniqueId(), newDisplay);
+            if (oldDisplay != null) {
+                oldDisplay.hide();
+            }
+            newDisplay.show(participant);
+        }
+        // debug
+        return true;
     }
     
     @Override
@@ -562,10 +575,6 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
             public void run() {
                 for (Player participant : participants) {
                     participant.addPotionEffect(INVISIBILITY);
-                    participant.addPotionEffect(RESISTANCE);
-                    participant.addPotionEffect(REGENERATION);
-                    participant.addPotionEffect(FIRE_RESISTANCE);
-                    participant.addPotionEffect(SATURATION);
                 }
             }
         }.runTaskTimer(plugin, 0L, 60L).getTaskId();
