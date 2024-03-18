@@ -29,7 +29,8 @@ public class StopSubCommand implements TabExecutor {
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (!gameManager.gameIsRunning()) {
-            sender.sendMessage("No game is running.");
+            sender.sendMessage(Component.text("No game is running.")
+                    .color(NamedTextColor.RED));
             return true;
         }
         if (args.length == 0) {

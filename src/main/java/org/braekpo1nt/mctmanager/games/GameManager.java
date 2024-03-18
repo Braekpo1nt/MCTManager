@@ -214,6 +214,45 @@ public class GameManager implements Listener {
         return hubManager.loadConfig();
     }
     
+    /**
+     * Attempts to load the config for the active game. If false is returned, no change was made and nothing happens other than error messages are sent to the sender.
+     * @param sender the sender
+     * @return false if there is no game running, the game is not configurable, or the config could not be loaded. true if the config was loaded.
+     */
+    public boolean loadGameConfig(CommandSender sender) {
+        if (!gameIsRunning()) {
+            sender.sendMessage(Component.text("No game is running.")
+                    .color(NamedTextColor.RED));
+            return false;
+        }
+        
+        if (!(activeGame instanceof Configurable configurable)) {
+            sender.sendMessage(Component.text("This game is not configurable.")
+                    .color(NamedTextColor.RED));
+            return false;
+        }
+        
+        try {
+            if (!configurable.loadConfig()) {
+                throw new IllegalArgumentException("Config could not be loaded.");
+            }
+        } catch (IllegalArgumentException e) {
+            Bukkit.getLogger().severe(e.getMessage());
+            e.printStackTrace();
+            sender.sendMessage(Component.text("Error loading config file for ")
+                    .append(Component.text(activeGame.getType().name())
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(". See console for details:\n"))
+                    .append(Component.text(e.getMessage()))
+                    .color(NamedTextColor.RED));
+            return false;
+        }
+        
+        sender.sendMessage(Component.text("Game config was loaded.")
+                .color(NamedTextColor.GREEN));
+        return true;
+    }
+    
     public boolean loadGameState() {
         try {
             gameStateStorageUtil.loadGameState();
@@ -1057,4 +1096,5 @@ public class GameManager implements Listener {
             eventManager.updatePersonalScore(participant, contents);
         }
     }
+    
 }
