@@ -96,41 +96,9 @@ public class GeometryUtils {
         for (int x = minX; x <= maxX; x++) {
             for (int y = minY; y <= maxY; y++) {
                 for (int z = minZ; z <= maxZ; z++) {
-                    if (
-                            x == minX || x == maxX
-                                    || y == minY || y == maxY
-                                    || z == minZ || z == maxZ
-                    ) {
-                        result.add(new Vector(x, y, z));
-                    }
-                }
-            }
-        }
-        return result;
-    }
-    
-    /**
-     * Returns points along the faces of the cube at the given axial distance between points
-     * @param area the bounding area
-     * @param distance the axial distance between points (x y and z axis distance)
-     * @return the points representing the faces of the cube
-     */
-    public static List<Vector> toFacePoints(BoundingBox area, double distance) {
-        List<Vector> result = new ArrayList<>();
-        double minX = area.getMinX();
-        double minY = area.getMinY();
-        double minZ = area.getMinZ();
-        double maxX = area.getMaxX();
-        double maxY = area.getMaxY();
-        double maxZ = area.getMaxZ();
-        for (double x = minX; x <= maxX; x += distance) {
-            for (double y = minY; y <= maxY; y += distance) {
-                for (double z = minZ; z <= maxZ; z += distance) {
-                    if (
-                            x == minX || x == maxX
-                                    || y == minY || y == maxY
-                                    || z == minZ || z == maxZ
-                    ) {
+                    if (x == minX || x == maxX
+                        || y == minY || y == maxY
+                        || z == minZ || z == maxZ) {
                         result.add(new Vector(x, y, z));
                     }
                 }
