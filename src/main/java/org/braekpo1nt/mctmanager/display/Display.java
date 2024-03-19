@@ -14,6 +14,7 @@ import java.util.List;
 
 public class Display {
     
+    private static final int MAX_TICKS = 60*5*20;
     private final Main plugin;
     private final int maxTicks;
     private @NotNull List<Vector> points;
@@ -25,7 +26,7 @@ public class Display {
         this.plugin = plugin;
         this.points = Collections.emptyList();
         this.color = Color.RED;
-        this.maxTicks = 60*20;
+        this.maxTicks = MAX_TICKS;
     }
     
     public Display(Main plugin, @NotNull List<Vector> points, @NotNull Color color, int maxTicks) {
@@ -39,14 +40,14 @@ public class Display {
         this.plugin = plugin;
         this.points = points;
         this.color = Color.RED;
-        this.maxTicks = 60*20;
+        this.maxTicks = MAX_TICKS;
     }
     
     public Display(Main plugin, @NotNull List<Vector> points, @NotNull Color color) {
         this.plugin = plugin;
         this.points = points;
         this.color = color;
-        this.maxTicks = 60*20;
+        this.maxTicks = MAX_TICKS;
     }
     
     public Display(Main plugin, @NotNull List<Vector> points, int maxTicks) {
@@ -69,10 +70,14 @@ public class Display {
     }
     
     public void show(Player viewer) {
+        show(viewer, maxTicks);
+    }
+    
+    public void show(Player viewer, int ticks) {
         hide();
         if (!points.isEmpty()) {
             taskId = new BukkitRunnable() {
-                int count = maxTicks;
+                int count = ticks;
                 @Override
                 public void run() {
                     if (count <= 0) {

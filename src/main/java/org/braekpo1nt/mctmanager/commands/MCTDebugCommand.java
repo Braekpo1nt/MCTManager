@@ -72,7 +72,7 @@ public class MCTDebugCommand implements TabExecutor, Listener {
                 x1, y1, z1, 
                 x2, y2, z2
         );
-        List<Vector> points = GeometryUtils.toRectanglePoints(detectionBox, distance);
+        List<Vector> points = GeometryUtils.toEdgePoints(detectionBox, distance);
         DisplayUtils.display(plugin, player, points, duration);
         roller = 0;
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
