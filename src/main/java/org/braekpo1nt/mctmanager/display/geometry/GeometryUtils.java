@@ -23,8 +23,6 @@ public class GeometryUtils {
         double maxY = max.getY();
         double maxZ = max.getZ();
         
-        List<Edge> edges = new ArrayList<>();
-        
         Vector a = new Vector(minX, minY, minZ);
         Vector b = new Vector(minX, minY, maxZ);
         Vector c = new Vector(maxX, minY, minZ);
@@ -34,6 +32,7 @@ public class GeometryUtils {
         Vector g = new Vector(maxX, maxY, minZ);
         Vector h = new Vector(maxX, maxY, maxZ);
         
+        List<Edge> edges = new ArrayList<>(12);
         // Bottom edges
         edges.add(new Edge(a, b));
         edges.add(new Edge(b, d));
@@ -54,7 +53,34 @@ public class GeometryUtils {
     }
     
     public static List<Rectangle> toRectangles(BoundingBox box) {
-        throw new UnsupportedOperationException("not implemented yet");
+        Vector min = box.getMin();
+        Vector max = box.getMax();
+        double minX = min.getX();
+        double minY = min.getY();
+        double minZ = min.getZ();
+        double maxX = max.getX();
+        double maxY = max.getY();
+        double maxZ = max.getZ();
+        
+        Vector a = new Vector(minX, minY, minZ);
+        Vector b = new Vector(minX, minY, maxZ);
+        Vector c = new Vector(maxX, minY, minZ);
+        Vector d = new Vector(maxX, minY, maxZ);
+        Vector e = new Vector(minX, maxY, minZ);
+        Vector f = new Vector(minX, maxY, maxZ);
+        Vector g = new Vector(maxX, maxY, minZ);
+        Vector h = new Vector(maxX, maxY, maxZ);
+        
+        List<Rectangle> rects = new ArrayList<>(6);
+        // 6-sided die faces
+        rects.add(Rectangle.of(a, d));
+        rects.add(Rectangle.of(a, f));
+        rects.add(Rectangle.of(a, g));
+        rects.add(Rectangle.of(b, h));
+        rects.add(Rectangle.of(c, h));
+        rects.add(Rectangle.of(e, h));
+        
+        return rects;
     }
     
     /**

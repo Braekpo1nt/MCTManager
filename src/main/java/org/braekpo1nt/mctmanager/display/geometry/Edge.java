@@ -1,7 +1,6 @@
 package org.braekpo1nt.mctmanager.display.geometry;
 
 import com.google.common.base.Objects;
-import org.braekpo1nt.mctmanager.commands.MCTDebugCommand;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
