@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.display.geometry;
 
 import com.google.common.base.Objects;
+import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -141,6 +142,49 @@ public class Edge {
         double z = a.getZ() + (b.getZ() - a.getZ()) * p;
         
         return new Vector(x, y, z);
+    }
+    
+    /**
+     * @param box a bounding box to create the edges for
+     * @return a list of the 12 edges along the box
+     */
+    public static List<Edge> toEdges(BoundingBox box) {
+        Vector min = box.getMin();
+        Vector max = box.getMax();
+        double minX = min.getX();
+        double minY = min.getY();
+        double minZ = min.getZ();
+        double maxX = max.getX();
+        double maxY = max.getY();
+        double maxZ = max.getZ();
+        
+        Vector a = new Vector(minX, minY, minZ);
+        Vector b = new Vector(minX, minY, maxZ);
+        Vector c = new Vector(maxX, minY, minZ);
+        Vector d = new Vector(maxX, minY, maxZ);
+        Vector e = new Vector(minX, maxY, minZ);
+        Vector f = new Vector(minX, maxY, maxZ);
+        Vector g = new Vector(maxX, maxY, minZ);
+        Vector h = new Vector(maxX, maxY, maxZ);
+        
+        List<Edge> edges = new ArrayList<>(12);
+        // Bottom edges
+        edges.add(new Edge(a, b));
+        edges.add(new Edge(b, d));
+        edges.add(new Edge(d, c));
+        edges.add(new Edge(c, a));
+        // Top edges
+        edges.add(new Edge(e, f));
+        edges.add(new Edge(f, h));
+        edges.add(new Edge(h, g));
+        edges.add(new Edge(g, e));
+        // Vertical edges
+        edges.add(new Edge(a, e));
+        edges.add(new Edge(b, f));
+        edges.add(new Edge(d, h));
+        edges.add(new Edge(c, g));
+        
+        return edges;
     }
     
     @Override

@@ -54,7 +54,7 @@ public interface Rectangle {
         throw new UnsupportedOperationException("Not yet implemented");
     }
     
-    static List<Rectangle> of(BoundingBox box) {
+    static List<Rectangle> toRectangles(BoundingBox box) {
         List<Rectangle> rects = new ArrayList<>(6);
         Vector min = box.getMin();
         Vector max = box.getMax();

@@ -9,90 +9,11 @@ import java.util.List;
 
 public class GeometryUtils {
     
-    /**
-     * @param box a bounding box to create the edges for
-     * @return a list of the 12 edges along the box
-     */
-    public static List<Edge> toEdges(BoundingBox box) {
-        Vector min = box.getMin();
-        Vector max = box.getMax();
-        double minX = min.getX();
-        double minY = min.getY();
-        double minZ = min.getZ();
-        double maxX = max.getX();
-        double maxY = max.getY();
-        double maxZ = max.getZ();
-        
-        Vector a = new Vector(minX, minY, minZ);
-        Vector b = new Vector(minX, minY, maxZ);
-        Vector c = new Vector(maxX, minY, minZ);
-        Vector d = new Vector(maxX, minY, maxZ);
-        Vector e = new Vector(minX, maxY, minZ);
-        Vector f = new Vector(minX, maxY, maxZ);
-        Vector g = new Vector(maxX, maxY, minZ);
-        Vector h = new Vector(maxX, maxY, maxZ);
-        
-        List<Edge> edges = new ArrayList<>(12);
-        // Bottom edges
-        edges.add(new Edge(a, b));
-        edges.add(new Edge(b, d));
-        edges.add(new Edge(d, c));
-        edges.add(new Edge(c, a));
-        // Top edges
-        edges.add(new Edge(e, f));
-        edges.add(new Edge(f, h));
-        edges.add(new Edge(h, g));
-        edges.add(new Edge(g, e));
-        // Vertical edges
-        edges.add(new Edge(a, e));
-        edges.add(new Edge(b, f));
-        edges.add(new Edge(d, h));
-        edges.add(new Edge(c, g));
-        
-        return edges;
-    }
-    
-    public static List<Rectangle> toRectangles(BoundingBox box) {
-        Vector min = box.getMin();
-        Vector max = box.getMax();
-        double minX = min.getX();
-        double minY = min.getY();
-        double minZ = min.getZ();
-        double maxX = max.getX();
-        double maxY = max.getY();
-        double maxZ = max.getZ();
-        
-        Vector a = new Vector(minX, minY, minZ);
-        Vector b = new Vector(minX, minY, maxZ);
-        Vector c = new Vector(maxX, minY, minZ);
-        Vector d = new Vector(maxX, minY, maxZ);
-        Vector e = new Vector(minX, maxY, minZ);
-        Vector f = new Vector(minX, maxY, maxZ);
-        Vector g = new Vector(maxX, maxY, minZ);
-        Vector h = new Vector(maxX, maxY, maxZ);
-        
-        List<Rectangle> rects = new ArrayList<>(6);
-        // 6-sided die faces
-        rects.add(Rectangle.of(a, d));
-        rects.add(Rectangle.of(a, f));
-        rects.add(Rectangle.of(a, g));
-        rects.add(Rectangle.of(b, h));
-        rects.add(Rectangle.of(c, h));
-        rects.add(Rectangle.of(e, h));
-        
-        return rects;
-    }
-    
-    /**
-     * @param box the box to convert to points
-     * @param n the number of points along each edge (not the total number of points)
-     * @return n*12 points which represent the edges of the given box. Points will be equidistant along each edge.
-     */
-    public static List<Vector> toEdgePoints(BoundingBox box, int n) {
-        List<Edge> edges = GeometryUtils.toEdges(box);
-        List<Vector> points = new ArrayList<>(n*12);
-        for (Edge edge : edges) {
-            points.addAll(edge.pointsAlongEdge(n));
+    public static List<Vector> toRectanglePoints(BoundingBox box, double distance) {
+        List<Rectangle> rects = Rectangle.toRectangles(box);
+        List<Vector> points = new ArrayList<>();
+        for (Rectangle rect : rects) {
+            points.addAll(rect.toPoints(distance));
         }
         return points;
     }
@@ -102,8 +23,8 @@ public class GeometryUtils {
      * @param distance the distance between points
      * @return a list of equidistant points (using the given distance) along the edges of the box
      */
-    public static List<Vector> toEdgePointsWithDistance(BoundingBox box, double distance) {
-        List<Edge> edges = GeometryUtils.toEdges(box);
+    public static List<Vector> toEdgePoints(BoundingBox box, double distance) {
+        List<Edge> edges = Edge.toEdges(box);
         List<Vector> points = new ArrayList<>();
         for (Edge edge : edges) {
             points.addAll(edge.pointsAlongEdgeWithDistance(distance));
@@ -113,41 +34,60 @@ public class GeometryUtils {
     
     /**
      * Returns points along the faces of the cube, where each point is a block apart
-     * @param area the bounding area
+     * @param box the bounding box
      * @return the points representing the faces of the cube
      */
-    public static List<Vector> toFacePoints(BoundingBox area) {
-        List<Vector> result = new ArrayList<>();
-        int minX = area.getMin().getBlockX();
-        int minY = area.getMin().getBlockY();
-        int minZ = area.getMin().getBlockZ();
-        int maxX = area.getMax().getBlockX();
-        int maxY = area.getMax().getBlockY();
-        int maxZ = area.getMax().getBlockZ();
+    public static List<Vector> toFacePoints(BoundingBox box) {
+        List<Vector> points = new ArrayList<>();
+        int minX = box.getMin().getBlockX();
+        int minY = box.getMin().getBlockY();
+        int minZ = box.getMin().getBlockZ();
+        int maxX = box.getMax().getBlockX();
+        int maxY = box.getMax().getBlockY();
+        int maxZ = box.getMax().getBlockZ();
         for (int x = minX; x <= maxX; x++) {
             for (int y = minY; y <= maxY; y++) {
                 for (int z = minZ; z <= maxZ; z++) {
                     if (x == minX || x == maxX
                         || y == minY || y == maxY
                         || z == minZ || z == maxZ) {
-                        result.add(new Vector(x, y, z));
+                        points.add(new Vector(x, y, z));
                     }
                 }
             }
         }
-        return result;
+        return points;
     }
     
     /**
      * Returns points along the faces of the cube at the given axial distance between points
-     * @param area the bounding area
+     * @param box the bounding box
      * @param distance the axial distance between points (x y and z axis distance)
-     * @return the points representing the faces of the cube
+     * @return the points representing the faces of the box
      */
-    public static List<Vector> toFacePointsWithDistance(BoundingBox area, double distance) {
-        List<Vector> result = new ArrayList<>();
-        
-        return result;
+    public static List<Vector> toFacePoints(BoundingBox box, double distance) {
+        List<Vector> points = new ArrayList<>();
+        int numPointsX = (int) Math.ceil(box.getWidthX() / distance);
+        int numPointsY = (int) Math.ceil(box.getHeight() / distance);
+        int numPointsZ = (int) Math.ceil(box.getWidthZ() / distance);
+        double stepX = box.getWidthX() / numPointsX;
+        double stepY = box.getHeight() / numPointsY;
+        double stepZ = box.getWidthZ() / numPointsZ;
+        for (int i = 0; i <= numPointsX; i++) {
+            for (int j = 0; j <= numPointsY; j++) {
+                for (int k = 0; k <= numPointsZ; k++) {
+                    if (i == 0 || i == numPointsX 
+                        || j == 0 || j == numPointsY 
+                        || k == 0 || k == numPointsZ) {
+                        double x = box.getMinX() + i * stepX;
+                        double y = box.getMinY() + i * stepY;
+                        double z = box.getMinZ() + i * stepZ;
+                        points.add(new Vector(x, y, z));
+                    }
+                }
+            }
+        }
+        return points;
     }
     
     
