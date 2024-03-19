@@ -65,7 +65,7 @@ public class MCTDebugCommand implements TabExecutor {
                 x1, y1, z1, 
                 x2, y2, z2
         );
-        List<Vector> points = GeometryUtils.toEdgePointsNumber(box, 10);
+        List<Vector> points = GeometryUtils.toEdgePoints(box, 10);
         DisplayUtils.display(plugin, player, points, duration);
         
 //        Component mainTitle = Component.text("Main title");

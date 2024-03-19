@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.display.geometry;
 
+import com.google.common.base.Objects;
 import org.braekpo1nt.mctmanager.commands.MCTDebugCommand;
 import org.bukkit.util.Vector;
 
@@ -150,5 +151,17 @@ public class Edge {
                 ", " +
                 b +
                 "]";
+    }
+    
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Edge edge)) return false;
+        return Objects.equal(a, edge.a) && Objects.equal(b, edge.b);
+    }
+    
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(a, b);
     }
 }

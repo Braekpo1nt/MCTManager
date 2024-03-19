@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.display.geometry;
 
+import org.braekpo1nt.mctmanager.display.geometry.rectangle.Rectangle;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
@@ -52,12 +53,16 @@ public class GeometryUtils {
         return edges;
     }
     
+    public static List<Rectangle> toRectangles(BoundingBox box) {
+        throw new UnsupportedOperationException("not implemented yet");
+    }
+    
     /**
      * @param box the box to convert to points
      * @param n the number of points along each edge (not the total number of points)
      * @return n*12 points which represent the edges of the given box. Points will be equidistant along each edge.
      */
-    public static List<Vector> toEdgePointsNumber(BoundingBox box, int n) {
+    public static List<Vector> toEdgePoints(BoundingBox box, int n) {
         List<Edge> edges = GeometryUtils.toEdges(box);
         List<Vector> points = new ArrayList<>(n*12);
         for (Edge edge : edges) {
@@ -71,7 +76,7 @@ public class GeometryUtils {
      * @param distance the distance between points
      * @return a list of equidistant points (using the given distance) along the edges of the box
      */
-    public static List<Vector> toPointsWithDistance(BoundingBox box, double distance) {
+    public static List<Vector> toEdgePointsWithDistance(BoundingBox box, double distance) {
         List<Edge> edges = GeometryUtils.toEdges(box);
         List<Vector> points = new ArrayList<>();
         for (Edge edge : edges) {
@@ -106,6 +111,20 @@ public class GeometryUtils {
         }
         return result;
     }
+    
+    /**
+     * Returns points along the faces of the cube at the given axial distance between points
+     * @param area the bounding area
+     * @param distance the axial distance between points (x y and z axis distance)
+     * @return the points representing the faces of the cube
+     */
+    public static List<Vector> toFacePointsWithDistance(BoundingBox area, double distance) {
+        List<Vector> result = new ArrayList<>();
+        
+        return result;
+    }
+    
+    
     
     private GeometryUtils() {
         // do not instantiate
