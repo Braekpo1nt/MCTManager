@@ -3,9 +3,7 @@ package org.braekpo1nt.mctmanager.commands;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.display.DisplayUtils;
-import org.braekpo1nt.mctmanager.display.geometry.GeometryUtils;
-import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
@@ -14,7 +12,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.util.BoundingBox;
-import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -26,11 +23,7 @@ import java.util.List;
  */
 public class MCTDebugCommand implements TabExecutor, Listener {
     
-    private final Main plugin;
-    private BoundingBox detectionBox = null;
-    
     public MCTDebugCommand(Main plugin) {
-        this.plugin = plugin;
         plugin.getCommand("mctdebug").setExecutor(this);
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
@@ -44,40 +37,15 @@ public class MCTDebugCommand implements TabExecutor, Listener {
             return true;
         }
         
-        if (args.length < 1) {
+        if (args.length != 0) {
             sender.sendMessage(Component.text("Usage: /mctdebug <arg> [options]")
                     .color(NamedTextColor.RED));
             return true;
         }
-        
-        int duration = Integer.parseInt(args[0]); // in ticks
-        double distance = Double.parseDouble(args[1]); // in blocks
-        
-        float x1 = 1;
-        float y1 = 1;
-        float z1 = 1;
-        float x2 = 10;
-        float y2 = 10;
-        float z2 = 10;
-        if (args.length == 8) {
-            x1 = Float.parseFloat(args[2]);
-            y1 = Float.parseFloat(args[3]);
-            z1 = Float.parseFloat(args[4]);
-            x2 = Float.parseFloat(args[5]);
-            y2 = Float.parseFloat(args[6]);
-            z2 = Float.parseFloat(args[7]);
-        }
-        
-        detectionBox = new BoundingBox(
-                x1, y1, z1, 
-                x2, y2, z2
-        );
-        List<Vector> points = GeometryUtils.toEdgePoints(detectionBox, distance);
-        DisplayUtils.display(plugin, player, points, duration);
-        roller = 0;
-        Bukkit.getScheduler().runTaskLater(plugin, () -> {
-            detectionBox = null;
-        }, duration);
+    
+        float yaw = player.getLocation().getYaw();
+        float pitch = player.getLocation().getPitch();
+        sendPlayerDirection(player, yaw, pitch);
         
 //        Component mainTitle = Component.text("Main title");
 //        Component subTitle = Component.text("Subtitle");
@@ -88,20 +56,31 @@ public class MCTDebugCommand implements TabExecutor, Listener {
         return true;
     }
     
-    private int roller = 0;
-    @EventHandler
-    public void onPlayerMove(PlayerMoveEvent event) {
-        Player player = event.getPlayer();
-        if (detectionBox == null) {
-            return;
-        }
-        if (detectionBox.contains(player.getLocation().toVector())) {
-            player.sendMessage(Component.text("Detected ")
-                    .append(Component.text(roller)));
-        }
-        roller++;
-        if (roller > 9) {
-            roller = 0;
+    public static void sendPlayerDirection(CommandSender sender, float yaw, float pitch) {
+        double yawRadians = Math.toRadians((yaw + 360) % 360);
+        double pitchRadians = Math.toRadians(pitch);
+        // Calculate direction based on yaw and pitch
+        double x = Math.sin(yawRadians) * Math.cos(pitchRadians);
+        double y = Math.sin(pitchRadians);
+        double z = -Math.cos(yawRadians) * Math.cos(pitchRadians);
+        
+        // Check which direction the player is facing
+        if (y < -0.5)
+            sender.sendMessage("UP");
+        else if (y > 0.5)
+            sender.sendMessage("DOWN");
+        else if (Math.abs(x) > Math.abs(z)) {
+            if (x > 0) {
+                sender.sendMessage("WEST");
+            } else {
+                sender.sendMessage("EAST");
+            }
+        } else {
+            if (z > 0){
+                sender.sendMessage("NORTH");
+            } else {
+                sender.sendMessage("SOUTH");
+            }
         }
     }
     

@@ -141,7 +141,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         display.show(participant);
         // debug
         sidebar.addPlayer(participant);
-        teleportPlayerToStartingPosition(participant);
+        participant.teleport(storageUtil.getStartingLocation());
         participant.getInventory().clear();
         giveBoots(participant);
         participant.setGameMode(GameMode.ADVENTURE);
@@ -606,11 +606,6 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
     }
 
 
-    private void teleportPlayerToStartingPosition(Player player) {
-        player.sendMessage("Teleporting to Parkour Pathway");
-        player.teleport(storageUtil.getStartingLocation());
-    }
-    
     private void cancelAllTasks() {
         Bukkit.getScheduler().cancelTask(statusEffectsTaskId);
         Bukkit.getScheduler().cancelTask(startNextRoundTimerTaskId);

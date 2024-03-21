@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.display.geometry.rectangle;
 
+import com.google.common.base.Preconditions;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
@@ -11,7 +12,8 @@ public class FreeRectangle implements Rectangle {
     private final Vector edge1;
     private final Vector edge2;
     
-    public FreeRectangle(Vector origin, Vector edge1, Vector edge2) {
+    public FreeRectangle(@NotNull Vector origin, @NotNull Vector edge1, @NotNull Vector edge2) {
+        Preconditions.checkArgument(edge1.angle(edge2) == (Math.PI / 2), "edges must form a 90 degree angle");
         this.origin = origin;
         this.edge1 = edge1;
         this.edge2 = edge2;
