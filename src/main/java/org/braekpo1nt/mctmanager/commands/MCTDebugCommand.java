@@ -3,7 +3,9 @@ package org.braekpo1nt.mctmanager.commands;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.utils.EntityUtils;
 import org.bukkit.Location;
+import org.bukkit.block.BlockFace;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
@@ -45,8 +47,9 @@ public class MCTDebugCommand implements TabExecutor, Listener {
     
         float yaw = player.getLocation().getYaw();
         float pitch = player.getLocation().getPitch();
-        sendPlayerDirection(player, yaw, pitch);
-        
+        BlockFace direction = EntityUtils.getPlayerDirection(yaw, pitch);
+        sender.sendMessage(direction.toString());
+
 //        Component mainTitle = Component.text("Main title");
 //        Component subTitle = Component.text("Subtitle");
 //
@@ -55,35 +58,6 @@ public class MCTDebugCommand implements TabExecutor, Listener {
 //        sender.showTitle(title);
         return true;
     }
-    
-    public static void sendPlayerDirection(CommandSender sender, float yaw, float pitch) {
-        double yawRadians = Math.toRadians((yaw + 360) % 360);
-        double pitchRadians = Math.toRadians(pitch);
-        // Calculate direction based on yaw and pitch
-        double x = Math.sin(yawRadians) * Math.cos(pitchRadians);
-        double y = Math.sin(pitchRadians);
-        double z = -Math.cos(yawRadians) * Math.cos(pitchRadians);
-        
-        // Check which direction the player is facing
-        if (y < -0.5)
-            sender.sendMessage("UP");
-        else if (y > 0.5)
-            sender.sendMessage("DOWN");
-        else if (Math.abs(x) > Math.abs(z)) {
-            if (x > 0) {
-                sender.sendMessage("WEST");
-            } else {
-                sender.sendMessage("EAST");
-            }
-        } else {
-            if (z > 0){
-                sender.sendMessage("NORTH");
-            } else {
-                sender.sendMessage("SOUTH");
-            }
-        }
-    }
-    
     
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
