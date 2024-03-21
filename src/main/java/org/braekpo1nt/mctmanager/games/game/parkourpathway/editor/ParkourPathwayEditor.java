@@ -73,6 +73,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
     
     public void initializeParticipant(Player participant) {
         participants.add(participant);
+        displays.put(participant.getUniqueId(), new Display(plugin));
         participant.getInventory().clear();
         participant.teleport(storageUtil.getStartingLocation());
         ParticipantInitializer.resetHealthAndHunger(participant);
@@ -86,10 +87,19 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
         for (Player participant : participants) {
             resetParticipant(participant);
         }
+        participants.clear();
+        displays.clear();
         Bukkit.getLogger().info("Stopping Parkour Pathway editor");
     }
     
     private void resetParticipant(Player participant) {
+        ParticipantInitializer.resetHealthAndHunger(participant);
+        ParticipantInitializer.clearStatusEffects(participant);
+        participant.getInventory().clear();
+        Display display = displays.get(participant.getUniqueId());
+        if (display != null) {
+            display.hide();
+        }
         Bukkit.getLogger().info("Stopping Parkour Pathway editor");
     }
     
@@ -116,6 +126,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
         if (!isWand(item)) {
             return;
         }
+        event.setCancelled(true);
         onUseWand(participant, event.getAction());
     }
     
