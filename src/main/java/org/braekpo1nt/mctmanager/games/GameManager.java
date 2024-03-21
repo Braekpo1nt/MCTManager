@@ -10,6 +10,8 @@ import org.braekpo1nt.mctmanager.games.game.clockwork.ClockworkGame;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
+import org.braekpo1nt.mctmanager.games.game.interfaces.GameEditor;
+import org.braekpo1nt.mctmanager.games.game.parkourpathway.editor.ParkourPathwayEditor;
 import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.SidebarFactory;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
@@ -45,10 +47,12 @@ public class GameManager implements Listener {
     public static final String ADMIN_TEAM = "_Admins";
     public static final NamedTextColor ADMIN_COLOR = NamedTextColor.DARK_RED; 
     private MCTGame activeGame = null;
+    private GameEditor activeEditor = null;
     private final FootRaceGame footRaceGame;
     private final MechaGame mechaGame;
     private final SpleefGame spleefGame;
     private final ParkourPathwayGame parkourPathwayGame;
+    private final ParkourPathwayEditor parkourPathwayEditor;
     private final CaptureTheFlagGame captureTheFlagGame;
     private final ClockworkGame clockworkGame;
     private final HubManager hubManager;
@@ -78,6 +82,7 @@ public class GameManager implements Listener {
         this.mechaGame = new MechaGame(plugin, this);
         this.spleefGame = new SpleefGame(plugin, this);
         this.parkourPathwayGame = new ParkourPathwayGame(plugin, this);
+        this.parkourPathwayEditor = new ParkourPathwayEditor(plugin, this);
         this.captureTheFlagGame = new CaptureTheFlagGame(plugin, this);
         this.clockworkGame = new ClockworkGame(plugin, this);
         this.sidebarFactory = new SidebarFactory();
@@ -337,8 +342,9 @@ public class GameManager implements Listener {
             return false;
         }
         
-        if (activeGame != null) {
-            sender.sendMessage("There is already a game running. You must stop the game before you start a new one.");
+        if (gameIsRunning()) {
+            sender.sendMessage(Component.text("There is already a game running. You must stop the game before you start a new one.")
+                    .color(NamedTextColor.RED));
             return false;
         }
         
@@ -428,6 +434,98 @@ public class GameManager implements Listener {
             updatePersonalScore(participant);
         }
         return true;
+    }
+    
+    public boolean startEditor(GameType gameType, @NotNull CommandSender sender) {
+        if (voteManager.isVoting()) {
+            sender.sendMessage(Component.text("Can't start a game while a vote is going on.")
+                    .color(NamedTextColor.RED));
+            return false;
+        }
+    
+        if (gameIsRunning()) {
+            sender.sendMessage(Component.text("There is a game running. You must stop the game before you start an editor.")
+                    .color(NamedTextColor.RED));
+            return false;
+        }
+        
+        if (eventManager.eventIsActive()) {
+            sender.sendMessage(Component.text("Can't start an editor while an event is going on")
+                    .color(NamedTextColor.RED));
+            return false;
+        }
+    
+        if (eventManager.colossalCombatIsActive()) {
+            sender.sendMessage(Component.text("Can't start an editor while colossal combat is running")
+                    .color(NamedTextColor.RED));
+            return false;
+        }
+    
+        if (onlineParticipants.isEmpty()) {
+            sender.sendMessage(Component.text("There are no online participants. You can add participants using:\n")
+                    .append(Component.text("/mct team join <team> <member>")
+                            .decorate(TextDecoration.BOLD)
+                            .clickEvent(ClickEvent.suggestCommand("/mct team join "))));
+            return false;
+        }
+        
+        if (activeEditor != null) {
+            sender.sendMessage(Component.text("An editor is already running. You must stop it before you can start another one.")
+                    .color(NamedTextColor.RED));
+            return false;
+        }
+        
+        GameEditor selectedEditor;
+        switch (gameType) {
+            case FOOT_RACE, MECHA, SPLEEF, CLOCKWORK, CAPTURE_THE_FLAG -> {
+                sender.sendMessage(Component.text("No editor exists for game ")
+                        .append(Component.text(gameType.getTitle())
+                                .decorate(TextDecoration.BOLD))
+                        .color(NamedTextColor.RED));
+                return false;
+            }
+            case PARKOUR_PATHWAY -> {
+                selectedEditor = parkourPathwayEditor;
+            }
+            default -> {
+                sender.sendMessage(Component.text("Can't find game for type " + gameType)
+                        .color(NamedTextColor.RED));
+                return false;
+            }
+        }
+    
+        // make sure config loads
+        try {
+            if (!selectedEditor.loadConfig()) {
+                throw new IllegalArgumentException("Config could not be loaded.");
+            }
+        } catch (IllegalArgumentException e) {
+            Bukkit.getLogger().severe(e.getMessage());
+            e.printStackTrace();
+            Component message = Component.text("Can't start ")
+                    .append(Component.text(gameType.name())
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(". Error loading config file. See console for details:\n"))
+                    .append(Component.text(e.getMessage()))
+                    .color(NamedTextColor.RED);
+            sender.sendMessage(message);
+            messageAdmins(message);
+            return false;
+        }
+        
+        selectedEditor.start(onlineParticipants);
+        activeEditor = selectedEditor;
+        return true;
+    }
+    
+    public void stopEditor(@NotNull CommandSender sender) {
+        if (activeEditor == null) {
+            sender.sendMessage(Component.text("No editor is running.")
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        activeEditor.stop();
+        activeEditor = null;
     }
     
     /**

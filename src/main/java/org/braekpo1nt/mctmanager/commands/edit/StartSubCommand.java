@@ -1,4 +1,4 @@
-package org.braekpo1nt.mctmanager.commands.game;
+package org.braekpo1nt.mctmanager.commands.edit;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -13,9 +13,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * Handles starting games
- */
 public class StartSubCommand implements TabExecutor {
     
     private final GameManager gameManager;
@@ -26,10 +23,12 @@ public class StartSubCommand implements TabExecutor {
     
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+    
         if (args.length != 1) {
-            sender.sendMessage("Usage: /mct game start <game>");
+            sender.sendMessage("Usage: /mct edit start <game>");
             return true;
         }
+    
         String gameID = args[0];
         GameType gameType = GameType.fromID(gameID);
         if (gameType == null) {
@@ -38,12 +37,7 @@ public class StartSubCommand implements TabExecutor {
                     .color(NamedTextColor.RED));
             return true;
         }
-        if (gameManager.getEventManager().eventIsActive()) {
-            sender.sendMessage(Component.text("Can't manually start a game while an event is active.")
-                    .color(NamedTextColor.RED));
-            return true;
-        }
-        gameManager.startGame(gameType, sender);
+        gameManager.startEditor(gameType, sender);
         return true;
     }
     

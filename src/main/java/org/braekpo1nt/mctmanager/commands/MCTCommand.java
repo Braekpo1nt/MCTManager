@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.commands;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.admin.AdminSubCommand;
+import org.braekpo1nt.mctmanager.commands.edit.EditSubCommand;
 import org.braekpo1nt.mctmanager.commands.event.EventSubCommand;
 import org.braekpo1nt.mctmanager.commands.game.GameSubCommand;
 import org.braekpo1nt.mctmanager.commands.team.TeamSubCommand;
@@ -21,6 +22,7 @@ public class MCTCommand extends CommandManager {
     public MCTCommand(Main plugin, GameManager gameManager, BlockEffectsListener blockEffectsListener) {
         plugin.getCommand("mct").setExecutor(this);
         subCommands.put("game", new GameSubCommand(gameManager));
+        subCommands.put("edit", new EditSubCommand(gameManager));
         subCommands.put("option", new OptionSubCommand(gameManager, blockEffectsListener));
         subCommands.put("team", new TeamSubCommand(gameManager));
         subCommands.put("admin", new AdminSubCommand(gameManager));

@@ -5,7 +5,9 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.display.Display;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
+import org.braekpo1nt.mctmanager.games.game.interfaces.GameEditor;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.config.ParkourPathwayStorageUtil;
+import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.utils.EntityUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -19,13 +21,12 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.List;
 
-public class ParkourPathwayEditor implements Configurable, Listener {
+public class ParkourPathwayEditor implements GameEditor, Configurable, Listener {
     
     private final Main plugin;
     private final GameManager gameManager;
@@ -53,6 +54,7 @@ public class ParkourPathwayEditor implements Configurable, Listener {
         return storageUtil.loadConfig();
     }
     
+    @Override
     public void start(List<Player> newParticipants) {
         participants = new ArrayList<>(newParticipants.size());
         displays = new HashMap<>(newParticipants.size());
@@ -65,11 +67,28 @@ public class ParkourPathwayEditor implements Configurable, Listener {
     
     public void initializeParticipant(Player participant) {
         participants.add(participant);
+        participant.getInventory().clear();
         participant.teleport(storageUtil.getStartingLocation());
+        ParticipantInitializer.resetHealthAndHunger(participant);
+        ParticipantInitializer.clearStatusEffects(participant);
+        giveWands(participant);
     }
     
-    public void giveWands() {
-        
+    @Override
+    public void stop() {
+        HandlerList.unregisterAll(this);
+        for (Player participant : participants) {
+            resetParticipant(participant);
+        }
+        Bukkit.getLogger().info("Stopping Parkour Pathway editor");
+    }
+    
+    private void resetParticipant(Player participant) {
+        Bukkit.getLogger().info("Stopping Parkour Pathway editor");
+    }
+    
+    public void giveWands(Player participant) {
+        participant.getInventory().addItem(wand);
     }
     
     /**
@@ -124,18 +143,6 @@ public class ParkourPathwayEditor implements Configurable, Listener {
     @EventHandler
     public void onDropItem(PlayerDropItemEvent event) {
         // if a player drops a wand, cancel the event. Otherwise, do nothing. 
-    }
-    
-    public void stop() {
-        HandlerList.unregisterAll(this);
-        for (Player participant : participants) {
-            resetParticipant(participant);
-        }
-        Bukkit.getLogger().info("Stopping Parkour Pathway editor");
-    }
-    
-    private void resetParticipant(Player participant) {
-        Bukkit.getLogger().info("Stopping Parkour Pathway editor");
     }
     
 }
