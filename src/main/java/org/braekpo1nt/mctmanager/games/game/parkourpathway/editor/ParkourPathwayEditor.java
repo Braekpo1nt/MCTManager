@@ -4,6 +4,7 @@ import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.display.Display;
 import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.GameEditor;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.config.ParkourPathwayStorageUtil;
@@ -52,6 +53,11 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
     @Override
     public boolean loadConfig() throws IllegalArgumentException {
         return storageUtil.loadConfig();
+    }
+    
+    @Override
+    public GameType getType() {
+        return GameType.PARKOUR_PATHWAY;
     }
     
     @Override
