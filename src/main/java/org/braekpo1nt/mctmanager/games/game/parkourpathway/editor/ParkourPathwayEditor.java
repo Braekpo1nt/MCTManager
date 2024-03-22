@@ -35,19 +35,45 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
     
     private List<Player> participants = new ArrayList<>();
     private Map<UUID, Display> displays;
-    private final ItemStack wand;
+    // wands
+    private final ItemStack inBoundsWand;
+    private final ItemStack detectionAreaWand;
+    private final ItemStack respawnWand;
+    private final ItemStack puzzleSelectWand;
+    private final List<ItemStack> allWands;
     
     public ParkourPathwayEditor(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
         this.gameManager = gameManager;
         this.storageUtil = new ParkourPathwayStorageUtil(plugin.getDataFolder());
-        this.wand = new ItemStack(Material.STICK);
-        wand.editMeta(meta -> {
-            meta.displayName(Component.text("Wand"));
+        this.inBoundsWand = new ItemStack(Material.STICK);
+        inBoundsWand.editMeta(meta -> {
+            meta.displayName(Component.text("inBounds"));
             meta.lore(List.of(
                     Component.text("Right Click: pull box face toward"),
                     Component.text("Left Click: push box face away")));
         });
+        this.detectionAreaWand = new ItemStack(Material.STICK);
+        detectionAreaWand.editMeta(meta -> {
+            meta.displayName(Component.text("detectionArea"));
+            meta.lore(List.of(
+                    Component.text("Right Click: pull box face toward"),
+                    Component.text("Left Click: push box face away")));
+        });
+        this.respawnWand = new ItemStack(Material.STICK);
+        respawnWand.editMeta(meta -> {
+            meta.displayName(Component.text("respawn"));
+            meta.lore(List.of(
+                    Component.text("Left Click: set respawn Location to current")));
+        });
+        this.puzzleSelectWand = new ItemStack(Material.STICK);
+        puzzleSelectWand.editMeta(meta -> {
+            meta.displayName(Component.text("Puzzle Select"));
+            meta.lore(List.of(
+                    Component.text("Right Click: next puzzle"),
+                    Component.text("Left Click: previous puzzle")));
+        });
+        allWands = List.of(inBoundsWand, detectionAreaWand, respawnWand, puzzleSelectWand);
     }
     
     @Override
@@ -104,7 +130,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
     }
     
     public void giveWands(Player participant) {
-        participant.getInventory().addItem(wand);
+        participant.getInventory().addItem(allWands.toArray(new ItemStack[0]));
     }
     
     /**
@@ -112,12 +138,11 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
      * @return true if the item is a wand, false otherwise
      */
     public boolean isWand(@NotNull ItemStack item) {
-        return item.equals(wand);
+        return allWands.contains(item);
     }
     
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
-        // handle usage of wands without removing any other functionality
         Player participant = event.getPlayer();
         ItemStack item = event.getItem();
         if (item == null) {
@@ -127,10 +152,18 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
             return;
         }
         event.setCancelled(true);
-        onUseWand(participant, event.getAction());
+        if (item.equals(inBoundsWand)) {
+            useInBoundsWand(participant, event.getAction());
+        } else if (item.equals(detectionAreaWand)) {
+            useDetectionAreaWand(participant, event.getAction());
+        } else if (item.equals(respawnWand)) {
+            useRespawnWand(participant);
+        }  else if (item.equals(puzzleSelectWand)) {
+            usePuzzleSelectWand(participant);
+        }
     }
     
-    private void onUseWand(Player participant, Action action) {
+    private void useInBoundsWand(Player participant, Action action) {
         BlockFace direction = EntityUtils.getPlayerDirection(participant.getLocation());
         switch (action) {
             case LEFT_CLICK_AIR, LEFT_CLICK_BLOCK -> {
@@ -152,6 +185,18 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
         }
     }
     
+    private void useDetectionAreaWand(Player participant, Action action) {
+        
+    }
+    
+    private void useRespawnWand(Player participant) {
+        
+    }
+    
+    private void usePuzzleSelectWand(Player participant) {
+        
+    }
+    
     @EventHandler
     public void onClickInventory(InventoryClickEvent event) {
         // allow players to move items around their inventory as normal, but if they drop a wand then cancel the event, so they keep the wand in their inventory
@@ -160,6 +205,10 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
     @EventHandler
     public void onDropItem(PlayerDropItemEvent event) {
         // if a player drops a wand, cancel the event. Otherwise, do nothing. 
+        if (!isWand(event.getItemDrop().getItemStack())) {
+            return;
+        }
+        event.setCancelled(true);
     }
     
 }
