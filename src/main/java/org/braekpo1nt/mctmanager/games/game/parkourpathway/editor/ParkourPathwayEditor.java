@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.games.game.parkourpathway.editor;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.display.Display;
 import org.braekpo1nt.mctmanager.games.GameManager;
@@ -8,6 +9,7 @@ import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.GameEditor;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.config.ParkourPathwayStorageUtil;
+import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.utils.EntityUtils;
 import org.bukkit.Bukkit;
@@ -41,6 +43,14 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
     private final ItemStack respawnWand;
     private final ItemStack puzzleSelectWand;
     private final List<ItemStack> allWands;
+    /**
+     * the index of the puzzle each participant is editing
+     */
+    private Map<UUID, Integer> currentPuzzles;
+    /**
+     * The index of the checkpoint that a participant is editing in their current puzzle (since there can be multiple)
+     */
+    private Map<UUID, Integer> currentPuzzleCheckpoints;
     
     public ParkourPathwayEditor(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
@@ -89,6 +99,8 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
     @Override
     public void start(List<Player> newParticipants) {
         participants = new ArrayList<>(newParticipants.size());
+        currentPuzzles = new HashMap<>(newParticipants.size());
+        currentPuzzleCheckpoints = new HashMap<>(newParticipants.size());
         displays = new HashMap<>(newParticipants.size());
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         for (Player participant : newParticipants) {
@@ -99,6 +111,8 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
     
     public void initializeParticipant(Player participant) {
         participants.add(participant);
+        currentPuzzles.put(participant.getUniqueId(), 0);
+        currentPuzzleCheckpoints.put(participant.getUniqueId(), 0);
         displays.put(participant.getUniqueId(), new Display(plugin));
         participant.getInventory().clear();
         participant.teleport(storageUtil.getStartingLocation());
@@ -114,6 +128,8 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
             resetParticipant(participant);
         }
         participants.clear();
+        currentPuzzles.clear();
+        currentPuzzleCheckpoints.clear();
         displays.clear();
         Bukkit.getLogger().info("Stopping Parkour Pathway editor");
     }
@@ -152,14 +168,15 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
             return;
         }
         event.setCancelled(true);
+        Action action = event.getAction();
         if (item.equals(inBoundsWand)) {
-            useInBoundsWand(participant, event.getAction());
+            useInBoundsWand(participant, action);
         } else if (item.equals(detectionAreaWand)) {
-            useDetectionAreaWand(participant, event.getAction());
+            useDetectionAreaWand(participant, action);
         } else if (item.equals(respawnWand)) {
             useRespawnWand(participant);
         }  else if (item.equals(puzzleSelectWand)) {
-            usePuzzleSelectWand(participant);
+            usePuzzleSelectWand(participant, action);
         }
     }
     
@@ -193,18 +210,56 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
         
     }
     
-    private void usePuzzleSelectWand(Player participant) {
-        
+    private void usePuzzleSelectWand(Player participant, Action action) {
+        int currentPuzzle = currentPuzzles.get(participant.getUniqueId());
+        switch (action) {
+            case LEFT_CLICK_AIR, LEFT_CLICK_BLOCK -> {
+                if (currentPuzzle == storageUtil.getPuzzles().size() - 1) {
+                    participant.sendMessage(Component.text("Already at puzzle ")
+                                    .append(Component.text(currentPuzzle))
+                            .color(NamedTextColor.RED));
+                    return;
+                }
+                selectPuzzle(participant, currentPuzzle + 1);
+            }
+            case RIGHT_CLICK_AIR, RIGHT_CLICK_BLOCK -> {
+                if (currentPuzzle == 0) {
+                    participant.sendMessage(Component.text("Already at puzzle 0")
+                            .color(NamedTextColor.RED));
+                    return;
+                }
+                selectPuzzle(participant, currentPuzzle - 1);
+            }
+        }
+    }
+    
+    private void selectPuzzle(Player participant, int puzzleIndex) {
+        currentPuzzles.put(participant.getUniqueId(), puzzleIndex);
+        currentPuzzleCheckpoints.put(participant.getUniqueId(), 0);
+        Display display = displays.get(participant.getUniqueId());
+        display.hide();
+        Display newDisplay = 
+        displays.put(participant.getUniqueId(), newDisplay);
     }
     
     @EventHandler
     public void onClickInventory(InventoryClickEvent event) {
         // allow players to move items around their inventory as normal, but if they drop a wand then cancel the event, so they keep the wand in their inventory
+        Player participant = ((Player) event.getWhoClicked());
+        if (!participants.contains(participant)) {
+            return;
+        }
+        if (!GameManagerUtils.INV_REMOVE_ACTIONS.contains(event.getAction())) {
+            return;
+        }
+        event.setCancelled(true);
     }
     
     @EventHandler
     public void onDropItem(PlayerDropItemEvent event) {
-        // if a player drops a wand, cancel the event. Otherwise, do nothing. 
+        if (!participants.contains(event.getPlayer())) {
+            return;
+        }
         if (!isWand(event.getItemDrop().getItemStack())) {
             return;
         }
