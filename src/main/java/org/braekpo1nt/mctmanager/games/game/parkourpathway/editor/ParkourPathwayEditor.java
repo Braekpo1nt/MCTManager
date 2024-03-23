@@ -66,28 +66,33 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
         inBoundsWand.editMeta(meta -> {
             meta.displayName(Component.text("inBounds"));
             meta.lore(List.of(
+                    Component.text("Left Click: push box face away"),
                     Component.text("Right Click: pull box face toward"),
-                    Component.text("Left Click: push box face away")));
+                    Component.text("(Crouch to adjust by 0.5 blocks)")
+            ));
         });
         this.detectionAreaWand = new ItemStack(Material.STICK);
         detectionAreaWand.editMeta(meta -> {
             meta.displayName(Component.text("detectionArea"));
             meta.lore(List.of(
+                    Component.text("Left Click: push box face away"),
                     Component.text("Right Click: pull box face toward"),
-                    Component.text("Left Click: push box face away")));
+                    Component.text("(Crouch to adjust by 0.5 blocks)")
+            ));
         });
         this.respawnWand = new ItemStack(Material.STICK);
         respawnWand.editMeta(meta -> {
             meta.displayName(Component.text("respawn"));
             meta.lore(List.of(
-                    Component.text("Left Click: set respawn Location to current")));
+                    Component.text("Left Click: set respawn to current Location")));
         });
         this.puzzleSelectWand = new ItemStack(Material.STICK);
         puzzleSelectWand.editMeta(meta -> {
             meta.displayName(Component.text("Puzzle Select"));
             meta.lore(List.of(
                     Component.text("Right Click: next puzzle"),
-                    Component.text("Left Click: previous puzzle")));
+                    Component.text("Left Click: previous puzzle")
+            ));
         });
         allWands = List.of(inBoundsWand, detectionAreaWand, respawnWand, puzzleSelectWand);
     }
@@ -194,7 +199,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
         int currentPuzzleIndex = currentPuzzles.get(participant.getUniqueId());
         Puzzle currentPuzzle = storageUtil.getPuzzles().get(currentPuzzleIndex);
         BoundingBox inBounds = currentPuzzle.inBounds();
-        double increment = participant.isSneaking() ? 1.0 : 0.5;
+        double increment = participant.isSneaking() ? 0.5 : 1.0;
         switch (action) {
             case LEFT_CLICK_AIR, LEFT_CLICK_BLOCK -> {
                 participant.sendMessage(Component.text("Expand ")
