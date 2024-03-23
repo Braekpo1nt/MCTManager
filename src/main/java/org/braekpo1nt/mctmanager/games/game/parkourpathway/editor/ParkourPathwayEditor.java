@@ -110,6 +110,9 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
         }
+        for (Player participant : newParticipants) {
+            selectPuzzle(participant, 0);
+        }
         Bukkit.getLogger().info("Stopping Parkour Pathway editor");
     }
     
@@ -252,6 +255,10 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
             oldDisplay.hide();
         }
         newDisplay.show(participant);
+        participant.sendMessage(Component.text("Selected puzzle ")
+                .append(Component.text(puzzleIndex))
+                .append(Component.text("/"))
+                .append(Component.text(storageUtil.getPuzzles().size())));
     }
     
     @EventHandler
@@ -289,7 +296,8 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
         Display display1 = puzzleToDisplay(puzzle1, Color.fromRGB(255, 0, 0), Color.fromRGB(0, 0, 255), Color.fromRGB(0, 255, 0));
         int nextIndex = index + 1;
         if (nextIndex < storageUtil.getPuzzles().size()) {
-            Puzzle puzzle2 = storageUtil.getPuzzles().get(index);
+            Bukkit.getLogger().info("next index is " + nextIndex);
+            Puzzle puzzle2 = storageUtil.getPuzzles().get(nextIndex);
             Display display2 = puzzleToDisplay(puzzle2, Color.fromRGB(100, 0, 0), Color.fromRGB(0, 0, 100), Color.fromRGB(0, 100, 0));
             display1.addChild(display2);
         }
@@ -306,9 +314,9 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
      */
     private @NotNull Display puzzleToDisplay(@NotNull Puzzle puzzle, Color inBoundsColor, Color detectionAreaColor, Color respawnColor) {
         Display display = new Display(plugin);
-        display.addChild(new Display(plugin, GeometryUtils.toRectanglePoints(puzzle.inBounds(), 2), Color.fromRGB(255, 0, 0)));
-        display.addChild(new Display(plugin, GeometryUtils.toEdgePoints(puzzle.checkPoints().get(0).detectionArea(), 1), Color.fromRGB(0, 0, 255)));
-        display.addChild(new Display(plugin, Collections.singletonList(puzzle.checkPoints().get(0).respawn().toVector()), Color.fromRGB(0, 255, 0)));
+        display.addChild(new Display(plugin, GeometryUtils.toRectanglePoints(puzzle.inBounds(), 2), inBoundsColor));
+        display.addChild(new Display(plugin, GeometryUtils.toEdgePoints(puzzle.checkPoints().get(0).detectionArea(), 1), detectionAreaColor));
+        display.addChild(new Display(plugin, Collections.singletonList(puzzle.checkPoints().get(0).respawn().toVector()), respawnColor));
         
         return display;
     }
