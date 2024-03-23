@@ -296,7 +296,6 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
         Display display1 = puzzleToDisplay(puzzle1, Color.fromRGB(255, 0, 0), Color.fromRGB(0, 0, 255), Color.fromRGB(0, 255, 0));
         int nextIndex = index + 1;
         if (nextIndex < storageUtil.getPuzzles().size()) {
-            Bukkit.getLogger().info("next index is " + nextIndex);
             Puzzle puzzle2 = storageUtil.getPuzzles().get(nextIndex);
             Display display2 = puzzleToDisplay(puzzle2, Color.fromRGB(100, 0, 0), Color.fromRGB(0, 0, 100), Color.fromRGB(0, 100, 0));
             display1.addChild(display2);
