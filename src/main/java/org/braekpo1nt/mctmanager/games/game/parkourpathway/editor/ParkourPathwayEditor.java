@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.game.parkourpathway.editor;
 import com.google.common.base.Preconditions;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.display.Display;
 import org.braekpo1nt.mctmanager.display.geometry.GeometryUtils;
@@ -28,6 +29,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -189,24 +191,39 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
     
     private void useInBoundsWand(Player participant, Action action) {
         BlockFace direction = EntityUtils.getPlayerDirection(participant.getLocation());
+        int currentPuzzleIndex = currentPuzzles.get(participant.getUniqueId());
+        Puzzle currentPuzzle = storageUtil.getPuzzles().get(currentPuzzleIndex);
+        BoundingBox inBounds = currentPuzzle.inBounds();
+        double increment = participant.isSneaking() ? 1.0 : 0.5;
         switch (action) {
             case LEFT_CLICK_AIR, LEFT_CLICK_BLOCK -> {
-                participant.sendMessage(Component.text("Expand bounding box ")
+                participant.sendMessage(Component.text("Expand ")
+                        .append(Component.text("inBounds")
+                                .decorate(TextDecoration.BOLD))
+                        .append(Component.text(" "))
                         .append(Component.text(direction.toString()))
                         .append(Component.text(" by "))
-                        .append(Component.text(1))
-                        .append(Component.text(" block")));
-//                boundingBox.expand(direction, 1);
+                        .append(Component.text(increment))
+                        .append(Component.text(" block(s)")));
+                inBounds.expand(direction, increment);
             }
             case RIGHT_CLICK_AIR, RIGHT_CLICK_BLOCK -> {
-                participant.sendMessage(Component.text("Expand bounding box ")
+                participant.sendMessage(Component.text("Expand ")
+                        .append(Component.text("inBounds")
+                                .decorate(TextDecoration.BOLD))
+                        .append(Component.text(" "))
                         .append(Component.text(direction.toString()))
                         .append(Component.text(" by "))
-                        .append(Component.text(-1))
-                        .append(Component.text(" block")));
-//                boundingBox.expand(direction, -1);
+                        .append(Component.text(-increment))
+                        .append(Component.text(" block(s)")));
+                inBounds.expand(direction, -increment);
+            }
+            default -> {
+                return;
             }
         }
+        Display newDisplay = puzzlesToDisplay(currentPuzzleIndex);
+        replaceDisplay(participant, newDisplay);
     }
     
     private void useDetectionAreaWand(Player participant, Action action) {
@@ -250,15 +267,24 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
         currentPuzzles.put(participant.getUniqueId(), puzzleIndex);
         currentPuzzleCheckpoints.put(participant.getUniqueId(), 0);
         Display newDisplay = puzzlesToDisplay(puzzleIndex);
+        replaceDisplay(participant, newDisplay);
+        participant.sendMessage(Component.text("Selected puzzle ")
+                .append(Component.text(puzzleIndex))
+                .append(Component.text("/"))
+                .append(Component.text(storageUtil.getPuzzles().size())));
+    }
+    
+    /**
+     * Replaces the given participant's current display with the given newDisplay, hiding the old display and showing the new display. 
+     * @param participant the participant
+     * @param newDisplay the display to replace the old one with
+     */
+    private void replaceDisplay(@NotNull Player participant, @NotNull Display newDisplay) {
         Display oldDisplay = displays.put(participant.getUniqueId(), newDisplay);
         if (oldDisplay != null) {
             oldDisplay.hide();
         }
         newDisplay.show(participant);
-        participant.sendMessage(Component.text("Selected puzzle ")
-                .append(Component.text(puzzleIndex))
-                .append(Component.text("/"))
-                .append(Component.text(storageUtil.getPuzzles().size())));
     }
     
     @EventHandler
