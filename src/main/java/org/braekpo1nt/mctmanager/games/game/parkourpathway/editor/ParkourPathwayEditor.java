@@ -1,18 +1,22 @@
 package org.braekpo1nt.mctmanager.games.game.parkourpathway.editor;
 
+import com.google.common.base.Preconditions;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.display.Display;
+import org.braekpo1nt.mctmanager.display.geometry.GeometryUtils;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.GameEditor;
+import org.braekpo1nt.mctmanager.games.game.parkourpathway.Puzzle;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.config.ParkourPathwayStorageUtil;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.utils.EntityUtils;
 import org.bukkit.Bukkit;
+import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
@@ -233,18 +237,25 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
         }
     }
     
+    /**
+     * Select the given puzzle for the given participant. Update the displays.
+     * @param participant the participant
+     * @param puzzleIndex the puzzle to pick (must be a valid index)
+     */
     private void selectPuzzle(Player participant, int puzzleIndex) {
+        Preconditions.checkArgument(0 <= puzzleIndex && puzzleIndex < storageUtil.getPuzzles().size(), "puzzleIndex out of bounds for %s", storageUtil.getPuzzles().size());
         currentPuzzles.put(participant.getUniqueId(), puzzleIndex);
         currentPuzzleCheckpoints.put(participant.getUniqueId(), 0);
-        Display display = displays.get(participant.getUniqueId());
-        display.hide();
-        Display newDisplay = 
-        displays.put(participant.getUniqueId(), newDisplay);
+        Display newDisplay = puzzlesToDisplay(puzzleIndex);
+        Display oldDisplay = displays.put(participant.getUniqueId(), newDisplay);
+        if (oldDisplay != null) {
+            oldDisplay.hide();
+        }
+        newDisplay.show(participant);
     }
     
     @EventHandler
     public void onClickInventory(InventoryClickEvent event) {
-        // allow players to move items around their inventory as normal, but if they drop a wand then cancel the event, so they keep the wand in their inventory
         Player participant = ((Player) event.getWhoClicked());
         if (!participants.contains(participant)) {
             return;
@@ -264,6 +275,42 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
             return;
         }
         event.setCancelled(true);
+    }
+    
+    /**
+     * Display the puzzle with the given index, and the next puzzle if there is one. 
+     * @param index the index of the first puzzle to display. 
+     * @return The Display of the puzzles
+     */
+    private @NotNull Display puzzlesToDisplay(int index) {
+        int size = storageUtil.getPuzzles().size();
+        Preconditions.checkArgument(0 <= index && index < size, "index must be between [0, %s] inclusive", size);
+        Puzzle puzzle1 = storageUtil.getPuzzles().get(index);
+        Display display1 = puzzleToDisplay(puzzle1, Color.fromRGB(255, 0, 0), Color.fromRGB(0, 0, 255), Color.fromRGB(0, 255, 0));
+        int nextIndex = index + 1;
+        if (nextIndex < storageUtil.getPuzzles().size()) {
+            Puzzle puzzle2 = storageUtil.getPuzzles().get(index);
+            Display display2 = puzzleToDisplay(puzzle2, Color.fromRGB(100, 0, 0), Color.fromRGB(0, 0, 100), Color.fromRGB(0, 100, 0));
+            display1.addChild(display2);
+        }
+        return display1;
+    }
+    
+    /**
+     * Create a display to represent the given puzzle
+     * @param puzzle the puzzle to display
+     * @param inBoundsColor the color for the puzzle's inBounds box
+     * @param detectionAreaColor the color for the puzzle's detectionArea
+     * @param respawnColor the color for the puzzle's respawn point
+     * @return a Display of the given puzzle with the given colors
+     */
+    private @NotNull Display puzzleToDisplay(@NotNull Puzzle puzzle, Color inBoundsColor, Color detectionAreaColor, Color respawnColor) {
+        Display display = new Display(plugin);
+        display.addChild(new Display(plugin, GeometryUtils.toRectanglePoints(puzzle.inBounds(), 2), Color.fromRGB(255, 0, 0)));
+        display.addChild(new Display(plugin, GeometryUtils.toEdgePoints(puzzle.checkPoints().get(0).detectionArea(), 1), Color.fromRGB(0, 0, 255)));
+        display.addChild(new Display(plugin, Collections.singletonList(puzzle.checkPoints().get(0).respawn().toVector()), Color.fromRGB(0, 255, 0)));
+        
+        return display;
     }
     
 }
