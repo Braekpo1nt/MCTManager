@@ -13,9 +13,9 @@ import java.util.List;
 
 @Getter
 @AllArgsConstructor
-public class ParkourPathwayConfig {
+class ParkourPathwayConfig {
     
-    private String version;
+    private final String version;
     private String world;
     /** the location that players start the Parkour Pathway from */
     private Vector startingLocation;
@@ -50,7 +50,7 @@ public class ParkourPathwayConfig {
     
     @Getter
     @AllArgsConstructor
-    class PuzzleDTO {
+    static class PuzzleDTO {
         /**
          * The bounding box that is considered in-bounds (if you leave it you're out of bounds). Must contain 
          * - all CheckPoint detectionAreas and respawn locations
@@ -63,7 +63,7 @@ public class ParkourPathwayConfig {
         private List<CheckPointDTO> checkPoints;
         @Getter
         @AllArgsConstructor
-        class CheckPointDTO {
+        static class CheckPointDTO {
             /**
              * if a player reaches this area, they are considered to be in this puzzle (i.e. they completed the previous puzzle). This must contain the respawn location.
              */
@@ -77,7 +77,7 @@ public class ParkourPathwayConfig {
             }
         }
         
-        public Puzzle toPuzzle(World world) {
+        Puzzle toPuzzle(World world) {
             return new Puzzle(
                     inBounds.toBoundingBox(),
                     checkPoints.stream().map(checkPointDTO -> checkPointDTO.toCheckPoint(world)).toList()

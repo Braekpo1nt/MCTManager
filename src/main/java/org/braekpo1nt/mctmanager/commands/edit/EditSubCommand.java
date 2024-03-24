@@ -10,8 +10,8 @@ public class EditSubCommand extends CommandManager {
         subCommands.put("start", new StartSubCommand(gameManager));
         subCommands.put("stop", new StopSubCommand(gameManager));
         subCommands.put("validate", new ValidateSubCommand(gameManager));
-        subCommands.put("save", new SaveSubCommand(gameManager));
-        subCommands.put("load", new LoadSubCommand(gameManager));
+//        subCommands.put("save", new SaveSubCommand(gameManager));
+//        subCommands.put("load", new LoadSubCommand(gameManager));
     }
     
     @Override
