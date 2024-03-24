@@ -85,22 +85,22 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
     }
     
     private void puzzleIsValid(@NotNull ParkourPathwayConfig.PuzzleDTO puzzle, int puzzleIndex) {
-        Preconditions.checkArgument(puzzle.inBounds() != null, "puzzle[%s].inBounds can't be null", puzzleIndex);
-        BoundingBox inBounds = puzzle.inBounds().toBoundingBox();
+        Preconditions.checkArgument(puzzle.getInBounds() != null, "puzzle[%s].inBounds can't be null", puzzleIndex);
+        BoundingBox inBounds = puzzle.getInBounds().toBoundingBox();
         Preconditions.checkArgument(inBounds.getVolume() >= 1, "puzzle[%s].inBounds' volume (%s) can't be less than 1 (%s)", puzzleIndex, inBounds.getVolume(), inBounds);
-        Preconditions.checkArgument(puzzle.checkPoints() != null, "puzzle[%s].checkPoints can't be null", puzzleIndex);
-        Preconditions.checkArgument(!puzzle.checkPoints().isEmpty(), "puzzle.[%s]checkPoints must have at least 1 element", puzzleIndex);
-        for (int i = 0; i < puzzle.checkPoints().size(); i++) {
-            ParkourPathwayConfig.PuzzleDTO.CheckPointDTO checkPoint = puzzle.checkPoints().get(i);
+        Preconditions.checkArgument(puzzle.getCheckPoints() != null, "puzzle[%s].checkPoints can't be null", puzzleIndex);
+        Preconditions.checkArgument(!puzzle.getCheckPoints().isEmpty(), "puzzle.[%s]checkPoints must have at least 1 element", puzzleIndex);
+        for (int i = 0; i < puzzle.getCheckPoints().size(); i++) {
+            ParkourPathwayConfig.PuzzleDTO.CheckPointDTO checkPoint = puzzle.getCheckPoints().get(i);
             Preconditions.checkArgument(checkPoint != null, "puzzle[%s].checkPoints can't have null elements", puzzleIndex);
             puzzleCheckPointIsValid(checkPoint, puzzleIndex, i);
-            BoundingBox detectionArea = checkPoint.detectionArea().toBoundingBox();
+            BoundingBox detectionArea = checkPoint.getDetectionArea().toBoundingBox();
             Preconditions.checkArgument(inBounds.contains(detectionArea), "puzzle[%s].inBounds must contain all puzzle[%s].checkPoints[%s].detectionAreas", puzzleIndex, puzzleIndex, i);
-            Vector respawn = checkPoint.respawn().toVector();
+            Vector respawn = checkPoint.getRespawn().toVector();
             Preconditions.checkArgument(inBounds.contains(respawn), "puzzle[%s].inBounds must contain all puzzle[%s].checkPoints.respawns", puzzleIndex, puzzleIndex);
             for (int j = 0; j < i; j++) {
-                ParkourPathwayConfig.PuzzleDTO.CheckPointDTO earlierCheckpoint = puzzle.checkPoints().get(j);
-                BoundingBox earlierDetectionArea = earlierCheckpoint.detectionArea().toBoundingBox();
+                ParkourPathwayConfig.PuzzleDTO.CheckPointDTO earlierCheckpoint = puzzle.getCheckPoints().get(j);
+                BoundingBox earlierDetectionArea = earlierCheckpoint.getDetectionArea().toBoundingBox();
                 Preconditions.checkArgument(!earlierDetectionArea.overlaps(detectionArea), "puzzle[%s].checkPoints[%s].detectionArea and puzzle[%s].checkPoints[%s].detectionArea can't overlap", puzzleIndex, i-1, puzzleIndex, i);
                 Preconditions.checkArgument(earlierDetectionArea.contains(respawn), "puzzle[%s].checkPoints[%s].detectionArea can't contain puzzle[%s].checkPoints[%s].respawn", puzzleIndex, i-1, puzzleIndex, i);
             }
@@ -109,9 +109,9 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
     }
     
     private void puzzleCheckPointIsValid(@NotNull ParkourPathwayConfig.PuzzleDTO.CheckPointDTO checkPoint, int puzzleIndex, int checkPointIndex) {
-        BoundingBox detectionArea = checkPoint.detectionArea().toBoundingBox();
+        BoundingBox detectionArea = checkPoint.getDetectionArea().toBoundingBox();
         Preconditions.checkArgument(detectionArea.getVolume() >= 1, "puzzle[%s].checkPoints[%s].detectionArea's volume (%s) can't be less than 1 (%s)", puzzleIndex, checkPointIndex, detectionArea.getVolume(), detectionArea);
-        Vector respawn = checkPoint.respawn().toVector();
+        Vector respawn = checkPoint.getRespawn().toVector();
         Preconditions.checkArgument(detectionArea.contains(respawn), "puzzle[%s].checkPoints[%s].detectionArea (%s) must contain puzzle[%s].checkPoints[%s].respawn (%s)", puzzleIndex, checkPointIndex, detectionArea, puzzleIndex, checkPointIndex, respawn);
         
     }
@@ -152,28 +152,28 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
     }
     
     public int getStartingDuration() {
-        return parkourPathwayConfig.getDurations().starting();
+        return parkourPathwayConfig.getDurations().getStarting();
     }
     
     /**
      * @return the time limit for the entire game
      */
     public int getTimeLimitDuration() {
-        return parkourPathwayConfig.getDurations().timeLimit();
+        return parkourPathwayConfig.getDurations().getTimeLimit();
     }
     
     /**
      * @return how long (in seconds) the game should wait before declaring that no one has made it to a new checkpoint and ending the game
      */
     public int getCheckpointCounterDuration() {
-        return parkourPathwayConfig.getDurations().checkpointCounter();
+        return parkourPathwayConfig.getDurations().getCheckpointCounter();
     }
     
     /**
      * @return How much time (seconds) should be left in the checkpointCounter before you start displaying the countdown to the users
      */
     public int getCheckpointCounterAlertDuration() {
-        return parkourPathwayConfig.getDurations().checkpointCounterAlert();
+        return parkourPathwayConfig.getDurations().getCheckpointCounterAlert();
     }
     
     public World getWorld() {
