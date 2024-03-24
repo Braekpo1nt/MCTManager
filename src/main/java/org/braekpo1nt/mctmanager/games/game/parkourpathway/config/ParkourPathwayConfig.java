@@ -28,7 +28,7 @@ public class ParkourPathwayConfig {
     
     @Getter
     @AllArgsConstructor
-    public static class Scores {
+    static class Scores {
         /**
          * points for reaching puzzle checkpoints. for x elements, nth score will be awarded unless n is greater than or equal to x in which case the xth score will be awarded 
          */
@@ -39,21 +39,39 @@ public class ParkourPathwayConfig {
         private int[] win;
     }
     
-    record Durations(int starting, int timeLimit, int checkpointCounter, int checkpointCounterAlert) {
+    @Getter
+    @AllArgsConstructor
+    static class Durations {
+        private int starting;
+        private int timeLimit;
+        private int checkpointCounter;
+        private int checkpointCounterAlert;
     }
     
-    /**
-     * @param inBounds The bounding box that is considered in-bounds (if you leave it you're out of bounds). Must contain 
-     * - all CheckPoint detectionAreas and respawn locations
-     * - the checkpoint detection areas of the puzzle after this (otherwise players will be teleported to the respawn point before they reach the next puzzle's checkpoint). 
-     * @param checkPoints the list of checkpoints that players must reach to begin this puzzle. They contain the respawn point for if they go out of bounds, and the detectionArea which they must be inside to leave their previous puzzle and begin this one.
-     */
-    record PuzzleDTO(BoundingBoxDTO inBounds, List<CheckPointDTO> checkPoints) {
+    @Getter
+    @AllArgsConstructor
+    class PuzzleDTO {
         /**
-         * @param detectionArea if a player reaches this area, they are considered to be in this puzzle (i.e. they completed the previous puzzle). This must contain the respawn location.
-         * @param respawn the location at which a player should respawn if they go out of bounds of their current puzzle. Must be inside the detectionArea.
+         * The bounding box that is considered in-bounds (if you leave it you're out of bounds). Must contain 
+         * - all CheckPoint detectionAreas and respawn locations
+         * - the checkpoint detection areas of the puzzle after this (otherwise players will be teleported to the respawn point before they reach the next puzzle's checkpoint).
          */
-        record CheckPointDTO(BoundingBoxDTO detectionArea, LocationDTO respawn) {
+        private BoundingBoxDTO inBounds;
+        /**
+         * the list of checkpoints that players must reach to begin this puzzle. They contain the respawn point for if they go out of bounds, and the detectionArea which they must be inside to leave their previous puzzle and begin this one.
+         */
+        private List<CheckPointDTO> checkPoints;
+        @Getter
+        @AllArgsConstructor
+        class CheckPointDTO {
+            /**
+             * if a player reaches this area, they are considered to be in this puzzle (i.e. they completed the previous puzzle). This must contain the respawn location.
+             */
+            private BoundingBoxDTO detectionArea;
+            /**
+             * the location at which a player should respawn if they go out of bounds of their current puzzle. Must be inside the detectionArea.
+             */
+            private LocationDTO respawn;
             Puzzle.CheckPoint toCheckPoint(World world) {
                 return new Puzzle.CheckPoint(detectionArea.toBoundingBox(), respawn.toLocation(world));
             }

@@ -53,10 +53,10 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
         Preconditions.checkArgument(config.getScores().getWin() != null, "scores.win can't be null");
         Preconditions.checkArgument(config.getScores().getWin().length >= 2, "scores.win must have at least two elements");
         Preconditions.checkArgument(config.getDurations() != null, "durations can't be null");
-        Preconditions.checkArgument(config.getDurations().starting() >= 0, "durations.starting (%s) can't be negative", config.getDurations().starting());
-        Preconditions.checkArgument(config.getDurations().timeLimit() >= 2, "durations.timeLimit (%s) can't be less than 2", config.getDurations().timeLimit());
-        Preconditions.checkArgument(config.getDurations().checkpointCounter() >= 1, "durations.checkpointCounter (%s) can't be less than 1", config.getDurations().checkpointCounter());
-        Preconditions.checkArgument(config.getDurations().checkpointCounterAlert() >= 1 && config.getDurations().checkpointCounter() >= config.getDurations().checkpointCounterAlert(), "durations.checkpointCounterAlert (%s) can't be less than 0 or greater than durations.checkpointCounter", config.getDurations().checkpointCounterAlert());
+        Preconditions.checkArgument(config.getDurations().getStarting() >= 0, "durations.starting (%s) can't be negative", config.getDurations().getStarting());
+        Preconditions.checkArgument(config.getDurations().getTimeLimit() >= 2, "durations.timeLimit (%s) can't be less than 2", config.getDurations().getTimeLimit());
+        Preconditions.checkArgument(config.getDurations().getCheckpointCounter() >= 1, "durations.checkpointCounter (%s) can't be less than 1", config.getDurations().getCheckpointCounter());
+        Preconditions.checkArgument(config.getDurations().getCheckpointCounterAlert() >= 1 && config.getDurations().getCheckpointCounter() >= config.getDurations().getCheckpointCounterAlert(), "durations.checkpointCounterAlert (%s) can't be less than 0 or greater than durations.checkpointCounter", config.getDurations().getCheckpointCounterAlert());
         Preconditions.checkArgument(config.getPuzzles() != null, "puzzles can't be null");
         Preconditions.checkArgument(config.getPuzzles().size() >= 3, "puzzles must have at least 3 puzzles");
         puzzlesAreValid(config.getPuzzles());
@@ -75,10 +75,10 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
             puzzleIsValid(puzzle, i);
             if (i - 1 >= 0) {
                 ParkourPathwayConfig.PuzzleDTO previousPuzzle = puzzles.get(i - 1);
-                BoundingBox previousInBounds = previousPuzzle.inBounds().toBoundingBox();
-                for (ParkourPathwayConfig.PuzzleDTO.CheckPointDTO checkPoint : puzzle.checkPoints()) {
-                    Preconditions.checkArgument(previousInBounds.contains(checkPoint.detectionArea().toBoundingBox()), "puzzles[%s].inBounds must contain all puzzles[%s].checkPoints detectionAreas", i - 1, i);
-                    Preconditions.checkArgument(previousInBounds.contains(checkPoint.respawn().toVector()), "puzzles[%s].inBounds must contain all puzzles[%s].checkPoints respawns", i - 1, i);
+                BoundingBox previousInBounds = previousPuzzle.getInBounds().toBoundingBox();
+                for (ParkourPathwayConfig.PuzzleDTO.CheckPointDTO checkPoint : puzzle.getCheckPoints()) {
+                    Preconditions.checkArgument(previousInBounds.contains(checkPoint.getDetectionArea().toBoundingBox()), "puzzles[%s].inBounds must contain all puzzles[%s].checkPoints detectionAreas", i - 1, i);
+                    Preconditions.checkArgument(previousInBounds.contains(checkPoint.getRespawn().toVector()), "puzzles[%s].inBounds must contain all puzzles[%s].checkPoints respawns", i - 1, i);
                 }
             }
         }

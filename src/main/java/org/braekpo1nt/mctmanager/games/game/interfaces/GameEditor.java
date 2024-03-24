@@ -10,5 +10,5 @@ public interface GameEditor extends Configurable {
     void stop();
     GameType getType();
     
-    void configIsValid();
+    boolean configIsValid();
 }
