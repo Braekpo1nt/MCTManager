@@ -553,6 +553,14 @@ public class GameManager implements Listener {
         return activeEditor != null;
     }
     
+    public void validateEditor(@NotNull CommandSender sender) {
+        if (!editorIsRunning()) {
+            sender.sendMessage("No editor is running.");
+            return;
+        }
+        activeEditor.configIsValid();
+    }
+    
     public void returnAllParticipantsToHub() {
         hubManager.returnParticipantsToHub(onlineParticipants, onlineAdmins, false);
     }

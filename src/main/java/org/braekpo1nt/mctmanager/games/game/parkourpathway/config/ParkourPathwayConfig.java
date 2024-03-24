@@ -1,6 +1,8 @@
 package org.braekpo1nt.mctmanager.games.game.parkourpathway.config;
 
 import com.google.gson.JsonElement;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.braekpo1nt.mctmanager.games.game.config.BoundingBoxDTO;
 import org.braekpo1nt.mctmanager.games.game.config.LocationDTO;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.Puzzle;
@@ -9,25 +11,32 @@ import org.bukkit.util.Vector;
 
 import java.util.List;
 
-/**
- * 
- * @param version
- * @param world
- * @param startingLocation the location that players start the Parkour Pathway from
- * @param puzzles the list of puzzles for this parkour game
- * @param spectatorArea
- * @param scores
- * @param durations
- * @param description
- */
-record ParkourPathwayConfig  (String version, String world, Vector startingLocation, List<PuzzleDTO> puzzles, BoundingBoxDTO spectatorArea, Scores scores, Durations durations, JsonElement description) {
+@Getter
+@AllArgsConstructor
+public class ParkourPathwayConfig {
     
-    /**
-     * 
-     * @param checkpoint points for reaching puzzle checkpoints. for x elements, nth score will be awarded unless n is greater than or equal to x in which case the xth score will be awarded 
-     * @param win points for winning. for x elements, nth score will be awarded unless n is greater than or equal to x in which case the xth score will be awarded 
-     */
-    record Scores(int[] checkpoint, int[] win) {
+    private String version;
+    private String world;
+    /** the location that players start the Parkour Pathway from */
+    private Vector startingLocation;
+    /** the list of puzzles for this parkour game */
+    private List<PuzzleDTO> puzzles;
+    private BoundingBoxDTO spectatorArea;
+    private Scores scores;
+    private Durations durations;
+    private JsonElement description;
+    
+    @Getter
+    @AllArgsConstructor
+    public static class Scores {
+        /**
+         * points for reaching puzzle checkpoints. for x elements, nth score will be awarded unless n is greater than or equal to x in which case the xth score will be awarded 
+         */
+        private int[] checkpoint;
+        /**
+         * points for winning. for x elements, nth score will be awarded unless n is greater than or equal to x in which case the xth score will be awarded 
+         */
+        private int[] win;
     }
     
     record Durations(int starting, int timeLimit, int checkpointCounter, int checkpointCounterAlert) {

@@ -25,7 +25,8 @@ public class StartSubCommand implements TabExecutor {
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
     
         if (args.length != 1) {
-            sender.sendMessage("Usage: /mct edit start <game>");
+            sender.sendMessage(Component.text("Usage: /mct edit start <game>")
+                    .color(NamedTextColor.RED));
             return true;
         }
     

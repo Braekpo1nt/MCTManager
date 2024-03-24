@@ -41,27 +41,27 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
     @Override
     protected boolean configIsValid(@Nullable ParkourPathwayConfig config) {
         Preconditions.checkArgument(config != null, "Saved config is null");
-        Preconditions.checkArgument(config.version() != null, "version can't be null");
-        Preconditions.checkArgument(config.version().equals(Main.CONFIG_VERSION), "Config version %s not supported. %s required.", config.version(), Main.CONFIG_VERSION);
-        Preconditions.checkArgument(Bukkit.getWorld(config.world()) != null, "Could not find world \"%s\"", config.world());
-        Preconditions.checkArgument(config.startingLocation() != null, "startingLocation can't be null");
-        Preconditions.checkArgument(config.spectatorArea() != null, "spectatorArea can't be null");
-        Preconditions.checkArgument(config.spectatorArea().toBoundingBox().getVolume() >= 1.0, "getSpectatorArea's volume (%s) can't be less than 1. %s", config.spectatorArea().toBoundingBox().getVolume(), config.spectatorArea().toBoundingBox());
-        Preconditions.checkArgument(config.scores() != null, "scores can't be null");
-        Preconditions.checkArgument(config.scores().checkpoint() != null, "scores.checkpoint can't be null");
-        Preconditions.checkArgument(config.scores().checkpoint().length >= 2, "scores.checkpoint must have at least two elements");
-        Preconditions.checkArgument(config.scores().win() != null, "scores.win can't be null");
-        Preconditions.checkArgument(config.scores().win().length >= 2, "scores.win must have at least two elements");
-        Preconditions.checkArgument(config.durations() != null, "durations can't be null");
-        Preconditions.checkArgument(config.durations().starting() >= 0, "durations.starting (%s) can't be negative", config.durations().starting());
-        Preconditions.checkArgument(config.durations().timeLimit() >= 2, "durations.timeLimit (%s) can't be less than 2", config.durations().timeLimit());
-        Preconditions.checkArgument(config.durations().checkpointCounter() >= 1, "durations.checkpointCounter (%s) can't be less than 1", config.durations().checkpointCounter());
-        Preconditions.checkArgument(config.durations().checkpointCounterAlert() >= 1 && config.durations().checkpointCounter() >= config.durations().checkpointCounterAlert(), "durations.checkpointCounterAlert (%s) can't be less than 0 or greater than durations.checkpointCounter", config.durations().checkpointCounterAlert());
-        Preconditions.checkArgument(config.puzzles() != null, "puzzles can't be null");
-        Preconditions.checkArgument(config.puzzles().size() >= 3, "puzzles must have at least 3 puzzles");
-        puzzlesAreValid(config.puzzles());
+        Preconditions.checkArgument(config.getVersion() != null, "version can't be null");
+        Preconditions.checkArgument(config.getVersion().equals(Main.CONFIG_VERSION), "Config version %s not supported. %s required.", config.getVersion(), Main.CONFIG_VERSION);
+        Preconditions.checkArgument(Bukkit.getWorld(config.getWorld()) != null, "Could not find world \"%s\"", config.getWorld());
+        Preconditions.checkArgument(config.getStartingLocation() != null, "startingLocation can't be null");
+        Preconditions.checkArgument(config.getSpectatorArea() != null, "spectatorArea can't be null");
+        Preconditions.checkArgument(config.getSpectatorArea().toBoundingBox().getVolume() >= 1.0, "getSpectatorArea's volume (%s) can't be less than 1. %s", config.getSpectatorArea().toBoundingBox().getVolume(), config.getSpectatorArea().toBoundingBox());
+        Preconditions.checkArgument(config.getScores() != null, "scores can't be null");
+        Preconditions.checkArgument(config.getScores().getCheckpoint() != null, "scores.checkpoint can't be null");
+        Preconditions.checkArgument(config.getScores().getCheckpoint().length >= 2, "scores.checkpoint must have at least two elements");
+        Preconditions.checkArgument(config.getScores().getWin() != null, "scores.win can't be null");
+        Preconditions.checkArgument(config.getScores().getWin().length >= 2, "scores.win must have at least two elements");
+        Preconditions.checkArgument(config.getDurations() != null, "durations can't be null");
+        Preconditions.checkArgument(config.getDurations().starting() >= 0, "durations.starting (%s) can't be negative", config.getDurations().starting());
+        Preconditions.checkArgument(config.getDurations().timeLimit() >= 2, "durations.timeLimit (%s) can't be less than 2", config.getDurations().timeLimit());
+        Preconditions.checkArgument(config.getDurations().checkpointCounter() >= 1, "durations.checkpointCounter (%s) can't be less than 1", config.getDurations().checkpointCounter());
+        Preconditions.checkArgument(config.getDurations().checkpointCounterAlert() >= 1 && config.getDurations().checkpointCounter() >= config.getDurations().checkpointCounterAlert(), "durations.checkpointCounterAlert (%s) can't be less than 0 or greater than durations.checkpointCounter", config.getDurations().checkpointCounterAlert());
+        Preconditions.checkArgument(config.getPuzzles() != null, "puzzles can't be null");
+        Preconditions.checkArgument(config.getPuzzles().size() >= 3, "puzzles must have at least 3 puzzles");
+        puzzlesAreValid(config.getPuzzles());
         try {
-            GsonComponentSerializer.gson().deserializeFromTree(config.description());
+            GsonComponentSerializer.gson().deserializeFromTree(config.getDescription());
         } catch (JsonIOException | JsonSyntaxException e) {
             throw new IllegalArgumentException("description is invalid", e);
         }
@@ -119,11 +119,11 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
     
     @Override
     protected void setConfig(ParkourPathwayConfig config) {
-        World newWorld = Bukkit.getWorld(config.world());
-        Preconditions.checkArgument(newWorld != null, "Could not find world \"%s\"", config.world());
-        Location newStartingLocation = config.startingLocation().toLocation(newWorld);
-        List<Puzzle> newPuzzles = config.puzzles().stream().map(puzzleDTO -> puzzleDTO.toPuzzle(newWorld)).toList();
-        Component newDescription = GsonComponentSerializer.gson().deserializeFromTree(config.description());
+        World newWorld = Bukkit.getWorld(config.getWorld());
+        Preconditions.checkArgument(newWorld != null, "Could not find world \"%s\"", config.getWorld());
+        Location newStartingLocation = config.getStartingLocation().toLocation(newWorld);
+        List<Puzzle> newPuzzles = config.getPuzzles().stream().map(puzzleDTO -> puzzleDTO.toPuzzle(newWorld)).toList();
+        Component newDescription = GsonComponentSerializer.gson().deserializeFromTree(config.getDescription());
         // now it's confirmed everything works, so set the actual fields
         this.world = newWorld;
         this.startingLocation = newStartingLocation;
@@ -131,6 +131,16 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
         this.description = newDescription;
         this.parkourPathwayConfig = config;
     }
+    
+    /**
+     * @return true if this StorageUtil's config is valid, false otherwise
+     * @throws IllegalArgumentException if this config is not valid. The exception includes a detailed message of what was invalid
+     */
+    public boolean configIsValid() throws IllegalArgumentException {
+        return configIsValid(getConfig());
+    }
+    
+    
     
     @Override
     protected InputStream getExampleResourceStream() {
@@ -142,28 +152,28 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
     }
     
     public int getStartingDuration() {
-        return parkourPathwayConfig.durations().starting();
+        return parkourPathwayConfig.getDurations().starting();
     }
     
     /**
      * @return the time limit for the entire game
      */
     public int getTimeLimitDuration() {
-        return parkourPathwayConfig.durations().timeLimit();
+        return parkourPathwayConfig.getDurations().timeLimit();
     }
     
     /**
      * @return how long (in seconds) the game should wait before declaring that no one has made it to a new checkpoint and ending the game
      */
     public int getCheckpointCounterDuration() {
-        return parkourPathwayConfig.durations().checkpointCounter();
+        return parkourPathwayConfig.getDurations().checkpointCounter();
     }
     
     /**
      * @return How much time (seconds) should be left in the checkpointCounter before you start displaying the countdown to the users
      */
     public int getCheckpointCounterAlertDuration() {
-        return parkourPathwayConfig.durations().checkpointCounterAlert();
+        return parkourPathwayConfig.getDurations().checkpointCounterAlert();
     }
     
     public World getWorld() {
@@ -175,11 +185,11 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
     }
     
     public int[] getCheckpointScore() {
-        return parkourPathwayConfig.scores().checkpoint();
+        return parkourPathwayConfig.getScores().getCheckpoint();
     }
     
     public int[] getWinScore() {
-        return parkourPathwayConfig.scores().win();
+        return parkourPathwayConfig.getScores().getWin();
     }
     
     public Component getDescription() {

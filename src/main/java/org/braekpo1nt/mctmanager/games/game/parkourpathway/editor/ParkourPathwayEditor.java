@@ -103,6 +103,11 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
     }
     
     @Override
+    public boolean configIsValid() {
+        return storageUtil.configIsValid();
+    }
+    
+    @Override
     public GameType getType() {
         return GameType.PARKOUR_PATHWAY;
     }
