@@ -6,7 +6,6 @@ import com.google.gson.JsonSyntaxException;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.games.game.config.BoundingBoxDTO;
 import org.braekpo1nt.mctmanager.games.game.config.GameConfigStorageUtil;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.Puzzle;
 import org.bukkit.Bukkit;
@@ -18,7 +17,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
-import java.util.ArrayList;
 import java.util.List;
 
 public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPathwayConfig> {
@@ -153,6 +151,11 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
     
     public int getPuzzlesSize() {
         return puzzles.size();
+    }
+    
+    public void setPuzzle(int index, Puzzle puzzle) {
+        this.puzzles.set(index, puzzle);
+        this.parkourPathwayConfig.getPuzzles().set(index, ParkourPathwayConfig.PuzzleDTO.from(puzzle));
     }
     
     public int getStartingDuration() {
