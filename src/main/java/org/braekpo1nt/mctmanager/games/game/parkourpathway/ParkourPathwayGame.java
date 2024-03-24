@@ -151,17 +151,17 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
     
     // debug
     private @NotNull Display puzzlesToDisplay(int index, int nextIndex) {
-        int size = storageUtil.getPuzzles().size();
+        int size = storageUtil.getPuzzlesSize();
         Preconditions.checkArgument(0 <= index && index < size, "index must be between [0, %s] inclusive", size);
         Preconditions.checkArgument(0 <= nextIndex, "nextIndex must be at least 0");
-        Puzzle puzzle = storageUtil.getPuzzles().get(index);
+        Puzzle puzzle = storageUtil.getPuzzle(index);
         Display display = new Display(plugin);
         display.addChild(new Display(plugin, GeometryUtils.toRectanglePoints(puzzle.inBounds(), 2), Color.fromRGB(255, 0, 0)));
         display.addChild(new Display(plugin, GeometryUtils.toEdgePoints(puzzle.checkPoints().get(0).detectionArea(), 1), Color.fromRGB(0, 0, 255)));
         display.addChild(new Display(plugin, Collections.singletonList(puzzle.checkPoints().get(0).respawn().toVector()), Color.fromRGB(0, 255, 0)));
         
-        if (nextIndex < storageUtil.getPuzzles().size()) {
-            Puzzle nextPuzzle = storageUtil.getPuzzles().get(nextIndex);
+        if (nextIndex < storageUtil.getPuzzlesSize()) {
+            Puzzle nextPuzzle = storageUtil.getPuzzle(nextIndex);
             display.addChild(new Display(plugin, GeometryUtils.toRectanglePoints(nextPuzzle.inBounds(), 2), Color.fromRGB(100, 0, 0)));
             display.addChild(new Display(plugin, GeometryUtils.toEdgePoints(nextPuzzle.checkPoints().get(0).detectionArea(), 1), Color.fromRGB(0, 0, 100)));
             display.addChild(new Display(plugin, Collections.singletonList(nextPuzzle.checkPoints().get(0).respawn().toVector()), Color.fromRGB(0, 100, 0)));
@@ -258,7 +258,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         participant.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
-        Location respawn = storageUtil.getPuzzles().get(currentPuzzles.get(uniqueId)).checkPoints().get(currentPuzzleCheckpoints.get(uniqueId)).respawn();
+        Location respawn = storageUtil.getPuzzle(currentPuzzles.get(uniqueId)).checkPoints().get(currentPuzzleCheckpoints.get(uniqueId)).respawn();
         participant.teleport(respawn);
         sidebar.updateLine(uniqueId, "title", title);
         updateCheckpointSidebar(participant);
@@ -374,15 +374,15 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         }
         int currentPuzzleIndex = currentPuzzles.get(uuid);
         int nextPuzzleIndex = currentPuzzleIndex + 1;
-        if (nextPuzzleIndex >= storageUtil.getPuzzles().size()) {
+        if (nextPuzzleIndex >= storageUtil.getPuzzlesSize()) {
             // should not occur because of above check
             return;
         }
-        Puzzle currentPuzzle = storageUtil.getPuzzles().get(currentPuzzleIndex);
+        Puzzle currentPuzzle = storageUtil.getPuzzle(currentPuzzleIndex);
         if (!isParticipantOutOfBounds(participant, currentPuzzle)) {
             onParticipantOutOfBounds(participant, currentPuzzle);
         }
-        Puzzle nextPuzzle = storageUtil.getPuzzles().get(nextPuzzleIndex);
+        Puzzle nextPuzzle = storageUtil.getPuzzle(nextPuzzleIndex);
         int nextPuzzleCheckPointIndex = participantReachedCheckPoint(participant.getLocation().toVector(), nextPuzzle);
         if (nextPuzzleCheckPointIndex >= 0) {
             onParticipantReachCheckPoint(participant, nextPuzzleIndex, nextPuzzleCheckPointIndex);
@@ -410,7 +410,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         currentPuzzles.put(uuid, puzzleIndex);
         currentPuzzleCheckpoints.put(uuid, puzzleCheckPointIndex);
         updateCheckpointSidebar(participant);
-        if (puzzleIndex >= storageUtil.getPuzzles().size()-1) {
+        if (puzzleIndex >= storageUtil.getPuzzlesSize()-1) {
             onParticipantFinish(participant);
         } else {
             messageAllParticipants(Component.empty()
@@ -418,7 +418,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
                     .append(Component.text(" reached checkpoint "))
                     .append(Component.text(puzzleIndex))
                     .append(Component.text("/"))
-                    .append(Component.text(storageUtil.getPuzzles().size()-1)));
+                    .append(Component.text(storageUtil.getPuzzlesSize()-1)));
             int playersCheckpoint = currentPuzzles.get(uuid);
             int points = calculatePointsForPuzzle(playersCheckpoint, storageUtil.getCheckpointScore());
             gameManager.awardPointsToParticipant(participant, points);
@@ -468,7 +468,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
     private boolean allPlayersHaveFinished() {
         for (Player participant : participants) {
             int currentPuzzleIndex = currentPuzzles.get(participant.getUniqueId());
-            if (currentPuzzleIndex < storageUtil.getPuzzles().size() - 1) {
+            if (currentPuzzleIndex < storageUtil.getPuzzlesSize() - 1) {
                 //at least one player is still playing
                 return false;
             }
@@ -505,7 +505,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
     private int calculatePointsForWin(int[] winScores) {
         int numberOfWins = 0;
         for (int puzzleIndex : currentPuzzles.values()) {
-            if (puzzleIndex >= storageUtil.getPuzzles().size() - 1) {
+            if (puzzleIndex >= storageUtil.getPuzzlesSize() - 1) {
                 numberOfWins++;
             }
         }
@@ -632,14 +632,14 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
                 new KeyLine("personalScore", ""),
                 new KeyLine("title", title),
                 new KeyLine("timer", ""),
-                new KeyLine("checkpoint", String.format("0/%s", storageUtil.getPuzzles().size() - 1)),
+                new KeyLine("checkpoint", String.format("0/%s", storageUtil.getPuzzlesSize() - 1)),
                 new KeyLine("ending", "")
         );
     }
     
     private void updateCheckpointSidebar(Player participant) {
         int currentCheckpoint = currentPuzzles.get(participant.getUniqueId());
-        int lastCheckpoint = storageUtil.getPuzzles().size()-1;
+        int lastCheckpoint = storageUtil.getPuzzlesSize()-1;
         sidebar.updateLine(participant.getUniqueId(), "checkpoint", String.format("%s/%s", currentCheckpoint, lastCheckpoint));
     }
     

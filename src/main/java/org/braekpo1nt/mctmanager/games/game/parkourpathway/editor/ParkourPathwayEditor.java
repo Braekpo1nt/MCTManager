@@ -202,7 +202,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
     private void useInBoundsWand(Player participant, Action action) {
         BlockFace direction = EntityUtils.getPlayerDirection(participant.getLocation());
         int currentPuzzleIndex = currentPuzzles.get(participant.getUniqueId());
-        Puzzle currentPuzzle = storageUtil.getPuzzles().get(currentPuzzleIndex);
+        Puzzle currentPuzzle = storageUtil.getPuzzle(currentPuzzleIndex);
         BoundingBox inBounds = currentPuzzle.inBounds();
         double increment = participant.isSneaking() ? 0.5 : 1.0;
         switch (action) {
@@ -248,7 +248,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
         int currentPuzzle = currentPuzzles.get(participant.getUniqueId());
         switch (action) {
             case LEFT_CLICK_AIR, LEFT_CLICK_BLOCK -> {
-                if (currentPuzzle == storageUtil.getPuzzles().size() - 1) {
+                if (currentPuzzle == storageUtil.getPuzzlesSize() - 1) {
                     participant.sendMessage(Component.text("Already at puzzle ")
                                     .append(Component.text(currentPuzzle))
                             .color(NamedTextColor.RED));
@@ -273,7 +273,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
      * @param puzzleIndex the puzzle to pick (must be a valid index)
      */
     private void selectPuzzle(Player participant, int puzzleIndex) {
-        Preconditions.checkArgument(0 <= puzzleIndex && puzzleIndex < storageUtil.getPuzzles().size(), "puzzleIndex out of bounds for %s", storageUtil.getPuzzles().size());
+        Preconditions.checkArgument(0 <= puzzleIndex && puzzleIndex < storageUtil.getPuzzlesSize(), "puzzleIndex out of bounds for %s", storageUtil.getPuzzlesSize());
         currentPuzzles.put(participant.getUniqueId(), puzzleIndex);
         currentPuzzleCheckpoints.put(participant.getUniqueId(), 0);
         Display newDisplay = puzzlesToDisplay(puzzleIndex);
@@ -281,7 +281,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
         participant.sendMessage(Component.text("Selected puzzle ")
                 .append(Component.text(puzzleIndex))
                 .append(Component.text("/"))
-                .append(Component.text(storageUtil.getPuzzles().size())));
+                .append(Component.text(storageUtil.getPuzzlesSize())));
     }
     
     /**
@@ -326,13 +326,13 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
      * @return The Display of the puzzles
      */
     private @NotNull Display puzzlesToDisplay(int index) {
-        int size = storageUtil.getPuzzles().size();
+        int size = storageUtil.getPuzzlesSize();
         Preconditions.checkArgument(0 <= index && index < size, "index must be between [0, %s] inclusive", size);
-        Puzzle puzzle1 = storageUtil.getPuzzles().get(index);
+        Puzzle puzzle1 = storageUtil.getPuzzle(index);
         Display display1 = puzzleToDisplay(puzzle1, Color.fromRGB(255, 0, 0), Color.fromRGB(0, 0, 255), Color.fromRGB(0, 255, 0));
         int nextIndex = index + 1;
-        if (nextIndex < storageUtil.getPuzzles().size()) {
-            Puzzle puzzle2 = storageUtil.getPuzzles().get(nextIndex);
+        if (nextIndex < storageUtil.getPuzzlesSize()) {
+            Puzzle puzzle2 = storageUtil.getPuzzle(nextIndex);
             Display display2 = puzzleToDisplay(puzzle2, Color.fromRGB(100, 0, 0), Color.fromRGB(0, 0, 100), Color.fromRGB(0, 100, 0));
             display1.addChild(display2);
         }

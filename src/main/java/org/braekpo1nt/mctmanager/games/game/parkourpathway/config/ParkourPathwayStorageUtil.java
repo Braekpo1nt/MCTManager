@@ -147,8 +147,12 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
         return ParkourPathwayStorageUtil.class.getResourceAsStream("exampleParkourPathwayConfig.json");
     }
     
-    public List<Puzzle> getPuzzles() {
-        return puzzles;
+    public Puzzle getPuzzle(int index) {
+        return puzzles.get(index);
+    }
+    
+    public int getPuzzlesSize() {
+        return puzzles.size();
     }
     
     public int getStartingDuration() {
