@@ -16,7 +16,6 @@ public class ItemStackDTO {
      * (values of 0 or less are treated as zero, resulting in no items in the stack)
      */
     private int amount = 1;
-    private short damage = 0;
     /**
      * The ItemMeta of the item, can be null
      */
@@ -27,7 +26,7 @@ public class ItemStackDTO {
      */
     public ItemStack toItemStack() {
         Preconditions.checkArgument(type != null, "type (Material) cannot be null");
-        ItemStack stack = new ItemStack(type, amount, damage);
+        ItemStack stack = new ItemStack(type, amount);
         if (itemMeta != null) {
             stack.editMeta(meta -> itemMeta.toItemMeta(meta));
         }

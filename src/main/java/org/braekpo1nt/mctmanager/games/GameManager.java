@@ -558,7 +558,23 @@ public class GameManager implements Listener {
             sender.sendMessage("No editor is running.");
             return;
         }
-        activeEditor.configIsValid();
+        try {
+            if (!activeEditor.configIsValid()) {
+                throw new IllegalArgumentException("Config is not valid");
+            }
+        } catch (IllegalArgumentException e) {
+            Bukkit.getLogger().severe(e.getMessage());
+            e.printStackTrace();
+            sender.sendMessage(Component.text("Config is not valid for ")
+                    .append(Component.text(activeEditor.getType().name())
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(". See console for details:\n"))
+                    .append(Component.text(e.getMessage()))
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        sender.sendMessage(Component.text("Config is valid.")
+                .color(NamedTextColor.GREEN));
     }
     
     public void returnAllParticipantsToHub() {

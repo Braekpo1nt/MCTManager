@@ -135,10 +135,8 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
      * @throws IllegalArgumentException if this config is not valid. The exception includes a detailed message of what was invalid
      */
     public boolean configIsValid() throws IllegalArgumentException {
-        return configIsValid(getConfig());
+        return configIsValid(parkourPathwayConfig);
     }
-    
-    
     
     @Override
     protected InputStream getExampleResourceStream() {
