@@ -202,8 +202,8 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
     private void useInBoundsWand(Player participant, Action action) {
         BlockFace direction = EntityUtils.getPlayerDirection(participant.getLocation());
         int currentPuzzleIndex = currentPuzzles.get(participant.getUniqueId());
-        Puzzle currentPuzzle = storageUtil.getPuzzle(currentPuzzleIndex);
-        BoundingBox inBounds = currentPuzzle.inBounds();
+        Puzzle newPuzzle = storageUtil.getPuzzle(currentPuzzleIndex).copy();
+        BoundingBox inBounds = newPuzzle.inBounds();
         double increment = participant.isSneaking() ? 0.5 : 1.0;
         switch (action) {
             case LEFT_CLICK_AIR, LEFT_CLICK_BLOCK -> {
@@ -232,6 +232,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
                 return;
             }
         }
+        storageUtil.setPuzzle(currentPuzzleIndex, newPuzzle);
         Display newDisplay = puzzlesToDisplay(currentPuzzleIndex);
         replaceDisplay(participant, newDisplay);
     }

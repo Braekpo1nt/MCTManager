@@ -23,5 +23,12 @@ public record Puzzle(BoundingBox inBounds, List<CheckPoint> checkPoints) {
      * @param respawn the location at which a player should respawn if they go out of bounds of their current puzzle. Must be inside the detectionArea.
      */
     public record CheckPoint(BoundingBox detectionArea, Location respawn) {
+        public CheckPoint copy() {
+            return new CheckPoint(detectionArea.clone(), respawn.clone());
+        }
+    }
+    
+    public Puzzle copy() {
+        return new Puzzle(inBounds.clone(), checkPoints.stream().map(CheckPoint::copy).toList());
     }
 }
