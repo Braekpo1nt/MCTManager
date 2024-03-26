@@ -32,6 +32,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.List;
 
@@ -123,7 +124,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
     }
     
     @Override
-    public void savConfig() {
+    public void saveConfig() throws IOException {
         storageUtil.saveConfig();
     }
     

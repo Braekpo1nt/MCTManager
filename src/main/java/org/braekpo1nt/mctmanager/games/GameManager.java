@@ -602,16 +602,29 @@ public class GameManager implements Listener {
                         .append(Component.text(". See console for details:\n"))
                         .append(Component.text(e.getMessage()))
                         .color(NamedTextColor.RED));
-                sender.sendMessage(Component.text("Skipping save. If you wish to save anyway, use ")
+                sender.sendMessage(Component.text("Skipping save. If you wish to force the save, use ")
                         .append(Component.text("/mct event save true")
                                 .clickEvent(ClickEvent.suggestCommand("/mct event save true"))
-                                .decorate(TextDecoration.BOLD)));
+                                .decorate(TextDecoration.BOLD))
+                        .color(NamedTextColor.RED));
                 return;
             }
         } else {
             sender.sendMessage("Skipping validation.");
         }
-        activeEditor.savConfig();
+        try {
+            activeEditor.saveConfig();
+        } catch (IOException e) {
+            Bukkit.getLogger().severe(e.getMessage());
+            e.printStackTrace();
+            sender.sendMessage(Component.text("An error occurred while attempting to save the config for ")
+                    .append(Component.text(activeEditor.getType().name())
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(". See console for details:\n"))
+                    .append(Component.text(e.getMessage()))
+                    .color(NamedTextColor.RED));
+            return;
+        }
         sender.sendMessage(Component.text("Config is saved.")
                 .color(NamedTextColor.GREEN));
     }

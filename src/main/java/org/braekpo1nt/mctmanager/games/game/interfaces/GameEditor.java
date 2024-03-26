@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.game.interfaces;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.bukkit.entity.Player;
 
+import java.io.IOException;
 import java.util.List;
 
 public interface GameEditor extends Configurable {
@@ -13,5 +14,5 @@ public interface GameEditor extends Configurable {
     
     boolean configIsValid();
     
-    void savConfig();
+    void saveConfig() throws IOException;
 }

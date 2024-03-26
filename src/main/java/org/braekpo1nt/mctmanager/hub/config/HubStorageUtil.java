@@ -1,6 +1,9 @@
 package org.braekpo1nt.mctmanager.hub.config;
 
 import com.google.common.base.Preconditions;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.config.GameConfigStorageUtil;
 import org.braekpo1nt.mctmanager.games.game.config.LocationDTO;
@@ -11,6 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Optional;
 
@@ -40,7 +44,11 @@ public class HubStorageUtil extends GameConfigStorageUtil<HubConfig> {
         if (!configFile.exists()) {
             HubConfig defaultConfig = createDefaultConfig();
             Bukkit.getLogger().warning(String.format("%s not found, creating default %s.", configFile, configFileName));
-            saveConfig(defaultConfig);
+            try {
+                saveConfig(defaultConfig);
+            } catch (IOException e) {
+                throw new IllegalArgumentException("IO error occurred while saving the default hub config", e);
+            }
         }
         return super.loadConfig();
     }
