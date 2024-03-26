@@ -22,9 +22,17 @@ public class EditSubCommand extends CommandManager {
             
             return true;
         });
-//        subCommands.put("save", (sender, command, label, args) -> {
-//            return true;
-//        });
+        subCommands.put("save", (sender, command, label, args) -> {
+            if (!gameManager.editorIsRunning()) {
+                sender.sendMessage(Component.text("No editor is running.")
+                        .color(NamedTextColor.RED));
+                return true;
+            }
+            
+            gameManager.saveEditor(sender, false);
+            
+            return true;
+        });
 //        subCommands.put("load", new LoadSubCommand(gameManager));
     }
     

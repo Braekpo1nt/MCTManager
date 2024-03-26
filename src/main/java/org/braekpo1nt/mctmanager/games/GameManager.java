@@ -555,7 +555,8 @@ public class GameManager implements Listener {
     
     public void validateEditor(@NotNull CommandSender sender) {
         if (!editorIsRunning()) {
-            sender.sendMessage("No editor is running.");
+            sender.sendMessage(Component.text("No editor is running.")
+                    .color(NamedTextColor.RED));
             return;
         }
         try {
@@ -575,6 +576,25 @@ public class GameManager implements Listener {
         }
         sender.sendMessage(Component.text("Config is valid.")
                 .color(NamedTextColor.GREEN));
+    }
+    
+    public void saveEditor(@NotNull CommandSender sender, boolean force) {
+        if (!editorIsRunning()) {
+            sender.sendMessage(Component.text("No editor is running.")
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        if (!force) {
+            validateEditor(sender);
+            sender.sendMessage(Component.text("Config is not valid, skipping save. If you wish to save anyway, use ")
+                    .append(Component.text("/mct event save true")
+                            .clickEvent(ClickEvent.suggestCommand("/mct event save true"))
+                            .decorate(TextDecoration.BOLD)));
+            return;
+        } else {
+            sender.sendMessage("Skipping validation.");
+        }
+        activeEditor.savConfig();
     }
     
     public void returnAllParticipantsToHub() {
