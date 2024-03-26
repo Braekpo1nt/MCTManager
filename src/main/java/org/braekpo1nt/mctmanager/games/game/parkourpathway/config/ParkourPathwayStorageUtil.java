@@ -17,7 +17,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPathwayConfig> {
     
@@ -42,7 +44,6 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
         Preconditions.checkArgument(config.getVersion() != null, "version can't be null");
         Preconditions.checkArgument(config.getVersion().equals(Main.CONFIG_VERSION), "Config version %s not supported. %s required.", config.getVersion(), Main.CONFIG_VERSION);
         Preconditions.checkArgument(Bukkit.getWorld(config.getWorld()) != null, "Could not find world \"%s\"", config.getWorld());
-        Preconditions.checkArgument(config.getStartingLocation() != null, "startingLocation can't be null");
         Preconditions.checkArgument(config.getSpectatorArea() != null, "spectatorArea can't be null");
         Preconditions.checkArgument(config.getSpectatorArea().toBoundingBox().getVolume() >= 1.0, "getSpectatorArea's volume (%s) can't be less than 1. %s", config.getSpectatorArea().toBoundingBox().getVolume(), config.getSpectatorArea().toBoundingBox());
         Preconditions.checkArgument(config.getScores() != null, "scores can't be null");
@@ -119,8 +120,8 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
     protected void setConfig(ParkourPathwayConfig config) {
         World newWorld = Bukkit.getWorld(config.getWorld());
         Preconditions.checkArgument(newWorld != null, "Could not find world \"%s\"", config.getWorld());
-        Location newStartingLocation = config.getStartingLocation().toLocation(newWorld);
         List<Puzzle> newPuzzles = config.getPuzzles().stream().map(puzzleDTO -> puzzleDTO.toPuzzle(newWorld)).toList();
+        Location newStartingLocation = newPuzzles.get(0).checkPoints().get(0).respawn();
         Component newDescription = GsonComponentSerializer.gson().deserializeFromTree(config.getDescription());
         // now it's confirmed everything works, so set the actual fields
         this.world = newWorld;
@@ -147,13 +148,20 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
         return puzzles.get(index);
     }
     
+    /**
+     * @return a deep copy list of the puzzles
+     */
+    public List<Puzzle> deepCopyPuzzles() {
+        return puzzles.stream().map(Puzzle::copy).collect(Collectors.toCollection(ArrayList::new));
+    }
+    
     public int getPuzzlesSize() {
         return puzzles.size();
     }
     
-    public void setPuzzle(int index, Puzzle puzzle) {
-        this.puzzles.set(index, puzzle);
-        this.parkourPathwayConfig.getPuzzles().set(index, PuzzleDTO.from(puzzle));
+    public void setPuzzles(List<Puzzle> puzzles) {
+        this.puzzles = puzzles;
+        this.parkourPathwayConfig.setPuzzles(puzzles);
     }
     
     public int getStartingDuration() {

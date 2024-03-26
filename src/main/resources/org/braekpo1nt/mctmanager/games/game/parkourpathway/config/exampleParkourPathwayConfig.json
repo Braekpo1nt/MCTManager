@@ -1,11 +1,6 @@
 {
   "version": "0.1.0",
   "world": "TestWorld",
-  "startingLocation" : {
-    "x": 1003,
-    "y": 0,
-    "z": 0
-  },
   "spectatorArea": {
     "minX": 0,
     "minY": 0,

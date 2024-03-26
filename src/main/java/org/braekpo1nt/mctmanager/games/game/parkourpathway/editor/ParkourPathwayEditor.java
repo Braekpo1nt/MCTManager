@@ -50,6 +50,10 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
     private final ItemStack puzzleSelectWand;
     private final List<ItemStack> allWands;
     /**
+     * The puzzles that we're editing
+     */
+    private List<Puzzle> puzzles;
+    /**
      * the index of the puzzle each participant is editing
      */
     private Map<UUID, Integer> currentPuzzles;
@@ -104,6 +108,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
     
     @Override
     public boolean configIsValid() {
+        storageUtil.setPuzzles(puzzles);
         return storageUtil.configIsValid();
     }
     
@@ -117,6 +122,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
         participants = new ArrayList<>(newParticipants.size());
         currentPuzzles = new HashMap<>(newParticipants.size());
         currentPuzzleCheckpoints = new HashMap<>(newParticipants.size());
+        puzzles = storageUtil.deepCopyPuzzles();
         displays = new HashMap<>(newParticipants.size());
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         for (Player participant : newParticipants) {
@@ -202,8 +208,8 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
     private void useInBoundsWand(Player participant, Action action) {
         BlockFace direction = EntityUtils.getPlayerDirection(participant.getLocation());
         int currentPuzzleIndex = currentPuzzles.get(participant.getUniqueId());
-        Puzzle newPuzzle = storageUtil.getPuzzle(currentPuzzleIndex).copy();
-        BoundingBox inBounds = newPuzzle.inBounds();
+        Puzzle currentPuzzle = puzzles.get(currentPuzzleIndex);
+        BoundingBox inBounds = currentPuzzle.inBounds();
         double increment = participant.isSneaking() ? 0.5 : 1.0;
         switch (action) {
             case LEFT_CLICK_AIR, LEFT_CLICK_BLOCK -> {
@@ -232,10 +238,11 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
                 return;
             }
         }
-        storageUtil.setPuzzle(currentPuzzleIndex, newPuzzle);
         Display newDisplay = puzzlesToDisplay(currentPuzzleIndex);
         replaceDisplay(participant, newDisplay);
     }
+    
+    
     
     private void useDetectionAreaWand(Player participant, Action action) {
         
@@ -249,7 +256,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
         int currentPuzzle = currentPuzzles.get(participant.getUniqueId());
         switch (action) {
             case LEFT_CLICK_AIR, LEFT_CLICK_BLOCK -> {
-                if (currentPuzzle == storageUtil.getPuzzlesSize() - 1) {
+                if (currentPuzzle == puzzles.size() - 1) {
                     participant.sendMessage(Component.text("Already at puzzle ")
                                     .append(Component.text(currentPuzzle))
                             .color(NamedTextColor.RED));
@@ -274,7 +281,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
      * @param puzzleIndex the puzzle to pick (must be a valid index)
      */
     private void selectPuzzle(Player participant, int puzzleIndex) {
-        Preconditions.checkArgument(0 <= puzzleIndex && puzzleIndex < storageUtil.getPuzzlesSize(), "puzzleIndex out of bounds for %s", storageUtil.getPuzzlesSize());
+        Preconditions.checkArgument(0 <= puzzleIndex && puzzleIndex < puzzles.size(), "puzzleIndex out of bounds for %s", puzzles.size());
         currentPuzzles.put(participant.getUniqueId(), puzzleIndex);
         currentPuzzleCheckpoints.put(participant.getUniqueId(), 0);
         Display newDisplay = puzzlesToDisplay(puzzleIndex);
@@ -282,7 +289,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
         participant.sendMessage(Component.text("Selected puzzle ")
                 .append(Component.text(puzzleIndex))
                 .append(Component.text("/"))
-                .append(Component.text(storageUtil.getPuzzlesSize())));
+                .append(Component.text(puzzles.size())));
     }
     
     /**
@@ -327,13 +334,13 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
      * @return The Display of the puzzles
      */
     private @NotNull Display puzzlesToDisplay(int index) {
-        int size = storageUtil.getPuzzlesSize();
+        int size = puzzles.size();
         Preconditions.checkArgument(0 <= index && index < size, "index must be between [0, %s] inclusive", size);
-        Puzzle puzzle1 = storageUtil.getPuzzle(index);
+        Puzzle puzzle1 = puzzles.get(index);
         Display display1 = puzzleToDisplay(puzzle1, Color.fromRGB(255, 0, 0), Color.fromRGB(0, 0, 255), Color.fromRGB(0, 255, 0));
         int nextIndex = index + 1;
-        if (nextIndex < storageUtil.getPuzzlesSize()) {
-            Puzzle puzzle2 = storageUtil.getPuzzle(nextIndex);
+        if (nextIndex < puzzles.size()) {
+            Puzzle puzzle2 = puzzles.get(nextIndex);
             Display display2 = puzzleToDisplay(puzzle2, Color.fromRGB(100, 0, 0), Color.fromRGB(0, 0, 100), Color.fromRGB(0, 100, 0));
             display1.addChild(display2);
         }
