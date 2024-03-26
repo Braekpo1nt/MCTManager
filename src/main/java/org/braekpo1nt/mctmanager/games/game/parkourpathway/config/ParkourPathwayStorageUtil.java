@@ -100,8 +100,8 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
             for (int j = 0; j < i; j++) {
                 PuzzleDTO.CheckPointDTO earlierCheckpoint = puzzle.getCheckPoints().get(j);
                 BoundingBox earlierDetectionArea = earlierCheckpoint.getDetectionArea().toBoundingBox();
-                Preconditions.checkArgument(!earlierDetectionArea.overlaps(detectionArea), "puzzle[%s].checkPoints[%s].detectionArea and puzzle[%s].checkPoints[%s].detectionArea can't overlap", puzzleIndex, i-1, puzzleIndex, i);
-                Preconditions.checkArgument(earlierDetectionArea.contains(respawn), "puzzle[%s].checkPoints[%s].detectionArea can't contain puzzle[%s].checkPoints[%s].respawn", puzzleIndex, i-1, puzzleIndex, i);
+                Preconditions.checkArgument(!earlierDetectionArea.overlaps(detectionArea), "puzzle[%s].checkPoints[%s].detectionArea (%s) and puzzle[%s].checkPoints[%s].detectionArea (%s) can't overlap", puzzleIndex, i-1, earlierDetectionArea, puzzleIndex, i, detectionArea);
+                Preconditions.checkArgument(!earlierDetectionArea.contains(respawn), "puzzle[%s].checkPoints[%s].detectionArea (%s) can't contain puzzle[%s].checkPoints[%s].respawn (%s)", puzzleIndex, i-1, earlierDetectionArea, puzzleIndex, i, respawn);
             }
         }
         
