@@ -18,6 +18,7 @@ import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.utils.EntityUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
@@ -263,11 +264,60 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
     
     
     private void useDetectionAreaWand(Player participant, Action action) {
-        
+        BlockFace direction = EntityUtils.getPlayerDirection(participant.getLocation());
+        int currentPuzzleIndex = currentPuzzles.get(participant.getUniqueId());
+        int currentCheckpointIndex = currentPuzzleCheckpoints.get(participant.getUniqueId());
+        Puzzle currentPuzzle = puzzles.get(currentPuzzleIndex);
+        Puzzle.CheckPoint currentCheckpoint = currentPuzzle.checkPoints().get(currentCheckpointIndex);
+        BoundingBox detectionArea = currentCheckpoint.detectionArea();
+        double increment = participant.isSneaking() ? 0.5 : 1.0;
+        switch (action) {
+            case LEFT_CLICK_AIR, LEFT_CLICK_BLOCK -> {
+                participant.sendMessage(Component.text("Expand ")
+                        .append(Component.text("detectionArea")
+                                .decorate(TextDecoration.BOLD))
+                        .append(Component.text(" "))
+                        .append(Component.text(direction.toString()))
+                        .append(Component.text(" by "))
+                        .append(Component.text(increment))
+                        .append(Component.text(" block(s)")));
+                detectionArea.expand(direction, increment);
+            }
+            case RIGHT_CLICK_AIR, RIGHT_CLICK_BLOCK -> {
+                participant.sendMessage(Component.text("Expand ")
+                        .append(Component.text("detectionArea")
+                                .decorate(TextDecoration.BOLD))
+                        .append(Component.text(" "))
+                        .append(Component.text(direction.toString()))
+                        .append(Component.text(" by "))
+                        .append(Component.text(-increment))
+                        .append(Component.text(" block(s)")));
+                detectionArea.expand(direction, -increment);
+            }
+            default -> {
+                return;
+            }
+        }
+        Display newDisplay = puzzlesToDisplay(currentPuzzleIndex);
+        replaceDisplay(participant, newDisplay);
     }
     
     private void useRespawnWand(Player participant) {
-        
+        int currentPuzzleIndex = currentPuzzles.get(participant.getUniqueId());
+        int currentCheckpointIndex = currentPuzzleCheckpoints.get(participant.getUniqueId());
+        Puzzle currentPuzzle = puzzles.get(currentPuzzleIndex);
+        Puzzle.CheckPoint currentCheckpoint = currentPuzzle.checkPoints().get(currentCheckpointIndex);
+        Location respawn = currentCheckpoint.respawn();
+        Location location = participant.getLocation();
+        respawn.set(location.getX(), location.getY(), location.getZ());
+        respawn.setYaw(location.getYaw());
+        respawn.setPitch(location.getPitch());
+        Display newDisplay = puzzlesToDisplay(currentPuzzleIndex);
+        replaceDisplay(participant, newDisplay);
+        participant.sendMessage(Component.text("Set ")
+                .append(Component.text("respawn")
+                        .decorate(TextDecoration.BOLD))
+                .append(Component.text(" to current position.")));
     }
     
     private void usePuzzleSelectWand(Player participant, Action action) {
