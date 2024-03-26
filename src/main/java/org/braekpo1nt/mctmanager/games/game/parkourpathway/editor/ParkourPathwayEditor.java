@@ -61,6 +61,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
      * The index of the checkpoint that a participant is editing in their current puzzle (since there can be multiple)
      */
     private Map<UUID, Integer> currentPuzzleCheckpoints;
+    private boolean editorStarted = false;
     
     public ParkourPathwayEditor(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
@@ -103,11 +104,16 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
     
     @Override
     public boolean loadConfig() throws IllegalArgumentException {
-        boolean configIsLoaded = storageUtil.loadConfig();
-        if (puzzles != null) {
-            puzzles = storageUtil.deepCopyPuzzles();
+        boolean loaded = storageUtil.loadConfig();
+        if (!editorStarted) {
+            return loaded;
         }
-        return configIsLoaded;
+        puzzles = storageUtil.deepCopyPuzzles();
+        for (Player participant : participants) {
+            Display display = puzzlesToDisplay(currentPuzzles.get(participant.getUniqueId()));
+            replaceDisplay(participant, display);
+        }
+        return loaded;
     }
     
     @Override
@@ -140,6 +146,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
         for (Player participant : newParticipants) {
             selectPuzzle(participant, 0);
         }
+        editorStarted = true;
         Bukkit.getLogger().info("Stopping Parkour Pathway editor");
     }
     
@@ -158,6 +165,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
     @Override
     public void stop() {
         HandlerList.unregisterAll(this);
+        editorStarted = false;
         for (Player participant : participants) {
             resetParticipant(participant);
         }

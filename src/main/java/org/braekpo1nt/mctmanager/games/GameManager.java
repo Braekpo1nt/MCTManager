@@ -589,16 +589,31 @@ public class GameManager implements Listener {
             return;
         }
         if (!force) {
-            validateEditor(sender);
-            sender.sendMessage(Component.text("Config is not valid, skipping save. If you wish to save anyway, use ")
-                    .append(Component.text("/mct event save true")
-                            .clickEvent(ClickEvent.suggestCommand("/mct event save true"))
-                            .decorate(TextDecoration.BOLD)));
-            return;
+            try {
+                if (!activeEditor.configIsValid()) {
+                    throw new IllegalArgumentException("Config is not valid");
+                }
+            } catch (IllegalArgumentException e) {
+                Bukkit.getLogger().severe(e.getMessage());
+                e.printStackTrace();
+                sender.sendMessage(Component.text("Config is not valid for ")
+                        .append(Component.text(activeEditor.getType().name())
+                                .decorate(TextDecoration.BOLD))
+                        .append(Component.text(". See console for details:\n"))
+                        .append(Component.text(e.getMessage()))
+                        .color(NamedTextColor.RED));
+                sender.sendMessage(Component.text("Skipping save. If you wish to save anyway, use ")
+                        .append(Component.text("/mct event save true")
+                                .clickEvent(ClickEvent.suggestCommand("/mct event save true"))
+                                .decorate(TextDecoration.BOLD)));
+                return;
+            }
         } else {
             sender.sendMessage("Skipping validation.");
         }
         activeEditor.savConfig();
+        sender.sendMessage(Component.text("Config is saved.")
+                .color(NamedTextColor.GREEN));
     }
     
     public void loadEditor(@NotNull CommandSender sender) {
