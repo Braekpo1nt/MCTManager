@@ -2,7 +2,9 @@ package org.braekpo1nt.mctmanager.commands.edit;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.CommandManager;
+import org.braekpo1nt.mctmanager.commands.CommandUtils;
 import org.braekpo1nt.mctmanager.games.GameManager;
 
 public class EditSubCommand extends CommandManager {
@@ -29,11 +31,33 @@ public class EditSubCommand extends CommandManager {
                 return true;
             }
             
-            gameManager.saveEditor(sender, false);
+            boolean force = false;
+            if (args.length == 1) {
+                String forceString = args[0];
+                Boolean forceBoolean = CommandUtils.toBoolean(forceString);
+                if (forceBoolean == null) {
+                    sender.sendMessage(Component.empty()
+                                    .append(Component.text(forceString)
+                                            .decorate(TextDecoration.BOLD))
+                                    .append(Component.text(" is not a valid boolean"))
+                            .color(NamedTextColor.RED));
+                    return true;
+                }
+            }
+            
+            gameManager.saveEditor(sender, force);
             
             return true;
         });
-//        subCommands.put("load", new LoadSubCommand(gameManager));
+        subCommands.put("load", (sender, command, label, args) -> {
+            if (!gameManager.editorIsRunning()) {
+                sender.sendMessage(Component.text("No editor is running.")
+                        .color(NamedTextColor.RED));
+                return true;
+            }
+            gameManager.loadEditor(sender);
+            return true;
+        });
     }
     
     @Override

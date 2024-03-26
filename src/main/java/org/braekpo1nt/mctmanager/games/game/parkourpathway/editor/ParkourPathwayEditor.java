@@ -103,7 +103,11 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
     
     @Override
     public boolean loadConfig() throws IllegalArgumentException {
-        return storageUtil.loadConfig();
+        boolean configIsLoaded = storageUtil.loadConfig();
+        if (puzzles != null) {
+            puzzles = storageUtil.deepCopyPuzzles();
+        }
+        return configIsLoaded;
     }
     
     @Override

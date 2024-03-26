@@ -578,6 +578,10 @@ public class GameManager implements Listener {
                 .color(NamedTextColor.GREEN));
     }
     
+    /**
+     * @param sender the sender
+     * @param force if true, validation will be skipped and the config will be saved even if invalid, if false the config will only save if it is valid
+     */
     public void saveEditor(@NotNull CommandSender sender, boolean force) {
         if (!editorIsRunning()) {
             sender.sendMessage(Component.text("No editor is running.")
@@ -595,6 +599,26 @@ public class GameManager implements Listener {
             sender.sendMessage("Skipping validation.");
         }
         activeEditor.savConfig();
+    }
+    
+    public void loadEditor(@NotNull CommandSender sender) {
+        try {
+            if (!activeEditor.loadConfig()) {
+                throw new IllegalArgumentException("Config could not be loaded.");
+            }
+        } catch (IllegalArgumentException e) {
+            Bukkit.getLogger().severe(e.getMessage());
+            e.printStackTrace();
+            Component message = Component.text("Can't start ")
+                    .append(Component.text(activeEditor.getType().name())
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(". Error loading config file. See console for details:\n"))
+                    .append(Component.text(e.getMessage()))
+                    .color(NamedTextColor.RED);
+            sender.sendMessage(message);
+        }
+        sender.sendMessage(Component.text("Config loaded.")
+                .color(NamedTextColor.GREEN));
     }
     
     public void returnAllParticipantsToHub() {
