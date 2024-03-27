@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.games.game.parkourpathway.config;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.braekpo1nt.mctmanager.games.game.config.BoundingBoxDTO;
 import org.braekpo1nt.mctmanager.games.game.config.LocationDTO;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.Puzzle;
@@ -10,8 +11,12 @@ import org.bukkit.World;
 import java.util.List;
 
 @Getter
-@AllArgsConstructor
+@RequiredArgsConstructor
 class PuzzleDTO {
+    /**
+     * purely for assistance in editing the config file
+     */
+    private int index;
     /**
      * The bounding box that is considered in-bounds (if you leave it you're out of bounds). Must contain
      * - all CheckPoint detectionAreas and respawn locations
@@ -25,6 +30,10 @@ class PuzzleDTO {
     
     static PuzzleDTO from(Puzzle puzzle) {
         return new PuzzleDTO(BoundingBoxDTO.from(puzzle.inBounds()), CheckPointDTO.from(puzzle.checkPoints()));
+    }
+    
+    void setIndex(int index) {
+        this.index = index;
     }
     
     @Getter

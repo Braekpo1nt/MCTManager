@@ -28,6 +28,9 @@ class ParkourPathwayConfig {
      */
     public void setPuzzles(List<Puzzle> puzzles) {
         this.puzzles = puzzles.stream().map(PuzzleDTO::from).toList();
+        for (int i = 0; i < this.puzzles.size(); i++) {
+            this.puzzles.get(i).setIndex(i);
+        }
     }
     
     @Getter
