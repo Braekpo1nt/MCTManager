@@ -230,7 +230,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
         } else if (item.equals(detectionAreaWand)) {
             useDetectionAreaWand(participant, action);
         } else if (item.equals(respawnWand)) {
-            useRespawnWand(participant);
+            useRespawnWand(participant, action);
         }  else if (item.equals(puzzleSelectWand)) {
             usePuzzleSelectWand(participant, action);
         } else if (item.equals(checkPointSelectWand)) {
@@ -317,13 +317,19 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
         replaceDisplay(participant, newDisplay);
     }
     
-    private void useRespawnWand(Player participant) {
+    private void useRespawnWand(Player participant, Action action) {
         int currentPuzzleIndex = currentPuzzles.get(participant.getUniqueId());
         int currentCheckpointIndex = currentPuzzleCheckPoints.get(participant.getUniqueId());
         Puzzle currentPuzzle = puzzles.get(currentPuzzleIndex);
         Puzzle.CheckPoint currentCheckpoint = currentPuzzle.checkPoints().get(currentCheckpointIndex);
         Location respawn = currentCheckpoint.respawn();
         Location location = participant.getLocation();
+        if (action.isRightClick()) {
+            location = new Location(
+                    location.getWorld(),
+                    UtilsUtils.specialRound(location.getX());
+            )
+        }
         respawn.set(location.getX(), location.getY(), location.getZ());
         respawn.setYaw(location.getYaw());
         respawn.setPitch(location.getPitch());
