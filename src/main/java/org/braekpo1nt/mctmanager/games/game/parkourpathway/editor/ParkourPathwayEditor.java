@@ -16,6 +16,7 @@ import org.braekpo1nt.mctmanager.games.game.parkourpathway.config.ParkourPathway
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.utils.EntityUtils;
+import org.braekpo1nt.mctmanager.utils.MathUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.Location;
@@ -93,7 +94,10 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
         respawnWand.editMeta(meta -> {
             meta.displayName(Component.text("respawn"));
             meta.lore(List.of(
-                    Component.text("Left Click: set respawn to current Location")));
+                    Component.text("Left Click: set to current Location (exact)"),
+                    Component.text("Right Click: set to current Location (rounded)"),
+                    Component.text("(Crouch to get block position)")
+            ));
         });
         this.puzzleSelectWand = new ItemStack(Material.STICK);
         puzzleSelectWand.editMeta(meta -> {
@@ -325,10 +329,10 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
         Location respawn = currentCheckpoint.respawn();
         Location location = participant.getLocation();
         if (action.isRightClick()) {
-            location = new Location(
-                    location.getWorld(),
-                    UtilsUtils.specialRound(location.getX());
-            )
+            location = MathUtils.specialRound(location, 0.5, 45F);
+        }
+        if (participant.isSneaking()) {
+            location = location.toBlockLocation();
         }
         respawn.set(location.getX(), location.getY(), location.getZ());
         respawn.setYaw(location.getYaw());
@@ -338,7 +342,20 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
         participant.sendMessage(Component.text("Set ")
                 .append(Component.text("respawn")
                         .decorate(TextDecoration.BOLD))
-                .append(Component.text(" to current position.")));
+                .append(Component.text(" to "))
+                .append(Component.text("[")
+                        .append(Component.text(location.getX()))
+                        .append(Component.text(", "))
+                        .append(Component.text(location.getY()))
+                        .append(Component.text(", "))
+                        .append(Component.text(location.getZ()))
+                        .append(Component.text(", "))
+                        .append(Component.text(location.getYaw()))
+                        .append(Component.text(", "))
+                        .append(Component.text(location.getPitch()))
+                        .append(Component.text("]"))
+                )
+        );
     }
     
     private void usePuzzleSelectWand(Player participant, Action action) {
