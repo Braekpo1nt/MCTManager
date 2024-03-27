@@ -104,7 +104,8 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
             meta.displayName(Component.text("Puzzle Select"));
             meta.lore(List.of(
                     Component.text("Right Click: next puzzle"),
-                    Component.text("Left Click: previous puzzle")
+                    Component.text("Left Click: previous puzzle"),
+                    Component.text("(Crouch to be teleported)")
             ));
         });
         this.checkPointSelectWand = new ItemStack(Material.STICK);
@@ -162,7 +163,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
             initializeParticipant(participant);
         }
         for (Player participant : newParticipants) {
-            selectPuzzle(participant, 0);
+            selectPuzzle(participant, 0, false);
         }
         editorStarted = true;
         Bukkit.getLogger().info("Stopping Parkour Pathway editor");
@@ -370,7 +371,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
                             .color(NamedTextColor.RED));
                     return;
                 }
-                selectPuzzle(participant, currentPuzzle + 1);
+                selectPuzzle(participant, currentPuzzle + 1, participant.isSneaking());
             }
             case RIGHT_CLICK_AIR, RIGHT_CLICK_BLOCK -> {
                 if (currentPuzzle == 0) {
@@ -379,7 +380,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
                             .color(NamedTextColor.RED));
                     return;
                 }
-                selectPuzzle(participant, currentPuzzle - 1);
+                selectPuzzle(participant, currentPuzzle - 1, participant.isSneaking());
             }
         }
     }
@@ -417,13 +418,18 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
      * Select the given puzzle for the given participant. Update the displays.
      * @param participant the participant
      * @param puzzleIndex the puzzle to pick (must be a valid index)
+     * @param teleport whether to teleport the participant to the selected puzzle's first respawn
      */
-    private void selectPuzzle(Player participant, int puzzleIndex) {
+    private void selectPuzzle(Player participant, int puzzleIndex, boolean teleport) {
         Preconditions.checkArgument(0 <= puzzleIndex && puzzleIndex < puzzles.size(), "puzzleIndex %s out of bounds for length %s", puzzleIndex, puzzles.size());
         currentPuzzles.put(participant.getUniqueId(), puzzleIndex);
         currentPuzzleCheckPoints.put(participant.getUniqueId(), 0);
         Display newDisplay = puzzlesToDisplay(puzzleIndex, 0);
         replaceDisplay(participant, newDisplay);
+        if (teleport) {
+            Puzzle selectedPuzzle = puzzles.get(puzzleIndex);
+            participant.teleport(selectedPuzzle.checkPoints().get(0).respawn());
+        }
         participant.sendMessage(Component.text("Selected puzzle index ")
                 .append(Component.text(puzzleIndex))
                 .append(Component.text("/"))
