@@ -43,7 +43,6 @@ import java.util.List;
 public class ParkourPathwayEditor implements GameEditor, Configurable, Listener {
     
     private final Main plugin;
-    private final GameManager gameManager;
     private final ParkourPathwayStorageUtil storageUtil;
     
     private List<Player> participants = new ArrayList<>();
@@ -74,9 +73,8 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
     private Map<UUID, Integer> currentPuzzleCheckPoints;
     private boolean editorStarted = false;
     
-    public ParkourPathwayEditor(Main plugin, GameManager gameManager) {
+    public ParkourPathwayEditor(Main plugin) {
         this.plugin = plugin;
-        this.gameManager = gameManager;
         this.storageUtil = new ParkourPathwayStorageUtil(plugin.getDataFolder());
         this.inBoundsWand = addWand("inBounds", List.of(
                 Component.text("Left Click: push box face away"),
@@ -255,7 +253,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
         } else if (item.equals(checkPointSelectWand)) {
             useCheckpointSelectWand(participant, action);
         } else if (item.equals(toggleDisplayWand)) {
-            useToggleDisplayWand(participant, action);
+            useToggleDisplayWand(participant);
         } else if (item.equals(addRemoveCheckPointWand)) {
             useAddRemoveCheckPointWand(participant, action);
         } else if (item.equals(addRemovePuzzleWand)) {
@@ -434,7 +432,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
         }
     }
     
-    private void useToggleDisplayWand(Player participant, Action action) {
+    private void useToggleDisplayWand(Player participant) {
         displayWalls = !displayWalls;
         if (displayWalls) {
             participant.sendMessage("Displaying walls of inBounds");

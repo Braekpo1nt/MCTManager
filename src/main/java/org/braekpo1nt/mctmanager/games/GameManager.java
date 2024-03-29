@@ -81,7 +81,7 @@ public class GameManager implements Listener {
         addGame(new CaptureTheFlagGame(plugin, this));
         addGame(new ClockworkGame(plugin, this));
         this.editors = new HashMap<>();
-        addEditor(new ParkourPathwayEditor(plugin, this));
+        addEditor(new ParkourPathwayEditor(plugin));
         this.sidebarFactory = new SidebarFactory();
         this.hubManager = new HubManager(plugin, this);
         hubManager.initializeSidebar(sidebarFactory);
