@@ -57,7 +57,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
     private final ItemStack toggleDisplayWand;
     private final ItemStack addRemovePuzzleWand;
     private final ItemStack addRemoveCheckPointWand;
-    private final List<ItemStack> allWands;
+    private final List<ItemStack> allWands = new ArrayList<>();
     // wands
     private boolean displayWalls = true;
     /**
@@ -78,74 +78,51 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
         this.plugin = plugin;
         this.gameManager = gameManager;
         this.storageUtil = new ParkourPathwayStorageUtil(plugin.getDataFolder());
-        this.inBoundsWand = new ItemStack(Material.STICK);
-        inBoundsWand.editMeta(meta -> {
-            meta.displayName(Component.text("inBounds"));
-            meta.lore(List.of(
-                    Component.text("Left Click: push box face away"),
-                    Component.text("Right Click: pull box face toward"),
-                    Component.text("(Crouch to adjust by 0.5 blocks)")
-            ));
+        this.inBoundsWand = addWand("inBounds", List.of(
+                Component.text("Left Click: push box face away"),
+                Component.text("Right Click: pull box face toward"),
+                Component.text("(Crouch to adjust by 0.5 blocks)")
+        ));
+        this.detectionAreaWand = addWand("detectionArea", List.of(
+                Component.text("Left Click: push box face away"),
+                Component.text("Right Click: pull box face toward"),
+                Component.text("(Crouch to adjust by 0.5 blocks)")
+        ));
+        this.respawnWand = addWand("respawn", List.of(
+                Component.text("Left Click: set to current Location (exact)"),
+                Component.text("Right Click: set to current Location (rounded)"),
+                Component.text("(Crouch to get block position)")
+        ));
+        this.puzzleSelectWand = addWand("Puzzle Select", List.of(
+                Component.text("Left Click: previous puzzle"),
+                Component.text("Right Click: next puzzle"),
+                Component.text("(Crouch to be teleported)")
+        ));
+        this.checkPointSelectWand = addWand("CheckPoint Select", List.of(
+                Component.text("Left Click: previous check point"),
+                Component.text("Right Click: next check point")
+        ));
+        this.toggleDisplayWand = addWand("Toggle Display", List.of(
+                Component.text("Cycle between all faces and just edges")
+        ));
+        this.addRemoveCheckPointWand = addWand("Add/Remove CheckPoint", List.of(
+                Component.text("Left Click: add check point"),
+                Component.text("Right Click: remove check point")
+        ));
+        this.addRemovePuzzleWand = addWand("Add/Remove Puzzle", List.of(
+                Component.text("Left Click: add puzzle"),
+                Component.text("Right Click: remove puzzle")
+        ));
+    }
+    
+    private ItemStack addWand(String name, List<Component> lore) {
+        ItemStack newWand = new ItemStack(Material.STICK);
+        newWand.editMeta(meta -> {
+            meta.displayName(Component.text(name));
+            meta.lore(lore);
         });
-        this.detectionAreaWand = new ItemStack(Material.STICK);
-        detectionAreaWand.editMeta(meta -> {
-            meta.displayName(Component.text("detectionArea"));
-            meta.lore(List.of(
-                    Component.text("Left Click: push box face away"),
-                    Component.text("Right Click: pull box face toward"),
-                    Component.text("(Crouch to adjust by 0.5 blocks)")
-            ));
-        });
-        this.respawnWand = new ItemStack(Material.STICK);
-        respawnWand.editMeta(meta -> {
-            meta.displayName(Component.text("respawn"));
-            meta.lore(List.of(
-                    Component.text("Left Click: set to current Location (exact)"),
-                    Component.text("Right Click: set to current Location (rounded)"),
-                    Component.text("(Crouch to get block position)")
-            ));
-        });
-        this.puzzleSelectWand = new ItemStack(Material.STICK);
-        puzzleSelectWand.editMeta(meta -> {
-            meta.displayName(Component.text("Puzzle Select"));
-            meta.lore(List.of(
-                    Component.text("Left Click: previous puzzle"),
-                    Component.text("Right Click: next puzzle"),
-                    Component.text("(Crouch to be teleported)")
-            ));
-        });
-        this.checkPointSelectWand = new ItemStack(Material.STICK);
-        checkPointSelectWand.editMeta(meta -> {
-            meta.displayName(Component.text("CheckPoint Select"));
-            meta.lore(List.of(
-                    Component.text("Left Click: previous check point"),
-                    Component.text("Right Click: next check point")
-            ));
-        });
-        this.toggleDisplayWand = new ItemStack(Material.STICK);
-        toggleDisplayWand.editMeta(meta -> {
-            meta.displayName(Component.text("Toggle Display"));
-            meta.lore(List.of(
-                    Component.text("Cycle between all faces and just edges")
-            ));
-        });
-        this.addRemoveCheckPointWand = new ItemStack(Material.STICK);
-        addRemoveCheckPointWand.editMeta(meta -> {
-            meta.displayName(Component.text("Add/Remove CheckPoint"));
-            meta.lore(List.of(
-                    Component.text("Left Click: add check point"),
-                    Component.text("Right Click: remove check point")
-            ));
-        });
-        this.addRemovePuzzleWand = new ItemStack(Material.STICK);
-        addRemovePuzzleWand.editMeta(meta -> {
-            meta.displayName(Component.text("Add/Remove Puzzle"));
-            meta.lore(List.of(
-                    Component.text("Left Click: add puzzle"),
-                    Component.text("Right Click: remove puzzle")
-            ));
-        });
-        allWands = List.of(inBoundsWand, detectionAreaWand, respawnWand, checkPointSelectWand, puzzleSelectWand, toggleDisplayWand, addRemoveCheckPointWand, addRemovePuzzleWand);
+        allWands.add(newWand);
+        return newWand;
     }
     
     @Override
