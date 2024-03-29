@@ -32,6 +32,7 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.BoundingBox;
+import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -157,6 +158,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
         currentPuzzles = new HashMap<>(newParticipants.size());
         currentPuzzleCheckPoints = new HashMap<>(newParticipants.size());
         puzzles = storageUtil.deepCopyPuzzles();
+        evaluatePuzzles(puzzles);
         displays = new HashMap<>(newParticipants.size());
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         for (Player participant : newParticipants) {
@@ -167,6 +169,16 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
         }
         editorStarted = true;
         Bukkit.getLogger().info("Stopping Parkour Pathway editor");
+    }
+    
+    private void evaluatePuzzles(List<Puzzle> ps) {
+        List<Double> heights = new ArrayList<>(ps.size());
+        for (int i = 0; i < ps.size(); i++) {
+            Puzzle puzzle = ps.get(i);
+            Bukkit.getLogger().info(String.format("%s: %s", i, puzzle.inBounds().getHeight()));
+            heights.add(puzzle.inBounds().getHeight());
+        }
+        Bukkit.getLogger().info(String.format("%s", heights.size()));
     }
     
     public void initializeParticipant(Player participant) {
