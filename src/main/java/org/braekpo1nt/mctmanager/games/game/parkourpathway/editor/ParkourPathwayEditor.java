@@ -153,6 +153,15 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
         }
     }
     
+    private void reloadDisplaysForPuzzle(int puzzleIndex) {
+        for (Player participant : participants) {
+            int currentPuzzleIndex = currentPuzzles.get(participant.getUniqueId());
+            if (currentPuzzleIndex == puzzleIndex) {
+                reloadDisplay(participant);
+            }
+        }
+    }
+    
     /**
      * Update the display of the given participant's current puzzle
      * @param participant the participant to update the display for
@@ -330,7 +339,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
                 return;
             }
         }
-        reloadDisplay(participant);
+        reloadDisplaysForPuzzle(currentPuzzleIndex);
     }
     
     
@@ -370,7 +379,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
                 return;
             }
         }
-        reloadDisplay(participant);
+        reloadDisplaysForPuzzle(currentPuzzleIndex);
     }
     
     private void useRespawnWand(Player participant, Action action) {
@@ -389,7 +398,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
         respawn.set(location.getX(), location.getY(), location.getZ());
         respawn.setYaw(location.getYaw());
         respawn.setPitch(location.getPitch());
-        reloadDisplay(participant);
+        reloadDisplaysForPuzzle(currentPuzzleIndex);
         participant.sendMessage(Component.text("Set ")
                 .append(Component.text("respawn")
                         .decorate(TextDecoration.BOLD))
