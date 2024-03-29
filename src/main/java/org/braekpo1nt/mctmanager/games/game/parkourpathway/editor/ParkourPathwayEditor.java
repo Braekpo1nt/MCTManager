@@ -476,8 +476,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
                 participant.sendMessage(Component.text("Add check point index ")
                         .append(Component.text(numOfCheckPoints))
                         .append(Component.text("/"))
-                        .append(Component.text(numOfCheckPoints))
-                        .append(Component.text(numOfCheckPoints - 1))
+                        .append(Component.text(numOfCheckPoints + 1))
                 );
                 Puzzle.CheckPoint newCheckPoint = createCheckPoint(participant.getLocation());
                 currentPuzzle.checkPoints().add(newCheckPoint);
@@ -495,7 +494,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
                         .append(Component.text(currentPuzzleCheckPoint))
                         .append(Component.text("/"))
                         .append(Component.text(numOfCheckPoints - 1))
-                        .color(NamedTextColor.RED));
+                );
                 selectCheckPoint(participant, 0);
             }
         }
@@ -519,7 +518,57 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
     }
     
     private void useAddRemovePuzzleWand(Player participant, Action action) {
-        
+        int currentPuzzleIndex = currentPuzzles.get(participant.getUniqueId());
+        switch (action) {
+            case LEFT_CLICK_AIR, LEFT_CLICK_BLOCK -> {
+                int newPuzzleIndex = currentPuzzleIndex + 1;
+                participant.sendMessage(Component.text("Add puzzle index ")
+                        .append(Component.text(newPuzzleIndex))
+                        .append(Component.text("/"))
+                        .append(Component.text(puzzles.size()))
+                        .append(Component.text(". Max index is now "))
+                        .append(Component.text(puzzles.size() + 1))
+                );
+                Puzzle newPuzzle = createPuzzle(participant.getLocation());
+                puzzles.add(newPuzzleIndex, newPuzzle);
+                selectPuzzle(participant, newPuzzleIndex, false);
+            }
+            case RIGHT_CLICK_AIR, RIGHT_CLICK_BLOCK -> {
+                if (puzzles.size() == 3) {
+                    participant.sendMessage(Component.text("There must be at least 3 puzzles")
+                            .color(NamedTextColor.RED));
+                    return;
+                }
+                participant.sendMessage(Component.text("Remove puzzle index ")
+                        .append(Component.text(currentPuzzleIndex))
+                        .append(Component.text("/"))
+                        .append(Component.text(puzzles.size()))
+                        .append(Component.text(". Max index is now "))
+                                .append(Component.text(puzzles.size() - 1))
+                );
+                puzzles.remove(currentPuzzleIndex);
+                selectPuzzle(participant, currentPuzzleIndex - 1, false);
+            }
+        }
+    }
+    
+    /**
+     * Create a new Puzzle at the given position
+     * @param respawn the position of the respawn within the first checkpoint of the puzzle
+     * @return a new Puzzle with a single checkpoint. inBounds will be 2x3x2.
+     * @see ParkourPathwayEditor#createCheckPoint(Location) 
+     */
+    private Puzzle createPuzzle(Location respawn) {
+        BoundingBox inBounds = new BoundingBox(
+                respawn.getX(),
+                respawn.getY(),
+                respawn.getZ(),
+                respawn.getX() + 2,
+                respawn.getY() + 3,
+                respawn.getZ() + 2
+        );
+        Puzzle.CheckPoint checkPoint = createCheckPoint(respawn);
+        return new Puzzle(inBounds, new ArrayList<>(List.of(checkPoint)));
     }
     
     /**
