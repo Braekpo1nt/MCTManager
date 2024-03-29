@@ -43,6 +43,7 @@ public class EditSubCommand extends CommandManager {
                             .color(NamedTextColor.RED));
                     return true;
                 }
+                force = forceBoolean;
             }
             
             gameManager.saveEditor(sender, force);
