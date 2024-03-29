@@ -15,6 +15,8 @@ import org.braekpo1nt.mctmanager.games.game.parkourpathway.Puzzle;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.config.ParkourPathwayStorageUtil;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
+import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
+import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.utils.EntityUtils;
 import org.braekpo1nt.mctmanager.utils.MathUtils;
 import org.bukkit.Bukkit;
@@ -44,8 +46,9 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
     
     private final Main plugin;
     private final ParkourPathwayStorageUtil storageUtil;
-    
+    private final GameManager gameManager;
     private List<Player> participants = new ArrayList<>();
+    private Sidebar sidebar;
     private Map<UUID, Display> displays;
     // wands
     private final ItemStack inBoundsWand;
@@ -73,8 +76,9 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
     private Map<UUID, Integer> currentPuzzleCheckPoints;
     private boolean editorStarted = false;
     
-    public ParkourPathwayEditor(Main plugin) {
+    public ParkourPathwayEditor(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
+        this.gameManager = gameManager;
         this.storageUtil = new ParkourPathwayStorageUtil(plugin.getDataFolder());
         this.inBoundsWand = addWand("inBounds", List.of(
                 Component.text("Left Click: push box face away"),
@@ -113,6 +117,12 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
         ));
     }
     
+    /**
+     * add a wand to the editor, with the given name and lore. Adds it to the list of all wands.
+     * @param name the display name of the wand
+     * @param lore the description of the wand
+     * @return the new wand
+     */
     private ItemStack addWand(String name, List<Component> lore) {
         ItemStack newWand = new ItemStack(Material.STICK);
         newWand.editMeta(meta -> {
@@ -169,11 +179,13 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
         currentPuzzleCheckPoints = new HashMap<>(newParticipants.size());
         puzzles = storageUtil.deepCopyPuzzles();
         displays = new HashMap<>(newParticipants.size());
+        sidebar = gameManager.getSidebarFactory().createSidebar();
         displayWalls = true;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
         }
+        initializeSidebar();
         for (Player participant : newParticipants) {
             selectPuzzle(participant, 0, false);
         }
@@ -186,6 +198,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
         currentPuzzles.put(participant.getUniqueId(), 0);
         currentPuzzleCheckPoints.put(participant.getUniqueId(), 0);
         displays.put(participant.getUniqueId(), new Display(plugin));
+        sidebar.addPlayer(participant);
         participant.getInventory().clear();
         participant.teleport(storageUtil.getStartingLocation());
         ParticipantInitializer.resetHealthAndHunger(participant);
@@ -200,6 +213,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
         for (Player participant : participants) {
             resetParticipant(participant);
         }
+        clearSidebar();
         participants.clear();
         currentPuzzles.clear();
         currentPuzzleCheckPoints.clear();
@@ -213,6 +227,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
         ParticipantInitializer.clearStatusEffects(participant);
         participant.getInventory().clear();
         Display display = displays.get(participant.getUniqueId());
+        sidebar.removePlayer(participant);
         if (display != null) {
             display.hide();
         }
@@ -558,14 +573,16 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
         currentPuzzleCheckPoints.put(participant.getUniqueId(), 0);
         Display newDisplay = puzzlesToDisplay(puzzleIndex, 0);
         replaceDisplay(participant, newDisplay);
+        Puzzle selectedPuzzle = puzzles.get(puzzleIndex);
         if (teleport) {
-            Puzzle selectedPuzzle = puzzles.get(puzzleIndex);
             participant.teleport(selectedPuzzle.checkPoints().get(0).respawn());
         }
         participant.sendMessage(Component.text("Selected puzzle index ")
                 .append(Component.text(puzzleIndex))
                 .append(Component.text("/"))
                 .append(Component.text(puzzles.size() - 1)));
+        sidebar.updateLine(participant.getUniqueId(), "puzzle", String.format("Puzzle: %s/%s", puzzleIndex, puzzles.size() - 1));
+        sidebar.updateLine(participant.getUniqueId(), "checkPoint", String.format("CheckPoint: %s/%s", 0, selectedPuzzle.checkPoints().size() - 1));
     }
     
     /**
@@ -584,6 +601,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
                 .append(Component.text(checkPointIndex))
                 .append(Component.text("/"))
                 .append(Component.text(currentPuzzle.checkPoints().size() - 1)));
+        sidebar.updateLine(participant.getUniqueId(), "checkPoint", String.format("CheckPoint: %s/%s", 0, currentPuzzle.checkPoints().size() - 1));
     }
     
     /**
@@ -672,6 +690,18 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
         }
         
         return display;
+    }
+    
+    private void initializeSidebar() {
+        sidebar.addLines(
+                new KeyLine("puzzle", ""),
+                new KeyLine("checkPoint", "")
+        );
+    }
+    
+    private void clearSidebar() {
+        sidebar.deleteAllLines();
+        sidebar = null;
     }
     
 }

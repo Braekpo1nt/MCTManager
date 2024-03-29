@@ -226,7 +226,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         participant.getInventory().clear();
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
-        sidebar.removePlayer(participant.getUniqueId());
+        sidebar.removePlayer(participant);
         // debug
         if (DEBUG) {
             Display display = displays.get(participant.getUniqueId());
@@ -697,7 +697,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         }
         sidebar.updateLine(participant.getUniqueId(), "personalScore", contents);
     }
-
+    
     private void messageAllParticipants(Component message) {
         gameManager.messageAdmins(message);
         for (Player participant : participants) {
