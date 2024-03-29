@@ -175,7 +175,6 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
         currentPuzzles = new HashMap<>(newParticipants.size());
         currentPuzzleCheckPoints = new HashMap<>(newParticipants.size());
         puzzles = storageUtil.deepCopyPuzzles();
-        evaluatePuzzles(puzzles);
         displays = new HashMap<>(newParticipants.size());
         displayWalls = true;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
@@ -186,17 +185,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
             selectPuzzle(participant, 0, false);
         }
         editorStarted = true;
-        Bukkit.getLogger().info("Stopping Parkour Pathway editor");
-    }
-    
-    private void evaluatePuzzles(List<Puzzle> ps) {
-        List<Double> heights = new ArrayList<>(ps.size());
-        for (int i = 0; i < ps.size(); i++) {
-            Puzzle puzzle = ps.get(i);
-            Bukkit.getLogger().info(String.format("%s: %s", i, puzzle.inBounds().getHeight()));
-            heights.add(puzzle.inBounds().getHeight());
-        }
-        Bukkit.getLogger().info(String.format("%s", heights.size()));
+        Bukkit.getLogger().info("Starting Parkour Pathway editor");
     }
     
     public void initializeParticipant(Player participant) {
@@ -234,7 +223,6 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
         if (display != null) {
             display.hide();
         }
-        Bukkit.getLogger().info("Stopping Parkour Pathway editor");
     }
     
     public void giveWands(Player participant) {

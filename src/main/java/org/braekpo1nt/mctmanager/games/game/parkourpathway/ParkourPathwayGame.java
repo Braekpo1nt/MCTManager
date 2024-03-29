@@ -362,7 +362,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         }
         Player participant = event.getPlayer();
         // debug
-        if (participant.getGameMode() == GameMode.CREATIVE || participant.getGameMode() == GameMode.SPECTATOR) {
+        if (participant.getGameMode() == GameMode.SPECTATOR) {
             return;
         }
         // debug
