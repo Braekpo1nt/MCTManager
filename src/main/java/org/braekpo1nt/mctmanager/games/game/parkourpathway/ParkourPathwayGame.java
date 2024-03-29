@@ -586,9 +586,6 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
                     return;
                 }
                 String timeString = TimeStringUtils.getTimeString(count);
-//                if (count < 60) {
-//                    timeString = ChatColor.RED+timeString;
-//                }
                 if (count == checkpointCounterAlert) {
                     messageAllParticipants(Component.text("Ending in ")
                             .append(Component.text(checkpointCounterAlert))
@@ -597,12 +594,9 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
                 }
                 if (count <= checkpointCounterAlert) {
                     timeString = String.format("%s%s", ChatColor.RED, timeString);
-                    sidebar.updateLine("timer", timeString);
-                    adminSidebar.updateLine("timer", timeString);
-                } else {
-                    sidebar.updateLine("timer", timeString);
-                    adminSidebar.updateLine("timer", timeString);
                 }
+                sidebar.updateLine("timer", timeString);
+                adminSidebar.updateLine("timer", timeString);
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
