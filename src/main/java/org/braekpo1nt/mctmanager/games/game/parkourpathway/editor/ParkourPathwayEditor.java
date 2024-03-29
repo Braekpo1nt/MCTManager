@@ -140,20 +140,41 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
             return loaded;
         }
         puzzles = storageUtil.deepCopyPuzzles();
-        reloadDisplays();
+        reloadAllDisplays();
         return loaded;
     }
     
     /**
      * Update the displays of all participant's current puzzles
      */
-    private void reloadDisplays() {
+    private void reloadAllDisplays() {
         for (Player participant : participants) {
-            int currentPuzzle = currentPuzzles.get(participant.getUniqueId());
-            int currentCheckPoint = currentPuzzleCheckPoints.get(participant.getUniqueId());
-            Display display = puzzlesToDisplay(currentPuzzle, currentCheckPoint);
-            replaceDisplay(participant, display);
+            reloadDisplay(participant);
         }
+    }
+    
+    /**
+     * Update the display of the given participant's current puzzle
+     * @param participant the participant to update the display for
+     */
+    private void reloadDisplay(Player participant) {
+        int currentPuzzle = currentPuzzles.get(participant.getUniqueId());
+        int currentCheckPoint = currentPuzzleCheckPoints.get(participant.getUniqueId());
+        Display display = puzzlesToDisplay(currentPuzzle, currentCheckPoint);
+        replaceDisplay(participant, display);
+    }
+    
+    /**
+     * Replaces the given participant's current display with the given newDisplay, hiding the old display and showing the new display. 
+     * @param participant the participant
+     * @param newDisplay the display to replace the old one with
+     */
+    private void replaceDisplay(@NotNull Player participant, @NotNull Display newDisplay) {
+        Display oldDisplay = displays.put(participant.getUniqueId(), newDisplay);
+        if (oldDisplay != null) {
+            oldDisplay.hide();
+        }
+        newDisplay.show(participant);
     }
     
     @Override
@@ -309,9 +330,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
                 return;
             }
         }
-        int currentCheckPointIndex = currentPuzzleCheckPoints.get(participant.getUniqueId());
-        Display newDisplay = puzzlesToDisplay(currentPuzzleIndex, currentCheckPointIndex);
-        replaceDisplay(participant, newDisplay);
+        reloadDisplay(participant);
     }
     
     
@@ -351,8 +370,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
                 return;
             }
         }
-        Display newDisplay = puzzlesToDisplay(currentPuzzleIndex, currentCheckpointIndex);
-        replaceDisplay(participant, newDisplay);
+        reloadDisplay(participant);
     }
     
     private void useRespawnWand(Player participant, Action action) {
@@ -371,8 +389,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
         respawn.set(location.getX(), location.getY(), location.getZ());
         respawn.setYaw(location.getYaw());
         respawn.setPitch(location.getPitch());
-        Display newDisplay = puzzlesToDisplay(currentPuzzleIndex, currentCheckpointIndex);
-        replaceDisplay(participant, newDisplay);
+        reloadDisplay(participant);
         participant.sendMessage(Component.text("Set ")
                 .append(Component.text("respawn")
                         .decorate(TextDecoration.BOLD))
@@ -454,7 +471,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
         } else {
             participant.sendMessage("Only displaying edges of inBounds");
         }
-        reloadDisplays();
+        reloadAllDisplays();
     }
     
     private void useAddRemoveCheckPointWand(Player participant, Action action) {
@@ -571,8 +588,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
         Preconditions.checkArgument(0 <= puzzleIndex && puzzleIndex < puzzles.size(), "puzzleIndex %s out of bounds for length %s", puzzleIndex, puzzles.size());
         currentPuzzles.put(participant.getUniqueId(), puzzleIndex);
         currentPuzzleCheckPoints.put(participant.getUniqueId(), 0);
-        Display newDisplay = puzzlesToDisplay(puzzleIndex, 0);
-        replaceDisplay(participant, newDisplay);
+        reloadDisplay(participant);
         Puzzle selectedPuzzle = puzzles.get(puzzleIndex);
         if (teleport) {
             participant.teleport(selectedPuzzle.checkPoints().get(0).respawn());
@@ -595,26 +611,12 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
         Puzzle currentPuzzle = puzzles.get(currentPuzzleIndex);
         Preconditions.checkArgument(0 <= checkPointIndex && checkPointIndex < currentPuzzle.checkPoints().size(), "checkPointIndex %s out of bounds for length %s", checkPointIndex, currentPuzzle.checkPoints().size());
         currentPuzzleCheckPoints.put(participant.getUniqueId(), checkPointIndex);
-        Display newDisplay = puzzlesToDisplay(currentPuzzleIndex, checkPointIndex);
-        replaceDisplay(participant, newDisplay);
+        reloadDisplay(participant);
         participant.sendMessage(Component.text("Selected check point index ")
                 .append(Component.text(checkPointIndex))
                 .append(Component.text("/"))
                 .append(Component.text(currentPuzzle.checkPoints().size() - 1)));
         sidebar.updateLine(participant.getUniqueId(), "checkPoint", String.format("CheckPoint: %s/%s", 0, currentPuzzle.checkPoints().size() - 1));
-    }
-    
-    /**
-     * Replaces the given participant's current display with the given newDisplay, hiding the old display and showing the new display. 
-     * @param participant the participant
-     * @param newDisplay the display to replace the old one with
-     */
-    private void replaceDisplay(@NotNull Player participant, @NotNull Display newDisplay) {
-        Display oldDisplay = displays.put(participant.getUniqueId(), newDisplay);
-        if (oldDisplay != null) {
-            oldDisplay.hide();
-        }
-        newDisplay.show(participant);
     }
     
     @EventHandler
