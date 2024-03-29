@@ -474,7 +474,9 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
     private void onParticipantFinish(Player participant) {
         messageAllParticipants(Component.empty()
                 .append(Component.text(participant.getName()))
-                .append(Component.text(" finished!")));
+                .append(Component.text(" finished!"))
+                .color(NamedTextColor.GREEN)
+        );
         int points = calculatePointsForWin(storageUtil.getWinScore());
         gameManager.awardPointsToParticipant(participant, points);
         participant.setGameMode(GameMode.SPECTATOR);
@@ -573,6 +575,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
 
     private void startParkourPathwayTimer() {
         int timeLimit = storageUtil.getTimeLimitDuration();
+        int checkpointCounterAlert = storageUtil.getCheckpointCounterAlertDuration();
         this.startNextRoundTimerTaskId = new BukkitRunnable() {
             int count = timeLimit;
             @Override
@@ -583,8 +586,23 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
                     return;
                 }
                 String timeString = TimeStringUtils.getTimeString(count);
-                sidebar.updateLine("timer", timeString);
-                adminSidebar.updateLine("timer", timeString);
+//                if (count < 60) {
+//                    timeString = ChatColor.RED+timeString;
+//                }
+                if (count == checkpointCounterAlert) {
+                    messageAllParticipants(Component.text("Ending in ")
+                            .append(Component.text(checkpointCounterAlert))
+                            .append(Component.text("."))
+                            .color(NamedTextColor.RED));
+                }
+                if (count <= checkpointCounterAlert) {
+                    timeString = String.format("%s%s", ChatColor.RED, timeString);
+                    sidebar.updateLine("timer", timeString);
+                    adminSidebar.updateLine("timer", timeString);
+                } else {
+                    sidebar.updateLine("timer", timeString);
+                    adminSidebar.updateLine("timer", timeString);
+                }
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
