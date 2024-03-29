@@ -313,6 +313,16 @@ public class GameManager implements Listener {
      * @param votingPool The games to vote between
      */
     public void manuallyStartVote(@NotNull CommandSender sender, List<GameType> votingPool, int duration) {
+        if (gameIsRunning()) {
+            sender.sendMessage(Component.text("There is a game running. You must stop the game before you start a vote.")
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        if (editorIsRunning()) {
+            sender.sendMessage(Component.text("There is an editor running. You must stop the editor before you start a vote.")
+                    .color(NamedTextColor.RED));
+            return;
+        }
         if (onlineParticipants.isEmpty()) {
             sender.sendMessage(Component.text("There are no online participants. You can add participants using:\n")
                     .append(Component.text("/mct team join <team> <member>")
@@ -361,6 +371,12 @@ public class GameManager implements Listener {
         
         if (gameIsRunning()) {
             sender.sendMessage(Component.text("There is already a game running. You must stop the game before you start a new one.")
+                    .color(NamedTextColor.RED));
+            return false;
+        }
+        
+        if (editorIsRunning()) {
+            sender.sendMessage(Component.text("There is an editor running. You must stop the editor before you start a game.")
                     .color(NamedTextColor.RED));
             return false;
         }
