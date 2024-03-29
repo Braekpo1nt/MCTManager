@@ -3,7 +3,9 @@ package org.braekpo1nt.mctmanager.games.game.parkourpathway;
 import org.bukkit.Location;
 import org.bukkit.util.BoundingBox;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 
@@ -29,6 +31,6 @@ public record Puzzle(BoundingBox inBounds, List<CheckPoint> checkPoints) {
     }
     
     public Puzzle copy() {
-        return new Puzzle(inBounds.clone(), checkPoints.stream().map(CheckPoint::copy).toList());
+        return new Puzzle(inBounds.clone(), checkPoints.stream().map(CheckPoint::copy).collect(Collectors.toCollection(ArrayList::new)));
     }
 }

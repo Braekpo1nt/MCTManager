@@ -55,6 +55,8 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
     private final ItemStack puzzleSelectWand;
     private final ItemStack checkPointSelectWand;
     private final ItemStack toggleDisplayWand;
+    private final ItemStack addRemovePuzzleWand;
+    private final ItemStack addRemoveCheckPointWand;
     private final List<ItemStack> allWands;
     // wands
     private boolean displayWalls = true;
@@ -107,8 +109,8 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
         puzzleSelectWand.editMeta(meta -> {
             meta.displayName(Component.text("Puzzle Select"));
             meta.lore(List.of(
-                    Component.text("Right Click: next puzzle"),
                     Component.text("Left Click: previous puzzle"),
+                    Component.text("Right Click: next puzzle"),
                     Component.text("(Crouch to be teleported)")
             ));
         });
@@ -116,8 +118,8 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
         checkPointSelectWand.editMeta(meta -> {
             meta.displayName(Component.text("CheckPoint Select"));
             meta.lore(List.of(
-                    Component.text("Right Click: next check point"),
-                    Component.text("Left Click: previous check point")
+                    Component.text("Left Click: previous check point"),
+                    Component.text("Right Click: next check point")
             ));
         });
         this.toggleDisplayWand = new ItemStack(Material.STICK);
@@ -127,7 +129,23 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
                     Component.text("Cycle between all faces and just edges")
             ));
         });
-        allWands = List.of(inBoundsWand, detectionAreaWand, respawnWand, checkPointSelectWand, puzzleSelectWand, toggleDisplayWand);
+        this.addRemoveCheckPointWand = new ItemStack(Material.STICK);
+        addRemoveCheckPointWand.editMeta(meta -> {
+            meta.displayName(Component.text("Add/Remove CheckPoint"));
+            meta.lore(List.of(
+                    Component.text("Left Click: add check point"),
+                    Component.text("Right Click: remove check point")
+            ));
+        });
+        this.addRemovePuzzleWand = new ItemStack(Material.STICK);
+        addRemovePuzzleWand.editMeta(meta -> {
+            meta.displayName(Component.text("Add/Remove Puzzle"));
+            meta.lore(List.of(
+                    Component.text("Left Click: add puzzle"),
+                    Component.text("Right Click: remove puzzle")
+            ));
+        });
+        allWands = List.of(inBoundsWand, detectionAreaWand, respawnWand, checkPointSelectWand, puzzleSelectWand, toggleDisplayWand, addRemoveCheckPointWand, addRemovePuzzleWand);
     }
     
     @Override
@@ -261,6 +279,10 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
             useCheckpointSelectWand(participant, action);
         } else if (item.equals(toggleDisplayWand)) {
             useToggleDisplayWand(participant, action);
+        } else if (item.equals(addRemoveCheckPointWand)) {
+            useAddRemoveCheckPointWand(participant, action);
+        } else if (item.equals(addRemovePuzzleWand)) {
+            useAddRemovePuzzleWand(participant, action);
         }
     }
     
@@ -443,6 +465,61 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
             participant.sendMessage("Only displaying edges of inBounds");
         }
         reloadDisplays();
+    }
+    
+    private void useAddRemoveCheckPointWand(Player participant, Action action) {
+        int currentPuzzleIndex = currentPuzzles.get(participant.getUniqueId());
+        Puzzle currentPuzzle = puzzles.get(currentPuzzleIndex);
+        int numOfCheckPoints = currentPuzzle.checkPoints().size();
+        switch (action) {
+            case LEFT_CLICK_AIR, LEFT_CLICK_BLOCK -> {
+                participant.sendMessage(Component.text("Add check point index ")
+                        .append(Component.text(numOfCheckPoints))
+                        .append(Component.text("/"))
+                        .append(Component.text(numOfCheckPoints))
+                        .append(Component.text(numOfCheckPoints - 1))
+                );
+                Puzzle.CheckPoint newCheckPoint = createCheckPoint(participant.getLocation());
+                currentPuzzle.checkPoints().add(newCheckPoint);
+                selectCheckPoint(participant, numOfCheckPoints);
+            }
+            case RIGHT_CLICK_AIR, RIGHT_CLICK_BLOCK -> {
+                if (numOfCheckPoints == 1) {
+                    participant.sendMessage(Component.text("There must be at least 1 check point")
+                            .color(NamedTextColor.RED));
+                    return;
+                }
+                int currentPuzzleCheckPoint = currentPuzzleCheckPoints.get(participant.getUniqueId());
+                currentPuzzle.checkPoints().remove(currentPuzzleCheckPoint);
+                participant.sendMessage(Component.text("Remove check point index ")
+                        .append(Component.text(currentPuzzleCheckPoint))
+                        .append(Component.text("/"))
+                        .append(Component.text(numOfCheckPoints - 1))
+                        .color(NamedTextColor.RED));
+                selectCheckPoint(participant, 0);
+            }
+        }
+    }
+    
+    /**
+     * Creates a basic check point at the given location
+     * @param respawn the location of the respawn for the check point
+     * @return a new check point with the given respawn and a 1x2x1 detection area
+     */
+    @NotNull
+    private static Puzzle.CheckPoint createCheckPoint(@NotNull Location respawn) {
+        BoundingBox newDetectionArea = new BoundingBox(
+                respawn.getX(), 
+                respawn.getY(), 
+                respawn.getZ(), 
+                respawn.getX() + 1, 
+                respawn.getY() + 2, 
+                respawn.getZ() + 1);
+        return new Puzzle.CheckPoint(newDetectionArea, respawn);
+    }
+    
+    private void useAddRemovePuzzleWand(Player participant, Action action) {
+        
     }
     
     /**
