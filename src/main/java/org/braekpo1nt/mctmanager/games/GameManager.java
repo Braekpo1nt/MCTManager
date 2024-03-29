@@ -603,8 +603,8 @@ public class GameManager implements Listener {
                         .append(Component.text(e.getMessage()))
                         .color(NamedTextColor.RED));
                 sender.sendMessage(Component.text("Skipping save. If you wish to force the save, use ")
-                        .append(Component.text("/mct event save true")
-                                .clickEvent(ClickEvent.suggestCommand("/mct event save true"))
+                        .append(Component.text("/mct edit save true")
+                                .clickEvent(ClickEvent.suggestCommand("/mct edit save true"))
                                 .decorate(TextDecoration.BOLD))
                         .color(NamedTextColor.RED));
                 return;
