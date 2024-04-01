@@ -523,14 +523,15 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
      */
     @NotNull
     private static Puzzle.CheckPoint createCheckPoint(@NotNull Location respawn) {
+        Location p = respawn.toBlockLocation();
         BoundingBox newDetectionArea = new BoundingBox(
-                respawn.getX(), 
-                respawn.getY(), 
-                respawn.getZ(), 
-                respawn.getX() + 1, 
-                respawn.getY() + 2, 
-                respawn.getZ() + 1);
-        return new Puzzle.CheckPoint(newDetectionArea, respawn);
+                p.getX(), 
+                p.getY(), 
+                p.getZ(), 
+                p.getX() + 1, 
+                p.getY() + 2, 
+                p.getZ() + 1);
+        return new Puzzle.CheckPoint(newDetectionArea, p);
     }
     
     private void useAddRemovePuzzleWand(Player participant, Action action) {
@@ -575,15 +576,16 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
      * @see ParkourPathwayEditor#createCheckPoint(Location) 
      */
     private Puzzle createPuzzle(Location respawn) {
+        Location p = respawn.toBlockLocation();
         BoundingBox inBounds = new BoundingBox(
-                respawn.getX(),
-                respawn.getY(),
-                respawn.getZ(),
-                respawn.getX() + 2,
-                respawn.getY() + 3,
-                respawn.getZ() + 2
+                p.getX(),
+                p.getY(),
+                p.getZ(),
+                p.getX() + 2,
+                p.getY() + 3,
+                p.getZ() + 2
         );
-        Puzzle.CheckPoint checkPoint = createCheckPoint(respawn);
+        Puzzle.CheckPoint checkPoint = createCheckPoint(p);
         return new Puzzle(inBounds, new ArrayList<>(List.of(checkPoint)));
     }
     
