@@ -17,8 +17,9 @@ import java.util.stream.Collectors;
  *                 tl;dr: Must contain: all this Puzzle's checkpoints, all next Puzzle's checkpoints
  * @param checkPoints the list of checkpoints that players must reach to begin this puzzle. They contain the respawn point for if they go out of bounds, and the detectionArea which they must be inside to leave their previous puzzle and begin this one. Must have at least 1 element. Elements can't be null. detectionArea and respawn must be contained in the inBounds area. <br>
  *                    - CheckPoints can't have conflicting detectionAreas (meaning they can't overlap and can't have their respawns within another CheckPoint's detectionArea)
+ * @param transition if a puzzle is a transition (true) then it awards no points and does not announce completion, and doesn't count toward the total puzzles
  */
-public record Puzzle(BoundingBox inBounds, List<CheckPoint> checkPoints) {
+public record Puzzle(BoundingBox inBounds, List<CheckPoint> checkPoints, boolean transition) {
     /**
      * 
      * @param detectionArea if a player reaches this area, they are considered to be in this puzzle (i.e. they completed the previous puzzle). This must contain the respawn location. Must have a volume of at least 1.
@@ -31,6 +32,6 @@ public record Puzzle(BoundingBox inBounds, List<CheckPoint> checkPoints) {
     }
     
     public Puzzle copy() {
-        return new Puzzle(inBounds.clone(), checkPoints.stream().map(CheckPoint::copy).collect(Collectors.toCollection(ArrayList::new)));
+        return new Puzzle(inBounds.clone(), checkPoints.stream().map(CheckPoint::copy).collect(Collectors.toCollection(ArrayList::new)), transition);
     }
 }

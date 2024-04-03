@@ -586,7 +586,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
                 p.getZ() + 2
         );
         Puzzle.CheckPoint checkPoint = createCheckPoint(p);
-        return new Puzzle(inBounds, new ArrayList<>(List.of(checkPoint)));
+        return new Puzzle(inBounds, new ArrayList<>(List.of(checkPoint)), false);
     }
     
     /**
@@ -653,6 +653,18 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
         event.setCancelled(true);
     }
     
+    // current
+    private static final Color IN_BOUNDS_COLOR =  Color.fromRGB(255, 0, 0);
+    private static final Color TRANSITION_IN_BOUNDS_COLOR =  Color.ORANGE;
+    private static final Color DETECTION_AREA_COLOR =  Color.fromRGB(0, 0, 150);
+    private static final Color HIGHLIGHT_COLOR =  Color.fromRGB(0, 0, 255);
+    private static final Color RESPAWN_COLOR =  Color.fromRGB(0, 255, 0);
+    // next
+    private static final Color NEXT_IN_BOUNDS_COLOR =  Color.fromRGB(100, 0, 0);
+    private static final Color NEXT_TRANSITION_IN_BOUNDS_COLOR = Color.fromRGB(100, 55, 0);
+    private static final Color NEXT_DETECTION_AREA_COLOR =  Color.fromRGB(0, 0, 50);
+    private static final Color NEXT_RESPAWN_COLOR =  Color.fromRGB(0, 100, 0);
+    
     /**
      * Display the puzzle with the given index, and the next puzzle if there is one. 
      * @param puzzleIndex the index of the first puzzle to display. 
@@ -662,11 +674,13 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
     private @NotNull Display puzzlesToDisplay(int puzzleIndex, int checkPointIndex) {
         Preconditions.checkArgument(0 <= puzzleIndex && puzzleIndex < puzzles.size(), "index must be between [0, %s] inclusive", puzzles.size());
         Puzzle puzzle = puzzles.get(puzzleIndex);
-        Display display = puzzleToDisplay(puzzle, Color.fromRGB(255, 0, 0), Color.fromRGB(0, 0, 150), Color.fromRGB(0, 255, 0), checkPointIndex, Color.fromRGB(0, 0, 255));
+        Color inBoundsColor = puzzle.transition() ? TRANSITION_IN_BOUNDS_COLOR : IN_BOUNDS_COLOR;
+        Display display = puzzleToDisplay(puzzle, inBoundsColor, DETECTION_AREA_COLOR, RESPAWN_COLOR, checkPointIndex, HIGHLIGHT_COLOR);
         int nextIndex = puzzleIndex + 1;
         if (nextIndex < puzzles.size()) {
             Puzzle nextPuzzle = puzzles.get(nextIndex);
-            Display nextDisplay = puzzleToDisplay(nextPuzzle, Color.fromRGB(100, 0, 0), Color.fromRGB(0, 0, 50), Color.fromRGB(0, 100, 0), -1, Color.RED);
+            Color nextInBoundsColor = nextPuzzle.transition() ? NEXT_TRANSITION_IN_BOUNDS_COLOR : NEXT_IN_BOUNDS_COLOR;
+            Display nextDisplay = puzzleToDisplay(nextPuzzle, nextInBoundsColor, NEXT_DETECTION_AREA_COLOR, NEXT_RESPAWN_COLOR, -1, null);
             display.addChild(nextDisplay);
         }
         return display;

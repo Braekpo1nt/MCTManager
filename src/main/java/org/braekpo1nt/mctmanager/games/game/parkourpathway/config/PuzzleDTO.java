@@ -27,9 +27,13 @@ class PuzzleDTO {
      * the list of checkpoints that players must reach to begin this puzzle. They contain the respawn point for if they go out of bounds, and the detectionArea which they must be inside to leave their previous puzzle and begin this one.
      */
     private final List<CheckPointDTO> checkPoints;
+    /**
+     * If a puzzle is a transition (true) then it will award no points and will not count toward to total puzzle count
+     */
+    private final boolean transition;
     
     static PuzzleDTO from(Puzzle puzzle) {
-        return new PuzzleDTO(BoundingBoxDTO.from(puzzle.inBounds()), CheckPointDTO.from(puzzle.checkPoints()));
+        return new PuzzleDTO(BoundingBoxDTO.from(puzzle.inBounds()), CheckPointDTO.from(puzzle.checkPoints()), puzzle.transition());
     }
     
     void setIndex(int index) {
@@ -64,7 +68,8 @@ class PuzzleDTO {
     Puzzle toPuzzle(World world) {
         return new Puzzle(
                 inBounds.toBoundingBox(),
-                checkPoints.stream().map(checkPointDTO -> checkPointDTO.toCheckPoint(world)).toList()
+                checkPoints.stream().map(checkPointDTO -> checkPointDTO.toCheckPoint(world)).toList(),
+                transition
         );
     }
 }
