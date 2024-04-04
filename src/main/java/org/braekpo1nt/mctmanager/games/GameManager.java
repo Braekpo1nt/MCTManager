@@ -818,6 +818,12 @@ public class GameManager implements Listener {
         if (gameStateStorageUtil.containsPlayer(playerUniqueId)) {
             String originalTeamName = getTeamName(playerUniqueId);
             if (originalTeamName.equals(teamName)) {
+                sender.sendMessage(Component.text()
+                        .append(Component.text(participant.getName())
+                                .decorate(TextDecoration.BOLD))
+                        .append(Component.text(" is already a member of team "))
+                        .append(Component.text(teamName))
+                        .append(Component.text(". Nothing happened.")));
                 return;
             }
             leavePlayer(sender, participant, participant.getName());
@@ -1205,6 +1211,13 @@ public class GameManager implements Listener {
      * @param offlineAdmin The admin to remove
      */
     public void removeAdmin(@NotNull CommandSender sender, @NotNull OfflinePlayer offlineAdmin, @NotNull String adminName) {
+        if (!isAdmin(offlineAdmin.getUniqueId())) {
+            sender.sendMessage(Component.text()
+                    .append(Component.text(adminName)
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(" is not an admin. Nothing happened.")));
+            return;
+        }
         if (offlineAdmin.isOnline()) {
             Player onlineAdmin = offlineAdmin.getPlayer();
             if (onlineAdmin != null) {
