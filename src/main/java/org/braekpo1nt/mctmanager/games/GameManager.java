@@ -1169,6 +1169,10 @@ public class GameManager implements Listener {
     public void addAdmin(@NotNull CommandSender sender, Player newAdmin) {
         UUID uniqueId = newAdmin.getUniqueId();
         if (gameStateStorageUtil.isAdmin(uniqueId)) {
+            sender.sendMessage(Component.text()
+                    .append(Component.text(newAdmin.getName())
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(" is already an admin. Nothing happened.")));
             return;
         }
         if (gameStateStorageUtil.containsPlayer(uniqueId)) {
