@@ -1,5 +1,7 @@
 package org.braekpo1nt.mctmanager.commands.team;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -22,16 +24,12 @@ public class RemoveSubCommand implements TabExecutor {
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length < 1) {
-            sender.sendMessage("Usage: /mct team remove <team>");
+            sender.sendMessage(Component.text("Usage: /mct team remove <team>")
+                    .color(NamedTextColor.RED));
             return true;
         }
         String removeTeamName = args[0];
-        boolean teamExists = gameManager.removeTeam(removeTeamName);
-        if (!teamExists) {
-            sender.sendMessage(String.format("Team \"%s\" does not exist", removeTeamName));
-            return true;
-        }
-        sender.sendMessage(String.format("Removed team \"%s\".", removeTeamName));
+        gameManager.removeTeam(sender, removeTeamName);
         return true;
     }
     

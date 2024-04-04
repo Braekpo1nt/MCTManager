@@ -41,12 +41,7 @@ public class RemoveSubCommand implements TabExecutor {
                     .color(NamedTextColor.RED));
             return true;
         }
-        gameManager.removeAdmin(admin);
-        sender.sendMessage(Component.empty()
-                .append(Component.text(name)
-                        .decorate(TextDecoration.BOLD))
-                .append(Component.text(" is no longer an admin"))
-                .color(NamedTextColor.YELLOW));
+        gameManager.removeAdmin(sender, admin, name);
         return true;
     }
     
