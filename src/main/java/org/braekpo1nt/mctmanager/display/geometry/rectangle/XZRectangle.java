@@ -17,8 +17,8 @@ public class XZRectangle implements Rectangle {
     
     
     public XZRectangle(double x1, double z1, double x2, double z2, double y) {
-        Preconditions.checkArgument(x1 != x2, "x-values can't be identical");
-        Preconditions.checkArgument(z1 != z2, "z-values can't be identical");
+//        Preconditions.checkArgument(x1 != x2, "x-values can't be identical");
+//        Preconditions.checkArgument(z1 != z2, "z-values can't be identical");
         this.minX = Math.min(x1, x2);
         this.minZ = Math.min(z1, z2);
         this.y = y;

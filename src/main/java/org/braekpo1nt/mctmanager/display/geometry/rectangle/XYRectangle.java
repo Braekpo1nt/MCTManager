@@ -14,8 +14,8 @@ public class XYRectangle implements Rectangle {
     private final double xLength;
     private final double yLength;
     public XYRectangle(double x1, double y1, double x2, double y2, double z) {
-        Preconditions.checkArgument(x1 != x2, "x-values can't be identical");
-        Preconditions.checkArgument(y1 != y2, "y-values can't be identical");
+//        Preconditions.checkArgument(x1 != x2, "x-values can't be identical");
+//        Preconditions.checkArgument(y1 != y2, "y-values can't be identical");
         this.minX = Math.min(x1, x2);
         this.minY = Math.min(y1, y2);
         this.z = z;

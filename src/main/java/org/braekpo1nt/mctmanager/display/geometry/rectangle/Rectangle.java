@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.display.geometry.rectangle;
 
+import com.google.common.base.Preconditions;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
@@ -54,19 +55,32 @@ public interface Rectangle {
         throw new UnsupportedOperationException("Not yet implemented");
     }
     
+    /**
+     * Turn the given BoundingBox into rectangles. If the box is 2-dimensional in all 3 axis (i.e. min and max corners are equal) throws {@link IllegalArgumentException}. Otherwise, if the box is 2 dimensional on 1 or 2 of the axes, will return the appropriate number of rectangles
+     * @param box the BoundingBox to convert to rectangles
+     * @return between 1 and 6 rectangles representing the faces of the given BoundingBox
+     * @throws IllegalArgumentException if the min and max corners of the box are equal
+     */
     static List<Rectangle> toRectangles(BoundingBox box) {
         List<Rectangle> rects = new ArrayList<>(6);
         Vector min = box.getMin();
         Vector max = box.getMax();
+        Preconditions.checkArgument(!min.equals(max), "the min and max corners of the box can't be equal");
+        double minX = min.getX();
+        double minY = min.getY();
+        double minZ = min.getZ();
+        double maxX = max.getX();
+        double maxY = max.getY();
+        double maxZ = max.getZ();
         // XY
-        rects.add(new XYRectangle(min.getX(), min.getY(), max.getX(), max.getY(), min.getZ())); // 3
-        rects.add(new XYRectangle(min.getX(), min.getY(), max.getX(), max.getY(), max.getZ())); // 4
+        rects.add(new XYRectangle(minX, minY, maxX, maxY, minZ)); // 3 NORTH
+        rects.add(new XYRectangle(minX, minY, maxX, maxY, maxZ)); // 4 SOUTH
         // XZ
-        rects.add(new XZRectangle(min.getX(), min.getZ(), max.getX(), max.getZ(), min.getY())); // 1
-        rects.add(new XZRectangle(min.getX(), min.getZ(), max.getX(), max.getZ(), max.getY())); // 6
+        rects.add(new XZRectangle(minX, minZ, maxX, maxZ, minY)); // 1 BOTTOM
+        rects.add(new XZRectangle(minX, minZ, maxX, maxZ, maxY)); // 6 TOP
         // YZ
-        rects.add(new YZRectangle(min.getY(), min.getZ(), max.getY(), max.getZ(), min.getX())); // 2
-        rects.add(new YZRectangle(min.getY(), min.getZ(), max.getY(), max.getZ(), max.getX())); // 5
+        rects.add(new YZRectangle(minY, minZ, maxY, maxZ, minX)); // 2 WEST
+        rects.add(new YZRectangle(minY, minZ, maxY, maxZ, maxX)); // 5 EAST
         
         return rects;
     }

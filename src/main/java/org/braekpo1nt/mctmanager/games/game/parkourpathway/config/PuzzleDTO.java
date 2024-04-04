@@ -8,6 +8,7 @@ import org.braekpo1nt.mctmanager.games.game.config.LocationDTO;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.puzzle.CheckPoint;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.puzzle.Puzzle;
 import org.bukkit.World;
+import org.bukkit.util.BoundingBox;
 
 import java.util.List;
 
@@ -19,9 +20,9 @@ class PuzzleDTO {
      */
     private int index;
     /**
-     * The bounding box that is considered in-bounds (if you leave it you're out of bounds). Must contain
-     * - all CheckPoint detectionAreas and respawn locations
-     * - the checkpoint detection areas of the puzzle after this (otherwise players will be teleported to the respawn point before they reach the next puzzle's checkpoint).
+     * The bounding boxes which are collectively considered in-bounds (if you leave them, you're out of bounds). <br>
+     * - all detectionAreas must be in at least one inBound box <br>
+     * - all detection areas of the puzzle after this must also be in at least one inBound box (otherwise players will be teleported to the respawn point before they reach the next puzzle's checkpoint). <br>
      */
     private final List<BoundingBoxDTO> inBounds;
     /**
@@ -35,6 +36,19 @@ class PuzzleDTO {
     
     void setIndex(int index) {
         this.index = index;
+    }
+    
+    /**
+     * @param box the box to check if it's contained in the inBounds boxes
+     * @return true if the given box is contained in at least one of this PuzzleDTO's inBounds boxes, false otherwise
+     */
+    boolean isInBounds(BoundingBox box) {
+        for (BoundingBoxDTO inBound : inBounds) {
+            if (inBound.toBoundingBox().contains(box)) {
+                return true;
+            }
+        }
+        return false;
     }
     
     @Getter

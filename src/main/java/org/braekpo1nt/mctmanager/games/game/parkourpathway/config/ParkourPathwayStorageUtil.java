@@ -6,6 +6,7 @@ import com.google.gson.JsonSyntaxException;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.games.game.config.BoundingBoxDTO;
 import org.braekpo1nt.mctmanager.games.game.config.GameConfigStorageUtil;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.puzzle.Puzzle;
 import org.bukkit.Bukkit;
@@ -23,7 +24,7 @@ import java.util.stream.Collectors;
 
 public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPathwayConfig> {
     
-    protected ParkourPathwayConfig parkourPathwayConfig = getExampleConfig();
+    protected ParkourPathwayConfig parkourPathwayConfig = null;
     private List<Puzzle> puzzles;
     private World world;
     private Location startingLocation;
@@ -74,10 +75,9 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
             puzzleIsValid(puzzle, i);
             if (i - 1 >= 0) {
                 PuzzleDTO previousPuzzle = puzzles.get(i - 1);
-                BoundingBox previousInBounds = previousPuzzle.getInBounds().toBoundingBox();
-                for (PuzzleDTO.CheckPointDTO checkPoint : puzzle.getCheckPoints()) {
-                    Preconditions.checkArgument(previousInBounds.contains(checkPoint.getDetectionArea().toBoundingBox()), "puzzles[%s].inBounds must contain all puzzles[%s].checkPoints detectionAreas", i - 1, i);
-                    Preconditions.checkArgument(previousInBounds.contains(checkPoint.getRespawn().toVector()), "puzzles[%s].inBounds must contain all puzzles[%s].checkPoints respawns", i - 1, i);
+                for (int j = 0 ; j < puzzle.getCheckPoints().size(); j++) {
+                    PuzzleDTO.CheckPointDTO checkPoint = puzzle.getCheckPoints().get(j);
+                    Preconditions.checkArgument(previousPuzzle.isInBounds(checkPoint.getDetectionArea().toBoundingBox()), "at least one entry in puzzles[%s].inBounds must contain puzzles[%s].checkPoints[%s].detectionArea", i - 1, i, j);
                 }
             }
         }
@@ -85,26 +85,60 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
     
     private void puzzleIsValid(@NotNull PuzzleDTO puzzle, int puzzleIndex) {
         Preconditions.checkArgument(puzzle.getInBounds() != null, "puzzle[%s].inBounds can't be null", puzzleIndex);
-        BoundingBox inBounds = puzzle.getInBounds().toBoundingBox();
-        Preconditions.checkArgument(inBounds.getVolume() >= 1, "puzzle[%s].inBounds' volume (%s) can't be less than 1 (%s)", puzzleIndex, inBounds.getVolume(), inBounds);
+        Preconditions.checkArgument(!puzzle.getInBounds().isEmpty(), "puzzle[%s].inBounds can't be empty", puzzleIndex);
+        inBoundsIsValid(puzzle.getInBounds(), puzzleIndex);
         Preconditions.checkArgument(puzzle.getCheckPoints() != null, "puzzle[%s].checkPoints can't be null", puzzleIndex);
+        checkPointsIsValid(puzzle, puzzleIndex);
+    
+    }
+    
+    private void inBoundsIsValid(@NotNull List<BoundingBoxDTO> inBoundsDTO, int puzzleIndex) {
+        Preconditions.checkArgument(!inBoundsDTO.contains(null), "puzzle[%s].inBounds can't contain null");
+        List<BoundingBox> inBounds = inBoundsDTO.stream().map(BoundingBoxDTO::toBoundingBox).toList();
+        for (int i = 0; i < inBounds.size(); i++) {
+            BoundingBox inBound = inBounds.get(i);
+            Preconditions.checkArgument(inBound.getVolume() >= 1, "puzzle[%s].inBounds[%s]'s volume (%s) can't be less than 1 (%s)", puzzleIndex, i, inBound.getVolume(), inBound);
+            if (inBounds.size() == 1) {
+                return; // no need to check for overlapping
+            }
+            Preconditions.checkArgument(overlapsOneOtherBox(i, inBounds), "puzzle[%s].inBounds[%s] must overlap at least one other inBounds box in the list", puzzleIndex, i);
+        }
+    }
+    
+    /**
+     * @param index the index of the bounding box to check if it overlaps at least one other box in the list
+     * @param boxes a list of bounding boxes
+     * @return true if the box with the given index overlaps at least one other box in the list, false otherwise
+     */
+    private boolean overlapsOneOtherBox(int index, @NotNull List<@NotNull BoundingBox> boxes) {
+        BoundingBox box = boxes.get(index);
+        for (int i = 0; i < boxes.size(); i++) {
+            if (i != index) {
+                BoundingBox otherBox = boxes.get(i);
+                if (box.overlaps(otherBox)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    
+    private void checkPointsIsValid(@NotNull PuzzleDTO puzzle, int puzzleIndex) {
         Preconditions.checkArgument(!puzzle.getCheckPoints().isEmpty(), "puzzle.[%s]checkPoints must have at least 1 element", puzzleIndex);
         for (int i = 0; i < puzzle.getCheckPoints().size(); i++) {
             PuzzleDTO.CheckPointDTO checkPoint = puzzle.getCheckPoints().get(i);
             Preconditions.checkArgument(checkPoint != null, "puzzle[%s].checkPoints can't have null elements", puzzleIndex);
             puzzleCheckPointIsValid(checkPoint, puzzleIndex, i);
             BoundingBox detectionArea = checkPoint.getDetectionArea().toBoundingBox();
-            Preconditions.checkArgument(inBounds.contains(detectionArea), "puzzle[%s].inBounds must contain all puzzle[%s].checkPoints[%s].detectionAreas", puzzleIndex, puzzleIndex, i);
+            Preconditions.checkArgument(puzzle.isInBounds(detectionArea), "puzzle[%s].inBounds must contain all puzzle[%s].checkPoints[%s].detectionAreas", puzzleIndex, puzzleIndex, i);
             Vector respawn = checkPoint.getRespawn().toVector();
-            Preconditions.checkArgument(inBounds.contains(respawn), "puzzle[%s].inBounds must contain all puzzle[%s].checkPoints.respawns", puzzleIndex, puzzleIndex);
+            Preconditions.checkArgument(detectionArea.contains(respawn), "puzzle[%s].checkPoints[%s].detectionArea must contain puzzle[%s].checkPoints[%s].respawn", puzzleIndex, i, puzzleIndex, i);
             for (int j = 0; j < i; j++) {
                 PuzzleDTO.CheckPointDTO earlierCheckpoint = puzzle.getCheckPoints().get(j);
                 BoundingBox earlierDetectionArea = earlierCheckpoint.getDetectionArea().toBoundingBox();
                 Preconditions.checkArgument(!earlierDetectionArea.overlaps(detectionArea), "puzzle[%s].checkPoints[%s].detectionArea (%s) and puzzle[%s].checkPoints[%s].detectionArea (%s) can't overlap", puzzleIndex, i-1, earlierDetectionArea, puzzleIndex, i, detectionArea);
-                Preconditions.checkArgument(!earlierDetectionArea.contains(respawn), "puzzle[%s].checkPoints[%s].detectionArea (%s) can't contain puzzle[%s].checkPoints[%s].respawn (%s)", puzzleIndex, i-1, earlierDetectionArea, puzzleIndex, i, respawn);
             }
         }
-        
     }
     
     private void puzzleCheckPointIsValid(@NotNull PuzzleDTO.CheckPointDTO checkPoint, int puzzleIndex, int checkPointIndex) {

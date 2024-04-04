@@ -17,8 +17,8 @@ public class YZRectangle implements Rectangle {
     private final double zLength;
     
     public YZRectangle(double y1, double z1, double y2, double z2, double x) {
-        Preconditions.checkArgument(y1 != y2, "y-values can't be identical");
-        Preconditions.checkArgument(z1 != z2, "z-values can't be identical");
+//        Preconditions.checkArgument(y1 != y2, "y-values can't be identical");
+//        Preconditions.checkArgument(z1 != z2, "z-values can't be identical");
         this.minY = Math.min(y1, y2);
         this.minZ = Math.min(z1, z2);
         this.x = x;
