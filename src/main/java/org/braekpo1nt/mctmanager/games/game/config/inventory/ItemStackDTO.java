@@ -4,7 +4,6 @@ import com.google.common.base.Preconditions;
 import org.braekpo1nt.mctmanager.games.game.config.inventory.meta.ItemMetaDTO;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.Nullable;
 
 public class ItemStackDTO {

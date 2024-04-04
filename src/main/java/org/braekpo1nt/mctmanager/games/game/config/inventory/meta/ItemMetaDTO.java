@@ -2,14 +2,10 @@ package org.braekpo1nt.mctmanager.games.game.config.inventory.meta;
 
 import com.destroystokyo.paper.Namespaced;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonIOException;
-import com.google.gson.JsonSyntaxException;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.braekpo1nt.mctmanager.games.game.config.ConfigUtil;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
-import org.bukkit.enchantments.EnchantmentWrapper;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
@@ -28,7 +24,6 @@ public class ItemMetaDTO {
      * A list of JsonElements to be converted to a list of Components
      */
     protected @Nullable List<JsonElement> lore;
-    protected @Nullable Map<String, Integer> enchants;
     protected @Nullable Set<ItemFlag> itemFlags;
     protected boolean unbreakable;
     protected @Nullable Map<Attribute, List<AttributeModifier>> attributeModifiers;
@@ -63,11 +58,6 @@ public class ItemMetaDTO {
         }
         if (lore != null) {
             meta.lore(ItemMetaDTO.toLore(lore));
-        }
-        if (enchants != null) {
-            for (Map.Entry<String, Integer> enchant : enchants.entrySet()) {
-                meta.addEnchant(new EnchantmentWrapper(enchant.getKey()), enchant.getValue(), true);
-            }
         }
         if (itemFlags != null) {
             meta.addItemFlags(itemFlags.toArray(new ItemFlag[0]));

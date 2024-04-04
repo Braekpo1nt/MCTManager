@@ -1,33 +1,57 @@
 package org.braekpo1nt.mctmanager.games.game.parkourpathway.config;
 
 import com.google.gson.JsonElement;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.braekpo1nt.mctmanager.games.game.config.BoundingBoxDTO;
-import org.braekpo1nt.mctmanager.games.game.parkourpathway.CheckPoint;
-import org.bukkit.util.BoundingBox;
-import org.bukkit.util.Vector;
+import org.braekpo1nt.mctmanager.games.game.parkourpathway.puzzle.Puzzle;
 
 import java.util.List;
 
-record ParkourPathwayConfig  (String version, String world, Vector startingLocation, BoundingBoxDTO spectatorArea, Scores scores, Durations durations, List<CheckPointDTO> checkpoints, JsonElement description) {
+@Getter
+@AllArgsConstructor
+class ParkourPathwayConfig {
+    
+    private final String version;
+    private final String world;
+    /** the list of puzzles for this parkour game */
+    private List<PuzzleDTO> puzzles;
+    private final BoundingBoxDTO spectatorArea;
+    private final Scores scores;
+    private final Durations durations;
+    private final JsonElement description;
     
     /**
-     * 
-     * @param checkpoint points for reaching checkpoints. for x elements, nth score will be awarded unless n is greater than or equal to x in which case the xth score will be awarded 
-     * @param win points for winning. for x elements, nth score will be awarded unless n is greater than or equal to x in which case the xth score will be awarded 
+     * Set this config's {@link ParkourPathwayConfig#puzzles} to be the given list of {@link Puzzle} objects
+     * @param puzzles {@link Puzzle} list to be assigned to this config
      */
-    record Scores(int[] checkpoint, int[] win) {
+    public void setPuzzles(List<Puzzle> puzzles) {
+        this.puzzles = puzzles.stream().map(PuzzleDTO::from).toList();
+        for (int i = 0; i < this.puzzles.size(); i++) {
+            this.puzzles.get(i).setIndex(i);
+        }
     }
     
-    record Durations(int starting, int timeLimit, int checkpointCounter, int checkpointCounterAlert) {
+    @Getter
+    @AllArgsConstructor
+    static class Scores {
+        /**
+         * points for reaching puzzle checkpoints. for x elements, nth score will be awarded unless n is greater than or equal to x in which case the xth score will be awarded 
+         */
+        private final int[] checkpoint;
+        /**
+         * points for winning. for x elements, nth score will be awarded unless n is greater than or equal to x in which case the xth score will be awarded 
+         */
+        private final int[] win;
     }
     
-    /**
-     * The Data Transfer Object holding the necessary information to create a {@link CheckPoint}. 
-     * For more info, look up the DAO (Data Access Object) and DTO (Data Transfer Object) pattern
-     * @param yValue the y-value that a participant can't fall below without being teleported to respawn
-     * @param detectionBox the box that is checked to see if the player entered this checkpoint
-     * @param respawn the position to teleport back to if the player falls below the yValue
-     */
-    record CheckPointDTO(double yValue, BoundingBoxDTO detectionBox, Vector respawn) {
+    @Getter
+    @AllArgsConstructor
+    static class Durations {
+        private final int starting;
+        private final int timeLimit;
+        private final int checkpointCounter;
+        private final int checkpointCounterAlert;
     }
+    
 }

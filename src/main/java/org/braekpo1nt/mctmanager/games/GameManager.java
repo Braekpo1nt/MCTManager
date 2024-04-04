@@ -10,6 +10,8 @@ import org.braekpo1nt.mctmanager.games.game.clockwork.ClockworkGame;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
+import org.braekpo1nt.mctmanager.games.game.interfaces.GameEditor;
+import org.braekpo1nt.mctmanager.games.game.parkourpathway.editor.ParkourPathwayEditor;
 import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.SidebarFactory;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
@@ -45,12 +47,9 @@ public class GameManager implements Listener {
     public static final String ADMIN_TEAM = "_Admins";
     public static final NamedTextColor ADMIN_COLOR = NamedTextColor.DARK_RED; 
     private MCTGame activeGame = null;
-    private final FootRaceGame footRaceGame;
-    private final MechaGame mechaGame;
-    private final SpleefGame spleefGame;
-    private final ParkourPathwayGame parkourPathwayGame;
-    private final CaptureTheFlagGame captureTheFlagGame;
-    private final ClockworkGame clockworkGame;
+    private GameEditor activeEditor = null;
+    private final Map<GameType, MCTGame> games;
+    private final Map<GameType, GameEditor> editors;
     private final HubManager hubManager;
     private SidebarFactory sidebarFactory;
     private GameStateStorageUtil gameStateStorageUtil;
@@ -74,16 +73,39 @@ public class GameManager implements Listener {
         this.mctScoreboard = mctScoreboard;
         this.gameStateStorageUtil = new GameStateStorageUtil(plugin);
         this.voteManager = new VoteManager(this, plugin);
-        this.footRaceGame = new FootRaceGame(plugin, this);
-        this.mechaGame = new MechaGame(plugin, this);
-        this.spleefGame = new SpleefGame(plugin, this);
-        this.parkourPathwayGame = new ParkourPathwayGame(plugin, this);
-        this.captureTheFlagGame = new CaptureTheFlagGame(plugin, this);
-        this.clockworkGame = new ClockworkGame(plugin, this);
+        this.games = new HashMap<>();
+        addGame(new FootRaceGame(plugin, this));
+        addGame(new MechaGame(plugin, this));
+        addGame(new SpleefGame(plugin, this));
+        addGame(new ParkourPathwayGame(plugin, this));
+        addGame(new CaptureTheFlagGame(plugin, this));
+        addGame(new ClockworkGame(plugin, this));
+        this.editors = new HashMap<>();
+        addEditor(new ParkourPathwayEditor(plugin, this));
         this.sidebarFactory = new SidebarFactory();
         this.hubManager = new HubManager(plugin, this);
         hubManager.initializeSidebar(sidebarFactory);
         this.eventManager = new EventManager(plugin, this, voteManager);
+    }
+    
+    /**
+     * Adds the given game to the games map, with the key being the game's type
+     * @param mctGame the {@link MCTGame} implementation
+     * @throws IllegalArgumentException if you attempt to add a game whose {@link GameType} was already added to the games list
+     */
+    private void addGame(MCTGame mctGame) {
+        Preconditions.checkArgument(!this.games.containsKey(mctGame.getType()), "A game with type %s already exists in the games map", mctGame.getType());
+        this.games.put(mctGame.getType(), mctGame);
+    }
+    
+    /**
+     * Adds the given editor to the editors map, with the key being the editor's type
+     * @param editor the {@link GameEditor} implementation
+     * @throws IllegalArgumentException if you attempt to add an editor whose {@link GameType} was already added to the editors list
+     */
+    private void addEditor(GameEditor editor) {
+        Preconditions.checkArgument(!this.editors.containsKey(editor.getType()), "An editor with type %s already exists in the games map", editor.getType());
+        this.editors.put(editor.getType(), editor);
     }
     
     @EventHandler
@@ -214,6 +236,45 @@ public class GameManager implements Listener {
         return hubManager.loadConfig();
     }
     
+    /**
+     * Attempts to load the config for the active game. If false is returned, no change was made and nothing happens other than error messages are sent to the sender.
+     * @param sender the sender
+     * @return false if there is no game running, the game is not configurable, or the config could not be loaded. true if the config was loaded.
+     */
+    public boolean loadGameConfig(CommandSender sender) {
+        if (!gameIsRunning()) {
+            sender.sendMessage(Component.text("No game is running.")
+                    .color(NamedTextColor.RED));
+            return false;
+        }
+        
+        if (!(activeGame instanceof Configurable configurable)) {
+            sender.sendMessage(Component.text("This game is not configurable.")
+                    .color(NamedTextColor.RED));
+            return false;
+        }
+        
+        try {
+            if (!configurable.loadConfig()) {
+                throw new IllegalArgumentException("Config could not be loaded.");
+            }
+        } catch (IllegalArgumentException e) {
+            Bukkit.getLogger().severe(e.getMessage());
+            e.printStackTrace();
+            sender.sendMessage(Component.text("Error loading config file for ")
+                    .append(Component.text(activeGame.getType().name())
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(". See console for details:\n"))
+                    .append(Component.text(e.getMessage()))
+                    .color(NamedTextColor.RED));
+            return false;
+        }
+        
+        sender.sendMessage(Component.text("Game config was loaded.")
+                .color(NamedTextColor.GREEN));
+        return true;
+    }
+    
     public boolean loadGameState() {
         try {
             gameStateStorageUtil.loadGameState();
@@ -252,6 +313,16 @@ public class GameManager implements Listener {
      * @param votingPool The games to vote between
      */
     public void manuallyStartVote(@NotNull CommandSender sender, List<GameType> votingPool, int duration) {
+        if (gameIsRunning()) {
+            sender.sendMessage(Component.text("There is a game running. You must stop the game before you start a vote.")
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        if (editorIsRunning()) {
+            sender.sendMessage(Component.text("There is an editor running. You must stop the editor before you start a vote.")
+                    .color(NamedTextColor.RED));
+            return;
+        }
         if (onlineParticipants.isEmpty()) {
             sender.sendMessage(Component.text("There are no online participants. You can add participants using:\n")
                     .append(Component.text("/mct team join <team> <member>")
@@ -298,8 +369,15 @@ public class GameManager implements Listener {
             return false;
         }
         
-        if (activeGame != null) {
-            sender.sendMessage("There is already a game running. You must stop the game before you start a new one.");
+        if (gameIsRunning()) {
+            sender.sendMessage(Component.text("There is already a game running. You must stop the game before you start a new one.")
+                    .color(NamedTextColor.RED));
+            return false;
+        }
+        
+        if (editorIsRunning()) {
+            sender.sendMessage(Component.text("There is an editor running. You must stop the editor before you start a game.")
+                    .color(NamedTextColor.RED));
             return false;
         }
         
@@ -311,30 +389,10 @@ public class GameManager implements Listener {
             return false;
         }
         
-        MCTGame selectedGame;
-        switch (gameType) {
-            case FOOT_RACE -> {
-                selectedGame = footRaceGame;
-            }
-            case MECHA -> {
-                selectedGame = mechaGame;
-            }
-            case SPLEEF -> {
-                selectedGame = spleefGame;
-            }
-            case CLOCKWORK -> {
-                selectedGame = clockworkGame;
-            }
-            case PARKOUR_PATHWAY -> {
-                selectedGame = parkourPathwayGame;
-            }
-            case CAPTURE_THE_FLAG -> {
-                selectedGame = captureTheFlagGame;
-            }
-            default -> {
-                sender.sendMessage(Component.text("Can't find game for type " + gameType));
-                return false;
-            }
+        MCTGame selectedGame = this.games.get(gameType);
+        if (selectedGame == null) {
+            sender.sendMessage(Component.text("Can't find game for type " + gameType));
+            return false;
         }
         
         // make sure config loads
@@ -425,6 +483,187 @@ public class GameManager implements Listener {
             return;
         }
         hubManager.returnParticipantsToHub(onlineParticipants, onlineAdmins, true);
+    }
+    
+    public boolean startEditor(GameType gameType, @NotNull CommandSender sender) {
+        if (voteManager.isVoting()) {
+            sender.sendMessage(Component.text("Can't start a game while a vote is going on.")
+                    .color(NamedTextColor.RED));
+            return false;
+        }
+        
+        if (gameIsRunning()) {
+            sender.sendMessage(Component.text("There is a game running. You must stop the game before you start an editor.")
+                    .color(NamedTextColor.RED));
+            return false;
+        }
+        
+        if (eventManager.eventIsActive()) {
+            sender.sendMessage(Component.text("Can't start an editor while an event is going on")
+                    .color(NamedTextColor.RED));
+            return false;
+        }
+        
+        if (eventManager.colossalCombatIsActive()) {
+            sender.sendMessage(Component.text("Can't start an editor while colossal combat is running")
+                    .color(NamedTextColor.RED));
+            return false;
+        }
+        
+        if (onlineParticipants.isEmpty()) {
+            sender.sendMessage(Component.text("There are no online participants. You can add participants using:\n")
+                    .append(Component.text("/mct team join <team> <member>")
+                            .decorate(TextDecoration.BOLD)
+                            .clickEvent(ClickEvent.suggestCommand("/mct team join "))));
+            return false;
+        }
+        
+        if (editorIsRunning()) {
+            sender.sendMessage(Component.text("An editor is already running. You must stop it before you can start another one.")
+                    .color(NamedTextColor.RED));
+            return false;
+        }
+        
+        GameEditor selectedEditor = this.editors.get(gameType);
+        if (selectedEditor == null) {
+            sender.sendMessage(Component.text("Can't find editor for game type " + gameType)
+                    .color(NamedTextColor.RED));
+            return false;
+        }
+        
+        // make sure config loads
+        try {
+            if (!selectedEditor.loadConfig()) {
+                throw new IllegalArgumentException("Config could not be loaded.");
+            }
+        } catch (IllegalArgumentException e) {
+            Bukkit.getLogger().severe(e.getMessage());
+            e.printStackTrace();
+            Component message = Component.text("Can't start ")
+                    .append(Component.text(gameType.name())
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(". Error loading config file. See console for details:\n"))
+                    .append(Component.text(e.getMessage()))
+                    .color(NamedTextColor.RED);
+            sender.sendMessage(message);
+            messageAdmins(message);
+            return false;
+        }
+        
+        selectedEditor.start(onlineParticipants);
+        activeEditor = selectedEditor;
+        return true;
+    }
+    
+    public void stopEditor(@NotNull CommandSender sender) {
+        if (!editorIsRunning()) {
+            sender.sendMessage(Component.text("No editor is running.")
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        activeEditor.stop();
+        activeEditor = null;
+    }
+    
+    public boolean editorIsRunning() {
+        return activeEditor != null;
+    }
+    
+    public void validateEditor(@NotNull CommandSender sender) {
+        if (!editorIsRunning()) {
+            sender.sendMessage(Component.text("No editor is running.")
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        try {
+            if (!activeEditor.configIsValid()) {
+                throw new IllegalArgumentException("Config is not valid");
+            }
+        } catch (IllegalArgumentException e) {
+            Bukkit.getLogger().severe(e.getMessage());
+            e.printStackTrace();
+            sender.sendMessage(Component.text("Config is not valid for ")
+                    .append(Component.text(activeEditor.getType().name())
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(". See console for details:\n"))
+                    .append(Component.text(e.getMessage()))
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        sender.sendMessage(Component.text("Config is valid.")
+                .color(NamedTextColor.GREEN));
+    }
+    
+    /**
+     * @param sender the sender
+     * @param force if true, validation will be skipped and the config will be saved even if invalid, if false the config will only save if it is valid
+     */
+    public void saveEditor(@NotNull CommandSender sender, boolean force) {
+        if (!editorIsRunning()) {
+            sender.sendMessage(Component.text("No editor is running.")
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        if (!force) {
+            try {
+                if (!activeEditor.configIsValid()) {
+                    throw new IllegalArgumentException("Config is not valid");
+                }
+            } catch (IllegalArgumentException e) {
+                Bukkit.getLogger().severe(e.getMessage());
+                e.printStackTrace();
+                sender.sendMessage(Component.text("Config is not valid for ")
+                        .append(Component.text(activeEditor.getType().name())
+                                .decorate(TextDecoration.BOLD))
+                        .append(Component.text(". See console for details:\n"))
+                        .append(Component.text(e.getMessage()))
+                        .color(NamedTextColor.RED));
+                sender.sendMessage(Component.text("Skipping save. If you wish to force the save, use ")
+                        .append(Component.text("/mct edit save true")
+                                .clickEvent(ClickEvent.suggestCommand("/mct edit save true"))
+                                .decorate(TextDecoration.BOLD))
+                        .color(NamedTextColor.RED));
+                return;
+            }
+        } else {
+            sender.sendMessage("Skipping validation.");
+        }
+        try {
+            activeEditor.saveConfig();
+        } catch (IOException e) {
+            Bukkit.getLogger().severe(e.getMessage());
+            e.printStackTrace();
+            sender.sendMessage(Component.text("An error occurred while attempting to save the config for ")
+                    .append(Component.text(activeEditor.getType().name())
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(". See console for details:\n"))
+                    .append(Component.text(e.getMessage()))
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        sender.sendMessage(Component.text("Config is saved.")
+                .color(NamedTextColor.GREEN));
+    }
+    
+    public void loadEditor(@NotNull CommandSender sender) {
+        try {
+            if (!activeEditor.loadConfig()) {
+                throw new IllegalArgumentException("Config could not be loaded.");
+            }
+        } catch (IllegalArgumentException e) {
+            Bukkit.getLogger().severe(e.getMessage());
+            e.printStackTrace();
+            Component message = Component.text("Can't start ")
+                    .append(Component.text(activeEditor.getType().name())
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(". Error loading config file. See console for details:\n"))
+                    .append(Component.text(e.getMessage()))
+                    .color(NamedTextColor.RED);
+            sender.sendMessage(message);
+            return;
+        }
+        sender.sendMessage(Component.text("Config loaded.")
+                .color(NamedTextColor.GREEN));
     }
     
     public void returnAllParticipantsToHub() {
@@ -1057,4 +1296,5 @@ public class GameManager implements Listener {
             eventManager.updatePersonalScore(participant, contents);
         }
     }
+    
 }

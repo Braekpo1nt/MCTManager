@@ -19,6 +19,7 @@ public class ParticipantInitializer {
         }
         participant.setFireTicks(0);
         participant.setVisualFire(false);
+        participant.setArrowsInBody(0);
     }
     
     public static void resetHealthAndHunger(Player participant) {

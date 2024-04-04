@@ -1,11 +1,6 @@
 {
   "version": "0.1.0",
   "world": "TestWorld",
-  "startingLocation" : {
-    "x": 1003,
-    "y": 0,
-    "z": 0
-  },
   "spectatorArea": {
     "minX": 0,
     "minY": 0,
@@ -34,70 +29,1033 @@
     "checkpointCounter": 120,
     "checkpointCounterAlert": 30
   },
-  "checkpoints": [
+  "puzzles": [
     {
-      "yValue": 0,
-      "detectionBox": {
-        "minX": 1007,
-        "minY": 5,
-        "minZ": 8,
-        "maxX": 1003,
-        "maxY": 0,
-        "maxZ": -8
-      },
-      "respawn": {
-        "x": 998,
-        "y": 0,
-        "z": 0
-      }
+      "index": 0,
+      "inBounds": [
+        {
+          "minX": 998.0,
+          "minY": -1.0,
+          "minZ": -8.0,
+          "maxX": 1020.0,
+          "maxY": 15.0,
+          "maxZ": 8.0
+        }
+      ],
+      "checkPoints": [
+        {
+          "detectionArea": {
+            "minX": 998.0,
+            "minY": -1.0,
+            "minZ": -8.0,
+            "maxX": 1007.0,
+            "maxY": 5.0,
+            "maxZ": 8.0
+          },
+          "respawn": {
+            "x": 1003.0,
+            "y": 0.0,
+            "z": 0.0,
+            "yaw": -90.0,
+            "pitch": 0.0
+          }
+        }
+      ]
     },
     {
-      "yValue": -1,
-      "detectionBox": {
-        "minX": 1003,
-        "minY": 0,
-        "minZ": -8,
-        "maxX": 1007,
-        "maxY": 5,
-        "maxZ": 8
-      },
-      "respawn": {
-        "x": 998,
-        "y": 0,
-        "z": 0
-      }
+      "index": 1,
+      "inBounds": [
+        {
+          "minX": 1015.0,
+          "minY": 7.5,
+          "minZ": -9.0,
+          "maxX": 1049.0,
+          "maxY": 15.0,
+          "maxZ": 9.0
+        }
+      ],
+      "checkPoints": [
+        {
+          "detectionArea": {
+            "minX": 1017.0,
+            "minY": 8.0,
+            "minZ": 4.0,
+            "maxX": 1020.0,
+            "maxY": 10.0,
+            "maxZ": 6.0
+          },
+          "respawn": {
+            "x": 1018.0,
+            "y": 8.0,
+            "z": 5.0,
+            "yaw": -90.0,
+            "pitch": 0.0
+          }
+        },
+        {
+          "detectionArea": {
+            "minX": 1017.0,
+            "minY": 8.0,
+            "minZ": -5.0,
+            "maxX": 1020.0,
+            "maxY": 10.0,
+            "maxZ": -3.0
+          },
+          "respawn": {
+            "x": 1018.0,
+            "y": 8.0,
+            "z": -4.0,
+            "yaw": -90.0,
+            "pitch": 0.0
+          }
+        }
+      ]
     },
     {
-      "yValue": 7,
-      "detectionBox": {
-        "minX": 1017,
-        "minY": 8,
-        "minZ": -6,
-        "maxX": 1020,
-        "maxY": 10,
-        "maxZ": 6
-      },
-      "respawn": {
-        "x": 1010,
-        "y": 8,
-        "z": 4
-      }
+      "index": 2,
+      "inBounds": [
+        {
+          "minX": 1046.0,
+          "minY": 5.0,
+          "minZ": -6.0,
+          "maxX": 1077.0,
+          "maxY": 16.0,
+          "maxZ": 7.0
+        }
+      ],
+      "checkPoints": [
+        {
+          "detectionArea": {
+            "minX": 1046.0,
+            "minY": 8.0,
+            "minZ": 1.0,
+            "maxX": 1049.0,
+            "maxY": 11.0,
+            "maxZ": 3.0
+          },
+          "respawn": {
+            "x": 1047.0,
+            "y": 8.0,
+            "z": 2.0,
+            "yaw": -90.0,
+            "pitch": 0.0
+          }
+        },
+        {
+          "detectionArea": {
+            "minX": 1046.0,
+            "minY": 8.0,
+            "minZ": -2.0,
+            "maxX": 1049.0,
+            "maxY": 11.0,
+            "maxZ": 0.0
+          },
+          "respawn": {
+            "x": 1047.0,
+            "y": 8.0,
+            "z": -1.0,
+            "yaw": -90.0,
+            "pitch": 0.0
+          }
+        }
+      ]
     },
     {
-      "yValue": 4.5,
-      "detectionBox": {
-        "minX": 1046,
-        "minY": 7,
-        "minZ": -4,
-        "maxX": 1048,
-        "maxY": 11,
-        "maxZ": 3
-      },
-      "respawn": {
-        "x": 1046,
-        "y": 8,
-        "z": 2
-      }
+      "index": 3,
+      "inBounds": [
+        {
+          "minX": 1074.0,
+          "minY": 8.5,
+          "minZ": -6.0,
+          "maxX": 1102.0,
+          "maxY": 14.0,
+          "maxZ": 7.0
+        }
+      ],
+      "checkPoints": [
+        {
+          "detectionArea": {
+            "minX": 1074.0,
+            "minY": 9.0,
+            "minZ": -3.0,
+            "maxX": 1077.0,
+            "maxY": 13.0,
+            "maxZ": 4.0
+          },
+          "respawn": {
+            "x": 1076.5,
+            "y": 9.0,
+            "z": 0.5,
+            "yaw": -90.0,
+            "pitch": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "index": 4,
+      "inBounds": [
+        {
+          "minX": 1099.0,
+          "minY": 9.0,
+          "minZ": -10.0,
+          "maxX": 1111.0,
+          "maxY": 42.0,
+          "maxZ": 10.0
+        }
+      ],
+      "checkPoints": [
+        {
+          "detectionArea": {
+            "minX": 1099.0,
+            "minY": 9.0,
+            "minZ": -2.0,
+            "maxX": 1102.0,
+            "maxY": 12.0,
+            "maxZ": 3.0
+          },
+          "respawn": {
+            "x": 1101.0,
+            "y": 9.0,
+            "z": 0.5,
+            "yaw": -90.0,
+            "pitch": -45.0
+          }
+        }
+      ]
+    },
+    {
+      "index": 5,
+      "inBounds": [
+        {
+          "minX": 1100.0,
+          "minY": 32.0,
+          "minZ": -9.0,
+          "maxX": 1130.0,
+          "maxY": 47.0,
+          "maxZ": 10.0
+        }
+      ],
+      "checkPoints": [
+        {
+          "detectionArea": {
+            "minX": 1106.0,
+            "minY": 33.0,
+            "minZ": -9.0,
+            "maxX": 1109.0,
+            "maxY": 38.0,
+            "maxZ": -3.0
+          },
+          "respawn": {
+            "x": 1107.5,
+            "y": 33.0,
+            "z": -6.0,
+            "yaw": -90.0,
+            "pitch": 0.0
+          }
+        },
+        {
+          "detectionArea": {
+            "minX": 1106.0,
+            "minY": 33.0,
+            "minZ": 4.0,
+            "maxX": 1109.0,
+            "maxY": 38.0,
+            "maxZ": 10.0
+          },
+          "respawn": {
+            "x": 1107.5,
+            "y": 33.0,
+            "z": 7.0,
+            "yaw": -90.0,
+            "pitch": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "index": 6,
+      "inBounds": [
+        {
+          "minX": 1099.0,
+          "minY": 33.5,
+          "minZ": -9.0,
+          "maxX": 1130.0,
+          "maxY": 47.0,
+          "maxZ": 10.0
+        }
+      ],
+      "checkPoints": [
+        {
+          "detectionArea": {
+            "minX": 1107.0,
+            "minY": 35.0,
+            "minZ": -2.0,
+            "maxX": 1110.0,
+            "maxY": 38.0,
+            "maxZ": 3.0
+          },
+          "respawn": {
+            "x": 1108.5,
+            "y": 35.0,
+            "z": 0.5,
+            "yaw": 90.0,
+            "pitch": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "index": 7,
+      "inBounds": [
+        {
+          "minX": 1077.0,
+          "minY": 42.0,
+          "minZ": -6.0,
+          "maxX": 1103.0,
+          "maxY": 48.0,
+          "maxZ": 7.0
+        }
+      ],
+      "checkPoints": [
+        {
+          "detectionArea": {
+            "minX": 1099.0,
+            "minY": 43.0,
+            "minZ": -1.0,
+            "maxX": 1102.0,
+            "maxY": 47.0,
+            "maxZ": 2.0
+          },
+          "respawn": {
+            "x": 1100.5,
+            "y": 43.0,
+            "z": 0.5,
+            "yaw": 90.0,
+            "pitch": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "index": 8,
+      "inBounds": [
+        {
+          "minX": 1034.0,
+          "minY": 42.0,
+          "minZ": -4.0,
+          "maxX": 1082.0,
+          "maxY": 51.0,
+          "maxZ": 5.0
+        }
+      ],
+      "checkPoints": [
+        {
+          "detectionArea": {
+            "minX": 1077.0,
+            "minY": 44.0,
+            "minZ": -2.0,
+            "maxX": 1080.0,
+            "maxY": 48.0,
+            "maxZ": 3.0
+          },
+          "respawn": {
+            "x": 1078.5,
+            "y": 44.0,
+            "z": 0.5,
+            "yaw": 90.0,
+            "pitch": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "index": 9,
+      "inBounds": [
+        {
+          "minX": 1018.0,
+          "minY": 42.0,
+          "minZ": -4.0,
+          "maxX": 1040.0,
+          "maxY": 52.0,
+          "maxZ": 6.0
+        }
+      ],
+      "checkPoints": [
+        {
+          "detectionArea": {
+            "minX": 1034.0,
+            "minY": 44.0,
+            "minZ": -2.0,
+            "maxX": 1039.0,
+            "maxY": 48.0,
+            "maxZ": 3.0
+          },
+          "respawn": {
+            "x": 1036.5,
+            "y": 44.0,
+            "z": 0.5,
+            "yaw": 90.0,
+            "pitch": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "index": 10,
+      "inBounds": [
+        {
+          "minX": 1002.0,
+          "minY": 42.0,
+          "minZ": -4.0,
+          "maxX": 1022.0,
+          "maxY": 52.0,
+          "maxZ": 6.0
+        }
+      ],
+      "checkPoints": [
+        {
+          "detectionArea": {
+            "minX": 1018.0,
+            "minY": 45.0,
+            "minZ": -4.0,
+            "maxX": 1020.0,
+            "maxY": 51.0,
+            "maxZ": 6.0
+          },
+          "respawn": {
+            "x": 1019.5,
+            "y": 45.0,
+            "z": 1.0,
+            "yaw": 90.0,
+            "pitch": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "index": 11,
+      "inBounds": [
+        {
+          "minX": 980.0,
+          "minY": 43.5,
+          "minZ": -2.0,
+          "maxX": 1008.0,
+          "maxY": 49.0,
+          "maxZ": 5.0
+        }
+      ],
+      "checkPoints": [
+        {
+          "detectionArea": {
+            "minX": 1003.0,
+            "minY": 44.0,
+            "minZ": -2.0,
+            "maxX": 1006.0,
+            "maxY": 49.0,
+            "maxZ": 5.0
+          },
+          "respawn": {
+            "x": 1004.5,
+            "y": 44.0,
+            "z": 1.5,
+            "yaw": 90.0,
+            "pitch": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "index": 12,
+      "inBounds": [
+        {
+          "minX": 917.0,
+          "minY": 42.0,
+          "minZ": -5.0,
+          "maxX": 987.0,
+          "maxY": 49.0,
+          "maxZ": 8.0
+        }
+      ],
+      "checkPoints": [
+        {
+          "detectionArea": {
+            "minX": 981.0,
+            "minY": 44.0,
+            "minZ": -2.0,
+            "maxX": 984.0,
+            "maxY": 49.0,
+            "maxZ": 5.0
+          },
+          "respawn": {
+            "x": 982.5,
+            "y": 44.0,
+            "z": 1.5,
+            "yaw": 90.0,
+            "pitch": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "index": 13,
+      "inBounds": [
+        {
+          "minX": 896.0,
+          "minY": 34.0,
+          "minZ": -7.0,
+          "maxX": 925.0,
+          "maxY": 75.0,
+          "maxZ": 10.0
+        }
+      ],
+      "checkPoints": [
+        {
+          "detectionArea": {
+            "minX": 918.0,
+            "minY": 42.0,
+            "minZ": -2.0,
+            "maxX": 924.0,
+            "maxY": 49.0,
+            "maxZ": 5.0
+          },
+          "respawn": {
+            "x": 921.5,
+            "y": 42.0,
+            "z": 1.5,
+            "yaw": 90.0,
+            "pitch": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "index": 14,
+      "inBounds": [
+        {
+          "minX": 866.0,
+          "minY": 65.0,
+          "minZ": -7.0,
+          "maxX": 901.0,
+          "maxY": 79.0,
+          "maxZ": 10.0
+        }
+      ],
+      "checkPoints": [
+        {
+          "detectionArea": {
+            "minX": 896.0,
+            "minY": 72.0,
+            "minZ": -7.0,
+            "maxX": 900.0,
+            "maxY": 75.0,
+            "maxZ": 10.0
+          },
+          "respawn": {
+            "x": 897.5,
+            "y": 72.0,
+            "z": 1.5,
+            "yaw": 90.0,
+            "pitch": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "index": 15,
+      "inBounds": [
+        {
+          "minX": 845.0,
+          "minY": 66.0,
+          "minZ": -3.0,
+          "maxX": 869.0,
+          "maxY": 76.0,
+          "maxZ": 6.0
+        }
+      ],
+      "checkPoints": [
+        {
+          "detectionArea": {
+            "minX": 866.0,
+            "minY": 69.0,
+            "minZ": 0.0,
+            "maxX": 868.0,
+            "maxY": 73.0,
+            "maxZ": 3.0
+          },
+          "respawn": {
+            "x": 867.5,
+            "y": 69.0,
+            "z": 1.5,
+            "yaw": 90.0,
+            "pitch": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "index": 16,
+      "inBounds": [
+        {
+          "minX": 818.0,
+          "minY": 57.0,
+          "minZ": -2.0,
+          "maxX": 848.0,
+          "maxY": 75.0,
+          "maxZ": 4.0
+        }
+      ],
+      "checkPoints": [
+        {
+          "detectionArea": {
+            "minX": 845.0,
+            "minY": 70.0,
+            "minZ": -1.0,
+            "maxX": 847.0,
+            "maxY": 75.0,
+            "maxZ": 4.0
+          },
+          "respawn": {
+            "x": 846.5,
+            "y": 70.0,
+            "z": 1.5,
+            "yaw": 90.0,
+            "pitch": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "index": 17,
+      "inBounds": [
+        {
+          "minX": 806.0,
+          "minY": 48.0,
+          "minZ": -3.0,
+          "maxX": 823.0,
+          "maxY": 63.0,
+          "maxZ": 4.0
+        }
+      ],
+      "checkPoints": [
+        {
+          "detectionArea": {
+            "minX": 818.0,
+            "minY": 58.0,
+            "minZ": -2.0,
+            "maxX": 822.0,
+            "maxY": 63.0,
+            "maxZ": 3.0
+          },
+          "respawn": {
+            "x": 820.0,
+            "y": 58.0,
+            "z": 0.5,
+            "yaw": 90.0,
+            "pitch": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "index": 18,
+      "inBounds": [
+        {
+          "minX": 820.0,
+          "minY": 48.5,
+          "minZ": -4.0,
+          "maxX": 870.0,
+          "maxY": 55.0,
+          "maxZ": 6.0
+        },
+        {
+          "minX": 860.0,
+          "minY": 32.0,
+          "minZ": -4.0,
+          "maxX": 871.0,
+          "maxY": 54.0,
+          "maxZ": 5.0
+        }
+      ],
+      "checkPoints": [
+        {
+          "detectionArea": {
+            "minX": 821.0,
+            "minY": 50.0,
+            "minZ": -2.0,
+            "maxX": 823.0,
+            "maxY": 54.0,
+            "maxZ": 3.0
+          },
+          "respawn": {
+            "x": 822.5,
+            "y": 50.0,
+            "z": 0.5,
+            "yaw": -90.0,
+            "pitch": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "index": 19,
+      "inBounds": [
+        {
+          "minX": 825.0,
+          "minY": 30.5,
+          "minZ": -4.0,
+          "maxX": 871.0,
+          "maxY": 39.5,
+          "maxZ": 5.0
+        }
+      ],
+      "checkPoints": [
+        {
+          "detectionArea": {
+            "minX": 860.0,
+            "minY": 32.0,
+            "minZ": -2.0,
+            "maxX": 863.0,
+            "maxY": 36.0,
+            "maxZ": 3.0
+          },
+          "respawn": {
+            "x": 861.5,
+            "y": 32.0,
+            "z": 0.5,
+            "yaw": 90.0,
+            "pitch": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "index": 20,
+      "inBounds": [
+        {
+          "minX": 790.0,
+          "minY": 15.5,
+          "minZ": -6.0,
+          "maxX": 828.0,
+          "maxY": 38.0,
+          "maxZ": 6.0
+        },
+        {
+          "minX": 790.0,
+          "minY": 3.5,
+          "minZ": -4.0,
+          "maxX": 801.0,
+          "maxY": 24.0,
+          "maxZ": 6.0
+        }
+      ],
+      "checkPoints": [
+        {
+          "detectionArea": {
+            "minX": 825.0,
+            "minY": 33.0,
+            "minZ": -2.0,
+            "maxX": 828.0,
+            "maxY": 38.0,
+            "maxZ": 3.0
+          },
+          "respawn": {
+            "x": 827.5,
+            "y": 33.0,
+            "z": 0.5,
+            "yaw": 90.0,
+            "pitch": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "index": 21,
+      "inBounds": [
+        {
+          "minX": 792.0,
+          "minY": 3.5,
+          "minZ": -8.0,
+          "maxX": 822.0,
+          "maxY": 10.0,
+          "maxZ": 7.0
+        }
+      ],
+      "checkPoints": [
+        {
+          "detectionArea": {
+            "minX": 793.0,
+            "minY": 5.0,
+            "minZ": -2.0,
+            "maxX": 798.0,
+            "maxY": 10.0,
+            "maxZ": 3.0
+          },
+          "respawn": {
+            "x": 794.5,
+            "y": 5.0,
+            "z": 0.5,
+            "yaw": -90.0,
+            "pitch": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "index": 22,
+      "inBounds": [
+        {
+          "minX": 818.0,
+          "minY": -1.5,
+          "minZ": -6.0,
+          "maxX": 865.0,
+          "maxY": 9.0,
+          "maxZ": 7.0
+        }
+      ],
+      "checkPoints": [
+        {
+          "detectionArea": {
+            "minX": 819.0,
+            "minY": 5.0,
+            "minZ": -2.0,
+            "maxX": 821.0,
+            "maxY": 8.0,
+            "maxZ": 3.0
+          },
+          "respawn": {
+            "x": 820.0,
+            "y": 5.0,
+            "z": 0.5,
+            "yaw": -90.0,
+            "pitch": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "index": 23,
+      "inBounds": [
+        {
+          "minX": 861.0,
+          "minY": -13.0,
+          "minZ": -3.0,
+          "maxX": 895.0,
+          "maxY": 9.0,
+          "maxZ": 6.0
+        }
+      ],
+      "checkPoints": [
+        {
+          "detectionArea": {
+            "minX": 861.0,
+            "minY": 5.0,
+            "minZ": -2.0,
+            "maxX": 865.0,
+            "maxY": 9.0,
+            "maxZ": 3.0
+          },
+          "respawn": {
+            "x": 863.5,
+            "y": 5.0,
+            "z": 0.5,
+            "yaw": -90.0,
+            "pitch": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "index": 24,
+      "inBounds": [
+        {
+          "minX": 891.0,
+          "minY": -10.0,
+          "minZ": -2.0,
+          "maxX": 928.0,
+          "maxY": -3.0,
+          "maxZ": 5.0
+        }
+      ],
+      "checkPoints": [
+        {
+          "detectionArea": {
+            "minX": 892.5,
+            "minY": -8.0,
+            "minZ": -1.0,
+            "maxX": 895.0,
+            "maxY": -3.0,
+            "maxZ": 4.0
+          },
+          "respawn": {
+            "x": 893.5,
+            "y": -8.0,
+            "z": 1.5,
+            "yaw": -90.0,
+            "pitch": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "index": 25,
+      "inBounds": [
+        {
+          "minX": 924.0,
+          "minY": -10.0,
+          "minZ": -2.0,
+          "maxX": 942.0,
+          "maxY": -3.0,
+          "maxZ": 5.0
+        }
+      ],
+      "checkPoints": [
+        {
+          "detectionArea": {
+            "minX": 925.0,
+            "minY": -8.0,
+            "minZ": -1.0,
+            "maxX": 928.0,
+            "maxY": -3.0,
+            "maxZ": 4.0
+          },
+          "respawn": {
+            "x": 926.5,
+            "y": -8.0,
+            "z": 1.5,
+            "yaw": -90.0,
+            "pitch": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "index": 26,
+      "inBounds": [
+        {
+          "minX": 938.0,
+          "minY": -10.0,
+          "minZ": -2.0,
+          "maxX": 957.0,
+          "maxY": -3.0,
+          "maxZ": 5.0
+        }
+      ],
+      "checkPoints": [
+        {
+          "detectionArea": {
+            "minX": 939.0,
+            "minY": -8.0,
+            "minZ": -1.0,
+            "maxX": 942.0,
+            "maxY": -3.0,
+            "maxZ": 4.0
+          },
+          "respawn": {
+            "x": 940.5,
+            "y": -8.0,
+            "z": 1.5,
+            "yaw": -90.0,
+            "pitch": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "index": 27,
+      "inBounds": [
+        {
+          "minX": 953.0,
+          "minY": -9.0,
+          "minZ": -3.0,
+          "maxX": 973.0,
+          "maxY": -2.0,
+          "maxZ": 6.0
+        }
+      ],
+      "checkPoints": [
+        {
+          "detectionArea": {
+            "minX": 953.0,
+            "minY": -8.0,
+            "minZ": -2.0,
+            "maxX": 956.0,
+            "maxY": -5.0,
+            "maxZ": 4.0
+          },
+          "respawn": {
+            "x": 954.0,
+            "y": -8.0,
+            "z": 1.5,
+            "yaw": -90.0,
+            "pitch": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "index": 28,
+      "inBounds": [
+        {
+          "minX": 969.0,
+          "minY": -9.0,
+          "minZ": -3.0,
+          "maxX": 990.0,
+          "maxY": -2.0,
+          "maxZ": 6.0
+        }
+      ],
+      "checkPoints": [
+        {
+          "detectionArea": {
+            "minX": 970.0,
+            "minY": -7.0,
+            "minZ": -2.0,
+            "maxX": 973.0,
+            "maxY": -2.0,
+            "maxZ": 3.0
+          },
+          "respawn": {
+            "x": 971.5,
+            "y": -7.0,
+            "z": 0.5,
+            "yaw": -90.0,
+            "pitch": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "index": 29,
+      "inBounds": [
+        {
+          "minX": 985.0,
+          "minY": -9.0,
+          "minZ": -3.0,
+          "maxX": 990.0,
+          "maxY": -2.0,
+          "maxZ": 2.0
+        }
+      ],
+      "checkPoints": [
+        {
+          "detectionArea": {
+            "minX": 986.0,
+            "minY": -8.0,
+            "minZ": -2.0,
+            "maxX": 989.0,
+            "maxY": -2.0,
+            "maxZ": 1.0
+          },
+          "respawn": {
+            "x": 987.5,
+            "y": -8.0,
+            "z": -0.5,
+            "yaw": 90.0,
+            "pitch": 0.0
+          }
+        }
+      ]
     }
   ],
   "description": ["",{"text":"-----------------------","bold":true,"color":"gray"},{"text":"\n"},{"text":"How To Play","bold":true,"color":"yellow"},{"text":" Parkour Pathway","bold":true,"color":"yellow"},{"text":"\n"},{"text":"It's parkour, but with a stricter path... way.\nGet tournament points at each checkpoint, and even more if you make it to the end!","color":"#FFFFDF"},{"text":" \n"},{"text":"-----------------------","bold":true,"color":"gray"},{"text":" "}]

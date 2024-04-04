@@ -7,6 +7,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.commands.CommandUtils;
 import org.braekpo1nt.mctmanager.games.game.config.YawPitch;
 import org.braekpo1nt.mctmanager.utils.EntityUtils;
+import org.braekpo1nt.mctmanager.utils.MathUtils;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.command.Command;
@@ -67,8 +68,8 @@ public class YawPitchSubCommand implements TabExecutor {
         String preciseJson = gson.toJson(precise);
         
         YawPitch rounded = new YawPitch(
-                UtilsUtils.specialRound(precise.yaw(), 0.5f),
-                UtilsUtils.specialRound(precise.pitch(), 0.5f)
+                MathUtils.specialRound(precise.yaw(), 0.5f),
+                MathUtils.specialRound(precise.pitch(), 0.5f)
         );
         String roundedJson = gson.toJson(rounded);
         

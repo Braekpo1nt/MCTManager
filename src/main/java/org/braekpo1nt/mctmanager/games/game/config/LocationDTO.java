@@ -11,20 +11,17 @@ import org.bukkit.util.Vector;
  * Because we don't need to store the world for the location in the csv.
  */
 public class LocationDTO {
-    private double x;
-    private double y;
-    private double z;
+    private final double x;
+    private final double y;
+    private final double z;
     /**
      * The absolute rotation on the x-plane, in degrees
      */
-    private float yaw;
+    private final float yaw;
     /**
      * The absolute rotation on the y-plane, in degrees
      */
-    private float pitch;
-    
-    public LocationDTO() {
-    }
+    private final float pitch;
     
     public LocationDTO(Location location) {
         this.x = location.getX();
@@ -32,6 +29,10 @@ public class LocationDTO {
         this.z = location.getZ();
         this.yaw = location.getYaw();
         this.pitch = location.getPitch();
+    }
+    
+    public static LocationDTO from(Location respawn) {
+        return new LocationDTO(respawn);
     }
     
     /**

@@ -3,19 +3,17 @@ package org.braekpo1nt.mctmanager.commands;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
-import org.bukkit.Bukkit;
-import org.bukkit.Color;
+import org.braekpo1nt.mctmanager.utils.EntityUtils;
 import org.bukkit.Location;
-import org.bukkit.Material;
+import org.bukkit.block.BlockFace;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.EquipmentSlot;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.LeatherArmorMeta;
-import org.bukkit.util.Vector;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -25,13 +23,11 @@ import java.util.List;
 /**
  * A utility command for testing various things, so I don't have to create a new command. 
  */
-public class MCTDebugCommand implements TabExecutor {
-    
-    private final Main plugin;
+public class MCTDebugCommand implements TabExecutor, Listener {
     
     public MCTDebugCommand(Main plugin) {
-        this.plugin = plugin;
         plugin.getCommand("mctdebug").setExecutor(this);
+        plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
     
     @Override
@@ -42,19 +38,18 @@ public class MCTDebugCommand implements TabExecutor {
                     .color(NamedTextColor.RED));
             return true;
         }
-    
-        if (args.length < 1) {
+        
+        if (args.length != 0) {
             sender.sendMessage(Component.text("Usage: /mctdebug <arg> [options]")
                     .color(NamedTextColor.RED));
             return true;
         }
     
-        int index = Integer.parseInt(args[0]);
-        player.getInventory().setItem(EquipmentSlot.LEGS, new ItemStack(Material.STONE));
-        
-        
-//        player.teleport(source.toLocation(player.getWorld(), yawPitch.yaw(), yawPitch.pitch()));
-        
+        float yaw = player.getLocation().getYaw();
+        float pitch = player.getLocation().getPitch();
+        BlockFace direction = EntityUtils.getPlayerDirection(yaw, pitch);
+        sender.sendMessage(direction.toString());
+
 //        Component mainTitle = Component.text("Main title");
 //        Component subTitle = Component.text("Subtitle");
 //
