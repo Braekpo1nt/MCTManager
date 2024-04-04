@@ -45,14 +45,6 @@ public class JoinSubCommand implements TabExecutor {
                     .color(NamedTextColor.RED));
             return true;
         }
-        if (gameManager.isAdmin(playerToJoin.getUniqueId())) {
-            sender.sendMessage(Component.empty()
-                    .append(Component.text(playerName)
-                            .decorate(TextDecoration.BOLD))
-                    .append(Component.text(" is an admin, and can't be a participant."))
-                    .color(NamedTextColor.RED));
-            return true;
-        }
         Component formattedTeamDisplayName = gameManager.getFormattedTeamDisplayName(teamName);
         if (gameManager.isParticipant(playerToJoin.getUniqueId())) {
             String oldTeamName = gameManager.getTeamName(playerToJoin.getUniqueId());
@@ -66,12 +58,7 @@ public class JoinSubCommand implements TabExecutor {
                 return true;
             }
         }
-        gameManager.joinPlayerToTeam(playerToJoin, teamName);
-        sender.sendMessage(Component.text("Joined ")
-                .append(Component.text(playerName)
-                        .decorate(TextDecoration.BOLD))
-                .append(Component.text(" to team "))
-                .append(formattedTeamDisplayName));
+        gameManager.joinPlayerToTeam(sender, playerToJoin, teamName);
         return true;
     }
     

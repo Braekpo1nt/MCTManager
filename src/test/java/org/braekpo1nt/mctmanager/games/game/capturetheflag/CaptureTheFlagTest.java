@@ -111,7 +111,7 @@ class CaptureTheFlagTest {
     MyPlayerMock createParticipant(String name, String teamName, String expectedDisplayName) {
         MyPlayerMock player = new MyPlayerMock(server, name, UUID.nameUUIDFromBytes(name.getBytes(StandardCharsets.UTF_8)));
         server.addPlayer(player);
-        gameManager.joinPlayerToTeam(player, teamName);
+        gameManager.joinPlayerToTeam(server.getConsoleSender(), player, teamName);
         Assertions.assertTrue(gameManager.isParticipant(player.getUniqueId()));
         return player;
     }
