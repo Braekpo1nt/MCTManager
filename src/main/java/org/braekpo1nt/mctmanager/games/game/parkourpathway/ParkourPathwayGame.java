@@ -407,6 +407,15 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         int nextPuzzleCheckPointIndex = participantReachedCheckPoint(participant.getLocation().toVector(), nextPuzzle);
         if (nextPuzzleCheckPointIndex >= 0) {
             onParticipantReachCheckPoint(participant, nextPuzzleIndex, nextPuzzleCheckPointIndex);
+            return;
+        }
+        int parallelCheckPointIndex = participantReachedCheckPoint(participant.getLocation().toVector(), currentPuzzle);
+        if (parallelCheckPointIndex >= 0) {
+            int currentCheckpoint = currentPuzzleCheckpoints.get(uuid);
+            if (parallelCheckPointIndex == currentCheckpoint) {
+                return;
+            }
+            currentPuzzleCheckpoints.put(uuid, parallelCheckPointIndex);
         }
     }
     
