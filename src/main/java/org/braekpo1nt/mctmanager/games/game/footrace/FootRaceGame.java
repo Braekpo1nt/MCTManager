@@ -296,7 +296,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     private void startStartRaceCountdownTask() {
         this.startCountDownTaskID = new BukkitRunnable() {
             int count = storageUtil.getStartRaceDuration();
-    
+            
             @Override
             public void run() {
                 if (count <= 0) {
