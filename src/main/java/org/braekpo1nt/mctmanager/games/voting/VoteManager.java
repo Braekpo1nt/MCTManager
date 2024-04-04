@@ -410,7 +410,7 @@ public class VoteManager implements Listener {
                     .color(NamedTextColor.YELLOW));
             return;
         }
-        if (!gameManager.isParticipant(participant.getUniqueId())) {
+        if (!voters.contains(participant)) {
             return;
         }
         ItemStack netherStar = event.getItem();

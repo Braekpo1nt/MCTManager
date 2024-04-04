@@ -88,6 +88,9 @@ public class Main extends JavaPlugin {
             if (gameManager.gameIsRunning()) {
                 gameManager.manuallyStopGame(false);
             }
+            if (gameManager.editorIsRunning()) {
+                gameManager.stopEditor(Bukkit.getConsoleSender());
+            }
         } else {
             Bukkit.getLogger().info("[MCTManager] Skipping save game state.");
         }

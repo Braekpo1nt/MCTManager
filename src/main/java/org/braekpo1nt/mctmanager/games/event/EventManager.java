@@ -107,8 +107,13 @@ public class EventManager implements Listener {
                     .color(NamedTextColor.RED));
             return;
         }
-        if (gameManager.getActiveGame() != null) {
+        if (gameManager.gameIsRunning()) {
             sender.sendMessage(Component.text("Can't start an event while a game is running.")
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        if (gameManager.editorIsRunning()) {
+            sender.sendMessage(Component.text("Can't start an event while an editor is running.")
                     .color(NamedTextColor.RED));
             return;
         }

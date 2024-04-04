@@ -82,10 +82,11 @@ public abstract class GameConfigStorageUtil<T> {
     /**
      * Saves the passed in config object to the {@link GameConfigStorageUtil#configFile}.
      * If config us null, or there are any IO, security, or json errors, then 
-     * an error is reported to the logger and nothing happens.
+     * an error is reported to the logger and an IOException is thrown
      * @param config the config to save
+     * @throws IOException if there is an IO, security, or json error saving the file
      */
-    protected void saveConfig(T config) {
+    protected void saveConfig(T config) throws IOException {
         try {
             if (!configFile.exists()) {
                 if (!configDirectory.exists()) {
@@ -94,11 +95,11 @@ public abstract class GameConfigStorageUtil<T> {
                 configFile.createNewFile();
             }
         } catch (IOException e) {
-            Bukkit.getLogger().severe(String.format("Error creating config file: \n%s", e));
+            throw new IOException("Error creating config file:", e);
         } catch (SecurityException e) {
-            Bukkit.getLogger().severe(String.format("Permission error while checking for existence of config file: \n%s", e));
+            throw new IOException("Permission error while checking for existence of config file:", e);
         }
-        
+    
         try {
             Gson gson = new GsonBuilder().setPrettyPrinting().create();
             Writer writer = new FileWriter(configFile, false);
@@ -107,7 +108,7 @@ public abstract class GameConfigStorageUtil<T> {
             writer.close();
             Bukkit.getLogger().info(String.format("[MCTManager] Saved default config to %s", configFile));
         } catch (JsonIOException | IOException e) {
-            Bukkit.getLogger().severe(String.format("Error writing to config file: \n%s", e));
+            throw new IOException("Error writing to config file:", e);
         }
     }
     
@@ -115,8 +116,9 @@ public abstract class GameConfigStorageUtil<T> {
      * Saves the config from {@link GameConfigStorageUtil#getConfig()} to the 
      * {@link GameConfigStorageUtil#configFile}. If there are any IO, security, or 
      * json errors, an error is reported to the logger and nothing happens.
+     * @throws IOException if there is an IO, security, or json error saving the file
      */
-    public void saveConfig() {
+    public void saveConfig() throws IOException {
         saveConfig(getConfig());
         Bukkit.getLogger().info(String.format("[MCTManager] Saved %s", configFileName));
     }

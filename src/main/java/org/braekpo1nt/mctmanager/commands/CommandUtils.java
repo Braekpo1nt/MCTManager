@@ -1,5 +1,8 @@
 package org.braekpo1nt.mctmanager.commands;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 public class CommandUtils {
     
     /**
@@ -38,6 +41,25 @@ public class CommandUtils {
             return true;
         } catch (NumberFormatException e) {
             return false;
+        }
+    }
+    
+    /**
+     * @param value the string to be parsed
+     * @return the boolean value the string represents if the string can be successfully parsed to a boolean, null if the string couldn't be parsed to a boolean
+     */
+    public static @Nullable Boolean toBoolean(@NotNull String value) {
+        String lowerCase = value.toLowerCase();
+        switch (lowerCase) {
+            case "true", "yes", "t", "y", "1" -> {
+                return true;
+            }
+            case "false", "no", "f", "n", "0" -> {
+                return false;
+            }
+            default -> {
+                return null;
+            }
         }
     }
 }

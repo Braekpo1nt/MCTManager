@@ -24,7 +24,7 @@ import java.util.*;
 
 public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
     
-    protected MechaConfig mechaConfig = getExampleConfig();
+    protected MechaConfig mechaConfig = null;
     private BoundingBox removeArea;
     private Map<LootTable, Integer> weightedMechaLootTables;
     private World world;

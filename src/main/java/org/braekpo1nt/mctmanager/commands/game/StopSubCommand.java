@@ -29,7 +29,8 @@ public class StopSubCommand implements TabExecutor {
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (!gameManager.gameIsRunning()) {
-            sender.sendMessage("No game is running.");
+            sender.sendMessage(Component.text("No game is running.")
+                    .color(NamedTextColor.RED));
             return true;
         }
         if (args.length == 0) {
@@ -39,10 +40,11 @@ public class StopSubCommand implements TabExecutor {
         if (args.length == 1) {
             String shouldTeleport = args[0];
             switch (shouldTeleport) {
-                case "true":
+                case "true" -> {
                     gameManager.manuallyStopGame(true);
                     return true;
-                case "false":
+                }
+                case "false" -> {
                     if (gameManager.getEventManager().eventIsActive()) {
                         sender.sendMessage(Component.empty()
                                 .append(Component.text("Can't skip teleport to hub while an event is running. Use "))
@@ -55,9 +57,11 @@ public class StopSubCommand implements TabExecutor {
                     sender.sendMessage("Skipping teleport to hub.");
                     gameManager.manuallyStopGame(false);
                     return true;
-                default:
+                }
+                default -> {
                     sender.sendMessage(String.format("%s is not a recognized option", shouldTeleport));
                     return true;
+                }
             }
         }
         sender.sendMessage("Usage: /mct game stop [true|false]");

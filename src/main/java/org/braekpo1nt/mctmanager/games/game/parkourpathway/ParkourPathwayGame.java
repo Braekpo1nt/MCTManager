@@ -11,6 +11,8 @@ import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.config.ParkourPathwayStorageUtil;
+import org.braekpo1nt.mctmanager.games.game.parkourpathway.puzzle.CheckPoint;
+import org.braekpo1nt.mctmanager.games.game.parkourpathway.puzzle.Puzzle;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
@@ -33,6 +35,7 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
+import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
@@ -47,10 +50,6 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
     private final ParkourPathwayStorageUtil storageUtil;
     private final String title = ChatColor.BLUE+"Parkour Pathway";
     private final PotionEffect INVISIBILITY = new PotionEffect(PotionEffectType.INVISIBILITY, 10000, 1, true, false, false);
-    private final PotionEffect RESISTANCE = new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 70, 200, true, false, false);
-    private final PotionEffect REGENERATION = new PotionEffect(PotionEffectType.REGENERATION, 70, 200, true, false, false);
-    private final PotionEffect FIRE_RESISTANCE = new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 70, 1, true, false, false);
-    private final PotionEffect SATURATION = new PotionEffect(PotionEffectType.SATURATION, 70, 250, true, false, false);
     private int statusEffectsTaskId;
     private int startNextRoundTimerTaskId;
     private int checkpointCounterTask;
@@ -71,6 +70,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
      */
     private Map<UUID, Integer> currentPuzzleCheckpoints;
     private Map<UUID, Display> displays;
+    private static final boolean DEBUG = false;
     
     public ParkourPathwayGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
@@ -85,7 +85,26 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
     
     @Override
     public boolean loadConfig() throws IllegalArgumentException {
-        return storageUtil.loadConfig();
+        if (!storageUtil.loadConfig()) {
+            return false;
+        }
+        if (!gameActive) {
+            return true;
+        }
+        // debug
+        if (DEBUG) {
+            for (Player participant : participants) {
+                int currentPuzzleIndex = currentPuzzles.get(participant.getUniqueId());
+                Display newDisplay = puzzlesToDisplay(currentPuzzleIndex, currentPuzzleIndex + 1);
+                Display oldDisplay = displays.put(participant.getUniqueId(), newDisplay);
+                if (oldDisplay != null) {
+                    oldDisplay.hide();
+                }
+                newDisplay.show(participant);
+            }
+        }
+        // debug
+        return true;
     }
     
     @Override
@@ -93,7 +112,9 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         participants = new ArrayList<>(newParticipants.size());
         currentPuzzles = new HashMap<>(newParticipants.size());
         // debug
-        displays = new HashMap<>(newParticipants.size());
+        if (DEBUG) {
+            displays = new HashMap<>(newParticipants.size());
+        }
         // debug
         currentPuzzleCheckpoints = new HashMap<>(newParticipants.size());
         finishedParticipants = new ArrayList<>();
@@ -123,12 +144,14 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         currentPuzzles.put(participant.getUniqueId(), 0);
         currentPuzzleCheckpoints.put(participant.getUniqueId(), 0);
         // debug
-        Display display = puzzlesToDisplay(0, 1);
-        displays.put(participant.getUniqueId(), display);
-        display.show(participant);
+        if (DEBUG) {
+            Display display = puzzlesToDisplay(0, 1);
+            displays.put(participant.getUniqueId(), display);
+            display.show(participant);
+        }
         // debug
         sidebar.addPlayer(participant);
-        teleportPlayerToStartingPosition(participant);
+        participant.teleport(storageUtil.getStartingLocation());
         participant.getInventory().clear();
         giveBoots(participant);
         participant.setGameMode(GameMode.ADVENTURE);
@@ -138,20 +161,24 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
     
     // debug
     private @NotNull Display puzzlesToDisplay(int index, int nextIndex) {
-        int size = storageUtil.getPuzzles().size();
+        int size = storageUtil.getPuzzlesSize();
         Preconditions.checkArgument(0 <= index && index < size, "index must be between [0, %s] inclusive", size);
         Preconditions.checkArgument(0 <= nextIndex, "nextIndex must be at least 0");
-        Puzzle puzzle = storageUtil.getPuzzles().get(index);
+        Puzzle puzzle = storageUtil.getPuzzle(index);
         Display display = new Display(plugin);
-        display.addChild(new Display(plugin, GeometryUtils.toPointsWithDistance(puzzle.inBounds(), 1), Color.fromRGB(255, 0, 0)));
-        display.addChild(new Display(plugin, GeometryUtils.toPointsWithDistance(puzzle.checkPoints().get(0).detectionArea(), 1), Color.fromRGB(0, 0, 255)));
+        for (BoundingBox bound : puzzle.inBounds()) {
+            display.addChild(new Display(plugin, GeometryUtils.toRectanglePoints(bound, 2), Color.fromRGB(255, 0, 0)));
+        }
+        display.addChild(new Display(plugin, GeometryUtils.toEdgePoints(puzzle.checkPoints().get(0).detectionArea(), 1), Color.fromRGB(0, 0, 255)));
         display.addChild(new Display(plugin, Collections.singletonList(puzzle.checkPoints().get(0).respawn().toVector()), Color.fromRGB(0, 255, 0)));
         
-        if (nextIndex < storageUtil.getPuzzles().size()) {
-            Puzzle nextPuzzle = storageUtil.getPuzzles().get(nextIndex);
-            display.addChild(new Display(plugin, GeometryUtils.toPointsWithDistance(nextPuzzle.inBounds(), 1), Color.fromRGB(127, 0, 127)));
-            display.addChild(new Display(plugin, GeometryUtils.toPointsWithDistance(nextPuzzle.checkPoints().get(0).detectionArea(), 1), Color.fromRGB(0, 127, 127)));
-            display.addChild(new Display(plugin, Collections.singletonList(nextPuzzle.checkPoints().get(0).respawn().toVector()), Color.fromRGB(127, 127, 0)));
+        if (nextIndex < storageUtil.getPuzzlesSize()) {
+            Puzzle nextPuzzle = storageUtil.getPuzzle(nextIndex);
+            for (BoundingBox bound : nextPuzzle.inBounds()) {
+                display.addChild(new Display(plugin, GeometryUtils.toRectanglePoints(bound, 2), Color.fromRGB(100, 0, 0)));
+            }
+            display.addChild(new Display(plugin, GeometryUtils.toEdgePoints(nextPuzzle.checkPoints().get(0).detectionArea(), 1), Color.fromRGB(0, 0, 100)));
+            display.addChild(new Display(plugin, Collections.singletonList(nextPuzzle.checkPoints().get(0).respawn().toVector()), Color.fromRGB(0, 100, 0)));
         }
         
         return display;
@@ -192,6 +219,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         for (Player participant : participants) {
             resetParticipant(participant);
         }
+        openGlassBarriers();
         clearSidebar();
         stopAdmins();
         participants.clear();
@@ -205,10 +233,12 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         participant.getInventory().clear();
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
-        sidebar.removePlayer(participant.getUniqueId());
+        sidebar.removePlayer(participant);
         // debug
-        Display display = displays.get(participant.getUniqueId());
-        display.hide();
+        if (DEBUG) {
+            Display display = displays.get(participant.getUniqueId());
+            display.hide();
+        }
         // debug
     }
     
@@ -231,13 +261,15 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         currentPuzzles.putIfAbsent(uniqueId, 0);
         currentPuzzleCheckpoints.putIfAbsent(uniqueId, 0);
         // debug
-        Display display = displays.get(uniqueId);
-        if (display == null) {
-            int current = currentPuzzles.get(uniqueId);
-            display = puzzlesToDisplay(current, current + 1);
-            displays.put(uniqueId, display);
+        if (DEBUG) {
+            Display display = displays.get(uniqueId);
+            if (display == null) {
+                int current = currentPuzzles.get(uniqueId);
+                display = puzzlesToDisplay(current, current + 1);
+                displays.put(uniqueId, display);
+            }
+            display.show(participant);
         }
-        display.show(participant);
         // debug
         sidebar.addPlayer(participant);
         participant.getInventory().clear();
@@ -245,7 +277,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         participant.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
-        Location respawn = storageUtil.getPuzzles().get(currentPuzzles.get(uniqueId)).checkPoints().get(currentPuzzleCheckpoints.get(uniqueId)).respawn();
+        Location respawn = storageUtil.getPuzzle(currentPuzzles.get(uniqueId)).checkPoints().get(currentPuzzleCheckpoints.get(uniqueId)).respawn();
         participant.teleport(respawn);
         sidebar.updateLine(uniqueId, "title", title);
         updateCheckpointSidebar(participant);
@@ -347,6 +379,13 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
             return;
         }
         Player participant = event.getPlayer();
+        // debug
+        if (DEBUG) {
+            if (participant.getGameMode() == GameMode.SPECTATOR) {
+                return;
+            }
+        }
+        // debug
         UUID uuid = participant.getUniqueId();
         if (!participants.contains(participant)) {
             return;
@@ -356,32 +395,23 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         }
         int currentPuzzleIndex = currentPuzzles.get(uuid);
         int nextPuzzleIndex = currentPuzzleIndex + 1;
-        if (nextPuzzleIndex >= storageUtil.getPuzzles().size()) {
+        if (nextPuzzleIndex >= storageUtil.getPuzzlesSize()) {
             // should not occur because of above check
             return;
         }
-        Puzzle currentPuzzle = storageUtil.getPuzzles().get(currentPuzzleIndex);
-        if (!isParticipantOutOfBounds(participant, currentPuzzle)) {
+        Puzzle currentPuzzle = storageUtil.getPuzzle(currentPuzzleIndex);
+        if (!currentPuzzle.isInBounds(participant.getLocation().toVector())) {
             onParticipantOutOfBounds(participant, currentPuzzle);
         }
-        Puzzle nextPuzzle = storageUtil.getPuzzles().get(nextPuzzleIndex);
+        Puzzle nextPuzzle = storageUtil.getPuzzle(nextPuzzleIndex);
         int nextPuzzleCheckPointIndex = participantReachedCheckPoint(participant.getLocation().toVector(), nextPuzzle);
         if (nextPuzzleCheckPointIndex >= 0) {
             onParticipantReachCheckPoint(participant, nextPuzzleIndex, nextPuzzleCheckPointIndex);
         }
     }
     
-    /**
-     * @param participant the participant who may be out of bounds
-     * @param puzzle the puzzle the player should be in the bounds of
-     * @return true if the given participant is out of bounds of the given puzzle
-     */
-    private static boolean isParticipantOutOfBounds(Player participant, Puzzle puzzle) {
-        return puzzle.inBounds().contains(participant.getLocation().toVector());
-    }
-    
     private void onParticipantOutOfBounds(Player participant, Puzzle currentPuzzle) {
-        Puzzle.CheckPoint currentCheckPoint = currentPuzzle.checkPoints().get(currentPuzzleCheckpoints.get(participant.getUniqueId()));
+        CheckPoint currentCheckPoint = currentPuzzle.checkPoints().get(currentPuzzleCheckpoints.get(participant.getUniqueId()));
         Location respawn = currentCheckPoint.respawn().setDirection(participant.getLocation().getDirection());
         participant.teleport(respawn);
     }
@@ -392,7 +422,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         currentPuzzles.put(uuid, puzzleIndex);
         currentPuzzleCheckpoints.put(uuid, puzzleCheckPointIndex);
         updateCheckpointSidebar(participant);
-        if (puzzleIndex >= storageUtil.getPuzzles().size()-1) {
+        if (puzzleIndex >= storageUtil.getPuzzlesSize()-1) {
             onParticipantFinish(participant);
         } else {
             messageAllParticipants(Component.empty()
@@ -400,17 +430,19 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
                     .append(Component.text(" reached checkpoint "))
                     .append(Component.text(puzzleIndex))
                     .append(Component.text("/"))
-                    .append(Component.text(storageUtil.getPuzzles().size()-1)));
+                    .append(Component.text(storageUtil.getPuzzlesSize()-1)));
             int playersCheckpoint = currentPuzzles.get(uuid);
             int points = calculatePointsForPuzzle(playersCheckpoint, storageUtil.getCheckpointScore());
             gameManager.awardPointsToParticipant(participant, points);
             
             // debug
-            Display oldDisplay = displays.get(uuid);
-            oldDisplay.hide();
-            Display newDisplay = puzzlesToDisplay(puzzleIndex, puzzleIndex + 1);
-            displays.put(uuid, newDisplay);
-            newDisplay.show(participant);
+            if (DEBUG) {
+                Display oldDisplay = displays.get(uuid);
+                oldDisplay.hide();
+                Display newDisplay = puzzlesToDisplay(puzzleIndex, puzzleIndex + 1);
+                displays.put(uuid, newDisplay);
+                newDisplay.show(participant);
+            }
             // debug
             
         }
@@ -429,7 +461,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
      */
     private static int participantReachedCheckPoint(Vector v, Puzzle puzzle) {
         for (int i = 0; i < puzzle.checkPoints().size(); i++) {
-            Puzzle.CheckPoint nextCheckPoint = puzzle.checkPoints().get(i);
+            CheckPoint nextCheckPoint = puzzle.checkPoints().get(i);
             if (nextCheckPoint.detectionArea().contains(v)) {
                 return i;
             }
@@ -440,7 +472,9 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
     private void onParticipantFinish(Player participant) {
         messageAllParticipants(Component.empty()
                 .append(Component.text(participant.getName()))
-                .append(Component.text(" finished!")));
+                .append(Component.text(" finished!"))
+                .color(NamedTextColor.GREEN)
+        );
         int points = calculatePointsForWin(storageUtil.getWinScore());
         gameManager.awardPointsToParticipant(participant, points);
         participant.setGameMode(GameMode.SPECTATOR);
@@ -450,7 +484,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
     private boolean allPlayersHaveFinished() {
         for (Player participant : participants) {
             int currentPuzzleIndex = currentPuzzles.get(participant.getUniqueId());
-            if (currentPuzzleIndex < storageUtil.getPuzzles().size() - 1) {
+            if (currentPuzzleIndex < storageUtil.getPuzzlesSize() - 1) {
                 //at least one player is still playing
                 return false;
             }
@@ -487,7 +521,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
     private int calculatePointsForWin(int[] winScores) {
         int numberOfWins = 0;
         for (int puzzleIndex : currentPuzzles.values()) {
-            if (puzzleIndex >= storageUtil.getPuzzles().size() - 1) {
+            if (puzzleIndex >= storageUtil.getPuzzlesSize() - 1) {
                 numberOfWins++;
             }
         }
@@ -539,6 +573,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
 
     private void startParkourPathwayTimer() {
         int timeLimit = storageUtil.getTimeLimitDuration();
+        int checkpointCounterAlert = storageUtil.getCheckpointCounterAlertDuration();
         this.startNextRoundTimerTaskId = new BukkitRunnable() {
             int count = timeLimit;
             @Override
@@ -549,6 +584,15 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
                     return;
                 }
                 String timeString = TimeStringUtils.getTimeString(count);
+                if (count == checkpointCounterAlert) {
+                    messageAllParticipants(Component.text("Ending in ")
+                            .append(Component.text(checkpointCounterAlert))
+                            .append(Component.text("."))
+                            .color(NamedTextColor.RED));
+                }
+                if (count <= checkpointCounterAlert) {
+                    timeString = String.format("%s%s", ChatColor.RED, timeString);
+                }
                 sidebar.updateLine("timer", timeString);
                 adminSidebar.updateLine("timer", timeString);
                 count--;
@@ -562,10 +606,6 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
             public void run() {
                 for (Player participant : participants) {
                     participant.addPotionEffect(INVISIBILITY);
-                    participant.addPotionEffect(RESISTANCE);
-                    participant.addPotionEffect(REGENERATION);
-                    participant.addPotionEffect(FIRE_RESISTANCE);
-                    participant.addPotionEffect(SATURATION);
                 }
             }
         }.runTaskTimer(plugin, 0L, 60L).getTaskId();
@@ -592,11 +632,6 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
     }
 
 
-    private void teleportPlayerToStartingPosition(Player player) {
-        player.sendMessage("Teleporting to Parkour Pathway");
-        player.teleport(storageUtil.getStartingLocation());
-    }
-    
     private void cancelAllTasks() {
         Bukkit.getScheduler().cancelTask(statusEffectsTaskId);
         Bukkit.getScheduler().cancelTask(startNextRoundTimerTaskId);
@@ -623,14 +658,14 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
                 new KeyLine("personalScore", ""),
                 new KeyLine("title", title),
                 new KeyLine("timer", ""),
-                new KeyLine("checkpoint", String.format("0/%s", storageUtil.getPuzzles().size() - 1)),
+                new KeyLine("checkpoint", String.format("0/%s", storageUtil.getPuzzlesSize() - 1)),
                 new KeyLine("ending", "")
         );
     }
     
     private void updateCheckpointSidebar(Player participant) {
         int currentCheckpoint = currentPuzzles.get(participant.getUniqueId());
-        int lastCheckpoint = storageUtil.getPuzzles().size()-1;
+        int lastCheckpoint = storageUtil.getPuzzlesSize()-1;
         sidebar.updateLine(participant.getUniqueId(), "checkpoint", String.format("%s/%s", currentCheckpoint, lastCheckpoint));
     }
     
@@ -660,7 +695,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         }
         sidebar.updateLine(participant.getUniqueId(), "personalScore", contents);
     }
-
+    
     private void messageAllParticipants(Component message) {
         gameManager.messageAdmins(message);
         for (Player participant : participants) {

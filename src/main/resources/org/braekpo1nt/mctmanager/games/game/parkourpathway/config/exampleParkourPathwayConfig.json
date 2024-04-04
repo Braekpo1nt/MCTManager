@@ -1,11 +1,6 @@
 {
   "version": "0.1.0",
   "world": "TestWorld",
-  "startingLocation" : {
-    "x": 1003,
-    "y": 0,
-    "z": 0
-  },
   "spectatorArea": {
     "minX": 0,
     "minY": 0,
@@ -36,841 +31,1028 @@
   },
   "puzzles": [
     {
-      "id": 0,
-      "inBounds": {
-        "minX": 998,
-        "minY": -1,
-        "minZ": -8,
-        "maxX": 1020,
-        "maxY": 10,
-        "maxZ": 8
-      },
+      "index": 0,
+      "inBounds": [
+        {
+          "minX": 998.0,
+          "minY": -1.0,
+          "minZ": -8.0,
+          "maxX": 1020.0,
+          "maxY": 15.0,
+          "maxZ": 8.0
+        }
+      ],
       "checkPoints": [
         {
           "detectionArea": {
-            "minX": 998,
-            "minY": -1,
-            "minZ": -8,
-            "maxX": 1007,
-            "maxY": 5,
-            "maxZ": 8
+            "minX": 998.0,
+            "minY": -1.0,
+            "minZ": -8.0,
+            "maxX": 1007.0,
+            "maxY": 5.0,
+            "maxZ": 8.0
           },
           "respawn": {
-            "x": 1003,
-            "y": 0,
-            "z": 0
+            "x": 1003.0,
+            "y": 0.0,
+            "z": 0.0,
+            "yaw": -90.0,
+            "pitch": 0.0
           }
         }
       ]
     },
     {
-      "id": 1,
-      "inBounds": {
-        "minX": 1017,
-        "minY": 7,
-        "minZ": -6,
-        "maxX": 1048,
-        "maxY": 11,
-        "maxZ": 6
-      },
+      "index": 1,
+      "inBounds": [
+        {
+          "minX": 1015.0,
+          "minY": 7.5,
+          "minZ": -9.0,
+          "maxX": 1049.0,
+          "maxY": 15.0,
+          "maxZ": 9.0
+        }
+      ],
       "checkPoints": [
         {
           "detectionArea": {
-            "minX": 1017,
-            "minY": 7,
-            "minZ": -6,
-            "maxX": 1020,
-            "maxY": 10,
-            "maxZ": 6
+            "minX": 1017.0,
+            "minY": 8.0,
+            "minZ": 4.0,
+            "maxX": 1020.0,
+            "maxY": 10.0,
+            "maxZ": 6.0
           },
           "respawn": {
-            "x": 1017,
-            "y": 8,
-            "z": 4
+            "x": 1018.0,
+            "y": 8.0,
+            "z": 5.0,
+            "yaw": -90.0,
+            "pitch": 0.0
+          }
+        },
+        {
+          "detectionArea": {
+            "minX": 1017.0,
+            "minY": 8.0,
+            "minZ": -5.0,
+            "maxX": 1020.0,
+            "maxY": 10.0,
+            "maxZ": -3.0
+          },
+          "respawn": {
+            "x": 1018.0,
+            "y": 8.0,
+            "z": -4.0,
+            "yaw": -90.0,
+            "pitch": 0.0
           }
         }
       ]
     },
     {
-      "id": 2,
-      "inBounds": {
-        "minX": 1046,
-        "minY": 5,
-        "minZ": -4,
-        "maxX": 1077,
-        "maxY": 13,
-        "maxZ": 4
-      },
+      "index": 2,
+      "inBounds": [
+        {
+          "minX": 1046.0,
+          "minY": 5.0,
+          "minZ": -6.0,
+          "maxX": 1077.0,
+          "maxY": 16.0,
+          "maxZ": 7.0
+        }
+      ],
       "checkPoints": [
         {
           "detectionArea": {
-            "minX": 1046,
-            "minY": 7,
-            "minZ": -4,
-            "maxX": 1048,
-            "maxY": 11,
-            "maxZ": 3
+            "minX": 1046.0,
+            "minY": 8.0,
+            "minZ": 1.0,
+            "maxX": 1049.0,
+            "maxY": 11.0,
+            "maxZ": 3.0
           },
           "respawn": {
-            "x": 1046,
-            "y": 8,
-            "z": 2
+            "x": 1047.0,
+            "y": 8.0,
+            "z": 2.0,
+            "yaw": -90.0,
+            "pitch": 0.0
+          }
+        },
+        {
+          "detectionArea": {
+            "minX": 1046.0,
+            "minY": 8.0,
+            "minZ": -2.0,
+            "maxX": 1049.0,
+            "maxY": 11.0,
+            "maxZ": 0.0
+          },
+          "respawn": {
+            "x": 1047.0,
+            "y": 8.0,
+            "z": -1.0,
+            "yaw": -90.0,
+            "pitch": 0.0
           }
         }
       ]
     },
     {
-      "id": 3,
-      "inBounds": {
-        "minX": 1074,
-        "minY": 9,
-        "minZ": -7,
-        "maxX": 1102,
-        "maxY": 13,
-        "maxZ": 7
-      },
+      "index": 3,
+      "inBounds": [
+        {
+          "minX": 1074.0,
+          "minY": 8.5,
+          "minZ": -6.0,
+          "maxX": 1102.0,
+          "maxY": 14.0,
+          "maxZ": 7.0
+        }
+      ],
       "checkPoints": [
         {
           "detectionArea": {
-            "minX": 1074,
-            "minY": 9,
-            "minZ": -3,
-            "maxX": 1077,
-            "maxY": 13,
-            "maxZ": 4
+            "minX": 1074.0,
+            "minY": 9.0,
+            "minZ": -3.0,
+            "maxX": 1077.0,
+            "maxY": 13.0,
+            "maxZ": 4.0
           },
           "respawn": {
-            "x": 1076,
-            "y": 9,
-            "z": 0
+            "x": 1076.5,
+            "y": 9.0,
+            "z": 0.5,
+            "yaw": -90.0,
+            "pitch": 0.0
           }
         }
       ]
     },
     {
-      "id": 4,
-      "inBounds": {
-        "minX": 1099,
-        "minY": 9,
-        "minZ": -10,
-        "maxX": 1129,
-        "maxY": 38,
-        "maxZ": 10
-      },
+      "index": 4,
+      "inBounds": [
+        {
+          "minX": 1099.0,
+          "minY": 9.0,
+          "minZ": -10.0,
+          "maxX": 1111.0,
+          "maxY": 42.0,
+          "maxZ": 10.0
+        }
+      ],
       "checkPoints": [
         {
           "detectionArea": {
-            "minX": 1099,
-            "minY": 9,
-            "minZ": -7,
-            "maxX": 1102,
-            "maxY": 11,
-            "maxZ": 7
+            "minX": 1099.0,
+            "minY": 9.0,
+            "minZ": -2.0,
+            "maxX": 1102.0,
+            "maxY": 12.0,
+            "maxZ": 3.0
           },
           "respawn": {
-            "x": 1101,
-            "y": 9,
-            "z": 0
+            "x": 1101.0,
+            "y": 9.0,
+            "z": 0.5,
+            "yaw": -90.0,
+            "pitch": -45.0
           }
         }
       ]
     },
     {
-      "id": 5,
-      "inBounds": {
-        "minX": 1106,
-        "minY": 32,
-        "minZ": -10,
-        "maxX": 1109,
-        "maxY": 38,
-        "maxZ": 10
-      },
+      "index": 5,
+      "inBounds": [
+        {
+          "minX": 1100.0,
+          "minY": 32.0,
+          "minZ": -9.0,
+          "maxX": 1130.0,
+          "maxY": 47.0,
+          "maxZ": 10.0
+        }
+      ],
       "checkPoints": [
         {
           "detectionArea": {
-            "minX": 1106,
-            "minY": 32,
-            "minZ": -10,
-            "maxX": 1109,
-            "maxY": 38,
-            "maxZ": 10
+            "minX": 1106.0,
+            "minY": 33.0,
+            "minZ": -9.0,
+            "maxX": 1109.0,
+            "maxY": 38.0,
+            "maxZ": -3.0
           },
           "respawn": {
-            "x": 1107,
-            "y": 33,
-            "z": -6
+            "x": 1107.5,
+            "y": 33.0,
+            "z": -6.0,
+            "yaw": -90.0,
+            "pitch": 0.0
+          }
+        },
+        {
+          "detectionArea": {
+            "minX": 1106.0,
+            "minY": 33.0,
+            "minZ": 4.0,
+            "maxX": 1109.0,
+            "maxY": 38.0,
+            "maxZ": 10.0
+          },
+          "respawn": {
+            "x": 1107.5,
+            "y": 33.0,
+            "z": 7.0,
+            "yaw": -90.0,
+            "pitch": 0.0
           }
         }
       ]
     },
     {
-      "id": 6,
-      "inBounds": {
-        "minX": 1099,
-        "minY": 34,
-        "minZ": -3,
-        "maxX": 1109,
-        "maxY": 45,
-        "maxZ": 3
-      },
+      "index": 6,
+      "inBounds": [
+        {
+          "minX": 1099.0,
+          "minY": 33.5,
+          "minZ": -9.0,
+          "maxX": 1130.0,
+          "maxY": 47.0,
+          "maxZ": 10.0
+        }
+      ],
       "checkPoints": [
         {
           "detectionArea": {
-            "minX": 1107,
-            "minY": 34,
-            "minZ": -3,
-            "maxX": 1109,
-            "maxY": 38,
-            "maxZ": 3
+            "minX": 1107.0,
+            "minY": 35.0,
+            "minZ": -2.0,
+            "maxX": 1110.0,
+            "maxY": 38.0,
+            "maxZ": 3.0
           },
           "respawn": {
-            "x": 1108,
-            "y": 35,
-            "z": 0
+            "x": 1108.5,
+            "y": 35.0,
+            "z": 0.5,
+            "yaw": 90.0,
+            "pitch": 0.0
           }
         }
       ]
     },
     {
-      "id": 7,
-      "inBounds": {
-        "minX": 1077,
-        "minY": 42,
-        "minZ": -3,
-        "maxX": 1101,
-        "maxY": 48,
-        "maxZ": 3
-      },
+      "index": 7,
+      "inBounds": [
+        {
+          "minX": 1077.0,
+          "minY": 42.0,
+          "minZ": -6.0,
+          "maxX": 1103.0,
+          "maxY": 48.0,
+          "maxZ": 7.0
+        }
+      ],
       "checkPoints": [
         {
           "detectionArea": {
-            "minX": 1099,
-            "minY": 43,
-            "minZ": -1,
-            "maxX": 1101,
-            "maxY": 45,
-            "maxZ": 1
+            "minX": 1099.0,
+            "minY": 43.0,
+            "minZ": -1.0,
+            "maxX": 1102.0,
+            "maxY": 47.0,
+            "maxZ": 2.0
           },
           "respawn": {
-            "x": 1100,
-            "y": 43,
-            "z": 0
+            "x": 1100.5,
+            "y": 43.0,
+            "z": 0.5,
+            "yaw": 90.0,
+            "pitch": 0.0
           }
         }
       ]
     },
     {
-      "id": 8,
-      "inBounds": {
-        "minX": 1034,
-        "minY": 42,
-        "minZ": -3,
-        "maxX": 1079,
-        "maxY": 48,
-        "maxZ": 3
-      },
+      "index": 8,
+      "inBounds": [
+        {
+          "minX": 1034.0,
+          "minY": 42.0,
+          "minZ": -4.0,
+          "maxX": 1082.0,
+          "maxY": 51.0,
+          "maxZ": 5.0
+        }
+      ],
       "checkPoints": [
         {
           "detectionArea": {
-            "minX": 1077,
-            "minY": 43,
-            "minZ": -3,
-            "maxX": 1079,
-            "maxY": 48,
-            "maxZ": 3
+            "minX": 1077.0,
+            "minY": 44.0,
+            "minZ": -2.0,
+            "maxX": 1080.0,
+            "maxY": 48.0,
+            "maxZ": 3.0
           },
           "respawn": {
-            "x": 1078,
-            "y": 44,
-            "z": 0
+            "x": 1078.5,
+            "y": 44.0,
+            "z": 0.5,
+            "yaw": 90.0,
+            "pitch": 0.0
           }
         }
       ]
     },
     {
-      "id": 9,
-      "inBounds": {
-        "minX": 1017,
-        "minY": 42,
-        "minZ": -5,
-        "maxX": 1038,
-        "maxY": 51,
-        "maxZ": 6
-      },
+      "index": 9,
+      "inBounds": [
+        {
+          "minX": 1018.0,
+          "minY": 42.0,
+          "minZ": -4.0,
+          "maxX": 1040.0,
+          "maxY": 52.0,
+          "maxZ": 6.0
+        }
+      ],
       "checkPoints": [
         {
           "detectionArea": {
-            "minX": 1034,
-            "minY": 43,
-            "minZ": -3,
-            "maxX": 1038,
-            "maxY": 48,
-            "maxZ": 3
+            "minX": 1034.0,
+            "minY": 44.0,
+            "minZ": -2.0,
+            "maxX": 1039.0,
+            "maxY": 48.0,
+            "maxZ": 3.0
           },
           "respawn": {
-            "x": 1036,
-            "y": 44,
-            "z": 0
+            "x": 1036.5,
+            "y": 44.0,
+            "z": 0.5,
+            "yaw": 90.0,
+            "pitch": 0.0
           }
         }
       ]
     },
     {
-      "id": 10,
-      "inBounds": {
-        "minX": 1003,
-        "minY": 42,
-        "minZ": -5,
-        "maxX": 1020,
-        "maxY": 51,
-        "maxZ": 6
-      },
+      "index": 10,
+      "inBounds": [
+        {
+          "minX": 1002.0,
+          "minY": 42.0,
+          "minZ": -4.0,
+          "maxX": 1022.0,
+          "maxY": 52.0,
+          "maxZ": 6.0
+        }
+      ],
       "checkPoints": [
         {
           "detectionArea": {
-            "minX": 1017,
-            "minY": 44,
-            "minZ": -5,
-            "maxX": 1020,
-            "maxY": 51,
-            "maxZ": 6
+            "minX": 1018.0,
+            "minY": 45.0,
+            "minZ": -4.0,
+            "maxX": 1020.0,
+            "maxY": 51.0,
+            "maxZ": 6.0
           },
           "respawn": {
-            "x": 1019,
-            "y": 45,
-            "z": 0
+            "x": 1019.5,
+            "y": 45.0,
+            "z": 1.0,
+            "yaw": 90.0,
+            "pitch": 0.0
           }
         }
       ]
     },
     {
-      "id": 11,
-      "inBounds": {
-        "minX": 981,
-        "minY": 43,
-        "minZ": -3,
-        "maxX": 1005,
-        "maxY": 48,
-        "maxZ": 5
-      },
+      "index": 11,
+      "inBounds": [
+        {
+          "minX": 980.0,
+          "minY": 43.5,
+          "minZ": -2.0,
+          "maxX": 1008.0,
+          "maxY": 49.0,
+          "maxZ": 5.0
+        }
+      ],
       "checkPoints": [
         {
           "detectionArea": {
-            "minX": 1003,
-            "minY": 43,
-            "minZ": -3,
-            "maxX": 1005,
-            "maxY": 48,
-            "maxZ": 5
+            "minX": 1003.0,
+            "minY": 44.0,
+            "minZ": -2.0,
+            "maxX": 1006.0,
+            "maxY": 49.0,
+            "maxZ": 5.0
           },
           "respawn": {
-            "x": 1004,
-            "y": 44,
-            "z": 1
+            "x": 1004.5,
+            "y": 44.0,
+            "z": 1.5,
+            "yaw": 90.0,
+            "pitch": 0.0
           }
         }
       ]
     },
     {
-      "id": 12,
-      "inBounds": {
-        "minX": 917,
-        "minY": 40,
-        "minZ": -3,
-        "maxX": 984,
-        "maxY": 48,
-        "maxZ": 5
-      },
+      "index": 12,
+      "inBounds": [
+        {
+          "minX": 917.0,
+          "minY": 42.0,
+          "minZ": -5.0,
+          "maxX": 987.0,
+          "maxY": 49.0,
+          "maxZ": 8.0
+        }
+      ],
       "checkPoints": [
         {
           "detectionArea": {
-            "minX": 981,
-            "minY": 43,
-            "minZ": -3,
-            "maxX": 984,
-            "maxY": 48,
-            "maxZ": 5
+            "minX": 981.0,
+            "minY": 44.0,
+            "minZ": -2.0,
+            "maxX": 984.0,
+            "maxY": 49.0,
+            "maxZ": 5.0
           },
           "respawn": {
-            "x": 982,
-            "y": 44,
-            "z": 1
+            "x": 982.5,
+            "y": 44.0,
+            "z": 1.5,
+            "yaw": 90.0,
+            "pitch": 0.0
           }
         }
       ]
     },
     {
-      "id": 13,
-      "inBounds": {
-        "minX": 897,
-        "minY": 34,
-        "minZ": -7,
-        "maxX": 923,
-        "maxY": 74,
-        "maxZ": 10
-      },
+      "index": 13,
+      "inBounds": [
+        {
+          "minX": 896.0,
+          "minY": 34.0,
+          "minZ": -7.0,
+          "maxX": 925.0,
+          "maxY": 75.0,
+          "maxZ": 10.0
+        }
+      ],
       "checkPoints": [
         {
           "detectionArea": {
-            "minX": 917,
-            "minY": 40,
-            "minZ": -3,
-            "maxX": 923,
-            "maxY": 47,
-            "maxZ": 5
+            "minX": 918.0,
+            "minY": 42.0,
+            "minZ": -2.0,
+            "maxX": 924.0,
+            "maxY": 49.0,
+            "maxZ": 5.0
           },
           "respawn": {
-            "x": 917,
-            "y": 41,
-            "z": 1
+            "x": 921.5,
+            "y": 42.0,
+            "z": 1.5,
+            "yaw": 90.0,
+            "pitch": 0.0
           }
         }
       ]
     },
     {
-      "id": 14,
-      "inBounds": {
-        "minX": 866,
-        "minY": 65,
-        "minZ": -7,
-        "maxX": 900,
-        "maxY": 74,
-        "maxZ": 10
-      },
+      "index": 14,
+      "inBounds": [
+        {
+          "minX": 866.0,
+          "minY": 65.0,
+          "minZ": -7.0,
+          "maxX": 901.0,
+          "maxY": 79.0,
+          "maxZ": 10.0
+        }
+      ],
       "checkPoints": [
         {
           "detectionArea": {
-            "minX": 897,
-            "minY": 72,
-            "minZ": -7,
-            "maxX": 900,
-            "maxY": 74,
-            "maxZ": 10
+            "minX": 896.0,
+            "minY": 72.0,
+            "minZ": -7.0,
+            "maxX": 900.0,
+            "maxY": 75.0,
+            "maxZ": 10.0
           },
           "respawn": {
-            "x": 897,
-            "y": 72,
-            "z": 1
+            "x": 897.5,
+            "y": 72.0,
+            "z": 1.5,
+            "yaw": 90.0,
+            "pitch": 0.0
           }
         }
       ]
     },
     {
-      "id": 15,
-      "inBounds": {
-        "minX": 845,
-        "minY": 67,
-        "minZ": -1,
-        "maxX": 867,
-        "maxY": 75,
-        "maxZ": 3
-      },
+      "index": 15,
+      "inBounds": [
+        {
+          "minX": 845.0,
+          "minY": 66.0,
+          "minZ": -3.0,
+          "maxX": 869.0,
+          "maxY": 76.0,
+          "maxZ": 6.0
+        }
+      ],
       "checkPoints": [
         {
           "detectionArea": {
-            "minX": 866,
-            "minY": 69,
-            "minZ": -1,
-            "maxX": 867,
-            "maxY": 72,
-            "maxZ": 3
+            "minX": 866.0,
+            "minY": 69.0,
+            "minZ": 0.0,
+            "maxX": 868.0,
+            "maxY": 73.0,
+            "maxZ": 3.0
           },
           "respawn": {
-            "x": 866,
-            "y": 69,
-            "z": 1
+            "x": 867.5,
+            "y": 69.0,
+            "z": 1.5,
+            "yaw": 90.0,
+            "pitch": 0.0
           }
         }
       ]
     },
     {
-      "id": 16,
-      "inBounds": {
-        "minX": 819,
-        "minY": 57,
-        "minZ": -3,
-        "maxX": 847,
-        "maxY": 75,
-        "maxZ": 3
-      },
+      "index": 16,
+      "inBounds": [
+        {
+          "minX": 818.0,
+          "minY": 57.0,
+          "minZ": -2.0,
+          "maxX": 848.0,
+          "maxY": 75.0,
+          "maxZ": 4.0
+        }
+      ],
       "checkPoints": [
         {
           "detectionArea": {
-            "minX": 845,
-            "minY": 69,
-            "minZ": -1,
-            "maxX": 847,
-            "maxY": 75,
-            "maxZ": 3
+            "minX": 845.0,
+            "minY": 70.0,
+            "minZ": -1.0,
+            "maxX": 847.0,
+            "maxY": 75.0,
+            "maxZ": 4.0
           },
           "respawn": {
-            "x": 846,
-            "y": 70,
-            "z": 1
+            "x": 846.5,
+            "y": 70.0,
+            "z": 1.5,
+            "yaw": 90.0,
+            "pitch": 0.0
           }
         }
       ]
     },
     {
-      "id": 17,
-      "inBounds": {
-        "minX": 819,
-        "minY": 48,
-        "minZ": -3,
-        "maxX": 827,
-        "maxY": 62,
-        "maxZ": 3
-      },
+      "index": 17,
+      "inBounds": [
+        {
+          "minX": 806.0,
+          "minY": 48.0,
+          "minZ": -3.0,
+          "maxX": 823.0,
+          "maxY": 63.0,
+          "maxZ": 4.0
+        }
+      ],
       "checkPoints": [
         {
           "detectionArea": {
-            "minX": 819,
-            "minY": 58,
-            "minZ": -3,
-            "maxX": 822,
-            "maxY": 62,
-            "maxZ": 3
+            "minX": 818.0,
+            "minY": 58.0,
+            "minZ": -2.0,
+            "maxX": 822.0,
+            "maxY": 63.0,
+            "maxZ": 3.0
           },
           "respawn": {
-            "x": 819,
-            "y": 58,
-            "z": 0
+            "x": 820.0,
+            "y": 58.0,
+            "z": 0.5,
+            "yaw": 90.0,
+            "pitch": 0.0
           }
         }
       ]
     },
     {
-      "id": 18,
-      "inBounds": {
-        "minX": 825,
-        "minY": 32,
-        "minZ": -3,
-        "maxX": 862,
-        "maxY": 53,
-        "maxZ": 3
-      },
+      "index": 18,
+      "inBounds": [
+        {
+          "minX": 820.0,
+          "minY": 48.5,
+          "minZ": -4.0,
+          "maxX": 870.0,
+          "maxY": 55.0,
+          "maxZ": 6.0
+        },
+        {
+          "minX": 860.0,
+          "minY": 32.0,
+          "minZ": -4.0,
+          "maxX": 871.0,
+          "maxY": 54.0,
+          "maxZ": 5.0
+        }
+      ],
       "checkPoints": [
         {
           "detectionArea": {
-            "minX": 825,
-            "minY": 49,
-            "minZ": -2,
-            "maxX": 827,
-            "maxY": 53,
-            "maxZ": 2
+            "minX": 821.0,
+            "minY": 50.0,
+            "minZ": -2.0,
+            "maxX": 823.0,
+            "maxY": 54.0,
+            "maxZ": 3.0
           },
           "respawn": {
-            "x": 826,
-            "y": 50,
-            "z": 0
+            "x": 822.5,
+            "y": 50.0,
+            "z": 0.5,
+            "yaw": -90.0,
+            "pitch": 0.0
           }
         }
       ]
     },
     {
-      "id": 19,
-      "inBounds": {
-        "minX": 824,
-        "minY": 27,
-        "minZ": -3,
-        "maxX": 862,
-        "maxY": 53,
-        "maxZ": 3
-      },
+      "index": 19,
+      "inBounds": [
+        {
+          "minX": 825.0,
+          "minY": 30.5,
+          "minZ": -4.0,
+          "maxX": 871.0,
+          "maxY": 39.5,
+          "maxZ": 5.0
+        }
+      ],
       "checkPoints": [
         {
           "detectionArea": {
-            "minX": 860,
-            "minY": 32,
-            "minZ": -3,
-            "maxX": 862,
-            "maxY": 53,
-            "maxZ": 3
+            "minX": 860.0,
+            "minY": 32.0,
+            "minZ": -2.0,
+            "maxX": 863.0,
+            "maxY": 36.0,
+            "maxZ": 3.0
           },
           "respawn": {
-            "x": 861,
-            "y": 32,
-            "z": 0
+            "x": 861.5,
+            "y": 32.0,
+            "z": 0.5,
+            "yaw": 90.0,
+            "pitch": 0.0
           }
         }
       ]
     },
     {
-      "id": 20,
-      "inBounds": {
-        "minX": 794,
-        "minY": 5,
-        "minZ": -6,
-        "maxX": 827,
-        "maxY": 36,
-        "maxZ": 6
-      },
+      "index": 20,
+      "inBounds": [
+        {
+          "minX": 790.0,
+          "minY": 15.5,
+          "minZ": -6.0,
+          "maxX": 828.0,
+          "maxY": 38.0,
+          "maxZ": 6.0
+        },
+        {
+          "minX": 790.0,
+          "minY": 3.5,
+          "minZ": -4.0,
+          "maxX": 801.0,
+          "maxY": 24.0,
+          "maxZ": 6.0
+        }
+      ],
       "checkPoints": [
         {
           "detectionArea": {
-            "minX": 824,
-            "minY": 27,
-            "minZ": -2,
-            "maxX": 827,
-            "maxY": 36,
-            "maxZ": 2
+            "minX": 825.0,
+            "minY": 33.0,
+            "minZ": -2.0,
+            "maxX": 828.0,
+            "maxY": 38.0,
+            "maxZ": 3.0
           },
           "respawn": {
-            "x": 825,
-            "y": 27,
-            "z": 0
+            "x": 827.5,
+            "y": 33.0,
+            "z": 0.5,
+            "yaw": 90.0,
+            "pitch": 0.0
           }
         }
       ]
     },
     {
-      "id": 21,
-      "inBounds": {
-        "minX": 794,
-        "minY": 3,
-        "minZ": -6,
-        "maxX": 821,
-        "maxY": 20,
-        "maxZ": 6
-      },
+      "index": 21,
+      "inBounds": [
+        {
+          "minX": 792.0,
+          "minY": 3.5,
+          "minZ": -8.0,
+          "maxX": 822.0,
+          "maxY": 10.0,
+          "maxZ": 7.0
+        }
+      ],
       "checkPoints": [
         {
           "detectionArea": {
-            "minX": 794,
-            "minY": 5,
-            "minZ": -6,
-            "maxX": 800,
-            "maxY": 20,
-            "maxZ": 6
+            "minX": 793.0,
+            "minY": 5.0,
+            "minZ": -2.0,
+            "maxX": 798.0,
+            "maxY": 10.0,
+            "maxZ": 3.0
           },
           "respawn": {
-            "x": 794,
-            "y": 5,
-            "z": 0
+            "x": 794.5,
+            "y": 5.0,
+            "z": 0.5,
+            "yaw": -90.0,
+            "pitch": 0.0
           }
         }
       ]
     },
     {
-      "id": 22,
-      "inBounds": {
-        "minX": 819,
-        "minY": -2,
-        "minZ": -3,
-        "maxX": 865,
-        "maxY": 8,
-        "maxZ": 3
-      },
+      "index": 22,
+      "inBounds": [
+        {
+          "minX": 818.0,
+          "minY": -1.5,
+          "minZ": -6.0,
+          "maxX": 865.0,
+          "maxY": 9.0,
+          "maxZ": 7.0
+        }
+      ],
       "checkPoints": [
         {
           "detectionArea": {
-            "minX": 819,
-            "minY": 5,
-            "minZ": -2,
-            "maxX": 821,
-            "maxY": 7,
-            "maxZ": 3
+            "minX": 819.0,
+            "minY": 5.0,
+            "minZ": -2.0,
+            "maxX": 821.0,
+            "maxY": 8.0,
+            "maxZ": 3.0
           },
           "respawn": {
-            "x": 820,
-            "y": 5,
-            "z": 0
+            "x": 820.0,
+            "y": 5.0,
+            "z": 0.5,
+            "yaw": -90.0,
+            "pitch": 0.0
           }
         }
       ]
     },
     {
-      "id": 23,
-      "inBounds": {
-        "minX": 861,
-        "minY": -13,
-        "minZ": -3,
-        "maxX": 894,
-        "maxY": 8,
-        "maxZ": 3
-      },
+      "index": 23,
+      "inBounds": [
+        {
+          "minX": 861.0,
+          "minY": -13.0,
+          "minZ": -3.0,
+          "maxX": 895.0,
+          "maxY": 9.0,
+          "maxZ": 6.0
+        }
+      ],
       "checkPoints": [
         {
           "detectionArea": {
-            "minX": 861,
-            "minY": 5,
-            "minZ": -3,
-            "maxX": 865,
-            "maxY": 8,
-            "maxZ": 3
+            "minX": 861.0,
+            "minY": 5.0,
+            "minZ": -2.0,
+            "maxX": 865.0,
+            "maxY": 9.0,
+            "maxZ": 3.0
           },
           "respawn": {
-            "x": 864,
-            "y": 5,
-            "z": 0
+            "x": 863.5,
+            "y": 5.0,
+            "z": 0.5,
+            "yaw": -90.0,
+            "pitch": 0.0
           }
         }
       ]
     },
     {
-      "id": 24,
-      "inBounds": {
-        "minX": 892,
-        "minY": -10,
-        "minZ": -1,
-        "maxX": 927,
-        "maxY": -3,
-        "maxZ": 3
-      },
+      "index": 24,
+      "inBounds": [
+        {
+          "minX": 891.0,
+          "minY": -10.0,
+          "minZ": -2.0,
+          "maxX": 928.0,
+          "maxY": -3.0,
+          "maxZ": 5.0
+        }
+      ],
       "checkPoints": [
         {
           "detectionArea": {
-            "minX": 892,
-            "minY": -8,
-            "minZ": 0,
-            "maxX": 894,
-            "maxY": -6,
-            "maxZ": 2
+            "minX": 892.5,
+            "minY": -8.0,
+            "minZ": -1.0,
+            "maxX": 895.0,
+            "maxY": -3.0,
+            "maxZ": 4.0
           },
           "respawn": {
-            "x": 893,
-            "y": -8,
-            "z": 1
+            "x": 893.5,
+            "y": -8.0,
+            "z": 1.5,
+            "yaw": -90.0,
+            "pitch": 0.0
           }
         }
       ]
     },
     {
-      "id": 25,
-      "inBounds": {
-        "minX": 925,
-        "minY": -10,
-        "minZ": -1,
-        "maxX": 941,
-        "maxY": -3,
-        "maxZ": 3
-      },
+      "index": 25,
+      "inBounds": [
+        {
+          "minX": 924.0,
+          "minY": -10.0,
+          "minZ": -2.0,
+          "maxX": 942.0,
+          "maxY": -3.0,
+          "maxZ": 5.0
+        }
+      ],
       "checkPoints": [
         {
           "detectionArea": {
-            "minX": 925,
-            "minY": -9,
-            "minZ": -1,
-            "maxX": 927,
-            "maxY": -3,
-            "maxZ": 3
+            "minX": 925.0,
+            "minY": -8.0,
+            "minZ": -1.0,
+            "maxX": 928.0,
+            "maxY": -3.0,
+            "maxZ": 4.0
           },
           "respawn": {
-            "x": 926,
-            "y": -8,
-            "z": 1
+            "x": 926.5,
+            "y": -8.0,
+            "z": 1.5,
+            "yaw": -90.0,
+            "pitch": 0.0
           }
         }
       ]
     },
     {
-      "id": 26,
-      "inBounds": {
-        "minX": 939,
-        "minY": -10,
-        "minZ": -2,
-        "maxX": 955,
-        "maxY": -3,
-        "maxZ": 4
-      },
+      "index": 26,
+      "inBounds": [
+        {
+          "minX": 938.0,
+          "minY": -10.0,
+          "minZ": -2.0,
+          "maxX": 957.0,
+          "maxY": -3.0,
+          "maxZ": 5.0
+        }
+      ],
       "checkPoints": [
         {
           "detectionArea": {
-            "minX": 939,
-            "minY": -9,
-            "minZ": -1,
-            "maxX": 941,
-            "maxY": -3,
-            "maxZ": 3
+            "minX": 939.0,
+            "minY": -8.0,
+            "minZ": -1.0,
+            "maxX": 942.0,
+            "maxY": -3.0,
+            "maxZ": 4.0
           },
           "respawn": {
-            "x": 940,
-            "y": -8,
-            "z": 1
+            "x": 940.5,
+            "y": -8.0,
+            "z": 1.5,
+            "yaw": -90.0,
+            "pitch": 0.0
           }
         }
       ]
     },
     {
-      "id": 27,
-      "inBounds": {
-        "minX": 953,
-        "minY": -9,
-        "minZ": -2,
-        "maxX": 972,
-        "maxY": -5,
-        "maxZ": 4
-      },
+      "index": 27,
+      "inBounds": [
+        {
+          "minX": 953.0,
+          "minY": -9.0,
+          "minZ": -3.0,
+          "maxX": 973.0,
+          "maxY": -2.0,
+          "maxZ": 6.0
+        }
+      ],
       "checkPoints": [
         {
           "detectionArea": {
-            "minX": 953,
-            "minY": -8,
-            "minZ": -2,
-            "maxX": 955,
-            "maxY": -6,
-            "maxZ": 4
+            "minX": 953.0,
+            "minY": -8.0,
+            "minZ": -2.0,
+            "maxX": 956.0,
+            "maxY": -5.0,
+            "maxZ": 4.0
           },
           "respawn": {
-            "x": 954,
-            "y": -8,
-            "z": 1
+            "x": 954.0,
+            "y": -8.0,
+            "z": 1.5,
+            "yaw": -90.0,
+            "pitch": 0.0
           }
         }
       ]
     },
     {
-      "id": 28,
-      "inBounds": {
-        "minX": 971,
-        "minY": -9,
-        "minZ": -2,
-        "maxX": 988,
-        "maxY": -5,
-        "maxZ": 2
-      },
+      "index": 28,
+      "inBounds": [
+        {
+          "minX": 969.0,
+          "minY": -9.0,
+          "minZ": -3.0,
+          "maxX": 990.0,
+          "maxY": -2.0,
+          "maxZ": 6.0
+        }
+      ],
       "checkPoints": [
         {
           "detectionArea": {
-            "minX": 971,
-            "minY": -8,
-            "minZ": -2,
-            "maxX": 972,
-            "maxY": -5,
-            "maxZ": 2
+            "minX": 970.0,
+            "minY": -7.0,
+            "minZ": -2.0,
+            "maxX": 973.0,
+            "maxY": -2.0,
+            "maxZ": 3.0
           },
           "respawn": {
-            "x": 971,
-            "y": -7,
-            "z": 0
+            "x": 971.5,
+            "y": -7.0,
+            "z": 0.5,
+            "yaw": -90.0,
+            "pitch": 0.0
           }
         }
       ]
     },
     {
-      "id": 29,
-      "inBounds": {
-        "minX": 986,
-        "minY": -15,
-        "minZ": -2,
-        "maxX": 988,
-        "maxY": -6,
-        "maxZ": 0
-      },
+      "index": 29,
+      "inBounds": [
+        {
+          "minX": 985.0,
+          "minY": -9.0,
+          "minZ": -3.0,
+          "maxX": 990.0,
+          "maxY": -2.0,
+          "maxZ": 2.0
+        }
+      ],
       "checkPoints": [
         {
           "detectionArea": {
-            "minX": 986,
-            "minY": -9,
-            "minZ": -2,
-            "maxX": 988,
-            "maxY": -6,
-            "maxZ": 0
+            "minX": 986.0,
+            "minY": -8.0,
+            "minZ": -2.0,
+            "maxX": 989.0,
+            "maxY": -2.0,
+            "maxZ": 1.0
           },
           "respawn": {
-            "x": 987,
-            "y": -8,
-            "z": -1
+            "x": 987.5,
+            "y": -8.0,
+            "z": -0.5,
+            "yaw": 90.0,
+            "pitch": 0.0
           }
         }
       ]

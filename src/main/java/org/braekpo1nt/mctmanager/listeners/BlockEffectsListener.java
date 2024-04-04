@@ -1,7 +1,7 @@
 package org.braekpo1nt.mctmanager.listeners;
 
 import org.braekpo1nt.mctmanager.Main;
-import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -30,18 +30,17 @@ public class BlockEffectsListener implements Listener {
             return;
         }
         Player player = event.getPlayer();
+        if (player.getGameMode() == GameMode.SPECTATOR) {
+            return;
+        }
         Material standingBlock = player.getLocation().add(0, -1, 0).getBlock().getType();
         switch (standingBlock) {
-            case MAGENTA_GLAZED_TERRACOTTA:
-                player.addPotionEffect(SPEED);
-                break;
-            case LIME_GLAZED_TERRACOTTA:
-                player.addPotionEffect(JUMP);
-                break;
-            case BEDROCK:
+            case MAGENTA_GLAZED_TERRACOTTA -> player.addPotionEffect(SPEED);
+            case LIME_GLAZED_TERRACOTTA -> player.addPotionEffect(JUMP);
+            case BEDROCK -> {
                 player.removePotionEffect(PotionEffectType.JUMP);
                 player.removePotionEffect(PotionEffectType.SPEED);
-                break;
+            }
         }
     }
     

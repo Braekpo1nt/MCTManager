@@ -6,6 +6,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.games.game.config.LocationDTO;
+import org.braekpo1nt.mctmanager.utils.MathUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
@@ -60,14 +61,9 @@ class LocationSubCommand implements CommandExecutor {
         LocationDTO block = new LocationDTO(blockLocation);
         String blockJson = gson.toJson(block);
         
-        LocationDTO rounded = new LocationDTO(new Location(
-                player.getLocation().getWorld(),
-                UtilsUtils.specialRound(player.getLocation().getX(), 0.5),
-                UtilsUtils.specialRound(player.getLocation().getY(), 0.5),
-                UtilsUtils.specialRound(player.getLocation().getZ(), 0.5),
-                UtilsUtils.specialRound(player.getLocation().getYaw(), 45),
-                UtilsUtils.specialRound(player.getLocation().getPitch(), 45)
-        ));
+        LocationDTO rounded = new LocationDTO(
+                MathUtils.specialRound(player.getLocation(), 0.5, 45)
+        );
         String roundedJson = gson.toJson(rounded);
         
         sender.sendMessage(Component.empty()
