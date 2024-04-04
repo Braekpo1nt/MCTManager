@@ -20,6 +20,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
@@ -42,7 +43,6 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     private final FootRaceStorageUtil storageUtil;
     private Sidebar sidebar;
     private Sidebar adminSidebar;
-    
     private boolean gameActive = false;
     private boolean raceHasStarted = false;
     /**
@@ -61,10 +61,6 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     private long raceStartTime;
     private final PotionEffect SPEED = new PotionEffect(PotionEffectType.SPEED, 10000, 8, true, false, false);
     private final PotionEffect INVISIBILITY = new PotionEffect(PotionEffectType.INVISIBILITY, 10000, 1, true, false, false);
-    private final PotionEffect RESISTANCE = new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 70, 200, true, false, false);
-    private final PotionEffect REGENERATION = new PotionEffect(PotionEffectType.REGENERATION, 70, 200, true, false, false);
-    private final PotionEffect FIRE_RESISTANCE = new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 70, 1, true, false, false);
-    private final PotionEffect SATURATION = new PotionEffect(PotionEffectType.SATURATION, 70, 250, true, false, false);
     private int statusEffectsTaskId;
     private final String title = ChatColor.BLUE+"Foot Race";
     
@@ -292,10 +288,6 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
                 for (Player participant : participants) {
                     participant.addPotionEffect(SPEED);
                     participant.addPotionEffect(INVISIBILITY);
-                    participant.addPotionEffect(RESISTANCE);
-                    participant.addPotionEffect(REGENERATION);
-                    participant.addPotionEffect(FIRE_RESISTANCE);
-                    participant.addPotionEffect(SATURATION);
                 }
             }
         }.runTaskTimer(plugin, 0L, 60L).getTaskId();
@@ -546,6 +538,18 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         if (!participants.contains(participant)) {
             return;
         }
+        event.setCancelled(true);
+    }
+    
+    @EventHandler
+    public void onPlayerLoseHunger(FoodLevelChangeEvent event) {
+        if (!(event.getEntity() instanceof Player participant)) {
+            return;
+        }
+        if (!participants.contains(participant)) {
+            return;
+        }
+        participant.setFoodLevel(20);
         event.setCancelled(true);
     }
     
