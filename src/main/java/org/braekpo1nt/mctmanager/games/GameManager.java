@@ -660,6 +660,7 @@ public class GameManager implements Listener {
                     .append(Component.text(e.getMessage()))
                     .color(NamedTextColor.RED);
             sender.sendMessage(message);
+            return;
         }
         sender.sendMessage(Component.text("Config loaded.")
                 .color(NamedTextColor.GREEN));

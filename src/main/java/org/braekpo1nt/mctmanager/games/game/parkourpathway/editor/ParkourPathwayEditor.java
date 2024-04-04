@@ -579,7 +579,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
                         .append(Component.text("/"))
                         .append(Component.text(numOfInBounds + 1))
                 );
-                BoundingBox newInBound = createInBound(participant.getLocation().toVector());
+                BoundingBox newInBound = createInBound(participant.getLocation());
                 currentPuzzle.inBounds().add(newInBound);
                 selectInBound(participant, numOfInBounds);
             }
@@ -644,13 +644,13 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
      */
     private Puzzle createPuzzle(@NotNull Location respawn) {
         Location p = respawn.toBlockLocation();
-        BoundingBox inBounds = createInBound(p.toVector());
+        BoundingBox inBounds = createInBound(p);
         CheckPoint checkPoint = createCheckPoint(p);
         return new Puzzle(List.of(inBounds), new ArrayList<>(List.of(checkPoint)));
     }
     
-    private static BoundingBox createInBound(@NotNull Vector origin) {
-        BlockVector p = origin.toBlockVector();
+    private static BoundingBox createInBound(@NotNull Location origin) {
+        Location p = origin.toBlockLocation();
         return new BoundingBox(
                 p.getX(),
                 p.getY(),
