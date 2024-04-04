@@ -11,6 +11,8 @@ import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.config.ParkourPathwayStorageUtil;
+import org.braekpo1nt.mctmanager.games.game.parkourpathway.puzzle.CheckPoint;
+import org.braekpo1nt.mctmanager.games.game.parkourpathway.puzzle.Puzzle;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
@@ -33,6 +35,7 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
+import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
@@ -163,13 +166,17 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         Preconditions.checkArgument(0 <= nextIndex, "nextIndex must be at least 0");
         Puzzle puzzle = storageUtil.getPuzzle(index);
         Display display = new Display(plugin);
-        display.addChild(new Display(plugin, GeometryUtils.toRectanglePoints(puzzle.inBounds(), 2), Color.fromRGB(255, 0, 0)));
+        for (BoundingBox bound : puzzle.inBounds()) {
+            display.addChild(new Display(plugin, GeometryUtils.toRectanglePoints(bound, 2), Color.fromRGB(255, 0, 0)));
+        }
         display.addChild(new Display(plugin, GeometryUtils.toEdgePoints(puzzle.checkPoints().get(0).detectionArea(), 1), Color.fromRGB(0, 0, 255)));
         display.addChild(new Display(plugin, Collections.singletonList(puzzle.checkPoints().get(0).respawn().toVector()), Color.fromRGB(0, 255, 0)));
         
         if (nextIndex < storageUtil.getPuzzlesSize()) {
             Puzzle nextPuzzle = storageUtil.getPuzzle(nextIndex);
-            display.addChild(new Display(plugin, GeometryUtils.toRectanglePoints(nextPuzzle.inBounds(), 2), Color.fromRGB(100, 0, 0)));
+            for (BoundingBox bound : nextPuzzle.inBounds()) {
+                display.addChild(new Display(plugin, GeometryUtils.toRectanglePoints(bound, 2), Color.fromRGB(100, 0, 0)));
+            }
             display.addChild(new Display(plugin, GeometryUtils.toEdgePoints(nextPuzzle.checkPoints().get(0).detectionArea(), 1), Color.fromRGB(0, 0, 100)));
             display.addChild(new Display(plugin, Collections.singletonList(nextPuzzle.checkPoints().get(0).respawn().toVector()), Color.fromRGB(0, 100, 0)));
         }
@@ -393,7 +400,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
             return;
         }
         Puzzle currentPuzzle = storageUtil.getPuzzle(currentPuzzleIndex);
-        if (!isParticipantOutOfBounds(participant, currentPuzzle)) {
+        if (!currentPuzzle.isInBounds(participant.getLocation().toVector())) {
             onParticipantOutOfBounds(participant, currentPuzzle);
         }
         Puzzle nextPuzzle = storageUtil.getPuzzle(nextPuzzleIndex);
@@ -403,17 +410,8 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         }
     }
     
-    /**
-     * @param participant the participant who may be out of bounds
-     * @param puzzle the puzzle the player should be in the bounds of
-     * @return true if the given participant is out of bounds of the given puzzle
-     */
-    private static boolean isParticipantOutOfBounds(Player participant, Puzzle puzzle) {
-        return puzzle.inBounds().contains(participant.getLocation().toVector());
-    }
-    
     private void onParticipantOutOfBounds(Player participant, Puzzle currentPuzzle) {
-        Puzzle.CheckPoint currentCheckPoint = currentPuzzle.checkPoints().get(currentPuzzleCheckpoints.get(participant.getUniqueId()));
+        CheckPoint currentCheckPoint = currentPuzzle.checkPoints().get(currentPuzzleCheckpoints.get(participant.getUniqueId()));
         Location respawn = currentCheckPoint.respawn().setDirection(participant.getLocation().getDirection());
         participant.teleport(respawn);
     }
@@ -463,7 +461,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
      */
     private static int participantReachedCheckPoint(Vector v, Puzzle puzzle) {
         for (int i = 0; i < puzzle.checkPoints().size(); i++) {
-            Puzzle.CheckPoint nextCheckPoint = puzzle.checkPoints().get(i);
+            CheckPoint nextCheckPoint = puzzle.checkPoints().get(i);
             if (nextCheckPoint.detectionArea().contains(v)) {
                 return i;
             }

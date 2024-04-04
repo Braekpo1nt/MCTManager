@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.bukkit.util.BoundingBox;
 
+import java.util.List;
+
 /**
  * An abstraction of the {@link BoundingBox} for gson serialization/deserialization purposes.
  * <p>
@@ -20,6 +22,10 @@ public class BoundingBoxDTO {
     
     public static BoundingBoxDTO from(BoundingBox boundingBox) {
         return new BoundingBoxDTO(boundingBox.getMinX(), boundingBox.getMinY(), boundingBox.getMinZ(), boundingBox.getMaxX(), boundingBox.getMaxY(), boundingBox.getMaxZ());
+    }
+    
+    public static List<BoundingBoxDTO> from(List<BoundingBox> boundingBoxes) {
+        return boundingBoxes.stream().map(BoundingBoxDTO::from).toList();
     }
     
     /**

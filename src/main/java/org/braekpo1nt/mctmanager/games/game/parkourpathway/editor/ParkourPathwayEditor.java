@@ -11,7 +11,8 @@ import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.GameEditor;
-import org.braekpo1nt.mctmanager.games.game.parkourpathway.Puzzle;
+import org.braekpo1nt.mctmanager.games.game.parkourpathway.puzzle.CheckPoint;
+import org.braekpo1nt.mctmanager.games.game.parkourpathway.puzzle.Puzzle;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.config.ParkourPathwayStorageUtil;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
@@ -71,9 +72,13 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
      */
     private Map<UUID, Integer> currentPuzzles;
     /**
+     * the index of the inBounds box each participant is editing
+     */
+    private Map<UUID, Integer> currentInBounds;
+    /**
      * The index of the checkpoint that a participant is editing in their current puzzle (since there can be multiple)
      */
-    private Map<UUID, Integer> currentPuzzleCheckPoints;
+    private Map<UUID, Integer> currentCheckPoints;
     private boolean editorStarted = false;
     
     public ParkourPathwayEditor(Main plugin, GameManager gameManager) {
@@ -168,7 +173,8 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
      */
     private void reloadDisplay(Player participant) {
         int currentPuzzle = currentPuzzles.get(participant.getUniqueId());
-        int currentCheckPoint = currentPuzzleCheckPoints.get(participant.getUniqueId());
+        int currentCheckPoint = currentCheckPoints.get(participant.getUniqueId());
+        int currentBound = currentInBounds.get(participant.getUniqueId());
         Display display = puzzlesToDisplay(currentPuzzle, currentCheckPoint);
         replaceDisplay(participant, display);
     }
@@ -206,7 +212,8 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
     public void start(List<Player> newParticipants) {
         participants = new ArrayList<>(newParticipants.size());
         currentPuzzles = new HashMap<>(newParticipants.size());
-        currentPuzzleCheckPoints = new HashMap<>(newParticipants.size());
+        currentInBounds = new HashMap<>(newParticipants.size());
+        currentCheckPoints = new HashMap<>(newParticipants.size());
         puzzles = storageUtil.deepCopyPuzzles();
         displays = new HashMap<>(newParticipants.size());
         sidebar = gameManager.getSidebarFactory().createSidebar();
@@ -226,7 +233,8 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
     public void initializeParticipant(Player participant) {
         participants.add(participant);
         currentPuzzles.put(participant.getUniqueId(), 0);
-        currentPuzzleCheckPoints.put(participant.getUniqueId(), 0);
+        currentInBounds.put(participant.getUniqueId(), 0);
+        currentCheckPoints.put(participant.getUniqueId(), 0);
         displays.put(participant.getUniqueId(), new Display(plugin));
         sidebar.addPlayer(participant);
         participant.getInventory().clear();
@@ -246,7 +254,8 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
         clearSidebar();
         participants.clear();
         currentPuzzles.clear();
-        currentPuzzleCheckPoints.clear();
+        currentCheckPoints.clear();
+        currentInBounds.clear();
         displays.clear();
         displayWalls = true;
         Bukkit.getLogger().info("Stopping Parkour Pathway editor");
@@ -309,8 +318,9 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
     private void useInBoundsWand(Player participant, Action action) {
         BlockFace direction = EntityUtils.getPlayerDirection(participant.getLocation());
         int currentPuzzleIndex = currentPuzzles.get(participant.getUniqueId());
+        int currentInBoundIndex = currentInBounds.get(participant.getUniqueId());
         Puzzle currentPuzzle = puzzles.get(currentPuzzleIndex);
-        BoundingBox inBounds = currentPuzzle.inBounds();
+        BoundingBox inBounds = currentPuzzle.inBounds().get(currentInBoundIndex);
         double increment = participant.isSneaking() ? 0.5 : 1.0;
         switch (action) {
             case LEFT_CLICK_AIR, LEFT_CLICK_BLOCK -> {
@@ -342,14 +352,13 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
         reloadDisplaysForPuzzle(currentPuzzleIndex);
     }
     
-    
-    
     private void useDetectionAreaWand(Player participant, Action action) {
         BlockFace direction = EntityUtils.getPlayerDirection(participant.getLocation());
         int currentPuzzleIndex = currentPuzzles.get(participant.getUniqueId());
-        int currentCheckpointIndex = currentPuzzleCheckPoints.get(participant.getUniqueId());
+        int currentCheckpointIndex = currentCheckPoints.get(participant.getUniqueId());
+        int currentInBoundIndex = currentInBounds.get(participant.getUniqueId());
         Puzzle currentPuzzle = puzzles.get(currentPuzzleIndex);
-        Puzzle.CheckPoint currentCheckpoint = currentPuzzle.checkPoints().get(currentCheckpointIndex);
+        CheckPoint currentCheckpoint = currentPuzzle.checkPoints().get(currentCheckpointIndex);
         BoundingBox detectionArea = currentCheckpoint.detectionArea();
         double increment = participant.isSneaking() ? 0.5 : 1.0;
         switch (action) {
@@ -384,9 +393,10 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
     
     private void useRespawnWand(Player participant, Action action) {
         int currentPuzzleIndex = currentPuzzles.get(participant.getUniqueId());
-        int currentCheckpointIndex = currentPuzzleCheckPoints.get(participant.getUniqueId());
+        int currentCheckpointIndex = currentCheckPoints.get(participant.getUniqueId());
+        int currentInBoundsIndex = currentInBounds.get(participant.getUniqueId());
         Puzzle currentPuzzle = puzzles.get(currentPuzzleIndex);
-        Puzzle.CheckPoint currentCheckpoint = currentPuzzle.checkPoints().get(currentCheckpointIndex);
+        CheckPoint currentCheckpoint = currentPuzzle.checkPoints().get(currentCheckpointIndex);
         Location respawn = currentCheckpoint.respawn();
         Location location = participant.getLocation();
         if (action.isRightClick()) {
@@ -447,7 +457,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
     private void useCheckpointSelectWand(Player participant, Action action) {
         int currentPuzzleIndex = currentPuzzles.get(participant.getUniqueId());
         Puzzle currentPuzzle = puzzles.get(currentPuzzleIndex);
-        int currentPuzzleCheckPoint = currentPuzzleCheckPoints.get(participant.getUniqueId());
+        int currentPuzzleCheckPoint = currentCheckPoints.get(participant.getUniqueId());
         int numOfCheckPoints = currentPuzzle.checkPoints().size();
         switch (action) {
             case LEFT_CLICK_AIR, LEFT_CLICK_BLOCK -> {
@@ -494,7 +504,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
                         .append(Component.text("/"))
                         .append(Component.text(numOfCheckPoints + 1))
                 );
-                Puzzle.CheckPoint newCheckPoint = createCheckPoint(participant.getLocation());
+                CheckPoint newCheckPoint = createCheckPoint(participant.getLocation());
                 currentPuzzle.checkPoints().add(newCheckPoint);
                 selectCheckPoint(participant, numOfCheckPoints);
             }
@@ -504,7 +514,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
                             .color(NamedTextColor.RED));
                     return;
                 }
-                int currentPuzzleCheckPoint = currentPuzzleCheckPoints.get(participant.getUniqueId());
+                int currentPuzzleCheckPoint = currentCheckPoints.get(participant.getUniqueId());
                 currentPuzzle.checkPoints().remove(currentPuzzleCheckPoint);
                 participant.sendMessage(Component.text("Remove check point index ")
                         .append(Component.text(currentPuzzleCheckPoint))
@@ -522,7 +532,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
      * @return a new check point with the given respawn and a 1x2x1 detection area
      */
     @NotNull
-    private static Puzzle.CheckPoint createCheckPoint(@NotNull Location respawn) {
+    private static CheckPoint createCheckPoint(@NotNull Location respawn) {
         Location p = respawn.toBlockLocation();
         BoundingBox newDetectionArea = new BoundingBox(
                 p.getX(), 
@@ -531,7 +541,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
                 p.getX() + 1, 
                 p.getY() + 2, 
                 p.getZ() + 1);
-        return new Puzzle.CheckPoint(newDetectionArea, p);
+        return new CheckPoint(newDetectionArea, p);
     }
     
     private void useAddRemovePuzzleWand(Player participant, Action action) {
@@ -585,8 +595,8 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
                 p.getY() + 3,
                 p.getZ() + 2
         );
-        Puzzle.CheckPoint checkPoint = createCheckPoint(p);
-        return new Puzzle(inBounds, new ArrayList<>(List.of(checkPoint)), false);
+        CheckPoint checkPoint = createCheckPoint(p);
+        return new Puzzle(List.of(inBounds), new ArrayList<>(List.of(checkPoint)));
     }
     
     /**
@@ -598,7 +608,8 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
     private void selectPuzzle(Player participant, int puzzleIndex, boolean teleport) {
         Preconditions.checkArgument(0 <= puzzleIndex && puzzleIndex < puzzles.size(), "puzzleIndex %s out of bounds for length %s", puzzleIndex, puzzles.size());
         currentPuzzles.put(participant.getUniqueId(), puzzleIndex);
-        currentPuzzleCheckPoints.put(participant.getUniqueId(), 0);
+        currentCheckPoints.put(participant.getUniqueId(), 0);
+        currentInBounds.put(participant.getUniqueId(), 0);
         reloadDisplay(participant);
         Puzzle selectedPuzzle = puzzles.get(puzzleIndex);
         if (teleport) {
@@ -621,7 +632,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
         int currentPuzzleIndex = currentPuzzles.get(participant.getUniqueId());
         Puzzle currentPuzzle = puzzles.get(currentPuzzleIndex);
         Preconditions.checkArgument(0 <= checkPointIndex && checkPointIndex < currentPuzzle.checkPoints().size(), "checkPointIndex %s out of bounds for length %s", checkPointIndex, currentPuzzle.checkPoints().size());
-        currentPuzzleCheckPoints.put(participant.getUniqueId(), checkPointIndex);
+        currentCheckPoints.put(participant.getUniqueId(), checkPointIndex);
         reloadDisplay(participant);
         participant.sendMessage(Component.text("Selected check point index ")
                 .append(Component.text(checkPointIndex))
@@ -655,13 +666,11 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
     
     // current
     private static final Color IN_BOUNDS_COLOR =  Color.fromRGB(255, 0, 0);
-    private static final Color TRANSITION_IN_BOUNDS_COLOR =  Color.ORANGE;
     private static final Color DETECTION_AREA_COLOR =  Color.fromRGB(0, 0, 150);
     private static final Color HIGHLIGHT_COLOR =  Color.fromRGB(0, 0, 255);
     private static final Color RESPAWN_COLOR =  Color.fromRGB(0, 255, 0);
     // next
     private static final Color NEXT_IN_BOUNDS_COLOR =  Color.fromRGB(100, 0, 0);
-    private static final Color NEXT_TRANSITION_IN_BOUNDS_COLOR = Color.fromRGB(100, 55, 0);
     private static final Color NEXT_DETECTION_AREA_COLOR =  Color.fromRGB(0, 0, 50);
     private static final Color NEXT_RESPAWN_COLOR =  Color.fromRGB(0, 100, 0);
     
@@ -674,13 +683,11 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
     private @NotNull Display puzzlesToDisplay(int puzzleIndex, int checkPointIndex) {
         Preconditions.checkArgument(0 <= puzzleIndex && puzzleIndex < puzzles.size(), "index must be between [0, %s] inclusive", puzzles.size());
         Puzzle puzzle = puzzles.get(puzzleIndex);
-        Color inBoundsColor = puzzle.transition() ? TRANSITION_IN_BOUNDS_COLOR : IN_BOUNDS_COLOR;
-        Display display = puzzleToDisplay(puzzle, inBoundsColor, DETECTION_AREA_COLOR, RESPAWN_COLOR, checkPointIndex, HIGHLIGHT_COLOR);
+        Display display = puzzleToDisplay(puzzle, IN_BOUNDS_COLOR, DETECTION_AREA_COLOR, RESPAWN_COLOR, checkPointIndex, HIGHLIGHT_COLOR);
         int nextIndex = puzzleIndex + 1;
         if (nextIndex < puzzles.size()) {
             Puzzle nextPuzzle = puzzles.get(nextIndex);
-            Color nextInBoundsColor = nextPuzzle.transition() ? NEXT_TRANSITION_IN_BOUNDS_COLOR : NEXT_IN_BOUNDS_COLOR;
-            Display nextDisplay = puzzleToDisplay(nextPuzzle, nextInBoundsColor, NEXT_DETECTION_AREA_COLOR, NEXT_RESPAWN_COLOR, -1, null);
+            Display nextDisplay = puzzleToDisplay(nextPuzzle, NEXT_IN_BOUNDS_COLOR, NEXT_DETECTION_AREA_COLOR, NEXT_RESPAWN_COLOR, -1, null);
             display.addChild(nextDisplay);
         }
         return display;
@@ -699,15 +706,17 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
     private @NotNull Display puzzleToDisplay(@NotNull Puzzle puzzle, @NotNull Color inBoundsColor, @NotNull Color detectionAreaColor, @NotNull Color respawnColor, int highlightIndex, @Nullable Color highLightColor) {
         Color highlight = highLightColor != null ? highLightColor : detectionAreaColor;
         Display display = new Display(plugin);
-        List<Vector> inBoundsPoints;
-        if (displayWalls) {
-            inBoundsPoints = GeometryUtils.toRectanglePoints(puzzle.inBounds(), 2);
-        } else {
-            inBoundsPoints = GeometryUtils.toEdgePoints(puzzle.inBounds(), 2);
+        List<Vector> inBoundsPoints = new ArrayList<>();
+        for (BoundingBox box : puzzle.inBounds()) {
+            if (displayWalls) {
+                inBoundsPoints.addAll(GeometryUtils.toRectanglePoints(box, 2));
+            } else {
+                inBoundsPoints.addAll(GeometryUtils.toEdgePoints(box, 2));
+            }
         }
         display.addChild(new Display(plugin, inBoundsPoints, inBoundsColor));
         for (int i = 0; i < puzzle.checkPoints().size(); i++) {
-            Puzzle.CheckPoint checkPoint = puzzle.checkPoints().get(i);
+            CheckPoint checkPoint = puzzle.checkPoints().get(i);
             if (i == highlightIndex) {
                 display.addChild(new Display(plugin, GeometryUtils.toEdgePoints(checkPoint.detectionArea(), 1), highlight));
             } else {
