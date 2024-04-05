@@ -4,6 +4,7 @@ import org.braekpo1nt.mctmanager.commands.MCTCommand;
 import org.braekpo1nt.mctmanager.commands.MCTDebugCommand;
 import org.braekpo1nt.mctmanager.commands.utils.UtilsCommand;
 import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.listeners.BlockEffectsListener;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -25,6 +26,7 @@ public class Main extends JavaPlugin {
     public void onEnable() {
         
         Scoreboard mctScoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
+        ParticipantInitializer.setPlugin(this); //TODO: remove this in favor of death and respawn combination 
         
         gameManager = new GameManager(this, mctScoreboard);
         try {

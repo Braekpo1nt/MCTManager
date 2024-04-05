@@ -22,6 +22,7 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
@@ -47,8 +48,6 @@ public class SpleefRound implements Listener {
     private boolean spleefHasStarted = false;
     private boolean roundActive = false;
     private final SpleefGame spleefGame;
-    private final PotionEffect SATURATION = new PotionEffect(PotionEffectType.SATURATION, 70, 250, true, false, false);
-    private int statusEffectsTaskId;
     private int startCountDownTaskID;
     private int decayTaskId;
     
@@ -72,7 +71,6 @@ public class SpleefRound implements Listener {
         initializeSidebar();
         initializeAdminSidebar();
         setupTeamOptions();
-        startStatusEffectsTask();
         startRoundStartingCountDown();
         spleefHasStarted = false;
         roundActive = true;
@@ -198,6 +196,18 @@ public class SpleefRound implements Listener {
         if (!spleefHasStarted) {
             event.setCancelled(true);
         }
+    }
+    
+    @EventHandler
+    public void onPlayerLoseHunger(FoodLevelChangeEvent event) {
+        if (!(event.getEntity() instanceof Player participant)) {
+            return;
+        }
+        if (!participants.contains(participant)) {
+            return;
+        }
+        participant.setFoodLevel(20);
+        event.setCancelled(true);
     }
     
     @EventHandler
@@ -450,17 +460,6 @@ public class SpleefRound implements Listener {
         event.setDropItems(false);
     }
     
-    private void startStatusEffectsTask() {
-        this.statusEffectsTaskId = new BukkitRunnable(){
-            @Override
-            public void run() {
-                for (Player participant : participants) {
-                    participant.addPotionEffect(SATURATION);
-                }
-            }
-        }.runTaskTimer(plugin, 0L, 60L).getTaskId();
-    }
-    
     private void setupTeamOptions() {
         Scoreboard mctScoreboard = gameManager.getMctScoreboard();
         for (Team team : mctScoreboard.getTeams()) {
@@ -496,7 +495,6 @@ public class SpleefRound implements Listener {
     
     private void cancelAllTasks() {
         Bukkit.getScheduler().cancelTask(startCountDownTaskID);
-        Bukkit.getScheduler().cancelTask(statusEffectsTaskId);
         Bukkit.getScheduler().cancelTask(decayTaskId);
     }
     
