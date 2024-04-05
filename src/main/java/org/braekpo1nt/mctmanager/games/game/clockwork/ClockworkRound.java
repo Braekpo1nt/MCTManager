@@ -102,7 +102,6 @@ public class ClockworkRound implements Listener {
         }
         participant.teleport(storageUtil.getStartingLocation());
         participant.getInventory().clear();
-        giveBoots(participant);
         participant.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
@@ -226,6 +225,7 @@ public class ClockworkRound implements Listener {
         for (Player participant : participants) {
             if (participantsAreAlive.get(participant.getUniqueId())) {
                 participant.teleport(storageUtil.getStartingLocation());
+                participant.setArrowsInBody(0);
             }
         }
         this.clockChimeTaskId = new BukkitRunnable() {
@@ -495,15 +495,6 @@ public class ClockworkRound implements Listener {
         roundIsOver();
     }
     
-    private void giveBoots(Player participant) {
-        Color teamColor = gameManager.getTeamColor(participant.getUniqueId());
-        ItemStack boots = new ItemStack(Material.LEATHER_BOOTS);
-        LeatherArmorMeta meta = (LeatherArmorMeta) boots.getItemMeta();
-        meta.setColor(teamColor);
-        boots.setItemMeta(meta);
-        participant.getEquipment().setBoots(boots);
-    }
-
     private void setupTeamOptions() {
         Scoreboard mctScoreboard = gameManager.getMctScoreboard();
         for (Team team : mctScoreboard.getTeams()) {
