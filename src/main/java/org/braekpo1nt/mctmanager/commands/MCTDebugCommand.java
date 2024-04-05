@@ -4,6 +4,8 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.utils.EntityUtils;
+import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.block.BlockFace;
 import org.bukkit.command.Command;
@@ -12,6 +14,7 @@ import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
@@ -44,12 +47,6 @@ public class MCTDebugCommand implements TabExecutor, Listener {
                     .color(NamedTextColor.RED));
             return true;
         }
-    
-        float yaw = player.getLocation().getYaw();
-        float pitch = player.getLocation().getPitch();
-        BlockFace direction = EntityUtils.getPlayerDirection(yaw, pitch);
-        sender.sendMessage(direction.toString());
-
 //        Component mainTitle = Component.text("Main title");
 //        Component subTitle = Component.text("Subtitle");
 //
