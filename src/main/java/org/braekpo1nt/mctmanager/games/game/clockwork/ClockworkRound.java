@@ -506,7 +506,7 @@ public class ClockworkRound implements Listener {
             team.setCanSeeFriendlyInvisibles(true);
             team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.ALWAYS);
             team.setOption(Team.Option.DEATH_MESSAGE_VISIBILITY, Team.OptionStatus.ALWAYS);
-            team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.ALWAYS);
+            team.setOption(Team.Option.COLLISION_RULE, storageUtil.getCollisionRule());
         }
     }
     
@@ -517,10 +517,13 @@ public class ClockworkRound implements Listener {
         }
     }
     
+    /**
+     * Sets the collision rule to whatever is in the config
+     */
     private void turnOnCollisions() {
         Scoreboard mctScoreboard = gameManager.getMctScoreboard();
         for (Team team : mctScoreboard.getTeams()) {
-            team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.ALWAYS);
+            team.setOption(Team.Option.COLLISION_RULE, storageUtil.getCollisionRule());
         }
     }
     

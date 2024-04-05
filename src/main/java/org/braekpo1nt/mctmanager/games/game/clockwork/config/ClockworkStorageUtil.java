@@ -11,6 +11,7 @@ import org.braekpo1nt.mctmanager.games.game.config.GameConfigStorageUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -61,6 +62,7 @@ public class ClockworkStorageUtil extends GameConfigStorageUtil<ClockworkConfig>
         Preconditions.checkArgument(config.initialChimeInterval() >= 0, "initialChimeInterval can't be negative");
         Preconditions.checkArgument(config.chimeIntervalDecrement() >= 0, "chimeIntervalDecrement can't be negative");
         Preconditions.checkArgument(config.chimeIntervalDecrement() > 0, "chimeIntervalDecrement (%s) can't be greater than initialChimeInterval (%s)", config.chimeIntervalDecrement(), config.initialChimeInterval());
+        Preconditions.checkArgument(config.collisionRule() != null, "collisionRule can't be null");
         Preconditions.checkArgument(config.scores() != null, "scores can't be null");
         Preconditions.checkArgument(config.durations() != null, "durations can't be null");
         Preconditions.checkArgument(config.durations().breather() >= 0, "durations.breather can't be negative");
@@ -193,6 +195,13 @@ public class ClockworkStorageUtil extends GameConfigStorageUtil<ClockworkConfig>
     
     public ClockworkConfig.Chaos getChaos() {
         return clockworkConfig.chaos();
+    }
+    
+    /**
+     * @return the collision rule for players
+     */
+    public Team.OptionStatus getCollisionRule() {
+        return clockworkConfig.collisionRule();
     }
     
     public Component getDescription() {
