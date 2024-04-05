@@ -9,7 +9,9 @@ import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.bukkit.Bukkit;
+import org.bukkit.Color;
 import org.bukkit.GameMode;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
@@ -17,6 +19,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
@@ -50,6 +54,10 @@ public class ClockworkRound implements Listener {
      * indicates whether players should be killed if they step off of the wedge indicated by numberOfChimes
      */
     private boolean mustStayOnWedge = false;
+    /**
+     * indicates whether the bell is ringing still and players should be kept in the center
+     */
+    private boolean bellIsRinging = false;
     
     public ClockworkRound(Main plugin, GameManager gameManager, ClockworkGame clockworkGame, ClockworkStorageUtil storageUtil, int roundNumber, Sidebar sidebar, Sidebar adminSidebar) {
         this.plugin = plugin;
@@ -95,6 +103,7 @@ public class ClockworkRound implements Listener {
         }
         participant.teleport(storageUtil.getStartingLocation());
         participant.getInventory().clear();
+        giveBoots(participant);
         participant.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
@@ -468,6 +477,15 @@ public class ClockworkRound implements Listener {
             }
         }
         roundIsOver();
+    }
+    
+    private void giveBoots(Player participant) {
+        Color teamColor = gameManager.getTeamColor(participant.getUniqueId());
+        ItemStack boots = new ItemStack(Material.LEATHER_BOOTS);
+        LeatherArmorMeta meta = (LeatherArmorMeta) boots.getItemMeta();
+        meta.setColor(teamColor);
+        boots.setItemMeta(meta);
+        participant.getEquipment().setBoots(boots);
     }
 
     private void setupTeamOptions() {

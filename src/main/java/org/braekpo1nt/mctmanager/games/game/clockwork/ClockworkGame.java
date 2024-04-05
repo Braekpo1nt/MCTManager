@@ -20,6 +20,9 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 
@@ -37,6 +40,8 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
     private List<Player> admins = new ArrayList<>();
     private List<ClockworkRound> rounds;
     private int currentRoundIndex = 0;
+    private final PotionEffect INVISIBILITY = new PotionEffect(PotionEffectType.INVISIBILITY, 10000, 1, true, false, false);
+    private int statusEffectsTaskId;
     private boolean gameActive = false;
     
     public ClockworkGame(Main plugin, GameManager gameManager) {
@@ -72,6 +77,7 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
         currentRoundIndex = 0;
         setupTeamOptions();
         startAdmins(newAdmins);
+        startStatusEffectsTask();
         startNextRound();
         displayDescription();
         gameActive = true;
@@ -207,7 +213,7 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
     }
     
     private void cancelAllTasks() {
-        
+        Bukkit.getScheduler().cancelTask(statusEffectsTaskId);
     }
     
     /**
@@ -244,6 +250,17 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
             return;
         }
         event.setCancelled(true);
+    }
+    
+    private void startStatusEffectsTask() {
+        this.statusEffectsTaskId = new BukkitRunnable(){
+            @Override
+            public void run() {
+                for (Player participant : participants) {
+                    participant.addPotionEffect(INVISIBILITY);
+                }
+            }
+        }.runTaskTimer(plugin, 0L, 60L).getTaskId();
     }
     
     private void initializeAdminSidebar() {
