@@ -16,8 +16,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -375,6 +373,9 @@ public class ClockworkRound implements Listener {
         if (!participants.contains(participant)) {
             return;
         }
+        if (!participantsAreAlive.get(participant.getUniqueId())) {
+            return;
+        }
         if (clockIsChiming) {
             Location stayLoc = event.getTo();
             Vector position = storageUtil.getStartingLocation().toVector();
@@ -384,9 +385,6 @@ public class ClockworkRound implements Listener {
             return;
         }
         if (!mustStayOnWedge) {
-            return;
-        }
-        if (!participantsAreAlive.get(participant.getUniqueId())) {
             return;
         }
         Wedge currentWedge = storageUtil.getWedges().get(numberOfChimes - 1);
