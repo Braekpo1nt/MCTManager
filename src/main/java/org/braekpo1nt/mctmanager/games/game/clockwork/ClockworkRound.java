@@ -8,8 +8,7 @@ import org.braekpo1nt.mctmanager.games.game.clockwork.config.ClockworkStorageUti
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
-import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
+import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
@@ -17,9 +16,12 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
+import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -43,6 +45,8 @@ public class ClockworkRound implements Listener {
     private int clockChimeTaskId;
     private int getToWedgeDelayTaskId;
     private int stayOnWedgeDelayTaskId;
+    private int statusEffectsTaskId;
+    private final PotionEffect INVISIBILITY = new PotionEffect(PotionEffectType.INVISIBILITY, 10000, 1, true, false, false);
     private final Random random = new Random();
     private int numberOfChimes = 1;
     private double chimeInterval = 20;
@@ -50,6 +54,10 @@ public class ClockworkRound implements Listener {
      * indicates whether players should be killed if they step off of the wedge indicated by numberOfChimes
      */
     private boolean mustStayOnWedge = false;
+    /**
+     * indicates whether the clock is chiming still and players should be kept in the center
+     */
+    private boolean clockIsChiming = false;
     
     public ClockworkRound(Main plugin, GameManager gameManager, ClockworkGame clockworkGame, ClockworkStorageUtil storageUtil, int roundNumber, Sidebar sidebar, Sidebar adminSidebar) {
         this.plugin = plugin;
@@ -71,6 +79,7 @@ public class ClockworkRound implements Listener {
         this.participantsAreAlive = new HashMap<>(newParticipants.size());
         this.teamsLivingMembers = new HashMap<>();
         mustStayOnWedge = false;
+        clockIsChiming = false;
         roundActive = true;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         for (Player participant : newParticipants) {
@@ -78,6 +87,7 @@ public class ClockworkRound implements Listener {
         }
         chimeInterval = storageUtil.getInitialChimeInterval();
         setupTeamOptions();
+        startStatusEffectsTask();
         startBreatherDelay();
         chaosManager.start();
         Bukkit.getLogger().info("Starting Clockwork Round " + roundNumber);
@@ -187,6 +197,7 @@ public class ClockworkRound implements Listener {
         Bukkit.getScheduler().cancelTask(clockChimeTaskId);
         Bukkit.getScheduler().cancelTask(getToWedgeDelayTaskId);
         Bukkit.getScheduler().cancelTask(stayOnWedgeDelayTaskId);
+        Bukkit.getScheduler().cancelTask(statusEffectsTaskId);
     }
     
     private void startBreatherDelay() {
@@ -213,11 +224,21 @@ public class ClockworkRound implements Listener {
         sidebar.updateLine("timer", "Chiming...");
         adminSidebar.updateLine("timer", "Chiming...");
         this.numberOfChimes = random.nextInt(1, 13);
+        clockIsChiming = true;
+        turnOffCollisions();
+        for (Player participant : participants) {
+            if (participantsAreAlive.get(participant.getUniqueId())) {
+                participant.teleport(storageUtil.getStartingLocation());
+                participant.setArrowsInBody(0);
+            }
+        }
         this.clockChimeTaskId = new BukkitRunnable() {
             int count = numberOfChimes;
             @Override
             public void run() {
                 if (count <= 0) {
+                    clockIsChiming = false;
+                    turnOnCollisions();
                     startGetToWedgeDelay();
                     this.cancel();
                     return;
@@ -348,14 +369,22 @@ public class ClockworkRound implements Listener {
         if (!roundActive) {
             return;
         }
-        if (!mustStayOnWedge) {
-            return;
-        }
         Player participant = event.getPlayer();
         if (!participants.contains(participant)) {
             return;
         }
         if (!participantsAreAlive.get(participant.getUniqueId())) {
+            return;
+        }
+        if (clockIsChiming) {
+            Location stayLoc = event.getTo();
+            Vector position = storageUtil.getStartingLocation().toVector();
+            if (!stayLoc.toVector().equals(position)) {
+                participant.teleport(position.toLocation(stayLoc.getWorld(), stayLoc.getYaw(), stayLoc.getPitch()));
+            }
+            return;
+        }
+        if (!mustStayOnWedge) {
             return;
         }
         Wedge currentWedge = storageUtil.getWedges().get(numberOfChimes - 1);
@@ -469,7 +498,7 @@ public class ClockworkRound implements Listener {
         }
         roundIsOver();
     }
-
+    
     private void setupTeamOptions() {
         Scoreboard mctScoreboard = gameManager.getMctScoreboard();
         for (Team team : mctScoreboard.getTeams()) {
@@ -477,8 +506,36 @@ public class ClockworkRound implements Listener {
             team.setCanSeeFriendlyInvisibles(true);
             team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.ALWAYS);
             team.setOption(Team.Option.DEATH_MESSAGE_VISIBILITY, Team.OptionStatus.ALWAYS);
-            team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.ALWAYS);
+            team.setOption(Team.Option.COLLISION_RULE, storageUtil.getCollisionRule());
         }
+    }
+    
+    private void turnOffCollisions() {
+        Scoreboard mctScoreboard = gameManager.getMctScoreboard();
+        for (Team team : mctScoreboard.getTeams()) {
+            team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER);
+        }
+    }
+    
+    /**
+     * Sets the collision rule to whatever is in the config
+     */
+    private void turnOnCollisions() {
+        Scoreboard mctScoreboard = gameManager.getMctScoreboard();
+        for (Team team : mctScoreboard.getTeams()) {
+            team.setOption(Team.Option.COLLISION_RULE, storageUtil.getCollisionRule());
+        }
+    }
+    
+    private void startStatusEffectsTask() {
+        this.statusEffectsTaskId = new BukkitRunnable(){
+            @Override
+            public void run() {
+                for (Player participant : participants) {
+                    participant.addPotionEffect(INVISIBILITY);
+                }
+            }
+        }.runTaskTimer(plugin, 0L, 60L).getTaskId();
     }
     
     private void messageAllParticipants(Component message) {

@@ -3,12 +3,13 @@ package org.braekpo1nt.mctmanager.games.game.clockwork.config;
 
 import com.google.gson.JsonElement;
 import org.braekpo1nt.mctmanager.games.game.config.BoundingBoxDTO;
+import org.bukkit.scoreboard.Team;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
 import java.util.List;
 
-record ClockworkConfig(String version, String world, Vector startingLocation, BoundingBoxDTO spectatorArea, Chaos chaos, List<WedgeDTO> wedges, int rounds, Sound clockChime, double initialChimeInterval, double chimeIntervalDecrement, Scores scores, Durations durations, JsonElement description) {
+record ClockworkConfig(String version, String world, Vector startingLocation, BoundingBoxDTO spectatorArea, Chaos chaos, List<WedgeDTO> wedges, int rounds, Sound clockChime, double initialChimeInterval, double chimeIntervalDecrement, Team.OptionStatus collisionRule, Scores scores, Durations durations, JsonElement description) {
     
     record WedgeDTO(BoundingBoxDTO detectionArea) {
     }

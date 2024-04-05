@@ -23,6 +23,10 @@
       "z": 0
     },
     "initialBorderSize": 400,
+    "damageAmount": 0.2,
+    "damageBuffer": 5,
+    "warningDistance": 5,
+    "warningTime": 15,
     "borderStages": [
       {
         "size": 50,

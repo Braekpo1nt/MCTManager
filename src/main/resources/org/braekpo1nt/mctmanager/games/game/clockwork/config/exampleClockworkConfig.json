@@ -197,6 +197,7 @@
   },
   "initialChimeInterval": 20.0,
   "chimeIntervalDecrement": 0.5,
+  "collisionRule": "ALWAYS",
   "scores": {
     "playerElimination": 5,
     "teamElimination": 20,

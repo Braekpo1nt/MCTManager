@@ -28,11 +28,16 @@ import java.util.List;
 record MechaConfig (String version, String world, BoundingBoxDTO spectatorArea, BoundingBoxDTO removeArea, BorderDTO border, NamespacedKey spawnLootTable, List<WeightedNamespacedKey> weightedMechaLootTables, List<Vector> spawnChestCoords, List<Vector> mapChestCoords, Vector platformCenter, List<Platform> platforms, Scores scores, Durations durations, JsonElement description) {
     
     /**
+     * 
      * @param center the center of the world border
      * @param initialBorderSize The size that the border should start at
+     * @param damageAmount the amount of damage a player takes when outside the border plus the border buffer.
+     * @param damageBuffer the amount of blocks a player may safely be outside the border before taking damage.
+     * @param warningDistance the warning distance that causes the screen to be tinted red when the player is within the specified number of blocks from the border.
+     * @param warningTime the warning time that causes the screen to be tinted red when a contracting border will reach the player within the specified time.
      * @param borderStages The stages the border should progress through
      */
-    record BorderDTO(Center center, double initialBorderSize, List<BorderStage> borderStages) {
+    record BorderDTO(Center center, double initialBorderSize, double damageAmount, double damageBuffer, int warningDistance, int warningTime, List<BorderStage> borderStages) {
         record Center(double x, double z) {
         }
         

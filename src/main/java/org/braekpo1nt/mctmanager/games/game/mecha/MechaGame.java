@@ -5,7 +5,6 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
-import org.braekpo1nt.mctmanager.games.game.config.YawPitch;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
@@ -693,6 +692,10 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     private void initializeWorldBorder() {
         worldBorder.setCenter(storageUtil.getWorldBorderCenterX(), storageUtil.getWorldBorderCenterZ());
         worldBorder.setSize(storageUtil.getInitialBorderSize());
+        worldBorder.setDamageAmount(storageUtil.getWorldBorderDamageAmount());
+        worldBorder.setDamageBuffer(storageUtil.getWorldBorderDamageBuffer());
+        worldBorder.setWarningDistance(storageUtil.getWorldBorderWarningDistance());
+        worldBorder.setWarningTime(storageUtil.getWorldBorderWarningTime());
     }
     
     private void kickOffBorderShrinking() {

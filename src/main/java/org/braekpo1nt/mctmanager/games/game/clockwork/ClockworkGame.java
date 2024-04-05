@@ -37,6 +37,8 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
     private List<Player> admins = new ArrayList<>();
     private List<ClockworkRound> rounds;
     private int currentRoundIndex = 0;
+    
+    
     private boolean gameActive = false;
     
     public ClockworkGame(Main plugin, GameManager gameManager) {
@@ -144,6 +146,8 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
     private void resetParticipant(Player participant) {
         participant.getInventory().clear();
         sidebar.removePlayer(participant.getUniqueId());
+        ParticipantInitializer.clearStatusEffects(participant);
+        ParticipantInitializer.resetHealthAndHunger(participant);
     }
     
     private void stopAdmins() {
