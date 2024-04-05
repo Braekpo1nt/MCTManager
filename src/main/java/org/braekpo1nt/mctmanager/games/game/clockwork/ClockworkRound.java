@@ -18,6 +18,8 @@ import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
@@ -45,6 +47,8 @@ public class ClockworkRound implements Listener {
     private int clockChimeTaskId;
     private int getToWedgeDelayTaskId;
     private int stayOnWedgeDelayTaskId;
+    private int statusEffectsTaskId;
+    private final PotionEffect INVISIBILITY = new PotionEffect(PotionEffectType.INVISIBILITY, 10000, 1, true, false, false);
     private final Random random = new Random();
     private int numberOfChimes = 1;
     private double chimeInterval = 20;
@@ -85,6 +89,7 @@ public class ClockworkRound implements Listener {
         }
         chimeInterval = storageUtil.getInitialChimeInterval();
         setupTeamOptions();
+        startStatusEffectsTask();
         startBreatherDelay();
         chaosManager.start();
         Bukkit.getLogger().info("Starting Clockwork Round " + roundNumber);
@@ -194,6 +199,7 @@ public class ClockworkRound implements Listener {
         Bukkit.getScheduler().cancelTask(clockChimeTaskId);
         Bukkit.getScheduler().cancelTask(getToWedgeDelayTaskId);
         Bukkit.getScheduler().cancelTask(stayOnWedgeDelayTaskId);
+        Bukkit.getScheduler().cancelTask(statusEffectsTaskId);
     }
     
     private void startBreatherDelay() {
@@ -511,6 +517,17 @@ public class ClockworkRound implements Listener {
         for (Team team : mctScoreboard.getTeams()) {
             team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER);
         }
+    }
+    
+    private void startStatusEffectsTask() {
+        this.statusEffectsTaskId = new BukkitRunnable(){
+            @Override
+            public void run() {
+                for (Player participant : participants) {
+                    participant.addPotionEffect(INVISIBILITY);
+                }
+            }
+        }.runTaskTimer(plugin, 0L, 60L).getTaskId();
     }
     
     private void turnOnCollisions() {
