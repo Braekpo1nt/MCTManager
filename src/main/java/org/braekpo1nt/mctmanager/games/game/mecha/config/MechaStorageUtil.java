@@ -319,4 +319,20 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
     public Location getAdminSpawn() {
         return adminSpawn;
     }
+    
+    public double getWorldBorderDamageAmount() {
+        return mechaConfig.border().damageAmount();
+    }
+    
+    public double getWorldBorderDamageBuffer() {
+        return mechaConfig.border().damageBuffer();
+    }
+    
+    public int getWorldBorderWarningDistance() {
+        return mechaConfig.border().warningDistance();
+    }
+    
+    public int getWorldBorderWarningTime() {
+        return mechaConfig.border().warningTime();
+    }
 }
