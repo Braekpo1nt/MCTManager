@@ -517,6 +517,13 @@ public class ClockworkRound implements Listener {
         }
     }
     
+    private void turnOnCollisions() {
+        Scoreboard mctScoreboard = gameManager.getMctScoreboard();
+        for (Team team : mctScoreboard.getTeams()) {
+            team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.ALWAYS);
+        }
+    }
+    
     private void startStatusEffectsTask() {
         this.statusEffectsTaskId = new BukkitRunnable(){
             @Override
@@ -526,13 +533,6 @@ public class ClockworkRound implements Listener {
                 }
             }
         }.runTaskTimer(plugin, 0L, 60L).getTaskId();
-    }
-    
-    private void turnOnCollisions() {
-        Scoreboard mctScoreboard = gameManager.getMctScoreboard();
-        for (Team team : mctScoreboard.getTeams()) {
-            team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.ALWAYS);
-        }
     }
     
     private void messageAllParticipants(Component message) {
