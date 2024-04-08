@@ -1,5 +1,9 @@
 package org.braekpo1nt.mctmanager.commands.game;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -25,7 +29,8 @@ public class StopSubCommand implements TabExecutor {
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (!gameManager.gameIsRunning()) {
-            sender.sendMessage("No game is running.");
+            sender.sendMessage(Component.text("No game is running.")
+                    .color(NamedTextColor.RED));
             return true;
         }
         if (args.length == 0) {
@@ -35,16 +40,28 @@ public class StopSubCommand implements TabExecutor {
         if (args.length == 1) {
             String shouldTeleport = args[0];
             switch (shouldTeleport) {
-                case "true":
+                case "true" -> {
                     gameManager.manuallyStopGame(true);
                     return true;
-                case "false":
+                }
+                case "false" -> {
+                    if (gameManager.getEventManager().eventIsActive()) {
+                        sender.sendMessage(Component.empty()
+                                .append(Component.text("Can't skip teleport to hub while an event is running. Use "))
+                                .append(Component.text("/mct game stop [true]")
+                                        .clickEvent(ClickEvent.suggestCommand("/mct game stop"))
+                                        .decorate(TextDecoration.BOLD))
+                                .color(NamedTextColor.RED));
+                        return true;
+                    }
                     sender.sendMessage("Skipping teleport to hub.");
                     gameManager.manuallyStopGame(false);
                     return true;
-                default:
+                }
+                default -> {
                     sender.sendMessage(String.format("%s is not a recognized option", shouldTeleport));
                     return true;
+                }
             }
         }
         sender.sendMessage("Usage: /mct game stop [true|false]");

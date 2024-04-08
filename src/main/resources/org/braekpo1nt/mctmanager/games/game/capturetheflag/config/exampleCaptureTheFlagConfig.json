@@ -1,0 +1,316 @@
+{
+  "version": "0.1.0",
+  "world": "TestWorld",
+  "spawnObservatory": {
+    "x": 0,
+    "y": 0,
+    "z": -1000
+  },
+  "arenas": [
+    {
+      "northSpawn": {
+        "x": -15,
+        "y": -16,
+        "z": -1043
+      },
+      "southSpawn": {
+        "x": -15,
+        "y": -16,
+        "z": -1003
+      },
+      "northFlag": {
+        "x": -6,
+        "y": -13,
+        "z": -1040
+      },
+      "southFlag": {
+        "x": -24,
+        "y": -13,
+        "z": -1006
+      },
+      "northBarrier": {
+        "x": -17,
+        "y": -16,
+        "z": -1042
+      },
+      "southBarrier": {
+        "x": -17,
+        "y": -16,
+        "z": -1004
+      },
+      "barrierSize": {
+        "xSize": 5,
+        "ySize": 4,
+        "zSize": 1
+      },
+      "boundingBox": {
+        "minX": -26,
+        "minY": -17,
+        "minZ": -1001,
+        "maxX": -4,
+        "maxY": 4,
+        "maxZ": -1045
+      }
+    },
+    {
+      "northSpawn": {
+        "x": 15,
+        "y": -16,
+        "z": -1043
+      },
+      "southSpawn": {
+        "x": 15,
+        "y": -16,
+        "z": -1003
+      },
+      "northFlag": {
+        "x": 24,
+        "y": -13,
+        "z": -1040
+      },
+      "southFlag": {
+        "x": 6,
+        "y": -13,
+        "z": -1006
+      },
+      "northBarrier": {
+        "x": 13,
+        "y": -16,
+        "z": -1042
+      },
+      "southBarrier": {
+        "x": 13,
+        "y": -16,
+        "z": -1004
+      },
+      "barrierSize": {
+        "xSize": 5,
+        "ySize": 4,
+        "zSize": 1
+      },
+      "boundingBox": {
+        "minX": 4,
+        "minY": 4,
+        "minZ": -1045,
+        "maxX": 26,
+        "maxY": -17,
+        "maxZ": -1001
+      }
+    },
+    {
+      "northSpawn": {
+        "x": -15,
+        "y": -16,
+        "z": -997
+      },
+      "southSpawn": {
+        "x": -15,
+        "y": -16,
+        "z": -957
+      },
+      "northFlag": {
+        "x": -6,
+        "y": -13,
+        "z": -994
+      },
+      "southFlag": {
+        "x": -24,
+        "y": -13,
+        "z": -960
+      },
+      "northBarrier": {
+        "x": -17,
+        "y": -16,
+        "z": -996
+      },
+      "southBarrier": {
+        "x": -17,
+        "y": -16,
+        "z": -958
+      },
+      "barrierSize": {
+        "xSize": 5,
+        "ySize": 4,
+        "zSize": 1
+      },
+      "boundingBox": {
+        "minX": -4,
+        "minY": -17,
+        "minZ": -999,
+        "maxX": -26,
+        "maxY": 4,
+        "maxZ": -955
+      }
+    },
+    {
+      "northSpawn": {
+        "x": 15,
+        "y": -16,
+        "z": -997
+      },
+      "southSpawn": {
+        "x": 15,
+        "y": -16,
+        "z": -957
+      },
+      "northFlag": {
+        "x": 24,
+        "y": -13,
+        "z": -994
+      },
+      "southFlag": {
+        "x": 6,
+        "y": -13,
+        "z": -960
+      },
+      "northBarrier": {
+        "x": 13,
+        "y": -16,
+        "z": -996
+      },
+      "southBarrier": {
+        "x": 13,
+        "y": -16,
+        "z": -958
+      },
+      "barrierSize": {
+        "xSize": 5,
+        "ySize": 4,
+        "zSize": 1
+      },
+      "boundingBox": {
+        "minX": 4,
+        "minY": 4,
+        "minZ": -955,
+        "maxX": 26,
+        "maxY": -17,
+        "maxZ": -999
+      }
+    }
+  ],
+  "loadouts": {
+    "KNIGHT": {
+      "menuItem": "STONE_SWORD",
+      "menuLore": [
+        {"text":"- Stone Sword"},
+        {"text":"- Chest Plate"},
+        {"text":"- Boots"}
+      ],
+      "inventory": {
+        "contents": {
+          "36": {
+            "type": "LEATHER_BOOTS"
+          },
+          "38": {
+            "type": "LEATHER_CHESTPLATE"
+          },
+          "0": {
+            "type": "STONE_SWORD"
+          },
+          "1": {
+            "type": "COOKED_BEEF",
+            "amount": 8
+          }
+        }
+      }
+    },
+    "ARCHER": {
+      "menuItem": "BOW",
+      "menuLore": [
+        "- Bow",
+        "- 16 Arrows",
+        "- Wooden Sword",
+        "- Chest Plate",
+        "- Boots"
+      ],
+      "inventory": {
+        "contents": {
+          "36": {
+            "type": "LEATHER_BOOTS"
+          },
+          "38": {
+            "type": "LEATHER_CHESTPLATE"
+          },
+          "0": {
+            "type": "BOW"
+          },
+          "1": {
+            "type": "WOODEN_SWORD"
+          },
+          "2": {
+            "type": "ARROW",
+            "amount": 16
+          },
+          "3": {
+            "type": "COOKED_BEEF",
+            "amount": 8
+          }
+        }
+      }
+    },
+    "ASSASSIN": {
+      "menuItem": "IRON_SWORD",
+      "menuLore": [
+        {"text":"- Iron Sword"},
+        {"text":"- No Armor"}
+      ],
+      "inventory": {
+        "contents": {
+          "0": {
+            "type": "IRON_SWORD",
+            "itemMeta": {
+              "displayName": "Assassin's Knife"
+            }
+          },
+          "1": {
+            "type": "COOKED_BEEF",
+            "amount": 8
+          }
+        }
+      }
+    },
+    "TANK": {
+      "menuItem": "LEATHER_CHESTPLATE",
+      "menuLore": [
+        {"text":"- Full Leather Armor"},
+        {"text":"- Chainmail Leggings"},
+        {"text":"- No Sword","italic":true}
+      ],
+      "inventory": {
+        "contents": {
+          "36": {
+            "type": "LEATHER_BOOTS"
+          },
+          "37": {
+            "type": "CHAINMAIL_LEGGINGS"
+          },
+          "38": {
+            "type": "LEATHER_CHESTPLATE"
+          },
+          "0": {
+            "type": "COOKED_BEEF",
+            "amount": 8
+          }
+        }
+      }
+    }
+  },
+  "spectatorArea": {
+    "minX": 26,
+    "minY": 4,
+    "minZ": -1042,
+    "maxX": -26,
+    "maxY": -17,
+    "maxZ": -958
+  },
+  "scores": {
+    "kill": 20,
+    "win": 100
+  },
+  "durations": {
+    "matchesStarting": 10,
+    "classSelection": 20,
+    "roundTimer": 180
+  },
+  "description": ["",{"text":"How To Play","bold":true,"color":"yellow"},{"text":" Capture The Flag","bold":true,"color":"yellow"},{"text":"\n"},{"text":"Two teams will be placed in a court, first one to collect the banner on the opposite side and deliver it to their own banner wins!\nAfter all teams have played each other, the game ends (So get them points!)\nIn Capture the Flag their are 4 classes. Assassin, Knight, Tank, and Archer. Only one of each class may be selected on a team.\n-The Assassin has an iron sword, but no armor.\n-The Knight has leather boots and a chestplate, as well as a stone sword.\n-The Tank has leather pants, boots, and tunic, but no weapons.\n-The Archer has a wood sword, leather boots and tunic, a bow, and 16 arrows.","color":"#FFFFDF"}]
+}

@@ -1,40 +1,52 @@
 package org.braekpo1nt.mctmanager.commands;
 
-import com.onarandombox.MultiverseCore.api.MVWorldManager;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
-import org.bukkit.*;
+import org.braekpo1nt.mctmanager.utils.EntityUtils;
+import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
+import org.bukkit.Location;
+import org.bukkit.block.BlockFace;
 import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * A utility command for testing various things, so I don't have to create a new command. 
  */
-public class MCTDebugCommand implements CommandExecutor {
-    
-    private final Main plugin;
+public class MCTDebugCommand implements TabExecutor, Listener {
     
     public MCTDebugCommand(Main plugin) {
-        this.plugin = plugin;
         plugin.getCommand("mctdebug").setExecutor(this);
+        plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
     
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (!(sender instanceof Player)) {
-            sender.sendMessage("This command can only be run by a player.");
+        
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(Component.text("Must be a player to run this command")
+                    .color(NamedTextColor.RED));
             return true;
         }
-//        Player player = ((Player) sender).getPlayer();
         
+        if (args.length != 0) {
+            sender.sendMessage(Component.text("Usage: /mctdebug <arg> [options]")
+                    .color(NamedTextColor.RED));
+            return true;
+        }
 //        Component mainTitle = Component.text("Main title");
 //        Component subTitle = Component.text("Subtitle");
 //
@@ -44,6 +56,8 @@ public class MCTDebugCommand implements CommandExecutor {
         return true;
     }
     
-    
-    
+    @Override
+    public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+        return Collections.emptyList();
+    }
 }

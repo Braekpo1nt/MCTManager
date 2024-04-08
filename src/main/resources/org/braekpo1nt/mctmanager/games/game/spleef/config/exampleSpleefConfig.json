@@ -1,0 +1,175 @@
+{
+  "version": "0.1.0",
+  "world": "TestWorld",
+  "startingLocations": [
+    {
+      "x": 0,
+      "y": 38,
+      "z": -2000
+    }
+  ],
+  "spectatorArea": {
+    "minX": 32,
+    "minY": 46,
+    "minZ": -2032,
+    "maxX": -32,
+    "maxY": 8,
+    "maxZ": -1968
+  },
+  "layers": [
+    {
+      "structure": {
+        "namespace": "mctdatapack",
+        "key": "spleef/spleef_layer1"
+      },
+      "structureOrigin": {
+        "x": -22,
+        "y": 37,
+        "z": -2022
+      },
+      "decayArea": {
+        "minX": -22,
+        "minY": 37,
+        "minZ": -2022,
+        "maxX": 22,
+        "maxY": 37,
+        "maxZ": -1978
+      }
+    },
+    {
+      "structure": {
+        "namespace": "mctdatapack",
+        "key": "spleef/spleef_layer2"
+      },
+      "structureOrigin": {
+        "x": -22,
+        "y": 30,
+        "z": -2022
+      },
+      "decayArea": {
+        "minX": -22,
+        "minY": 30,
+        "minZ": -2022,
+        "maxX": 22,
+        "maxY": 30,
+        "maxZ": -1978
+      }
+    },
+    {
+      "structure": {
+        "namespace": "mctdatapack",
+        "key": "spleef/spleef_layer3"
+      },
+      "structureOrigin": {
+        "x": -22,
+        "y": 24,
+        "z": -2022
+      },
+      "decayArea": {
+        "minX": -22,
+        "minY": 24,
+        "minZ": -2022,
+        "maxX": 22,
+        "maxY": 24,
+        "maxZ": -1978
+      }
+    },
+    {
+      "structure": {
+        "namespace": "mctdatapack",
+        "key": "spleef/spleef_layer4"
+      },
+      "structureOrigin": {
+        "x": -22,
+        "y": 19,
+        "z": -2022
+      },
+      "decayArea": {
+        "minX": -22,
+        "minY": 19,
+        "minZ": -2022,
+        "maxX": 22,
+        "maxY": 19,
+        "maxZ": -1978
+      }
+    }
+  ],
+  "decayStages": [
+    {
+      "startMessage": null,
+      "layerInfos": [],
+      "duration": 30,
+      "minParticipants": -1
+    },
+    {
+      "startMessage": "The top 2 layers are decaying!",
+      "layerInfos": [
+        {
+          "index": 0,
+          "blocksPerSecond": 8
+        },
+        {
+          "index": 1,
+          "blocksPerSecond": 6
+        }
+      ],
+      "duration": 60,
+      "minParticipants": 8
+    },
+    {
+      "startMessage": "All layers are decaying!",
+      "layerInfos": [
+        {
+          "index": 0,
+          "blocksPerSecond": 10
+        },
+        {
+          "index": 1,
+          "blocksPerSecond": 8
+        },
+        {
+          "index": 2,
+          "blocksPerSecond": 6
+        },
+        {
+          "index": 3,
+          "blocksPerSecond": 4
+        }
+      ],
+      "duration": 60,
+      "minParticipants": 4
+    },
+    {
+      "startMessage": "All layers are decaying faster!",
+      "layerInfos": [
+        {
+          "index": 0,
+          "blocksPerSecond": 20
+        },
+        {
+          "index": 1,
+          "blocksPerSecond": 14
+        },
+        {
+          "index": 2,
+          "blocksPerSecond": 12
+        },
+        {
+          "index": 3,
+          "blocksPerSecond": 10
+        }
+      ],
+      "duration": 300,
+      "minParticipants": -1
+    }
+  ],
+  "scores": {
+    "survive": 10
+  },
+  "rounds": 3,
+  "durations": {
+    "roundStarting": 10,
+    "roundEnding": 5
+  },
+  "description": ["",{"text":"-----------------------","bold":true,"color":"gray"},{"text":"\n"},{"text":"How To Play","bold":true,"color":"yellow"},{"text":" Spleef","bold":true,"color":"yellow"},{"text":"\n"},{"text":"Everyone knows how to play Spleef!\nSwing your shovel at the dirt below your opponents and be the last one standing!\nThe ground will slowly disintegrate so be careful!\nThis game will also be played 3 times in succession!","color":"#FFFFDF"},{"text":"\n"},{"text":"-----------------------","bold":true,"color":"gray"}]
+}

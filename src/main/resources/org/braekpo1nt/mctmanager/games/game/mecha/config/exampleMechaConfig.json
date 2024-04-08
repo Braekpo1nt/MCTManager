@@ -1,0 +1,132 @@
+{
+  "version": "0.1.0",
+  "world": "TestWorld",
+  "spectatorArea": {
+    "minX": -175,
+    "minY": -64,
+    "minZ": -175,
+    "maxX": 200,
+    "maxY": 255,
+    "maxZ": 150
+  },
+  "removeArea": {
+    "minX": -175,
+    "minY": -64,
+    "minZ": -175,
+    "maxX": 200,
+    "maxY": 255,
+    "maxZ": 150
+  },
+  "border": {
+    "center": {
+      "x": 0,
+      "z": 0
+    },
+    "initialBorderSize": 400,
+    "damageAmount": 0.2,
+    "damageBuffer": 5,
+    "warningDistance": 5,
+    "warningTime": 15,
+    "borderStages": [
+      {
+        "size": 50,
+        "delay": 80,
+        "duration": 15
+      }
+    ]
+  },
+  "spawnLootTable": {
+    "namespace": "mctdatapack",
+    "key": "mecha/spawn-chest"
+  },
+  "weightedMechaLootTables": [
+    {
+      "namespace": "mctdatapack",
+      "key": "mecha/better-chest",
+      "weight": 2
+    },
+    {
+      "namespace": "mctdatapack",
+      "key": "mecha/good-chest",
+      "weight": 3
+    },
+    {
+      "namespace": "mctdatapack",
+      "key": "mecha/excellent-chest",
+      "weight": 1
+    },
+    {
+      "namespace": "mctdatapack",
+      "key": "mecha/poor-chest",
+      "weight": 2
+    }
+  ],
+  "spawnChestCoords": [
+    {
+      "x": -1.0,
+      "y": -45.0,
+      "z": 1.0
+    },
+    {
+      "x": 0.0,
+      "y": -45.0,
+      "z": 1.0
+    }
+  ],
+  "mapChestCoords": [
+    {
+      "x": -18.0,
+      "y": -45.0,
+      "z": -15.0
+    },
+    {
+      "x": 130.0,
+      "y": -45.0,
+      "z": -44.0
+    }
+  ],
+  "platformCenter": {
+    "x": 0,
+    "y": 79,
+    "z": 0
+  },
+  "platforms": [
+    {
+      "barrier": {
+        "minX": 6,
+        "minY": 78,
+        "minZ": 7,
+        "maxX": 3,
+        "maxY": 82,
+        "maxZ": 10
+      },
+      "facingDirection": {
+        "yaw": 135,
+        "pitch": 0
+      }
+    },
+    {
+      "barrier": {
+        "minX": 12,
+        "minY": 78,
+        "minZ": -2,
+        "maxX": 9,
+        "maxY": 83,
+        "maxZ": 1
+      }
+    }
+  ],
+  "scores": {
+    "kill": 40,
+    "surviveTeam": 40,
+    "firstPlace": 100,
+    "secondPlace": 70,
+    "thirdPlace": 50
+  },
+  "durations": {
+    "start": 10,
+    "invulnerability": 20,
+    "end": 10
+  },
+  "description": ["",{"text":"-----------------------\n","bold":true,"color":"gray"},{"text":"How To Play MECHA","bold":true,"color":"yellow"},"\n",{"text":"MECHA stands for Majorly Epic Combat Hunting Arena, or just Survival Games.","color":"#FFFFDF"},"\n",{"text":"When the game starts you will have a number of seconds of immunity\nafter that you must race through the map to collect armor, weapons,\nand tools to carry you and your team to victory! Last team standing wins!","color":"#FFFFDF"},"\n",{"text":"-----------------------","bold":true,"color":"gray"}]
+}

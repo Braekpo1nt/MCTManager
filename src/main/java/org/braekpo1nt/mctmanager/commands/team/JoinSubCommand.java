@@ -1,5 +1,8 @@
 package org.braekpo1nt.mctmanager.commands.team;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -34,17 +37,28 @@ public class JoinSubCommand implements TabExecutor {
         String playerName = args[1];
         Player playerToJoin = Bukkit.getPlayer(playerName);
         if (playerToJoin == null) {
-            sender.sendMessage(String.format("Player \"%s\" is not online.", playerName));
+            sender.sendMessage(Component.empty()
+                    .append(Component.text("Player "))
+                    .append(Component.text(playerName)
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(" is not online."))
+                    .color(NamedTextColor.RED));
             return true;
         }
-        try {
-            gameManager.joinPlayerToTeam(playerToJoin, teamName);
-            sender.sendMessage(String.format("Joined %s to team %s", playerName, teamName));
-        } catch (IOException e) {
-            sender.sendMessage("Error adding player to team. See log for error message.");
-            Bukkit.getLogger().severe("Error saving game sate while creating new team.");
-            throw new RuntimeException(e);
+        Component formattedTeamDisplayName = gameManager.getFormattedTeamDisplayName(teamName);
+        if (gameManager.isParticipant(playerToJoin.getUniqueId())) {
+            String oldTeamName = gameManager.getTeamName(playerToJoin.getUniqueId());
+            if (oldTeamName.equals(teamName)) {
+                sender.sendMessage(Component.empty()
+                        .append(Component.text(playerName)
+                                .decorate(TextDecoration.BOLD))
+                        .append(Component.text(" is already on team "))
+                        .append(formattedTeamDisplayName)
+                        .color(NamedTextColor.YELLOW));
+                return true;
+            }
         }
+        gameManager.joinPlayerToTeam(sender, playerToJoin, teamName);
         return true;
     }
     

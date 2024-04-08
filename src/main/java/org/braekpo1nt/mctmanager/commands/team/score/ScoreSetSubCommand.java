@@ -12,7 +12,7 @@ public class ScoreSetSubCommand extends CommandManager {
     }
     
     @Override
-    protected Component getUsageMessage() {
+    public Component getUsageMessage() {
         return Component.text("/mct team score set <player|team>");
     }
     

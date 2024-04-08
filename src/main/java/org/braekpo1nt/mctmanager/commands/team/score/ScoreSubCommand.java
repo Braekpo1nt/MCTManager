@@ -23,7 +23,7 @@ public class ScoreSubCommand extends CommandManager {
     }
     
     @Override
-    protected Component getUsageMessage() {
+    public Component getUsageMessage() {
         return Component.text("/mct team score <options>");
     }
 }

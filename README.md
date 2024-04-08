@@ -21,48 +21,39 @@ As of release `v0.3.0-alpha`, this plugin expects the following data packs in th
 ## Plugins
 Required plugins. Read this or you will get errors. 
 
-- This plugin depends on [Multiverse-Core v4.3.1](https://github.com/Multiverse/Multiverse-Core/releases/tag/v4.3.1)
 - This plugin softdepends on [LuckPerms](https://www.spigotmc.org/resources/luckperms.28140/) or any permissions manager (only tested with LuckPerms)
-  - You will need to give all players the `mv.bypass.gamemode.*`, as this is the only way to avoid Multiverse-Core forcing gamemodes on your players during your games. 
+  - If you use [Multiverse-Core v4.3.1](https://github.com/Multiverse/Multiverse-Core/releases/tag/v4.3.1) in your server, You will need to give all players the `mv.bypass.gamemode.*`, as this is the only way to avoid Multiverse-Core forcing gamemodes on your players during your games. 
     - If you don't give this permission to all participants, they will be able to respawn by disconnecting and reconnecting, and will often be in the wrong game mode when travelling worlds. 
 
+# Commands
+
+See the [commands reference](./docs/commands.md) for all commands and what they do.
 
 # Running the event
 
 ### Starting a game
 You can start a game with the following command:
 
-- `/mct game start <game>`
-  - `<game>` the game to start. Must be a valid game name in the event. See [list of games](#games-list)
+- [/mct game start <game>](./docs/commands.md#mct-game)
 
 You can also start a game with a [vote](#voting)
 
 ### Stopping a game
 If a game is running, you can manually stop a game with the following command:
 
-- `/mct game stop [true|false]`
-
-This will stop the game, and return all players to the beginning. As of the time of writing this, the points for playing the game will be retained. 
-- `[true|false]` This is an optional argument (defaults to true). If you provide false, the teleport to the hub will be cancelled. This is a debugging feature, and players will often not be reset properly after a game ends. 
+- [/mct game stop [true|false]](./docs/commands.md#mct-game)
 
 ### Voting
 
 You can initiate a vote for all online participants. You must specify the games you want to be voted for (must be at least one):
 
-- `/mct game vote [one or more games]`
-
-for example: `/mct game vote spleef foot-race mecha` will show all players a voting gui with those three games, and no others. 
+- [/mct game vote [one or more games]](./docs/commands.md#mct-game)
 
 ### Adding a new team
-Every participant must be on a team, so you must first have at least one team. To add a new team, use the following command:
-
-- `/mct team add <team> <"displayname"> <color>`
-    - `<team>` the internal name of the team. Must match requirements of Minecraft team names. Can only be made up of these characters: `-`, `+`, `.`, `_`, `A-Z`, `a-z`, and `0-9`.
-    - `<"displayname">` the display name of the team. Must be a quoted string.
-    - `<color>` the color of the team
+Every participant must be on a team, so you must first have at least one team. To add a new team, use the [/mct team](./docs/commands.md#mct-team) command.
 
 ### Removing a team
-You can remove a team entirely. Points are lost and team members are removed, also losing their points, as if you [removed them manually](#removing-a-participant)
+You can remove a team entirely using the [/mct team](./docs/commands.md#mct-team) command. Points are lost and team members are removed, also losing their points, as if you [removed them manually](#removing-a-participant)
 
 
 ## Participants
@@ -71,66 +62,44 @@ In order to host an event, you need to [add participants](#adding-a-new-particip
 ### Adding a new participant
 Participants must be on a team, so you must first [add a new team](#adding-a-new-team)
 
-To add a new participant, use the following command:
-
-- `/mct team join <team> <member>`
-  - `<team>` the internal name of the team. The team must already exist.
-  - `<member>` the name of the player to add. Must be an online player.
+To add a new participant, use the [/mct team](./docs/commands.md#mct-team) command.
 
 If you add a new participant while a game is going on, they will be sent to that game as a participant. 
 
 ### Removing a participant
-The only way to remove a participant is to leave them from their team:
-
-- `/mct team leave <member>`
-
-Note: This will delete a participants points, but as of right now doesn't remove those points from the team they used to be on
+The only way to remove a participant is to leave them from their team using the [/mct team](./docs/commands.md#mct-team) command.
 
 ### Listing teams and scores
 
-You can list the teams, their participants, and their scores with the following command:
-
-- `/mct team list [true|false]`
-  - `[true|false]` whether or not to display the teams to all participants. Defaults to false. If you specify true, it will display the team list to all participants. 
-
-This will show the team list and the players on the teams and all scores.
+You can list the teams, their participants, and their scores with the [/mct team](./docs/commands.md#mct-team) command.
 
 ### Modifying scores
 
-You can add, subtract, or set the scores of players and teams with the following command:
+You can add, subtract, or set the scores of players and teams with the [/mct team](./docs/commands.md#mct-team) command.
 
-- `/mct team score <add|subtract|set> <player|team> <playerName|teamName> <value>`
-  - `<add|subtract|set>`
-    - `add` add the `value`
-    - `subtract` subtract the `value`
-    - `set` set the score to the `value`
-- `<player|team>` specify player or team
-- `<playerName|teamName>` If you specified `player` above, enter the `playerName` of the player whose score you want to modify. If you specified `team` above, enter the `teamName` of the team whose score you want to modify.
-- `<value>` the value you want to `add`/`subtract`/`set`. 
-  - Must be an integer. 
-  - Can be negative for `add`/`subtract` 
-    - If you add a negative number it's subtracted, if you subtract a negative number it's added. 
-  - Must be positive for `set`. 
-  - You can't modify a score so that it's less than 0. If you try to subtract a number from a score that would cause it to go negative, the score is simply set to 0.
+# Config files (Configuration files)
 
-
-## Games List
-This is a list of the currently implemented games. See above for how to [start a game](#starting-a-game) or [stop a game](#stopping-a-game)
-
-- Foot Race
-  - Start game with `/mct game start foot-race`
-- MECHA
-  - Start game with `/mct game start mecha`
-
+Many games and other attributes can be configured using config files. See [this tutorial on config files](./docs/configuration.md) to learn how to modify them to your needs and desires. 
 
 # Development/Contributions
 
 To participate, reach out to Braekpo1nt on [YouTube](https://www.youtube.com/@braekpo1nt), [twitter](https://twitter.com/braekpo1nt), [facebook](https://www.facebook.com/Braekpo1nt/), or [instagram](https://www.instagram.com/braekpo1nt/). 
 
-**Important note about building the project:**
+## Adding a new mini-game
+
+Crucial instructions for adding a new mini-game are located in [Adding a New Game](./docs/adding-new-game.md)
+
+## **Important note about building the project:**
+
+### Gradle Wrapper
+This project includes a [Gradle Wrapper](https://docs.gradle.org/current/userguide/gradle_wrapper.html). If you don't know what that means, all you need to know is that instead of running `gradle build`, you should run `./gradlew build`. You should also configure your IDE (e.g. IntelliJ) to [use the project's gradle wrapper](https://www.jetbrains.com/idea/guide/tutorials/working-with-gradle/gradle-wrapper/). 
+
+A gradle wrapper essentially just makes it so that everyone who is developing on the project is using the same exact version of Gradle. 
+
+### Shadow Jar
 The dependency `fr.mrmicky:fastboard:1.2.1` from [FastBoard](https://github.com/MrMicky-FR/FastBoard) needs to be included in the jar file with *Shadow Jar*. 
 
-To do this, simply run `gradle shadowJar` instead of `gradle build`. Otherwise, you'll get an error like the following:
+To do this, simply run `./gradlew shadowJar` instead of `./gradle build`. Otherwise, you'll get an error like the following when you try to add the plugin to your project:
 ```java
 java.lang.NoClassDefFoundError: fr/mrmicky/fastboard/FastBoard
 at org.braekpo1nt.mctmanager.Main.onEnable(Main.java:45) ~[MCTManager-0.1.0.jar:?]

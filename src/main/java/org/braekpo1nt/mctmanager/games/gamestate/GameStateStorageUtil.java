@@ -4,7 +4,9 @@ import com.google.gson.Gson;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.color.ColorMap;
+import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.game.enums.GameType;
+import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
@@ -22,10 +24,10 @@ public class GameStateStorageUtil {
     
     private static final String GAME_STATE_FILE_NAME = "gameState.json";
     private final File gameStateDirectory;
-    private GameState gameState = new GameState();
+    protected GameState gameState = new GameState();
     
     public GameStateStorageUtil(Main plugin) {
-        this.gameStateDirectory = plugin.getDataFolder().getAbsoluteFile();
+        this.gameStateDirectory = plugin.getDataFolder();
     }
     
     /**
@@ -42,7 +44,7 @@ public class GameStateStorageUtil {
         gson.toJson(this.gameState, writer);
         writer.flush();
         writer.close();
-        Bukkit.getLogger().info("[MCTManager] Saved game state.");
+//        Bukkit.getLogger().info("[MCTManager] Saved game state.");
     }
     
     /**
@@ -62,7 +64,7 @@ public class GameStateStorageUtil {
             newGameState = new GameState();
         }
         this.gameState = newGameState;
-        Bukkit.getLogger().info("[MCTManager] Loaded game state.");
+        Bukkit.getLogger().info("[MCTManager] Loaded gameState.json");
     }
     
     /**
@@ -72,7 +74,7 @@ public class GameStateStorageUtil {
      * @throws IOException if there is an error creating a new game state file
      */
     private File getGameStateFile() throws IOException {
-        File gameStateFile = new File(gameStateDirectory.getAbsolutePath(), this.GAME_STATE_FILE_NAME);
+        File gameStateFile = new File(gameStateDirectory.getAbsolutePath(), GAME_STATE_FILE_NAME);
         if (!gameStateFile.exists()) {
             if (!gameStateDirectory.exists()) {
                 gameStateDirectory.mkdirs();
@@ -132,10 +134,17 @@ public class GameStateStorageUtil {
     }
     
     /**
-     * Registers all teams in the game state with the given scoreboard
+     * Registers all teams in the game state with the given scoreboard,
+     * including the admin team
      * @param scoreboard The scoreboard to register the teams for
      */
     private void registerTeams(Scoreboard scoreboard) {
+        Team adminTeam = scoreboard.registerNewTeam(GameManager.ADMIN_TEAM);
+        adminTeam.prefix(Component.empty()
+                        .append(Component.text("["))
+                .append(Component.text("Admin")
+                    .color(NamedTextColor.DARK_RED))
+                .append(Component.text("]")));
         for (MCTTeam mctTeam : gameState.getTeams().values()) {
             Team team = scoreboard.registerNewTeam(mctTeam.getName());
             team.displayName(Component.text(mctTeam.getDisplayName()));
@@ -149,6 +158,11 @@ public class GameStateStorageUtil {
      * @param scoreboard The scoreboard with the teams to join players to
      */
     private void joinPlayersToTeams(Scoreboard scoreboard) {
+        for (UUID adminUniqueId : gameState.getAdmins()) {
+            Team adminTeam = scoreboard.getTeam(GameManager.ADMIN_TEAM);
+            OfflinePlayer admin = Bukkit.getOfflinePlayer(adminUniqueId);
+            adminTeam.addPlayer(admin);
+        }
         for (MCTPlayer mctPlayer : gameState.getPlayers().values()) {
             Team team = scoreboard.getTeam(mctPlayer.getTeamName());
             OfflinePlayer player = Bukkit.getOfflinePlayer(mctPlayer.getUniqueId());
@@ -214,14 +228,6 @@ public class GameStateStorageUtil {
         saveGameState();
     }
     
-    public void addPointsToPlayer(UUID playerUniqueId, int points) throws IOException {
-        MCTPlayer mctPlayer = gameState.getPlayer(playerUniqueId);
-        mctPlayer.setScore(mctPlayer.getScore() + points);
-        MCTTeam mctTeam = gameState.getTeam(mctPlayer.getTeamName());
-        mctTeam.setScore(mctTeam.getScore() + points);
-        saveGameState();
-    }
-    
     public int getPlayerScore(UUID playerUniqueId) {
         return gameState.getPlayer(playerUniqueId).getScore();
     }
@@ -267,7 +273,7 @@ public class GameStateStorageUtil {
         team.setScore(team.getScore() + score);
         saveGameState();
     }
-
+    
     public void setScore(UUID uniqueId, int score) throws IOException {
         MCTPlayer player = gameState.getPlayers().get(uniqueId);
         player.setScore(score);
@@ -279,12 +285,74 @@ public class GameStateStorageUtil {
         team.setScore(score);
         saveGameState();
     }
-
+    
     public int getTeamScore(String teamName) {
         return gameState.getTeam(teamName).getScore();
     }
     
+    /**
+     * Gets the color string of the given team
+     * @param teamName The team to get the color string of
+     * @return The color string of the given team
+     */
     public String getTeamColorString(String teamName) {
         return gameState.getTeam(teamName).getColor();
+    }
+    
+    /**
+     * Clear the stored played games from the last event.
+     * @throws IOException if there is an issue saving the game state
+     */
+    public void clearPlayedGames() throws IOException {
+        gameState.setPlayedGames(new ArrayList<>());
+        saveGameState();
+    }
+    
+    /**
+     * Gets the list of played games for the game state
+     * @return A list of the GameTypes that have been played in this game state
+     */
+    public List<GameType> getPlayedGames() {
+        return gameState.getPlayedGames();
+    }
+    
+    /**
+     * Add a played game to the game state
+     * @param type the GameType representing the played game
+     */
+    public void addPlayedGame(GameType type) throws IOException {
+        List<GameType> playedGames = gameState.getPlayedGames();
+        playedGames.add(type);
+        gameState.setPlayedGames(playedGames);
+        saveGameState();
+    }
+    
+    /**
+     * Checks if the given unique id is an admin
+     * @param adminUniqueId The admin's unique id to check
+     * @return True if the given unique id is an admin, false otherwise
+     */
+    public boolean isAdmin(UUID adminUniqueId) {
+        return gameState.isAdmin(adminUniqueId);
+    }
+    
+    /**
+     * Add an admin to the game state
+     * @param adminUniqueId the unique id of the admin
+     * @throws IOException If there is an issue saving the game state
+     */
+    public void addAdmin(UUID adminUniqueId) throws IOException {
+        gameState.addAdmin(adminUniqueId);
+        saveGameState();
+    }
+    
+    /**
+     * Remove an admin from the game state
+     * @param adminUniqueId the unique id of the admin
+     * @throws IOException If there is an issue saving the game state
+     */
+    public void removeAdmin(UUID adminUniqueId) throws IOException {
+        gameState.removeAdmin(adminUniqueId);
+        saveGameState();
     }
 }

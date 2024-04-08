@@ -1,14 +1,13 @@
 package org.braekpo1nt.mctmanager.commands.team.score;
 
 import net.kyori.adventure.text.Component;
+import org.braekpo1nt.mctmanager.commands.CommandUtils;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,35 +37,29 @@ public class ScoreSetPlayerSubCommand implements TabExecutor {
             return true;
         }
         String scoreString = args[1];
-        try {
-            int score = Integer.parseInt(scoreString);
-            if (score < 0) {
-                sender.sendMessage(Component.text("Value must be positive"));
-                return true;
-            }
-            gameManager.setScore(offlinePlayer.getUniqueId(), score);
-            int newScore = gameManager.getScore(offlinePlayer.getUniqueId());
-            sender.sendMessage(Component.empty()
-                    .append(Component.text(playerName))
-                    .append(Component.text(" score is now "))
-                    .append(Component.text(newScore)));
-        } catch (NumberFormatException e) {
+        if (!CommandUtils.isInteger(scoreString)) {
             sender.sendMessage(Component.text(scoreString)
                     .append(Component.text(" is not an integer")));
             return true;
-        } catch (IOException e) {
-            sender.sendMessage(Component.text("Error occurred saving game state. See console for details."));
-            Bukkit.getLogger().severe("Error occurred saving game state.");
-            e.printStackTrace();
+        }
+        int score = Integer.parseInt(scoreString);
+        if (score < 0) {
+            sender.sendMessage(Component.text("Value must be positive"));
             return true;
         }
+        gameManager.setScore(offlinePlayer.getUniqueId(), score);
+        int newScore = gameManager.getScore(offlinePlayer.getUniqueId());
+        sender.sendMessage(Component.empty()
+                .append(Component.text(playerName))
+                .append(Component.text(" score is now "))
+                .append(Component.text(newScore)));
         return true;
     }
     
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length == 1) {
-            return gameManager.getOnlinePlayerNames();
+            return gameManager.getOnlineParticipantNames();
         }
         return Collections.emptyList();
     }
