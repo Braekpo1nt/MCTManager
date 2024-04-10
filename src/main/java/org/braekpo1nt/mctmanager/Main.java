@@ -77,6 +77,7 @@ public class Main extends JavaPlugin {
     
     @Override
     public void onDisable() {
+        ParticipantInitializer.setPlugin(null); //TODO: remove this in favor of death and respawn combination 
         if (saveGameStateOnDisable && gameManager != null) {
             gameManager.cancelVote();
             gameManager.cancelAllTasks();
