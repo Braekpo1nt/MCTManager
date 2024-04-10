@@ -175,10 +175,8 @@ public class GameManager implements Listener {
         admin.setScoreboard(mctScoreboard);
         admin.addPotionEffect(Main.NIGHT_VISION);
         Component displayName = Component.empty()
-                .append(Component.text("["))
-                .append(Component.text("Admin")
+                .append(Component.text("[Admin]")
                         .color(ADMIN_COLOR))
-                .append(Component.text("] "))
                 .append(Component.text(admin.getName()));
         admin.displayName(displayName);
         admin.playerListName(displayName);
