@@ -97,7 +97,7 @@ public class CaptureTheFlagStorageUtil extends GameConfigStorageUtil<CaptureTheF
     
     private void loadoutIsValid(LoadoutDTO loadout, String key) {
         Preconditions.checkArgument(loadout.menuItem() != null, "loadout[%s].menuItem can't be null", key);
-        Preconditions.checkArgument(loadout.menuName() != null, "loadout[%s].menuName can't be null", key);
+        Preconditions.checkArgument(loadout.name() != null, "loadout[%s].name can't be null", key);
         Preconditions.checkArgument(loadout.menuLore() != null, "loadout[%s].menuLore can't be null", key);
         for (JsonElement line : loadout.menuLore()) {
             Preconditions.checkArgument(line != null, "loadout[%s].menuLore can't have any null entries", key);
@@ -120,7 +120,7 @@ public class CaptureTheFlagStorageUtil extends GameConfigStorageUtil<CaptureTheF
     
     private void itemIsValid(@Nullable ItemStackDTO item, int slot) {
         if (item != null) {
-            Preconditions.checkArgument(item.getType() != null, "loadout.inventory.contents item.type can't be null (slot index %s)", slot);
+            Preconditions.checkArgument(item.getType() != null, "loadout.inventory.contents[%s].type can't be null", slot);
         }
     }
     
@@ -135,7 +135,7 @@ public class CaptureTheFlagStorageUtil extends GameConfigStorageUtil<CaptureTheF
             String battleClass = entry.getKey();
             LoadoutDTO loadout = entry.getValue();
             List<Component> menuDescription = ItemMetaDTO.toLore(loadout.menuLore());
-            Component menuName = ConfigUtil.toComponent(loadout.menuName());
+            Component menuName = ConfigUtil.toComponent(loadout.name());
             Loadout newLoadout = new Loadout(menuName, loadout.menuItem(), menuDescription, loadout.inventory().toInventoryContents());
             newLoadouts.put(battleClass, newLoadout);
         }
