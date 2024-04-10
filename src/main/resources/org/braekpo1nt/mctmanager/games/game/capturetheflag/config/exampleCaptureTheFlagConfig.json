@@ -191,6 +191,7 @@
   "loadouts": {
     "KNIGHT": {
       "menuItem": "STONE_SWORD",
+      "name": "Knight",
       "menuLore": [
         {"text":"- Stone Sword"},
         {"text":"- Chest Plate"},
@@ -209,27 +210,25 @@
           },
           "1": {
             "type": "COOKED_BEEF",
-            "amount": 8
+            "amount": 2
           }
         }
       }
     },
     "ARCHER": {
       "menuItem": "BOW",
+      "name": "Archer",
       "menuLore": [
         "- Bow",
         "- 16 Arrows",
         "- Wooden Sword",
-        "- Chest Plate",
+        "- Leggings",
         "- Boots"
       ],
       "inventory": {
         "contents": {
-          "36": {
-            "type": "LEATHER_BOOTS"
-          },
-          "38": {
-            "type": "LEATHER_CHESTPLATE"
+          "37": {
+            "type": "LEATHER_LEGGINGS"
           },
           "0": {
             "type": "BOW"
@@ -243,16 +242,17 @@
           },
           "3": {
             "type": "COOKED_BEEF",
-            "amount": 8
+            "amount": 2
           }
         }
       }
     },
     "ASSASSIN": {
       "menuItem": "IRON_SWORD",
+      "name": "Assassin",
       "menuLore": [
         {"text":"- Iron Sword"},
-        {"text":"- No Armor"}
+        {"text":"- Leather Leggings"}
       ],
       "inventory": {
         "contents": {
@@ -264,17 +264,21 @@
           },
           "1": {
             "type": "COOKED_BEEF",
-            "amount": 8
+            "amount": 2
+          },
+          "36": {
+            "type": "LEATHER_LEGGINGS"
           }
         }
       }
     },
     "TANK": {
       "menuItem": "LEATHER_CHESTPLATE",
+      "name": "Tank",
       "menuLore": [
         {"text":"- Full Leather Armor"},
         {"text":"- Chainmail Leggings"},
-        {"text":"- No Sword","italic":true}
+        {"text":"- Iron Hoe"}
       ],
       "inventory": {
         "contents": {
@@ -287,9 +291,49 @@
           "38": {
             "type": "LEATHER_CHESTPLATE"
           },
-          "0": {
+          "1": {
             "type": "COOKED_BEEF",
-            "amount": 8
+            "amount": 2
+          },
+          "0": {
+            "type": "IRON_HOE"
+          }
+        }
+      }
+    },
+    "HEALER":{
+      "menuItem": "GOLDEN_APPLE",
+      "name": "Healer",
+      "menuLore": [
+        {"text":"- Some Leather Armor"},
+        {"text":"-Wooden Sword"},
+        {"text":"- 2 Healing Potions"}
+      ],
+      "inventory": {
+        "contents": {
+          "36": {
+            "type": "LEATHER_BOOTS"
+          },
+          "38": {
+            "type": "LEATHER_CHESTPLATE"
+          },
+          "3": {
+            "type": "COOKED_BEEF",
+            "amount": 2
+          },
+          "0": {
+            "type": "WOODEN_SWORD"
+          },
+          "1":{
+            "type": "SPLASH_POTION",
+            "amount": 2,
+            "meta": {
+              "basePotionData": {
+                "type": "INSTANT_HEAL",
+                "extended": false,
+                "upgraded": false
+              }
+            }
           }
         }
       }

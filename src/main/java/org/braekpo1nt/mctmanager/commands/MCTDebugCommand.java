@@ -7,6 +7,7 @@ import org.braekpo1nt.mctmanager.utils.EntityUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -16,6 +17,11 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.PotionMeta;
+import org.bukkit.potion.PotionData;
+import org.bukkit.potion.PotionType;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -47,6 +53,12 @@ public class MCTDebugCommand implements TabExecutor, Listener {
                     .color(NamedTextColor.RED));
             return true;
         }
+    
+        ItemStack p = new ItemStack(Material.SPLASH_POTION, 2);
+        PotionMeta pMeta = (PotionMeta) p.getItemMeta();
+        pMeta.setBasePotionData(new PotionData(PotionType.INSTANT_HEAL, false, false));
+        
+
 //        Component mainTitle = Component.text("Main title");
 //        Component subTitle = Component.text("Subtitle");
 //
