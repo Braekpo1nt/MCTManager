@@ -19,16 +19,16 @@ public class Loadout {
     
     /**
      * 
-     * @param menuName The name to display for this menu item
+     * @param menuName The item display name for this menu item
      * @param menuMaterial The Material types to be used in the menu to represent this loadout
      * @param menuDescription The lore to be added to the menu item's meta to be used as a description for each loadout
      * @param contents The inventory contents of this loadout
      */
-    public Loadout(String menuName, Material menuMaterial, List<Component> menuDescription, ItemStack[] contents) {
+    public Loadout(Component menuName, Material menuMaterial, List<Component> menuDescription, ItemStack[] contents) {
         this.inventory = contents;
         this.menuItem = new ItemStack(menuMaterial);
         ItemMeta menuItemMeta = this.menuItem.getItemMeta();
-        menuItemMeta.displayName(Component.text(menuName));
+        menuItemMeta.displayName(menuName);
         menuItemMeta.lore(menuDescription);
         this.menuItem.setItemMeta(menuItemMeta);
     }

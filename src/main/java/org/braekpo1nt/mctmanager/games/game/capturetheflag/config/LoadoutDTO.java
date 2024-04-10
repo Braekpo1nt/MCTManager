@@ -10,8 +10,9 @@ import java.util.List;
  * Represents a loadout for a BattleClass
  *
  * @param menuItem  the item Material Type to use in the ClassPicker menu to represent the BattleClass
+ * @param menuName  the name to show on the menu item when you hover over it (it's just an item display name)
  * @param menuLore  the description to show on the menu item when you hover over it (it's just an item lore)
  * @param inventory the player's inventory when they select this class
  */
-record LoadoutDTO(Material menuItem, List<JsonElement> menuLore, InventoryContentsDTO inventory) {
+record LoadoutDTO(Material menuItem, JsonElement menuName, List<JsonElement> menuLore, InventoryContentsDTO inventory) {
 }

@@ -10,7 +10,7 @@ import org.bukkit.util.Vector;
 import java.util.List;
 import java.util.Map;
 
-record CaptureTheFlagConfig(String version, String world, Vector spawnObservatory, List<ArenaDTO> arenas, Map<BattleClass, LoadoutDTO> loadouts, BoundingBoxDTO spectatorArea, Scores scores, Durations durations, JsonElement description) {
+record CaptureTheFlagConfig(String version, String world, Vector spawnObservatory, List<ArenaDTO> arenas, Map<String, LoadoutDTO> loadouts, BoundingBoxDTO spectatorArea, Scores scores, Durations durations, JsonElement description) {
     
     record ArenaDTO(Vector northSpawn, Vector southSpawn, Vector northFlag, Vector southFlag, Vector northBarrier, Vector southBarrier, Arena.BarrierSize barrierSize, BoundingBoxDTO boundingBox) {
     }
