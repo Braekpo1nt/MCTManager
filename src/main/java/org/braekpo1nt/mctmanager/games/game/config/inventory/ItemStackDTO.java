@@ -28,7 +28,7 @@ public class ItemStackDTO {
         Preconditions.checkArgument(type != null, "type (Material) cannot be null");
         ItemStack stack = new ItemStack(type, amount);
         if (itemMeta != null) {
-            stack.editMeta(meta -> itemMeta.toItemMeta(meta));
+            stack.editMeta(meta -> itemMeta.toItemMeta(meta, type));
         }
         return stack;
     }

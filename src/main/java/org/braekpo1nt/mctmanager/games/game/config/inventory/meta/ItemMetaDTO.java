@@ -4,10 +4,16 @@ import com.destroystokyo.paper.Namespaced;
 import com.google.gson.JsonElement;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.games.game.config.ConfigUtil;
+import org.bukkit.Bukkit;
+import org.bukkit.Color;
+import org.bukkit.Material;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.PotionMeta;
+import org.bukkit.potion.PotionData;
+import org.bukkit.potion.PotionEffect;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,6 +36,12 @@ public class ItemMetaDTO {
     protected @Nullable Set<Namespaced> destroyableKeys;
     protected @Nullable Set<Namespaced> placeableKeys;
     
+    // PotionMeta
+    private PotionData basePotionData;
+    private List<PotionEffect> customEffects;
+    private List<Boolean> customEffectsOverwrite;
+    private Color color;
+    
     /**
      * 
      * @param loreDTO the list of {@link JsonElement}s that represent the 
@@ -51,7 +63,7 @@ public class ItemMetaDTO {
      * @return the provided ItemMeta, after all the attributes have been set 
      * to this ItemMetaDTO's attributes
      */
-    public ItemMeta toItemMeta(ItemMeta meta) {
+    public ItemMeta toItemMeta(ItemMeta meta, Material type) {
         if (displayName != null) {
             Component newDisplayName = ConfigUtil.toComponent(displayName);
             meta.displayName(newDisplayName);
@@ -76,6 +88,26 @@ public class ItemMetaDTO {
         if (placeableKeys != null) {
             meta.setPlaceableKeys(placeableKeys);
         }
+        switch (type) {
+            case POTION, SPLASH_POTION, LINGERING_POTION -> {
+                PotionMeta potionMeta = (PotionMeta) meta;
+                if (basePotionData != null) {
+                    potionMeta.setBasePotionData(basePotionData);
+                }
+                if (customEffects != null && customEffectsOverwrite != null) {
+                    for (int i = 0; i < customEffects.size(); i++) {
+                        PotionEffect customEffect = customEffects.get(i);
+                        Boolean overwrite = customEffectsOverwrite.get(i);
+                        if (customEffect != null && overwrite != null) {
+                            potionMeta.addCustomEffect(customEffect, overwrite);
+                        }
+                    }
+                }
+                potionMeta.setColor(color);
+                Bukkit.getLogger().info("PotionMeta called");
+            }
+        }
+        Bukkit.getLogger().info("toItemStack called");
         return meta;
     }
     
