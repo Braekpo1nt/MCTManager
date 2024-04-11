@@ -266,7 +266,7 @@
             "type": "COOKED_BEEF",
             "amount": 2
           },
-          "36": {
+          "37": {
             "type": "LEATHER_LEGGINGS"
           }
         }
@@ -303,20 +303,15 @@
     },
     "HEALER":{
       "name": "Healer",
-      "item": {
-        "type": "SPLASH_POTION",
-        "itemMeta": {
-          "displayName": "Healer",
-          "lore": [
-            {"text":"- Some Leather Armor"},
-            {"text":"-Wooden Sword"},
-            {"text":"- 2 Healing Potions"}
-          ],
-          "basePotionData": {
-            "type": "INSTANT_HEAL",
-            "extended": false,
-            "upgraded": false
-          }
+      "menuItem": "SPLASH_POTION",
+      "menuLore": [
+        {"text":"- Some Leather Armor"},
+        {"text":"- Wooden Sword"},
+        {"text":"- 2 Healing Potions"}
+      ],
+      "menuMeta": {
+        "basePotionData": {
+          "type": "INSTANT_HEAL"
         }
       },
       "inventory": {

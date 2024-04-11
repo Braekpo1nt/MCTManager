@@ -5,7 +5,6 @@ import com.google.gson.JsonElement;
 import lombok.Getter;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.Loadout;
 import org.braekpo1nt.mctmanager.games.game.config.ConfigUtil;
-import org.braekpo1nt.mctmanager.games.game.config.inventory.ItemStackDTO;
 import org.braekpo1nt.mctmanager.games.game.config.inventory.PlayerInventoryDTO;
 import org.braekpo1nt.mctmanager.games.game.config.inventory.meta.ItemMetaDTO;
 import org.bukkit.Material;
@@ -35,9 +34,9 @@ class LoadoutDTO {
      */
     private @Nullable List<@Nullable JsonElement> menuLore;
     /**
-     * the item to use in the ClassPicker menu to represent the BattleClass. The display name will be overwritten to be {@link LoadoutDTO#name} and the amount will be set to 1.
+     * optional item meta for the ClassPicker menu. (for example, if a particular potion is desired). The name and lore will be overwritten by this LoadoutDTO's name and menuLore.
      */
-    private @Nullable ItemStackDTO item;
+    private @Nullable ItemMetaDTO menuMeta;
     /**
      * the player's inventory when they select this class
      */
@@ -45,14 +44,11 @@ class LoadoutDTO {
     
     public void isValid() {
         Preconditions.checkArgument(name != null, "name can't be null");
-        if (item == null) {
-            // 0.1.0 backwards compatibility
-            if (menuItem == null && menuLore == null) {
-                throw new IllegalArgumentException("menuItem and menuLore can't be null if item is null (backwards compatibility with 0.1.0)");
-            }
-            Preconditions.checkArgument(menuItem != null, "menuItem can't be null");
-            Preconditions.checkArgument(menuLore != null, "lore can't be null");
-            ItemMetaDTO.toLore(menuLore);
+        Preconditions.checkArgument(menuItem != null, "menuItem can't be null");
+        Preconditions.checkArgument(menuLore != null, "lore can't be null");
+        ItemMetaDTO.toLore(menuLore);
+        if (menuMeta != null) {
+            menuMeta.isValid();
         }
         Preconditions.checkArgument(inventory != null, "inventory can't be null");
         inventory.isValid();
@@ -66,14 +62,16 @@ class LoadoutDTO {
         } else {
             contents = new ItemStack[41];
         }
-        if (item == null) {
-            // 0.1.0 backwards compatibility
-            if (menuItem == null && menuLore == null) {
-                throw new IllegalArgumentException("menuItem and menuLore can't be null if item is null");
-            }
-            List<Component> menuDescription = ItemMetaDTO.toLore(menuLore);
-            return new Loadout(menuName, menuItem, menuDescription, contents);
+        List<Component> menuDescription = ItemMetaDTO.toLore(menuLore);
+        Preconditions.checkState(menuItem != null, "menuItem can't be null when toLoadout is called");
+        ItemStack newMenuItem = new ItemStack(menuItem);
+        if (menuMeta != null) {
+            newMenuItem.editMeta(meta -> menuMeta.toItemMeta(meta, newMenuItem.getType()));
         }
-        return new Loadout(menuName, item.toItemStack(), contents);
+        newMenuItem.editMeta(meta -> {
+            meta.displayName(menuName);
+            meta.lore(menuDescription);
+        });
+        return new Loadout(menuName, newMenuItem, contents);
     }
 }
