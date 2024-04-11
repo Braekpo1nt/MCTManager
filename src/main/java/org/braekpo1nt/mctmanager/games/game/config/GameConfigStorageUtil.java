@@ -1,6 +1,8 @@
 package org.braekpo1nt.mctmanager.games.game.config;
 
 import com.google.gson.*;
+import org.braekpo1nt.mctmanager.games.game.config.inventory.meta.ItemMetaDTO;
+import org.braekpo1nt.mctmanager.games.game.config.inventory.meta.ItemMetaDTODeserializer;
 import org.bukkit.Bukkit;
 import org.jetbrains.annotations.Nullable;
 
@@ -68,7 +70,9 @@ public abstract class GameConfigStorageUtil<T> {
         }
         try {
             Reader reader = new FileReader(configFile);
-            Gson gson = new Gson();
+            Gson gson = new GsonBuilder()
+                    .registerTypeAdapter(ItemMetaDTO.class, new ItemMetaDTODeserializer())
+                    .create();
             T newConfig = gson.fromJson(reader, configClass);
             reader.close();
             return newConfig;
