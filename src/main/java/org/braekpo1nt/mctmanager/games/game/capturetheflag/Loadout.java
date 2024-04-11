@@ -11,13 +11,13 @@ import java.util.List;
 
 public class Loadout {
     /**
-     * The menu item to represent this loadout
-     */
-    private final ItemStack menuItem;
-    /**
      * The name of this loadout (used in chat messages to communicate to the player which loadout they chose)
      */
     private final Component name;
+    /**
+     * The menu item to represent this loadout
+     */
+    private final ItemStack menuItem;
     /**
      * the inventory contents for this loadout
      */
@@ -26,18 +26,14 @@ public class Loadout {
     /**
      * 
      * @param name The name of this loadout (used in chat messages to communicate to the player which loadout they chose)
-     * @param menuItem the menuItem to be displayed in the class picker menu. Use display name and lore to tell the user about it. Only 1 item will be in the item stack. If an item with an amount not equal to 1 is given, then a clone will be assigned with an amount of 1.
+     * @param menuItem the menuItem to be displayed in the class picker menu. Use display name and lore to tell the user about it. The amount will be set to 1. The dislpayName of the item will be set to the given name.
      * @param inventory The inventory contents of this loadout.
      */
     public Loadout(Component name, ItemStack menuItem, ItemStack[] inventory) {
-        Preconditions.checkArgument(menuItem.getAmount() == 1, "only 1 item can be in the menuItem. Found %s", menuItem.getAmount());
-        if (menuItem.getAmount() == 1) {
-            this.menuItem = menuItem;
-        } else {
-            this.menuItem = menuItem.clone();
-            this.menuItem.setAmount(1);
-        }
         this.name = name;
+        this.menuItem = menuItem.clone();
+        this.menuItem.setAmount(1);
+        this.menuItem.editMeta(meta -> meta.displayName(this.name));
         this.inventory = inventory;
     }
     

@@ -31,11 +31,11 @@ class LoadoutDTO {
      */
     private @Nullable Material menuItem;
     /**
-     * 
+     * the description of the class in the form of item lore
      */
     private @Nullable List<@Nullable JsonElement> menuLore;
     /**
-     * the item to use in the ClassPicker menu to represent the BattleClass
+     * the item to use in the ClassPicker menu to represent the BattleClass. The display name will be overwritten to be {@link LoadoutDTO#name} and the amount will be set to 1.
      */
     private @Nullable ItemStackDTO item;
     /**
