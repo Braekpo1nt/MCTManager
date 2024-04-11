@@ -25,6 +25,7 @@ public class PotionMetaDTO extends ItemMetaDTO {
     @SuppressWarnings("ConstantConditions")
     @Override
     public void isValid() {
+        super.isValid();
         Preconditions.checkArgument(basePotionData != null, "basePotionData can't be null");
         Preconditions.checkArgument(basePotionData.getType() != null, "basePotionData.type can't be null");
         if (customEffects != null) {

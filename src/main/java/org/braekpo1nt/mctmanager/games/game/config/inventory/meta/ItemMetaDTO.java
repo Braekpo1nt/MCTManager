@@ -2,6 +2,8 @@ package org.braekpo1nt.mctmanager.games.game.config.inventory.meta;
 
 import com.destroystokyo.paper.Namespaced;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonIOException;
+import com.google.gson.JsonSyntaxException;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.games.game.config.ConfigUtil;
 import org.bukkit.Material;
@@ -32,7 +34,20 @@ public class ItemMetaDTO {
     protected @Nullable Set<Namespaced> placeableKeys;
     
     public void isValid() {
-        throw new UnsupportedOperationException("not yet implemented");
+        if (displayName != null) {
+            try {
+                ConfigUtil.toComponent(displayName);
+            } catch (JsonIOException | JsonSyntaxException e) {
+                throw new IllegalArgumentException("displayName is invalid", e);
+            }
+        }
+        if (lore != null) {
+            try {
+                ConfigUtil.toComponents(lore);
+            } catch (JsonIOException | JsonSyntaxException e) {
+                throw new IllegalArgumentException("lore is invalid", e);
+            }
+        }
     }
     
     /**
