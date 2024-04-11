@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.capturetheflag;
 
+import com.google.common.base.Preconditions;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -21,8 +22,17 @@ public class Loadout {
      */
     private final ItemStack[] inventory;
     
-    public Loadout(ItemStack menuItem, ItemStack[] contents) {
-        
+    /**
+     * 
+     * @param name The name of this loadout (used in chat messages to communicate to the player which loadout they chose)
+     * @param menuItem the menuItem to be displayed in the class picker menu. Use display name and lore to tell the user about it. Requires only 1 item in the ItemStack.
+     * @param inventory The inventory contents of this loadout.
+     */
+    public Loadout(Component name, ItemStack menuItem, ItemStack[] inventory) {
+        Preconditions.checkArgument(menuItem.getAmount() == 1, "only 1 item can be in the menuItem. Found %s", menuItem.getAmount());
+        this.menuItem = menuItem;
+        this.name = name;
+        this.inventory = inventory;
     }
     
     /**
