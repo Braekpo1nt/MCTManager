@@ -57,11 +57,7 @@ class BoundingBoxSubCommand implements TabExecutor {
         double z2 = Double.parseDouble(args[5]);
         
         BoundingBox boundingBox = new BoundingBox(x1, y1, z1, x2, y2, z2);
-        Gson gson = new GsonBuilder()
-                .setPrettyPrinting()
-                .registerTypeAdapter(Double.class, new DoubleSerializer())
-                .create();
-        String boundingBoxJson = gson.toJson(boundingBox);
+        String boundingBoxJson = UtilsUtils.GSON.toJson(boundingBox);
         sender.sendMessage(Component.empty()
                 .append(UtilsUtils.attribute("BoundingBox", boundingBoxJson, NamedTextColor.WHITE))
                 .append(UtilsUtils.attribute("Height", boundingBox.getHeight(), NamedTextColor.GREEN))

@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import org.braekpo1nt.mctmanager.games.game.config.inventory.meta.ItemMetaDTO;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class ItemStackDTO {
@@ -24,13 +25,20 @@ public class ItemStackDTO {
     /**
      * @return the ItemStack object which was represented by this DTO 
      */
-    public ItemStack toItemStack() {
+    public @NotNull ItemStack toItemStack() {
         Preconditions.checkArgument(type != null, "type (Material) cannot be null");
         ItemStack stack = new ItemStack(type, amount);
         if (itemMeta != null) {
-            stack.editMeta(meta -> itemMeta.toItemMeta(meta));
+            stack.editMeta(meta -> itemMeta.toItemMeta(meta, type));
         }
         return stack;
+    }
+    
+    public void isValid() {
+        Preconditions.checkArgument(type != null, "type can't be null");
+        if (itemMeta != null) {
+            itemMeta.isValid();
+        }
     }
     
     public Material getType() {

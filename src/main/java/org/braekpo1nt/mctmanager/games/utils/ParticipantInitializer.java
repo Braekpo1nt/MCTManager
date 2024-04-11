@@ -31,7 +31,9 @@ public class ParticipantInitializer {
             }
         }
         extinguishFire(participant);
-        Bukkit.getScheduler().runTaskLater(plugin, () -> extinguishFire(participant), 2L);
+        if (plugin != null) {
+            Bukkit.getScheduler().runTaskLater(plugin, () -> extinguishFire(participant), 2L);
+        }
         participant.setArrowsInBody(0);
     }
     

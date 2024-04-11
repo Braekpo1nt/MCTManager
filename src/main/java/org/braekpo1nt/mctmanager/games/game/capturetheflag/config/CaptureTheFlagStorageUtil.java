@@ -1,17 +1,16 @@
 package org.braekpo1nt.mctmanager.games.game.capturetheflag.config;
 
 import com.google.common.base.Preconditions;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.Arena;
-import org.braekpo1nt.mctmanager.games.game.capturetheflag.BattleClass;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.Loadout;
+import org.braekpo1nt.mctmanager.games.game.config.ConfigUtil;
 import org.braekpo1nt.mctmanager.games.game.config.GameConfigStorageUtil;
-import org.braekpo1nt.mctmanager.games.game.config.inventory.InventoryContentsDTO;
+import org.braekpo1nt.mctmanager.games.game.config.inventory.InventoryDTO;
 import org.braekpo1nt.mctmanager.games.game.config.inventory.ItemStackDTO;
 import org.braekpo1nt.mctmanager.games.game.config.inventory.meta.ItemMetaDTO;
 import org.bukkit.Bukkit;
@@ -19,6 +18,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.util.BoundingBox;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -31,7 +31,7 @@ public class CaptureTheFlagStorageUtil extends GameConfigStorageUtil<CaptureTheF
     private Location spawnObservatory;
     private List<Arena> arenas;
     private Component description;
-    private Map<BattleClass, Loadout> loadouts;
+    private Map<String, Loadout> loadouts;
     
     public CaptureTheFlagStorageUtil(File configDirectory) {
         super(configDirectory, "captureTheFlagConfig.json", CaptureTheFlagConfig.class);
@@ -77,13 +77,15 @@ public class CaptureTheFlagStorageUtil extends GameConfigStorageUtil<CaptureTheF
         Preconditions.checkArgument(config.durations().classSelection() >= 0, "durations.classSelection (%s) can't be negative", config.durations().classSelection());
         Preconditions.checkArgument(config.durations().roundTimer() >= 0, "durations.roundTimer (%s) can't be negative", config.durations().roundTimer());
         Preconditions.checkArgument(config.loadouts() != null, "loadouts can't be null");
-        Preconditions.checkArgument(config.loadouts().keySet().containsAll(List.of(BattleClass.values())), "loadouts must contain an entry for each BattleClass");
+        Preconditions.checkArgument(config.loadouts().size() >= 4, "loadouts must contain at least 4 entries");
         Set<Material> uniqueMenuItems = new HashSet<>();
-        for (BattleClass battleClass : BattleClass.values()) {
+        for (String battleClass : config.loadouts().keySet()) {
+            Preconditions.checkArgument(battleClass != null, "loadouts keys can't be null");
+            Preconditions.checkArgument(!battleClass.isEmpty() && !battleClass.isBlank(), "loadouts keys can't be empty");
             LoadoutDTO loadout = config.loadouts().get(battleClass);
-            Preconditions.checkArgument(!uniqueMenuItems.contains(loadout.menuItem()), "loadout.menuItem %s for BattleClass %s is not unique", loadout.menuItem(), battleClass);
-            uniqueMenuItems.add(loadout.menuItem());
-            loadoutIsValid(loadout);
+            Preconditions.checkArgument(!uniqueMenuItems.contains(loadout.getMenuItem()), "loadouts[%s].menuItem %s for BattleClass %s is not unique", battleClass, loadout.getMenuItem(), battleClass);
+            uniqueMenuItems.add(loadout.getMenuItem());
+            loadout.isValid();
         }
         try {
             GsonComponentSerializer.gson().deserializeFromTree(config.description());
@@ -93,47 +95,17 @@ public class CaptureTheFlagStorageUtil extends GameConfigStorageUtil<CaptureTheF
         return true;
     }
     
-    private void loadoutIsValid(LoadoutDTO loadout) {
-        Preconditions.checkArgument(loadout.menuItem() != null, "loadout.menuItem can't be null");
-        Preconditions.checkArgument(loadout.menuLore() != null, "loadout.menuLore can't be null");
-        for (JsonElement line : loadout.menuLore()) {
-            Preconditions.checkArgument(line != null, "loadout.menuLore can't have any null entries");
-        }
-        ItemMetaDTO.toLore(loadout.menuLore());
-        inventoryIsValid(loadout.inventory());
-    }
-    
-    private void inventoryIsValid(InventoryContentsDTO inventory) {
-        Preconditions.checkArgument(inventory != null, "loadout.inventory can't be null");
-        Preconditions.checkArgument(inventory.contents() != null, "loadout.inventory.contents can't be null");
-        Preconditions.checkArgument(inventory.contents().size() <= 41, "loadout.inventory.contents can't contain more than 41 entries");
-        for (Map.Entry<Integer, ItemStackDTO> entry : inventory.contents().entrySet()) {
-            int slot = entry.getKey();
-            Preconditions.checkArgument(0 <= slot && slot <= 40, "loadout.inventory.contents index (%s) must be between 0 and 40 (inclusive)", slot);
-            ItemStackDTO item = entry.getValue();
-            itemIsValid(item, slot);
-        }
-    }
-    
-    private void itemIsValid(@Nullable ItemStackDTO item, int slot) {
-        if (item != null) {
-            Preconditions.checkArgument(item.getType() != null, "loadout.inventory.contents item.type can't be null (slot index %s)", slot);
-        }
-    }
-    
     @Override
     protected void setConfig(CaptureTheFlagConfig config) {
         World newWorld = Bukkit.getWorld(config.world());
         Preconditions.checkArgument(newWorld != null, "Could not find world \"%s\"", config.world());
         Location newSpawnObservatory = config.spawnObservatory().toLocation(newWorld);
         Component newDescription = GsonComponentSerializer.gson().deserializeFromTree(config.description());
-        Map<BattleClass, Loadout> newLoadouts = new HashMap<>();
-        for (Map.Entry<BattleClass, LoadoutDTO> entry : config.loadouts().entrySet()) {
-            BattleClass battleClass = entry.getKey();
+        Map<String, Loadout> newLoadouts = new HashMap<>();
+        for (Map.Entry<String, LoadoutDTO> entry : config.loadouts().entrySet()) {
+            String battleClass = entry.getKey();
             LoadoutDTO loadout = entry.getValue();
-            List<Component> menuDescription = ItemMetaDTO.toLore(loadout.menuLore());
-            Loadout newLoadout = new Loadout(battleClass.getName(), loadout.menuItem(), menuDescription, loadout.inventory().toInventoryContents());
-            newLoadouts.put(battleClass, newLoadout);
+            newLoadouts.put(battleClass, loadout.toLoadout());
         }
         // now it's confirmed everything works, so set the actual fields
         this.world = newWorld;
@@ -210,7 +182,7 @@ public class CaptureTheFlagStorageUtil extends GameConfigStorageUtil<CaptureTheF
         return description;
     }
     
-    public Map<BattleClass, Loadout> getLoadouts() {
+    public Map<String, Loadout> getLoadouts() {
         return loadouts;
     }
     

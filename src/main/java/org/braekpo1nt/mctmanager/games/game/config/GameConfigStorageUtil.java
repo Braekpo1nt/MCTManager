@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.games.game.config;
 
 import com.google.gson.*;
+import org.braekpo1nt.mctmanager.Main;
 import org.bukkit.Bukkit;
 import org.jetbrains.annotations.Nullable;
 
@@ -68,8 +69,7 @@ public abstract class GameConfigStorageUtil<T> {
         }
         try {
             Reader reader = new FileReader(configFile);
-            Gson gson = new Gson();
-            T newConfig = gson.fromJson(reader, configClass);
+            T newConfig = ConfigUtil.GSON.fromJson(reader, configClass);
             reader.close();
             return newConfig;
         } catch (IOException | JsonIOException e) {
@@ -101,9 +101,8 @@ public abstract class GameConfigStorageUtil<T> {
         }
     
         try {
-            Gson gson = new GsonBuilder().setPrettyPrinting().create();
             Writer writer = new FileWriter(configFile, false);
-            gson.toJson(config, writer);
+            Main.GSON_PRETTY.toJson(config, writer);
             writer.flush();
             writer.close();
             Bukkit.getLogger().info(String.format("[MCTManager] Saved default config to %s", configFile));
@@ -164,8 +163,7 @@ public abstract class GameConfigStorageUtil<T> {
             return null;
         }
         Reader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
-        Gson gson = new Gson();
-        return gson.fromJson(reader, configClass);
+        return ConfigUtil.GSON.fromJson(reader, configClass);
     }
     
 }

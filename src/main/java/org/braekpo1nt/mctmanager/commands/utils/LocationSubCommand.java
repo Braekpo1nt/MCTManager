@@ -47,24 +47,19 @@ class LocationSubCommand implements CommandExecutor {
     }
     
     private boolean displayLocation(@NotNull CommandSender sender, Player player) {
-        Gson gson = new GsonBuilder()
-                .setPrettyPrinting()
-                .registerTypeAdapter(Double.class, new DoubleSerializer())
-                .registerTypeAdapter(Float.class, new FloatSerializer())
-                .create();
         LocationDTO precise = new LocationDTO(player.getLocation());
-        String preciseJson = gson.toJson(precise);
+        String preciseJson = UtilsUtils.GSON.toJson(precise);
         
         Location blockLocation = player.getLocation().toBlockLocation();
         blockLocation.setYaw((player.getLocation().getYaw()));
         blockLocation.setPitch(player.getLocation().getPitch());
         LocationDTO block = new LocationDTO(blockLocation);
-        String blockJson = gson.toJson(block);
+        String blockJson = UtilsUtils.GSON.toJson(block);
         
         LocationDTO rounded = new LocationDTO(
                 MathUtils.specialRound(player.getLocation(), 0.5, 45)
         );
-        String roundedJson = gson.toJson(rounded);
+        String roundedJson = UtilsUtils.GSON.toJson(rounded);
         
         sender.sendMessage(Component.empty()
                 .append(UtilsUtils.attribute("Precise", preciseJson, NamedTextColor.WHITE))

@@ -2,8 +2,11 @@ package org.braekpo1nt.mctmanager.games.game.config.inventory.meta;
 
 import com.destroystokyo.paper.Namespaced;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonIOException;
+import com.google.gson.JsonSyntaxException;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.games.game.config.ConfigUtil;
+import org.bukkit.Material;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.inventory.ItemFlag;
@@ -30,6 +33,23 @@ public class ItemMetaDTO {
     protected @Nullable Set<Namespaced> destroyableKeys;
     protected @Nullable Set<Namespaced> placeableKeys;
     
+    public void isValid() {
+        if (displayName != null) {
+            try {
+                ConfigUtil.toComponent(displayName);
+            } catch (JsonIOException | JsonSyntaxException e) {
+                throw new IllegalArgumentException("displayName is invalid", e);
+            }
+        }
+        if (lore != null) {
+            try {
+                ConfigUtil.toComponents(lore);
+            } catch (JsonIOException | JsonSyntaxException e) {
+                throw new IllegalArgumentException("lore is invalid", e);
+            }
+        }
+    }
+    
     /**
      * 
      * @param loreDTO the list of {@link JsonElement}s that represent the 
@@ -37,7 +57,7 @@ public class ItemMetaDTO {
      * @return the loreDTO as a list of {@link Component}s for use as an {@link ItemMeta}'s lore
      * @throws IllegalArgumentException if any of the given loreDTO elements can't be parsed as a {@link Component}
      */
-    public static @NotNull List<Component> toLore(@NotNull List<@NotNull JsonElement> loreDTO) {
+    public static @NotNull List<Component> toLore(@Nullable List<@Nullable JsonElement> loreDTO) {
         try {
             return ConfigUtil.toComponents(loreDTO);
         } catch (IllegalArgumentException e) {
@@ -51,7 +71,7 @@ public class ItemMetaDTO {
      * @return the provided ItemMeta, after all the attributes have been set 
      * to this ItemMetaDTO's attributes
      */
-    public ItemMeta toItemMeta(ItemMeta meta) {
+    public ItemMeta toItemMeta(ItemMeta meta, Material type) {
         if (displayName != null) {
             Component newDisplayName = ConfigUtil.toComponent(displayName);
             meta.displayName(newDisplayName);
