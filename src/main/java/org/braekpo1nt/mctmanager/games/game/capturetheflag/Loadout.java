@@ -21,6 +21,10 @@ public class Loadout {
      */
     private final ItemStack[] inventory;
     
+    public Loadout(ItemStack menuItem, ItemStack[] contents) {
+        
+    }
+    
     /**
      * 
      * @param name The name of this loadout. Used as the item display name for its menu item, and in chat messages to the participants. 
