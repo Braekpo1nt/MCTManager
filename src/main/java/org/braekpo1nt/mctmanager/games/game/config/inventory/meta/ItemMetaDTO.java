@@ -31,6 +31,10 @@ public class ItemMetaDTO {
     protected @Nullable Set<Namespaced> destroyableKeys;
     protected @Nullable Set<Namespaced> placeableKeys;
     
+    public void isValid() {
+        throw new UnsupportedOperationException("not yet implemented");
+    }
+    
     /**
      * 
      * @param loreDTO the list of {@link JsonElement}s that represent the 

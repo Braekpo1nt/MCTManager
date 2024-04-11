@@ -114,13 +114,9 @@ public class CaptureTheFlagStorageUtil extends GameConfigStorageUtil<CaptureTheF
             int slot = entry.getKey();
             Preconditions.checkArgument(0 <= slot && slot <= 40, "loadout.inventory.contents index (%s) must be between 0 and 40 (inclusive)", slot);
             ItemStackDTO item = entry.getValue();
-            itemIsValid(item, slot);
-        }
-    }
-    
-    private void itemIsValid(@Nullable ItemStackDTO item, int slot) {
-        if (item != null) {
-            Preconditions.checkArgument(item.getType() != null, "loadout.inventory.contents[%s].type can't be null", slot);
+            if (item != null) {
+                item.isValid();
+            }
         }
     }
     

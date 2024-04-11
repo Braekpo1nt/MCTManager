@@ -33,6 +33,13 @@ public class ItemStackDTO {
         return stack;
     }
     
+    public void isValid() {
+        Preconditions.checkArgument(type != null, "type can't be null");
+        if (itemMeta != null) {
+            itemMeta.isValid();
+        }
+    }
+    
     public Material getType() {
         return type;
     }
