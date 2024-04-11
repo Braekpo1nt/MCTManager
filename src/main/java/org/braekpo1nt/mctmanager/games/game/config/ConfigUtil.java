@@ -22,10 +22,13 @@ public class ConfigUtil {
      * 
      * @param componentDTO a {@link JsonElement} representing a {@link Component}.
      *                     (essentially a /tellraw argument)
-     * @return the componentDTO as a {@link Component} object 
+     * @return the componentDTO as a {@link Component} object ({@link Component#empty()} if the componentDTO is null)
      * @throws IllegalArgumentException if the provided componentDTO can't be parsed into a {@link Component} object.
      */
-    public static @NotNull Component toComponent(final @NotNull JsonElement componentDTO) throws JsonIOException, JsonSyntaxException {
+    public static @NotNull Component toComponent(final @Nullable JsonElement componentDTO) throws JsonIOException, JsonSyntaxException {
+        if (componentDTO == null) {
+            return Component.empty();
+        }
         try {
             return GsonComponentSerializer.gson().deserializeFromTree(componentDTO);
         } catch (JsonIOException | JsonSyntaxException e) {

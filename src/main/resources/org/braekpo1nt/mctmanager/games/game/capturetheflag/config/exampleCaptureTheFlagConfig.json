@@ -302,13 +302,23 @@
       }
     },
     "HEALER":{
-      "menuItem": "GOLDEN_APPLE",
       "name": "Healer",
-      "menuLore": [
-        {"text":"- Some Leather Armor"},
-        {"text":"-Wooden Sword"},
-        {"text":"- 2 Healing Potions"}
-      ],
+      "item": {
+        "type": "SPLASH_POTION",
+        "itemMeta": {
+          "displayName": "Healer",
+          "lore": [
+            {"text":"- Some Leather Armor"},
+            {"text":"-Wooden Sword"},
+            {"text":"- 2 Healing Potions"}
+          ],
+          "basePotionData": {
+            "type": "INSTANT_HEAL",
+            "extended": false,
+            "upgraded": false
+          }
+        }
+      },
       "inventory": {
         "contents": {
           "36": {

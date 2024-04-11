@@ -105,10 +105,7 @@ public class CaptureTheFlagStorageUtil extends GameConfigStorageUtil<CaptureTheF
         for (Map.Entry<String, LoadoutDTO> entry : config.loadouts().entrySet()) {
             String battleClass = entry.getKey();
             LoadoutDTO loadout = entry.getValue();
-            List<Component> menuDescription = ItemMetaDTO.toLore(loadout.getMenuLore());
-            Component menuName = ConfigUtil.toComponent(loadout.getName());
-            Loadout newLoadout = new Loadout(menuName, loadout.getMenuItem(), menuDescription, loadout.getInventory().toInventoryContents());
-            newLoadouts.put(battleClass, newLoadout);
+            newLoadouts.put(battleClass, loadout.toLoadout());
         }
         // now it's confirmed everything works, so set the actual fields
         this.world = newWorld;

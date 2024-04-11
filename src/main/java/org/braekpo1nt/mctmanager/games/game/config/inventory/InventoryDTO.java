@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.game.config.inventory;
 import com.google.common.base.Preconditions;
 import lombok.Getter;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
@@ -20,7 +21,7 @@ public class InventoryDTO {
      * @return a list containing the ItemStack values of the contents at their Integer key indexes, with all other indexes being null. The list will be of size of the maximum value of the contents map keyset. Returns null if contents is null.
      * @throws IndexOutOfBoundsException if the max index in the contents keyset is negative
      */
-    public ItemStack[] toInventoryContents() {
+    public @NotNull ItemStack[] toInventoryContents() {
         if (contents == null) {
             return null;
         }
