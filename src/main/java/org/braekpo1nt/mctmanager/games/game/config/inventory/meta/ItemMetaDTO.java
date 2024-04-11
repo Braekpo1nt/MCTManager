@@ -57,7 +57,7 @@ public class ItemMetaDTO {
      * @return the loreDTO as a list of {@link Component}s for use as an {@link ItemMeta}'s lore
      * @throws IllegalArgumentException if any of the given loreDTO elements can't be parsed as a {@link Component}
      */
-    public static @NotNull List<Component> toLore(@NotNull List<@NotNull JsonElement> loreDTO) {
+    public static @NotNull List<Component> toLore(@Nullable List<@Nullable JsonElement> loreDTO) {
         try {
             return ConfigUtil.toComponents(loreDTO);
         } catch (IllegalArgumentException e) {

@@ -14,7 +14,7 @@ public class Loadout {
      */
     private final ItemStack menuItem;
     /**
-     * The name of this loadout. Used as the item display name for its menu item, and in chat messages to the participants.
+     * The name of this loadout (used in chat messages to communicate to the player which loadout they chose)
      */
     private final Component name;
     /**

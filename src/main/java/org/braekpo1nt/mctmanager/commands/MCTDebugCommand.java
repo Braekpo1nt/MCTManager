@@ -54,11 +54,6 @@ public class MCTDebugCommand implements TabExecutor, Listener {
             return true;
         }
     
-        ItemStack p = new ItemStack(Material.SPLASH_POTION, 2);
-        PotionMeta pMeta = (PotionMeta) p.getItemMeta();
-        pMeta.setBasePotionData(new PotionData(PotionType.INSTANT_HEAL, false, false));
-        
-
 //        Component mainTitle = Component.text("Main title");
 //        Component subTitle = Component.text("Subtitle");
 //

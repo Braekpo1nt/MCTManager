@@ -1,7 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.capturetheflag.config;
 
 import com.google.common.base.Preconditions;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
 import net.kyori.adventure.text.Component;
@@ -11,7 +10,7 @@ import org.braekpo1nt.mctmanager.games.game.capturetheflag.Arena;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.Loadout;
 import org.braekpo1nt.mctmanager.games.game.config.ConfigUtil;
 import org.braekpo1nt.mctmanager.games.game.config.GameConfigStorageUtil;
-import org.braekpo1nt.mctmanager.games.game.config.inventory.InventoryContentsDTO;
+import org.braekpo1nt.mctmanager.games.game.config.inventory.InventoryDTO;
 import org.braekpo1nt.mctmanager.games.game.config.inventory.ItemStackDTO;
 import org.braekpo1nt.mctmanager.games.game.config.inventory.meta.ItemMetaDTO;
 import org.bukkit.Bukkit;
@@ -19,6 +18,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.util.BoundingBox;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -83,9 +83,9 @@ public class CaptureTheFlagStorageUtil extends GameConfigStorageUtil<CaptureTheF
             Preconditions.checkArgument(battleClass != null, "loadouts keys can't be null");
             Preconditions.checkArgument(!battleClass.isEmpty() && !battleClass.isBlank(), "loadouts keys can't be empty");
             LoadoutDTO loadout = config.loadouts().get(battleClass);
-            Preconditions.checkArgument(!uniqueMenuItems.contains(loadout.menuItem()), "loadouts[%s].menuItem %s for BattleClass %s is not unique", battleClass, loadout.menuItem(), battleClass);
-            uniqueMenuItems.add(loadout.menuItem());
-            loadoutIsValid(loadout, battleClass);
+            Preconditions.checkArgument(!uniqueMenuItems.contains(loadout.getMenuItem()), "loadouts[%s].menuItem %s for BattleClass %s is not unique", battleClass, loadout.getMenuItem(), battleClass);
+            uniqueMenuItems.add(loadout.getMenuItem());
+            loadout.isValid();
         }
         try {
             GsonComponentSerializer.gson().deserializeFromTree(config.description());
@@ -93,31 +93,6 @@ public class CaptureTheFlagStorageUtil extends GameConfigStorageUtil<CaptureTheF
             throw new IllegalArgumentException("description is invalid", e);
         }
         return true;
-    }
-    
-    private void loadoutIsValid(LoadoutDTO loadout, String key) {
-        Preconditions.checkArgument(loadout.menuItem() != null, "loadout[%s].menuItem can't be null", key);
-        Preconditions.checkArgument(loadout.name() != null, "loadout[%s].name can't be null", key);
-        Preconditions.checkArgument(loadout.menuLore() != null, "loadout[%s].menuLore can't be null", key);
-        for (JsonElement line : loadout.menuLore()) {
-            Preconditions.checkArgument(line != null, "loadout[%s].menuLore can't have any null entries", key);
-        }
-        ItemMetaDTO.toLore(loadout.menuLore());
-        inventoryIsValid(loadout.inventory());
-    }
-    
-    private void inventoryIsValid(InventoryContentsDTO inventory) {
-        Preconditions.checkArgument(inventory != null, "loadout.inventory can't be null");
-        Preconditions.checkArgument(inventory.contents() != null, "loadout.inventory.contents can't be null");
-        Preconditions.checkArgument(inventory.contents().size() <= 41, "loadout.inventory.contents can't contain more than 41 entries");
-        for (Map.Entry<Integer, ItemStackDTO> entry : inventory.contents().entrySet()) {
-            int slot = entry.getKey();
-            Preconditions.checkArgument(0 <= slot && slot <= 40, "loadout.inventory.contents index (%s) must be between 0 and 40 (inclusive)", slot);
-            ItemStackDTO item = entry.getValue();
-            if (item != null) {
-                item.isValid();
-            }
-        }
     }
     
     @Override
@@ -130,9 +105,9 @@ public class CaptureTheFlagStorageUtil extends GameConfigStorageUtil<CaptureTheF
         for (Map.Entry<String, LoadoutDTO> entry : config.loadouts().entrySet()) {
             String battleClass = entry.getKey();
             LoadoutDTO loadout = entry.getValue();
-            List<Component> menuDescription = ItemMetaDTO.toLore(loadout.menuLore());
-            Component menuName = ConfigUtil.toComponent(loadout.name());
-            Loadout newLoadout = new Loadout(menuName, loadout.menuItem(), menuDescription, loadout.inventory().toInventoryContents());
+            List<Component> menuDescription = ItemMetaDTO.toLore(loadout.getMenuLore());
+            Component menuName = ConfigUtil.toComponent(loadout.getName());
+            Loadout newLoadout = new Loadout(menuName, loadout.getMenuItem(), menuDescription, loadout.getInventory().toInventoryContents());
             newLoadouts.put(battleClass, newLoadout);
         }
         // now it's confirmed everything works, so set the actual fields
