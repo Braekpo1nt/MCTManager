@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.games.game.config.inventory.meta;
 
 import com.google.gson.*;
+import org.braekpo1nt.mctmanager.Main;
 
 import java.lang.reflect.Type;
 
@@ -16,6 +17,6 @@ public class ItemMetaDTODeserializer implements JsonDeserializer<ItemMetaDTO> {
         if (basePotionData != null) {
             return context.deserialize(json, PotionMetaDTO.class);
         }
-        return new Gson().fromJson(json, ItemMetaDTO.class);
+        return Main.GSON.fromJson(json, ItemMetaDTO.class);
     }
 }

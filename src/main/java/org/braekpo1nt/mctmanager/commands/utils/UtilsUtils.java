@@ -1,5 +1,7 @@
 package org.braekpo1nt.mctmanager.commands.utils;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
@@ -9,6 +11,15 @@ import org.bukkit.Material;
 import java.util.Set;
 
 abstract class UtilsUtils {
+    
+    /**
+     * 
+     */
+    static final Gson GSON = new GsonBuilder()
+            .setPrettyPrinting()
+            .registerTypeAdapter(Double.class, new DoubleSerializer())
+            .registerTypeAdapter(Float.class, new FloatSerializer())
+            .create();
     
     static final Set<Material> TRANSPARENT = Set.of(Material.AIR, Material.WATER, Material.LAVA);
     

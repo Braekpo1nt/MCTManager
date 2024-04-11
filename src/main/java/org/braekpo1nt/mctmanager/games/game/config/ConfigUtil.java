@@ -1,16 +1,20 @@
 package org.braekpo1nt.mctmanager.games.game.config;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonIOException;
-import com.google.gson.JsonSyntaxException;
+import com.google.gson.*;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.adventure.text.Component;
+import org.braekpo1nt.mctmanager.games.game.config.inventory.meta.ItemMetaDTO;
+import org.braekpo1nt.mctmanager.games.game.config.inventory.meta.ItemMetaDTODeserializer;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Objects;
 
 public class ConfigUtil {
+    
+    static final Gson GSON = new GsonBuilder()
+            .registerTypeAdapter(ItemMetaDTO.class, new ItemMetaDTODeserializer())
+            .create();
     
     /**
      * 

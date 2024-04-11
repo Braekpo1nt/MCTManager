@@ -38,13 +38,11 @@ public class GameStateStorageUtil {
      * - converting the game state to json
      */
     public void saveGameState() throws IOException {
-        Gson gson = new Gson();
         File gameStateFile = getGameStateFile();
         Writer writer = new FileWriter(gameStateFile, false);
-        gson.toJson(this.gameState, writer);
+        Main.GSON.toJson(this.gameState, writer);
         writer.flush();
         writer.close();
-//        Bukkit.getLogger().info("[MCTManager] Saved game state.");
     }
     
     /**
@@ -55,10 +53,9 @@ public class GameStateStorageUtil {
      * - parsing the game state from json
      */
     public void loadGameState() throws IOException {
-        Gson gson = new Gson();
         File gameStateFile = getGameStateFile();
         Reader reader = new FileReader(gameStateFile);
-        GameState newGameState = gson.fromJson(reader, GameState.class);
+        GameState newGameState = Main.GSON.fromJson(reader, GameState.class);
         reader.close();
         if (newGameState == null) {
             newGameState = new GameState();

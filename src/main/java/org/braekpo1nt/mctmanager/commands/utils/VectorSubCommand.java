@@ -47,14 +47,10 @@ class VectorSubCommand implements CommandExecutor {
     }
     
     private boolean displayLocation(@NotNull CommandSender sender, Player player) {
-        Gson gson = new GsonBuilder()
-                .setPrettyPrinting()
-                .registerTypeAdapter(Double.class, new DoubleSerializer())
-                .create();
         Vector precise = player.getLocation().toVector();
-        String preciseJson = gson.toJson(precise);
+        String preciseJson = UtilsUtils.GSON.toJson(precise);
         Vector block = player.getLocation().toBlockLocation().toVector();
-        String blockJson = gson.toJson(block);
+        String blockJson = UtilsUtils.GSON.toJson(block);
         sender.sendMessage(Component.empty()
                 .append(attribute("Precise", preciseJson, NamedTextColor.WHITE))
                 .append(attribute("Block", blockJson, NamedTextColor.WHITE))

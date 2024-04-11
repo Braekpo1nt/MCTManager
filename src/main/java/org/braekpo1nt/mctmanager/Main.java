@@ -1,5 +1,7 @@
 package org.braekpo1nt.mctmanager;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import org.braekpo1nt.mctmanager.commands.MCTCommand;
 import org.braekpo1nt.mctmanager.commands.MCTDebugCommand;
 import org.braekpo1nt.mctmanager.commands.utils.UtilsCommand;
@@ -17,6 +19,14 @@ import org.bukkit.scoreboard.Scoreboard;
 public class Main extends JavaPlugin {
 
     public static final String CONFIG_VERSION = "0.1.0";
+    /**
+     * A default Gson instance for general use
+     */
+    public static final Gson GSON = new Gson();
+    /**
+     * A pretty printing Gson instance for general use
+     */
+    public static final Gson GSON_PRETTY = new GsonBuilder().setPrettyPrinting().create();
     private GameManager gameManager;
     private boolean saveGameStateOnDisable = true;
     public final static PotionEffect NIGHT_VISION = new PotionEffect(PotionEffectType.NIGHT_VISION, 300, 3, true, false, false);

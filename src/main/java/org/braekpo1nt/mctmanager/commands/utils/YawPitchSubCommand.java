@@ -53,11 +53,6 @@ public class YawPitchSubCommand implements TabExecutor {
     }
     
     private boolean yawPitch(@NotNull CommandSender sender, double x, double y, double z, Player player) {
-        Gson gson = new GsonBuilder()
-                .setPrettyPrinting()
-                .registerTypeAdapter(Float.class, new FloatSerializer())
-                .create();
-        
         Vector source = player.getLocation().toVector();
         Vector target = new Vector(x, y, z);
         YawPitch precise = EntityUtils.getPlayerLookAtYawPitch(source, target);
@@ -65,13 +60,13 @@ public class YawPitchSubCommand implements TabExecutor {
         location.setYaw(precise.yaw());
         location.setPitch(precise.pitch());
         player.teleport(location);
-        String preciseJson = gson.toJson(precise);
+        String preciseJson = UtilsUtils.GSON.toJson(precise);
         
         YawPitch rounded = new YawPitch(
                 MathUtils.specialRound(precise.yaw(), 0.5f),
                 MathUtils.specialRound(precise.pitch(), 0.5f)
         );
-        String roundedJson = gson.toJson(rounded);
+        String roundedJson = UtilsUtils.GSON.toJson(rounded);
         
         sender.sendMessage(Component.empty()
                 .append(UtilsUtils.attribute("Precise", preciseJson, NamedTextColor.WHITE))
