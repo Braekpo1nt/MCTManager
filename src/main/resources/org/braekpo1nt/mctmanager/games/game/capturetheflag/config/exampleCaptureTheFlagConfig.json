@@ -327,7 +327,7 @@
           "1":{
             "type": "SPLASH_POTION",
             "amount": 2,
-            "meta": {
+            "itemMeta": {
               "basePotionData": {
                 "type": "INSTANT_HEAL",
                 "extended": false,
