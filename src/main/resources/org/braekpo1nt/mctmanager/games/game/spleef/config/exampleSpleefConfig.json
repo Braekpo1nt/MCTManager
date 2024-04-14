@@ -16,6 +16,28 @@
     "maxY": 8,
     "maxZ": -1968
   },
+  "stencilBlock": "DIRT",
+  "layerBlock": "SNOW_BLOCK",
+  "decayBlock": "CLAY",
+  "tool": {
+    "type": "DIAMOND_SHOVEL",
+    "enchantments": [
+      {
+        "namespacedKey": {
+          "namespace": "minecraft",
+          "key": "efficiency"
+        },
+        "level": 5
+      },
+      {
+        "namespacedKey": {
+          "namespace": "minecraft",
+          "key": "unbreaking"
+        },
+        "level": 10
+      }
+    ]
+  },
   "layers": [
     {
       "structure": {
@@ -45,14 +67,6 @@
         "x": -22,
         "y": 30,
         "z": -2022
-      },
-      "decayArea": {
-        "minX": -22,
-        "minY": 30,
-        "minZ": -2022,
-        "maxX": 22,
-        "maxY": 30,
-        "maxZ": -1978
       }
     },
     {
@@ -64,14 +78,6 @@
         "x": -22,
         "y": 24,
         "z": -2022
-      },
-      "decayArea": {
-        "minX": -22,
-        "minY": 24,
-        "minZ": -2022,
-        "maxX": 22,
-        "maxY": 24,
-        "maxZ": -1978
       }
     },
     {
