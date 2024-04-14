@@ -39,7 +39,7 @@ public class MyEnchantmentMock extends EnchantmentMock {
                 return false;
             }
         }
-        return this.validTypes.contains(item.getType());;
+        return this.validTypes.contains(item.getType());
     }
     
     private boolean isIncompatible(Enchantment enchantment) {
