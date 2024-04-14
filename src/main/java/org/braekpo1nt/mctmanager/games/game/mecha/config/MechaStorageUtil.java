@@ -73,7 +73,7 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
                     "weightedNamespacedKey.namespace can't be null");
             Preconditions.checkArgument(weightedNamespacedKey.key() != null, 
                     "weightedNamespacedKey.key can't be null");
-            NamespacedKey namespacedKey = new NamespacedKey(weightedNamespacedKey.namespace(), weightedNamespacedKey.key());
+            NamespacedKey namespacedKey = weightedNamespacedKey.toNamespacedKey();
             Preconditions.checkArgument(lootTableExists(namespacedKey), 
                     "Could not find loot table \"%s\"", namespacedKey);
             weightedNamespacedKey.isValid();
@@ -151,14 +151,12 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
     protected void setConfig(MechaConfig config) {
         World newWorld = Bukkit.getWorld(config.world());
         Preconditions.checkArgument(newWorld != null, "Could not find world \"%s\"", config.world());
-        NamespacedKey newSpawnLootTable = mechaConfig.spawnLootTable().toNamespacedKey();
+        NamespacedKey newSpawnLootTable = config.spawnLootTable().toNamespacedKey();
         List<MechaConfig.WeightedNamespacedKey> weightedNamespacedKeys = config.weightedMechaLootTables();
         HashMap<LootTable, Integer> newWeightedMechaLootTables  = new HashMap<>(weightedNamespacedKeys.size());
         for (MechaConfig.WeightedNamespacedKey weightedNamespacedKey : weightedNamespacedKeys) {
-            String namespace = weightedNamespacedKey.namespace();
-            String key = weightedNamespacedKey.key();
+            LootTable lootTable = Bukkit.getLootTable(weightedNamespacedKey.toNamespacedKey());
             int weight = weightedNamespacedKey.weight();
-            LootTable lootTable = Bukkit.getLootTable(new NamespacedKey(namespace, key));
             newWeightedMechaLootTables.put(lootTable, weight);
         }
         List<BoundingBox> newPlatformBarriers = new ArrayList<>();
