@@ -69,7 +69,6 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
             Preconditions.checkArgument(layer.structure() != null, "layer.structure can't be null");
             Preconditions.checkArgument(Bukkit.getStructureManager().loadStructure(layer.structure()) != null, "Can't find structure %s", layer.structure());
             Preconditions.checkArgument(layer.structureOrigin() != null, "layer.structureOrigin can't be null");
-            Preconditions.checkArgument(layer.decayArea() != null, "layer.decayArea can't be null");
         }
         Preconditions.checkArgument(config.decayStages() != null, "decayStages can't be null");
         Preconditions.checkArgument(config.decayStages().size() > 0, "decayStages must have at least one entry");
@@ -122,13 +121,18 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
             Preconditions.checkArgument(structure != null, "can't find structure %s", layer.structure());
             newStructures.add(structure);
             newStructureOrigins.add(layer.structureOrigin().toLocation(newWorld));
-            newDecayLayers.add(layer.decayArea().toBoundingBox());
+            if (layer.decayArea() != null) {
+                newDecayLayers.add(layer.decayArea().toBoundingBox());
+            } else {
+                BoundingBox decayArea = BoundingBox.of(layer.structureOrigin(), structure.getSize());
+                newDecayLayers.add(decayArea);
+            }
         }
         ItemStack newTool;
         if (config.tool() == null) {
             newTool = new ItemStack(Material.DIAMOND_SHOVEL);
             newTool.addEnchantment(Enchantment.DIG_SPEED, 5);
-            newTool.addEnchantment(Enchantment.DURABILITY, 10);
+            newTool.addUnsafeEnchantment(Enchantment.DURABILITY, 10);
         } else {
             newTool = config.tool().toItemStack();
         }

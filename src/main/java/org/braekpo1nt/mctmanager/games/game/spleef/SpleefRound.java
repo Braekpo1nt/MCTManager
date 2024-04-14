@@ -8,6 +8,7 @@ import org.braekpo1nt.mctmanager.games.game.spleef.config.SpleefStorageUtil;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
+import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Bukkit;
@@ -30,6 +31,8 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 import org.bukkit.structure.Structure;
+import org.bukkit.util.BlockVector;
+import org.bukkit.util.BoundingBox;
 
 import java.util.*;
 
@@ -340,6 +343,11 @@ public class SpleefRound implements Listener {
         for (int i = 0; i < storageUtil.getStructures().size(); i++) {
             Structure layer = storageUtil.getStructures().get(i);
             layer.place(storageUtil.getStructureOrigins().get(i), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
+        }
+        if (storageUtil.getStencilBlock() != null) {
+            for (BoundingBox layerArea : storageUtil.getDecayLayers()) {
+                BlockPlacementUtils.createCubeReplace(storageUtil.getWorld(), layerArea, storageUtil.getStencilBlock(), storageUtil.getLayerBlock());
+            }
         }
     }
     

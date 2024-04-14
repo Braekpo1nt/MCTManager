@@ -58,8 +58,8 @@ public class ItemStackDTO {
                 Preconditions.checkArgument(enchantment != null, "enchantments[%s] can't be null", i);
                 enchantment.isValid();
                 Enchantment trueEnchantment = enchantment.toEnchantment();
-                Preconditions.checkArgument(trueEnchantment != null, "could not find enchantment for %s", enchantment.namespacedKey());
-                Preconditions.checkArgument(trueEnchantment.canEnchantItem(new ItemStack(type)), "enchantment %s is not applicable to item of type %s", enchantment.namespacedKey(), type);
+                Preconditions.checkArgument(trueEnchantment != null, "could not find enchantment for %s", enchantment.getNamespacedKey());
+                Preconditions.checkArgument(trueEnchantment.canEnchantItem(new ItemStack(type)), "enchantment %s is not applicable to item of type %s", enchantment.getNamespacedKey(), type);
             }
         }
     }

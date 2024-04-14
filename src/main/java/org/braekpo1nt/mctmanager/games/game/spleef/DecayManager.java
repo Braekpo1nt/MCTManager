@@ -98,7 +98,7 @@ public class DecayManager {
                 if (!dirtBlocks.isEmpty()) {
                     for (int i = 0; i < blocks; i++) {
                         Block randomDirtBlock = dirtBlocks.get(random.nextInt(dirtBlocks.size()));
-                        randomDirtBlock.setType(Material.COARSE_DIRT);
+                        randomDirtBlock.setType(storageUtil.getDecayBlock());
                     }
                 }
             }
@@ -110,7 +110,7 @@ public class DecayManager {
                     for (int y = layer.getMin().getBlockY(); y <= layer.getMaxY(); y++) {
                         for (int z = layer.getMin().getBlockZ(); z <= layer.getMaxZ(); z++) {
                             Block block = storageUtil.getWorld().getBlockAt(x, y, z);
-                            if (block.getType() == Material.DIRT) {
+                            if (block.getType() == storageUtil.getLayerBlock()) {
                                 dirtBlocks.add(block);
                             }
                         }
@@ -127,7 +127,7 @@ public class DecayManager {
                     for (int y = layer.getMin().getBlockY(); y <= layer.getMaxY(); y++) {
                         for (int z = layer.getMin().getBlockZ(); z <= layer.getMaxZ(); z++) {
                             Block block = storageUtil.getWorld().getBlockAt(x, y, z);
-                            if (block.getType() == Material.COARSE_DIRT) {
+                            if (block.getType() == storageUtil.getDecayBlock()) {
                                 coarseDirtBlocks.add(block);
                             }
                         }
