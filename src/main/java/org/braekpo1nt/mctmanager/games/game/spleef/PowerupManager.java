@@ -11,6 +11,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.ProjectileHitEvent;
+import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
@@ -71,12 +72,28 @@ public class PowerupManager implements Listener {
     }
     
     @EventHandler
+    public void onSnowballThrow(ProjectileLaunchEvent event) {
+        
+    }
+    
+    @EventHandler
     public void onSnowballHit(ProjectileHitEvent event) {
-        if (event.getEntity() instanceof Snowball) {
+        if (event.getEntity() instanceof Snowball snowball) {
+            plugin.getLogger().info("Snowball name: " + snowball.getName());
             if (event.getHitEntity() instanceof Player hitPlayer) {
                 if (event.getEntity().getShooter() instanceof Player shooter) {
                     plugin.getLogger().info("Snowball thrown by " + shooter.getName() + " hit " + hitPlayer.getName());
+                } else {
+                    plugin.getLogger().info("Snowball thrown by unknown shooter hit " + hitPlayer.getName());
                 }
+            } else if (event.getHitBlock() != null) {
+                if (event.getEntity().getShooter() instanceof Player shooter) {
+                    plugin.getLogger().info("Snowball thrown by " + shooter.getName() + " hit " + event.getHitBlock());
+                } else {
+                    plugin.getLogger().info("Snowball thrown by unknown shooter hit " + event.getHitBlock());
+                }
+            } else {
+                plugin.getLogger().info("Snowball thrown by unknown shooter hit an unknown location");
             }
         }
     }
