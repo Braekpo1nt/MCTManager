@@ -4,6 +4,7 @@ import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.spleef.config.SpleefStorageUtil;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Snowball;
@@ -13,17 +14,23 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.metadata.MetadataValue;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
 public class PowerupManager implements Listener {
     
+    private static final String POWERUP_METADATA_KEY = "powerup";
+    private static final String PLAYER_SWAPPER_METADATA_VALUE = "player_swapper";
     private final Main plugin;
     private final SpleefStorageUtil storageUtil;
+    private List<Player> participants;
     private final Random random = new Random();
     private int powerupTimerTaskId;
     
@@ -44,14 +51,37 @@ public class PowerupManager implements Listener {
     
     public void start(List<Player> newParticipants) {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
-        for (Player newParticipant : newParticipants) {
-            newParticipant.getInventory().addItem(playerSwapper);
+        participants = new ArrayList<>(newParticipants.size());
+        for (Player participant : newParticipants) {
+            initializeParticipant(participant);
         }
+    }
+    
+    private void initializeParticipant(Player participant) {
+        participants.add(participant);
+        participant.getInventory().addItem(playerSwapper);
     }
     
     public void stop() {
         HandlerList.unregisterAll(this);
         cancelAllTasks();
+        for (Player participant : participants) {
+            resetParticipant(participant);
+        }
+        participants.clear();
+    }
+    
+    private void resetParticipant(Player participant) {
+        // doesn't do anything at this time
+    }
+    
+    public void onParticipantJoin(Player participant) {
+        initializeParticipant(participant);
+    }
+    
+    public void onParticipantQuit(Player participant) {
+        resetParticipant(participant);
+        participants.remove(participant);
     }
     
     private void cancelAllTasks() {
@@ -72,30 +102,57 @@ public class PowerupManager implements Listener {
     }
     
     @EventHandler
-    public void onSnowballThrow(ProjectileLaunchEvent event) {
-        
+    public void onProjectileLaunch(ProjectileLaunchEvent event) {
+        if (!(event.getEntity().getShooter() instanceof Player participant)) {
+            return;
+        }
+        if (!participants.contains(participant)) {
+            return;
+        }
+        if (!(event.getEntity() instanceof Snowball snowball)) {
+            return;
+        }
+        if (participant.getInventory().getItemInMainHand().equals(playerSwapper) || participant.getInventory().getItemInOffHand().equals(playerSwapper)) {
+            snowball.setMetadata(POWERUP_METADATA_KEY, new FixedMetadataValue(plugin, PLAYER_SWAPPER_METADATA_VALUE));
+        }
     }
     
     @EventHandler
-    public void onSnowballHit(ProjectileHitEvent event) {
-        if (event.getEntity() instanceof Snowball snowball) {
-            plugin.getLogger().info("Snowball name: " + snowball.getName());
-            if (event.getHitEntity() instanceof Player hitPlayer) {
-                if (event.getEntity().getShooter() instanceof Player shooter) {
-                    plugin.getLogger().info("Snowball thrown by " + shooter.getName() + " hit " + hitPlayer.getName());
-                } else {
-                    plugin.getLogger().info("Snowball thrown by unknown shooter hit " + hitPlayer.getName());
-                }
-            } else if (event.getHitBlock() != null) {
-                if (event.getEntity().getShooter() instanceof Player shooter) {
-                    plugin.getLogger().info("Snowball thrown by " + shooter.getName() + " hit " + event.getHitBlock());
-                } else {
-                    plugin.getLogger().info("Snowball thrown by unknown shooter hit " + event.getHitBlock());
-                }
-            } else {
-                plugin.getLogger().info("Snowball thrown by unknown shooter hit an unknown location");
-            }
+    public void onProjectileHit(ProjectileHitEvent event) {
+        if (!(event.getEntity() instanceof Snowball snowball)) {
+            return;
         }
+        if (!(snowball.getShooter() instanceof Player shooter)) {
+            return;
+        }
+        if (!participants.contains(shooter)) {
+            return;
+        }
+        List<MetadataValue> metadata = snowball.getMetadata(POWERUP_METADATA_KEY);
+        if (metadata.isEmpty()) {
+            return;
+        }
+        if (event.getHitEntity() instanceof Player target) {
+            if (!participants.contains(target)) {
+                return;
+            }
+            String powerupType = metadata.get(0).asString();
+            if (powerupType.equals(PLAYER_SWAPPER_METADATA_VALUE)) {
+                plugin.getLogger().info(String.format("%s threw a player swapper at %s", shooter.getName(), target.getName()));
+                swapPlayers(shooter, target);
+            }
+            return;
+        }
+        if (event.getHitBlock() != null) {
+            // check if it's block breaker
+        }
+    }
+    
+    private void swapPlayers(Player shooter, Player target) {
+        Location shooterLoc = shooter.getLocation();
+        Location targetLoc = target.getLocation();
+        shooter.teleport(targetLoc);
+        target.teleport(shooterLoc);
     }
     
     /**

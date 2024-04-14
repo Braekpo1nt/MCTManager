@@ -147,6 +147,7 @@ public class SpleefRound implements Listener {
                     .append(Component.text(" is joining Spleef!"))
                     .color(NamedTextColor.YELLOW));
         }
+        powerupManager.onParticipantJoin(participant);
         long aliveCount = getAliveCount();
         String alive = String.format("Alive: %s", aliveCount);
         sidebar.updateLine("alive", alive);
@@ -173,6 +174,7 @@ public class SpleefRound implements Listener {
                 .append(Component.text(" left early. Their life is forfeit."));
         PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(participant, drops, droppedExp, deathMessage);
         Bukkit.getServer().getPluginManager().callEvent(fakeDeathEvent);
+        powerupManager.onParticipantQuit(participant);
         resetParticipant(participant);
         participants.remove(participant);
     }
