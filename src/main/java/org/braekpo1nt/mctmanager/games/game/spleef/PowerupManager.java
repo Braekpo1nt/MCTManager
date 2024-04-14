@@ -21,9 +21,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 public class PowerupManager implements Listener {
     
@@ -33,6 +31,7 @@ public class PowerupManager implements Listener {
     private final Main plugin;
     private final SpleefStorageUtil storageUtil;
     private List<Player> participants;
+    private Map<UUID, Integer> timeSincePowerup;
     private final Random random = new Random();
     private int powerupTimerTaskId;
     
@@ -63,6 +62,7 @@ public class PowerupManager implements Listener {
     public void start(List<Player> newParticipants) {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         participants = new ArrayList<>(newParticipants.size());
+        timeSincePowerup = new HashMap<>(newParticipants.size());
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
         }
@@ -70,6 +70,7 @@ public class PowerupManager implements Listener {
     
     private void initializeParticipant(Player participant) {
         participants.add(participant);
+        timeSincePowerup.put(participant.getUniqueId(), 0);
         participant.getInventory().addItem(playerSwapper, blockBreaker);
     }
     
@@ -80,10 +81,12 @@ public class PowerupManager implements Listener {
             resetParticipant(participant);
         }
         participants.clear();
+        timeSincePowerup.clear();
     }
     
     private void resetParticipant(Player participant) {
         // doesn't do anything at this time
+        timeSincePowerup.remove(participant.getUniqueId());
     }
     
     public void onParticipantJoin(Player participant) {
@@ -103,7 +106,17 @@ public class PowerupManager implements Listener {
         this.powerupTimerTaskId = new BukkitRunnable() {
             @Override
             public void run() {
-                
+                for (Player participant : participants) {
+                    int oldTime = timeSincePowerup.get(participant.getUniqueId());
+                    if (oldTime > 0) {
+                        timeSincePowerup.put(participant.getUniqueId(), oldTime - 1);
+                        return;
+                    }
+                    if (hasMaxPowerups(participant)) {
+                        return;
+                    }
+                    // random chance to get a powerup if you reach here
+                }
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
     }
