@@ -136,7 +136,7 @@ public class SpleefRound implements Listener {
         } else {
             initializeParticipant(participant);
             if (spleefHasStarted) {
-                giveParticipantShovel(participant);
+                giveTool(participant);
                 participant.setGameMode(GameMode.SURVIVAL);
             }
             messageAllParticipants(Component.text(participant.getName())
@@ -296,7 +296,7 @@ public class SpleefRound implements Listener {
         String alive = String.format("Alive: %s", participants.size());
         sidebar.updateLine("alive", alive);
         adminSidebar.updateLine("alive", alive);
-        givePlayersShovels();
+        giveTools();
         for (Player participant : participants) {
             participant.setGameMode(GameMode.SURVIVAL);
         }
@@ -304,18 +304,14 @@ public class SpleefRound implements Listener {
         decayManager.start();
     }
     
-    
-    private void givePlayersShovels() {
+    private void giveTools() {
         for (Player participant : participants) {
-            giveParticipantShovel(participant);
+            participant.getInventory().addItem(storageUtil.getTool());
         }
     }
     
-    private void giveParticipantShovel(Player participant) {
-        ItemStack diamondShovel = new ItemStack(Material.DIAMOND_SHOVEL);
-        diamondShovel.addEnchantment(Enchantment.DIG_SPEED, 5);
-        diamondShovel.addUnsafeEnchantment(Enchantment.DURABILITY, 10);
-        participant.getInventory().addItem(diamondShovel);
+    private void giveTool(Player participant) {
+        participant.getInventory().addItem(storageUtil.getTool());
     }
     
     private void startRoundStartingCountDown() {

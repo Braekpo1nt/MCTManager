@@ -11,6 +11,7 @@ import org.braekpo1nt.mctmanager.games.game.spleef.DecayStage;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.structure.Structure;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
@@ -32,6 +33,7 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
     private List<Location> structureOrigins;
     private List<BoundingBox> decayLayers;
     private Component description;
+    private ItemStack tool;
     
     public SpleefStorageUtil(File configDirectory) {
         super(configDirectory, "spleefConfig.json", SpleefConfig.class);
@@ -61,6 +63,8 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
             newStructureOrigins.add(layer.structureOrigin().toLocation(newWorld));
             newDecayLayers.add(layer.decayArea().toBoundingBox());
         }
+        Preconditions.checkArgument(config.tool() != null, "tool can't be null");
+        ItemStack newTool = config.tool().toItemStack();
         Component newDescription = GsonComponentSerializer.gson().deserializeFromTree(config.description());
         // now it's confirmed everything works, so set the actual fields
         this.world = newWorld;
@@ -68,6 +72,7 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
         this.structures = newStructures;
         this.structureOrigins = newStructureOrigins;
         this.decayLayers = newDecayLayers;
+        this.tool = newTool;
         this.description = newDescription;
         this.spleefConfig = config;
     }
@@ -164,5 +169,9 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
     
     public Component getDescription() {
         return description;
+    }
+    
+    public ItemStack getTool() {
+        return tool;
     }
 }

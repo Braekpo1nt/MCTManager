@@ -163,6 +163,25 @@
       "minParticipants": -1
     }
   ],
+  "tool": {
+    "type": "DIAMOND_SHOVEL",
+    "enchantments": [
+      {
+        "namespacedKey": {
+          "namespace": "minecraft",
+          "key": "efficiency"
+        },
+        "level": 5
+      },
+      {
+        "namespacedKey": {
+          "namespace": "minecraft",
+          "key": "unbreaking"
+        },
+        "level": 10
+      }
+    ]
+  },
   "scores": {
     "survive": 10
   },

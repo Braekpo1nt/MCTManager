@@ -1,6 +1,9 @@
 package org.braekpo1nt.mctmanager.games.game.config.enchantments;
 
 import com.google.common.base.Preconditions;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
 import org.jetbrains.annotations.NotNull;
@@ -12,12 +15,22 @@ import java.util.Map;
 
 /**
  * Represents an enchantment with a level
- * @param enchantment the NamespacedKey associated with the enchantment
- * @param level
  */
-public record EnchantmentDTO(@Nullable NamespacedKey enchantment, int level) {
+@Getter
+@AllArgsConstructor
+@NoArgsConstructor
+public class EnchantmentDTO {
+    /**
+     * the NamespacedKey associated with the enchantment
+     */
+    private @Nullable NamespacedKey namespacedKey;
+    /**
+     * the level of the enchantment (defaults to 1)
+     */
+    private final int level = 1;
+    
     public @Nullable Enchantment toEnchantment() {
-        return Enchantment.getByKey(enchantment);
+        return Enchantment.getByKey(namespacedKey);
     }
     
     /**
@@ -29,7 +42,7 @@ public record EnchantmentDTO(@Nullable NamespacedKey enchantment, int level) {
         Map<Enchantment, Integer> enchantments = new HashMap<>(enchantmentDTOs.size());
         for (EnchantmentDTO enchantmentDTO : enchantmentDTOs) {
             if (enchantmentDTO != null) {
-                enchantments.put(enchantmentDTO.toEnchantment(), enchantmentDTO.level());
+                enchantments.put(enchantmentDTO.toEnchantment(), enchantmentDTO.getLevel());
             }
         }
         return enchantments;
@@ -37,11 +50,11 @@ public record EnchantmentDTO(@Nullable NamespacedKey enchantment, int level) {
     
     @SuppressWarnings("ConstantConditions")
     public void isValid() {
-        Preconditions.checkArgument(enchantment != null, "enchantment can't be null");
-        Preconditions.checkArgument(enchantment.namespace() != null, "namespace can't be null");
-        Preconditions.checkArgument(enchantment.key() != null, "key can't be null");
-        Enchantment trueEnchantment = Enchantment.getByKey(enchantment);
-        Preconditions.checkArgument(trueEnchantment != null, "could not find enchantment for key %s" + enchantment);
-        Preconditions.checkArgument(trueEnchantment.getStartLevel() <= level && level <= trueEnchantment.getMaxLevel(), "enchantment %s must have a level between %s and %s, inclusive. Provided %s", enchantment, trueEnchantment.getStartLevel(), trueEnchantment.getMaxLevel(), level);
+        Preconditions.checkArgument(namespacedKey != null, "enchantment can't be null");
+        Preconditions.checkArgument(namespacedKey.namespace() != null, "namespace can't be null");
+        Preconditions.checkArgument(namespacedKey.key() != null, "key can't be null");
+        Enchantment trueEnchantment = Enchantment.getByKey(namespacedKey);
+        Preconditions.checkArgument(trueEnchantment != null, "could not find enchantment for key %s" + namespacedKey);
+        Preconditions.checkArgument(trueEnchantment.getStartLevel() <= level && level <= trueEnchantment.getMaxLevel(), "enchantment %s must have a level between %s and %s, inclusive. Provided %s", namespacedKey, trueEnchantment.getStartLevel(), trueEnchantment.getMaxLevel(), level);
     }
 }
