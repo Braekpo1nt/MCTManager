@@ -14,7 +14,6 @@ import org.bukkit.GameMode;
 import org.bukkit.Bukkit;
 import org.bukkit.block.structure.Mirror;
 import org.bukkit.block.structure.StructureRotation;
-import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.EventHandler;
@@ -25,13 +24,12 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.Material;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 import org.bukkit.structure.Structure;
-import org.bukkit.util.BlockVector;
 import org.bukkit.util.BoundingBox;
 
 import java.util.*;
@@ -48,6 +46,7 @@ public class SpleefRound implements Listener {
     private boolean roundActive = false;
     private final SpleefGame spleefGame;
     private final DecayManager decayManager;
+    private final PowerupManager powerupManager;
     private int startCountDownTaskID;
     
     public SpleefRound(Main plugin, GameManager gameManager, SpleefGame spleefGame, SpleefStorageUtil spleefStorageUtil, Sidebar sidebar, Sidebar adminSidebar) {
@@ -58,6 +57,7 @@ public class SpleefRound implements Listener {
         this.sidebar = sidebar;
         this.adminSidebar = adminSidebar;
         this.decayManager = new DecayManager(plugin, storageUtil, this);
+        this.powerupManager = new PowerupManager(plugin, storageUtil);
     }
     
     public void start(List<Player> newParticipants) {
@@ -111,6 +111,7 @@ public class SpleefRound implements Listener {
         roundActive = false;
         HandlerList.unregisterAll(this);
         decayManager.stop();
+        powerupManager.stop();
         placeLayers(false);
         cancelAllTasks();
         for (Player participant : participants) {
@@ -267,6 +268,9 @@ public class SpleefRound implements Listener {
             return;
         }
         if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+            if (powerupManager.isPowerup(event.getItem())) {
+                return;
+            }
             event.setCancelled(true);
         }
     }
@@ -304,6 +308,7 @@ public class SpleefRound implements Listener {
         }
         spleefHasStarted = true;
         decayManager.start();
+        powerupManager.start(participants);
     }
     
     private void giveTools() {
