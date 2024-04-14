@@ -32,6 +32,7 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
     private List<Location> platformSpawns;
     private Location adminSpawn;
     private Component description;
+    private NamespacedKey spawnLootTable;
     
     public MechaStorageUtil(File configDirectory) {
         super(configDirectory, "mechaConfig.json", MechaConfig.class);
@@ -60,7 +61,8 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
         Preconditions.checkArgument(config.removeArea().toBoundingBox().getVolume() >= 1.0, 
                 "removeArea (%s) volume (%s) can't be less than 1.0", config.removeArea().toBoundingBox(), config.removeArea().toBoundingBox().getVolume());
         borderIsValid(config.border());
-        Preconditions.checkArgument(lootTableExists(config.spawnLootTable()), 
+        Preconditions.checkArgument(config.spawnLootTable() != null, "spawnLootTable can't be null");
+        Preconditions.checkArgument(lootTableExists(config.spawnLootTable().toNamespacedKey()), 
                 "Could not find spawn loot table \"%s\"", config.spawnLootTable());
         Preconditions.checkArgument(config.weightedMechaLootTables() != null, 
                 "weightedMechaLootTables can't be null");
@@ -74,8 +76,7 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
             NamespacedKey namespacedKey = new NamespacedKey(weightedNamespacedKey.namespace(), weightedNamespacedKey.key());
             Preconditions.checkArgument(lootTableExists(namespacedKey), 
                     "Could not find loot table \"%s\"", namespacedKey);
-            Preconditions.checkArgument(weightedNamespacedKey.weight() >= 1, 
-                    "weightedNamespacedKey (%s) can't have a weight (%s) less than 1", namespacedKey, weightedNamespacedKey.weight());
+            weightedNamespacedKey.isValid();
         }
         Preconditions.checkArgument(config.spawnChestCoords() != null, 
                 "spawnChestCoords can't be null");
@@ -150,6 +151,7 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
     protected void setConfig(MechaConfig config) {
         World newWorld = Bukkit.getWorld(config.world());
         Preconditions.checkArgument(newWorld != null, "Could not find world \"%s\"", config.world());
+        NamespacedKey newSpawnLootTable = mechaConfig.spawnLootTable().toNamespacedKey();
         List<MechaConfig.WeightedNamespacedKey> weightedNamespacedKeys = config.weightedMechaLootTables();
         HashMap<LootTable, Integer> newWeightedMechaLootTables  = new HashMap<>(weightedNamespacedKeys.size());
         for (MechaConfig.WeightedNamespacedKey weightedNamespacedKey : weightedNamespacedKeys) {
@@ -196,6 +198,7 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
         this.description = newDescription;
         this.removeArea = config.removeArea().toBoundingBox();
         this.adminSpawn = newAdminSpawn;
+        this.spawnLootTable = newSpawnLootTable;
         this.mechaConfig = config;
     }
     
@@ -226,7 +229,7 @@ public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
      * The mecha spawn loot table from the mctdatapack
      */
     public LootTable getSpawnLootTable() {
-        return Bukkit.getLootTable(mechaConfig.spawnLootTable());
+        return Bukkit.getLootTable(spawnLootTable);
     }
     
     /**

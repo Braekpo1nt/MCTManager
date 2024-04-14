@@ -67,7 +67,8 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
         for (SpleefConfig.Layer layer : config.layers()) {
             Preconditions.checkArgument(layer != null, "layers can't contain any null elements");
             Preconditions.checkArgument(layer.structure() != null, "layer.structure can't be null");
-            Preconditions.checkArgument(Bukkit.getStructureManager().loadStructure(layer.structure()) != null, "Can't find structure %s", layer.structure());
+            layer.structure().isValid();
+            Preconditions.checkArgument(Bukkit.getStructureManager().loadStructure(layer.structure().toNamespacedKey()) != null, "Can't find structure %s", layer.structure());
             Preconditions.checkArgument(layer.structureOrigin() != null, "layer.structureOrigin can't be null");
         }
         Preconditions.checkArgument(config.decayStages() != null, "decayStages can't be null");
@@ -117,7 +118,8 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
         Material newDecayBlock = config.decayBlock() != null ? config.decayBlock() : Material.COARSE_DIRT;
         List<BoundingBox> newDecayLayers = new ArrayList<>(config.layers().size());
         for (SpleefConfig.Layer layer : config.layers()) {
-            Structure structure = Bukkit.getStructureManager().loadStructure(layer.structure());
+            Preconditions.checkArgument(layer.structure() != null, "structure can't be null");
+            Structure structure = Bukkit.getStructureManager().loadStructure(layer.structure().toNamespacedKey());
             Preconditions.checkArgument(structure != null, "can't find structure %s", layer.structure());
             newStructures.add(structure);
             newStructureOrigins.add(layer.structureOrigin().toLocation(newWorld));

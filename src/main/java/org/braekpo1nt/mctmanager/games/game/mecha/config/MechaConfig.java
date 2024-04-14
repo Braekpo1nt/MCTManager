@@ -1,10 +1,10 @@
 package org.braekpo1nt.mctmanager.games.game.mecha.config;
 
+import com.google.common.base.Preconditions;
 import com.google.gson.JsonElement;
 import org.braekpo1nt.mctmanager.games.game.config.BoundingBoxDTO;
-import org.braekpo1nt.mctmanager.games.game.config.LocationDTO;
+import org.braekpo1nt.mctmanager.games.game.config.NamespacedKeyDTO;
 import org.braekpo1nt.mctmanager.games.game.config.YawPitch;
-import org.bukkit.NamespacedKey;
 import org.bukkit.util.Vector;
 
 import java.util.List;
@@ -25,7 +25,7 @@ import java.util.List;
  * @param durations
  * @param description
  */
-record MechaConfig (String version, String world, BoundingBoxDTO spectatorArea, BoundingBoxDTO removeArea, BorderDTO border, NamespacedKey spawnLootTable, List<WeightedNamespacedKey> weightedMechaLootTables, List<Vector> spawnChestCoords, List<Vector> mapChestCoords, Vector platformCenter, List<Platform> platforms, Scores scores, Durations durations, JsonElement description) {
+record MechaConfig (String version, String world, BoundingBoxDTO spectatorArea, BoundingBoxDTO removeArea, BorderDTO border, NamespacedKeyDTO spawnLootTable, List<WeightedNamespacedKey> weightedMechaLootTables, List<Vector> spawnChestCoords, List<Vector> mapChestCoords, Vector platformCenter, List<Platform> platforms, Scores scores, Durations durations, JsonElement description) {
     
     /**
      * 
@@ -51,7 +51,19 @@ record MechaConfig (String version, String world, BoundingBoxDTO spectatorArea, 
         }
     }
     
-    record WeightedNamespacedKey(String namespace, String key, int weight) {
+    static class WeightedNamespacedKey extends NamespacedKeyDTO {
+        private int weight;
+        
+        int weight() {
+            return weight; 
+        }
+        
+        @Override
+        public void isValid() {
+            super.isValid();
+            Preconditions.checkArgument(weight >= 1,
+                    "weightedNamespacedKey can't have a weight (%s) less than 1", weight);
+        }
     }
     
     /**

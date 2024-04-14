@@ -2,10 +2,10 @@ package org.braekpo1nt.mctmanager.games.game.spleef.config;
 
 import com.google.gson.JsonElement;
 import org.braekpo1nt.mctmanager.games.game.config.BoundingBoxDTO;
+import org.braekpo1nt.mctmanager.games.game.config.NamespacedKeyDTO;
 import org.braekpo1nt.mctmanager.games.game.config.inventory.ItemStackDTO;
 import org.braekpo1nt.mctmanager.games.game.spleef.DecayStage;
 import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,7 +34,7 @@ record SpleefConfig(String version, String world, List<Vector> startingLocations
      * @param structureOrigin the origin to place the structure at
      * @param decayArea the area in which to decay blocks for this layer. If this is null, the size of the structure and structureOrigin will be used as the area.
      */
-    record Layer(NamespacedKey structure, Vector structureOrigin, @Nullable BoundingBoxDTO decayArea) {
+    record Layer(@Nullable NamespacedKeyDTO structure, Vector structureOrigin, @Nullable BoundingBoxDTO decayArea) {
     }
     
     record Scores(int survive) {
