@@ -6,6 +6,7 @@ import org.braekpo1nt.mctmanager.games.game.spleef.config.SpleefStorageUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Snowball;
 import org.bukkit.event.EventHandler;
@@ -28,6 +29,7 @@ public class PowerupManager implements Listener {
     
     private static final String POWERUP_METADATA_KEY = "powerup";
     private static final String PLAYER_SWAPPER_METADATA_VALUE = "player_swapper";
+    private static final String BLOCK_BREAKER_METADATA_VALUE = "block_breaker";
     private final Main plugin;
     private final SpleefStorageUtil storageUtil;
     private List<Player> participants;
@@ -35,6 +37,7 @@ public class PowerupManager implements Listener {
     private int powerupTimerTaskId;
     
     private final ItemStack playerSwapper;
+    private final ItemStack blockBreaker;
     
     public PowerupManager(Main plugin, SpleefStorageUtil storageUtil) {
         this.plugin = plugin;
@@ -45,6 +48,14 @@ public class PowerupManager implements Listener {
             meta.lore(List.of(
                     Component.text("Throw this at another player"),
                     Component.text("to swap positions with them.")
+            ));
+        });
+        blockBreaker = new ItemStack(Material.SNOWBALL);
+        blockBreaker.editMeta(meta -> {
+            meta.displayName(Component.text("Block Breaker"));
+            meta.lore(List.of(
+                    Component.text("Throw this at a block"),
+                    Component.text("to break it.")
             ));
         });
     }
@@ -59,7 +70,7 @@ public class PowerupManager implements Listener {
     
     private void initializeParticipant(Player participant) {
         participants.add(participant);
-        participant.getInventory().addItem(playerSwapper);
+        participant.getInventory().addItem(playerSwapper, blockBreaker);
     }
     
     public void stop() {
@@ -112,8 +123,12 @@ public class PowerupManager implements Listener {
         if (!(event.getEntity() instanceof Snowball snowball)) {
             return;
         }
-        if (participant.getInventory().getItemInMainHand().equals(playerSwapper) || participant.getInventory().getItemInOffHand().equals(playerSwapper)) {
+        ItemStack mainHandItem = participant.getInventory().getItemInMainHand();
+        ItemStack offHandItem = participant.getInventory().getItemInOffHand();
+        if (mainHandItem.equals(playerSwapper) || offHandItem.equals(playerSwapper)) {
             snowball.setMetadata(POWERUP_METADATA_KEY, new FixedMetadataValue(plugin, PLAYER_SWAPPER_METADATA_VALUE));
+        } else if (mainHandItem.equals(blockBreaker) || offHandItem.equals(blockBreaker)) {
+            snowball.setMetadata(POWERUP_METADATA_KEY, new FixedMetadataValue(plugin, BLOCK_BREAKER_METADATA_VALUE));
         }
     }
     
@@ -132,19 +147,27 @@ public class PowerupManager implements Listener {
         if (metadata.isEmpty()) {
             return;
         }
+        String powerupType = metadata.get(0).asString();
         if (event.getHitEntity() instanceof Player target) {
             if (!participants.contains(target)) {
                 return;
             }
-            String powerupType = metadata.get(0).asString();
-            if (powerupType.equals(PLAYER_SWAPPER_METADATA_VALUE)) {
-                plugin.getLogger().info(String.format("%s threw a player swapper at %s", shooter.getName(), target.getName()));
-                swapPlayers(shooter, target);
+            if (!powerupType.equals(PLAYER_SWAPPER_METADATA_VALUE)) {
+                return;
             }
+            swapPlayers(shooter, target);
             return;
         }
-        if (event.getHitBlock() != null) {
-            // check if it's block breaker
+        Block hitBlock = event.getHitBlock();
+        if (hitBlock != null) {
+            Material hitBlockType = hitBlock.getType();
+            if (!hitBlockType.equals(storageUtil.getLayerBlock()) && !hitBlockType.equals(storageUtil.getDecayBlock())) {
+                return;
+            }
+            if (!powerupType.equals(BLOCK_BREAKER_METADATA_VALUE)) {
+                return;
+            }
+            hitBlock.setType(Material.AIR);
         }
     }
     
@@ -164,7 +187,7 @@ public class PowerupManager implements Listener {
         if (item == null) {
             return false;
         }
-        return item.equals(playerSwapper);
+        return item.equals(playerSwapper) || item.equals(blockBreaker);
     }
     
 }
