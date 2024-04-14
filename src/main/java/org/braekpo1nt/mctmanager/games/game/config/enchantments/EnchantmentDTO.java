@@ -27,7 +27,7 @@ public class EnchantmentDTO {
     /**
      * the level of the enchantment (defaults to 1)
      */
-    private final int level = 1;
+    private int level = 1;
     
     public @Nullable Enchantment toEnchantment() {
         return Enchantment.getByKey(namespacedKey);
@@ -55,6 +55,5 @@ public class EnchantmentDTO {
         Preconditions.checkArgument(namespacedKey.key() != null, "key can't be null");
         Enchantment trueEnchantment = Enchantment.getByKey(namespacedKey);
         Preconditions.checkArgument(trueEnchantment != null, "could not find enchantment for key %s" + namespacedKey);
-        Preconditions.checkArgument(trueEnchantment.getStartLevel() <= level && level <= trueEnchantment.getMaxLevel(), "enchantment %s must have a level between %s and %s, inclusive. Provided %s", namespacedKey, trueEnchantment.getStartLevel(), trueEnchantment.getMaxLevel(), level);
     }
 }

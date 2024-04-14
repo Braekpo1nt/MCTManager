@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.game.config.inventory;
 import com.google.common.base.Preconditions;
 import org.braekpo1nt.mctmanager.games.game.config.enchantments.EnchantmentDTO;
 import org.braekpo1nt.mctmanager.games.game.config.inventory.meta.ItemMetaDTO;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
@@ -42,7 +43,7 @@ public class ItemStackDTO {
             stack.editMeta(meta -> itemMeta.toItemMeta(meta, type));
         }
         if (enchantments != null) {
-            stack.addEnchantments(EnchantmentDTO.toEnchantments(enchantments));
+            stack.addUnsafeEnchantments(EnchantmentDTO.toEnchantments(enchantments));
         }
         return stack;
     }
