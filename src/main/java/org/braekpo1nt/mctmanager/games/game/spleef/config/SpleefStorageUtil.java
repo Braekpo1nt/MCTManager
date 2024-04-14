@@ -40,6 +40,10 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
     private Material stencilBlock;
     private Material layerBlock;
     private Material decayBlock;
+    private double chancePerSecond;
+    private double blockBreakChance;
+    private int minTimeBetween;
+    private int maxPowerups;
     
     public SpleefStorageUtil(File configDirectory) {
         super(configDirectory, "spleefConfig.json", SpleefConfig.class);
@@ -90,6 +94,9 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
             config.tool().isValid();
         }
         Preconditions.checkArgument(config.rounds() >= 1, "rounds must be greater than 0");
+        if (config.powerups() != null) {
+            config.powerups().isValid();
+        }
         Preconditions.checkArgument(config.scores() != null, "scores can't be null");
         Preconditions.checkArgument(config.durations() != null, "durations can't be null");
         Preconditions.checkArgument(config.durations().roundStarting() >= 0, "durations.roundStarting (%s) can't be negative", config.durations().roundStarting());
@@ -139,6 +146,17 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
             newTool = config.tool().toItemStack();
         }
         Component newDescription = GsonComponentSerializer.gson().deserializeFromTree(config.description());
+        if (config.powerups() != null) {
+            this.chancePerSecond = config.powerups().chancePerSecond();
+            this.blockBreakChance = config.powerups().blockBreakChance();
+            this.minTimeBetween = config.powerups().minTimeBetween();
+            this.maxPowerups = config.powerups().maxPowerups();
+        } else {
+            this.chancePerSecond = 0.0;
+            this.blockBreakChance = 0.0;
+            this.minTimeBetween = 0;
+            this.maxPowerups = 0;
+        }
         // now it's confirmed everything works, so set the actual fields
         this.world = newWorld;
         this.startingLocations = newStartingLocations;
@@ -212,5 +230,21 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
     
     public Material getDecayBlock() {
         return decayBlock;
+    }
+    
+    public double getChancePerSecond() {
+        return chancePerSecond;
+    }
+    
+    public double getBlockBreakChance() {
+        return blockBreakChance;
+    }
+    
+    public int getMinTimeBetween() {
+        return minTimeBetween;
+    }
+    
+    public int getMaxPowerups() {
+        return maxPowerups;
     }
 }

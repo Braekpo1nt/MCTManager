@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.spleef.config;
 
+import com.google.common.base.Preconditions;
 import com.google.gson.JsonElement;
 import org.braekpo1nt.mctmanager.games.game.config.BoundingBoxDTO;
 import org.braekpo1nt.mctmanager.games.game.config.NamespacedKeyDTO;
@@ -27,7 +28,7 @@ import java.util.List;
  * @param durations the durations for spleef
  * @param description the description of spleef
  */
-record SpleefConfig(String version, String world, List<Vector> startingLocations, BoundingBoxDTO spectatorArea, @Nullable Material stencilBlock, @Nullable Material layerBlock, @Nullable Material decayBlock, List<Layer> layers, List<DecayStage> decayStages, @Nullable ItemStackDTO tool, int rounds, Scores scores, Durations durations, JsonElement description) {
+record SpleefConfig(String version, String world, List<Vector> startingLocations, BoundingBoxDTO spectatorArea, @Nullable Material stencilBlock, @Nullable Material layerBlock, @Nullable Material decayBlock, List<Layer> layers, List<DecayStage> decayStages, @Nullable ItemStackDTO tool, int rounds, Powerups powerups, Scores scores, Durations durations, JsonElement description) {
     
     /**
      * @param structure the NamespacedKey of the structure to place for this layer
@@ -35,6 +36,21 @@ record SpleefConfig(String version, String world, List<Vector> startingLocations
      * @param decayArea the area in which to decay blocks for this layer. If this is null, the size of the structure and structureOrigin will be used as the area.
      */
     record Layer(@Nullable NamespacedKeyDTO structure, Vector structureOrigin, @Nullable BoundingBoxDTO decayArea) {
+    }
+    
+    /**
+     * 
+     * @param chancePerSecond every second, the player has this percentage chance to get a powerup. 0 means no powerups will be given at all each second. Defaults to 0.0
+     * @param blockBreakChance every time the player breaks a block, they have this percentage chance to get a powerup. 0 means no powerups will be given upon breaking a block (ever). Defaults to 0.0
+     * @param minTimeBetween the minimum time (in seconds) between getting powerups. Players should not get two powerups one after another immediately. 0 means no restriction. Defaults to 0
+     * @param maxPowerups limit the number of powerups a player can have. If they are at max, they won't collect any more until they use some of them. 0 means players can't hold any powerups at all. Negative values indicate unlimited powerup collection. Defaults to 0
+     */
+    record Powerups(double chancePerSecond, double blockBreakChance, int minTimeBetween, int maxPowerups) {
+        void isValid() {
+            Preconditions.checkArgument(0 <= chancePerSecond && chancePerSecond <= 1.0, "chancePerSecond must be between 0 and 1, inclusive");
+            Preconditions.checkArgument(0 <= blockBreakChance && blockBreakChance <= 1.0, "blockBreakChance must be between 0 and 1, inclusive");
+            Preconditions.checkArgument(minTimeBetween >= 0, "minTimeBetween must be greater than or equal to 0");
+        }
     }
     
     record Scores(int survive) {
