@@ -11,7 +11,6 @@ import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Bukkit;
-import org.bukkit.block.Block;
 import org.bukkit.block.structure.Mirror;
 import org.bukkit.block.structure.StructureRotation;
 import org.bukkit.enchantments.Enchantment;
@@ -27,13 +26,10 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.Material;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 import org.bukkit.structure.Structure;
-import org.bukkit.util.BoundingBox;
 
 import java.util.*;
 
@@ -48,8 +44,8 @@ public class SpleefRound implements Listener {
     private boolean spleefHasStarted = false;
     private boolean roundActive = false;
     private final SpleefGame spleefGame;
+    private final DecayManager decayManager;
     private int startCountDownTaskID;
-    private int decayTaskId;
     
     public SpleefRound(Main plugin, GameManager gameManager, SpleefGame spleefGame, SpleefStorageUtil spleefStorageUtil, Sidebar sidebar, Sidebar adminSidebar) {
         this.plugin = plugin;
@@ -58,6 +54,7 @@ public class SpleefRound implements Listener {
         this.storageUtil = spleefStorageUtil;
         this.sidebar = sidebar;
         this.adminSidebar = adminSidebar;
+        this.decayManager = new DecayManager(plugin, storageUtil, this);
     }
     
     public void start(List<Player> newParticipants) {
@@ -72,6 +69,7 @@ public class SpleefRound implements Listener {
         initializeAdminSidebar();
         setupTeamOptions();
         startRoundStartingCountDown();
+        decayManager.setAliveCount(newParticipants.size());
         spleefHasStarted = false;
         roundActive = true;
         Bukkit.getLogger().info("Starting Spleef round");
@@ -109,6 +107,7 @@ public class SpleefRound implements Listener {
         spleefHasStarted = false;
         roundActive = false;
         HandlerList.unregisterAll(this);
+        decayManager.stop();
         placeLayers();
         cancelAllTasks();
         for (Player participant : participants) {
@@ -144,10 +143,11 @@ public class SpleefRound implements Listener {
                     .append(Component.text(" is joining Spleef!"))
                     .color(NamedTextColor.YELLOW));
         }
-        long aliveCount = participantsAlive.values().stream().filter((alive) -> alive).count();
+        long aliveCount = getAliveCount();
         String alive = String.format("Alive: %s", aliveCount);
         sidebar.updateLine("alive", alive);
         adminSidebar.updateLine("alive", alive);
+        decayManager.setAliveCount(aliveCount);
     }
     
     private boolean participantShouldRejoin(Player participant) {
@@ -251,13 +251,7 @@ public class SpleefRound implements Listener {
     }
     
     private boolean lessThanTwoPlayersAlive() {
-        int aliveCount = 0;
-        for (boolean isAlive : participantsAlive.values()) {
-            if (isAlive) {
-                aliveCount += 1;
-            }
-        }
-        return aliveCount < 2;
+        return getAliveCount() < 2;
     }
     
     @EventHandler
@@ -294,6 +288,7 @@ public class SpleefRound implements Listener {
         String alive = String.format("Alive: %s", count);
         sidebar.updateLine("alive", alive);
         adminSidebar.updateLine("alive", alive);
+        decayManager.setAliveCount(getAliveCount());
     }
     
     private void startSpleef() {
@@ -306,105 +301,9 @@ public class SpleefRound implements Listener {
             participant.setGameMode(GameMode.SURVIVAL);
         }
         spleefHasStarted = true;
-        startDecayTask();
+        decayManager.start();
     }
     
-    private void startDecayTask() {
-        List<DecayStage> stages = storageUtil.getStages();
-        this.decayTaskId = new BukkitRunnable() {
-            private final Random random = new Random();
-            private int currentStageIndex = 0;
-            private DecayStage currentStage = stages.get(currentStageIndex);
-            private int secondsLeft = currentStage.duration();
-            @Override
-            public void run() {
-                long livingNum = participantsAlive.values().stream().filter(value -> value).count();
-                // if time is up, or num of living players is below threshold
-                // the final stage will continue on forever, regardless of the value of the duration or minParticipants
-                if ((secondsLeft <= 0 || livingNum < currentStage.minParticipants())) {
-                    // if this is not the final stage in the list
-                    if (currentStageIndex + 1 < stages.size()) {
-                        // move to the next stage
-                        currentStageIndex++;
-                        currentStage = stages.get(currentStageIndex);
-                        secondsLeft = currentStage.duration();
-                        if (currentStage.startMessage() != null) {
-                            messageAllParticipants(Component.text(currentStage.startMessage())
-                                    .color(NamedTextColor.DARK_RED));
-                        }
-                        return;
-                    }
-                    // otherwise, the final stage continues indefinitely
-                }
-                secondsLeft--;
-    
-                for (DecayStage.LayerInfo layerInfo : currentStage.layerInfos()) {
-                    BoundingBox decayLayer = storageUtil.getDecayLayers().get(layerInfo.index());
-                    decayLayer(decayLayer, layerInfo.blocksPerSecond());
-                }
-            }
-    
-            /**
-             * 
-             * @param decayLayer the area to decay within
-             * @param blocks the number of blocks to decay
-             */
-            private void decayLayer(BoundingBox decayLayer, int blocks) {
-                List<Block> coarseDirtBlocks = getCoarseDirtBlocks(decayLayer);
-                List<Block> dirtBlocks = getDirtBlocks(decayLayer);
-        
-                // Decay coarse dirt blocks to air
-                if (!coarseDirtBlocks.isEmpty()) {
-                    for (int i = 0; i < blocks; i++) {
-                        Block randomCoarseDirtBlock = coarseDirtBlocks.get(random.nextInt(coarseDirtBlocks.size()));
-                        randomCoarseDirtBlock.setType(Material.AIR);
-                    }
-                }
-        
-                // Decay dirt blocks to coarse dirt
-                if (!dirtBlocks.isEmpty()) {
-                    for (int i = 0; i < blocks; i++) {
-                        Block randomDirtBlock = dirtBlocks.get(random.nextInt(dirtBlocks.size()));
-                        randomDirtBlock.setType(Material.COARSE_DIRT);
-                    }
-                }
-            }
-    
-            private List<Block> getDirtBlocks(BoundingBox layer) {
-                List<Block> dirtBlocks = new ArrayList<>();
-        
-                for (int x = layer.getMin().getBlockX(); x <= layer.getMaxX(); x++) {
-                    for (int y = layer.getMin().getBlockY(); y <= layer.getMaxY(); y++) {
-                        for (int z = layer.getMin().getBlockZ(); z <= layer.getMaxZ(); z++) {
-                            Block block = storageUtil.getWorld().getBlockAt(x, y, z);
-                            if (block.getType() == Material.DIRT) {
-                                dirtBlocks.add(block);
-                            }
-                        }
-                    }
-                }
-        
-                return dirtBlocks;
-            }
-    
-            private List<Block> getCoarseDirtBlocks(BoundingBox layer) {
-                List<Block> coarseDirtBlocks = new ArrayList<>();
-        
-                for (int x = layer.getMin().getBlockX(); x <= layer.getMaxX(); x++) {
-                    for (int y = layer.getMin().getBlockY(); y <= layer.getMaxY(); y++) {
-                        for (int z = layer.getMin().getBlockZ(); z <= layer.getMaxZ(); z++) {
-                            Block block = storageUtil.getWorld().getBlockAt(x, y, z);
-                            if (block.getType() == Material.COARSE_DIRT) {
-                                coarseDirtBlocks.add(block);
-                            }
-                        }
-                    }
-                }
-        
-                return coarseDirtBlocks;
-            }
-        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
-    }
     
     private void givePlayersShovels() {
         for (Player participant : participants) {
@@ -495,10 +394,9 @@ public class SpleefRound implements Listener {
     
     private void cancelAllTasks() {
         Bukkit.getScheduler().cancelTask(startCountDownTaskID);
-        Bukkit.getScheduler().cancelTask(decayTaskId);
     }
     
-    private void messageAllParticipants(Component message) {
+    void messageAllParticipants(Component message) {
         gameManager.messageAdmins(message);
         for (Player participant : participants) {
             participant.sendMessage(message);
@@ -508,5 +406,12 @@ public class SpleefRound implements Listener {
     private int calculateExpPoints(int level) {
         int maxExpPoints = level > 7 ? 100 : level * 7;
         return maxExpPoints / 10;
+    }
+    
+    /**
+     * @return the number of participants who are alive in this round
+     */
+    private long getAliveCount() {
+        return participantsAlive.values().stream().filter(value -> value).count();
     }
 }
