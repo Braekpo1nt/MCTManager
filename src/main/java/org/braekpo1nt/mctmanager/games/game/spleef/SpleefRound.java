@@ -64,7 +64,7 @@ public class SpleefRound implements Listener {
         this.participants = new ArrayList<>(newParticipants.size());
         participantsAlive = new HashMap<>(newParticipants.size());
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
-        placeLayers();
+        placeLayers(true);
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
         }
@@ -111,7 +111,7 @@ public class SpleefRound implements Listener {
         roundActive = false;
         HandlerList.unregisterAll(this);
         decayManager.stop();
-        placeLayers();
+        placeLayers(false);
         cancelAllTasks();
         for (Player participant : participants) {
             resetParticipant(participant);
@@ -295,7 +295,6 @@ public class SpleefRound implements Listener {
     }
     
     private void startSpleef() {
-        placeLayers();
         String alive = String.format("Alive: %s", participants.size());
         sidebar.updateLine("alive", alive);
         adminSidebar.updateLine("alive", alive);
@@ -339,12 +338,12 @@ public class SpleefRound implements Listener {
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
     }
     
-    private void placeLayers() {
+    private void placeLayers(boolean replaceStencil) {
         for (int i = 0; i < storageUtil.getStructures().size(); i++) {
             Structure layer = storageUtil.getStructures().get(i);
             layer.place(storageUtil.getStructureOrigins().get(i), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
         }
-        if (storageUtil.getStencilBlock() != null) {
+        if (replaceStencil && storageUtil.getStencilBlock() != null) {
             for (BoundingBox layerArea : storageUtil.getDecayLayers()) {
                 BlockPlacementUtils.createCubeReplace(storageUtil.getWorld(), layerArea, storageUtil.getStencilBlock(), storageUtil.getLayerBlock());
             }
