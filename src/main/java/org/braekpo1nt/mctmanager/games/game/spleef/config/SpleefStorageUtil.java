@@ -131,7 +131,7 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
         ItemStack newTool;
         if (config.tool() == null) {
             newTool = new ItemStack(Material.DIAMOND_SHOVEL);
-            newTool.addEnchantment(Enchantment.DIG_SPEED, 5);
+            newTool.addEnchantment(Enchantment.DIG_SPEED, 1);
             newTool.addUnsafeEnchantment(Enchantment.DURABILITY, 10);
         } else {
             newTool = config.tool().toItemStack();

@@ -20,6 +20,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -35,61 +36,56 @@ import static org.mockito.Mockito.when;
 public class MyCustomServerMock extends ServerMock {
     
     static {
-        NamespacedKey key = NamespacedKey.minecraft("efficiency");
-        Enchantment.registerEnchantment(new MyEnchantmentMock(key, "efficiency", 0, 5));
     }
     
-    private static void reRegister(@NotNull String name, int startLevel, int maxLevel) {
+    private static void reRegister(@NotNull String name, int maxLevel, @NotNull List<@NotNull Material> validItemTypes) {
         NamespacedKey key = NamespacedKey.minecraft(name);
-        Enchantment enchantment = Enchantment.getByKey(key);
-        if (enchantment != null) {
-            if (enchantment instanceof EnchantmentMock enchantmentMock) {
-                enchantmentMock.setStartLevel(startLevel);
-                enchantmentMock.setMaxLevel(maxLevel);
-            }
-        }
+        Enchantment.registerEnchantment(new MyEnchantmentMock(key, name, 5, validItemTypes));
     }
     
     public MyCustomServerMock() {
         super();
-        reRegister("protection", 0, 1);
-        reRegister("fire_protection", 0, 1);
-        reRegister("feather_falling", 0, 1);
-        reRegister("blast_protection", 0, 1);
-        reRegister("respiration", 0, 1);
-        reRegister("projectile_protection", 0, 1);
-        reRegister("aqua_affinity", 0, 1);
-        reRegister("thorns", 0, 1);
-        reRegister("depth_strider", 0, 1);
-        reRegister("frost_walker", 0, 1);
-        reRegister("binding_curse", 0, 1);
-        reRegister("sharpness", 0, 1);
-        reRegister("smite", 0, 1);
-        reRegister("bane_of_arthropods", 0, 1);
-        reRegister("knockback", 0, 1);
-        reRegister("fire_aspect", 0, 1);
-        reRegister("looting", 0, 1);
-        reRegister("sweeping", 0, 1);
-        reRegister("efficiency", 0, 5);
-        reRegister("silk_touch", 0, 1);
-        reRegister("unbreaking", 0, 1);
-        reRegister("fortune", 0, 1);
-        reRegister("power", 0, 1);
-        reRegister("punch", 0, 1);
-        reRegister("flame", 0, 1);
-        reRegister("infinity", 0, 1);
-        reRegister("luck_of_the_sea", 0, 1);
-        reRegister("lure", 0, 1);
-        reRegister("loyalty", 0, 1);
-        reRegister("impaling", 0, 1);
-        reRegister("riptide", 0, 1);
-        reRegister("channeling", 0, 1);
-        reRegister("multishot", 0, 1);
-        reRegister("quick_charge", 0, 1);
-        reRegister("piercing", 0, 1);
-        reRegister("mending", 0, 1);
-        reRegister("vanishing_curse", 0, 1);
-        reRegister("swift_sneak", 0, 1);
+        reRegister("aqua_affinity", 1, List.of(Material.GOLDEN_HELMET, Material.IRON_HELMET, Material.DIAMOND_HELMET, Material.NETHERITE_HELMET, Material.TURTLE_HELMET));
+        reRegister("bane_of_arthropods", 5, List.of(Material.WOODEN_SWORD, Material.STONE_SWORD, Material.GOLDEN_SWORD, Material.IRON_SWORD, Material.DIAMOND_SWORD, Material.NETHERITE_SWORD));
+        reRegister("blast_protection", 4, List.of(Material.TURTLE_HELMET, Material.LEATHER_HELMET, Material.GOLDEN_HELMET, Material.IRON_HELMET, Material.DIAMOND_HELMET, Material.NETHERITE_HELMET, Material.LEATHER_CHESTPLATE, Material.GOLDEN_CHESTPLATE, Material.IRON_CHESTPLATE, Material.DIAMOND_CHESTPLATE, Material.NETHERITE_CHESTPLATE, Material.LEATHER_LEGGINGS, Material.GOLDEN_LEGGINGS, Material.IRON_LEGGINGS, Material.DIAMOND_LEGGINGS, Material.NETHERITE_LEGGINGS, Material.LEATHER_BOOTS, Material.GOLDEN_BOOTS, Material.IRON_BOOTS, Material.DIAMOND_BOOTS, Material.NETHERITE_BOOTS));
+        reRegister("binding_curse", 1, Collections.emptyList());
+        reRegister("vanishing_curse", 1, Collections.emptyList());
+        reRegister("channeling", 1, List.of(Material.TRIDENT));
+        reRegister("cleaving", 3, List.of(Material.WOODEN_AXE,Material.STONE_AXE,Material.GOLDEN_AXE,Material.IRON_AXE,Material.DIAMOND_AXE,Material.NETHERITE_AXE));
+        reRegister("depth_strider", 3, List.of(Material.LEATHER_BOOTS, Material.GOLDEN_BOOTS, Material.IRON_BOOTS, Material.DIAMOND_BOOTS, Material.NETHERITE_BOOTS));
+        reRegister("efficiency", 5, List.of(Material.WOODEN_PICKAXE,Material.STONE_PICKAXE,Material.GOLDEN_PICKAXE,Material.IRON_PICKAXE,Material.DIAMOND_PICKAXE,Material.NETHERITE_PICKAXE,Material.WOODEN_SHOVEL,Material.STONE_SHOVEL,Material.GOLDEN_SHOVEL,Material.IRON_SHOVEL,Material.DIAMOND_SHOVEL,Material.NETHERITE_SHOVEL,Material.WOODEN_AXE,Material.STONE_AXE,Material.GOLDEN_AXE,Material.IRON_AXE,Material.DIAMOND_AXE,Material.NETHERITE_AXE,Material.WOODEN_HOE,Material.STONE_HOE,Material.GOLDEN_HOE,Material.IRON_HOE,Material.DIAMOND_HOE,Material.NETHERITE_HOE));
+        reRegister("feather_falling", 4, List.of());
+        reRegister("fire_aspect", 2, List.of(Material.WOODEN_SWORD, Material.STONE_SWORD, Material.GOLDEN_SWORD, Material.IRON_SWORD, Material.DIAMOND_SWORD, Material.NETHERITE_SWORD));
+        reRegister("fire_protection", 4, List.of(Material.TURTLE_HELMET, Material.LEATHER_HELMET, Material.GOLDEN_HELMET, Material.IRON_HELMET, Material.DIAMOND_HELMET, Material.NETHERITE_HELMET, Material.LEATHER_CHESTPLATE, Material.GOLDEN_CHESTPLATE, Material.IRON_CHESTPLATE, Material.DIAMOND_CHESTPLATE, Material.NETHERITE_CHESTPLATE, Material.LEATHER_LEGGINGS, Material.GOLDEN_LEGGINGS, Material.IRON_LEGGINGS, Material.DIAMOND_LEGGINGS, Material.NETHERITE_LEGGINGS, Material.LEATHER_BOOTS, Material.GOLDEN_BOOTS, Material.IRON_BOOTS, Material.DIAMOND_BOOTS, Material.NETHERITE_BOOTS));
+        reRegister("flame", 1, List.of(Material.BOW));
+        reRegister("fortune", 3, List.of(Material.WOODEN_PICKAXE,Material.STONE_PICKAXE,Material.GOLDEN_PICKAXE,Material.IRON_PICKAXE,Material.DIAMOND_PICKAXE,Material.NETHERITE_PICKAXE,Material.WOODEN_SHOVEL,Material.STONE_SHOVEL,Material.GOLDEN_SHOVEL,Material.IRON_SHOVEL,Material.DIAMOND_SHOVEL,Material.NETHERITE_SHOVEL,Material.WOODEN_AXE,Material.STONE_AXE,Material.GOLDEN_AXE,Material.IRON_AXE,Material.DIAMOND_AXE,Material.NETHERITE_AXE,Material.WOODEN_HOE,Material.STONE_HOE,Material.GOLDEN_HOE,Material.IRON_HOE,Material.DIAMOND_HOE,Material.NETHERITE_HOE));
+        reRegister("frost_walker", 2, List.of());
+        reRegister("impaling", 5, List.of(Material.TRIDENT));
+        reRegister("infinity", 1, List.of(Material.BOW));
+        reRegister("knockback", 2, List.of(Material.WOODEN_SWORD, Material.STONE_SWORD, Material.GOLDEN_SWORD, Material.IRON_SWORD, Material.DIAMOND_SWORD, Material.NETHERITE_SWORD));
+        reRegister("looting", 3, List.of(Material.WOODEN_SWORD, Material.STONE_SWORD, Material.GOLDEN_SWORD, Material.IRON_SWORD, Material.DIAMOND_SWORD, Material.NETHERITE_SWORD));
+        reRegister("loyalty", 3, List.of(Material.TRIDENT));
+        reRegister("luck_of_the_sea", 3, List.of(Material.FISHING_ROD));
+        reRegister("lure", 3, List.of(Material.FISHING_ROD));
+        reRegister("mending", 1, Collections.emptyList());
+        reRegister("multishot", 1, List.of(Material.CROSSBOW));
+        reRegister("piercing", 4, List.of(Material.CROSSBOW));
+        reRegister("power", 5, List.of(Material.BOW));
+        reRegister("projectile_protection", 4, List.of(Material.TURTLE_HELMET, Material.LEATHER_HELMET, Material.GOLDEN_HELMET, Material.IRON_HELMET, Material.DIAMOND_HELMET, Material.NETHERITE_HELMET, Material.LEATHER_CHESTPLATE, Material.GOLDEN_CHESTPLATE, Material.IRON_CHESTPLATE, Material.DIAMOND_CHESTPLATE, Material.NETHERITE_CHESTPLATE, Material.LEATHER_LEGGINGS, Material.GOLDEN_LEGGINGS, Material.IRON_LEGGINGS, Material.DIAMOND_LEGGINGS, Material.NETHERITE_LEGGINGS, Material.LEATHER_BOOTS, Material.GOLDEN_BOOTS, Material.IRON_BOOTS, Material.DIAMOND_BOOTS, Material.NETHERITE_BOOTS));
+        reRegister("protection", 4, List.of(Material.TURTLE_HELMET, Material.LEATHER_HELMET, Material.GOLDEN_HELMET, Material.IRON_HELMET, Material.DIAMOND_HELMET, Material.NETHERITE_HELMET, Material.LEATHER_CHESTPLATE, Material.GOLDEN_CHESTPLATE, Material.IRON_CHESTPLATE, Material.DIAMOND_CHESTPLATE, Material.NETHERITE_CHESTPLATE, Material.LEATHER_LEGGINGS, Material.GOLDEN_LEGGINGS, Material.IRON_LEGGINGS, Material.DIAMOND_LEGGINGS, Material.NETHERITE_LEGGINGS, Material.LEATHER_BOOTS, Material.GOLDEN_BOOTS, Material.IRON_BOOTS, Material.DIAMOND_BOOTS, Material.NETHERITE_BOOTS));
+        reRegister("punch", 2, List.of(Material.BOW));
+        reRegister("respiration", 3, List.of(Material.TURTLE_HELMET, Material.LEATHER_HELMET, Material.GOLDEN_HELMET, Material.IRON_HELMET, Material.DIAMOND_HELMET, Material.NETHERITE_HELMET));
+        reRegister("riptide", 3, List.of(Material.TRIDENT));
+        reRegister("sharpness", 5, List.of(Material.WOODEN_SWORD, Material.STONE_SWORD, Material.GOLDEN_SWORD, Material.IRON_SWORD, Material.DIAMOND_SWORD, Material.NETHERITE_SWORD));
+        reRegister("silk_touch", 1, List.of(Material.WOODEN_PICKAXE,Material.STONE_PICKAXE,Material.GOLDEN_PICKAXE,Material.IRON_PICKAXE,Material.DIAMOND_PICKAXE,Material.NETHERITE_PICKAXE,Material.WOODEN_SHOVEL,Material.STONE_SHOVEL,Material.GOLDEN_SHOVEL,Material.IRON_SHOVEL,Material.DIAMOND_SHOVEL,Material.NETHERITE_SHOVEL,Material.WOODEN_AXE,Material.STONE_AXE,Material.GOLDEN_AXE,Material.IRON_AXE,Material.DIAMOND_AXE,Material.NETHERITE_AXE,Material.WOODEN_HOE,Material.STONE_HOE,Material.GOLDEN_HOE,Material.IRON_HOE,Material.DIAMOND_HOE,Material.NETHERITE_HOE));
+        reRegister("smite", 5, List.of(Material.WOODEN_SWORD, Material.STONE_SWORD, Material.GOLDEN_SWORD, Material.IRON_SWORD, Material.DIAMOND_SWORD, Material.NETHERITE_SWORD));
+        reRegister("soul_speed", 3, List.of());
+        reRegister("sweeping", 3, List.of(Material.WOODEN_SWORD, Material.STONE_SWORD, Material.GOLDEN_SWORD, Material.IRON_SWORD, Material.DIAMOND_SWORD, Material.NETHERITE_SWORD));
+        reRegister("swift_sneak", 3, List.of());
+        reRegister("thorns", 3, List.of(Material.LEATHER_CHESTPLATE, Material.GOLDEN_CHESTPLATE, Material.IRON_CHESTPLATE, Material.DIAMOND_CHESTPLATE, Material.NETHERITE_CHESTPLATE));
+        reRegister("unbreaking", 3, List.of(Material.TURTLE_HELMET, Material.LEATHER_HELMET, Material.GOLDEN_HELMET, Material.IRON_HELMET, Material.DIAMOND_HELMET, Material.NETHERITE_HELMET, Material.LEATHER_CHESTPLATE, Material.GOLDEN_CHESTPLATE, Material.IRON_CHESTPLATE, Material.DIAMOND_CHESTPLATE, Material.NETHERITE_CHESTPLATE, Material.LEATHER_LEGGINGS, Material.GOLDEN_LEGGINGS, Material.IRON_LEGGINGS, Material.DIAMOND_LEGGINGS, Material.NETHERITE_LEGGINGS, Material.LEATHER_BOOTS, Material.GOLDEN_BOOTS, Material.IRON_BOOTS, Material.DIAMOND_BOOTS, Material.NETHERITE_BOOTS, Material.WOODEN_PICKAXE,Material.STONE_PICKAXE,Material.GOLDEN_PICKAXE,Material.IRON_PICKAXE,Material.DIAMOND_PICKAXE,Material.NETHERITE_PICKAXE,Material.WOODEN_SHOVEL,Material.STONE_SHOVEL,Material.GOLDEN_SHOVEL,Material.IRON_SHOVEL,Material.DIAMOND_SHOVEL,Material.NETHERITE_SHOVEL,Material.WOODEN_AXE,Material.STONE_AXE,Material.GOLDEN_AXE,Material.IRON_AXE,Material.DIAMOND_AXE,Material.NETHERITE_AXE,Material.WOODEN_HOE,Material.STONE_HOE,Material.GOLDEN_HOE,Material.IRON_HOE,Material.DIAMOND_HOE,Material.NETHERITE_HOE, Material.TRIDENT, Material.BOW, Material.FISHING_ROD, Material.CROSSBOW));
+        reRegister("quick_charge", 3, List.of(Material.CROSSBOW));
+    
     }
     
     @Override
