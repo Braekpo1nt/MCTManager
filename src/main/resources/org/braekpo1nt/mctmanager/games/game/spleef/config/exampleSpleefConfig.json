@@ -16,6 +16,9 @@
     "maxY": 8,
     "maxZ": -1968
   },
+  "stencilBlock": "DIRT",
+  "layerBlock": "SNOW_BLOCK",
+  "decayBlock": "CLAY",
   "layers": [
     {
       "structure": {

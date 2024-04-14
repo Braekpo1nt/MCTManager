@@ -10,7 +10,10 @@ import org.braekpo1nt.mctmanager.games.game.config.GameConfigStorageUtil;
 import org.braekpo1nt.mctmanager.games.game.spleef.DecayStage;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Item;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.structure.Structure;
 import org.bukkit.util.BoundingBox;
@@ -34,6 +37,9 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
     private List<BoundingBox> decayLayers;
     private Component description;
     private ItemStack tool;
+    private Material stencilBlock;
+    private Material layerBlock;
+    private Material decayBlock;
     
     public SpleefStorageUtil(File configDirectory) {
         super(configDirectory, "spleefConfig.json", SpleefConfig.class);
@@ -80,8 +86,9 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
             }
             Preconditions.checkArgument(decayStage.duration() > 0, "decayStage.duration must be at least 1");
         }
-        Preconditions.checkArgument(config.tool() != null, "tool can't be null");
-        config.tool().isValid();
+        if (config.tool() != null) {
+            config.tool().isValid();
+        }
         Preconditions.checkArgument(config.rounds() >= 1, "rounds must be greater than 0");
         Preconditions.checkArgument(config.scores() != null, "scores can't be null");
         Preconditions.checkArgument(config.durations() != null, "durations can't be null");
@@ -106,6 +113,9 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
         
         List<Structure> newStructures = new ArrayList<>(config.layers().size());
         List<Location> newStructureOrigins = new ArrayList<>(config.layers().size());
+        Material newStencilBlock = config.stencilBlock();
+        Material newLayerBlock = config.layerBlock() != null ? config.layerBlock() : Material.DIRT;
+        Material newDecayBlock = config.decayBlock() != null ? config.decayBlock() : Material.COARSE_DIRT;
         List<BoundingBox> newDecayLayers = new ArrayList<>(config.layers().size());
         for (SpleefConfig.Layer layer : config.layers()) {
             Structure structure = Bukkit.getStructureManager().loadStructure(layer.structure());
@@ -114,14 +124,23 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
             newStructureOrigins.add(layer.structureOrigin().toLocation(newWorld));
             newDecayLayers.add(layer.decayArea().toBoundingBox());
         }
-        Preconditions.checkArgument(config.tool() != null, "tool can't be null");
-        ItemStack newTool = config.tool().toItemStack();
+        ItemStack newTool;
+        if (config.tool() == null) {
+            newTool = new ItemStack(Material.DIAMOND_SHOVEL);
+            newTool.addEnchantment(Enchantment.DIG_SPEED, 5);
+            newTool.addEnchantment(Enchantment.DURABILITY, 10);
+        } else {
+            newTool = config.tool().toItemStack();
+        }
         Component newDescription = GsonComponentSerializer.gson().deserializeFromTree(config.description());
         // now it's confirmed everything works, so set the actual fields
         this.world = newWorld;
         this.startingLocations = newStartingLocations;
         this.structures = newStructures;
         this.structureOrigins = newStructureOrigins;
+        this.stencilBlock = newStencilBlock;
+        this.layerBlock = newLayerBlock;
+        this.decayBlock = newDecayBlock;
         this.decayLayers = newDecayLayers;
         this.tool = newTool;
         this.description = newDescription;
@@ -175,5 +194,17 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
     
     public ItemStack getTool() {
         return tool;
+    }
+    
+    public Material getStencilBlock() {
+        return stencilBlock;
+    }
+    
+    public Material getLayerBlock() {
+        return layerBlock;
+    }
+    
+    public Material getDecayBlock() {
+        return decayBlock;
     }
 }
