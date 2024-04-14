@@ -45,39 +45,6 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
     }
     
     @Override
-    protected void setConfig(SpleefConfig config) {
-        World newWorld = Bukkit.getWorld(config.world());
-        Preconditions.checkArgument(newWorld != null, "Could not find world \"%s\"", config.world());
-        List<Location> newStartingLocations = new ArrayList<>(config.startingLocations().size());
-        for (Vector startingLocation : config.startingLocations()) {
-            newStartingLocations.add(startingLocation.toLocation(newWorld));
-        }
-        
-        List<Structure> newStructures = new ArrayList<>(config.layers().size());
-        List<Location> newStructureOrigins = new ArrayList<>(config.layers().size());
-        List<BoundingBox> newDecayLayers = new ArrayList<>(config.layers().size());
-        for (SpleefConfig.Layer layer : config.layers()) {
-            Structure structure = Bukkit.getStructureManager().loadStructure(layer.structure());
-            Preconditions.checkArgument(structure != null, "can't find structure %s", layer.structure());
-            newStructures.add(structure);
-            newStructureOrigins.add(layer.structureOrigin().toLocation(newWorld));
-            newDecayLayers.add(layer.decayArea().toBoundingBox());
-        }
-        Preconditions.checkArgument(config.tool() != null, "tool can't be null");
-        ItemStack newTool = config.tool().toItemStack();
-        Component newDescription = GsonComponentSerializer.gson().deserializeFromTree(config.description());
-        // now it's confirmed everything works, so set the actual fields
-        this.world = newWorld;
-        this.startingLocations = newStartingLocations;
-        this.structures = newStructures;
-        this.structureOrigins = newStructureOrigins;
-        this.decayLayers = newDecayLayers;
-        this.tool = newTool;
-        this.description = newDescription;
-        this.spleefConfig = config;
-    }
-    
-    @Override
     protected boolean configIsValid(@Nullable SpleefConfig config) throws IllegalArgumentException {
         Preconditions.checkArgument(config != null, "Saved config is null");
         Preconditions.checkArgument(config.version() != null, "version can't be null");
@@ -113,6 +80,8 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
             }
             Preconditions.checkArgument(decayStage.duration() > 0, "decayStage.duration must be at least 1");
         }
+        Preconditions.checkArgument(config.tool() != null, "tool can't be null");
+        config.tool().isValid();
         Preconditions.checkArgument(config.rounds() >= 1, "rounds must be greater than 0");
         Preconditions.checkArgument(config.scores() != null, "scores can't be null");
         Preconditions.checkArgument(config.durations() != null, "durations can't be null");
@@ -124,6 +93,39 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
             throw new IllegalArgumentException("description is invalid", e);
         }
         return true;
+    }
+    
+    @Override
+    protected void setConfig(SpleefConfig config) {
+        World newWorld = Bukkit.getWorld(config.world());
+        Preconditions.checkArgument(newWorld != null, "Could not find world \"%s\"", config.world());
+        List<Location> newStartingLocations = new ArrayList<>(config.startingLocations().size());
+        for (Vector startingLocation : config.startingLocations()) {
+            newStartingLocations.add(startingLocation.toLocation(newWorld));
+        }
+        
+        List<Structure> newStructures = new ArrayList<>(config.layers().size());
+        List<Location> newStructureOrigins = new ArrayList<>(config.layers().size());
+        List<BoundingBox> newDecayLayers = new ArrayList<>(config.layers().size());
+        for (SpleefConfig.Layer layer : config.layers()) {
+            Structure structure = Bukkit.getStructureManager().loadStructure(layer.structure());
+            Preconditions.checkArgument(structure != null, "can't find structure %s", layer.structure());
+            newStructures.add(structure);
+            newStructureOrigins.add(layer.structureOrigin().toLocation(newWorld));
+            newDecayLayers.add(layer.decayArea().toBoundingBox());
+        }
+        Preconditions.checkArgument(config.tool() != null, "tool can't be null");
+        ItemStack newTool = config.tool().toItemStack();
+        Component newDescription = GsonComponentSerializer.gson().deserializeFromTree(config.description());
+        // now it's confirmed everything works, so set the actual fields
+        this.world = newWorld;
+        this.startingLocations = newStartingLocations;
+        this.structures = newStructures;
+        this.structureOrigins = newStructureOrigins;
+        this.decayLayers = newDecayLayers;
+        this.tool = newTool;
+        this.description = newDescription;
+        this.spleefConfig = config;
     }
     
     @Override
