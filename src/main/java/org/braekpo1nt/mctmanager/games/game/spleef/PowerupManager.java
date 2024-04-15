@@ -1,5 +1,7 @@
 package org.braekpo1nt.mctmanager.games.game.spleef;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.spleef.config.SpleefStorageUtil;
@@ -37,28 +39,44 @@ public class PowerupManager implements Listener {
     private final Random random = new Random();
     private int powerupTimerTaskId;
     
-    private final ItemStack playerSwapper;
-    private final ItemStack blockBreaker;
-    
-    public PowerupManager(Main plugin, SpleefStorageUtil storageUtil) {
-        this.plugin = plugin;
-        this.storageUtil = storageUtil;
-        playerSwapper = new ItemStack(Material.SNOWBALL);
-        playerSwapper.editMeta(meta -> {
+    private static final List<Powerup> powerups;
+    static {
+        ItemStack playerSwapperItem = new ItemStack(Material.SNOWBALL);
+        playerSwapperItem.editMeta(meta -> {
             meta.displayName(Component.text("Player Swapper"));
             meta.lore(List.of(
                     Component.text("Throw this at another player"),
                     Component.text("to swap positions with them.")
             ));
         });
-        blockBreaker = new ItemStack(Material.SNOWBALL);
-        blockBreaker.editMeta(meta -> {
+        Powerup playerSwapper = new Powerup(playerSwapperItem, Powerup.Type.PLAYER_SWAPPER);
+        
+        ItemStack blockBreakerItem = new ItemStack(Material.SNOWBALL);
+        blockBreakerItem.editMeta(meta -> {
             meta.displayName(Component.text("Block Breaker"));
             meta.lore(List.of(
                     Component.text("Throw this at a block"),
                     Component.text("to break it.")
             ));
         });
+        Powerup blockBreaker = new Powerup(blockBreakerItem, Powerup.Type.BLOCK_BREAKER);
+        powerups = List.of(playerSwapper, blockBreaker);
+    }
+    
+    @Getter
+    @AllArgsConstructor
+    public static class Powerup {
+        enum Type {
+            PLAYER_SWAPPER,
+            BLOCK_BREAKER
+        }
+        private final ItemStack item;
+        private final Type type;
+    }
+    
+    public PowerupManager(Main plugin, SpleefStorageUtil storageUtil) {
+        this.plugin = plugin;
+        this.storageUtil = storageUtil;
     }
     
     public void start(List<Player> newParticipants) {
@@ -165,10 +183,9 @@ public class PowerupManager implements Listener {
      * @return a random powerup item from the available powerups, according to the weights provided in the config
      */
     private @NotNull ItemStack getRandomPowerup() {
-        List<ItemStack> powerups = List.of(playerSwapper, blockBreaker);
         int[] weights = {1, 1};
         int index = MathUtils.getWeightedRandomIndex(weights);
-        return powerups.get(index);
+        return powerups.get(index).getItem();
     }
     
     /**
@@ -215,13 +232,36 @@ public class PowerupManager implements Listener {
         if (!(event.getEntity() instanceof Snowball snowball)) {
             return;
         }
-        ItemMeta mainHandMeta = participant.getInventory().getItemInMainHand().getItemMeta();
-        ItemMeta offHandMeta = participant.getInventory().getItemInOffHand().getItemMeta();
-        if (Objects.equals(mainHandMeta, playerSwapper.getItemMeta()) || Objects.equals(offHandMeta, playerSwapper.getItemMeta())) {
-            snowball.setMetadata(POWERUP_METADATA_KEY, new FixedMetadataValue(plugin, PLAYER_SWAPPER_METADATA_VALUE));
-        } else if (Objects.equals(mainHandMeta, blockBreaker.getItemMeta()) || Objects.equals(offHandMeta, blockBreaker.getItemMeta())) {
-            snowball.setMetadata(POWERUP_METADATA_KEY, new FixedMetadataValue(plugin, BLOCK_BREAKER_METADATA_VALUE));
+        ItemStack mainHandItem = participant.getInventory().getItemInMainHand();
+        ItemStack offHandItem = participant.getInventory().getItemInOffHand();
+        Powerup usedPowerup = itemToPowerup(mainHandItem);
+        if (usedPowerup == null) {
+            usedPowerup = itemToPowerup(offHandItem);
+            if (usedPowerup == null) {
+                return;
+            }
         }
+        switch (usedPowerup.getType()) {
+            case PLAYER_SWAPPER -> {
+                snowball.setMetadata(POWERUP_METADATA_KEY, new FixedMetadataValue(plugin, PLAYER_SWAPPER_METADATA_VALUE));
+            }
+            case BLOCK_BREAKER -> {
+                snowball.setMetadata(POWERUP_METADATA_KEY, new FixedMetadataValue(plugin, BLOCK_BREAKER_METADATA_VALUE));
+            }
+        }
+    }
+    
+    private @Nullable Powerup itemToPowerup(@NotNull ItemStack item) {
+        ItemMeta itemMeta = item.getItemMeta();
+        if (itemMeta == null) {
+            return null;
+        }
+        for (Powerup powerup : powerups) {
+            if (powerup.getItem().getItemMeta().equals(itemMeta)) {
+                return powerup;
+            }
+        }
+        return null;
     }
     
     @EventHandler
@@ -279,7 +319,7 @@ public class PowerupManager implements Listener {
         if (item == null) {
             return false;
         }
-        return item.getItemMeta().equals(playerSwapper.getItemMeta()) || item.getItemMeta().equals(blockBreaker.getItemMeta());
+        return itemToPowerup(item) != null;
     }
     
 }
