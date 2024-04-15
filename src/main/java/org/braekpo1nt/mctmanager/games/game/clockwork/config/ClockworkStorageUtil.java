@@ -58,7 +58,7 @@ public class ClockworkStorageUtil extends GameConfigStorageUtil<ClockworkConfig>
         }
         Preconditions.checkArgument(config.rounds() >= 1, "rounds must be at least 1");
         Preconditions.checkArgument(config.clockChime() != null, "clockChime can't be null");
-        Preconditions.checkArgument(config.clockChime().sound() != null, "clockChime.sound can't be null");
+        config.clockChime().isValid();
         Preconditions.checkArgument(config.initialChimeInterval() >= 0, "initialChimeInterval can't be negative");
         Preconditions.checkArgument(config.chimeIntervalDecrement() >= 0, "chimeIntervalDecrement can't be negative");
         Preconditions.checkArgument(config.chimeIntervalDecrement() > 0, "chimeIntervalDecrement (%s) can't be greater than initialChimeInterval (%s)", config.chimeIntervalDecrement(), config.initialChimeInterval());
@@ -170,15 +170,15 @@ public class ClockworkStorageUtil extends GameConfigStorageUtil<ClockworkConfig>
     }
     
     public String getClockChimeSound() {
-        return clockworkConfig.clockChime().sound();
+        return clockworkConfig.clockChime().getSound();
     }
     
     public float getClockChimeVolume() {
-        return clockworkConfig.clockChime().volume();
+        return clockworkConfig.clockChime().getVolume();
     }
     
     public float getClockChimePitch() {
-        return clockworkConfig.clockChime().pitch();
+        return clockworkConfig.clockChime().getPitch();
     }
     
     public int getStayOnWedgeDuration() {

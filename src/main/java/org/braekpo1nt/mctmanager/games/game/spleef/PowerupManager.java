@@ -9,6 +9,7 @@ import org.braekpo1nt.mctmanager.utils.MathUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Snowball;
@@ -66,7 +67,7 @@ public class PowerupManager implements Listener {
     @Getter
     @AllArgsConstructor
     public static class Powerup {
-        enum Type {
+        public enum Type {
             PLAYER_SWAPPER,
             BLOCK_BREAKER
         }
@@ -183,8 +184,7 @@ public class PowerupManager implements Listener {
      * @return a random powerup item from the available powerups, according to the weights provided in the config
      */
     private @NotNull ItemStack getRandomPowerup() {
-        int[] weights = {1, 1};
-        int index = MathUtils.getWeightedRandomIndex(weights);
+        int index = MathUtils.getWeightedRandomIndex(storageUtil.getPowerupWeights());
         return powerups.get(index).getItem();
     }
     
@@ -308,6 +308,12 @@ public class PowerupManager implements Listener {
         Location targetLoc = target.getLocation();
         shooter.teleport(targetLoc);
         target.teleport(shooterLoc);
+        playSwapSound(shooter);
+        playSwapSound(target);
+    }
+    
+    private void playSwapSound(Player participant) {
+        participant.playSound(participant, storageUtil.getPlayerSwapSoundType(), storageUtil.getPlayerSwapSoundVolume(), storageUtil.getPlayerSwapSoundPitch());
     }
     
     /**
