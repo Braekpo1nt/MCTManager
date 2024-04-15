@@ -49,4 +49,25 @@ public class MathUtils {
         );
     }
     
+    /**
+     * Uses the weights paired with each index to select a random index using a weighted randomization algorithm. 
+     * @param weights a list where each index is paired with a weight.
+     * @return a random index from 0 to the length of weights, or -1 if weights is empty.
+     */
+    public static int getWeightedRandomIndex(int[] weights) {
+        int totalWeight = 0;
+        for (int weight : weights) {
+            totalWeight += weight;
+        }
+        int randomIndex = (int) (Math.random() * totalWeight);
+        int weightSum = 0;
+        for (int i = 0; i < weights.length; i++) {
+            weightSum += weights[i];
+            if (randomIndex < weightSum) {
+                return i;
+            }
+        }
+        return -1;
+    }
+    
 }
