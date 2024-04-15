@@ -116,9 +116,27 @@ public class PowerupManager implements Listener {
                         return;
                     }
                     // random chance to get a powerup if you reach here
+                    
                 }
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+    }
+    
+    /**
+     * @param participant the participant
+     * @return true if the participant has the maximum number of powerups allowed in their inventory, false if not. 
+     */
+    private boolean hasMaxPowerups(Player participant) {
+        if (storageUtil.getMaxPowerups() < 0) {
+            return false;
+        }
+        int num = 0;
+        for (ItemStack item : participant.getInventory().getContents()) {
+            if (item != null && isPowerup(item)) {
+                num++;
+            }
+        }
+        return num >= storageUtil.getMaxPowerups();
     }
     
     public void onParticipantBreakBlock(@NotNull Player participant) {
