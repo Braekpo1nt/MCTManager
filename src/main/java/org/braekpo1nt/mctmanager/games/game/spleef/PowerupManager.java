@@ -33,7 +33,6 @@ public class PowerupManager implements Listener {
     private final Main plugin;
     private final SpleefStorageUtil storageUtil;
     private List<Player> participants;
-    private Map<UUID, Boolean> participantsAreAlive;
     private Map<UUID, Integer> timeSincePowerups;
     private final Random random = new Random();
     private int powerupTimerTaskId;
@@ -65,7 +64,6 @@ public class PowerupManager implements Listener {
     public void start(List<Player> newParticipants) {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         participants = new ArrayList<>(newParticipants.size());
-        participantsAreAlive = new HashMap<>(newParticipants.size());
         timeSincePowerups = new HashMap<>(newParticipants.size());
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
