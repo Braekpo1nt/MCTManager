@@ -2,7 +2,11 @@ package org.braekpo1nt.mctmanager.utils;
 
 import org.bukkit.Location;
 
+import java.util.Random;
+
 public class MathUtils {
+    
+    private static final Random random = new Random();
     
     private MathUtils() {
         // do not instantiate
@@ -59,11 +63,13 @@ public class MathUtils {
         for (int weight : weights) {
             totalWeight += weight;
         }
-        int randomIndex = (int) (Math.random() * totalWeight);
+        // random number in range [0, totalWeight)
+        int randomNumber = random.nextInt(totalWeight);
+        // iterate through the weights to find the corresponding index
         int weightSum = 0;
         for (int i = 0; i < weights.length; i++) {
             weightSum += weights[i];
-            if (randomIndex < weightSum) {
+            if (randomNumber < weightSum) {
                 return i;
             }
         }

@@ -16,6 +16,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.metadata.MetadataValue;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -32,6 +33,7 @@ public class PowerupManager implements Listener {
     private final Main plugin;
     private final SpleefStorageUtil storageUtil;
     private List<Player> participants;
+    private Map<UUID, Boolean> participantsAreAlive;
     private Map<UUID, Integer> timeSincePowerups;
     private final Random random = new Random();
     private int powerupTimerTaskId;
@@ -63,6 +65,7 @@ public class PowerupManager implements Listener {
     public void start(List<Player> newParticipants) {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         participants = new ArrayList<>(newParticipants.size());
+        participantsAreAlive = new HashMap<>(newParticipants.size());
         timeSincePowerups = new HashMap<>(newParticipants.size());
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
@@ -73,7 +76,6 @@ public class PowerupManager implements Listener {
     private void initializeParticipant(Player participant) {
         participants.add(participant);
         timeSincePowerups.put(participant.getUniqueId(), 0);
-        participant.getInventory().addItem(playerSwapper, blockBreaker);
     }
     
     public void stop() {
@@ -87,15 +89,28 @@ public class PowerupManager implements Listener {
     }
     
     private void resetParticipant(Player participant) {
-        // doesn't do anything at this time
         timeSincePowerups.remove(participant.getUniqueId());
     }
     
-    public void onParticipantJoin(Player participant) {
+    /**
+     * if the participant isn't already in this manager, adds them to it. Otherwise, does nothing.
+     * @param participant the participant to add
+     */
+    public void addParticipant(Player participant) {
+        if (participants.contains(participant)) {
+            return;
+        }
         initializeParticipant(participant);
     }
     
-    public void onParticipantQuit(Player participant) {
+    /**
+     * if the participant is in this manager, removes them from it. Otherwise, does nothing. 
+     * @param participant the participant to remove
+     */
+    public void removeParticipant(Player participant) {
+        if (!participants.contains(participant)) {
+            return;
+        }
         resetParticipant(participant);
         participants.remove(participant);
     }
@@ -109,43 +124,61 @@ public class PowerupManager implements Listener {
             @Override
             public void run() {
                 for (Player participant : participants) {
-                    int timeSincePowerup = timeSincePowerups.get(participant.getUniqueId());
-                    if (timeSincePowerup > 0) {
-                        timeSincePowerups.put(participant.getUniqueId(), timeSincePowerup - 1);
-                        return;
-                    }
-                    if (hasMaxPowerups(participant)) {
-                        return;
-                    }
-                    boolean gotPowerup = randomlyGivePowerup(participant, storageUtil.getChancePerSecond());
-                    if (gotPowerup) {
-                        timeSincePowerups.put(participant.getUniqueId(), storageUtil.getMinTimeBetween());
-                    }
+                    decrementTimeSinceLastPowerup(participant);
+                    handleParticipant(participant);
                 }
+            }
+            
+            private void handleParticipant(Player participant) {
+                if (!canReceivePowerup(participant)) {
+                    return;
+                }
+                randomlyGivePowerup(participant, storageUtil.getChancePerSecond());
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
     }
     
+    private void decrementTimeSinceLastPowerup(Player participant) {
+        int timeSincePowerup = timeSincePowerups.get(participant.getUniqueId());
+        if (timeSincePowerup > 0) {
+            timeSincePowerups.put(participant.getUniqueId(), timeSincePowerup - 1);
+        }
+    }
+    
+    private void resetTimeSinceLastPowerup(Player participant) {
+        timeSincePowerups.put(participant.getUniqueId(), storageUtil.getMinTimeBetween());
+    }
+    
     /**
-     * This may or may not give the participant a powerup based on the provided percent chance. The powerup given is randomly determined by the distribution provided in the config.
+     * This may or may not give the participant a powerup based on the provided percent chance. The powerup given is random according to the weights provided in the config.
+     * If the participant receives a powerup, their receive-cool-down is reset.
      * @param participant the participant to receive a powerup
      * @param chance the percent chance to receive a powerup
-     * @return true if the participant was given a powerup, false otherwise.
      */
-    private boolean randomlyGivePowerup(Player participant, double chance) {
+    private void randomlyGivePowerup(Player participant, double chance) {
         if (random.nextDouble() < chance) {
             ItemStack powerup = getRandomPowerup();
             participant.getInventory().addItem(powerup);
-            return true;
+            resetTimeSinceLastPowerup(participant);
         }
-        return false;
     }
     
+    /**
+     * @return a random powerup item from the available powerups, according to the weights provided in the config
+     */
     private @NotNull ItemStack getRandomPowerup() {
         List<ItemStack> powerups = List.of(playerSwapper, blockBreaker);
         int[] weights = {1, 1};
         int index = MathUtils.getWeightedRandomIndex(weights);
         return powerups.get(index);
+    }
+    
+    /**
+     * @param participant the participant
+     * @return true if the participant is allowed to receive a powerup (e.g. they've met all requirements)
+     */
+    private boolean canReceivePowerup(Player participant) {
+        return timeSincePowerups.get(participant.getUniqueId()) <= 0 && !hasMaxPowerups(participant);
     }
     
     /**
@@ -159,14 +192,18 @@ public class PowerupManager implements Listener {
         int num = 0;
         for (ItemStack item : participant.getInventory().getContents()) {
             if (item != null && isPowerup(item)) {
-                num++;
+                num += item.getAmount();
             }
         }
         return num >= storageUtil.getMaxPowerups();
     }
     
     public void onParticipantBreakBlock(@NotNull Player participant) {
-        
+        int timeSincePowerup = timeSincePowerups.get(participant.getUniqueId());
+        if (timeSincePowerup > 0) {
+            return;
+        }
+        randomlyGivePowerup(participant, storageUtil.getBlockBreakChance());
     }
     
     @EventHandler
@@ -180,11 +217,11 @@ public class PowerupManager implements Listener {
         if (!(event.getEntity() instanceof Snowball snowball)) {
             return;
         }
-        ItemStack mainHandItem = participant.getInventory().getItemInMainHand();
-        ItemStack offHandItem = participant.getInventory().getItemInOffHand();
-        if (mainHandItem.equals(playerSwapper) || offHandItem.equals(playerSwapper)) {
+        ItemMeta mainHandMeta = participant.getInventory().getItemInMainHand().getItemMeta();
+        ItemMeta offHandMeta = participant.getInventory().getItemInOffHand().getItemMeta();
+        if (Objects.equals(mainHandMeta, playerSwapper.getItemMeta()) || Objects.equals(offHandMeta, playerSwapper.getItemMeta())) {
             snowball.setMetadata(POWERUP_METADATA_KEY, new FixedMetadataValue(plugin, PLAYER_SWAPPER_METADATA_VALUE));
-        } else if (mainHandItem.equals(blockBreaker) || offHandItem.equals(blockBreaker)) {
+        } else if (Objects.equals(mainHandMeta, blockBreaker.getItemMeta()) || Objects.equals(offHandMeta, blockBreaker.getItemMeta())) {
             snowball.setMetadata(POWERUP_METADATA_KEY, new FixedMetadataValue(plugin, BLOCK_BREAKER_METADATA_VALUE));
         }
     }
@@ -244,7 +281,7 @@ public class PowerupManager implements Listener {
         if (item == null) {
             return false;
         }
-        return item.equals(playerSwapper) || item.equals(blockBreaker);
+        return item.getItemMeta().equals(playerSwapper.getItemMeta()) || item.getItemMeta().equals(blockBreaker.getItemMeta());
     }
     
 }

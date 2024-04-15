@@ -24,7 +24,6 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
@@ -147,7 +146,7 @@ public class SpleefRound implements Listener {
                     .append(Component.text(" is joining Spleef!"))
                     .color(NamedTextColor.YELLOW));
         }
-        powerupManager.onParticipantJoin(participant);
+        powerupManager.addParticipant(participant);
         long aliveCount = getAliveCount();
         String alive = String.format("Alive: %s", aliveCount);
         sidebar.updateLine("alive", alive);
@@ -174,7 +173,6 @@ public class SpleefRound implements Listener {
                 .append(Component.text(" left early. Their life is forfeit."));
         PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(participant, drops, droppedExp, deathMessage);
         Bukkit.getServer().getPluginManager().callEvent(fakeDeathEvent);
-        powerupManager.onParticipantQuit(participant);
         resetParticipant(participant);
         participants.remove(participant);
     }
@@ -282,6 +280,7 @@ public class SpleefRound implements Listener {
         ParticipantInitializer.resetHealthAndHunger(killed);
         killed.getInventory().clear();
         participantsAlive.put(killed.getUniqueId(), false);
+        powerupManager.removeParticipant(killed);
         String killedTeam = gameManager.getTeamName(killed.getUniqueId());
         int count = participants.size();
         for (Player participant : participants) {
@@ -366,6 +365,7 @@ public class SpleefRound implements Listener {
         if (!participants.contains(participant)) {
             return;
         }
+        powerupManager.onParticipantBreakBlock(participant);
         event.setDropItems(false);
     }
     
