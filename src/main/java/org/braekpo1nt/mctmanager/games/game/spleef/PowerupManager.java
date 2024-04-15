@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.game.spleef;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.spleef.config.SpleefStorageUtil;
+import org.braekpo1nt.mctmanager.utils.MathUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -31,7 +32,7 @@ public class PowerupManager implements Listener {
     private final Main plugin;
     private final SpleefStorageUtil storageUtil;
     private List<Player> participants;
-    private Map<UUID, Integer> timeSincePowerup;
+    private Map<UUID, Integer> timeSincePowerups;
     private final Random random = new Random();
     private int powerupTimerTaskId;
     
@@ -62,15 +63,16 @@ public class PowerupManager implements Listener {
     public void start(List<Player> newParticipants) {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         participants = new ArrayList<>(newParticipants.size());
-        timeSincePowerup = new HashMap<>(newParticipants.size());
+        timeSincePowerups = new HashMap<>(newParticipants.size());
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
         }
+        startPowerupTimer();
     }
     
     private void initializeParticipant(Player participant) {
         participants.add(participant);
-        timeSincePowerup.put(participant.getUniqueId(), 0);
+        timeSincePowerups.put(participant.getUniqueId(), 0);
         participant.getInventory().addItem(playerSwapper, blockBreaker);
     }
     
@@ -81,12 +83,12 @@ public class PowerupManager implements Listener {
             resetParticipant(participant);
         }
         participants.clear();
-        timeSincePowerup.clear();
+        timeSincePowerups.clear();
     }
     
     private void resetParticipant(Player participant) {
         // doesn't do anything at this time
-        timeSincePowerup.remove(participant.getUniqueId());
+        timeSincePowerups.remove(participant.getUniqueId());
     }
     
     public void onParticipantJoin(Player participant) {
@@ -107,19 +109,43 @@ public class PowerupManager implements Listener {
             @Override
             public void run() {
                 for (Player participant : participants) {
-                    int oldTime = timeSincePowerup.get(participant.getUniqueId());
-                    if (oldTime > 0) {
-                        timeSincePowerup.put(participant.getUniqueId(), oldTime - 1);
+                    int timeSincePowerup = timeSincePowerups.get(participant.getUniqueId());
+                    if (timeSincePowerup > 0) {
+                        timeSincePowerups.put(participant.getUniqueId(), timeSincePowerup - 1);
                         return;
                     }
                     if (hasMaxPowerups(participant)) {
                         return;
                     }
-                    // random chance to get a powerup if you reach here
-                    
+                    boolean gotPowerup = randomlyGivePowerup(participant, storageUtil.getChancePerSecond());
+                    if (gotPowerup) {
+                        timeSincePowerups.put(participant.getUniqueId(), storageUtil.getMinTimeBetween());
+                    }
                 }
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+    }
+    
+    /**
+     * This may or may not give the participant a powerup based on the provided percent chance. The powerup given is randomly determined by the distribution provided in the config.
+     * @param participant the participant to receive a powerup
+     * @param chance the percent chance to receive a powerup
+     * @return true if the participant was given a powerup, false otherwise.
+     */
+    private boolean randomlyGivePowerup(Player participant, double chance) {
+        if (random.nextDouble() < chance) {
+            ItemStack powerup = getRandomPowerup();
+            participant.getInventory().addItem(powerup);
+            return true;
+        }
+        return false;
+    }
+    
+    private @NotNull ItemStack getRandomPowerup() {
+        List<ItemStack> powerups = List.of(playerSwapper, blockBreaker);
+        int[] weights = {1, 1};
+        int index = MathUtils.getWeightedRandomIndex(weights);
+        return powerups.get(index);
     }
     
     /**

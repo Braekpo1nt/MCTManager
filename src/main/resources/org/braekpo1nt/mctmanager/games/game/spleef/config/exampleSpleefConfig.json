@@ -169,6 +169,12 @@
       "minParticipants": -1
     }
   ],
+  "powerups": {
+    "chancePerSecond": 0.5,
+    "blockBreakChance": 0.5,
+    "minTimeBetween": 5,
+    "maxPowerups": 5
+  },
   "scores": {
     "survive": 10
   },
