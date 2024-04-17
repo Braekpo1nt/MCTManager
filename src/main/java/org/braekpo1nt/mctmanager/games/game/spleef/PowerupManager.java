@@ -37,7 +37,14 @@ public class PowerupManager implements Listener {
     private final Random random = new Random();
     private int powerupTimerTaskId;
     
+    /**
+     * a list of all powerups
+     */
     private static final List<Powerup> powerups;
+    /**
+     * a map of {@link Powerup.Type} to their respective {@link Powerup} (for convenience)
+     */
+    private static final Map<Powerup.Type, Powerup> typeToPowerup;
     static {
         ItemStack playerSwapperItem = new ItemStack(Material.SNOWBALL);
         playerSwapperItem.editMeta(meta -> {
@@ -70,6 +77,11 @@ public class PowerupManager implements Listener {
         Powerup shield = new Powerup(shieldItem, Powerup.Type.SHIELD);
         
         powerups = List.of(playerSwapper, blockBreaker, shield);
+        typeToPowerup = Map.of(
+                Powerup.Type.PLAYER_SWAPPER, playerSwapper,
+                Powerup.Type.BLOCK_BREAKER, blockBreaker,
+                Powerup.Type.SHIELD, shield
+        );
     }
     
     public PowerupManager(Main plugin, SpleefStorageUtil storageUtil) {
@@ -284,7 +296,11 @@ public class PowerupManager implements Listener {
             if (!powerupType.equals(PLAYER_SWAPPER_METADATA_VALUE)) {
                 return;
             }
-            swapPlayers(shooter, target);
+            if (hasShield(target)) {
+                useShield(shooter, target);
+            } else {
+                swapPlayers(shooter, target);
+            }
             return;
         }
         Block hitBlock = event.getHitBlock();
@@ -300,6 +316,34 @@ public class PowerupManager implements Listener {
         }
     }
     
+    /**
+     * @param participant the participant
+     * @return true if the player has a shield on in their inventory
+     */
+    private boolean hasShield(Player participant) {
+        for (ItemStack item : participant.getInventory().getContents()) {
+            if (isPowerup(item, Powerup.Type.SHIELD)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    /**
+     * Removes a shield from the target's inventory, and plays both involved players the appropriate sound
+     * @param shooter the player who was thwarted by the shield 
+     * @param target the player who had a shield and used it
+     */
+    private void useShield(Player shooter, Player target) {
+        target.getInventory().removeItemAnySlot(typeToPowerup.get(Powerup.Type.SHIELD).getItem());
+        if (storageUtil.getShieldHolderSound() != null) {
+            target.playSound(storageUtil.getShieldHolderSound());
+        }
+        if (storageUtil.getShieldOpponentSound() != null) {
+            shooter.playSound(storageUtil.getShieldOpponentSound());
+        }
+    }
+    
     private void swapPlayers(Player shooter, Player target) {
         Location shooterLoc = shooter.getLocation();
         Location targetLoc = target.getLocation();
@@ -310,7 +354,26 @@ public class PowerupManager implements Listener {
     }
     
     private void playSwapSound(Player participant) {
-        participant.playSound(participant, storageUtil.getPlayerSwapSoundType(), storageUtil.getPlayerSwapSoundVolume(), storageUtil.getPlayerSwapSoundPitch());
+        if (storageUtil.getPlayerSwapSound() != null) {
+            participant.playSound(storageUtil.getPlayerSwapSound());
+        }
+    }
+    
+    /**
+     *
+     * @param item the item which might be a powerup of the given type
+     * @param type the type of powerup to check for
+     * @return true if the given item is the given type of powerup 
+     */
+    private boolean isPowerup(@Nullable ItemStack item, @NotNull Powerup.Type type) {
+        if (item == null) {
+            return false;
+        }
+        Powerup shield = itemToPowerup(item);
+        if (shield == null) {
+            return false;
+        }
+        return shield.getType().equals(type);
     }
     
     /**

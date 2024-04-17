@@ -178,6 +178,27 @@
       "PLAYER_SWAPPER": 45,
       "BLOCK_BREAKER": 45,
       "SHIELD": 10
+    },
+    "playerSwapSound": {
+      "namespacedKey": {
+        "key": "entity.enderman.teleport"
+      },
+      "volume": 100,
+      "pitch": 1
+    },
+    "shieldHolderSound": {
+      "namespacedKey": {
+        "key": "item.shield.block"
+      },
+      "volume": 100,
+      "pitch": 1
+    },
+    "shieldOpponentSound": {
+      "namespacedKey": {
+        "key": "entity.endermite.hurt"
+      },
+      "volume": 100,
+      "pitch": 1
     }
   },
   "scores": {

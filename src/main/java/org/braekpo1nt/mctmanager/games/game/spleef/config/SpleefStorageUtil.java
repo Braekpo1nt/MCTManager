@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.game.spleef.config;
 import com.google.common.base.Preconditions;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
+import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.braekpo1nt.mctmanager.Main;
@@ -42,9 +43,9 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
     private int minTimeBetween;
     private int maxPowerups;
     private int[] powerupWeights;
-    private String playerSwapSoundType;
-    private float playerSwapSoundVolume;
-    private float playerSwapSoundPitch;
+    private Sound playerSwapSound;
+    private Sound shieldHolderSound;
+    private Sound shieldOpponentSound;
     
     public SpleefStorageUtil(File configDirectory) {
         super(configDirectory, "spleefConfig.json", SpleefConfig.class);
@@ -148,6 +149,9 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
         }
         Component newDescription = GsonComponentSerializer.gson().deserializeFromTree(config.description());
         // now it's confirmed everything works, so set the actual fields
+        this.playerSwapSound = null;
+        this.shieldHolderSound = null;
+        this.shieldOpponentSound = null;
         if (config.powerups() != null) {
             this.chancePerSecond = config.powerups().chancePerSecond();
             this.blockBreakChance = config.powerups().blockBreakChance();
@@ -155,11 +159,13 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
             this.maxPowerups = config.powerups().maxPowerups();
             this.powerupWeights = config.powerups().getWeights();
             if (config.powerups().playerSwapSound() != null) {
-                this.playerSwapSoundType = config.powerups().playerSwapSound().getSound();
-                this.playerSwapSoundVolume = config.powerups().playerSwapSound().getVolume();
-                this.playerSwapSoundPitch = config.powerups().playerSwapSound().getPitch();
-            } else {
-                setDefaultPlayerSwapSound();
+                this.playerSwapSound = config.powerups().playerSwapSound().toSound();
+            }
+            if (config.powerups().shieldHolderSound() != null) {
+                this.shieldHolderSound = config.powerups().shieldHolderSound().toSound();
+            }
+            if (config.powerups().shieldOpponentSound() != null) {
+                this.shieldOpponentSound = config.powerups().shieldOpponentSound().toSound();
             }
         } else {
             this.chancePerSecond = 0.0;
@@ -168,7 +174,6 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
             this.maxPowerups = 0;
             this.powerupWeights = new int[Powerup.Type.values().length];
             Arrays.fill(this.powerupWeights, 1);
-            setDefaultPlayerSwapSound();
         }
         this.world = newWorld;
         this.startingLocations = newStartingLocations;
@@ -183,10 +188,12 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
         this.spleefConfig = config;
     }
     
-    private void setDefaultPlayerSwapSound() {
-        this.playerSwapSoundType = "entity.enderman.teleport";
-        this.playerSwapSoundVolume = 100;
-        this.playerSwapSoundPitch = 1;
+    private Sound getDefaultPlayerSwapSound() {
+        return this.playerSwapSound = Sound.sound()
+                .type(org.bukkit.Sound.ENTITY_ENDERMAN_TELEPORT.key())
+                .volume(100)
+                .pitch(1)
+                .build();
     }
     
     @Override
@@ -270,15 +277,16 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
         return powerupWeights;
     }
     
-    public String getPlayerSwapSoundType() {
-        return playerSwapSoundType;
+    public @Nullable Sound getPlayerSwapSound() {
+        return playerSwapSound;
     }
     
-    public float getPlayerSwapSoundVolume() {
-        return playerSwapSoundVolume;
+    public @Nullable Sound getShieldHolderSound() {
+        return shieldHolderSound;
     }
     
-    public float getPlayerSwapSoundPitch() {
-        return playerSwapSoundPitch;
+    public @Nullable Sound getShieldOpponentSound() {
+        return shieldOpponentSound;
     }
+    
 }

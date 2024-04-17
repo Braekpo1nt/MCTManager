@@ -48,14 +48,23 @@ record SpleefConfig(String version, String world, List<Vector> startingLocations
      * @param blockBreakChance every time the player breaks a block, they have this percentage chance to get a powerup. 0 means no powerups will be given upon breaking a block (ever). Defaults to 0.0
      * @param minTimeBetween the minimum time (in seconds) between getting powerups. Players should not get two powerups one after another immediately. 0 means no restriction. Defaults to 0
      * @param maxPowerups limit the number of powerups a player can have. If they are at max, they won't collect any more until they use some of them. 0 means players can't hold any powerups at all. Negative values indicate unlimited powerup collection. Defaults to 0
+     * @param playerSwapSound the sound to be played when a player swapper is used. Null means no sound will be played.
+     * @param shieldHolderSound the sound to be played for the holder of a shield when it is used. Null means no sound will be played.
+     * @param shieldOpponentSound the sound to be played for the opponent whom a shield blocked. Null means no sound will be played.
      */
-    record Powerups(double chancePerSecond, double blockBreakChance, int minTimeBetween, int maxPowerups, @Nullable Map<Powerup.Type, @Nullable Integer> weights, @Nullable SoundDTO playerSwapSound) {
+    record Powerups(double chancePerSecond, double blockBreakChance, int minTimeBetween, int maxPowerups, @Nullable Map<Powerup.Type, @Nullable Integer> weights, @Nullable SoundDTO playerSwapSound, @Nullable SoundDTO shieldHolderSound, @Nullable SoundDTO shieldOpponentSound) {
         void isValid() {
             Preconditions.checkArgument(0 <= chancePerSecond && chancePerSecond <= 1.0, "chancePerSecond must be between 0 and 1, inclusive");
             Preconditions.checkArgument(0 <= blockBreakChance && blockBreakChance <= 1.0, "blockBreakChance must be between 0 and 1, inclusive");
             Preconditions.checkArgument(minTimeBetween >= 0, "minTimeBetween must be greater than or equal to 0");
             if (playerSwapSound != null) {
                 playerSwapSound.isValid();
+            }
+            if (shieldHolderSound != null) {
+                shieldHolderSound.isValid();
+            }
+            if (shieldOpponentSound != null) {
+                shieldOpponentSound.isValid();
             }
         }
     
