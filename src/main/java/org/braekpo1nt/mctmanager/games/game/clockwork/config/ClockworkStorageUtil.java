@@ -43,7 +43,7 @@ public class ClockworkStorageUtil extends GameConfigStorageUtil<ClockworkConfig>
     protected boolean configIsValid(@Nullable ClockworkConfig config) throws IllegalArgumentException {
         Preconditions.checkArgument(config != null, "Saved config is null");
         Preconditions.checkArgument(config.version() != null, "version can't be null");
-        Preconditions.checkArgument(config.version().equals(Main.CONFIG_VERSION), "Config version %s not supported. %s required.", config.version(), Main.CONFIG_VERSION);
+        Preconditions.checkArgument(Main.VALID_CONFIG_VERSIONS.contains(config.version()), "invalid config version (%s)", config.version());
         Preconditions.checkArgument(Bukkit.getWorld(config.world()) != null, "Could not find world \"%s\"", config.world());
         Preconditions.checkArgument(config.startingLocation() != null, "startingLocation can't be null");
         Preconditions.checkArgument(config.spectatorArea() != null, "spectatorArea can't be null");

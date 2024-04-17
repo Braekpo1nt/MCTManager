@@ -57,8 +57,7 @@ public class HubStorageUtil extends GameConfigStorageUtil<HubConfig> {
      * @return a default config with the first world in the list of `Bukkit.getWorld()` and the spawn as all the locations. 
      * @throws IllegalArgumentException if no worlds exist in the server
      */
-    @NotNull
-    protected HubConfig createDefaultConfig() {
+    @NotNull protected HubConfig createDefaultConfig() {
         Optional<World> optionalWorld = Bukkit.getWorlds().stream().findFirst();
         Preconditions.checkArgument(optionalWorld.isPresent(), "No worlds exist in server.");
         World defaultWorld = optionalWorld.get();
@@ -66,14 +65,14 @@ public class HubStorageUtil extends GameConfigStorageUtil<HubConfig> {
         LocationDTO defaultLocation = new LocationDTO(defaultSpawn);
         int yLimit = -64;
         HubConfig.Durations durations = new HubConfig.Durations(10);
-        return new HubConfig(Main.CONFIG_VERSION, defaultWorld.getName(), defaultLocation, defaultLocation, defaultLocation, defaultSpawn.toVector(), yLimit, durations);
+        return new HubConfig(Main.VALID_CONFIG_VERSIONS.get(Main.VALID_CONFIG_VERSIONS.size() - 1), defaultWorld.getName(), defaultLocation, defaultLocation, defaultLocation, defaultSpawn.toVector(), yLimit, durations);
     }
     
     @Override
     protected boolean configIsValid(@Nullable HubConfig config) throws IllegalArgumentException {
         Preconditions.checkArgument(config != null, "Saved config is null");
         Preconditions.checkArgument(config.version() != null, "version can't be null");
-        Preconditions.checkArgument(config.version().equals(Main.CONFIG_VERSION), "Config version %s not supported. %s required.", config.version(), Main.CONFIG_VERSION);
+        Preconditions.checkArgument(Main.VALID_CONFIG_VERSIONS.contains(config.version()), "invalid config version (%s)", config.version());
         Preconditions.checkArgument(Bukkit.getWorld(config.world()) != null, "Could not find world \"%s\"", config.world());
         Preconditions.checkArgument(config.spawn() != null, "spawn can't be null");
         Preconditions.checkArgument(config.podium() != null, "podium can't be null");

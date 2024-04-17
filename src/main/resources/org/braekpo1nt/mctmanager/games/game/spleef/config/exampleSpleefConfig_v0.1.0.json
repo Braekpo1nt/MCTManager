@@ -1,5 +1,5 @@
 {
-  "version": "0.1.1",
+  "version": "0.1.0",
   "world": "TestWorld",
   "startingLocations": [
     {
@@ -169,17 +169,6 @@
       "minParticipants": -1
     }
   ],
-  "powerups": {
-    "chancePerSecond": 0.5,
-    "blockBreakChance": 0.5,
-    "minTimeBetween": 5,
-    "maxPowerups": 5,
-    "weights": {
-      "PLAYER_SWAPPER": 45,
-      "BLOCK_BREAKER": 45,
-      "SHIELD": 10
-    }
-  },
   "scores": {
     "survive": 10
   },

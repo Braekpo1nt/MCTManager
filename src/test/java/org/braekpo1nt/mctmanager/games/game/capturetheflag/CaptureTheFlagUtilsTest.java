@@ -9,8 +9,6 @@ import org.junit.jupiter.api.Test;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.mockito.Mockito.mock;
-
 class CaptureTheFlagUtilsTest {
     
     private final int NUMBER_OF_ARENAS = 4;

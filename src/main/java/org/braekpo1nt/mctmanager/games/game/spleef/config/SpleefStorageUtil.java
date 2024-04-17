@@ -8,7 +8,7 @@ import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.config.GameConfigStorageUtil;
 import org.braekpo1nt.mctmanager.games.game.spleef.DecayStage;
-import org.braekpo1nt.mctmanager.games.game.spleef.PowerupManager;
+import org.braekpo1nt.mctmanager.games.game.spleef.Powerup;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -59,7 +59,7 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
     protected boolean configIsValid(@Nullable SpleefConfig config) throws IllegalArgumentException {
         Preconditions.checkArgument(config != null, "Saved config is null");
         Preconditions.checkArgument(config.version() != null, "version can't be null");
-        Preconditions.checkArgument(config.version().equals(Main.CONFIG_VERSION), "Config version %s not supported. %s required.", config.version(), Main.CONFIG_VERSION);
+        Preconditions.checkArgument(Main.VALID_CONFIG_VERSIONS.contains(config.version()), "invalid config version (%s)", config.version());
         Preconditions.checkArgument(Bukkit.getWorld(config.world()) != null, "Could not find world \"%s\"", config.world());
         Preconditions.checkArgument(config.startingLocations() != null, "startingLocations can't be null");
         Preconditions.checkArgument(config.startingLocations().size() >= 1, "startingLocations must have at least one entry");
@@ -166,7 +166,7 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
             this.blockBreakChance = 0.0;
             this.minTimeBetween = 0;
             this.maxPowerups = 0;
-            this.powerupWeights = new int[PowerupManager.Powerup.Type.values().length];
+            this.powerupWeights = new int[Powerup.Type.values().length];
             Arrays.fill(this.powerupWeights, 1);
             setDefaultPlayerSwapSound();
         }

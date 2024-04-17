@@ -16,11 +16,11 @@ import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.loot.LootTable;
 import org.bukkit.structure.Structure;
 import org.bukkit.structure.StructureManager;
+import org.bukkit.util.BlockVector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -129,7 +129,9 @@ public class MyCustomServerMock extends ServerMock {
     @Override
     public @NotNull StructureManager getStructureManager() {
         StructureManager mockStructureManager = mock(StructureManager.class);
-        when(mockStructureManager.loadStructure((NamespacedKey) any())).thenReturn(mock(Structure.class));
+        Structure mockStructure = mock(Structure.class);
+        when(mockStructure.getSize()).thenReturn(new BlockVector(0, 0, 0));
+        when(mockStructureManager.loadStructure((NamespacedKey) any())).thenReturn(mockStructure);
         return mockStructureManager;
     }
     

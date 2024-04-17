@@ -7,12 +7,11 @@ import org.braekpo1nt.mctmanager.games.game.config.NamespacedKeyDTO;
 import org.braekpo1nt.mctmanager.games.game.config.SoundDTO;
 import org.braekpo1nt.mctmanager.games.game.config.inventory.ItemStackDTO;
 import org.braekpo1nt.mctmanager.games.game.spleef.DecayStage;
-import org.braekpo1nt.mctmanager.games.game.spleef.PowerupManager;
+import org.braekpo1nt.mctmanager.games.game.spleef.Powerup;
 import org.bukkit.Material;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -50,7 +49,7 @@ record SpleefConfig(String version, String world, List<Vector> startingLocations
      * @param minTimeBetween the minimum time (in seconds) between getting powerups. Players should not get two powerups one after another immediately. 0 means no restriction. Defaults to 0
      * @param maxPowerups limit the number of powerups a player can have. If they are at max, they won't collect any more until they use some of them. 0 means players can't hold any powerups at all. Negative values indicate unlimited powerup collection. Defaults to 0
      */
-    record Powerups(double chancePerSecond, double blockBreakChance, int minTimeBetween, int maxPowerups, @Nullable Map<PowerupManager.Powerup.Type, @Nullable Integer> weights, @Nullable SoundDTO playerSwapSound) {
+    record Powerups(double chancePerSecond, double blockBreakChance, int minTimeBetween, int maxPowerups, @Nullable Map<Powerup.Type, @Nullable Integer> weights, @Nullable SoundDTO playerSwapSound) {
         void isValid() {
             Preconditions.checkArgument(0 <= chancePerSecond && chancePerSecond <= 1.0, "chancePerSecond must be between 0 and 1, inclusive");
             Preconditions.checkArgument(0 <= blockBreakChance && blockBreakChance <= 1.0, "blockBreakChance must be between 0 and 1, inclusive");
@@ -61,17 +60,17 @@ record SpleefConfig(String version, String world, List<Vector> startingLocations
         }
     
         /**
-         * @return the weights in the order of the {@link PowerupManager.Powerup.Type#values()} indexes. 
+         * @return the weights in the order of the {@link Powerup.Type#values()} indexes. This comes from the {@link Powerups#weights} value, but if any entries are missing the weight is set to 1. 
          */
         int[] getWeights() {
             if (weights == null) {
-                int[] result = new int[PowerupManager.Powerup.Type.values().length];
+                int[] result = new int[Powerup.Type.values().length];
                 Arrays.fill(result, 1);
                 return result;
             }
-            int[] result = new int[weights.size()];
+            int[] result = new int[Powerup.Type.values().length];
             int i = 0;
-            for (PowerupManager.Powerup.Type type : PowerupManager.Powerup.Type.values()) {
+            for (Powerup.Type type : Powerup.Type.values()) {
                 Integer weight = weights.get(type);
                 result[i] = weight == null ? 1 : weight;
                 i++;

@@ -1,7 +1,5 @@
 package org.braekpo1nt.mctmanager.games.game.spleef;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.spleef.config.SpleefStorageUtil;
@@ -9,7 +7,6 @@ import org.braekpo1nt.mctmanager.utils.MathUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Snowball;
@@ -61,18 +58,18 @@ public class PowerupManager implements Listener {
             ));
         });
         Powerup blockBreaker = new Powerup(blockBreakerItem, Powerup.Type.BLOCK_BREAKER);
-        powerups = List.of(playerSwapper, blockBreaker);
-    }
     
-    @Getter
-    @AllArgsConstructor
-    public static class Powerup {
-        public enum Type {
-            PLAYER_SWAPPER,
-            BLOCK_BREAKER
-        }
-        private final ItemStack item;
-        private final Type type;
+        ItemStack shieldItem = new ItemStack(Material.LAPIS_LAZULI);
+        shieldItem.editMeta(meta -> {
+            meta.displayName(Component.text("Shield"));
+            meta.lore(List.of(
+                    Component.text("- Activates automatically"),
+                    Component.text("- Single use")
+            ));
+        });
+        Powerup shield = new Powerup(shieldItem, Powerup.Type.SHIELD);
+        
+        powerups = List.of(playerSwapper, blockBreaker, shield);
     }
     
     public PowerupManager(Main plugin, SpleefStorageUtil storageUtil) {

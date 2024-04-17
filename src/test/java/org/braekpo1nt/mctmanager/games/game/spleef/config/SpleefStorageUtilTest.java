@@ -47,9 +47,12 @@ class SpleefStorageUtilTest {
     
     @Test
     void wellFormedJsonValidData() {
-        InputStream inputStream = storageUtil.getClass().getResourceAsStream(exampleConfigFileName);
-        TestUtils.copyInputStreamToFile(inputStream, new File(plugin.getDataFolder(), configFileName));
-        Assertions.assertTrue(storageUtil.loadConfig());
+        wellFormedJsonValidData(exampleConfigFileName);
+    }
+    
+    @Test
+    void testBackwardsCompatibility() {
+        wellFormedJsonValidData("exampleSpleefConfig_v0.1.0.json");
     }
     
     @Test
@@ -66,5 +69,11 @@ class SpleefStorageUtilTest {
         json.add("spectatorArea", spectatorArea);
         TestUtils.saveJsonToFile(json, new File(plugin.getDataFolder(), configFileName));
         Assertions.assertThrows(IllegalArgumentException.class, storageUtil::loadConfig);
+    }
+    
+    void wellFormedJsonValidData(String filename) {
+        InputStream inputStream = storageUtil.getClass().getResourceAsStream(filename);
+        TestUtils.copyInputStreamToFile(inputStream, new File(plugin.getDataFolder(), configFileName));
+        Assertions.assertTrue(storageUtil.loadConfig());
     }
 }

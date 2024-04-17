@@ -43,7 +43,7 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
     protected boolean configIsValid(@Nullable ParkourPathwayConfig config) {
         Preconditions.checkArgument(config != null, "Saved config is null");
         Preconditions.checkArgument(config.getVersion() != null, "version can't be null");
-        Preconditions.checkArgument(config.getVersion().equals(Main.CONFIG_VERSION), "Config version %s not supported. %s required.", config.getVersion(), Main.CONFIG_VERSION);
+        Preconditions.checkArgument(Main.VALID_CONFIG_VERSIONS.contains(config.getVersion()), "invalid config version (%s)", config.getVersion());
         Preconditions.checkArgument(Bukkit.getWorld(config.getWorld()) != null, "Could not find world \"%s\"", config.getWorld());
         Preconditions.checkArgument(config.getSpectatorArea() != null, "spectatorArea can't be null");
         Preconditions.checkArgument(config.getSpectatorArea().toBoundingBox().getVolume() >= 1.0, "getSpectatorArea's volume (%s) can't be less than 1. %s", config.getSpectatorArea().toBoundingBox().getVolume(), config.getSpectatorArea().toBoundingBox());
