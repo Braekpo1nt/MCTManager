@@ -6,12 +6,17 @@ import org.jetbrains.annotations.Nullable;
 
 @Getter
 class PowerupDTO {
-    int wieght = 1;
-    @Nullable SoundDTO userSound;
-    @Nullable SoundDTO affectedSound;
+    private int wieght = 1;
+    private @Nullable SoundDTO userSound;
+    private @Nullable SoundDTO affectedSound;
     
     void isValid() {
-        throw new UnsupportedOperationException("not yet implemented");
+        if (userSound != null) {
+            userSound.isValid();
+        }
+        if (affectedSound != null) {
+            affectedSound.isValid();
+        }
     }
     
 }

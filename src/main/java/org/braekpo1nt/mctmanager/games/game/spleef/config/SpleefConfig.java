@@ -48,9 +48,6 @@ record SpleefConfig(String version, String world, List<Vector> startingLocations
      * @param blockBreakChance every time the player breaks a block, they have this percentage chance to get a powerup. 0 means no powerups will be given upon breaking a block (ever). Defaults to 0.0
      * @param minTimeBetween the minimum time (in seconds) between getting powerups. Players should not get two powerups one after another immediately. 0 means no restriction. Defaults to 0
      * @param maxPowerups limit the number of powerups a player can have. If they are at max, they won't collect any more until they use some of them. 0 means players can't hold any powerups at all. Negative values indicate unlimited powerup collection. Defaults to 0
-     * @param playerSwapSound the sound to be played when a player swapper is used. Null means no sound will be played.
-     * @param shieldHolderSound the sound to be played for the holder of a shield when it is used. Null means no sound will be played.
-     * @param shieldOpponentSound the sound to be played for the opponent whom a shield blocked. Null means no sound will be played.
      */
     record Powerups(double chancePerSecond, double blockBreakChance, int minTimeBetween, int maxPowerups, @Nullable Map<Powerup.Type, @Nullable PowerupDTO> powerups) {
         void isValid() {
@@ -67,23 +64,34 @@ record SpleefConfig(String version, String world, List<Vector> startingLocations
         }
     
         /**
-         * @return the weights in the order of the {@link Powerup.Type#values()} indexes. This comes from the {@link Powerups#weights} value, but if any entries are missing the weight is set to 1. 
+         * @return the weights in the order of the {@link Powerup.Type#values()} indexes. This comes from the {@link Powerups#powerups} weight value, but if any entries are missing the weight is set to 1. 
          */
         int[] getWeights() {
-            if (weights == null) {
-                int[] result = new int[Powerup.Type.values().length];
-                Arrays.fill(result, 1);
-                return result;
+            if (powerups == null) {
+                return getDefaultWeights();
             }
             int[] result = new int[Powerup.Type.values().length];
             int i = 0;
             for (Powerup.Type type : Powerup.Type.values()) {
-                Integer weight = weights.get(type);
-                result[i] = weight == null ? 1 : weight;
+                PowerupDTO powerupDTO = powerups.get(type);
+                if (powerupDTO != null) {
+                    int weight = powerupDTO.getWieght();
+                    result[i] = weight;
+                } else {
+                    result[i] = 1;
+                }
                 i++;
             }
             return result;
         }
+        
+        private int[] getDefaultWeights() {
+            int[] result = new int[Powerup.Type.values().length];
+            Arrays.fill(result, 1);
+            return result;
+        }
+        
+        
     }
     
     record Scores(int survive) {
