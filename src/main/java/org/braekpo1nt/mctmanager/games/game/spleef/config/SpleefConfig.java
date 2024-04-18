@@ -52,19 +52,17 @@ record SpleefConfig(String version, String world, List<Vector> startingLocations
      * @param shieldHolderSound the sound to be played for the holder of a shield when it is used. Null means no sound will be played.
      * @param shieldOpponentSound the sound to be played for the opponent whom a shield blocked. Null means no sound will be played.
      */
-    record Powerups(double chancePerSecond, double blockBreakChance, int minTimeBetween, int maxPowerups, @Nullable Map<Powerup.Type, @Nullable Integer> weights, @Nullable SoundDTO playerSwapSound, @Nullable SoundDTO shieldHolderSound, @Nullable SoundDTO shieldOpponentSound) {
+    record Powerups(double chancePerSecond, double blockBreakChance, int minTimeBetween, int maxPowerups, @Nullable Map<Powerup.Type, @Nullable PowerupDTO> powerups) {
         void isValid() {
             Preconditions.checkArgument(0 <= chancePerSecond && chancePerSecond <= 1.0, "chancePerSecond must be between 0 and 1, inclusive");
             Preconditions.checkArgument(0 <= blockBreakChance && blockBreakChance <= 1.0, "blockBreakChance must be between 0 and 1, inclusive");
             Preconditions.checkArgument(minTimeBetween >= 0, "minTimeBetween must be greater than or equal to 0");
-            if (playerSwapSound != null) {
-                playerSwapSound.isValid();
-            }
-            if (shieldHolderSound != null) {
-                shieldHolderSound.isValid();
-            }
-            if (shieldOpponentSound != null) {
-                shieldOpponentSound.isValid();
+            if (powerups != null) {
+                for (PowerupDTO powerupDTO : powerups.values()) {
+                    if (powerupDTO != null) {
+                        powerupDTO.isValid();
+                    }
+                }
             }
         }
     
