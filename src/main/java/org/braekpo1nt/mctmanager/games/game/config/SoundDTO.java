@@ -32,4 +32,12 @@ public class SoundDTO {
                 .pitch(this.pitch)
                 .build();
     }
+    
+    /**
+     * Convenience method to get just the key of the NamespacedKey DTO of this SoundDTO
+     * @return the key of the NamespacedKeyDTO of this soundDTO
+     */
+    public String getKey() {
+        return namespacedKey.key();
+    }
 }

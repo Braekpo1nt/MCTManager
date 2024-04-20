@@ -19,7 +19,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.structure.Structure;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -191,9 +190,6 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
         this.spleefConfig = config;
     }
     
-    private record SoundPair(@Nullable Sound userSound, @Nullable Sound affectedSound) {
-    }
-    
     @Override
     protected InputStream getExampleResourceStream() {
         return SpleefStorageUtil.class.getResourceAsStream("exampleSpleefConfig.json");
@@ -280,6 +276,6 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
     }
     
     public @Nullable Sound getAffectedSound(Powerup.Type type) {
-        return userSounds.get(type);
+        return affectedSounds.get(type);
     }
 }

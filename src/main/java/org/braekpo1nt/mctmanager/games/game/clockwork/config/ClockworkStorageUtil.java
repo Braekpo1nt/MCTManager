@@ -170,8 +170,8 @@ public class ClockworkStorageUtil extends GameConfigStorageUtil<ClockworkConfig>
         return clockworkConfig.durations().getToWedge();
     }
     
-    public NamespacedKey getClockChimeSound() {
-        return clockworkConfig.clockChime().getNamespacedKey().toNamespacedKey();
+    public String getClockChimeSound() {
+        return clockworkConfig.clockChime().getKey();
     }
     
     public float getClockChimeVolume() {

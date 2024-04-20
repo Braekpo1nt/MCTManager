@@ -174,31 +174,58 @@
     "blockBreakChance": 0.5,
     "minTimeBetween": 5,
     "maxPowerups": 5,
-    "weights": {
-      "PLAYER_SWAPPER": 45,
-      "BLOCK_BREAKER": 45,
-      "SHIELD": 10
-    },
-    "playerSwapSound": {
-      "namespacedKey": {
-        "key": "entity.enderman.teleport"
+    "powerups": {
+      "PLAYER_SWAPPER": {
+        "weight": 45,
+        "userSound": {
+          "namespacedKey": {
+            "key": "entity.enderman.teleport",
+            "volume": 100,
+            "pitch": 1
+          }
+        },
+        "affectedSound": {
+          "namespacedKey": {
+            "key": "entity.enderman.teleport",
+            "volume": 100,
+            "pitch": 1
+          }
+        }
       },
-      "volume": 100,
-      "pitch": 1
-    },
-    "shieldHolderSound": {
-      "namespacedKey": {
-        "key": "item.shield.block"
+      "BLOCK_BREAKER": {
+        "weight": 45,
+        "userSound": {
+          "namespacedKey": {
+            "key": "block.snow.break",
+            "volume": 100,
+            "pitch": 1
+          }
+        },
+        "affectedSound": {
+          "namespacedKey": {
+            "key": "block.snow.break",
+            "volume": 100,
+            "pitch": 1
+          }
+        }
       },
-      "volume": 100,
-      "pitch": 1
-    },
-    "shieldOpponentSound": {
-      "namespacedKey": {
-        "key": "entity.endermite.hurt"
-      },
-      "volume": 100,
-      "pitch": 1
+      "SHIELD": {
+        "weight": 10,
+        "userSound": {
+          "namespacedKey": {
+            "key": "item.shield.block",
+            "volume": 100,
+            "pitch": 1
+          }
+        },
+        "affectedSound": {
+          "namespacedKey": {
+            "key": "entity.endermite.hurt",
+            "volume": 100,
+            "pitch": 1
+          }
+        }
+      }
     }
   },
   "scores": {

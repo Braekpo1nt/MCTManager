@@ -302,31 +302,58 @@ public class PowerupManager implements Listener {
         }
         String powerupType = metadata.get(0).asString();
         if (event.getHitEntity() instanceof Player target) {
-            if (!participants.contains(target)) {
-                return;
-            }
-            if (!powerupType.equals(PLAYER_SWAPPER_METADATA_VALUE)) {
-                return;
-            }
-            if (hasShield(target)) {
-                useShield(shooter, target);
-            } else {
-                swapPlayers(shooter, target);
-            }
+            onProjectileHitPlayer(shooter, target, powerupType);
             return;
         }
         Block hitBlock = event.getHitBlock();
         if (hitBlock != null) {
-            Material hitBlockType = hitBlock.getType();
-            if (!hitBlockType.equals(storageUtil.getLayerBlock()) && !hitBlockType.equals(storageUtil.getDecayBlock())) {
-                return;
-            }
-            if (!powerupType.equals(BLOCK_BREAKER_METADATA_VALUE)) {
-                return;
-            }
-            hitBlock.setType(Material.AIR);
+            onProjectileHitBlock(shooter, hitBlock, powerupType);
         }
     }
+    
+    /**
+     * Performs necessary actions when a powerup projectile entity hits a player
+     * @param shooter the shooter of the projectile entity
+     * @param target the player who was hit by the projectile entity
+     * @param powerupTypeMetadataValue the metadata about the projectile entity which was used to hit a player
+     */
+    private void onProjectileHitPlayer(@NotNull Player shooter, @NotNull Player target, @NotNull String powerupTypeMetadataValue) {
+        if (!participants.contains(target)) {
+            return;
+        }
+        if (!powerupTypeMetadataValue.equals(PLAYER_SWAPPER_METADATA_VALUE)) {
+            return;
+        }
+        if (hasShield(target)) {
+            useShield(shooter, target);
+        } else {
+            swapPlayers(shooter, target);
+        }
+    }
+    
+    /**
+     * Performs necessary actions when a powerup projectile entity hits a block
+     * @param powerupTypeMetadataValue the metadata about the projectile entity which was used to hit a block
+     * @param hitBlock the block that was hit by the projectile entity
+     */
+    private void onProjectileHitBlock(Player shooter, @NotNull Block hitBlock, @NotNull String powerupTypeMetadataValue) {
+        Material hitBlockType = hitBlock.getType();
+        if (!hitBlockType.equals(storageUtil.getLayerBlock()) && !hitBlockType.equals(storageUtil.getDecayBlock())) {
+            return;
+        }
+        if (!powerupTypeMetadataValue.equals(BLOCK_BREAKER_METADATA_VALUE)) {
+            return;
+        }
+        hitBlock.setType(Material.AIR);
+        Powerup blockBreaker = typeToPowerup.get(Powerup.Type.BLOCK_BREAKER);
+        if (blockBreaker.getAffectedSound() != null) {
+            storageUtil.getWorld().playSound(blockBreaker.getAffectedSound(), hitBlock.getX(), hitBlock.getY(), hitBlock.getZ());
+        }
+        if (blockBreaker.getUserSound() != null) {
+            shooter.playSound(blockBreaker.getUserSound());
+        }
+    }
+    
     
     /**
      * @param participant the participant
