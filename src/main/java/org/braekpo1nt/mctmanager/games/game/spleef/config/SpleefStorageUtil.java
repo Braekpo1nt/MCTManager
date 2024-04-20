@@ -19,6 +19,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.structure.Structure;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -43,10 +44,8 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
     private int minTimeBetween;
     private int maxPowerups;
     private int[] powerupWeights;
-    private Sound playerSwapSound;
-    private Sound shieldHolderSound;
-    private Sound shieldOpponentSound;
-    
+    private Map<Powerup.Type, @Nullable Sound> userSounds;
+    private Map<Powerup.Type, @Nullable Sound> affectedSounds;
     public SpleefStorageUtil(File configDirectory) {
         super(configDirectory, "spleefConfig.json", SpleefConfig.class);
     }
@@ -149,23 +148,27 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
         }
         Component newDescription = GsonComponentSerializer.gson().deserializeFromTree(config.description());
         // now it's confirmed everything works, so set the actual fields
-        this.playerSwapSound = null;
-        this.shieldHolderSound = null;
-        this.shieldOpponentSound = null;
+        this.userSounds = new HashMap<>(Powerup.Type.values().length);
+        this.affectedSounds = new HashMap<>(Powerup.Type.values().length);
         if (config.powerups() != null) {
             this.chancePerSecond = config.powerups().chancePerSecond();
             this.blockBreakChance = config.powerups().blockBreakChance();
             this.minTimeBetween = config.powerups().minTimeBetween();
             this.maxPowerups = config.powerups().maxPowerups();
             this.powerupWeights = config.powerups().getWeights();
-            if (config.powerups().playerSwapSound() != null) {
-                this.playerSwapSound = config.powerups().playerSwapSound().toSound();
-            }
-            if (config.powerups().shieldHolderSound() != null) {
-                this.shieldHolderSound = config.powerups().shieldHolderSound().toSound();
-            }
-            if (config.powerups().shieldOpponentSound() != null) {
-                this.shieldOpponentSound = config.powerups().shieldOpponentSound().toSound();
+            if (config.powerups().powerups() != null) {
+                for (Map.Entry<Powerup.Type, @Nullable PowerupDTO> entry : config.powerups().powerups().entrySet()) {
+                    Powerup.Type type = entry.getKey();
+                    PowerupDTO powerupDTO = entry.getValue();
+                    if (powerupDTO != null) {
+                        if (powerupDTO.getUserSound() != null) {
+                            userSounds.put(type, powerupDTO.getUserSound().toSound());
+                        }
+                        if (powerupDTO.getAffectedSound() != null) {
+                            affectedSounds.put(type, powerupDTO.getAffectedSound().toSound());
+                        }
+                    }
+                }
             }
         } else {
             this.chancePerSecond = 0.0;
@@ -188,12 +191,7 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
         this.spleefConfig = config;
     }
     
-    private Sound getDefaultPlayerSwapSound() {
-        return this.playerSwapSound = Sound.sound()
-                .type(org.bukkit.Sound.ENTITY_ENDERMAN_TELEPORT.key())
-                .volume(100)
-                .pitch(1)
-                .build();
+    private record SoundPair(@Nullable Sound userSound, @Nullable Sound affectedSound) {
     }
     
     @Override
@@ -277,16 +275,11 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
         return powerupWeights;
     }
     
-    public @Nullable Sound getPlayerSwapSound() {
-        return playerSwapSound;
+    public @Nullable Sound getUserSound(Powerup.Type type) {
+        return userSounds.get(type);
     }
     
-    public @Nullable Sound getShieldHolderSound() {
-        return shieldHolderSound;
+    public @Nullable Sound getAffectedSound(Powerup.Type type) {
+        return userSounds.get(type);
     }
-    
-    public @Nullable Sound getShieldOpponentSound() {
-        return shieldOpponentSound;
-    }
-    
 }

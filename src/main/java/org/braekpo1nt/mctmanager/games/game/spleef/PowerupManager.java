@@ -93,6 +93,7 @@ public class PowerupManager implements Listener {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         participants = new ArrayList<>(newParticipants.size());
         timeSincePowerups = new HashMap<>(newParticipants.size());
+        setUpPowerups();
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
         }
@@ -101,6 +102,7 @@ public class PowerupManager implements Listener {
     
     private void initializeParticipant(Player participant) {
         participants.add(participant);
+        participant.getInventory().addItem(typeToPowerup.get(Powerup.Type.SHIELD).getItem());
         timeSincePowerups.put(participant.getUniqueId(), 0);
     }
     
@@ -139,6 +141,16 @@ public class PowerupManager implements Listener {
         }
         resetParticipant(participant);
         participants.remove(participant);
+    }
+    
+    /**
+     * sets up the powerups using the default values and values from the config
+     */
+    private void setUpPowerups() {
+        for (Powerup powerup : powerups) {
+            powerup.setUserSound(storageUtil.getUserSound(powerup.getType()));
+            powerup.setAffectedSound(storageUtil.getAffectedSound(powerup.getType()));
+        }
     }
     
     private void cancelAllTasks() {
@@ -336,11 +348,12 @@ public class PowerupManager implements Listener {
      */
     private void useShield(Player shooter, Player target) {
         target.getInventory().removeItemAnySlot(typeToPowerup.get(Powerup.Type.SHIELD).getItem());
-        if (storageUtil.getShieldHolderSound() != null) {
-            target.playSound(storageUtil.getShieldHolderSound());
+        Powerup shield = typeToPowerup.get(Powerup.Type.SHIELD);
+        if (shield.getUserSound() != null) {
+            target.playSound(shield.getUserSound());
         }
-        if (storageUtil.getShieldOpponentSound() != null) {
-            shooter.playSound(storageUtil.getShieldOpponentSound());
+        if (shield.getAffectedSound() != null) {
+            shooter.playSound(shield.getAffectedSound());
         }
     }
     
@@ -349,13 +362,12 @@ public class PowerupManager implements Listener {
         Location targetLoc = target.getLocation();
         shooter.teleport(targetLoc);
         target.teleport(shooterLoc);
-        playSwapSound(shooter);
-        playSwapSound(target);
-    }
-    
-    private void playSwapSound(Player participant) {
-        if (storageUtil.getPlayerSwapSound() != null) {
-            participant.playSound(storageUtil.getPlayerSwapSound());
+        Powerup playerSwapper = typeToPowerup.get(Powerup.Type.PLAYER_SWAPPER);
+        if (playerSwapper.getUserSound() != null) {
+            target.playSound(playerSwapper.getUserSound());
+        }
+        if (playerSwapper.getAffectedSound() != null) {
+            shooter.playSound(playerSwapper.getAffectedSound());
         }
     }
     

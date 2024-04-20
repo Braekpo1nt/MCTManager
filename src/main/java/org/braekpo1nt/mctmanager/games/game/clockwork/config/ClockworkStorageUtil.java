@@ -10,6 +10,7 @@ import org.braekpo1nt.mctmanager.games.game.clockwork.Wedge;
 import org.braekpo1nt.mctmanager.games.game.config.GameConfigStorageUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.Nullable;
@@ -169,8 +170,8 @@ public class ClockworkStorageUtil extends GameConfigStorageUtil<ClockworkConfig>
         return clockworkConfig.durations().getToWedge();
     }
     
-    public String getClockChimeSound() {
-        return clockworkConfig.clockChime().getSound();
+    public NamespacedKey getClockChimeSound() {
+        return clockworkConfig.clockChime().getNamespacedKey().toNamespacedKey();
     }
     
     public float getClockChimeVolume() {
