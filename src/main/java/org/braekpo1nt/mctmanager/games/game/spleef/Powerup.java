@@ -1,9 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.spleef;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import net.kyori.adventure.sound.Sound;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -24,4 +21,9 @@ public class Powerup {
     private @Nullable Sound userSound;
     @Setter
     private @Nullable Sound affectedSound;
+    
+    @Override
+    public String toString() {
+        return type.toString();
+    }
 }

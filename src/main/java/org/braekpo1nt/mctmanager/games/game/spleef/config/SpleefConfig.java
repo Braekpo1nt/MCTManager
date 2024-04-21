@@ -67,15 +67,15 @@ record SpleefConfig(String version, String world, List<Vector> startingLocations
          * @return the weights in the order of the {@link Powerup.Type#values()} indexes. This comes from the {@link Powerups#powerups} weight value, but if any entries are missing the weight is set to 1. 
          */
         int[] getWeights() {
-            if (powerups == null) {
+            if (this.powerups == null) {
                 return getDefaultWeights();
             }
             int[] result = new int[Powerup.Type.values().length];
             int i = 0;
             for (Powerup.Type type : Powerup.Type.values()) {
-                PowerupDTO powerupDTO = powerups.get(type);
+                PowerupDTO powerupDTO = this.powerups.get(type);
                 if (powerupDTO != null) {
-                    int weight = powerupDTO.getWieght();
+                    int weight = powerupDTO.getWeight();
                     result[i] = weight;
                 } else {
                     result[i] = 1;

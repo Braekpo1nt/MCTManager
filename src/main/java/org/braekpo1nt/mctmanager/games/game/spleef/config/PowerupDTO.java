@@ -6,7 +6,7 @@ import org.jetbrains.annotations.Nullable;
 
 @Getter
 class PowerupDTO {
-    private int wieght = 1;
+    private int weight = 1;
     private @Nullable SoundDTO userSound;
     private @Nullable SoundDTO affectedSound;
     

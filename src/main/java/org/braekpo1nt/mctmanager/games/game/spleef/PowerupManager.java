@@ -205,8 +205,10 @@ public class PowerupManager implements Listener {
      * @return a random powerup item from the available powerups, according to the weights provided in the config
      */
     private @NotNull ItemStack getRandomPowerup() {
-        int index = MathUtils.getWeightedRandomIndex(storageUtil.getPowerupWeights());
-        return powerups.get(index).getItem();
+        int selectedIndex = MathUtils.getWeightedRandomIndex(storageUtil.getPowerupWeights());
+        Powerup.Type selectedType = Powerup.Type.values()[selectedIndex];
+        Powerup selectedPowerup = typeToPowerup.get(selectedType);
+        return selectedPowerup.getItem();
     }
     
     /**
