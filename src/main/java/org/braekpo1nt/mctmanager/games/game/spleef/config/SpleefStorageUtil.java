@@ -19,6 +19,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.structure.Structure;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -42,7 +43,7 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
     private double blockBreakChance;
     private int minTimeBetween;
     private int maxPowerups;
-    private int[] powerupWeights;
+    private Map<Powerup.Type, @NotNull Integer> powerupWeights;
     private Map<Powerup.Type, @Nullable Sound> userSounds;
     private Map<Powerup.Type, @Nullable Sound> affectedSounds;
     public SpleefStorageUtil(File configDirectory) {
@@ -174,8 +175,7 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
             this.blockBreakChance = 0.0;
             this.minTimeBetween = 0;
             this.maxPowerups = 0;
-            this.powerupWeights = new int[Powerup.Type.values().length];
-            Arrays.fill(this.powerupWeights, 1);
+            this.powerupWeights = SpleefStorageUtil.getDefaultWeights();
         }
         this.world = newWorld;
         this.startingLocations = newStartingLocations;
@@ -188,6 +188,14 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
         this.tool = newTool;
         this.description = newDescription;
         this.spleefConfig = config;
+    }
+    
+    static @NotNull Map<Powerup.Type, @NotNull Integer> getDefaultWeights() {
+        Map<Powerup.Type, @NotNull Integer> result = new HashMap<>(Powerup.Type.values().length);
+        for (Powerup.Type value : Powerup.Type.values()) {
+            result.put(value, 1);
+        }
+        return result;
     }
     
     @Override
@@ -267,7 +275,10 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
         return maxPowerups;
     }
     
-    public int[] getPowerupWeights() {
+    /**
+     * @return a map of index to weight, where the index is that of a type in {@link Powerup.Type#values()}
+     */
+    public Map<Powerup.Type, Integer> getPowerupWeights() {
         return powerupWeights;
     }
     

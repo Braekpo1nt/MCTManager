@@ -4,15 +4,15 @@ import com.google.common.base.Preconditions;
 import com.google.gson.JsonElement;
 import org.braekpo1nt.mctmanager.games.game.config.BoundingBoxDTO;
 import org.braekpo1nt.mctmanager.games.game.config.NamespacedKeyDTO;
-import org.braekpo1nt.mctmanager.games.game.config.SoundDTO;
 import org.braekpo1nt.mctmanager.games.game.config.inventory.ItemStackDTO;
 import org.braekpo1nt.mctmanager.games.game.spleef.DecayStage;
 import org.braekpo1nt.mctmanager.games.game.spleef.Powerup;
 import org.bukkit.Material;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -62,35 +62,27 @@ record SpleefConfig(String version, String world, List<Vector> startingLocations
                 }
             }
         }
-    
+        
         /**
-         * @return the weights in the order of the {@link Powerup.Type#values()} indexes. This comes from the {@link Powerups#powerups} weight value, but if any entries are missing the weight is set to 1. 
+         * @return a map of each {@link Powerup.Type} to its weight. This comes from the {@link Powerups#powerups} weight value, but if any entries are missing from the config, the weight is set to 1.
          */
-        int[] getWeights() {
+        @NotNull Map<Powerup.Type, @NotNull Integer> getWeights() {
             if (this.powerups == null) {
-                return getDefaultWeights();
+                return SpleefStorageUtil.getDefaultWeights();
             }
-            int[] result = new int[Powerup.Type.values().length];
-            int i = 0;
-            for (Powerup.Type type : Powerup.Type.values()) {
+            Map<Powerup.Type, @NotNull Integer> result = new HashMap<>(Powerup.Type.values().length);
+            for (int i = 0; i < Powerup.Type.values().length; i++) {
+                Powerup.Type type = Powerup.Type.values()[i];
                 PowerupDTO powerupDTO = this.powerups.get(type);
                 if (powerupDTO != null) {
                     int weight = powerupDTO.getWeight();
-                    result[i] = weight;
+                    result.put(type, weight);
                 } else {
-                    result[i] = 1;
+                    result.put(type, 1);
                 }
-                i++;
             }
             return result;
         }
-        
-        private int[] getDefaultWeights() {
-            int[] result = new int[Powerup.Type.values().length];
-            Arrays.fill(result, 1);
-            return result;
-        }
-        
         
     }
     
