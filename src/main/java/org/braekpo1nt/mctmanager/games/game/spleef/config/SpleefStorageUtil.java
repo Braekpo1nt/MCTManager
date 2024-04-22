@@ -41,7 +41,7 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
     private Material decayBlock;
     private double chancePerSecond;
     private double blockBreakChance;
-    private int minTimeBetween;
+    private long minTimeBetween;
     private int maxPowerups;
     private Map<Powerup.Type, @NotNull Integer> powerupWeights;
     private Map<Powerup.Type, @Nullable Sound> userSounds;
@@ -173,7 +173,7 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
         } else {
             this.chancePerSecond = 0.0;
             this.blockBreakChance = 0.0;
-            this.minTimeBetween = 0;
+            this.minTimeBetween = 0L;
             this.maxPowerups = 0;
             this.powerupWeights = SpleefStorageUtil.getDefaultWeights();
         }
@@ -267,7 +267,7 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
         return blockBreakChance;
     }
     
-    public int getMinTimeBetween() {
+    public long getMinTimeBetween() {
         return minTimeBetween;
     }
     

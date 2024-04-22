@@ -33,7 +33,10 @@ public class PowerupManager implements Listener {
     private final Main plugin;
     private final SpleefStorageUtil storageUtil;
     private List<Player> participants;
-    private Map<UUID, Integer> timeSincePowerups;
+    /**
+     * for each participant UUID, the system time of the moment they last received a powerup
+     */
+    private Map<UUID, Long> lastPowerupTimestamps;
     private final Random random = new Random();
     private int powerupTimerTaskId;
     
@@ -92,7 +95,7 @@ public class PowerupManager implements Listener {
     public void start(List<Player> newParticipants) {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         participants = new ArrayList<>(newParticipants.size());
-        timeSincePowerups = new HashMap<>(newParticipants.size());
+        lastPowerupTimestamps = new HashMap<>(newParticipants.size());
         setUpPowerups();
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
@@ -103,7 +106,7 @@ public class PowerupManager implements Listener {
     private void initializeParticipant(Player participant) {
         participants.add(participant);
         participant.getInventory().addItem(typeToPowerup.get(Powerup.Type.SHIELD).getItem());
-        timeSincePowerups.put(participant.getUniqueId(), 0);
+        lastPowerupTimestamps.put(participant.getUniqueId(), System.currentTimeMillis());
     }
     
     public void stop() {
@@ -113,11 +116,11 @@ public class PowerupManager implements Listener {
             resetParticipant(participant);
         }
         participants.clear();
-        timeSincePowerups.clear();
+        lastPowerupTimestamps.clear();
     }
     
     private void resetParticipant(Player participant) {
-        timeSincePowerups.remove(participant.getUniqueId());
+        lastPowerupTimestamps.remove(participant.getUniqueId());
     }
     
     /**
@@ -161,30 +164,14 @@ public class PowerupManager implements Listener {
         this.powerupTimerTaskId = new BukkitRunnable() {
             @Override
             public void run() {
+                long currentTime = System.currentTimeMillis();
                 for (Player participant : participants) {
-                    decrementTimeSinceLastPowerup(participant);
-                    handleParticipant(participant);
+                    if (canReceivePowerup(participant, currentTime)) {
+                        randomlyGivePowerup(participant, storageUtil.getChancePerSecond(), currentTime);
+                    }
                 }
-            }
-            
-            private void handleParticipant(Player participant) {
-                if (!canReceivePowerup(participant)) {
-                    return;
-                }
-                randomlyGivePowerup(participant, storageUtil.getChancePerSecond());
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
-    }
-    
-    private void decrementTimeSinceLastPowerup(Player participant) {
-        int timeSincePowerup = timeSincePowerups.get(participant.getUniqueId());
-        if (timeSincePowerup > 0) {
-            timeSincePowerups.put(participant.getUniqueId(), timeSincePowerup - 1);
-        }
-    }
-    
-    private void resetTimeSinceLastPowerup(Player participant) {
-        timeSincePowerups.put(participant.getUniqueId(), storageUtil.getMinTimeBetween());
     }
     
     /**
@@ -192,12 +179,13 @@ public class PowerupManager implements Listener {
      * If the participant receives a powerup, their receive-cool-down is reset.
      * @param participant the participant to receive a powerup
      * @param chance the percent chance to receive a powerup
+     * @param currentTime the current system time in milliseconds
      */
-    private void randomlyGivePowerup(Player participant, double chance) {
+    private void randomlyGivePowerup(Player participant, double chance, long currentTime) {
         if (random.nextDouble() < chance) {
             ItemStack powerup = getRandomPowerup();
             participant.getInventory().addItem(powerup);
-            resetTimeSinceLastPowerup(participant);
+            lastPowerupTimestamps.put(participant.getUniqueId(), currentTime);
         }
     }
     
@@ -212,10 +200,13 @@ public class PowerupManager implements Listener {
     
     /**
      * @param participant the participant
+     * @param currentTime the current system time in milliseconds
      * @return true if the participant is allowed to receive a powerup (e.g. they've met all requirements)
      */
-    private boolean canReceivePowerup(Player participant) {
-        return timeSincePowerups.get(participant.getUniqueId()) <= 0 && !hasMaxPowerups(participant);
+    private boolean canReceivePowerup(Player participant, long currentTime) {
+        long lastPowerupTimestamp = lastPowerupTimestamps.get(participant.getUniqueId());
+        boolean enoughTimeHasPassed = currentTime - lastPowerupTimestamp < storageUtil.getMinTimeBetween();
+        return enoughTimeHasPassed && !hasMaxPowerups(participant);
     }
     
     /**
@@ -236,11 +227,10 @@ public class PowerupManager implements Listener {
     }
     
     public void onParticipantBreakBlock(@NotNull Player participant) {
-        int timeSincePowerup = timeSincePowerups.get(participant.getUniqueId());
-        if (timeSincePowerup > 0) {
+        if (!canReceivePowerup(participant, System.currentTimeMillis())) {
             return;
         }
-        randomlyGivePowerup(participant, storageUtil.getBlockBreakChance());
+        randomlyGivePowerup(participant, storageUtil.getBlockBreakChance(), System.currentTimeMillis());
     }
     
     @EventHandler

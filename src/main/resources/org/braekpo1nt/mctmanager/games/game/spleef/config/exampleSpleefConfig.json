@@ -172,7 +172,7 @@
   "powerups": {
     "chancePerSecond": 0.5,
     "blockBreakChance": 0.5,
-    "minTimeBetween": 5,
+    "minTimeBetween": 5000,
     "maxPowerups": 5,
     "powerups": {
       "PLAYER_SWAPPER": {
