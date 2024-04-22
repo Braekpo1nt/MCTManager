@@ -176,7 +176,7 @@ public class PowerupManager implements Listener {
     
     /**
      * This may or may not give the participant a powerup based on the provided percent chance. The powerup given is random according to the weights provided in the config.
-     * If the participant receives a powerup, their receive-cool-down is reset.
+     * If the participant receives a powerup, their {@link PowerupManager#lastPowerupTimestamps} is reset.
      * @param participant the participant to receive a powerup
      * @param chance the percent chance to receive a powerup
      * @param currentTime the current system time in milliseconds
@@ -205,7 +205,7 @@ public class PowerupManager implements Listener {
      */
     private boolean canReceivePowerup(Player participant, long currentTime) {
         long lastPowerupTimestamp = lastPowerupTimestamps.get(participant.getUniqueId());
-        boolean enoughTimeHasPassed = currentTime - lastPowerupTimestamp < storageUtil.getMinTimeBetween();
+        boolean enoughTimeHasPassed = currentTime - lastPowerupTimestamp >= storageUtil.getMinTimeBetween();
         return enoughTimeHasPassed && !hasMaxPowerups(participant);
     }
     
