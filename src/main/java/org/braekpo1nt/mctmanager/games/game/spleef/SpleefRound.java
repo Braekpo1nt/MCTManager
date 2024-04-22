@@ -72,6 +72,7 @@ public class SpleefRound implements Listener {
         setupTeamOptions();
         startRoundStartingCountDown();
         decayManager.setAliveCount(newParticipants.size());
+        decayManager.setAlivePercent(1);
         spleefHasStarted = false;
         roundActive = true;
         Bukkit.getLogger().info("Starting Spleef round");
@@ -152,6 +153,7 @@ public class SpleefRound implements Listener {
         sidebar.updateLine("alive", alive);
         adminSidebar.updateLine("alive", alive);
         decayManager.setAliveCount(aliveCount);
+        decayManager.setAlivePercent(aliveCount / (double) participants.size());
     }
     
     private boolean participantShouldRejoin(Player participant) {
@@ -282,7 +284,7 @@ public class SpleefRound implements Listener {
         participantsAlive.put(killed.getUniqueId(), false);
         powerupManager.removeParticipant(killed);
         String killedTeam = gameManager.getTeamName(killed.getUniqueId());
-        int count = participants.size();
+        int aliveCount = participants.size();
         for (Player participant : participants) {
             if (participantsAlive.get(participant.getUniqueId())) {
                 String teamName = gameManager.getTeamName(participant.getUniqueId());
@@ -290,13 +292,14 @@ public class SpleefRound implements Listener {
                     gameManager.awardPointsToParticipant(participant, storageUtil.getSurviveScore());
                 }
             } else {
-                count--;
+                aliveCount--;
             }
         }
-        String alive = String.format("Alive: %s", count);
+        String alive = String.format("Alive: %s", aliveCount);
         sidebar.updateLine("alive", alive);
         adminSidebar.updateLine("alive", alive);
-        decayManager.setAliveCount(getAliveCount());
+        decayManager.setAliveCount(aliveCount);
+        decayManager.setAlivePercent(aliveCount / (double) participants.size());
     }
     
     private void startSpleef() {

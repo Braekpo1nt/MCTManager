@@ -24,6 +24,7 @@ public class DecayManager {
     private final SpleefRound spleefRound;
     private int decayTaskId;
     private long aliveCount;
+    private double alivePercent;
     
     public DecayManager(Main plugin, SpleefStorageUtil storageUtil, SpleefRound spleefRound) {
         this.plugin = plugin;
@@ -49,20 +50,20 @@ public class DecayManager {
             private final Random random = new Random();
             private int currentStageIndex = 0;
             private DecayStage currentStage = stages.get(currentStageIndex);
-            private int secondsLeft = currentStage.duration();
+            private int secondsLeft = currentStage.getDuration();
             @Override
             public void run() {
                 // if time is up, or num of living players is below threshold
                 // the final stage will continue on forever, regardless of the value of the duration or minParticipants
-                if ((secondsLeft <= 0 || aliveCount < currentStage.minParticipants())) {
+                if ((secondsLeft <= 0 || aliveCount < currentStage.getMinParticipants()) || alivePercent < currentStage.getMinParticipantsPercent()) {
                     // if this is not the final stage in the list
                     if (currentStageIndex + 1 < stages.size()) {
                         // move to the next stage
                         currentStageIndex++;
                         currentStage = stages.get(currentStageIndex);
-                        secondsLeft = currentStage.duration();
-                        if (currentStage.startMessage() != null) {
-                            spleefRound.messageAllParticipants(Component.text(currentStage.startMessage())
+                        secondsLeft = currentStage.getDuration();
+                        if (currentStage.getStartMessage() != null) {
+                            spleefRound.messageAllParticipants(Component.text(currentStage.getStartMessage())
                                     .color(NamedTextColor.DARK_RED));
                         }
                         return;
@@ -71,7 +72,7 @@ public class DecayManager {
                 }
                 secondsLeft--;
                 
-                for (DecayStage.LayerInfo layerInfo : currentStage.layerInfos()) {
+                for (DecayStage.LayerInfo layerInfo : currentStage.getLayerInfos()) {
                     BoundingBox decayLayer = storageUtil.getDecayLayers().get(layerInfo.index());
                     decayLayer(decayLayer, layerInfo.blocksPerSecond());
                 }
@@ -141,5 +142,9 @@ public class DecayManager {
     
     public void setAliveCount(long aliveCount) {
         this.aliveCount = aliveCount;
+    }
+    
+    public void setAlivePercent(double alivePercent) {
+        this.alivePercent = alivePercent;
     }
 }

@@ -39,6 +39,7 @@ public class PowerupManager implements Listener {
     private Map<UUID, Long> lastPowerupTimestamps;
     private final Random random = new Random();
     private int powerupTimerTaskId;
+    private boolean shouldGivePowerups = false;
     
     /**
      * a list of all powerups
@@ -96,6 +97,7 @@ public class PowerupManager implements Listener {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         participants = new ArrayList<>(newParticipants.size());
         lastPowerupTimestamps = new HashMap<>(newParticipants.size());
+        shouldGivePowerups = true;
         setUpPowerups();
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
@@ -115,6 +117,7 @@ public class PowerupManager implements Listener {
         for (Player participant : participants) {
             resetParticipant(participant);
         }
+        shouldGivePowerups = false;
         participants.clear();
         lastPowerupTimestamps.clear();
     }
@@ -147,6 +150,13 @@ public class PowerupManager implements Listener {
     }
     
     /**
+     * @param shouldGivePowerups false means no powerups should be given, true means they should be given
+     */
+    public void setShouldGivePowerups(boolean shouldGivePowerups) {
+        this.shouldGivePowerups = shouldGivePowerups;
+    }
+    
+    /**
      * sets up the powerups using the default values and values from the config
      */
     private void setUpPowerups() {
@@ -164,6 +174,9 @@ public class PowerupManager implements Listener {
         this.powerupTimerTaskId = new BukkitRunnable() {
             @Override
             public void run() {
+                if (!shouldGivePowerups) {
+                    return;
+                }
                 long currentTime = System.currentTimeMillis();
                 for (Player participant : participants) {
                     if (canReceivePowerup(participant, currentTime)) {
