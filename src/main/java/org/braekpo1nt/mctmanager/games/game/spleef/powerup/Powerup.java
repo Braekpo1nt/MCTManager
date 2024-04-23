@@ -6,6 +6,8 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+
 @Getter
 @RequiredArgsConstructor
 public class Powerup {
@@ -22,6 +24,8 @@ public class Powerup {
     
     private final @NotNull ItemStack item;
     private final @NotNull Type type;
+    @Setter
+    private @Nullable List<@NotNull Source> sources;
     @Setter
     private @Nullable Sound userSound;
     @Setter

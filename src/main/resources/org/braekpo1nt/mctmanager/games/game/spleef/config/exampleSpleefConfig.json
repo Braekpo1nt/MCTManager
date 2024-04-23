@@ -226,7 +226,10 @@
             "volume": 100,
             "pitch": 1
           }
-        }
+        },
+        "sources": [
+          "GENERAL"
+        ]
       }
     }
   },
