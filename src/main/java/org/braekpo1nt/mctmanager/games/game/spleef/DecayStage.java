@@ -39,4 +39,11 @@ public class DecayStage {
     public record LayerInfo(int index, int blocksPerSecond) {
         
     }
+    
+    /**
+     * @return true if powerups should be given during this phase, false if not. 
+     */
+    public boolean shouldGivePowerups() {
+        return powerups;
+    }
 }

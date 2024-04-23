@@ -110,6 +110,7 @@ public class DecayManager {
             spleefRound.messageAllParticipants(Component.text(currentStage.getStartMessage())
                     .color(NamedTextColor.DARK_RED));
         }
+        spleefRound.setShouldGivePowerups(currentStage.shouldGivePowerups());
     }
     
     /**

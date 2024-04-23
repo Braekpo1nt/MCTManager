@@ -427,4 +427,11 @@ public class SpleefRound implements Listener {
     private long getAliveCount() {
         return participantsAlive.values().stream().filter(value -> value).count();
     }
+    
+    /**
+     * @param shouldGivePowerups true means powerups should be given, false means they should not
+     */
+    public void setShouldGivePowerups(boolean shouldGivePowerups) {
+        powerupManager.setShouldGivePowerups(shouldGivePowerups);
+    }
 }
