@@ -12,9 +12,7 @@ import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 
@@ -83,7 +81,34 @@ record SpleefConfig(String version, String world, List<Vector> startingLocations
             }
             return result;
         }
-        
+    
+        /**
+         * 
+         * @return a map from each {@link Powerup.Source} to the {@link Powerup.Type}s which can come from it. Empty list means no powerups can come from that source.
+         */
+        public Map<Powerup.Source, List<Powerup.Type>> getSourcePowerups() {
+            if (this.powerups == null) {
+                return SpleefStorageUtil.getDefaultSourcePowerups();
+            }
+            Map<Powerup.Source, List<Powerup.Type>> result = new HashMap<>(Powerup.Source.values().length);
+            for (Powerup.Source source : Powerup.Source.values()) {
+                result.put(source, new ArrayList<>());
+            }
+            for (Powerup.Type type : Powerup.Type.values()) {
+                PowerupDTO powerupDTO = this.powerups.get(type);
+                if (powerupDTO != null) {
+                    for (Powerup.Source allowedSource : powerupDTO.getSources()) {
+                        result.get(allowedSource).add(type);
+                    }
+                } else {
+                    // default to valid from all sources
+                    for (List<Powerup.Type> allowedTypes : result.values()) {
+                        allowedTypes.add(type);
+                    }
+                }
+            }
+            return result;
+        }
     }
     
     record Scores(int survive) {

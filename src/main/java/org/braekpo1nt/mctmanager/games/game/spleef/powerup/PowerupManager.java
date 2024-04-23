@@ -179,7 +179,7 @@ public class PowerupManager implements Listener {
                 long currentTime = System.currentTimeMillis();
                 for (Player participant : participants) {
                     if (canReceivePowerup(participant, currentTime)) {
-                        randomlyGivePowerup(participant, storageUtil.getChancePerSecond(), currentTime);
+                        randomlyGivePowerup(participant, Powerup.Source.GENERAL, storageUtil.getChancePerSecond(), currentTime);
                     }
                 }
             }
@@ -190,21 +190,23 @@ public class PowerupManager implements Listener {
      * This may or may not give the participant a powerup based on the provided percent chance. The powerup given is random according to the weights provided in the config.
      * If the participant receives a powerup, their {@link PowerupManager#lastPowerupTimestamps} is reset.
      * @param participant the participant to receive a powerup
+     * @param source the source from which to receive a powerup (null indicates any source)
      * @param chance the percent chance to receive a powerup
      * @param currentTime the current system time in milliseconds
      */
-    private void randomlyGivePowerup(Player participant, double chance, long currentTime) {
+    private void randomlyGivePowerup(@NotNull Player participant, @Nullable Powerup.Source source, double chance, long currentTime) {
         if (random.nextDouble() < chance) {
-            ItemStack powerup = getRandomPowerup();
+            ItemStack powerup = getRandomPowerup(source);
             participant.getInventory().addItem(powerup);
             lastPowerupTimestamps.put(participant.getUniqueId(), currentTime);
         }
     }
     
     /**
+     * @param source the source from which to receive a powerup (null indicates any source)
      * @return a random powerup item from the available powerups, according to the weights provided in the config
      */
-    private @NotNull ItemStack getRandomPowerup() {
+    private @NotNull ItemStack getRandomPowerup(@Nullable Powerup.Source source) {
         Powerup.Type selectedType = MathUtils.getWeightedRandomValue(storageUtil.getPowerupWeights());
         Powerup selectedPowerup = typeToPowerup.get(selectedType);
         return selectedPowerup.getItem();
@@ -245,7 +247,7 @@ public class PowerupManager implements Listener {
         if (!canReceivePowerup(participant, System.currentTimeMillis())) {
             return;
         }
-        randomlyGivePowerup(participant, storageUtil.getBlockBreakChance(), System.currentTimeMillis());
+        randomlyGivePowerup(participant, Powerup.Source.BREAK_BLOCK, storageUtil.getBlockBreakChance(), System.currentTimeMillis());
     }
     
     @EventHandler

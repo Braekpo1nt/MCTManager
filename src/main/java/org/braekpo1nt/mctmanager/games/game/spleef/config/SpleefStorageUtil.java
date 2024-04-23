@@ -44,6 +44,14 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
     private long minTimeBetween;
     private int maxPowerups;
     private Map<Powerup.Type, @NotNull Integer> powerupWeights;
+    /**
+     * The powerups mapped to their weights, such that each powerup is associated with the {@link Powerup.Source#GENERAL} source
+     */
+    private Map<Powerup.Type, @NotNull Integer> generalPowerupWeights;
+    /**
+     * The powerups mapped to their weights, such that each powerup is associated with the {@link Powerup.Source#BREAK_BLOCK} source
+     */
+    private Map<Powerup.Type, @NotNull Integer> breakBlockPowerupWeights;
     private Map<Powerup.Type, @Nullable Sound> userSounds;
     private Map<Powerup.Type, @Nullable Sound> affectedSounds;
     public SpleefStorageUtil(File configDirectory) {
@@ -156,6 +164,9 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
             this.minTimeBetween = config.powerups().minTimeBetween();
             this.maxPowerups = config.powerups().maxPowerups();
             this.powerupWeights = config.powerups().getWeights();
+            Map<Powerup.Source, List<Powerup.Type>> sourcePowerups = config.powerups().getSourcePowerups();
+            this.generalPowerupWeights = filterWeights(this.powerupWeights, sourcePowerups.get(Powerup.Source.GENERAL));
+            this.breakBlockPowerupWeights = filterWeights(this.powerupWeights, sourcePowerups.get(Powerup.Source.BREAK_BLOCK));
             if (config.powerups().powerups() != null) {
                 for (Map.Entry<Powerup.Type, @Nullable PowerupDTO> entry : config.powerups().powerups().entrySet()) {
                     Powerup.Type type = entry.getKey();
@@ -190,10 +201,40 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
         this.spleefConfig = config;
     }
     
+    /**
+     * 
+     * @param powerupWeights the superset of weights
+     * @param types the types to get the weights of
+     * @return the weights of the given types
+     */
+    private Map<Powerup.Type, Integer> filterWeights(Map<Powerup.Type, Integer> powerupWeights, List<Powerup.Type> types) {
+        Map<Powerup.Type, Integer> result = new HashMap<>(types.size());
+        for (Map.Entry<Powerup.Type, Integer> entry : powerupWeights.entrySet()) {
+            Powerup.Type type = entry.getKey();
+            int weight = entry.getValue();
+            result.put(type, weight);
+        }
+        return result;
+    }
+    
+    /**
+     * @return a map of every {@link Powerup.Type} to a weight of 1 (equal chance for all)
+     */
     static @NotNull Map<Powerup.Type, @NotNull Integer> getDefaultWeights() {
         Map<Powerup.Type, @NotNull Integer> result = new HashMap<>(Powerup.Type.values().length);
         for (Powerup.Type value : Powerup.Type.values()) {
             result.put(value, 1);
+        }
+        return result;
+    }
+    
+    /**
+     * @return a map from every {@link Powerup.Source} to a list which contains every {@link Powerup.Type} value
+     */
+    static @NotNull Map<Powerup.Source, @NotNull List<Powerup.@NotNull Type>> getDefaultSourcePowerups() {
+        Map<Powerup.Source, List<Powerup.Type>> result = new HashMap<>(Powerup.Source.values().length);
+        for (Powerup.Source source : Powerup.Source.values()) {
+            result.put(source, Arrays.asList(Powerup.Type.values()));
         }
         return result;
     }
@@ -273,6 +314,23 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
     
     public int getMaxPowerups() {
         return maxPowerups;
+    }
+    
+    public Map<Powerup.Type, Integer> getPowerupWeights(@Nullable Powerup.Source source) {
+        if (source == null) {
+            return powerupWeights;
+        }
+        switch (source) {
+            case GENERAL -> {
+                return generalPowerupWeights;
+            }
+            case BREAK_BLOCK -> {
+                return breakBlockPowerupWeights;
+            }
+            default -> {
+                return powerupWeights;
+            }
+        }
     }
     
     /**
