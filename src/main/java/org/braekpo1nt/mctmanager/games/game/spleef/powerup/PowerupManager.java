@@ -240,6 +240,9 @@ public class PowerupManager implements Listener {
     }
     
     public void onParticipantBreakBlock(@NotNull Player participant) {
+        if (!shouldGivePowerups) {
+            return;
+        }
         if (!canReceivePowerup(participant, System.currentTimeMillis())) {
             return;
         }
