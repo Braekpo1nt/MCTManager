@@ -97,7 +97,6 @@ public class PowerupManager implements Listener {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         participants = new ArrayList<>(newParticipants.size());
         lastPowerupTimestamps = new HashMap<>(newParticipants.size());
-        shouldGivePowerups = true;
         setUpPowerups();
         for (Player participant : newParticipants) {
             initializeParticipant(participant);

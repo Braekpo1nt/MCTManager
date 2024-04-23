@@ -105,7 +105,9 @@
       "startMessage": null,
       "layerInfos": [],
       "duration": 30,
-      "minParticipants": -1
+      "minParticipants": -1,
+      "minParticipantsPercent": 0.67,
+      "powerups": false
     },
     {
       "startMessage": "The top 2 layers are decaying!",

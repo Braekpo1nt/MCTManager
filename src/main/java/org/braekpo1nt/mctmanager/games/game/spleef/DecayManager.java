@@ -52,9 +52,10 @@ public class DecayManager {
     }
     
     public void start() {
-        currentStageIndex = 0;
-        currentStage = storageUtil.getStages().get(currentStageIndex);
-        secondsLeft = currentStage.getDuration();
+        currentStageIndex = -1;
+        currentStage = null;
+        secondsLeft = 0;
+        startNextStage();
         startDecayTask();
     }
     

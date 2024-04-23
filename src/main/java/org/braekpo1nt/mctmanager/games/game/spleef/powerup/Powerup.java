@@ -15,6 +15,11 @@ public class Powerup {
         SHIELD,
     }
     
+    public enum Source {
+        GENERAL,
+        BREAK_BLOCK
+    }
+    
     private final @NotNull ItemStack item;
     private final @NotNull Type type;
     @Setter

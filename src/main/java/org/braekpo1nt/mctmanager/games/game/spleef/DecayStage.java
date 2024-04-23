@@ -20,7 +20,7 @@ public class DecayStage {
      */
     private int minParticipants;
     /**
-     * the minimum percentage of participants for this stage. Negative value means there is no minimum percent of players and the stage will not proceed until some other requirement is met. (defaults to -1)
+     * the minimum percentage of participants for this stage. Values between 0 and 1. Negative value means there is no minimum percent of players and the stage will not proceed until some other requirement is met. (defaults to -1)
      */
     private double minParticipantsPercent = -1;
     /**
