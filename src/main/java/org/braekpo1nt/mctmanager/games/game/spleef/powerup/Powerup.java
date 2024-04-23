@@ -1,4 +1,4 @@
-package org.braekpo1nt.mctmanager.games.game.spleef;
+package org.braekpo1nt.mctmanager.games.game.spleef.powerup;
 
 import lombok.*;
 import net.kyori.adventure.sound.Sound;
