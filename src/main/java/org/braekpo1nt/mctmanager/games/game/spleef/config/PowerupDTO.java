@@ -17,7 +17,7 @@ class PowerupDTO {
     private @Nullable SoundDTO userSound;
     private @Nullable SoundDTO affectedSound;
     /**
-     * the valid {@link Powerup.Source}s which this powerup can be received from. If all sources are valid, make this null. If no sources are valid, make this empty. Must not contain null elements
+     * the {@link Powerup.Source}s which this powerup is restricted to. If all sources are valid, make this null. Otherwise, the powerup will only be given to players from the specified sources. If no sources are valid, make this empty.
      */
     private @Nullable List<Powerup.@Nullable Source> sources;
     
@@ -31,6 +31,9 @@ class PowerupDTO {
     }
     
     /**
+     * a convenience method to filter out null entries from {@link PowerupDTO#sources}. 
+     * If sources is null, returns a list of all {@link Powerup.Source}s, because on the user's
+     * side, unspecified sources indicates all sources are valid. 
      * @return a list of the sources which this powerup can come from
      */
     @NotNull List<Powerup. @NotNull Source> getSources() {
