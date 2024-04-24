@@ -43,15 +43,11 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
     private double blockBreakChance;
     private long minTimeBetween;
     private int maxPowerups;
-    private Map<Powerup.Type, @NotNull Integer> powerupWeights;
+    private Map<Powerup.Type, @NotNull Integer> allPowerupWeights;
     /**
-     * The powerups mapped to their weights, such that each powerup is associated with the {@link Powerup.Source#GENERAL} source
+     * Maps a source to the weights of the types that can come from that source
      */
-    private Map<Powerup.Type, @NotNull Integer> generalPowerupWeights;
-    /**
-     * The powerups mapped to their weights, such that each powerup is associated with the {@link Powerup.Source#BREAK_BLOCK} source
-     */
-    private Map<Powerup.Type, @NotNull Integer> breakBlockPowerupWeights;
+    private Map<Powerup.Source, Map<Powerup.Type, @NotNull Integer>> sourceToPowerupWeights;
     private Map<Powerup.Type, @Nullable Sound> userSounds;
     private Map<Powerup.Type, @Nullable Sound> affectedSounds;
     public SpleefStorageUtil(File configDirectory) {
@@ -163,10 +159,8 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
             this.blockBreakChance = config.powerups().blockBreakChance();
             this.minTimeBetween = config.powerups().minTimeBetween();
             this.maxPowerups = config.powerups().maxPowerups();
-            this.powerupWeights = config.powerups().getWeights();
-            Map<Powerup.Source, List<Powerup.Type>> sourcePowerups = config.powerups().getSourcePowerups();
-            this.generalPowerupWeights = filterWeights(this.powerupWeights, sourcePowerups.get(Powerup.Source.GENERAL));
-            this.breakBlockPowerupWeights = filterWeights(this.powerupWeights, sourcePowerups.get(Powerup.Source.BREAK_BLOCK));
+            this.allPowerupWeights = config.powerups().getWeights();
+            this.sourceToPowerupWeights = createSourceToPowerupWeights(this.allPowerupWeights, config.powerups());
             if (config.powerups().powerups() != null) {
                 for (Map.Entry<Powerup.Type, @Nullable PowerupDTO> entry : config.powerups().powerups().entrySet()) {
                     Powerup.Type type = entry.getKey();
@@ -186,7 +180,7 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
             this.blockBreakChance = 0.0;
             this.minTimeBetween = 0L;
             this.maxPowerups = 0;
-            this.powerupWeights = SpleefStorageUtil.getDefaultWeights();
+            this.allPowerupWeights = SpleefStorageUtil.getDefaultWeights();
         }
         this.world = newWorld;
         this.startingLocations = newStartingLocations;
@@ -199,6 +193,16 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
         this.tool = newTool;
         this.description = newDescription;
         this.spleefConfig = config;
+    }
+    
+    private @NotNull Map<Powerup.Source, Map<Powerup.Type, Integer>> createSourceToPowerupWeights(@NotNull Map<Powerup.Type, Integer> allPowerupWeights, @NotNull SpleefConfig.Powerups powerups) {
+        Map<Powerup.Source, Map<Powerup.Type, Integer>> result = new HashMap<>(Powerup.Source.values().length);
+        Map<Powerup.Source, List<Powerup.Type>> powerupsForSource = powerups.getSourcePowerups();
+        for (Powerup.Source source : Powerup.Source.values()) {
+            Map<Powerup.Type, Integer> weightsForSource = filterWeights(allPowerupWeights, powerupsForSource.get(source));
+            result.put(source, weightsForSource);
+        }
+        return result;
     }
     
     /**
@@ -316,28 +320,15 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
         return maxPowerups;
     }
     
+    /**
+     * @param source the source that the powerups should come from
+     * @return the weights for the powerups which come from the given source (all powerup weights if source is null). The key is the powerup which can come from the source, the value is the weight. 
+     */
     public Map<Powerup.Type, Integer> getPowerupWeights(@Nullable Powerup.Source source) {
         if (source == null) {
-            return powerupWeights;
+            return allPowerupWeights;
         }
-        switch (source) {
-            case GENERAL -> {
-                return generalPowerupWeights;
-            }
-            case BREAK_BLOCK -> {
-                return breakBlockPowerupWeights;
-            }
-            default -> {
-                return powerupWeights;
-            }
-        }
-    }
-    
-    /**
-     * @return a map of index to weight, where the index is that of a type in {@link Powerup.Type#values()}
-     */
-    public Map<Powerup.Type, Integer> getPowerupWeights() {
-        return powerupWeights;
+        return sourceToPowerupWeights.get(source);
     }
     
     public @Nullable Sound getUserSound(Powerup.Type type) {
