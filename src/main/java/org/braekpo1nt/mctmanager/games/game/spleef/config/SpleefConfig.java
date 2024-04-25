@@ -119,6 +119,23 @@ record SpleefConfig(String version, String world, List<Vector> startingLocations
             }
             return sourceDTO.getTypes();
         }
+        
+        public Map<Powerup.Source, Double> getChances() {
+            if (sources == null) {
+                return SpleefStorageUtil.getDefaultChances();
+            }
+            Map<Powerup.Source, Double> result = new HashMap<>();
+            for (Map.Entry<Powerup.Source, SourceDTO> entry : sources.entrySet()) {
+                Powerup.Source source = entry.getKey();
+                SourceDTO sourceDTO = entry.getValue();
+                if (sourceDTO != null) {
+                    result.put(source, sourceDTO.chance);
+                } else {
+                    result.put(source, -1.0);
+                }
+            }
+            return result;
+        }
     }
     
     record Scores(int survive) {

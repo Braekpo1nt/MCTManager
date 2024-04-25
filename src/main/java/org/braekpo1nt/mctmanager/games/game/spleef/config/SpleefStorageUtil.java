@@ -170,10 +170,12 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
                     }
                 }
             }
+            this.chances = config.powerups().getChances();
         } else {
             this.minTimeBetween = 0L;
             this.maxPowerups = 0;
             this.sourceToPowerupWeights = getDefaultSourcePowerups();
+            this.chances = getDefaultChances();
         }
         this.world = newWorld;
         this.startingLocations = newStartingLocations;
@@ -186,6 +188,17 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
         this.tool = newTool;
         this.description = newDescription;
         this.spleefConfig = config;
+    }
+    
+    /**
+     * @return a map of every source to a chance of -1 (i.e. no chance)
+     */
+    static Map<Powerup.Source, Double> getDefaultChances() {
+        Map<Powerup.Source, Double> result = new HashMap<>();
+        for (Powerup.Source source : Powerup.Source.values()) {
+            result.put(source, -1.0);
+        }
+        return result;
     }
     
     /**
