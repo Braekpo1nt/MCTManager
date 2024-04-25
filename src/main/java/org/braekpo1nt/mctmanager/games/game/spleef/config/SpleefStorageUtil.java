@@ -39,11 +39,9 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
     private Material stencilBlock;
     private Material layerBlock;
     private Material decayBlock;
-    private double chancePerSecond;
-    private double blockBreakChance;
+    private Map<Powerup.Source, @NotNull Double> chances;
     private long minTimeBetween;
     private int maxPowerups;
-    private Map<Powerup.Type, @NotNull Integer> allPowerupWeights;
     /**
      * Maps a source to the weights of the types that can come from that source
      */
@@ -155,12 +153,9 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
         this.userSounds = new HashMap<>(Powerup.Type.values().length);
         this.affectedSounds = new HashMap<>(Powerup.Type.values().length);
         if (config.powerups() != null) {
-            this.chancePerSecond = config.powerups().chancePerSecond();
-            this.blockBreakChance = config.powerups().blockBreakChance();
             this.minTimeBetween = config.powerups().minTimeBetween();
             this.maxPowerups = config.powerups().maxPowerups();
-            this.allPowerupWeights = config.powerups().getWeights();
-            this.sourceToPowerupWeights = createSourceToPowerupWeights(this.allPowerupWeights, config.powerups());
+            this.sourceToPowerupWeights = createSourceToPowerupWeights(config.powerups());
             if (config.powerups().powerups() != null) {
                 for (Map.Entry<Powerup.Type, @Nullable PowerupDTO> entry : config.powerups().powerups().entrySet()) {
                     Powerup.Type type = entry.getKey();
@@ -176,11 +171,9 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
                 }
             }
         } else {
-            this.chancePerSecond = 0.0;
-            this.blockBreakChance = 0.0;
             this.minTimeBetween = 0L;
             this.maxPowerups = 0;
-            this.allPowerupWeights = SpleefStorageUtil.getDefaultWeights();
+            this.sourceToPowerupWeights = getDefaultSourcePowerups();
         }
         this.world = newWorld;
         this.startingLocations = newStartingLocations;
@@ -195,50 +188,35 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
         this.spleefConfig = config;
     }
     
-    private @NotNull Map<Powerup.Source, Map<Powerup.Type, Integer>> createSourceToPowerupWeights(@NotNull Map<Powerup.Type, Integer> allPowerupWeights, @NotNull SpleefConfig.Powerups powerups) {
+    /**
+     * @param powerups the config's {@link SpleefConfig#powerups()}
+     * @return a map where the key is a {@link Powerup.Source}, and the value is the {@link Powerup.Type}s which can come from that source mapped to their weights. Each possible source has a weights list, even if it's empty. 
+     */
+    private @NotNull Map<Powerup.Source, Map<Powerup.Type, Integer>> createSourceToPowerupWeights(@NotNull SpleefConfig.Powerups powerups) {
         Map<Powerup.Source, Map<Powerup.Type, Integer>> result = new HashMap<>(Powerup.Source.values().length);
-        Map<Powerup.Source, List<Powerup.Type>> powerupsForSource = powerups.getSourcePowerups();
         for (Powerup.Source source : Powerup.Source.values()) {
-            Map<Powerup.Type, Integer> weightsForSource = filterWeights(allPowerupWeights, powerupsForSource.get(source));
-            result.put(source, weightsForSource);
+            List<Powerup.Type> types = powerups.getTypesForSource(source);
+            Map<Powerup.Type, Integer> weights = new HashMap<>(types.size());
+            for (Powerup.Type type : types) {
+                int weight = powerups.getWeight(type);
+                weights.put(type, weight);
+            }
+            result.put(source, weights);
         }
         return result;
     }
     
     /**
-     * 
-     * @param powerupWeights the superset of weights
-     * @param types the types to get the weights of
-     * @return the weights of the given types
+     * @return a map from every {@link Powerup.Source} to a map of every {@link Powerup.Type} value to a weight of 1
      */
-    private Map<Powerup.Type, Integer> filterWeights(Map<Powerup.Type, Integer> powerupWeights, List<Powerup.Type> types) {
-        Map<Powerup.Type, Integer> result = new HashMap<>(types.size());
-        for (Map.Entry<Powerup.Type, Integer> entry : powerupWeights.entrySet()) {
-            Powerup.Type type = entry.getKey();
-            int weight = entry.getValue();
-            result.put(type, weight);
-        }
-        return result;
-    }
-    
-    /**
-     * @return a map of every {@link Powerup.Type} to a weight of 1 (equal chance for all)
-     */
-    static @NotNull Map<Powerup.Type, @NotNull Integer> getDefaultWeights() {
-        Map<Powerup.Type, @NotNull Integer> result = new HashMap<>(Powerup.Type.values().length);
+    static @NotNull Map<Powerup.Source, Map<Powerup.Type, Integer>> getDefaultSourcePowerups() {
+        Map<Powerup.Type, Integer> weights = new HashMap<>();
         for (Powerup.Type value : Powerup.Type.values()) {
-            result.put(value, 1);
+            weights.put(value, 1);
         }
-        return result;
-    }
-    
-    /**
-     * @return a map from every {@link Powerup.Source} to a list which contains every {@link Powerup.Type} value
-     */
-    static @NotNull Map<Powerup.Source, @NotNull List<Powerup.@NotNull Type>> getDefaultSourcePowerups() {
-        Map<Powerup.Source, List<Powerup.Type>> result = new HashMap<>(Powerup.Source.values().length);
+        Map<Powerup.Source, Map<Powerup.Type, Integer>> result = new HashMap<>();
         for (Powerup.Source source : Powerup.Source.values()) {
-            result.put(source, Arrays.asList(Powerup.Type.values()));
+            result.put(source, weights);
         }
         return result;
     }
@@ -304,12 +282,8 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
         return decayBlock;
     }
     
-    public double getChancePerSecond() {
-        return chancePerSecond;
-    }
-    
-    public double getBlockBreakChance() {
-        return blockBreakChance;
+    public double getChance(@NotNull Powerup.Source source) {
+        return chances.get(source);
     }
     
     public long getMinTimeBetween() {
@@ -324,10 +298,7 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
      * @param source the source that the powerups should come from
      * @return the weights for the powerups which come from the given source (all powerup weights if source is null). The key is the powerup which can come from the source, the value is the weight. 
      */
-    public Map<Powerup.Type, Integer> getPowerupWeights(@Nullable Powerup.Source source) {
-        if (source == null) {
-            return allPowerupWeights;
-        }
+    public @NotNull Map<Powerup.Type, @NotNull Integer> getPowerupWeights(@Nullable Powerup.Source source) {
         return sourceToPowerupWeights.get(source);
     }
     

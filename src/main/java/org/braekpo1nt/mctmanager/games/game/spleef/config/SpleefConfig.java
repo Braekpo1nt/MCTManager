@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.games.game.spleef.config;
 
 import com.google.common.base.Preconditions;
 import com.google.gson.JsonElement;
+import lombok.Getter;
 import org.braekpo1nt.mctmanager.games.game.config.BoundingBoxDTO;
 import org.braekpo1nt.mctmanager.games.game.config.NamespacedKeyDTO;
 import org.braekpo1nt.mctmanager.games.game.config.inventory.ItemStackDTO;
@@ -42,15 +43,33 @@ record SpleefConfig(String version, String world, List<Vector> startingLocations
     
     /**
      * 
-     * @param chancePerSecond every second, the player has this percentage chance to get a powerup. 0 means no powerups will be given at all each second. Defaults to 0.0
-     * @param blockBreakChance every time the player breaks a block, they have this percentage chance to get a powerup. 0 means no powerups will be given upon breaking a block (ever). Defaults to 0.0
      * @param minTimeBetween the minimum time (in milliseconds) between getting powerups. Players should not get two powerups one after another immediately. 0 means no restriction. Defaults to 0
      * @param maxPowerups limit the number of powerups a player can have. If they are at max, they won't collect any more until they use some of them. 0 means players can't hold any powerups at all. Negative values indicate unlimited powerup collection. Defaults to 0
      */
-    record Powerups(double chancePerSecond, double blockBreakChance, long minTimeBetween, int maxPowerups, @Nullable Map<Powerup.Type, @Nullable PowerupDTO> powerups) {
+    record Powerups(long minTimeBetween, int maxPowerups, @Nullable Map<Powerup.Type, @Nullable PowerupDTO> powerups, @Nullable Map<Powerup.Source, @Nullable SourceDTO> sources) {
+        
+        @Getter
+        static class SourceDTO {
+            /**
+             * the percent chance of this source giving a powerup every time it is used. 0 or fewer means no powerups will be given from this source. Defaults to -1.
+             */
+            private double chance;
+            /**
+             * the types which can come from this source. If null, all types can come from this source. If empty, no types can come from this source. Must not contain null entries.
+             */
+            private @Nullable List<Powerup.@Nullable Type> types;
+            
+            void isValid() {
+                Preconditions.checkArgument(chance <= 1.0, "chance can't be greater than 1.0");
+                if (types != null) {
+                    for (Powerup.Type type : types) {
+                        Preconditions.checkArgument(type != null);
+                    }
+                }
+            }
+        }
+        
         void isValid() {
-            Preconditions.checkArgument(0 <= chancePerSecond && chancePerSecond <= 1.0, "chancePerSecond must be between 0 and 1, inclusive");
-            Preconditions.checkArgument(0 <= blockBreakChance && blockBreakChance <= 1.0, "blockBreakChance must be between 0 and 1, inclusive");
             Preconditions.checkArgument(minTimeBetween >= 0, "minTimeBetween must be greater than or equal to 0");
             if (powerups != null) {
                 for (PowerupDTO powerupDTO : powerups.values()) {
@@ -59,55 +78,46 @@ record SpleefConfig(String version, String world, List<Vector> startingLocations
                     }
                 }
             }
+            
+            if (sources != null) {
+                Preconditions.checkArgument(!sources.containsKey(null), "sources can't have null keys");
+                Preconditions.checkArgument(!sources.containsValue(null), "sources can't have null entries");
+                for (SourceDTO sourceDTO : sources.values()) {
+                    if (sourceDTO != null) {
+                        sourceDTO.isValid();
+                    }
+                }
+            }
         }
         
         /**
-         * @return a map of each {@link Powerup.Type} to its weight. This comes from the {@link Powerups#powerups} weight value, but if any entries are missing from the config, the weight is set to 1.
+         * @param type the type to get the weight of
+         * @return the weight of the given powerup from the config (1 if not specified in the config)
          */
-        @NotNull Map<Powerup.Type, @NotNull Integer> getWeights() {
+        int getWeight(@NotNull Powerup.Type type) {
             if (this.powerups == null) {
-                return SpleefStorageUtil.getDefaultWeights();
+                return 1;
             }
-            Map<Powerup.Type, @NotNull Integer> result = new HashMap<>(Powerup.Type.values().length);
-            for (int i = 0; i < Powerup.Type.values().length; i++) {
-                Powerup.Type type = Powerup.Type.values()[i];
-                PowerupDTO powerupDTO = this.powerups.get(type);
-                if (powerupDTO != null) {
-                    int weight = powerupDTO.getWeight();
-                    result.put(type, weight);
-                } else {
-                    result.put(type, 1);
-                }
+            PowerupDTO powerupDTO = this.powerups.get(type);
+            if (powerupDTO == null) {
+                return 1;
             }
-            return result;
+            return powerupDTO.getWeight();
         }
-    
+        
         /**
-         * 
-         * @return a map from each {@link Powerup.Source} to the {@link Powerup.Type}s which can come from it. Empty list means no powerups can come from that source.
+         * @param source the source to get the types for
+         * @return a list containing the {@link Powerup.Type}s which can come from the given source
          */
-        public Map<Powerup.Source, List<Powerup.Type>> getSourcePowerups() {
-            if (this.powerups == null) {
-                return SpleefStorageUtil.getDefaultSourcePowerups();
+        List<Powerup.Type> getTypesForSource(Powerup.Source source) {
+            if (sources == null) {
+                return Arrays.asList(Powerup.Type.values());
             }
-            Map<Powerup.Source, List<Powerup.Type>> result = new HashMap<>(Powerup.Source.values().length);
-            for (Powerup.Source source : Powerup.Source.values()) {
-                result.put(source, new ArrayList<>());
+            SourceDTO sourceDTO = sources.get(source);
+            if (sourceDTO == null) {
+                return Arrays.asList(Powerup.Type.values());
             }
-            for (Powerup.Type type : Powerup.Type.values()) {
-                PowerupDTO powerupDTO = this.powerups.get(type);
-                if (powerupDTO != null) {
-                    for (Powerup.Source allowedSource : powerupDTO.getSources()) {
-                        result.get(allowedSource).add(type);
-                    }
-                } else {
-                    // default to valid from all sources
-                    for (List<Powerup.Type> allowedTypes : result.values()) {
-                        allowedTypes.add(type);
-                    }
-                }
-            }
-            return result;
+            return sourceDTO.getTypes();
         }
     }
     

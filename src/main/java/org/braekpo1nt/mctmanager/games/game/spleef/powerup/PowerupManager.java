@@ -179,7 +179,7 @@ public class PowerupManager implements Listener {
                 long currentTime = System.currentTimeMillis();
                 for (Player participant : participants) {
                     if (canReceivePowerup(participant, currentTime)) {
-                        randomlyGivePowerup(participant, Powerup.Source.GENERAL, storageUtil.getChancePerSecond(), currentTime);
+                        randomlyGivePowerup(participant, Powerup.Source.GENERAL, currentTime);
                     }
                 }
             }
@@ -191,11 +191,10 @@ public class PowerupManager implements Listener {
      * If the participant receives a powerup, their {@link PowerupManager#lastPowerupTimestamps} is reset.
      * @param participant the participant to receive a powerup
      * @param source the source from which to receive a powerup (null indicates any source)
-     * @param chance the percent chance to receive a powerup
      * @param currentTime the current system time in milliseconds
      */
-    private void randomlyGivePowerup(@NotNull Player participant, @Nullable Powerup.Source source, double chance, long currentTime) {
-        if (random.nextDouble() < chance) {
+    private void randomlyGivePowerup(@NotNull Player participant, @Nullable Powerup.Source source, long currentTime) {
+        if (random.nextDouble() < storageUtil.getChance(source)) {
             ItemStack powerup = getRandomPowerup(source);
             participant.getInventory().addItem(powerup);
             lastPowerupTimestamps.put(participant.getUniqueId(), currentTime);
@@ -247,7 +246,7 @@ public class PowerupManager implements Listener {
         if (!canReceivePowerup(participant, System.currentTimeMillis())) {
             return;
         }
-        randomlyGivePowerup(participant, Powerup.Source.BREAK_BLOCK, storageUtil.getBlockBreakChance(), System.currentTimeMillis());
+        randomlyGivePowerup(participant, Powerup.Source.BREAK_BLOCK, System.currentTimeMillis());
     }
     
     @EventHandler
