@@ -172,10 +172,25 @@
     }
   ],
   "powerups": {
-    "chancePerSecond": 0.5,
-    "blockBreakChance": 0.5,
     "minTimeBetween": 5000,
     "maxPowerups": 5,
+    "sources": {
+      "GENERAL": {
+        "chance": 0.05,
+        "types": [
+          "PLAYER_SWAPPER",
+          "BLOCK_BREAKER",
+          "SHIELD"
+        ]
+      },
+      "BREAK_BLOCK": {
+        "chance": 0.1,
+        "types": [
+          "PLAYER_SWAPPER",
+          "BLOCK_BREAKER"
+        ]
+      }
+    },
     "powerups": {
       "PLAYER_SWAPPER": {
         "weight": 45,
@@ -226,10 +241,7 @@
             "volume": 100,
             "pitch": 1
           }
-        },
-        "sources": [
-          "GENERAL"
-        ]
+        }
       }
     }
   },
