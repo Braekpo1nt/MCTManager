@@ -14,6 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 
@@ -45,9 +46,22 @@ record SpleefConfig(String version, String world, List<Vector> startingLocations
      * 
      * @param minTimeBetween the minimum time (in milliseconds) between getting powerups. Players should not get two powerups one after another immediately. 0 means no restriction. Defaults to 0
      * @param maxPowerups limit the number of powerups a player can have. If they are at max, they won't collect any more until they use some of them. 0 means players can't hold any powerups at all. Negative values indicate unlimited powerup collection. Defaults to 0
+     * @param initialLoadout the initial loadout of powerups in the participant's inventories at the start of every round. Null means empty. The key is the type powerup, the value is how many of that powerup the players are given.
+     * @param powerups configuration of powerup attributes, such as the sounds that come from them.
+     * @param sources configuration of the sources, such as their likelihood of giving a powerup and what powerups come from it. 
      */
-    record Powerups(long minTimeBetween, int maxPowerups, @Nullable Map<Powerup.Type, @Nullable PowerupDTO> powerups, @Nullable Map<Powerup.Source, @Nullable SourceDTO> sources) {
+    record Powerups(long minTimeBetween, int maxPowerups, @Nullable Map<Powerup.Type, @Nullable Integer> initialLoadout, @Nullable Map<Powerup.Type, @Nullable PowerupDTO> powerups, @Nullable Map<Powerup.Source, @Nullable SourceDTO> sources) {
         
+        @NotNull Map<Powerup.Type, @NotNull Integer> getInitialLoadout() {
+            if (initialLoadout == null) {
+                return Collections.emptyMap();
+            }
+            return initialLoadout.entrySet().stream().filter(entry -> entry.getValue() != null).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        }
+        
+        /**
+         * Configuration of each source, namely the chance of it giving a powerup upon activation, the types that can come from it, and their weights. 
+         */
         @Getter
         static class SourceDTO {
             /**
@@ -70,6 +84,11 @@ record SpleefConfig(String version, String world, List<Vector> startingLocations
         
         void isValid() {
             Preconditions.checkArgument(minTimeBetween >= 0, "minTimeBetween must be greater than or equal to 0");
+            if (initialLoadout != null) {
+                Preconditions.checkArgument(!initialLoadout.containsKey(null), "initialLoadout can't have null keys");
+                Preconditions.checkArgument(!initialLoadout.containsValue(null), "initialLoadout can't have null entries");
+            }
+            
             if (powerups != null) {
                 for (PowerupDTO powerupDTO : powerups.values()) {
                     if (powerupDTO != null) {
@@ -94,7 +113,7 @@ record SpleefConfig(String version, String world, List<Vector> startingLocations
          * If the 
          * @return a map from every {@link Powerup.Source} to the {@link Powerup.Type}+weight pairs which come from the source. 
          */
-        @NotNull Map<Powerup.Source, Map<Powerup.Type, Integer>> getSourcePowerups() {
+        @NotNull Map<Powerup.Source, Map<Powerup.Type, @NotNull Integer>> getSourcePowerups() {
             Map<Powerup.Source, Map<Powerup.Type, Integer>> result = SpleefStorageUtil.getDefaultSourcePowerups();
             if (sources == null) {
                 return result;
@@ -109,7 +128,10 @@ record SpleefConfig(String version, String world, List<Vector> startingLocations
             return result;
         }
         
-        Map<Powerup.Source, Double> getChances() {
+        /**
+         * @return each {@link Powerup.Source} paired with the chance it has to give a powerup upon activation. 
+         */
+        @NotNull Map<Powerup.Source, @NotNull Double> getChances() {
             if (sources == null) {
                 return SpleefStorageUtil.getDefaultChances();
             }
@@ -127,6 +149,9 @@ record SpleefConfig(String version, String world, List<Vector> startingLocations
         }
     }
     
+    /**
+     * @param survive the score given to every living player each time a single player dies. Players on the same team as the player who died will not receive points. w
+     */
     record Scores(int survive) {
     }
     

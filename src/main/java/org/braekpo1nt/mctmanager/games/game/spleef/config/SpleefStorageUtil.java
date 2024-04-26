@@ -40,6 +40,7 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
     private Material layerBlock;
     private Material decayBlock;
     private Map<Powerup.Source, @NotNull Double> chances;
+    private Map<Powerup.Type, @NotNull Integer> initialLoadout;
     private long minTimeBetween;
     private int maxPowerups;
     /**
@@ -171,11 +172,13 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
                 }
             }
             this.chances = config.powerups().getChances();
+            this.initialLoadout = config.powerups().getInitialLoadout();
         } else {
             this.minTimeBetween = 0L;
             this.maxPowerups = 0;
             this.sourceToPowerupWeights = getDefaultSourcePowerups();
             this.chances = getDefaultChances();
+            this.initialLoadout = Collections.emptyMap();
         }
         this.world = newWorld;
         this.startingLocations = newStartingLocations;
@@ -303,5 +306,9 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
     
     public @Nullable Sound getAffectedSound(Powerup.Type type) {
         return affectedSounds.get(type);
+    }
+    
+    public Map<Powerup.Type, Integer> getInitialLoadout() {
+        return initialLoadout;
     }
 }

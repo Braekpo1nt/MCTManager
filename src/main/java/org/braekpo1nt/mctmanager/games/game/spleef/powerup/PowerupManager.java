@@ -106,7 +106,12 @@ public class PowerupManager implements Listener {
     
     private void initializeParticipant(Player participant) {
         participants.add(participant);
-        participant.getInventory().addItem(typeToPowerup.get(Powerup.Type.SHIELD).getItem());
+        for (Map.Entry<Powerup.Type, Integer> entry : storageUtil.getInitialLoadout().entrySet()) {
+            Powerup.Type type = entry.getKey();
+            int amount = entry.getValue();
+            ItemStack powerup = typeToPowerup.get(type).getItem().asQuantity(amount);
+            participant.getInventory().addItem(powerup);
+        }
         lastPowerupTimestamps.put(participant.getUniqueId(), System.currentTimeMillis());
     }
     
@@ -193,7 +198,7 @@ public class PowerupManager implements Listener {
      * @param source the source from which to receive a powerup (null indicates any source)
      * @param currentTime the current system time in milliseconds
      */
-    private void randomlyGivePowerup(@NotNull Player participant, @Nullable Powerup.Source source, long currentTime) {
+    private void randomlyGivePowerup(@NotNull Player participant, @NotNull Powerup.Source source, long currentTime) {
         if (random.nextDouble() < storageUtil.getChance(source)) {
             ItemStack powerup = getRandomPowerup(source);
             participant.getInventory().addItem(powerup);
