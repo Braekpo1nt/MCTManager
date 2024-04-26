@@ -155,7 +155,7 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
         if (config.powerups() != null) {
             this.minTimeBetween = config.powerups().minTimeBetween();
             this.maxPowerups = config.powerups().maxPowerups();
-            this.sourceToPowerupWeights = createSourceToPowerupWeights(config.powerups());
+            this.sourceToPowerupWeights = config.powerups().getSourcePowerups();
             if (config.powerups().powerups() != null) {
                 for (Map.Entry<Powerup.Type, @Nullable PowerupDTO> entry : config.powerups().powerups().entrySet()) {
                     Powerup.Type type = entry.getKey();
@@ -197,24 +197,6 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
         Map<Powerup.Source, Double> result = new HashMap<>();
         for (Powerup.Source source : Powerup.Source.values()) {
             result.put(source, -1.0);
-        }
-        return result;
-    }
-    
-    /**
-     * @param powerups the config's {@link SpleefConfig#powerups()}
-     * @return a map where the key is a {@link Powerup.Source}, and the value is the {@link Powerup.Type}s which can come from that source mapped to their weights. Each possible source has a weights list, even if it's empty. 
-     */
-    private @NotNull Map<Powerup.Source, Map<Powerup.Type, Integer>> createSourceToPowerupWeights(@NotNull SpleefConfig.Powerups powerups) {
-        Map<Powerup.Source, Map<Powerup.Type, Integer>> result = new HashMap<>(Powerup.Source.values().length);
-        for (Powerup.Source source : Powerup.Source.values()) {
-            List<Powerup.Type> types = powerups.getTypesForSource(source);
-            Map<Powerup.Type, Integer> weights = new HashMap<>(types.size());
-            for (Powerup.Type type : types) {
-                int weight = powerups.getWeight(type);
-                weights.put(type, weight);
-            }
-            result.put(source, weights);
         }
         return result;
     }

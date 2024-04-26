@@ -177,23 +177,22 @@
     "sources": {
       "GENERAL": {
         "chance": 0.05,
-        "types": [
-          "PLAYER_SWAPPER",
-          "BLOCK_BREAKER",
-          "SHIELD"
-        ]
+        "types": {
+          "PLAYER_SWAPPER": 45,
+          "BLOCK_BREAKER": 45,
+          "SHIELD": 10
+        }
       },
       "BREAK_BLOCK": {
         "chance": 0.1,
-        "types": [
-          "PLAYER_SWAPPER",
-          "BLOCK_BREAKER"
-        ]
+        "types": {
+          "PLAYER_SWAPPER": 1,
+          "BLOCK_BREAKER": 1
+        }
       }
     },
     "powerups": {
       "PLAYER_SWAPPER": {
-        "weight": 45,
         "userSound": {
           "namespacedKey": {
             "key": "entity.enderman.teleport",
@@ -210,7 +209,6 @@
         }
       },
       "BLOCK_BREAKER": {
-        "weight": 45,
         "userSound": {
           "namespacedKey": {
             "key": "block.snow.break",
@@ -227,7 +225,6 @@
         }
       },
       "SHIELD": {
-        "weight": 10,
         "userSound": {
           "namespacedKey": {
             "key": "item.shield.block",

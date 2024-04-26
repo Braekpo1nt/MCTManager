@@ -13,7 +13,6 @@ import java.util.Objects;
 
 @Getter
 class PowerupDTO {
-    private int weight = 1;
     private @Nullable SoundDTO userSound;
     private @Nullable SoundDTO affectedSound;
     /**

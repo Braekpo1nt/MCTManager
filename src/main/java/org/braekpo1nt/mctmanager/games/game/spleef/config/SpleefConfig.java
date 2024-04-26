@@ -55,16 +55,15 @@ record SpleefConfig(String version, String world, List<Vector> startingLocations
              */
             private double chance;
             /**
-             * the types which can come from this source. If null, all types can come from this source. If empty, no types can come from this source. Must not contain null entries.
+             * the types which can come from this source paired with their weights from this source. If null, all types can come from this source. If empty, no types can come from this source. Must not contain null keys or values.
              */
-            private @Nullable List<Powerup.@Nullable Type> types;
+            private @Nullable Map<Powerup.@Nullable Type, @Nullable Integer> types;
             
             void isValid() {
                 Preconditions.checkArgument(chance <= 1.0, "chance can't be greater than 1.0");
                 if (types != null) {
-                    for (Powerup.Type type : types) {
-                        Preconditions.checkArgument(type != null);
-                    }
+                    Preconditions.checkArgument(!types.containsKey(null), "types can't contain null keys");
+                    Preconditions.checkArgument(!types.containsValue(null), "types can't contain null values");
                 }
             }
         }
@@ -91,36 +90,26 @@ record SpleefConfig(String version, String world, List<Vector> startingLocations
         }
         
         /**
-         * @param type the type to get the weight of
-         * @return the weight of the given powerup from the config (1 if not specified in the config)
+         * Each key is mapped to a type-to-weight map, where the keys are the types which can come from the respective source key, and the values are the weights of those types. The weights are used to randomly choose a powerup from the given source.
+         * If the 
+         * @return a map from every {@link Powerup.Source} to the {@link Powerup.Type}+weight pairs which come from the source. 
          */
-        int getWeight(@NotNull Powerup.Type type) {
-            if (this.powerups == null) {
-                return 1;
-            }
-            PowerupDTO powerupDTO = this.powerups.get(type);
-            if (powerupDTO == null) {
-                return 1;
-            }
-            return powerupDTO.getWeight();
-        }
-        
-        /**
-         * @param source the source to get the types for
-         * @return a list containing the {@link Powerup.Type}s which can come from the given source
-         */
-        List<Powerup.Type> getTypesForSource(Powerup.Source source) {
+        @NotNull Map<Powerup.Source, Map<Powerup.Type, Integer>> getSourcePowerups() {
+            Map<Powerup.Source, Map<Powerup.Type, Integer>> result = SpleefStorageUtil.getDefaultSourcePowerups();
             if (sources == null) {
-                return Arrays.asList(Powerup.Type.values());
+                return result;
             }
-            SourceDTO sourceDTO = sources.get(source);
-            if (sourceDTO == null) {
-                return Arrays.asList(Powerup.Type.values());
+            for (Map.Entry<Powerup.Source, @Nullable SourceDTO> entry : sources.entrySet()) {
+                Powerup.Source source = entry.getKey();
+                SourceDTO sourceDTO = entry.getValue();
+                if (sourceDTO != null) {
+                    result.put(source, sourceDTO.getTypes());
+                }
             }
-            return sourceDTO.getTypes();
+            return result;
         }
         
-        public Map<Powerup.Source, Double> getChances() {
+        Map<Powerup.Source, Double> getChances() {
             if (sources == null) {
                 return SpleefStorageUtil.getDefaultChances();
             }
