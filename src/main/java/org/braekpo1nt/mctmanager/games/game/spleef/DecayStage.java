@@ -1,10 +1,14 @@
 package org.braekpo1nt.mctmanager.games.game.spleef;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
 @Getter
+@AllArgsConstructor
+@NoArgsConstructor
 public class DecayStage {
     
     /**
@@ -32,12 +36,24 @@ public class DecayStage {
      */
     private String startMessage;
     
-    /**
-     * @param index the index of the layer to decay (0-based, must be at least 0 and no more than 1 less than the number of layers in the game)
-     * @param blocksPerSecond the rate at which the blocks should decay in Blocks Per Second (must be at least 0)
-     */
-    public record LayerInfo(int index, int blocksPerSecond) {
+    @AllArgsConstructor
+    public static class LayerInfo {
+        /**
+         * The index of the layer to decay (0-based, must be at least 0 and no more than 1 less than the number of layers in the game)
+         */
+        private int index;
+        /**
+         * the rate at which the blocks should decay in Blocks Per Second (must be at least 0)
+         */
+        private int blocksPerSecond;
         
+        public int index() {
+            return index;
+        }
+    
+        public int blocksPerSecond() {
+            return blocksPerSecond;
+        }
     }
     
     /**

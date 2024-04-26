@@ -34,6 +34,7 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
     private List<Structure> structures;
     private List<Location> structureOrigins;
     private List<BoundingBox> decayLayers;
+    private List<DecayStage> decayStages;
     private Component description;
     private ItemStack tool;
     private Material stencilBlock;
@@ -81,18 +82,18 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
         }
         Preconditions.checkArgument(config.decayStages() != null, "decayStages can't be null");
         Preconditions.checkArgument(config.decayStages().size() > 0, "decayStages must have at least one entry");
-        for (DecayStage decayStage : config.decayStages()) {
-            Preconditions.checkArgument(decayStage.getLayerInfos() != null, "decayStages.layers can't be null");
+        for (DecayStageDTO decayStageDTO : config.decayStages()) {
+            Preconditions.checkArgument(decayStageDTO.getLayerInfos() != null, "decayStages.layers can't be null");
             // make sure index is between 0 and the max index for decayLayers 
             // also make sure there are no duplicate indexes
-            Set<Integer> usedIndexes = new HashSet<>(decayStage.getLayerInfos().size());
-            for (DecayStage.LayerInfo layerInfo : decayStage.getLayerInfos()) {
+            Set<Integer> usedIndexes = new HashSet<>(decayStageDTO.getLayerInfos().size());
+            for (DecayStageDTO.LayerInfoDTO layerInfo : decayStageDTO.getLayerInfos()) {
                 Preconditions.checkArgument(0 <= layerInfo.index() && layerInfo.index() < numberOfLayers, "layerInfo.index must be at least 0, and at most 1 less than the number of elements in layers list");
                 Preconditions.checkArgument(layerInfo.blocksPerSecond() >= 0, "layerInfo.blocksPerSecond must be at least 0");
                 Preconditions.checkArgument(!usedIndexes.contains(layerInfo.index()), "decayStage.layerInfos entries can't have duplicate index values (%s)", layerInfo.index());
                 usedIndexes.add(layerInfo.index());
             }
-            Preconditions.checkArgument(decayStage.getDuration() > 0, "decayStage.duration must be at least 1");
+            Preconditions.checkArgument(decayStageDTO.getDuration() > 0, "decayStage.duration must be at least 1");
         }
         if (config.tool() != null) {
             config.tool().isValid();
@@ -141,6 +142,7 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
                 newDecayLayers.add(decayArea);
             }
         }
+        List<DecayStage> newDecayStages = DecayStageDTO.toDecayStages(config.decayStages());
         ItemStack newTool;
         if (config.tool() == null) {
             newTool = new ItemStack(Material.DIAMOND_SHOVEL);
@@ -188,6 +190,7 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
         this.layerBlock = newLayerBlock;
         this.decayBlock = newDecayBlock;
         this.decayLayers = newDecayLayers;
+        this.decayStages = newDecayStages;
         this.tool = newTool;
         this.description = newDescription;
         this.spleefConfig = config;
@@ -257,7 +260,7 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
     }
     
     public List<DecayStage> getStages() {
-        return spleefConfig.decayStages();
+        return decayStages;
     }
     
     public Component getDescription() {
