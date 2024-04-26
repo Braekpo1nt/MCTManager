@@ -86,8 +86,8 @@ public class DecayManager {
                 secondsLeft--;
                 
                 for (DecayStage.LayerInfo layerInfo : currentStage.getLayerInfos()) {
-                    BoundingBox decayLayer = storageUtil.getDecayLayers().get(layerInfo.index());
-                    decayLayer(decayLayer, layerInfo.blocksPerSecond());
+                    decayRandomBlocks(layerInfo.getSolidBlocks(), storageUtil.getDecayBlock(), layerInfo.getBlocksPerSecond());
+                    decayRandomBlocks(layerInfo.getDecayingBlocks(), Material.AIR, layerInfo.getBlocksPerSecond());
                 }
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -104,8 +104,16 @@ public class DecayManager {
      * starts the next decay stage
      */
     private void startNextStage() {
+        if (currentStage != null) {
+            currentStage.clearBlocks();
+        }
         currentStageIndex++;
         currentStage = storageUtil.getStages().get(currentStageIndex);
+        for (DecayStage.LayerInfo layerInfo : currentStage.getLayerInfos()) {
+            BoundingBox decayLayer = storageUtil.getDecayLayers().get(layerInfo.getIndex());
+            layerInfo.setSolidBlocks(getSolidBlocks(decayLayer));
+            layerInfo.setDecayingBlocks(getDecayingBlocks(decayLayer));
+        }
         secondsLeft = currentStage.getDuration();
         if (currentStage.getStartMessage() != null) {
             spleefRound.messageAllParticipants(Component.text(currentStage.getStartMessage())
@@ -115,32 +123,21 @@ public class DecayManager {
     }
     
     /**
-     * 
-     * @param decayLayer the area to decay within
-     * @param blocks the number of blocks to decay
+     * Changes n blocks in the given list to the given material, where n is the given count.. 
+     * @param blocks the blocks to decay a random subset of
+     * @param to the material to decay the blocks to
+     * @param count how many blocks to decay from the given list. If count is less than blocks.size(), then blocks.size() blocks will be decayed.
      */
-    private void decayLayer(BoundingBox decayLayer, int blocks) {
-        List<Block> coarseDirtBlocks = getCoarseDirtBlocks(decayLayer);
-        List<Block> dirtBlocks = getDirtBlocks(decayLayer);
-        
-        // Decay coarse dirt blocks to air
-        if (!coarseDirtBlocks.isEmpty()) {
-            for (int i = 0; i < blocks; i++) {
-                Block randomCoarseDirtBlock = coarseDirtBlocks.get(random.nextInt(coarseDirtBlocks.size()));
-                randomCoarseDirtBlock.setType(Material.AIR);
-            }
-        }
-        
-        // Decay dirt blocks to coarse dirt
-        if (!dirtBlocks.isEmpty()) {
-            for (int i = 0; i < blocks; i++) {
-                Block randomDirtBlock = dirtBlocks.get(random.nextInt(dirtBlocks.size()));
-                randomDirtBlock.setType(storageUtil.getDecayBlock());
-            }
+    private void decayRandomBlocks(List<Block> blocks, Material to, int count) {
+        for (int i = 0; i < Math.min(count, blocks.size()); i++) {
+            int indexToDecay = random.nextInt(blocks.size());
+            Block randomCoarseDirtBlock = blocks.get(indexToDecay);
+            randomCoarseDirtBlock.setType(to);
+            blocks.remove(indexToDecay);
         }
     }
     
-    private List<Block> getDirtBlocks(BoundingBox layer) {
+    private List<Block> getSolidBlocks(BoundingBox layer) {
         List<Block> dirtBlocks = new ArrayList<>();
         
         for (int x = layer.getMin().getBlockX(); x <= layer.getMaxX(); x++) {
@@ -157,7 +154,7 @@ public class DecayManager {
         return dirtBlocks;
     }
     
-    private List<Block> getCoarseDirtBlocks(BoundingBox layer) {
+    private List<Block> getDecayingBlocks(BoundingBox layer) {
         List<Block> coarseDirtBlocks = new ArrayList<>();
         
         for (int x = layer.getMin().getBlockX(); x <= layer.getMaxX(); x++) {

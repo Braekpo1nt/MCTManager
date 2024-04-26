@@ -1,8 +1,7 @@
 package org.braekpo1nt.mctmanager.games.game.spleef;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import org.bukkit.block.Block;
 
 import java.util.List;
 
@@ -36,24 +35,37 @@ public class DecayStage {
      */
     private String startMessage;
     
-    @AllArgsConstructor
+    /**
+     * sets the solid and decaying block lists to null to save space
+     */
+    public void clearBlocks() {
+        for (LayerInfo layerInfo : layerInfos) {
+            layerInfo.setSolidBlocks(null);
+            layerInfo.setDecayingBlocks(null);
+        }
+    }
+    
+    @Getter
+    @RequiredArgsConstructor
     public static class LayerInfo {
         /**
          * The index of the layer to decay (0-based, must be at least 0 and no more than 1 less than the number of layers in the game)
          */
-        private int index;
+        private final int index;
         /**
          * the rate at which the blocks should decay in Blocks Per Second (must be at least 0)
          */
-        private int blocksPerSecond;
-        
-        public int index() {
-            return index;
-        }
-    
-        public int blocksPerSecond() {
-            return blocksPerSecond;
-        }
+        private final int blocksPerSecond;
+        /**
+         * The blocks in this layer which are solid, not decayed yet
+         */
+        @Setter
+        private List<Block> solidBlocks;
+        /**
+         * The blocks in this layer which are partially decayed, about to disappear
+         */
+        @Setter
+        private List<Block> decayingBlocks;
     }
     
     /**
