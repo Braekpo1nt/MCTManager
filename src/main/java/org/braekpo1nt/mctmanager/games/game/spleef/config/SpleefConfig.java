@@ -53,7 +53,7 @@ record SpleefConfig(String version, String world, List<Vector> startingLocations
             /**
              * the percent chance of this source giving a powerup every time it is used. 0 or fewer means no powerups will be given from this source. Defaults to -1.
              */
-            private double chance;
+            private double chance = -1;
             /**
              * the types which can come from this source paired with their weights from this source. If null, all types can come from this source. If empty, no types can come from this source. Must not contain null keys or values.
              */
