@@ -1,14 +1,21 @@
 package org.braekpo1nt.mctmanager.games.game.spleef;
 
+import io.papermc.paper.event.block.BlockBreakBlockEvent;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.spleef.config.SpleefStorageUtil;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.HandlerList;
+import org.bukkit.event.Listener;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.BoundingBox;
+import org.bukkit.util.Vector;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,7 +24,7 @@ import java.util.Random;
 /**
  * Responsible for the decay of blocks over time in spleef
  */
-public class DecayManager {
+public class DecayManager implements Listener {
     
     private final Main plugin;
     private final SpleefStorageUtil storageUtil;
@@ -52,6 +59,7 @@ public class DecayManager {
     }
     
     public void start() {
+        plugin.getServer().getPluginManager().registerEvents(this, plugin);
         currentStageIndex = -1;
         currentStage = null;
         secondsLeft = 0;
@@ -60,6 +68,7 @@ public class DecayManager {
     }
     
     public void stop() {
+        HandlerList.unregisterAll(this);
         cancelAllTasks();
         currentStageIndex = 0;
         currentStage = null;
@@ -169,6 +178,50 @@ public class DecayManager {
         }
         
         return coarseDirtBlocks;
+    }
+    
+    @EventHandler
+    public void onBreakBlock(BlockBreakBlockEvent event) {
+        if (currentStage == null) {
+            return;
+        }
+        Block block = event.getBlock();
+        Material blockType = block.getType();
+        if (!blockType.equals(storageUtil.getDecayBlock()) || !blockType.equals(storageUtil.getLayerBlock())) {
+            return;
+        }
+        Location blockLocation = block.getLocation();
+        if (!blockLocation.getWorld().equals(storageUtil.getWorld())) {
+            return;
+        }
+        Vector blockVector = blockLocation.toVector();
+        DecayStage.LayerInfo layerBlockIsIn = getLayerBlockIsIn(blockVector);
+        if (layerBlockIsIn == null) {
+            return;
+        }
+        if (blockType.equals(storageUtil.getLayerBlock())) {
+            layerBlockIsIn.getSolidBlocks().add(block);
+            return;
+        }
+        if (blockType.equals(storageUtil.getDecayBlock())) {
+            layerBlockIsIn.getDecayingBlocks().add(block);
+        }
+    }
+    
+    /**
+     * Checks if the given block location is in one of the current stage's decay layers. If it is,
+     * then we return that layer. If not, we return null. 
+     * @param blockVector the location of the block to check
+     * @return the LayerInfo object from the {@link DecayManager#currentStage} which the block is in. Null if the block is not in any of the layers. 
+     */
+    private @Nullable DecayStage.LayerInfo getLayerBlockIsIn(Vector blockVector) {
+        for (DecayStage.LayerInfo layerInfo : currentStage.getLayerInfos()) {
+            BoundingBox decayLayer = storageUtil.getDecayLayers().get(layerInfo.getIndex());
+            if (decayLayer.contains(blockVector)) {
+                return layerInfo;
+            }
+        }
+        return null;
     }
     
     public void setAliveCount(long aliveCount) {
