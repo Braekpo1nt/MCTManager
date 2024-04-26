@@ -4,6 +4,9 @@ This plugin manages the logic and games for Minecraft Tournament (MCT).
 
 Check out [MCT Official on YouTube](https://www.youtube.com/channel/UCDHWFMl0D8vREh7aKzJjzow)!
 
+## Documentation
+Comprehensive documentation for this plugin can be found [here](https://braekpo1nt.github.io/mctmanager-docs/).
+
 ## Authors
 - This plugin was programmed by Braekpo1nt. Find him on [YouTube](https://www.youtube.com/@braekpo1nt), [twitter](https://twitter.com/braekpo1nt), [facebook](https://www.facebook.com/Braekpo1nt/), or [instagram](https://www.instagram.com/braekpo1nt/).
 - The event this plugin supports was created by SgtShotgun. Find them on [YouTube](https://www.youtube.com/@SgtShotgun) and [twitter](https://twitter.com/SgtShotgun1) 
@@ -22,64 +25,8 @@ As of release `v0.3.0-alpha`, this plugin expects the following data packs in th
 Required plugins. Read this or you will get errors. 
 
 - This plugin softdepends on [LuckPerms](https://www.spigotmc.org/resources/luckperms.28140/) or any permissions manager (only tested with LuckPerms)
-  - If you use [Multiverse-Core v4.3.1](https://github.com/Multiverse/Multiverse-Core/releases/tag/v4.3.1) in your server, You will need to give all players the `mv.bypass.gamemode.*`, as this is the only way to avoid Multiverse-Core forcing gamemodes on your players during your games. 
-    - If you don't give this permission to all participants, they will be able to respawn by disconnecting and reconnecting, and will often be in the wrong game mode when travelling worlds. 
-
-# Commands
-
-See the [commands reference](./docs/commands.md) for all commands and what they do.
-
-# Running the event
-
-### Starting a game
-You can start a game with the following command:
-
-- [/mct game start <game>](./docs/commands.md#mct-game)
-
-You can also start a game with a [vote](#voting)
-
-### Stopping a game
-If a game is running, you can manually stop a game with the following command:
-
-- [/mct game stop [true|false]](./docs/commands.md#mct-game)
-
-### Voting
-
-You can initiate a vote for all online participants. You must specify the games you want to be voted for (must be at least one):
-
-- [/mct game vote [one or more games]](./docs/commands.md#mct-game)
-
-### Adding a new team
-Every participant must be on a team, so you must first have at least one team. To add a new team, use the [/mct team](./docs/commands.md#mct-team) command.
-
-### Removing a team
-You can remove a team entirely using the [/mct team](./docs/commands.md#mct-team) command. Points are lost and team members are removed, also losing their points, as if you [removed them manually](#removing-a-participant)
-
-
-## Participants
-In order to host an event, you need to [add participants](#adding-a-new-participant) (the plugin has to know who is a participant and who is an admin).
-
-### Adding a new participant
-Participants must be on a team, so you must first [add a new team](#adding-a-new-team)
-
-To add a new participant, use the [/mct team](./docs/commands.md#mct-team) command.
-
-If you add a new participant while a game is going on, they will be sent to that game as a participant. 
-
-### Removing a participant
-The only way to remove a participant is to leave them from their team using the [/mct team](./docs/commands.md#mct-team) command.
-
-### Listing teams and scores
-
-You can list the teams, their participants, and their scores with the [/mct team](./docs/commands.md#mct-team) command.
-
-### Modifying scores
-
-You can add, subtract, or set the scores of players and teams with the [/mct team](./docs/commands.md#mct-team) command.
-
-# Config files (Configuration files)
-
-Many games and other attributes can be configured using config files. See [this tutorial on config files](./docs/configuration.md) to learn how to modify them to your needs and desires. 
+- If you use [Multiverse-Core v4.3.1](https://github.com/Multiverse/Multiverse-Core/releases/tag/v4.3.1) in your server, You will need to give all players the `mv.bypass.gamemode.*`, as this is the only way to avoid Multiverse-Core forcing gamemodes on your players during your games. 
+  - If you don't give this permission to all participants, they will be able to respawn by disconnecting and reconnecting, and will often be in the wrong game mode when being teleported to different worlds. 
 
 # Development/Contributions
 

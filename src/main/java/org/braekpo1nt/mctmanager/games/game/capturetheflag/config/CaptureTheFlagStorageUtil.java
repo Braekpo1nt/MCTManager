@@ -46,7 +46,7 @@ public class CaptureTheFlagStorageUtil extends GameConfigStorageUtil<CaptureTheF
     protected boolean configIsValid(@Nullable CaptureTheFlagConfig config) throws IllegalArgumentException {
         Preconditions.checkArgument(config != null, "Saved config is null");
         Preconditions.checkArgument(config.version() != null, "version can't be null");
-        Preconditions.checkArgument(config.version().equals(Main.CONFIG_VERSION), "Config version %s not supported. %s required.", config.version(), Main.CONFIG_VERSION);
+        Preconditions.checkArgument(Main.VALID_CONFIG_VERSIONS.contains(config.version()), "invalid config version (%s)", config.version());
         Preconditions.checkArgument(Bukkit.getWorld(config.world()) != null, "Could not find world \"%s\"", config.world());
         Preconditions.checkArgument(config.arenas() != null, "arenas can't be null");
         Preconditions.checkArgument(config.arenas().size() >= 1, "there must be at least 1 arena");

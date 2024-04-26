@@ -40,7 +40,8 @@ import java.util.*;
 public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable {
     
     private final int MAX_LAPS = 3;
-    private final FootRaceStorageUtil storageUtil;
+    private final FootRaceStorageUtil storageUtil;// 3 second
+    private final long COOL_DOWN_TIME = 3000L;
     private Sidebar sidebar;
     private Sidebar adminSidebar;
     private boolean gameActive = false;
@@ -82,11 +83,11 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     
     @Override
     public void start(List<Player> newParticipants, List<Player> newAdmins) {
-        this.participants = new ArrayList<>();
-        lapCooldowns = new HashMap<>();
-        laps = new HashMap<>();
-        placements = new ArrayList<>();
-        admins = new ArrayList<>();
+        this.participants = new ArrayList<>(newParticipants.size());
+        lapCooldowns = new HashMap<>(newParticipants.size());
+        laps = new HashMap<>(newParticipants.size());
+        placements = new ArrayList<>(newParticipants.size());
+        admins = new ArrayList<>(newAdmins.size());
         sidebar = gameManager.getSidebarFactory().createSidebar();
         adminSidebar = gameManager.getSidebarFactory().createSidebar();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
@@ -161,6 +162,9 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         }
         clearSidebar();
         participants.clear();
+        lapCooldowns.clear();
+        laps.clear();
+        placements.clear();
         raceHasStarted = false;
         gameActive = false;
         gameManager.gameIsOver();
@@ -456,16 +460,14 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         if (isInFinishLineBoundingBox(player)) {
             long lastMoveTime = lapCooldowns.get(playerUUID);
             long currentTime = System.currentTimeMillis();
-            long coolDownTime = 3000L; // 3 second
-            if (currentTime - lastMoveTime < coolDownTime) {
-                //Not enough time has elapsed, return without doing anything
+            if (currentTime - lastMoveTime < COOL_DOWN_TIME) {
                 return;
             }
-            lapCooldowns.put(playerUUID, System.currentTimeMillis());
+            lapCooldowns.put(playerUUID, currentTime);
             
             int currentLap = laps.get(playerUUID);
             if (currentLap < MAX_LAPS) {
-                long elapsedTime = System.currentTimeMillis() - raceStartTime;
+                long elapsedTime = currentTime - raceStartTime;
                 int newLap = currentLap + 1;
                 laps.put(playerUUID, newLap);
                 sidebar.updateLine(

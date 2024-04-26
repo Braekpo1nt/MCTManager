@@ -10,6 +10,7 @@ import org.braekpo1nt.mctmanager.games.game.clockwork.Wedge;
 import org.braekpo1nt.mctmanager.games.game.config.GameConfigStorageUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.Nullable;
@@ -43,7 +44,7 @@ public class ClockworkStorageUtil extends GameConfigStorageUtil<ClockworkConfig>
     protected boolean configIsValid(@Nullable ClockworkConfig config) throws IllegalArgumentException {
         Preconditions.checkArgument(config != null, "Saved config is null");
         Preconditions.checkArgument(config.version() != null, "version can't be null");
-        Preconditions.checkArgument(config.version().equals(Main.CONFIG_VERSION), "Config version %s not supported. %s required.", config.version(), Main.CONFIG_VERSION);
+        Preconditions.checkArgument(Main.VALID_CONFIG_VERSIONS.contains(config.version()), "invalid config version (%s)", config.version());
         Preconditions.checkArgument(Bukkit.getWorld(config.world()) != null, "Could not find world \"%s\"", config.world());
         Preconditions.checkArgument(config.startingLocation() != null, "startingLocation can't be null");
         Preconditions.checkArgument(config.spectatorArea() != null, "spectatorArea can't be null");
@@ -58,7 +59,7 @@ public class ClockworkStorageUtil extends GameConfigStorageUtil<ClockworkConfig>
         }
         Preconditions.checkArgument(config.rounds() >= 1, "rounds must be at least 1");
         Preconditions.checkArgument(config.clockChime() != null, "clockChime can't be null");
-        Preconditions.checkArgument(config.clockChime().sound() != null, "clockChime.sound can't be null");
+        config.clockChime().isValid();
         Preconditions.checkArgument(config.initialChimeInterval() >= 0, "initialChimeInterval can't be negative");
         Preconditions.checkArgument(config.chimeIntervalDecrement() >= 0, "chimeIntervalDecrement can't be negative");
         Preconditions.checkArgument(config.chimeIntervalDecrement() > 0, "chimeIntervalDecrement (%s) can't be greater than initialChimeInterval (%s)", config.chimeIntervalDecrement(), config.initialChimeInterval());
@@ -170,15 +171,15 @@ public class ClockworkStorageUtil extends GameConfigStorageUtil<ClockworkConfig>
     }
     
     public String getClockChimeSound() {
-        return clockworkConfig.clockChime().sound();
+        return clockworkConfig.clockChime().getKey();
     }
     
     public float getClockChimeVolume() {
-        return clockworkConfig.clockChime().volume();
+        return clockworkConfig.clockChime().getVolume();
     }
     
     public float getClockChimePitch() {
-        return clockworkConfig.clockChime().pitch();
+        return clockworkConfig.clockChime().getPitch();
     }
     
     public int getStayOnWedgeDuration() {

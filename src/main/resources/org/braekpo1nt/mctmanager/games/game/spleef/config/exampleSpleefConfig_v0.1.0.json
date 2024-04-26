@@ -1,5 +1,5 @@
 {
-  "version": "0.1.1",
+  "version": "0.1.0",
   "world": "TestWorld",
   "startingLocations": [
     {
@@ -105,9 +105,7 @@
       "startMessage": null,
       "layerInfos": [],
       "duration": 30,
-      "minParticipants": -1,
-      "minParticipantsPercent": 0.67,
-      "powerups": false
+      "minParticipants": -1
     },
     {
       "startMessage": "The top 2 layers are decaying!",
@@ -171,80 +169,6 @@
       "minParticipants": -1
     }
   ],
-  "powerups": {
-    "minTimeBetween": 5000,
-    "maxPowerups": 5,
-    "initialLoadout": {
-      "SHIELD": 1
-    },
-    "sources": {
-      "GENERAL": {
-        "chance": 0.05,
-        "types": {
-          "PLAYER_SWAPPER": 45,
-          "BLOCK_BREAKER": 45,
-          "SHIELD": 10
-        }
-      },
-      "BREAK_BLOCK": {
-        "chance": 0.1,
-        "types": {
-          "PLAYER_SWAPPER": 1,
-          "BLOCK_BREAKER": 1
-        }
-      }
-    },
-    "powerups": {
-      "PLAYER_SWAPPER": {
-        "userSound": {
-          "namespacedKey": {
-            "key": "entity.enderman.teleport",
-            "volume": 100,
-            "pitch": 1
-          }
-        },
-        "affectedSound": {
-          "namespacedKey": {
-            "key": "entity.enderman.teleport",
-            "volume": 100,
-            "pitch": 1
-          }
-        }
-      },
-      "BLOCK_BREAKER": {
-        "userSound": {
-          "namespacedKey": {
-            "key": "block.snow.break",
-            "volume": 100,
-            "pitch": 1
-          }
-        },
-        "affectedSound": {
-          "namespacedKey": {
-            "key": "block.snow.break",
-            "volume": 100,
-            "pitch": 1
-          }
-        }
-      },
-      "SHIELD": {
-        "userSound": {
-          "namespacedKey": {
-            "key": "item.shield.block",
-            "volume": 100,
-            "pitch": 1
-          }
-        },
-        "affectedSound": {
-          "namespacedKey": {
-            "key": "entity.endermite.hurt",
-            "volume": 100,
-            "pitch": 1
-          }
-        }
-      }
-    }
-  },
   "scores": {
     "survive": 10
   },

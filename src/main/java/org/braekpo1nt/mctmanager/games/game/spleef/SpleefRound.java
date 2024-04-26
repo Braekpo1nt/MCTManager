@@ -5,6 +5,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.spleef.config.SpleefStorageUtil;
+import org.braekpo1nt.mctmanager.games.game.spleef.powerup.PowerupManager;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
@@ -14,7 +15,6 @@ import org.bukkit.GameMode;
 import org.bukkit.Bukkit;
 import org.bukkit.block.structure.Mirror;
 import org.bukkit.block.structure.StructureRotation;
-import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.EventHandler;
@@ -26,12 +26,10 @@ import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.Material;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 import org.bukkit.structure.Structure;
-import org.bukkit.util.BlockVector;
 import org.bukkit.util.BoundingBox;
 
 import java.util.*;
@@ -48,6 +46,7 @@ public class SpleefRound implements Listener {
     private boolean roundActive = false;
     private final SpleefGame spleefGame;
     private final DecayManager decayManager;
+    private final PowerupManager powerupManager;
     private int startCountDownTaskID;
     
     public SpleefRound(Main plugin, GameManager gameManager, SpleefGame spleefGame, SpleefStorageUtil spleefStorageUtil, Sidebar sidebar, Sidebar adminSidebar) {
@@ -58,6 +57,7 @@ public class SpleefRound implements Listener {
         this.sidebar = sidebar;
         this.adminSidebar = adminSidebar;
         this.decayManager = new DecayManager(plugin, storageUtil, this);
+        this.powerupManager = new PowerupManager(plugin, storageUtil);
     }
     
     public void start(List<Player> newParticipants) {
@@ -73,6 +73,7 @@ public class SpleefRound implements Listener {
         setupTeamOptions();
         startRoundStartingCountDown();
         decayManager.setAliveCount(newParticipants.size());
+        decayManager.setAlivePercent(1);
         spleefHasStarted = false;
         roundActive = true;
         Bukkit.getLogger().info("Starting Spleef round");
@@ -111,6 +112,7 @@ public class SpleefRound implements Listener {
         roundActive = false;
         HandlerList.unregisterAll(this);
         decayManager.stop();
+        powerupManager.stop();
         placeLayers(false);
         cancelAllTasks();
         for (Player participant : participants) {
@@ -146,11 +148,13 @@ public class SpleefRound implements Listener {
                     .append(Component.text(" is joining Spleef!"))
                     .color(NamedTextColor.YELLOW));
         }
+        powerupManager.addParticipant(participant);
         long aliveCount = getAliveCount();
         String alive = String.format("Alive: %s", aliveCount);
         sidebar.updateLine("alive", alive);
         adminSidebar.updateLine("alive", alive);
         decayManager.setAliveCount(aliveCount);
+        decayManager.setAlivePercent(aliveCount / (double) participants.size());
     }
     
     private boolean participantShouldRejoin(Player participant) {
@@ -267,6 +271,9 @@ public class SpleefRound implements Listener {
             return;
         }
         if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+            if (powerupManager.isPowerup(event.getItem())) {
+                return;
+            }
             event.setCancelled(true);
         }
     }
@@ -276,8 +283,9 @@ public class SpleefRound implements Listener {
         ParticipantInitializer.resetHealthAndHunger(killed);
         killed.getInventory().clear();
         participantsAlive.put(killed.getUniqueId(), false);
+        powerupManager.removeParticipant(killed);
         String killedTeam = gameManager.getTeamName(killed.getUniqueId());
-        int count = participants.size();
+        int aliveCount = participants.size();
         for (Player participant : participants) {
             if (participantsAlive.get(participant.getUniqueId())) {
                 String teamName = gameManager.getTeamName(participant.getUniqueId());
@@ -285,13 +293,14 @@ public class SpleefRound implements Listener {
                     gameManager.awardPointsToParticipant(participant, storageUtil.getSurviveScore());
                 }
             } else {
-                count--;
+                aliveCount--;
             }
         }
-        String alive = String.format("Alive: %s", count);
+        String alive = String.format("Alive: %s", aliveCount);
         sidebar.updateLine("alive", alive);
         adminSidebar.updateLine("alive", alive);
-        decayManager.setAliveCount(getAliveCount());
+        decayManager.setAliveCount(aliveCount);
+        decayManager.setAlivePercent(aliveCount / (double) participants.size());
     }
     
     private void startSpleef() {
@@ -304,6 +313,7 @@ public class SpleefRound implements Listener {
         }
         spleefHasStarted = true;
         decayManager.start();
+        powerupManager.start(participants);
     }
     
     private void giveTools() {
@@ -359,6 +369,7 @@ public class SpleefRound implements Listener {
         if (!participants.contains(participant)) {
             return;
         }
+        powerupManager.onParticipantBreakBlock(participant);
         event.setDropItems(false);
     }
     
@@ -416,5 +427,12 @@ public class SpleefRound implements Listener {
      */
     private long getAliveCount() {
         return participantsAlive.values().stream().filter(value -> value).count();
+    }
+    
+    /**
+     * @param shouldGivePowerups true means powerups should be given, false means they should not
+     */
+    public void setShouldGivePowerups(boolean shouldGivePowerups) {
+        powerupManager.setShouldGivePowerups(shouldGivePowerups);
     }
 }

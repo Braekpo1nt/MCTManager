@@ -15,6 +15,7 @@ import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
+import org.braekpo1nt.mctmanager.utils.MathUtils;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
@@ -951,31 +952,9 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
      * @param chest The chest to fill
      */
     private void fillMapChest(Chest chest) {
-        LootTable lootTable = getRandomLootTable(storageUtil.getWeightedMechaLootTables());
+        LootTable lootTable = MathUtils.getWeightedRandomValue(storageUtil.getWeightedMechaLootTables());
         chest.setLootTable(lootTable);
         chest.update();
-    }
-    
-    /**
-     * Gets a random loot table from loots, using the provided weights
-     * @return A loot table for a chest. Null if there are zero weightedLootTables passed in
-     */
-    private @Nullable LootTable getRandomLootTable(Map<LootTable, Integer> weightedLootTables) {
-        int totalWeight = 0;
-        Collection<Integer> weights = weightedLootTables.values();
-        for (int weight : weights) {
-            totalWeight += weight;
-        }
-        int randomIndex = (int) (Math.random() * totalWeight);
-        int weightSum = 0;
-        for (Map.Entry<LootTable, Integer> entry : weightedLootTables.entrySet()) {
-            int weight = entry.getValue();
-            weightSum += weight;
-            if (randomIndex < weightSum) {
-                return entry.getKey();
-            }
-        }
-        return null;
     }
     
     private void messageAllParticipants(Component message) {

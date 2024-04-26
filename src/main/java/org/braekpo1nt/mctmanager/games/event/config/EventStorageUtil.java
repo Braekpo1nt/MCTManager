@@ -28,7 +28,7 @@ public class EventStorageUtil extends GameConfigStorageUtil<EventConfig> {
     protected boolean configIsValid(@Nullable EventConfig config) throws IllegalArgumentException {
         Preconditions.checkArgument(config != null, "config is null");
         Preconditions.checkArgument(config.version() != null, "version can't be null");
-        Preconditions.checkArgument(config.version().equals(Main.CONFIG_VERSION), "version %s doesn't match required config version %s", config.version(), Main.CONFIG_VERSION);
+        Preconditions.checkArgument(Main.VALID_CONFIG_VERSIONS.contains(config.version()), "invalid config version (%s)", config.version());
         Preconditions.checkArgument(config.title() != null, "title can't be null");
         Preconditions.checkArgument(config.title().length() >= 1, "title must be at least 1 character");
         Preconditions.checkArgument(config.multipliers() != null, "multipliers can't be null");

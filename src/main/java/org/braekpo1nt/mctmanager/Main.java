@@ -16,9 +16,12 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 
+import java.util.List;
+
 public class Main extends JavaPlugin {
 
-    public static final String CONFIG_VERSION = "0.1.0";
+    public static final List<String> VALID_CONFIG_VERSIONS = List.of("0.1.0", "0.1.1");
+    
     /**
      * A default Gson instance for general use
      */

@@ -1,15 +1,20 @@
 package org.braekpo1nt.mctmanager.games.game.spleef.config;
 
+import com.google.common.base.Preconditions;
 import com.google.gson.JsonElement;
+import lombok.Getter;
 import org.braekpo1nt.mctmanager.games.game.config.BoundingBoxDTO;
 import org.braekpo1nt.mctmanager.games.game.config.NamespacedKeyDTO;
 import org.braekpo1nt.mctmanager.games.game.config.inventory.ItemStackDTO;
 import org.braekpo1nt.mctmanager.games.game.spleef.DecayStage;
+import org.braekpo1nt.mctmanager.games.game.spleef.powerup.Powerup;
 import org.bukkit.Material;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 
@@ -27,7 +32,7 @@ import java.util.List;
  * @param durations the durations for spleef
  * @param description the description of spleef
  */
-record SpleefConfig(String version, String world, List<Vector> startingLocations, BoundingBoxDTO spectatorArea, @Nullable Material stencilBlock, @Nullable Material layerBlock, @Nullable Material decayBlock, List<Layer> layers, List<DecayStage> decayStages, @Nullable ItemStackDTO tool, int rounds, Scores scores, Durations durations, JsonElement description) {
+record SpleefConfig(String version, String world, List<Vector> startingLocations, BoundingBoxDTO spectatorArea, @Nullable Material stencilBlock, @Nullable Material layerBlock, @Nullable Material decayBlock, List<Layer> layers, List<DecayStage> decayStages, @Nullable ItemStackDTO tool, int rounds, Powerups powerups, Scores scores, Durations durations, JsonElement description) {
     
     /**
      * @param structure the NamespacedKey of the structure to place for this layer
@@ -37,6 +42,116 @@ record SpleefConfig(String version, String world, List<Vector> startingLocations
     record Layer(@Nullable NamespacedKeyDTO structure, Vector structureOrigin, @Nullable BoundingBoxDTO decayArea) {
     }
     
+    /**
+     * 
+     * @param minTimeBetween the minimum time (in milliseconds) between getting powerups. Players should not get two powerups one after another immediately. 0 means no restriction. Defaults to 0
+     * @param maxPowerups limit the number of powerups a player can have. If they are at max, they won't collect any more until they use some of them. 0 means players can't hold any powerups at all. Negative values indicate unlimited powerup collection. Defaults to 0
+     * @param initialLoadout the initial loadout of powerups in the participant's inventories at the start of every round. Null means empty. The key is the type powerup, the value is how many of that powerup the players are given.
+     * @param powerups configuration of powerup attributes, such as the sounds that come from them.
+     * @param sources configuration of the sources, such as their likelihood of giving a powerup and what powerups come from it. 
+     */
+    record Powerups(long minTimeBetween, int maxPowerups, @Nullable Map<Powerup.Type, @Nullable Integer> initialLoadout, @Nullable Map<Powerup.Type, @Nullable PowerupDTO> powerups, @Nullable Map<Powerup.Source, @Nullable SourceDTO> sources) {
+        
+        @NotNull Map<Powerup.Type, @NotNull Integer> getInitialLoadout() {
+            if (initialLoadout == null) {
+                return Collections.emptyMap();
+            }
+            return initialLoadout.entrySet().stream().filter(entry -> entry.getValue() != null).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        }
+        
+        /**
+         * Configuration of each source, namely the chance of it giving a powerup upon activation, the types that can come from it, and their weights. 
+         */
+        @Getter
+        static class SourceDTO {
+            /**
+             * the percent chance of this source giving a powerup every time it is used. 0 or fewer means no powerups will be given from this source. Defaults to -1.
+             */
+            private double chance = -1;
+            /**
+             * the types which can come from this source paired with their weights from this source. If null, all types can come from this source. If empty, no types can come from this source. Must not contain null keys or values.
+             */
+            private @Nullable Map<Powerup.@Nullable Type, @Nullable Integer> types;
+            
+            void isValid() {
+                Preconditions.checkArgument(chance <= 1.0, "chance can't be greater than 1.0");
+                if (types != null) {
+                    Preconditions.checkArgument(!types.containsKey(null), "types can't contain null keys");
+                    Preconditions.checkArgument(!types.containsValue(null), "types can't contain null values");
+                }
+            }
+        }
+        
+        void isValid() {
+            Preconditions.checkArgument(minTimeBetween >= 0, "minTimeBetween must be greater than or equal to 0");
+            if (initialLoadout != null) {
+                Preconditions.checkArgument(!initialLoadout.containsKey(null), "initialLoadout can't have null keys");
+                Preconditions.checkArgument(!initialLoadout.containsValue(null), "initialLoadout can't have null entries");
+            }
+            
+            if (powerups != null) {
+                for (PowerupDTO powerupDTO : powerups.values()) {
+                    if (powerupDTO != null) {
+                        powerupDTO.isValid();
+                    }
+                }
+            }
+            
+            if (sources != null) {
+                Preconditions.checkArgument(!sources.containsKey(null), "sources can't have null keys");
+                Preconditions.checkArgument(!sources.containsValue(null), "sources can't have null entries");
+                for (SourceDTO sourceDTO : sources.values()) {
+                    if (sourceDTO != null) {
+                        sourceDTO.isValid();
+                    }
+                }
+            }
+        }
+        
+        /**
+         * Each key is mapped to a type-to-weight map, where the keys are the types which can come from the respective source key, and the values are the weights of those types. The weights are used to randomly choose a powerup from the given source.
+         * If the 
+         * @return a map from every {@link Powerup.Source} to the {@link Powerup.Type}+weight pairs which come from the source. 
+         */
+        @NotNull Map<Powerup.Source, Map<Powerup.Type, @NotNull Integer>> getSourcePowerups() {
+            Map<Powerup.Source, Map<Powerup.Type, Integer>> result = SpleefStorageUtil.getDefaultSourcePowerups();
+            if (sources == null) {
+                return result;
+            }
+            for (Map.Entry<Powerup.Source, @Nullable SourceDTO> entry : sources.entrySet()) {
+                Powerup.Source source = entry.getKey();
+                SourceDTO sourceDTO = entry.getValue();
+                if (sourceDTO != null) {
+                    result.put(source, sourceDTO.getTypes());
+                }
+            }
+            return result;
+        }
+        
+        /**
+         * @return each {@link Powerup.Source} paired with the chance it has to give a powerup upon activation. 
+         */
+        @NotNull Map<Powerup.Source, @NotNull Double> getChances() {
+            if (sources == null) {
+                return SpleefStorageUtil.getDefaultChances();
+            }
+            Map<Powerup.Source, Double> result = new HashMap<>();
+            for (Map.Entry<Powerup.Source, SourceDTO> entry : sources.entrySet()) {
+                Powerup.Source source = entry.getKey();
+                SourceDTO sourceDTO = entry.getValue();
+                if (sourceDTO != null) {
+                    result.put(source, sourceDTO.chance);
+                } else {
+                    result.put(source, -1.0);
+                }
+            }
+            return result;
+        }
+    }
+    
+    /**
+     * @param survive the score given to every living player each time a single player dies. Players on the same team as the player who died will not receive points. w
+     */
     record Scores(int survive) {
     }
     
