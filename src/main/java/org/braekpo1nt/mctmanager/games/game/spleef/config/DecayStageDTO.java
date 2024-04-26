@@ -3,7 +3,9 @@ package org.braekpo1nt.mctmanager.games.game.spleef.config;
 import lombok.Getter;
 import org.braekpo1nt.mctmanager.games.game.spleef.DecayStage;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Getter
 public class DecayStageDTO {
@@ -42,7 +44,7 @@ public class DecayStageDTO {
         }
         
         static List<DecayStage.LayerInfo> toLayerInfos(List<LayerInfoDTO> layerInfoDTOS) {
-            return layerInfoDTOS.stream().map(LayerInfoDTO::toLayerInfo).toList();
+            return layerInfoDTOS.stream().map(LayerInfoDTO::toLayerInfo).collect(Collectors.toCollection(ArrayList::new));
         }
     }
     
@@ -51,7 +53,7 @@ public class DecayStageDTO {
     }
     
     static List<DecayStage> toDecayStages(List<DecayStageDTO> decayStageDTOS) {
-        return decayStageDTOS.stream().map(DecayStageDTO::toDecayStage).toList();
+        return decayStageDTOS.stream().map(DecayStageDTO::toDecayStage).collect(Collectors.toCollection(ArrayList::new));
     }
     
 }
