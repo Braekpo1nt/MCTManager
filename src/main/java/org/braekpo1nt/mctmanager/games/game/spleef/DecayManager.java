@@ -15,6 +15,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -95,8 +96,8 @@ public class DecayManager implements Listener {
                 secondsLeft--;
                 
                 for (DecayStage.LayerInfo layerInfo : currentStage.getLayerInfos()) {
-                    decayRandomBlocks(layerInfo.getSolidBlocks(), storageUtil.getDecayBlock(), layerInfo.getBlocksPerSecond());
-                    decayRandomBlocks(layerInfo.getDecayingBlocks(), Material.AIR, layerInfo.getBlocksPerSecond());
+                    randomlyDecaySolidBlocks(layerInfo.getSolidBlocks(), layerInfo.getDecayingBlocks(), layerInfo.getBlocksPerSecond());
+                    randomlyRemoveDecayingBlocks(layerInfo.getDecayingBlocks(), layerInfo.getBlocksPerSecond());
                 }
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -120,8 +121,8 @@ public class DecayManager implements Listener {
         currentStage = storageUtil.getStages().get(currentStageIndex);
         for (DecayStage.LayerInfo layerInfo : currentStage.getLayerInfos()) {
             BoundingBox decayLayer = storageUtil.getDecayLayers().get(layerInfo.getIndex());
-            layerInfo.setSolidBlocks(getSolidBlocks(decayLayer));
-            layerInfo.setDecayingBlocks(getDecayingBlocks(decayLayer));
+            layerInfo.setSolidBlocks(getBlocksInWorld(decayLayer, storageUtil.getLayerBlock()));
+            layerInfo.setDecayingBlocks(getBlocksInWorld(decayLayer, storageUtil.getDecayBlock()));
         }
         secondsLeft = currentStage.getDuration();
         if (currentStage.getStartMessage() != null) {
@@ -132,52 +133,62 @@ public class DecayManager implements Listener {
     }
     
     /**
-     * Changes n blocks in the given list to the given material, where n is the given count.. 
-     * @param blocks the blocks to decay a random subset of
-     * @param to the material to decay the blocks to
-     * @param count how many blocks to decay from the given list. If count is less than blocks.size(), then blocks.size() blocks will be decayed.
+     * Changes n blocks in the given list to the decaying material, where n is the given count. Each randomly chosen block is removed from the solidBlocks list and added to the decayingBlocks list.
+     * @param solidBlocks the list to decay a random subset of
+     * @param decayingBlocks the list to add the decaying block to
+     * @param count how many blocks to decay from the given list. If count is less than solidBlocks.size(), , then all the blocks that are left will be decayed. 
      */
-    private void decayRandomBlocks(List<Block> blocks, Material to, int count) {
-        for (int i = 0; i < Math.min(count, blocks.size()); i++) {
-            int indexToDecay = random.nextInt(blocks.size());
-            Block randomCoarseDirtBlock = blocks.get(indexToDecay);
-            randomCoarseDirtBlock.setType(to);
-            blocks.remove(indexToDecay);
+    private void randomlyDecaySolidBlocks(List<Block> solidBlocks, List<Block> decayingBlocks, int count) {
+        if (solidBlocks.size() <= count) {
+            decayingBlocks.addAll(solidBlocks);
+            for (Block solidBlock : solidBlocks) {
+                solidBlock.setType(storageUtil.getDecayBlock());
+            }
+        }
+        for (int i = 0; i < count; i++) {
+            int indexToDecay = random.nextInt(solidBlocks.size());
+            Block newDecayingBlock = solidBlocks.get(indexToDecay);
+            newDecayingBlock.setType(storageUtil.getDecayBlock());
+            solidBlocks.remove(indexToDecay);
+            decayingBlocks.add(newDecayingBlock);
         }
     }
     
-    private List<Block> getSolidBlocks(BoundingBox layer) {
-        List<Block> dirtBlocks = new ArrayList<>();
+    /**
+     * Changes n blocks in the given list to air, where n is the given count. Each randomly chosen block is removed from the decayingBlocks list.
+     * @param decayingBlocks the list to remove a random subset of
+     * @param count how many blocks to decay from the given list. If count is less than decayingBlocks.size(), then all the blocks that are left will be removed. 
+     */
+    private void randomlyRemoveDecayingBlocks(List<Block> decayingBlocks, int count) {
+        if (decayingBlocks.size() <= count) {
+            for (Block decayingBlock : decayingBlocks) {
+                decayingBlock.setType(Material.AIR);
+            }
+            decayingBlocks.clear();
+        }
+        for (int i = 0; i < count; i++) {
+            int indexToDecay = random.nextInt(decayingBlocks.size());
+            Block randomCoarseDirtBlock = decayingBlocks.get(indexToDecay);
+            randomCoarseDirtBlock.setType(Material.AIR);
+            decayingBlocks.remove(indexToDecay);
+        }
+    }
+    
+    private List<Block> getBlocksInWorld(@NotNull BoundingBox layer, @NotNull Material type) {
+        List<Block> solidBlocks = new ArrayList<>();
         
         for (int x = layer.getMin().getBlockX(); x <= layer.getMaxX(); x++) {
             for (int y = layer.getMin().getBlockY(); y <= layer.getMaxY(); y++) {
                 for (int z = layer.getMin().getBlockZ(); z <= layer.getMaxZ(); z++) {
                     Block block = storageUtil.getWorld().getBlockAt(x, y, z);
-                    if (block.getType() == storageUtil.getLayerBlock()) {
-                        dirtBlocks.add(block);
+                    if (block.getType().equals(type)) {
+                        solidBlocks.add(block);
                     }
                 }
             }
         }
         
-        return dirtBlocks;
-    }
-    
-    private List<Block> getDecayingBlocks(BoundingBox layer) {
-        List<Block> coarseDirtBlocks = new ArrayList<>();
-        
-        for (int x = layer.getMin().getBlockX(); x <= layer.getMaxX(); x++) {
-            for (int y = layer.getMin().getBlockY(); y <= layer.getMaxY(); y++) {
-                for (int z = layer.getMin().getBlockZ(); z <= layer.getMaxZ(); z++) {
-                    Block block = storageUtil.getWorld().getBlockAt(x, y, z);
-                    if (block.getType() == storageUtil.getDecayBlock()) {
-                        coarseDirtBlocks.add(block);
-                    }
-                }
-            }
-        }
-        
-        return coarseDirtBlocks;
+        return solidBlocks;
     }
     
     @EventHandler
