@@ -191,7 +191,9 @@
   ],
   "rounds": 3,
   "clockChime": {
-    "sound": "block.bell.use",
+    "namespacedKey": {
+      "key": "block.bell.use"
+    },
     "volume": 100.0,
     "pitch": 2.0
   },
