@@ -54,7 +54,7 @@
         "minY": 37,
         "minZ": -2022,
         "maxX": 22,
-        "maxY": 37,
+        "maxY": 38,
         "maxZ": -1978
       }
     },
@@ -67,6 +67,14 @@
         "x": -22,
         "y": 30,
         "z": -2022
+      },
+      "decayArea": {
+        "minX": -22,
+        "minY": 30,
+        "minZ": -2022,
+        "maxX": 22,
+        "maxY": 31,
+        "maxZ": -1978
       }
     },
     {
@@ -78,6 +86,14 @@
         "x": -22,
         "y": 24,
         "z": -2022
+      },
+      "decayArea": {
+        "minX": -22,
+        "minY": 24,
+        "minZ": -2022,
+        "maxX": 22,
+        "maxY": 25,
+        "maxZ": -1978
       }
     },
     {
@@ -95,7 +111,7 @@
         "minY": 19,
         "minZ": -2022,
         "maxX": 22,
-        "maxY": 19,
+        "maxY": 20,
         "maxZ": -1978
       }
     }
@@ -114,11 +130,13 @@
       "layerInfos": [
         {
           "index": 0,
-          "blocksPerSecond": 8
+          "solidBlockRate": 8,
+          "decayingBlockRate": 7
         },
         {
           "index": 1,
-          "blocksPerSecond": 6
+          "solidBlockRate": 6,
+          "decayingBlockRate": 5
         }
       ],
       "duration": 60,
@@ -129,19 +147,23 @@
       "layerInfos": [
         {
           "index": 0,
-          "blocksPerSecond": 10
+          "solidBlockRate": 10,
+          "decayingBlockRate": 9
         },
         {
           "index": 1,
-          "blocksPerSecond": 8
+          "solidBlockRate": 8,
+          "decayingBlockRate": 7
         },
         {
           "index": 2,
-          "blocksPerSecond": 6
+          "solidBlockRate": 6,
+          "decayingBlockRate": 5
         },
         {
           "index": 3,
-          "blocksPerSecond": 4
+          "solidBlockRate": 4,
+          "decayingBlockRate": 3
         }
       ],
       "duration": 60,
@@ -152,19 +174,22 @@
       "layerInfos": [
         {
           "index": 0,
-          "blocksPerSecond": 20
+          "solidBlockRate": 20,
+          "decayingBlockRate": 15
         },
         {
           "index": 1,
-          "blocksPerSecond": 14
+          "solidBlockRate": 14,
+          "decayingBlockRate": 12
         },
         {
           "index": 2,
-          "blocksPerSecond": 12
+          "solidBlockRate": 12,
+          "decayingBlockRate": 11
         },
         {
           "index": 3,
-          "blocksPerSecond": 10
+          "solidBlockRate": 10
         }
       ],
       "duration": 300,

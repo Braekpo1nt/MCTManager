@@ -4,20 +4,29 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.spleef.config.SpleefStorageUtil;
+import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.HandlerList;
+import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.BoundingBox;
+import org.bukkit.util.Vector;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
 /**
  * Responsible for the decay of blocks over time in spleef
  */
-public class DecayManager {
+public class DecayManager implements Listener {
     
     private final Main plugin;
     private final SpleefStorageUtil storageUtil;
@@ -52,6 +61,7 @@ public class DecayManager {
     }
     
     public void start() {
+        plugin.getServer().getPluginManager().registerEvents(this, plugin);
         currentStageIndex = -1;
         currentStage = null;
         secondsLeft = 0;
@@ -60,6 +70,7 @@ public class DecayManager {
     }
     
     public void stop() {
+        HandlerList.unregisterAll(this);
         cancelAllTasks();
         currentStageIndex = 0;
         currentStage = null;
@@ -86,8 +97,8 @@ public class DecayManager {
                 secondsLeft--;
                 
                 for (DecayStage.LayerInfo layerInfo : currentStage.getLayerInfos()) {
-                    BoundingBox decayLayer = storageUtil.getDecayLayers().get(layerInfo.index());
-                    decayLayer(decayLayer, layerInfo.blocksPerSecond());
+                    randomlyRemoveDecayingBlocks(layerInfo.getDecayingBlocks(), layerInfo.getDecayingBlockRate());
+                    randomlyDecaySolidBlocks(layerInfo.getSolidBlocks(), layerInfo.getDecayingBlocks(), layerInfo.getSolidBlockRate());
                 }
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -104,8 +115,16 @@ public class DecayManager {
      * starts the next decay stage
      */
     private void startNextStage() {
+        if (currentStage != null) {
+            currentStage.clearBlocks();
+        }
         currentStageIndex++;
         currentStage = storageUtil.getStages().get(currentStageIndex);
+        for (DecayStage.LayerInfo layerInfo : currentStage.getLayerInfos()) {
+            BoundingBox decayLayer = storageUtil.getDecayLayers().get(layerInfo.getIndex());
+            layerInfo.setSolidBlocks(BlockPlacementUtils.getBlocks(storageUtil.getWorld(), decayLayer, Collections.singletonList(storageUtil.getLayerBlock())));
+            layerInfo.setDecayingBlocks(BlockPlacementUtils.getBlocks(storageUtil.getWorld(), decayLayer, Collections.singletonList(storageUtil.getDecayBlock())));
+        }
         secondsLeft = currentStage.getDuration();
         if (currentStage.getStartMessage() != null) {
             spleefRound.messageAllParticipants(Component.text(currentStage.getStartMessage())
@@ -115,63 +134,105 @@ public class DecayManager {
     }
     
     /**
-     * 
-     * @param decayLayer the area to decay within
-     * @param blocks the number of blocks to decay
+     * Changes n blocks in the given list to the decaying material, where n is the given count. Each randomly chosen block is removed from the solidBlocks list and added to the decayingBlocks list.
+     * @param solidBlocks the list to decay a random subset of
+     * @param decayingBlocks the list to add the decaying block to
+     * @param count how many blocks to decay from the given list. If count is less than solidBlocks.size(), , then all the blocks that are left will be decayed. 
      */
-    private void decayLayer(BoundingBox decayLayer, int blocks) {
-        List<Block> coarseDirtBlocks = getCoarseDirtBlocks(decayLayer);
-        List<Block> dirtBlocks = getDirtBlocks(decayLayer);
-        
-        // Decay coarse dirt blocks to air
-        if (!coarseDirtBlocks.isEmpty()) {
-            for (int i = 0; i < blocks; i++) {
-                Block randomCoarseDirtBlock = coarseDirtBlocks.get(random.nextInt(coarseDirtBlocks.size()));
-                randomCoarseDirtBlock.setType(Material.AIR);
-            }
-        }
-        
-        // Decay dirt blocks to coarse dirt
-        if (!dirtBlocks.isEmpty()) {
-            for (int i = 0; i < blocks; i++) {
-                Block randomDirtBlock = dirtBlocks.get(random.nextInt(dirtBlocks.size()));
-                randomDirtBlock.setType(storageUtil.getDecayBlock());
-            }
+    private void randomlyDecaySolidBlocks(List<Block> solidBlocks, List<Block> decayingBlocks, int count) {
+        for (int i = 0; i < Math.min(count, solidBlocks.size()); i++) {
+            int indexToDecay = random.nextInt(solidBlocks.size());
+            Block newDecayingBlock = solidBlocks.get(indexToDecay);
+            newDecayingBlock.setType(storageUtil.getDecayBlock());
+            solidBlocks.remove(indexToDecay);
+            decayingBlocks.add(newDecayingBlock);
         }
     }
     
-    private List<Block> getDirtBlocks(BoundingBox layer) {
-        List<Block> dirtBlocks = new ArrayList<>();
-        
-        for (int x = layer.getMin().getBlockX(); x <= layer.getMaxX(); x++) {
-            for (int y = layer.getMin().getBlockY(); y <= layer.getMaxY(); y++) {
-                for (int z = layer.getMin().getBlockZ(); z <= layer.getMaxZ(); z++) {
-                    Block block = storageUtil.getWorld().getBlockAt(x, y, z);
-                    if (block.getType() == storageUtil.getLayerBlock()) {
-                        dirtBlocks.add(block);
-                    }
-                }
-            }
+    /**
+     * Changes n blocks in the given list to air, where n is the given count. Each randomly chosen block is removed from the decayingBlocks list.
+     * @param decayingBlocks the list to remove a random subset of
+     * @param count how many blocks to decay from the given list. If count is less than decayingBlocks.size(), then all the blocks that are left will be removed. 
+     */
+    private void randomlyRemoveDecayingBlocks(List<Block> decayingBlocks, int count) {
+        for (int i = 0; i < Math.min(count, decayingBlocks.size()); i++) {
+            int indexToDecay = random.nextInt(decayingBlocks.size());
+            Block randomCoarseDirtBlock = decayingBlocks.get(indexToDecay);
+            randomCoarseDirtBlock.setType(Material.AIR);
+            decayingBlocks.remove(indexToDecay);
         }
-        
-        return dirtBlocks;
     }
     
-    private List<Block> getCoarseDirtBlocks(BoundingBox layer) {
-        List<Block> coarseDirtBlocks = new ArrayList<>();
-        
-        for (int x = layer.getMin().getBlockX(); x <= layer.getMaxX(); x++) {
-            for (int y = layer.getMin().getBlockY(); y <= layer.getMaxY(); y++) {
-                for (int z = layer.getMin().getBlockZ(); z <= layer.getMaxZ(); z++) {
-                    Block block = storageUtil.getWorld().getBlockAt(x, y, z);
-                    if (block.getType() == storageUtil.getDecayBlock()) {
-                        coarseDirtBlocks.add(block);
-                    }
-                }
+    @EventHandler
+    public void onPlaceBlock(BlockPlaceEvent event) {
+        if (currentStage == null) {
+            return;
+        }
+        Block block = event.getBlock();
+        Material blockType = block.getType();
+        if (!blockType.equals(storageUtil.getDecayBlock()) && !blockType.equals(storageUtil.getLayerBlock())) {
+            return;
+        }
+        Location blockLocation = block.getLocation();
+        if (!blockLocation.getWorld().equals(storageUtil.getWorld())) {
+            return;
+        }
+        Vector blockVector = blockLocation.toVector();
+        DecayStage.LayerInfo layerBlockIsIn = getLayerBlockIsIn(blockVector);
+        if (layerBlockIsIn == null) {
+            return;
+        }
+        if (blockType.equals(storageUtil.getLayerBlock())) {
+            layerBlockIsIn.getSolidBlocks().add(block);
+            return;
+        }
+        if (blockType.equals(storageUtil.getDecayBlock())) {
+            layerBlockIsIn.getDecayingBlocks().add(block);
+        }
+    }
+    
+    @EventHandler
+    public void onBreakBlock(BlockBreakEvent event) {
+        if (currentStage == null) {
+            return;
+        }
+        Block block = event.getBlock();
+        Material blockType = block.getType();
+        if (!blockType.equals(storageUtil.getDecayBlock()) && !blockType.equals(storageUtil.getLayerBlock())) {
+            return;
+        }
+        Location blockLocation = block.getLocation();
+        if (!blockLocation.getWorld().equals(storageUtil.getWorld())) {
+            return;
+        }
+        Vector blockVector = blockLocation.toVector();
+        DecayStage.LayerInfo layerBlockIsIn = getLayerBlockIsIn(blockVector);
+        if (layerBlockIsIn == null) {
+            return;
+        }
+        if (blockType.equals(storageUtil.getLayerBlock())) {
+            layerBlockIsIn.getSolidBlocks().remove(block);
+            return;
+        }
+        if (blockType.equals(storageUtil.getDecayBlock())) {
+            layerBlockIsIn.getDecayingBlocks().remove(block);
+        }
+    }
+    
+    /**
+     * Checks if the given block location is in one of the current stage's decay layers. If it is,
+     * then we return that layer. If not, we return null. 
+     * @param blockVector the location of the block to check
+     * @return the LayerInfo object from the {@link DecayManager#currentStage} which the block is in. Null if the block is not in any of the layers. 
+     */
+    private @Nullable DecayStage.LayerInfo getLayerBlockIsIn(Vector blockVector) {
+        for (DecayStage.LayerInfo layerInfo : currentStage.getLayerInfos()) {
+            BoundingBox decayLayer = storageUtil.getDecayLayers().get(layerInfo.getIndex());
+            if (decayLayer.contains(blockVector)) {
+                return layerInfo;
             }
         }
-        
-        return coarseDirtBlocks;
+        return null;
     }
     
     public void setAliveCount(long aliveCount) {

@@ -57,6 +57,11 @@ class BoundingBoxSubCommand implements TabExecutor {
         double z2 = Double.parseDouble(args[5]);
         
         BoundingBox boundingBox = new BoundingBox(x1, y1, z1, x2, y2, z2);
+        if (boundingBox.getMin().equals(boundingBox.getMax())) {
+            sender.sendMessage(Component.text("The bounding box's min and max corners can't be equal.")
+                    .color(NamedTextColor.RED));
+            return true;
+        }
         String boundingBoxJson = UtilsUtils.GSON.toJson(boundingBox);
         sender.sendMessage(Component.empty()
                 .append(UtilsUtils.attribute("BoundingBox", boundingBoxJson, NamedTextColor.WHITE))
