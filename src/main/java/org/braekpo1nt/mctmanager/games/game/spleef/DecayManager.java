@@ -170,7 +170,7 @@ public class DecayManager implements Listener {
         }
         Block block = event.getBlock();
         Material blockType = block.getType();
-        if (!blockType.equals(storageUtil.getDecayBlock()) || !blockType.equals(storageUtil.getLayerBlock())) {
+        if (!blockType.equals(storageUtil.getDecayBlock()) && !blockType.equals(storageUtil.getLayerBlock())) {
             return;
         }
         Location blockLocation = block.getLocation();
@@ -198,7 +198,7 @@ public class DecayManager implements Listener {
         }
         Block block = event.getBlock();
         Material blockType = block.getType();
-        if (!blockType.equals(storageUtil.getDecayBlock()) || !blockType.equals(storageUtil.getLayerBlock())) {
+        if (!blockType.equals(storageUtil.getDecayBlock()) && !blockType.equals(storageUtil.getLayerBlock())) {
             return;
         }
         Location blockLocation = block.getLocation();
