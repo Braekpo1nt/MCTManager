@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.spleef.config;
 
+import com.google.gson.annotations.SerializedName;
 import lombok.Getter;
 import org.braekpo1nt.mctmanager.games.game.spleef.DecayStage;
 
@@ -41,31 +42,17 @@ public class DecayStageDTO {
          */
         private int index;
         /**
-         * present for backwards compatibility. Defaults to -1. If value is 0 or more, and solidBlockRate is -1, solidBlockRate will be set to blocksPerSecond. If both are below 0, this is invalid.
-         * @deprecated To be removed in the next major release. Use {@link LayerInfoDTO#solidBlockRate} instead
-         * @see LayerInfoDTO#solidBlockRate
+         * the rate at which the solid blocks should decay in Blocks Per Second. Must be at least 0. Defaults to 0.
          */
-        @Deprecated
-        private int blocksPerSecond = -1;
-        /**
-         * the rate at which the solid blocks should decay in Blocks Per Second. Defaults to 0. As of Config Version 0.1.1, if this value is less than 0 and {@link LayerInfoDTO#blocksPerSecond} is 0 or more, this will be set to the value of {@link LayerInfoDTO#blocksPerSecond}. If this value is 0 or more, blocksPerSecond will be ignored entirely. 
-         */
-        private int solidBlockRate = -1;
+        @SerializedName(value = "solidBlockRate", alternate = {"blocksPerSecond"})
+        private int solidBlockRate = 0;
         /**
          * the rate at which the decaying blocks should disappear in Blocks Per Second. Defaults to -1. If this value is less than 0, it will be assigned to the value of {@link LayerInfoDTO#solidBlockRate}.
          */
         private int decayingBlockRate = -1;
-    
+        
         DecayStage.LayerInfo toLayerInfo() {
-            int newSolidBlockRate = solidBlockRate;
-            if (newSolidBlockRate < 0 && blocksPerSecond >= 0) {
-                newSolidBlockRate = blocksPerSecond;
-            }
-            int newDecayingBlockRate = decayingBlockRate;
-            if (newDecayingBlockRate < 0) {
-                newDecayingBlockRate = newSolidBlockRate;
-            }
-            return new DecayStage.LayerInfo(index, newSolidBlockRate, newDecayingBlockRate);
+            return new DecayStage.LayerInfo(index, solidBlockRate, decayingBlockRate < 0 ? solidBlockRate : decayingBlockRate);
         }
         
         static List<DecayStage.LayerInfo> toLayerInfos(List<LayerInfoDTO> layerInfoDTOS) {
