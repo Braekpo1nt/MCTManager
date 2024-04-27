@@ -53,9 +53,13 @@ public class DecayStage {
          */
         private final int index;
         /**
-         * the rate at which the blocks should decay in Blocks Per Second (must be at least 0)
+         * the rate at which the solid blocks should decay in Blocks Per Second (must be at least 0)
          */
-        private final int blocksPerSecond;
+        private final int solidBlockRate;
+        /**
+         * the rate at which the decaying blocks should disappear in Blocks Per Second (must be at least 0)
+         */
+        private final int decayingBlockRate;
         /**
          * The blocks in this layer which are solid, not decayed yet
          */

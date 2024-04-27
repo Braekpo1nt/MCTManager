@@ -88,10 +88,10 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
             // also make sure there are no duplicate indexes
             Set<Integer> usedIndexes = new HashSet<>(decayStageDTO.getLayerInfos().size());
             for (DecayStageDTO.LayerInfoDTO layerInfo : decayStageDTO.getLayerInfos()) {
-                Preconditions.checkArgument(0 <= layerInfo.index() && layerInfo.index() < numberOfLayers, "layerInfo.index must be at least 0, and at most 1 less than the number of elements in layers list");
-                Preconditions.checkArgument(layerInfo.blocksPerSecond() >= 0, "layerInfo.blocksPerSecond must be at least 0");
-                Preconditions.checkArgument(!usedIndexes.contains(layerInfo.index()), "decayStage.layerInfos entries can't have duplicate index values (%s)", layerInfo.index());
-                usedIndexes.add(layerInfo.index());
+                Preconditions.checkArgument(0 <= layerInfo.getIndex() && layerInfo.getIndex() < numberOfLayers, "layerInfo.index must be at least 0, and at most 1 less than the number of elements in layers list");
+                Preconditions.checkArgument(layerInfo.getBlocksPerSecond() >= 0, "layerInfo.blocksPerSecond must be at least 0");
+                Preconditions.checkArgument(!usedIndexes.contains(layerInfo.getIndex()), "decayStage.layerInfos entries can't have duplicate index values (%s)", layerInfo.getIndex());
+                usedIndexes.add(layerInfo.getIndex());
             }
             Preconditions.checkArgument(decayStageDTO.getDuration() > 0, "decayStage.duration must be at least 1");
         }
