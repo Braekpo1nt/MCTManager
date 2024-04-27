@@ -12,6 +12,7 @@ import org.bukkit.block.Block;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
@@ -206,7 +207,7 @@ public class DecayManager implements Listener {
     }
     
     @EventHandler
-    public void onBreakBlock(BlockBreakBlockEvent event) {
+    public void onPlaceBlock(BlockPlaceEvent event) {
         if (currentStage == null) {
             return;
         }
