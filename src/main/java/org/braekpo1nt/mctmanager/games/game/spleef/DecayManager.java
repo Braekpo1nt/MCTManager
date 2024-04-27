@@ -12,6 +12,7 @@ import org.bukkit.block.Block;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.BoundingBox;
@@ -187,6 +188,34 @@ public class DecayManager implements Listener {
         }
         if (blockType.equals(storageUtil.getDecayBlock())) {
             layerBlockIsIn.getDecayingBlocks().add(block);
+        }
+    }
+    
+    @EventHandler
+    public void onBreakBlock(BlockBreakEvent event) {
+        if (currentStage == null) {
+            return;
+        }
+        Block block = event.getBlock();
+        Material blockType = block.getType();
+        if (!blockType.equals(storageUtil.getDecayBlock()) || !blockType.equals(storageUtil.getLayerBlock())) {
+            return;
+        }
+        Location blockLocation = block.getLocation();
+        if (!blockLocation.getWorld().equals(storageUtil.getWorld())) {
+            return;
+        }
+        Vector blockVector = blockLocation.toVector();
+        DecayStage.LayerInfo layerBlockIsIn = getLayerBlockIsIn(blockVector);
+        if (layerBlockIsIn == null) {
+            return;
+        }
+        if (blockType.equals(storageUtil.getLayerBlock())) {
+            layerBlockIsIn.getSolidBlocks().remove(block);
+            return;
+        }
+        if (blockType.equals(storageUtil.getDecayBlock())) {
+            layerBlockIsIn.getDecayingBlocks().remove(block);
         }
     }
     

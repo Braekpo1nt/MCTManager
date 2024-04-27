@@ -271,6 +271,9 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
         return stencilBlock;
     }
     
+    /**
+     * @return the solid block type from the config
+     */
     public @NotNull Material getLayerBlock() {
         return layerBlock;
     }
