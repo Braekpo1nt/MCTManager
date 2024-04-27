@@ -96,8 +96,8 @@ public class DecayManager implements Listener {
                 secondsLeft--;
                 
                 for (DecayStage.LayerInfo layerInfo : currentStage.getLayerInfos()) {
-                    randomlyDecaySolidBlocks(layerInfo.getSolidBlocks(), layerInfo.getDecayingBlocks(), layerInfo.getBlocksPerSecond());
                     randomlyRemoveDecayingBlocks(layerInfo.getDecayingBlocks(), layerInfo.getBlocksPerSecond());
+                    randomlyDecaySolidBlocks(layerInfo.getSolidBlocks(), layerInfo.getDecayingBlocks(), layerInfo.getBlocksPerSecond());
                 }
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -123,6 +123,7 @@ public class DecayManager implements Listener {
             BoundingBox decayLayer = storageUtil.getDecayLayers().get(layerInfo.getIndex());
             layerInfo.setSolidBlocks(getBlocksInWorld(decayLayer, storageUtil.getLayerBlock()));
             layerInfo.setDecayingBlocks(getBlocksInWorld(decayLayer, storageUtil.getDecayBlock()));
+            plugin.getLogger().info(String.format("current stage: %s, decayLayer: %s, solid: %s, decaying: %s, layerInfo.index: %s", currentStageIndex, stringify(decayLayer), layerInfo.getSolidBlocks().size(), layerInfo.getDecayingBlocks().size(), layerInfo.getIndex()));
         }
         secondsLeft = currentStage.getDuration();
         if (currentStage.getStartMessage() != null) {
@@ -130,6 +131,17 @@ public class DecayManager implements Listener {
                     .color(NamedTextColor.DARK_RED));
         }
         spleefRound.setShouldGivePowerups(currentStage.shouldGivePowerups());
+    }
+    
+    public static String stringify(BoundingBox b) {
+        return String.format("[%s %s %s %s %s %s]", 
+                b.getMinX(), 
+                b.getMinY(),
+                b.getMinZ(),
+                b.getMaxX(),
+                b.getMaxY(),
+                b.getMaxZ()
+        );
     }
     
     /**
@@ -144,6 +156,7 @@ public class DecayManager implements Listener {
             for (Block solidBlock : solidBlocks) {
                 solidBlock.setType(storageUtil.getDecayBlock());
             }
+            return;
         }
         for (int i = 0; i < count; i++) {
             int indexToDecay = random.nextInt(solidBlocks.size());
@@ -165,6 +178,7 @@ public class DecayManager implements Listener {
                 decayingBlock.setType(Material.AIR);
             }
             decayingBlocks.clear();
+            return;
         }
         for (int i = 0; i < count; i++) {
             int indexToDecay = random.nextInt(decayingBlocks.size());

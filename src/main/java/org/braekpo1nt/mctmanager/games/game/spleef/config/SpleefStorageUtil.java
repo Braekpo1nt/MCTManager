@@ -8,6 +8,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.config.GameConfigStorageUtil;
+import org.braekpo1nt.mctmanager.games.game.spleef.DecayManager;
 import org.braekpo1nt.mctmanager.games.game.spleef.DecayStage;
 import org.braekpo1nt.mctmanager.games.game.spleef.powerup.Powerup;
 import org.bukkit.Bukkit;
@@ -135,12 +136,8 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
             Preconditions.checkArgument(structure != null, "can't find structure %s", layer.structure());
             newStructures.add(structure);
             newStructureOrigins.add(layer.structureOrigin().toLocation(newWorld));
-            if (layer.decayArea() != null) {
-                newDecayLayers.add(layer.decayArea().toBoundingBox());
-            } else {
-                BoundingBox decayArea = BoundingBox.of(layer.structureOrigin(), structure.getSize());
-                newDecayLayers.add(decayArea);
-            }
+            Preconditions.checkArgument(layer.decayArea() != null, "decayArea can't be null");
+            newDecayLayers.add(layer.decayArea().toBoundingBox());
         }
         List<DecayStage> newDecayStages = DecayStageDTO.toDecayStages(config.decayStages());
         ItemStack newTool;
