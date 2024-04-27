@@ -89,7 +89,7 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
             Set<Integer> usedIndexes = new HashSet<>(decayStageDTO.getLayerInfos().size());
             for (DecayStageDTO.LayerInfoDTO layerInfo : decayStageDTO.getLayerInfos()) {
                 Preconditions.checkArgument(0 <= layerInfo.getIndex() && layerInfo.getIndex() < numberOfLayers, "layerInfo.index must be at least 0, and at most 1 less than the number of elements in layers list");
-                Preconditions.checkArgument(layerInfo.getBlocksPerSecond() >= 0, "layerInfo.blocksPerSecond must be at least 0");
+                Preconditions.checkArgument(layerInfo.getSolidBlockRate() >= 0, "layerInfo.solidBlockRate must be at least 0");
                 Preconditions.checkArgument(!usedIndexes.contains(layerInfo.getIndex()), "decayStage.layerInfos entries can't have duplicate index values (%s)", layerInfo.getIndex());
                 usedIndexes.add(layerInfo.getIndex());
             }

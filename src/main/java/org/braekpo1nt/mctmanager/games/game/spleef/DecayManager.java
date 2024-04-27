@@ -96,11 +96,8 @@ public class DecayManager implements Listener {
                 secondsLeft--;
                 
                 for (DecayStage.LayerInfo layerInfo : currentStage.getLayerInfos()) {
-                    randomlyRemoveDecayingBlocks(layerInfo.getDecayingBlocks(), layerInfo.getSolidBlockRate());
+                    randomlyRemoveDecayingBlocks(layerInfo.getDecayingBlocks(), layerInfo.getDecayingBlockRate());
                     randomlyDecaySolidBlocks(layerInfo.getSolidBlocks(), layerInfo.getDecayingBlocks(), layerInfo.getSolidBlockRate());
-                    if (layerInfo.getIndex() == 0) {
-                        plugin.getLogger().info(String.format("layer: %s, decaying: %s, solid: %s", layerInfo.getIndex(), layerInfo.getDecayingBlocks().size(), layerInfo.getSolidBlocks().size()));
-                    }
                 }
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
