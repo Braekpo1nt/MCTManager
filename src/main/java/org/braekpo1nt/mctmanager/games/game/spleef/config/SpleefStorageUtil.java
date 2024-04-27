@@ -8,7 +8,6 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.config.GameConfigStorageUtil;
-import org.braekpo1nt.mctmanager.games.game.spleef.DecayManager;
 import org.braekpo1nt.mctmanager.games.game.spleef.DecayStage;
 import org.braekpo1nt.mctmanager.games.game.spleef.powerup.Powerup;
 import org.bukkit.Bukkit;
@@ -39,8 +38,8 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
     private Component description;
     private ItemStack tool;
     private Material stencilBlock;
-    private Material layerBlock;
-    private Material decayBlock;
+    private @NotNull Material layerBlock = Material.DIRT;
+    private @NotNull Material decayBlock = Material.COARSE_DIRT;
     private Map<Powerup.Source, @NotNull Double> chances;
     private Map<Powerup.Type, @NotNull Integer> initialLoadout;
     private long minTimeBetween;
@@ -235,7 +234,7 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
     public int getRoundStartingDuration() {
         return spleefConfig.durations().roundStarting();
     }
-
+    
     public int getSurviveScore() {
         return spleefConfig.scores().survive();
     }
@@ -268,15 +267,15 @@ public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
         return tool;
     }
     
-    public Material getStencilBlock() {
+    public @Nullable Material getStencilBlock() {
         return stencilBlock;
     }
     
-    public Material getLayerBlock() {
+    public @NotNull Material getLayerBlock() {
         return layerBlock;
     }
     
-    public Material getDecayBlock() {
+    public @NotNull Material getDecayBlock() {
         return decayBlock;
     }
     
