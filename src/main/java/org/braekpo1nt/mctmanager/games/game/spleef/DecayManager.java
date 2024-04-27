@@ -123,7 +123,6 @@ public class DecayManager implements Listener {
             BoundingBox decayLayer = storageUtil.getDecayLayers().get(layerInfo.getIndex());
             layerInfo.setSolidBlocks(BlockPlacementUtils.getBlocks(storageUtil.getWorld(), decayLayer, Collections.singletonList(storageUtil.getLayerBlock())));
             layerInfo.setDecayingBlocks(BlockPlacementUtils.getBlocks(storageUtil.getWorld(), decayLayer, Collections.singletonList(storageUtil.getDecayBlock())));
-            plugin.getLogger().info(String.format("current stage: %s, decayLayer: %s, solid: %s, decaying: %s, layerInfo.index: %s", currentStageIndex, stringify(decayLayer), layerInfo.getSolidBlocks().size(), layerInfo.getDecayingBlocks().size(), layerInfo.getIndex()));
         }
         secondsLeft = currentStage.getDuration();
         if (currentStage.getStartMessage() != null) {
@@ -133,17 +132,6 @@ public class DecayManager implements Listener {
         spleefRound.setShouldGivePowerups(currentStage.shouldGivePowerups());
     }
     
-    public static String stringify(BoundingBox b) {
-        return String.format("[%s %s %s %s %s %s]", 
-                b.getMinX(), 
-                b.getMinY(),
-                b.getMinZ(),
-                b.getMaxX(),
-                b.getMaxY(),
-                b.getMaxZ()
-        );
-    }
-    
     /**
      * Changes n blocks in the given list to the decaying material, where n is the given count. Each randomly chosen block is removed from the solidBlocks list and added to the decayingBlocks list.
      * @param solidBlocks the list to decay a random subset of
@@ -151,13 +139,6 @@ public class DecayManager implements Listener {
      * @param count how many blocks to decay from the given list. If count is less than solidBlocks.size(), , then all the blocks that are left will be decayed. 
      */
     private void randomlyDecaySolidBlocks(List<Block> solidBlocks, List<Block> decayingBlocks, int count) {
-//        if (solidBlocks.size() <= count) {
-//            decayingBlocks.addAll(solidBlocks);
-//            for (Block solidBlock : solidBlocks) {
-//                solidBlock.setType(storageUtil.getDecayBlock());
-//            }
-//            return;
-//        }
         for (int i = 0; i < Math.min(count, solidBlocks.size()); i++) {
             int indexToDecay = random.nextInt(solidBlocks.size());
             Block newDecayingBlock = solidBlocks.get(indexToDecay);
@@ -173,13 +154,6 @@ public class DecayManager implements Listener {
      * @param count how many blocks to decay from the given list. If count is less than decayingBlocks.size(), then all the blocks that are left will be removed. 
      */
     private void randomlyRemoveDecayingBlocks(List<Block> decayingBlocks, int count) {
-//        if (decayingBlocks.size() <= count) {
-//            for (Block decayingBlock : decayingBlocks) {
-//                decayingBlock.setType(Material.AIR);
-//            }
-//            decayingBlocks.clear();
-//            return;
-//        }
         for (int i = 0; i < Math.min(count, decayingBlocks.size()); i++) {
             int indexToDecay = random.nextInt(decayingBlocks.size());
             Block randomCoarseDirtBlock = decayingBlocks.get(indexToDecay);
