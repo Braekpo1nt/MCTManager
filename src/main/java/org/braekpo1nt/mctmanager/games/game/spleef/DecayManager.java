@@ -5,6 +5,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.spleef.config.SpleefStorageUtil;
+import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -20,6 +21,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
@@ -122,8 +124,8 @@ public class DecayManager implements Listener {
         currentStage = storageUtil.getStages().get(currentStageIndex);
         for (DecayStage.LayerInfo layerInfo : currentStage.getLayerInfos()) {
             BoundingBox decayLayer = storageUtil.getDecayLayers().get(layerInfo.getIndex());
-            layerInfo.setSolidBlocks(getBlocksInWorld(decayLayer, storageUtil.getLayerBlock()));
-            layerInfo.setDecayingBlocks(getBlocksInWorld(decayLayer, storageUtil.getDecayBlock()));
+            layerInfo.setSolidBlocks(BlockPlacementUtils.getBlocks(storageUtil.getWorld(), decayLayer, Collections.singletonList(storageUtil.getLayerBlock())));
+            layerInfo.setDecayingBlocks(BlockPlacementUtils.getBlocks(storageUtil.getWorld(), decayLayer, Collections.singletonList(storageUtil.getDecayBlock())));
             plugin.getLogger().info(String.format("current stage: %s, decayLayer: %s, solid: %s, decaying: %s, layerInfo.index: %s", currentStageIndex, stringify(decayLayer), layerInfo.getSolidBlocks().size(), layerInfo.getDecayingBlocks().size(), layerInfo.getIndex()));
         }
         secondsLeft = currentStage.getDuration();
@@ -187,23 +189,6 @@ public class DecayManager implements Listener {
             randomCoarseDirtBlock.setType(Material.AIR);
             decayingBlocks.remove(indexToDecay);
         }
-    }
-    
-    private List<Block> getBlocksInWorld(@NotNull BoundingBox layer, @NotNull Material type) {
-        List<Block> solidBlocks = new ArrayList<>();
-        
-        for (int x = layer.getMin().getBlockX(); x <= layer.getMaxX(); x++) {
-            for (int y = layer.getMin().getBlockY(); y <= layer.getMaxY(); y++) {
-                for (int z = layer.getMin().getBlockZ(); z <= layer.getMaxZ(); z++) {
-                    Block block = storageUtil.getWorld().getBlockAt(x, y, z);
-                    if (block.getType().equals(type)) {
-                        solidBlocks.add(block);
-                    }
-                }
-            }
-        }
-        
-        return solidBlocks;
     }
     
     @EventHandler

@@ -7,6 +7,10 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.MultipleFacing;
 import org.bukkit.util.BoundingBox;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class BlockPlacementUtils {
     /**
@@ -100,8 +104,8 @@ public class BlockPlacementUtils {
                 for (int z = minZ; z <= maxZ; z++) {
                     if (
                             x == minX || x == maxX
-                            || y == minY || y == maxY
-                            || z == minZ || z == maxZ) {
+                                    || y == minY || y == maxY
+                                    || z == minZ || z == maxZ) {
                         Block block = world.getBlockAt(x, y, z);
                         block.setType(material);
                     }
@@ -182,5 +186,29 @@ public class BlockPlacementUtils {
                 }
             }
         }
+    }
+    
+    /**
+     *
+     * @param world the world to search for blocks in
+     * @param box the box to search for blocks in
+     * @param types the types of blocks to search for
+     * @return all the blocks of the given types which are in the given BoundingBox
+     */
+    public static List<Block> getBlocks(@NotNull World world, @NotNull BoundingBox box, @NotNull List<Material> types) {
+        List<Block> solidBlocks = new ArrayList<>();
+        
+        for (int x = box.getMin().getBlockX(); x <= box.getMaxX(); x++) {
+            for (int y = box.getMin().getBlockY(); y <= box.getMaxY(); y++) {
+                for (int z = box.getMin().getBlockZ(); z <= box.getMaxZ(); z++) {
+                    Block block = world.getBlockAt(x, y, z);
+                    if (types.contains(block.getType())) {
+                        solidBlocks.add(block);
+                    }
+                }
+            }
+        }
+        
+        return solidBlocks;
     }
 }
