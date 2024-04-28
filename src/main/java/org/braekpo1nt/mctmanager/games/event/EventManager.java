@@ -1012,10 +1012,13 @@ public class EventManager implements Listener {
         List<Player> secondPlaceParticipants = new ArrayList<>();
         List<Player> spectators = new ArrayList<>();
         List<Player> participantPool;
+        List<Player> adminPool;
         if (eventIsActive()) {
             participantPool = new ArrayList<>(participants);
+            adminPool = new ArrayList<>(admins);
         } else {
             participantPool = new ArrayList<>(gameManager.getOnlineParticipants());
+            adminPool = new ArrayList<>(gameManager.getOnlineAdmins());
         }
         for (Player participant : participantPool) {
             String teamName = gameManager.getTeamName(participant.getUniqueId());
@@ -1059,7 +1062,7 @@ public class EventManager implements Listener {
             }
         }
         gameManager.removeParticipantsFromHub(participantPool);
-        colossalCombatGame.start(firstPlaceParticipants, secondPlaceParticipants, spectators, admins);
+        colossalCombatGame.start(firstPlaceParticipants, secondPlaceParticipants, spectators, adminPool);
         if (eventIsActive()) {
             participants.clear();
             admins.clear();
