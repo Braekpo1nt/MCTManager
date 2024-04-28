@@ -17,6 +17,7 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerPickupArrowEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
@@ -267,6 +268,17 @@ public class ColossalCombatRound implements Listener {
     private void cancelAllTasks() {
         Bukkit.getScheduler().cancelTask(startCountDownTaskId);
         Bukkit.getScheduler().cancelTask(antiSuffocationTaskId);
+    }
+    
+    @EventHandler
+    public void onPickupArrow(PlayerPickupArrowEvent event) {
+        if (!firstPlaceParticipants.contains(event.getPlayer()) 
+                && !secondPlaceParticipants.contains(event.getPlayer()) 
+                && !spectators.contains(event.getPlayer())) {
+            return;
+        }
+        event.getArrow().remove();
+        event.setCancelled(true);
     }
     
     @EventHandler
