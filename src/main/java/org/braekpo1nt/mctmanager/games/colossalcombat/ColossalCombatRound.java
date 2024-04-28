@@ -272,9 +272,10 @@ public class ColossalCombatRound implements Listener {
     
     @EventHandler
     public void onPickupArrow(PlayerPickupArrowEvent event) {
-        if (!firstPlaceParticipants.contains(event.getPlayer()) 
-                && !secondPlaceParticipants.contains(event.getPlayer()) 
-                && !spectators.contains(event.getPlayer())) {
+        Player participant = event.getPlayer();
+        if (!firstPlaceParticipants.contains(participant) 
+                && !secondPlaceParticipants.contains(participant) 
+                && !spectators.contains(participant)) {
             return;
         }
         event.getArrow().remove();

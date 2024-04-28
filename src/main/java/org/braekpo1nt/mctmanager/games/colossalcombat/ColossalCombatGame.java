@@ -149,7 +149,6 @@ public class ColossalCombatGame implements Listener, Configurable {
     }
     
     private void initializeAdmin(Player admin) {
-        plugin.getLogger().info("Teleporting admin: " + admin.getName());
         admins.add(admin);
         adminSidebar.addPlayer(admin);
         admin.setGameMode(GameMode.SPECTATOR);
