@@ -47,9 +47,12 @@ public class ColossalCombatStorageUtilTest {
     
     @Test
     void wellFormedJsonValidData() {
-        InputStream inputStream = storageUtil.getClass().getResourceAsStream(exampleConfigFileName);
-        TestUtils.copyInputStreamToFile(inputStream, new File(plugin.getDataFolder(), configFileName));
-        Assertions.assertTrue(storageUtil.loadConfig());
+        wellFormedJsonValidData(exampleConfigFileName);
+    }
+    
+    @Test
+    void testBackwardsCompatibility() {
+        wellFormedJsonValidData("exampleColossalCombatConfig_v0.1.0.json");
     }
 
     @Test
@@ -59,5 +62,11 @@ public class ColossalCombatStorageUtilTest {
         json.addProperty("version", "0.0.0");
         TestUtils.saveJsonToFile(json, new File(plugin.getDataFolder(), configFileName));
         Assertions.assertThrows(IllegalArgumentException.class, storageUtil::loadConfig);
+    }
+    
+    void wellFormedJsonValidData(String filename) {
+        InputStream inputStream = storageUtil.getClass().getResourceAsStream(filename);
+        TestUtils.copyInputStreamToFile(inputStream, new File(plugin.getDataFolder(), configFileName));
+        Assertions.assertTrue(storageUtil.loadConfig());
     }
 }

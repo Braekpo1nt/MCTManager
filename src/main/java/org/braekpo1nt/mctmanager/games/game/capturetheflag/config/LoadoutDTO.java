@@ -60,7 +60,7 @@ class LoadoutDTO {
         if (inventory != null) {
             contents = inventory.toInventoryContents();
         } else {
-            contents = new ItemStack[41];
+            contents = new ItemStack[0]; //allowed to be 0
         }
         List<Component> menuDescription = ItemMetaDTO.toLore(menuLore);
         Preconditions.checkState(menuItem != null, "menuItem can't be null when toLoadout is called");

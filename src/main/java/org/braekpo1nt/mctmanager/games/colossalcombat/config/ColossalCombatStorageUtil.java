@@ -7,14 +7,20 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.config.GameConfigStorageUtil;
+import org.braekpo1nt.mctmanager.games.game.config.inventory.PlayerInventoryDTO;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.util.BoundingBox;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.InputStream;
+import java.util.Arrays;
 
 public class ColossalCombatStorageUtil extends GameConfigStorageUtil<ColossalCombatConfig> {
     
@@ -23,6 +29,7 @@ public class ColossalCombatStorageUtil extends GameConfigStorageUtil<ColossalCom
     private Location firstPlaceSpawn;
     private Location secondPlaceSpawn;
     private Location spectatorSpawn;
+    private @NotNull ItemStack[] loadout;
     private BoundingBox firstPlaceClearArea;
     private BoundingBox firstPlacePlaceArea;
     private BoundingBox firstPlaceStone;
@@ -63,6 +70,10 @@ public class ColossalCombatStorageUtil extends GameConfigStorageUtil<ColossalCom
         Preconditions.checkArgument(config.secondPlaceSpawn() != null, "secondPlaceSpawn can't be null");
         Preconditions.checkArgument(config.spectatorSpawn() != null, "spectatorSpawn can't be null");
         Preconditions.checkArgument(config.requiredWins() > 0, "requiredWins must be greater than 0");
+        
+        if (config.loadout() != null) {
+            config.loadout().isValid();
+        }
         
         Preconditions.checkArgument(config.firstPlaceGate() != null, "firstPlaceGate can't be null");
         Preconditions.checkArgument(config.firstPlaceGate().clearArea() != null, "firstPlaceGate.clearArea can't be null");
@@ -109,11 +120,18 @@ public class ColossalCombatStorageUtil extends GameConfigStorageUtil<ColossalCom
         Location newSecondPlaceSpawn = config.secondPlaceSpawn().toLocation(newWorld);
         Location newSpectatorSpawn = config.spectatorSpawn().toLocation(newWorld);
         Component newDescription = GsonComponentSerializer.gson().deserializeFromTree(config.description());
+        ItemStack[] newLoadout;
+        if (config.loadout() != null) {
+            newLoadout = config.loadout().toInventoryContents();
+        } else {
+            newLoadout = getDefaultLoadout();
+        }
         //now that we know it's all valid
         this.world = newWorld;
         this.firstPlaceSpawn = newFirstPlaceSpawn;
         this.secondPlaceSpawn = newSecondPlaceSpawn;
         this.spectatorSpawn = newSpectatorSpawn;
+        this.loadout = newLoadout;
         this.firstPlaceClearArea = config.firstPlaceGate().clearArea().toBoundingBox();
         this.firstPlacePlaceArea = config.firstPlaceGate().placeArea().toBoundingBox();
         this.firstPlaceStone = config.firstPlaceGate().stone().toBoundingBox();
@@ -128,7 +146,21 @@ public class ColossalCombatStorageUtil extends GameConfigStorageUtil<ColossalCom
         this.description = newDescription;
         this.colossalCombatConfig = config;
     }
-
+    
+    /**
+     * @return the default loadout of the participants at the start of the round
+     */
+    private static ItemStack[] getDefaultLoadout() {
+        ItemStack[] result = new ItemStack[41];
+        result[0] = new ItemStack(Material.STONE_SWORD);
+        result[1] = new ItemStack(Material.BOW);
+        result[2] = new ItemStack(Material.ARROW, 16);
+        result[3] = new ItemStack(Material.COOKED_BEEF, 16);
+        result[36] = new ItemStack(Material.LEATHER_BOOTS);
+        result[38] = new ItemStack(Material.LEATHER_CHESTPLATE);
+        return result;
+    }
+    
     @Override
     protected InputStream getExampleResourceStream() {
         return ColossalCombatStorageUtil.class.getResourceAsStream("exampleColossalCombatConfig.json");
@@ -152,6 +184,13 @@ public class ColossalCombatStorageUtil extends GameConfigStorageUtil<ColossalCom
     
     public int getRequiredWins() {
         return colossalCombatConfig.requiredWins();
+    }
+    
+    /**
+     * @return the participant's inventory at the start of a round. The size of the array will be less than or equal to {@link PlayerInventory#getSize()}
+     */
+    public @NotNull ItemStack[] getLoadout() {
+        return loadout;
     }
     
     public BoundingBox getFirstPlaceClearArea() {

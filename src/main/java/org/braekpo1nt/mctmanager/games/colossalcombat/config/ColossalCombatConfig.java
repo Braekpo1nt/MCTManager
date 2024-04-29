@@ -3,6 +3,8 @@ package org.braekpo1nt.mctmanager.games.colossalcombat.config;
 import com.google.gson.JsonElement;
 import org.braekpo1nt.mctmanager.games.game.config.BoundingBoxDTO;
 import org.braekpo1nt.mctmanager.games.game.config.LocationDTO;
+import org.braekpo1nt.mctmanager.games.game.config.inventory.PlayerInventoryDTO;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * 
@@ -21,7 +23,7 @@ import org.braekpo1nt.mctmanager.games.game.config.LocationDTO;
  * @param durations
  * @param description
  */
-record ColossalCombatConfig(String version, String world, BoundingBoxDTO spectatorArea, LocationDTO firstPlaceSpawn, LocationDTO secondPlaceSpawn, LocationDTO spectatorSpawn, int requiredWins, Gate firstPlaceGate, Gate secondPlaceGate, BoundingBoxDTO removeArea, BoundingBoxDTO firstPlaceSupport, BoundingBoxDTO secondPlaceSupport, Durations durations, JsonElement description) {
+record ColossalCombatConfig(String version, String world, BoundingBoxDTO spectatorArea, LocationDTO firstPlaceSpawn, LocationDTO secondPlaceSpawn, LocationDTO spectatorSpawn, int requiredWins, @Nullable PlayerInventoryDTO loadout, Gate firstPlaceGate, Gate secondPlaceGate, BoundingBoxDTO removeArea, BoundingBoxDTO firstPlaceSupport, BoundingBoxDTO secondPlaceSupport, Durations durations, JsonElement description) {
     record Gate(BoundingBoxDTO clearArea, BoundingBoxDTO placeArea, BoundingBoxDTO stone, BoundingBoxDTO antiSuffocationArea) {
     }
     

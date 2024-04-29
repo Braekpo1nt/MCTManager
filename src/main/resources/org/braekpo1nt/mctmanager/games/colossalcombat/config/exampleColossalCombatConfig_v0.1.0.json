@@ -1,5 +1,5 @@
 {
-  "version": "0.1.1",
+  "version": "0.1.0",
   "world": "TestWorld",
   "spectatorArea": {
     "minX": 0,
@@ -31,30 +31,6 @@
     "pitch": 6
   },
   "requiredWins": 3,
-  "loadout": {
-    "contents": {
-      "36": {
-        "type": "LEATHER_BOOTS"
-      },
-      "38": {
-        "type": "LEATHER_CHESTPLATE"
-      },
-      "0": {
-        "type": "STONE_SWORD"
-      },
-      "1": {
-        "type": "BOW"
-      },
-      "2": {
-        "type": "ARROW",
-        "amount": 16
-      },
-      "3": {
-        "type": "COOKED_BEEF",
-        "amount": 16
-      }
-    }
-  },
   "firstPlaceGate": {
     "clearArea": {
       "minX": -1002,

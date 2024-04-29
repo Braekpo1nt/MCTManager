@@ -351,19 +351,13 @@ public class ColossalCombatRound implements Listener {
     }
     
     private void giveParticipantEquipment(Player participant) {
-        //stone sword, bow, 16 arrows, leather chest and boots, 16 steak
-        participant.getInventory().addItem(new ItemStack(Material.STONE_SWORD));
-        participant.getInventory().addItem(new ItemStack(Material.BOW));
-        participant.getInventory().addItem(new ItemStack(Material.ARROW, 16));
-        participant.getInventory().addItem(new ItemStack(Material.COOKED_BEEF, 16));
-        participant.getEquipment().setChestplate(new ItemStack(Material.LEATHER_CHESTPLATE));
-        participant.getEquipment().setBoots(new ItemStack(Material.LEATHER_BOOTS));
+        participant.getInventory().setContents(storageUtil.getLoadout());
     }
     
     private void startRoundStartingCountDown() {
         this.startCountDownTaskId = new BukkitRunnable() {
             private int count = storageUtil.getRoundStartingDuration();
-    
+            
             @Override
             public void run() {
                 if (count <= 0) {
