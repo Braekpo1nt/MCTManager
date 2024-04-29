@@ -991,6 +991,8 @@ public class EventManager implements Listener {
         } catch (IllegalArgumentException e) {
             Bukkit.getLogger().severe(e.getMessage());
             e.printStackTrace();
+            sender.sendMessage(Component.text("Error loading config file. See console for details.")
+                    .color(NamedTextColor.RED));
             messageAllAdmins(Component.text("Can't start ")
                     .append(Component.text("Colossal Combat")
                             .decorate(TextDecoration.BOLD))
