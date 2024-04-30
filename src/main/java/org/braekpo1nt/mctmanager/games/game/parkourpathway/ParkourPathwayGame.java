@@ -419,10 +419,8 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         if (teamSpawns == null) {
             return;
         }
-        for (Map.Entry<String, TeamSpawn> entry : teamSpawns.entrySet()) {
-            String team = entry.getKey();
-            TeamSpawn teamSpawn = entry.getValue();
-            teamSpawn.close(gameManager.getTeamStainedGlassColor(team));
+        for (TeamSpawn teamSpawn : teamSpawns.values()) {
+            teamSpawn.close();
         }
     }
     
@@ -449,6 +447,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
             String team = teams.get(i);
             int teamSpawnIndex = MathUtils.wrapIndex(i, teamSpawns.size());
             TeamSpawn teamSpawn = teamSpawns.get(teamSpawnIndex);
+            teamSpawn.setBarrierMaterial(gameManager.getTeamStainedGlassColor(team));
             result.put(team, teamSpawn);
         }
         return result;
