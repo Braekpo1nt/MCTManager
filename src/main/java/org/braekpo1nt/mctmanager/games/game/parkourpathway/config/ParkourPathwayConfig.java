@@ -22,9 +22,17 @@ class ParkourPathwayConfig {
      */
     private @Nullable BoundingBoxDTO glassBarrier;
     /**
+     * The chat message sent to all participants when the glass barrier opens. Null means no message will be sent.
+     */
+    private @Nullable JsonElement glassBarrierOpenMessage;
+    /**
      * the list of team spawn locations. If null, the team spawn phase will be skipped. Each {@link TeamSpawnDTO#getBarrierArea()} and {@link TeamSpawnDTO#getSpawn()} must be contained in the inBounds area of the first puzzle.
      */
     private @Nullable List<TeamSpawnDTO> teamSpawns;
+    /**
+     * The chat message sent to all participants when the team spawns open. Null means no message will be sent.
+     */
+    private @Nullable JsonElement teamSpawnsOpenMessage;
     /** the list of puzzles for this parkour game */
     private List<PuzzleDTO> puzzles;
     private BoundingBoxDTO spectatorArea;

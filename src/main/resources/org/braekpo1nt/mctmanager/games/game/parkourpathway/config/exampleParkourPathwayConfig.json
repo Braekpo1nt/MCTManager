@@ -38,6 +38,7 @@
     "maxY": 4,
     "maxZ": 6
   },
+  "glassBarrierOpenMessage": {"text":"Go!","color":"green"},
   "teamSpawns": [
     {
       "barrierArea": {
@@ -91,6 +92,7 @@
       }
     }
   ],
+  "teamSpawnsOpenMessage": "Head to the gate!",
   "puzzles": [
     {
       "index": 0,

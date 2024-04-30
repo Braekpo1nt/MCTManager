@@ -354,6 +354,9 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
             @Override
             public void run() {
                 if (count <= 0) {
+                    if (storageUtil.getTeamSpawnsOpenMessage() != null) {
+                        messageAllParticipants(storageUtil.getTeamSpawnsOpenMessage());
+                    }
                     openTeamSpawns();
                     startStartGameCountDown();
                     this.cancel();
@@ -377,7 +380,9 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
             @Override
             public void run() {
                 if (count <= 0) {
-                    messageAllParticipants(Component.text("Go!"));
+                    if (storageUtil.getGlassBarrierOpenMessage() != null) {
+                        messageAllParticipants(storageUtil.getGlassBarrierOpenMessage());
+                    }
                     openGlassBarrier();
                     startParkourPathwayTimer();
                     restartCheckpointCounter();
@@ -398,7 +403,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         if (glassBarrier == null) {
             return;
         }
-        BlockPlacementUtils.createCube(storageUtil.getWorld(), glassBarrier, Material.GLASS);
+        BlockPlacementUtils.createCubeReplace(storageUtil.getWorld(), glassBarrier, Material.AIR, Material.GLASS);
         BlockPlacementUtils.updateDirection(storageUtil.getWorld(), glassBarrier);
     }
     
@@ -407,7 +412,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         if (glassBarrier == null) {
             return;
         }
-        BlockPlacementUtils.createCube(storageUtil.getWorld(), glassBarrier, Material.AIR);
+        BlockPlacementUtils.createCubeReplace(storageUtil.getWorld(), glassBarrier, Material.GLASS, Material.AIR);
     }
     
     private void closeTeamSpawns() {
