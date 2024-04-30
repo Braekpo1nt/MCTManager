@@ -19,6 +19,7 @@ import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
+import org.braekpo1nt.mctmanager.utils.MathUtils;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -39,6 +40,7 @@ import org.bukkit.scoreboard.Team;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -55,13 +57,19 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
     private int startNextRoundTimerTaskId;
     private int checkpointCounterTask;
     private int startParkourPathwayTaskId;
+    private int teamSpawnsCountDownTaskId;
     private boolean gameActive = false;
+    private boolean parkourHasStarted = false;
     private List<Player> participants = new ArrayList<>();
     private List<Player> admins = new ArrayList<>();
     /**
      * Participants who have reached the finish line
      */
     private List<UUID> finishedParticipants;
+    /**
+     * Holds the {@link TeamSpawn}s for this game
+     */
+    private @Nullable Map<String, @NotNull TeamSpawn> teamSpawns = new HashMap<>();
     /**
      * The index of the puzzle each participant is solving
      */
@@ -119,9 +127,13 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         // debug
         currentPuzzleCheckpoints = new HashMap<>(newParticipants.size());
         finishedParticipants = new ArrayList<>();
-        closeGlassBarriers();
+        List<String> teams = gameManager.getTeamNames(newParticipants);
+        teamSpawns = getTeamSpawns(teams);
+        closeTeamSpawns();
+        closeGlassBarrier();
         sidebar = gameManager.getSidebarFactory().createSidebar();
         adminSidebar = gameManager.getSidebarFactory().createSidebar();
+        parkourHasStarted = false;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
@@ -130,7 +142,11 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         startAdmins(newAdmins);
         startStatusEffectsTask();
         setupTeamOptions();
-        startStartGameCountDown();
+        if (teamSpawns != null) {
+            startTeamSpawnsCountDown();
+        } else {
+            startStartGameCountDown();
+        }
         displayDescription();
         gameActive = true;
         Bukkit.getLogger().info("Starting Parkour Pathway game");
@@ -152,7 +168,12 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         }
         // debug
         sidebar.addPlayer(participant);
-        participant.teleport(storageUtil.getStartingLocation());
+        if (teamSpawns == null) {
+            participant.teleport(storageUtil.getStartingLocation());
+        } else {
+            String team = gameManager.getTeamName(participant.getUniqueId());
+            teamSpawns.get(team).teleport(participant);
+        }
         participant.getInventory().clear();
         giveBoots(participant);
         participant.setGameMode(GameMode.ADVENTURE);
@@ -220,11 +241,16 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         for (Player participant : participants) {
             resetParticipant(participant);
         }
-        openGlassBarriers();
+        openGlassBarrier();
+        openTeamSpawns();
         clearSidebar();
         stopAdmins();
         participants.clear();
         finishedParticipants.clear();
+        if (teamSpawns != null) {
+            teamSpawns.clear();
+        }
+        parkourHasStarted = false;
         gameActive = false;
         gameManager.gameIsOver();
         Bukkit.getLogger().info("Stopping Parkour Pathway game");
@@ -278,10 +304,39 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         participant.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
-        Location respawn = storageUtil.getPuzzle(currentPuzzles.get(uniqueId)).checkPoints().get(currentPuzzleCheckpoints.get(uniqueId)).respawn();
-        participant.teleport(respawn);
+        if (parkourHasStarted) {
+            Location respawn = storageUtil.getPuzzle(currentPuzzles.get(uniqueId)).checkPoints().get(currentPuzzleCheckpoints.get(uniqueId)).respawn();
+            participant.teleport(respawn);
+        } else {
+            if (teamSpawns == null) {
+                participant.teleport(storageUtil.getStartingLocation());
+            } else {
+                String team = gameManager.getTeamName(participant.getUniqueId());
+                TeamSpawn teamSpawn = teamSpawns.get(team);
+                if (teamSpawn == null) {
+                    reSetUpTeamSpawns();
+                }
+            }
+        }
         sidebar.updateLine(uniqueId, "title", title);
         updateCheckpointSidebar(participant);
+    }
+    
+    /**
+     * meant to be called when a new team joins the game while the team spawns countdown is still going on
+     */
+    private void reSetUpTeamSpawns() {
+        List<String> teams = gameManager.getTeamNames(participants);
+        teamSpawns = getTeamSpawns(teams);
+        if (teamSpawns == null) {
+            return;
+        }
+        closeTeamSpawns();
+        for (Player participant : participants) {
+            String team = gameManager.getTeamName(participant.getUniqueId());
+            TeamSpawn teamSpawn = teamSpawns.get(team);
+            teamSpawn.teleport(participant);
+        }
     }
     
     @Override
@@ -290,14 +345,45 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         participants.remove(participant);
     }
     
+    /**
+     * The countdown which takes place while the teams are in their respective spawns
+     */
+    private void startTeamSpawnsCountDown() {
+        this.teamSpawnsCountDownTaskId = new BukkitRunnable() {
+            int count = storageUtil.getTeamSpawnsDuration();
+            @Override
+            public void run() {
+                if (count <= 0) {
+                    if (storageUtil.getTeamSpawnsOpenMessage() != null) {
+                        messageAllParticipants(storageUtil.getTeamSpawnsOpenMessage());
+                    }
+                    openTeamSpawns();
+                    startStartGameCountDown();
+                    this.cancel();
+                    return;
+                }
+                String timeLeft = TimeStringUtils.getTimeString(count);
+                String timer = String.format("Opening in: %s", timeLeft);
+                sidebar.updateLine("timer", timer);
+                adminSidebar.updateLine("timer", timer);
+                count--;
+            }
+        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+    }
+    
+    /**
+     * The countdown which takes place while the participants are waiting for the big glass barrier to drop
+     */
     private void startStartGameCountDown() {
         this.startParkourPathwayTaskId = new BukkitRunnable() {
             int count = storageUtil.getStartingDuration();
             @Override
             public void run() {
                 if (count <= 0) {
-                    messageAllParticipants(Component.text("Go!"));
-                    openGlassBarriers();
+                    if (storageUtil.getGlassBarrierOpenMessage() != null) {
+                        messageAllParticipants(storageUtil.getGlassBarrierOpenMessage());
+                    }
+                    openGlassBarrier();
                     startParkourPathwayTimer();
                     restartCheckpointCounter();
                     this.cancel();
@@ -312,13 +398,60 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
     }
     
-    private void closeGlassBarriers() {
-        BlockPlacementUtils.createCube(storageUtil.getWorld(), 1006, 0, -6, 1, 5, 13, Material.GLASS);
-        BlockPlacementUtils.updateDirection(storageUtil.getWorld(), 1006, 0, -6, 1, 5, 13);
+    private void closeGlassBarrier() {
+        BoundingBox glassBarrier = storageUtil.getGlassBarrier();
+        if (glassBarrier == null) {
+            return;
+        }
+        BlockPlacementUtils.createCubeReplace(storageUtil.getWorld(), glassBarrier, Material.AIR, Material.GLASS);
+        BlockPlacementUtils.updateDirection(storageUtil.getWorld(), glassBarrier);
     }
     
-    private void openGlassBarriers() {
-        BlockPlacementUtils.createCube(storageUtil.getWorld(), 1006, 0, -6, 1, 5, 13, Material.AIR);
+    private void openGlassBarrier() {
+        BoundingBox glassBarrier = storageUtil.getGlassBarrier();
+        if (glassBarrier == null) {
+            return;
+        }
+        BlockPlacementUtils.createCubeReplace(storageUtil.getWorld(), glassBarrier, Material.GLASS, Material.AIR);
+    }
+    
+    private void closeTeamSpawns() {
+        if (teamSpawns == null) {
+            return;
+        }
+        for (Map.Entry<String, TeamSpawn> entry : teamSpawns.entrySet()) {
+            String team = entry.getKey();
+            TeamSpawn teamSpawn = entry.getValue();
+            teamSpawn.close(gameManager.getTeamStainedGlassColor(team));
+        }
+    }
+    
+    private void openTeamSpawns() {
+        if (teamSpawns == null) {
+            return;
+        }
+        for (TeamSpawn teamSpawn : teamSpawns.values()) {
+            teamSpawn.open();
+        }
+    }
+    
+    /**
+     * @param teams the teams to get the spawns for. If there are more teams than spawns in the config, some teams will be in the same spawn.
+     * @return a list of {@link TeamSpawn}s for the given teams. Null if the config never specified a list of {@link TeamSpawn}s.
+     */
+    private @Nullable Map<String, @NotNull TeamSpawn> getTeamSpawns(@NotNull List<String> teams) {
+        List<TeamSpawn> teamSpawns = storageUtil.getTeamSpawns();
+        if (teamSpawns == null) {
+            return null;
+        }
+        Map<String, TeamSpawn> result = new HashMap<>(teams.size());
+        for (int i = 0; i < teams.size(); i++) {
+            String team = teams.get(i);
+            int teamSpawnIndex = MathUtils.wrapIndex(i, teamSpawns.size());
+            TeamSpawn teamSpawn = teamSpawns.get(teamSpawnIndex);
+            result.put(team, teamSpawn);
+        }
+        return result;
     }
     
     @EventHandler
@@ -594,6 +727,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
     }
 
     private void startParkourPathwayTimer() {
+        parkourHasStarted = true;
         int timeLimit = storageUtil.getTimeLimitDuration();
         int checkpointCounterAlert = storageUtil.getCheckpointCounterAlertDuration();
         this.startNextRoundTimerTaskId = new BukkitRunnable() {
@@ -659,6 +793,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         Bukkit.getScheduler().cancelTask(startNextRoundTimerTaskId);
         Bukkit.getScheduler().cancelTask(checkpointCounterTask);
         Bukkit.getScheduler().cancelTask(startParkourPathwayTaskId);
+        Bukkit.getScheduler().cancelTask(teamSpawnsCountDownTaskId);
     }
     
     private void initializeAdminSidebar() {

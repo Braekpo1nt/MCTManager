@@ -36,6 +36,10 @@ public class BoundingBoxDTO {
         return new BoundingBox(minX, minY, minZ, maxX, maxY, maxZ);
     }
     
+    public static List<BoundingBox> toBoundingBoxes(List<BoundingBoxDTO> boundingBoxDTOS) {
+        return boundingBoxDTOS.stream().map(BoundingBoxDTO::toBoundingBox).toList();
+    }
+    
     @Override
     public String toString() {
         StringBuilder s = new StringBuilder("(BoundingBoxDTO [");

@@ -1250,6 +1250,11 @@ public class GameManager implements Listener {
         return ColorMap.getConcreteColor(colorString);
     }
     
+    public Material getTeamStainedGlassColor(String teamName) {
+        String colorString = gameStateStorageUtil.getTeamColorString(teamName);
+        return ColorMap.getStainedGlassColor(colorString);
+    }
+    
     public ChatColor getTeamChatColor(String teamName) {
         String colorString = gameStateStorageUtil.getTeamColorString(teamName);
         return ColorMap.getChatColor(colorString);

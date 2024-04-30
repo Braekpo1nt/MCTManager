@@ -106,7 +106,17 @@ class BoundingBoxSubCommand implements TabExecutor {
         }
         Block targetBlock = player.getTargetBlock(UtilsUtils.TRANSPARENT, 5);
         if (UtilsUtils.TRANSPARENT.contains(targetBlock.getType())) {
-            return Collections.emptyList();
+            switch (args.length) {
+                case 1, 4 -> {
+                    return Collections.singletonList(""+player.getLocation().getBlockX());
+                }
+                case 2, 5 -> {
+                    return Collections.singletonList(""+player.getLocation().getBlockY());
+                }
+                case 3, 6 -> {
+                    return Collections.singletonList(""+player.getLocation().getBlockZ());
+                }
+            }
         }
         switch (args.length) {
             case 1, 4 -> {

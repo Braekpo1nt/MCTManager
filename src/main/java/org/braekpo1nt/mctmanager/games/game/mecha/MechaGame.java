@@ -857,7 +857,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         World world = storageUtil.getWorld();
         for (int i = 0; i < teams.size(); i++) {
             String team = teams.get(i);
-            int platformIndex = wrapIndex(i, platformBarriers.size());
+            int platformIndex = MathUtils.wrapIndex(i, platformBarriers.size());
             BoundingBox barrierArea = platformBarriers.get(platformIndex);
             BoundingBox concreteArea = new BoundingBox(
                     barrierArea.getMinX()+1,
@@ -882,7 +882,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         Map<String, Location> teamSpawnLocations = new HashMap<>(teams.size());
         for (int i = 0; i < teams.size(); i++) {
             String team = teams.get(i);
-            int platformIndex = wrapIndex(i, platformSpawns.size());
+            int platformIndex = MathUtils.wrapIndex(i, platformSpawns.size());
             Location platformSpawn = platformSpawns.get(platformIndex);
             teamSpawnLocations.put(team, platformSpawn);
         }
@@ -891,16 +891,6 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
             Location spawn = teamSpawnLocations.get(team);
             participant.teleport(spawn);
         }
-    }
-    
-    /**
-     * @param index the index to wrap
-     * @param size the size to wrap around
-     * @return the wrapped version of the index. e.g. if index is 1, and size is 4, returns 1; if index is 6, and size is 4, returns 1;
-     */
-    private int wrapIndex(int index, int size) {
-        Preconditions.checkArgument(size > 0, "size must be greater than 0");
-        return (index % size + size) % size; 
     }
     
     private void removePlatforms() {
