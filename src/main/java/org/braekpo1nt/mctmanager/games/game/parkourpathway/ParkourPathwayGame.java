@@ -345,6 +345,9 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         participants.remove(participant);
     }
     
+    /**
+     * The countdown which takes place while the teams are in their respective spawns
+     */
     private void startTeamSpawnsCountDown() {
         this.teamSpawnsCountDownTaskId = new BukkitRunnable() {
             int count = storageUtil.getTeamSpawnsDuration();
@@ -365,6 +368,9 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
     }
     
+    /**
+     * The countdown which takes place while the participants are waiting for the big glass barrier to drop
+     */
     private void startStartGameCountDown() {
         this.startParkourPathwayTaskId = new BukkitRunnable() {
             int count = storageUtil.getStartingDuration();
