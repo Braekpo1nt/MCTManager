@@ -243,13 +243,11 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         }
         openGlassBarrier();
         openTeamSpawns();
+        clearTeamSpawns();
         clearSidebar();
         stopAdmins();
         participants.clear();
         finishedParticipants.clear();
-        if (teamSpawns != null) {
-            teamSpawns.clear();
-        }
         parkourHasStarted = false;
         gameActive = false;
         gameManager.gameIsOver();
@@ -337,6 +335,19 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
             TeamSpawn teamSpawn = teamSpawns.get(team);
             teamSpawn.teleport(participant);
         }
+    }
+    
+    /**
+     * If {@link ParkourPathwayGame#teamSpawns} is not null, sets all barrierMaterials to {@link Material#AIR} and clears the map of elements.
+     */
+    private void clearTeamSpawns() {
+        if (teamSpawns == null) {
+            return;
+        }
+        for (TeamSpawn teamSpawn : teamSpawns.values()) {
+            teamSpawn.setBarrierMaterial(Material.AIR);
+        }
+        teamSpawns.clear();
     }
     
     @Override
