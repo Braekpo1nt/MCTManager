@@ -243,13 +243,11 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         }
         openGlassBarrier();
         openTeamSpawns();
+        clearTeamSpawns();
         clearSidebar();
         stopAdmins();
         participants.clear();
         finishedParticipants.clear();
-        if (teamSpawns != null) {
-            teamSpawns.clear();
-        }
         parkourHasStarted = false;
         gameActive = false;
         gameManager.gameIsOver();
@@ -339,6 +337,19 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         }
     }
     
+    /**
+     * If {@link ParkourPathwayGame#teamSpawns} is not null, sets all barrierMaterials to {@link Material#AIR} and clears the map of elements.
+     */
+    private void clearTeamSpawns() {
+        if (teamSpawns == null) {
+            return;
+        }
+        for (TeamSpawn teamSpawn : teamSpawns.values()) {
+            teamSpawn.setBarrierMaterial(Material.AIR);
+        }
+        teamSpawns.clear();
+    }
+    
     @Override
     public void onParticipantQuit(Player participant) {
         resetParticipant(participant);
@@ -419,10 +430,8 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         if (teamSpawns == null) {
             return;
         }
-        for (Map.Entry<String, TeamSpawn> entry : teamSpawns.entrySet()) {
-            String team = entry.getKey();
-            TeamSpawn teamSpawn = entry.getValue();
-            teamSpawn.close(gameManager.getTeamStainedGlassColor(team));
+        for (TeamSpawn teamSpawn : teamSpawns.values()) {
+            teamSpawn.close();
         }
     }
     
@@ -449,6 +458,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
             String team = teams.get(i);
             int teamSpawnIndex = MathUtils.wrapIndex(i, teamSpawns.size());
             TeamSpawn teamSpawn = teamSpawns.get(teamSpawnIndex);
+            teamSpawn.setBarrierMaterial(gameManager.getTeamStainedGlassColor(team));
             result.put(team, teamSpawn);
         }
         return result;
