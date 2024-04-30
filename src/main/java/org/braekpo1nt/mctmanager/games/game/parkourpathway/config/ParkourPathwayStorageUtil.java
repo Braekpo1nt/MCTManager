@@ -66,6 +66,7 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
         puzzlesAreValid(config.getPuzzles());
     
         if (config.getTeamSpawns() != null) {
+            Preconditions.checkArgument(!config.getTeamSpawns().isEmpty(), "teamSpawns must have at least one entry");
             PuzzleDTO firstPuzzle = config.getPuzzles().get(0);
             for (int i = 0; i < config.getTeamSpawns().size(); i++) {
                 TeamSpawnDTO teamSpawnDTO = config.getTeamSpawns().get(i);
