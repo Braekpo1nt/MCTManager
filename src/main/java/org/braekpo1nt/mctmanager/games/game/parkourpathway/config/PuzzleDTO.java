@@ -9,6 +9,7 @@ import org.braekpo1nt.mctmanager.games.game.parkourpathway.puzzle.CheckPoint;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.puzzle.Puzzle;
 import org.bukkit.World;
 import org.bukkit.util.BoundingBox;
+import org.bukkit.util.Vector;
 
 import java.util.List;
 
@@ -51,6 +52,19 @@ class PuzzleDTO {
         return false;
     }
     
+    /**
+     * @param v the vector to check if it is in bounds
+     * @return true if the given vector is contained in at least one of this PuzzleDTO's inBounds boxes, false otherwise
+     */
+    boolean isInBounds(Vector v) {
+        for (BoundingBoxDTO inBound : inBounds) {
+            if (inBound.toBoundingBox().contains(v)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
     @Getter
     @AllArgsConstructor
     static class CheckPointDTO {
@@ -81,5 +95,9 @@ class PuzzleDTO {
                 inBounds.stream().map(BoundingBoxDTO::toBoundingBox).toList(),
                 checkPoints.stream().map(checkPointDTO -> checkPointDTO.toCheckPoint(world)).toList()
         );
+    }
+    
+    static List<Puzzle> toPuzzles(World world, List<PuzzleDTO> puzzleDTOS) {
+        return puzzleDTOS.stream().map(puzzleDTO -> puzzleDTO.toPuzzle(world)).toList();
     }
 }

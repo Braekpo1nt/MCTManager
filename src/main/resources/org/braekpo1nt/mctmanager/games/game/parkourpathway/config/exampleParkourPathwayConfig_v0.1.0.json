@@ -1,5 +1,5 @@
 {
-  "version": "0.1.1",
+  "version": "0.1.0",
   "world": "TestWorld",
   "spectatorArea": {
     "minX": 0,
@@ -24,73 +24,11 @@
     ]
   },
   "durations": {
-    "teamSpawn": 10,
     "starting": 10,
     "timeLimit": 600,
     "checkpointCounter": 120,
     "checkpointCounterAlert": 30
   },
-  "glassBarrier": {
-    "minX": 1006,
-    "minY": 0,
-    "minZ": -6,
-    "maxX": 1006,
-    "maxY": 4,
-    "maxZ": 6
-  },
-  "teamSpawns": [
-    {
-      "barrierArea": {
-        "minX": 1000,
-        "minY": 0,
-        "minZ": -4,
-        "maxX": 1003,
-        "maxY": 1,
-        "maxZ": -4
-      },
-      "spawn": {
-        "x": 1002,
-        "y": 0,
-        "z": -5,
-        "yaw": 0,
-        "pitch": 0
-      }
-    },
-    {
-      "barrierArea": {
-        "minX": 1000,
-        "minY": 0,
-        "minZ": 4,
-        "maxX": 1003,
-        "maxY": 1,
-        "maxZ": 4
-      },
-      "spawn": {
-        "x": 1002,
-        "y": 0,
-        "z": 6,
-        "yaw": -180,
-        "pitch": 0
-      }
-    },
-    {
-      "barrierArea": {
-        "minX": 1001,
-        "minY": 0,
-        "minZ": -2,
-        "maxX": 1001,
-        "maxY": 1,
-        "maxZ": 2
-      },
-      "spawn": {
-        "x": 1000.5,
-        "y": 0,
-        "z": 0.5,
-        "yaw": -90,
-        "pitch": 0
-      }
-    }
-  ],
   "puzzles": [
     {
       "index": 0,

@@ -112,4 +112,13 @@ public class MathUtils {
         throw new IllegalArgumentException("weightedMap can't be empty");
     }
     
+    /**
+     * @param index the index to wrap
+     * @param size the size to wrap around
+     * @return the wrapped version of the index. e.g. if index is 1, and size is 4, returns 1; if index is 6, and size is 4, returns 1;
+     */
+    public static int wrapIndex(int index, int size) {
+        Preconditions.checkArgument(size > 0, "size must be greater than 0");
+        return (index % size + size) % size;
+    }
 }

@@ -8,6 +8,7 @@ import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.config.BoundingBoxDTO;
 import org.braekpo1nt.mctmanager.games.game.config.GameConfigStorageUtil;
+import org.braekpo1nt.mctmanager.games.game.parkourpathway.TeamSpawn;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.puzzle.Puzzle;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -25,10 +26,12 @@ import java.util.stream.Collectors;
 public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPathwayConfig> {
     
     protected ParkourPathwayConfig parkourPathwayConfig = null;
+    private @Nullable List<TeamSpawn> teamSpawns;
     private List<Puzzle> puzzles;
     private World world;
     private Location startingLocation;
     private Component description;
+    private @Nullable BoundingBox glassBarrier;
     
     public ParkourPathwayStorageUtil(File configDirectory) {
         super(configDirectory, "parkourPathwayConfig.json", ParkourPathwayConfig.class);
@@ -57,9 +60,21 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
         Preconditions.checkArgument(config.getDurations().getTimeLimit() >= 2, "durations.timeLimit (%s) can't be less than 2", config.getDurations().getTimeLimit());
         Preconditions.checkArgument(config.getDurations().getCheckpointCounter() >= 1, "durations.checkpointCounter (%s) can't be less than 1", config.getDurations().getCheckpointCounter());
         Preconditions.checkArgument(config.getDurations().getCheckpointCounterAlert() >= 1 && config.getDurations().getCheckpointCounter() >= config.getDurations().getCheckpointCounterAlert(), "durations.checkpointCounterAlert (%s) can't be less than 0 or greater than durations.checkpointCounter", config.getDurations().getCheckpointCounterAlert());
+        
         Preconditions.checkArgument(config.getPuzzles() != null, "puzzles can't be null");
         Preconditions.checkArgument(config.getPuzzles().size() >= 3, "puzzles must have at least 3 puzzles");
         puzzlesAreValid(config.getPuzzles());
+    
+        if (config.getTeamSpawns() != null) {
+            PuzzleDTO firstPuzzle = config.getPuzzles().get(0);
+            for (int i = 0; i < config.getTeamSpawns().size(); i++) {
+                TeamSpawnDTO teamSpawnDTO = config.getTeamSpawns().get(i);
+                Preconditions.checkArgument(teamSpawnDTO != null, "teamSpawns[%s] can't be null", i);
+                teamSpawnDTO.isValid();
+                Preconditions.checkArgument(firstPuzzle.isInBounds(teamSpawnDTO.getBarrierArea().toBoundingBox()), "teamSpawns[%s].barrierArea must be contained in at least one of the inBounds boxes of puzzles[0]", i);
+                Preconditions.checkArgument(firstPuzzle.isInBounds(teamSpawnDTO.getSpawn().toVector()), "teamSpawns[%s].spawn must be contained in at least one of the inBounds boxes of puzzles[0]", i);
+            }
+        }
         try {
             GsonComponentSerializer.gson().deserializeFromTree(config.getDescription());
         } catch (JsonIOException | JsonSyntaxException e) {
@@ -154,12 +169,22 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
     protected void setConfig(ParkourPathwayConfig config) {
         World newWorld = Bukkit.getWorld(config.getWorld());
         Preconditions.checkArgument(newWorld != null, "Could not find world \"%s\"", config.getWorld());
-        List<Puzzle> newPuzzles = config.getPuzzles().stream().map(puzzleDTO -> puzzleDTO.toPuzzle(newWorld)).toList();
+        BoundingBox newGlassBarrier = null;
+        if (config.getGlassBarrier() != null) {
+            newGlassBarrier = config.getGlassBarrier().toBoundingBox();
+        }
+        List<TeamSpawn> newTeamSpawns = null;
+        if (config.getTeamSpawns() != null) {
+            newTeamSpawns = TeamSpawnDTO.toTeamSpawns(newWorld, config.getTeamSpawns());
+        }
+        List<Puzzle> newPuzzles = PuzzleDTO.toPuzzles(newWorld, config.getPuzzles());
         Location newStartingLocation = newPuzzles.get(0).checkPoints().get(0).respawn();
         Component newDescription = GsonComponentSerializer.gson().deserializeFromTree(config.getDescription());
         // now it's confirmed everything works, so set the actual fields
         this.world = newWorld;
         this.startingLocation = newStartingLocation;
+        this.glassBarrier = newGlassBarrier;
+        this.teamSpawns = newTeamSpawns;
         this.puzzles = newPuzzles;
         this.description = newDescription;
         this.parkourPathwayConfig = config;
@@ -241,5 +266,23 @@ public class ParkourPathwayStorageUtil extends GameConfigStorageUtil<ParkourPath
     
     public Component getDescription() {
         return description;
+    }
+    
+    /**
+     * @return the configured list of team spawns. Might be null if unspecified.
+     */
+    public @Nullable List<TeamSpawn> getTeamSpawns() {
+        return teamSpawns;
+    }
+    
+    /**
+     * @return the bounding box for the glass barrier. Null if no glass barrier should be spawned.
+     */
+    public @Nullable BoundingBox getGlassBarrier() {
+        return glassBarrier;
+    }
+    
+    public int getTeamSpawnsDuration() {
+        return parkourPathwayConfig.getDurations().getTeamSpawn();
     }
 }

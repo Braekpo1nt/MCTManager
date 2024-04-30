@@ -101,6 +101,26 @@ public class ColorMap {
         CONCRETE_TYPE_MAP.put("yellow", Material.YELLOW_CONCRETE);
     }
     
+    private static final Map<String, Material> STAINED_GLASS_MAP = new HashMap<>();
+    static {
+        STAINED_GLASS_MAP.put("aqua", Material.LIGHT_BLUE_STAINED_GLASS);
+        STAINED_GLASS_MAP.put("black", Material.BLACK_STAINED_GLASS);
+        STAINED_GLASS_MAP.put("dark_aqua", Material.CYAN_STAINED_GLASS);
+        STAINED_GLASS_MAP.put("dark_blue", Material.BLUE_STAINED_GLASS);
+        STAINED_GLASS_MAP.put("dark_gray", Material.GRAY_STAINED_GLASS);
+        STAINED_GLASS_MAP.put("dark_green", Material.GREEN_STAINED_GLASS);
+        STAINED_GLASS_MAP.put("dark_purple", Material.PURPLE_STAINED_GLASS);
+        STAINED_GLASS_MAP.put("dark_red", Material.RED_STAINED_GLASS);
+        STAINED_GLASS_MAP.put("gold", Material.YELLOW_STAINED_GLASS);
+        STAINED_GLASS_MAP.put("gray", Material.LIGHT_GRAY_STAINED_GLASS);
+        STAINED_GLASS_MAP.put("green", Material.LIME_STAINED_GLASS);
+        STAINED_GLASS_MAP.put("light_purple", Material.MAGENTA_STAINED_GLASS);
+        STAINED_GLASS_MAP.put("red", Material.RED_STAINED_GLASS);
+        STAINED_GLASS_MAP.put("white", Material.WHITE_STAINED_GLASS);
+        STAINED_GLASS_MAP.put("blue", Material.LIGHT_BLUE_STAINED_GLASS);
+        STAINED_GLASS_MAP.put("yellow", Material.YELLOW_STAINED_GLASS);
+    }
+    
     private static final Map<String, Material> BANNER_TYPE_MAP = new HashMap<>();
     static {
         BANNER_TYPE_MAP.put("aqua", Material.LIGHT_BLUE_BANNER);
@@ -177,5 +197,14 @@ public class ColorMap {
      */
     public static Material getBannerColor(String colorString) {
         return BANNER_TYPE_MAP.getOrDefault(colorString, Material.WHITE_BANNER);
+    }
+    
+    /**
+     * Gets the color of stained-glass associated with the given color string. 
+     * @param colorString the color string to get the concrete for. Should be the color string matching the ChatColor values.
+     * @return The stained-glass color that best matches the given color string. White if unrecognized.
+     */
+    public static Material getStainedGlassColor(String colorString) {
+        return STAINED_GLASS_MAP.getOrDefault(colorString, Material.WHITE_STAINED_GLASS);
     }
 }
