@@ -13,7 +13,7 @@ import java.util.List;
 @Getter
 class TeamSpawnDTO {
     /**
-     * the area which will be used to place a glass barrier
+     * the area which will be used to place a glass barrier. Air blocks will be replaced with stained-glass of the appropriate team color. 
      */
     private BoundingBoxDTO barrierArea;
     /**
