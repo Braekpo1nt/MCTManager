@@ -22,7 +22,11 @@ import java.util.Map;
  */
 public abstract class CommandManager implements TabExecutor {
     
-    protected final Map<String, CommandExecutor> subCommands = new HashMap<>();
+    /**
+     * Your super command's sub commands. You use your command manager to call one of these commands.
+     * The key is the command's name (what you type in the chat to reference this command).format
+     */
+    protected final Map<String, SubCommand> subCommands = new HashMap<>();
     
     public abstract Component getUsageMessage();
     
@@ -41,8 +45,10 @@ public abstract class CommandManager implements TabExecutor {
                     .color(NamedTextColor.RED));
             return true;
         }
-
-        return subCommands.get(subCommandName).onCommand(sender, command, label, Arrays.copyOfRange(args, 1, args.length));
+        
+        CommandResult commandResult = subCommands.get(subCommandName).onCommand(sender, command, label, Arrays.copyOfRange(args, 1, args.length));
+        sender.sendMessage(commandResult.getMessage());
+        return true;
     }
     
     @Override
@@ -55,7 +61,7 @@ public abstract class CommandManager implements TabExecutor {
             if (!subCommands.containsKey(subCommandName)) {
                 return null;
             }
-            CommandExecutor subCommand = subCommands.get(subCommandName);
+            SubCommand subCommand = subCommands.get(subCommandName);
             if (subCommand instanceof TabExecutor subTabCommand) {
                 return subTabCommand.onTabComplete(sender, command, label, Arrays.copyOfRange(args, 1, args.length));
             }
