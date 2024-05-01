@@ -4,9 +4,54 @@
 /mct <sub command> [<options>]
 ```
 
+## Directory Structure
+Please adhere to the following directory structure style:
+```
+- commands/
+  - <command-manager>/
+    - <command>/
+      - <sub-command-class>.java
+    - <command-manager-class>.java
+    - <sub-commmand-class>.java
+```
+
+For example, let's say your command manager is `/example`, so all commands related to that feature are in the form `/example <options...>`. `plugin.yml` will be:
+
+```yml
+#...
+commands:
+  example:
+    description: example description
+#...
+```
+
+Your super-command (`CommandManager` implementation), `/example`, has a few sub commands and arguments, such as:
+- `/example foo <opt1> <opt2>`
+- `/example bar <num>`
+- `/example action jump <height>`
+- `/example action roll <distance>`
+
+Conceptually, for each command in `/example <command>`, there should be a directory. Thus, your directory structure should look like this:
+
+```
+- commands/
+  - example/
+    - ExampleCommandManager.java
+    - foo/
+      - FooCommand.java
+    - bar/
+      - BarCommand.java
+    - action/
+      - ActionCommand.java
+      - JumpSubCommand.java
+      - RollSubCommand.java
+```
+
+This way, I know that if there is a problem with the `jump` option in `/example action jump <height>`, I know to go to the `commands/example/action/JumpSubCommand.java`
+
 ## Making a new sub command
-To make a new sub command that can be in the `<sub command>` position for `/mct <sub command>`, follow this proceedure:
-- Make a new Java class that implements the `CommandExecutor` or one of its sub classes:
+To make a new sub command that can be in the `<sub command>` position for `/mct <sub command>`, follow this procedure:
+- Make a new Java class that implements the `CommandExecutor` or one of its subclasses:
 
     ```java
     import org.bukkit.command.CommandExecutor;
