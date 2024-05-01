@@ -1,7 +1,7 @@
 package org.braekpo1nt.mctmanager.commands.mct.admin;
 
 import net.kyori.adventure.text.Component;
-import org.braekpo1nt.mctmanager.commands.CommandManager;
+import org.braekpo1nt.mctmanager.commands.commandmanager.CommandManager;
 import org.braekpo1nt.mctmanager.games.GameManager;
 
 public class AdminCommand extends CommandManager {
