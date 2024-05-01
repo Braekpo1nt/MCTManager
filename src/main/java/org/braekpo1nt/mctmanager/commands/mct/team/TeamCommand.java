@@ -5,9 +5,9 @@ import org.braekpo1nt.mctmanager.commands.commandmanager.CommandManager;
 import org.braekpo1nt.mctmanager.commands.mct.team.score.ScoreCommand;
 import org.braekpo1nt.mctmanager.games.GameManager;
 
-public class TeamSubCommand extends CommandManager {
+public class TeamCommand extends CommandManager {
     
-    public TeamSubCommand(GameManager gameManager) {
+    public TeamCommand(GameManager gameManager) {
         subCommands.put("add", new AddSubCommand(gameManager));
         subCommands.put("join", new JoinSubCommand(gameManager));
         subCommands.put("leave", new LeaveSubCommand(gameManager));
