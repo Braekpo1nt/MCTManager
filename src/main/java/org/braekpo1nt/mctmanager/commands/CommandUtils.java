@@ -9,7 +9,8 @@ public class CommandUtils {
      * @param value the string to check if it is an integer
      * @return true if the string is an integer, false if not
      */
-    public static boolean isInteger(String value) {
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    public static boolean isInteger(@NotNull String value) {
         try {
             Integer.parseInt(value);
             return true;
@@ -22,7 +23,8 @@ public class CommandUtils {
      * @param value the string to check if it is a double
      * @return true if the string is a double, false if not
      */
-    public static boolean isDouble(String value) {
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    public static boolean isDouble(@NotNull String value) {
         try {
             Double.parseDouble(value);
             return true;
@@ -35,7 +37,8 @@ public class CommandUtils {
      * @param value the string to check if it is a float
      * @return true if the string is a float, false if not
      */
-    public static boolean isFloat(String value) {
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    public static boolean isFloat(@NotNull String value) {
         try {
             Float.parseFloat(value);
             return true;

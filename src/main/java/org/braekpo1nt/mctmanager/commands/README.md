@@ -47,7 +47,7 @@ Conceptually, for each command in `/example <command>`, there should be a direct
       - RollSubCommand.java
 ```
 
-This way, I know that if there is a problem with the `jump` option in `/example action jump <height>`, I know to go to the `commands/example/action/JumpSubCommand.java`
+This way, I know that if there is a problem with the `jump` option in `/example action jump <height>`, I know to go to the `commands/example/action/JumpSubCommand.java` class.
 
 ## Making a new sub command
 To make a new sub command that can be in the `<sub command>` position for `/mct <sub command>`, follow this procedure:
