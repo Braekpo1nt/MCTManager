@@ -3,13 +3,14 @@ package org.braekpo1nt.mctmanager.commands.commandmanager.commandresult;
 import lombok.AllArgsConstructor;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.jetbrains.annotations.Nullable;
 
 @AllArgsConstructor
 public class FailureCommandResult implements CommandResult {
     private Component message;
     
     @Override
-    public Component getMessage() {
+    public @Nullable Component getMessage() {
         return message.color(NamedTextColor.RED);
     }
 }
