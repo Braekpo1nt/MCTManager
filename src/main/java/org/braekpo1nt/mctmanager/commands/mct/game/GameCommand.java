@@ -1,20 +1,20 @@
 package org.braekpo1nt.mctmanager.commands.mct.game;
 
-import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.commands.commandmanager.CommandManager;
 import org.braekpo1nt.mctmanager.games.GameManager;
+import org.jetbrains.annotations.NotNull;
 
 public class GameCommand extends CommandManager {
     
     public GameCommand(GameManager gameManager) {
-        subCommands.put("start", new StartSubCommand(gameManager));
-        subCommands.put("stop", new StopSubCommand(gameManager));
+        addSubCommand(new StartSubCommand(gameManager, "start"));
+        addSubCommand(new StopSubCommand(gameManager, "stop"));
 //        subCommands.put("vote", new VoteSubCommand(gameManager));
 //        subCommands.put("load", new LoadSubCommand(gameManager));
     }
     
     @Override
-    public Component getUsageMessage() {
-        return Component.text("Usage: /mct game <options>");
+    public @NotNull String getName() {
+        return "game";
     }
 }

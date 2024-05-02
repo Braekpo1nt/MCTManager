@@ -5,6 +5,7 @@ import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.commandmanager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.commands.commandmanager.TabSubCommand;
+import org.braekpo1nt.mctmanager.commands.commandmanager.commandresult.UsageCommandResult;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -21,9 +22,16 @@ import java.util.List;
 public class StopSubCommand implements TabSubCommand {
     
     private final GameManager gameManager;
+    private final String name;
     
-    public StopSubCommand(GameManager gameManager) {
+    public StopSubCommand(GameManager gameManager, String name) {
         this.gameManager = gameManager;
+        this.name = name;
+    }
+    
+    @Override
+    public @NotNull String getName() {
+        return name;
     }
     
     @Override
@@ -59,8 +67,12 @@ public class StopSubCommand implements TabSubCommand {
                             .append(Component.text(" is not a recognized option")));
                 }
             }
-        }
-        return CommandResult.failed("Usage: /mct game stop [true|false]");
+        } 
+        return getUsage().with("[true|false]");
+    }
+    
+    public @NotNull UsageCommandResult getUsage() {
+        return new UsageCommandResult(getName());
     }
     
     @Override

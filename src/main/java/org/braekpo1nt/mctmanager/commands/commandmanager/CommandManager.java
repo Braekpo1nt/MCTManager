@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.commands.commandmanager;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.commandmanager.commandresult.CommandResult;
+import org.braekpo1nt.mctmanager.commands.commandmanager.commandresult.UsageCommandResult;
 import org.bukkit.command.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -22,7 +23,18 @@ public abstract class CommandManager implements CommandExecutor, TabSubCommand {
      */
     protected final Map<String, SubCommand> subCommands = new HashMap<>();
     
-    public abstract Component getUsageMessage();
+    /**
+     * Add a new {@link SubCommand} implementation to the {@link CommandManager#subCommands} map.
+     * This can now be called as a sub command using {@link SubCommand#getName()}.
+     * @param subCommand the implementation of {@link SubCommand} to add
+     */
+    public void addSubCommand(SubCommand subCommand) {
+        subCommands.put(subCommand.getName(), subCommand);
+    }
+    
+    public @NotNull UsageCommandResult getUsage() {
+        return new UsageCommandResult(getName());
+    }
     
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
@@ -37,7 +49,7 @@ public abstract class CommandManager implements CommandExecutor, TabSubCommand {
     @Override
     public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length < 1) {
-            return CommandResult.failed(getUsageMessage());
+            return getUsage().with("<options>");
         }
         String subCommandName = args[0];
         SubCommand subCommand = subCommands.get(subCommandName);
@@ -47,7 +59,11 @@ public abstract class CommandManager implements CommandExecutor, TabSubCommand {
                             .decorate(TextDecoration.BOLD))
                     .append(Component.text(" is not recognized.")));
         }
-        return subCommand.onSubCommand(sender, command, label, Arrays.copyOfRange(args, 1, args.length));
+        CommandResult commandResult = subCommand.onSubCommand(sender, command, label, Arrays.copyOfRange(args, 1, args.length));
+        if (commandResult instanceof UsageCommandResult result) {
+            return getUsage().with(result);
+        }
+        return commandResult;
     }
     
     @Override

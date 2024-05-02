@@ -4,6 +4,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.commands.commandmanager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.commands.commandmanager.TabSubCommand;
+import org.braekpo1nt.mctmanager.commands.commandmanager.commandresult.UsageCommandResult;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.bukkit.command.Command;
@@ -20,15 +21,21 @@ import java.util.List;
 public class StartSubCommand implements TabSubCommand {
     
     private final GameManager gameManager;
+    private final String name;
+    @Override
+    public @NotNull String getName() {
+        return name;
+    }
     
-    public StartSubCommand(GameManager gameManager) {
+    public StartSubCommand(GameManager gameManager, String name) {
         this.gameManager = gameManager;
+        this.name = name;
     }
     
     @Override
     public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length != 1) {
-            return CommandResult.failed("Usage: /mct game start <game>");
+            return getUsage().with("<game>");
         }
         String gameID = args[0];
         GameType gameType = GameType.fromID(gameID);
@@ -43,6 +50,11 @@ public class StartSubCommand implements TabSubCommand {
         }
         gameManager.startGame(gameType, sender);
         return CommandResult.succeeded();
+    }
+    
+    @Override
+    public @NotNull UsageCommandResult getUsage() {
+        return new UsageCommandResult(getName());
     }
     
     @Override

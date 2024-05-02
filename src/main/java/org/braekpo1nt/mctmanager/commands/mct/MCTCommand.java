@@ -8,6 +8,7 @@ import org.braekpo1nt.mctmanager.commands.mct.game.GameCommand;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.listeners.BlockEffectsListener;
 import org.bukkit.command.PluginCommand;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * The super command for all MCT related commands. 
@@ -16,10 +17,10 @@ import org.bukkit.command.PluginCommand;
 public class MCTCommand extends CommandManager {
     
     public MCTCommand(Main plugin, GameManager gameManager, BlockEffectsListener blockEffectsListener) {
-        PluginCommand command = plugin.getCommand("mct");
-        Preconditions.checkArgument(command != null, "Can't find command mct");
+        PluginCommand command = plugin.getCommand(getName());
+        Preconditions.checkArgument(command != null, "Can't find command %s", getName());
         command.setExecutor(this);
-        subCommands.put("game", new GameCommand(gameManager));
+        addSubCommand(new GameCommand(gameManager));
 //        subCommands.put("edit", new EditCommand(gameManager));
 //        subCommands.put("option", new OptionSubCommand(gameManager, blockEffectsListener));
 //        subCommands.put("team", new TeamCommand(gameManager));
@@ -38,7 +39,7 @@ public class MCTCommand extends CommandManager {
     }
     
     @Override
-    public Component getUsageMessage() {
-        return Component.text("Usage: /mct <option>");
+    public @NotNull String getName() {
+        return "mct";
     }
 }
