@@ -49,7 +49,6 @@ public class StartSubCommand implements TabSubCommand {
     
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        Bukkit.getLogger().info("StartSubCommand.onTabComplete()");
         if (args.length == 1) {
             return GameType.GAME_IDS.keySet().stream().sorted().toList();
         }

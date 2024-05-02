@@ -3,7 +3,7 @@ package org.braekpo1nt.mctmanager.commands.mct.event;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
-import org.braekpo1nt.mctmanager.commands.commandmanager.CommandManager;
+import org.braekpo1nt.mctmanager.commands.commandmanager.OldCommandManager;
 import org.braekpo1nt.mctmanager.commands.CommandUtils;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class EventCommand extends CommandManager {
+public class EventCommand extends OldCommandManager {
     
     public EventCommand(GameManager gameManager) {
         subCommands.put("start", new TabExecutor() {

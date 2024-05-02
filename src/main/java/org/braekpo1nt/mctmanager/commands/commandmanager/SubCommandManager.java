@@ -35,7 +35,6 @@ public abstract class SubCommandManager implements TabSubCommand {
     
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        Bukkit.getLogger().info("SubCommandManager.onTabComplete()");
         if (args.length == 1) {
             return subCommands.keySet().stream().sorted().toList();
         }

@@ -3,7 +3,7 @@ package org.braekpo1nt.mctmanager.commands.mct.event;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
-import org.braekpo1nt.mctmanager.commands.commandmanager.CommandManager;
+import org.braekpo1nt.mctmanager.commands.commandmanager.OldCommandManager;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.bukkit.command.Command;
@@ -14,7 +14,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class VoteSubCommand extends CommandManager {
+public class VoteSubCommand extends OldCommandManager {
     
     public VoteSubCommand(GameManager gameManager) {
         subCommands.put("add", new TabExecutor() {

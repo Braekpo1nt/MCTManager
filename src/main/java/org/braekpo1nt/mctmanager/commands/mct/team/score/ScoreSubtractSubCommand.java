@@ -1,10 +1,10 @@
 package org.braekpo1nt.mctmanager.commands.mct.team.score;
 
 import net.kyori.adventure.text.Component;
-import org.braekpo1nt.mctmanager.commands.commandmanager.CommandManager;
+import org.braekpo1nt.mctmanager.commands.commandmanager.OldCommandManager;
 import org.braekpo1nt.mctmanager.games.GameManager;
 
-public class ScoreSubtractSubCommand extends CommandManager {
+public class ScoreSubtractSubCommand extends OldCommandManager {
 
     public ScoreSubtractSubCommand(GameManager gameManager) {
         subCommands.put("player", new ScoreAddPlayerSubCommand(gameManager, true));

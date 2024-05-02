@@ -1,7 +1,6 @@
 package org.braekpo1nt.mctmanager.commands.mct.game;
 
 import net.kyori.adventure.text.Component;
-import org.braekpo1nt.mctmanager.commands.commandmanager.CommandManager;
 import org.braekpo1nt.mctmanager.commands.commandmanager.SubCommandManager;
 import org.braekpo1nt.mctmanager.games.GameManager;
 
