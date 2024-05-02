@@ -16,13 +16,7 @@ import java.util.*;
  * Add classes which implement {@link SubCommand} to the {@link CommandManager#subCommands} map to add executable sub commands. 
  * Implement {@link TabSubCommand} in your sub command to provide tab completion
  */
-public abstract class CommandManager implements TabExecutor {
-    
-    public CommandManager(@NotNull String name, @NotNull Main plugin) {
-        PluginCommand command = plugin.getCommand(name);
-        Preconditions.checkArgument(command != null, "Could not find command with name \"%s\"", name);
-        command.setExecutor(this);
-    }
+public abstract class CommandManager implements CommandExecutor, TabSubCommand {
     
     /**
      * Your super command's sub commands. You use your command manager to call one of these commands.
@@ -49,12 +43,28 @@ public abstract class CommandManager implements TabExecutor {
             return true;
         }
         
-        CommandResult commandResult = subCommand.onCommand(sender, command, label, Arrays.copyOfRange(args, 1, args.length));
+        CommandResult commandResult = subCommand.onSubCommand(sender, command, label, Arrays.copyOfRange(args, 1, args.length));
         Component message = commandResult.getMessage();
         if (message != null) {
             sender.sendMessage(message);
         }
         return true;
+    }
+    
+    @Override
+    public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+        if (args.length < 1) {
+            return CommandResult.failed(getUsageMessage());
+        }
+        String subCommandName = args[0];
+        SubCommand subCommand = subCommands.get(subCommandName);
+        if (subCommand == null) {
+            return CommandResult.failed(Component.text("Argument ")
+                    .append(Component.text(subCommandName)
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(" is not recognized.")));
+        }
+        return subCommand.onSubCommand(sender, command, label, Arrays.copyOfRange(args, 1, args.length));
     }
     
     @Override

@@ -28,7 +28,7 @@ public class StartSubCommand implements TabSubCommand {
     }
     
     @Override
-    public @NotNull CommandResult onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+    public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length != 1) {
             return CommandResult.failed("Usage: /mct game start <game>");
         }
