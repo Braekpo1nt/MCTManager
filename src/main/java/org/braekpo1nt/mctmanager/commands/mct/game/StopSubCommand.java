@@ -29,7 +29,7 @@ public class StopSubCommand implements TabSubCommand {
     }
     
     @Override
-    public CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+    public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (!gameManager.gameIsRunning()) {
             return CommandResult.failed(Component.text("No game is running.")
                     .color(NamedTextColor.RED));
