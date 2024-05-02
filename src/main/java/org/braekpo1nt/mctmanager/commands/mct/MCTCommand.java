@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.commands.mct;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.commandmanager.CommandManager;
+import org.braekpo1nt.mctmanager.commands.commandmanager.SubCommandManager;
 import org.braekpo1nt.mctmanager.commands.mct.game.GameCommand;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.listeners.BlockEffectsListener;
@@ -14,8 +15,16 @@ import org.braekpo1nt.mctmanager.listeners.BlockEffectsListener;
 public class MCTCommand extends CommandManager {
     
     public MCTCommand(Main plugin, GameManager gameManager, BlockEffectsListener blockEffectsListener) {
-        super("mct", plugin);
-        subCommands.put("game", new GameCommand(gameManager));
+        super(new SubCommandManager() {
+            {
+                subCommands.put("game", new GameCommand(gameManager));
+            }
+            @Override
+            public Component getUsageMessage() {
+                return Component.text("Usage: /mct <option>");
+            }
+        }, "mct", plugin);
+//        subCommands.put("game", new GameCommand(gameManager));
 //        subCommands.put("edit", new EditCommand(gameManager));
 //        subCommands.put("option", new OptionSubCommand(gameManager, blockEffectsListener));
 //        subCommands.put("team", new TeamCommand(gameManager));

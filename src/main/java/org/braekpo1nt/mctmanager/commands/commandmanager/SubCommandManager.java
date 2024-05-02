@@ -11,6 +11,11 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
+/**
+ * Responsible for managing a set of sub commands.
+ * Add classes which implement {@link SubCommand} to the {@link SubCommandManager#subCommands} map to add executable sub commands. 
+ * Implement {@link TabSubCommand} in your sub command to provide tab completion
+ */
 public abstract class SubCommandManager implements TabSubCommand {
     
     protected final Map<String, SubCommand> subCommands = new HashMap<>();
