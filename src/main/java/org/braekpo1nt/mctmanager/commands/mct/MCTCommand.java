@@ -6,6 +6,7 @@ import org.braekpo1nt.mctmanager.commands.commandmanager.CommandManager;
 import org.braekpo1nt.mctmanager.commands.mct.admin.AdminCommand;
 import org.braekpo1nt.mctmanager.commands.mct.edit.EditCommand;
 import org.braekpo1nt.mctmanager.commands.mct.game.GameCommand;
+import org.braekpo1nt.mctmanager.commands.mct.team.TeamCommand;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.listeners.BlockEffectsListener;
 import org.bukkit.command.PluginCommand;
@@ -24,7 +25,7 @@ public class MCTCommand extends CommandManager {
         addSubCommand(new GameCommand(gameManager));
         addSubCommand(new EditCommand(gameManager, "edit"));
 //        subCommands.put("option", new OptionSubCommand(gameManager, blockEffectsListener));
-//        subCommands.put("team", new TeamCommand(gameManager));
+        addSubCommand(new TeamCommand(gameManager, "team"));
         addSubCommand(new AdminCommand(gameManager));
 //        subCommands.put("event", new EventCommand(gameManager));
 //        subCommands.put("save", (sender, command, label, args) -> {

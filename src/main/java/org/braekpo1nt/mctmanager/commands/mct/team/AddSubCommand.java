@@ -3,6 +3,8 @@ package org.braekpo1nt.mctmanager.commands.mct.team;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.braekpo1nt.mctmanager.commands.commandmanager.TabSubCommand;
+import org.braekpo1nt.mctmanager.commands.commandmanager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.bukkit.Bukkit;
@@ -16,20 +18,18 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
-public class AddSubCommand implements TabExecutor {
+public class AddSubCommand extends TabSubCommand {
     private final GameManager gameManager;
     
-    public AddSubCommand(GameManager gameManager) {
+    public AddSubCommand(GameManager gameManager, @NotNull String name) {
+        super(name);
         this.gameManager = gameManager;
     }
     
     @Override
-    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+    public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length < 3) {
-            sender.sendMessage(
-                    Component.text("Usage: /mct team add <team> <\"display name\"> <color>")
-                    .color(NamedTextColor.RED));
-            return true;
+            return getUsage().with("<team>").with("\"<displayName>\"").with("<color>");
         }
         
         int[] displayNameIndexes = getDisplayNameIndexes(args);
@@ -37,91 +37,61 @@ public class AddSubCommand implements TabExecutor {
         int displayNameEnd = displayNameIndexes[1];
         
         if (displayNameStart > 1) {
-            sender.sendMessage(Component.text("Provide a team name")
-                    .color(NamedTextColor.RED));
-            sender.sendMessage(Component.text("/mct team add ")
-                    .append(Component.text("<team>")
-                            .decorate(TextDecoration.BOLD))
-                    .append(Component.text(" <\"display name\"> <color>"))
-                    .color(NamedTextColor.RED));
-            return true;
+            return CommandResult.failure(Component.text("Provide a team name")
+                    .append(Component.text("/mct team add ")
+                        .append(Component.text("<team>")
+                                .decorate(TextDecoration.BOLD))
+                        .append(Component.text(" \"<displayName>\" <color>"))));
         }
         String teamName = args[0];
         if (teamName.equals(GameManager.ADMIN_TEAM)) {
-            sender.sendMessage(Component.empty()
+            return CommandResult.failure(Component.empty()
                             .append(Component.text(teamName)
                                     .decorate(TextDecoration.BOLD))
                             .append(Component.text(" cannot be "))
                             .append(Component.text(GameManager.ADMIN_TEAM)
                                     .decorate(TextDecoration.BOLD))
-                            .append(Component.text(" because that is reserved for the admin team."))
-                            .color(NamedTextColor.RED));
-            return true;
+                            .append(Component.text(" because that is reserved for the admin team.")));
         }
         if (!validTeamName(teamName)) {
-            sender.sendMessage(Component.text("Provide a valid team name\n")
+            return CommandResult.failure(Component.text("Provide a valid team name\n")
                             .append(Component.text(
-                                    "Allowed characters: -, +, ., _, A-Z, a-z, and 0-9"))
-                    .color(NamedTextColor.RED));
-            return true;
+                                    "Allowed characters: -, +, ., _, A-Z, a-z, and 0-9")));
         }
         
         if (displayNameIndexesAreInvalid(displayNameStart, displayNameEnd)) {
-            sender.sendMessage(Component.text("Display name must be quoted")
-                    .color(NamedTextColor.RED));
-            sender.sendMessage(Component.text("/mct team add <team> ")
-                    .append(Component.text("<\"display name\">")
-                            .decorate(TextDecoration.BOLD))
-                    .append(Component.text(" <color>"))
-                    .color(NamedTextColor.RED));
-            return true;
+            return CommandResult.failure("Display name must be surrounded by quotation marks")
+                    .and(getUsage().with("<team>").with("\"<displayName>\"", TextDecoration.BOLD).with("<color>"));
         }
         String teamDisplayName = getDisplayName(args, displayNameStart, displayNameEnd);
         if (teamDisplayName.isEmpty()) {
-            sender.sendMessage(Component.text("Display name cannot be blank")
-                    .color(NamedTextColor.RED));
-            sender.sendMessage(Component.text("/mct team add <team> ")
-                    .append(Component.text("<\"display name\">")
-                            .decorate(TextDecoration.BOLD))
-                    .append(Component.text(" <color>"))
-                    .color(NamedTextColor.RED));
-            return true;
+            return CommandResult.failure("Display name can't be blank")
+                    .and(getUsage().with("<team>").with("\"<displayName>\"", TextDecoration.BOLD).with("<color>"));
         }
         
         if (args.length < displayNameEnd + 2) {
-            sender.sendMessage(Component.text("Please provide a color")
-                    .color(NamedTextColor.RED));
-            sender.sendMessage(Component.text("Usage: /mct team add <team> <\"display name\"> ")
-                    .append(Component.text("<color>")
-                            .decorate(TextDecoration.BOLD))
-                    .color(NamedTextColor.RED));
-            return true;
+            return CommandResult.failure("Please provide a color")
+                    .and(getUsage().with("<team>").with("\"<displayName>\"").with("<color>", TextDecoration.BOLD));
         }
         String colorString = args[displayNameEnd + 1];
         
         if (!ColorMap.hasNamedTextColor(colorString)) {
-            sender.sendMessage(Component.text()
+            return CommandResult.failure(Component.empty()
                             .append(Component.text(colorString)
                                     .decorate(TextDecoration.BOLD))
-                            .append(Component.text(" is not a recognized color"))
-                    .color(NamedTextColor.RED));
-            return true;
+                            .append(Component.text(" is not a recognized color")));
         }
         boolean teamExists = !gameManager.addTeam(teamName, teamDisplayName, colorString);
         if (teamExists) {
-            sender.sendMessage(Component.text("A team already exists with the team name \"")
+            return CommandResult.failure(Component.text("A team already exists with the team name \"")
                     .append(Component.text(teamName))
-                    .append(Component.text("\""))
-                    .color(NamedTextColor.RED));
-            return true;
+                    .append(Component.text("\"")));
         }
-        sender.sendMessage(Component.text("Created team ")
+        return CommandResult.success(Component.text("Created team ")
                 .append(Component.text(teamName))
                 .append(Component.text("\" with display name \""))
                 .append(Component.text(teamDisplayName))
-                .append(Component.text("\""))
-                .color(NamedTextColor.GREEN));
-        return true;
+                .append(Component.text("\"")));
     }
     
     private static boolean displayNameIndexesAreInvalid(int displayNameStart, int displayNameEnd) {
