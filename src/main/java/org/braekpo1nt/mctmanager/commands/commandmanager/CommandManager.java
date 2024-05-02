@@ -32,10 +32,6 @@ public abstract class CommandManager implements CommandExecutor, TabSubCommand {
         subCommands.put(subCommand.getName(), subCommand);
     }
     
-    public @NotNull UsageCommandResult getUsage() {
-        return new UsageCommandResult(getName());
-    }
-    
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         CommandResult commandResult = onSubCommand(sender, command, label, args);

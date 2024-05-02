@@ -53,11 +53,6 @@ public class StartSubCommand implements TabSubCommand {
     }
     
     @Override
-    public @NotNull UsageCommandResult getUsage() {
-        return new UsageCommandResult(getName());
-    }
-    
-    @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length == 1) {
             return GameType.GAME_IDS.keySet().stream().sorted().toList();

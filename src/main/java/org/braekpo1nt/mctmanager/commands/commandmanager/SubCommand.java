@@ -15,7 +15,9 @@ public interface SubCommand {
     /**
      * @return the usage of this command
      */
-    @NotNull UsageCommandResult getUsage();
+    default @NotNull UsageCommandResult getUsage() {
+        return new UsageCommandResult(getName());
+    }
     
     @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull org.bukkit.command.Command command, @NotNull String label, @NotNull String[] args);
 }

@@ -71,10 +71,6 @@ public class StopSubCommand implements TabSubCommand {
         return getUsage().with("[true|false]");
     }
     
-    public @NotNull UsageCommandResult getUsage() {
-        return new UsageCommandResult(getName());
-    }
-    
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length == 1) {
