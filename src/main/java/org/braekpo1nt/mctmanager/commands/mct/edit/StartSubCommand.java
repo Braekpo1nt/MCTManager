@@ -2,44 +2,42 @@ package org.braekpo1nt.mctmanager.commands.mct.edit;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.braekpo1nt.mctmanager.commands.commandmanager.TabSubCommand;
+import org.braekpo1nt.mctmanager.commands.commandmanager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabExecutor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
 
-public class StartSubCommand implements TabExecutor {
+public class StartSubCommand extends TabSubCommand {
     
     private final GameManager gameManager;
     
-    public StartSubCommand(GameManager gameManager) {
+    public StartSubCommand(GameManager gameManager, @NotNull String name) {
+        super(name);
         this.gameManager = gameManager;
     }
     
     @Override
-    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+    public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
     
         if (args.length != 1) {
-            sender.sendMessage(Component.text("Usage: /mct edit start <game>")
-                    .color(NamedTextColor.RED));
-            return true;
+            return getUsage().with("<game>");
         }
     
         String gameID = args[0];
         GameType gameType = GameType.fromID(gameID);
         if (gameType == null) {
-            sender.sendMessage(Component.text(gameID)
-                    .append(Component.text(" is not a valid game"))
-                    .color(NamedTextColor.RED));
-            return true;
+            return CommandResult.failed(Component.text(gameID)
+                    .append(Component.text(" is not a valid game")));
         }
         gameManager.startEditor(gameType, sender);
-        return true;
+        return CommandResult.succeeded();
     }
     
     @Override

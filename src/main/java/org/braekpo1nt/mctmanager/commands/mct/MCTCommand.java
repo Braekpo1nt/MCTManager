@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.commandmanager.CommandManager;
 import org.braekpo1nt.mctmanager.commands.mct.admin.AdminCommand;
+import org.braekpo1nt.mctmanager.commands.mct.edit.EditCommand;
 import org.braekpo1nt.mctmanager.commands.mct.game.GameCommand;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.listeners.BlockEffectsListener;
@@ -21,7 +22,7 @@ public class MCTCommand extends CommandManager {
         Preconditions.checkArgument(command != null, "Can't find command %s", getName());
         command.setExecutor(this);
         addSubCommand(new GameCommand(gameManager));
-//        subCommands.put("edit", new EditCommand(gameManager));
+        addSubCommand(new EditCommand(gameManager, "edit"));
 //        subCommands.put("option", new OptionSubCommand(gameManager, blockEffectsListener));
 //        subCommands.put("team", new TeamCommand(gameManager));
         addSubCommand(new AdminCommand(gameManager));
