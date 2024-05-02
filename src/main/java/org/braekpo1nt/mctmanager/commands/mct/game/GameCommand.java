@@ -9,7 +9,7 @@ public class GameCommand extends CommandManager {
     public GameCommand(GameManager gameManager) {
         addSubCommand(new StartSubCommand(gameManager, "start"));
         addSubCommand(new StopSubCommand(gameManager, "stop"));
-//        subCommands.put("vote", new VoteSubCommand(gameManager));
+        addSubCommand(new VoteSubCommand(gameManager));
 //        subCommands.put("load", new LoadSubCommand(gameManager));
     }
     
