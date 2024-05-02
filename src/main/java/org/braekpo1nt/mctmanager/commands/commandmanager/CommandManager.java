@@ -3,10 +3,7 @@ package org.braekpo1nt.mctmanager.commands.commandmanager;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabExecutor;
+import org.bukkit.command.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -19,14 +16,16 @@ import java.util.Map;
  * A command that has other sub commands.
  * Add CommandExecutor implementing methods to the {@link CommandManager#subCommands} map to add executable sub commands. 
  * Implement TabExecutor in your sub command to provide tab completion
+ * @deprecated deprecated in favor of {@link NewCommandManager}
  */
+@Deprecated
 public abstract class CommandManager implements TabExecutor {
     
     /**
      * Your super command's sub commands. You use your command manager to call one of these commands.
      * The key is the command's name (what you type in the chat to reference this command).format
      */
-    protected final Map<String, SubCommand> subCommands = new HashMap<>();
+    protected final Map<String, CommandExecutor> subCommands = new HashMap<>();
     
     public abstract Component getUsageMessage();
     
@@ -46,9 +45,7 @@ public abstract class CommandManager implements TabExecutor {
             return true;
         }
         
-        CommandResult commandResult = subCommands.get(subCommandName).onCommand(sender, command, label, Arrays.copyOfRange(args, 1, args.length));
-        sender.sendMessage(commandResult.getMessage());
-        return true;
+        return subCommands.get(subCommandName).onCommand(sender, command, label, Arrays.copyOfRange(args, 1, args.length));
     }
     
     @Override
@@ -61,8 +58,8 @@ public abstract class CommandManager implements TabExecutor {
             if (!subCommands.containsKey(subCommandName)) {
                 return null;
             }
-            SubCommand subCommand = subCommands.get(subCommandName);
-            if (subCommand instanceof TabExecutor subTabCommand) {
+            CommandExecutor subCommand = subCommands.get(subCommandName);
+            if (subCommand instanceof TabCompleter subTabCommand) {
                 return subTabCommand.onTabComplete(sender, command, label, Arrays.copyOfRange(args, 1, args.length));
             }
         }
