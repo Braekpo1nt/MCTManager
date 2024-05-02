@@ -1,7 +1,6 @@
 package org.braekpo1nt.mctmanager.commands.mct.admin;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.commandmanager.TabSubCommand;
 import org.braekpo1nt.mctmanager.commands.commandmanager.commandresult.CommandResult;
@@ -10,8 +9,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabExecutor;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,13 +32,13 @@ public class RemoveSubCommand extends TabSubCommand {
         String name = args[0];
         OfflinePlayer admin = Bukkit.getOfflinePlayer(name);
         if (!gameManager.isAdmin(admin.getUniqueId())) {
-            return CommandResult.failed(Component.empty()
+            return CommandResult.failure(Component.empty()
                     .append(Component.text(name)
                             .decorate(TextDecoration.BOLD))
                     .append(Component.text(" is not an admin")));
         }
         gameManager.removeAdmin(sender, admin, name);
-        return CommandResult.succeeded();
+        return CommandResult.success();
     }
     
     @Override

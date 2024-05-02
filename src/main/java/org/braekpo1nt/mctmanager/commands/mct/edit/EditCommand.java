@@ -1,11 +1,7 @@
 package org.braekpo1nt.mctmanager.commands.mct.edit;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.commandmanager.CommandManager;
-import org.braekpo1nt.mctmanager.commands.commandmanager.OldCommandManager;
-import org.braekpo1nt.mctmanager.commands.CommandUtils;
 import org.braekpo1nt.mctmanager.commands.commandmanager.SubCommand;
 import org.braekpo1nt.mctmanager.commands.commandmanager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.GameManager;
@@ -28,10 +24,10 @@ public class EditCommand extends CommandManager {
             @Override
             public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
                 if (!gameManager.editorIsRunning()) {
-                    return CommandResult.failed(Component.text("No editor is running."));
+                    return CommandResult.failure(Component.text("No editor is running."));
                 }
                 gameManager.validateEditor(sender);
-                return CommandResult.succeeded();
+                return CommandResult.success();
             }
         });
 //        subCommands.put("save", (sender, command, label, args) -> {

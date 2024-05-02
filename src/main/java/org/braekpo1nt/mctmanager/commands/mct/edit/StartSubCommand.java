@@ -1,7 +1,6 @@
 package org.braekpo1nt.mctmanager.commands.mct.edit;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.commands.commandmanager.TabSubCommand;
 import org.braekpo1nt.mctmanager.commands.commandmanager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.GameManager;
@@ -33,11 +32,11 @@ public class StartSubCommand extends TabSubCommand {
         String gameID = args[0];
         GameType gameType = GameType.fromID(gameID);
         if (gameType == null) {
-            return CommandResult.failed(Component.text(gameID)
+            return CommandResult.failure(Component.text(gameID)
                     .append(Component.text(" is not a valid game")));
         }
         gameManager.startEditor(gameType, sender);
-        return CommandResult.succeeded();
+        return CommandResult.success();
     }
     
     @Override

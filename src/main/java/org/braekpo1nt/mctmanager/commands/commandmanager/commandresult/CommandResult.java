@@ -11,19 +11,19 @@ public interface CommandResult {
      */
     @Nullable Component getMessage();
     
-    static CommandResult succeeded(@Nullable Component message) {
+    static CommandResult success(@Nullable Component message) {
         return new SuccessCommandResult(message);
     }
     
-    static CommandResult succeeded() {
+    static CommandResult success() {
         return new SuccessCommandResult(null);
     }
     
-    static CommandResult failed(@Nullable Component message) {
+    static CommandResult failure(@Nullable Component message) {
         return new FailureCommandResult(message);
     }
     
-    static CommandResult failed(@NotNull String message) {
+    static CommandResult failure(@NotNull String message) {
         return new FailureCommandResult(Component.text(message));
     }
 }

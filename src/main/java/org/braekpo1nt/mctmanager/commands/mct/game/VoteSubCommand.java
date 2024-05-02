@@ -35,21 +35,21 @@ public class VoteSubCommand extends TabSubCommand {
         }
         String durationString = args[0];
         if (!CommandUtils.isInteger(durationString)) {
-            return CommandResult.failed(Component.text("Duration ")
+            return CommandResult.failure(Component.text("Duration ")
                     .append(Component.text(durationString)
                             .decorate(TextDecoration.BOLD))
                     .append(Component.text(" is not an integer")));
         }
         int duration = Integer.parseInt(durationString);
         if (duration <= 0) {
-            return CommandResult.failed(Component.text("Duration must be greater than 0"));
+            return CommandResult.failure(Component.text("Duration must be greater than 0"));
         }
         List<GameType> votingPool = new ArrayList<>();
         for (int i = 1; i < args.length; i++) {
             String gameID = args[i];
             GameType gameType = GameType.fromID(gameID);
             if (gameType == null) {
-                return CommandResult.failed(Component.empty()
+                return CommandResult.failure(Component.empty()
                         .append(Component.text(gameID)
                                 .decorate(TextDecoration.BOLD))
                         .append(Component.text(" is not a recognized game name.")));
@@ -57,7 +57,7 @@ public class VoteSubCommand extends TabSubCommand {
             votingPool.add(gameType);
         }
         gameManager.manuallyStartVote(sender, votingPool, duration);
-        return CommandResult.succeeded();
+        return CommandResult.success();
     }
 
     @Override

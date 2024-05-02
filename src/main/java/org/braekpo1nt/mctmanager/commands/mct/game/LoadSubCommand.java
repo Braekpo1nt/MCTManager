@@ -26,13 +26,13 @@ public class LoadSubCommand implements SubCommand {
     @Override
     public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (!gameManager.gameIsRunning()) {
-            return CommandResult.failed(Component.text("No game is running."));
+            return CommandResult.failure(Component.text("No game is running."));
         }
         
         if (!gameManager.loadGameConfig(sender)) {
-            return CommandResult.succeeded(Component.text("Nothing changed."));
+            return CommandResult.success(Component.text("Nothing changed."));
         }
         
-        return CommandResult.succeeded();
+        return CommandResult.success();
     }
 }

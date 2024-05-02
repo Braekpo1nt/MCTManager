@@ -5,7 +5,6 @@ import org.braekpo1nt.mctmanager.commands.commandmanager.commandresult.CommandRe
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabExecutor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -26,7 +25,7 @@ public class StopSubCommand extends TabSubCommand {
         
         gameManager.stopEditor(sender);
         
-        return CommandResult.succeeded();
+        return CommandResult.success();
     }
     
     @Override

@@ -54,7 +54,7 @@ public abstract class CommandManager extends TabSubCommand implements CommandExe
         String subCommandName = args[0];
         SubCommand subCommand = subCommands.get(subCommandName);
         if (subCommand == null) {
-            return CommandResult.failed(Component.text("Argument ")
+            return CommandResult.failure(Component.text("Argument ")
                     .append(Component.text(subCommandName)
                             .decorate(TextDecoration.BOLD))
                     .append(Component.text(" is not recognized.")));

@@ -34,16 +34,16 @@ public class StartSubCommand extends TabSubCommand {
         String gameID = args[0];
         GameType gameType = GameType.fromID(gameID);
         if (gameType == null) {
-            return CommandResult.failed(Component.text(gameID)
+            return CommandResult.failure(Component.text(gameID)
                     .append(Component.text(" is not a valid game"))
                     .color(NamedTextColor.RED));
         }
         if (gameManager.getEventManager().eventIsActive()) {
-            return CommandResult.failed(Component.text("Can't manually start a game while an event is active.")
+            return CommandResult.failure(Component.text("Can't manually start a game while an event is active.")
                     .color(NamedTextColor.RED));
         }
         gameManager.startGame(gameType, sender);
-        return CommandResult.succeeded();
+        return CommandResult.success();
     }
     
     @Override

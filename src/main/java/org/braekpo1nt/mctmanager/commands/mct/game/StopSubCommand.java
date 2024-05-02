@@ -30,22 +30,22 @@ public class StopSubCommand extends TabSubCommand {
     @Override
     public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (!gameManager.gameIsRunning()) {
-            return CommandResult.failed("No game is running.");
+            return CommandResult.failure("No game is running.");
         }
         if (args.length == 0) {
             gameManager.manuallyStopGame(true);
-            return CommandResult.succeeded();
+            return CommandResult.success();
         }
         if (args.length == 1) {
             String shouldTeleport = args[0];
             switch (shouldTeleport) {
                 case "true" -> {
                     gameManager.manuallyStopGame(true);
-                    return CommandResult.succeeded();
+                    return CommandResult.success();
                 }
                 case "false" -> {
                     if (gameManager.getEventManager().eventIsActive()) {
-                        return CommandResult.failed(Component.empty()
+                        return CommandResult.failure(Component.empty()
                                 .append(Component.text("Can't skip teleport to hub while an event is running. Use "))
                                 .append(Component.text("/mct game stop [true]")
                                         .clickEvent(ClickEvent.suggestCommand("/mct game stop"))
@@ -53,10 +53,10 @@ public class StopSubCommand extends TabSubCommand {
                     }
                     sender.sendMessage("Skipping teleport to hub.");
                     gameManager.manuallyStopGame(false);
-                    return CommandResult.succeeded();
+                    return CommandResult.success();
                 }
                 default -> {
-                    return CommandResult.failed(Component.text(shouldTeleport)
+                    return CommandResult.failure(Component.text(shouldTeleport)
                             .append(Component.text(" is not a recognized option")));
                 }
             }

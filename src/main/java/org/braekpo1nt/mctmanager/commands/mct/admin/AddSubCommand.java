@@ -9,7 +9,6 @@ import org.braekpo1nt.mctmanager.games.GameManager;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -34,20 +33,20 @@ public class AddSubCommand extends TabSubCommand {
         String name = args[0];
         Player newAdmin = Bukkit.getPlayer(name);
         if (newAdmin == null || !newAdmin.isOnline()) {
-            return CommandResult.failed(Component.empty()
+            return CommandResult.failure(Component.empty()
                     .append(Component.text(name)
                             .decorate(TextDecoration.BOLD))
                     .append(Component.text(" is not online")));
         }
         if (gameManager.isAdmin(newAdmin.getUniqueId())) {
-            return CommandResult.succeeded(Component.empty()
+            return CommandResult.success(Component.empty()
                     .append(Component.text(name)
                             .decorate(TextDecoration.BOLD))
                     .append(Component.text(" is already an admin"))
                     .color(NamedTextColor.YELLOW));
         }
         gameManager.addAdmin(sender, newAdmin);
-        return CommandResult.succeeded();
+        return CommandResult.success();
     }
     
     @Override
