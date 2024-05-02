@@ -10,7 +10,7 @@ public class GameCommand extends CommandManager {
         addSubCommand(new StartSubCommand(gameManager, "start"));
         addSubCommand(new StopSubCommand(gameManager, "stop"));
         addSubCommand(new VoteSubCommand(gameManager));
-//        subCommands.put("load", new LoadSubCommand(gameManager));
+        addSubCommand(new LoadSubCommand(gameManager));
     }
     
     @Override
