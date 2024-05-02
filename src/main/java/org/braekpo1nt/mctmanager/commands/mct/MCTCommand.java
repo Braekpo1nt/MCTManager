@@ -14,7 +14,7 @@ import org.braekpo1nt.mctmanager.listeners.BlockEffectsListener;
 public class MCTCommand extends CommandManager {
     
     public MCTCommand(Main plugin, GameManager gameManager, BlockEffectsListener blockEffectsListener) {
-        plugin.getCommand("mct").setExecutor(this);
+        super("mct", plugin);
         subCommands.put("game", new GameCommand(gameManager));
 //        subCommands.put("edit", new EditCommand(gameManager));
 //        subCommands.put("option", new OptionSubCommand(gameManager, blockEffectsListener));

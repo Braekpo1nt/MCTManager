@@ -1,12 +1,11 @@
 package org.braekpo1nt.mctmanager.commands.commandmanager;
 
+import com.google.common.base.Preconditions;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabCompleter;
-import org.bukkit.command.TabExecutor;
+import org.braekpo1nt.mctmanager.Main;
+import org.bukkit.command.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -18,6 +17,12 @@ import java.util.*;
  * Implement {@link TabSubCommand} in your sub command to provide tab completion
  */
 public abstract class CommandManager implements TabExecutor {
+    
+    public CommandManager(@NotNull String name, @NotNull Main plugin) {
+        PluginCommand command = plugin.getCommand(name);
+        Preconditions.checkArgument(command != null, "Could not find command with name \"%s\"", name);
+        command.setExecutor(this);
+    }
     
     /**
      * Your super command's sub commands. You use your command manager to call one of these commands.
