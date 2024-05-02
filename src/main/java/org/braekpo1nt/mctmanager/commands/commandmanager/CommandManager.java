@@ -1,7 +1,6 @@
 package org.braekpo1nt.mctmanager.commands.commandmanager;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.commandmanager.commandresult.CommandResult;
 import org.bukkit.command.*;
@@ -27,22 +26,7 @@ public abstract class CommandManager implements CommandExecutor, TabSubCommand {
     
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (args.length < 1) {
-            sender.sendMessage(getUsageMessage());
-            return true;
-        }
-        String subCommandName = args[0];
-        SubCommand subCommand = subCommands.get(subCommandName);
-        if (subCommand == null) {
-            sender.sendMessage(Component.text("Argument ")
-                    .append(Component.text(subCommandName)
-                            .decorate(TextDecoration.BOLD))
-                    .append(Component.text(" is not recognized."))
-                    .color(NamedTextColor.RED));
-            return true;
-        }
-        
-        CommandResult commandResult = subCommand.onSubCommand(sender, command, label, Arrays.copyOfRange(args, 1, args.length));
+        CommandResult commandResult = onSubCommand(sender, command, label, args);
         Component message = commandResult.getMessage();
         if (message != null) {
             sender.sendMessage(message);
