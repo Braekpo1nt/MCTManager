@@ -1,26 +1,26 @@
 package org.braekpo1nt.mctmanager.commands.mct.game;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.commands.commandmanager.SubCommand;
 import org.braekpo1nt.mctmanager.commands.commandmanager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 
 public class LoadSubCommand implements SubCommand {
     
     private final GameManager gameManager;
+    private final @NotNull String name;
     
-    public LoadSubCommand(GameManager gameManager) {
+    public LoadSubCommand(GameManager gameManager, @NotNull String name) {
+        this.name = name;
         this.gameManager = gameManager;
     }
     
     @Override
     public @NotNull String getName() {
-        return "load";
+        return name;
     }
     
     @Override

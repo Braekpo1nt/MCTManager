@@ -18,18 +18,13 @@ import java.util.List;
 /**
  * Handles starting games
  */
-public class StartSubCommand implements TabSubCommand {
+public class StartSubCommand extends TabSubCommand {
     
     private final GameManager gameManager;
-    private final String name;
-    @Override
-    public @NotNull String getName() {
-        return name;
-    }
     
     public StartSubCommand(GameManager gameManager, String name) {
+        super(name);
         this.gameManager = gameManager;
-        this.name = name;
     }
     
     @Override

@@ -19,19 +19,13 @@ import java.util.List;
 /**
  * Handles stopping the current game
  */
-public class StopSubCommand implements TabSubCommand {
+public class StopSubCommand extends TabSubCommand {
     
     private final GameManager gameManager;
-    private final String name;
     
     public StopSubCommand(GameManager gameManager, String name) {
+        super(name);
         this.gameManager = gameManager;
-        this.name = name;
-    }
-    
-    @Override
-    public @NotNull String getName() {
-        return name;
     }
     
     @Override

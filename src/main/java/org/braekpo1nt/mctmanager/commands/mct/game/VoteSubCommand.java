@@ -14,11 +14,12 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public class VoteSubCommand implements TabSubCommand {
+public class VoteSubCommand extends TabSubCommand {
     
     private final GameManager gameManager;
     
-    public VoteSubCommand(GameManager gameManager) {
+    public VoteSubCommand(GameManager gameManager, @NotNull String name) {
+        super(name);
         this.gameManager = gameManager;
     }
     
