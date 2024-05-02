@@ -3,6 +3,8 @@ package org.braekpo1nt.mctmanager.commands.mct.admin;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.braekpo1nt.mctmanager.commands.commandmanager.TabSubCommand;
+import org.braekpo1nt.mctmanager.commands.commandmanager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -15,41 +17,37 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collections;
 import java.util.List;
 
-public class AddSubCommand implements TabExecutor {
+public class AddSubCommand extends TabSubCommand {
     
     private final GameManager gameManager;
     
-    public AddSubCommand(GameManager gameManager) {
+    public AddSubCommand(GameManager gameManager, @NotNull String name) {
+        super(name);
         this.gameManager = gameManager;
     }
     
     @Override
-    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+    public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length != 1) {
-            sender.sendMessage(Component.text("Usage: /mct admin add <player>")
-                    .color(NamedTextColor.RED));
-            return true;
+            return getUsage().with("<player>");
         }
         String name = args[0];
         Player newAdmin = Bukkit.getPlayer(name);
         if (newAdmin == null || !newAdmin.isOnline()) {
-            sender.sendMessage(Component.empty()
+            return CommandResult.failed(Component.empty()
                     .append(Component.text(name)
                             .decorate(TextDecoration.BOLD))
-                    .append(Component.text(" is not online"))
-                    .color(NamedTextColor.RED));
-            return true;
+                    .append(Component.text(" is not online")));
         }
         if (gameManager.isAdmin(newAdmin.getUniqueId())) {
-            sender.sendMessage(Component.empty()
+            return CommandResult.succeeded(Component.empty()
                     .append(Component.text(name)
                             .decorate(TextDecoration.BOLD))
                     .append(Component.text(" is already an admin"))
                     .color(NamedTextColor.YELLOW));
-            return true;
         }
         gameManager.addAdmin(sender, newAdmin);
-        return true;
+        return CommandResult.succeeded();
     }
     
     @Override
