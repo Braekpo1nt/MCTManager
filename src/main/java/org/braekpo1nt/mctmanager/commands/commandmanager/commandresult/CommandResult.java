@@ -11,6 +11,8 @@ public interface CommandResult {
      */
     @Nullable Component getMessage();
     
+    @NotNull CommandResult and(CommandResult other);
+    
     static CommandResult success(@Nullable Component message) {
         return new SuccessCommandResult(message);
     }

@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.commands.commandmanager.commandresult;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -34,14 +35,25 @@ public class UsageCommandResult implements CommandResult {
         return this;
     }
     
+    public UsageCommandResult with(String arg, TextDecoration decoration) {
+        //TODO: Implement with decoration
+        return with(arg);
+    }
+    
     /**
      * Usage messages look like "Usage: /arg1 arg2 ..." and are colored red.
      * @return the usage message
      */
     @Override
     public Component getMessage() {
+        //TODO: Use Component.text() with no args to get a builder
         return Component.text("Usage: /")
                 .append(Component.text(String.join(" ", args)))
                 .color(NamedTextColor.RED);
+    }
+    
+    @Override
+    public @NotNull CommandResult and(CommandResult other) {
+        return new CompositeCommandResult(this, other);
     }
 }
