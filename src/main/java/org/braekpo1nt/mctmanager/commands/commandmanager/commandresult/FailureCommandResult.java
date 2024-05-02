@@ -1,4 +1,4 @@
-package org.braekpo1nt.mctmanager.commands.commandmanager;
+package org.braekpo1nt.mctmanager.commands.commandmanager.commandresult;
 
 import lombok.AllArgsConstructor;
 import net.kyori.adventure.text.Component;
