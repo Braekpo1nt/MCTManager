@@ -15,13 +15,17 @@ import java.util.*;
  * Add classes which implement {@link SubCommand} to the {@link CommandManager#subCommands} map to add executable sub commands. 
  * Implement {@link TabSubCommand} in your sub command to provide tab completion
  */
-public abstract class CommandManager implements CommandExecutor, TabSubCommand {
+public abstract class CommandManager extends TabSubCommand implements CommandExecutor {
     
     /**
      * Your super command's sub commands. You use your command manager to call one of these commands.
      * The key is the command's name (what you type in the chat to reference this command).format
      */
     protected final Map<String, SubCommand> subCommands = new HashMap<>();
+    
+    public CommandManager(@NotNull String name) {
+        super(name);
+    }
     
     /**
      * Add a new {@link SubCommand} implementation to the {@link CommandManager#subCommands} map.

@@ -5,7 +5,6 @@ import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.commandmanager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.commands.commandmanager.TabSubCommand;
-import org.braekpo1nt.mctmanager.commands.commandmanager.commandresult.UsageCommandResult;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;

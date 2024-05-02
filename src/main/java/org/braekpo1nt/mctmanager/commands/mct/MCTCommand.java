@@ -1,14 +1,12 @@
 package org.braekpo1nt.mctmanager.commands.mct;
 
 import com.google.common.base.Preconditions;
-import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.commandmanager.CommandManager;
 import org.braekpo1nt.mctmanager.commands.mct.game.GameCommand;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.listeners.BlockEffectsListener;
 import org.bukkit.command.PluginCommand;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * The super command for all MCT related commands. 
@@ -17,6 +15,7 @@ import org.jetbrains.annotations.NotNull;
 public class MCTCommand extends CommandManager {
     
     public MCTCommand(Main plugin, GameManager gameManager, BlockEffectsListener blockEffectsListener) {
+        super("mct");
         PluginCommand command = plugin.getCommand(getName());
         Preconditions.checkArgument(command != null, "Can't find command %s", getName());
         command.setExecutor(this);
@@ -36,10 +35,5 @@ public class MCTCommand extends CommandManager {
 //            sender.sendMessage("Loaded gameState.json");
 //            return true;
 //        });
-    }
-    
-    @Override
-    public @NotNull String getName() {
-        return "mct";
     }
 }
