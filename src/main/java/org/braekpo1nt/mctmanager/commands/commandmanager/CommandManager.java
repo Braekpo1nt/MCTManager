@@ -33,6 +33,7 @@ public abstract class CommandManager extends TabSubCommand implements CommandExe
      * @param subCommand the implementation of {@link SubCommand} to add
      */
     public void addSubCommand(SubCommand subCommand) {
+        subCommand.setParent(this);
         subCommands.put(subCommand.getName(), subCommand);
     }
     
