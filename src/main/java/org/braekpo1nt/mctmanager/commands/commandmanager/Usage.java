@@ -52,6 +52,11 @@ public class Usage {
         return this;
     }
     
+    public Usage of(@NotNull Usage other) {
+        this.args.addAll(other.args);
+        return this;
+    }
+    
     public @NotNull Component toComponent() {
         TextComponent.Builder builder = Component.text();
         builder.append(Component.text("Usage: /"));
