@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.commands.commandmanager.commandresult;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.commandmanager.Usage;
 import org.jetbrains.annotations.NotNull;
@@ -47,7 +48,7 @@ public class UsageCommandResult implements CommandResult {
      */
     @Override
     public Component getMessage() {
-        return usage.toComponent();
+        return usage.toComponent().color(NamedTextColor.RED);
     }
     
     @Override
