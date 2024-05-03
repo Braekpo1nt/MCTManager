@@ -51,4 +51,9 @@ class MCTCommandTest {
         server.getConsoleSender().assertSaid(message);
     }
     
+    @Test
+    void test() {
+        Assertions.assertTrue(plugin.getMctCommand().onCommand(server.getConsoleSender(), command, "mct", new String[]{"admin", "add"}));
+    }
+    
 }
