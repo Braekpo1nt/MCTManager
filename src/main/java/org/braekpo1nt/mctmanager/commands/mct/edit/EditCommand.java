@@ -21,6 +21,9 @@ public class EditCommand extends CommandManager {
         addSubCommand(new SubCommand("validate") {
             @Override
             public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+                if (args.length != 0) {
+                    return CommandResult.failure(getUsage());
+                }
                 if (!gameManager.editorIsRunning()) {
                     return CommandResult.failure(Component.text("No editor is running."));
                 }
@@ -31,6 +34,9 @@ public class EditCommand extends CommandManager {
         addSubCommand(new SubCommand("save") {
             @Override
             public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+                if (args.length != 0) {
+                    return CommandResult.failure(getUsage());
+                }
                 if (!gameManager.editorIsRunning()) {
                     return CommandResult.failure(Component.text("No editor is running."));
                 }
@@ -55,6 +61,9 @@ public class EditCommand extends CommandManager {
         addSubCommand(new SubCommand("load") {
             @Override
             public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+                if (args.length != 0) {
+                    return CommandResult.failure(getUsage());
+                }
                 if (!gameManager.editorIsRunning()) {
                     return CommandResult.failure(Component.text("No editor is running."));
                 }

@@ -61,7 +61,7 @@ public class StopSubCommand extends TabSubCommand {
                 }
             }
         } 
-        return getUsage().of("[true|false]");
+        return CommandResult.failure(getUsage().of("[true|false]"));
     }
     
     @Override

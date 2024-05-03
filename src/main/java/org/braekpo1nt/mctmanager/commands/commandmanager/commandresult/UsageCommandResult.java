@@ -8,6 +8,10 @@ import org.jetbrains.annotations.NotNull;
 public class UsageCommandResult implements CommandResult {
     private final @NotNull Usage usage;
     
+    public UsageCommandResult(@NotNull Usage usage) {
+        this.usage = usage;
+    }
+    
     public UsageCommandResult(@NotNull String firstArg) {
         usage = new Usage(firstArg);
     }

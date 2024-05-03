@@ -26,7 +26,7 @@ public class StartSubCommand extends TabSubCommand {
     public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
     
         if (args.length != 1) {
-            return getUsage().of("<game>");
+            return CommandResult.failure(getUsage().of("<game>"));
         }
     
         String gameID = args[0];

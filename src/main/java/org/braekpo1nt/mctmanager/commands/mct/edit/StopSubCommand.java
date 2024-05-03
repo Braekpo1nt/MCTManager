@@ -23,6 +23,10 @@ public class StopSubCommand extends TabSubCommand {
     @Override
     public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         
+        if (args.length != 0) {
+            return CommandResult.failure(getUsage());
+        }
+        
         gameManager.stopEditor(sender);
         
         return CommandResult.success();

@@ -25,7 +25,7 @@ public class AddSubCommand extends TabSubCommand {
     @Override
     public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length < 3) {
-            return getUsage().of("<team>").of("\"<displayName>\"").of("<color>");
+            return CommandResult.failure(getUsage().of("<team>").of("\"<displayName>\"").of("<color>"));
         }
         
         int[] displayNameIndexes = getDisplayNameIndexes(args);
@@ -33,8 +33,8 @@ public class AddSubCommand extends TabSubCommand {
         int displayNameEnd = displayNameIndexes[1];
         
         if (displayNameStart > 1) {
-            return CommandResult.failure(Component.text("Provide a team name")
-                    .append(Component.text("/mct team add ")
+            return CommandResult.failure(Component.text("Provide a team name"))
+                    .and(CommandResult.failure(Component.text("/mct team add ")
                         .append(Component.text("<team>")
                                 .decorate(TextDecoration.BOLD))
                         .append(Component.text(" \"<displayName>\" <color>"))));
@@ -57,17 +57,17 @@ public class AddSubCommand extends TabSubCommand {
         
         if (displayNameIndexesAreInvalid(displayNameStart, displayNameEnd)) {
             return CommandResult.failure("Display name must be surrounded by quotation marks")
-                    .and(getUsage().of("<team>").of("\"<displayName>\"", TextDecoration.BOLD).of("<color>"));
+                    .and(CommandResult.failure(getUsage().of("<team>").of("\"<displayName>\"", TextDecoration.BOLD).of("<color>")));
         }
         String teamDisplayName = getDisplayName(args, displayNameStart, displayNameEnd);
         if (teamDisplayName.isEmpty()) {
             return CommandResult.failure("Display name can't be blank")
-                    .and(getUsage().of("<team>").of("\"<displayName>\"", TextDecoration.BOLD).of("<color>"));
+                    .and(CommandResult.failure(getUsage().of("<team>").of("\"<displayName>\"", TextDecoration.BOLD).of("<color>")));
         }
         
         if (args.length < displayNameEnd + 2) {
             return CommandResult.failure("Please provide a color")
-                    .and(getUsage().of("<team>").of("\"<displayName>\"").of("<color>", TextDecoration.BOLD));
+                    .and(CommandResult.failure(getUsage().of("<team>").of("\"<displayName>\"").of("<color>", TextDecoration.BOLD)));
         }
         String colorString = args[displayNameEnd + 1];
         

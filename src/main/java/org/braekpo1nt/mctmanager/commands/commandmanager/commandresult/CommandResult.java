@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.commands.commandmanager.commandresult;
 
 import net.kyori.adventure.text.Component;
+import org.braekpo1nt.mctmanager.commands.commandmanager.Usage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -27,5 +28,9 @@ public interface CommandResult {
     
     static CommandResult failure(@NotNull String message) {
         return new FailureCommandResult(Component.text(message));
+    }
+    
+    static CommandResult failure(@NotNull Usage usage) {
+        return new UsageCommandResult(usage);
     }
 }

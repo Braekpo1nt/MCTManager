@@ -1,7 +1,6 @@
 package org.braekpo1nt.mctmanager.commands.commandmanager;
 
 import org.braekpo1nt.mctmanager.commands.commandmanager.commandresult.CommandResult;
-import org.braekpo1nt.mctmanager.commands.commandmanager.commandresult.UsageCommandResult;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -24,20 +23,11 @@ public abstract class SubCommand {
         return name;
     }
     
-    /**
-     * @return the usage of this command
-     * @deprecated removing this in favor of {@link SubCommand#usage}
-     */
-    @Deprecated
-    public @NotNull UsageCommandResult getUsage() {
-        return new UsageCommandResult(getName());
-    }
-    
-    public @NotNull Usage usage() {
+    public @NotNull Usage getUsage() {
         if (parent == null) {
             return new Usage(name);
         }
-        return parent.usage().of(name);
+        return parent.getUsage().of(name);
     }
     
     abstract public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull org.bukkit.command.Command command, @NotNull String label, @NotNull String[] args);

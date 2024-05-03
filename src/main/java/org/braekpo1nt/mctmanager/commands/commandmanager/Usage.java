@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.commands.commandmanager;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -66,7 +67,7 @@ public class Usage {
                 builder.append(Component.space());
             }
         }
-        return builder.asComponent();
+        return builder.color(NamedTextColor.RED).asComponent();
     }
     
     

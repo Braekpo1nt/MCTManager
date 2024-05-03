@@ -50,7 +50,7 @@ public abstract class CommandManager extends TabSubCommand implements CommandExe
     @Override
     public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length < 1) {
-            return getUsage().of("<options>");
+            return CommandResult.failure(getUsage().of("<options>"));
         }
         String subCommandName = args[0];
         SubCommand subCommand = subCommands.get(subCommandName);
@@ -60,11 +60,7 @@ public abstract class CommandManager extends TabSubCommand implements CommandExe
                             .decorate(TextDecoration.BOLD))
                     .append(Component.text(" is not recognized.")));
         }
-        CommandResult commandResult = subCommand.onSubCommand(sender, command, label, Arrays.copyOfRange(args, 1, args.length));
-        if (commandResult instanceof UsageCommandResult result) {
-            return getUsage().of(result);
-        }
-        return commandResult;
+        return subCommand.onSubCommand(sender, command, label, Arrays.copyOfRange(args, 1, args.length));
     }
     
     @Override

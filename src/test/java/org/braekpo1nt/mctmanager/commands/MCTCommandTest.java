@@ -46,7 +46,7 @@ class MCTCommandTest {
     @DisplayName("Running /mct with no args returns usage message")
     void noArgsShowsUsage() {
         Assertions.assertTrue(plugin.getMctCommand().onCommand(server.getConsoleSender(), command, "mct", new String[]{}));
-        Component message = plugin.getMctCommand().getUsage().getMessage();
+        Component message = plugin.getMctCommand().getUsage().toComponent();
         Assertions.assertNotNull(message);
         server.getConsoleSender().assertSaid(message);
     }
