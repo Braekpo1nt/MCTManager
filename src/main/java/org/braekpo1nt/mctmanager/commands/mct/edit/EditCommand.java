@@ -18,12 +18,7 @@ public class EditCommand extends CommandManager {
         super(name);
         addSubCommand(new StartSubCommand(gameManager, "start"));
         addSubCommand(new StopSubCommand(gameManager, "stop"));
-        addSubCommand(new SubCommand() {
-            @Override
-            public @NotNull String getName() {
-                return "validate";
-            }
-    
+        addSubCommand(new SubCommand("validate") {
             @Override
             public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
                 if (!gameManager.editorIsRunning()) {
@@ -33,12 +28,7 @@ public class EditCommand extends CommandManager {
                 return CommandResult.success();
             }
         });
-        addSubCommand(new SubCommand() {
-            @Override
-            public @NotNull String getName() {
-                return "save";
-            }
-    
+        addSubCommand(new SubCommand("save") {
             @Override
             public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
                 if (!gameManager.editorIsRunning()) {
@@ -62,12 +52,7 @@ public class EditCommand extends CommandManager {
                 return CommandResult.success();
             }
         });
-        addSubCommand(new SubCommand() {
-            @Override
-            public @NotNull String getName() {
-                return "load";
-            }
-    
+        addSubCommand(new SubCommand("load") {
             @Override
             public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
                 if (!gameManager.editorIsRunning()) {

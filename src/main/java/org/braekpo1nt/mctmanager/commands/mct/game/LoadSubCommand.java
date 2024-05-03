@@ -8,13 +8,12 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 
-public class LoadSubCommand implements SubCommand {
+public class LoadSubCommand extends SubCommand {
     
     private final GameManager gameManager;
-    private final @NotNull String name;
     
     public LoadSubCommand(GameManager gameManager, @NotNull String name) {
-        this.name = name;
+        super(name);
         this.gameManager = gameManager;
     }
     

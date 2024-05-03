@@ -5,19 +5,25 @@ import org.braekpo1nt.mctmanager.commands.commandmanager.commandresult.UsageComm
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 
-public interface SubCommand {
+public abstract class SubCommand {
     
-    /**
-     * @return the name of the command
-     */
-    @NotNull String getName();
+    
+    protected final @NotNull String name;
+    
+    public SubCommand(@NotNull String name) {
+        this.name = name;
+    }
+    
+    public @NotNull String getName() {
+        return name;
+    }
     
     /**
      * @return the usage of this command
      */
-    default @NotNull UsageCommandResult getUsage() {
+    public @NotNull UsageCommandResult getUsage() {
         return new UsageCommandResult(getName());
     }
     
-    @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull org.bukkit.command.Command command, @NotNull String label, @NotNull String[] args);
+    abstract public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull org.bukkit.command.Command command, @NotNull String label, @NotNull String[] args);
 }
