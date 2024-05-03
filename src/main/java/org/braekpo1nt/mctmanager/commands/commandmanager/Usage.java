@@ -42,21 +42,41 @@ public class Usage {
         args.add(new Arg(arg));
     }
     
+    /**
+     * Append a downstream argument to this {@link Usage}
+     * @param arg the downstream argument to append
+     * @return this {@link Usage}
+     */
     public Usage of(@NotNull String arg) {
         args.add(new Arg(arg));
         return this;
     }
     
+    /**
+     * Append a downstream argument to this {@link Usage} with a {@link TextDecoration} to be applied
+     * @param arg the downstream argument to append
+     * @param decoration the {@link TextDecoration} to be applied to the given argument alone
+     * @return this {@link Usage}
+     */
     public Usage of(@NotNull String arg, TextDecoration decoration) {
         args.add(new Arg(arg, decoration));
         return this;
     }
     
+    /**
+     * Append the given {@link Usage}'s arguments to this one
+     * @param other the other {@link Usage} to append
+     * @return this {@link Usage}
+     */
     public Usage of(@NotNull Usage other) {
         this.args.addAll(other.args);
         return this;
     }
     
+    /**
+     * Results are of the form "Usage: /arg1 arg2 ..." 
+     * @return all this {@link Usage}'s arguments combined in a component (with their respective {@link TextDecoration}s applied), prefixed by "Usage: /"
+     */
     public @NotNull Component toComponent() {
         TextComponent.Builder builder = Component.text();
         builder.append(Component.text("Usage: /"));

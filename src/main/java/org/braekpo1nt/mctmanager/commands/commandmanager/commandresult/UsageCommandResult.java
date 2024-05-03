@@ -13,38 +13,8 @@ public class UsageCommandResult implements CommandResult {
         this.usage = usage;
     }
     
-    public UsageCommandResult(@NotNull String firstArg) {
-        usage = new Usage(firstArg);
-    }
-    
     /**
-     * Append a downstream argument to this {@link UsageCommandResult}
-     * @param arg the downstream argument to append
-     * @return this {@link UsageCommandResult} for easy reuse
-     */
-    public UsageCommandResult of(@NotNull String arg) {
-        usage.of(arg);
-        return this;
-    }
-    
-    /**
-     * Appends all downstream arguments of the given {@link UsageCommandResult} to this one
-     * @param usageResult the {@link UsageCommandResult} to append to this one. Contains all downstream arguments to append.
-     * @return this {@link UsageCommandResult} for easy reuse
-     */
-    public UsageCommandResult of(@NotNull UsageCommandResult usageResult) {
-        this.usage.of(usageResult.usage);
-        return this;
-    }
-    
-    public UsageCommandResult of(@NotNull String arg, @NotNull TextDecoration decoration) {
-        this.usage.of(arg, decoration);
-        return this;
-    }
-    
-    /**
-     * Usage messages look like "Usage: /arg1 arg2 ..." and are colored red.
-     * @return the usage message
+     * @return this {@link UsageCommandResult}'s {@link Usage} as a {@link Component}
      */
     @Override
     public Component getMessage() {
