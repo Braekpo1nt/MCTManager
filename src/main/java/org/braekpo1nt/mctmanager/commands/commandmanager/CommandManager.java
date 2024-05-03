@@ -50,7 +50,7 @@ public abstract class CommandManager extends TabSubCommand implements CommandExe
     @Override
     public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length < 1) {
-            return getUsage().with("<options>");
+            return getUsage().of("<options>");
         }
         String subCommandName = args[0];
         SubCommand subCommand = subCommands.get(subCommandName);
@@ -62,7 +62,7 @@ public abstract class CommandManager extends TabSubCommand implements CommandExe
         }
         CommandResult commandResult = subCommand.onSubCommand(sender, command, label, Arrays.copyOfRange(args, 1, args.length));
         if (commandResult instanceof UsageCommandResult result) {
-            return getUsage().with(result);
+            return getUsage().of(result);
         }
         return commandResult;
     }

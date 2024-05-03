@@ -27,7 +27,7 @@ public class RemoveSubCommand extends TabSubCommand {
     @Override
     public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length != 1) {
-            return getUsage().with("<admin>");
+            return getUsage().of("<admin>");
         }
         String name = args[0];
         OfflinePlayer admin = Bukkit.getOfflinePlayer(name);

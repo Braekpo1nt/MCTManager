@@ -28,7 +28,7 @@ public class AddSubCommand extends TabSubCommand {
     @Override
     public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length != 1) {
-            return getUsage().with("<player>");
+            return getUsage().of("<player>");
         }
         String name = args[0];
         Player newAdmin = Bukkit.getPlayer(name);

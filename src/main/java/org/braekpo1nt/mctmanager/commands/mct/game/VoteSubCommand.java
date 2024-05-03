@@ -31,7 +31,7 @@ public class VoteSubCommand extends TabSubCommand {
     @Override
     public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length < 2) {
-            return getUsage().with("<duration>").with("<one or more games...>");
+            return getUsage().of("<duration>").of("<one or more games...>");
         }
         String durationString = args[0];
         if (!CommandUtils.isInteger(durationString)) {

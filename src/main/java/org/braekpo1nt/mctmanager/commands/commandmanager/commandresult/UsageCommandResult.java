@@ -1,13 +1,9 @@
 package org.braekpo1nt.mctmanager.commands.commandmanager.commandresult;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.commandmanager.Usage;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class UsageCommandResult implements CommandResult {
     private final @NotNull Usage usage;
@@ -21,7 +17,7 @@ public class UsageCommandResult implements CommandResult {
      * @param arg the downstream argument to append
      * @return this {@link UsageCommandResult} for easy reuse
      */
-    public UsageCommandResult with(@NotNull String arg) {
+    public UsageCommandResult of(@NotNull String arg) {
         usage.of(arg);
         return this;
     }
@@ -31,12 +27,12 @@ public class UsageCommandResult implements CommandResult {
      * @param usageResult the {@link UsageCommandResult} to append to this one. Contains all downstream arguments to append.
      * @return this {@link UsageCommandResult} for easy reuse
      */
-    public UsageCommandResult with(@NotNull UsageCommandResult usageResult) {
+    public UsageCommandResult of(@NotNull UsageCommandResult usageResult) {
         this.usage.of(usageResult.usage);
         return this;
     }
     
-    public UsageCommandResult with(@NotNull String arg, @NotNull TextDecoration decoration) {
+    public UsageCommandResult of(@NotNull String arg, @NotNull TextDecoration decoration) {
         this.usage.of(arg, decoration);
         return this;
     }
