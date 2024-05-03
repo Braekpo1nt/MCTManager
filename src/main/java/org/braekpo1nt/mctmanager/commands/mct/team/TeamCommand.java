@@ -13,7 +13,7 @@ public class TeamCommand extends CommandManager {
     public TeamCommand(GameManager gameManager, @NotNull String name) {
         super(name);
         addSubCommand(new AddSubCommand(gameManager, "add"));
-//        addSubCommand(new JoinSubCommand(gameManager, "join"));
+        addSubCommand(new JoinSubCommand(gameManager, "join"));
 //        addSubCommand(new LeaveSubCommand(gameManager, "leave"));
 //        addSubCommand(new ListSubCommand(gameManager, "list"));
 //        addSubCommand(new RemoveSubCommand(gameManager, "remove"));

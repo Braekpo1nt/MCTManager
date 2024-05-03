@@ -3,6 +3,8 @@ package org.braekpo1nt.mctmanager.commands.mct.team;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.braekpo1nt.mctmanager.commands.commandmanager.TabSubCommand;
+import org.braekpo1nt.mctmanager.commands.commandmanager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -16,50 +18,49 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
-public class JoinSubCommand implements TabExecutor {
+public class JoinSubCommand extends TabSubCommand {
     private final GameManager gameManager;
     
-    public JoinSubCommand(GameManager gameManager) {
+    public JoinSubCommand(GameManager gameManager, @NotNull String name) {
+        super(name);
         this.gameManager = gameManager;
     }
     
     @Override
-    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+    public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length < 2) {
-            sender.sendMessage("Usage: /mct team join <team> <member>");
-            return true;
+            return CommandResult.failure(getUsage().of("<team>").of("<member>"));
         }
         String teamName = args[0];
         if (!gameManager.hasTeam(teamName)) {
-            sender.sendMessage(String.format("Team \"%s\" does not exist.", teamName));
-            return true;
+            return CommandResult.failure(Component.text("Team ")
+                    .append(Component.text(teamName)
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(" does not exist.")));
         }
         String playerName = args[1];
         Player playerToJoin = Bukkit.getPlayer(playerName);
         if (playerToJoin == null) {
-            sender.sendMessage(Component.empty()
+            return CommandResult.failure(Component.empty()
                     .append(Component.text("Player "))
                     .append(Component.text(playerName)
                             .decorate(TextDecoration.BOLD))
-                    .append(Component.text(" is not online."))
-                    .color(NamedTextColor.RED));
-            return true;
+                    .append(Component.text(" is not online.")));
         }
         Component formattedTeamDisplayName = gameManager.getFormattedTeamDisplayName(teamName);
         if (gameManager.isParticipant(playerToJoin.getUniqueId())) {
             String oldTeamName = gameManager.getTeamName(playerToJoin.getUniqueId());
             if (oldTeamName.equals(teamName)) {
-                sender.sendMessage(Component.empty()
+                return CommandResult.success(Component.empty()
                         .append(Component.text(playerName)
                                 .decorate(TextDecoration.BOLD))
                         .append(Component.text(" is already on team "))
                         .append(formattedTeamDisplayName)
                         .color(NamedTextColor.YELLOW));
-                return true;
             }
         }
         gameManager.joinPlayerToTeam(sender, playerToJoin, teamName);
-        return true;
+        return CommandResult.success();
     }
     
     @Override
