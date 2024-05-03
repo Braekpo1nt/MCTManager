@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.commands.commandmanager;
 
 import org.braekpo1nt.mctmanager.commands.commandmanager.commandresult.CommandResult;
+import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -8,17 +9,41 @@ import org.jetbrains.annotations.Nullable;
 public abstract class SubCommand {
     
     
+    /**
+     * The name of a {@link SubCommand} is typically used to call it from the command. Analogous to {@link Command#getLabel()}.
+     */
     protected final @NotNull String name;
+    /**
+     * The parent {@link SubCommand} of this {@link SubCommand}. Null if this {@link SubCommand} has no parent.
+     */
     protected @Nullable SubCommand parent;
     
     public SubCommand(@NotNull String name) {
         this.name = name;
     }
     
+    /**
+     * Allows you to specify the this {@link SubCommand}'s parent upon instantiation
+     * @param name the name of this command. See {@link SubCommand#getName()}
+     * @param parent the parent of this command. See {@link SubCommand#setParent(SubCommand)}
+     */
+    public SubCommand(@NotNull String name, @Nullable SubCommand parent) {
+        this.name = name;
+        this.parent = parent;
+    }
+    
+    /**
+     * Gives this {@link SubCommand} a reference to its parent command. Can be null if this doesn't have a parent.
+     * @param parent the parent {@link SubCommand}. Null if no parent.
+     */
     public void setParent(@Nullable SubCommand parent) {
         this.parent = parent;
     }
     
+    /**
+     * The name of a {@link SubCommand} is typically used to call it from the command. Analogous to {@link Command#getLabel()}.
+     * @return the name of this {@link SubCommand}.
+     */
     public @NotNull String getName() {
         return name;
     }
