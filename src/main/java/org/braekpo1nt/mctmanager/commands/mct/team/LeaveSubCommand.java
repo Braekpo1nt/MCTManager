@@ -4,6 +4,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.commandmanager.SubCommand;
+import org.braekpo1nt.mctmanager.commands.commandmanager.TabSubCommand;
 import org.braekpo1nt.mctmanager.commands.commandmanager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.bukkit.Bukkit;
@@ -12,10 +13,13 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
 
-public class LeaveSubCommand extends SubCommand {
+public class LeaveSubCommand extends TabSubCommand {
     private final GameManager gameManager;
     
     public LeaveSubCommand(GameManager gameManager, @NotNull String name) {
@@ -25,7 +29,7 @@ public class LeaveSubCommand extends SubCommand {
     
     @Override
     public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (args.length > 1) {
+        if (args.length != 1) {
             return CommandResult.failure(getUsage().of("<member>"));
         }
         String playerName = args[0];
@@ -38,5 +42,13 @@ public class LeaveSubCommand extends SubCommand {
         }
         gameManager.leavePlayer(sender, playerToLeave, playerName);
         return CommandResult.success();
+    }
+    
+    @Override
+    public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+        if (args.length != 1) {
+            return Collections.emptyList();
+        }
+        return gameManager.getAllParticipantNames();
     }
 }
