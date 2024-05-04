@@ -4,6 +4,8 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.braekpo1nt.mctmanager.commands.commandmanager.TabSubCommand;
+import org.braekpo1nt.mctmanager.commands.commandmanager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
@@ -17,23 +19,23 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-public class ListSubCommand implements TabExecutor {
+public class ListSubCommand extends TabSubCommand {
     private final GameManager gameManager;
     
-    public ListSubCommand(GameManager gameManager) {
+    public ListSubCommand(GameManager gameManager, @NotNull String name) {
+        super(name);
         this.gameManager = gameManager;
     }
     
     @Override
-    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+    public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length > 1) {
-            sender.sendMessage("Usage: /mct team list [true|false]");
-            return true;
+            return CommandResult.failure(getUsage().of("[true|false]"));
         }
         Component teamDisplay = getTeamDisplay(sender);
         if (args.length == 0) {
             sender.sendMessage(teamDisplay);
-            return true;
+            return CommandResult.success();
         }
         String displayToAll = args[0];
         switch (displayToAll) {
@@ -52,7 +54,7 @@ public class ListSubCommand implements TabExecutor {
             }
         }
 
-        return true;
+        return CommandResult.success();
     }
     
     private Component getTeamDisplay(CommandSender sender) {
