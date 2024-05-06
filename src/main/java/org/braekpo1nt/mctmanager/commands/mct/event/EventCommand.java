@@ -27,7 +27,7 @@ public class EventCommand extends CommandManager {
             public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
                 int maxGames = 6;
                 if (args.length != 1) {
-                    return CommandResult.failure(getUsage().of("<numberOfGame>"));
+                    return CommandResult.failure(getUsage().of("<numberOfGames>"));
                 }
                 String maxGamesString = args[0];
                 if (!CommandUtils.isInteger(maxGamesString)) {
