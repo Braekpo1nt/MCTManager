@@ -6,15 +6,14 @@ import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.commandmanager.*;
 import org.braekpo1nt.mctmanager.commands.CommandUtils;
 import org.braekpo1nt.mctmanager.commands.commandmanager.commandresult.CommandResult;
+import org.braekpo1nt.mctmanager.commands.mct.event.finalgame.FinalGameCommand;
+import org.braekpo1nt.mctmanager.commands.mct.event.vote.VoteCommand;
 import org.braekpo1nt.mctmanager.games.GameManager;
-import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabExecutor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -91,9 +90,9 @@ public class EventCommand extends CommandManager {
                 return CommandResult.success();
             }
         });
-        addSubCommand(new FinalGameSubCommand(gameManager, "finalgame"));
+        addSubCommand(new FinalGameCommand(gameManager, "finalgame"));
         addSubCommand(new EventUndoSubCommand(gameManager, "undo"));
-//        subCommands.put("vote", new VoteSubCommand(gameManager));
+        addSubCommand(new VoteCommand(gameManager, "vote"));
 //        subCommands.put("modify", new ModifySubCommand(gameManager));
     }
     

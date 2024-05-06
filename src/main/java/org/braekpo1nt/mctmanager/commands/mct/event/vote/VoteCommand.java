@@ -1,44 +1,41 @@
-package org.braekpo1nt.mctmanager.commands.mct.event;
+package org.braekpo1nt.mctmanager.commands.mct.event.vote;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
-import org.braekpo1nt.mctmanager.commands.commandmanager.OldCommandManager;
+import org.braekpo1nt.mctmanager.commands.commandmanager.CommandManager;
+import org.braekpo1nt.mctmanager.commands.commandmanager.TabSubCommand;
+import org.braekpo1nt.mctmanager.commands.commandmanager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabExecutor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class VoteSubCommand extends OldCommandManager {
+public class VoteCommand extends CommandManager {
     
-    public VoteSubCommand(GameManager gameManager) {
-        subCommands.put("add", new TabExecutor() {
+    public VoteCommand(GameManager gameManager, @NotNull String name) {
+        super(name);
+        addSubCommand(new TabSubCommand("add") {
             @Override
-            public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+            public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
                 if (args.length != 1) {
-                    sender.sendMessage(Component.text("Usage: /mct event vote add <game>")
-                            .color(NamedTextColor.RED));
-                    return true;
+                    return CommandResult.failure(getUsage().of("<game>"));
                 }
                 
                 String gameString = args[0];
                 GameType gameToAdd = GameType.fromID(gameString);
                 if (gameToAdd == null) {
-                    sender.sendMessage(Component.text("")
+                    return CommandResult.failure(Component.text("")
                             .append(Component.text(gameString)
                                     .decorate(TextDecoration.BOLD))
-                            .append(Component.text(" is not a recognized game"))
-                            .color(NamedTextColor.RED));
-                    return true;
+                            .append(Component.text(" is not a recognized game")));
                 }
                 
                 gameManager.getEventManager().addGameToVotingPool(sender, gameToAdd);
-                return true;
+                return CommandResult.success();
             }
             
             @Override
@@ -49,28 +46,24 @@ public class VoteSubCommand extends OldCommandManager {
                 return null;
             }
         });
-        subCommands.put("remove", new TabExecutor() {
+        addSubCommand(new TabSubCommand("remove") {
             @Override
-            public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+            public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
                 if (args.length != 1) {
-                    sender.sendMessage(Component.text("Usage: /mct event vote remove <game>")
-                            .color(NamedTextColor.RED));
-                    return true;
+                    return CommandResult.failure(getUsage().of("<game>"));
                 }
     
                 String gameString = args[0];
                 GameType gameToRemove = GameType.fromID(gameString);
                 if (gameToRemove == null) {
-                    sender.sendMessage(Component.text("")
+                    return CommandResult.failure(Component.text("")
                             .append(Component.text(gameString)
                                     .decorate(TextDecoration.BOLD))
-                            .append(Component.text(" is not a recognized game"))
-                            .color(NamedTextColor.RED));
-                    return true;
+                            .append(Component.text(" is not a recognized game")));
                 }
                 
                 gameManager.getEventManager().removeGameFromVotingPool(sender, gameToRemove);
-                return true;
+                return CommandResult.success();
             }
     
             @Override
@@ -81,12 +74,5 @@ public class VoteSubCommand extends OldCommandManager {
                 return null;
             }
         });
-    }
-    
-    
-    @Override
-    public Component getUsageMessage() {
-        return Component.text("Usage: /mct event vote <arguments>")
-                .color(NamedTextColor.RED);
     }
 }
