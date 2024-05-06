@@ -1,4 +1,4 @@
-package org.braekpo1nt.mctmanager.commands.mct.team.score;
+package org.braekpo1nt.mctmanager.commands.mct.team.score.add;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -58,7 +58,7 @@ public class ScoreAddPlayerSubCommand extends TabSubCommand {
         int newScore = gameManager.getScore(offlinePlayer.getUniqueId());
         return CommandResult.success(Component.empty()
                 .append(Component.text(playerName))
-                .append(Component.text("'s score is now "))
+                .append(Component.text(" score is now "))
                 .append(Component.text(newScore)));
     }
     
