@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.commands.commandmanager;
 
+import com.google.common.base.Preconditions;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -49,6 +50,20 @@ public class Usage {
      */
     public Usage of(@NotNull String arg) {
         args.add(new Arg(arg));
+        return this;
+    }
+    
+    /**
+     * Append all given downstream arguments (must provide at least one)
+     * @param args one or more additional downstream arguments to append, in order.
+     * @return this {@link Usage}
+     * @throws IllegalArgumentException if no arguments are given
+     */
+    public Usage of(@NotNull String @NotNull... args) {
+        Preconditions.checkArgument(args.length >= 1, "Must provide at least one argument in the args array");
+        for (String anArg : args) {
+            this.args.add(new Arg(anArg));
+        }
         return this;
     }
     
