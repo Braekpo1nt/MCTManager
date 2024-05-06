@@ -17,7 +17,7 @@ public class TeamCommand extends CommandManager {
         addSubCommand(new LeaveSubCommand(gameManager, "leave"));
         addSubCommand(new ListSubCommand(gameManager, "list"));
         addSubCommand(new RemoveSubCommand(gameManager, "remove"));
-//        addSubCommand(new ScoreCommand(gameManager, "score"));
+        addSubCommand(new ScoreCommand(gameManager, "score"));
     }
     
 }
