@@ -113,6 +113,8 @@ public class Usage {
     public static Usage toArgOptions(@NotNull Collection<@NotNull String> args) {
         if (args.isEmpty()) {
             return new Usage("<options>");
+        } else if (args.size() == 1) {
+            return new Usage(args.iterator().next());
         } else {
             return new Usage(String.format("<%s>", String.join("|", args)));
         }
