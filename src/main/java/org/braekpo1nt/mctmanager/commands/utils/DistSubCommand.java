@@ -7,8 +7,6 @@ import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.CommandUtils;
 import org.braekpo1nt.mctmanager.commands.commandmanager.TabSubCommand;
 import org.braekpo1nt.mctmanager.commands.commandmanager.commandresult.CommandResult;
-import org.bukkit.Material;
-import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -18,11 +16,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 class DistSubCommand extends TabSubCommand {
-    
-    private final Set<Material> transparent = Set.of(Material.AIR, Material.WATER, Material.LAVA);
     
     public DistSubCommand(@NotNull String name) {
         super(name);
@@ -77,28 +72,10 @@ class DistSubCommand extends TabSubCommand {
     
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (args.length == 0 || args.length > 6) {
-            return Collections.emptyList();
-        }
         if (!(sender instanceof Player player)) {
             return Collections.emptyList();
         }
-        Block targetBlock = player.getTargetBlock(transparent, 5);
-        if (transparent.contains(targetBlock.getType())) {
-            return Collections.emptyList();
-        }
-        switch (args.length) {
-            case 1, 4 -> {
-                return Collections.singletonList(""+targetBlock.getLocation().getBlockX());
-            }
-            case 2, 5 -> {
-                return Collections.singletonList(""+targetBlock.getLocation().getBlockY());
-            }
-            case 3, 6 -> {
-                return Collections.singletonList(""+targetBlock.getLocation().getBlockZ());
-            }
-        }
-        return Collections.emptyList();
+        return UtilsUtils.tabCompleteCoordinates(player, args.length);
     }
     
 }

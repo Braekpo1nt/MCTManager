@@ -1,17 +1,12 @@
 package org.braekpo1nt.mctmanager.commands.utils;
 
-import com.google.gson.*;
-import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.CommandUtils;
 import org.braekpo1nt.mctmanager.display.Display;
-import org.braekpo1nt.mctmanager.display.DisplayUtils;
 import org.braekpo1nt.mctmanager.display.geometry.GeometryUtils;
-import org.braekpo1nt.mctmanager.display.geometry.rectangle.Rectangle;
 import org.bukkit.Color;
-import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
@@ -98,37 +93,10 @@ class BoundingBoxSubCommand implements TabExecutor {
     
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (args.length == 0 || args.length > 6) {
-            return Collections.emptyList();
-        }
         if (!(sender instanceof Player player)) {
             return Collections.emptyList();
         }
-        Block targetBlock = player.getTargetBlock(UtilsUtils.TRANSPARENT, 5);
-        if (UtilsUtils.TRANSPARENT.contains(targetBlock.getType())) {
-            switch (args.length) {
-                case 1, 4 -> {
-                    return Collections.singletonList(""+player.getLocation().getBlockX());
-                }
-                case 2, 5 -> {
-                    return Collections.singletonList(""+player.getLocation().getBlockY());
-                }
-                case 3, 6 -> {
-                    return Collections.singletonList(""+player.getLocation().getBlockZ());
-                }
-            }
-        }
-        switch (args.length) {
-            case 1, 4 -> {
-                return Collections.singletonList(""+targetBlock.getLocation().getBlockX());
-            }
-            case 2, 5 -> {
-                return Collections.singletonList(""+targetBlock.getLocation().getBlockY());
-            }
-            case 3, 6 -> {
-                return Collections.singletonList(""+targetBlock.getLocation().getBlockZ());
-            }
-        }
-        return Collections.emptyList();
+        return UtilsUtils.tabCompleteCoordinates(player, args.length);
     }
+    
 }
