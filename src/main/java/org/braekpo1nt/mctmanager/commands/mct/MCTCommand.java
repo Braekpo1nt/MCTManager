@@ -1,15 +1,22 @@
 package org.braekpo1nt.mctmanager.commands.mct;
 
 import com.google.common.base.Preconditions;
+import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.commandmanager.CommandManager;
+import org.braekpo1nt.mctmanager.commands.commandmanager.SubCommand;
+import org.braekpo1nt.mctmanager.commands.commandmanager.Usage;
+import org.braekpo1nt.mctmanager.commands.commandmanager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.commands.mct.admin.AdminCommand;
 import org.braekpo1nt.mctmanager.commands.mct.edit.EditCommand;
 import org.braekpo1nt.mctmanager.commands.mct.game.GameCommand;
 import org.braekpo1nt.mctmanager.commands.mct.team.TeamCommand;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.listeners.BlockEffectsListener;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginCommand;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * The super command for all MCT related commands. 
@@ -28,15 +35,24 @@ public class MCTCommand extends CommandManager {
         addSubCommand(new TeamCommand(gameManager, "team"));
         addSubCommand(new AdminCommand(gameManager));
 //        subCommands.put("event", new EventCommand(gameManager));
-//        subCommands.put("save", (sender, command, label, args) -> {
-//            gameManager.saveGameState();
-//            sender.sendMessage("Saved game state.");
-//            return true;
-//        });
-//        subCommands.put("load", (sender, command, label, args) -> {
-//            gameManager.loadGameState();
-//            sender.sendMessage("Loaded gameState.json");
-//            return true;
-//        });
+        addSubCommand(new SubCommand("save") {
+            @Override
+            public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+                gameManager.saveGameState();
+                return CommandResult.success(Component.text("Saved game state"));
+            }
+        });
+        addSubCommand(new SubCommand("load") {
+            @Override
+            public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+                gameManager.loadGameState();
+                return CommandResult.success(Component.text("Loaded gameState.json"));
+            }
+        });
+    }
+    
+    @Override
+    protected @NotNull Usage getUsageOptions() {
+        return new Usage("<options>");
     }
 }
