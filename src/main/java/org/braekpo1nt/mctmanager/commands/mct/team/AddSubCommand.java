@@ -79,15 +79,16 @@ public class AddSubCommand extends TabSubCommand {
         }
         boolean teamExists = !gameManager.addTeam(teamName, teamDisplayName, colorString);
         if (teamExists) {
-            return CommandResult.failure(Component.text("A team already exists with the team name \"")
+            return CommandResult.failure(Component.text("A team already exists with the teamId \"")
                     .append(Component.text(teamName))
                     .append(Component.text("\"")));
         }
+        Component formattedTeamDisplayName = gameManager.getFormattedTeamDisplayName(teamName);
         return CommandResult.success(Component.text("Created team ")
+                .append(formattedTeamDisplayName)
+                .append(Component.text(" (teamId=\""))
                 .append(Component.text(teamName))
-                .append(Component.text("\" with display name \""))
-                .append(Component.text(teamDisplayName))
-                .append(Component.text("\"")));
+                .append(Component.text("\")")));
     }
     
     private static boolean displayNameIndexesAreInvalid(int displayNameStart, int displayNameEnd) {

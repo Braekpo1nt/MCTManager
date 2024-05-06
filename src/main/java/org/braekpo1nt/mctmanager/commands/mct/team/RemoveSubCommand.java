@@ -1,36 +1,31 @@
 package org.braekpo1nt.mctmanager.commands.mct.team;
 
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
+import org.braekpo1nt.mctmanager.commands.commandmanager.TabSubCommand;
+import org.braekpo1nt.mctmanager.commands.commandmanager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.GameManager;
-import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabExecutor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.IOException;
 import java.util.List;
 
-public class RemoveSubCommand implements TabExecutor {
+public class RemoveSubCommand extends TabSubCommand {
     private final GameManager gameManager;
     
-    public RemoveSubCommand(GameManager gameManager) {
+    public RemoveSubCommand(GameManager gameManager, @NotNull String name) {
+        super(name);
         this.gameManager = gameManager;
     }
     
     @Override
-    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (args.length < 1) {
-            sender.sendMessage(Component.text("Usage: /mct team remove <team>")
-                    .color(NamedTextColor.RED));
-            return true;
+    public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+        if (args.length != 1) {
+            return CommandResult.failure(getUsage().of("<team>"));
         }
         String removeTeamName = args[0];
         gameManager.removeTeam(sender, removeTeamName);
-        return true;
+        return CommandResult.success();
     }
     
     @Override
