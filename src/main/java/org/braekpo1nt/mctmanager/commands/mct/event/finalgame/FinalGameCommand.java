@@ -1,26 +1,23 @@
-package org.braekpo1nt.mctmanager.commands.mct.event;
+package org.braekpo1nt.mctmanager.commands.mct.event.finalgame;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.commandmanager.CommandManager;
-import org.braekpo1nt.mctmanager.commands.commandmanager.OldCommandManager;
 import org.braekpo1nt.mctmanager.commands.commandmanager.SubCommand;
 import org.braekpo1nt.mctmanager.commands.commandmanager.TabSubCommand;
 import org.braekpo1nt.mctmanager.commands.commandmanager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabExecutor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
 
-public class FinalGameSubCommand extends CommandManager {
+public class FinalGameCommand extends CommandManager {
     
-    public FinalGameSubCommand(GameManager gameManager, @NotNull String name) {
+    public FinalGameCommand(GameManager gameManager, @NotNull String name) {
         super(name);
         addSubCommand(new TabSubCommand("start") {
             @Override
