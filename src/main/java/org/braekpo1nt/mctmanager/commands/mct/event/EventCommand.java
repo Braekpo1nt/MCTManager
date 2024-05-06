@@ -3,11 +3,8 @@ package org.braekpo1nt.mctmanager.commands.mct.event;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
-import org.braekpo1nt.mctmanager.commands.commandmanager.CommandManager;
-import org.braekpo1nt.mctmanager.commands.commandmanager.OldCommandManager;
+import org.braekpo1nt.mctmanager.commands.commandmanager.*;
 import org.braekpo1nt.mctmanager.commands.CommandUtils;
-import org.braekpo1nt.mctmanager.commands.commandmanager.TabSubCommand;
-import org.braekpo1nt.mctmanager.commands.commandmanager.Usage;
 import org.braekpo1nt.mctmanager.commands.commandmanager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
@@ -49,51 +46,52 @@ public class EventCommand extends CommandManager {
                 return Collections.emptyList();
             }
         });
-//        subCommands.put("stop", new TabExecutor() {
-//            @Override
-//            public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-//                if (!gameManager.getEventManager().eventIsActive()) {
-//                    sender.sendMessage(Component.text("There is no event running.")
-//                            .color(NamedTextColor.RED));
-//                    return true;
-//                }
-//                if (args.length != 1) {
-//                    sender.sendMessage(Component.text("Are you sure? Type ")
-//                            .append(Component.empty()
-//                                    .append(Component.text("/mct event stop "))
-//                                    .append(Component.text("confirm")
-//                                            .decorate(TextDecoration.BOLD))
-//                                    .decorate(TextDecoration.ITALIC))
-//                            .append(Component.text(" to confirm."))
-//                            .color(NamedTextColor.YELLOW));
-//                    return true;
-//                }
-//                String confirmString = args[0];
-//                if (!confirmString.equals("confirm")) {
-//                    sender.sendMessage(Component.empty()
-//                            .append(Component.text(confirmString))
-//                            .append(Component.text(" is not a recognized option."))
-//                            .color(NamedTextColor.RED));
-//                    return true;
-//                }
-//                gameManager.getEventManager().stopEvent(sender);
-//                return true;
-//            }
-//            
-//            @Override
-//            public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-//                    return Collections.emptyList();
-//            }
-//        });
-//        subCommands.put("pause", (sender, command, label, args) -> {
-//            gameManager.getEventManager().pauseEvent(sender);
-//            return true;
-//        });
-//        subCommands.put("resume", (sender, command, label, args) -> {
-//            gameManager.getEventManager().resumeEvent(sender);
-//            return true;
-//        });
-//        subCommands.put("finalgame", new FinalGameSubCommand(gameManager));
+        addSubCommand(new TabSubCommand("stop") {
+            @Override
+            public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+                if (!gameManager.getEventManager().eventIsActive()) {
+                    return CommandResult.failure(Component.text("There is no event running."));
+                }
+                if (args.length != 1) {
+                    return CommandResult.success(Component.text("Are you sure? Type ")
+                            .append(Component.empty()
+                                    .append(Component.text("/mct event stop "))
+                                    .append(Component.text("confirm")
+                                            .decorate(TextDecoration.BOLD))
+                                    .decorate(TextDecoration.ITALIC))
+                            .append(Component.text(" to confirm."))
+                            .color(NamedTextColor.YELLOW));
+                }
+                String confirmString = args[0];
+                if (!confirmString.equals("confirm")) {
+                    return CommandResult.failure(Component.empty()
+                            .append(Component.text(confirmString))
+                            .append(Component.text(" is not a recognized option.")));
+                }
+                gameManager.getEventManager().stopEvent(sender);
+                return CommandResult.success();
+            }
+        
+            @Override
+            public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+                return Collections.emptyList();
+            }
+        });
+        addSubCommand(new SubCommand("pause") {
+            @Override
+            public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+                gameManager.getEventManager().pauseEvent(sender);
+                return CommandResult.success();
+            }
+        });
+        addSubCommand(new SubCommand("resume") {
+            @Override
+            public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+                gameManager.getEventManager().resumeEvent(sender);
+                return CommandResult.success();
+            }
+        });
+//        addSubCommand(new FinalGameSubCommand(gameManager, "finalgame"));
 //        subCommands.put("undo", new TabExecutor() {
 //            @Override
 //            public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
