@@ -3,14 +3,14 @@ package org.braekpo1nt.mctmanager.commands.utils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
-import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.CommandUtils;
+import org.braekpo1nt.mctmanager.commands.commandmanager.TabSubCommand;
+import org.braekpo1nt.mctmanager.commands.commandmanager.commandresult.CommandResult;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
@@ -20,24 +20,26 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-class DistSubCommand implements TabExecutor {
+class DistSubCommand extends TabSubCommand {
     
     private final Set<Material> transparent = Set.of(Material.AIR, Material.WATER, Material.LAVA);
     
+    public DistSubCommand(@NotNull String name) {
+        super(name);
+    }
+    
     @Override
-    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+    public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length != 6) {
-            sender.sendMessage(Component.text("Usage: /utils dist <x1> <y1> <z1> <x2> <y2> <z2>")
-                    .color(NamedTextColor.RED));
-            return true;
+            return CommandResult.failure(getUsage().of("<x1>", "<y1>", "<z1>", "<x2>", "<y2>", "<z2>"));
         }
         
         for (String coordinate : args) {
             if (!CommandUtils.isDouble(coordinate)) {
-                sender.sendMessage(Component.text(coordinate)
-                        .append(Component.text(" is not a number"))
-                        .color(NamedTextColor.RED));
-                return true;
+                return CommandResult.failure(Component.empty()
+                        .append(Component.text(coordinate)
+                                .decorate(TextDecoration.BOLD))
+                        .append(Component.text(" is not a number")));
             }
         }
         
@@ -70,7 +72,7 @@ class DistSubCommand implements TabExecutor {
                         .hoverEvent(HoverEvent.showText(Component.text("Copy to clipboard")))
                         .clickEvent(ClickEvent.copyToClipboard(String.format("%s", distance))))
         );
-        return true;
+        return CommandResult.success();
     }
     
     @Override

@@ -1,24 +1,29 @@
 package org.braekpo1nt.mctmanager.commands.utils;
 
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
+import com.google.common.base.Preconditions;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.commands.commandmanager.OldCommandManager;
+import org.braekpo1nt.mctmanager.commands.commandmanager.CommandManager;
+import org.braekpo1nt.mctmanager.commands.commandmanager.Usage;
+import org.bukkit.command.PluginCommand;
+import org.jetbrains.annotations.NotNull;
 
-public class UtilsCommand extends OldCommandManager {
+public class UtilsCommand extends CommandManager {
     
     public UtilsCommand(Main plugin) {
-        plugin.getCommand("utils").setExecutor(this);
-        subCommands.put("dist", new DistSubCommand());
-        subCommands.put("boundingbox", new BoundingBoxSubCommand(plugin));
-        subCommands.put("location", new LocationSubCommand());
-        subCommands.put("vector", new VectorSubCommand());
-        subCommands.put("yawpitch", new YawPitchSubCommand());
+        super("utils");
+        PluginCommand command = plugin.getCommand(getName());
+        Preconditions.checkArgument(command != null, "Can't find command %s", getName());
+        command.setExecutor(this);
+        addSubCommand(new DistSubCommand("dist"));
+//        addSubCommand(new BoundingBoxSubCommand(plugin, "boundingbox"));
+//        addSubCommand(new LocationSubCommand("location"));
+//        addSubCommand(new VectorSubCommand("vector"));
+//        addSubCommand(new YawPitchSubCommand("yawpitch"));
     }
     
     @Override
-    public Component getUsageMessage() {
-        return Component.text("Usage: /utils <options>", NamedTextColor.RED);
+    protected @NotNull Usage getUsageOptions() {
+        return new Usage("<options>");
     }
     
     
