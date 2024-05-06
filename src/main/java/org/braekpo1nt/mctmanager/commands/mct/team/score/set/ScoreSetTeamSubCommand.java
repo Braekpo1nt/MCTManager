@@ -1,4 +1,4 @@
-package org.braekpo1nt.mctmanager.commands.mct.team.score;
+package org.braekpo1nt.mctmanager.commands.mct.team.score.set;
 
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.commands.CommandUtils;

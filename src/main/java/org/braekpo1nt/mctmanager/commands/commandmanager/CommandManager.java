@@ -49,6 +49,7 @@ public abstract class CommandManager extends TabSubCommand implements CommandExe
     @Override
     public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length < 1) {
+            //TODO: <options> should be more specific sometimes. E.g. instead of `/mct team score set <options>`, it should be `/mct team score set <player|team>`
             return CommandResult.failure(getUsage().of("<options>"));
         }
         String subCommandName = args[0];
