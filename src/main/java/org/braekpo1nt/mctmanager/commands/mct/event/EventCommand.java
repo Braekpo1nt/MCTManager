@@ -12,7 +12,6 @@ import org.braekpo1nt.mctmanager.games.GameManager;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
@@ -41,7 +40,7 @@ public class EventCommand extends CommandManager {
             }
             
             @Override
-            public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+            public @NotNull List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
                 return Collections.emptyList();
             }
         });
@@ -70,9 +69,9 @@ public class EventCommand extends CommandManager {
                 gameManager.getEventManager().stopEvent(sender);
                 return CommandResult.success();
             }
-        
+            
             @Override
-            public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+            public @NotNull List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
                 return Collections.emptyList();
             }
         });
