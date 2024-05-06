@@ -8,6 +8,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -104,5 +105,16 @@ public class Usage {
         return builder.asComponent();
     }
     
-    
+    /**
+     * Given a collection of Strings, returns a {@link Usage} in the form of {@code "<arg1|arg2|arg3>"}
+     * @param args the args to combine to an argument-options string
+     * @return Returns a Usage in the form of {@code "<arg1|arg2|arg3>"} using the given arguments. {@code "<options>"} if the provided args collection is empty.
+     */
+    public static Usage toArgOptions(@NotNull Collection<@NotNull String> args) {
+        if (args.isEmpty()) {
+            return new Usage("<options>");
+        } else {
+            return new Usage(String.format("<%s>", String.join("|", args)));
+        }
+    }
 }

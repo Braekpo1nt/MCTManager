@@ -46,11 +46,18 @@ public abstract class CommandManager extends TabSubCommand implements CommandExe
         return true;
     }
     
+    /**
+     * This is used as the options of the usage message for if the sender doesn't provide any options.
+     * @return this {@link CommandManager}'s sub-commands as an options-list style argument (in the form {@code "<arg1|arg2|arg3>"}). {@code "<options>"} if there are no subCommands. 
+     */
+    protected @NotNull Usage getUsageOptions() {
+        return Usage.toArgOptions(subCommands.keySet());
+    }
+    
     @Override
     public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length < 1) {
-            //TODO: <options> should be more specific sometimes. E.g. instead of `/mct team score set <options>`, it should be `/mct team score set <player|team>`
-            return CommandResult.failure(getUsage().of("<options>"));
+            return CommandResult.failure(getUsage().of(getUsageOptions()));
         }
         String subCommandName = args[0];
         SubCommand subCommand = subCommands.get(subCommandName);

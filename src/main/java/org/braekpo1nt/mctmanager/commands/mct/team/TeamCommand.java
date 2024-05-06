@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.commands.mct.team;
 
 import org.braekpo1nt.mctmanager.commands.commandmanager.CommandManager;
+import org.braekpo1nt.mctmanager.commands.commandmanager.Usage;
 import org.braekpo1nt.mctmanager.commands.mct.team.score.ScoreCommand;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.jetbrains.annotations.NotNull;
@@ -17,4 +18,8 @@ public class TeamCommand extends CommandManager {
         addSubCommand(new ScoreCommand(gameManager, "score"));
     }
     
+    @Override
+    protected @NotNull Usage getUsageOptions() {
+        return new Usage("<options>");
+    }
 }
