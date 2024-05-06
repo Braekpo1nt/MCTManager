@@ -14,8 +14,8 @@ public class UtilsCommand extends CommandManager {
         PluginCommand command = plugin.getCommand(getName());
         Preconditions.checkArgument(command != null, "Can't find command %s", getName());
         command.setExecutor(this);
-        addSubCommand(new DistSubCommand("dist"));
-//        addSubCommand(new BoundingBoxSubCommand(plugin, "boundingbox"));
+        addSubCommand(new DistSubCommand(plugin, "dist"));
+        addSubCommand(new BoundingBoxSubCommand(plugin, "boundingbox"));
 //        addSubCommand(new LocationSubCommand("location"));
 //        addSubCommand(new VectorSubCommand("vector"));
 //        addSubCommand(new YawPitchSubCommand("yawpitch"));
