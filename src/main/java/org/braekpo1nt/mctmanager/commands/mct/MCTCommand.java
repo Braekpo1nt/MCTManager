@@ -24,7 +24,7 @@ public class MCTCommand extends CommandManager {
         command.setExecutor(this);
         addSubCommand(new GameCommand(gameManager));
         addSubCommand(new EditCommand(gameManager, "edit"));
-//        subCommands.put("option", new OptionSubCommand(gameManager, blockEffectsListener));
+        addSubCommand(new OptionSubCommand(gameManager, blockEffectsListener, "option"));
         addSubCommand(new TeamCommand(gameManager, "team"));
         addSubCommand(new AdminCommand(gameManager));
 //        subCommands.put("event", new EventCommand(gameManager));
