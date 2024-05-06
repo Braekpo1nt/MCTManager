@@ -1,8 +1,6 @@
 package org.braekpo1nt.mctmanager.commands.mct.team.score;
 
-import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.commands.commandmanager.CommandManager;
-import org.braekpo1nt.mctmanager.commands.commandmanager.OldCommandManager;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.jetbrains.annotations.NotNull;
 
