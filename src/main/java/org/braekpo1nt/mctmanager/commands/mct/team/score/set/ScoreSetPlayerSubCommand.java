@@ -26,7 +26,7 @@ public class ScoreSetPlayerSubCommand extends TabSubCommand {
     
     @Override
     public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (args.length < 2) {
+        if (args.length != 2) {
             return CommandResult.failure(getUsage().of("<playerName>").of("<score>"));
         }
         String playerName = args[0];

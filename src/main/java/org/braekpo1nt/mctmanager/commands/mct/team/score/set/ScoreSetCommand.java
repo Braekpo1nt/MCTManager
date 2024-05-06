@@ -8,6 +8,6 @@ public class ScoreSetCommand extends CommandManager {
     public ScoreSetCommand(GameManager gameManager, @NotNull String name) {
         super(name);
         addSubCommand(new ScoreSetPlayerSubCommand(gameManager, "player"));
-//        addSubCommand(new ScoreSetTeamSubCommand(gameManager, "team"));
+        addSubCommand(new ScoreSetTeamSubCommand(gameManager, "team"));
     }
 }
