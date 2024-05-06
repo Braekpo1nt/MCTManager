@@ -93,7 +93,7 @@ public class EventCommand extends CommandManager {
         addSubCommand(new FinalGameCommand(gameManager, "finalgame"));
         addSubCommand(new EventUndoSubCommand(gameManager, "undo"));
         addSubCommand(new VoteCommand(gameManager, "vote"));
-//        subCommands.put("modify", new ModifySubCommand(gameManager));
+        addSubCommand(new ModifySubCommand(gameManager, "modify"));
     }
     
     @Override

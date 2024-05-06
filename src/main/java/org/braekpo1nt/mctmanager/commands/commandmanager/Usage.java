@@ -108,7 +108,7 @@ public class Usage {
     /**
      * Given a collection of Strings, returns a {@link Usage} in the form of {@code "<arg1|arg2|arg3>"}
      * @param args the args to combine to an argument-options string
-     * @return Returns a Usage in the form of {@code "<arg1|arg2|arg3>"} using the given arguments. {@code "<options>"} if the provided args collection is empty.
+     * @return Returns a Usage in the form of {@code "<arg1|arg2|arg3>"} using the given arguments. If there is only one argument, just returns a usage of that argument with no {@code <>} brackets. {@code "<options>"} if the provided args collection is empty.
      */
     public static Usage toArgOptions(@NotNull Collection<@NotNull String> args) {
         if (args.isEmpty()) {

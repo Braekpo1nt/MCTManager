@@ -2,8 +2,12 @@ package org.braekpo1nt.mctmanager.commands.mct.event;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
+import org.braekpo1nt.mctmanager.commands.commandmanager.CommandManager;
 import org.braekpo1nt.mctmanager.commands.commandmanager.OldCommandManager;
 import org.braekpo1nt.mctmanager.commands.CommandUtils;
+import org.braekpo1nt.mctmanager.commands.commandmanager.TabSubCommand;
+import org.braekpo1nt.mctmanager.commands.commandmanager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -13,36 +17,32 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collections;
 import java.util.List;
 
-class ModifySubCommand extends OldCommandManager {
+public class ModifySubCommand extends CommandManager {
     
-    public ModifySubCommand(GameManager gameManager) {
-        subCommands.put("maxgames", new TabExecutor() {
+    public ModifySubCommand(GameManager gameManager, @NotNull String name) {
+        super(name);
+        addSubCommand(new TabSubCommand("maxgames") {
             @Override
-            public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+            public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
                 if (!gameManager.getEventManager().eventIsActive()) {
-                    sender.sendMessage(Component.text("There is no event running.")
-                            .color(NamedTextColor.RED));
-                    return true;
+                    return CommandResult.failure(Component.text("There is no event running."));
                 }
                 
                 if (args.length != 1) {
-                    sender.sendMessage(Component.text("Usage: /mct event maxgames <new count>")
-                            .color(NamedTextColor.RED));
-                    return true;
+                    return CommandResult.failure(getUsage().of("<newCount>"));
                 }
                 
                 String newCountString = args[0];
                 if (!CommandUtils.isInteger(newCountString)) {
-                    sender.sendMessage(Component.text(newCountString)
-                            .append(Component.text(" is not a valid integer"))
-                            .color(NamedTextColor.RED));
-                    return true;
+                    return CommandResult.failure(Component.empty()
+                            .append(Component.text(newCountString)
+                                    .decorate(TextDecoration.BOLD))
+                            .append(Component.text(" is not a valid integer")));
                 }
                 
                 int newCount = Integer.parseInt(newCountString);
                 gameManager.getEventManager().setMaxGames(sender, newCount);
-                
-                return true;
+                return CommandResult.success();
             }
             
             @Override
@@ -51,10 +51,4 @@ class ModifySubCommand extends OldCommandManager {
             }
         });
     }
-    
-    @Override
-    public Component getUsageMessage() {
-        return Component.text("Usage: /mct event modify <options>");
-    }
-       
 }
