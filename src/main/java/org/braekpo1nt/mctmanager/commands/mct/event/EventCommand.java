@@ -91,7 +91,7 @@ public class EventCommand extends CommandManager {
                 return CommandResult.success();
             }
         });
-//        addSubCommand(new FinalGameSubCommand(gameManager, "finalgame"));
+        addSubCommand(new FinalGameSubCommand(gameManager, "finalgame"));
         addSubCommand(new EventUndoSubCommand(gameManager, "undo"));
 //        subCommands.put("vote", new VoteSubCommand(gameManager));
 //        subCommands.put("modify", new ModifySubCommand(gameManager));
