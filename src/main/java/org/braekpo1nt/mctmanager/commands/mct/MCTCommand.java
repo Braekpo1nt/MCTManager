@@ -9,6 +9,7 @@ import org.braekpo1nt.mctmanager.commands.commandmanager.Usage;
 import org.braekpo1nt.mctmanager.commands.commandmanager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.commands.mct.admin.AdminCommand;
 import org.braekpo1nt.mctmanager.commands.mct.edit.EditCommand;
+import org.braekpo1nt.mctmanager.commands.mct.event.EventCommand;
 import org.braekpo1nt.mctmanager.commands.mct.game.GameCommand;
 import org.braekpo1nt.mctmanager.commands.mct.team.TeamCommand;
 import org.braekpo1nt.mctmanager.games.GameManager;
@@ -34,7 +35,7 @@ public class MCTCommand extends CommandManager {
         addSubCommand(new OptionSubCommand(gameManager, blockEffectsListener, "option"));
         addSubCommand(new TeamCommand(gameManager, "team"));
         addSubCommand(new AdminCommand(gameManager));
-//        subCommands.put("event", new EventCommand(gameManager));
+        addSubCommand(new EventCommand(gameManager, "event"));
         addSubCommand(new SubCommand("save") {
             @Override
             public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
