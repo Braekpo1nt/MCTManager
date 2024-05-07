@@ -5,6 +5,7 @@ import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class Edge {
@@ -97,6 +98,10 @@ public class Edge {
         List<Vector> points = new ArrayList<>();
         Vector a = edge.getA();
         Vector b = edge.getB();
+        
+        if (a.equals(b)) {
+            return Collections.singletonList(a);
+        }
         
         double length = Math.sqrt(Math.pow(b.getX() - a.getX(), 2) +
                 Math.pow(b.getY() - a.getY(), 2) +

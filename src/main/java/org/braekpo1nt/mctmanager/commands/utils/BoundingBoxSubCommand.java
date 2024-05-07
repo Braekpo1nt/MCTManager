@@ -88,7 +88,7 @@ class BoundingBoxSubCommand extends TabSubCommand {
     
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (!(sender instanceof Player player)) {
+        if (args.length > 6 || !(sender instanceof Player player)) {
             return Collections.emptyList();
         }
         return UtilsUtils.tabCompleteCoordinates(player, args.length);

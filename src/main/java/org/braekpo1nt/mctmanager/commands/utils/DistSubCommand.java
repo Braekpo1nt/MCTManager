@@ -10,6 +10,7 @@ import org.braekpo1nt.mctmanager.commands.commandmanager.TabSubCommand;
 import org.braekpo1nt.mctmanager.commands.commandmanager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.display.Display;
 import org.braekpo1nt.mctmanager.display.geometry.Edge;
+import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -18,6 +19,7 @@ import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -84,7 +86,7 @@ class DistSubCommand extends TabSubCommand {
             return CommandResult.failure(Component.text(args[6])
                     .append(Component.text(" is not a boolean value")));
         }
-    
+        
         if (!(sender instanceof Player player)) {
             return CommandResult.failure(Component.text("Only players can be shown a display"));
         }
@@ -96,7 +98,7 @@ class DistSubCommand extends TabSubCommand {
     
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (!(sender instanceof Player player)) {
+        if (args.length > 6 || !(sender instanceof Player player)) {
             return Collections.emptyList();
         }
         return UtilsUtils.tabCompleteCoordinates(player, args.length);

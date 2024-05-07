@@ -54,17 +54,14 @@ class UtilsUtils {
     /**
      * Takes in an argument position and returns a coordinate value for tab completion.
      * The coordinate value returned is either the x, y, or z component of either the player's location or the block they are looking at. 
-     * Whether it is the x, y, or z component is determined by the value of {@code argPos % 4} (0 results in an empty list; 1 results in x; 2 results in y, 3 results in z).
+     * Whether it is the x, y, or z component is determined by the value of {@code `(argPos % 3)`} (0 results in x; 1 results in y; 2 results in z).
      * Whether it is from the player's location or the block they're targeting is determined by the distance between the player and the block they're looking at, as well as the material type of that block. If the player is looking at a material which is not in {@link UtilsUtils#TRANSPARENT} and is at most 5 blocks away, then the block position will be used. Otherwise, the player's location will be usd.
      * @param player the player to use as the location or targeted block location
      * @param argPos the position of the argument to tab complete (determines which component of the position to return, either x, y, or z)
      * @return the appropriate coordinate component for the block the player is targeting or the player's location, depending on distance of and transparency of the targeted block. The "block" value will always be used (e.g. {@link Location#getBlockX()}).
      */
     public static @NotNull List<@NotNull String> tabCompleteCoordinates(@NotNull Player player, int argPos) {
-        int m = argPos % 4;
-        if (m == 0) {
-            return Collections.emptyList();
-        }
+        int m = (argPos % 3);
         Block targetBlock = player.getTargetBlock(TRANSPARENT, 5);
         Location location;
         if (TRANSPARENT.contains(targetBlock.getType())) {
@@ -72,13 +69,14 @@ class UtilsUtils {
         } else {
             location = targetBlock.getLocation();
         }
-        switch (m) {case 1 -> {
+        switch (m) {
+            case 1 -> {
                 return Collections.singletonList("" + location.getBlockX());
             }
             case 2 -> {
                 return Collections.singletonList("" + location.getBlockY());
             }
-            case 3 -> {
+            case 0 -> {
                 return Collections.singletonList("" + location.getBlockZ());
             }
         }
