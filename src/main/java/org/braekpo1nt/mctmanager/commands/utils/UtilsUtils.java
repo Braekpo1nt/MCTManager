@@ -7,6 +7,7 @@ import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
@@ -50,21 +51,23 @@ class UtilsUtils {
                 .color(color);
     }
     
-    // TODO: make this javadoc more accurately describe what this is doing, and also make it more agnostic (such that it can return any number of argsLengths
     /**
-     * Helper method for tab-completing coordinate values for commands.
-     * @param player This player will be used to tab-complete coordinates which they are looking at or where they are standing
-     * @param argsLength number of the argument to provide. Values outside the range [1,6] will return {@link Collections#emptyList()}. The position of the arg will determine which coordinate value to return. 
-     * @return The coordinate element of the block the player is looking at, or, if the player is not looking at a non-transparent block in a 5-block distance, the coordinate element of the player's position.
+     * Takes in an argument position and returns a coordinate value for tab completion.
+     * The coordinate value returned is either the x, y, or z component of either the player's location or the block they are looking at. 
+     * Whether it is the x, y, or z component is determined by the argPos value (1 & 4 result in x; 2 & 5 result in y, 3 & 6 result in z). The "block" value will always be used (e.g. {@link Location#getBlockX()}).
+     * Whether it is from the player's location or the block they're targeting is determined by the distance between the player and the block they're looking at, as well as the material type of that block. If the player is looking at a material which is not in {@link UtilsUtils#TRANSPARENT} and is at most 5 blocks away, then the block position will be used. Otherwise, the player's location will be usd.
+     * @param player the player to use as the location or targeted block location
+     * @param argPos the position of the argument to tab complete (determines which component of the position to return, either x, y, or z)
+     * @return the appropriate coordinate component for the block the player is targeting or the player's location, depending on distance of and transparency of the targeted block.
      */
-    public static @NotNull List<@NotNull String> tabCompleteCoordinates(@NotNull Player player, int argsLength) {
-        if (argsLength == 0 || argsLength > 6) {
+    public static @NotNull List<@NotNull String> tabCompleteCoordinates(@NotNull Player player, int argPos) {
+        if (argPos == 0 || argPos > 6) {
             return Collections.emptyList();
         }
         Block targetBlock = player.getTargetBlock(TRANSPARENT, 5);
         if (TRANSPARENT.contains(targetBlock.getType())) {
-            Bukkit.getLogger().info(String.format("args: %s, player (%s, %s)", argsLength, targetBlock.getType(), targetBlock.getLocation().toVector()));
-            switch (argsLength) {
+            Bukkit.getLogger().info(String.format("args: %s, player (%s, %s)", argPos, targetBlock.getType(), targetBlock.getLocation().toVector()));
+            switch (argPos) {
                 case 1, 4 -> {
                     return Collections.singletonList("" + player.getLocation().getBlockX());
                 }
@@ -76,8 +79,8 @@ class UtilsUtils {
                 }
             }
         }
-        Bukkit.getLogger().info(String.format("args: %s, targetBlock (%s, %s)", argsLength, targetBlock.getType(), targetBlock.getLocation().toVector()));
-        switch (argsLength) {
+        Bukkit.getLogger().info(String.format("args: %s, targetBlock (%s, %s)", argPos, targetBlock.getType(), targetBlock.getLocation().toVector()));
+        switch (argPos) {
             case 1, 4 -> {
                 return Collections.singletonList("" + targetBlock.getLocation().getBlockX());
             }
