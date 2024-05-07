@@ -1,12 +1,11 @@
 package org.braekpo1nt.mctmanager.commands.mct.edit;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.CommandUtils;
-import org.braekpo1nt.mctmanager.commands.commandmanager.CommandManager;
-import org.braekpo1nt.mctmanager.commands.commandmanager.SubCommand;
-import org.braekpo1nt.mctmanager.commands.commandmanager.commandresult.CommandResult;
+import org.braekpo1nt.mctmanager.commands.manager.CommandManager;
+import org.braekpo1nt.mctmanager.commands.manager.SubCommand;
+import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;

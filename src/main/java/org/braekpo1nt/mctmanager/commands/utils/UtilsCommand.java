@@ -2,8 +2,8 @@ package org.braekpo1nt.mctmanager.commands.utils;
 
 import com.google.common.base.Preconditions;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.commands.commandmanager.CommandManager;
-import org.braekpo1nt.mctmanager.commands.commandmanager.Usage;
+import org.braekpo1nt.mctmanager.commands.manager.CommandManager;
+import org.braekpo1nt.mctmanager.commands.manager.Usage;
 import org.bukkit.command.PluginCommand;
 import org.jetbrains.annotations.NotNull;
 

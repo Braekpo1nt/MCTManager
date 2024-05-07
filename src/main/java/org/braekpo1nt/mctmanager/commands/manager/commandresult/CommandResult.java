@@ -1,7 +1,7 @@
-package org.braekpo1nt.mctmanager.commands.commandmanager.commandresult;
+package org.braekpo1nt.mctmanager.commands.manager.commandresult;
 
 import net.kyori.adventure.text.Component;
-import org.braekpo1nt.mctmanager.commands.commandmanager.Usage;
+import org.braekpo1nt.mctmanager.commands.manager.Usage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

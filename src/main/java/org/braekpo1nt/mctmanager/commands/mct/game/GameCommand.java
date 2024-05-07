@@ -1,6 +1,6 @@
 package org.braekpo1nt.mctmanager.commands.mct.game;
 
-import org.braekpo1nt.mctmanager.commands.commandmanager.CommandManager;
+import org.braekpo1nt.mctmanager.commands.manager.CommandManager;
 import org.braekpo1nt.mctmanager.games.GameManager;
 
 public class GameCommand extends CommandManager {

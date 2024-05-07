@@ -1,7 +1,7 @@
 package org.braekpo1nt.mctmanager.commands.mct.edit;
 
-import org.braekpo1nt.mctmanager.commands.commandmanager.TabSubCommand;
-import org.braekpo1nt.mctmanager.commands.commandmanager.commandresult.CommandResult;
+import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
+import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;

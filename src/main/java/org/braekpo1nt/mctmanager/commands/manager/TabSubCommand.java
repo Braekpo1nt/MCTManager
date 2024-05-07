@@ -1,4 +1,4 @@
-package org.braekpo1nt.mctmanager.commands.commandmanager;
+package org.braekpo1nt.mctmanager.commands.manager;
 
 import org.bukkit.command.TabCompleter;
 import org.jetbrains.annotations.NotNull;

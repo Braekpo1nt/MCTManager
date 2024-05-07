@@ -1,9 +1,8 @@
-package org.braekpo1nt.mctmanager.commands.commandmanager.commandresult;
+package org.braekpo1nt.mctmanager.commands.manager.commandresult;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextDecoration;
-import org.braekpo1nt.mctmanager.commands.commandmanager.Usage;
+import org.braekpo1nt.mctmanager.commands.manager.Usage;
 import org.jetbrains.annotations.NotNull;
 
 public class UsageCommandResult implements CommandResult {

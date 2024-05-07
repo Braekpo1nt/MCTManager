@@ -1,6 +1,6 @@
-package org.braekpo1nt.mctmanager.commands.commandmanager;
+package org.braekpo1nt.mctmanager.commands.manager;
 
-import org.braekpo1nt.mctmanager.commands.commandmanager.commandresult.CommandResult;
+import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;

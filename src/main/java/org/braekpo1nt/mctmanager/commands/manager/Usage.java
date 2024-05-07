@@ -1,4 +1,4 @@
-package org.braekpo1nt.mctmanager.commands.commandmanager;
+package org.braekpo1nt.mctmanager.commands.manager;
 
 import com.google.common.base.Preconditions;
 import net.kyori.adventure.text.Component;

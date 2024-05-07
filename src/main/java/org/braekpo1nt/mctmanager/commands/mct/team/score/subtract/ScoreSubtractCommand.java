@@ -1,6 +1,6 @@
 package org.braekpo1nt.mctmanager.commands.mct.team.score.subtract;
 
-import org.braekpo1nt.mctmanager.commands.commandmanager.CommandManager;
+import org.braekpo1nt.mctmanager.commands.manager.CommandManager;
 import org.braekpo1nt.mctmanager.commands.mct.team.score.add.ScoreAddPlayerSubCommand;
 import org.braekpo1nt.mctmanager.commands.mct.team.score.add.ScoreAddTeamSubCommand;
 import org.braekpo1nt.mctmanager.games.GameManager;
