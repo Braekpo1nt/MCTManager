@@ -36,6 +36,15 @@ public abstract class CommandManager extends TabSubCommand implements CommandExe
         subCommands.put(subCommand.getName(), subCommand);
     }
     
+    /**
+     * Returns the {@link SubCommand}s as a usage arg
+     * This is used as the options of the usage message for if the sender doesn't provide any options.
+     * @return this {@link CommandManager}'s sub-commands as an options-list style argument (in the form {@code "<arg1|arg2|arg3>"}). {@code "<options>"} if there are no subCommands. 
+     */
+    protected @NotNull Usage getSubCommandUsageArg() {
+        return Usage.toArgOptions(subCommands.keySet());
+    }
+    
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         CommandResult commandResult = onSubCommand(sender, command, label, args);
@@ -46,18 +55,10 @@ public abstract class CommandManager extends TabSubCommand implements CommandExe
         return true;
     }
     
-    /**
-     * This is used as the options of the usage message for if the sender doesn't provide any options.
-     * @return this {@link CommandManager}'s sub-commands as an options-list style argument (in the form {@code "<arg1|arg2|arg3>"}). {@code "<options>"} if there are no subCommands. 
-     */
-    protected @NotNull Usage getUsageOptions() {
-        return Usage.toArgOptions(subCommands.keySet());
-    }
-    
     @Override
     public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length < 1) {
-            return CommandResult.failure(getUsage().of(getUsageOptions()));
+            return CommandResult.failure(getUsage().of(getSubCommandUsageArg()));
         }
         String subCommandName = args[0];
         SubCommand subCommand = subCommands.get(subCommandName);

@@ -96,7 +96,7 @@ public class EventCommand extends CommandManager {
     }
     
     @Override
-    protected @NotNull Usage getUsageOptions() {
+    protected @NotNull Usage getSubCommandUsageArg() {
         return new Usage("<options>");
     }
 }
