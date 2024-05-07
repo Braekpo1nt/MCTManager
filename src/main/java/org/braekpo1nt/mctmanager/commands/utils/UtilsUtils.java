@@ -6,6 +6,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
@@ -31,7 +32,7 @@ class UtilsUtils {
             .registerTypeAdapter(Float.class, new FloatSerializer())
             .create();
     
-    public static final Set<Material> TRANSPARENT = Set.of(Material.AIR, Material.WATER, Material.LAVA);
+    public static final Set<Material> TRANSPARENT = Set.of(Material.AIR, Material.WATER, Material.LAVA, Material.LIGHT, Material.VOID_AIR, Material.STRUCTURE_VOID, Material.BARRIER);
     
     public static Component attribute(String title, double value, NamedTextColor color) {
         String valueStr = value == Math.floor(value) ? ""+(int)value : ""+value;
@@ -62,6 +63,7 @@ class UtilsUtils {
         }
         Block targetBlock = player.getTargetBlock(TRANSPARENT, 5);
         if (TRANSPARENT.contains(targetBlock.getType())) {
+            Bukkit.getLogger().info(String.format("args: %s, player (%s, %s)", argsLength, targetBlock.getType(), targetBlock.getLocation().toVector()));
             switch (argsLength) {
                 case 1, 4 -> {
                     return Collections.singletonList("" + player.getLocation().getBlockX());
@@ -74,6 +76,7 @@ class UtilsUtils {
                 }
             }
         }
+        Bukkit.getLogger().info(String.format("args: %s, targetBlock (%s, %s)", argsLength, targetBlock.getType(), targetBlock.getLocation().toVector()));
         switch (argsLength) {
             case 1, 4 -> {
                 return Collections.singletonList("" + targetBlock.getLocation().getBlockX());
