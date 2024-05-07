@@ -8,19 +8,28 @@
 Please adhere to the following directory structure style:
 ```
 - commands/
-  - <command-manager>/
-    - <command>/
-      - <sub-command-class>.java
-    - <command-manager-class>.java
-    - <sub-commmand-class>.java
+    - <command-manager>/
+        - <comand-manager>.java
+        - <command-manager-1>/
+            - <command-manager-1>.java # implements CommandManager
+            - <sub-command-1.1>.java # implements SubCommand
+            - <sub-command-1.2>.java # implements SubCommand
+        - <command-manager-2>/
+            - <command-manager-2>.java # implements CommandManager
+            - <sub-command-2.1>.java # implements SubCommand
+            - <sub-command-2.2>.java # implements TabSubCommand
+            - <command-manager-3>/
+                - <command-manager-3>.java
+                - <sub-command-3.1>.java
+                - <sub-command-3.2>.java
 ```
 
-For example, let's say your command manager is `/example`, so all commands related to that feature are in the form `/example <options...>`. `plugin.yml` will be:
+For example, let's say your command manager is `/example`, and the usage is `/example <foo|bar|action>`. `plugin.yml` will be:
 
 ```yml
 #...
 commands:
-  example:
+  example: # the name of the command for /example
     description: example description
 #...
 ```
@@ -35,16 +44,14 @@ Conceptually, for each command in `/example <command>`, there should be a direct
 
 ```
 - commands/
-  - example/
-    - ExampleCommandManager.java
-    - foo/
-      - FooCommand.java
-    - bar/
-      - BarCommand.java
-    - action/
-      - ActionCommand.java
-      - JumpSubCommand.java
-      - RollSubCommand.java
+    - example/
+        - ExampleCommand.java
+        - FooSubCommand.java
+        - BarSubCommand.java
+        - action/
+            - ActionCommand.java
+            - JumpSubCommand.java
+            - RollSubCommand.java
 ```
 
 This way, I know that if there is a problem with the `jump` option in `/example action jump <height>`, I know to go to the `commands/example/action/JumpSubCommand.java` class.
