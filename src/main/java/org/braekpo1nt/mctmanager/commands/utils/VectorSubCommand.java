@@ -1,71 +1,70 @@
 package org.braekpo1nt.mctmanager.commands.utils;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.event.ClickEvent;
-import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.braekpo1nt.mctmanager.commands.commandmanager.TabSubCommand;
+import org.braekpo1nt.mctmanager.commands.commandmanager.commandresult.CommandResult;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-class VectorSubCommand implements CommandExecutor {
+import java.util.Collections;
+import java.util.List;
+
+class VectorSubCommand extends TabSubCommand {
+    
+    public VectorSubCommand(@NotNull String name) {
+        super(name);
+    }
+    
     @Override
-    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+    public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length > 1) {
-            sender.sendMessage(Component.text("Usage: /utils vector [<player>]")
-                    .color(NamedTextColor.RED));
-            return true;
+            return CommandResult.failure(getUsage().of("[<player>]"));
         }
         
         if (args.length == 1) {
             String playerName = args[0];
             Player player = Bukkit.getPlayer(playerName);
             if (player == null) {
-                sender.sendMessage(Component.text("Player ")
+                return CommandResult.failure(Component.text("Player ")
                         .append(Component.text(playerName)
                                 .decorate(TextDecoration.BOLD))
-                        .append(Component.text(" not found"))
-                        .color(NamedTextColor.RED));
-                return true;
+                        .append(Component.text(" not found")));
             }
-            return displayLocation(sender, player);
+            displayVector(sender, player.getLocation());
+            return CommandResult.success();
         }
         
         if (!(sender instanceof Player player)) {
-            sender.sendMessage(Component.text("Only a player can use this command")
-                    .color(NamedTextColor.RED));
-            return true;
+            return CommandResult.failure(getUsage().of("[<player>]"));
         }
-        return displayLocation(sender, player);
+        displayVector(sender, player.getLocation());
+        return CommandResult.success();
     }
     
-    private boolean displayLocation(@NotNull CommandSender sender, Player player) {
-        Vector precise = player.getLocation().toVector();
+    private void displayVector(@NotNull CommandSender sender, Location location) {
+        Vector precise = location.toVector();
         String preciseJson = UtilsUtils.GSON.toJson(precise);
-        Vector block = player.getLocation().toBlockLocation().toVector();
+        Vector block = location.toBlockLocation().toVector();
         String blockJson = UtilsUtils.GSON.toJson(block);
         sender.sendMessage(Component.empty()
-                .append(attribute("Precise", preciseJson, NamedTextColor.WHITE))
-                .append(attribute("Block", blockJson, NamedTextColor.WHITE))
+                .append(UtilsUtils.attribute("Precise", preciseJson, NamedTextColor.WHITE))
+                .append(UtilsUtils.attribute("Block", blockJson, NamedTextColor.WHITE))
         );
-        return false;
     }
     
-    private Component attribute(String title, String value, NamedTextColor color) {
-        return Component.empty()
-                .append(Component.text("\n"))
-                .append(Component.text(title))
-                .append(Component.text(": "))
-                .append(Component.text(value)
-                        .hoverEvent(HoverEvent.showText(Component.text("Copy to clipboard")))
-                        .clickEvent(ClickEvent.copyToClipboard(""+value)))
-                .color(color);
+    @Override
+    public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+        if (args.length == 1) {
+            return null;
+        }
+        return Collections.emptyList();
     }
 }

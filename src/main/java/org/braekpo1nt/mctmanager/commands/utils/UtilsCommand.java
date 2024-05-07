@@ -17,7 +17,7 @@ public class UtilsCommand extends CommandManager {
         addSubCommand(new DistSubCommand(plugin, "dist"));
         addSubCommand(new BoundingBoxSubCommand(plugin, "boundingbox"));
         addSubCommand(new LocationSubCommand("location"));
-//        addSubCommand(new VectorSubCommand("vector"));
+        addSubCommand(new VectorSubCommand("vector"));
 //        addSubCommand(new YawPitchSubCommand("yawpitch"));
     }
     
