@@ -21,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * The super command for all MCT related commands. 
- * Everything should start with /mct _____, where _____ is a sub command
+ * Handles all sub-commands which start with /mct ...
  */
 public class MCTCommand extends CommandManager {
     
