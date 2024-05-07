@@ -72,7 +72,7 @@ To make a new sub command that can be in the `<sub command>` position for `/mct 
     ```java
     public MCTCommand(...args...) {
         //other subcommands and code
-        this.subCommands.put("<subcommand>", new MySubCommand());
+        addSubCommand(new MySubCommand("<subcommand>"));
     }
     ```
   where `<subcommand>` is the name of the command you want. This will be shown on tab completion, and you will call it with `/mct <subcommand>`
