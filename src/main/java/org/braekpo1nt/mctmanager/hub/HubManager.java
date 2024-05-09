@@ -77,12 +77,12 @@ public class HubManager implements Listener, Configurable {
             @Override
             public void run() {
                 if (count <= 0) {
-                    this.cancel();
                     sidebar.deleteAllLines();
                     sidebar.removeAllPlayers();
                     returnParticipantsToHubInstantly(headingToHub, adminsHeadingToHub);
                     headingToHub.clear();
                     adminsHeadingToHub.clear();
+                    this.cancel();
                     return;
                 }
                 String timeLeft = TimeStringUtils.getTimeString(count);

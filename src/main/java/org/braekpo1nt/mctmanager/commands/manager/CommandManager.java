@@ -25,16 +25,16 @@ public abstract class CommandManager extends TabSubCommand implements CommandExe
      */
     protected final Map<String, SubCommand> subCommands = new HashMap<>();
     protected final Map<String, String> subCommandPermissionNodes = new HashMap<>();
-    protected final @NotNull String permissionNode;
+    protected @Nullable String permissionNode;
     
-    public CommandManager(@NotNull String name, @NotNull String permissionNode) {
+    public CommandManager(@NotNull String name, @Nullable String permissionNode) {
         super(name);
         this.permissionNode = permissionNode;
     }
     
     public CommandManager(@NotNull String name) {
         super(name);
-        this.permissionNode = name;
+        this.permissionNode = null;
     }
     
     /**
@@ -52,15 +52,11 @@ public abstract class CommandManager extends TabSubCommand implements CommandExe
         return permissible.hasPermission(permissionNode);
     }
     
-    /**
-     * Add a new {@link SubCommand} implementation to the {@link CommandManager#subCommands} map.
-     * This can now be called as a sub command using {@link SubCommand#getName()}.
-     * @param subCommand the implementation of {@link SubCommand} to add
-     */
-    public void addSubCommand(SubCommand subCommand) {
-        subCommand.setParent(this);
-        subCommands.put(subCommand.getName(), subCommand);
-        subCommandPermissionNodes.put(subCommand.getName(), String.format("%s.%s", permissionNode, subCommand.getName()));
+    protected boolean hasPermission(@NotNull Permissible permissible) {
+        if (permissionNode == null) {
+            return true;
+        }
+        return permissible.hasPermission(permissionNode);
     }
     
     /**
@@ -69,7 +65,9 @@ public abstract class CommandManager extends TabSubCommand implements CommandExe
      * @param pluginManager the PluginManager to register the permission nodes with
      */
     public void registerPermissions(PluginManager pluginManager) {
-        pluginManager.addPermission(new Permission(permissionNode));
+        if (permissionNode != null) {
+            pluginManager.addPermission(new Permission(permissionNode));
+        }
         for (String subCommandPermissionNode : subCommandPermissionNodes.values()) {
             if (subCommandPermissionNode != null) {
                 pluginManager.addPermission(new Permission(subCommandPermissionNode));
@@ -79,6 +77,19 @@ public abstract class CommandManager extends TabSubCommand implements CommandExe
             if (subCommand instanceof CommandManager commandManager) {
                 commandManager.registerPermissions(pluginManager);
             }
+        }
+    }
+    
+    /**
+     * Add a new {@link SubCommand} implementation to the {@link CommandManager#subCommands} map.
+     * This can now be called as a sub command using {@link SubCommand#getName()}.
+     * @param subCommand the implementation of {@link SubCommand} to add
+     */
+    public void addSubCommand(SubCommand subCommand) {
+        subCommand.setParent(this);
+        subCommands.put(subCommand.getName(), subCommand);
+        if (permissionNode != null) {
+            subCommandPermissionNodes.put(subCommand.getName(), String.format("%s.%s", permissionNode, subCommand.getName()));
         }
     }
     
@@ -103,7 +114,7 @@ public abstract class CommandManager extends TabSubCommand implements CommandExe
     
     @Override
     public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (!sender.hasPermission(permissionNode)) {
+        if (!hasPermission(sender)) {
             return CommandResult.failure("Unknown or incomplete command.");
         }
         if (args.length < 1) {
