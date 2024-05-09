@@ -4,6 +4,9 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.bukkit.command.*;
+import org.bukkit.permissions.Permissible;
+import org.bukkit.permissions.Permission;
+import org.bukkit.plugin.PluginManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,6 +38,21 @@ public abstract class CommandManager extends TabSubCommand implements CommandExe
     }
     
     /**
+     * Check if the given permissible has the permission to use the given subCommand with the given name.
+     * If the subCommand's permission node is null, then that registers as having the permission. 
+     * @param permissible the permissible to check if they have the permission
+     * @param subCommandName the name of the subCommand to check if the given permissible has permission to use
+     * @return true of the given permissible has permission to use the subCommand with the given name, false otherwise. If the given subcommand doesn't have a permission associated with it, then this will return true. 
+     */
+    protected boolean hasPermission(@NotNull Permissible permissible, String subCommandName) {
+        String permissionNode = subCommandPermissionNodes.get(subCommandName);
+        if (permissionNode == null) {
+            return true;
+        }
+        return permissible.hasPermission(permissionNode);
+    }
+    
+    /**
      * Add a new {@link SubCommand} implementation to the {@link CommandManager#subCommands} map.
      * This can now be called as a sub command using {@link SubCommand#getName()}.
      * @param subCommand the implementation of {@link SubCommand} to add
@@ -43,6 +61,25 @@ public abstract class CommandManager extends TabSubCommand implements CommandExe
         subCommand.setParent(this);
         subCommands.put(subCommand.getName(), subCommand);
         subCommandPermissionNodes.put(subCommand.getName(), String.format("%s.%s", permissionNode, subCommand.getName()));
+    }
+    
+    /**
+     * Register this {@link CommandManager}'s permission nodes with the given PluginManager. 
+     * If any subCommands are also {@link CommandManager}s, this registers their permissions as well.
+     * @param pluginManager the PluginManager to register the permission nodes with
+     */
+    public void registerPermissions(PluginManager pluginManager) {
+        pluginManager.addPermission(new Permission(permissionNode));
+        for (String subCommandPermissionNode : subCommandPermissionNodes.values()) {
+            if (subCommandPermissionNode != null) {
+                pluginManager.addPermission(new Permission(subCommandPermissionNode));
+            }
+        }
+        for (SubCommand subCommand : subCommands.values()) {
+            if (subCommand instanceof CommandManager commandManager) {
+                commandManager.registerPermissions(pluginManager);
+            }
+        }
     }
     
     /**
@@ -74,21 +111,13 @@ public abstract class CommandManager extends TabSubCommand implements CommandExe
         }
         String subCommandName = args[0];
         SubCommand subCommand = subCommands.get(subCommandName);
-        if (subCommand == null || hasPermission(sender, subCommandName)) {
+        if (subCommand == null || !hasPermission(sender, subCommandName)) {
             return CommandResult.failure(Component.text("Argument ")
                     .append(Component.text(subCommandName)
                             .decorate(TextDecoration.BOLD))
                     .append(Component.text(" is not recognized.")));
         }
         return subCommand.onSubCommand(sender, command, label, Arrays.copyOfRange(args, 1, args.length));
-    }
-    
-    protected boolean hasPermission(@NotNull CommandSender sender, String subCommandName) {
-        String permissionNode = subCommandPermissionNodes.get(subCommandName);
-        if (permissionNode == null) {
-            return true;
-        }
-        return sender.hasPermission(permissionNode);
     }
     
     @Override
