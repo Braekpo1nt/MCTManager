@@ -26,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
 public class MCTCommand extends CommandManager {
     
     public MCTCommand(Main plugin, GameManager gameManager, BlockEffectsListener blockEffectsListener) {
-        super("mct");
+        super("mct", "mctmanager.mct");
         PluginCommand command = plugin.getCommand(getName());
         Preconditions.checkArgument(command != null, "Can't find command %s", getName());
         command.setExecutor(this);

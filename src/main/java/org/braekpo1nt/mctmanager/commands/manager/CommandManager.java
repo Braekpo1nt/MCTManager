@@ -21,9 +21,17 @@ public abstract class CommandManager extends TabSubCommand implements CommandExe
      * The key is the command's name (what you type in the chat to reference this command).format
      */
     protected final Map<String, SubCommand> subCommands = new HashMap<>();
+    protected final Map<String, String> subCommandPermissionNodes = new HashMap<>();
+    protected final @NotNull String permissionNode;
+    
+    public CommandManager(@NotNull String name, @NotNull String permissionNode) {
+        super(name);
+        this.permissionNode = permissionNode;
+    }
     
     public CommandManager(@NotNull String name) {
         super(name);
+        this.permissionNode = name;
     }
     
     /**
@@ -34,6 +42,7 @@ public abstract class CommandManager extends TabSubCommand implements CommandExe
     public void addSubCommand(SubCommand subCommand) {
         subCommand.setParent(this);
         subCommands.put(subCommand.getName(), subCommand);
+        subCommandPermissionNodes.put(subCommand.getName(), String.format("%s.%s", permissionNode, subCommand.getName()));
     }
     
     /**
@@ -57,18 +66,29 @@ public abstract class CommandManager extends TabSubCommand implements CommandExe
     
     @Override
     public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+        if (!sender.hasPermission(permissionNode)) {
+            return CommandResult.failure("Unknown or incomplete command.");
+        }
         if (args.length < 1) {
             return CommandResult.failure(getUsage().of(getSubCommandUsageArg()));
         }
         String subCommandName = args[0];
         SubCommand subCommand = subCommands.get(subCommandName);
-        if (subCommand == null) {
+        if (subCommand == null || hasPermission(sender, subCommandName)) {
             return CommandResult.failure(Component.text("Argument ")
                     .append(Component.text(subCommandName)
                             .decorate(TextDecoration.BOLD))
                     .append(Component.text(" is not recognized.")));
         }
         return subCommand.onSubCommand(sender, command, label, Arrays.copyOfRange(args, 1, args.length));
+    }
+    
+    protected boolean hasPermission(@NotNull CommandSender sender, String subCommandName) {
+        String permissionNode = subCommandPermissionNodes.get(subCommandName);
+        if (permissionNode == null) {
+            return true;
+        }
+        return sender.hasPermission(permissionNode);
     }
     
     @Override
