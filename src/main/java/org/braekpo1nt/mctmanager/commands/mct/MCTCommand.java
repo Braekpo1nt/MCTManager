@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.CommandManager;
+import org.braekpo1nt.mctmanager.commands.manager.MasterCommandManager;
 import org.braekpo1nt.mctmanager.commands.manager.SubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.Usage;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
@@ -23,13 +24,10 @@ import org.jetbrains.annotations.NotNull;
  * The super command for all MCT related commands. 
  * Handles all sub-commands which start with /mct ...
  */
-public class MCTCommand extends CommandManager {
+public class MCTCommand extends MasterCommandManager {
     
     public MCTCommand(Main plugin, GameManager gameManager, BlockEffectsListener blockEffectsListener) {
-        super("mct", "mctmanager.mct");
-        PluginCommand command = plugin.getCommand(getName());
-        Preconditions.checkArgument(command != null, "Can't find command %s", getName());
-        command.setExecutor(this);
+        super(plugin, "mct");
         addSubCommand(new GameCommand(gameManager));
         addSubCommand(new EditCommand(gameManager, "edit"));
         addSubCommand(new OptionSubCommand(gameManager, blockEffectsListener, "option"));

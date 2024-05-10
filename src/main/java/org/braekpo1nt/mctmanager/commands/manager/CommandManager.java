@@ -19,7 +19,7 @@ import java.util.*;
  * Add classes which implement {@link SubCommand} to the {@link CommandManager#subCommands} map to add executable sub commands. 
  * Implement {@link TabSubCommand} in your sub command to provide tab completion
  */
-public abstract class CommandManager extends TabSubCommand implements CommandExecutor {
+public abstract class CommandManager extends TabSubCommand {
     
     /**
      * Your super command's sub commands. You use your command manager to call one of these commands.
@@ -27,17 +27,10 @@ public abstract class CommandManager extends TabSubCommand implements CommandExe
      */
     protected final Map<String, SubCommand> subCommands = new HashMap<>();
     protected final Map<String, String> subCommandPermissionNodes = new HashMap<>();
-    @Getter
-    protected @Nullable String permissionNode;
     
-    public CommandManager(@NotNull String name, @Nullable String permissionNode) {
-        super(name);
-        this.permissionNode = permissionNode;
-    }
     
     public CommandManager(@NotNull String name) {
         super(name);
-        this.permissionNode = null;
     }
     
     /**
@@ -56,15 +49,11 @@ public abstract class CommandManager extends TabSubCommand implements CommandExe
     }
     
     /**
-     * Register this {@link CommandManager}'s permission nodes with the given PluginManager. 
+     * Register this {@link CommandManager}'s subCommandPermissionNodes with the given PluginManager. 
      * If any subCommands are also {@link CommandManager}s, this registers their permissions as well.
      * @param pluginManager the PluginManager to register the permission nodes with
      */
     public void registerPermissions(PluginManager pluginManager) {
-        if (parent == null && permissionNode != null) {
-            // if the parent is not null, then they already registered this permissionNode
-            pluginManager.addPermission(new Permission(permissionNode));
-        }
         for (String subCommandPermissionNode : subCommandPermissionNodes.values()) {
             if (subCommandPermissionNode != null) {
                 pluginManager.addPermission(new Permission(subCommandPermissionNode));
@@ -83,14 +72,10 @@ public abstract class CommandManager extends TabSubCommand implements CommandExe
         if (parent == null) {
             return;
         }
-        if (parent instanceof CommandManager commandManager) {
-            String parentPermissionNode = commandManager.getPermissionNode();
-            if (parentPermissionNode != null) {
-                this.permissionNode = String.format("%s.%s", parentPermissionNode, getName());
-                // add parentPermissionNode to all subCommandPermissionNodes
-                for (String subCommandName : subCommands.keySet()) {
-                    subCommandPermissionNodes.put(subCommandName, String.format("%s.%s", this.permissionNode, subCommandName));
-                }
+        if (parent instanceof MasterCommandManager masterCommandManager) {
+            // add parentPermissionNode to all subCommandPermissionNodes
+            for (String subCommandName : subCommands.keySet()) {
+                subCommandPermissionNodes.put(subCommandName, String.format("%s.%s.%s", masterCommandManager.getPermissionNode(), getName(), subCommandName));
             }
         }
     }
@@ -103,9 +88,6 @@ public abstract class CommandManager extends TabSubCommand implements CommandExe
     public void addSubCommand(SubCommand subCommand) {
         subCommand.setParent(this);
         subCommands.put(subCommand.getName(), subCommand);
-        if (permissionNode != null) {
-            subCommandPermissionNodes.put(subCommand.getName(), String.format("%s.%s", permissionNode, subCommand.getName()));
-        }
     }
     
     /**
@@ -115,16 +97,6 @@ public abstract class CommandManager extends TabSubCommand implements CommandExe
      */
     protected @NotNull Usage getSubCommandUsageArg() {
         return Usage.toArgOptions(subCommands.keySet());
-    }
-    
-    @Override
-    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        CommandResult commandResult = onSubCommand(sender, command, label, args);
-        Component message = commandResult.getMessage();
-        if (message != null) {
-            sender.sendMessage(message);
-        }
-        return true;
     }
     
     @Override
@@ -146,11 +118,14 @@ public abstract class CommandManager extends TabSubCommand implements CommandExe
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length == 1) {
-            return subCommands.keySet().stream().sorted().toList();
+            return subCommands.keySet().stream().filter(subCommandName -> hasPermission(sender, subCommandName)).sorted().toList();
         }
         if (args.length > 1) {
             String subCommandName = args[0];
             if (!subCommands.containsKey(subCommandName)) {
+                return Collections.emptyList();
+            }
+            if (!hasPermission(sender, subCommandName)) {
                 return Collections.emptyList();
             }
             SubCommand subCommand = subCommands.get(subCommandName);
