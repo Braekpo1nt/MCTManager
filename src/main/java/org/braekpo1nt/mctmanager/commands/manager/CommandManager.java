@@ -4,6 +4,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.bukkit.command.*;
+import org.bukkit.permissions.Permissible;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -69,14 +70,14 @@ public abstract class CommandManager extends TabSubCommand {
      * This is used as the options of the usage message for if the sender doesn't provide any options.
      * @return this {@link CommandManager}'s sub-commands as an options-list style argument (in the form {@code "<arg1|arg2|arg3>"}). {@code "<options>"} if there are no subCommands. 
      */
-    protected @NotNull Usage getSubCommandUsageArg() {
-        return Usage.toArgOptions(subCommands.keySet());
+    protected @NotNull Usage getSubCommandUsageArg(Permissible permissible) {
+        return Usage.toArgOptions(subCommands.keySet().stream().filter(subCommandName -> subCommands.get(subCommandName).hasPermission(permissible)).sorted().toList());
     }
     
     @Override
     public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length < 1) {
-            return CommandResult.failure(getUsage().of(getSubCommandUsageArg()));
+            return CommandResult.failure(getUsage().of(getSubCommandUsageArg(sender)));
         }
         String subCommandName = args[0];
         SubCommand subCommand = subCommands.get(subCommandName);

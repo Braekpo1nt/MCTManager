@@ -11,6 +11,7 @@ import org.braekpo1nt.mctmanager.commands.mct.event.vote.VoteCommand;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.permissions.Permissible;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
@@ -96,7 +97,7 @@ public class EventCommand extends CommandManager {
     }
     
     @Override
-    protected @NotNull Usage getSubCommandUsageArg() {
+    protected @NotNull Usage getSubCommandUsageArg(Permissible permissible) {
         return new Usage("<options>");
     }
 }

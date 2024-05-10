@@ -4,6 +4,7 @@ import org.braekpo1nt.mctmanager.commands.manager.CommandManager;
 import org.braekpo1nt.mctmanager.commands.manager.Usage;
 import org.braekpo1nt.mctmanager.commands.mct.team.score.ScoreCommand;
 import org.braekpo1nt.mctmanager.games.GameManager;
+import org.bukkit.permissions.Permissible;
 import org.jetbrains.annotations.NotNull;
 
 public class TeamCommand extends CommandManager {
@@ -19,7 +20,7 @@ public class TeamCommand extends CommandManager {
     }
     
     @Override
-    protected @NotNull Usage getSubCommandUsageArg() {
+    protected @NotNull Usage getSubCommandUsageArg(Permissible permissible) {
         return new Usage("<options>");
     }
 }

@@ -15,6 +15,7 @@ import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.listeners.BlockEffectsListener;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.permissions.Permissible;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -49,7 +50,7 @@ public class MCTCommand extends MasterCommandManager {
     }
     
     @Override
-    protected @NotNull Usage getSubCommandUsageArg() {
+    protected @NotNull Usage getSubCommandUsageArg(Permissible permissible) {
         return new Usage("<options>");
     }
 }
