@@ -8,8 +8,8 @@
 Please adhere to the following directory structure style:
 ```
 - commands/
-    - <command-manager>/
-        - <comand-manager>.java
+    - <command>/
+        - <master-comand>.java # implements MasterCommandManager
         - <command-manager-1>/
             - <command-manager-1>.java # implements CommandManager
             - <sub-command-1.1>.java # implements SubCommand
@@ -45,11 +45,11 @@ Conceptually, for each command in `/example <command>`, there should be a direct
 ```
 - commands/
     - example/
-        - ExampleCommand.java
-        - FooSubCommand.java
-        - BarSubCommand.java
+        - ExampleCommand.java # implements MasterCommandManager
+        - FooSubCommand.java # implements SubCommand
+        - BarSubCommand.java # implements TabSubCommand
         - action/
-            - ActionCommand.java
+            - ActionCommand.java # implements CommandManager
             - JumpSubCommand.java
             - RollSubCommand.java
 ```
