@@ -9,16 +9,10 @@ import org.bukkit.permissions.Permission;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
 
 public class MasterCommandManager extends CommandManager implements TabExecutor {
     @Getter
     protected final @NotNull String permissionNode;
-    
-//    protected final @NotNull Map<String, SubCommand> subCommands = new HashMap<>();
-//    protected final @NotNull Map<String, String> subCommandPermissionNodes = new HashMap<>();
     
     public MasterCommandManager(@NotNull JavaPlugin plugin, @NotNull String name, @NotNull String permissionNode) {
         super(name);
