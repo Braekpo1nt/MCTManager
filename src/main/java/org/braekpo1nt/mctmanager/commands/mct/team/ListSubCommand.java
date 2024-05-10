@@ -31,7 +31,7 @@ public class ListSubCommand extends TabSubCommand {
         if (args.length > 1) {
             return CommandResult.failure(getUsage().of("[true|false]"));
         }
-        Component teamDisplay = getTeamDisplay(sender);
+        Component teamDisplay = getTeamDisplay();
         if (args.length == 0) {
             sender.sendMessage(teamDisplay);
             return CommandResult.success();
@@ -56,7 +56,7 @@ public class ListSubCommand extends TabSubCommand {
         return CommandResult.success();
     }
     
-    private Component getTeamDisplay(CommandSender sender) {
+    private Component getTeamDisplay() {
         TextComponent.Builder messageBuilder = Component.text().append(Component.text("TEAMS\n")
                     .decorate(TextDecoration.BOLD));
         List<OfflinePlayer> offlinePlayers = gameManager.getOfflineParticipants();
