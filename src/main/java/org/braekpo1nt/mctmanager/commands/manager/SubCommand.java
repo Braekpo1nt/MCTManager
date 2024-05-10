@@ -1,8 +1,11 @@
 package org.braekpo1nt.mctmanager.commands.manager;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.permissions.Permissible;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -13,6 +16,9 @@ public abstract class SubCommand {
      * The name of a {@link SubCommand} is typically used to call it from the command. Analogous to {@link Command#getLabel()}.
      */
     protected final @NotNull String name;
+    @Setter
+    @Getter
+    private @Nullable String permissionNode;
     /**
      * The parent {@link SubCommand} of this {@link SubCommand}. Null if this {@link SubCommand} has no parent.
      */
@@ -46,6 +52,19 @@ public abstract class SubCommand {
      */
     public @NotNull String getName() {
         return name;
+    }
+    
+    /**
+     * Check if the given permissible has the permission to use this {@link SubCommand}.
+     * If the permissionNode is null, then that registers as having the permission. 
+     * @param permissible the permissible to check if they have the permission
+     * @return true of the given permissible has permission to use this {@link SubCommand}, false otherwise. If this doesn't have a permission associated with it, then this will return true. 
+     */
+    public boolean hasPermission(@NotNull Permissible permissible) {
+        if (getPermissionNode() == null) {
+            return true;
+        }
+        return permissible.hasPermission(getPermissionNode());
     }
     
     /**

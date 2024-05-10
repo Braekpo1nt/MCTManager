@@ -11,45 +11,33 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
 public class MasterCommandManager extends CommandManager implements TabExecutor {
-    @Getter
-    protected final @NotNull String permissionNode;
-    
-    public MasterCommandManager(@NotNull JavaPlugin plugin, @NotNull String name, @NotNull String permissionNode) {
-        super(name);
-        this.permissionNode = permissionNode;
-        PluginCommand command = plugin.getCommand(getName());
-        Preconditions.checkArgument(command != null, "Can't find command %s", getName());
-        command.setExecutor(this);
-    }
-    
-    public MasterCommandManager (@NotNull JavaPlugin plugin, @NotNull String name) {
+    public MasterCommandManager(@NotNull JavaPlugin plugin, @NotNull String name) {
         super(name);
         PluginCommand command = plugin.getCommand(getName());
         Preconditions.checkArgument(command != null, "Can't find command %s", getName());
         command.setExecutor(this);
-        String permission = command.getPermission();
-        Preconditions.checkArgument(permission != null, "Permission could not be found for command %s");
-        this.permissionNode = permission;
+        String permissionNode = command.getPermission();
+        Preconditions.checkArgument(permissionNode != null, "Can't find permission for command %s", getName());
+        this.setPermissionNode(permissionNode);
     }
     
-    public void addSubCommand(@NotNull SubCommand subCommand) {
-        super.addSubCommand(subCommand);
-        subCommandPermissionNodes.put(subCommand.getName(), String.format("%s.%s", permissionNode, subCommand.getName()));
+    public void onInit(PluginManager pluginManager) {
+        super.onInit();
+        registerPermissions(pluginManager);
     }
     
-    @Override
     public void registerPermissions(@NotNull PluginManager pluginManager) {
-        if (pluginManager.getPermission(permissionNode) == null) {
-            pluginManager.addPermission(new Permission(permissionNode));
-        }
-        for (String subPermissionNode : subCommandPermissionNodes.values()) {
-            if (subPermissionNode != null) {
-                pluginManager.addPermission(new Permission(subPermissionNode));
-            }
+        if (getPermissionNode() != null && pluginManager.getPermission(getPermissionNode()) == null) {
+            pluginManager.addPermission(new Permission(getPermissionNode()));
         }
         for (SubCommand subCommand : subCommands.values()) {
+            if (subCommand.getPermissionNode() != null) {
+                pluginManager.addPermission(new Permission(subCommand.getPermissionNode()));
+            }
             if (subCommand instanceof CommandManager commandManager) {
-                commandManager.registerPermissions(pluginManager);
+                for (String subPermissionNode : commandManager.getSubPermissionNodes()) {
+                    pluginManager.addPermission(new Permission(subPermissionNode));
+                }
             }
         }
     }

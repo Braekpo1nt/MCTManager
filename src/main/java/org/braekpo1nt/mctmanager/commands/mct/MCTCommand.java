@@ -45,7 +45,7 @@ public class MCTCommand extends MasterCommandManager {
                 return CommandResult.success(Component.text("Loaded gameState.json"));
             }
         });
-        registerPermissions(plugin.getServer().getPluginManager());
+        onInit(plugin.getServer().getPluginManager());
     }
     
     @Override

@@ -1,14 +1,9 @@
 package org.braekpo1nt.mctmanager.commands.manager;
 
-import lombok.Getter;
-import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.bukkit.command.*;
-import org.bukkit.permissions.Permissible;
-import org.bukkit.permissions.Permission;
-import org.bukkit.plugin.PluginManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -26,56 +21,20 @@ public abstract class CommandManager extends TabSubCommand {
      * The key is the command's name (what you type in the chat to reference this command).format
      */
     protected final Map<String, SubCommand> subCommands = new HashMap<>();
-    protected final Map<String, String> subCommandPermissionNodes = new HashMap<>();
-    
     
     public CommandManager(@NotNull String name) {
         super(name);
     }
     
     /**
-     * Check if the given permissible has the permission to use the given subCommand with the given name.
-     * If the subCommand's permission node is null, then that registers as having the permission. 
-     * @param permissible the permissible to check if they have the permission
-     * @param subCommandName the name of the subCommand to check if the given permissible has permission to use
-     * @return true of the given permissible has permission to use the subCommand with the given name, false otherwise. If the given subcommand doesn't have a permission associated with it, then this will return true. 
+     * Initialize this subCommand
      */
-    protected boolean hasPermission(@NotNull Permissible permissible, String subCommandName) {
-        String permissionNode = subCommandPermissionNodes.get(subCommandName);
-        if (permissionNode == null) {
-            return true;
-        }
-        return permissible.hasPermission(permissionNode);
-    }
-    
-    /**
-     * Register this {@link CommandManager}'s subCommandPermissionNodes with the given PluginManager. 
-     * If any subCommands are also {@link CommandManager}s, this registers their permissions as well.
-     * @param pluginManager the PluginManager to register the permission nodes with
-     */
-    public void registerPermissions(PluginManager pluginManager) {
-        for (String subCommandPermissionNode : subCommandPermissionNodes.values()) {
-            if (subCommandPermissionNode != null) {
-                pluginManager.addPermission(new Permission(subCommandPermissionNode));
-            }
-        }
+    public void onInit() {
         for (SubCommand subCommand : subCommands.values()) {
+            subCommand.setParent(this);
+            subCommand.setPermissionNode(String.format("%s.%s", getPermissionNode(), subCommand.getName()));
             if (subCommand instanceof CommandManager commandManager) {
-                commandManager.registerPermissions(pluginManager);
-            }
-        }
-    }
-    
-    @Override
-    public void setParent(@Nullable SubCommand parent) {
-        super.setParent(parent);
-        if (parent == null) {
-            return;
-        }
-        if (parent instanceof MasterCommandManager masterCommandManager) {
-            // add parentPermissionNode to all subCommandPermissionNodes
-            for (String subCommandName : subCommands.keySet()) {
-                subCommandPermissionNodes.put(subCommandName, String.format("%s.%s.%s", masterCommandManager.getPermissionNode(), getName(), subCommandName));
+                commandManager.onInit();
             }
         }
     }
@@ -86,8 +45,23 @@ public abstract class CommandManager extends TabSubCommand {
      * @param subCommand the implementation of {@link SubCommand} to add
      */
     public void addSubCommand(SubCommand subCommand) {
-        subCommand.setParent(this);
         subCommands.put(subCommand.getName(), subCommand);
+    }
+    
+    /**
+     * @return every down-stream permissionNode
+     */
+    public @NotNull List<@NotNull String> getSubPermissionNodes() {
+        List<String> result = new ArrayList<>(subCommands.size());
+        for (SubCommand subCommand : subCommands.values()) {
+            if (subCommand.getPermissionNode() != null) {
+                result.add(subCommand.getPermissionNode());
+            }
+            if (subCommand instanceof CommandManager commandManager) {
+                result.addAll(commandManager.getSubPermissionNodes());
+            }
+        }
+        return result;
     }
     
     /**
@@ -106,7 +80,7 @@ public abstract class CommandManager extends TabSubCommand {
         }
         String subCommandName = args[0];
         SubCommand subCommand = subCommands.get(subCommandName);
-        if (subCommand == null || !hasPermission(sender, subCommandName)) {
+        if (subCommand == null || !subCommand.hasPermission(sender)) {
             return CommandResult.failure(Component.text("Argument ")
                     .append(Component.text(subCommandName)
                             .decorate(TextDecoration.BOLD))
@@ -118,17 +92,14 @@ public abstract class CommandManager extends TabSubCommand {
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length == 1) {
-            return subCommands.keySet().stream().filter(subCommandName -> hasPermission(sender, subCommandName)).sorted().toList();
+            return subCommands.keySet().stream().filter(subCommandName -> subCommands.get(subCommandName).hasPermission(sender)).sorted().toList();
         }
         if (args.length > 1) {
             String subCommandName = args[0];
-            if (!subCommands.containsKey(subCommandName)) {
-                return Collections.emptyList();
-            }
-            if (!hasPermission(sender, subCommandName)) {
-                return Collections.emptyList();
-            }
             SubCommand subCommand = subCommands.get(subCommandName);
+            if (subCommand == null || !subCommand.hasPermission(sender)) {
+                return Collections.emptyList();
+            }
             if (subCommand instanceof TabCompleter subTabCommand) {
                 return subTabCommand.onTabComplete(sender, command, label, Arrays.copyOfRange(args, 1, args.length));
             }
