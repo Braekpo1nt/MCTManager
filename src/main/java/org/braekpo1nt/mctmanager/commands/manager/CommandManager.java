@@ -1,5 +1,7 @@
 package org.braekpo1nt.mctmanager.commands.manager;
 
+import lombok.Getter;
+import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
@@ -25,6 +27,8 @@ public abstract class CommandManager extends TabSubCommand implements CommandExe
      */
     protected final Map<String, SubCommand> subCommands = new HashMap<>();
     protected final Map<String, String> subCommandPermissionNodes = new HashMap<>();
+    @Getter
+    @Setter
     protected @Nullable String permissionNode;
     
     public CommandManager(@NotNull String name, @Nullable String permissionNode) {
@@ -90,6 +94,9 @@ public abstract class CommandManager extends TabSubCommand implements CommandExe
         subCommands.put(subCommand.getName(), subCommand);
         if (permissionNode != null) {
             subCommandPermissionNodes.put(subCommand.getName(), String.format("%s.%s", permissionNode, subCommand.getName()));
+            if (subCommand instanceof CommandManager commandManager) {
+                commandManager.setPermissionNode(String.format("%s.%s", permissionNode, commandManager.getName()));
+            }
         }
     }
     
