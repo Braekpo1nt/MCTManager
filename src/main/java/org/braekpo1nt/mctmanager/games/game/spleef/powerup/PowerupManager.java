@@ -57,6 +57,7 @@ public class PowerupManager implements Listener {
                     Component.text("Throw this at another player"),
                     Component.text("to swap positions with them.")
             ));
+            meta.setCustomModelData(2);
         });
         Powerup playerSwapper = new Powerup(playerSwapperItem, Powerup.Type.PLAYER_SWAPPER);
         
@@ -67,6 +68,7 @@ public class PowerupManager implements Listener {
                     Component.text("Throw this at a block"),
                     Component.text("to break it.")
             ));
+            meta.setCustomModelData(1);
         });
         Powerup blockBreaker = new Powerup(blockBreakerItem, Powerup.Type.BLOCK_BREAKER);
     
@@ -77,6 +79,7 @@ public class PowerupManager implements Listener {
                     Component.text("- Activates automatically"),
                     Component.text("- Single use")
             ));
+            meta.setCustomModelData(3);
         });
         Powerup shield = new Powerup(shieldItem, Powerup.Type.SHIELD);
         
