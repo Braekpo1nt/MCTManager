@@ -79,6 +79,7 @@ public class PowerupManager implements Listener {
                     Component.text("- Activates automatically"),
                     Component.text("- Single use")
             ));
+            meta.setCustomModelData(3);
         });
         Powerup shield = new Powerup(shieldItem, Powerup.Type.SHIELD);
         
