@@ -78,7 +78,7 @@ public class ScoreSubCommand extends TabSubCommand {
         Component participantScore = Component.text(gameManager.getScore(participant.getUniqueId()))
                 .color(NamedTextColor.GOLD);
         
-    
+        
         return Component.empty()
                 .append(formattedTeamDisplayName)
                 .append(Component.text(": "))
