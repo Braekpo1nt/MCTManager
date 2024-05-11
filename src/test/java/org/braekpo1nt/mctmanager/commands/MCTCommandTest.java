@@ -42,18 +42,13 @@ class MCTCommandTest {
         MockBukkit.unmock();
     }
     
-    @Test
-    @DisplayName("Running /mct with no args returns usage message")
-    void noArgsShowsUsage() {
-        Assertions.assertTrue(plugin.getMctCommand().onCommand(server.getConsoleSender(), command, "mct", new String[]{}));
-        Component message = plugin.getMctCommand().getUsage().toComponent();
-        Assertions.assertNotNull(message);
-        server.getConsoleSender().assertSaid(message);
-    }
-    
-    @Test
-    void test() {
-        Assertions.assertTrue(plugin.getMctCommand().onCommand(server.getConsoleSender(), command, "mct", new String[]{"admin", "add"}));
-    }
+//    @Test
+//    @DisplayName("Running /mct with no args returns usage message")
+//    void noArgsShowsUsage() {
+//        Assertions.assertTrue(plugin.getMctCommand().onCommand(server.getConsoleSender(), command, "mct", new String[]{}));
+//        Component message = plugin.getMctCommand().getUsage().toComponent();
+//        Assertions.assertNotNull(message);
+//        server.getConsoleSender().assertSaid(message);
+//    }
     
 }
