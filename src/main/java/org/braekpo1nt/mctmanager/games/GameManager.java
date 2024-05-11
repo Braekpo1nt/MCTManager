@@ -709,7 +709,11 @@ public class GameManager implements Listener {
         }
         leavePlayersOnTeam(sender, teamName);
         try {
+            Component formattedTeamDisplayName = getFormattedTeamDisplayName(teamName);
             gameStateStorageUtil.removeTeam(teamName);
+            sender.sendMessage(Component.text("Removed team ")
+                    .append(formattedTeamDisplayName)
+                    .append(Component.text(".")));
         } catch (IOException e) {
             reportGameStateIOException("removing team", e);
             sender.sendMessage(Component.text("error occurred removing team, see console for details.")

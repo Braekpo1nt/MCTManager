@@ -1,20 +1,17 @@
 package org.braekpo1nt.mctmanager.commands.utils;
 
-import com.google.gson.*;
-import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.CommandUtils;
+import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
+import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.display.Display;
-import org.braekpo1nt.mctmanager.display.DisplayUtils;
 import org.braekpo1nt.mctmanager.display.geometry.GeometryUtils;
-import org.braekpo1nt.mctmanager.display.geometry.rectangle.Rectangle;
 import org.bukkit.Color;
-import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
@@ -23,29 +20,28 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collections;
 import java.util.List;
 
-class BoundingBoxSubCommand implements TabExecutor {
+class BoundingBoxSubCommand extends TabSubCommand {
     
     private final Main plugin;
     
-    public BoundingBoxSubCommand(Main plugin) {
+    public BoundingBoxSubCommand(Main plugin, @NotNull String name) {
+        super(name);
         this.plugin = plugin;
     }
     
     @Override
-    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (args.length < 6) {
-            sender.sendMessage(Component.text("Usage: /utils boundingbox <x1> <y1> <z1> <x2> <y2> <z2> [display]")
-                    .color(NamedTextColor.RED));
-            return true;
+    public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+        if (args.length < 6 || args.length > 7) {
+            return CommandResult.failure(getUsage().of("<x1>", "<y1>", "<z1>", "<x2>", "<y2>", "<z2>").of("[true|false]"));
         }
         
         for (int i = 0; i < 6; i++) {
             String coordinate = args[i];
             if (!CommandUtils.isDouble(coordinate)) {
-                sender.sendMessage(Component.text(coordinate)
-                        .append(Component.text(" is not a number"))
-                        .color(NamedTextColor.RED));
-                return true;
+                return CommandResult.failure(Component.empty()
+                        .append(Component.text(coordinate)
+                                .decorate(TextDecoration.BOLD))
+                        .append(Component.text(" is not a number")));
             }
         }
         
@@ -58,9 +54,7 @@ class BoundingBoxSubCommand implements TabExecutor {
         
         BoundingBox boundingBox = new BoundingBox(x1, y1, z1, x2, y2, z2);
         if (boundingBox.getMin().equals(boundingBox.getMax())) {
-            sender.sendMessage(Component.text("The bounding box's min and max corners can't be equal.")
-                    .color(NamedTextColor.RED));
-            return true;
+            return CommandResult.failure(Component.text("The bounding box's min and max corners can't be equal."));
         }
         String boundingBoxJson = UtilsUtils.GSON.toJson(boundingBox);
         sender.sendMessage(Component.empty()
@@ -73,62 +67,31 @@ class BoundingBoxSubCommand implements TabExecutor {
         );
         
         if (args.length < 7) {
-            return true;
+            return CommandResult.success();
         }
         
         Boolean shouldDisplay = CommandUtils.toBoolean(args[6]);
         if (shouldDisplay == null) {
-            sender.sendMessage(Component.text(args[6])
-                    .append(Component.text(" is not a boolean value"))
-                    .color(NamedTextColor.RED));
-            return  true;
+            return CommandResult.failure(Component.text(args[6])
+                    .append(Component.text(" is not a boolean value")));
         }
         
         if (!(sender instanceof Player player)) {
-            sender.sendMessage(Component.text("Only players can be shown a display")
-                    .color(NamedTextColor.RED));
-            return true;
+            return CommandResult.failure(Component.text("Only players can be shown a display"));
         }
-    
+        
         Display display = new Display(plugin, GeometryUtils.toRectanglePoints(boundingBox, 1), Color.FUCHSIA);
         display.show(player, 3*20);
-        return true;
+        return CommandResult.success();
     }
     
     
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (args.length == 0 || args.length > 6) {
+        if (args.length > 6 || !(sender instanceof Player player)) {
             return Collections.emptyList();
         }
-        if (!(sender instanceof Player player)) {
-            return Collections.emptyList();
-        }
-        Block targetBlock = player.getTargetBlock(UtilsUtils.TRANSPARENT, 5);
-        if (UtilsUtils.TRANSPARENT.contains(targetBlock.getType())) {
-            switch (args.length) {
-                case 1, 4 -> {
-                    return Collections.singletonList(""+player.getLocation().getBlockX());
-                }
-                case 2, 5 -> {
-                    return Collections.singletonList(""+player.getLocation().getBlockY());
-                }
-                case 3, 6 -> {
-                    return Collections.singletonList(""+player.getLocation().getBlockZ());
-                }
-            }
-        }
-        switch (args.length) {
-            case 1, 4 -> {
-                return Collections.singletonList(""+targetBlock.getLocation().getBlockX());
-            }
-            case 2, 5 -> {
-                return Collections.singletonList(""+targetBlock.getLocation().getBlockY());
-            }
-            case 3, 6 -> {
-                return Collections.singletonList(""+targetBlock.getLocation().getBlockZ());
-            }
-        }
-        return Collections.emptyList();
+        return UtilsUtils.tabCompleteCoordinates(player, args.length);
     }
+    
 }

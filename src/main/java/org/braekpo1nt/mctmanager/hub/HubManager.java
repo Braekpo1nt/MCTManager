@@ -59,15 +59,16 @@ public class HubManager implements Listener, Configurable {
      */
     public void returnParticipantsToHub(List<Player> newParticipants, List<Player> newAdmins, boolean delay) {
         if (delay) {
-            returnParticipantsToHub(newParticipants, newAdmins, storageUtil.getTpToHubDuration());
+            returnParticipantsToHub(new ArrayList<>(newParticipants), new ArrayList<>(newAdmins), storageUtil.getTpToHubDuration());
         } else {
-            returnParticipantsToHubInstantly(newParticipants, newAdmins);
+            returnParticipantsToHubInstantly(new ArrayList<>(newParticipants), new ArrayList<>(newAdmins));
         }
     }
     
     private void returnParticipantsToHub(List<Player> newParticipants, List<Player> newAdmins, int duration) {
         headingToHub.addAll(newParticipants);
-        Sidebar sidebar = gameManager.getSidebarFactory().createSidebar();
+        final List<Player> adminsHeadingToHub = new ArrayList<>(newAdmins);
+        final Sidebar sidebar = gameManager.getSidebarFactory().createSidebar();
         sidebar.addPlayers(newParticipants);
         sidebar.addPlayers(newAdmins);
         sidebar.addLine("backToHub", String.format("Back to Hub: %s", duration));
@@ -77,9 +78,10 @@ public class HubManager implements Listener, Configurable {
             public void run() {
                 if (count <= 0) {
                     sidebar.deleteAllLines();
-                    sidebar.removePlayers(newParticipants);
-                    returnParticipantsToHubInstantly(newParticipants, newAdmins);
+                    sidebar.removeAllPlayers();
+                    returnParticipantsToHubInstantly(headingToHub, adminsHeadingToHub);
                     headingToHub.clear();
+                    adminsHeadingToHub.clear();
                     this.cancel();
                     return;
                 }

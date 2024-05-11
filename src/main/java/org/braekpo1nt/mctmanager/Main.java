@@ -2,8 +2,8 @@ package org.braekpo1nt.mctmanager;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import org.braekpo1nt.mctmanager.commands.MCTCommand;
-import org.braekpo1nt.mctmanager.commands.MCTDebugCommand;
+import org.braekpo1nt.mctmanager.commands.mct.MCTCommand;
+import org.braekpo1nt.mctmanager.commands.mctdebug.MCTDebugCommand;
 import org.braekpo1nt.mctmanager.commands.utils.UtilsCommand;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;

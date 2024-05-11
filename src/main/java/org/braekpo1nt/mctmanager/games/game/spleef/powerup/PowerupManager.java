@@ -32,11 +32,11 @@ public class PowerupManager implements Listener {
     private static final String BLOCK_BREAKER_METADATA_VALUE = "block_breaker";
     private final Main plugin;
     private final SpleefStorageUtil storageUtil;
-    private List<Player> participants;
+    private List<Player> participants = new ArrayList<>();
     /**
      * for each participant UUID, the system time of the moment they last received a powerup
      */
-    private Map<UUID, Long> lastPowerupTimestamps;
+    private Map<UUID, Long> lastPowerupTimestamps = new HashMap<>();
     private final Random random = new Random();
     private int powerupTimerTaskId;
     private boolean shouldGivePowerups = false;
