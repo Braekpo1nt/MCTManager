@@ -1,4 +1,4 @@
-package org.braekpo1nt.mctmanager.config;
+package org.braekpo1nt.mctmanager.config.dto;
 
 import com.google.common.base.Preconditions;
 import lombok.Getter;

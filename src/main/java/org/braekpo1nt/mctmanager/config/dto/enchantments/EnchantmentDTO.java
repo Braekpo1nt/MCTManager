@@ -1,4 +1,4 @@
-package org.braekpo1nt.mctmanager.config.enchantments;
+package org.braekpo1nt.mctmanager.config.dto.enchantments;
 
 import com.google.common.base.Preconditions;
 import lombok.AllArgsConstructor;

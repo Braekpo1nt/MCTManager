@@ -6,7 +6,7 @@ import com.google.gson.JsonSyntaxException;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.config.BoundingBoxDTO;
+import org.braekpo1nt.mctmanager.config.dto.BoundingBoxDTO;
 import org.braekpo1nt.mctmanager.config.ConfigUtil;
 import org.braekpo1nt.mctmanager.config.GameConfigStorageUtil;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.TeamSpawn;

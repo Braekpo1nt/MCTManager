@@ -1,8 +1,8 @@
-package org.braekpo1nt.mctmanager.config.inventory;
+package org.braekpo1nt.mctmanager.config.dto.inventory;
 
 import com.google.common.base.Preconditions;
-import org.braekpo1nt.mctmanager.config.enchantments.EnchantmentDTO;
-import org.braekpo1nt.mctmanager.config.inventory.meta.ItemMetaDTO;
+import org.braekpo1nt.mctmanager.config.dto.enchantments.EnchantmentDTO;
+import org.braekpo1nt.mctmanager.config.dto.inventory.meta.ItemMetaDTO;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;

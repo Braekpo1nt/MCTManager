@@ -3,8 +3,8 @@ package org.braekpo1nt.mctmanager.config;
 import com.google.gson.*;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.adventure.text.Component;
-import org.braekpo1nt.mctmanager.config.inventory.meta.ItemMetaDTO;
-import org.braekpo1nt.mctmanager.config.inventory.meta.ItemMetaDTODeserializer;
+import org.braekpo1nt.mctmanager.config.dto.inventory.meta.ItemMetaDTO;
+import org.braekpo1nt.mctmanager.config.dto.inventory.meta.ItemMetaDTODeserializer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

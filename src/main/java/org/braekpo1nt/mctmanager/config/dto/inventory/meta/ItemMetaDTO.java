@@ -1,4 +1,4 @@
-package org.braekpo1nt.mctmanager.config.inventory.meta;
+package org.braekpo1nt.mctmanager.config.dto.inventory.meta;
 
 import com.destroystokyo.paper.Namespaced;
 import com.google.gson.JsonElement;

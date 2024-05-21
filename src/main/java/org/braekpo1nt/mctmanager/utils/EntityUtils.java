@@ -1,6 +1,6 @@
 package org.braekpo1nt.mctmanager.utils;
 
-import org.braekpo1nt.mctmanager.config.YawPitch;
+import org.braekpo1nt.mctmanager.config.dto.YawPitch;
 import org.bukkit.Location;
 import org.bukkit.block.BlockFace;
 import org.bukkit.util.Vector;

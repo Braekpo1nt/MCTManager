@@ -2,8 +2,8 @@ package org.braekpo1nt.mctmanager.games.game.clockwork.config;
 
 
 import com.google.gson.JsonElement;
-import org.braekpo1nt.mctmanager.config.BoundingBoxDTO;
-import org.braekpo1nt.mctmanager.config.SoundDTO;
+import org.braekpo1nt.mctmanager.config.dto.BoundingBoxDTO;
+import org.braekpo1nt.mctmanager.config.dto.SoundDTO;
 import org.bukkit.scoreboard.Team;
 import org.bukkit.util.Vector;
 

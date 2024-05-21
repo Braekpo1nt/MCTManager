@@ -1,7 +1,7 @@
 package org.braekpo1nt.mctmanager.games.game.spleef.config;
 
 import lombok.Getter;
-import org.braekpo1nt.mctmanager.config.SoundDTO;
+import org.braekpo1nt.mctmanager.config.dto.SoundDTO;
 import org.braekpo1nt.mctmanager.games.game.spleef.powerup.Powerup;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
