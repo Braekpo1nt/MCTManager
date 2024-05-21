@@ -6,7 +6,7 @@ import com.google.gson.JsonSyntaxException;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.config.GameConfigStorageUtil;
+import org.braekpo1nt.mctmanager.config.ConfigStorageUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -16,7 +16,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.InputStream;
 
-public class FootRaceStorageUtil extends GameConfigStorageUtil<FootRaceConfig> {
+public class FootRaceStorageUtil extends ConfigStorageUtil<FootRaceConfig> {
     private FootRaceConfig footRaceConfig;
     private World world;
     private Location startingLocation;

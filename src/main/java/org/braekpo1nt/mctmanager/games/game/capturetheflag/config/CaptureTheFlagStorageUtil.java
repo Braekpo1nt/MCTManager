@@ -8,7 +8,7 @@ import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.Arena;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.Loadout;
-import org.braekpo1nt.mctmanager.config.GameConfigStorageUtil;
+import org.braekpo1nt.mctmanager.config.ConfigStorageUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -20,7 +20,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.util.*;
 
-public class CaptureTheFlagStorageUtil extends GameConfigStorageUtil<CaptureTheFlagConfig> {
+public class CaptureTheFlagStorageUtil extends ConfigStorageUtil<CaptureTheFlagConfig> {
     private CaptureTheFlagConfig captureTheFlagConfig = null;
     private World world;
     private Location spawnObservatory;

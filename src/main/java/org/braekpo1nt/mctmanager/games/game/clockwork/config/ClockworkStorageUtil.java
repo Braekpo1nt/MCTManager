@@ -7,7 +7,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.clockwork.Wedge;
-import org.braekpo1nt.mctmanager.config.GameConfigStorageUtil;
+import org.braekpo1nt.mctmanager.config.ConfigStorageUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -19,7 +19,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ClockworkStorageUtil extends GameConfigStorageUtil<ClockworkConfig> {
+public class ClockworkStorageUtil extends ConfigStorageUtil<ClockworkConfig> {
     
     private ClockworkConfig clockworkConfig;
     private World world;

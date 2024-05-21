@@ -6,7 +6,7 @@ import com.google.gson.JsonSyntaxException;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.config.GameConfigStorageUtil;
+import org.braekpo1nt.mctmanager.config.ConfigStorageUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -20,7 +20,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.InputStream;
 
-public class ColossalCombatStorageUtil extends GameConfigStorageUtil<ColossalCombatConfig> {
+public class ColossalCombatStorageUtil extends ConfigStorageUtil<ColossalCombatConfig> {
     
     private ColossalCombatConfig colossalCombatConfig;
     private World world;

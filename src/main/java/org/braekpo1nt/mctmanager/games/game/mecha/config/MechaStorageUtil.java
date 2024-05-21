@@ -6,7 +6,7 @@ import com.google.gson.JsonSyntaxException;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.config.GameConfigStorageUtil;
+import org.braekpo1nt.mctmanager.config.ConfigStorageUtil;
 import org.braekpo1nt.mctmanager.config.dto.YawPitch;
 import org.braekpo1nt.mctmanager.utils.EntityUtils;
 import org.bukkit.Bukkit;
@@ -22,7 +22,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.util.*;
 
-public class MechaStorageUtil extends GameConfigStorageUtil<MechaConfig> {
+public class MechaStorageUtil extends ConfigStorageUtil<MechaConfig> {
     
     protected MechaConfig mechaConfig = null;
     private BoundingBox removeArea;

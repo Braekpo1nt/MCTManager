@@ -2,13 +2,13 @@ package org.braekpo1nt.mctmanager.games.event.config;
 
 import com.google.common.base.Preconditions;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.config.GameConfigStorageUtil;
+import org.braekpo1nt.mctmanager.config.ConfigStorageUtil;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.InputStream;
 
-public class EventStorageUtil extends GameConfigStorageUtil<EventConfig> {
+public class EventStorageUtil extends ConfigStorageUtil<EventConfig> {
     
     private EventConfig eventConfig;
     

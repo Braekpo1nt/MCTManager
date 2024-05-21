@@ -9,10 +9,10 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 
 /**
- * A storage utility for saving and loading config files for games
+ * A storage utility for saving and loading config files
  * @param <T> The config type
  */
-public abstract class GameConfigStorageUtil<T> {
+public abstract class ConfigStorageUtil<T> {
     
     protected final File configDirectory;
     protected final String configFileName;
@@ -27,7 +27,7 @@ public abstract class GameConfigStorageUtil<T> {
      * @param configFileName The filename of the config file
      * @param configClass The class object representing the type of the configuration object. Used by gson for instantiating from json.
      */
-    public GameConfigStorageUtil(File configDirectory, String configFileName, Class<T> configClass) {
+    public ConfigStorageUtil(File configDirectory, String configFileName, Class<T> configClass) {
         this.configDirectory = configDirectory;
         this.configFileName = configFileName;
         this.configFile = new File(this.configDirectory, configFileName);
@@ -35,7 +35,7 @@ public abstract class GameConfigStorageUtil<T> {
     }
     
     /**
-     * Loads the {@link GameConfigStorageUtil#configFile} and stores it in memory. 
+     * Loads the {@link ConfigStorageUtil#configFile} and stores it in memory. 
      * @throws IllegalArgumentException if the config file doesn't exist, if there are any exceptions thrown while reading/parsing the file, or if the loaded config is not valid.
      * @return true if the config loaded properly, false if there were any exceptions thrown while
      * loading the config file, if the file doesn't exist, or the config isn't valid.
@@ -57,7 +57,7 @@ public abstract class GameConfigStorageUtil<T> {
     /**
      * Get the config from the config file and parse it into a {@link T} object 
      * @throws IllegalArgumentException if there were any IO, Json, or Security exceptions thrown from reading/parsing the config file, or if the config file doesn't exist.
-     * @return a new {@link T} config object from the {@link GameConfigStorageUtil#configFile}, null if the stored config in the file is null
+     * @return a new {@link T} config object from the {@link ConfigStorageUtil#configFile}, null if the stored config in the file is null
      */
     protected @Nullable T getConfigFromFile() throws IllegalArgumentException {
         try {
@@ -80,7 +80,7 @@ public abstract class GameConfigStorageUtil<T> {
     }
     
     /**
-     * Saves the passed in config object to the {@link GameConfigStorageUtil#configFile}.
+     * Saves the passed in config object to the {@link ConfigStorageUtil#configFile}.
      * If config us null, or there are any IO, security, or json errors, then 
      * an error is reported to the logger and an IOException is thrown
      * @param config the config to save
@@ -112,8 +112,8 @@ public abstract class GameConfigStorageUtil<T> {
     }
     
     /**
-     * Saves the config from {@link GameConfigStorageUtil#getConfig()} to the 
-     * {@link GameConfigStorageUtil#configFile}. If there are any IO, security, or 
+     * Saves the config from {@link ConfigStorageUtil#getConfig()} to the 
+     * {@link ConfigStorageUtil#configFile}. If there are any IO, security, or 
      * json errors, an error is reported to the logger and nothing happens.
      * @throws IOException if there is an IO, security, or json error saving the file
      */
@@ -140,8 +140,8 @@ public abstract class GameConfigStorageUtil<T> {
      * This may involve assigning some variables (e.g. getting a bukkit world one time and setting it to a field
      * instead of using Bukkit.getWorld() every time this.getWorld() is called).
      * <p> 
-     * This assumes that the config has been validated according to {@link GameConfigStorageUtil#configIsValid(Object)}, and throws IllegalArgumentException if that assumption turns out to be false
-     * @throws IllegalArgumentException if the config, which is assumed to be valid according to {@link GameConfigStorageUtil#configIsValid(Object)}, turns out to be invalid. 
+     * This assumes that the config has been validated according to {@link ConfigStorageUtil#configIsValid(Object)}, and throws IllegalArgumentException if that assumption turns out to be false
+     * @throws IllegalArgumentException if the config, which is assumed to be valid according to {@link ConfigStorageUtil#configIsValid(Object)}, turns out to be invalid. 
      * @param config the config to use
      */
     protected abstract void setConfig(T config) throws IllegalArgumentException;

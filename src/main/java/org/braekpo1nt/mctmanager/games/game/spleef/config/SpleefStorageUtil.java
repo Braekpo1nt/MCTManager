@@ -7,7 +7,7 @@ import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.config.GameConfigStorageUtil;
+import org.braekpo1nt.mctmanager.config.ConfigStorageUtil;
 import org.braekpo1nt.mctmanager.games.game.spleef.DecayStage;
 import org.braekpo1nt.mctmanager.games.game.spleef.powerup.Powerup;
 import org.bukkit.Bukkit;
@@ -26,7 +26,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.util.*;
 
-public class SpleefStorageUtil extends GameConfigStorageUtil<SpleefConfig> {
+public class SpleefStorageUtil extends ConfigStorageUtil<SpleefConfig> {
     
     protected SpleefConfig spleefConfig = null;
     private World world;

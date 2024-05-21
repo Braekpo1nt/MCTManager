@@ -2,7 +2,7 @@ package org.braekpo1nt.mctmanager.hub.config;
 
 import com.google.common.base.Preconditions;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.config.GameConfigStorageUtil;
+import org.braekpo1nt.mctmanager.config.ConfigStorageUtil;
 import org.braekpo1nt.mctmanager.config.dto.LocationDTO;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -15,7 +15,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Optional;
 
-public class HubStorageUtil extends GameConfigStorageUtil<HubConfig> {
+public class HubStorageUtil extends ConfigStorageUtil<HubConfig> {
     
     private HubConfig hubConfig;
     private World world;
