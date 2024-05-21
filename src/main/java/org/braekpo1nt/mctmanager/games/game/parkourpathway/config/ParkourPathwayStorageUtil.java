@@ -7,7 +7,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.dto.BoundingBoxDTO;
-import org.braekpo1nt.mctmanager.config.ConfigUtil;
+import org.braekpo1nt.mctmanager.config.ConfigUtils;
 import org.braekpo1nt.mctmanager.config.ConfigStorageUtil;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.TeamSpawn;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.puzzle.Puzzle;
@@ -72,10 +72,10 @@ public class ParkourPathwayStorageUtil extends ConfigStorageUtil<ParkourPathwayC
             teamSpawnsIsValid(config.getTeamSpawns(), config.getPuzzles().get(0));
         }
         if (config.getGlassBarrierOpenMessage() != null) {
-            ConfigUtil.toComponent(config.getGlassBarrierOpenMessage());
+            ConfigUtils.toComponent(config.getGlassBarrierOpenMessage());
         }
         if (config.getTeamSpawnsOpenMessage() != null) {
-            ConfigUtil.toComponent(config.getTeamSpawnsOpenMessage());
+            ConfigUtils.toComponent(config.getTeamSpawnsOpenMessage());
         }
         try {
             GsonComponentSerializer.gson().deserializeFromTree(config.getDescription());
@@ -194,11 +194,11 @@ public class ParkourPathwayStorageUtil extends ConfigStorageUtil<ParkourPathwayC
         Location newStartingLocation = newPuzzles.get(0).checkPoints().get(0).respawn();
         Component newGlassBarrierOpenMessage = null;
         if (config.getGlassBarrierOpenMessage() != null) {
-            newGlassBarrierOpenMessage = ConfigUtil.toComponent(config.getGlassBarrierOpenMessage());
+            newGlassBarrierOpenMessage = ConfigUtils.toComponent(config.getGlassBarrierOpenMessage());
         }
         Component newTeamSpawnsOpenMessage = null;
         if (config.getTeamSpawnsOpenMessage() != null) {
-            newTeamSpawnsOpenMessage = ConfigUtil.toComponent(config.getTeamSpawnsOpenMessage());
+            newTeamSpawnsOpenMessage = ConfigUtils.toComponent(config.getTeamSpawnsOpenMessage());
         }
         Component newDescription = GsonComponentSerializer.gson().deserializeFromTree(config.getDescription());
         // now it's confirmed everything works, so set the actual fields

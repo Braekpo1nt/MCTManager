@@ -12,7 +12,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-public class ConfigUtil {
+public class ConfigUtils {
     
     static final Gson GSON = new GsonBuilder()
             .registerTypeAdapter(ItemMetaDTO.class, new ItemMetaDTODeserializer())
@@ -47,10 +47,10 @@ public class ConfigUtil {
         if (componentDTOs == null) {
             return Collections.emptyList();
         }
-        return componentDTOs.stream().filter(Objects::nonNull).map(ConfigUtil::toComponent).toList();
+        return componentDTOs.stream().filter(Objects::nonNull).map(ConfigUtils::toComponent).toList();
     }
     
-    private ConfigUtil() {
+    private ConfigUtils() {
         // do not instantiate
     }
 }

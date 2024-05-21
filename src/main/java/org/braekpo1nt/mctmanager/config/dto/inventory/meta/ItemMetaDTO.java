@@ -5,7 +5,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
 import net.kyori.adventure.text.Component;
-import org.braekpo1nt.mctmanager.config.ConfigUtil;
+import org.braekpo1nt.mctmanager.config.ConfigUtils;
 import org.bukkit.Material;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
@@ -36,14 +36,14 @@ public class ItemMetaDTO {
     public void isValid() {
         if (displayName != null) {
             try {
-                ConfigUtil.toComponent(displayName);
+                ConfigUtils.toComponent(displayName);
             } catch (JsonIOException | JsonSyntaxException e) {
                 throw new IllegalArgumentException("displayName is invalid", e);
             }
         }
         if (lore != null) {
             try {
-                ConfigUtil.toComponents(lore);
+                ConfigUtils.toComponents(lore);
             } catch (JsonIOException | JsonSyntaxException e) {
                 throw new IllegalArgumentException("lore is invalid", e);
             }
@@ -59,7 +59,7 @@ public class ItemMetaDTO {
      */
     public static @NotNull List<Component> toLore(@Nullable List<@Nullable JsonElement> loreDTO) {
         try {
-            return ConfigUtil.toComponents(loreDTO);
+            return ConfigUtils.toComponents(loreDTO);
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("lore is invalid", e);
         }
@@ -73,7 +73,7 @@ public class ItemMetaDTO {
      */
     public ItemMeta toItemMeta(ItemMeta meta, Material type) {
         if (displayName != null) {
-            Component newDisplayName = ConfigUtil.toComponent(displayName);
+            Component newDisplayName = ConfigUtils.toComponent(displayName);
             meta.displayName(newDisplayName);
         }
         if (lore != null) {

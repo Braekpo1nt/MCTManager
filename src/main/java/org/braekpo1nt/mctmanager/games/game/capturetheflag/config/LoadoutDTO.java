@@ -4,7 +4,7 @@ import com.google.common.base.Preconditions;
 import com.google.gson.JsonElement;
 import lombok.Getter;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.Loadout;
-import org.braekpo1nt.mctmanager.config.ConfigUtil;
+import org.braekpo1nt.mctmanager.config.ConfigUtils;
 import org.braekpo1nt.mctmanager.config.dto.inventory.PlayerInventoryDTO;
 import org.braekpo1nt.mctmanager.config.dto.inventory.meta.ItemMetaDTO;
 import org.bukkit.Material;
@@ -55,7 +55,7 @@ class LoadoutDTO {
     }
     
     @NotNull Loadout toLoadout() {
-        Component menuName = ConfigUtil.toComponent(name);
+        Component menuName = ConfigUtils.toComponent(name);
         ItemStack[] contents;
         if (inventory != null) {
             contents = inventory.toInventoryContents();

@@ -69,7 +69,7 @@ public abstract class ConfigStorageUtil<T> {
         }
         try {
             Reader reader = new FileReader(configFile);
-            T newConfig = ConfigUtil.GSON.fromJson(reader, configClass);
+            T newConfig = ConfigUtils.GSON.fromJson(reader, configClass);
             reader.close();
             return newConfig;
         } catch (IOException | JsonIOException e) {
@@ -163,7 +163,7 @@ public abstract class ConfigStorageUtil<T> {
             return null;
         }
         Reader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
-        return ConfigUtil.GSON.fromJson(reader, configClass);
+        return ConfigUtils.GSON.fromJson(reader, configClass);
     }
     
 }
