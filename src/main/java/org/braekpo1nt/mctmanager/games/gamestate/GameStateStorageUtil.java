@@ -297,34 +297,6 @@ public class GameStateStorageUtil {
     }
     
     /**
-     * Clear the stored played games from the last event.
-     * @throws IOException if there is an issue saving the game state
-     */
-    public void clearPlayedGames() throws IOException {
-        gameState.setPlayedGames(new ArrayList<>());
-        saveGameState();
-    }
-    
-    /**
-     * Gets the list of played games for the game state
-     * @return A list of the GameTypes that have been played in this game state
-     */
-    public List<GameType> getPlayedGames() {
-        return gameState.getPlayedGames();
-    }
-    
-    /**
-     * Add a played game to the game state
-     * @param type the GameType representing the played game
-     */
-    public void addPlayedGame(GameType type) throws IOException {
-        List<GameType> playedGames = gameState.getPlayedGames();
-        playedGames.add(type);
-        gameState.setPlayedGames(playedGames);
-        saveGameState();
-    }
-    
-    /**
      * Checks if the given unique id is an admin
      * @param adminUniqueId The admin's unique id to check
      * @return True if the given unique id is an admin, false otherwise
