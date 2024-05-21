@@ -254,7 +254,7 @@ public class GameManager implements Listener {
         
         try {
             if (!configurable.loadConfig()) {
-                throw new IllegalArgumentException("Config could not be loaded.");
+                throw new IllegalArgumentException("ConfigDto could not be loaded.");
             }
         } catch (IllegalArgumentException e) {
             Bukkit.getLogger().severe(e.getMessage());
@@ -397,7 +397,7 @@ public class GameManager implements Listener {
         if (selectedGame instanceof Configurable configurable) {
             try {
                 if (!configurable.loadConfig()) {
-                    throw new IllegalArgumentException("Config could not be loaded.");
+                    throw new IllegalArgumentException("ConfigDto could not be loaded.");
                 }
             } catch (IllegalArgumentException e) {
                 Bukkit.getLogger().severe(e.getMessage());
@@ -532,7 +532,7 @@ public class GameManager implements Listener {
         // make sure config loads
         try {
             if (!selectedEditor.loadConfig()) {
-                throw new IllegalArgumentException("Config could not be loaded.");
+                throw new IllegalArgumentException("ConfigDto could not be loaded.");
             }
         } catch (IllegalArgumentException e) {
             Bukkit.getLogger().severe(e.getMessage());
@@ -574,12 +574,12 @@ public class GameManager implements Listener {
         }
         try {
             if (!activeEditor.configIsValid()) {
-                throw new IllegalArgumentException("Config is not valid");
+                throw new IllegalArgumentException("ConfigDto is not valid");
             }
         } catch (IllegalArgumentException e) {
             Bukkit.getLogger().severe(e.getMessage());
             e.printStackTrace();
-            sender.sendMessage(Component.text("Config is not valid for ")
+            sender.sendMessage(Component.text("ConfigDto is not valid for ")
                     .append(Component.text(activeEditor.getType().name())
                             .decorate(TextDecoration.BOLD))
                     .append(Component.text(". See console for details:\n"))
@@ -587,7 +587,7 @@ public class GameManager implements Listener {
                     .color(NamedTextColor.RED));
             return;
         }
-        sender.sendMessage(Component.text("Config is valid.")
+        sender.sendMessage(Component.text("ConfigDto is valid.")
                 .color(NamedTextColor.GREEN));
     }
     
@@ -604,12 +604,12 @@ public class GameManager implements Listener {
         if (!force) {
             try {
                 if (!activeEditor.configIsValid()) {
-                    throw new IllegalArgumentException("Config is not valid");
+                    throw new IllegalArgumentException("ConfigDto is not valid");
                 }
             } catch (IllegalArgumentException e) {
                 Bukkit.getLogger().severe(e.getMessage());
                 e.printStackTrace();
-                sender.sendMessage(Component.text("Config is not valid for ")
+                sender.sendMessage(Component.text("ConfigDto is not valid for ")
                         .append(Component.text(activeEditor.getType().name())
                                 .decorate(TextDecoration.BOLD))
                         .append(Component.text(". See console for details:\n"))
@@ -638,14 +638,14 @@ public class GameManager implements Listener {
                     .color(NamedTextColor.RED));
             return;
         }
-        sender.sendMessage(Component.text("Config is saved.")
+        sender.sendMessage(Component.text("ConfigDto is saved.")
                 .color(NamedTextColor.GREEN));
     }
     
     public void loadEditor(@NotNull CommandSender sender) {
         try {
             if (!activeEditor.loadConfig()) {
-                throw new IllegalArgumentException("Config could not be loaded.");
+                throw new IllegalArgumentException("ConfigDto could not be loaded.");
             }
         } catch (IllegalArgumentException e) {
             Bukkit.getLogger().severe(e.getMessage());
@@ -659,7 +659,7 @@ public class GameManager implements Listener {
             sender.sendMessage(message);
             return;
         }
-        sender.sendMessage(Component.text("Config loaded.")
+        sender.sendMessage(Component.text("ConfigDto loaded.")
                 .color(NamedTextColor.GREEN));
     }
     
