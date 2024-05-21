@@ -1,4 +1,4 @@
-package org.braekpo1nt.mctmanager.games.game.config.inventory;
+package org.braekpo1nt.mctmanager.config.inventory;
 
 import com.google.common.base.Preconditions;
 

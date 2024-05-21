@@ -2,8 +2,8 @@ package org.braekpo1nt.mctmanager.games.game.parkourpathway.config;
 
 import com.google.common.base.Preconditions;
 import lombok.Getter;
-import org.braekpo1nt.mctmanager.games.game.config.BoundingBoxDTO;
-import org.braekpo1nt.mctmanager.games.game.config.LocationDTO;
+import org.braekpo1nt.mctmanager.config.BoundingBoxDTO;
+import org.braekpo1nt.mctmanager.config.LocationDTO;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.TeamSpawn;
 import org.bukkit.World;
 import org.jetbrains.annotations.NotNull;

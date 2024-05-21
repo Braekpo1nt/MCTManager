@@ -1,9 +1,9 @@
 package org.braekpo1nt.mctmanager.games.colossalcombat.config;
 
 import com.google.gson.JsonElement;
-import org.braekpo1nt.mctmanager.games.game.config.BoundingBoxDTO;
-import org.braekpo1nt.mctmanager.games.game.config.LocationDTO;
-import org.braekpo1nt.mctmanager.games.game.config.inventory.PlayerInventoryDTO;
+import org.braekpo1nt.mctmanager.config.BoundingBoxDTO;
+import org.braekpo1nt.mctmanager.config.LocationDTO;
+import org.braekpo1nt.mctmanager.config.inventory.PlayerInventoryDTO;
 import org.jetbrains.annotations.Nullable;
 
 /**

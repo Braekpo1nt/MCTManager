@@ -8,17 +8,12 @@ import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.Arena;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.Loadout;
-import org.braekpo1nt.mctmanager.games.game.config.ConfigUtil;
-import org.braekpo1nt.mctmanager.games.game.config.GameConfigStorageUtil;
-import org.braekpo1nt.mctmanager.games.game.config.inventory.InventoryDTO;
-import org.braekpo1nt.mctmanager.games.game.config.inventory.ItemStackDTO;
-import org.braekpo1nt.mctmanager.games.game.config.inventory.meta.ItemMetaDTO;
+import org.braekpo1nt.mctmanager.config.GameConfigStorageUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.util.BoundingBox;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;

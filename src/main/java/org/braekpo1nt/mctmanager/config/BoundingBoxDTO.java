@@ -1,7 +1,6 @@
-package org.braekpo1nt.mctmanager.games.game.config;
+package org.braekpo1nt.mctmanager.config;
 
 import lombok.AllArgsConstructor;
-import lombok.Getter;
 import org.bukkit.util.BoundingBox;
 
 import java.util.List;

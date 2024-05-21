@@ -1,4 +1,4 @@
-package org.braekpo1nt.mctmanager.games.game.config.inventory.meta;
+package org.braekpo1nt.mctmanager.config.inventory.meta;
 
 import com.google.gson.*;
 import org.braekpo1nt.mctmanager.Main;

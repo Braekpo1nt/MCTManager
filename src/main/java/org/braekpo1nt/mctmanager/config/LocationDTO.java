@@ -1,8 +1,7 @@
-package org.braekpo1nt.mctmanager.games.game.config;
+package org.braekpo1nt.mctmanager.config;
 
 import org.bukkit.Location;
 import org.bukkit.World;
-import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
 /**

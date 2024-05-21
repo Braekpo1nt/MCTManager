@@ -1,11 +1,11 @@
-package org.braekpo1nt.mctmanager.games.game.config.inventory.meta;
+package org.braekpo1nt.mctmanager.config.inventory.meta;
 
 import com.destroystokyo.paper.Namespaced;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
 import net.kyori.adventure.text.Component;
-import org.braekpo1nt.mctmanager.games.game.config.ConfigUtil;
+import org.braekpo1nt.mctmanager.config.ConfigUtil;
 import org.bukkit.Material;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;

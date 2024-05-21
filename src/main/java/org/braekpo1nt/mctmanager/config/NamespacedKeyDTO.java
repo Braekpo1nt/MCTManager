@@ -1,4 +1,4 @@
-package org.braekpo1nt.mctmanager.games.game.config;
+package org.braekpo1nt.mctmanager.config;
 
 import com.google.common.base.Preconditions;
 import org.bukkit.NamespacedKey;

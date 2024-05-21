@@ -1,12 +1,9 @@
 package org.braekpo1nt.mctmanager.hub.config;
 
 import com.google.common.base.Preconditions;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.games.game.config.GameConfigStorageUtil;
-import org.braekpo1nt.mctmanager.games.game.config.LocationDTO;
+import org.braekpo1nt.mctmanager.config.GameConfigStorageUtil;
+import org.braekpo1nt.mctmanager.config.LocationDTO;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
