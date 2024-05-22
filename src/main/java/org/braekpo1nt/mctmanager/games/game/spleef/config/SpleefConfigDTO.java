@@ -4,7 +4,7 @@ import com.google.common.base.Preconditions;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
-import lombok.Getter;
+import lombok.Data;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.dto.BoundingBoxDTO;
@@ -126,7 +126,7 @@ record SpleefConfigDTO(String version, String world, List<Vector> startingLocati
         /**
          * Configuration of each source, namely the chance of it giving a powerup upon activation, the types that can come from it, and their weights. 
          */
-        @Getter
+        @Data
         static class SourceDTO implements Validatable {
             /**
              * the percent chance of this source giving a powerup every time it is used. 0 or fewer means no powerups will be given from this source. Defaults to -1.
