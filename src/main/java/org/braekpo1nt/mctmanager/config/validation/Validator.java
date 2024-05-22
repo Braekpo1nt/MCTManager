@@ -1,17 +1,14 @@
 package org.braekpo1nt.mctmanager.config.validation;
 
+import lombok.Getter;
 import lombok.ToString;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
-import java.util.Map;
 
 @ToString
+@Getter
 public class Validator {
     
-    private String path;
+    private final String path;
     
     public Validator() {
         this.path = "";
@@ -32,6 +29,13 @@ public class Validator {
     public void notNull(Object object, String subPath) {
         if (object == null) {
             throw new ConfigInvalidException(this.path + "." + subPath + " can't be null");
+        }
+    }
+    
+    @Contract("null, _, _ -> fail")
+    public void notNull(Object object, String subPath, Object... args) {
+        if (object == null) {
+            throw new ConfigInvalidException(this.path + "." + String.format(subPath, args) + " can't be null");
         }
     }
     

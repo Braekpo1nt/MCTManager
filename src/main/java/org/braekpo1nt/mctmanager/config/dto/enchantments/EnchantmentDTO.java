@@ -4,6 +4,10 @@ import com.google.common.base.Preconditions;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.braekpo1nt.mctmanager.config.dto.NamespacedKeyDTO;
+import org.braekpo1nt.mctmanager.config.validation.ConfigInvalidException;
+import org.braekpo1nt.mctmanager.config.validation.Validatable;
+import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
 import org.jetbrains.annotations.NotNull;
@@ -19,18 +23,21 @@ import java.util.Map;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public class EnchantmentDTO {
+public class EnchantmentDTO implements Validatable {
     /**
      * the NamespacedKey associated with the enchantment
      */
-    private @Nullable NamespacedKey namespacedKey;
+    private @Nullable NamespacedKeyDTO namespacedKey;
     /**
      * the level of the enchantment (defaults to 1)
      */
     private int level = 1;
     
     public @Nullable Enchantment toEnchantment() {
-        return Enchantment.getByKey(namespacedKey);
+        if (namespacedKey == null) {
+            throw new IllegalStateException("namespaceKey is null");
+        }
+        return Enchantment.getByKey(namespacedKey.toNamespacedKey());
     }
     
     /**
@@ -48,12 +55,23 @@ public class EnchantmentDTO {
         return enchantments;
     }
     
-    @SuppressWarnings("ConstantConditions")
+    @Override
+    public void validate(Validator validator) {
+        validator.notNull(namespacedKey, "namespacedKey");
+        namespacedKey.validate(validator.path("namespacedKey"));
+        Enchantment trueEnchantment = Enchantment.getByKey(namespacedKey.toNamespacedKey());
+        validator.validate(trueEnchantment != null, "namespacedKey: could not find enchantment for key \"%s\"" + namespacedKey.toNamespacedKey());
+    }
+    
+    /**
+     * @deprecated in favor of {@link Validatable}
+     */
+    @Deprecated
     public void isValid() {
         Preconditions.checkArgument(namespacedKey != null, "enchantment can't be null");
         Preconditions.checkArgument(namespacedKey.namespace() != null, "namespace can't be null");
         Preconditions.checkArgument(namespacedKey.key() != null, "key can't be null");
-        Enchantment trueEnchantment = Enchantment.getByKey(namespacedKey);
+        Enchantment trueEnchantment = Enchantment.getByKey(namespacedKey.toNamespacedKey());
         Preconditions.checkArgument(trueEnchantment != null, "could not find enchantment for key %s" + namespacedKey);
     }
 }

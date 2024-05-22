@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.config.dto.inventory.meta;
 import com.google.common.base.Preconditions;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -22,6 +23,26 @@ public class PotionMetaDTO extends ItemMetaDTO {
     private @Nullable List<@Nullable Boolean> customEffectsOverwrite;
     private @Nullable Color color;
     
+    @SuppressWarnings("ConstantConditions")
+    @Override
+    public void validate(Validator validator) {
+        super.validate(validator);
+        validator.notNull(basePotionData, "basePotionData");
+        validator.validate(basePotionData.getType() != null, "basePotionData.type can't be null");
+        if (customEffects != null) {
+            validator.validate(customEffectsOverwrite != null, "customEffectsOverwrite can't be null if customEffects is defined");
+            validator.validate(customEffects.size() == customEffectsOverwrite.size(), "customEffects must be the same size as .customEffectsOverwrite");
+            for (int i = 0; i < customEffectsOverwrite.size(); i++) {
+                Boolean overwrite = customEffectsOverwrite.get(i);
+                validator.notNull(overwrite, "customEffectsOverwrite[%s]", i);
+            }
+        }
+    }
+    
+    /**
+     * @deprecated in favor of {@link org.braekpo1nt.mctmanager.config.validation.Validatable}
+     */
+    @Deprecated
     @SuppressWarnings("ConstantConditions")
     @Override
     public void isValid() {

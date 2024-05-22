@@ -75,7 +75,7 @@ record SpleefConfigDTO(String version, String world, List<Vector> startingLocati
             validator.validate(decayStageDTO.getDuration() > 0, "decayStage.duration must be at least 1");
         }
         if (this.tool() != null) {
-            this.tool().isValid();
+            this.tool().validate(validator.path("tool"));
         }
         validator.validate(this.rounds() >= 1, "rounds must be greater than 0");
         if (this.powerups != null) {

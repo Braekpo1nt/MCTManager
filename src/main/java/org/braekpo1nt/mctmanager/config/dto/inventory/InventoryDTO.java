@@ -2,6 +2,8 @@ package org.braekpo1nt.mctmanager.config.dto.inventory;
 
 import com.google.common.base.Preconditions;
 import lombok.Getter;
+import org.braekpo1nt.mctmanager.config.validation.Validatable;
+import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -10,7 +12,7 @@ import java.util.Map;
 import java.util.Objects;
 
 @Getter
-public class InventoryDTO {
+public class InventoryDTO implements Validatable {
     
     /**
      * a map of the inventory indexes to ItemStackDTOs, representing the contents of an inventory. Keys must not be negative. Keys should not be greater than or equal to the size of the inventory they are destined for.
@@ -36,6 +38,15 @@ public class InventoryDTO {
         return result;
     }
     
+    @Override
+    public void validate(Validator validator) {
+        validator.notNull(contents, "contents");
+    }
+    
+    /**
+     * @deprecated in favor of {@link Validatable}
+     */
+    @Deprecated
     public void isValid() {
         Preconditions.checkArgument(contents != null, "contents can't be null");
     }

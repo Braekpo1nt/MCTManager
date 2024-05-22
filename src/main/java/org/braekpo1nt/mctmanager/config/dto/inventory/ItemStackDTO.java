@@ -3,6 +3,8 @@ package org.braekpo1nt.mctmanager.config.dto.inventory;
 import com.google.common.base.Preconditions;
 import org.braekpo1nt.mctmanager.config.dto.enchantments.EnchantmentDTO;
 import org.braekpo1nt.mctmanager.config.dto.inventory.meta.ItemMetaDTO;
+import org.braekpo1nt.mctmanager.config.validation.Validatable;
+import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
@@ -12,7 +14,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class ItemStackDTO {
+public class ItemStackDTO implements Validatable {
     /**
      * The type of the item
      */
@@ -47,6 +49,28 @@ public class ItemStackDTO {
         return stack;
     }
     
+    @Override
+    public void validate(Validator validator) {
+        validator.notNull(type, "type");
+        if (itemMeta != null) {
+            itemMeta.isValid();
+        }
+        if (enchantments != null) {
+            for (int i = 0; i < enchantments.size(); i++) {
+                EnchantmentDTO enchantment = enchantments.get(i);
+                validator.notNull(enchantment, "enchantments[%d]", i);
+                enchantment.validate(validator.path("enchantments[%d]", i));
+                Enchantment trueEnchantment = enchantment.toEnchantment();
+                validator.validate(trueEnchantment != null, "enchantments[%d]: could not find enchantment for \"%s\"", i, enchantment.getNamespacedKey());
+                validator.validate(trueEnchantment.canEnchantItem(new ItemStack(type)), "enchantments[%d]: enchantment %s is not applicable to item of type %s", i, enchantment.getNamespacedKey(), type);
+            }
+        }
+    }
+    
+    /**
+     * @deprecated in favor of {@link Validatable}
+     */
+    @Deprecated
     public void isValid() {
         Preconditions.checkArgument(type != null, "type can't be null");
         if (itemMeta != null) {

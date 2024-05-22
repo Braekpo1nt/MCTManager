@@ -6,6 +6,9 @@ import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.config.ConfigUtils;
+import org.braekpo1nt.mctmanager.config.validation.ConfigInvalidException;
+import org.braekpo1nt.mctmanager.config.validation.Validatable;
+import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.bukkit.Material;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
@@ -18,7 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class ItemMetaDTO {
+public class ItemMetaDTO implements Validatable {
     /**
      * A JsonElement to be converted to a Component
      */
@@ -32,6 +35,24 @@ public class ItemMetaDTO {
     protected @Nullable Map<Attribute, List<AttributeModifier>> attributeModifiers;
     protected @Nullable Set<Namespaced> destroyableKeys;
     protected @Nullable Set<Namespaced> placeableKeys;
+    
+    @Override
+    public void validate(Validator validator) {
+        if (displayName != null) {
+            try {
+                ConfigUtils.toComponent(displayName);
+            } catch (JsonIOException | JsonSyntaxException e) {
+                throw new IllegalArgumentException("displayName is invalid", e);
+            }
+        }
+        if (lore != null) {
+            try {
+                ConfigUtils.toComponents(lore);
+            } catch (JsonIOException | JsonSyntaxException e) {
+                throw new IllegalArgumentException("lore is invalid", e);
+            }
+        }
+    }
     
     public void isValid() {
         if (displayName != null) {
