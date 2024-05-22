@@ -45,7 +45,7 @@ record SpleefConfigDTO(String version, String world, List<Vector> startingLocati
     public void validate(Validator validator) throws ConfigInvalidException {
         validator.validate(this.version() != null, "version can't be null");
         validator.validate(Main.VALID_CONFIG_VERSIONS.contains(this.version()), "invalid config version (%s)", this.version());
-        validator.validate(Bukkit.getWorld(this.world()) != null, "Could not find world \"%s\"", this.world());
+        validator.validate(Bukkit.getWorld(this.world()) != null, "world: Could not find world \"%s\"", this.world());
         validator.validate(this.startingLocations() != null, "startingLocations can't be null");
         validator.validate(this.startingLocations.size() >= 1, "startingLocations must have at least one entry");
         validator.validate(!this.startingLocations.contains(null), "startingLocations can't contain any null elements");
@@ -54,8 +54,10 @@ record SpleefConfigDTO(String version, String world, List<Vector> startingLocati
         validator.validate(this.layers != null, "layers can't be null");
         int numberOfLayers = this.layers.size();
         validator.validate(numberOfLayers >= 2, "there must be at least 2 layers");
-        for (Layer layer : layers) {
-            validator.validate(layer);
+        for (int i = 0; i < layers.size(); i++) {
+            Layer layer = layers.get(i);
+            validator.validate(layer != null, "layers[%d] can't be null", i);
+            layer.validate(validator.path("layers[%d]", i));
         }
         validator.validate(this.decayStages() != null, "decayStages can't be null");
         validator.validate(this.decayStages.size() > 0, "decayStages must have at least one entry");
@@ -76,8 +78,8 @@ record SpleefConfigDTO(String version, String world, List<Vector> startingLocati
             this.tool().isValid();
         }
         validator.validate(this.rounds() >= 1, "rounds must be greater than 0");
-        if (this.powerups() != null) {
-            this.powerups().validate(validator);
+        if (this.powerups != null) {
+            powerups.validate(validator.path("powerups"));
         }
         validator.validate(this.scores() != null, "scores can't be null");
         validator.validate(this.durations() != null, "durations can't be null");
@@ -154,10 +156,8 @@ record SpleefConfigDTO(String version, String world, List<Vector> startingLocati
             }
             
             if (powerups != null) {
-                for (PowerupDTO powerupDTO : powerups.values()) {
-                    if (powerupDTO != null) {
-                        powerupDTO.validate(validator);
-                    }
+                for (Map.Entry<Powerup.Type, PowerupDTO> entry : powerups.entrySet()) {
+                    entry.getValue().validate(validator.path("powerups[%s]", entry.getKey()));
                 }
             }
             

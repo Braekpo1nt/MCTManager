@@ -1,11 +1,13 @@
 package org.braekpo1nt.mctmanager.config.dto;
 
 import com.google.common.base.Preconditions;
+import org.braekpo1nt.mctmanager.config.validation.Validatable;
+import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.bukkit.NamespacedKey;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class NamespacedKeyDTO {
+public class NamespacedKeyDTO implements Validatable {
     private @Nullable String namespace;
     private @Nullable String key;
     
@@ -29,6 +31,15 @@ public class NamespacedKeyDTO {
         return new NamespacedKey(namespace, key);
     }
     
+    @Override
+    public void validate(Validator validator) {
+        validator.notNull(key, "key");
+    }
+    
+    /**
+     * @deprecated in favor of {@link NamespacedKeyDTO#validate(Validator)} 
+     */
+    @Deprecated
     public void isValid() {
         Preconditions.checkArgument(key != null, "key can't be null");
     }

@@ -1,11 +1,14 @@
 package org.braekpo1nt.mctmanager.config.validation;
 
+import lombok.ToString;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Map;
 
+@ToString
 public class Validator {
     
     private String path;
@@ -25,16 +28,10 @@ public class Validator {
         }
     }
     
-    @Contract("null -> fail")
-    public void validate(@Nullable Validatable validatable) {
-        validate(validatable != null, "can't be null");
-        validatable.validate(this);
-    }
-    
-    @Contract("_, false, _ -> fail")
-    public void validate(String name, boolean expression, String invalidMessage) {
-        if (!expression) {
-            throw new ConfigInvalidException(invalidMessage);
+    @Contract("null, _ -> fail")
+    public void notNull(Object object, String subPath) {
+        if (object == null) {
+            throw new ConfigInvalidException(this.path + "." + subPath + " can't be null");
         }
     }
     
@@ -46,14 +43,16 @@ public class Validator {
     }
     
     public Validator path(String subPath) {
-        this.path = this.path + "." + subPath;
-        return this;
+        if (this.path.isEmpty()) {
+            return new Validator(subPath);
+        }
+        return new Validator(this.path + "." + subPath);
     }
     
-    public void validate(@NotNull List<Validatable> validatables) {
-        for (int i = 0; i < validatables.size(); i++) {
-            Validatable validatable = validatables.get(i);
-            validatable.validate(this.path(String.format("[%d]", i)));
+    public Validator path(String subPath, Object... args) {
+        if (this.path.isEmpty()) {
+            return new Validator(String.format(subPath, args));
         }
+        return new Validator(this.path + "." + String.format(subPath, args));
     }
 }

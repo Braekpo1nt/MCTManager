@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.games.game.spleef.config;
 
 import com.google.common.base.Preconditions;
+import lombok.val;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
@@ -59,8 +60,9 @@ public class SpleefStorageUtil extends ConfigStorageUtil<SpleefConfigDTO> {
     
     @Override
     protected boolean configIsValid(@Nullable SpleefConfigDTO config) throws IllegalArgumentException {
-        new Validator().validate(config != null, "config");
-        config.validate(new Validator("config"));
+        Validator validator = new Validator();
+        validator.notNull(config, "config");
+        config.validate(validator.path("config"));
         return true;
     }
     

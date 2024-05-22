@@ -1,12 +1,14 @@
 package org.braekpo1nt.mctmanager.config.dto;
 
 import com.google.common.base.Preconditions;
-import lombok.Getter;
+import lombok.Data;
 import net.kyori.adventure.sound.Sound;
+import org.braekpo1nt.mctmanager.config.validation.Validatable;
+import org.braekpo1nt.mctmanager.config.validation.Validator;
 
 
-@Getter
-public class SoundDTO {
+@Data
+public class SoundDTO implements Validatable {
     /**
      * Is the resource location of the sound to play. Can be a built-in minecraft sound or a resource pack sound. See sound parameter explanation of default minecraft /playsound command
      */
@@ -20,6 +22,16 @@ public class SoundDTO {
      */
     private float pitch = 1;
     
+    @Override
+    public void validate(Validator validator) {
+        validator.notNull(namespacedKey, "namespacedKey");
+        namespacedKey.validate(validator.path("namespacedKey"));
+    }
+    
+    /**
+     * @deprecated in favor of {@link SoundDTO#validate(Validator)}
+     */
+    @Deprecated
     public void isValid() {
         Preconditions.checkArgument(namespacedKey != null, "namespacedKey can't be null");
         namespacedKey.isValid();
