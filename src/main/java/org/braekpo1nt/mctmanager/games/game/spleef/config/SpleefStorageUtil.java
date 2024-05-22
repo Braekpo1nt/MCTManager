@@ -5,7 +5,7 @@ import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.braekpo1nt.mctmanager.config.ConfigStorageUtil;
-import org.braekpo1nt.mctmanager.config.validation.Validation;
+import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.braekpo1nt.mctmanager.games.game.spleef.DecayStage;
 import org.braekpo1nt.mctmanager.games.game.spleef.powerup.Powerup;
 import org.bukkit.Bukkit;
@@ -59,8 +59,8 @@ public class SpleefStorageUtil extends ConfigStorageUtil<SpleefConfigDTO> {
     
     @Override
     protected boolean configIsValid(@Nullable SpleefConfigDTO config) throws IllegalArgumentException {
-        Validation.validate(config != null, "config can't be null");
-        config.isValid();
+        new Validator().validate(config != null, "config");
+        config.validate(new Validator("config"));
         return true;
     }
     

@@ -1,17 +1,18 @@
 package org.braekpo1nt.mctmanager.games.game.spleef.config;
 
+import com.google.common.base.Preconditions;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
 import lombok.Getter;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.config.ConfigDTO;
 import org.braekpo1nt.mctmanager.config.dto.BoundingBoxDTO;
 import org.braekpo1nt.mctmanager.config.dto.NamespacedKeyDTO;
 import org.braekpo1nt.mctmanager.config.dto.inventory.ItemStackDTO;
 import org.braekpo1nt.mctmanager.config.validation.ConfigInvalidException;
-import org.braekpo1nt.mctmanager.config.validation.Validation;
+import org.braekpo1nt.mctmanager.config.validation.Validatable;
+import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.braekpo1nt.mctmanager.games.game.spleef.powerup.Powerup;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -38,51 +39,50 @@ import java.util.stream.Collectors;
  * @param durations the durations for spleef
  * @param description the description of spleef
  */
-record SpleefConfigDTO(String version, String world, List<Vector> startingLocations, BoundingBoxDTO spectatorArea, @Nullable Material stencilBlock, @Nullable Material layerBlock, @Nullable Material decayBlock, List<Layer> layers, List<DecayStageDTO> decayStages, @Nullable ItemStackDTO tool, int rounds, Powerups powerups, Scores scores, Durations durations, JsonElement description) implements ConfigDTO {
+record SpleefConfigDTO(String version, String world, List<Vector> startingLocations, BoundingBoxDTO spectatorArea, @Nullable Material stencilBlock, @Nullable Material layerBlock, @Nullable Material decayBlock, List<Layer> layers, List<DecayStageDTO> decayStages, @Nullable ItemStackDTO tool, int rounds, Powerups powerups, Scores scores, Durations durations, JsonElement description) implements Validatable {
     
     @Override
-    public void isValid() throws ConfigInvalidException {
-        Validation.validate(this.version() != null, "version can't be null");
-        Validation.validate(Main.VALID_CONFIG_VERSIONS.contains(this.version()), "invalid config version (%s)", this.version());
-        Validation.validate(Bukkit.getWorld(this.world()) != null, "Could not find world \"%s\"", this.world());
-        Validation.validate(this.startingLocations() != null, "startingLocations can't be null");
-        Validation.validate(this.startingLocations().size() >= 1, "startingLocations must have at least one entry");
-        Validation.validate(!this.startingLocations().contains(null), "startingLocations can't contain any null elements");
-        Validation.validate(this.spectatorArea() != null, "spectatorArea can't be null");
-        Validation.validate(this.spectatorArea().toBoundingBox().getVolume() >= 1.0, "spectatorArea (%s) must have a volume (%s) of at least 1.0", this.spectatorArea(), this.spectatorArea().toBoundingBox().getVolume());
-        Validation.validate(this.layers() != null, "layers can't be null");
-        int numberOfLayers = this.layers().size();
-        Validation.validate(numberOfLayers >= 2, "there must be at least 2 layers");
-        for (int i = 0; i < layers.size(); i++) {
-            Layer layer = layers.get(i);
-            Validation.validate(layer);
+    public void validate(Validator validator) throws ConfigInvalidException {
+        validator.validate(this.version() != null, "version can't be null");
+        validator.validate(Main.VALID_CONFIG_VERSIONS.contains(this.version()), "invalid config version (%s)", this.version());
+        validator.validate(Bukkit.getWorld(this.world()) != null, "Could not find world \"%s\"", this.world());
+        validator.validate(this.startingLocations() != null, "startingLocations can't be null");
+        validator.validate(this.startingLocations.size() >= 1, "startingLocations must have at least one entry");
+        validator.validate(!this.startingLocations.contains(null), "startingLocations can't contain any null elements");
+        validator.validate(this.spectatorArea() != null, "spectatorArea can't be null");
+        validator.validate(this.spectatorArea.toBoundingBox().getVolume() >= 1.0, "spectatorArea (%s) must have a volume (%s) of at least 1.0", this.spectatorArea(), this.spectatorArea.toBoundingBox().getVolume());
+        validator.validate(this.layers != null, "layers can't be null");
+        int numberOfLayers = this.layers.size();
+        validator.validate(numberOfLayers >= 2, "there must be at least 2 layers");
+        for (Layer layer : layers) {
+            validator.validate(layer);
         }
-        Validation.validate(this.decayStages() != null, "decayStages can't be null");
-        Validation.validate(this.decayStages().size() > 0, "decayStages must have at least one entry");
-        for (DecayStageDTO decayStageDTO : this.decayStages()) {
-            Validation.validate(decayStageDTO.getLayerInfos() != null, "decayStages.layers can't be null");
+        validator.validate(this.decayStages() != null, "decayStages can't be null");
+        validator.validate(this.decayStages.size() > 0, "decayStages must have at least one entry");
+        for (DecayStageDTO decayStageDTO : this.decayStages) {
+            validator.validate(decayStageDTO.getLayerInfos() != null, "decayStages.layers can't be null");
             // make sure index is between 0 and the max index for decayLayers 
             // also make sure there are no duplicate indexes
             Set<Integer> usedIndexes = new HashSet<>(decayStageDTO.getLayerInfos().size());
             for (DecayStageDTO.LayerInfoDTO layerInfo : decayStageDTO.getLayerInfos()) {
-                Validation.validate(0 <= layerInfo.getIndex() && layerInfo.getIndex() < numberOfLayers, "layerInfo.index must be at least 0, and at most 1 less than the number of elements in layers list");
-                Validation.validate(layerInfo.getSolidBlockRate() >= 0, "layerInfo.solidBlockRate must be at least 0");
-                Validation.validate(!usedIndexes.contains(layerInfo.getIndex()), "decayStage.layerInfos entries can't have duplicate index values (%s)", layerInfo.getIndex());
+                validator.validate(0 <= layerInfo.getIndex() && layerInfo.getIndex() < numberOfLayers, "layerInfo.index must be at least 0, and at most 1 less than the number of elements in layers list");
+                validator.validate(layerInfo.getSolidBlockRate() >= 0, "layerInfo.solidBlockRate must be at least 0");
+                validator.validate(!usedIndexes.contains(layerInfo.getIndex()), "decayStage.layerInfos entries can't have duplicate index values (%s)", layerInfo.getIndex());
                 usedIndexes.add(layerInfo.getIndex());
             }
-            Validation.validate(decayStageDTO.getDuration() > 0, "decayStage.duration must be at least 1");
+            validator.validate(decayStageDTO.getDuration() > 0, "decayStage.duration must be at least 1");
         }
         if (this.tool() != null) {
             this.tool().isValid();
         }
-        Validation.validate(this.rounds() >= 1, "rounds must be greater than 0");
+        validator.validate(this.rounds() >= 1, "rounds must be greater than 0");
         if (this.powerups() != null) {
-            this.powerups().isValid();
+            this.powerups().validate(validator);
         }
-        Validation.validate(this.scores() != null, "scores can't be null");
-        Validation.validate(this.durations() != null, "durations can't be null");
-        Validation.validate(this.durations().roundStarting() >= 0, "durations.roundStarting (%s) can't be negative", this.durations().roundStarting());
-        Validation.validate(this.durations().roundEnding() >= 0, "duration.roundEnding (%s) can't be negative", this.durations().roundEnding());
+        validator.validate(this.scores() != null, "scores can't be null");
+        validator.validate(this.durations() != null, "durations can't be null");
+        validator.validate(this.durations.roundStarting() >= 0, "durations.roundStarting (%s) can't be negative", this.durations.roundStarting());
+        validator.validate(this.durations.roundEnding() >= 0, "duration.roundEnding (%s) can't be negative", this.durations.roundEnding());
         try {
             GsonComponentSerializer.gson().deserializeFromTree(this.description());
         } catch (JsonIOException | JsonSyntaxException e) {
@@ -95,13 +95,14 @@ record SpleefConfigDTO(String version, String world, List<Vector> startingLocati
      * @param structureOrigin the origin to place the structure at
      * @param decayArea the area in which to decay blocks for this layer. If this is null, the size of the structure and structureOrigin will be used as the area.
      */
-    record Layer(@Nullable NamespacedKeyDTO structure, Vector structureOrigin, @Nullable BoundingBoxDTO decayArea) implements ConfigDTO {
+    record Layer(@Nullable NamespacedKeyDTO structure, Vector structureOrigin, @Nullable BoundingBoxDTO decayArea) implements Validatable {
         @Override
-        public void isValid() throws ConfigInvalidException {
-            Validation.validate(this.structure() != null, "layer.structure can't be null");
-            this.structure().isValid();
-            Validation.validate(Bukkit.getStructureManager().loadStructure(this.structure().toNamespacedKey()) != null, "Can't find structure %s", this.structure());
-            Validation.validate(this.structureOrigin() != null, "layer.structureOrigin can't be null");
+        public void validate(Validator validator) throws ConfigInvalidException {
+            validator.validate(this.structure() != null, "layer.structure can't be null");
+            Preconditions.checkArgument(this.structure != null);
+            this.structure.isValid();
+            validator.validate(Bukkit.getStructureManager().loadStructure(this.structure.toNamespacedKey()) != null, "Can't find structure %s", this.structure());
+            validator.validate(this.structureOrigin() != null, "layer.structureOrigin can't be null");
         }
     }
     
@@ -113,7 +114,7 @@ record SpleefConfigDTO(String version, String world, List<Vector> startingLocati
      * @param powerups configuration of powerup attributes, such as the sounds that come from them.
      * @param sources configuration of the sources, such as their likelihood of giving a powerup and what powerups come from it. 
      */
-    record Powerups(long minTimeBetween, int maxPowerups, @Nullable Map<Powerup.Type, @Nullable Integer> initialLoadout, @Nullable Map<Powerup.Type, @Nullable PowerupDTO> powerups, @Nullable Map<Powerup.Source, @Nullable SourceDTO> sources) implements ConfigDTO {
+    record Powerups(long minTimeBetween, int maxPowerups, @Nullable Map<Powerup.Type, @Nullable Integer> initialLoadout, @Nullable Map<Powerup.Type, @Nullable PowerupDTO> powerups, @Nullable Map<Powerup.Source, @Nullable SourceDTO> sources) implements Validatable {
         
         @NotNull Map<Powerup.Type, @NotNull Integer> getInitialLoadout() {
             if (initialLoadout == null) {
@@ -126,7 +127,7 @@ record SpleefConfigDTO(String version, String world, List<Vector> startingLocati
          * Configuration of each source, namely the chance of it giving a powerup upon activation, the types that can come from it, and their weights. 
          */
         @Getter
-        static class SourceDTO implements ConfigDTO {
+        static class SourceDTO implements Validatable {
             /**
              * the percent chance of this source giving a powerup every time it is used. 0 or fewer means no powerups will be given from this source. Defaults to -1.
              */
@@ -136,36 +137,36 @@ record SpleefConfigDTO(String version, String world, List<Vector> startingLocati
              */
             private @Nullable Map<Powerup.@Nullable Type, @Nullable Integer> types;
             
-            public void isValid() {
-                Validation.validate(chance <= 1.0, "chance can't be greater than 1.0");
+            public void validate(Validator validator) {
+                validator.validate(chance <= 1.0, "chance can't be greater than 1.0");
                 if (types != null) {
-                    Validation.validate(!types.containsKey(null), "types can't contain null keys");
-                    Validation.validate(!types.containsValue(null), "types can't contain null values");
+                    validator.validate(!types.containsKey(null), "types can't contain null keys");
+                    validator.validate(!types.containsValue(null), "types can't contain null values");
                 }
             }
         }
         
-        public void isValid() {
-            Validation.validate(minTimeBetween >= 0, "minTimeBetween must be greater than or equal to 0");
+        public void validate(Validator validator) {
+            validator.validate(minTimeBetween >= 0, "minTimeBetween must be greater than or equal to 0");
             if (initialLoadout != null) {
-                Validation.validate(!initialLoadout.containsKey(null), "initialLoadout can't have null keys");
-                Validation.validate(!initialLoadout.containsValue(null), "initialLoadout can't have null entries");
+                validator.validate(!initialLoadout.containsKey(null), "initialLoadout can't have null keys");
+                validator.validate(!initialLoadout.containsValue(null), "initialLoadout can't have null entries");
             }
             
             if (powerups != null) {
                 for (PowerupDTO powerupDTO : powerups.values()) {
                     if (powerupDTO != null) {
-                        powerupDTO.isValid();
+                        powerupDTO.validate(validator);
                     }
                 }
             }
             
             if (sources != null) {
-                Validation.validate(!sources.containsKey(null), "sources can't have null keys");
-                Validation.validate(!sources.containsValue(null), "sources can't have null entries");
+                validator.validate(!sources.containsKey(null), "sources can't have null keys");
+                validator.validate(!sources.containsValue(null), "sources can't have null entries");
                 for (SourceDTO sourceDTO : sources.values()) {
                     if (sourceDTO != null) {
-                        sourceDTO.isValid();
+                        sourceDTO.validate(validator);
                     }
                 }
             }

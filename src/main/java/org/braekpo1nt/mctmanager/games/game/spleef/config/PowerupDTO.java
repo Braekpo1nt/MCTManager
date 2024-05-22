@@ -2,6 +2,8 @@ package org.braekpo1nt.mctmanager.games.game.spleef.config;
 
 import lombok.Getter;
 import org.braekpo1nt.mctmanager.config.dto.SoundDTO;
+import org.braekpo1nt.mctmanager.config.validation.Validatable;
+import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.braekpo1nt.mctmanager.games.game.spleef.powerup.Powerup;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -11,7 +13,7 @@ import java.util.List;
 import java.util.Objects;
 
 @Getter
-class PowerupDTO {
+class PowerupDTO implements Validatable {
     private @Nullable SoundDTO userSound;
     private @Nullable SoundDTO affectedSound;
     /**
@@ -19,7 +21,8 @@ class PowerupDTO {
      */
     private @Nullable List<Powerup.@Nullable Source> sources;
     
-    void isValid() {
+    @Override
+    public void validate(Validator validator) {
         if (userSound != null) {
             userSound.isValid();
         }
