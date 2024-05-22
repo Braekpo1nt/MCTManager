@@ -1,13 +1,11 @@
 package org.braekpo1nt.mctmanager.games.game.spleef.config;
 
 import com.google.common.base.Preconditions;
-import com.google.gson.JsonIOException;
-import com.google.gson.JsonSyntaxException;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
-import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.ConfigStorageUtil;
+import org.braekpo1nt.mctmanager.config.validation.Validation;
 import org.braekpo1nt.mctmanager.games.game.spleef.DecayStage;
 import org.braekpo1nt.mctmanager.games.game.spleef.powerup.Powerup;
 import org.bukkit.Bukkit;
@@ -26,9 +24,9 @@ import java.io.File;
 import java.io.InputStream;
 import java.util.*;
 
-public class SpleefStorageUtil extends ConfigStorageUtil<SpleefConfig> {
+public class SpleefStorageUtil extends ConfigStorageUtil<SpleefConfigDTO> {
     
-    protected SpleefConfig spleefConfig = null;
+    protected SpleefConfigDTO spleefConfig = null;
     private World world;
     private List<Location> startingLocations;
     private List<Structure> structures;
@@ -51,71 +49,23 @@ public class SpleefStorageUtil extends ConfigStorageUtil<SpleefConfig> {
     private Map<Powerup.Type, @Nullable Sound> userSounds;
     private Map<Powerup.Type, @Nullable Sound> affectedSounds;
     public SpleefStorageUtil(File configDirectory) {
-        super(configDirectory, "spleefConfig.json", SpleefConfig.class);
+        super(configDirectory, "spleefConfig.json", SpleefConfigDTO.class);
     }
     
     @Override
-    protected SpleefConfig getConfig() {
+    protected SpleefConfigDTO getConfig() {
         return spleefConfig;
     }
     
     @Override
-    protected boolean configIsValid(@Nullable SpleefConfig config) throws IllegalArgumentException {
-        Preconditions.checkArgument(config != null, "Saved config is null");
-        Preconditions.checkArgument(config.version() != null, "version can't be null");
-        Preconditions.checkArgument(Main.VALID_CONFIG_VERSIONS.contains(config.version()), "invalid config version (%s)", config.version());
-        Preconditions.checkArgument(Bukkit.getWorld(config.world()) != null, "Could not find world \"%s\"", config.world());
-        Preconditions.checkArgument(config.startingLocations() != null, "startingLocations can't be null");
-        Preconditions.checkArgument(config.startingLocations().size() >= 1, "startingLocations must have at least one entry");
-        Preconditions.checkArgument(!config.startingLocations().contains(null), "startingLocations can't contain any null elements");
-        Preconditions.checkArgument(config.spectatorArea() != null, "spectatorArea can't be null");
-        Preconditions.checkArgument(config.spectatorArea().toBoundingBox().getVolume() >= 1.0, "spectatorArea (%s) must have a volume (%s) of at least 1.0", config.spectatorArea(), config.spectatorArea().toBoundingBox().getVolume());
-        Preconditions.checkArgument(config.layers() != null, "layers can't be null");
-        int numberOfLayers = config.layers().size();
-        Preconditions.checkArgument(numberOfLayers >= 2, "there must be at least 2 layers");
-        for (SpleefConfig.Layer layer : config.layers()) {
-            Preconditions.checkArgument(layer != null, "layers can't contain any null elements");
-            Preconditions.checkArgument(layer.structure() != null, "layer.structure can't be null");
-            layer.structure().isValid();
-            Preconditions.checkArgument(Bukkit.getStructureManager().loadStructure(layer.structure().toNamespacedKey()) != null, "Can't find structure %s", layer.structure());
-            Preconditions.checkArgument(layer.structureOrigin() != null, "layer.structureOrigin can't be null");
-        }
-        Preconditions.checkArgument(config.decayStages() != null, "decayStages can't be null");
-        Preconditions.checkArgument(config.decayStages().size() > 0, "decayStages must have at least one entry");
-        for (DecayStageDTO decayStageDTO : config.decayStages()) {
-            Preconditions.checkArgument(decayStageDTO.getLayerInfos() != null, "decayStages.layers can't be null");
-            // make sure index is between 0 and the max index for decayLayers 
-            // also make sure there are no duplicate indexes
-            Set<Integer> usedIndexes = new HashSet<>(decayStageDTO.getLayerInfos().size());
-            for (DecayStageDTO.LayerInfoDTO layerInfo : decayStageDTO.getLayerInfos()) {
-                Preconditions.checkArgument(0 <= layerInfo.getIndex() && layerInfo.getIndex() < numberOfLayers, "layerInfo.index must be at least 0, and at most 1 less than the number of elements in layers list");
-                Preconditions.checkArgument(layerInfo.getSolidBlockRate() >= 0, "layerInfo.solidBlockRate must be at least 0");
-                Preconditions.checkArgument(!usedIndexes.contains(layerInfo.getIndex()), "decayStage.layerInfos entries can't have duplicate index values (%s)", layerInfo.getIndex());
-                usedIndexes.add(layerInfo.getIndex());
-            }
-            Preconditions.checkArgument(decayStageDTO.getDuration() > 0, "decayStage.duration must be at least 1");
-        }
-        if (config.tool() != null) {
-            config.tool().isValid();
-        }
-        Preconditions.checkArgument(config.rounds() >= 1, "rounds must be greater than 0");
-        if (config.powerups() != null) {
-            config.powerups().isValid();
-        }
-        Preconditions.checkArgument(config.scores() != null, "scores can't be null");
-        Preconditions.checkArgument(config.durations() != null, "durations can't be null");
-        Preconditions.checkArgument(config.durations().roundStarting() >= 0, "durations.roundStarting (%s) can't be negative", config.durations().roundStarting());
-        Preconditions.checkArgument(config.durations().roundEnding() >= 0, "duration.roundEnding (%s) can't be negative", config.durations().roundEnding());
-        try {
-            GsonComponentSerializer.gson().deserializeFromTree(config.description());
-        } catch (JsonIOException | JsonSyntaxException e) {
-            throw new IllegalArgumentException("description is invalid", e);
-        }
+    protected boolean configIsValid(@Nullable SpleefConfigDTO config) throws IllegalArgumentException {
+        Validation.validate(config != null, "config can't be null");
+        config.isValid();
         return true;
     }
     
     @Override
-    protected void setConfig(SpleefConfig config) {
+    protected void setConfig(SpleefConfigDTO config) {
         World newWorld = Bukkit.getWorld(config.world());
         Preconditions.checkArgument(newWorld != null, "Could not find world \"%s\"", config.world());
         List<Location> newStartingLocations = new ArrayList<>(config.startingLocations().size());
@@ -129,7 +79,7 @@ public class SpleefStorageUtil extends ConfigStorageUtil<SpleefConfig> {
         Material newLayerBlock = config.layerBlock() != null ? config.layerBlock() : Material.DIRT;
         Material newDecayBlock = config.decayBlock() != null ? config.decayBlock() : Material.COARSE_DIRT;
         List<BoundingBox> newDecayLayers = new ArrayList<>(config.layers().size());
-        for (SpleefConfig.Layer layer : config.layers()) {
+        for (SpleefConfigDTO.Layer layer : config.layers()) {
             Preconditions.checkArgument(layer.structure() != null, "structure can't be null");
             Structure structure = Bukkit.getStructureManager().loadStructure(layer.structure().toNamespacedKey());
             Preconditions.checkArgument(structure != null, "can't find structure %s", layer.structure());

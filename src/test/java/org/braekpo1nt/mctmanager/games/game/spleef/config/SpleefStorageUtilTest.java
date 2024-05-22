@@ -6,6 +6,7 @@ import com.google.gson.JsonObject;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.MyCustomServerMock;
 import org.braekpo1nt.mctmanager.TestUtils;
+import org.braekpo1nt.mctmanager.config.validation.ConfigInvalidException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -68,7 +69,7 @@ class SpleefStorageUtilTest {
         spectatorArea.addProperty("maxZ", 0);
         json.add("spectatorArea", spectatorArea);
         TestUtils.saveJsonToFile(json, new File(plugin.getDataFolder(), configFileName));
-        Assertions.assertThrows(IllegalArgumentException.class, storageUtil::loadConfig);
+        Assertions.assertThrows(ConfigInvalidException.class, storageUtil::loadConfig);
     }
     
     void wellFormedJsonValidData(String filename) {
