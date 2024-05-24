@@ -102,7 +102,7 @@ record SpleefConfigDTO(String version, String world, List<Vector> startingLocati
         public void validate(Validator validator) throws ConfigInvalidException {
             validator.validate(this.structure() != null, "layer.structure can't be null");
             Preconditions.checkArgument(this.structure != null);
-            this.structure.isValid();
+            this.structure.validate(validator);
             validator.validate(Bukkit.getStructureManager().loadStructure(this.structure.toNamespacedKey()) != null, "Can't find structure %s", this.structure());
             validator.validate(this.structureOrigin() != null, "layer.structureOrigin can't be null");
         }

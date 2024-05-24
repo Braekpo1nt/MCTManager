@@ -1,12 +1,14 @@
 package org.braekpo1nt.mctmanager.config.dto;
 
 import com.google.common.base.Preconditions;
+import lombok.Data;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.bukkit.NamespacedKey;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+@Data
 public class NamespacedKeyDTO implements Validatable {
     private @Nullable String namespace;
     private @Nullable String key;
