@@ -3,7 +3,7 @@ package org.braekpo1nt.mctmanager.hub.config;
 import com.google.common.base.Preconditions;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.ConfigStorageUtil;
-import org.braekpo1nt.mctmanager.config.dto.LocationDTO;
+import org.braekpo1nt.mctmanager.config.dto.org.bukkit.LocationDTO;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;

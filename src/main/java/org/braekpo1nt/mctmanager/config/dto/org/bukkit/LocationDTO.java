@@ -1,4 +1,4 @@
-package org.braekpo1nt.mctmanager.config.dto;
+package org.braekpo1nt.mctmanager.config.dto.org.bukkit;
 
 import org.bukkit.Location;
 import org.bukkit.World;

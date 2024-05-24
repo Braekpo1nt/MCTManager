@@ -1,7 +1,7 @@
 package org.braekpo1nt.mctmanager.games.game.spleef.config;
 
 import lombok.Data;
-import org.braekpo1nt.mctmanager.config.dto.SoundDTO;
+import org.braekpo1nt.mctmanager.config.dto.net.kyori.adventure.sound.SoundDTO;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.braekpo1nt.mctmanager.games.game.spleef.powerup.Powerup;

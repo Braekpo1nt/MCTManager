@@ -3,7 +3,7 @@ package org.braekpo1nt.mctmanager.games.game.capturetheflag.config;
 
 import com.google.gson.JsonElement;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.Arena;
-import org.braekpo1nt.mctmanager.config.dto.BoundingBoxDTO;
+import org.braekpo1nt.mctmanager.config.dto.org.bukkit.util.BoundingBoxDTO;
 import org.bukkit.util.Vector;
 
 import java.util.List;

@@ -1,4 +1,4 @@
-package org.braekpo1nt.mctmanager.config.dto;
+package org.braekpo1nt.mctmanager.config.dto.org.bukkit.util;
 
 import lombok.AllArgsConstructor;
 import org.bukkit.util.BoundingBox;

@@ -1,4 +1,4 @@
-package org.braekpo1nt.mctmanager.config.dto;
+package org.braekpo1nt.mctmanager.config.dto.org.bukkit;
 
 import com.google.common.base.Preconditions;
 import lombok.Data;

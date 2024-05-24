@@ -2,8 +2,8 @@ package org.braekpo1nt.mctmanager.games.game.mecha.config;
 
 import com.google.common.base.Preconditions;
 import com.google.gson.JsonElement;
-import org.braekpo1nt.mctmanager.config.dto.BoundingBoxDTO;
-import org.braekpo1nt.mctmanager.config.dto.NamespacedKeyDTO;
+import org.braekpo1nt.mctmanager.config.dto.org.bukkit.util.BoundingBoxDTO;
+import org.braekpo1nt.mctmanager.config.dto.org.bukkit.NamespacedKeyDTO;
 import org.braekpo1nt.mctmanager.config.dto.YawPitch;
 import org.bukkit.util.Vector;
 

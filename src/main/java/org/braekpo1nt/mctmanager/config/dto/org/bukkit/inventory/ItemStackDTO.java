@@ -1,9 +1,9 @@
-package org.braekpo1nt.mctmanager.config.dto.inventory;
+package org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory;
 
 import com.google.common.base.Preconditions;
 import lombok.Data;
-import org.braekpo1nt.mctmanager.config.dto.enchantments.EnchantmentDTO;
-import org.braekpo1nt.mctmanager.config.dto.inventory.meta.ItemMetaDTO;
+import org.braekpo1nt.mctmanager.config.dto.org.bukkit.enchantments.EnchantmentDTO;
+import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.meta.ItemMetaDTO;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.bukkit.Material;

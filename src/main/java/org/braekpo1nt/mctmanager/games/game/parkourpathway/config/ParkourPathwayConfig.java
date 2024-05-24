@@ -4,7 +4,7 @@ import com.google.gson.JsonElement;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.braekpo1nt.mctmanager.config.dto.BoundingBoxDTO;
+import org.braekpo1nt.mctmanager.config.dto.org.bukkit.util.BoundingBoxDTO;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.puzzle.Puzzle;
 import org.jetbrains.annotations.Nullable;
 

@@ -1,4 +1,4 @@
-package org.braekpo1nt.mctmanager.config.dto.inventory.meta;
+package org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.meta;
 
 import com.destroystokyo.paper.Namespaced;
 import com.google.gson.JsonElement;
@@ -7,7 +7,6 @@ import com.google.gson.JsonSyntaxException;
 import lombok.Data;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.config.ConfigUtils;
-import org.braekpo1nt.mctmanager.config.validation.ConfigInvalidException;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.bukkit.Material;
