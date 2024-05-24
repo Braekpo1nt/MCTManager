@@ -1,12 +1,12 @@
 package org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.meta;
 
 import com.google.gson.*;
-import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.config.ConfigUtils;
 
 import java.lang.reflect.Type;
 
 /**
- * Responsible for deserializing ItemMetaDTO objects and its child classes
+ * Responsible for deserializing ItemMetaDTO interface implementations
  */
 public class ItemMetaDTODeserializer implements JsonDeserializer<ItemMetaDTO> {
     @Override
@@ -17,7 +17,7 @@ public class ItemMetaDTODeserializer implements JsonDeserializer<ItemMetaDTO> {
         if (basePotionData != null) {
             return context.deserialize(json, PotionMetaDTO.class);
         }
-        return Main.GSON.fromJson(json, ItemMetaDTO.class);
+        return ConfigUtils.GSON.fromJson(json, ItemMetaDTOImpl.class);
     }
     
 }

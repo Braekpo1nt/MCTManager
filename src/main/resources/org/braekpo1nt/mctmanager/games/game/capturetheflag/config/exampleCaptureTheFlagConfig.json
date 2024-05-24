@@ -261,7 +261,10 @@
       "inventory": {
         "contents": {
           "0": {
-            "type": "IRON_SWORD"
+            "type": "IRON_SWORD",
+            "itemMeta": {
+              "displayName": {"text": "Assassin's Knife"}
+            }
           },
           "1": {
             "type": "COOKED_BEEF",

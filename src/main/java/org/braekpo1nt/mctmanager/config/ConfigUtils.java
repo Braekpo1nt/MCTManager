@@ -8,7 +8,7 @@ import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.meta.ItemMetaDT
 
 public class ConfigUtils {
     
-    static final Gson GSON = new GsonBuilder()
+    public static final Gson GSON = new GsonBuilder()
             .registerTypeAdapter(ItemMetaDTO.class, new ItemMetaDTODeserializer())
             .registerTypeAdapter(Component.class, new ComponentAdapter())
             .create();

@@ -16,7 +16,7 @@ import java.util.List;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class PotionMetaDTO extends ItemMetaDTO {
+public class PotionMetaDTO extends ItemMetaDTOImpl {
     
     private @Nullable PotionData basePotionData;
     private @Nullable List<@Nullable PotionEffect> customEffects;
