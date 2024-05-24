@@ -1,10 +1,7 @@
 package org.braekpo1nt.mctmanager.games.game.capturetheflag.config;
 
 import com.google.common.base.Preconditions;
-import com.google.gson.JsonIOException;
-import com.google.gson.JsonSyntaxException;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.Arena;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.Loadout;
@@ -82,11 +79,7 @@ public class CaptureTheFlagStorageUtil extends ConfigStorageUtil<CaptureTheFlagC
             uniqueMenuItems.add(loadout.getMenuItem());
             loadout.isValid();
         }
-        try {
-            GsonComponentSerializer.gson().deserializeFromTree(config.description());
-        } catch (JsonIOException | JsonSyntaxException e) {
-            throw new IllegalArgumentException("description is invalid", e);
-        }
+        Preconditions.checkArgument(config.description() != null, "description");
         return true;
     }
     
@@ -95,7 +88,7 @@ public class CaptureTheFlagStorageUtil extends ConfigStorageUtil<CaptureTheFlagC
         World newWorld = Bukkit.getWorld(config.world());
         Preconditions.checkArgument(newWorld != null, "Could not find world \"%s\"", config.world());
         Location newSpawnObservatory = config.spawnObservatory().toLocation(newWorld);
-        Component newDescription = GsonComponentSerializer.gson().deserializeFromTree(config.description());
+        Component newDescription = config.description();
         Map<String, Loadout> newLoadouts = new HashMap<>();
         for (Map.Entry<String, LoadoutDTO> entry : config.loadouts().entrySet()) {
             String battleClass = entry.getKey();

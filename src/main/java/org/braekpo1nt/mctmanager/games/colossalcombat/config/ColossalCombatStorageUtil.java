@@ -1,10 +1,7 @@
 package org.braekpo1nt.mctmanager.games.colossalcombat.config;
 
 import com.google.common.base.Preconditions;
-import com.google.gson.JsonIOException;
-import com.google.gson.JsonSyntaxException;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.ConfigStorageUtil;
 import org.bukkit.Bukkit;
@@ -102,12 +99,7 @@ public class ColossalCombatStorageUtil extends ConfigStorageUtil<ColossalCombatC
         Preconditions.checkArgument(config.durations() != null, "durations can't be null");
         Preconditions.checkArgument(config.durations().roundStarting() >= 1, "durations.roundStarting must be at least 1");
         Preconditions.checkArgument(config.durations().antiSuffocation() >= 0, "durations.antiSuffocation can't be negative");
-        
-        try {
-            GsonComponentSerializer.gson().deserializeFromTree(config.description());
-        } catch (JsonIOException | JsonSyntaxException e) {
-            throw new IllegalArgumentException("description is invalid", e);
-        }
+        Preconditions.checkArgument(config.description() != null, "description");
         return true;
     }
     
@@ -117,7 +109,7 @@ public class ColossalCombatStorageUtil extends ConfigStorageUtil<ColossalCombatC
         Location newFirstPlaceSpawn = config.firstPlaceSpawn().toLocation(newWorld);
         Location newSecondPlaceSpawn = config.secondPlaceSpawn().toLocation(newWorld);
         Location newSpectatorSpawn = config.spectatorSpawn().toLocation(newWorld);
-        Component newDescription = GsonComponentSerializer.gson().deserializeFromTree(config.description());
+        Component newDescription = config.description();
         ItemStack[] newLoadout;
         if (config.loadout() != null) {
             newLoadout = config.loadout().toInventoryContents();

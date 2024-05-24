@@ -1,10 +1,7 @@
 package org.braekpo1nt.mctmanager.games.game.mecha.config;
 
 import com.google.common.base.Preconditions;
-import com.google.gson.JsonIOException;
-import com.google.gson.JsonSyntaxException;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.ConfigStorageUtil;
 import org.braekpo1nt.mctmanager.config.dto.YawPitch;
@@ -119,11 +116,7 @@ public class MechaStorageUtil extends ConfigStorageUtil<MechaConfig> {
                 "durations.invulnerability (%s) can't be negative", config.durations().invulnerability());
         Preconditions.checkArgument(config.durations().end() >= 0, 
                 "durations.end (%s) can't be negative", config.durations().end());
-        try {
-            GsonComponentSerializer.gson().deserializeFromTree(config.description());
-        } catch (JsonIOException | JsonSyntaxException e) {
-            throw new IllegalArgumentException("description is invalid", e);
-        }
+        Preconditions.checkArgument(config.description() != null, "description");
         return true;
     }
     
@@ -186,7 +179,7 @@ public class MechaStorageUtil extends ConfigStorageUtil<MechaConfig> {
             newAdminSpawn.setYaw(direction.yaw());
             newAdminSpawn.setPitch(direction.pitch());
         }
-        Component newDescription = GsonComponentSerializer.gson().deserializeFromTree(config.description());
+        Component newDescription = config.description();
         // now it's confirmed everything works, so set the actual fields
         this.world = newWorld;
         this.weightedMechaLootTables = newWeightedMechaLootTables;

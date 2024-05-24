@@ -1,10 +1,12 @@
 package org.braekpo1nt.mctmanager.games.colossalcombat.config;
 
-import com.google.gson.JsonElement;
+import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.util.BoundingBoxDTO;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.LocationDTO;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.PlayerInventoryDTO;
 import org.jetbrains.annotations.Nullable;
+
+import java.awt.*;
 
 /**
  * 
@@ -23,7 +25,7 @@ import org.jetbrains.annotations.Nullable;
  * @param durations
  * @param description
  */
-record ColossalCombatConfig(String version, String world, BoundingBoxDTO spectatorArea, LocationDTO firstPlaceSpawn, LocationDTO secondPlaceSpawn, LocationDTO spectatorSpawn, int requiredWins, @Nullable PlayerInventoryDTO loadout, Gate firstPlaceGate, Gate secondPlaceGate, BoundingBoxDTO removeArea, BoundingBoxDTO firstPlaceSupport, BoundingBoxDTO secondPlaceSupport, Durations durations, JsonElement description) {
+record ColossalCombatConfig(String version, String world, BoundingBoxDTO spectatorArea, LocationDTO firstPlaceSpawn, LocationDTO secondPlaceSpawn, LocationDTO spectatorSpawn, int requiredWins, @Nullable PlayerInventoryDTO loadout, Gate firstPlaceGate, Gate secondPlaceGate, BoundingBoxDTO removeArea, BoundingBoxDTO firstPlaceSupport, BoundingBoxDTO secondPlaceSupport, Durations durations, Component description) {
     record Gate(BoundingBoxDTO clearArea, BoundingBoxDTO placeArea, BoundingBoxDTO stone, BoundingBoxDTO antiSuffocationArea) {
     }
     

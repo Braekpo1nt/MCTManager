@@ -1,13 +1,9 @@
 package org.braekpo1nt.mctmanager.games.game.parkourpathway.config;
 
 import com.google.common.base.Preconditions;
-import com.google.gson.JsonIOException;
-import com.google.gson.JsonSyntaxException;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.util.BoundingBoxDTO;
-import org.braekpo1nt.mctmanager.config.ConfigUtils;
 import org.braekpo1nt.mctmanager.config.ConfigStorageUtil;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.TeamSpawn;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.puzzle.Puzzle;
@@ -71,17 +67,7 @@ public class ParkourPathwayStorageUtil extends ConfigStorageUtil<ParkourPathwayC
         if (config.getTeamSpawns() != null) {
             teamSpawnsIsValid(config.getTeamSpawns(), config.getPuzzles().get(0));
         }
-        if (config.getGlassBarrierOpenMessage() != null) {
-            ConfigUtils.toComponent(config.getGlassBarrierOpenMessage());
-        }
-        if (config.getTeamSpawnsOpenMessage() != null) {
-            ConfigUtils.toComponent(config.getTeamSpawnsOpenMessage());
-        }
-        try {
-            GsonComponentSerializer.gson().deserializeFromTree(config.getDescription());
-        } catch (JsonIOException | JsonSyntaxException e) {
-            throw new IllegalArgumentException("description is invalid", e);
-        }
+        Preconditions.checkArgument(config.getDescription() != null, "description");
         return true;
     }
     
@@ -192,15 +178,9 @@ public class ParkourPathwayStorageUtil extends ConfigStorageUtil<ParkourPathwayC
         }
         List<Puzzle> newPuzzles = PuzzleDTO.toPuzzles(newWorld, config.getPuzzles());
         Location newStartingLocation = newPuzzles.get(0).checkPoints().get(0).respawn();
-        Component newGlassBarrierOpenMessage = null;
-        if (config.getGlassBarrierOpenMessage() != null) {
-            newGlassBarrierOpenMessage = ConfigUtils.toComponent(config.getGlassBarrierOpenMessage());
-        }
-        Component newTeamSpawnsOpenMessage = null;
-        if (config.getTeamSpawnsOpenMessage() != null) {
-            newTeamSpawnsOpenMessage = ConfigUtils.toComponent(config.getTeamSpawnsOpenMessage());
-        }
-        Component newDescription = GsonComponentSerializer.gson().deserializeFromTree(config.getDescription());
+        Component newGlassBarrierOpenMessage = config.getGlassBarrierOpenMessage();
+        Component newTeamSpawnsOpenMessage = config.getTeamSpawnsOpenMessage();
+        Component newDescription = config.getDescription();
         // now it's confirmed everything works, so set the actual fields
         this.world = newWorld;
         this.startingLocation = newStartingLocation;

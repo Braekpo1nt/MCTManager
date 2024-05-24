@@ -1,7 +1,7 @@
 package org.braekpo1nt.mctmanager.games.game.mecha.config;
 
 import com.google.common.base.Preconditions;
-import com.google.gson.JsonElement;
+import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.util.BoundingBoxDTO;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.NamespacedKeyDTO;
 import org.braekpo1nt.mctmanager.config.dto.YawPitch;
@@ -25,7 +25,7 @@ import java.util.List;
  * @param durations
  * @param description
  */
-record MechaConfig (String version, String world, BoundingBoxDTO spectatorArea, BoundingBoxDTO removeArea, BorderDTO border, NamespacedKeyDTO spawnLootTable, List<WeightedNamespacedKey> weightedMechaLootTables, List<Vector> spawnChestCoords, List<Vector> mapChestCoords, Vector platformCenter, List<Platform> platforms, Scores scores, Durations durations, JsonElement description) {
+record MechaConfig (String version, String world, BoundingBoxDTO spectatorArea, BoundingBoxDTO removeArea, BorderDTO border, NamespacedKeyDTO spawnLootTable, List<WeightedNamespacedKey> weightedMechaLootTables, List<Vector> spawnChestCoords, List<Vector> mapChestCoords, Vector platformCenter, List<Platform> platforms, Scores scores, Durations durations, Component description) {
     
     /**
      * 

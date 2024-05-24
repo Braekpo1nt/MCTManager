@@ -1,9 +1,9 @@
 package org.braekpo1nt.mctmanager.games.game.parkourpathway.config;
 
-import com.google.gson.JsonElement;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.util.BoundingBoxDTO;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.puzzle.Puzzle;
 import org.jetbrains.annotations.Nullable;
@@ -24,7 +24,7 @@ class ParkourPathwayConfig {
     /**
      * The chat message sent to all participants when the glass barrier opens. Null means no message will be sent.
      */
-    private @Nullable JsonElement glassBarrierOpenMessage;
+    private @Nullable Component glassBarrierOpenMessage;
     /**
      * the list of team spawn locations. If null, the team spawn phase will be skipped. Each {@link TeamSpawnDTO#getBarrierArea()} and {@link TeamSpawnDTO#getSpawn()} must be contained in the inBounds area of the first puzzle.
      */
@@ -32,13 +32,13 @@ class ParkourPathwayConfig {
     /**
      * The chat message sent to all participants when the team spawns open. Null means no message will be sent.
      */
-    private @Nullable JsonElement teamSpawnsOpenMessage;
+    private @Nullable Component teamSpawnsOpenMessage;
     /** the list of puzzles for this parkour game */
     private List<PuzzleDTO> puzzles;
     private BoundingBoxDTO spectatorArea;
     private Scores scores;
     private Durations durations;
-    private JsonElement description;
+    private Component description;
     
     /**
      * Set this config's {@link ParkourPathwayConfig#puzzles} to be the given list of {@link Puzzle} objects

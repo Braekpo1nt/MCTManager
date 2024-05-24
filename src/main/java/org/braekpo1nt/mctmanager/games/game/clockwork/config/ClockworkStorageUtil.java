@@ -1,10 +1,7 @@
 package org.braekpo1nt.mctmanager.games.game.clockwork.config;
 
 import com.google.common.base.Preconditions;
-import com.google.gson.JsonIOException;
-import com.google.gson.JsonSyntaxException;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.clockwork.Wedge;
 import org.braekpo1nt.mctmanager.config.ConfigStorageUtil;
@@ -68,11 +65,7 @@ public class ClockworkStorageUtil extends ConfigStorageUtil<ClockworkConfig> {
         Preconditions.checkArgument(config.durations().breather() >= 0, "durations.breather can't be negative");
         Preconditions.checkArgument(config.durations().getToWedge() >= 0, "durations.getToWedge can't be negative");
         Preconditions.checkArgument(config.durations().stayOnWedge() >= 0, "durations.stayOnWedge can't be negative");
-        try {
-            GsonComponentSerializer.gson().deserializeFromTree(config.description());
-        } catch (JsonIOException | JsonSyntaxException e) {
-            throw new IllegalArgumentException("description is invalid", e);
-        }
+        Preconditions.checkArgument(config.description() != null, "description");
         return true;
     }
     
@@ -119,7 +112,7 @@ public class ClockworkStorageUtil extends ConfigStorageUtil<ClockworkConfig> {
         for (ClockworkConfig.WedgeDTO wedgeDTO : config.wedges()) {
             newWedges.add(new Wedge(wedgeDTO.detectionArea().toBoundingBox()));
         }
-        Component newDescription = GsonComponentSerializer.gson().deserializeFromTree(config.description());
+        Component newDescription = config.description();
         // now it's confirmed everything works, so set the actual fields
         this.world = newWorld;
         this.startingLocation = newStartingLocation;

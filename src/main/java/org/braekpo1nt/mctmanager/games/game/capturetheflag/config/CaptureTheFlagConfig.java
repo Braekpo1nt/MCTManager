@@ -1,7 +1,7 @@
 package org.braekpo1nt.mctmanager.games.game.capturetheflag.config;
 
 
-import com.google.gson.JsonElement;
+import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.Arena;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.util.BoundingBoxDTO;
 import org.bukkit.util.Vector;
@@ -9,7 +9,7 @@ import org.bukkit.util.Vector;
 import java.util.List;
 import java.util.Map;
 
-record CaptureTheFlagConfig(String version, String world, Vector spawnObservatory, List<ArenaDTO> arenas, Map<String, LoadoutDTO> loadouts, BoundingBoxDTO spectatorArea, Scores scores, Durations durations, JsonElement description) {
+record CaptureTheFlagConfig(String version, String world, Vector spawnObservatory, List<ArenaDTO> arenas, Map<String, LoadoutDTO> loadouts, BoundingBoxDTO spectatorArea, Scores scores, Durations durations, Component description) {
     
     record ArenaDTO(Vector northSpawn, Vector southSpawn, Vector northFlag, Vector southFlag, Vector northBarrier, Vector southBarrier, Arena.BarrierSize barrierSize, BoundingBoxDTO boundingBox) {
     }

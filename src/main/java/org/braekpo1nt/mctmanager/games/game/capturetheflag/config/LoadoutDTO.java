@@ -1,10 +1,8 @@
 package org.braekpo1nt.mctmanager.games.game.capturetheflag.config;
 
 import com.google.common.base.Preconditions;
-import com.google.gson.JsonElement;
-import lombok.Getter;
+import lombok.Data;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.Loadout;
-import org.braekpo1nt.mctmanager.config.ConfigUtils;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.PlayerInventoryDTO;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.meta.ItemMetaDTO;
 import org.bukkit.Material;
@@ -19,12 +17,12 @@ import java.util.List;
  * Represents a loadout for a BattleClass
  *
  */
-@Getter
+@Data
 class LoadoutDTO {
     /**
      * The name of this loadout (used in chat messages to communicate to the player which loadout they chose)
      */
-    private @Nullable JsonElement name;
+    private @Nullable Component name;
     /**
      * the item Material Type to use in the ClassPicker menu to represent the BattleClass
      */
@@ -32,7 +30,7 @@ class LoadoutDTO {
     /**
      * the description of the class in the form of item lore
      */
-    private @Nullable List<@Nullable JsonElement> menuLore;
+    private @Nullable List<@Nullable Component> menuLore;
     /**
      * optional item meta for the ClassPicker menu. (for example, if a particular potion is desired). The name and lore will be overwritten by this LoadoutDTO's name and menuLore.
      */
@@ -46,7 +44,6 @@ class LoadoutDTO {
         Preconditions.checkArgument(name != null, "name can't be null");
         Preconditions.checkArgument(menuItem != null, "menuItem can't be null");
         Preconditions.checkArgument(menuLore != null, "lore can't be null");
-        ItemMetaDTO.toLore(menuLore);
         if (menuMeta != null) {
             menuMeta.isValid();
         }
@@ -55,23 +52,21 @@ class LoadoutDTO {
     }
     
     @NotNull Loadout toLoadout() {
-        Component menuName = ConfigUtils.toComponent(name);
         ItemStack[] contents;
         if (inventory != null) {
             contents = inventory.toInventoryContents();
         } else {
             contents = new ItemStack[0]; //allowed to be 0
         }
-        List<Component> menuDescription = ItemMetaDTO.toLore(menuLore);
         Preconditions.checkState(menuItem != null, "menuItem can't be null when toLoadout is called");
         ItemStack newMenuItem = new ItemStack(menuItem);
         if (menuMeta != null) {
             newMenuItem.editMeta(meta -> menuMeta.toItemMeta(meta, newMenuItem.getType()));
         }
         newMenuItem.editMeta(meta -> {
-            meta.displayName(menuName);
-            meta.lore(menuDescription);
+            meta.displayName(name);
+            meta.lore(menuLore);
         });
-        return new Loadout(menuName, newMenuItem, contents);
+        return new Loadout(name, newMenuItem, contents);
     }
 }

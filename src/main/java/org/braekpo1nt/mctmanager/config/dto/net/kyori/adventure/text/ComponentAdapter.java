@@ -13,7 +13,11 @@ public class ComponentAdapter implements JsonSerializer<Component>, JsonDeserial
         if (src == null) {
             return null;
         }
-        return GsonComponentSerializer.gson().serializeToTree(src);
+        try {
+            return GsonComponentSerializer.gson().serializeToTree(src);
+        } catch (JsonIOException | JsonSyntaxException e) {
+            throw new JsonSyntaxException(String.format("Could not serialize component, %s", src), e);
+        }
     }
     
     @Override
@@ -21,6 +25,10 @@ public class ComponentAdapter implements JsonSerializer<Component>, JsonDeserial
         if (json == null) {
             return null;
         }
-        return GsonComponentSerializer.gson().deserializeFromTree(json);
+        try {
+            return GsonComponentSerializer.gson().deserializeFromTree(json);
+        } catch (JsonIOException | JsonSyntaxException e) {
+            throw new JsonSyntaxException(String.format("Could not deserialize component from the given json string \"%s\"", json), e);
+        }
     }
 }

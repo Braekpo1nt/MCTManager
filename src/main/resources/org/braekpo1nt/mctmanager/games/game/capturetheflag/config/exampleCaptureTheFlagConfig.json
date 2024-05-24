@@ -193,9 +193,9 @@
       "menuItem": "STONE_SWORD",
       "name": "Knight",
       "menuLore": [
-        {"text":"- Stone Sword"},
-        {"text":"- Chest Plate"},
-        {"text":"- Boots"}
+        "- Stone Sword",
+        "- Chest Plate",
+        "- Boots"
       ],
       "inventory": {
         "contents": {
@@ -251,23 +251,21 @@
       "menuItem": "IRON_SWORD",
       "name": "Assassin",
       "menuLore": [
-        {"text":"- Iron Sword"},
-        {"text":"- Leather Leggings"}
+        {
+          "text": "- Iron Sword"
+        },
+        {
+          "text": "- Leather Leggings"
+        }
       ],
       "inventory": {
         "contents": {
           "0": {
-            "type": "IRON_SWORD",
-            "itemMeta": {
-              "displayName": "Assassin's Knife"
-            }
+            "type": "IRON_SWORD"
           },
           "1": {
             "type": "COOKED_BEEF",
             "amount": 2
-          },
-          "37": {
-            "type": "LEATHER_LEGGINGS"
           }
         }
       }
@@ -276,9 +274,9 @@
       "menuItem": "LEATHER_CHESTPLATE",
       "name": "Tank",
       "menuLore": [
-        {"text":"- Full Leather Armor"},
-        {"text":"- Chainmail Leggings"},
-        {"text":"- Iron Hoe"}
+        "- Full Leather Armor",
+        "- Chainmail Leggings",
+        "- Iron Hoe"
       ],
       "inventory": {
         "contents": {
@@ -305,9 +303,9 @@
       "name": "Healer",
       "menuItem": "SPLASH_POTION",
       "menuLore": [
-        {"text":"- Some Leather Armor"},
-        {"text":"- Wooden Sword"},
-        {"text":"- 2 Healing Potions"}
+        "- Some Leather Armor",
+        "- Wooden Sword",
+        "- 2 Healing Potions"
       ],
       "menuMeta": {
         "basePotionData": {

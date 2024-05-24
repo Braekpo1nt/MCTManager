@@ -1,10 +1,7 @@
 package org.braekpo1nt.mctmanager.games.game.footrace.config;
 
 import com.google.common.base.Preconditions;
-import com.google.gson.JsonIOException;
-import com.google.gson.JsonSyntaxException;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.ConfigStorageUtil;
 import org.bukkit.Bukkit;
@@ -53,12 +50,7 @@ public class FootRaceStorageUtil extends ConfigStorageUtil<FootRaceConfig> {
         Preconditions.checkArgument(config.durations() != null, "durations can't be null");
         Preconditions.checkArgument(config.durations().startRace() >= 0, "durations.startRace (%s) can't be negative", config.durations().startRace());
         Preconditions.checkArgument(config.durations().raceEndCountdown() >= 0, "durations.raceEndCountdown (%s) can't be negative", config.durations().raceEndCountdown());
-        Preconditions.checkArgument(config.description() != null, "description can't be null");
-        try {
-            GsonComponentSerializer.gson().deserializeFromTree(config.description());
-        } catch (JsonIOException | JsonSyntaxException e) {
-            throw new IllegalArgumentException("description is invalid", e);
-        }
+        Preconditions.checkArgument(config.description() != null, "description");
         return true;
         
     }
@@ -68,7 +60,7 @@ public class FootRaceStorageUtil extends ConfigStorageUtil<FootRaceConfig> {
         World newWorld = Bukkit.getWorld(config.world());
         Preconditions.checkArgument(newWorld != null, "Could not find world \"%s\"", config.world());
         Location newStartingLocation = config.startingLocation().toLocation(newWorld);
-        Component newDescription = GsonComponentSerializer.gson().deserializeFromTree(config.description());
+        Component newDescription = config.description();
         // now it's confirmed everything works, so set the actual fields
         this.world = newWorld;
         this.startingLocation = newStartingLocation;
