@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.config.dto.inventory;
 
 import com.google.common.base.Preconditions;
+import lombok.Data;
 import org.braekpo1nt.mctmanager.config.dto.enchantments.EnchantmentDTO;
 import org.braekpo1nt.mctmanager.config.dto.inventory.meta.ItemMetaDTO;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
@@ -14,6 +15,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
+@Data
 public class ItemStackDTO implements Validatable {
     /**
      * The type of the item

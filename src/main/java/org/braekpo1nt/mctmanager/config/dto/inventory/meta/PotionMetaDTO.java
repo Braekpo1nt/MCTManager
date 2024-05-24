@@ -1,8 +1,8 @@
 package org.braekpo1nt.mctmanager.config.dto.inventory.meta;
 
 import com.google.common.base.Preconditions;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.bukkit.Color;
 import org.bukkit.Material;
@@ -14,8 +14,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-@Getter
-@AllArgsConstructor
+@Data
+@EqualsAndHashCode(callSuper = true)
 public class PotionMetaDTO extends ItemMetaDTO {
     
     private @Nullable PotionData basePotionData;

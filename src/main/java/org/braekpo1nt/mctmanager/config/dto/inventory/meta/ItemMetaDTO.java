@@ -4,6 +4,7 @@ import com.destroystokyo.paper.Namespaced;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
+import lombok.Data;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.config.ConfigUtils;
 import org.braekpo1nt.mctmanager.config.validation.ConfigInvalidException;
@@ -21,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+@Data
 public class ItemMetaDTO implements Validatable {
     /**
      * A JsonElement to be converted to a Component
