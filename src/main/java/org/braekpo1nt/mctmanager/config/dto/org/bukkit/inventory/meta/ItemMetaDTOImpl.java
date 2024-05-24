@@ -31,6 +31,54 @@ public class ItemMetaDTOImpl implements ItemMetaDTO, Validatable {
     protected @Nullable Map<Attribute, List<AttributeModifier>> attributeModifiers;
     protected @Nullable Set<Namespaced> destroyableKeys;
     protected @Nullable Set<Namespaced> placeableKeys;
+    protected @Nullable Integer customModelData;
+    
+    @Override
+    public Component displayName() {
+        return displayName;
+    }
+    
+    @Override
+    public void displayName(final @Nullable Component displayName) {
+        this.displayName = displayName;
+    }
+    
+    @Override
+    public boolean hasDisplayName() {
+        return this.displayName != null;
+    }
+    
+    @Override
+    public List<Component> lore() {
+        return lore;
+    }
+    
+    @Override
+    public void lore(@Nullable List<Component> lore) {
+        this.lore = lore;
+    }
+    
+    @Override
+    public boolean hasLore() {
+        return this.lore != null;
+    }
+    
+    @Override
+    public boolean hasCustomModelData() {
+        return this.customModelData != null;
+    }
+    
+    /**
+     * Check if this ItemMetaDTOImpl has customModelData first with the {@link ItemMetaDTOImpl#hasCustomModelData()}
+     * @return the customModelData, if this ItemMetaDTOImpl has one
+     * @throws IllegalStateException if {@link ItemMetaDTOImpl#customModelData} is null
+     */
+    public int getCustomModelData() {
+        if (this.customModelData == null) {
+            throw new IllegalStateException("customModelData is null (this ItemMetaDTO does not have customModelData)");
+        }
+        return this.customModelData;
+    }
     
     @Override
     public void validate(Validator validator) {

@@ -152,9 +152,10 @@ record SpleefConfigDTO(String version, String world, List<Vector> startingLocati
             if (sources != null) {
                 validator.validate(!sources.containsKey(null), "sources can't have null keys");
                 validator.validate(!sources.containsValue(null), "sources can't have null entries");
-                for (SourceDTO sourceDTO : sources.values()) {
+                for (Map.Entry<Powerup.Source, SourceDTO> entry : sources.entrySet()) {
+                    SourceDTO sourceDTO = entry.getValue();
                     if (sourceDTO != null) {
-                        sourceDTO.validate(validator);
+                        sourceDTO.validate(validator.path("sources[%s]", entry.getKey()));
                     }
                 }
             }
