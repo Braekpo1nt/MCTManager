@@ -19,4 +19,5 @@ public class ItemMetaDTODeserializer implements JsonDeserializer<ItemMetaDTO> {
         }
         return Main.GSON.fromJson(json, ItemMetaDTO.class);
     }
+    
 }

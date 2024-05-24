@@ -1,11 +1,8 @@
 package org.braekpo1nt.mctmanager.games.game.spleef.config;
 
 import com.google.common.base.Preconditions;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonIOException;
-import com.google.gson.JsonSyntaxException;
 import lombok.Data;
-import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
+import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.util.BoundingBoxDTO;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.NamespacedKeyDTO;
@@ -39,7 +36,7 @@ import java.util.stream.Collectors;
  * @param durations the durations for spleef
  * @param description the description of spleef
  */
-record SpleefConfigDTO(String version, String world, List<Vector> startingLocations, BoundingBoxDTO spectatorArea, @Nullable Material stencilBlock, @Nullable Material layerBlock, @Nullable Material decayBlock, List<Layer> layers, List<DecayStageDTO> decayStages, @Nullable ItemStackDTO tool, int rounds, Powerups powerups, Scores scores, Durations durations, JsonElement description) implements Validatable {
+record SpleefConfigDTO(String version, String world, List<Vector> startingLocations, BoundingBoxDTO spectatorArea, @Nullable Material stencilBlock, @Nullable Material layerBlock, @Nullable Material decayBlock, List<Layer> layers, List<DecayStageDTO> decayStages, @Nullable ItemStackDTO tool, int rounds, Powerups powerups, Scores scores, Durations durations, Component description) implements Validatable {
     
     @Override
     public void validate(Validator validator) throws ConfigInvalidException {
@@ -80,11 +77,7 @@ record SpleefConfigDTO(String version, String world, List<Vector> startingLocati
         validator.validate(this.durations() != null, "durations can't be null");
         validator.validate(this.durations.roundStarting() >= 0, "durations.roundStarting (%s) can't be negative", this.durations.roundStarting());
         validator.validate(this.durations.roundEnding() >= 0, "duration.roundEnding (%s) can't be negative", this.durations.roundEnding());
-        try {
-            GsonComponentSerializer.gson().deserializeFromTree(this.description());
-        } catch (JsonIOException | JsonSyntaxException e) {
-            throw new IllegalArgumentException("description is invalid", e);
-        }
+        validator.notNull(this.description, "description");
     }
     
     /**

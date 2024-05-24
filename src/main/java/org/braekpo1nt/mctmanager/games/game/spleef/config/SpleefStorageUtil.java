@@ -1,10 +1,8 @@
 package org.braekpo1nt.mctmanager.games.game.spleef.config;
 
 import com.google.common.base.Preconditions;
-import lombok.val;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.braekpo1nt.mctmanager.config.ConfigStorageUtil;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.braekpo1nt.mctmanager.games.game.spleef.DecayStage;
@@ -99,7 +97,7 @@ public class SpleefStorageUtil extends ConfigStorageUtil<SpleefConfigDTO> {
         } else {
             newTool = config.tool().toItemStack();
         }
-        Component newDescription = GsonComponentSerializer.gson().deserializeFromTree(config.description());
+        Component newDescription = config.description();
         // now it's confirmed everything works, so set the actual fields
         this.userSounds = new HashMap<>(Powerup.Type.values().length);
         this.affectedSounds = new HashMap<>(Powerup.Type.values().length);
