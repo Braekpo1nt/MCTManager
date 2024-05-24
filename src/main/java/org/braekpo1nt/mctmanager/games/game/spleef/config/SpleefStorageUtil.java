@@ -61,8 +61,8 @@ public class SpleefStorageUtil extends ConfigStorageUtil<SpleefConfigDTO> {
     @Override
     protected boolean configIsValid(@Nullable SpleefConfigDTO config) throws IllegalArgumentException {
         Validator validator = new Validator();
-        validator.notNull(config, "config");
-        config.validate(validator.path("config"));
+        validator.notNull(config, "spleefConfig");
+        config.validate(validator.path("spleefConfig"));
         return true;
     }
     

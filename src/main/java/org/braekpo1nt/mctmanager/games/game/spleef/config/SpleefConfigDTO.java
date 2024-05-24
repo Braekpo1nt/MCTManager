@@ -56,24 +56,19 @@ record SpleefConfigDTO(String version, String world, List<Vector> startingLocati
         validator.validate(numberOfLayers >= 2, "there must be at least 2 layers");
         for (int i = 0; i < layers.size(); i++) {
             Layer layer = layers.get(i);
-            validator.validate(layer != null, "layers[%d] can't be null", i);
+            validator.notNull(layer, "layers[%d]", i);
             layer.validate(validator.path("layers[%d]", i));
         }
-        validator.validate(this.decayStages() != null, "decayStages can't be null");
+        
+        validator.notNull(this.decayStages, "decayStages");
         validator.validate(this.decayStages.size() > 0, "decayStages must have at least one entry");
-        for (DecayStageDTO decayStageDTO : this.decayStages) {
-            validator.validate(decayStageDTO.getLayerInfos() != null, "decayStages.layers can't be null");
-            // make sure index is between 0 and the max index for decayLayers 
-            // also make sure there are no duplicate indexes
-            Set<Integer> usedIndexes = new HashSet<>(decayStageDTO.getLayerInfos().size());
-            for (DecayStageDTO.LayerInfoDTO layerInfo : decayStageDTO.getLayerInfos()) {
-                validator.validate(0 <= layerInfo.getIndex() && layerInfo.getIndex() < numberOfLayers, "layerInfo.index must be at least 0, and at most 1 less than the number of elements in layers list");
-                validator.validate(layerInfo.getSolidBlockRate() >= 0, "layerInfo.solidBlockRate must be at least 0");
-                validator.validate(!usedIndexes.contains(layerInfo.getIndex()), "decayStage.layerInfos entries can't have duplicate index values (%s)", layerInfo.getIndex());
-                usedIndexes.add(layerInfo.getIndex());
-            }
-            validator.validate(decayStageDTO.getDuration() > 0, "decayStage.duration must be at least 1");
+        for (int i = 0; i < decayStages.size(); i++) {
+            DecayStageDTO decayStageDTO = decayStages.get(i);
+            validator.notNull(decayStageDTO, "decayStages[%d]", i);
+            decayStageDTO.validate(validator.path("decayStages[%d]", i));
+            decayStageDTO.validateIndexes(validator.path("decayStages[%d]", i), numberOfLayers);
         }
+        
         if (this.tool() != null) {
             this.tool().validate(validator.path("tool"));
         }
