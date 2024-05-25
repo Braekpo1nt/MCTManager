@@ -108,7 +108,7 @@ public class DecayManager implements Listener {
      * @return true if there is a next stage, false if the current stage is the last stage
      */
     private boolean hasNextStage() {
-        return currentStageIndex + 1 < storageUtil.getStages().size();
+        return currentStageIndex + 1 < storageUtil.getConfig2().getStages().size();
     }
     
     /**
@@ -119,11 +119,11 @@ public class DecayManager implements Listener {
             currentStage.clearBlocks();
         }
         currentStageIndex++;
-        currentStage = storageUtil.getStages().get(currentStageIndex);
+        currentStage = storageUtil.getConfig2().getStages().get(currentStageIndex);
         for (DecayStage.LayerInfo layerInfo : currentStage.getLayerInfos()) {
-            BoundingBox decayLayer = storageUtil.getDecayLayers().get(layerInfo.getIndex());
-            layerInfo.setSolidBlocks(BlockPlacementUtils.getBlocks(storageUtil.getWorld(), decayLayer, Collections.singletonList(storageUtil.getLayerBlock())));
-            layerInfo.setDecayingBlocks(BlockPlacementUtils.getBlocks(storageUtil.getWorld(), decayLayer, Collections.singletonList(storageUtil.getDecayBlock())));
+            BoundingBox decayLayer = storageUtil.getConfig2().getDecayLayers().get(layerInfo.getIndex());
+            layerInfo.setSolidBlocks(BlockPlacementUtils.getBlocks(storageUtil.getConfig2().getWorld(), decayLayer, Collections.singletonList(storageUtil.getConfig2().getLayerBlock())));
+            layerInfo.setDecayingBlocks(BlockPlacementUtils.getBlocks(storageUtil.getConfig2().getWorld(), decayLayer, Collections.singletonList(storageUtil.getConfig2().getDecayBlock())));
         }
         secondsLeft = currentStage.getDuration();
         if (currentStage.getStartMessage() != null) {
@@ -143,7 +143,7 @@ public class DecayManager implements Listener {
         for (int i = 0; i < Math.min(count, solidBlocks.size()); i++) {
             int indexToDecay = random.nextInt(solidBlocks.size());
             Block newDecayingBlock = solidBlocks.get(indexToDecay);
-            newDecayingBlock.setType(storageUtil.getDecayBlock());
+            newDecayingBlock.setType(storageUtil.getConfig2().getDecayBlock());
             solidBlocks.remove(indexToDecay);
             decayingBlocks.add(newDecayingBlock);
         }
@@ -170,11 +170,11 @@ public class DecayManager implements Listener {
         }
         Block block = event.getBlock();
         Material blockType = block.getType();
-        if (!blockType.equals(storageUtil.getDecayBlock()) && !blockType.equals(storageUtil.getLayerBlock())) {
+        if (!blockType.equals(storageUtil.getConfig2().getDecayBlock()) && !blockType.equals(storageUtil.getConfig2().getLayerBlock())) {
             return;
         }
         Location blockLocation = block.getLocation();
-        if (!blockLocation.getWorld().equals(storageUtil.getWorld())) {
+        if (!blockLocation.getWorld().equals(storageUtil.getConfig2().getWorld())) {
             return;
         }
         Vector blockVector = blockLocation.toVector();
@@ -182,11 +182,11 @@ public class DecayManager implements Listener {
         if (layerBlockIsIn == null) {
             return;
         }
-        if (blockType.equals(storageUtil.getLayerBlock())) {
+        if (blockType.equals(storageUtil.getConfig2().getLayerBlock())) {
             layerBlockIsIn.getSolidBlocks().add(block);
             return;
         }
-        if (blockType.equals(storageUtil.getDecayBlock())) {
+        if (blockType.equals(storageUtil.getConfig2().getDecayBlock())) {
             layerBlockIsIn.getDecayingBlocks().add(block);
         }
     }
@@ -198,11 +198,11 @@ public class DecayManager implements Listener {
         }
         Block block = event.getBlock();
         Material blockType = block.getType();
-        if (!blockType.equals(storageUtil.getDecayBlock()) && !blockType.equals(storageUtil.getLayerBlock())) {
+        if (!blockType.equals(storageUtil.getConfig2().getDecayBlock()) && !blockType.equals(storageUtil.getConfig2().getLayerBlock())) {
             return;
         }
         Location blockLocation = block.getLocation();
-        if (!blockLocation.getWorld().equals(storageUtil.getWorld())) {
+        if (!blockLocation.getWorld().equals(storageUtil.getConfig2().getWorld())) {
             return;
         }
         Vector blockVector = blockLocation.toVector();
@@ -210,11 +210,11 @@ public class DecayManager implements Listener {
         if (layerBlockIsIn == null) {
             return;
         }
-        if (blockType.equals(storageUtil.getLayerBlock())) {
+        if (blockType.equals(storageUtil.getConfig2().getLayerBlock())) {
             layerBlockIsIn.getSolidBlocks().remove(block);
             return;
         }
-        if (blockType.equals(storageUtil.getDecayBlock())) {
+        if (blockType.equals(storageUtil.getConfig2().getDecayBlock())) {
             layerBlockIsIn.getDecayingBlocks().remove(block);
         }
     }
@@ -227,7 +227,7 @@ public class DecayManager implements Listener {
      */
     private @Nullable DecayStage.LayerInfo getLayerBlockIsIn(Vector blockVector) {
         for (DecayStage.LayerInfo layerInfo : currentStage.getLayerInfos()) {
-            BoundingBox decayLayer = storageUtil.getDecayLayers().get(layerInfo.getIndex());
+            BoundingBox decayLayer = storageUtil.getConfig2().getDecayLayers().get(layerInfo.getIndex());
             if (decayLayer.contains(blockVector)) {
                 return layerInfo;
             }

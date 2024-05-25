@@ -62,8 +62,8 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
             initializeParticipant(participant);
         }
         initializeSidebar();
-        rounds = new ArrayList<>(storageUtil.getRounds());
-        for (int i = 0; i < storageUtil.getRounds(); i++) {
+        rounds = new ArrayList<>(storageUtil.getConfig2().getRounds());
+        for (int i = 0; i < storageUtil.getConfig2().getRounds(); i++) {
             rounds.add(new SpleefRound(plugin, gameManager, this, storageUtil, sidebar, adminSidebar));
         }
         currentRoundIndex = 0;
@@ -76,7 +76,7 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
     }
     
     private void displayDescription() {
-        messageAllParticipants(storageUtil.getDescription());
+        messageAllParticipants(storageUtil.getConfig2().getDescription());
     }
     
     private void initializeParticipant(Player participant) {
@@ -99,7 +99,7 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
         initializeAdmin(admin);
         adminSidebar.updateLines(admin.getUniqueId(),
                 new KeyLine("title", title),
-                new KeyLine("round", String.format("Round %d/%d", currentRoundIndex+1, storageUtil.getRounds()))
+                new KeyLine("round", String.format("Round %d/%d", currentRoundIndex+1, storageUtil.getConfig2().getRounds()))
         );
     }
     
@@ -113,7 +113,7 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
         admins.add(admin);
         adminSidebar.addPlayer(admin);
         admin.setGameMode(GameMode.SPECTATOR);
-        admin.teleport(storageUtil.getStartingLocations().get(0));
+        admin.teleport(storageUtil.getConfig2().getStartingLocations().get(0));
     }
     
     @Override
@@ -199,7 +199,7 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
         initializeParticipant(participant);
         sidebar.updateLines(participant.getUniqueId(),
                 new KeyLine("title", title),
-                new KeyLine("round", String.format("Round %d/%d", currentRoundIndex+1, storageUtil.getRounds()))
+                new KeyLine("round", String.format("Round %d/%d", currentRoundIndex+1, storageUtil.getConfig2().getRounds()))
         );
         if (currentRoundIndex < rounds.size()) {
             SpleefRound currentRound = rounds.get(currentRoundIndex);
@@ -248,7 +248,7 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
     private void initializeAdminSidebar() {
         adminSidebar.addLines(
                 new KeyLine("title", title),
-                new KeyLine("round", String.format("Round %d/%d", 1, storageUtil.getRounds())),
+                new KeyLine("round", String.format("Round %d/%d", 1, storageUtil.getConfig2().getRounds())),
                 new KeyLine("timer", "")
         );
     }
@@ -263,7 +263,7 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
                 new KeyLine("personalTeam", ""),
                 new KeyLine("personalScore", ""),
                 new KeyLine("title", title),
-                new KeyLine("round", String.format("Round %d/%d", 1, storageUtil.getRounds())),
+                new KeyLine("round", String.format("Round %d/%d", 1, storageUtil.getConfig2().getRounds())),
                 new KeyLine("timer", "")
         );
     }

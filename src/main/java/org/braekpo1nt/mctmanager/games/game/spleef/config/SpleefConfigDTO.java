@@ -1,24 +1,28 @@
 package org.braekpo1nt.mctmanager.games.game.spleef.config;
 
 import com.google.common.base.Preconditions;
-import lombok.Data;
+import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.util.BoundingBoxDTO;
-import org.braekpo1nt.mctmanager.config.dto.org.bukkit.NamespacedKeyDTO;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.ItemStackDTO;
 import org.braekpo1nt.mctmanager.config.validation.ConfigInvalidException;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.braekpo1nt.mctmanager.games.game.spleef.powerup.Powerup;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
+import org.bukkit.enchantments.Enchantment;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.structure.Structure;
+import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * 
@@ -36,7 +40,22 @@ import java.util.stream.Collectors;
  * @param durations the durations for spleef
  * @param description the description of spleef
  */
-record SpleefConfigDTO(String version, String world, List<Vector> startingLocations, BoundingBoxDTO spectatorArea, @Nullable Material stencilBlock, @Nullable Material layerBlock, @Nullable Material decayBlock, List<Layer> layers, List<DecayStageDTO> decayStages, @Nullable ItemStackDTO tool, int rounds, Powerups powerups, Scores scores, Durations durations, Component description) implements Validatable {
+record SpleefConfigDTO(
+        String version, 
+        String world, 
+        List<Vector> startingLocations, 
+        BoundingBoxDTO spectatorArea, 
+        @Nullable Material stencilBlock, 
+        @Nullable Material layerBlock, 
+        @Nullable Material decayBlock, 
+        List<LayerDTO> layers, 
+        List<DecayStageDTO> decayStages, 
+        @Nullable ItemStackDTO tool, 
+        int rounds, 
+        PowerupsDTO powerups, 
+        Scores scores, 
+        Durations durations, 
+        Component description) implements Validatable {
     
     @Override
     public void validate(Validator validator) throws ConfigInvalidException {
@@ -52,7 +71,7 @@ record SpleefConfigDTO(String version, String world, List<Vector> startingLocati
         int numberOfLayers = this.layers.size();
         validator.validate(numberOfLayers >= 2, "there must be at least 2 layers");
         for (int i = 0; i < layers.size(); i++) {
-            Layer layer = layers.get(i);
+            LayerDTO layer = layers.get(i);
             validator.notNull(layer, "layers[%d]", i);
             layer.validate(validator.path("layers[%d]", i));
         }
@@ -80,126 +99,144 @@ record SpleefConfigDTO(String version, String world, List<Vector> startingLocati
         validator.notNull(this.description, "description");
     }
     
-    /**
-     * @param structure the NamespacedKey of the structure to place for this layer
-     * @param structureOrigin the origin to place the structure at
-     * @param decayArea the area in which to decay blocks for this layer. If this is null, the size of the structure and structureOrigin will be used as the area.
-     */
-    record Layer(@Nullable NamespacedKeyDTO structure, Vector structureOrigin, @Nullable BoundingBoxDTO decayArea) implements Validatable {
-        @Override
-        public void validate(Validator validator) throws ConfigInvalidException {
-            validator.validate(this.structure() != null, "layer.structure can't be null");
-            Preconditions.checkArgument(this.structure != null);
-            this.structure.validate(validator);
-            validator.validate(Bukkit.getStructureManager().loadStructure(this.structure.toNamespacedKey()) != null, "Can't find structure %s", this.structure());
-            validator.validate(this.structureOrigin() != null, "layer.structureOrigin can't be null");
+    public SpleefConfig toConfig() {
+        World newWorld = Bukkit.getWorld(this.world);
+        Preconditions.checkState(newWorld != null, "Could not find world \"%s\"", this.world);
+    
+        List<Structure> newStructures = new ArrayList<>(this.layers.size());
+        List<Location> newStructureOrigins = new ArrayList<>(this.layers.size());
+        List<BoundingBox> newDecayLayers = new ArrayList<>(this.layers.size());
+        for (LayerDTO layer : this.layers) {
+            Preconditions.checkArgument(layer.structure() != null, "structure can't be null");
+            Structure structure = Bukkit.getStructureManager().loadStructure(layer.structure().toNamespacedKey());
+            Preconditions.checkArgument(structure != null, "can't find structure %s", layer.structure());
+            newStructures.add(structure);
+            newStructureOrigins.add(layer.structureOrigin().toLocation(newWorld));
+            Preconditions.checkArgument(layer.decayArea() != null, "decayArea can't be null");
+            newDecayLayers.add(layer.decayArea().toBoundingBox());
         }
+        
+        return SpleefConfig.builder()
+                .world(newWorld)
+                .startingLocations(this.startingLocations.stream().map(loc -> loc.toLocation(newWorld)).toList())
+                .structures(newStructures)
+                .structureOrigins(newStructureOrigins)
+                .decayLayers(newDecayLayers)
+                .stencilBlock(this.stencilBlock)
+                .layerBlock(this.getLayerBlock())
+                .decayBlock(this.getDecayBlock())
+                .chances(this.getChances())
+                .tool(this.getTool())
+                .minTimeBetween(this.getMinTimeBetween())
+                .maxPowerups(this.getMaxPowerups())
+                .initialLoadout(this.getInitialLoadout())
+                .sourceToPowerupWeights(this.getSourcePowerups())
+                .userSounds(this.getUserSounds())
+                .affectedSounds(this.getAffectedSounds())
+                .description(this.description)
+                .stages(DecayStageDTO.toDecayStages(this.decayStages))
+                .build();
     }
     
-    /**
-     * 
-     * @param minTimeBetween the minimum time (in milliseconds) between getting powerups. Players should not get two powerups one after another immediately. 0 means no restriction. Defaults to 0
-     * @param maxPowerups limit the number of powerups a player can have. If they are at max, they won't collect any more until they use some of them. 0 means players can't hold any powerups at all. Negative values indicate unlimited powerup collection. Defaults to 0
-     * @param initialLoadout the initial loadout of powerups in the participant's inventories at the start of every round. Null means empty. The key is the type powerup, the value is how many of that powerup the players are given.
-     * @param powerups configuration of powerup attributes, such as the sounds that come from them.
-     * @param sources configuration of the sources, such as their likelihood of giving a powerup and what powerups come from it. 
-     */
-    record Powerups(long minTimeBetween, int maxPowerups, @Nullable Map<Powerup.Type, @Nullable Integer> initialLoadout, @Nullable Map<Powerup.Type, @Nullable PowerupDTO> powerups, @Nullable Map<Powerup.Source, @Nullable SourceDTO> sources) implements Validatable {
-        
-        @NotNull Map<Powerup.Type, @NotNull Integer> getInitialLoadout() {
-            if (initialLoadout == null) {
-                return Collections.emptyMap();
-            }
-            return initialLoadout.entrySet().stream().filter(entry -> entry.getValue() != null).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-        }
-        
-        /**
-         * Configuration of each source, namely the chance of it giving a powerup upon activation, the types that can come from it, and their weights. 
-         */
-        @Data
-        static class SourceDTO implements Validatable {
-            /**
-             * the percent chance of this source giving a powerup every time it is used. 0 or fewer means no powerups will be given from this source. Defaults to -1.
-             */
-            private double chance = -1;
-            /**
-             * the types which can come from this source paired with their weights from this source. If null, all types can come from this source. If empty, no types can come from this source. Must not contain null keys or values.
-             */
-            private @Nullable Map<Powerup.@Nullable Type, @Nullable Integer> types;
-            
-            public void validate(Validator validator) {
-                validator.validate(chance <= 1.0, "chance can't be greater than 1.0");
-                if (types != null) {
-                    validator.validate(!types.containsKey(null), "types can't contain null keys");
-                    validator.validate(!types.containsValue(null), "types can't contain null values");
-                }
-            }
-        }
-        
-        public void validate(Validator validator) {
-            validator.validate(minTimeBetween >= 0, "minTimeBetween must be greater than or equal to 0");
-            if (initialLoadout != null) {
-                validator.validate(!initialLoadout.containsKey(null), "initialLoadout can't have null keys");
-                validator.validate(!initialLoadout.containsValue(null), "initialLoadout can't have null entries");
-            }
-            
-            if (powerups != null) {
-                for (Map.Entry<Powerup.Type, PowerupDTO> entry : powerups.entrySet()) {
-                    entry.getValue().validate(validator.path("powerups[%s]", entry.getKey()));
-                }
-            }
-            
-            if (sources != null) {
-                validator.validate(!sources.containsKey(null), "sources can't have null keys");
-                validator.validate(!sources.containsValue(null), "sources can't have null entries");
-                for (Map.Entry<Powerup.Source, SourceDTO> entry : sources.entrySet()) {
-                    SourceDTO sourceDTO = entry.getValue();
-                    if (sourceDTO != null) {
-                        sourceDTO.validate(validator.path("sources[%s]", entry.getKey()));
+    private Map<Powerup.Type, Sound> getUserSounds() {
+        HashMap<Powerup.Type, Sound> userSounds = new HashMap<>(Powerup.Type.values().length);
+        if (this.powerups != null) {
+            if (this.powerups.powerups() != null) {
+                for (Map.Entry<Powerup.Type, @Nullable PowerupDTO> entry : this.powerups.powerups().entrySet()) {
+                    Powerup.Type type = entry.getKey();
+                    PowerupDTO powerupDTO = entry.getValue();
+                    if (powerupDTO != null) {
+                        if (powerupDTO.getUserSound() != null) {
+                            userSounds.put(type, powerupDTO.getUserSound().toSound());
+                        }
                     }
                 }
             }
         }
-        
-        /**
-         * Each key is mapped to a type-to-weight map, where the keys are the types which can come from the respective source key, and the values are the weights of those types. The weights are used to randomly choose a powerup from the given source.
-         * If the 
-         * @return a map from every {@link Powerup.Source} to the {@link Powerup.Type}+weight pairs which come from the source. 
-         */
-        @NotNull Map<Powerup.Source, Map<Powerup.Type, @NotNull Integer>> getSourcePowerups() {
-            Map<Powerup.Source, Map<Powerup.Type, Integer>> result = SpleefStorageUtil.getDefaultSourcePowerups();
-            if (sources == null) {
-                return result;
-            }
-            for (Map.Entry<Powerup.Source, @Nullable SourceDTO> entry : sources.entrySet()) {
-                Powerup.Source source = entry.getKey();
-                SourceDTO sourceDTO = entry.getValue();
-                if (sourceDTO != null) {
-                    result.put(source, sourceDTO.getTypes());
+        return userSounds;
+    }
+    
+    private Map<Powerup.Type, Sound> getAffectedSounds() {
+        HashMap<Powerup.Type, Sound> affectedSounds = new HashMap<>(Powerup.Type.values().length);
+        if (this.powerups != null) {
+            if (this.powerups.powerups() != null) {
+                for (Map.Entry<Powerup.Type, @Nullable PowerupDTO> entry : this.powerups.powerups().entrySet()) {
+                    Powerup.Type type = entry.getKey();
+                    PowerupDTO powerupDTO = entry.getValue();
+                    if (powerupDTO != null) {
+                        if (powerupDTO.getAffectedSound() != null) {
+                            affectedSounds.put(type, powerupDTO.getAffectedSound().toSound());
+                        }
+                    }
                 }
             }
-            return result;
         }
-        
-        /**
-         * @return each {@link Powerup.Source} paired with the chance it has to give a powerup upon activation. 
-         */
-        @NotNull Map<Powerup.Source, @NotNull Double> getChances() {
-            if (sources == null) {
-                return SpleefStorageUtil.getDefaultChances();
-            }
-            Map<Powerup.Source, Double> result = new HashMap<>();
-            for (Map.Entry<Powerup.Source, SourceDTO> entry : sources.entrySet()) {
-                Powerup.Source source = entry.getKey();
-                SourceDTO sourceDTO = entry.getValue();
-                if (sourceDTO != null) {
-                    result.put(source, sourceDTO.chance);
-                } else {
-                    result.put(source, -1.0);
-                }
-            }
-            return result;
+        return affectedSounds;
+    }
+    
+    @NotNull ItemStack getTool() {
+        if (this.tool() == null) {
+            ItemStack newTool = new ItemStack(Material.DIAMOND_SHOVEL);
+            newTool.addEnchantment(Enchantment.DIG_SPEED, 5);
+            newTool.addUnsafeEnchantment(Enchantment.DURABILITY, 10);
+            return newTool;
         }
+        return this.tool().toItemStack();
+    }
+    
+    private Map<Powerup.Source, Double> getChances() {
+        if (this.powerups != null) {
+            return this.powerups.getChances();
+        }
+        Map<Powerup.Source, Double> result = new HashMap<>();
+        for (Powerup.Source source : Powerup.Source.values()) {
+            result.put(source, -1.0);
+        }
+        return result;
+    }
+    
+    private long getMinTimeBetween() {
+        if (this.powerups != null) {
+            return this.powerups.minTimeBetween();
+        }
+        return 0L;
+    }
+    
+    private int getMaxPowerups() {
+        if (this.powerups != null) {
+            return this.powerups.maxPowerups();
+        }
+        return 0;
+    }
+    
+    private Map<Powerup.Type, Integer> getInitialLoadout() {
+        if (this.powerups != null) {
+            return this.powerups.getInitialLoadout();
+        }
+        return Collections.emptyMap();
+    }
+    
+    @NotNull Material getLayerBlock() {
+        return this.layerBlock == null ? Material.DIRT : this.layerBlock;
+    }
+    
+    @NotNull Material getDecayBlock() {
+        return this.decayBlock == null ? Material.COARSE_DIRT : this.decayBlock;
+    }
+    
+    private @NotNull Map<Powerup.Source, Map<Powerup.Type, Integer>> getSourcePowerups() {
+        if (this.powerups != null) {
+            return this.powerups.getSourcePowerups();
+        }
+        Map<Powerup.Type, Integer> weights = new HashMap<>();
+        for (Powerup.Type value : Powerup.Type.values()) {
+            weights.put(value, 1);
+        }
+        Map<Powerup.Source, Map<Powerup.Type, Integer>> result = new HashMap<>();
+        for (Powerup.Source source : Powerup.Source.values()) {
+            result.put(source, weights);
+        }
+        return result;
     }
     
     /**

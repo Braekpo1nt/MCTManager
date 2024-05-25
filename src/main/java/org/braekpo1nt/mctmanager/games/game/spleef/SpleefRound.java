@@ -290,7 +290,7 @@ public class SpleefRound implements Listener {
             if (participantsAlive.get(participant.getUniqueId())) {
                 String teamName = gameManager.getTeamName(participant.getUniqueId());
                 if (!teamName.equals(killedTeam)) {
-                    gameManager.awardPointsToParticipant(participant, storageUtil.getSurviveScore());
+                    gameManager.awardPointsToParticipant(participant, storageUtil.getConfig2().getSurviveScore());
                 }
             } else {
                 aliveCount--;
@@ -318,17 +318,17 @@ public class SpleefRound implements Listener {
     
     private void giveTools() {
         for (Player participant : participants) {
-            participant.getInventory().addItem(storageUtil.getTool());
+            participant.getInventory().addItem(storageUtil.getConfig2().getTool());
         }
     }
     
     private void giveTool(Player participant) {
-        participant.getInventory().addItem(storageUtil.getTool());
+        participant.getInventory().addItem(storageUtil.getConfig2().getTool());
     }
     
     private void startRoundStartingCountDown() {
         this.startCountDownTaskID = new BukkitRunnable() {
-            private int count = storageUtil.getRoundStartingDuration();
+            private int count = storageUtil.getConfig2().getRoundStartingDuration();
 
             @Override
             public void run() {
@@ -349,13 +349,13 @@ public class SpleefRound implements Listener {
     }
     
     private void placeLayers(boolean replaceStencil) {
-        for (int i = 0; i < storageUtil.getStructures().size(); i++) {
-            Structure layer = storageUtil.getStructures().get(i);
-            layer.place(storageUtil.getStructureOrigins().get(i), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
+        for (int i = 0; i < storageUtil.getConfig2().getStructures().size(); i++) {
+            Structure layer = storageUtil.getConfig2().getStructures().get(i);
+            layer.place(storageUtil.getConfig2().getStructureOrigins().get(i), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
         }
-        if (replaceStencil && storageUtil.getStencilBlock() != null) {
-            for (BoundingBox layerArea : storageUtil.getDecayLayers()) {
-                BlockPlacementUtils.createCubeReplace(storageUtil.getWorld(), layerArea, storageUtil.getStencilBlock(), storageUtil.getLayerBlock());
+        if (replaceStencil && storageUtil.getConfig2().getStencilBlock() != null) {
+            for (BoundingBox layerArea : storageUtil.getConfig2().getDecayLayers()) {
+                BlockPlacementUtils.createCubeReplace(storageUtil.getConfig2().getWorld(), layerArea, storageUtil.getConfig2().getStencilBlock(), storageUtil.getConfig2().getLayerBlock());
             }
         }
     }
@@ -402,8 +402,8 @@ public class SpleefRound implements Listener {
     
     private void teleportPlayerToRandomStartingPosition(Player player) {
         player.sendMessage("Teleporting to Spleef");
-        int index = new Random().nextInt(storageUtil.getStartingLocations().size());
-        player.teleport(storageUtil.getStartingLocations().get(index));
+        int index = new Random().nextInt(storageUtil.getConfig2().getStartingLocations().size());
+        player.teleport(storageUtil.getConfig2().getStartingLocations().get(index));
     }
     
     private void cancelAllTasks() {
