@@ -6,6 +6,7 @@ import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.games.game.clockwork.ClockworkGame;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
@@ -256,7 +257,7 @@ public class GameManager implements Listener {
             if (!configurable.loadConfig()) {
                 throw new IllegalArgumentException("ConfigDto could not be loaded.");
             }
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException | ConfigException e) {
             Bukkit.getLogger().severe(e.getMessage());
             e.printStackTrace();
             sender.sendMessage(Component.text("Error loading config file for ")
@@ -399,7 +400,7 @@ public class GameManager implements Listener {
                 if (!configurable.loadConfig()) {
                     throw new IllegalArgumentException("ConfigDto could not be loaded.");
                 }
-            } catch (IllegalArgumentException e) {
+            } catch (IllegalArgumentException | ConfigException e) {
                 Bukkit.getLogger().severe(e.getMessage());
                 e.printStackTrace();
                 Component message = Component.text("Can't start ")
@@ -534,7 +535,7 @@ public class GameManager implements Listener {
             if (!selectedEditor.loadConfig()) {
                 throw new IllegalArgumentException("ConfigDto could not be loaded.");
             }
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException | ConfigException e) {
             Bukkit.getLogger().severe(e.getMessage());
             e.printStackTrace();
             Component message = Component.text("Can't start ")
@@ -647,7 +648,7 @@ public class GameManager implements Listener {
             if (!activeEditor.loadConfig()) {
                 throw new IllegalArgumentException("ConfigDto could not be loaded.");
             }
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException | ConfigException e) {
             Bukkit.getLogger().severe(e.getMessage());
             e.printStackTrace();
             Component message = Component.text("Can't start ")

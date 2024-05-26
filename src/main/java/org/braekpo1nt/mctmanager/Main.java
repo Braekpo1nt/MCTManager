@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import org.braekpo1nt.mctmanager.commands.mct.MCTCommand;
 import org.braekpo1nt.mctmanager.commands.mctdebug.MCTDebugCommand;
 import org.braekpo1nt.mctmanager.commands.utils.UtilsCommand;
+import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.listeners.BlockEffectsListener;
@@ -46,7 +47,7 @@ public class Main extends JavaPlugin {
             if (!gameManager.loadHubConfig()) {
                 throw new IllegalArgumentException("Could not load config");
             }
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException | ConfigException e) {
             Bukkit.getLogger().severe(String.format("[MCTManager] Could not load hub config, see console for details. %s", e.getMessage()));
             e.printStackTrace();
             saveGameStateOnDisable = false;

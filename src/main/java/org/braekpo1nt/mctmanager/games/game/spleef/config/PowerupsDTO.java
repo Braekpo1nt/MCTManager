@@ -85,7 +85,7 @@ record PowerupsDTO(long minTimeBetween, int maxPowerups, @Nullable Map<Powerup.T
      * @return a map from every {@link Powerup.Source} to the {@link Powerup.Type}+weight pairs which come from the source.
      */
     @NotNull Map<Powerup.Source, Map<Powerup.Type, @NotNull Integer>> getSourcePowerups() {
-        Map<Powerup.Source, Map<Powerup.Type, Integer>> result = SpleefStorageUtil.getDefaultSourcePowerups();
+        Map<Powerup.Source, Map<Powerup.Type, Integer>> result = PowerupsDTO.getDefaultSourcePowerups();
         if (sources == null) {
             return result;
         }
@@ -100,11 +100,26 @@ record PowerupsDTO(long minTimeBetween, int maxPowerups, @Nullable Map<Powerup.T
     }
     
     /**
+     * @return a map from every {@link Powerup.Source} to a map of every {@link Powerup.Type} value to a weight of 1
+     */
+    static @NotNull Map<Powerup.Source, Map<Powerup.Type, Integer>> getDefaultSourcePowerups() {
+        Map<Powerup.Type, Integer> weights = new HashMap<>();
+        for (Powerup.Type value : Powerup.Type.values()) {
+            weights.put(value, 1);
+        }
+        Map<Powerup.Source, Map<Powerup.Type, Integer>> result = new HashMap<>();
+        for (Powerup.Source source : Powerup.Source.values()) {
+            result.put(source, weights);
+        }
+        return result;
+    }
+    
+    /**
      * @return each {@link Powerup.Source} paired with the chance it has to give a powerup upon activation.
      */
     @NotNull Map<Powerup.Source, @NotNull Double> getChances() {
         if (sources == null) {
-            return SpleefStorageUtil.getDefaultChances();
+            return PowerupsDTO.getDefaultChances();
         }
         Map<Powerup.Source, Double> result = new HashMap<>();
         for (Map.Entry<Powerup.Source, SourceDTO> entry : sources.entrySet()) {
@@ -115,6 +130,17 @@ record PowerupsDTO(long minTimeBetween, int maxPowerups, @Nullable Map<Powerup.T
             } else {
                 result.put(source, -1.0);
             }
+        }
+        return result;
+    }
+    
+    /**
+     * @return a map of every source to a chance of -1 (i.e. no chance)
+     */
+    static Map<Powerup.Source, Double> getDefaultChances() {
+        Map<Powerup.Source, Double> result = new HashMap<>();
+        for (Powerup.Source source : Powerup.Source.values()) {
+            result.put(source, -1.0);
         }
         return result;
     }

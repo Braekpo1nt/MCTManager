@@ -6,6 +6,7 @@ import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.colossalcombat.ColossalCombatGame;
 import org.braekpo1nt.mctmanager.games.event.config.EventStorageUtil;
@@ -988,7 +989,7 @@ public class EventManager implements Listener {
             if (!colossalCombatGame.loadConfig()) {
                 throw new IllegalArgumentException("ConfigDto could not be loaded.");
             }
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException | ConfigException e) {
             Bukkit.getLogger().severe(e.getMessage());
             e.printStackTrace();
             sender.sendMessage(Component.text("Error loading config file. See console for details.")
