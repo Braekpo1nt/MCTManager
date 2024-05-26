@@ -6,7 +6,7 @@ import com.google.gson.JsonObject;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.MyCustomServerMock;
 import org.braekpo1nt.mctmanager.TestUtils;
-import org.braekpo1nt.mctmanager.config.validation.ConfigInvalidException;
+import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;

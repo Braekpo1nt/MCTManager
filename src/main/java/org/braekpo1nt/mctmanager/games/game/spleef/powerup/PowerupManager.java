@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.games.game.spleef.powerup;
 
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.games.game.spleef.config.SpleefConfig;
 import org.braekpo1nt.mctmanager.games.game.spleef.config.SpleefStorageUtil;
 import org.braekpo1nt.mctmanager.utils.MathUtils;
 import org.bukkit.Bukkit;
@@ -31,7 +32,7 @@ public class PowerupManager implements Listener {
     private static final String PLAYER_SWAPPER_METADATA_VALUE = "player_swapper";
     private static final String BLOCK_BREAKER_METADATA_VALUE = "block_breaker";
     private final Main plugin;
-    private final SpleefStorageUtil storageUtil;
+    private SpleefConfig config;
     private List<Player> participants = new ArrayList<>();
     /**
      * for each participant UUID, the system time of the moment they last received a powerup
@@ -91,9 +92,13 @@ public class PowerupManager implements Listener {
         );
     }
     
-    public PowerupManager(Main plugin, SpleefStorageUtil storageUtil) {
+    public PowerupManager(Main plugin, SpleefConfig config) {
         this.plugin = plugin;
-        this.storageUtil = storageUtil;
+        this.config = config;
+    }
+    
+    public void setConfig(SpleefConfig config) {
+        this.config = config;
     }
     
     public void start(List<Player> newParticipants) {
@@ -109,7 +114,7 @@ public class PowerupManager implements Listener {
     
     private void initializeParticipant(Player participant) {
         participants.add(participant);
-        for (Map.Entry<Powerup.Type, Integer> entry : storageUtil.getConfig2().getInitialLoadout().entrySet()) {
+        for (Map.Entry<Powerup.Type, Integer> entry : config.getInitialLoadout().entrySet()) {
             Powerup.Type type = entry.getKey();
             int amount = entry.getValue();
             ItemStack powerup = typeToPowerup.get(type).getItem().asQuantity(amount);
@@ -168,8 +173,8 @@ public class PowerupManager implements Listener {
      */
     private void setUpPowerups() {
         for (Powerup powerup : powerups) {
-            powerup.setUserSound(storageUtil.getConfig2().getUserSound(powerup.getType()));
-            powerup.setAffectedSound(storageUtil.getConfig2().getAffectedSound(powerup.getType()));
+            powerup.setUserSound(config.getUserSound(powerup.getType()));
+            powerup.setAffectedSound(config.getAffectedSound(powerup.getType()));
         }
     }
     
@@ -202,7 +207,7 @@ public class PowerupManager implements Listener {
      * @param currentTime the current system time in milliseconds
      */
     private void randomlyGivePowerup(@NotNull Player participant, @NotNull Powerup.Source source, long currentTime) {
-        if (random.nextDouble() < storageUtil.getConfig2().getChance(source)) {
+        if (random.nextDouble() < config.getChance(source)) {
             ItemStack powerup = getRandomPowerup(source);
             participant.getInventory().addItem(powerup);
             lastPowerupTimestamps.put(participant.getUniqueId(), currentTime);
@@ -214,7 +219,7 @@ public class PowerupManager implements Listener {
      * @return a random powerup item from the available powerups, according to the weights provided in the config
      */
     private @NotNull ItemStack getRandomPowerup(@Nullable Powerup.Source source) {
-        Powerup.Type selectedType = MathUtils.getWeightedRandomValue(storageUtil.getConfig2().getPowerupWeights(source));
+        Powerup.Type selectedType = MathUtils.getWeightedRandomValue(config.getPowerupWeights(source));
         Powerup selectedPowerup = typeToPowerup.get(selectedType);
         return selectedPowerup.getItem();
     }
@@ -226,7 +231,7 @@ public class PowerupManager implements Listener {
      */
     private boolean canReceivePowerup(Player participant, long currentTime) {
         long lastPowerupTimestamp = lastPowerupTimestamps.get(participant.getUniqueId());
-        boolean enoughTimeHasPassed = currentTime - lastPowerupTimestamp >= storageUtil.getConfig2().getMinTimeBetween();
+        boolean enoughTimeHasPassed = currentTime - lastPowerupTimestamp >= config.getMinTimeBetween();
         return enoughTimeHasPassed && !hasMaxPowerups(participant);
     }
     
@@ -235,7 +240,7 @@ public class PowerupManager implements Listener {
      * @return true if the participant has the maximum number of powerups allowed in their inventory, false if not. 
      */
     private boolean hasMaxPowerups(Player participant) {
-        if (storageUtil.getConfig2().getMaxPowerups() < 0) {
+        if (config.getMaxPowerups() < 0) {
             return false;
         }
         int num = 0;
@@ -244,7 +249,7 @@ public class PowerupManager implements Listener {
                 num += item.getAmount();
             }
         }
-        return num >= storageUtil.getConfig2().getMaxPowerups();
+        return num >= config.getMaxPowerups();
     }
     
     public void onParticipantBreakBlock(@NotNull Player participant) {
@@ -353,7 +358,7 @@ public class PowerupManager implements Listener {
      */
     private void onProjectileHitBlock(Player shooter, @NotNull Block hitBlock, @NotNull String powerupTypeMetadataValue) {
         Material hitBlockType = hitBlock.getType();
-        if (!hitBlockType.equals(storageUtil.getConfig2().getLayerBlock()) && !hitBlockType.equals(storageUtil.getConfig2().getDecayBlock())) {
+        if (!hitBlockType.equals(config.getLayerBlock()) && !hitBlockType.equals(config.getDecayBlock())) {
             return;
         }
         if (!powerupTypeMetadataValue.equals(BLOCK_BREAKER_METADATA_VALUE)) {
@@ -362,7 +367,7 @@ public class PowerupManager implements Listener {
         hitBlock.setType(Material.AIR);
         Powerup blockBreaker = typeToPowerup.get(Powerup.Type.BLOCK_BREAKER);
         if (blockBreaker.getAffectedSound() != null) {
-            storageUtil.getConfig2().getWorld().playSound(blockBreaker.getAffectedSound(), hitBlock.getX(), hitBlock.getY(), hitBlock.getZ());
+            config.getWorld().playSound(blockBreaker.getAffectedSound(), hitBlock.getX(), hitBlock.getY(), hitBlock.getZ());
         }
         if (blockBreaker.getUserSound() != null) {
             shooter.playSound(blockBreaker.getUserSound());

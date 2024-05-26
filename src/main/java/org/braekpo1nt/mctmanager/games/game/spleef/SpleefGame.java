@@ -2,11 +2,14 @@ package org.braekpo1nt.mctmanager.games.game.spleef;
 
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
+import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
-import org.braekpo1nt.mctmanager.games.game.spleef.config.SpleefStorageUtil;
+import org.braekpo1nt.mctmanager.games.game.spleef.config.SpleefConfig;
+import org.braekpo1nt.mctmanager.games.game.spleef.config.SpleefConfigController;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
@@ -28,18 +31,19 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
     private final GameManager gameManager;
     private Sidebar sidebar;
     private Sidebar adminSidebar;
-    private final SpleefStorageUtil storageUtil;
+    private final SpleefConfigController configController;
+    private SpleefConfig config;
     private final String title = ChatColor.BLUE+"Spleef";
     private List<Player> participants = new ArrayList<>();
     private List<Player> admins = new ArrayList<>();
-    private List<SpleefRound> rounds;
+    private List<SpleefRound> rounds = new ArrayList<>();
     private int currentRoundIndex = 0;
     private boolean gameActive = false;
     
     public SpleefGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
         this.gameManager = gameManager;
-        this.storageUtil = new SpleefStorageUtil(plugin.getDataFolder());
+        this.configController = new SpleefConfigController(plugin.getDataFolder());
     }
     
     @Override
@@ -47,9 +51,20 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
         return GameType.SPLEEF;
     }
     
+    /**
+     * Loads the config data for this game from storage into memory
+     * @return true if successful, false otherwise
+     * @throws ConfigInvalidException if there is an issue loading or if the config is invalid
+     */
     @Override
-    public boolean loadConfig() throws IllegalArgumentException {
-        return storageUtil.loadConfig();
+    public boolean loadConfig() throws ConfigInvalidException, ConfigIOException {
+        this.config = configController.getConfig();
+        if (gameActive) {
+            for (SpleefRound round : rounds) {
+                round.setConfig(config);
+            }
+        }
+        return true;
     }
     
     @Override
@@ -62,10 +77,11 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
             initializeParticipant(participant);
         }
         initializeSidebar();
-        rounds = new ArrayList<>(storageUtil.getConfig2().getRounds());
-        for (int i = 0; i < storageUtil.getConfig2().getRounds(); i++) {
-            rounds.add(new SpleefRound(plugin, gameManager, this, storageUtil, sidebar, adminSidebar));
+        rounds = new ArrayList<>(config.getRounds());
+        for (int i = 0; i < config.getRounds(); i++) {
+            rounds.add(new SpleefRound(plugin, gameManager, this, config, sidebar, adminSidebar));
         }
+        plugin.getLogger().info(String.format("rounds.size() = %d", rounds.size()));
         currentRoundIndex = 0;
         setupTeamOptions();
         startAdmins(newAdmins);
@@ -76,7 +92,7 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
     }
     
     private void displayDescription() {
-        messageAllParticipants(storageUtil.getConfig2().getDescription());
+        messageAllParticipants(config.getDescription());
     }
     
     private void initializeParticipant(Player participant) {
@@ -99,7 +115,7 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
         initializeAdmin(admin);
         adminSidebar.updateLines(admin.getUniqueId(),
                 new KeyLine("title", title),
-                new KeyLine("round", String.format("Round %d/%d", currentRoundIndex+1, storageUtil.getConfig2().getRounds()))
+                new KeyLine("round", String.format("Round %d/%d", currentRoundIndex+1, config.getRounds()))
         );
     }
     
@@ -113,7 +129,7 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
         admins.add(admin);
         adminSidebar.addPlayer(admin);
         admin.setGameMode(GameMode.SPECTATOR);
-        admin.teleport(storageUtil.getConfig2().getStartingLocations().get(0));
+        admin.teleport(config.getStartingLocations().get(0));
     }
     
     @Override
@@ -199,7 +215,7 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
         initializeParticipant(participant);
         sidebar.updateLines(participant.getUniqueId(),
                 new KeyLine("title", title),
-                new KeyLine("round", String.format("Round %d/%d", currentRoundIndex+1, storageUtil.getConfig2().getRounds()))
+                new KeyLine("round", String.format("Round %d/%d", currentRoundIndex+1, config.getRounds()))
         );
         if (currentRoundIndex < rounds.size()) {
             SpleefRound currentRound = rounds.get(currentRoundIndex);
@@ -248,7 +264,7 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
     private void initializeAdminSidebar() {
         adminSidebar.addLines(
                 new KeyLine("title", title),
-                new KeyLine("round", String.format("Round %d/%d", 1, storageUtil.getConfig2().getRounds())),
+                new KeyLine("round", String.format("Round %d/%d", 1, config.getRounds())),
                 new KeyLine("timer", "")
         );
     }
@@ -263,7 +279,7 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
                 new KeyLine("personalTeam", ""),
                 new KeyLine("personalScore", ""),
                 new KeyLine("title", title),
-                new KeyLine("round", String.format("Round %d/%d", 1, storageUtil.getConfig2().getRounds())),
+                new KeyLine("round", String.format("Round %d/%d", 1, config.getRounds())),
                 new KeyLine("timer", "")
         );
     }

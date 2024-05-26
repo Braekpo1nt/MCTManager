@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.config.validation;
 
 import lombok.Getter;
 import lombok.ToString;
+import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
 import org.jetbrains.annotations.Contract;
 
 @ToString
@@ -42,7 +43,7 @@ public class Validator {
     @Contract("false, _, _ -> fail")
     public void validate(boolean expression, String invalidMessage, Object... args) {
         if (!expression) {
-            throw new ConfigInvalidException(invalidMessage, args);
+            throw new ConfigInvalidException(String.format(invalidMessage, args));
         }
     }
     

@@ -6,7 +6,7 @@ import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.util.BoundingBoxDTO;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.ItemStackDTO;
-import org.braekpo1nt.mctmanager.config.validation.ConfigInvalidException;
+import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.braekpo1nt.mctmanager.games.game.spleef.powerup.Powerup;
@@ -135,6 +135,7 @@ record SpleefConfigDTO(
                 .affectedSounds(this.getAffectedSounds())
                 .description(this.description)
                 .stages(DecayStageDTO.toDecayStages(this.decayStages))
+                .rounds(this.rounds)
                 .build();
     }
     

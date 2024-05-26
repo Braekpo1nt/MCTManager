@@ -3,7 +3,7 @@ package org.braekpo1nt.mctmanager.games.game.spleef.config;
 import com.google.common.base.Preconditions;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.NamespacedKeyDTO;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.util.BoundingBoxDTO;
-import org.braekpo1nt.mctmanager.config.validation.ConfigInvalidException;
+import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.bukkit.Bukkit;
