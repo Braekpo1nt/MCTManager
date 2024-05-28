@@ -1,15 +1,24 @@
 package org.braekpo1nt.mctmanager.games.game.footrace.config;
 
+import lombok.Builder;
+import lombok.Data;
 import net.kyori.adventure.text.Component;
-import org.braekpo1nt.mctmanager.config.dto.org.bukkit.util.BoundingBoxDTO;
-import org.braekpo1nt.mctmanager.config.dto.org.bukkit.LocationDTO;
+import org.bukkit.Location;
+import org.bukkit.World;
+import org.bukkit.util.BoundingBox;
 
-record FootRaceConfig(String version, String world, LocationDTO startingLocation, BoundingBoxDTO finishLine, BoundingBoxDTO spectatorArea, BoundingBoxDTO glassBarrier, Scores scores, Durations durations, Component description) {
-    
-    record Scores(int completeLap, int[] placementPoints, int detriment) {
-    }
-    
-    record Durations(int startRace, int raceEndCountdown) {
-    }
+@Data
+@Builder
+public class FootRaceConfig {
+    private World world;
+    private Location startingLocation;
+    private BoundingBox finishLine;
+    private BoundingBox glassBarrier;
+    private int completeLapScore;
+    private int[] placementPoints;
+    private int detriment;
+    private int startRaceDuration;
+    private int raceEndCountdownDuration;
+    private Component description;
     
 }

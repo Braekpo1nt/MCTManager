@@ -5,7 +5,8 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
-import org.braekpo1nt.mctmanager.games.game.footrace.config.FootRaceStorageUtil;
+import org.braekpo1nt.mctmanager.games.game.footrace.config.FootRaceConfig;
+import org.braekpo1nt.mctmanager.games.game.footrace.config.FootRaceConfigController;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
@@ -40,8 +41,9 @@ import java.util.*;
 public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable {
     
     private final int MAX_LAPS = 3;
-    private final FootRaceStorageUtil storageUtil;// 3 second
-    private final long COOL_DOWN_TIME = 3000L;
+    private final FootRaceConfigController configController;
+    private FootRaceConfig config;// 3 second
+    private static final long COOL_DOWN_TIME = 3000L;
     private Sidebar sidebar;
     private Sidebar adminSidebar;
     private boolean gameActive = false;
@@ -68,7 +70,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     public FootRaceGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
         this.gameManager = gameManager;
-        this.storageUtil = new FootRaceStorageUtil(plugin.getDataFolder());
+        this.configController = new FootRaceConfigController(plugin.getDataFolder());
     }
     
     @Override
@@ -78,7 +80,8 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     
     @Override
     public boolean loadConfig() throws IllegalArgumentException {
-        return storageUtil.loadConfig();
+        this.config = configController.getConfig();
+        return true;
     }
     
     @Override
@@ -106,7 +109,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     }
     
     private void displayDescription() {
-        messageAllParticipants(storageUtil.getDescription());
+        messageAllParticipants(config.getDescription());
     }
     
     private void initializeParticipant(Player participant) {
@@ -116,7 +119,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         laps.put(participantUniqueId, 1);
         sidebar.addPlayer(participant);
         participant.sendMessage("Teleporting to Foot Race");
-        participant.teleport(storageUtil.getStartingLocation());
+        participant.teleport(config.getStartingLocation());
         participant.getInventory().clear();
         giveBoots(participant);
         participant.setGameMode(GameMode.ADVENTURE);
@@ -148,7 +151,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         admins.add(admin);
         adminSidebar.addPlayer(admin);
         admin.setGameMode(GameMode.SPECTATOR);
-        admin.teleport(storageUtil.getStartingLocation());
+        admin.teleport(config.getStartingLocation());
     }
     
     @Override
@@ -299,7 +302,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     
     private void startStartRaceCountdownTask() {
         this.startCountDownTaskID = new BukkitRunnable() {
-            int count = storageUtil.getStartRaceDuration();
+            int count = config.getStartRaceDuration();
             
             @Override
             public void run() {
@@ -321,7 +324,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     
     private void startEndRaceCountDown() {
         this.endRaceCountDownId = new BukkitRunnable() {
-            int count = storageUtil.getRaceEndCountdownDuration();
+            int count = config.getRaceEndCountdownDuration();
             @Override
             public void run() {
                 if (count <= 0) {
@@ -373,12 +376,12 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     }
     
     private void openGlassBarrier() {
-        BlockPlacementUtils.createCubeReplace(storageUtil.getWorld(), storageUtil.getGlassBarrier(), Material.WHITE_STAINED_GLASS_PANE, Material.AIR);
+        BlockPlacementUtils.createCubeReplace(config.getWorld(), config.getGlassBarrier(), Material.WHITE_STAINED_GLASS_PANE, Material.AIR);
     }
     
     private void closeGlassBarrier() {
-        BlockPlacementUtils.createCubeReplace(storageUtil.getWorld(), storageUtil.getGlassBarrier(), Material.AIR, Material.WHITE_STAINED_GLASS_PANE);
-        BlockPlacementUtils.updateDirection(storageUtil.getWorld(), storageUtil.getGlassBarrier());
+        BlockPlacementUtils.createCubeReplace(config.getWorld(), config.getGlassBarrier(), Material.AIR, Material.WHITE_STAINED_GLASS_PANE);
+        BlockPlacementUtils.updateDirection(config.getWorld(), config.getGlassBarrier());
     }
     
     private void initializeAdminSidebar() {
@@ -453,7 +456,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         if (!participants.contains(player)) {
             return;
         }
-        if (!player.getWorld().equals(storageUtil.getWorld())) {
+        if (!player.getWorld().equals(config.getWorld())) {
             return;
         }
         
@@ -480,7 +483,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
                         .append(Component.text(currentLap))
                         .append(Component.text(" in "))
                         .append(Component.text(getTimeString(elapsedTime))));
-                gameManager.awardPointsToParticipant(player, storageUtil.getCompleteLap());
+                gameManager.awardPointsToParticipant(player, config.getCompleteLapScore());
                 return;
             }
             if (currentLap == MAX_LAPS) {
@@ -582,7 +585,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         gameManager.awardPointsToParticipant(player, points);
         String placementTitle = getPlacementTitle(placement);
         String timeString = getTimeString(elapsedTime);
-        String endCountDown = TimeStringUtils.getTimeString(storageUtil.getRaceEndCountdownDuration());
+        String endCountDown = TimeStringUtils.getTimeString(config.getRaceEndCountdownDuration());
         if (placements.size() == 1) {
             messageAllParticipants(Component.text(player.getName())
                     .append(Component.text(" finished 1st in "))
@@ -618,12 +621,12 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         if (placement < 1) {
             throw new IllegalArgumentException("placement can't be less than 1");
         }
-        int[] placementPoints = storageUtil.getPlacementPoints();
+        int[] placementPoints = config.getPlacementPoints();
         if (placement <= placementPoints.length) {
             return placementPoints[placement-1];
         }
         int minPlacementPoints = placementPoints[placementPoints.length-1];
-        int points = minPlacementPoints - ((placement-placementPoints.length) * storageUtil.getDetriment());
+        int points = minPlacementPoints - ((placement-placementPoints.length) * config.getDetriment());
         return Math.max(points, 0);
     }
     
@@ -647,6 +650,6 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     }
     
     private boolean isInFinishLineBoundingBox(Player player) {
-        return storageUtil.getFinishLine().contains(player.getLocation().toVector());
+        return config.getFinishLine().contains(player.getLocation().toVector());
     }
 }
