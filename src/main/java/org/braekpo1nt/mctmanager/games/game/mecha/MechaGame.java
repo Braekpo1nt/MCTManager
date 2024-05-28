@@ -1,6 +1,5 @@
 package org.braekpo1nt.mctmanager.games.game.mecha;
 
-import com.google.common.base.Preconditions;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
@@ -8,7 +7,8 @@ import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
-import org.braekpo1nt.mctmanager.games.game.mecha.config.MechaStorageUtil;
+import org.braekpo1nt.mctmanager.games.game.mecha.config.MechaConfig;
+import org.braekpo1nt.mctmanager.games.game.mecha.config.MechaConfigController;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
@@ -38,7 +38,6 @@ import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -48,7 +47,8 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     private final GameManager gameManager;
     private Sidebar sidebar;
     private Sidebar adminSidebar;
-    private final MechaStorageUtil storageUtil;
+    private final MechaConfigController configController;
+    private MechaConfig config;
     private boolean gameActive = false;
     private boolean mechaHasStarted = false;
     private boolean isInvulnerable = false;
@@ -68,7 +68,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     public MechaGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
         this.gameManager = gameManager;
-        this.storageUtil = new MechaStorageUtil(plugin.getDataFolder());
+        this.configController = new MechaConfigController(plugin.getDataFolder());
     }
     
     @Override
@@ -78,7 +78,8 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     
     @Override
     public boolean loadConfig() throws IllegalArgumentException {
-        return storageUtil.loadConfig();
+        this.config = configController.getConfig();
+        return true;
     }
     
     @Override
@@ -88,7 +89,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         deadPlayers = new ArrayList<>();
         lastKilledTeam = null;
         killCounts = new HashMap<>(newParticipants.size());
-        worldBorder = storageUtil.getWorld().getWorldBorder();
+        worldBorder = config.getWorld().getWorldBorder();
         isInvulnerable = false;
         sidebar = gameManager.getSidebarFactory().createSidebar();
         adminSidebar = gameManager.getSidebarFactory().createSidebar();
@@ -111,7 +112,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     }
     
     private void displayDescription() {
-        messageAllParticipants(storageUtil.getDescription());
+        messageAllParticipants(config.getDescription());
     }
 
     private void initializeParticipant(Player participant) {
@@ -150,7 +151,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         admins.add(admin);
         adminSidebar.addPlayer(admin);
         admin.setGameMode(GameMode.SPECTATOR);
-        admin.teleport(storageUtil.getAdminSpawn());
+        admin.teleport(config.getAdminSpawn());
     }
     
     @Override
@@ -194,7 +195,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     
     private void clearContainers() {
         Bukkit.getLogger().info("Clearing containers");
-        List<Chunk> chunks = getChunksInBoundingBox(storageUtil.getWorld(), storageUtil.getRemoveArea());
+        List<Chunk> chunks = getChunksInBoundingBox(config.getWorld(), config.getRemoveArea());
         int count = 0;
         for (Chunk chunk : chunks) {
             Collection<BlockState> blockStates = chunk.getTileEntities(block -> block.getState() instanceof InventoryHolder, false);
@@ -227,8 +228,8 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     }
 
     private void clearFloorItems() {
-        for (Item item : storageUtil.getWorld().getEntitiesByClass(Item.class)) {
-            if (storageUtil.getRemoveArea().contains(item.getLocation().toVector())) {
+        for (Item item : config.getWorld().getEntitiesByClass(Item.class)) {
+            if (config.getRemoveArea().contains(item.getLocation().toVector())) {
                 item.remove();
             }
         }
@@ -248,7 +249,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
                 createPlatforms(teams);
                 teleportTeams(teams);
             } else {
-                participant.teleport(storageUtil.getPlatformSpawns().get(0));
+                participant.teleport(config.getPlatformSpawns().get(0));
             }
         }
         sidebar.updateLines(participant.getUniqueId(),
@@ -322,7 +323,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     
     private void startStartMechaCountdownTask() {
         this.startMechaTaskId = new BukkitRunnable() {
-            private int count = storageUtil.getStartDuration();
+            private int count = config.getStartDuration();
             
             @Override
             public void run() {
@@ -341,11 +342,11 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     }
     
     private void startStopMechaCountdownTask() {
-        String endDuration = TimeStringUtils.getTimeString(storageUtil.getEndDuration());
+        String endDuration = TimeStringUtils.getTimeString(config.getEndDuration());
         messageAllParticipants(Component.text("Game ending in ")
                 .append(Component.text(endDuration)));
         stopMechaCountdownTaskId = new BukkitRunnable() {
-            int count = storageUtil.getEndDuration();
+            int count = config.getEndDuration();
             @Override
             public void run() {
                 if (count <= 0) {
@@ -377,12 +378,12 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     
     private void startInvulnerableTimer() {
         isInvulnerable = true;
-        String invulnerabilityDuration = TimeStringUtils.getTimeString(storageUtil.getInvulnerabilityDuration());
+        String invulnerabilityDuration = TimeStringUtils.getTimeString(config.getInvulnerabilityDuration());
         messageAllParticipants(Component.text("Invulnerable for ")
                 .append(Component.text(invulnerabilityDuration))
                 .append(Component.text("!")));
         this.startInvulnerableTaskID = new BukkitRunnable() {
-            private int count = storageUtil.getInvulnerabilityDuration();
+            private int count = config.getInvulnerabilityDuration();
             
             @Override
             public void run() {
@@ -591,7 +592,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
                 .append(Component.text(" has been eliminated.")));
         for (Player participant : participants) {
             if (livingPlayers.contains(participant.getUniqueId())) {
-                gameManager.awardPointsToParticipant(participant, storageUtil.getSurviveTeamScore());
+                gameManager.awardPointsToParticipant(participant, config.getSurviveTeamScore());
             }
         }
     }
@@ -618,7 +619,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     
     private void dropInventory(Player killed, List<ItemStack> drops) {
         for (ItemStack item : drops) {
-            storageUtil.getWorld().dropItemNaturally(killed.getLocation(), item);
+            config.getWorld().dropItemNaturally(killed.getLocation(), item);
         }
         killed.getInventory().clear();
     }
@@ -632,7 +633,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
             return;
         }
         addKill(killer.getUniqueId());
-        gameManager.awardPointsToParticipant(killer, storageUtil.getKillScore());
+        gameManager.awardPointsToParticipant(killer, config.getKillScore());
     }
     
     /**
@@ -691,18 +692,18 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     }
     
     private void initializeWorldBorder() {
-        worldBorder.setCenter(storageUtil.getWorldBorderCenterX(), storageUtil.getWorldBorderCenterZ());
-        worldBorder.setSize(storageUtil.getInitialBorderSize());
-        worldBorder.setDamageAmount(storageUtil.getWorldBorderDamageAmount());
-        worldBorder.setDamageBuffer(storageUtil.getWorldBorderDamageBuffer());
-        worldBorder.setWarningDistance(storageUtil.getWorldBorderWarningDistance());
-        worldBorder.setWarningTime(storageUtil.getWorldBorderWarningTime());
+        worldBorder.setCenter(config.getWorldBorderCenterX(), config.getWorldBorderCenterZ());
+        worldBorder.setSize(config.getInitialBorderSize());
+        worldBorder.setDamageAmount(config.getWorldBorderDamageAmount());
+        worldBorder.setDamageBuffer(config.getWorldBorderDamageBuffer());
+        worldBorder.setWarningDistance(config.getWorldBorderWarningDistance());
+        worldBorder.setWarningTime(config.getWorldBorderWarningTime());
     }
     
     private void kickOffBorderShrinking() {
-        int [] sizes = storageUtil.getSizes();
-        int [] delays = storageUtil.getDelays();
-        int [] durations = storageUtil.getDurations();
+        int [] sizes = config.getSizes();
+        int [] delays = config.getDelays();
+        int [] durations = config.getDurations();
         this.borderShrinkingTaskId = new BukkitRunnable() {
             int delay = 0;
             int duration = 0;
@@ -853,8 +854,8 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
      * @param teams the teams that will be teleported
      */
     private void createPlatforms(List<String> teams) {
-        List<BoundingBox> platformBarriers = storageUtil.getPlatformBarriers();
-        World world = storageUtil.getWorld();
+        List<BoundingBox> platformBarriers = config.getPlatformBarriers();
+        World world = config.getWorld();
         for (int i = 0; i < teams.size(); i++) {
             String team = teams.get(i);
             int platformIndex = MathUtils.wrapIndex(i, platformBarriers.size());
@@ -878,7 +879,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
      * @param teams the teams to teleport (players will be selected from the participants list)
      */
     private void teleportTeams(List<String> teams) {
-        List<Location> platformSpawns = storageUtil.getPlatformSpawns();
+        List<Location> platformSpawns = config.getPlatformSpawns();
         Map<String, Location> teamSpawnLocations = new HashMap<>(teams.size());
         for (int i = 0; i < teams.size(); i++) {
             String team = teams.get(i);
@@ -894,9 +895,9 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     }
     
     private void removePlatforms() {
-        List<BoundingBox> platformBarriers = storageUtil.getPlatformBarriers();
+        List<BoundingBox> platformBarriers = config.getPlatformBarriers();
         for (BoundingBox barrier : platformBarriers) {
-            BlockPlacementUtils.createCube(storageUtil.getWorld(), barrier, Material.AIR);
+            BlockPlacementUtils.createCube(config.getWorld(), barrier, Material.AIR);
         }
     }
     
@@ -909,10 +910,10 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     }
     
     private void clearAllChests() {
-        List<Vector> allChestCoords = new ArrayList<>(storageUtil.getSpawnChestCoords());
-        allChestCoords.addAll(storageUtil.getMapChestCoords());
+        List<Vector> allChestCoords = new ArrayList<>(config.getSpawnChestCoords());
+        allChestCoords.addAll(config.getMapChestCoords());
         for (Vector coords : allChestCoords) {
-            Block block = storageUtil.getWorld().getBlockAt(coords.getBlockX(), coords.getBlockY(), coords.getBlockZ());
+            Block block = config.getWorld().getBlockAt(coords.getBlockX(), coords.getBlockY(), coords.getBlockZ());
             block.setType(Material.CHEST);
             Chest chest = (Chest) block.getState();
             chest.getBlockInventory().clear();
@@ -920,18 +921,18 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     }
     
     private void fillSpawnChests() {
-        for (Vector coords : storageUtil.getSpawnChestCoords()) {
-            Block block = storageUtil.getWorld().getBlockAt(coords.getBlockX(), coords.getBlockY(), coords.getBlockZ());
+        for (Vector coords : config.getSpawnChestCoords()) {
+            Block block = config.getWorld().getBlockAt(coords.getBlockX(), coords.getBlockY(), coords.getBlockZ());
             block.setType(Material.CHEST);
             Chest chest = (Chest) block.getState();
-            chest.setLootTable(storageUtil.getSpawnLootTable());
+            chest.setLootTable(config.getSpawnLootTable());
             chest.update();
         }
     }
     
     private void fillMapChests() {
-        for (Vector coords : storageUtil.getMapChestCoords()) {
-            Block block = storageUtil.getWorld().getBlockAt(coords.getBlockX(), coords.getBlockY(), coords.getBlockZ());
+        for (Vector coords : config.getMapChestCoords()) {
+            Block block = config.getWorld().getBlockAt(coords.getBlockX(), coords.getBlockY(), coords.getBlockZ());
             block.setType(Material.CHEST);
             fillMapChest(((Chest) block.getState()));
         }
@@ -942,7 +943,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
      * @param chest The chest to fill
      */
     private void fillMapChest(Chest chest) {
-        LootTable lootTable = MathUtils.getWeightedRandomValue(storageUtil.getWeightedMechaLootTables());
+        LootTable lootTable = MathUtils.getWeightedRandomValue(config.getWeightedMechaLootTables());
         chest.setLootTable(lootTable);
         chest.update();
     }
