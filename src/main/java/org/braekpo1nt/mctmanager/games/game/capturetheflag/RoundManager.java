@@ -1,7 +1,5 @@
 package org.braekpo1nt.mctmanager.games.game.capturetheflag;
 
-import org.bukkit.Bukkit;
-
 import java.util.*;
 
 /**

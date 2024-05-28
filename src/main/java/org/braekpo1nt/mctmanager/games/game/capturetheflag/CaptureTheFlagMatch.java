@@ -5,7 +5,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
-import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlagStorageUtil;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlagConfig;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
@@ -39,7 +39,7 @@ public class CaptureTheFlagMatch implements Listener {
     private final CaptureTheFlagRound captureTheFlagRound;
     private final Main plugin;
     private final GameManager gameManager;
-    private final CaptureTheFlagStorageUtil storageUtil;
+    private final CaptureTheFlagConfig config;
     private final MatchPairing matchPairing;
     private final Arena arena;
     private final Sidebar sidebar;
@@ -75,11 +75,11 @@ public class CaptureTheFlagMatch implements Listener {
     
     public CaptureTheFlagMatch(CaptureTheFlagRound captureTheFlagRound, Main plugin,
                                GameManager gameManager, MatchPairing matchPairing, Arena arena,
-                               CaptureTheFlagStorageUtil storageUtil, Sidebar sidebar, Sidebar adminSidebar) {
+                               CaptureTheFlagConfig config, Sidebar sidebar, Sidebar adminSidebar) {
         this.captureTheFlagRound = captureTheFlagRound;
         this.plugin = plugin;
         this.gameManager = gameManager;
-        this.storageUtil = storageUtil;
+        this.config = config;
         this.matchPairing = matchPairing;
         this.arena = arena;
         this.northClassPicker = new ClassPicker();
@@ -153,7 +153,7 @@ public class CaptureTheFlagMatch implements Listener {
         allParticipants.add(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
         ParticipantInitializer.clearStatusEffects(participant);
-        participant.teleport(storageUtil.getSpawnObservatory());
+        participant.teleport(config.getSpawnObservatory());
         participant.lookAt(lookLocation.getX(), lookLocation.getY(), lookLocation.getZ(), LookAnchor.EYES);
     }
     
@@ -193,12 +193,12 @@ public class CaptureTheFlagMatch implements Listener {
         }
         // remove items/arrows on the ground
         BoundingBox removeArea = arena.boundingBox();
-        for (Arrow arrow : storageUtil.getWorld().getEntitiesByClass(Arrow.class)) {
+        for (Arrow arrow : config.getWorld().getEntitiesByClass(Arrow.class)) {
             if (removeArea.contains(arrow.getLocation().toVector())) {
                 arrow.remove();
             }
         }
-        for (Item item : storageUtil.getWorld().getEntitiesByClass(Item.class)) {
+        for (Item item : config.getWorld().getEntitiesByClass(Item.class)) {
             if (removeArea.contains(item.getLocation().toVector())) {
                 item.remove();
             }
@@ -397,7 +397,7 @@ public class CaptureTheFlagMatch implements Listener {
             return;
         }
         addKill(killer.getUniqueId());
-        gameManager.awardPointsToParticipant(killer, storageUtil.getKillScore());
+        gameManager.awardPointsToParticipant(killer, config.getKillScore());
     }
     
     private void addKill(UUID killerUniqueId) {
@@ -425,7 +425,7 @@ public class CaptureTheFlagMatch implements Listener {
         participantsAreAlive.put(killed.getUniqueId(), false);
         ParticipantInitializer.resetHealthAndHunger(killed);
         ParticipantInitializer.clearStatusEffects(killed);
-        killed.teleport(storageUtil.getSpawnObservatory());
+        killed.teleport(config.getSpawnObservatory());
         killed.lookAt(arena.northFlag().getX(), arena.northFlag().getY(), arena.northFlag().getZ(), LookAnchor.EYES);
     }
     
@@ -684,7 +684,7 @@ public class CaptureTheFlagMatch implements Listener {
                 .append(losingTeamDisplayName)
                 .append(Component.text("'s flag!"))
                 .color(NamedTextColor.YELLOW));
-        gameManager.awardPointsToTeam(winningTeam, storageUtil.getWinScore());
+        gameManager.awardPointsToTeam(winningTeam, config.getWinScore());
         matchIsOver();
     }
     
@@ -696,11 +696,11 @@ public class CaptureTheFlagMatch implements Listener {
     }
     
     public void startClassSelectionPeriod() {
-        northClassPicker.start(plugin, northParticipants, storageUtil.getLoadouts());
-        southClassPicker.start(plugin, southParticipants, storageUtil.getLoadouts());
+        northClassPicker.start(plugin, northParticipants, config.getLoadouts());
+        southClassPicker.start(plugin, southParticipants, config.getLoadouts());
         
         this.classSelectionCountdownTaskId = new BukkitRunnable() {
-            private int count = storageUtil.getClassSelectionDuration();
+            private int count = config.getClassSelectionDuration();
             @Override
             public void run() {
                 if (count <= 0) {
@@ -721,7 +721,7 @@ public class CaptureTheFlagMatch implements Listener {
     
     private void startMatchTimer() {
         this.matchTimerTaskId = new BukkitRunnable() {
-            int count = storageUtil.getRoundTimerDuration();
+            int count = config.getRoundTimerDuration();
             @Override
             public void run() {
                 if (count <= 0) {
