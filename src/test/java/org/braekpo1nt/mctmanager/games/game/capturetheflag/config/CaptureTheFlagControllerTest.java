@@ -17,7 +17,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.util.logging.Level;
 
-class CaptureTheFlagStorageUtilTest {
+class CaptureTheFlagControllerTest {
     String configFileName = "captureTheFlagConfig.json";
     String exampleConfigFileName = "exampleCaptureTheFlagConfig.json";
     Main plugin;
