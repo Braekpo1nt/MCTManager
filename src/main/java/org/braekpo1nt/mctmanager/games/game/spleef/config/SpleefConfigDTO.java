@@ -109,7 +109,7 @@ record SpleefConfigDTO(
     public SpleefConfig toConfig() {
         World newWorld = Bukkit.getWorld(this.world);
         Preconditions.checkState(newWorld != null, "Could not find world \"%s\"", this.world);
-    
+        
         List<Structure> newStructures = new ArrayList<>(this.layers.size());
         List<Location> newStructureOrigins = new ArrayList<>(this.layers.size());
         List<BoundingBox> newDecayLayers = new ArrayList<>(this.layers.size());

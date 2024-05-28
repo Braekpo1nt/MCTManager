@@ -1,4 +1,4 @@
-package org.braekpo1nt.mctmanager.games.game.spleef.config;
+package org.braekpo1nt.mctmanager.games.game.clockwork.config;
 
 import org.braekpo1nt.mctmanager.config.ConfigController;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
@@ -7,14 +7,14 @@ import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.*;
+import java.io.File;
 
-public class SpleefConfigController extends ConfigController<SpleefConfigDTO> {
+public class ClockworkConfigController extends ConfigController<ClockworkConfigDTO> {
     
     private final File configFile;
     
-    public SpleefConfigController(File configDirectory) {
-        this.configFile = new File(configDirectory, "spleefConfig.json");
+    public ClockworkConfigController(File configDirectory) {
+        this.configFile = new File(configDirectory, "clockworkConfig.json");
     }
     
     /**
@@ -23,9 +23,9 @@ public class SpleefConfigController extends ConfigController<SpleefConfigDTO> {
      * @throws ConfigInvalidException if the config is invalid
      * @throws ConfigIOException if there is an IO problem getting the config
      */
-    public @NotNull SpleefConfig getConfig() throws ConfigException {
-        SpleefConfigDTO configDTO = loadConfigDTO(configFile, SpleefConfigDTO.class);
-        configDTO.validate(new Validator("spleefConfig"));
+    public @NotNull ClockworkConfig getConfig() throws ConfigException {
+        ClockworkConfigDTO configDTO = loadConfigDTO(configFile, ClockworkConfigDTO.class);
+        configDTO.validate(new Validator("clockworkConfig"));
         return configDTO.toConfig();
     }
     

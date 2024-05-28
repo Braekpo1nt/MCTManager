@@ -3,7 +3,8 @@ package org.braekpo1nt.mctmanager.games.game.clockwork;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
-import org.braekpo1nt.mctmanager.games.game.clockwork.config.ClockworkStorageUtil;
+import org.braekpo1nt.mctmanager.games.game.clockwork.config.ClockworkConfig;
+import org.braekpo1nt.mctmanager.games.game.clockwork.config.ClockworkConfigController;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
@@ -31,7 +32,8 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
     private final GameManager gameManager;
     private Sidebar sidebar;
     private Sidebar adminSidebar;
-    private final ClockworkStorageUtil storageUtil;
+    private final ClockworkConfigController configController;
+    private ClockworkConfig config;
     private final String title = ChatColor.BLUE+"Clockwork";
     private List<Player> participants = new ArrayList<>();
     private List<Player> admins = new ArrayList<>();
@@ -44,7 +46,7 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
     public ClockworkGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
         this.gameManager = gameManager;
-        this.storageUtil = new ClockworkStorageUtil(plugin.getDataFolder());
+        this.configController = new ClockworkConfigController(plugin.getDataFolder());
     }
     
     @Override
@@ -54,7 +56,13 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
     
     @Override
     public boolean loadConfig() throws IllegalArgumentException {
-        return storageUtil.loadConfig();
+        this.config = configController.getConfig();
+        if (gameActive) {
+            for (ClockworkRound round : rounds) {
+                round.setConfig(config);
+            }
+        }
+        return true;
     }
     
     @Override
@@ -67,9 +75,9 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
             initializeParticipant(participant);
         }
         initializeSidebar();
-        rounds = new ArrayList<>(storageUtil.getRounds());
-        for (int i = 0; i < storageUtil.getRounds(); i++) {
-            rounds.add(new ClockworkRound(plugin, gameManager, this, storageUtil, i+1, sidebar, adminSidebar));
+        rounds = new ArrayList<>(config.getRounds());
+        for (int i = 0; i < config.getRounds(); i++) {
+            rounds.add(new ClockworkRound(plugin, gameManager, this, config, i+1, sidebar, adminSidebar));
         }
         currentRoundIndex = 0;
         setupTeamOptions();
@@ -81,7 +89,7 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
     }
     
     private void displayDescription() {
-        messageAllParticipants(storageUtil.getDescription());
+        messageAllParticipants(config.getDescription());
     }
     
     private void initializeParticipant(Player participant) {
@@ -118,7 +126,7 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
         admins.add(admin);
         adminSidebar.addPlayer(admin);
         admin.setGameMode(GameMode.SPECTATOR);
-        admin.teleport(storageUtil.getStartingLocation());
+        admin.teleport(config.getStartingLocation());
     }
     
     @Override
