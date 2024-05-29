@@ -21,7 +21,6 @@ public class ParkourPathwayConfig {
     private List<Puzzle> puzzles;
     private @Nullable List<TeamSpawn> teamSpawns;
     private @Nullable BoundingBox glassBarrier;
-    
     private @Nullable Component glassBarrierOpenMessage;
     private @Nullable Component teamSpawnsOpenMessage;
     private int startingDuration;

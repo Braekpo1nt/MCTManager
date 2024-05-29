@@ -135,6 +135,7 @@ class ParkourPathwayConfigDTO implements Validatable {
                 .checkpointCounterAlertDuration(this.durations.checkpointCounterAlert)
                 .checkpointScore(this.scores.checkpoint)
                 .winScore(this.scores.win)
+                .description(this.description)
                 .build();
     }
     

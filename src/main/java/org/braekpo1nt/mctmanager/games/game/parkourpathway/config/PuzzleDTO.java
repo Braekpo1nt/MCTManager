@@ -63,10 +63,10 @@ class PuzzleDTO implements Validatable {
         validator.validate(!this.getCheckPoints().isEmpty(), "checkPoints must have at least 1 element");
         for (int i = 0; i < this.checkPoints.size(); i++) {
             CheckPointDTO checkPoint = this.checkPoints.get(i);
-            validator.notNull(checkPoint, "checkPoints can't have null elements");
+            validator.validate(checkPoint != null, "checkPoints can't have null elements");
             checkPoint.validate(validator.path("checkPoints[%d]", i));
             BoundingBox detectionArea = checkPoint.getDetectionArea().toBoundingBox();
-            validator.validate(this.isInBounds(detectionArea), "inBounds must contain all checkPoints[%d].detectionAreas", i);
+            validator.validate(this.isInBounds(detectionArea), "checkPoints[%d].inBounds must contain all checkPoints[%d].detectionAreas", i, i);
             Vector respawn = checkPoint.getRespawn().toVector();
             validator.validate(detectionArea.contains(respawn), "checkPoints[%s].detectionArea must contain checkPoints[%s].respawn", i, i);
             for (int j = 0; j < i; j++) {
