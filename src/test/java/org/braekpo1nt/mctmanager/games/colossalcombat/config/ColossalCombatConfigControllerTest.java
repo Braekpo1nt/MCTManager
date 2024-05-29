@@ -6,6 +6,8 @@ import com.google.gson.JsonObject;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.MyCustomServerMock;
 import org.braekpo1nt.mctmanager.TestUtils;
+import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
+import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,18 +17,18 @@ import java.io.File;
 import java.io.InputStream;
 import java.util.logging.Level;
 
-public class ColossalCombatStorageUtilTest {
+public class ColossalCombatConfigControllerTest {
     String configFileName = "colossalCombatConfig.json";
     String exampleConfigFileName = "exampleColossalCombatConfig.json";
     Main plugin;
-    ColossalCombatStorageUtil storageUtil;
+    ColossalCombatConfigController controller;
     
     @BeforeEach
     void setupServerAndPlugin() {
         ServerMock server = MockBukkit.mock(new MyCustomServerMock());
         server.getLogger().setLevel(Level.OFF);
         plugin = MockBukkit.load(Main.class);
-        storageUtil = new ColossalCombatStorageUtil(plugin.getDataFolder());
+        controller = new ColossalCombatConfigController(plugin.getDataFolder());
     }
 
     @AfterEach
@@ -36,13 +38,13 @@ public class ColossalCombatStorageUtilTest {
 
     @Test
     void configDoesNotExist() {
-        Assertions.assertThrows(IllegalArgumentException.class, storageUtil::loadConfig);
+        Assertions.assertThrows(ConfigIOException.class, controller::getConfig);
     }
 
     @Test
     void malformedJson() {
         TestUtils.createFileInDirectory(plugin.getDataFolder(), configFileName, "{,");
-        Assertions.assertThrows(IllegalArgumentException.class, storageUtil::loadConfig);
+        Assertions.assertThrows(ConfigInvalidException.class, controller::getConfig);
     }
     
     @Test
@@ -57,16 +59,16 @@ public class ColossalCombatStorageUtilTest {
 
     @Test
     void wellFormedJsonInvalidData() {
-        InputStream inputStream = storageUtil.getClass().getResourceAsStream(exampleConfigFileName);
+        InputStream inputStream = controller.getClass().getResourceAsStream(exampleConfigFileName);
         JsonObject json = TestUtils.inputStreamToJson(inputStream);
         json.addProperty("version", "0.0.0");
         TestUtils.saveJsonToFile(json, new File(plugin.getDataFolder(), configFileName));
-        Assertions.assertThrows(IllegalArgumentException.class, storageUtil::loadConfig);
+        Assertions.assertThrows(ConfigInvalidException.class, controller::getConfig);
     }
     
     void wellFormedJsonValidData(String filename) {
-        InputStream inputStream = storageUtil.getClass().getResourceAsStream(filename);
+        InputStream inputStream = controller.getClass().getResourceAsStream(filename);
         TestUtils.copyInputStreamToFile(inputStream, new File(plugin.getDataFolder(), configFileName));
-        Assertions.assertTrue(storageUtil.loadConfig());
+        Assertions.assertDoesNotThrow(controller::getConfig);
     }
 }

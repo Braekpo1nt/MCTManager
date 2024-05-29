@@ -3,7 +3,7 @@ package org.braekpo1nt.mctmanager.games.colossalcombat;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
-import org.braekpo1nt.mctmanager.games.colossalcombat.config.ColossalCombatStorageUtil;
+import org.braekpo1nt.mctmanager.games.colossalcombat.config.ColossalCombatConfig;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
@@ -18,7 +18,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerPickupArrowEvent;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
@@ -33,7 +32,7 @@ public class ColossalCombatRound implements Listener {
     private final ColossalCombatGame colossalCombatGame;
     private final Sidebar sidebar;
     private final Sidebar adminSidebar;
-    private final ColossalCombatStorageUtil storageUtil;
+    private ColossalCombatConfig config;
     private Map<UUID, Boolean> firstPlaceParticipantsAlive = new HashMap<>();
     private Map<UUID, Boolean> secondPlaceParticipantsAlive = new HashMap<>();
     private String firstTeamName;
@@ -47,13 +46,17 @@ public class ColossalCombatRound implements Listener {
     private boolean roundActive = false;
     private boolean roundHasStarted = false;
     
-    public ColossalCombatRound(Main plugin, GameManager gameManager, ColossalCombatGame colossalCombatGame, ColossalCombatStorageUtil storageUtil, Sidebar sidebar, Sidebar adminSidebar) {
+    public ColossalCombatRound(Main plugin, GameManager gameManager, ColossalCombatGame colossalCombatGame, ColossalCombatConfig config, Sidebar sidebar, Sidebar adminSidebar) {
         this.plugin = plugin;
         this.gameManager = gameManager;
         this.colossalCombatGame = colossalCombatGame;
-        this.storageUtil = storageUtil;
+        this.config = config;
         this.sidebar = sidebar;
         this.adminSidebar = adminSidebar;
+    }
+    
+    public void setConfig(ColossalCombatConfig config) {
+        this.config = config;
     }
     
     public void start(List<Player> newFirstPlaceParticipants, List<Player> newSecondPlaceParticipants, List<Player> newSpectators, String firstTeamName, String secondTeamName) {
@@ -86,7 +89,7 @@ public class ColossalCombatRound implements Listener {
     
     private void initializeFirstPlaceParticipant(Player first) {
         firstPlaceParticipants.add(first);
-        first.teleport(storageUtil.getFirstPlaceSpawn());
+        first.teleport(config.getFirstPlaceSpawn());
         firstPlaceParticipantsAlive.put(first.getUniqueId(), true);
         first.getInventory().clear();
         first.setGameMode(GameMode.ADVENTURE);
@@ -104,7 +107,7 @@ public class ColossalCombatRound implements Listener {
     
     private void initializeSecondPlaceParticipant(Player second) {
         secondPlaceParticipants.add(second);
-        second.teleport(storageUtil.getSecondPlaceSpawn());
+        second.teleport(config.getSecondPlaceSpawn());
         secondPlaceParticipantsAlive.put(second.getUniqueId(), true);
         second.getInventory().clear();
         second.setGameMode(GameMode.ADVENTURE);
@@ -168,13 +171,13 @@ public class ColossalCombatRound implements Listener {
     private void resetArena() {
         colossalCombatGame.closeGates();
         // remove items/arrows on the ground
-        BoundingBox removeArea = storageUtil.getRemoveArea();
-        for (Arrow arrow : storageUtil.getWorld().getEntitiesByClass(Arrow.class)) {
+        BoundingBox removeArea = config.getRemoveArea();
+        for (Arrow arrow : config.getWorld().getEntitiesByClass(Arrow.class)) {
             if (removeArea.contains(arrow.getLocation().toVector())) {
                 arrow.remove();
             }
         }
-        for (Item item : storageUtil.getWorld().getEntitiesByClass(Item.class)) {
+        for (Item item : config.getWorld().getEntitiesByClass(Item.class)) {
             if (removeArea.contains(item.getLocation().toVector())) {
                 item.remove();
             }
@@ -351,12 +354,12 @@ public class ColossalCombatRound implements Listener {
     }
     
     private void giveParticipantEquipment(Player participant) {
-        participant.getInventory().setContents(storageUtil.getLoadout());
+        participant.getInventory().setContents(config.getLoadout());
     }
     
     private void startRoundStartingCountDown() {
         this.startCountDownTaskId = new BukkitRunnable() {
-            private int count = storageUtil.getRoundStartingDuration();
+            private int count = config.getRoundStartingDuration();
             
             @Override
             public void run() {
@@ -382,11 +385,11 @@ public class ColossalCombatRound implements Listener {
     
     private void openGates() {
         antiSuffocation = true;
-        this.antiSuffocationTaskId = Bukkit.getScheduler().runTaskLater(plugin, () -> antiSuffocation = false, storageUtil.getAntiSuffocationDuration()).getTaskId();
+        this.antiSuffocationTaskId = Bukkit.getScheduler().runTaskLater(plugin, () -> antiSuffocation = false, config.getAntiSuffocationDuration()).getTaskId();
         //first
-        BlockPlacementUtils.createCube(storageUtil.getWorld(), storageUtil.getFirstPlaceStone(), Material.AIR);
+        BlockPlacementUtils.createCube(config.getWorld(), config.getFirstPlaceStone(), Material.AIR);
         //second
-        BlockPlacementUtils.createCube(storageUtil.getWorld(), storageUtil.getSecondPlaceStone(), Material.AIR);
+        BlockPlacementUtils.createCube(config.getWorld(), config.getSecondPlaceStone(), Material.AIR);
     }
     
     @EventHandler
@@ -400,11 +403,11 @@ public class ColossalCombatRound implements Listener {
         Location to = event.getTo();
         Player participant = event.getPlayer();
         if (firstPlaceParticipants.contains(participant)) {
-            if (storageUtil.getFirstPlaceAntiSuffocationArea().contains(to.toVector())) {
+            if (config.getFirstPlaceAntiSuffocationArea().contains(to.toVector())) {
                 event.setCancelled(true);
             }
         } else if (secondPlaceParticipants.contains(participant)) {
-            if (storageUtil.getSecondPlaceAntiSuffocationArea().contains(to.toVector())) {
+            if (config.getSecondPlaceAntiSuffocationArea().contains(to.toVector())) {
                 event.setCancelled(true);
             }
         }
