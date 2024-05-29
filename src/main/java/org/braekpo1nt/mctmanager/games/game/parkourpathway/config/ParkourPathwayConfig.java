@@ -37,4 +37,7 @@ public class ParkourPathwayConfig {
         return puzzles.size();
     }
     
+    public Puzzle getPuzzle(int index) {
+        return puzzles.get(index);
+    }
 }
