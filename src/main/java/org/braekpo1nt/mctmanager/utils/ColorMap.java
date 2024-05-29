@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.utils;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
@@ -151,6 +152,10 @@ public class ColorMap {
     
     public static boolean hasNamedTextColor(String colorString) {
         return NAMED_TEXT_COLOR_MAP.containsKey(colorString);
+    }
+    
+    public static Collection<NamedTextColor> getNamedTextColors() {
+        return NAMED_TEXT_COLOR_MAP.values();
     }
     
     public static List<String> getPartiallyMatchingColorStrings(String colorString) {

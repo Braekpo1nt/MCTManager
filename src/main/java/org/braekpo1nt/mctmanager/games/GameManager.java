@@ -7,6 +7,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
+import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
 import org.braekpo1nt.mctmanager.games.game.clockwork.ClockworkGame;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
@@ -39,6 +40,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.logging.Logger;
 
 /**
  * Responsible for overall game management. 
@@ -46,6 +48,7 @@ import java.util.*;
  */
 public class GameManager implements Listener {
     
+    private final Logger LOGGER;
     public static final String ADMIN_TEAM = "_Admins";
     public static final NamedTextColor ADMIN_COLOR = NamedTextColor.DARK_RED; 
     private MCTGame activeGame = null;
@@ -72,6 +75,7 @@ public class GameManager implements Listener {
     
     public GameManager(Main plugin, Scoreboard mctScoreboard) {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
+        this.LOGGER = plugin.getLogger();
         this.mctScoreboard = mctScoreboard;
         this.gameStateStorageUtil = new GameStateStorageUtil(plugin);
         this.voteManager = new VoteManager(this, plugin);
@@ -278,8 +282,8 @@ public class GameManager implements Listener {
     public boolean loadGameState() {
         try {
             gameStateStorageUtil.loadGameState();
-        } catch (IOException e) {
-            reportGameStateIOException("loading game state", e);
+        } catch (ConfigException e) {
+            reportGameStateException("loading game state", e);
             return false;
         }
         gameStateStorageUtil.setupScoreboard(mctScoreboard);
@@ -302,8 +306,8 @@ public class GameManager implements Listener {
     public void saveGameState() {
         try {
             gameStateStorageUtil.saveGameState();
-        } catch (IOException e) {
-            reportGameStateIOException("adding score to player", e);
+        } catch (ConfigException e) {
+            reportGameStateException("adding score to player", e);
         }
     }
     
@@ -716,8 +720,8 @@ public class GameManager implements Listener {
             sender.sendMessage(Component.text("Removed team ")
                     .append(formattedTeamDisplayName)
                     .append(Component.text(".")));
-        } catch (IOException e) {
-            reportGameStateIOException("removing team", e);
+        } catch (ConfigIOException e) {
+            reportGameStateException("removing team", e);
             sender.sendMessage(Component.text("error occurred removing team, see console for details.")
                     .color(NamedTextColor.RED));
         }
@@ -751,8 +755,8 @@ public class GameManager implements Listener {
         }
         try {
             gameStateStorageUtil.addTeam(teamName, teamDisplayName, colorString);
-        } catch (IOException e) {
-            reportGameStateIOException("adding score to player", e);
+        } catch (ConfigIOException e) {
+            reportGameStateException("adding score to player", e);
         }
         Team newTeam = mctScoreboard.registerNewTeam(teamName);
         newTeam.displayName(Component.text(teamDisplayName));
@@ -857,8 +861,8 @@ public class GameManager implements Listener {
     private void addNewPlayer(CommandSender sender, UUID playerUniqueId, String teamName) {
         try {
             gameStateStorageUtil.addNewPlayer(playerUniqueId, teamName);
-        } catch (IOException e) {
-            reportGameStateIOException("adding new player", e);
+        } catch (ConfigIOException e) {
+            reportGameStateException("adding new player", e);
             sender.sendMessage(Component.text("error occurred adding new player, see console for details.")
                     .color(NamedTextColor.RED));
         }
@@ -914,8 +918,8 @@ public class GameManager implements Listener {
         }
         try {
             gameStateStorageUtil.leavePlayer(playerUniqueId);
-        } catch (IOException e) {
-            reportGameStateIOException("leaving player", e);
+        } catch (ConfigIOException e) {
+            reportGameStateException("leaving player", e);
             sender.sendMessage(Component.text("error occurred leaving player, see console for details.")
                     .color(NamedTextColor.RED));
         }
@@ -1029,19 +1033,6 @@ public class GameManager implements Listener {
     }
     
     /**
-     * Returns the names of all online participants
-     * @return A list of the names of all online participants. Empty list if none are online.
-     */
-    public List<String> getOnlineParticipantNames() {
-        List<String> names = new ArrayList<>();
-        for (Player player : onlineParticipants) {
-            names.add(player.getName());
-        }
-        return names;
-    }
-    
-    
-    /**
      * Gets all the names of the participants in the game state, regardless of 
      * whether they're offline or online. 
      * @return a list of the names of all participants in the game state
@@ -1085,8 +1076,8 @@ public class GameManager implements Listener {
             if (participant != null && onlineParticipants.contains(participant)) {
                 updatePersonalScore(participant);
             }
-        } catch (IOException e) {
-            reportGameStateIOException("adding score to player", e);
+        } catch (ConfigIOException e) {
+            reportGameStateException("adding score to player", e);
         }
     }
     
@@ -1099,8 +1090,8 @@ public class GameManager implements Listener {
         try {
             gameStateStorageUtil.addScore(teamName, score);
             updateTeamScore(teamName);
-        } catch (IOException e) {
-            reportGameStateIOException("adding score to team", e);
+        } catch (ConfigIOException e) {
+            reportGameStateException("adding score to team", e);
         }
     }
     
@@ -1120,8 +1111,8 @@ public class GameManager implements Listener {
             if (participant != null && onlineParticipants.contains(participant)) {
                 updatePersonalScore(participant);
             }
-        } catch (IOException e) {
-            reportGameStateIOException("setting a player's score", e);
+        } catch (ConfigIOException e) {
+            reportGameStateException("setting a player's score", e);
         }
     }
     
@@ -1138,8 +1129,8 @@ public class GameManager implements Listener {
             }
             gameStateStorageUtil.setScore(teamName, score);
             updateTeamScore(teamName);
-        } catch (IOException e) {
-            reportGameStateIOException("adding score to team", e);
+        } catch (ConfigIOException e) {
+            reportGameStateException("adding score to team", e);
         }
     }
     
@@ -1190,8 +1181,8 @@ public class GameManager implements Listener {
         }
         try {
             gameStateStorageUtil.addAdmin(uniqueId);
-        } catch (IOException e) {
-            reportGameStateIOException("adding new admin", e);
+        } catch (ConfigIOException e) {
+            reportGameStateException("adding new admin", e);
             sender.sendMessage(Component.text("error occurred adding new admin, see console for details.")
                     .color(NamedTextColor.RED));
         }
@@ -1232,8 +1223,8 @@ public class GameManager implements Listener {
         UUID adminUniqueId = offlineAdmin.getUniqueId();
         try {
             gameStateStorageUtil.removeAdmin(adminUniqueId);
-        } catch (IOException e) {
-            reportGameStateIOException("removing admin", e);
+        } catch (ConfigIOException e) {
+            reportGameStateException("removing admin", e);
             sender.sendMessage(Component.text("error occurred removing admin, see console for details.")
                     .color(NamedTextColor.RED));
         }
@@ -1300,13 +1291,13 @@ public class GameManager implements Listener {
         this.gameStateStorageUtil = gameStateStorageUtil;
     }
     
-    private void reportGameStateIOException(String attemptedOperation, IOException ioException) {
-        Bukkit.getLogger().severe(String.format("error while %s. See console log for error message.", attemptedOperation));
+    private void reportGameStateException(String attemptedOperation, ConfigException e) {
+        LOGGER.severe(String.format("error while %s. See console log for error message.", attemptedOperation));
         messageAdmins(Component.empty()
                 .append(Component.text("error while "))
                 .append(Component.text(attemptedOperation))
                 .append(Component.text(". See console log for error message.")));
-        throw new RuntimeException(ioException);
+        throw new RuntimeException(e);
     }
     
     public MCTGame getActiveGame() {

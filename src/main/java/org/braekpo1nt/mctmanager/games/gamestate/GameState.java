@@ -1,6 +1,8 @@
 package org.braekpo1nt.mctmanager.games.gamestate;
 
+import lombok.Builder;
 import lombok.Data;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -8,10 +10,11 @@ import java.util.*;
  * Represents the state of the game for saving and loading from disk. 
  */
 @Data
+@Builder
 public class GameState {
-    private Map<UUID, MCTPlayer> players = new HashMap<>();
-    private Map<String, MCTTeam> teams = new HashMap<>();
-    private List<UUID> admins = new ArrayList<>();
+    private @NotNull Map<UUID, MCTPlayer> players;
+    private @NotNull Map<String, MCTTeam> teams;
+    private @NotNull List<UUID> admins;
     
     /**
      * Checks if the team with the given team name exists in the game state.

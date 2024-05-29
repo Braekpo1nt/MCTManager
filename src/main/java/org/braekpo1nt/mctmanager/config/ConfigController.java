@@ -8,7 +8,11 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
 
-public abstract class ConfigController<ConfigDTOType> {
+/**
+ * Loads configs from files and saves configs to files 
+ * @param <T> the type of ConfigDTO this is responsible for 
+ */
+public abstract class ConfigController<T> {
     
     /**
      * Load the configDTO from the given file
@@ -18,7 +22,7 @@ public abstract class ConfigController<ConfigDTOType> {
      * @throws ConfigInvalidException if there is a problem parsing the JSON into a configDTO
      * @throws ConfigIOException if there is an IO problem getting the configDTO
      */
-    public @NotNull ConfigDTOType loadConfigDTO(@NotNull File configFile, @NotNull Class<ConfigDTOType> configType) throws ConfigInvalidException, ConfigIOException {
+    public @NotNull T loadConfigDTO(@NotNull File configFile, @NotNull Class<T> configType) throws ConfigInvalidException, ConfigIOException {
         try {
             if (!configFile.exists()) {
                 throw new ConfigIOException(String.format("Could not find config file %s", configFile));
@@ -28,7 +32,7 @@ public abstract class ConfigController<ConfigDTOType> {
         }
         try {
             Reader reader = new FileReader(configFile);
-            ConfigDTOType configDTO = ConfigUtils.GSON.fromJson(reader, configType);
+            T configDTO = ConfigUtils.GSON.fromJson(reader, configType);
             reader.close();
             return configDTO;
         } catch (IOException | JsonIOException e) {
@@ -44,7 +48,7 @@ public abstract class ConfigController<ConfigDTOType> {
      * @param configFile the file to save the config to
      * @throws ConfigIOException if there is an IO error saving the config to the file system
      */
-    public void saveConfigDTO(@NotNull ConfigDTOType configDTO, @NotNull File configFile) throws ConfigIOException {
+    public void saveConfigDTO(@NotNull T configDTO, @NotNull File configFile) throws ConfigIOException {
         try {
             if (!configFile.exists()) {
                 if (!configFile.mkdirs()) {

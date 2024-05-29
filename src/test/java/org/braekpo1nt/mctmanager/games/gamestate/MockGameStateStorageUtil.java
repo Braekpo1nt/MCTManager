@@ -3,6 +3,8 @@ package org.braekpo1nt.mctmanager.games.gamestate;
 import org.braekpo1nt.mctmanager.Main;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 public class MockGameStateStorageUtil extends GameStateStorageUtil {
     
@@ -11,10 +13,10 @@ public class MockGameStateStorageUtil extends GameStateStorageUtil {
     }
     
     @Override
-    public void loadGameState() throws IOException {
-        this.gameState = new GameState();
+    public void loadGameState() {
+        this.gameState = new GameState(new HashMap<>(), new HashMap<>(), new ArrayList<>());
     }
     
     @Override
-    public void saveGameState() throws IOException {}
+    public void saveGameState() {}
 }
