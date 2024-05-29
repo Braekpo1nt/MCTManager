@@ -1,11 +1,9 @@
 package org.braekpo1nt.mctmanager.games.gamestate;
 
-import com.google.gson.Gson;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
-import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;

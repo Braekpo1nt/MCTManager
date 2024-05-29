@@ -1,8 +1,11 @@
 package org.braekpo1nt.mctmanager.games.gamestate;
 
+import lombok.Data;
+
 import java.util.UUID;
 
-public class MCTPlayer {
+@Data
+class MCTPlayer {
     private UUID uniqueId;
     private int score;
     private String teamName;
@@ -11,30 +14,6 @@ public class MCTPlayer {
         this.uniqueId = uniqueId;
         this.score = score;
         this.teamName = teamName;
-    }
-    
-    public void setUniqueId(UUID uniqueId) {
-        this.uniqueId = uniqueId;
-    }
-    
-    public void setScore(int score) {
-        this.score = score;
-    }
-    
-    public void setTeamName(String teamName) {
-        this.teamName = teamName;
-    }
-    
-    public UUID getUniqueId() {
-        return uniqueId;
-    }
-    
-    public int getScore() {
-        return score;
-    }
-    
-    public String getTeamName() {
-        return teamName;
     }
     
     @Override

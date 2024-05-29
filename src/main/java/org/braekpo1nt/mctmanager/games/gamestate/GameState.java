@@ -1,24 +1,17 @@
 package org.braekpo1nt.mctmanager.games.gamestate;
 
-import org.braekpo1nt.mctmanager.games.game.enums.GameType;
+import lombok.Data;
 
 import java.util.*;
 
 /**
  * Represents the state of the game for saving and loading from disk. 
  */
+@Data
 public class GameState {
-    private Map<UUID, MCTPlayer> players;
-    private Map<String, MCTTeam> teams;
-    private List<GameType> playedGames;
-    private List<UUID> admins;
-    
-    public GameState() {
-        this.players = new HashMap<>();
-        this.teams = new HashMap<>();
-        this.playedGames = new ArrayList<>();
-        this.admins = new ArrayList<>();
-    }
+    private Map<UUID, MCTPlayer> players = new HashMap<>();
+    private Map<String, MCTTeam> teams = new HashMap<>();
+    private List<UUID> admins = new ArrayList<>();
     
     /**
      * Checks if the team with the given team name exists in the game state.
@@ -84,38 +77,6 @@ public class GameState {
     
     public MCTTeam getTeam(String teamName) {
         return teams.get(teamName);
-    }
-    
-    public Map<UUID, MCTPlayer> getPlayers() {
-        return players;
-    }
-    
-    public void setPlayers(Map<UUID, MCTPlayer> players) {
-        this.players = players;
-    }
-    
-    public Map<String, MCTTeam> getTeams() {
-        return teams;
-    }
-    
-    public void setTeams(Map<String, MCTTeam> teams) {
-        this.teams = teams;
-    }
-    
-    public List<GameType> getPlayedGames() {
-        return playedGames;
-    }
-    
-    public void setPlayedGames(List<GameType> playedGames) {
-        this.playedGames = playedGames;
-    }
-    
-    public List<UUID> getAdmins() {
-        return admins;
-    }
-    
-    public void setAdmins(List<UUID> admins) {
-        this.admins = admins;
     }
     
     /**
