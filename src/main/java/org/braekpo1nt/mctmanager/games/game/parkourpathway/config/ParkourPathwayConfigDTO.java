@@ -49,42 +49,42 @@ class ParkourPathwayConfigDTO implements Validatable {
     
     @Override
     public void validate(Validator validator) {
-        Preconditions.checkArgument(this.getVersion() != null, "version can't be null");
-        Preconditions.checkArgument(Main.VALID_CONFIG_VERSIONS.contains(this.getVersion()), "invalid config version (%s)", this.getVersion());
-        Preconditions.checkArgument(Bukkit.getWorld(this.getWorld()) != null, "Could not find world \"%s\"", this.getWorld());
-        Preconditions.checkArgument(this.getSpectatorArea() != null, "spectatorArea can't be null");
-        Preconditions.checkArgument(this.getSpectatorArea().toBoundingBox().getVolume() >= 1.0, "getSpectatorArea's volume (%s) can't be less than 1. %s", this.getSpectatorArea().toBoundingBox().getVolume(), this.getSpectatorArea().toBoundingBox());
-        Preconditions.checkArgument(this.getScores() != null, "scores can't be null");
-        Preconditions.checkArgument(this.getScores().getCheckpoint() != null, "scores.checkpoint can't be null");
-        Preconditions.checkArgument(this.getScores().getCheckpoint().length >= 2, "scores.checkpoint must have at least two elements");
-        Preconditions.checkArgument(this.getScores().getWin() != null, "scores.win can't be null");
-        Preconditions.checkArgument(this.getScores().getWin().length >= 2, "scores.win must have at least two elements");
-        Preconditions.checkArgument(this.getDurations() != null, "durations can't be null");
-        Preconditions.checkArgument(this.getDurations().getStarting() >= 0, "durations.starting (%s) can't be negative", this.getDurations().getStarting());
-        Preconditions.checkArgument(this.getDurations().getTimeLimit() >= 2, "durations.timeLimit (%s) can't be less than 2", this.getDurations().getTimeLimit());
-        Preconditions.checkArgument(this.getDurations().getCheckpointCounter() >= 1, "durations.checkpointCounter (%s) can't be less than 1", this.getDurations().getCheckpointCounter());
-        Preconditions.checkArgument(this.getDurations().getCheckpointCounterAlert() >= 1 && this.getDurations().getCheckpointCounter() >= this.getDurations().getCheckpointCounterAlert(), "durations.checkpointCounterAlert (%s) can't be less than 0 or greater than durations.checkpointCounter", this.getDurations().getCheckpointCounterAlert());
+        validator.notNull(this.getVersion(), "version");
+        validator.validate(Main.VALID_CONFIG_VERSIONS.contains(this.getVersion()), "invalid config version (%s)", this.getVersion());
+        validator.notNull(Bukkit.getWorld(this.getWorld()), "Could not find world \"%s\"", this.getWorld());
+        validator.notNull(this.getSpectatorArea(), "spectatorArea");
+        validator.validate(this.getSpectatorArea().toBoundingBox().getVolume() >= 1.0, "getSpectatorArea's volume (%s) can't be less than 1. %s", this.getSpectatorArea().toBoundingBox().getVolume(), this.getSpectatorArea().toBoundingBox());
+        validator.notNull(this.getScores(), "scores");
+        validator.notNull(this.getScores().getCheckpoint(), "scores.checkpoint");
+        validator.validate(this.getScores().getCheckpoint().length >= 2, "scores.checkpoint must have at least two elements");
+        validator.notNull(this.getScores().getWin(), "scores.win");
+        validator.validate(this.getScores().getWin().length >= 2, "scores.win must have at least two elements");
+        validator.notNull(this.getDurations(), "durations");
+        validator.validate(this.getDurations().getStarting() >= 0, "durations.starting (%s) can't be negative", this.getDurations().getStarting());
+        validator.validate(this.getDurations().getTimeLimit() >= 2, "durations.timeLimit (%s) can't be less than 2", this.getDurations().getTimeLimit());
+        validator.validate(this.getDurations().getCheckpointCounter() >= 1, "durations.checkpointCounter (%s) can't be less than 1", this.getDurations().getCheckpointCounter());
+        validator.validate(this.getDurations().getCheckpointCounterAlert() >= 1 && this.getDurations().getCheckpointCounter() >= this.getDurations().getCheckpointCounterAlert(), "durations.checkpointCounterAlert (%s) can't be less than 0 or greater than durations.checkpointCounter", this.getDurations().getCheckpointCounterAlert());
     
-        Preconditions.checkArgument(this.getPuzzles() != null, "puzzles can't be null");
-        Preconditions.checkArgument(this.getPuzzles().size() >= 3, "puzzles must have at least 3 puzzles");
+        validator.notNull(this.getPuzzles(), "puzzles");
+        validator.validate(this.getPuzzles().size() >= 3, "puzzles must have at least 3 puzzles");
         validatePuzzles(validator);
     
         if (this.getTeamSpawns() != null) {
             validateTeamSpawns(validator);
         }
-        Preconditions.checkArgument(this.getDescription() != null, "description");
+        validator.notNull(this.getDescription(), "description");
     }
     
     private void validatePuzzles(Validator validator) {
         for (int i = 0; i < puzzles.size(); i++) {
             PuzzleDTO puzzle = puzzles.get(i);
-            Preconditions.checkArgument(puzzle != null, "puzzles[%s] can't be null", i);
+            validator.notNull(puzzle, "puzzles[%s]", i);
             puzzle.validate(validator.path("puzzles[%d]", i));
             if (i - 1 >= 0) {
                 PuzzleDTO previousPuzzle = puzzles.get(i - 1);
                 for (int j = 0 ; j < puzzle.getCheckPoints().size(); j++) {
                     PuzzleDTO.CheckPointDTO checkPoint = puzzle.getCheckPoints().get(j);
-                    Preconditions.checkArgument(previousPuzzle.isInBounds(checkPoint.getDetectionArea().toBoundingBox()), "at least one entry in puzzles[%s].inBounds must contain puzzles[%s].checkPoints[%s].detectionArea", i - 1, i, j);
+                    validator.validate(previousPuzzle.isInBounds(checkPoint.getDetectionArea().toBoundingBox()), "at least one entry in puzzles[%s].inBounds must contain puzzles[%s].checkPoints[%s].detectionArea", i - 1, i, j);
                 }
             }
         }
@@ -95,13 +95,13 @@ class ParkourPathwayConfigDTO implements Validatable {
             return;
         }
         PuzzleDTO firstPuzzle = puzzles.get(0);
-        Preconditions.checkArgument(!teamSpawns.isEmpty(), "teamSpawns must have at least one entry");
+        validator.validate(!teamSpawns.isEmpty(), "teamSpawns must have at least one entry");
         for (int i = 0; i < teamSpawns.size(); i++) {
             TeamSpawnDTO teamSpawnDTO = teamSpawns.get(i);
-            Preconditions.checkArgument(teamSpawnDTO != null, "teamSpawns[%s] can't be null", i);
+            validator.notNull(teamSpawnDTO, "teamSpawns[%s]", i);
             teamSpawnDTO.validate(validator.path("teamSpawns[%d]", i));
-            Preconditions.checkArgument(firstPuzzle.isInBounds(teamSpawnDTO.getBarrierArea().toBoundingBox()), "teamSpawns[%d].barrierArea must be contained in at least one of the inBounds boxes of puzzles[0]", i);
-            Preconditions.checkArgument(firstPuzzle.isInBounds(teamSpawnDTO.getSpawn().toVector()), "teamSpawns[%d].spawn must be contained in at least one of the inBounds boxes of puzzles[0]", i);
+            validator.validate(firstPuzzle.isInBounds(teamSpawnDTO.getBarrierArea().toBoundingBox()), "teamSpawns[%d].barrierArea must be contained in at least one of the inBounds boxes of puzzles[0]", i);
+            validator.validate(firstPuzzle.isInBounds(teamSpawnDTO.getSpawn().toVector()), "teamSpawns[%d].spawn must be contained in at least one of the inBounds boxes of puzzles[0]", i);
         }
     }
     
@@ -122,6 +122,7 @@ class ParkourPathwayConfigDTO implements Validatable {
         return ParkourPathwayConfig.builder()
                 .world(newWorld)
                 .startingLocation(newStartingLocation)
+                .spectatorArea(this.spectatorArea.toBoundingBox())
                 .teamSpawns(newTeamSpawns)
                 .puzzles(newPuzzles)
                 .glassBarrier(newGlassBarrier)
@@ -134,6 +135,22 @@ class ParkourPathwayConfigDTO implements Validatable {
                 .checkpointCounterAlertDuration(this.durations.checkpointCounterAlert)
                 .checkpointScore(this.scores.checkpoint)
                 .winScore(this.scores.win)
+                .build();
+    }
+    
+    public static ParkourPathwayConfigDTO fromConfig(ParkourPathwayConfig config) {
+        return ParkourPathwayConfigDTO.builder()
+                .version(Main.VALID_CONFIG_VERSIONS.get(Main.VALID_CONFIG_VERSIONS.size() - 1))
+                .world(config.getWorld().getName())
+                .glassBarrier(config.getGlassBarrier() != null ? BoundingBoxDTO.from(config.getGlassBarrier()) : null)
+                .glassBarrierOpenMessage(config.getGlassBarrierOpenMessage())
+                .teamSpawns(config.getTeamSpawns() != null ? TeamSpawnDTO.fromTeamSpawns(config.getTeamSpawns()) : null)
+                .teamSpawnsOpenMessage(config.getTeamSpawnsOpenMessage())
+                .puzzles(PuzzleDTO.fromPuzzles(config.getPuzzles()))
+                .spectatorArea(BoundingBoxDTO.from(config.getSpectatorArea()))
+                .scores(new Scores(config.getCheckpointScore(), config.getWinScore()))
+                .durations(new Durations(config.getTeamSpawnsDuration(), config.getStartingDuration(), config.getTimeLimitDuration(), config.getCheckpointCounterDuration(), config.getCheckpointCounterAlertDuration()))
+                .description(config.getDescription())
                 .build();
     }
     

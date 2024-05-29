@@ -44,7 +44,7 @@ public abstract class ConfigController<ConfigDTOType> {
      * @param configFile the file to save the config to
      * @throws ConfigIOException if there is an IO error saving the config to the file system
      */
-    public void saveConfigDTO(@NotNull ConfigDTOType configDTO, @NotNull File configFile) {
+    public void saveConfigDTO(@NotNull ConfigDTOType configDTO, @NotNull File configFile) throws ConfigIOException {
         try {
             if (!configFile.exists()) {
                 if (!configFile.mkdirs()) {

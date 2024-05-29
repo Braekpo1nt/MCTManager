@@ -7,6 +7,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
+import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
 import org.braekpo1nt.mctmanager.games.game.clockwork.ClockworkGame;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
@@ -255,7 +256,7 @@ public class GameManager implements Listener {
         
         try {
             if (!configurable.loadConfig()) {
-                throw new IllegalArgumentException("ConfigDto could not be loaded.");
+                throw new IllegalArgumentException("Config could not be loaded.");
             }
         } catch (IllegalArgumentException | ConfigException e) {
             Bukkit.getLogger().severe(e.getMessage());
@@ -398,7 +399,7 @@ public class GameManager implements Listener {
         if (selectedGame instanceof Configurable configurable) {
             try {
                 if (!configurable.loadConfig()) {
-                    throw new IllegalArgumentException("ConfigDto could not be loaded.");
+                    throw new IllegalArgumentException("Config could not be loaded.");
                 }
             } catch (IllegalArgumentException | ConfigException e) {
                 Bukkit.getLogger().severe(e.getMessage());
@@ -533,7 +534,7 @@ public class GameManager implements Listener {
         // make sure config loads
         try {
             if (!selectedEditor.loadConfig()) {
-                throw new IllegalArgumentException("ConfigDto could not be loaded.");
+                throw new IllegalArgumentException("Config could not be loaded.");
             }
         } catch (IllegalArgumentException | ConfigException e) {
             Bukkit.getLogger().severe(e.getMessage());
@@ -575,12 +576,12 @@ public class GameManager implements Listener {
         }
         try {
             if (!activeEditor.configIsValid()) {
-                throw new IllegalArgumentException("ConfigDto is not valid");
+                throw new ConfigInvalidException("Config is not valid");
             }
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException | ConfigException e) {
             Bukkit.getLogger().severe(e.getMessage());
             e.printStackTrace();
-            sender.sendMessage(Component.text("ConfigDto is not valid for ")
+            sender.sendMessage(Component.text("Config is not valid for ")
                     .append(Component.text(activeEditor.getType().name())
                             .decorate(TextDecoration.BOLD))
                     .append(Component.text(". See console for details:\n"))
@@ -588,7 +589,7 @@ public class GameManager implements Listener {
                     .color(NamedTextColor.RED));
             return;
         }
-        sender.sendMessage(Component.text("ConfigDto is valid.")
+        sender.sendMessage(Component.text("Config is valid.")
                 .color(NamedTextColor.GREEN));
     }
     
@@ -605,12 +606,12 @@ public class GameManager implements Listener {
         if (!force) {
             try {
                 if (!activeEditor.configIsValid()) {
-                    throw new IllegalArgumentException("ConfigDto is not valid");
+                    throw new ConfigInvalidException("Config is not valid");
                 }
-            } catch (IllegalArgumentException e) {
+            } catch (IllegalArgumentException | ConfigException e) {
                 Bukkit.getLogger().severe(e.getMessage());
                 e.printStackTrace();
-                sender.sendMessage(Component.text("ConfigDto is not valid for ")
+                sender.sendMessage(Component.text("Config is not valid for ")
                         .append(Component.text(activeEditor.getType().name())
                                 .decorate(TextDecoration.BOLD))
                         .append(Component.text(". See console for details:\n"))
@@ -628,7 +629,7 @@ public class GameManager implements Listener {
         }
         try {
             activeEditor.saveConfig();
-        } catch (IOException e) {
+        } catch (IOException | ConfigException e) {
             Bukkit.getLogger().severe(e.getMessage());
             e.printStackTrace();
             sender.sendMessage(Component.text("An error occurred while attempting to save the config for ")
@@ -639,14 +640,14 @@ public class GameManager implements Listener {
                     .color(NamedTextColor.RED));
             return;
         }
-        sender.sendMessage(Component.text("ConfigDto is saved.")
+        sender.sendMessage(Component.text("Config is saved.")
                 .color(NamedTextColor.GREEN));
     }
     
     public void loadEditor(@NotNull CommandSender sender) {
         try {
             if (!activeEditor.loadConfig()) {
-                throw new IllegalArgumentException("ConfigDto could not be loaded.");
+                throw new IllegalArgumentException("Config could not be loaded.");
             }
         } catch (IllegalArgumentException | ConfigException e) {
             Bukkit.getLogger().severe(e.getMessage());
@@ -660,7 +661,7 @@ public class GameManager implements Listener {
             sender.sendMessage(message);
             return;
         }
-        sender.sendMessage(Component.text("ConfigDto loaded.")
+        sender.sendMessage(Component.text("Config loaded.")
                 .color(NamedTextColor.GREEN));
     }
     

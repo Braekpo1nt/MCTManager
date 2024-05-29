@@ -1,8 +1,7 @@
 package org.braekpo1nt.mctmanager.games.game.parkourpathway.config;
 
-import com.google.common.base.Preconditions;
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.Getter;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.util.BoundingBoxDTO;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.LocationDTO;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
@@ -14,6 +13,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 @Data
+@AllArgsConstructor
 class TeamSpawnDTO implements Validatable {
     /**
      * the area which will be used to place a glass barrier. Air blocks will be replaced with stained-glass of the appropriate team color. 
@@ -36,5 +36,13 @@ class TeamSpawnDTO implements Validatable {
     
     public static @NotNull List<TeamSpawn> toTeamSpawns(@NotNull World world, @NotNull List<@NotNull TeamSpawnDTO> teamSpawnDTOS) {
         return teamSpawnDTOS.stream().map(teamSpawnDTO -> teamSpawnDTO.toTeamSpawn(world)).toList();
+    }
+    
+    @NotNull static TeamSpawnDTO fromTeamSpawn(TeamSpawn teamSpawn) {
+        return new TeamSpawnDTO(BoundingBoxDTO.from(teamSpawn.getBarrierArea()), LocationDTO.from(teamSpawn.getSpawnLocation()));
+    }
+    
+    public static List<TeamSpawnDTO> fromTeamSpawns(List<TeamSpawn> teamSpawns) {
+        return teamSpawns.stream().map(TeamSpawnDTO::fromTeamSpawn).toList();
     }
 }

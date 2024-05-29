@@ -1,6 +1,5 @@
 package org.braekpo1nt.mctmanager.games.game.parkourpathway.config;
 
-import com.google.common.base.Preconditions;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
@@ -41,39 +40,39 @@ class PuzzleDTO implements Validatable {
     @Override
     public void validate(Validator validator) {
         validateInBounds(validator);
-        Preconditions.checkArgument(this.getCheckPoints() != null, "checkPoints can't be null");
+        validator.notNull(this.getCheckPoints(), "checkPoints");
         validateCheckPoint(validator);
     }
     
     private void validateInBounds(@NotNull Validator validator) {
-        Preconditions.checkArgument(this.getInBounds() != null, "inBounds can't be null");
-        Preconditions.checkArgument(!this.getInBounds().isEmpty(), "inBounds can't be empty");
-        Preconditions.checkArgument(!this.inBounds.contains(null), "inBounds can't contain null");
+        validator.notNull(this.getInBounds(), "inBounds");
+        validator.validate(!this.getInBounds().isEmpty(), "inBounds can't be empty");
+        validator.validate(!this.inBounds.contains(null), "inBounds can't contain null");
         List<BoundingBox> inBounds = this.inBounds.stream().map(BoundingBoxDTO::toBoundingBox).toList();
         for (int i = 0; i < inBounds.size(); i++) {
             BoundingBox inBound = inBounds.get(i);
-            Preconditions.checkArgument(inBound.getVolume() >= 1, "inBounds[%d]'s volume (%s) can't be less than 1 (%s)", i, inBound.getVolume(), inBound);
+            validator.validate(inBound.getVolume() >= 1, "inBounds[%d]'s volume (%s) can't be less than 1 (%s)", i, inBound.getVolume(), inBound);
             if (inBounds.size() == 1) {
                 return; // no need to check for overlapping
             }
-            Preconditions.checkArgument(overlapsOneOtherBox(i, inBounds), "inBounds[%d] must overlap at least one other inBounds box in the list", i);
+            validator.validate(overlapsOneOtherBox(i, inBounds), "inBounds[%d] must overlap at least one other inBounds box in the list", i);
         }
     }
     
     private void validateCheckPoint(@NotNull Validator validator) {
-        Preconditions.checkArgument(!this.getCheckPoints().isEmpty(), "checkPoints must have at least 1 element");
+        validator.validate(!this.getCheckPoints().isEmpty(), "checkPoints must have at least 1 element");
         for (int i = 0; i < this.checkPoints.size(); i++) {
             CheckPointDTO checkPoint = this.checkPoints.get(i);
-            Preconditions.checkArgument(checkPoint != null, "checkPoints can't have null elements");
+            validator.notNull(checkPoint, "checkPoints can't have null elements");
             checkPoint.validate(validator.path("checkPoints[%d]", i));
             BoundingBox detectionArea = checkPoint.getDetectionArea().toBoundingBox();
-            Preconditions.checkArgument(this.isInBounds(detectionArea), "inBounds must contain all checkPoints[%d].detectionAreas", i);
+            validator.validate(this.isInBounds(detectionArea), "inBounds must contain all checkPoints[%d].detectionAreas", i);
             Vector respawn = checkPoint.getRespawn().toVector();
-            Preconditions.checkArgument(detectionArea.contains(respawn), "checkPoints[%s].detectionArea must contain checkPoints[%s].respawn", i, i);
+            validator.validate(detectionArea.contains(respawn), "checkPoints[%s].detectionArea must contain checkPoints[%s].respawn", i, i);
             for (int j = 0; j < i; j++) {
                 PuzzleDTO.CheckPointDTO earlierCheckpoint = this.getCheckPoints().get(j);
                 BoundingBox earlierDetectionArea = earlierCheckpoint.getDetectionArea().toBoundingBox();
-                Preconditions.checkArgument(!earlierDetectionArea.overlaps(detectionArea), "checkPoints[%s].detectionArea (%s) and checkPoints[%s].detectionArea (%s) can't overlap", i-1, earlierDetectionArea, i, detectionArea);
+                validator.validate(!earlierDetectionArea.overlaps(detectionArea), "checkPoints[%s].detectionArea (%s) and checkPoints[%s].detectionArea (%s) can't overlap", i-1, earlierDetectionArea, i, detectionArea);
             }
         }
     }
@@ -96,8 +95,21 @@ class PuzzleDTO implements Validatable {
         return false;
     }
     
-    static PuzzleDTO from(Puzzle puzzle) {
+    static @NotNull PuzzleDTO fromPuzzle(Puzzle puzzle) {
         return new PuzzleDTO(BoundingBoxDTO.from(puzzle.inBounds()), CheckPointDTO.from(puzzle.checkPoints()));
+    }
+    
+    /**
+     * Also sets the index of the puzzles in order
+     * @param puzzles the puzzles to convert to PuzzleDTOs
+     * @return the puzzles as PuzzleDTOs with their index fields assigned
+     */
+    static @NotNull List<PuzzleDTO> fromPuzzles(@NotNull List<Puzzle> puzzles) {
+        List<PuzzleDTO> puzzleDTOS = puzzles.stream().map(PuzzleDTO::fromPuzzle).toList();
+        for (int i = 0; i < puzzleDTOS.size(); i++) {
+            puzzleDTOS.get(i).setIndex(i);
+        }
+        return puzzleDTOS;
     }
     
     void setIndex(int index) {
@@ -157,9 +169,9 @@ class PuzzleDTO implements Validatable {
         @Override
         public void validate(Validator validator) {
             BoundingBox detectionArea = this.getDetectionArea().toBoundingBox();
-            Preconditions.checkArgument(detectionArea.getVolume() >= 1, "detectionArea's volume (%s) can't be less than 1 (%s)", detectionArea.getVolume(), detectionArea);
+            validator.validate(detectionArea.getVolume() >= 1, "detectionArea's volume (%s) can't be less than 1 (%s)", detectionArea.getVolume(), detectionArea);
             Vector respawn = this.getRespawn().toVector();
-            Preconditions.checkArgument(detectionArea.contains(respawn), "detectionArea (%s) must contain respawn (%s)", detectionArea, respawn);
+            validator.validate(detectionArea.contains(respawn), "detectionArea (%s) must contain respawn (%s)", detectionArea, respawn);
         }
     }
     

@@ -29,4 +29,18 @@ public class ParkourPathwayConfigController extends ConfigController<ParkourPath
         return configDTO.toConfig();
     }
     
+    public void validateConfig(@NotNull ParkourPathwayConfig config) throws ConfigInvalidException {
+        ParkourPathwayConfigDTO configDTO = ParkourPathwayConfigDTO.fromConfig(config);
+        configDTO.validate(new Validator("parkourPathwayConfig"));
+    }
+    
+    /**
+     * Save the given config to its file. Note that this does not validate the configDTO.
+     * @param config the config to save
+     * @throws ConfigIOException if there is an IO error while saving the config file
+     */
+    public void saveConfig(@NotNull ParkourPathwayConfig config) throws ConfigIOException {
+        ParkourPathwayConfigDTO configDTO = ParkourPathwayConfigDTO.fromConfig(config);
+        saveConfigDTO(configDTO, configFile);
+    }
 }

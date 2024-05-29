@@ -6,6 +6,8 @@ import com.google.gson.JsonObject;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.MyCustomServerMock;
 import org.braekpo1nt.mctmanager.TestUtils;
+import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
+import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,18 +17,18 @@ import java.io.File;
 import java.io.InputStream;
 import java.util.logging.Level;
 
-class ParkourPathwayStorageUtilTest {
+class ParkourPathwayConfigControllerTest {
     String configFileName = "parkourPathwayConfig.json";
     String exampleConfigFileName = "exampleParkourPathwayConfig.json";
     Main plugin;
-    ParkourPathwayStorageUtil storageUtil;
-
+    ParkourPathwayConfigController storageUtil;
+    
     @BeforeEach
     void setupServerAndPlugin() {
         ServerMock server = MockBukkit.mock(new MyCustomServerMock());
         server.getLogger().setLevel(Level.OFF);
         plugin = MockBukkit.load(Main.class);
-        storageUtil = new ParkourPathwayStorageUtil(plugin.getDataFolder());
+        storageUtil = new ParkourPathwayConfigController(plugin.getDataFolder());
     }
     
     @AfterEach
@@ -36,13 +38,13 @@ class ParkourPathwayStorageUtilTest {
     
     @Test
     void configDoesNotExist() {
-        Assertions.assertThrows(IllegalArgumentException.class, storageUtil::loadConfig);
+        Assertions.assertThrows(ConfigIOException.class, storageUtil::getConfig);
     }
     
     @Test
     void malformedJson() {
         TestUtils.createFileInDirectory(plugin.getDataFolder(), configFileName, "{,");
-        Assertions.assertThrows(IllegalArgumentException.class, storageUtil::loadConfig);
+        Assertions.assertThrows(ConfigInvalidException.class, storageUtil::getConfig);
     }
     
     @Test
@@ -68,12 +70,12 @@ class ParkourPathwayStorageUtilTest {
         spectatorArea.addProperty("maxZ", 0);
         json.add("spectatorArea", spectatorArea);
         TestUtils.saveJsonToFile(json, new File(plugin.getDataFolder(), configFileName));
-        Assertions.assertThrows(IllegalArgumentException.class, storageUtil::loadConfig);
+        Assertions.assertThrows(ConfigInvalidException.class, storageUtil::getConfig);
     }
     
     void wellFormedJsonValidData(String filename) {
         InputStream inputStream = storageUtil.getClass().getResourceAsStream(filename);
         TestUtils.copyInputStreamToFile(inputStream, new File(plugin.getDataFolder(), configFileName));
-        Assertions.assertTrue(storageUtil.loadConfig());
+        Assertions.assertDoesNotThrow(storageUtil::getConfig);
     }
 }
