@@ -1,7 +1,9 @@
 package org.braekpo1nt.mctmanager.games.gamestate;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -11,10 +13,15 @@ import java.util.*;
  */
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class GameState {
-    private @NotNull Map<UUID, MCTPlayer> players;
-    private @NotNull Map<String, MCTTeam> teams;
-    private @NotNull List<UUID> admins;
+    @Builder.Default
+    private @NotNull Map<UUID, MCTPlayer> players = new HashMap<>();
+    @Builder.Default
+    private @NotNull Map<String, MCTTeam> teams = new HashMap<>();
+    @Builder.Default
+    private @NotNull List<UUID> admins = new ArrayList<>();
     
     /**
      * Checks if the team with the given team name exists in the game state.

@@ -1,7 +1,9 @@
 package org.braekpo1nt.mctmanager.games.gamestate;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.jetbrains.annotations.NotNull;
@@ -11,11 +13,16 @@ import java.util.*;
 
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 class GameStateDTO implements Validatable {
     
-    private @Nullable Map<UUID, MCTPlayerDTO> players;
-    private @Nullable Map<String, MCTTeamDTO> teams;
-    private @Nullable List<UUID> admins;
+    @Builder.Default
+    private @Nullable Map<UUID, MCTPlayerDTO> players = new HashMap<>();
+    @Builder.Default
+    private @Nullable Map<String, MCTTeamDTO> teams = new HashMap<>();
+    @Builder.Default
+    private @Nullable List<UUID> admins = new ArrayList<>();
     
     @Override
     public void validate(Validator validator) {
