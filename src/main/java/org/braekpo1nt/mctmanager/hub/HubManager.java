@@ -5,7 +5,8 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
-import org.braekpo1nt.mctmanager.hub.config.HubStorageUtil;
+import org.braekpo1nt.mctmanager.hub.config.HubConfig;
+import org.braekpo1nt.mctmanager.hub.config.HubConfigController;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.sidebar.SidebarFactory;
@@ -28,7 +29,8 @@ public class HubManager implements Listener, Configurable {
     
     private final Main plugin;
     private final GameManager gameManager;
-    private final HubStorageUtil storageUtil;
+    private final HubConfigController configController;
+    private HubConfig config;
     private int returnToHubTaskId;
     /**
      * Contains a list of the players who are about to be sent to the hub and can see the countdown
@@ -43,13 +45,14 @@ public class HubManager implements Listener, Configurable {
     public HubManager(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
         this.gameManager = gameManager;
-        this.storageUtil = new HubStorageUtil(plugin.getDataFolder());
+        this.configController = new HubConfigController(plugin.getDataFolder());
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
     
     @Override
     public boolean loadConfig() throws IllegalArgumentException {
-        return storageUtil.loadConfig();
+        this.config = configController.getConfig();
+        return true;
     }
     
     /**
@@ -59,7 +62,7 @@ public class HubManager implements Listener, Configurable {
      */
     public void returnParticipantsToHub(List<Player> newParticipants, List<Player> newAdmins, boolean delay) {
         if (delay) {
-            returnParticipantsToHub(new ArrayList<>(newParticipants), new ArrayList<>(newAdmins), storageUtil.getTpToHubDuration());
+            returnParticipantsToHub(new ArrayList<>(newParticipants), new ArrayList<>(newAdmins), config.getTpToHubDuration());
         } else {
             returnParticipantsToHubInstantly(new ArrayList<>(newParticipants), new ArrayList<>(newAdmins));
         }
@@ -104,7 +107,7 @@ public class HubManager implements Listener, Configurable {
     
     private void returnParticipantToHub(Player participant) {
         participant.sendMessage(Component.text("Returning to hub"));
-        participant.teleport(storageUtil.getSpawn());
+        participant.teleport(config.getSpawn());
         initializeParticipant(participant);
     }
     
@@ -118,7 +121,7 @@ public class HubManager implements Listener, Configurable {
     
     private void returnAdminToHub(Player admin) {
         admin.sendMessage(Component.text("Returning to hub"));
-        admin.teleport(storageUtil.getSpawn());
+        admin.teleport(config.getSpawn());
         initializeAdmin(admin);
     }
     
@@ -142,16 +145,16 @@ public class HubManager implements Listener, Configurable {
     public void sendParticipantToPodium(Player participant, boolean winner) {
         participant.sendMessage(Component.text("Returning to hub"));
         if (winner) {
-            participant.teleport(storageUtil.getPodium());
+            participant.teleport(config.getPodium());
         } else {
-            participant.teleport(storageUtil.getPodiumObservation());
+            participant.teleport(config.getPodiumObservation());
         }
         initializeParticipant(participant);
     }
     
     private void sendAdminToPodium(Player admin) {
         admin.sendMessage(Component.text("Returning to hub"));
-        admin.teleport(storageUtil.getPodiumObservation());
+        admin.teleport(config.getPodiumObservation());
     }
     
     /**
@@ -286,12 +289,12 @@ public class HubManager implements Listener, Configurable {
         if (!participants.contains(participant)) {
             return;
         }
-        if (!participant.getWorld().equals(storageUtil.getWorld())) {
+        if (!participant.getWorld().equals(config.getWorld())) {
             return;
         }
         Location location = participant.getLocation();
-        if (location.getY() < storageUtil.getYLimit()) {
-            participant.teleport(storageUtil.getSpawn());
+        if (location.getY() < config.getYLimit()) {
+            participant.teleport(config.getSpawn());
             participant.sendMessage("You fell out of the hub boundary");
         }
     }
