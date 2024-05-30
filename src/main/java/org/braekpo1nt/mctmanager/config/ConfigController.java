@@ -50,12 +50,19 @@ public abstract class ConfigController<T> {
      */
     public void saveConfigDTO(@NotNull T configDTO, @NotNull File configFile) throws ConfigIOException {
         try {
-            if (!configFile.exists()) {
-                if (!configFile.mkdirs()) {
-                    throw new ConfigIOException(String.format("Unable to create directories for %s", configFile));
+            // Check if the directory of the file exists, if not create it
+            File configDirectory = configFile.getParentFile();
+            if (!configDirectory.exists()) {
+                boolean dirCreated = configDirectory.mkdirs();
+                if (!dirCreated) {
+                    throw new IOException("Failed to create directory: " + configDirectory.getAbsolutePath());
                 }
-                if (configFile.createNewFile()) {
-                    throw new ConfigIOException(String.format("Unable to create config file %s", configFile));
+            }
+            // Check if the file exists, if not create it
+            if (!configFile.exists()) {
+                boolean fileCreated = configFile.createNewFile();
+                if (!fileCreated) {
+                    throw new IOException("Failed to create file: " + configFile.getAbsolutePath());
                 }
             }
         } catch (SecurityException e) {

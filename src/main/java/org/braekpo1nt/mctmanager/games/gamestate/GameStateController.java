@@ -72,33 +72,40 @@ public class GameStateController {
     
     /**
      * Saves the given Config to storage
-     * @param configDTO the config to save
-     * @param configFile the file to save the config to
+     * @param gameStateDTO the config to save
+     * @param gameStateFile the file to save the config to
      * @throws ConfigIOException if there is an IO error saving the config to the file system
      */
-    public void saveConfigDTO(@NotNull GameStateDTO configDTO, @NotNull File configFile) throws ConfigIOException {
+    public void saveConfigDTO(@NotNull GameStateDTO gameStateDTO, @NotNull File gameStateFile) throws ConfigIOException {
         try {
-            if (!configFile.exists()) {
-                if (!configFile.mkdirs()) {
-                    throw new ConfigIOException(String.format("Unable to create directories for %s", configFile));
+            // Check if the directory of the file exists, if not create it
+            File configDirectory = gameStateFile.getParentFile();
+            if (!configDirectory.exists()) {
+                boolean dirCreated = configDirectory.mkdirs();
+                if (!dirCreated) {
+                    throw new IOException("Failed to create directory: " + configDirectory.getAbsolutePath());
                 }
-                if (configFile.createNewFile()) {
-                    throw new ConfigIOException(String.format("Unable to create config file %s", configFile));
+            }
+            // Check if the file exists, if not create it
+            if (!gameStateFile.exists()) {
+                boolean fileCreated = gameStateFile.createNewFile();
+                if (!fileCreated) {
+                    throw new IOException("Failed to create file: " + gameStateFile.getAbsolutePath());
                 }
             }
         } catch (SecurityException e) {
-            throw new ConfigIOException(String.format("Security exception while trying to save config to %s", configFile), e);
+            throw new ConfigIOException(String.format("Security exception while trying to save config to %s", gameStateFile), e);
         } catch (IOException e) {
-            throw new ConfigIOException(String.format("Error while trying to create %s", configFile), e);
+            throw new ConfigIOException(String.format("Error while trying to create %s", gameStateFile), e);
         }
         
         try {
-            Writer writer = new FileWriter(configFile, false);
-            Main.GSON.toJson(configDTO, writer);
+            Writer writer = new FileWriter(gameStateFile, false);
+            Main.GSON.toJson(gameStateDTO, writer);
             writer.flush();
             writer.close();
         } catch (JsonIOException | IOException e) {
-            throw new ConfigIOException(String.format("Error while writing %s", configFile), e);
+            throw new ConfigIOException(String.format("Error while writing %s", gameStateFile), e);
         }
     }
     
