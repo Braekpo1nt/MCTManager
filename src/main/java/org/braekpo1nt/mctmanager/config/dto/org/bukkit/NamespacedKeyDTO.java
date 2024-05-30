@@ -34,7 +34,7 @@ public class NamespacedKeyDTO implements Validatable {
     }
     
     @Override
-    public void validate(Validator validator) {
+    public void validate(@NotNull Validator validator) {
         validator.notNull(key, "key");
     }
     

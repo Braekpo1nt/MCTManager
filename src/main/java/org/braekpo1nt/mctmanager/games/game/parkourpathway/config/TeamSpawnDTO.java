@@ -25,7 +25,7 @@ class TeamSpawnDTO implements Validatable {
     private LocationDTO spawn;
     
     @Override
-    public void validate(Validator validator) {
+    public void validate(@NotNull Validator validator) {
         validator.notNull(barrierArea, "barrierArea");
         validator.notNull(spawn, "spawn");
     }

@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.games.game.clockwork;
 
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
+import org.jetbrains.annotations.NotNull;
 
 public record Chaos(
         Cylinder cylinder, 
@@ -13,7 +14,7 @@ public record Chaos(
         MinMaxFloat arrowSpread) implements Validatable {
     
     @Override
-    public void validate(Validator validator) {
+    public void validate(@NotNull Validator validator) {
         validator.notNull(this.cylinder(), "cylinder");
         validator.notNull(this.cylinder().spawnY(), "cylinder.spawnY");
         validator.validate(this.cylinder().spawnY().min() < this.cylinder().spawnY().max(), "cylinder.spawnY min must be less than max");

@@ -52,7 +52,7 @@ public class ItemStackDTO implements Validatable {
     }
     
     @Override
-    public void validate(Validator validator) {
+    public void validate(@NotNull Validator validator) {
         validator.notNull(type, "type");
         if (itemMeta != null) {
             itemMeta.isValid();

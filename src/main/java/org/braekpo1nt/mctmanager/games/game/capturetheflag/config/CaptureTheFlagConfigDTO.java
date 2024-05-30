@@ -12,6 +12,7 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
 import java.util.List;
@@ -30,7 +31,7 @@ record CaptureTheFlagConfigDTO(
         Component description) implements Validatable {
     
     @Override
-    public void validate(Validator validator) {
+    public void validate(@NotNull Validator validator) {
         validator.notNull(this.version(), "version");
         validator.validate(Main.VALID_CONFIG_VERSIONS.contains(this.version()), "invalid config version (%s)", this.version());
         validator.validate(Bukkit.getWorld(this.world()) != null, "Could not find world \"%s\"", this.world());

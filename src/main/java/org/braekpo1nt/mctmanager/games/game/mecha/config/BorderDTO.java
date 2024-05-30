@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.games.game.mecha.config;
 
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
@@ -24,7 +25,7 @@ record BorderDTO(
         List<BorderStage> borderStages) implements Validatable {
     
     @Override
-    public void validate(Validator validator) {
+    public void validate(@NotNull Validator validator) {
         validator.validate(this.center != null, "border.center can't be null");
         validator.validate(this.initialBorderSize >= 1.0,
                 "border.initialBorderSize can't be less than 1.0: %s", this.initialBorderSize());
@@ -48,7 +49,7 @@ record BorderDTO(
      */
     record BorderStage(int size, int delay, int duration) implements Validatable {
         @Override
-        public void validate(Validator validator) {
+        public void validate(@NotNull Validator validator) {
             validator.validate(this.size >= 1.0,
                     "borderStage size (%s) can't be less than 1.0", this.size);
             validator.validate(this.delay >= 0,

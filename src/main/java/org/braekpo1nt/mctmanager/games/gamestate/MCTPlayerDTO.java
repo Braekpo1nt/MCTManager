@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -17,7 +18,7 @@ class MCTPlayerDTO implements Validatable {
     private String teamName;
     
     @Override
-    public void validate(Validator validator) {
+    public void validate(@NotNull Validator validator) {
         validator.notNull(uniqueId, "uniqueId");
         validator.validate(score >= 0, "score can't be negative");
         validator.notNull(teamName, "teamName");

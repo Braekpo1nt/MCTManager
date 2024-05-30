@@ -38,7 +38,7 @@ class PuzzleDTO implements Validatable {
     private final List<CheckPointDTO> checkPoints;
     
     @Override
-    public void validate(Validator validator) {
+    public void validate(@NotNull Validator validator) {
         validateInBounds(validator);
         validator.notNull(this.getCheckPoints(), "checkPoints");
         validateCheckPoint(validator);
@@ -167,7 +167,7 @@ class PuzzleDTO implements Validatable {
         }
     
         @Override
-        public void validate(Validator validator) {
+        public void validate(@NotNull Validator validator) {
             BoundingBox detectionArea = this.getDetectionArea().toBoundingBox();
             validator.validate(detectionArea.getVolume() >= 1, "detectionArea's volume (%s) can't be less than 1 (%s)", detectionArea.getVolume(), detectionArea);
             Vector respawn = this.getRespawn().toVector();

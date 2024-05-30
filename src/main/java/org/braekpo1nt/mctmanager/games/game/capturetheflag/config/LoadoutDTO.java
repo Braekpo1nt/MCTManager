@@ -45,7 +45,7 @@ class LoadoutDTO implements Validatable {
     private @Nullable PlayerInventoryDTO inventory;
     
     @Override
-    public void validate(Validator validator) {
+    public void validate(@NotNull Validator validator) {
         validator.notNull(name, "name");
         validator.notNull(menuItem, "menuItem");
         validator.notNull(menuLore, "lore");

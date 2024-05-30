@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.event.config;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @param title the title of the event, used in the sidebar and for announcing the winner
@@ -16,7 +17,7 @@ record EventConfigDTO(
         Durations durations) implements Validatable {
     
     @Override
-    public void validate(Validator validator) {
+    public void validate(@NotNull Validator validator) {
         validator.notNull(this.version, "version");
         validator.validate(Main.VALID_CONFIG_VERSIONS.contains(this.version), "invalid config version (%s)", this.version);
         validator.notNull(this.title, "title");

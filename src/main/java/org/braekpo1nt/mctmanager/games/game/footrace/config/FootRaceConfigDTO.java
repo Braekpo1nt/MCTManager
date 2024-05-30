@@ -10,6 +10,7 @@ import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.util.BoundingBox;
+import org.jetbrains.annotations.NotNull;
 
 record FootRaceConfigDTO(
         String version, 
@@ -23,7 +24,7 @@ record FootRaceConfigDTO(
         Component description) implements Validatable {
     
     @Override
-    public void validate(Validator validator) {
+    public void validate(@NotNull Validator validator) {
         validator.notNull(this.version(), "version");
         validator.validate(Main.VALID_CONFIG_VERSIONS.contains(this.version()), "invalid config version (%s)", this.version());
         validator.notNull(this.world(), "world");

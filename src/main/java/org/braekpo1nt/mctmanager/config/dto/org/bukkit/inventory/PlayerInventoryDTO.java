@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory;
 
 import com.google.common.base.Preconditions;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 
@@ -10,7 +11,7 @@ public class PlayerInventoryDTO extends InventoryDTO {
     private static final int MAX_SIZE = 41;
     
     @Override
-    public void validate(Validator validator) {
+    public void validate(@NotNull Validator validator) {
         super.validate(validator);
         validator.notNull(contents, "contents");
         validator.validate(contents.size() <= MAX_SIZE, "contents can't contain more than %s entries", MAX_SIZE);

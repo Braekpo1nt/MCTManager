@@ -65,7 +65,7 @@ record SpleefConfigDTO(
     }
     
     @Override
-    public void validate(Validator validator) throws ConfigInvalidException {
+    public void validate(@NotNull Validator validator) throws ConfigInvalidException {
         validator.validate(this.version() != null, "version can't be null");
         validator.validate(Main.VALID_CONFIG_VERSIONS.contains(this.version()), "invalid config version (%s)", this.version());
         validator.validate(Bukkit.getWorld(this.world()) != null, "world: Could not find world \"%s\"", this.world());

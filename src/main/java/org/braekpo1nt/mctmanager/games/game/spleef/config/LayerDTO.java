@@ -8,6 +8,7 @@ import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.bukkit.Bukkit;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -18,7 +19,7 @@ import org.jetbrains.annotations.Nullable;
 record LayerDTO(@Nullable NamespacedKeyDTO structure, Vector structureOrigin,
                 @Nullable BoundingBoxDTO decayArea) implements Validatable {
     @Override
-    public void validate(Validator validator) throws ConfigInvalidException {
+    public void validate(@NotNull Validator validator) throws ConfigInvalidException {
         validator.validate(this.structure() != null, "layer.structure can't be null");
         Preconditions.checkArgument(this.structure != null);
         this.structure.validate(validator);

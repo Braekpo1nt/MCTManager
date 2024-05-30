@@ -22,7 +22,7 @@ class PowerupDTO implements Validatable {
     private @Nullable List<Powerup.@Nullable Source> sources;
     
     @Override
-    public void validate(Validator validator) {
+    public void validate(@NotNull Validator validator) {
         if (userSound != null) {
             userSound.validate(validator.path("userSound"));
         }

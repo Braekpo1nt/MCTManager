@@ -7,6 +7,7 @@ import org.braekpo1nt.mctmanager.games.game.capturetheflag.Arena;
 import org.bukkit.World;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
@@ -38,7 +39,7 @@ record ArenaDTO(
     }
     
     @Override
-    public void validate(Validator validator) {
+    public void validate(@NotNull Validator validator) {
         validator.notNull(this.northSpawn, "northSpawn");
         validator.notNull(this.southSpawn, "southSpawn");
         validator.notNull(this.northFlag, "northFlag");

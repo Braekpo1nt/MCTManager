@@ -10,6 +10,7 @@ import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -81,7 +82,7 @@ public class ItemMetaDTOImpl implements ItemMetaDTO, Validatable {
     }
     
     @Override
-    public void validate(Validator validator) {
+    public void validate(@NotNull Validator validator) {
         // nothing to validate
     }
     

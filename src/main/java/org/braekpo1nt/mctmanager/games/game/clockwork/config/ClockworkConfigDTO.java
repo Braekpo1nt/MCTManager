@@ -14,6 +14,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.scoreboard.Team;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,7 +36,7 @@ record ClockworkConfigDTO(
         Component description) implements Validatable {
     
     @Override
-    public void validate(Validator validator) {
+    public void validate(@NotNull Validator validator) {
         validator.notNull(this.version, "version");
         validator.validate(Main.VALID_CONFIG_VERSIONS.contains(this.version), "invalid config version (%s)", this.version);
         validator.notNull(Bukkit.getWorld(this.world), "Could not find world \"%s\"", this.world);

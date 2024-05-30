@@ -39,7 +39,7 @@ public class InventoryDTO implements Validatable {
     }
     
     @Override
-    public void validate(Validator validator) {
+    public void validate(@NotNull Validator validator) {
         validator.notNull(contents, "contents");
     }
     

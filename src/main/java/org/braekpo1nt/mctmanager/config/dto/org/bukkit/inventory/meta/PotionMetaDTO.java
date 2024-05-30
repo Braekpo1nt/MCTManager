@@ -10,6 +10,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.potion.PotionData;
 import org.bukkit.potion.PotionEffect;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -25,7 +26,7 @@ public class PotionMetaDTO extends ItemMetaDTOImpl {
     
     @SuppressWarnings("ConstantConditions")
     @Override
-    public void validate(Validator validator) {
+    public void validate(@NotNull Validator validator) {
         super.validate(validator);
         validator.notNull(basePotionData, "basePotionData");
         validator.validate(basePotionData.getType() != null, "basePotionData.type can't be null");

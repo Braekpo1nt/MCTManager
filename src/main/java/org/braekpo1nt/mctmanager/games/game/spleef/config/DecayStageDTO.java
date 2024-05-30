@@ -5,6 +5,7 @@ import lombok.Data;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.braekpo1nt.mctmanager.games.game.spleef.DecayStage;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -56,7 +57,7 @@ public class DecayStageDTO implements Validatable {
         private int decayingBlockRate = -1;
     
         @Override
-        public void validate(Validator validator) {
+        public void validate(@NotNull Validator validator) {
             validator.validate(0 <= solidBlockRate, "solidBlockRate must be can't be negative");
             validator.validate(0 <= index, "index can't be negative");
         }
@@ -71,7 +72,7 @@ public class DecayStageDTO implements Validatable {
     }
     
     @Override
-    public void validate(Validator validator) {
+    public void validate(@NotNull Validator validator) {
         validator.validate(this.layerInfos != null, "layers can't be null");
         // make sure index is between 0 and the max index for decayLayers 
         // also make sure there are no duplicate indexes

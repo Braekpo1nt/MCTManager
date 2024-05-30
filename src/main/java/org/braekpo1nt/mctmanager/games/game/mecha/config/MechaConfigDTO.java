@@ -18,6 +18,7 @@ import org.bukkit.World;
 import org.bukkit.loot.LootTable;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -56,7 +57,7 @@ record MechaConfigDTO(
         Component description) implements Validatable {
     
     @Override
-    public void validate(Validator validator) {
+    public void validate(@NotNull Validator validator) {
         validator.notNull(this.version,
                 "version");
         validator.validate(Main.VALID_CONFIG_VERSIONS.contains(this.version), "invalid config version (%s)", this.version);
@@ -221,7 +222,7 @@ record MechaConfigDTO(
         }
         
         @Override
-        public void validate(Validator validator) {
+        public void validate(@NotNull Validator validator) {
             super.validate(validator);
             validator.validate(weight >= 1,
                     "weight can't be less than 1 (got %s)", weight);

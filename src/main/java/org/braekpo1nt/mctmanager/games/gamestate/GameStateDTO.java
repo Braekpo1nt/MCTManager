@@ -25,7 +25,7 @@ class GameStateDTO implements Validatable {
     private @Nullable List<UUID> admins = new ArrayList<>();
     
     @Override
-    public void validate(Validator validator) {
+    public void validate(@NotNull Validator validator) {
         if (players == null && teams == null) {
             return;
         }

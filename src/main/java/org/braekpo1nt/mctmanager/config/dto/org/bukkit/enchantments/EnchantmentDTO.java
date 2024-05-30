@@ -54,7 +54,7 @@ public class EnchantmentDTO implements Validatable {
     }
     
     @Override
-    public void validate(Validator validator) {
+    public void validate(@NotNull Validator validator) {
         validator.notNull(namespacedKey, "namespacedKey");
         namespacedKey.validate(validator.path("namespacedKey"));
         Enchantment trueEnchantment = Enchantment.getByKey(namespacedKey.toNamespacedKey());

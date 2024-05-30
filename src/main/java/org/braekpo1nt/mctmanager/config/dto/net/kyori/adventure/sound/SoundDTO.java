@@ -6,6 +6,7 @@ import net.kyori.adventure.sound.Sound;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.NamespacedKeyDTO;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
+import org.jetbrains.annotations.NotNull;
 
 
 @Data
@@ -24,7 +25,7 @@ public class SoundDTO implements Validatable {
     private float pitch = 1;
     
     @Override
-    public void validate(Validator validator) {
+    public void validate(@NotNull Validator validator) {
         validator.notNull(namespacedKey, "namespacedKey");
         namespacedKey.validate(validator.path("namespacedKey"));
     }
