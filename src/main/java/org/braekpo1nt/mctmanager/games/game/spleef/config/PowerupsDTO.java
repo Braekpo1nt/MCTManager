@@ -61,20 +61,11 @@ record PowerupsDTO(long minTimeBetween, int maxPowerups, @Nullable Map<Powerup.T
         }
         
         if (powerups != null) {
-            for (Map.Entry<Powerup.Type, PowerupDTO> entry : powerups.entrySet()) {
-                entry.getValue().validate(validator.path("powerups[%s]", entry.getKey()));
-            }
+            validator.validateMap(this.powerups, "powerups");
         }
         
         if (sources != null) {
-            validator.validate(!sources.containsKey(null), "sources can't have null keys");
-            validator.validate(!sources.containsValue(null), "sources can't have null entries");
-            for (Map.Entry<Powerup.Source, SourceDTO> entry : sources.entrySet()) {
-                SourceDTO sourceDTO = entry.getValue();
-                if (sourceDTO != null) {
-                    sourceDTO.validate(validator.path("sources[%s]", entry.getKey()));
-                }
-            }
+            validator.validateMap(this.sources, "sources");
         }
     }
     

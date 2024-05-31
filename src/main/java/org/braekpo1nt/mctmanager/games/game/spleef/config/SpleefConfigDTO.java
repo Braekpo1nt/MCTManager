@@ -77,11 +77,7 @@ record SpleefConfigDTO(
         validator.validate(this.layers != null, "layers can't be null");
         int numberOfLayers = this.layers.size();
         validator.validate(numberOfLayers >= 2, "there must be at least 2 layers");
-        for (int i = 0; i < layers.size(); i++) {
-            LayerDTO layer = layers.get(i);
-            validator.notNull(layer, "layers[%d]", i);
-            layer.validate(validator.path("layers[%d]", i));
-        }
+        validator.validateList(this.layers, "layers");
         
         validator.notNull(this.decayStages, "decayStages");
         validator.validate(this.decayStages.size() > 0, "decayStages must have at least one entry");

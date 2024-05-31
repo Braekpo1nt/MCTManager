@@ -37,11 +37,7 @@ class GameStateDTO implements Validatable {
             mctPlayer.validate(validator.path("players[%s]", entry.getKey()));
             validator.validate(teams.containsKey(mctPlayer.getTeamName()), "players[%s].teamName could not be found in teams");
         }
-        for (Map.Entry<String, MCTTeamDTO> entry : teams.entrySet()) {
-            MCTTeamDTO mctTeam = entry.getValue();
-            validator.validate(mctTeam != null, "teams can't contain null values");
-            mctTeam.validate(validator.path("teams[%s]", entry.getKey()));
-        }
+        validator.validateMap(this.teams, "teams");
     }
     
     @NotNull GameState toGameState() {
