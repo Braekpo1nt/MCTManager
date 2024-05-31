@@ -86,10 +86,6 @@ public class ItemMetaDTOImpl implements ItemMetaDTO, Validatable {
         // nothing to validate
     }
     
-    public void isValid() {
-        // nothing to validate
-    }
-    
     /**
      * Imbues the provided ItemMeta with the attributes of this ItemMetaDTO
      * @param meta the ItemMeta to be modified

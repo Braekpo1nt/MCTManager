@@ -43,11 +43,4 @@ public class InventoryDTO implements Validatable {
         validator.notNull(contents, "contents");
     }
     
-    /**
-     * @deprecated in favor of {@link Validatable}
-     */
-    @Deprecated
-    public void isValid() {
-        Preconditions.checkArgument(contents != null, "contents can't be null");
-    }
 }

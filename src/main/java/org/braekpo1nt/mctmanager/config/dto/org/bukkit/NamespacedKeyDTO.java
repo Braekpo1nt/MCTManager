@@ -38,12 +38,4 @@ public class NamespacedKeyDTO implements Validatable {
         validator.notNull(key, "key");
     }
     
-    /**
-     * @deprecated in favor of {@link NamespacedKeyDTO#validate(Validator)} 
-     */
-    @Deprecated
-    public void isValid() {
-        Preconditions.checkArgument(key != null, "key can't be null");
-    }
-    
 }

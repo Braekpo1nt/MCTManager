@@ -30,15 +30,6 @@ public class SoundDTO implements Validatable {
         namespacedKey.validate(validator.path("namespacedKey"));
     }
     
-    /**
-     * @deprecated in favor of {@link SoundDTO#validate(Validator)}
-     */
-    @Deprecated
-    public void isValid() {
-        Preconditions.checkArgument(namespacedKey != null, "namespacedKey can't be null");
-        namespacedKey.isValid();
-    }
-    
     public Sound toSound() {
         return Sound.sound()
                 .type(namespacedKey.toNamespacedKey())

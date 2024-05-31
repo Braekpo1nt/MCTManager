@@ -61,15 +61,4 @@ public class EnchantmentDTO implements Validatable {
         validator.validate(trueEnchantment != null, "namespacedKey: could not find enchantment for key \"%s\"" + namespacedKey.toNamespacedKey());
     }
     
-    /**
-     * @deprecated in favor of {@link Validatable}
-     */
-    @Deprecated
-    public void isValid() {
-        Preconditions.checkArgument(namespacedKey != null, "enchantment can't be null");
-        Preconditions.checkArgument(namespacedKey.namespace() != null, "namespace can't be null");
-        Preconditions.checkArgument(namespacedKey.key() != null, "key can't be null");
-        Enchantment trueEnchantment = Enchantment.getByKey(namespacedKey.toNamespacedKey());
-        Preconditions.checkArgument(trueEnchantment != null, "could not find enchantment for key %s" + namespacedKey);
-    }
 }

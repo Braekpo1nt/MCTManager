@@ -53,7 +53,7 @@ class LoadoutDTO implements Validatable {
             menuMeta.validate(validator.path("menuMeta"));
         }
         validator.notNull(inventory, "inventory");
-        inventory.isValid();
+        inventory.validate(validator.path("inventory"));
     }
     
     static Map<String, Loadout> toLoadouts(Map<String, LoadoutDTO> loadoutDTOS) {

@@ -66,7 +66,7 @@ record ColossalCombatConfigDTO(
         validator.validate(this.requiredWins > 0, "requiredWins must be greater than 0");
     
         if (this.loadout != null) {
-            this.loadout.isValid();
+            this.loadout.validate(validator.path("loadout"));
         }
     
         validator.notNull(this.firstPlaceGate, "firstPlaceGate");

@@ -42,10 +42,4 @@ public interface ItemMetaDTO extends Validatable {
     
     void setCustomModelData(@Nullable Integer customModelData);
     
-    
-    /**
-     * @deprecated in favor of {@link Validatable}
-     */
-    @Deprecated
-    void isValid();
 }

@@ -55,7 +55,7 @@ public class ItemStackDTO implements Validatable {
     public void validate(@NotNull Validator validator) {
         validator.notNull(type, "type");
         if (itemMeta != null) {
-            itemMeta.isValid();
+            itemMeta.validate(validator.path("itemMeta"));
         }
         if (enchantments != null) {
             for (int i = 0; i < enchantments.size(); i++) {
@@ -65,27 +65,6 @@ public class ItemStackDTO implements Validatable {
                 Enchantment trueEnchantment = enchantment.toEnchantment();
                 validator.validate(trueEnchantment != null, "enchantments[%d]: could not find enchantment for \"%s\"", i, enchantment.getNamespacedKey());
                 validator.validate(trueEnchantment.canEnchantItem(new ItemStack(type)), "enchantments[%d]: enchantment %s is not applicable to item of type %s", i, enchantment.getNamespacedKey(), type);
-            }
-        }
-    }
-    
-    /**
-     * @deprecated in favor of {@link Validatable}
-     */
-    @Deprecated
-    public void isValid() {
-        Preconditions.checkArgument(type != null, "type can't be null");
-        if (itemMeta != null) {
-            itemMeta.isValid();
-        }
-        if (enchantments != null) {
-            for (int i = 0; i < enchantments.size(); i++) {
-                EnchantmentDTO enchantment = enchantments.get(i);
-                Preconditions.checkArgument(enchantment != null, "enchantments[%s] can't be null", i);
-                enchantment.isValid();
-                Enchantment trueEnchantment = enchantment.toEnchantment();
-                Preconditions.checkArgument(trueEnchantment != null, "could not find enchantment for %s", enchantment.getNamespacedKey());
-                Preconditions.checkArgument(trueEnchantment.canEnchantItem(new ItemStack(type)), "enchantment %s is not applicable to item of type %s", enchantment.getNamespacedKey(), type);
             }
         }
     }
