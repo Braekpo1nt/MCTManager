@@ -33,10 +33,7 @@ record BorderDTO(
                 "border.borderStages can't be null");
         validator.validate(this.borderStages.size() >= 1,
                 "border.borderStages must have at least one stage");
-        for (int i = 0; i < this.borderStages.size(); i++) {
-            BorderStage borderStage = borderStages.get(i);
-            borderStage.validate(validator.path("borderStages[%d]", i));
-        }
+        validator.validateList(this.borderStages, "borderStages");
     }
     
     record Center(double x, double z) {
@@ -51,11 +48,11 @@ record BorderDTO(
         @Override
         public void validate(@NotNull Validator validator) {
             validator.validate(this.size >= 1.0,
-                    "borderStage size (%s) can't be less than 1.0", this.size);
+                    "size (%s) can't be less than 1.0", this.size);
             validator.validate(this.delay >= 0,
-                    "borderStage.delay (%S) can't be negative", this.delay);
+                    "delay (%S) can't be negative", this.delay);
             validator.validate(this.duration >= 0,
-                    "borderStage.duration (%S) can't be negative", this.duration);
+                    "duration (%S) can't be negative", this.duration);
         }
     }
 }

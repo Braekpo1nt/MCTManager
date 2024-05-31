@@ -32,35 +32,32 @@ record CaptureTheFlagConfigDTO(
     
     @Override
     public void validate(@NotNull Validator validator) {
-        validator.notNull(this.version(), "version");
-        validator.validate(Main.VALID_CONFIG_VERSIONS.contains(this.version()), "invalid config version (%s)", this.version());
-        validator.validate(Bukkit.getWorld(this.world()) != null, "Could not find world \"%s\"", this.world());
-        validator.notNull(this.arenas(), "arenas");
-        validator.validate(this.arenas().size() >= 1, "arenas: there must be at least 1 arena");
-        for (int i = 0; i < this.arenas.size(); i++) {
-            ArenaDTO arena = this.arenas.get(i);
-            arena.validate(validator.path("arenas[%d]", i));
-        }
-        validator.notNull(this.spectatorArea(), "spectatorArea");
-        BoundingBox spectatorArea = this.spectatorArea().toBoundingBox();
+        validator.notNull(this.version, "version");
+        validator.validate(Main.VALID_CONFIG_VERSIONS.contains(this.version), "invalid config version (%s)", this.version);
+        validator.validate(Bukkit.getWorld(this.world) != null, "Could not find world \"%s\"", this.world);
+        validator.notNull(this.arenas, "arenas");
+        validator.validate(this.arenas.size() >= 1, "arenas: there must be at least 1 arena");
+        validator.validateList(this.arenas, "arenas");
+        validator.notNull(this.spectatorArea, "spectatorArea");
+        BoundingBox spectatorArea = this.spectatorArea.toBoundingBox();
         validator.validate(spectatorArea.getVolume() >= 1.0, "spectatorArea (%s) volume (%s) must be at least 1.0", spectatorArea, spectatorArea.getVolume());
-        validator.notNull(this.scores(), "scores");
-        validator.notNull(this.durations(), "durations");
-        validator.validate(this.durations().matchesStarting() >= 0, "durations.matchesStarting (%s) can't be negative", this.durations().matchesStarting());
-        validator.validate(this.durations().classSelection() >= 0, "durations.classSelection (%s) can't be negative", this.durations().classSelection());
-        validator.validate(this.durations().roundTimer() >= 0, "durations.roundTimer (%s) can't be negative", this.durations().roundTimer());
-        validator.notNull(this.loadouts(), "loadouts");
-        validator.validate(this.loadouts().size() >= 4, "loadouts must contain at least 4 entries");
+        validator.notNull(this.scores, "scores");
+        validator.notNull(this.durations, "durations");
+        validator.validate(this.durations.matchesStarting() >= 0, "durations.matchesStarting (%s) can't be negative", this.durations.matchesStarting());
+        validator.validate(this.durations.classSelection() >= 0, "durations.classSelection (%s) can't be negative", this.durations.classSelection());
+        validator.validate(this.durations.roundTimer() >= 0, "durations.roundTimer (%s) can't be negative", this.durations.roundTimer());
+        validator.notNull(this.loadouts, "loadouts");
+        validator.validate(this.loadouts.size() >= 4, "loadouts must contain at least 4 entries");
         Set<Material> uniqueMenuItems = new HashSet<>();
-        for (String battleClass : this.loadouts().keySet()) {
+        for (String battleClass : this.loadouts.keySet()) {
             validator.notNull(battleClass, "loadouts.keys");
             validator.validate(!battleClass.isEmpty() && !battleClass.isBlank(), "loadouts keys can't be empty");
-            LoadoutDTO loadout = this.loadouts().get(battleClass);
+            LoadoutDTO loadout = this.loadouts.get(battleClass);
             validator.validate(!uniqueMenuItems.contains(loadout.getMenuItem()), "loadouts[%s].menuItem %s for BattleClass %s is not unique", battleClass, loadout.getMenuItem(), battleClass);
             uniqueMenuItems.add(loadout.getMenuItem());
             loadout.validate(validator.path("loadouts[%s]", battleClass));
         }
-        validator.notNull(this.description(), "description");
+        validator.notNull(this.description, "description");
     }
     
     public CaptureTheFlagConfig toConfig() {

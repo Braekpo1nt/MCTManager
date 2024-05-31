@@ -1,9 +1,12 @@
 package org.braekpo1nt.mctmanager.config.validation;
 
 import lombok.Getter;
-import lombok.ToString;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
 import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * Used to validate the fields and state of an object, 
@@ -54,9 +57,7 @@ public class Validator {
      */
     @Contract("false, _, _ -> fail")
     public void validate(boolean expression, String invalidMessage, Object... args) {
-        if (!expression) {
-            throw new ConfigInvalidException(String.format(invalidMessage, args));
-        }
+        validate(expression, String.format(invalidMessage, args));
     }
     
     /**
@@ -80,6 +81,62 @@ public class Validator {
     public void notNull(Object object, String subPath, Object... args) {
         if (object == null) {
             throw new ConfigInvalidException(this.path + "." + String.format(subPath, args) + " can't be null");
+        }
+    }
+    
+    /**
+     * Convenience method to validate every element of a List of {@link Validatable} objects
+     * @param validatables the list of {@link Validatable} objects to validate. 
+     * @param listName the name of the list
+     * @throws ConfigInvalidException if any element of the list is invalid or null
+     */
+    public void validateList(@NotNull List<? extends Validatable> validatables, String listName) {
+        for (int i = 0; i < validatables.size(); i++) {
+            Validatable validatable = validatables.get(i);
+            this.notNull(validatable, "%s[%d]", listName, i);
+            validatable.validate(this.path("%s[%d]", listName, i));
+        }
+    }
+    
+    /**
+     * Behaves exactly like {@link Validator#validateList(List, String)}, but does not throw a {@link ConfigInvalidException} if any of the elements are null. Instead, it skips over null elements.
+     * @see Validator#validateList(List, String) 
+     * @throws ConfigInvalidException if any elements of the list are invalid
+     */
+    public void validateListNullable(@NotNull List<? extends Validatable> validatables, String listName) {
+        for (int i = 0; i < validatables.size(); i++) {
+            Validatable validatable = validatables.get(i);
+            if (validatable != null) {
+                validatable.validate(this.path("%s[%d]", listName, i));
+            }
+        }
+    }
+    
+    /**
+     * Convenience method to validate every value of a Map of {@link Validatable} objects
+     * @param validatables the map of {@link Validatable} objects to validate. 
+     * @param mapName the name of the map
+     * @throws ConfigInvalidException if any value of the map is invalid or null
+     */
+    public void validateMap(@NotNull Map<?, ? extends Validatable> validatables, String mapName) {
+        for (Map.Entry<?, ? extends Validatable> entry : validatables.entrySet()) {
+            Validatable validatable = entry.getValue();
+            this.notNull(validatable, "%s[%s]", mapName, entry.getKey());
+            validatable.validate(this.path("%s[%s]", mapName, entry.getKey()));
+        }
+    }
+    
+    /**
+     * Behaves exactly like {@link Validator#validateMap(Map, String)}, but does not throw a {@link ConfigInvalidException} if any of the values are null. Instead, it skips over null values.
+     * @see Validator#validateMap(Map, String)
+     * @throws ConfigInvalidException if any values of the map are invalid
+     */
+    public void validateMapNullable(@NotNull Map<?, ? extends Validatable> validatables, String mapName) {
+        for (Map.Entry<?, ? extends Validatable> entry : validatables.entrySet()) {
+            Validatable validatable = entry.getValue();
+            if (validatable != null) {
+                validatable.validate(this.path("%s[%s]", mapName, entry.getKey()));
+            }
         }
     }
     
