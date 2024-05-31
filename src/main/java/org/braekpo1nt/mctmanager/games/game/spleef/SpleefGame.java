@@ -57,14 +57,13 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
      * @throws ConfigInvalidException if there is an issue loading or if the config is invalid
      */
     @Override
-    public boolean loadConfig() throws ConfigInvalidException, ConfigIOException {
+    public void loadConfig() throws ConfigIOException, ConfigInvalidException {
         this.config = configController.getConfig();
         if (gameActive) {
             for (SpleefRound round : rounds) {
                 round.setConfig(config);
             }
         }
-        return true;
     }
     
     @Override

@@ -987,10 +987,8 @@ public class EventManager implements Listener {
     
     public void startColossalCombat(CommandSender sender, String firstPlaceTeamName, String secondPlaceTeamName) {
         try {
-            if (!colossalCombatGame.loadConfig()) {
-                throw new IllegalArgumentException("ConfigDto could not be loaded.");
-            }
-        } catch (IllegalArgumentException | ConfigException e) {
+            colossalCombatGame.loadConfig();
+        } catch (ConfigException e) {
             Bukkit.getLogger().severe(e.getMessage());
             e.printStackTrace();
             sender.sendMessage(Component.text("Error loading config file. See console for details.")

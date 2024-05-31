@@ -2,6 +2,8 @@ package org.braekpo1nt.mctmanager.hub;
 
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
+import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
@@ -50,9 +52,8 @@ public class HubManager implements Listener, Configurable {
     }
     
     @Override
-    public boolean loadConfig() throws IllegalArgumentException {
+    public void loadConfig() throws ConfigIOException, ConfigInvalidException {
         this.config = configController.getConfig();
-        return true;
     }
     
     /**

@@ -233,11 +233,11 @@ public class GameManager implements Listener {
     
     /**
      * Load the hub config
-     * @return true if the config succeeded in loaded
-     * @throws IllegalArgumentException if any problem occurred loading the hub config
+     * @throws ConfigInvalidException if the loaded config is invalid
+     * @throws ConfigIOException if there are any IO errors when loading the config.
      */
-    public boolean loadHubConfig() throws IllegalArgumentException {
-        return hubManager.loadConfig();
+    public void loadHubConfig() throws ConfigIOException, ConfigInvalidException {
+        hubManager.loadConfig();
     }
     
     /**
@@ -259,10 +259,8 @@ public class GameManager implements Listener {
         }
         
         try {
-            if (!configurable.loadConfig()) {
-                throw new IllegalArgumentException("Config could not be loaded.");
-            }
-        } catch (IllegalArgumentException | ConfigException e) {
+            configurable.loadConfig();
+        } catch (ConfigException e) {
             Bukkit.getLogger().severe(e.getMessage());
             e.printStackTrace();
             sender.sendMessage(Component.text("Error loading config file for ")
@@ -402,10 +400,8 @@ public class GameManager implements Listener {
         // make sure config loads
         if (selectedGame instanceof Configurable configurable) {
             try {
-                if (!configurable.loadConfig()) {
-                    throw new IllegalArgumentException("Config could not be loaded.");
-                }
-            } catch (IllegalArgumentException | ConfigException e) {
+                configurable.loadConfig();
+            } catch (ConfigException e) {
                 Bukkit.getLogger().severe(e.getMessage());
                 e.printStackTrace();
                 Component message = Component.text("Can't start ")
@@ -537,10 +533,8 @@ public class GameManager implements Listener {
         
         // make sure config loads
         try {
-            if (!selectedEditor.loadConfig()) {
-                throw new IllegalArgumentException("Config could not be loaded.");
-            }
-        } catch (IllegalArgumentException | ConfigException e) {
+            selectedEditor.loadConfig();
+        } catch (ConfigException e) {
             Bukkit.getLogger().severe(e.getMessage());
             e.printStackTrace();
             Component message = Component.text("Can't start ")
@@ -650,10 +644,8 @@ public class GameManager implements Listener {
     
     public void loadEditor(@NotNull CommandSender sender) {
         try {
-            if (!activeEditor.loadConfig()) {
-                throw new IllegalArgumentException("Config could not be loaded.");
-            }
-        } catch (IllegalArgumentException | ConfigException e) {
+            activeEditor.loadConfig();
+        } catch (ConfigException e) {
             Bukkit.getLogger().severe(e.getMessage());
             e.printStackTrace();
             Component message = Component.text("Can't start ")

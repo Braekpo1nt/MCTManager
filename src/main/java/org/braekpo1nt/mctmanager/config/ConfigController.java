@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.config;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
@@ -13,6 +14,15 @@ import java.io.*;
  * @param <T> the type of ConfigDTO this is responsible for 
  */
 public abstract class ConfigController<T> {
+    
+    /**
+     * The Gson returned from this method will be used for both 
+     * serialization and deserialization of the config.
+     * @return a Gson instance
+     */
+    protected @NotNull Gson getGson() {
+        return ConfigUtils.GSON;
+    }
     
     /**
      * Load the configDTO from the given file
@@ -32,7 +42,7 @@ public abstract class ConfigController<T> {
         }
         try {
             Reader reader = new FileReader(configFile);
-            T configDTO = ConfigUtils.GSON.fromJson(reader, configType);
+            T configDTO = getGson().fromJson(reader, configType);
             reader.close();
             return configDTO;
         } catch (IOException | JsonIOException e) {
@@ -73,7 +83,7 @@ public abstract class ConfigController<T> {
         
         try {
             Writer writer = new FileWriter(configFile, false);
-            ConfigUtils.GSON.toJson(configDTO, writer);
+            getGson().toJson(configDTO, writer);
             writer.flush();
             writer.close();
         } catch (JsonIOException | IOException e) {

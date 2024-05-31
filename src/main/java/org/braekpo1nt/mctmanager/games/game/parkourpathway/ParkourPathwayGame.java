@@ -5,6 +5,8 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
+import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
+import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
 import org.braekpo1nt.mctmanager.display.Display;
 import org.braekpo1nt.mctmanager.display.geometry.GeometryUtils;
 import org.braekpo1nt.mctmanager.games.GameManager;
@@ -96,10 +98,10 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
     }
     
     @Override
-    public boolean loadConfig() throws ConfigException {
+    public void loadConfig() throws ConfigIOException, ConfigInvalidException {
         this.config = configController.getConfig();
         if (!gameActive) {
-            return true;
+            return;
         }
         // debug
         if (DEBUG) {
@@ -114,7 +116,6 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
             }
         }
         // debug
-        return true;
     }
     
     @Override

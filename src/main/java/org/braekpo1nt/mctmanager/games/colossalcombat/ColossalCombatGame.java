@@ -2,6 +2,8 @@ package org.braekpo1nt.mctmanager.games.colossalcombat;
 
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
+import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.colossalcombat.config.ColossalCombatConfig;
 import org.braekpo1nt.mctmanager.games.colossalcombat.config.ColossalCombatConfigController;
@@ -56,14 +58,13 @@ public class ColossalCombatGame implements Listener, Configurable {
     }
     
     @Override
-    public boolean loadConfig() throws IllegalArgumentException {
+    public void loadConfig() throws ConfigIOException, ConfigInvalidException {
         this.config = configController.getConfig();
         if (gameActive) {
             for (ColossalCombatRound round : rounds) {
                 round.setConfig(this.config);
             }
         }
-        return true;
     }
     
     /**

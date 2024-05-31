@@ -3,6 +3,8 @@ package org.braekpo1nt.mctmanager.games.game.mecha;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
+import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
@@ -77,9 +79,8 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     }
     
     @Override
-    public boolean loadConfig() throws IllegalArgumentException {
+    public void loadConfig() throws ConfigIOException, ConfigInvalidException {
         this.config = configController.getConfig();
-        return true;
     }
     
     @Override

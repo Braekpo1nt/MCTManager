@@ -4,6 +4,8 @@ import net.kyori.adventure.text.*;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
+import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
+import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlagConfig;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlagConfigController;
@@ -60,12 +62,11 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     }
     
     @Override
-    public boolean loadConfig() throws IllegalArgumentException {
+    public void loadConfig() throws ConfigIOException, ConfigInvalidException {
         if (gameActive) {
             throw new ConfigException("CaptureTheFlagGame does not support loading the config mid-game");
         }
         this.config = configController.getConfig();
-        return true;
     }
     
     @Override

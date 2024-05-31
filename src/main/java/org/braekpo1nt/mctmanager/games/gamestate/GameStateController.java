@@ -1,5 +1,7 @@
 package org.braekpo1nt.mctmanager.games.gamestate;
 
+import com.google.gson.Gson;
+import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.ConfigController;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
@@ -15,6 +17,11 @@ public class GameStateController extends ConfigController<GameStateDTO> {
     
     public GameStateController(File configDirectory) {
         this.gameStateFile = new File(configDirectory, "gameState.json");
+    }
+    
+    @Override
+    protected @NotNull Gson getGson() {
+        return Main.GSON;
     }
     
     /**

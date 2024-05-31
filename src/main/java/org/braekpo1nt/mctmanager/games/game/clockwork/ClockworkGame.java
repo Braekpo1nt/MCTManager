@@ -2,6 +2,8 @@ package org.braekpo1nt.mctmanager.games.game.clockwork;
 
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
+import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.clockwork.config.ClockworkConfig;
 import org.braekpo1nt.mctmanager.games.game.clockwork.config.ClockworkConfigController;
@@ -55,14 +57,13 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
     }
     
     @Override
-    public boolean loadConfig() throws IllegalArgumentException {
+    public void loadConfig() throws ConfigIOException, ConfigInvalidException {
         this.config = configController.getConfig();
         if (gameActive) {
             for (ClockworkRound round : rounds) {
                 round.setConfig(config);
             }
         }
-        return true;
     }
     
     @Override
