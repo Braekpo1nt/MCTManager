@@ -3,12 +3,15 @@ package org.braekpo1nt.mctmanager.games.game.capturetheflag;
 import net.kyori.adventure.text.*;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
+import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
+import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
 import org.braekpo1nt.mctmanager.games.GameManager;
-import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlagStorageUtil;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlagConfig;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlagConfigController;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
-import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
@@ -21,11 +24,9 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
-import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 
-import java.io.File;
 import java.util.*;
 
 /**
@@ -40,7 +41,8 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     private final GameManager gameManager;
     private Sidebar sidebar;
     private Sidebar adminSidebar;
-    private final CaptureTheFlagStorageUtil storageUtil;
+    private CaptureTheFlagConfigController configController;
+    private CaptureTheFlagConfig config;
     private RoundManager roundManager;
     private CaptureTheFlagRound currentRound;
     private final String title = ChatColor.BLUE+"Capture the Flag";
@@ -51,7 +53,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     public CaptureTheFlagGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
         this.gameManager = gameManager;
-        this.storageUtil = new CaptureTheFlagStorageUtil(plugin.getDataFolder());
+        this.configController = new CaptureTheFlagConfigController(plugin.getDataFolder());
     }
     
     @Override
@@ -60,8 +62,11 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     }
     
     @Override
-    public boolean loadConfig() throws IllegalArgumentException {
-        return storageUtil.loadConfig();
+    public void loadConfig() throws ConfigIOException, ConfigInvalidException {
+        if (gameActive) {
+            throw new ConfigException("CaptureTheFlagGame does not support loading the config mid-game");
+        }
+        this.config = configController.getConfig();
     }
     
     @Override
@@ -70,7 +75,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         participants = new ArrayList<>();
         sidebar = gameManager.getSidebarFactory().createSidebar();
         adminSidebar = gameManager.getSidebarFactory().createSidebar();
-        roundManager = new RoundManager(this, storageUtil.getArenas().size());
+        roundManager = new RoundManager(this, config.getArenas().size());
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
         }
@@ -84,7 +89,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     }
     
     private void displayDescription() {
-        messageAllParticipants(storageUtil.getDescription());
+        messageAllParticipants(config.getDescription());
     }
     
     private void initializeParticipant(Player participant) {
@@ -118,7 +123,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         admins.add(admin);
         adminSidebar.addPlayer(admin);
         admin.setGameMode(GameMode.SPECTATOR);
-        admin.teleport(storageUtil.getSpawnObservatory());
+        admin.teleport(config.getSpawnObservatory());
     }
     
     @Override
@@ -208,7 +213,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     }
         
     public void startNextRound(List<String> participantTeams, List<MatchPairing> roundMatchPairings) {
-        currentRound = new CaptureTheFlagRound(this, plugin, gameManager, storageUtil, roundMatchPairings, sidebar, adminSidebar);
+        currentRound = new CaptureTheFlagRound(this, plugin, gameManager, config, roundMatchPairings, sidebar, adminSidebar);
         List<Player> roundParticipants = new ArrayList<>();
         List<Player> onDeckParticipants = new ArrayList<>();
         for (Player participant : participants) {
@@ -402,7 +407,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     CaptureTheFlagGame() {
         this.plugin = null;
         this.gameManager = null;
-        this.storageUtil = null;
+        this.config = null;
     }
     
     /**

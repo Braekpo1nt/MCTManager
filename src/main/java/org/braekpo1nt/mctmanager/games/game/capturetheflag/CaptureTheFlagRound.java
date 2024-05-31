@@ -4,15 +4,12 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
-import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlagStorageUtil;
-import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlagConfig;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
-import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
-import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
@@ -30,10 +27,10 @@ public class CaptureTheFlagRound {
     private final CaptureTheFlagGame captureTheFlagGame;
     private final Main plugin;
     private final GameManager gameManager;
-    private final CaptureTheFlagStorageUtil storageUtil;
+    private final CaptureTheFlagConfig config;
     private final Sidebar sidebar;
     private final Sidebar adminSidebar;
-    private List<CaptureTheFlagMatch> matches;
+    private final List<CaptureTheFlagMatch> matches;
     private List<Player> participants = new ArrayList<>();
     private List<Player> onDeckParticipants;
     private int matchesStartingCountDownTaskId;
@@ -45,14 +42,14 @@ public class CaptureTheFlagRound {
      */
     private boolean matchesStarted = false;
     
-    public CaptureTheFlagRound(CaptureTheFlagGame captureTheFlagGame, Main plugin, GameManager gameManager, CaptureTheFlagStorageUtil storageUtil, List<MatchPairing> matchPairings, Sidebar sidebar, Sidebar adminSidebar) {
+    public CaptureTheFlagRound(CaptureTheFlagGame captureTheFlagGame, Main plugin, GameManager gameManager, CaptureTheFlagConfig config, List<MatchPairing> matchPairings, Sidebar sidebar, Sidebar adminSidebar) {
         this.captureTheFlagGame = captureTheFlagGame;
         this.plugin = plugin;
         this.gameManager = gameManager;
-        this.storageUtil = storageUtil;
+        this.config = config;
         this.sidebar = sidebar;
         this.adminSidebar = adminSidebar;
-        matches = createMatches(matchPairings, storageUtil.getArenas());
+        this.matches = createMatches(matchPairings, config.getArenas());
     }
     
     /**
@@ -68,7 +65,7 @@ public class CaptureTheFlagRound {
             MatchPairing matchPairing = matchPairings.get(i);
             Arena arena = arenas.get(i);
             CaptureTheFlagMatch match = new CaptureTheFlagMatch(this, plugin, gameManager, 
-                    matchPairing, arena, storageUtil, sidebar, adminSidebar);
+                    matchPairing, arena, config, sidebar, adminSidebar);
             newMatches.add(match);
         }
         return newMatches;
@@ -95,7 +92,7 @@ public class CaptureTheFlagRound {
     
     private void initializeParticipant(Player participant) {
         participants.add(participant);
-        participant.teleport(storageUtil.getSpawnObservatory());
+        participant.teleport(config.getSpawnObservatory());
         participant.getInventory().clear();
         participant.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearStatusEffects(participant);
@@ -104,7 +101,7 @@ public class CaptureTheFlagRound {
     
     private void initializeOnDeckParticipant(Player onDeckParticipant) {
         onDeckParticipants.add(onDeckParticipant);
-        onDeckParticipant.teleport(storageUtil.getSpawnObservatory());
+        onDeckParticipant.teleport(config.getSpawnObservatory());
         onDeckParticipant.getInventory().clear();
         onDeckParticipant.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearStatusEffects(onDeckParticipant);
@@ -211,7 +208,7 @@ public class CaptureTheFlagRound {
         for (Player participant : participants) {
             String team = gameManager.getTeamName(participant.getUniqueId());
             if (matchPairing.containsTeam(team)) {
-                participant.teleport(storageUtil.getSpawnObservatory());
+                participant.teleport(config.getSpawnObservatory());
             }
         }
     }
@@ -231,7 +228,7 @@ public class CaptureTheFlagRound {
     
     private void startOnDeckClassSelectionTimer() {
         this.onDeckClassSelectionTimerTaskId = new BukkitRunnable() {
-            private int count = storageUtil.getClassSelectionDuration();
+            private int count = config.getClassSelectionDuration();
             @Override
             public void run() {
                 if (count <= 0) {
@@ -250,7 +247,7 @@ public class CaptureTheFlagRound {
     
     private void startOnDeckMatchTimer() {
         this.onDeckMatchTimerTaskId = new BukkitRunnable() {
-            int count = storageUtil.getRoundTimerDuration();
+            int count = config.getRoundTimerDuration();
             @Override
             public void run() {
                 if (count <= 0) {
@@ -269,7 +266,7 @@ public class CaptureTheFlagRound {
     private void startMatchesStartingCountDown() {
         matchesStarted = false;
         this.matchesStartingCountDownTaskId = new BukkitRunnable() {
-            int count = storageUtil.getMatchesStartingDuration();
+            int count = config.getMatchesStartingDuration();
             @Override
             public void run() {
                 if (count <= 0) {

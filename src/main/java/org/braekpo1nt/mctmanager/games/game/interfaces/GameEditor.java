@@ -1,5 +1,7 @@
 package org.braekpo1nt.mctmanager.games.game.interfaces;
 
+import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
+import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.bukkit.entity.Player;
 
@@ -14,5 +16,5 @@ public interface GameEditor extends Configurable {
     
     boolean configIsValid();
     
-    void saveConfig() throws IOException;
+    void saveConfig() throws ConfigIOException, ConfigInvalidException;
 }

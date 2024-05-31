@@ -6,9 +6,11 @@ import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.colossalcombat.ColossalCombatGame;
-import org.braekpo1nt.mctmanager.games.event.config.EventStorageUtil;
+import org.braekpo1nt.mctmanager.games.event.config.EventConfig;
+import org.braekpo1nt.mctmanager.games.event.config.EventConfigController;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.voting.VoteManager;
@@ -19,7 +21,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
@@ -43,7 +44,8 @@ public class EventManager implements Listener {
     private int numberOfTeams = 0;
     private final VoteManager voteManager;
     private final ColossalCombatGame colossalCombatGame;
-    private final EventStorageUtil storageUtil;
+    private final EventConfigController configController;
+    private EventConfig config;
     private EventState currentState;
     private EventState lastStateBeforePause;
     private int maxGames = 6;
@@ -76,7 +78,7 @@ public class EventManager implements Listener {
         this.plugin = plugin;
         this.gameManager = gameManager;
         this.voteManager = voteManager;
-        this.storageUtil = new EventStorageUtil(plugin.getDataFolder());
+        this.configController = new EventConfigController(plugin.getDataFolder());
         this.colossalCombatGame = new ColossalCombatGame(plugin, gameManager);
         this.crown.editMeta(meta -> meta.setCustomModelData(1));
     }
@@ -89,7 +91,7 @@ public class EventManager implements Listener {
         if (currentGameNumber <= 0) {
             return 1;
         }
-        double[] multipliers = storageUtil.getMultipliers();
+        double[] multipliers = config.getMultipliers();
         if (currentGameNumber > multipliers.length) {
             return multipliers[multipliers.length - 1];
         }
@@ -119,8 +121,8 @@ public class EventManager implements Listener {
         }
         
         try {
-            storageUtil.loadConfig();
-        } catch (IllegalArgumentException e) {
+            this.config = configController.getConfig();
+        } catch (ConfigException e) {
             Bukkit.getLogger().severe(e.getMessage());
             e.printStackTrace();
             sender.sendMessage(Component.text("Can't start event. Error loading config file. See console for details:\n")
@@ -659,7 +661,7 @@ public class EventManager implements Listener {
                 .append(Component.text(scoreMultiplier))
                 .color(NamedTextColor.GOLD));
         this.waitingInHubTaskId = new BukkitRunnable() {
-            int count = storageUtil.getWaitingInHubDuration();
+            int count = config.getWaitingInHubDuration();
             @Override
             public void run() {
                 if (currentState == EventState.PAUSED) {
@@ -690,7 +692,7 @@ public class EventManager implements Listener {
         currentState = EventState.WAITING_IN_HUB;
         gameManager.returnAllParticipantsToHub();
         this.halftimeBreakTaskId = new BukkitRunnable() {
-            int count = storageUtil.getHalftimeBreakDuration();
+            int count = config.getHalftimeBreakDuration();
             @Override
             public void run() {
                 if (currentState == EventState.PAUSED) {
@@ -715,7 +717,7 @@ public class EventManager implements Listener {
         ChatColor winningChatColor = gameManager.getTeamChatColor(winningTeam);
         String winningDisplayName = gameManager.getTeamDisplayName(winningTeam);
         this.toPodiumDelayTaskId = new BukkitRunnable() {
-            int count = storageUtil.getBackToHubDuration();
+            int count = config.getBackToHubDuration();
             @Override
             public void run() {
                 if (currentState == EventState.PAUSED) {
@@ -771,7 +773,7 @@ public class EventManager implements Listener {
         for (Player admin : admins) {
             adminSidebar.removePlayer(admin);
         }
-        voteManager.startVote(participants, votingPool, storageUtil.getVotingDuration(), this::startingGameDelay, admins);
+        voteManager.startVote(participants, votingPool, config.getVotingDuration(), this::startingGameDelay, admins);
         participants.clear();
         admins.clear();
     }
@@ -780,7 +782,7 @@ public class EventManager implements Listener {
         currentState = EventState.DELAY;
         initializeParticipantsAndAdmins();
         this.startingGameCountdownTaskId = new BukkitRunnable() {
-            int count = storageUtil.getStartingGameDuration();
+            int count = config.getStartingGameDuration();
             @Override
             public void run() {
                 if (currentState == EventState.PAUSED) {
@@ -848,7 +850,7 @@ public class EventManager implements Listener {
         sidebar.updateLine("currentGame", getCurrentGameLine());
         adminSidebar.updateLine("currentGame", getCurrentGameLine());
         this.backToHubDelayTaskId = new BukkitRunnable() {
-            int count = storageUtil.getBackToHubDuration();
+            int count = config.getBackToHubDuration();
             @Override
             public void run() {
                 if (currentState == EventState.PAUSED) {
@@ -873,7 +875,7 @@ public class EventManager implements Listener {
     private void toColossalCombatDelay() {
         currentState = EventState.DELAY;
         this.toColossalCombatDelayTaskId = new BukkitRunnable() {
-            int count = storageUtil.getStartingGameDuration();
+            int count = config.getStartingGameDuration();
             @Override
             public void run() {
                 if (currentState == EventState.PAUSED) {
@@ -985,10 +987,8 @@ public class EventManager implements Listener {
     
     public void startColossalCombat(CommandSender sender, String firstPlaceTeamName, String secondPlaceTeamName) {
         try {
-            if (!colossalCombatGame.loadConfig()) {
-                throw new IllegalArgumentException("Config could not be loaded.");
-            }
-        } catch (IllegalArgumentException e) {
+            colossalCombatGame.loadConfig();
+        } catch (ConfigException e) {
             Bukkit.getLogger().severe(e.getMessage());
             e.printStackTrace();
             sender.sendMessage(Component.text("Error loading config file. See console for details.")
@@ -1111,7 +1111,7 @@ public class EventManager implements Listener {
         Bukkit.getServer().sendMessage(Component.empty()
                 .append(formattedTeamDisplayName)
                 .append(Component.text(" wins ")
-                    .append(Component.text(storageUtil.getTitle()))
+                    .append(Component.text(config.getTitle()))
                     .append(Component.text("!")))
                 .color(teamColor)
                 .decorate(TextDecoration.BOLD));
@@ -1251,7 +1251,7 @@ public class EventManager implements Listener {
         adminSidebar.addLine("currentGame", getCurrentGameLine());
         adminSidebar.addLines(teamLines);
         adminSidebar.addLine("timer", "");
-        adminSidebar.updateTitle(storageUtil.getTitle());
+        adminSidebar.updateTitle(config.getTitle());
     }
     
     private void clearAdminSidebar() {
@@ -1276,7 +1276,7 @@ public class EventManager implements Listener {
         sidebar.addLines(teamLines);
         sidebar.addLine("personalScore", "");
         sidebar.addLine("timer", "");
-        sidebar.updateTitle(storageUtil.getTitle());
+        sidebar.updateTitle(config.getTitle());
         updatePersonalScores();
     }
     

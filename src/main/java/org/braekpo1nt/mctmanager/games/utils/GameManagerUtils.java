@@ -7,6 +7,8 @@ import java.util.*;
 
 public class GameManagerUtils {
     
+    public static final String TEAM_NAME_REGEX = "[-+\\._A-Za-z0-9]+";
+    
     /**
      * A list of all the {@link InventoryAction}s which constitute
      * removing items from the player's inventory
@@ -46,5 +48,9 @@ public class GameManagerUtils {
         }
         
         return firstPlaces.toArray(new String[0]);
+    }
+    
+    public static boolean validTeamName(String teamName) {
+        return teamName.matches(TEAM_NAME_REGEX);
     }
 }

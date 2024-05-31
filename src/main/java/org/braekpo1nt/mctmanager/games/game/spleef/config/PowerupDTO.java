@@ -1,8 +1,9 @@
 package org.braekpo1nt.mctmanager.games.game.spleef.config;
 
-import com.google.common.base.Preconditions;
-import lombok.Getter;
-import org.braekpo1nt.mctmanager.games.game.config.SoundDTO;
+import lombok.Data;
+import org.braekpo1nt.mctmanager.config.dto.net.kyori.adventure.sound.SoundDTO;
+import org.braekpo1nt.mctmanager.config.validation.Validatable;
+import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.braekpo1nt.mctmanager.games.game.spleef.powerup.Powerup;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -11,8 +12,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-@Getter
-class PowerupDTO {
+@Data
+class PowerupDTO implements Validatable {
     private @Nullable SoundDTO userSound;
     private @Nullable SoundDTO affectedSound;
     /**
@@ -20,12 +21,13 @@ class PowerupDTO {
      */
     private @Nullable List<Powerup.@Nullable Source> sources;
     
-    void isValid() {
+    @Override
+    public void validate(@NotNull Validator validator) {
         if (userSound != null) {
-            userSound.isValid();
+            userSound.validate(validator.path("userSound"));
         }
         if (affectedSound != null) {
-            affectedSound.isValid();
+            affectedSound.validate(validator.path("affectedSound"));
         }
     }
     

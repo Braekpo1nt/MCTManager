@@ -4,6 +4,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
+import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.bukkit.command.Command;
@@ -49,7 +50,7 @@ public class AddSubCommand extends TabSubCommand {
                                     .decorate(TextDecoration.BOLD))
                             .append(Component.text(" because that is reserved for the admin team.")));
         }
-        if (!validTeamName(teamName)) {
+        if (!GameManagerUtils.validTeamName(teamName)) {
             return CommandResult.failure(Component.text("Provide a valid team name\n")
                             .append(Component.text(
                                     "Allowed characters: -, +, ., _, A-Z, a-z, and 0-9")));
@@ -93,11 +94,6 @@ public class AddSubCommand extends TabSubCommand {
     
     private static boolean displayNameIndexesAreInvalid(int displayNameStart, int displayNameEnd) {
         return displayNameStart == -1 || displayNameEnd == -1 || displayNameStart > displayNameEnd;
-    }
-    
-    private boolean validTeamName(String teamName) {
-        String regexPattern = "[-+\\._A-Za-z0-9]+";
-        return teamName.matches(regexPattern);
     }
     
     @NotNull

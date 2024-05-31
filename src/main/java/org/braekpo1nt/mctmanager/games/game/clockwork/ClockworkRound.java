@@ -4,7 +4,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
-import org.braekpo1nt.mctmanager.games.game.clockwork.config.ClockworkStorageUtil;
+import org.braekpo1nt.mctmanager.games.game.clockwork.config.ClockworkConfig;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
@@ -34,7 +34,7 @@ public class ClockworkRound implements Listener {
     private final Sidebar sidebar;
     private final Sidebar adminSidebar;
     private final ClockworkGame clockworkGame;
-    private final ClockworkStorageUtil storageUtil;
+    private ClockworkConfig config;
     private final ChaosManager chaosManager;
     private final int roundNumber;
     private List<Player> participants = new ArrayList<>();
@@ -59,15 +59,20 @@ public class ClockworkRound implements Listener {
      */
     private boolean clockIsChiming = false;
     
-    public ClockworkRound(Main plugin, GameManager gameManager, ClockworkGame clockworkGame, ClockworkStorageUtil storageUtil, int roundNumber, Sidebar sidebar, Sidebar adminSidebar) {
+    public ClockworkRound(Main plugin, GameManager gameManager, ClockworkGame clockworkGame, ClockworkConfig config, int roundNumber, Sidebar sidebar, Sidebar adminSidebar) {
         this.plugin = plugin;
         this.gameManager = gameManager;
         this.clockworkGame = clockworkGame;
-        this.storageUtil = storageUtil;
+        this.config = config;
         this.roundNumber = roundNumber;
-        this.chaosManager = new ChaosManager(plugin, storageUtil);
+        this.chaosManager = new ChaosManager(plugin, config);
         this.sidebar = sidebar;
         this.adminSidebar = adminSidebar;
+    }
+    
+    public void setConfig(ClockworkConfig config) {
+        this.config = config;
+        chaosManager.setConfig(config);
     }
     
     public boolean isActive() {
@@ -85,7 +90,7 @@ public class ClockworkRound implements Listener {
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
         }
-        chimeInterval = storageUtil.getInitialChimeInterval();
+        chimeInterval = config.getInitialChimeInterval();
         setupTeamOptions();
         startStatusEffectsTask();
         startBreatherDelay();
@@ -103,7 +108,7 @@ public class ClockworkRound implements Listener {
         } else {
             teamsLivingMembers.put(team, 1);
         }
-        participant.teleport(storageUtil.getStartingLocation());
+        participant.teleport(config.getStartingLocation());
         participant.getInventory().clear();
         participant.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearStatusEffects(participant);
@@ -112,7 +117,7 @@ public class ClockworkRound implements Listener {
     
     private void rejoinParticipant(Player participant) {
         participants.add(participant);
-        participant.teleport(storageUtil.getStartingLocation());
+        participant.teleport(config.getStartingLocation());
         participant.getInventory().clear();
         participant.setGameMode(GameMode.SPECTATOR);
         ParticipantInitializer.clearStatusEffects(participant);
@@ -131,7 +136,7 @@ public class ClockworkRound implements Listener {
         if (!teamsLivingMembers.containsKey(team)) {
             teamsLivingMembers.put(team, 0);
         }
-        participant.teleport(storageUtil.getStartingLocation());
+        participant.teleport(config.getStartingLocation());
         participant.getInventory().clear();
         participant.setGameMode(GameMode.SPECTATOR);
         ParticipantInitializer.clearStatusEffects(participant);
@@ -203,7 +208,7 @@ public class ClockworkRound implements Listener {
     private void startBreatherDelay() {
         mustStayOnWedge = false;
         this.breatherDelayTaskId = new BukkitRunnable() {
-            int count = storageUtil.getBreatherDuration();
+            int count = config.getBreatherDuration();
             @Override
             public void run() {
                 if (count <= 0) {
@@ -228,7 +233,7 @@ public class ClockworkRound implements Listener {
         turnOffCollisions();
         for (Player participant : participants) {
             if (participantsAreAlive.get(participant.getUniqueId())) {
-                participant.teleport(storageUtil.getStartingLocation());
+                participant.teleport(config.getStartingLocation());
                 participant.setArrowsInBody(0);
             }
         }
@@ -251,14 +256,14 @@ public class ClockworkRound implements Listener {
     
     private void playChimeSound() {
         for (Player participant : participants) {
-            participant.playSound(participant.getLocation(), storageUtil.getClockChimeSound(), storageUtil.getClockChimeVolume(), storageUtil.getClockChimePitch());
+            participant.playSound(participant.getLocation(), config.getClockChimeSound(), config.getClockChimeVolume(), config.getClockChimePitch());
         }
-        gameManager.playSoundForAdmins(storageUtil.getClockChimeSound(), storageUtil.getClockChimeVolume(), storageUtil.getClockChimePitch());
+        gameManager.playSoundForAdmins(config.getClockChimeSound(), config.getClockChimeVolume(), config.getClockChimePitch());
     }
     
     private void startGetToWedgeDelay() {
         this.getToWedgeDelayTaskId = new BukkitRunnable() {
-            int count = storageUtil.getGetToWedgeDuration();
+            int count = config.getGetToWedgeDuration();
             @Override
             public void run() {
                 if (count <= 0) {
@@ -277,7 +282,7 @@ public class ClockworkRound implements Listener {
     
     private void startStayOnWedgeDelay() {
         this.stayOnWedgeDelayTaskId = new BukkitRunnable() {
-            int count = storageUtil.getStayOnWedgeDuration();
+            int count = config.getStayOnWedgeDuration();
             @Override
             public void run() {
                 if (count <= 0) {
@@ -308,7 +313,7 @@ public class ClockworkRound implements Listener {
     
     private void killParticipantsNotOnWedge() {
         List<Player> participantsToKill = new ArrayList<>();
-        Wedge currentWedge = storageUtil.getWedges().get(numberOfChimes - 1);
+        Wedge currentWedge = config.getWedges().get(numberOfChimes - 1);
         for (Player participant : participants) {
             if (participantsAreAlive.get(participant.getUniqueId())) {
                 if (!currentWedge.contains(participant.getLocation().toVector())) {
@@ -323,7 +328,7 @@ public class ClockworkRound implements Listener {
     }
     
     private void incrementChaos() {
-        chimeInterval -= storageUtil.getChimeIntervalDecrement();
+        chimeInterval -= config.getChimeIntervalDecrement();
         if (chimeInterval < 0) {
             chimeInterval = 0;
         }
@@ -378,7 +383,7 @@ public class ClockworkRound implements Listener {
         }
         if (clockIsChiming) {
             Location stayLoc = event.getTo();
-            Vector position = storageUtil.getStartingLocation().toVector();
+            Vector position = config.getStartingLocation().toVector();
             if (!stayLoc.toVector().equals(position)) {
                 participant.teleport(position.toLocation(stayLoc.getWorld(), stayLoc.getYaw(), stayLoc.getPitch()));
             }
@@ -387,7 +392,7 @@ public class ClockworkRound implements Listener {
         if (!mustStayOnWedge) {
             return;
         }
-        Wedge currentWedge = storageUtil.getWedges().get(numberOfChimes - 1);
+        Wedge currentWedge = config.getWedges().get(numberOfChimes - 1);
         if (!currentWedge.contains(participant.getLocation().toVector())) {
             killParticipants(Collections.singletonList(participant));
         }
@@ -405,7 +410,7 @@ public class ClockworkRound implements Listener {
             participantsAreAlive.put(killed.getUniqueId(), false);
             for (Player participant : participants) {
                 if (participantsAreAlive.get(participant.getUniqueId()) && !killedParticipants.contains(participant)) {
-                    gameManager.awardPointsToParticipant(participant, storageUtil.getPlayerEliminationScore());
+                    gameManager.awardPointsToParticipant(participant, config.getPlayerEliminationScore());
                 }
             }
             String team = gameManager.getTeamName(killed.getUniqueId());
@@ -450,7 +455,7 @@ public class ClockworkRound implements Listener {
             }
             for (String team : allTeams) {
                 if (teamsLivingMembers.get(team) > 0 && !newlyKilledTeams.contains(team)) {
-                    gameManager.awardPointsToTeam(team, storageUtil.getTeamEliminationScore());
+                    gameManager.awardPointsToTeam(team, config.getTeamEliminationScore());
                 }
             }
         }
@@ -480,7 +485,7 @@ public class ClockworkRound implements Listener {
     }
     
     private void onTeamWinsRound(String winningTeam) {
-        gameManager.awardPointsToTeam(winningTeam, storageUtil.getWinRoundScore());
+        gameManager.awardPointsToTeam(winningTeam, config.getWinRoundScore());
         Component teamDisplayName = gameManager.getFormattedTeamDisplayName(winningTeam);
         for (Player participant : participants) {
             String team = gameManager.getTeamName(participant.getUniqueId());
@@ -506,7 +511,7 @@ public class ClockworkRound implements Listener {
             team.setCanSeeFriendlyInvisibles(true);
             team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.ALWAYS);
             team.setOption(Team.Option.DEATH_MESSAGE_VISIBILITY, Team.OptionStatus.ALWAYS);
-            team.setOption(Team.Option.COLLISION_RULE, storageUtil.getCollisionRule());
+            team.setOption(Team.Option.COLLISION_RULE, config.getCollisionRule());
         }
     }
     
@@ -523,7 +528,7 @@ public class ClockworkRound implements Listener {
     private void turnOnCollisions() {
         Scoreboard mctScoreboard = gameManager.getMctScoreboard();
         for (Team team : mctScoreboard.getTeams()) {
-            team.setOption(Team.Option.COLLISION_RULE, storageUtil.getCollisionRule());
+            team.setOption(Team.Option.COLLISION_RULE, config.getCollisionRule());
         }
     }
     

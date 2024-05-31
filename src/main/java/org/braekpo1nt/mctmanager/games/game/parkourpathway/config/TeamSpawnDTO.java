@@ -1,17 +1,20 @@
 package org.braekpo1nt.mctmanager.games.game.parkourpathway.config;
 
-import com.google.common.base.Preconditions;
-import lombok.Getter;
-import org.braekpo1nt.mctmanager.games.game.config.BoundingBoxDTO;
-import org.braekpo1nt.mctmanager.games.game.config.LocationDTO;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import org.braekpo1nt.mctmanager.config.dto.org.bukkit.util.BoundingBoxDTO;
+import org.braekpo1nt.mctmanager.config.dto.org.bukkit.LocationDTO;
+import org.braekpo1nt.mctmanager.config.validation.Validatable;
+import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.TeamSpawn;
 import org.bukkit.World;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-@Getter
-class TeamSpawnDTO {
+@Data
+@AllArgsConstructor
+class TeamSpawnDTO implements Validatable {
     /**
      * the area which will be used to place a glass barrier. Air blocks will be replaced with stained-glass of the appropriate team color. 
      */
@@ -21,9 +24,10 @@ class TeamSpawnDTO {
      */
     private LocationDTO spawn;
     
-    void isValid() {
-        Preconditions.checkArgument(barrierArea != null, "barrierArea can't be null");
-        Preconditions.checkArgument(spawn != null, "spawn can't be null");
+    @Override
+    public void validate(@NotNull Validator validator) {
+        validator.notNull(barrierArea, "barrierArea");
+        validator.notNull(spawn, "spawn");
     }
     
     @NotNull TeamSpawn toTeamSpawn(@NotNull World world) {
@@ -32,5 +36,13 @@ class TeamSpawnDTO {
     
     public static @NotNull List<TeamSpawn> toTeamSpawns(@NotNull World world, @NotNull List<@NotNull TeamSpawnDTO> teamSpawnDTOS) {
         return teamSpawnDTOS.stream().map(teamSpawnDTO -> teamSpawnDTO.toTeamSpawn(world)).toList();
+    }
+    
+    @NotNull static TeamSpawnDTO fromTeamSpawn(TeamSpawn teamSpawn) {
+        return new TeamSpawnDTO(BoundingBoxDTO.from(teamSpawn.getBarrierArea()), LocationDTO.from(teamSpawn.getSpawnLocation()));
+    }
+    
+    public static List<TeamSpawnDTO> fromTeamSpawns(List<TeamSpawn> teamSpawns) {
+        return teamSpawns.stream().map(TeamSpawnDTO::fromTeamSpawn).toList();
     }
 }

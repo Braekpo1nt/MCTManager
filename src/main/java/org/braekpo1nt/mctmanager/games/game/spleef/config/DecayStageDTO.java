@@ -1,15 +1,20 @@
 package org.braekpo1nt.mctmanager.games.game.spleef.config;
 
 import com.google.gson.annotations.SerializedName;
-import lombok.Getter;
+import lombok.Data;
+import org.braekpo1nt.mctmanager.config.validation.Validatable;
+import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.braekpo1nt.mctmanager.games.game.spleef.DecayStage;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-@Getter
-public class DecayStageDTO {
+@Data
+public class DecayStageDTO implements Validatable {
     /**
      * info about which layers should decay in this stage and at what rate (empty list for no layers)
      */
@@ -35,8 +40,8 @@ public class DecayStageDTO {
      */
     String startMessage;
     
-    @Getter
-    static class LayerInfoDTO {
+    @Data
+    static class LayerInfoDTO implements Validatable {
         /**
          * The index of the layer to decay (0-based, must be at least 0 and no more than 1 less than the number of layers in the game)
          */
@@ -50,13 +55,46 @@ public class DecayStageDTO {
          * the rate at which the decaying blocks should disappear in Blocks Per Second. Defaults to -1. If this value is less than 0, it will be assigned to the value of {@link LayerInfoDTO#solidBlockRate}.
          */
         private int decayingBlockRate = -1;
-        
+    
+        @Override
+        public void validate(@NotNull Validator validator) {
+            validator.validate(0 <= solidBlockRate, "solidBlockRate must be can't be negative");
+            validator.validate(0 <= index, "index can't be negative");
+        }
+    
         DecayStage.LayerInfo toLayerInfo() {
             return new DecayStage.LayerInfo(index, solidBlockRate, decayingBlockRate < 0 ? solidBlockRate : decayingBlockRate);
         }
         
         static List<DecayStage.LayerInfo> toLayerInfos(List<LayerInfoDTO> layerInfoDTOS) {
             return layerInfoDTOS.stream().map(LayerInfoDTO::toLayerInfo).collect(Collectors.toCollection(ArrayList::new));
+        }
+    }
+    
+    @Override
+    public void validate(@NotNull Validator validator) {
+        validator.validate(this.layerInfos != null, "layers can't be null");
+        // make sure index is between 0 and the max index for decayLayers 
+        // also make sure there are no duplicate indexes
+        Set<Integer> uniqueIndexes = new HashSet<>(this.layerInfos.size());
+        for (int i = 0; i < this.layerInfos.size(); i++) {
+            DecayStageDTO.LayerInfoDTO layerInfo = this.layerInfos.get(i);
+            layerInfo.validate(validator.path("layerInfos[%d]", i));
+            validator.validate(!uniqueIndexes.contains(layerInfo.getIndex()), "layerInfos[%d].index must be unique (%s)", i, layerInfo.getIndex());
+            uniqueIndexes.add(layerInfo.getIndex());
+        }
+        validator.validate(this.duration > 0, "duration must be at least 1");
+    }
+    
+    /**
+     * 
+     * @param validator the validator
+     * @param numberOfLayers the number of layers 
+     */
+    public void validateIndexes(Validator validator, int numberOfLayers) {
+        for (int i = 0; i < this.layerInfos.size(); i++) {
+            LayerInfoDTO layerInfo = this.layerInfos.get(i);
+            validator.validate(0 <= layerInfo.getIndex() && layerInfo.getIndex() < numberOfLayers, "layerInfos[%d].index must be at most 1 less than the number of elements in layers list", i);
         }
     }
     

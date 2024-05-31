@@ -5,15 +5,19 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
+import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
+import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
 import org.braekpo1nt.mctmanager.display.Display;
 import org.braekpo1nt.mctmanager.display.geometry.GeometryUtils;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.GameEditor;
+import org.braekpo1nt.mctmanager.games.game.parkourpathway.config.ParkourPathwayConfig;
+import org.braekpo1nt.mctmanager.games.game.parkourpathway.config.ParkourPathwayConfigController;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.puzzle.CheckPoint;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.puzzle.Puzzle;
-import org.braekpo1nt.mctmanager.games.game.parkourpathway.config.ParkourPathwayStorageUtil;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
@@ -34,20 +38,19 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.util.BlockVector;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.IOException;
 import java.util.*;
 import java.util.List;
 
 public class ParkourPathwayEditor implements GameEditor, Configurable, Listener {
     
     private final Main plugin;
-    private final ParkourPathwayStorageUtil storageUtil;
+    private final ParkourPathwayConfigController configController;
+    private ParkourPathwayConfig config;
     private final GameManager gameManager;
     private List<Player> participants = new ArrayList<>();
     private Sidebar sidebar;
@@ -87,7 +90,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
     public ParkourPathwayEditor(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
         this.gameManager = gameManager;
-        this.storageUtil = new ParkourPathwayStorageUtil(plugin.getDataFolder());
+        this.configController = new ParkourPathwayConfigController(plugin.getDataFolder());
         this.inBoundsWand = addWand("inBounds", List.of(
                 Component.text("Left Click: push box face away"),
                 Component.text("Right Click: pull box face toward"),
@@ -150,12 +153,12 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
     }
     
     @Override
-    public boolean loadConfig() throws IllegalArgumentException {
-        boolean loaded = storageUtil.loadConfig();
+    public void loadConfig() throws ConfigIOException, ConfigInvalidException {
+        this.config = configController.getConfig();
         if (!editorStarted) {
-            return loaded;
+            return;
         }
-        puzzles = storageUtil.deepCopyPuzzles();
+        puzzles = config.getPuzzles();
         for (Player participant : participants) {
             selectPuzzle(
                     participant, 
@@ -165,7 +168,6 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
                     false
             );
         }
-        return loaded;
     }
     
     /**
@@ -213,13 +215,14 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
     
     @Override
     public boolean configIsValid() {
-        storageUtil.setPuzzles(puzzles);
-        return storageUtil.configIsValid();
+        config.setPuzzles(puzzles);
+        configController.validateConfig(config);
+        return true;
     }
     
     @Override
-    public void saveConfig() throws IOException {
-        storageUtil.saveConfig();
+    public void saveConfig() throws ConfigException {
+        configController.saveConfig(config);
     }
     
     @Override
@@ -233,7 +236,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
         currentPuzzles = new HashMap<>(newParticipants.size());
         currentInBounds = new HashMap<>(newParticipants.size());
         currentCheckPoints = new HashMap<>(newParticipants.size());
-        puzzles = storageUtil.deepCopyPuzzles();
+        puzzles = config.getPuzzles();
         displays = new HashMap<>(newParticipants.size());
         sidebar = gameManager.getSidebarFactory().createSidebar();
         displayWalls = true;
@@ -257,7 +260,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
         displays.put(participant.getUniqueId(), new Display(plugin));
         sidebar.addPlayer(participant);
         participant.getInventory().clear();
-        participant.teleport(storageUtil.getStartingLocation());
+        participant.teleport(config.getStartingLocation());
         ParticipantInitializer.resetHealthAndHunger(participant);
         ParticipantInitializer.clearStatusEffects(participant);
         giveWands(participant);

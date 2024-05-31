@@ -6,7 +6,7 @@ import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.CommandUtils;
 import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
-import org.braekpo1nt.mctmanager.games.game.config.YawPitch;
+import org.braekpo1nt.mctmanager.config.dto.YawPitch;
 import org.braekpo1nt.mctmanager.utils.EntityUtils;
 import org.braekpo1nt.mctmanager.utils.MathUtils;
 import org.bukkit.Location;

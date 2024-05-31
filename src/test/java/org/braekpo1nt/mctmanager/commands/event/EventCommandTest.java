@@ -6,7 +6,7 @@ import be.seeseemelk.mockbukkit.UnimplementedOperationException;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.MyCustomServerMock;
 import org.braekpo1nt.mctmanager.TestUtils;
-import org.braekpo1nt.mctmanager.games.event.config.EventStorageUtil;
+import org.braekpo1nt.mctmanager.games.event.config.EventConfigController;
 import org.braekpo1nt.mctmanager.games.gamestate.MockGameStateStorageUtil;
 import org.bukkit.command.PluginCommand;
 import org.junit.jupiter.api.*;
@@ -35,7 +35,7 @@ class EventCommandTest {
         
         MockGameStateStorageUtil mockGameStateStorageUtil = new MockGameStateStorageUtil(plugin);
         plugin.getGameManager().setGameStateStorageUtil(mockGameStateStorageUtil);
-        InputStream inputStream = EventStorageUtil.class.getResourceAsStream("exampleEventConfig.json");
+        InputStream inputStream = EventConfigController.class.getResourceAsStream("exampleEventConfig.json");
         TestUtils.copyInputStreamToFile(inputStream, new File(plugin.getDataFolder(), "eventConfig.json"));
         command = plugin.getCommand("mct");
     }
