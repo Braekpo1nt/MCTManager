@@ -573,10 +573,8 @@ public class GameManager implements Listener {
             return;
         }
         try {
-            if (!activeEditor.configIsValid()) {
-                throw new ConfigInvalidException("Config is not valid");
-            }
-        } catch (IllegalArgumentException | ConfigException e) {
+            activeEditor.configIsValid();
+        } catch (ConfigException e) {
             Bukkit.getLogger().severe(e.getMessage());
             e.printStackTrace();
             sender.sendMessage(Component.text("Config is not valid for ")
@@ -603,10 +601,8 @@ public class GameManager implements Listener {
         }
         if (!force) {
             try {
-                if (!activeEditor.configIsValid()) {
-                    throw new ConfigInvalidException("Config is not valid");
-                }
-            } catch (IllegalArgumentException | ConfigException e) {
+                activeEditor.configIsValid();
+            } catch (ConfigException e) {
                 Bukkit.getLogger().severe(e.getMessage());
                 e.printStackTrace();
                 sender.sendMessage(Component.text("Config is not valid for ")
@@ -627,7 +623,7 @@ public class GameManager implements Listener {
         }
         try {
             activeEditor.saveConfig();
-        } catch (IOException | ConfigException e) {
+        } catch (ConfigException e) {
             Bukkit.getLogger().severe(e.getMessage());
             e.printStackTrace();
             sender.sendMessage(Component.text("An error occurred while attempting to save the config for ")
