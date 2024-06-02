@@ -9,6 +9,7 @@ import org.braekpo1nt.mctmanager.games.colossalcombat.config.ColossalCombatConfi
 import org.braekpo1nt.mctmanager.games.colossalcombat.config.ColossalCombatConfigController;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
+import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
@@ -22,6 +23,7 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 import org.bukkit.util.BoundingBox;
@@ -49,6 +51,8 @@ public class ColossalCombatGame implements Listener, Configurable {
     private int secondPlaceRoundWins = 0;
     private String firstTeamName;
     private String secondTeamName;
+    private int descriptionPeriodTaskId;
+    private boolean descriptionShowing = false;
     private boolean gameActive = false;
     
     public ColossalCombatGame(Main plugin, GameManager gameManager) {
@@ -104,9 +108,9 @@ public class ColossalCombatGame implements Listener, Configurable {
         initializeSidebar();
         setupTeamOptions();
         startAdmins(newAdmins);
-        startNextRound();
-        displayDescription();
         gameActive = true;
+        startDescriptionPeriod();
+        displayDescription();
         Bukkit.getLogger().info("Started Colossal Combat");
     }
     
@@ -164,6 +168,29 @@ public class ColossalCombatGame implements Listener, Configurable {
         admin.teleport(config.getSpectatorSpawn());
     }
     
+    private void startDescriptionPeriod() {
+        descriptionShowing = true;
+        this.descriptionPeriodTaskId = new BukkitRunnable() {
+            private int count = config.getDescriptionDuration();
+            @Override
+            public void run() {
+                if (count <= 0) {
+                    sidebar.updateLine("timer", "");
+                    adminSidebar.updateLine("timer", "");
+                    descriptionShowing = false;
+                    startNextRound();
+                    this.cancel();
+                    return;
+                }
+                String timeLeft = TimeStringUtils.getTimeString(count);
+                String timerString = String.format("Starting soon: %s", timeLeft);
+                sidebar.updateLine("timer", timerString);
+                adminSidebar.updateLine("timer", timerString);
+                count--;
+            }
+        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+    }
+    
     private void startNextRound() {
         ColossalCombatRound nextRound = rounds.get(currentRoundIndex);
         nextRound.start(firstPlaceParticipants, secondPlaceParticipants, spectators, firstTeamName, secondTeamName);
@@ -195,7 +222,9 @@ public class ColossalCombatGame implements Listener, Configurable {
     
     public void stop(@Nullable String winningTeam) {
         gameActive = false;
+        descriptionShowing = false;
         HandlerList.unregisterAll(this);
+        cancelAllTasks();
         if (currentRoundIndex < rounds.size()) {
             ColossalCombatRound currentRound = rounds.get(currentRoundIndex);
             if (currentRound.isActive()) {
@@ -238,25 +267,43 @@ public class ColossalCombatGame implements Listener, Configurable {
         adminSidebar.removePlayer(admin);
     }
     
+    private void cancelAllTasks() {
+        Bukkit.getScheduler().cancelTask(descriptionPeriodTaskId);
+    }
+    
     public void onParticipantJoin(Player participant) {
         if (!gameActive) {
             return;
         }
         String teamName = gameManager.getTeamName(participant.getUniqueId());
         if (firstTeamName.equals(teamName)) {
-            firstPlaceParticipants.add(participant);
-            participant.setGameMode(GameMode.SPECTATOR);
-            participant.teleport(config.getFirstPlaceSpawn());
+            if (descriptionShowing) {
+                initializeFirstPlaceParticipant(participant);
+            } else {
+                firstPlaceParticipants.add(participant);
+                participant.setGameMode(GameMode.SPECTATOR);
+                participant.teleport(config.getFirstPlaceSpawn());
+                sidebar.addPlayer(participant);
+            }
         } else if (secondTeamName.equals(teamName)) {
-            secondPlaceParticipants.add(participant);
-            participant.setGameMode(GameMode.SPECTATOR);
-            participant.teleport(config.getSecondPlaceSpawn());
+            if (descriptionShowing) {
+                initializeSecondPlaceParticipant(participant);
+            } else {
+                secondPlaceParticipants.add(participant);
+                participant.setGameMode(GameMode.SPECTATOR);
+                participant.teleport(config.getSecondPlaceSpawn());
+                sidebar.addPlayer(participant);
+            }
         } else {
-            spectators.add(participant);
-            participant.teleport(config.getSpectatorSpawn());
+            if (descriptionShowing) {
+                initializeSpectator(participant);
+            } else {
+                spectators.add(participant);
+                participant.teleport(config.getSpectatorSpawn());
+                sidebar.addPlayer(participant);
+            }
         }
-        sidebar.addPlayer(participant);
-        if (currentRoundIndex < rounds.size()) {
+        if ( 0 <= currentRoundIndex && currentRoundIndex < rounds.size()) {
             ColossalCombatRound currentRound = rounds.get(currentRoundIndex);
             if (currentRound.isActive()) {
                 currentRound.onParticipantJoin(participant);
@@ -282,7 +329,7 @@ public class ColossalCombatGame implements Listener, Configurable {
         } else {
             spectators.remove(participant);
         }
-        if (currentRoundIndex < rounds.size()) {
+        if (0 <= currentRoundIndex && currentRoundIndex < rounds.size()) {
             ColossalCombatRound currentRound = rounds.get(currentRoundIndex);
             if (currentRound.isActive()) {
                 currentRound.onParticipantQuit(participant);
