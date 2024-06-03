@@ -65,6 +65,8 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     private List<UUID> livingPlayers;
     private List<UUID> deadPlayers;
     private Map<UUID, Integer> killCounts;
+    private int descriptionPeriodTaskId;
+    private boolean descriptionShowing = false;
     private final String title = ChatColor.BLUE+"MECHA";
     
     public MechaGame(Main plugin, GameManager gameManager) {
@@ -107,8 +109,8 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         initializeWorldBorder();
         startAdmins(newAdmins);
         displayDescription();
-        startStartMechaCountdownTask();
         gameActive = true;
+        startDescriptionPeriod();
         Bukkit.getLogger().info("Started mecha");
     }
     
@@ -158,6 +160,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     @Override
     public void stop() {
         HandlerList.unregisterAll(this);
+        descriptionShowing = false;
         cancelAllTasks();
         clearFloorItems();
         clearAllChests();
@@ -320,6 +323,30 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         Bukkit.getScheduler().cancelTask(borderShrinkingTaskId);
         Bukkit.getScheduler().cancelTask(stopMechaCountdownTaskId);
         Bukkit.getScheduler().cancelTask(startInvulnerableTaskID);
+        Bukkit.getScheduler().cancelTask(descriptionPeriodTaskId);
+    }
+    
+    private void startDescriptionPeriod() {
+        descriptionShowing = true;
+        this.descriptionPeriodTaskId = new BukkitRunnable() {
+            private int count = config.getDescriptionDuration();
+            @Override
+            public void run() {
+                if (count <= 0) {
+                    sidebar.updateLine("timer", "");
+                    adminSidebar.updateLine("timer", "");
+                    descriptionShowing = false;
+                    startStartMechaCountdownTask();
+                    this.cancel();
+                    return;
+                }
+                String timeLeft = TimeStringUtils.getTimeString(count);
+                String timerString = String.format("Starting soon: %s", timeLeft);
+                sidebar.updateLine("timer", timerString);
+                adminSidebar.updateLine("timer", timerString);
+                count--;
+            }
+        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
     }
     
     private void startStartMechaCountdownTask() {
@@ -432,6 +459,10 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
             return;
         }
         if (!participants.contains(participant)) {
+            return;
+        }
+        if (descriptionShowing) {
+            event.setCancelled(true);
             return;
         }
         if (!mechaHasStarted) {

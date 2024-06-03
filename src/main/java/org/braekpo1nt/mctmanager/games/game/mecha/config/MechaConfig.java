@@ -40,6 +40,7 @@ public class MechaConfig {
     private int[] sizes;
     private int[] delays;
     private int[] durations;
+    private int descriptionDuration;
     private Component description;
     
 }
