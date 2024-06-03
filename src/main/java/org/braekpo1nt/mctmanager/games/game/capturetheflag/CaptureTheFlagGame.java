@@ -12,6 +12,7 @@ import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlag
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
+import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
@@ -26,6 +27,7 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
 
@@ -48,6 +50,8 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     private final String title = ChatColor.BLUE+"Capture the Flag";
     private List<Player> participants = new ArrayList<>();
     private List<Player> admins = new ArrayList<>();
+    private int descriptionPeriodTaskId;
+    private boolean descriptionShowing = false;
     private boolean gameActive = false;
     
     public CaptureTheFlagGame(Main plugin, GameManager gameManager) {
@@ -82,9 +86,8 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         initializeSidebar();
         startAdmins(newAdmins);
         gameActive = true;
-        List<String> teams = gameManager.getTeamNames(participants);
         displayDescription();
-        roundManager.start(teams);
+        startDescriptionPeriod();
         Bukkit.getLogger().info("Starting Capture the Flag");
     }
     
@@ -129,6 +132,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     @Override
     public void stop() {
         HandlerList.unregisterAll(this);
+        cancelAllTasks();
         if (currentRound != null && currentRound.isActive()) {
             currentRound.stop();
         }
@@ -141,6 +145,10 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         participants.clear();
         gameManager.gameIsOver();
         Bukkit.getLogger().info("Stopping Capture the Flag");
+    }
+    
+    private void cancelAllTasks() {
+        Bukkit.getScheduler().cancelTask(descriptionPeriodTaskId);
     }
     
     private void resetParticipant(Player participant) {
@@ -158,6 +166,33 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     
     private void resetAdmin(Player admin) {
         adminSidebar.removePlayer(admin);
+    }
+    
+    private void startDescriptionPeriod() {
+        descriptionShowing = true;
+        this.descriptionPeriodTaskId = new BukkitRunnable() {
+            private int count = config.getDescriptionDuration();
+            @Override
+            public void run() {
+                if (count <= 0) {
+                    sidebar.updateLine("timer", "");
+                    adminSidebar.updateLine("timer", "");
+                    descriptionShowing = false;
+                    List<String> teams = Collections.emptyList();
+                    if (gameManager != null) {
+                        teams = gameManager.getTeamNames(participants);
+                    }
+                    roundManager.start(teams);
+                    this.cancel();
+                    return;
+                }
+                String timeLeft = TimeStringUtils.getTimeString(count);
+                String timerString = String.format("Starting soon: %s", timeLeft);
+                sidebar.updateLine("timer", timerString);
+                adminSidebar.updateLine("timer", timerString);
+                count--;
+            }
+        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
     }
     
     @Override
