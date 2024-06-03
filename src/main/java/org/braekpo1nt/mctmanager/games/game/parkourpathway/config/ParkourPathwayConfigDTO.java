@@ -136,6 +136,7 @@ class ParkourPathwayConfigDTO implements Validatable {
                 .checkpointCounterAlertDuration(this.durations.checkpointCounterAlert)
                 .checkpointScore(this.scores.checkpoint)
                 .winScore(this.scores.win)
+                .descriptionDuration(this.durations.description)
                 .description(this.description)
                 .build();
     }
@@ -151,7 +152,7 @@ class ParkourPathwayConfigDTO implements Validatable {
                 .puzzles(PuzzleDTO.fromPuzzles(config.getPuzzles()))
                 .spectatorArea(BoundingBoxDTO.from(config.getSpectatorArea()))
                 .scores(new Scores(config.getCheckpointScore(), config.getWinScore()))
-                .durations(new Durations(config.getTeamSpawnsDuration(), config.getStartingDuration(), config.getTimeLimitDuration(), config.getCheckpointCounterDuration(), config.getCheckpointCounterAlertDuration()))
+                .durations(new Durations(config.getTeamSpawnsDuration(), config.getStartingDuration(), config.getTimeLimitDuration(), config.getCheckpointCounterDuration(), config.getCheckpointCounterAlertDuration(), config.getDescriptionDuration()))
                 .description(config.getDescription())
                 .build();
     }
@@ -185,6 +186,7 @@ class ParkourPathwayConfigDTO implements Validatable {
         private int timeLimit;
         private int checkpointCounter;
         private int checkpointCounterAlert;
+        private int description = 0;
     }
     
 }

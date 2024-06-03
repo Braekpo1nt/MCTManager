@@ -4,7 +4,6 @@ import com.google.common.base.Preconditions;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
 import org.braekpo1nt.mctmanager.display.Display;
@@ -84,6 +83,8 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
      */
     private Map<UUID, Integer> currentPuzzleCheckpoints;
     private Map<UUID, Display> displays;
+    private int descriptionPeriodTaskId;
+    private boolean descriptionShowing = false;
     private static final boolean DEBUG = false;
     
     public ParkourPathwayGame(Main plugin, GameManager gameManager) {
@@ -144,13 +145,9 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         startAdmins(newAdmins);
         startStatusEffectsTask();
         setupTeamOptions();
-        if (teamSpawns != null) {
-            startTeamSpawnsCountDown();
-        } else {
-            startStartGameCountDown();
-        }
         displayDescription();
         gameActive = true;
+        startDescriptionPeriod();
         Bukkit.getLogger().info("Starting Parkour Pathway game");
     }
     
@@ -250,6 +247,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         stopAdmins();
         participants.clear();
         finishedParticipants.clear();
+        descriptionShowing = false;
         parkourHasStarted = false;
         gameActive = false;
         gameManager.gameIsOver();
@@ -356,6 +354,33 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
     public void onParticipantQuit(Player participant) {
         resetParticipant(participant);
         participants.remove(participant);
+    }
+    
+    private void startDescriptionPeriod() {
+        descriptionShowing = true;
+        this.descriptionPeriodTaskId = new BukkitRunnable() {
+            private int count = config.getDescriptionDuration();
+            @Override
+            public void run() {
+                if (count <= 0) {
+                    sidebar.updateLine("timer", "");
+                    adminSidebar.updateLine("timer", "");
+                    descriptionShowing = false;
+                    if (teamSpawns != null) {
+                        startTeamSpawnsCountDown();
+                    } else {
+                        startStartGameCountDown();
+                    }
+                    this.cancel();
+                    return;
+                }
+                String timeLeft = TimeStringUtils.getTimeString(count);
+                String timerString = String.format("Starting soon: %s", timeLeft);
+                sidebar.updateLine("timer", timerString);
+                adminSidebar.updateLine("timer", timerString);
+                count--;
+            }
+        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
     }
     
     /**
@@ -806,6 +831,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         Bukkit.getScheduler().cancelTask(checkpointCounterTask);
         Bukkit.getScheduler().cancelTask(startParkourPathwayTaskId);
         Bukkit.getScheduler().cancelTask(teamSpawnsCountDownTaskId);
+        Bukkit.getScheduler().cancelTask(descriptionPeriodTaskId);
     }
     
     private void initializeAdminSidebar() {
