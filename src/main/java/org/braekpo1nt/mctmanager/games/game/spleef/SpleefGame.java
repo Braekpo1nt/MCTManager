@@ -11,6 +11,7 @@ import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.game.spleef.config.SpleefConfig;
 import org.braekpo1nt.mctmanager.games.game.spleef.config.SpleefConfigController;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
+import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
@@ -21,6 +22,7 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 
@@ -38,6 +40,8 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
     private List<Player> admins = new ArrayList<>();
     private List<SpleefRound> rounds = new ArrayList<>();
     private int currentRoundIndex = 0;
+    private int descriptionPeriodTaskId;
+    private boolean descriptionShowing = false;
     private boolean gameActive = false;
     
     public SpleefGame(Main plugin, GameManager gameManager) {
@@ -51,11 +55,6 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
         return GameType.SPLEEF;
     }
     
-    /**
-     * Loads the config data for this game from storage into memory
-     * @return true if successful, false otherwise
-     * @throws ConfigInvalidException if there is an issue loading or if the config is invalid
-     */
     @Override
     public void loadConfig() throws ConfigIOException, ConfigInvalidException {
         this.config = configController.getConfig();
@@ -84,9 +83,9 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
         currentRoundIndex = 0;
         setupTeamOptions();
         startAdmins(newAdmins);
-        startNextRound();
         displayDescription();
         gameActive = true;
+        startDescriptionPeriod();
         Bukkit.getLogger().info("Started Spleef");
     }
     
@@ -142,6 +141,7 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
             }
         }
         rounds.clear();
+        descriptionShowing = false;
         gameActive = false;
         for (Player participant : participants) {
             resetParticipant(participant);
@@ -216,6 +216,9 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
                 new KeyLine("title", title),
                 new KeyLine("round", String.format("Round %d/%d", currentRoundIndex+1, config.getRounds()))
         );
+        if (descriptionShowing) {
+            return;
+        }
         if (currentRoundIndex < rounds.size()) {
             SpleefRound currentRound = rounds.get(currentRoundIndex);
             if (currentRound.isActive()) {
@@ -231,12 +234,38 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
         }
         resetParticipant(participant);
         participants.remove(participant);
+        if (descriptionShowing) {
+            return;
+        }
         if (currentRoundIndex < rounds.size()) {
             SpleefRound currentRound = rounds.get(currentRoundIndex);
             if (currentRound.isActive()) {
                 currentRound.onParticipantQuit(participant);
             }
         }
+    }
+    
+    private void startDescriptionPeriod() {
+        descriptionShowing = true;
+        this.descriptionPeriodTaskId = new BukkitRunnable() {
+            private int count = config.getDescriptionDuration();
+            @Override
+            public void run() {
+                if (count <= 0) {
+                    sidebar.updateLine("timer", "");
+                    adminSidebar.updateLine("timer", "");
+                    descriptionShowing = false;
+                    startNextRound();
+                    this.cancel();
+                    return;
+                }
+                String timeLeft = TimeStringUtils.getTimeString(count);
+                String timerString = String.format("Starting soon: %s", timeLeft);
+                sidebar.updateLine("timer", timerString);
+                adminSidebar.updateLine("timer", timerString);
+                count--;
+            }
+        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
     }
     
     public void roundIsOver() {
@@ -257,7 +286,7 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
     }
     
     private void cancelAllTasks() {
-        
+        Bukkit.getScheduler().cancelTask(descriptionPeriodTaskId);
     }
     
     private void initializeAdminSidebar() {
