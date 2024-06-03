@@ -44,7 +44,8 @@ public class RoundManagerTest {
                 teams.add(team);
             }
             roundManager = new RoundManager(this, numOfArenas);
-            roundManager.start(List.of(newTeams));
+            roundManager.initialize(List.of(newTeams));
+            roundManager.startNextRound();
         }
         
         public void onTeamJoin(String team) {
@@ -130,6 +131,13 @@ public class RoundManagerTest {
         Map<String, List<String>> teamsToFight = createTeamsToFight("a", "b", "c");
         Set<Set<String>> matches = RoundManager.createMatches(teamsToFight);
         Assertions.assertEquals(3, matches.size());
+    }
+    
+    @Test
+    void testCreateMatches_4_teams() {
+        Map<String, List<String>> teamsToFight = createTeamsToFight("a", "b", "c", "d");
+        int roundsLeft = RoundManager.calculateRoundsLeft(teamsToFight, 4);
+        Assertions.assertEquals(3, roundsLeft);
     }
     
     @Test

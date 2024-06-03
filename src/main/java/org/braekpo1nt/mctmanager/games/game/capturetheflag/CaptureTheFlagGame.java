@@ -85,6 +85,8 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         }
         initializeSidebar();
         startAdmins(newAdmins);
+        List<String> teams = gameManager.getTeamNames(participants);
+        roundManager.initialize(teams);
         gameActive = true;
         displayDescription();
         startDescriptionPeriod();
@@ -178,11 +180,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
                     sidebar.updateLine("timer", "");
                     adminSidebar.updateLine("timer", "");
                     descriptionShowing = false;
-                    List<String> teams = Collections.emptyList();
-                    if (gameManager != null) {
-                        teams = gameManager.getTeamNames(participants);
-                    }
-                    roundManager.start(teams);
+                    roundManager.startNextRound();
                     this.cancel();
                     return;
                 }

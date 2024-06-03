@@ -49,8 +49,9 @@ public class RoundManager {
     
     /**
      * Initializes internal variables, kicks off the first round, and begins the progression of rounds.
+     * Call this before {@link RoundManager#startNextRound()}
      */
-    public void start(List<String> newTeams) {
+    public void initialize(List<String> newTeams) {
         this.teams = new ArrayList<>(newTeams.size());
         roundsSpentOnDeck = new HashMap<>(newTeams.size());
         teamsToFight = new HashMap<>(newTeams.size());
@@ -73,7 +74,32 @@ public class RoundManager {
             totalOnDeckRounds.put(team, 0);
             // reporting
         }
-        startNextRound();
+    }
+    
+    /**
+     * Call this after {@link RoundManager#initialize(List)}.
+     */
+    public void startNextRound() {
+        List<MatchPairing> roundMatchPairings = generateNextRoundMatchPairings();
+        List<String> participantTeams = getTeamsFromMatchPairings(roundMatchPairings);
+        List<String> onDeckTeams = new ArrayList<>(teams.size() - participantTeams.size());
+        for (String team : teams) {
+            if (!participantTeams.contains(team)) {
+                onDeckTeams.add(team);
+            }
+        }
+        for (String onDeckTeam : onDeckTeams) {
+            int oldRoundsSpentOnDeck = roundsSpentOnDeck.get(onDeckTeam);
+            roundsSpentOnDeck.put(onDeckTeam, oldRoundsSpentOnDeck + 1);
+        }
+        playedMatchPairings.addAll(roundMatchPairings);
+        for (MatchPairing roundMP : roundMatchPairings) {
+            List<String> northTeamsToFight = teamsToFight.get(roundMP.northTeam());
+            northTeamsToFight.remove(roundMP.southTeam());
+            List<String> southTeamsToFight = teamsToFight.get(roundMP.southTeam());
+            southTeamsToFight.remove(roundMP.northTeam());
+        }
+        game.startNextRound(participantTeams, roundMatchPairings);
     }
     
     public void onTeamQuit(String team) {
@@ -113,29 +139,6 @@ public class RoundManager {
     
     private void onTeamRejoin(String team) {
         teams.add(team);
-    }
-    
-    private void startNextRound() {
-        List<MatchPairing> roundMatchPairings = generateNextRoundMatchPairings();
-        List<String> participantTeams = getTeamsFromMatchPairings(roundMatchPairings);
-        List<String> onDeckTeams = new ArrayList<>(teams.size() - participantTeams.size());
-        for (String team : teams) {
-            if (!participantTeams.contains(team)) {
-                onDeckTeams.add(team);
-            }
-        }
-        for (String onDeckTeam : onDeckTeams) {
-            int oldRoundsSpentOnDeck = roundsSpentOnDeck.get(onDeckTeam);
-            roundsSpentOnDeck.put(onDeckTeam, oldRoundsSpentOnDeck + 1);
-        }
-        playedMatchPairings.addAll(roundMatchPairings);
-        for (MatchPairing roundMP : roundMatchPairings) {
-            List<String> northTeamsToFight = teamsToFight.get(roundMP.northTeam());
-            northTeamsToFight.remove(roundMP.southTeam());
-            List<String> southTeamsToFight = teamsToFight.get(roundMP.southTeam());
-            southTeamsToFight.remove(roundMP.northTeam());
-        }
-        game.startNextRound(participantTeams, roundMatchPairings);
     }
     
     public void roundIsOver() {
