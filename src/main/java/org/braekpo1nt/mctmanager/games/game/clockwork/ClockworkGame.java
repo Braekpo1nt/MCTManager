@@ -11,6 +11,7 @@ import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
+import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
@@ -23,6 +24,7 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 
@@ -41,8 +43,8 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
     private List<Player> admins = new ArrayList<>();
     private List<ClockworkRound> rounds;
     private int currentRoundIndex = 0;
-    
-    
+    private int descriptionPeriodTaskId;
+    private boolean descriptionShowing = false;
     private boolean gameActive = false;
     
     public ClockworkGame(Main plugin, GameManager gameManager) {
@@ -83,9 +85,9 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
         currentRoundIndex = 0;
         setupTeamOptions();
         startAdmins(newAdmins);
-        startNextRound();
         displayDescription();
         gameActive = true;
+        startDescriptionPeriod();
         Bukkit.getLogger().info("Started clockwork");
     }
     
@@ -141,6 +143,7 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
             }
         }
         rounds.clear();
+        descriptionShowing = false;
         gameActive = false;
         for (Player participant : participants) {
             resetParticipant(participant);
@@ -171,6 +174,29 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
         adminSidebar.removePlayer(admin);
     }
     
+    private void startDescriptionPeriod() {
+        descriptionShowing = true;
+        this.descriptionPeriodTaskId = new BukkitRunnable() {
+            private int count = config.getDescriptionDuration();
+            @Override
+            public void run() {
+                if (count <= 0) {
+                    sidebar.updateLine("timer", "");
+                    adminSidebar.updateLine("timer", "");
+                    descriptionShowing = false;
+                    // actually start the game
+                    this.cancel();
+                    return;
+                }
+                String timeLeft = TimeStringUtils.getTimeString(count);
+                String timerString = String.format("Starting soon: %s", timeLeft);
+                sidebar.updateLine("timer", timerString);
+                adminSidebar.updateLine("timer", timerString);
+                count--;
+            }
+        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+    }
+    
     public void roundIsOver() {
         if (currentRoundIndex+1 >= rounds.size()) {
             stop();
@@ -196,6 +222,9 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
                 new KeyLine("title", title),
                 new KeyLine("round", String.format("Round %d/%d", currentRoundIndex+1, rounds.size()))
         );
+        if (descriptionShowing) {
+            return;
+        }
         if (currentRoundIndex < rounds.size()) {
             ClockworkRound currentRound = rounds.get(currentRoundIndex);
             if (currentRound.isActive()) {
@@ -211,6 +240,9 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
         }
         resetParticipant(participant);
         participants.remove(participant);
+        if (descriptionShowing) {
+            return;
+        }
         if (currentRoundIndex < rounds.size()) {
             ClockworkRound currentRound = rounds.get(currentRoundIndex);
             if (currentRound.isActive()) {
@@ -220,7 +252,7 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
     }
     
     private void cancelAllTasks() {
-        
+        Bukkit.getScheduler().cancelTask(descriptionPeriodTaskId);
     }
     
     /**
