@@ -184,7 +184,7 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
                     sidebar.updateLine("timer", "");
                     adminSidebar.updateLine("timer", "");
                     descriptionShowing = false;
-                    // actually start the game
+                    startNextRound();
                     this.cancel();
                     return;
                 }

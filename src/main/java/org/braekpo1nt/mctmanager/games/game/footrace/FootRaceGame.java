@@ -67,6 +67,8 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     private final PotionEffect SPEED = new PotionEffect(PotionEffectType.SPEED, 10000, 8, true, false, false);
     private final PotionEffect INVISIBILITY = new PotionEffect(PotionEffectType.INVISIBILITY, 10000, 1, true, false, false);
     private int statusEffectsTaskId;
+    private int descriptionPeriodTaskId;
+    private boolean descriptionShowing = false;
     private final String title = ChatColor.BLUE+"Foot Race";
     
     public FootRaceGame(Main plugin, GameManager gameManager) {
@@ -105,7 +107,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         startStatusEffectsTask();
         setupTeamOptions();
         displayDescription();
-        startStartRaceCountdownTask();
+        startDescriptionPeriod();
         Bukkit.getLogger().info("Starting Foot Race game");
     }
     
@@ -170,6 +172,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         laps.clear();
         placements.clear();
         raceHasStarted = false;
+        descriptionShowing = false;
         gameActive = false;
         gameManager.gameIsOver();
         Bukkit.getLogger().info("Stopping Foot Race game");
@@ -202,9 +205,6 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         if (participantShouldRejoin(participant)) {
             rejoinParticipant(participant);
         } else {
-            messageAllParticipants(Component.text(participant.getName())
-                    .append(Component.text(" is joining Foot Race!"))
-                    .color(NamedTextColor.YELLOW));
             initializeParticipant(participant);
         }
         sidebar.updateLine(participant.getUniqueId(), "title", title);
@@ -224,9 +224,6 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     private void rejoinParticipant(Player participant) {
         sidebar.addPlayer(participant);
         participant.sendMessage(ChatColor.YELLOW + "You have rejoined Foot Race");
-        messageAllParticipants(Component.text(participant.getName())
-                .append(Component.text(" is rejoining the game!"))
-                .color(NamedTextColor.YELLOW));
         participants.add(participant);
         UUID uniqueId = participant.getUniqueId();
         if (placements.contains(uniqueId)) {
@@ -255,9 +252,6 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         if (!gameActive) {
             return;
         }
-        messageAllParticipants(Component.text(participant.getName())
-                .append(Component.text(" has left mid-game!"))
-                .color(NamedTextColor.YELLOW));
         resetParticipant(participant);
         participants.remove(participant);
     }
@@ -267,6 +261,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         Bukkit.getScheduler().cancelTask(endRaceCountDownId);
         Bukkit.getScheduler().cancelTask(timerRefreshTaskId);
         Bukkit.getScheduler().cancelTask(statusEffectsTaskId);
+        Bukkit.getScheduler().cancelTask(descriptionPeriodTaskId);
     }
     
     private void giveBoots(Player participant) {
@@ -299,6 +294,29 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
                 }
             }
         }.runTaskTimer(plugin, 0L, 60L).getTaskId();
+    }
+    
+    private void startDescriptionPeriod() {
+        descriptionShowing = true;
+        this.descriptionPeriodTaskId = new BukkitRunnable() {
+            private int count = config.getDescriptionDuration();
+            @Override
+            public void run() {
+                if (count <= 0) {
+                    sidebar.updateLine("timer", "");
+                    adminSidebar.updateLine("timer", "");
+                    descriptionShowing = false;
+                    startStartRaceCountdownTask();
+                    this.cancel();
+                    return;
+                }
+                String timeLeft = TimeStringUtils.getTimeString(count);
+                String timerString = String.format("Starting soon: %s", timeLeft);
+                sidebar.updateLine("timer", timerString);
+                adminSidebar.updateLine("timer", timerString);
+                count--;
+            }
+        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
     }
     
     private void startStartRaceCountdownTask() {
