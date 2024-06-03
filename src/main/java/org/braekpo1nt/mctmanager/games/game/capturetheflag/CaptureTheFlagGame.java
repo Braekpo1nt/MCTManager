@@ -12,7 +12,6 @@ import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlag
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
-import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
@@ -27,7 +26,6 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
 
@@ -50,8 +48,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     private final String title = ChatColor.BLUE+"Capture the Flag";
     private List<Player> participants = new ArrayList<>();
     private List<Player> admins = new ArrayList<>();
-    private int descriptionPeriodTaskId;
-    private boolean descriptionShowing = false;
+    private boolean firstRound = true;
     private boolean gameActive = false;
     
     public CaptureTheFlagGame(Main plugin, GameManager gameManager) {
@@ -85,11 +82,11 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         }
         initializeSidebar();
         startAdmins(newAdmins);
-        List<String> teams = gameManager.getTeamNames(participants);
-        roundManager.initialize(teams);
-        gameActive = true;
         displayDescription();
-        startDescriptionPeriod();
+        gameActive = true;
+        firstRound = true;
+        List<String> teams = gameManager.getTeamNames(participants);
+        roundManager.start(teams);
         Bukkit.getLogger().info("Starting Capture the Flag");
     }
     
@@ -139,6 +136,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
             currentRound.stop();
         }
         gameActive = false;
+        firstRound = true;
         for (Player participant : participants) {
             resetParticipant(participant);
         }
@@ -150,7 +148,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     }
     
     private void cancelAllTasks() {
-        Bukkit.getScheduler().cancelTask(descriptionPeriodTaskId);
+        
     }
     
     private void resetParticipant(Player participant) {
@@ -168,29 +166,6 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     
     private void resetAdmin(Player admin) {
         adminSidebar.removePlayer(admin);
-    }
-    
-    private void startDescriptionPeriod() {
-        descriptionShowing = true;
-        this.descriptionPeriodTaskId = new BukkitRunnable() {
-            private int count = config.getDescriptionDuration();
-            @Override
-            public void run() {
-                if (count <= 0) {
-                    sidebar.updateLine("timer", "");
-                    adminSidebar.updateLine("timer", "");
-                    descriptionShowing = false;
-                    roundManager.startNextRound();
-                    this.cancel();
-                    return;
-                }
-                String timeLeft = TimeStringUtils.getTimeString(count);
-                String timerString = String.format("Starting soon: %s", timeLeft);
-                sidebar.updateLine("timer", timerString);
-                adminSidebar.updateLine("timer", timerString);
-                count--;
-            }
-        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
     }
     
     @Override
@@ -244,7 +219,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     public void roundIsOver() {
         roundManager.roundIsOver();
     }
-        
+    
     public void startNextRound(List<String> participantTeams, List<MatchPairing> roundMatchPairings) {
         currentRound = new CaptureTheFlagRound(this, plugin, gameManager, config, roundMatchPairings, sidebar, adminSidebar);
         List<Player> roundParticipants = new ArrayList<>();
@@ -263,6 +238,8 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
                 onDeckParticipants.add(participant);
             }
         }
+        currentRound.setFirstRound(firstRound);
+        firstRound = false; // the first round only happens once
         currentRound.start(roundParticipants, onDeckParticipants);
         String round = String.format("Round %d/%d", roundManager.getPlayedRounds() + 1, roundManager.getMaxRounds());
         sidebar.updateLine("round", round);
@@ -299,17 +276,10 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         if (!participants.contains(participant)) {
             return;
         }
-        if (descriptionShowing) {
-            event.setCancelled(true);
-            return;
-        }
         if (currentRound == null) {
             return;
         }
-        if (currentRound.isAliveInMatch(participant)) {
-            return;
-        }
-        event.setCancelled(true);
+        currentRound.onPlayerDamage(participant, event);
     }
     
     @EventHandler
@@ -323,19 +293,12 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         if (!participants.contains(participant)) {
             return;
         }
-        if (descriptionShowing) {
+        if (currentRound == null) {
             participant.setFoodLevel(20);
             event.setCancelled(true);
             return;
         }
-        if (currentRound == null) {
-            return;
-        }
-        if (currentRound.isAliveInMatch(participant)) {
-            return;
-        }
-        participant.setFoodLevel(20);
-        event.setCancelled(true);
+        currentRound.onPlayerLoseHunger(participant, event);
     }
     
     /**
@@ -354,10 +317,6 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         }
         Player participant = ((Player) event.getWhoClicked());
         if (!participants.contains(participant)) {
-            return;
-        }
-        if (descriptionShowing) {
-            event.setCancelled(true);
             return;
         }
         if (currentRound == null) {

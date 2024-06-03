@@ -22,6 +22,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
@@ -334,6 +335,19 @@ public class CaptureTheFlagMatch implements Listener {
     private void cancelAllTasks() {
         Bukkit.getScheduler().cancelTask(classSelectionCountdownTaskId);
         Bukkit.getScheduler().cancelTask(matchTimerTaskId);
+    }
+    
+    public void onPlayerDamage(Player participant, EntityDamageEvent event) {
+        if (!matchActive) {
+            return;
+        }
+        if (!allParticipants.contains(participant)) {
+            return;
+        }
+        if (participantsAreAlive.get(participant.getUniqueId())) {
+            return;
+        }
+        event.setCancelled(true);
     }
     
     @EventHandler
@@ -920,4 +934,6 @@ public class CaptureTheFlagMatch implements Listener {
             event.setCancelled(true);
         }
     }
+    
+    
 }

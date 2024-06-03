@@ -51,7 +51,7 @@ public class RoundManager {
      * Initializes internal variables, kicks off the first round, and begins the progression of rounds.
      * Call this before {@link RoundManager#startNextRound()}
      */
-    public void initialize(List<String> newTeams) {
+    public void start(List<String> newTeams) {
         this.teams = new ArrayList<>(newTeams.size());
         roundsSpentOnDeck = new HashMap<>(newTeams.size());
         teamsToFight = new HashMap<>(newTeams.size());
@@ -74,12 +74,13 @@ public class RoundManager {
             totalOnDeckRounds.put(team, 0);
             // reporting
         }
+        startNextRound();
     }
     
     /**
-     * Call this after {@link RoundManager#initialize(List)}.
+     * Call this after {@link RoundManager#start(List)}.
      */
-    public void startNextRound() {
+    private void startNextRound() {
         List<MatchPairing> roundMatchPairings = generateNextRoundMatchPairings();
         List<String> participantTeams = getTeamsFromMatchPairings(roundMatchPairings);
         List<String> onDeckTeams = new ArrayList<>(teams.size() - participantTeams.size());

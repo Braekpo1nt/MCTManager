@@ -44,8 +44,7 @@ public class RoundManagerTest {
                 teams.add(team);
             }
             roundManager = new RoundManager(this, numOfArenas);
-            roundManager.initialize(List.of(newTeams));
-            roundManager.startNextRound();
+            roundManager.start(List.of(newTeams));
         }
         
         public void onTeamJoin(String team) {
