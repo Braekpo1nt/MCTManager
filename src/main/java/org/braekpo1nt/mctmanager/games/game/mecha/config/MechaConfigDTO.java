@@ -192,6 +192,7 @@ record MechaConfigDTO(
                 .adminSpawn(newAdminSpawn)
                 .startDuration(this.durations.start)
                 .endDuration(this.durations.end)
+                .invulnerabilityDuration(this.durations.invulnerability)
                 .killScore(this.scores.kill)
                 .surviveTeamScore(this.scores.surviveTeam)
                 .initialBorderSize(this.border.initialBorderSize())
