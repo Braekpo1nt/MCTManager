@@ -22,6 +22,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -98,6 +100,7 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
     private void initializeParticipant(Player participant) {
         participants.add(participant);
         sidebar.addPlayer(participant);
+        participant.teleport(config.getStartingLocation());
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
     }
@@ -253,6 +256,40 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
     
     private void cancelAllTasks() {
         Bukkit.getScheduler().cancelTask(descriptionPeriodTaskId);
+    }
+    
+    @EventHandler
+    public void onPlayerDamage(EntityDamageEvent event) {
+        if (!gameActive) {
+            return;
+        }
+        if (event.getCause().equals(EntityDamageEvent.DamageCause.VOID)) {
+            return;
+        }
+        if (!(event.getEntity() instanceof Player participant)) {
+            return;
+        }
+        if (!participants.contains(participant)) {
+            return;
+        }
+        if (descriptionShowing) {
+            event.setCancelled(true);
+            return;
+        }
+        ClockworkRound round = rounds.get(currentRoundIndex);
+        round.onPlayerDamage(participant, event);
+    }
+    
+    @EventHandler
+    public void onPlayerLoseHunger(FoodLevelChangeEvent event) {
+        if (!(event.getEntity() instanceof Player participant)) {
+            return;
+        }
+        if (!participants.contains(participant)) {
+            return;
+        }
+        participant.setFoodLevel(20);
+        event.setCancelled(true);
     }
     
     /**
