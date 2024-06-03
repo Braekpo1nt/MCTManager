@@ -301,6 +301,10 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         if (!participants.contains(participant)) {
             return;
         }
+        if (descriptionShowing) {
+            event.setCancelled(true);
+            return;
+        }
         if (currentRound == null) {
             return;
         }
@@ -319,6 +323,11 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
             return;
         }
         if (!participants.contains(participant)) {
+            return;
+        }
+        if (descriptionShowing) {
+            participant.setFoodLevel(20);
+            event.setCancelled(true);
             return;
         }
         if (currentRound == null) {
@@ -347,6 +356,10 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         }
         Player participant = ((Player) event.getWhoClicked());
         if (!participants.contains(participant)) {
+            return;
+        }
+        if (descriptionShowing) {
+            event.setCancelled(true);
             return;
         }
         if (currentRound == null) {
