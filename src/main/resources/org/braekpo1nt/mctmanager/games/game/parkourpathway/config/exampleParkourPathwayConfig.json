@@ -28,7 +28,8 @@
     "starting": 10,
     "timeLimit": 600,
     "checkpointCounter": 120,
-    "checkpointCounterAlert": 30
+    "checkpointCounterAlert": 30,
+    "description": 10
   },
   "glassBarrier": {
     "minX": 1006,
