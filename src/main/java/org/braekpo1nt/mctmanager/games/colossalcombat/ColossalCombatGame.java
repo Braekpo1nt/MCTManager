@@ -9,6 +9,7 @@ import org.braekpo1nt.mctmanager.games.colossalcombat.config.ColossalCombatConfi
 import org.braekpo1nt.mctmanager.games.colossalcombat.config.ColossalCombatConfigController;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
+import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
@@ -124,22 +125,30 @@ public class ColossalCombatGame implements Listener, Configurable {
     private void initializeFirstPlaceParticipant(Player first) {
         firstPlaceParticipants.add(first);
         first.teleport(config.getFirstPlaceSpawn());
-        first.setGameMode(GameMode.ADVENTURE);
-        sidebar.addPlayer(first);
+        initializeParticipant(first);
     }
     
     private void initializeSecondPlaceParticipant(Player second) {
         secondPlaceParticipants.add(second);
         second.teleport(config.getSecondPlaceSpawn());
-        second.setGameMode(GameMode.ADVENTURE);
-        sidebar.addPlayer(second);
+        initializeParticipant(second);
     }
     
     private void initializeSpectator(Player spectator) {
         spectators.add(spectator);
         spectator.teleport(config.getSpectatorSpawn());
-        spectator.setGameMode(GameMode.ADVENTURE);
-        sidebar.addPlayer(spectator);
+        initializeParticipant(spectator);
+    }
+    
+    /**
+     * General initialization for every participant, first, second, and spectator
+     * @param participant the participant
+     */
+    private void initializeParticipant(Player participant) {
+        participant.setGameMode(GameMode.ADVENTURE);
+        ParticipantInitializer.resetHealthAndHunger(participant);
+        ParticipantInitializer.clearStatusEffects(participant);
+        sidebar.addPlayer(participant);
     }
     
     private void startAdmins(List<Player> newAdmins) {
