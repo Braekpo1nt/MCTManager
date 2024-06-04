@@ -1,7 +1,6 @@
 package org.braekpo1nt.mctmanager.display.geometry.rectangle;
 
 
-import com.google.common.base.Preconditions;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 

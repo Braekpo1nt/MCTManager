@@ -1,6 +1,5 @@
 package org.braekpo1nt.mctmanager.ui.sidebar;
 
-import org.braekpo1nt.mctmanager.ui.sidebar.FastBoardWrapper;
 import org.bukkit.entity.Player;
 
 public class MockFastBoardWrapper extends FastBoardWrapper {

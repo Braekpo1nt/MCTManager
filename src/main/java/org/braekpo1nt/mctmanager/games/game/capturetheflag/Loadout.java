@@ -1,14 +1,8 @@
 package org.braekpo1nt.mctmanager.games.game.capturetheflag;
 
-import com.google.common.base.Preconditions;
 import net.kyori.adventure.text.Component;
-import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
 
 public class Loadout {
     /**

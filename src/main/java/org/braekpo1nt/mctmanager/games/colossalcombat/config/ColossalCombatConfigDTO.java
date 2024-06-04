@@ -1,27 +1,20 @@
 package org.braekpo1nt.mctmanager.games.colossalcombat.config;
 
 import com.google.common.base.Preconditions;
-import lombok.Data;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.ItemStackDTO;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.util.BoundingBoxDTO;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.LocationDTO;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.PlayerInventoryDTO;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.List;
-
 
 /**
  * 
@@ -32,9 +25,6 @@ import java.util.List;
  * @param secondPlaceSpawn
  * @param spectatorSpawn
  * @param requiredWins
- * @param itemDrops A list of location and item pairs. At the beginning of each round, these items will be spawned 
- *                  at their respective locations. Can be null or empty. Defaults to empty.
- * @param loadout
  * @param firstPlaceGate
  * @param secondPlaceGate
  * @param removeArea the area to remove all items from in between rounds
@@ -51,7 +41,6 @@ record ColossalCombatConfigDTO(
         LocationDTO secondPlaceSpawn, 
         LocationDTO spectatorSpawn, 
         int requiredWins, 
-        List<ItemDrop> itemDrops,
         @Nullable PlayerInventoryDTO loadout, 
         Gate firstPlaceGate, 
         Gate secondPlaceGate, 
@@ -75,11 +64,7 @@ record ColossalCombatConfigDTO(
         validator.notNull(this.secondPlaceSpawn, "secondPlaceSpawn");
         validator.notNull(this.spectatorSpawn, "spectatorSpawn");
         validator.validate(this.requiredWins > 0, "requiredWins must be greater than 0");
-        
-        if (this.itemDrops != null) {
-            validator.validateList(this.itemDrops, "itemDrops");
-        }
-        
+    
         if (this.loadout != null) {
             this.loadout.validate(validator.path("loadout"));
         }
@@ -120,26 +105,12 @@ record ColossalCombatConfigDTO(
         World newWorld = Bukkit.getWorld(this.world);
         Preconditions.checkState(newWorld != null, "Could not find world \"%s\"", this.world);
         
-        List<Location> newItemDropLocations = new ArrayList<>();
-        List<ItemStack> newItemDrops = new ArrayList<>();
-        List<Boolean> newGlowingItemDrops = new ArrayList<>();
-        if (this.itemDrops != null) {
-            for (ItemDrop itemDrop : this.itemDrops) {
-                newItemDropLocations.add(itemDrop.getLocation().toLocation(newWorld));
-                newItemDrops.add(itemDrop.getItem().toItemStack());
-                newGlowingItemDrops.add(itemDrop.isGlowing());
-            }
-        }
-        
         return ColossalCombatConfig.builder()
                 .world(newWorld)
                 .firstPlaceSpawn(this.firstPlaceSpawn.toLocation(newWorld))
                 .secondPlaceSpawn(this.secondPlaceSpawn.toLocation(newWorld))
                 .spectatorSpawn(this.spectatorSpawn.toLocation(newWorld))
                 .requiredWins(this.requiredWins)
-                .itemDropLocations(newItemDropLocations)
-                .itemDrops(newItemDrops)
-                .glowingItemDrops(newGlowingItemDrops)
                 .loadout(this.loadout != null ? this.loadout.toInventoryContents() : getDefaultLoadout())
                 .firstPlaceClearArea(this.firstPlaceGate.clearArea.toBoundingBox())
                 .firstPlacePlaceArea(this.firstPlaceGate.placeArea.toBoundingBox())
@@ -174,20 +145,6 @@ record ColossalCombatConfigDTO(
     }
     
     record Gate(BoundingBoxDTO clearArea, BoundingBoxDTO placeArea, BoundingBoxDTO stone, BoundingBoxDTO antiSuffocationArea) {
-    }
-    
-    @Data
-    static class ItemDrop implements Validatable {
-        private LocationDTO location;
-        private ItemStackDTO item;
-        private boolean glowing = false;
-        
-        @Override
-        public void validate(@NotNull Validator validator) {
-            validator.notNull(location, "location");
-            validator.notNull(item, "item");
-            item.validate(validator.path("item"));
-        }
     }
     
     /**

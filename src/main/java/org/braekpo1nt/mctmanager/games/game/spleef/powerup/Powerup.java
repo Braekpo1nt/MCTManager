@@ -1,6 +1,8 @@
 package org.braekpo1nt.mctmanager.games.game.spleef.powerup;
 
-import lombok.*;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import net.kyori.adventure.sound.Sound;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
