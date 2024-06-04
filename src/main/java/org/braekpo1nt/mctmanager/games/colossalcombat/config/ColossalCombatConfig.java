@@ -31,5 +31,6 @@ public class ColossalCombatConfig {
     private BoundingBox secondPlaceSupport;
     private long antiSuffocationDuration;
     private int roundStartingDuration;
+    private int descriptionDuration;
     private Component description;
 }

@@ -276,7 +276,8 @@
   "rounds": 3,
   "durations": {
     "roundStarting": 10,
-    "roundEnding": 5
+    "roundEnding": 5,
+    "description": 10
   },
   "description": ["",{"text":"-----------------------","bold":true,"color":"gray"},{"text":"\n"},{"text":"How To Play","bold":true,"color":"yellow"},{"text":" Spleef","bold":true,"color":"yellow"},{"text":"\n"},{"text":"Everyone knows how to play Spleef!\nSwing your shovel at the dirt below your opponents and be the last one standing!\nThe ground will slowly disintegrate so be careful!\nThis game will also be played 3 times in succession!","color":"#FFFFDF"},{"text":"\n"},{"text":"-----------------------","bold":true,"color":"gray"}]
 }

@@ -19,6 +19,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.scoreboard.Scoreboard;
@@ -29,6 +30,7 @@ import java.util.*;
 public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
     private final Main plugin;
     private final GameManager gameManager;
+    private final Random random = new Random();
     private Sidebar sidebar;
     private Sidebar adminSidebar;
     private final SpleefConfigController configController;
@@ -51,11 +53,6 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
         return GameType.SPLEEF;
     }
     
-    /**
-     * Loads the config data for this game from storage into memory
-     * @return true if successful, false otherwise
-     * @throws ConfigInvalidException if there is an issue loading or if the config is invalid
-     */
     @Override
     public void loadConfig() throws ConfigIOException, ConfigInvalidException {
         this.config = configController.getConfig();
@@ -80,13 +77,14 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
         for (int i = 0; i < config.getRounds(); i++) {
             rounds.add(new SpleefRound(plugin, gameManager, this, config, sidebar, adminSidebar));
         }
+        rounds.get(0).setFirstRound(true);
         plugin.getLogger().info(String.format("rounds.size() = %d", rounds.size()));
         currentRoundIndex = 0;
         setupTeamOptions();
         startAdmins(newAdmins);
-        startNextRound();
         displayDescription();
         gameActive = true;
+        startNextRound();
         Bukkit.getLogger().info("Started Spleef");
     }
     
@@ -97,8 +95,14 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
     private void initializeParticipant(Player participant) {
         participants.add(participant);
         sidebar.addPlayer(participant);
+        teleportParticipantToRandomStartingPosition(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
         ParticipantInitializer.clearStatusEffects(participant);
+    }
+    
+    private void teleportParticipantToRandomStartingPosition(Player participant) {
+        int index = random.nextInt(config.getStartingLocations().size());
+        participant.teleport(config.getStartingLocations().get(index));
     }
     
     private void startAdmins(List<Player> newAdmins) {
@@ -170,6 +174,18 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
         adminSidebar.removePlayer(admin);
     }
     
+    @EventHandler
+    public void onPlayerLoseHunger(FoodLevelChangeEvent event) {
+        if (!(event.getEntity() instanceof Player participant)) {
+            return;
+        }
+        if (!participants.contains(participant)) {
+            return;
+        }
+        participant.setFoodLevel(20);
+        event.setCancelled(true);
+    }
+    
     /**
      * Stop players from removing their equipment
      */
@@ -238,6 +254,7 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
             }
         }
     }
+    
     
     public void roundIsOver() {
         if (currentRoundIndex+1 >= rounds.size()) {

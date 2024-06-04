@@ -49,7 +49,7 @@ record FootRaceConfigDTO(
     record Scores(int completeLap, int[] placementPoints, int detriment) {
     }
     
-    record Durations(int startRace, int raceEndCountdown) {
+    record Durations(int startRace, int raceEndCountdown, int description) {
     }
     
     FootRaceConfig toConfig() {
@@ -66,6 +66,7 @@ record FootRaceConfigDTO(
                 .detriment(this.scores.detriment)
                 .startRaceDuration(this.durations.startRace)
                 .raceEndCountdownDuration(this.durations.raceEndCountdown)
+                .descriptionDuration(this.durations.description)
                 .description(this.description)
                 .build();
     }

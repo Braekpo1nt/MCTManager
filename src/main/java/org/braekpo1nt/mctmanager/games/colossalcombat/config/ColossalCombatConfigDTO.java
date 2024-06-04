@@ -125,6 +125,7 @@ record ColossalCombatConfigDTO(
                 .secondPlaceSupport(this.secondPlaceSupport.toBoundingBox())
                 .antiSuffocationDuration(this.durations.antiSuffocation)
                 .roundStartingDuration(this.durations.roundStarting)
+                .descriptionDuration(this.durations.description)
                 .description(this.description)
                 .build();
     }
@@ -150,6 +151,6 @@ record ColossalCombatConfigDTO(
      * @param roundStarting the duration (in seconds) to count down before the gates drop and the match starts
      * @param antiSuffocation the duration (in ticks) to prevent players from walking over the area that would cause them to suffocate in the concrete powder wall as the blocks fall. Careful, if this is not long enough the players will suffocate, and if it's too long they'll get frustrated. TODO: implement a more automated version of this. 
      */
-    record Durations(int roundStarting, long antiSuffocation) {
+    record Durations(int roundStarting, long antiSuffocation, int description) {
     }
 }

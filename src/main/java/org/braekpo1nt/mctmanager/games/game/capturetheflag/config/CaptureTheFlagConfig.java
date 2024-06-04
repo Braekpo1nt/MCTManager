@@ -18,12 +18,13 @@ public class CaptureTheFlagConfig {
     private World world;
     private Location spawnObservatory;
     private List<Arena> arenas;
-    private Component description;
     private Map<String, Loadout> loadouts;
     private int matchesStartingDuration;
     private int roundTimerDuration;
     private int classSelectionDuration;
     private int winScore;
     private int killScore;
+    private int descriptionDuration;
+    private Component description;
     
 }

@@ -48,6 +48,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     private final String title = ChatColor.BLUE+"Capture the Flag";
     private List<Player> participants = new ArrayList<>();
     private List<Player> admins = new ArrayList<>();
+    private boolean firstRound = true;
     private boolean gameActive = false;
     
     public CaptureTheFlagGame(Main plugin, GameManager gameManager) {
@@ -81,9 +82,10 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         }
         initializeSidebar();
         startAdmins(newAdmins);
-        gameActive = true;
-        List<String> teams = gameManager.getTeamNames(participants);
         displayDescription();
+        gameActive = true;
+        firstRound = true;
+        List<String> teams = gameManager.getTeamNames(participants);
         roundManager.start(teams);
         Bukkit.getLogger().info("Starting Capture the Flag");
     }
@@ -129,10 +131,12 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     @Override
     public void stop() {
         HandlerList.unregisterAll(this);
+        cancelAllTasks();
         if (currentRound != null && currentRound.isActive()) {
             currentRound.stop();
         }
         gameActive = false;
+        firstRound = true;
         for (Player participant : participants) {
             resetParticipant(participant);
         }
@@ -141,6 +145,10 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         participants.clear();
         gameManager.gameIsOver();
         Bukkit.getLogger().info("Stopping Capture the Flag");
+    }
+    
+    private void cancelAllTasks() {
+        
     }
     
     private void resetParticipant(Player participant) {
@@ -211,7 +219,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     public void roundIsOver() {
         roundManager.roundIsOver();
     }
-        
+    
     public void startNextRound(List<String> participantTeams, List<MatchPairing> roundMatchPairings) {
         currentRound = new CaptureTheFlagRound(this, plugin, gameManager, config, roundMatchPairings, sidebar, adminSidebar);
         List<Player> roundParticipants = new ArrayList<>();
@@ -230,6 +238,8 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
                 onDeckParticipants.add(participant);
             }
         }
+        currentRound.setFirstRound(firstRound);
+        firstRound = false; // the first round only happens once
         currentRound.start(roundParticipants, onDeckParticipants);
         String round = String.format("Round %d/%d", roundManager.getPlayedRounds() + 1, roundManager.getMaxRounds());
         sidebar.updateLine("round", round);
@@ -269,10 +279,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         if (currentRound == null) {
             return;
         }
-        if (currentRound.isAliveInMatch(participant)) {
-            return;
-        }
-        event.setCancelled(true);
+        currentRound.onPlayerDamage(participant, event);
     }
     
     @EventHandler
@@ -287,13 +294,11 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
             return;
         }
         if (currentRound == null) {
+            participant.setFoodLevel(20);
+            event.setCancelled(true);
             return;
         }
-        if (currentRound.isAliveInMatch(participant)) {
-            return;
-        }
-        participant.setFoodLevel(20);
-        event.setCancelled(true);
+        currentRound.onPlayerLoseHunger(participant, event);
     }
     
     /**

@@ -72,7 +72,7 @@ public class ColorMap {
         POWDER_TYPE_MAP.put("dark_green", Material.GREEN_CONCRETE_POWDER);
         POWDER_TYPE_MAP.put("dark_purple", Material.PURPLE_CONCRETE_POWDER);
         POWDER_TYPE_MAP.put("dark_red", Material.RED_CONCRETE_POWDER);
-        POWDER_TYPE_MAP.put("gold", Material.YELLOW_CONCRETE_POWDER);
+        POWDER_TYPE_MAP.put("gold", Material.ORANGE_CONCRETE_POWDER);
         POWDER_TYPE_MAP.put("gray", Material.LIGHT_GRAY_CONCRETE_POWDER);
         POWDER_TYPE_MAP.put("green", Material.LIME_CONCRETE_POWDER);
         POWDER_TYPE_MAP.put("light_purple", Material.MAGENTA_CONCRETE_POWDER);
@@ -92,7 +92,7 @@ public class ColorMap {
         CONCRETE_TYPE_MAP.put("dark_green", Material.GREEN_CONCRETE);
         CONCRETE_TYPE_MAP.put("dark_purple", Material.PURPLE_CONCRETE);
         CONCRETE_TYPE_MAP.put("dark_red", Material.RED_CONCRETE);
-        CONCRETE_TYPE_MAP.put("gold", Material.YELLOW_CONCRETE);
+        CONCRETE_TYPE_MAP.put("gold", Material.ORANGE_CONCRETE);
         CONCRETE_TYPE_MAP.put("gray", Material.LIGHT_GRAY_CONCRETE);
         CONCRETE_TYPE_MAP.put("green", Material.LIME_CONCRETE);
         CONCRETE_TYPE_MAP.put("light_purple", Material.MAGENTA_CONCRETE);
@@ -112,7 +112,7 @@ public class ColorMap {
         STAINED_GLASS_MAP.put("dark_green", Material.GREEN_STAINED_GLASS);
         STAINED_GLASS_MAP.put("dark_purple", Material.PURPLE_STAINED_GLASS);
         STAINED_GLASS_MAP.put("dark_red", Material.RED_STAINED_GLASS);
-        STAINED_GLASS_MAP.put("gold", Material.YELLOW_STAINED_GLASS);
+        STAINED_GLASS_MAP.put("gold", Material.ORANGE_STAINED_GLASS);
         STAINED_GLASS_MAP.put("gray", Material.LIGHT_GRAY_STAINED_GLASS);
         STAINED_GLASS_MAP.put("green", Material.LIME_STAINED_GLASS);
         STAINED_GLASS_MAP.put("light_purple", Material.MAGENTA_STAINED_GLASS);
@@ -132,7 +132,7 @@ public class ColorMap {
         BANNER_TYPE_MAP.put("dark_green", Material.GREEN_BANNER);
         BANNER_TYPE_MAP.put("dark_purple", Material.PURPLE_BANNER);
         BANNER_TYPE_MAP.put("dark_red", Material.RED_BANNER);
-        BANNER_TYPE_MAP.put("gold", Material.YELLOW_BANNER);
+        BANNER_TYPE_MAP.put("gold", Material.ORANGE_BANNER);
         BANNER_TYPE_MAP.put("gray", Material.LIGHT_GRAY_BANNER);
         BANNER_TYPE_MAP.put("green", Material.LIME_BANNER);
         BANNER_TYPE_MAP.put("light_purple", Material.MAGENTA_BANNER);

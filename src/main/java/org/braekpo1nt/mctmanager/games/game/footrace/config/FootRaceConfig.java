@@ -19,6 +19,7 @@ public class FootRaceConfig {
     private int detriment;
     private int startRaceDuration;
     private int raceEndCountdownDuration;
+    private int descriptionDuration;
     private Component description;
     
 }

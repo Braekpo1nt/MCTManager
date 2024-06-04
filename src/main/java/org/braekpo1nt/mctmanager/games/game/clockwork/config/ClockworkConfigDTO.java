@@ -91,6 +91,7 @@ record ClockworkConfigDTO(
                 .chaos(this.chaos)
                 .collisionRule(this.collisionRule)
                 .wedges(newWedges)
+                .descriptionDuration(this.durations.description)
                 .description(this.description)
                 .build();
     }
@@ -101,7 +102,7 @@ record ClockworkConfigDTO(
     record Scores(int playerElimination, int teamElimination, int winRound) {
     }
     
-    record Durations(int breather, int getToWedge, int stayOnWedge) {
+    record Durations(int breather, int getToWedge, int stayOnWedge, int description) {
     }
     
 }

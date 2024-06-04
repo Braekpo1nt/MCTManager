@@ -73,6 +73,7 @@ record CaptureTheFlagConfigDTO(
                 .classSelectionDuration(this.durations.classSelection)
                 .winScore(this.scores.win)
                 .killScore(this.scores.kill)
+                .descriptionDuration(this.durations.description)
                 .description(this.description)
                 .build();
     }
@@ -91,7 +92,7 @@ record CaptureTheFlagConfigDTO(
      * @param classSelection the duration (in seconds) of the class selection period
      * @param roundTimer the duration (in seconds) of each round
      */
-    record Durations(int matchesStarting, int classSelection, int roundTimer) {
+    record Durations(int matchesStarting, int classSelection, int roundTimer, int description) {
     }
     
 }

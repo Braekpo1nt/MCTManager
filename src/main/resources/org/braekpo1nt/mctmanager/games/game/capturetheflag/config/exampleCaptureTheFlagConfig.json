@@ -360,7 +360,8 @@
   "durations": {
     "matchesStarting": 10,
     "classSelection": 20,
-    "roundTimer": 180
+    "roundTimer": 180,
+    "description": 10
   },
   "description": ["",{"text":"How To Play","bold":true,"color":"yellow"},{"text":" Capture The Flag","bold":true,"color":"yellow"},{"text":"\n"},{"text":"Two teams will be placed in a court, first one to collect the banner on the opposite side and deliver it to their own banner wins!\nAfter all teams have played each other, the game ends (So get them points!)\nIn Capture the Flag their are 4 classes. Assassin, Knight, Tank, and Archer. Only one of each class may be selected on a team.\n-The Assassin has an iron sword, but no armor.\n-The Knight has leather boots and a chestplate, as well as a stone sword.\n-The Tank has leather pants, boots, and tunic, but no weapons.\n-The Archer has a wood sword, leather boots and tunic, a bow, and 16 arrows.","color":"#FFFFDF"}]
 }

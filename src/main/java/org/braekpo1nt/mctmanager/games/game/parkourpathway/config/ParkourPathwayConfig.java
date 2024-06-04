@@ -30,6 +30,7 @@ public class ParkourPathwayConfig {
     private int checkpointCounterAlertDuration;
     public int[] checkpointScore;
     public int[] winScore;
+    private int descriptionDuration;
     private Component description;
     
     public int getPuzzlesSize() {

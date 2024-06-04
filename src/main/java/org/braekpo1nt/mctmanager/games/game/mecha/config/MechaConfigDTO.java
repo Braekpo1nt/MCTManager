@@ -192,6 +192,7 @@ record MechaConfigDTO(
                 .adminSpawn(newAdminSpawn)
                 .startDuration(this.durations.start)
                 .endDuration(this.durations.end)
+                .invulnerabilityDuration(this.durations.invulnerability)
                 .killScore(this.scores.kill)
                 .surviveTeamScore(this.scores.surviveTeam)
                 .initialBorderSize(this.border.initialBorderSize())
@@ -204,6 +205,7 @@ record MechaConfigDTO(
                 .sizes(sizes)
                 .delays(delays)
                 .durations(durations)
+                .descriptionDuration(this.durations.description)
                 .description(this.description)
                 .build();
     }
@@ -245,6 +247,6 @@ record MechaConfigDTO(
      * @param invulnerability the duration of the invulnerability once the platforms disappear
      * @param end the delay after the game ends, allows for some celebration time before armor and items are taken away and the teleport back to the hub starts
      */
-    record Durations(int start, int invulnerability, int end) {
+    record Durations(int start, int invulnerability, int end, int description) {
     }
 }

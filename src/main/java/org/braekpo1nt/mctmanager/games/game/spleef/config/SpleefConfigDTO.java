@@ -136,9 +136,12 @@ record SpleefConfigDTO(
                 .sourceToPowerupWeights(this.getSourcePowerups())
                 .userSounds(this.getUserSounds())
                 .affectedSounds(this.getAffectedSounds())
-                .description(this.description)
                 .stages(DecayStageDTO.toDecayStages(this.decayStages))
                 .rounds(this.rounds)
+                .roundStartingDuration(this.durations.roundStarting)
+                .roundEndingDuration(this.durations.roundEnding)
+                .descriptionDuration(this.durations.description)
+                .description(this.description)
                 .build();
     }
     
@@ -249,6 +252,6 @@ record SpleefConfigDTO(
     record Scores(int survive) {
     }
     
-    record Durations(int roundStarting, int roundEnding) {
+    record Durations(int roundStarting, int roundEnding, int description) {
     }
 }

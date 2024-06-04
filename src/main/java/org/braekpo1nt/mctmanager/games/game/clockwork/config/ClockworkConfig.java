@@ -32,6 +32,7 @@ public class ClockworkConfig {
     public Chaos chaos;
     public Team.OptionStatus collisionRule;
     private List<Wedge> wedges;
+    private int descriptionDuration;
     private Component description;
     
 }

@@ -133,6 +133,13 @@ public class RoundManagerTest {
     }
     
     @Test
+    void testCreateMatches_4_teams() {
+        Map<String, List<String>> teamsToFight = createTeamsToFight("a", "b", "c", "d");
+        int roundsLeft = RoundManager.calculateRoundsLeft(teamsToFight, 4);
+        Assertions.assertEquals(3, roundsLeft);
+    }
+    
+    @Test
     void testCreateMatches_7_teams() {
         Map<String, List<String>> teamsToFight = createTeamsToFight("black", "grey", "red", "yellow", "blue", "green", "pink");
         Set<Set<String>> matches = RoundManager.createMatches(teamsToFight);

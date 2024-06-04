@@ -41,11 +41,13 @@ public class SpleefConfig {
     private Map<Powerup.Source, Map<Powerup.Type, @NotNull Integer>> sourceToPowerupWeights;
     private Map<Powerup.Type, @Nullable Sound> userSounds;
     private Map<Powerup.Type, @Nullable Sound> affectedSounds;
-    private Component description;
     private int roundStartingDuration;
+    private int roundEndingDuration;
     private int surviveScore;
     private int rounds;
     private List<DecayStage> stages;
+    private int descriptionDuration;
+    private Component description;
     
     public double getChance(@NotNull Powerup.Source source) {
         return chances.get(source);

@@ -10,6 +10,8 @@ import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
+import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
@@ -37,6 +39,9 @@ public class CaptureTheFlagRound {
     private int onDeckClassSelectionTimerTaskId;
     private int onDeckMatchTimerTaskId;
     private boolean roundActive = false;
+    private boolean firstRound = false;
+    private int descriptionPeriodTaskId;
+    private boolean descriptionShowing = false;
     /**
      * false if the countdown timer is still going and the matches haven't started yet for this round. False otherwise. 
      */
@@ -87,7 +92,11 @@ public class CaptureTheFlagRound {
         initializeSidebar();
         roundActive = true;
         matchesStarted = false;
-        startMatchesStartingCountDown();
+        if (firstRound) {
+            startDescriptionPeriod();
+        } else {
+            startMatchesStartingCountDown();
+        }
     }
     
     private void initializeParticipant(Player participant) {
@@ -115,6 +124,7 @@ public class CaptureTheFlagRound {
     public void stop() {
         cancelAllTasks();
         roundActive = false;
+        descriptionShowing = false;
         for (CaptureTheFlagMatch match : matches) {
             if (match.isActive()) {
                 match.stop();
@@ -263,8 +273,34 @@ public class CaptureTheFlagRound {
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
     }
     
+    /**
+     * An alternate version of {@link CaptureTheFlagRound#startMatchesStartingCountDown()}
+     * reserved for the first round in a game, which uses the 
+     */
+    private void startDescriptionPeriod() {
+        descriptionShowing = true;
+        this.descriptionPeriodTaskId = new BukkitRunnable() {
+            private int count = config.getDescriptionDuration();
+            @Override
+            public void run() {
+                if (count <= 0) {
+                    sidebar.updateLine("timer", "");
+                    adminSidebar.updateLine("timer", "");
+                    descriptionShowing = false;
+                    startMatchesStartingCountDown();
+                    this.cancel();
+                    return;
+                }
+                String timeLeft = TimeStringUtils.getTimeString(count);
+                String timerString = String.format("Starting soon: %s", timeLeft);
+                sidebar.updateLine("timer", timerString);
+                adminSidebar.updateLine("timer", timerString);
+                count--;
+            }
+        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+    }
+    
     private void startMatchesStartingCountDown() {
-        matchesStarted = false;
         this.matchesStartingCountDownTaskId = new BukkitRunnable() {
             int count = config.getMatchesStartingDuration();
             @Override
@@ -297,6 +333,54 @@ public class CaptureTheFlagRound {
         startOnDeckClassSelectionTimer();
     }
     
+    public void onPlayerDamage(Player participant, EntityDamageEvent event) {
+        if (!roundActive) {
+            return;
+        }
+        if (onDeckParticipants.contains(participant)) {
+            event.setCancelled(true);
+            return;
+        }
+        if (!participants.contains(participant)) {
+            return;
+        }
+        if (descriptionShowing) {
+            event.setCancelled(true);
+            return;
+        }
+        if (!matchesStarted) {
+            event.setCancelled(true);
+            return;
+        }
+        for (CaptureTheFlagMatch match : matches) {
+            match.onPlayerDamage(participant, event);
+        }
+    }
+    
+    public void onPlayerLoseHunger(Player participant, FoodLevelChangeEvent event) {
+        if (!roundActive) {
+            return;
+        }
+        if (onDeckParticipants.contains(participant)) {
+            participant.setFoodLevel(20);
+            event.setCancelled(true);
+            return;
+        }
+        if (!participants.contains(participant)) {
+            return;
+        }
+        if (descriptionShowing) {
+            participant.setFoodLevel(20);
+            event.setCancelled(true);
+            return;
+        }
+        if (matchesStarted) {
+            return;
+        }
+        participant.setFoodLevel(20);
+        event.setCancelled(true);
+    }
+    
     public void onClickInventory(Player participant, InventoryClickEvent event) {
         if (!roundActive) {
             return;
@@ -306,6 +390,10 @@ public class CaptureTheFlagRound {
             return;
         }
         if (!participants.contains(participant)) {
+            return;
+        }
+        if (descriptionShowing) {
+            event.setCancelled(true);
             return;
         }
         if (!matchesStarted) {
@@ -332,6 +420,7 @@ public class CaptureTheFlagRound {
         Bukkit.getScheduler().cancelTask(matchesStartingCountDownTaskId);
         Bukkit.getScheduler().cancelTask(onDeckClassSelectionTimerTaskId);
         Bukkit.getScheduler().cancelTask(onDeckMatchTimerTaskId);
+        Bukkit.getScheduler().cancelTask(descriptionPeriodTaskId);
     }
 
     private void initializeSidebar() {
@@ -450,4 +539,9 @@ public class CaptureTheFlagRound {
         }
         return false;
     }
+    
+    public void setFirstRound(boolean firstRound) {
+        this.firstRound = firstRound;
+    }
+    
 }

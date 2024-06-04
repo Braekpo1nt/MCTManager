@@ -335,15 +335,11 @@ public class ClockworkRound implements Listener {
         chaosManager.incrementChaos();
     }
     
-    @EventHandler
-    public void onPlayerDamage(EntityDamageEvent event) {
+    public void onPlayerDamage(Player participant, EntityDamageEvent event) {
         if (!roundActive) {
             return;
         }
         if (event.getCause().equals(EntityDamageEvent.DamageCause.VOID)) {
-            return;
-        }
-        if (!(event.getEntity() instanceof Player participant)) {
             return;
         }
         if (!participants.contains(participant)) {
@@ -354,18 +350,6 @@ public class ClockworkRound implements Listener {
             ParticipantInitializer.resetHealthAndHunger(participant);
             return;
         }
-        event.setCancelled(true);
-    }
-    
-    @EventHandler
-    public void onPlayerLoseHunger(FoodLevelChangeEvent event) {
-        if (!(event.getEntity() instanceof Player participant)) {
-            return;
-        }
-        if (!participants.contains(participant)) {
-            return;
-        }
-        participant.setFoodLevel(20);
         event.setCancelled(true);
     }
     
