@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.games.colossalcombat.config;
 
 import com.google.common.base.Preconditions;
+import lombok.Data;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.ItemStackDTO;
@@ -121,10 +122,12 @@ record ColossalCombatConfigDTO(
         
         List<Location> newItemDropLocations = new ArrayList<>();
         List<ItemStack> newItemDrops = new ArrayList<>();
+        List<Boolean> newGlowingItemDrops = new ArrayList<>();
         if (this.itemDrops != null) {
             for (ItemDrop itemDrop : this.itemDrops) {
-                newItemDropLocations.add(itemDrop.location().toLocation(newWorld));
-                newItemDrops.add(itemDrop.item().toItemStack());
+                newItemDropLocations.add(itemDrop.getLocation().toLocation(newWorld));
+                newItemDrops.add(itemDrop.getItem().toItemStack());
+                newGlowingItemDrops.add(itemDrop.isGlowing());
             }
         }
         
@@ -136,6 +139,7 @@ record ColossalCombatConfigDTO(
                 .requiredWins(this.requiredWins)
                 .itemDropLocations(newItemDropLocations)
                 .itemDrops(newItemDrops)
+                .glowingItemDrops(newGlowingItemDrops)
                 .loadout(this.loadout != null ? this.loadout.toInventoryContents() : getDefaultLoadout())
                 .firstPlaceClearArea(this.firstPlaceGate.clearArea.toBoundingBox())
                 .firstPlacePlaceArea(this.firstPlaceGate.placeArea.toBoundingBox())
@@ -172,7 +176,12 @@ record ColossalCombatConfigDTO(
     record Gate(BoundingBoxDTO clearArea, BoundingBoxDTO placeArea, BoundingBoxDTO stone, BoundingBoxDTO antiSuffocationArea) {
     }
     
-    record ItemDrop(LocationDTO location, ItemStackDTO item) implements Validatable {
+    @Data
+    static class ItemDrop implements Validatable {
+        private LocationDTO location;
+        private ItemStackDTO item;
+        private boolean glowing = false;
+        
         @Override
         public void validate(@NotNull Validator validator) {
             validator.notNull(location, "location");

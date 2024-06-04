@@ -5,6 +5,7 @@ import lombok.Data;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.entity.Item;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
@@ -26,6 +27,7 @@ public class ColossalCombatConfig {
      * each index corresponds to an index in the itemDropLocations list
      */
     private List<ItemStack> itemDrops;
+    private List<Boolean> glowingItemDrops;
     private int requiredWins;
     private @NotNull ItemStack[] loadout;
     private BoundingBox firstPlaceClearArea;

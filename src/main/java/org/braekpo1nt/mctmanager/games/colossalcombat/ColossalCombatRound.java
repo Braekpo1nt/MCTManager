@@ -366,8 +366,9 @@ public class ColossalCombatRound implements Listener {
         for (int i = 0; i < config.getItemDropLocations().size(); i++) {
             Location location = config.getItemDropLocations().get(i);
             ItemStack item = config.getItemDrops().get(i);
+            boolean glowing = config.getGlowingItemDrops().get(i);
             Item itemEntity = config.getWorld().dropItem(location, item);
-            itemEntity.setGlowing(true);
+            itemEntity.setGlowing(glowing);
         }
     }
     
