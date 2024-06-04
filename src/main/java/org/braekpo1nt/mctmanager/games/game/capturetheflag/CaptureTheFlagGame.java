@@ -1,6 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.capturetheflag;
 
-import net.kyori.adventure.text.*;
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
@@ -27,7 +27,8 @@ import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Capture the flag games are broken down into the following hierarchy:

@@ -3,11 +3,6 @@ package org.braekpo1nt.mctmanager.games.game.capturetheflag;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Stream;
-
 /**
  * A class representing two teams that will fight each other in a match
  * @param northTeam

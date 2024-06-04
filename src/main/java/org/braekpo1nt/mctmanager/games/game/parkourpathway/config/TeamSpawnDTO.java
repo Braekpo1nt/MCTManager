@@ -2,8 +2,8 @@ package org.braekpo1nt.mctmanager.games.game.parkourpathway.config;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.braekpo1nt.mctmanager.config.dto.org.bukkit.util.BoundingBoxDTO;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.LocationDTO;
+import org.braekpo1nt.mctmanager.config.dto.org.bukkit.util.BoundingBoxDTO;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.TeamSpawn;

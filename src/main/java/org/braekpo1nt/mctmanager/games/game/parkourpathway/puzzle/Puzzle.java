@@ -1,12 +1,12 @@
 package org.braekpo1nt.mctmanager.games.game.parkourpathway.puzzle;
 
+import lombok.AllArgsConstructor;
 import org.bukkit.util.BoundingBox;
+import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-import lombok.AllArgsConstructor;
-import org.bukkit.util.Vector;
 
 /**
  * Represents a puzzle in a parkour pathway game.

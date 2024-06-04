@@ -7,7 +7,7 @@ import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.*;
+import java.io.File;
 
 public class SpleefConfigController extends ConfigController<SpleefConfigDTO> {
     

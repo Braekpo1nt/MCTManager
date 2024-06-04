@@ -1,7 +1,5 @@
 package org.braekpo1nt.mctmanager.games.game.capturetheflag;
 
-import org.braekpo1nt.mctmanager.games.game.capturetheflag.CaptureTheFlagUtils;
-import org.braekpo1nt.mctmanager.games.game.capturetheflag.MatchPairing;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

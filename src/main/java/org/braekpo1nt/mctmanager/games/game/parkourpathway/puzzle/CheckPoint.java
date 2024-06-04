@@ -1,7 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.parkourpathway.puzzle;
 
 import lombok.AllArgsConstructor;
-import lombok.Getter;
 import org.bukkit.Location;
 import org.bukkit.util.BoundingBox;
 

@@ -3,7 +3,10 @@ package org.braekpo1nt.mctmanager.games.utils;
 import org.bukkit.event.inventory.InventoryAction;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 public class GameManagerUtils {
     

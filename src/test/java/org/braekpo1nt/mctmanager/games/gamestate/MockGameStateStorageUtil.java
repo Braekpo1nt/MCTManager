@@ -2,7 +2,6 @@ package org.braekpo1nt.mctmanager.games.gamestate;
 
 import org.braekpo1nt.mctmanager.Main;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
