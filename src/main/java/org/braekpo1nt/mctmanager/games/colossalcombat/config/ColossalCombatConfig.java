@@ -9,6 +9,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
+
 @Data
 @Builder
 public class ColossalCombatConfig {
@@ -16,6 +18,14 @@ public class ColossalCombatConfig {
     private Location firstPlaceSpawn;
     private Location secondPlaceSpawn;
     private Location spectatorSpawn;
+    /**
+     * each index corresponds to an index in the itemDropsList
+     */
+    private List<Location> itemDropLocations;
+    /**
+     * each index corresponds to an index in the itemDropLocations list
+     */
+    private List<ItemStack> itemDrops;
     private int requiredWins;
     private @NotNull ItemStack[] loadout;
     private BoundingBox firstPlaceClearArea;
