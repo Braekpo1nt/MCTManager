@@ -31,6 +31,19 @@
     "pitch": 6
   },
   "requiredWins": 3,
+  "itemDrops": [
+    {
+      "location": {
+        "x": -1000,
+        "y": 2,
+        "z": 22
+      },
+      "item": {
+        "type": "ARROW",
+        "amount": 2
+      }
+    }
+  ],
   "loadout": {
     "contents": {
       "36": {
