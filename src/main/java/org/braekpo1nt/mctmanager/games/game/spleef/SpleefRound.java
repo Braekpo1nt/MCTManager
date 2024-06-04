@@ -22,7 +22,6 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
@@ -49,6 +48,9 @@ public class SpleefRound implements Listener {
     private final DecayManager decayManager;
     private final PowerupManager powerupManager;
     private int startCountDownTaskID;
+    private int descriptionPeriodTaskId;
+    private boolean descriptionShowing = false;
+    private boolean firstRound = false;
     
     public SpleefRound(Main plugin, GameManager gameManager, SpleefGame spleefGame, SpleefConfig config, Sidebar sidebar, Sidebar adminSidebar) {
         this.plugin = plugin;
@@ -78,11 +80,15 @@ public class SpleefRound implements Listener {
         initializeSidebar();
         initializeAdminSidebar();
         setupTeamOptions();
-        startRoundStartingCountDown();
         decayManager.setAliveCount(newParticipants.size());
         decayManager.setAlivePercent(1);
         spleefHasStarted = false;
         roundActive = true;
+        if (firstRound) {
+            startDescriptionPeriod();
+        } else {
+            startRoundStartingCountDown();
+        }
         Bukkit.getLogger().info("Starting Spleef round");
     }
     
@@ -109,6 +115,14 @@ public class SpleefRound implements Listener {
         ParticipantInitializer.resetHealthAndHunger(participant);
     }
     
+    /**
+     * If this is the first round, then the description period will be used
+     * @param firstRound true if this is the first round, false otherwise
+     */
+    public void setFirstRound(boolean firstRound) {
+        this.firstRound = firstRound;
+    }
+    
     private void roundIsOver() {
         stop();
         spleefGame.roundIsOver();
@@ -117,6 +131,8 @@ public class SpleefRound implements Listener {
     public void stop() {
         spleefHasStarted = false;
         roundActive = false;
+        firstRound = false;
+        descriptionShowing = false;
         HandlerList.unregisterAll(this);
         decayManager.stop();
         powerupManager.stop();
@@ -142,18 +158,12 @@ public class SpleefRound implements Listener {
         }
         if (participantShouldRejoin(participant)) {
             rejoinParticipant(participant);
-            messageAllParticipants(Component.text(participant.getName())
-                    .append(Component.text(" is rejoining Spleef!"))
-                    .color(NamedTextColor.YELLOW));
         } else {
             initializeParticipant(participant);
             if (spleefHasStarted) {
                 giveTool(participant);
                 participant.setGameMode(GameMode.SURVIVAL);
             }
-            messageAllParticipants(Component.text(participant.getName())
-                    .append(Component.text(" is joining Spleef!"))
-                    .color(NamedTextColor.YELLOW));
         }
         powerupManager.addParticipant(participant);
         long aliveCount = getAliveCount();
@@ -168,6 +178,9 @@ public class SpleefRound implements Listener {
         if (!roundActive) {
             return false;
         }
+        if (descriptionShowing) {
+            return false;
+        }
         return participantsAlive.containsKey(participant.getUniqueId());
     }
     
@@ -175,23 +188,28 @@ public class SpleefRound implements Listener {
         if (!roundActive) {
             return;
         }
-        List<ItemStack> drops = Arrays.stream(participant.getInventory().getContents())
-                .filter(Objects::nonNull)
-                .toList();
-        int droppedExp = calculateExpPoints(participant.getLevel());
+        if (descriptionShowing) {
+            resetParticipant(participant);
+            participants.remove(participant);
+            return;
+        }
         Component deathMessage = Component.text(participant.getName())
                 .append(Component.text(" left early. Their life is forfeit."));
-        PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(participant, drops, droppedExp, deathMessage);
+        PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(participant, Collections.emptyList(), 0, deathMessage);
         Bukkit.getServer().getPluginManager().callEvent(fakeDeathEvent);
         resetParticipant(participant);
         participants.remove(participant);
     }
     
-    public void onPlayerDamage(Player participant, EntityDamageEvent event) {
+    @EventHandler
+    public void onPlayerDamage(EntityDamageEvent event) {
         if (!roundActive) {
             return;
         }
         if (event.getCause().equals(EntityDamageEvent.DamageCause.VOID)) {
+            return;
+        }
+        if (!(event.getEntity() instanceof Player participant)) {
             return;
         }
         if (!participants.contains(participant)) {
@@ -317,6 +335,29 @@ public class SpleefRound implements Listener {
         participant.getInventory().addItem(config.getTool());
     }
     
+    private void startDescriptionPeriod() {
+        descriptionShowing = true;
+        this.descriptionPeriodTaskId = new BukkitRunnable() {
+            private int count = config.getDescriptionDuration();
+            @Override
+            public void run() {
+                if (count <= 0) {
+                    sidebar.updateLine("timer", "");
+                    adminSidebar.updateLine("timer", "");
+                    descriptionShowing = false;
+                    startRoundStartingCountDown();
+                    this.cancel();
+                    return;
+                }
+                String timeLeft = TimeStringUtils.getTimeString(count);
+                String timerString = String.format("Starting soon: %s", timeLeft);
+                sidebar.updateLine("timer", timerString);
+                adminSidebar.updateLine("timer", timerString);
+                count--;
+            }
+        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+    }
+    
     private void startRoundStartingCountDown() {
         this.startCountDownTaskID = new BukkitRunnable() {
             private int count = config.getRoundStartingDuration();
@@ -398,6 +439,7 @@ public class SpleefRound implements Listener {
     
     private void cancelAllTasks() {
         Bukkit.getScheduler().cancelTask(startCountDownTaskID);
+        Bukkit.getScheduler().cancelTask(descriptionPeriodTaskId);
     }
     
     void messageAllParticipants(Component message) {
