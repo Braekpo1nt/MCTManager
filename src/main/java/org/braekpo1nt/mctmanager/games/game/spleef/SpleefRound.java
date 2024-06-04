@@ -1,7 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.spleef;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.spleef.config.SpleefConfig;
@@ -24,7 +23,6 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
@@ -337,6 +335,7 @@ public class SpleefRound implements Listener {
     
     private void startDescriptionPeriod() {
         descriptionShowing = true;
+        firstRound = false;
         this.descriptionPeriodTaskId = new BukkitRunnable() {
             private int count = config.getDescriptionDuration();
             @Override
@@ -447,11 +446,6 @@ public class SpleefRound implements Listener {
         for (Player participant : participants) {
             participant.sendMessage(message);
         }
-    }
-    
-    private int calculateExpPoints(int level) {
-        int maxExpPoints = level > 7 ? 100 : level * 7;
-        return maxExpPoints / 10;
     }
     
     /**
