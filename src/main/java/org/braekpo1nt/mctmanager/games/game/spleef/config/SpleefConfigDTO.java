@@ -138,6 +138,8 @@ record SpleefConfigDTO(
                 .affectedSounds(this.getAffectedSounds())
                 .stages(DecayStageDTO.toDecayStages(this.decayStages))
                 .rounds(this.rounds)
+                .roundStartingDuration(this.durations.roundStarting)
+                .roundEndingDuration(this.durations.roundEnding)
                 .descriptionDuration(this.durations.description)
                 .description(this.description)
                 .build();

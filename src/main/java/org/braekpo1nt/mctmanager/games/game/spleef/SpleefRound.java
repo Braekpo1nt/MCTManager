@@ -39,6 +39,7 @@ public class SpleefRound implements Listener {
     private final GameManager gameManager;
     private final Sidebar sidebar;
     private final Sidebar adminSidebar;
+    private final Random random = new Random();
     private SpleefConfig config;
     private List<Player> participants = new ArrayList<>();
     private Map<UUID, Boolean> participantsAlive;
@@ -89,7 +90,7 @@ public class SpleefRound implements Listener {
         UUID participantUniqueId = participant.getUniqueId();
         participants.add(participant);
         participantsAlive.put(participantUniqueId, true);
-        teleportPlayerToRandomStartingPosition(participant);
+        teleportParticipantToRandomStartingPosition(participant);
         participant.getInventory().clear();
         participant.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearStatusEffects(participant);
@@ -186,15 +187,11 @@ public class SpleefRound implements Listener {
         participants.remove(participant);
     }
     
-    @EventHandler
-    public void onPlayerDamage(EntityDamageEvent event) {
+    public void onPlayerDamage(Player participant, EntityDamageEvent event) {
         if (!roundActive) {
             return;
         }
         if (event.getCause().equals(EntityDamageEvent.DamageCause.VOID)) {
-            return;
-        }
-        if (!(event.getEntity() instanceof Player participant)) {
             return;
         }
         if (!participants.contains(participant)) {
@@ -209,18 +206,6 @@ public class SpleefRound implements Listener {
         if (!spleefHasStarted) {
             event.setCancelled(true);
         }
-    }
-    
-    @EventHandler
-    public void onPlayerLoseHunger(FoodLevelChangeEvent event) {
-        if (!(event.getEntity() instanceof Player participant)) {
-            return;
-        }
-        if (!participants.contains(participant)) {
-            return;
-        }
-        participant.setFoodLevel(20);
-        event.setCancelled(true);
     }
     
     @EventHandler
@@ -357,7 +342,7 @@ public class SpleefRound implements Listener {
     private void placeLayers(boolean replaceStencil) {
         for (int i = 0; i < config.getStructures().size(); i++) {
             Structure layer = config.getStructures().get(i);
-            layer.place(config.getStructureOrigins().get(i), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
+            layer.place(config.getStructureOrigins().get(i), true, StructureRotation.NONE, Mirror.NONE, 0, 1, random);
         }
         if (replaceStencil && config.getStencilBlock() != null) {
             for (BoundingBox layerArea : config.getDecayLayers()) {
@@ -406,10 +391,9 @@ public class SpleefRound implements Listener {
         sidebar.deleteLine("alive");
     }
     
-    private void teleportPlayerToRandomStartingPosition(Player player) {
-        player.sendMessage("Teleporting to Spleef");
-        int index = new Random().nextInt(config.getStartingLocations().size());
-        player.teleport(config.getStartingLocations().get(index));
+    private void teleportParticipantToRandomStartingPosition(Player participant) {
+        int index = random.nextInt(config.getStartingLocations().size());
+        participant.teleport(config.getStartingLocations().get(index));
     }
     
     private void cancelAllTasks() {

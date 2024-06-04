@@ -42,6 +42,7 @@ public class SpleefConfig {
     private Map<Powerup.Type, @Nullable Sound> userSounds;
     private Map<Powerup.Type, @Nullable Sound> affectedSounds;
     private int roundStartingDuration;
+    private int roundEndingDuration;
     private int surviveScore;
     private int rounds;
     private List<DecayStage> stages;

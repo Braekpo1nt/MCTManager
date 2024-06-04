@@ -20,6 +20,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -31,6 +33,7 @@ import java.util.*;
 public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
     private final Main plugin;
     private final GameManager gameManager;
+    private final Random random = new Random();
     private Sidebar sidebar;
     private Sidebar adminSidebar;
     private final SpleefConfigController configController;
@@ -96,8 +99,14 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
     private void initializeParticipant(Player participant) {
         participants.add(participant);
         sidebar.addPlayer(participant);
+        teleportParticipantToRandomStartingPosition(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
         ParticipantInitializer.clearStatusEffects(participant);
+    }
+    
+    private void teleportParticipantToRandomStartingPosition(Player participant) {
+        int index = random.nextInt(config.getStartingLocations().size());
+        participant.teleport(config.getStartingLocations().get(index));
     }
     
     private void startAdmins(List<Player> newAdmins) {
@@ -168,6 +177,43 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
     
     private void resetAdmin(Player admin) {
         adminSidebar.removePlayer(admin);
+    }
+    
+    @EventHandler
+    public void onPlayerDamage(EntityDamageEvent event) {
+        if (!gameActive) {
+            return;
+        }
+        if (event.getCause().equals(EntityDamageEvent.DamageCause.VOID)) {
+            return;
+        }
+        if (!(event.getEntity() instanceof Player participant)) {
+            return;
+        }
+        if (!participants.contains(participant)) {
+            return;
+        }
+        if (descriptionShowing) {
+            event.setCancelled(true);
+            return;
+        }
+        if (currentRoundIndex < 0 || rounds.size() <= currentRoundIndex) {
+            return;
+        }
+        SpleefRound round = rounds.get(currentRoundIndex);
+        round.onPlayerDamage(participant, event);
+    }
+    
+    @EventHandler
+    public void onPlayerLoseHunger(FoodLevelChangeEvent event) {
+        if (!(event.getEntity() instanceof Player participant)) {
+            return;
+        }
+        if (!participants.contains(participant)) {
+            return;
+        }
+        participant.setFoodLevel(20);
+        event.setCancelled(true);
     }
     
     /**
