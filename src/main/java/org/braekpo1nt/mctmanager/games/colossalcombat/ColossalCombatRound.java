@@ -21,6 +21,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerPickupArrowEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
@@ -343,6 +344,7 @@ public class ColossalCombatRound implements Listener {
     private void startRound() {
         roundHasStarted = true;
         openGates();
+        spawnItemDrops();
         for (Player participant : firstPlaceParticipants) {
             giveParticipantEquipment(participant);
         }
@@ -358,6 +360,19 @@ public class ColossalCombatRound implements Listener {
     
     private void giveParticipantEquipment(Player participant) {
         participant.getInventory().setContents(config.getLoadout());
+    }
+    
+    private void spawnItemDrops() {
+        if (config.getItemDropLocations().isEmpty()) {
+            return;
+        }
+        for (int i = 0; i < config.getItemDropLocations().size(); i++) {
+            Location location = config.getItemDropLocations().get(i);
+            ItemStack item = config.getItemDrops().get(i);
+            boolean glowing = config.getGlowingItemDrops().get(i);
+            Item itemEntity = config.getWorld().dropItem(location, item);
+            itemEntity.setGlowing(glowing);
+        }
     }
     
     private void startRoundStartingCountDown() {
