@@ -943,23 +943,11 @@ public class GameManager implements Listener {
         addScore(teamName, multipliedPoints);
         eventManager.trackPoints(participantUUID, points, activeGame.getType());
         eventManager.trackPoints(teamName, multipliedPoints, activeGame.getType());
-        
-        TextComponent.Builder message = Component.text()
-                .append(Component.text("+"))
-                .append(Component.text(points))
+        participant.sendMessage(Component.text("+")
+                .append(Component.text(multipliedPoints))
                 .append(Component.text(" points"))
-                ;
-        if (multiplier != 1.0) {
-            message
-                    .append(Component.text(" (x"))
-                    .append(Component.text(multiplier))
-                    .append(Component.text(")"));
-        }
-        message
                 .decorate(TextDecoration.BOLD)
-                .color(NamedTextColor.GOLD);
-        
-        participant.sendMessage(message);
+                .color(NamedTextColor.GOLD));
         updateTeamScore(teamName);
         updatePersonalScore(participant);
     }
@@ -1314,7 +1302,7 @@ public class GameManager implements Listener {
         int teamScore = getScore(team);
         if (activeGame != null && activeGame instanceof Headerable headerable) {
             for (Player participant : getOnlinePlayersOnTeam(team)) {
-                headerable.updateTeamScore(participant, String.format("%s%s: %s", teamChatColor, displayName, teamScore));
+                headerable.updateTeamScore(participant, String.format("%s%s: %s%s", teamChatColor, displayName, ChatColor.GOLD, teamScore));
             }
         }
         if (eventManager.eventIsActive()) {
@@ -1324,7 +1312,7 @@ public class GameManager implements Listener {
     
     private void updatePersonalScore(Player participant) {
         int score = getScore(participant.getUniqueId());
-        String contents = String.format("%sPoints: %s", ChatColor.GOLD, score);
+        String contents = String.format("%sYour Points: %s", ChatColor.GOLD, score);
         if (activeGame != null && activeGame instanceof Headerable headerable) {
             headerable.updatePersonalScore(participant, contents);
         }

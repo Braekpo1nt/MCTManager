@@ -1315,7 +1315,7 @@ public class EventManager implements Listener {
             String teamDisplayName = gameManager.getTeamDisplayName(teamName);
             ChatColor teamChatColor = gameManager.getTeamChatColor(teamName);
             int teamScore = gameManager.getScore(teamName);
-            teamLines[i] = new KeyLine("team"+i, String.format("%s%s: %s", teamChatColor, teamDisplayName, teamScore));
+            teamLines[i] = new KeyLine("team"+i, String.format("%s%s: %s%s", teamChatColor, teamDisplayName, ChatColor.GOLD, teamScore));
         }
         sidebar.updateLines(teamLines);
         if (adminSidebar == null) {
@@ -1339,7 +1339,7 @@ public class EventManager implements Listener {
             String teamDisplayName = gameManager.getTeamDisplayName(teamName);
             ChatColor teamChatColor = gameManager.getTeamChatColor(teamName);
             int teamScore = gameManager.getScore(teamName);
-            teamLines[i] = new KeyLine("team"+i, String.format("%s%s: %s", teamChatColor, teamDisplayName, teamScore));
+            teamLines[i] = new KeyLine("team"+i, String.format("%s%s: %s%s", teamChatColor, teamDisplayName, ChatColor.GOLD, teamScore));
         }
         sidebar.addLines(0, teamLines);
         adminSidebar.addLines(0, teamLines);
@@ -1348,7 +1348,7 @@ public class EventManager implements Listener {
     private void updatePersonalScores() {
         for (Player participant : participants) {
             int score = gameManager.getScore(participant.getUniqueId());
-            String contents = String.format("%sPoints: %s", ChatColor.GOLD, score);
+            String contents = String.format("%sYour Points: %s", ChatColor.GOLD, score);
             updatePersonalScore(participant, contents);
         }
     }

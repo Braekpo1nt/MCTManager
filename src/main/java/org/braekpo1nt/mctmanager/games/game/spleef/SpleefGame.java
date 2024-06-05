@@ -297,7 +297,7 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
     private void initializeSidebar() {
         sidebar.addLines(
                 new KeyLine("personalTeam", ""),
-                new KeyLine("personalScore", ""),
+                // new KeyLine("personalScore", ""),
                 new KeyLine("title", title),
                 new KeyLine("round", String.format("Round %d/%d", 1, config.getRounds())),
                 new KeyLine("timer", "")
@@ -322,13 +322,13 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
     
     @Override
     public void updatePersonalScore(Player participant, String contents) {
-        if (sidebar == null) {
-            return;
-        }
-        if (!participants.contains(participant)) {
-            return;
-        }
-        sidebar.updateLine(participant.getUniqueId(), "personalScore", contents);
+//        if (sidebar == null) {
+//            return;
+//        }
+//        if (!participants.contains(participant)) {
+//            return;
+//        }
+//        sidebar.updateLine(participant.getUniqueId(), "personalScore", contents);
     }
     
     private void setupTeamOptions() {

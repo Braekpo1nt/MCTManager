@@ -420,7 +420,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     private void initializeSidebar() {
         sidebar.addLines(
                 new KeyLine("personalTeam", ""),
-                new KeyLine("personalScore", ""),
+                // new KeyLine("personalScore", ""),
                 new KeyLine("title", title),
                 new KeyLine("elapsedTime", "00:00:000"),
                 new KeyLine("lap", String.format("Lap: %d/%d", 1, MAX_LAPS)),
@@ -446,13 +446,13 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     
     @Override
     public void updatePersonalScore(Player participant, String contents) {
-        if (sidebar == null) {
-            return;
-        }
-        if (!participants.contains(participant)) {
-            return;
-        }
-        sidebar.updateLine(participant.getUniqueId(), "personalScore", contents);
+//        if (sidebar == null) {
+//            return;
+//        }
+//        if (!participants.contains(participant)) {
+//            return;
+//        }
+//        sidebar.updateLine(participant.getUniqueId(), "personalScore", contents);
     }
     
     private void showRaceCompleteFastBoard(UUID playerUUID) {
