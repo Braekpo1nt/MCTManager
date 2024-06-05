@@ -25,7 +25,7 @@ public class ScoreSetAllSubCommand extends TabSubCommand {
     @Override
     public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         
-        if (args.length != 0) {
+        if (args.length != 1) {
             return CommandResult.failure(getUsage().of("<score>"));
         }
         
