@@ -254,6 +254,16 @@ public class GameStateStorageUtil {
         saveGameState();
     }
     
+    public void setAllScores(int score) throws ConfigIOException {
+        for (MCTPlayer player : gameState.getPlayers().values()) {
+            player.setScore(score);
+        }
+        for (MCTTeam team : gameState.getTeams().values()) {
+            team.setScore(score);
+        }
+        saveGameState();
+    }
+    
     public int getTeamScore(String teamName) {
         return gameState.getTeam(teamName).getScore();
     }

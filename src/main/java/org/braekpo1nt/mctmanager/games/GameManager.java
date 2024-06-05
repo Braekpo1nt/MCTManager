@@ -1122,6 +1122,28 @@ public class GameManager implements Listener {
     }
     
     /**
+     * Set all the teams and players scores to the given score
+     * @param score the score to set to. If the score is negative, the score will be set to 0.
+     */
+    public void setScoreAll(int score) {
+        try {
+            if (score < 0) {
+                gameStateStorageUtil.setAllScores(0);
+                return;
+            }
+            gameStateStorageUtil.setAllScores(score);
+            for (Player participant : getOnlineParticipants()) {
+                updatePersonalScore(participant);
+            }
+            for (String teamName : getTeamNames()) {
+                updateTeamScore(teamName);
+            }
+        } catch (ConfigIOException e) {
+            reportGameStateException("setting all scores", e);
+        }
+    }
+    
+    /**
      * Gets the score of the given team
      * @param teamName The team to get the score of
      * @return The score of the given team
