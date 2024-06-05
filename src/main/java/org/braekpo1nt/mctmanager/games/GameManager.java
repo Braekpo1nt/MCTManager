@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.games;
 
 import com.google.common.base.Preconditions;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -930,24 +931,35 @@ public class GameManager implements Listener {
      * @param participant The participant to award points to
      * @param points The points to award to the participant
      */
-    
     public void awardPointsToParticipant(Player participant, int points) {
         UUID participantUUID = participant.getUniqueId();
         if (!gameStateStorageUtil.containsPlayer(participantUUID)) {
             return;
         }
         String teamName = gameStateStorageUtil.getPlayerTeamName(participantUUID);
-        int multipliedPoints = (int) (points * eventManager.matchProgressPointMultiplier());
-        addScore(participantUUID, multipliedPoints);
+        double multiplier = eventManager.matchProgressPointMultiplier();
+        int multipliedPoints = (int) (points * multiplier);
+        addScore(participantUUID, points);
         addScore(teamName, multipliedPoints);
-        eventManager.trackPoints(participantUUID, multipliedPoints, activeGame.getType());
+        eventManager.trackPoints(participantUUID, points, activeGame.getType());
         eventManager.trackPoints(teamName, multipliedPoints, activeGame.getType());
-    
-        participant.sendMessage(Component.text("+")
-                .append(Component.text(multipliedPoints))
+        
+        TextComponent.Builder message = Component.text()
+                .append(Component.text("+"))
+                .append(Component.text(points))
                 .append(Component.text(" points"))
+                ;
+        if (multiplier != 1.0) {
+            message
+                    .append(Component.text(" (x"))
+                    .append(Component.text(multiplier))
+                    .append(Component.text(")"));
+        }
+        message
                 .decorate(TextDecoration.BOLD)
-                .color(NamedTextColor.GOLD));
+                .color(NamedTextColor.GOLD);
+        
+        participant.sendMessage(message);
         updateTeamScore(teamName);
         updatePersonalScore(participant);
     }
