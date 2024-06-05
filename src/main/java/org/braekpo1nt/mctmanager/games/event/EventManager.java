@@ -1348,10 +1348,11 @@ public class EventManager implements Listener {
     private void updatePersonalScores() {
         for (Player participant : participants) {
             int score = gameManager.getScore(participant.getUniqueId());
-            String contents = String.format("%sYour Points: %s", ChatColor.GOLD, score);
+            String contents = String.format("%sPersonal: %s", ChatColor.GOLD, score);
             updatePersonalScore(participant, contents);
         }
     }
+    
     
     public void updatePersonalScore(Player participant, String contents) {
         if (sidebar == null) {

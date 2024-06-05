@@ -1334,7 +1334,7 @@ public class GameManager implements Listener {
     
     private void updatePersonalScore(Player participant) {
         int score = getScore(participant.getUniqueId());
-        String contents = String.format("%sYour Points: %s", ChatColor.GOLD, score);
+        String contents = String.format("%sPersonal: %s", ChatColor.GOLD, score);
         if (activeGame != null && activeGame instanceof Headerable headerable) {
             headerable.updatePersonalScore(participant, contents);
         }

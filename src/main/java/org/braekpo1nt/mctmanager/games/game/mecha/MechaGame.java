@@ -801,7 +801,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     private void initializeSidebar() {
         sidebar.addLines(
                 new KeyLine("personalTeam", ""),
-                // new KeyLine("personalScore", ""),
+                new KeyLine("personalScore", ""),
                 new KeyLine("title", title),
                 new KeyLine("kills", ChatColor.RED+"Kills: 0"),
                 new KeyLine("timer", ChatColor.LIGHT_PURPLE+"Border: 0:00"),
@@ -827,13 +827,13 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     
     @Override
     public void updatePersonalScore(Player participant, String contents) {
-//        if (sidebar == null) {
-//            return;
-//        }
-//        if (!participants.contains(participant)) {
-//            return;
-//        }
-//        sidebar.updateLine(participant.getUniqueId(), "personalScore", contents);
+        if (sidebar == null) {
+            return;
+        }
+        if (!participants.contains(participant)) {
+            return;
+        }
+        sidebar.updateLine(participant.getUniqueId(), "personalScore", contents);
     }
     
     /**

@@ -358,7 +358,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     private void initializeSidebar() {
         sidebar.addLines(
                 new KeyLine("personalTeam", ""),
-                // new KeyLine("personalScore", ""),
+                new KeyLine("personalScore", ""),
                 new KeyLine("title", title),
                 new KeyLine("enemy", ""),
                 new KeyLine("round", ""),
@@ -385,13 +385,13 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     
     @Override
     public void updatePersonalScore(Player participant, String contents) {
-//        if (sidebar == null) {
-//            return;
-//        }
-//        if (!participants.contains(participant)) {
-//            return;
-//        }
-//        sidebar.updateLine(participant.getUniqueId(), "personalScore", contents);
+        if (sidebar == null) {
+            return;
+        }
+        if (!participants.contains(participant)) {
+            return;
+        }
+        sidebar.updateLine(participant.getUniqueId(), "personalScore", contents);
     }
     
     /**
