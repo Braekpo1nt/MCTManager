@@ -5,12 +5,14 @@ import lombok.Data;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.ItemStackDTO;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.util.BoundingBoxDTO;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.LocationDTO;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.PlayerInventoryDTO;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.BlockFace;
@@ -18,6 +20,9 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 
@@ -44,6 +49,7 @@ record ColossalCombatConfigDTO(
         LocationDTO secondPlaceSpawn, 
         LocationDTO spectatorSpawn, 
         int requiredWins, 
+        List<ItemDrop> itemDrops,
         @Nullable PlayerInventoryDTO loadout, 
         Gate firstPlaceGate, 
         Gate secondPlaceGate, 
@@ -69,6 +75,10 @@ record ColossalCombatConfigDTO(
         validator.notNull(this.spectatorSpawn, "spectatorSpawn");
         validator.validate(this.requiredWins > 0, "requiredWins must be greater than 0");
     
+        if (this.itemDrops != null) {
+            validator.validateList(this.itemDrops, "itemDrops");
+        }
+        
         if (this.loadout != null) {
             this.loadout.validate(validator.path("loadout"));
         }
@@ -113,6 +123,17 @@ record ColossalCombatConfigDTO(
         World newWorld = Bukkit.getWorld(this.world);
         Preconditions.checkState(newWorld != null, "Could not find world \"%s\"", this.world);
         
+        List<Location> newItemDropLocations = new ArrayList<>();
+        List<ItemStack> newItemDrops = new ArrayList<>();
+        List<Boolean> newGlowingItemDrops = new ArrayList<>();
+        if (this.itemDrops != null) {
+            for (ItemDrop itemDrop : this.itemDrops) {
+                newItemDropLocations.add(itemDrop.getLocation().toLocation(newWorld));
+                newItemDrops.add(itemDrop.getItem().toItemStack());
+                newGlowingItemDrops.add(itemDrop.isGlowing());
+            }
+        }
+        
         ColossalCombatConfig.ColossalCombatConfigBuilder builder = ColossalCombatConfig.builder()
                 .world(newWorld)
                 .firstPlaceSpawn(this.firstPlaceSpawn.toLocation(newWorld))
@@ -134,7 +155,11 @@ record ColossalCombatConfigDTO(
                 .antiSuffocationDuration(this.durations.antiSuffocation)
                 .roundStartingDuration(this.durations.roundStarting)
                 .descriptionDuration(this.durations.description)
+                .itemDrops(newItemDrops)
+                .itemDropLocations(newItemDropLocations)
+                .glowingItemDrops(newGlowingItemDrops)
                 .description(this.description);
+        
         if (captureTheFlag != null) {
             builder.shouldStartCaptureTheFlag(true)
                     .firstPlaceFlagGoal(this.captureTheFlag.firstPlaceGoal.toBoundingBox())
@@ -166,6 +191,20 @@ record ColossalCombatConfigDTO(
         result[36] = new ItemStack(Material.LEATHER_BOOTS);
         result[38] = new ItemStack(Material.LEATHER_CHESTPLATE);
         return result;
+    }
+    
+    @Data
+    static class ItemDrop implements Validatable {
+        private LocationDTO location;
+        private ItemStackDTO item;
+        private boolean glowing = false;
+        
+        @Override
+        public void validate(@NotNull Validator validator) {
+            validator.notNull(location, "location");
+            validator.notNull(item, "item");
+            item.validate(validator.path("item"));
+        }
     }
     
     @Data

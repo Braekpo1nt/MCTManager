@@ -24,11 +24,11 @@ public class ColossalCombatConfig {
     /**
      * each index corresponds to an index in the itemDropsList
      */
-    private List<Location> itemDropLocations;
+    private @Nullable List<Location> itemDropLocations;
     /**
      * each index corresponds to an index in the itemDropLocations list
      */
-    private List<ItemStack> itemDrops;
+    private @Nullable List<ItemStack> itemDrops;
     private List<Boolean> glowingItemDrops;
     private int requiredWins;
     private @NotNull ItemStack[] loadout;

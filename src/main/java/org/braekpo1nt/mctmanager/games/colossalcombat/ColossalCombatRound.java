@@ -431,7 +431,10 @@ public class ColossalCombatRound implements Listener {
     }
     
     private void spawnItemDrops() {
-        if (config.getItemDropLocations().isEmpty()) {
+        if (config.getItemDropLocations() == null 
+                || config.getItemDropLocations().isEmpty() 
+                || config.getItemDrops() == null 
+                || config.getItemDrops().isEmpty()) {
             return;
         }
         for (int i = 0; i < config.getItemDropLocations().size(); i++) {
