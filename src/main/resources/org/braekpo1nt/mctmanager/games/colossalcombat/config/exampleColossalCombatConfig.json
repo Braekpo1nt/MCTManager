@@ -136,6 +136,50 @@
       "maxZ": 20
     }
   },
+  "captureTheFlag": {
+    "flagMaterial": "WHITE_BANNER",
+    "flagDirection": "NORTH",
+    "flagLocation": {
+      "x": -1000,
+      "y": 2,
+      "z": 0
+    },
+    "maxPlayers": 1,
+    "countdown": 60,
+    "firstPlaceGoal": {
+      "minX": -1005,
+      "minY": 2,
+      "minZ": -25,
+      "maxX": -994,
+      "maxY": 12,
+      "maxZ": -19
+    },
+    "secondPlaceGoal": {
+      "minX": -1005,
+      "minY": 2,
+      "minZ": 20,
+      "maxX": -994,
+      "maxY": 8,
+      "maxZ": 26
+    },
+    "replaceBlock": "TERRACOTTA",
+    "firstPlaceReplaceArea": {
+      "minX": -1005,
+      "minY": 1,
+      "minZ": -25,
+      "maxX": -994,
+      "maxY": 1,
+      "maxZ": -19
+    },
+    "secondPlaceReplaceArea": {
+      "minX": -1005,
+      "minY": 1,
+      "minZ": 20,
+      "maxX": -994,
+      "maxY": 1,
+      "maxZ": 26
+    }
+  },
   "removeArea": {
     "minX": -1031,
     "minY": -4,
