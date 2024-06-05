@@ -359,7 +359,7 @@ public class ColossalCombatRound implements Listener {
         }
         long firstCount = firstPlaceParticipantsAlive.values().stream().filter(alive -> alive).count();
         long secondCount = secondPlaceParticipantsAlive.values().stream().filter(alive -> alive).count();
-        return firstCount <= config.getCaptureTheFlagMinimumTeamCount() && secondCount <= config.getCaptureTheFlagMinimumTeamCount();
+        return firstCount <= config.getCaptureTheFlagMaximumPlayers() && secondCount <= config.getCaptureTheFlagMaximumPlayers();
     }
     
     private void startCaptureTheFlagCountdown() {
@@ -476,6 +476,18 @@ public class ColossalCombatRound implements Listener {
         BlockPlacementUtils.createCube(config.getWorld(), config.getFirstPlaceStone(), Material.AIR);
         //second
         BlockPlacementUtils.createCube(config.getWorld(), config.getSecondPlaceStone(), Material.AIR);
+        if (config.shouldReplaceWithConcrete()) {
+            BlockPlacementUtils.createCubeReplace(
+                    config.getWorld(),
+                    config.getFirstPlaceFlagReplaceArea(),
+                    gameManager.getTeamConcreteColor(firstTeamName),
+                    config.getReplaceBlock());
+            BlockPlacementUtils.createCubeReplace(
+                    config.getWorld(),
+                    config.getSecondPlaceFlagReplaceArea(),
+                    gameManager.getTeamConcreteColor(secondTeamName),
+                    config.getReplaceBlock());
+        }
     }
     
     @EventHandler

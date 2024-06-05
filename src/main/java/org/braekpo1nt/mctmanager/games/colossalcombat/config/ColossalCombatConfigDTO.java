@@ -1,7 +1,9 @@
 package org.braekpo1nt.mctmanager.games.colossalcombat.config;
 
 import com.google.common.base.Preconditions;
+import lombok.Data;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.util.BoundingBoxDTO;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.LocationDTO;
@@ -11,6 +13,7 @@ import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.block.BlockFace;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
@@ -47,6 +50,7 @@ record ColossalCombatConfigDTO(
         BoundingBoxDTO removeArea, 
         BoundingBoxDTO firstPlaceSupport, 
         BoundingBoxDTO secondPlaceSupport, 
+        CaptureTheFlag captureTheFlag,
         Durations durations, 
         Component description) implements Validatable {
     
@@ -94,6 +98,10 @@ record ColossalCombatConfigDTO(
         BoundingBox secondPlaceSupport = this.secondPlaceSupport.toBoundingBox();
         validator.validate(secondPlaceSupport.getVolume() > 0, "secondPlaceSupport volume (%s) must be greater than 0", secondPlaceSupport.getVolume());
         validator.validate(!firstPlaceSupport.overlaps(secondPlaceSupport), "firstPlaceSupport and secondPlaceSupport can't overlap");
+        
+        if (captureTheFlag != null) {
+            captureTheFlag.validate(validator.path("captureTheFlag"));
+        }
     
         validator.notNull(this.durations, "durations");
         validator.validate(this.durations.roundStarting() >= 1, "durations.roundStarting must be at least 1");
@@ -105,7 +113,7 @@ record ColossalCombatConfigDTO(
         World newWorld = Bukkit.getWorld(this.world);
         Preconditions.checkState(newWorld != null, "Could not find world \"%s\"", this.world);
         
-        return ColossalCombatConfig.builder()
+        ColossalCombatConfig.ColossalCombatConfigBuilder builder = ColossalCombatConfig.builder()
                 .world(newWorld)
                 .firstPlaceSpawn(this.firstPlaceSpawn.toLocation(newWorld))
                 .secondPlaceSpawn(this.secondPlaceSpawn.toLocation(newWorld))
@@ -126,8 +134,24 @@ record ColossalCombatConfigDTO(
                 .antiSuffocationDuration(this.durations.antiSuffocation)
                 .roundStartingDuration(this.durations.roundStarting)
                 .descriptionDuration(this.durations.description)
-                .description(this.description)
-                .build();
+                .description(this.description);
+        if (captureTheFlag != null) {
+            builder.shouldStartCaptureTheFlag(true)
+                    .firstPlaceFlagGoal(this.captureTheFlag.firstPlaceGoal.toBoundingBox())
+                    .secondPlaceFlagGoal(this.captureTheFlag.secondPlaceGoal.toBoundingBox())
+                    .flagMaterial(this.captureTheFlag.flagMaterial)
+                    .initialFlagDirection(this.captureTheFlag.flagDirection)
+                    .flagLocation(this.captureTheFlag.flagLocation.toLocation(newWorld))
+                    .flagSpawnMessage(this.captureTheFlag.flagSpawnMessage)
+                    .captureTheFlagMaximumPlayers(this.captureTheFlag.maxPlayers)
+                    .captureTheFlagDuration(this.captureTheFlag.countdown)
+                    .replaceBlock(this.captureTheFlag.replaceBlock)
+                    .firstPlaceFlagReplaceArea(this.captureTheFlag.firstPlaceReplaceArea.toBoundingBox())
+                    .secondPlaceFlagReplaceArea(this.captureTheFlag.secondPlaceReplaceArea.toBoundingBox());
+        } else {
+            builder.shouldStartCaptureTheFlag(false);
+        }
+        return builder.build();
     }
     
     /**
@@ -142,6 +166,53 @@ record ColossalCombatConfigDTO(
         result[36] = new ItemStack(Material.LEATHER_BOOTS);
         result[38] = new ItemStack(Material.LEATHER_CHESTPLATE);
         return result;
+    }
+    
+    @Data
+    static class CaptureTheFlag implements Validatable {
+        private Material flagMaterial = Material.WHITE_BANNER;
+        private BlockFace flagDirection = BlockFace.NORTH;
+        private LocationDTO flagLocation;
+        private Component flagSpawnMessage = Component.text("The flag has appeared! Capture it to win the round!")
+                .color(NamedTextColor.GREEN);
+        /** 
+         * the max number of players on each team for the capture the flag countdown to start. 
+         * defaults to 1. Negative values will never be triggered.
+         */
+        private int maxPlayers = 1;
+        /**
+         * The countdown (in seconds) for when the flag will spawn once the maxPlayers limit has been reached.
+         * Defaults to 60.
+         */
+        private int countdown = 60;
+        private BoundingBoxDTO firstPlaceGoal;
+        private BoundingBoxDTO secondPlaceGoal;
+        /**
+         * the block to replace with concrete of the team's color. Defaults to null. If null, no blocks will be replaced.
+         */
+        private @Nullable Material replaceBlock = null;
+        /**
+         * The area to replace with the concrete of the team's color. At the start of the game, the {@link CaptureTheFlag#replaceBlock} material will be replaced with the concrete of the team's color, and at the end of the game it will be returned to what it was before.
+         */
+        private BoundingBoxDTO firstPlaceReplaceArea;
+        /**
+         * The same as {@link CaptureTheFlag#firstPlaceReplaceArea}, but for the second place team.
+         */
+        private BoundingBoxDTO secondPlaceReplaceArea;
+        
+        @Override
+        public void validate(@NotNull Validator validator) {
+            validator.notNull(flagMaterial, "flagMaterial");
+            validator.notNull(flagDirection, "flagDirection");
+            validator.notNull(flagLocation, "flagLocation");
+            validator.notNull(flagSpawnMessage, "flagSpawnMessage");
+            validator.notNull(firstPlaceGoal, "firstPlaceGoal");
+            validator.validate(firstPlaceGoal.toBoundingBox().getVolume() >= 1, "firstPlaceGoal must have a volume of at least 1");
+            validator.notNull(secondPlaceGoal, "secondPlaceGoal");
+            validator.validate(secondPlaceGoal.toBoundingBox().getVolume() >= 1, "secondPlaceGoal must have a volume of at least 1");
+            validator.notNull(firstPlaceReplaceArea, "firstPlaceReplaceArea");
+            validator.notNull(secondPlaceReplaceArea, "secondPlaceReplaceArea");
+        }
     }
     
     record Gate(BoundingBoxDTO clearArea, BoundingBoxDTO placeArea, BoundingBoxDTO stone, BoundingBoxDTO antiSuffocationArea) {
