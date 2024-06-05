@@ -165,7 +165,6 @@ public class ColossalCombatRound implements Listener {
         roundActive = false;
         antiSuffocation = false;
         captureTheFlagStarted = false;
-        flagPosition = null;
         hasFlag = null;
         resetArena();
         for (Player participant : firstPlaceParticipants) {
@@ -179,6 +178,7 @@ public class ColossalCombatRound implements Listener {
         for (Player participant : spectators) {
             resetParticipant(participant);
         }
+        flagPosition = null;
         spectators.clear();
         firstTeamName = null;
         secondTeamName = null;
