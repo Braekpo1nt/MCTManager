@@ -167,17 +167,17 @@
       "minX": -1005,
       "minY": 1,
       "minZ": -25,
-      "maxX": -994,
+      "maxX": -995,
       "maxY": 1,
-      "maxZ": -19
+      "maxZ": -20
     },
     "secondPlaceReplaceArea": {
       "minX": -1005,
       "minY": 1,
       "minZ": 20,
-      "maxX": -994,
+      "maxX": -995,
       "maxY": 1,
-      "maxZ": 26
+      "maxZ": 25
     }
   },
   "removeArea": {

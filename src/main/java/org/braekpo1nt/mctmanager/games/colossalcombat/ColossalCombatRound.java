@@ -95,6 +95,9 @@ public class ColossalCombatRound implements Listener {
         roundActive = true;
         roundHasStarted = false;
         startRoundStartingCountDown();
+        if (shouldStartCaptureTheFlag()) {
+            startCaptureTheFlagCountdown();
+        }
         Bukkit.getLogger().info("Starting Colossal Combat round");
     }
     
@@ -199,6 +202,7 @@ public class ColossalCombatRound implements Listener {
         if (flagPosition != null) {
             flagPosition.getBlock().setType(Material.AIR);
         }
+        removeConcrete();
     }
     
     private void resetParticipant(Player participant) {
@@ -479,6 +483,9 @@ public class ColossalCombatRound implements Listener {
         BlockPlacementUtils.createCube(config.getWorld(), config.getFirstPlaceStone(), Material.AIR);
         //second
         BlockPlacementUtils.createCube(config.getWorld(), config.getSecondPlaceStone(), Material.AIR);
+    }
+    
+    private void removeConcrete() {
         if (config.shouldReplaceWithConcrete()) {
             BlockPlacementUtils.createCubeReplace(
                     config.getWorld(),
