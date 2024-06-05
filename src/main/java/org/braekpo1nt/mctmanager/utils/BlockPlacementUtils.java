@@ -6,6 +6,7 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.MultipleFacing;
+import org.bukkit.block.data.Rotatable;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 
@@ -210,5 +211,41 @@ public class BlockPlacementUtils {
         }
         
         return solidBlocks;
+    }
+    
+    /**
+     * Gets the first solid block below the given location. If there is no floor all the way to the min height, returns the given location.
+     * @param location The location to check below
+     * @return the location below the given location that is a solid block. If there are no solid blocks
+     */
+    public static Location getSolidBlockBelow(Location location) {
+        Location nonAirLocation = location.subtract(0, 1, 0);
+        while (nonAirLocation.getBlockY() > -64) {
+            Block block = nonAirLocation.getBlock();
+            if (!block.getType().equals(Material.AIR) &&
+                    !block.getType().equals(Material.CAVE_AIR) &&
+                    !block.getType().equals(Material.VOID_AIR)) {
+                return nonAirLocation;
+            }
+            nonAirLocation = nonAirLocation.subtract(0, 1, 0);
+        }
+        return location;
+    }
+    
+    /**
+     * Places the provided banner type at the given location facing the given direction
+     * If the given material's blockData does not implement {@link Rotatable}, then the facing direction
+     * will be ignored and the block will simply be placed.
+     * @param bannerType the material type of the banner to place
+     * @param location the location to place the banner
+     * @param facing the direction to face the banner
+     */
+    public static void placeFlag(Material bannerType, Location location, BlockFace facing) {
+        Block flagBlock = location.getBlock();
+        flagBlock.setType(bannerType);
+        if (flagBlock.getBlockData() instanceof Rotatable flagData) {
+            flagData.setRotation(facing);
+            flagBlock.setBlockData(flagData);
+        }
     }
 }

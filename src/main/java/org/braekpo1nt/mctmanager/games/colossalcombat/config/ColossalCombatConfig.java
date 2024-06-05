@@ -4,7 +4,9 @@ import lombok.Builder;
 import lombok.Data;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Item;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.BoundingBox;
@@ -44,8 +46,19 @@ public class ColossalCombatConfig {
     private BoundingBox removeArea;
     private BoundingBox firstPlaceSupport;
     private BoundingBox secondPlaceSupport;
+    private Material flagMaterial;
+    private BlockFace initialFlagDirection;
+    private Location flagLocation;
+    private Component flagSpawnMessage;
+    private boolean shouldStartCaptureTheFlag;
+    private int captureTheFlagMinimumTeamCount;
+    private int captureTheFlagDuration;
     private long antiSuffocationDuration;
     private int roundStartingDuration;
     private int descriptionDuration;
     private Component description;
+    
+    public boolean shouldStartCaptureTheFlag() {
+        return shouldStartCaptureTheFlag;
+    }
 }
