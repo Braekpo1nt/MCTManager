@@ -10,6 +10,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collection;
 import java.util.List;
 
 @Data
@@ -34,10 +35,12 @@ public class ColossalCombatConfig {
     private BoundingBox firstPlacePlaceArea;
     private BoundingBox firstPlaceStone;
     private BoundingBox firstPlaceAntiSuffocationArea;
+    private BoundingBox firstPlaceFlagGoal;
     private BoundingBox secondPlaceClearArea;
     private BoundingBox secondPlacePlaceArea;
     private BoundingBox secondPlaceStone;
     private BoundingBox secondPlaceAntiSuffocationArea;
+    private BoundingBox secondPlaceFlagGoal;
     private BoundingBox removeArea;
     private BoundingBox firstPlaceSupport;
     private BoundingBox secondPlaceSupport;

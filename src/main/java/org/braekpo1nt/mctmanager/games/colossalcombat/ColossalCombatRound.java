@@ -49,6 +49,9 @@ public class ColossalCombatRound implements Listener {
     private boolean antiSuffocation = false;
     private boolean roundActive = false;
     private boolean roundHasStarted = false;
+    private boolean captureTheFlagStarted = false;
+    private Location flagPosition = null;
+    private Player hasFlag = null;
     
     public ColossalCombatRound(Main plugin, GameManager gameManager, ColossalCombatGame colossalCombatGame, ColossalCombatConfig config, Sidebar sidebar, Sidebar adminSidebar) {
         this.plugin = plugin;
@@ -73,6 +76,9 @@ public class ColossalCombatRound implements Listener {
         spectators = new ArrayList<>(newSpectators.size());
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         antiSuffocation = false;
+        captureTheFlagStarted = false;
+        flagPosition = null;
+        hasFlag = null;
         colossalCombatGame.closeGates();
         for (Player first : newFirstPlaceParticipants) {
             initializeFirstPlaceParticipant(first);
@@ -154,6 +160,9 @@ public class ColossalCombatRound implements Listener {
         cancelAllTasks();
         roundActive = false;
         antiSuffocation = false;
+        captureTheFlagStarted = false;
+        flagPosition = null;
+        hasFlag = null;
         resetArena();
         for (Player participant : firstPlaceParticipants) {
             resetParticipant(participant);
@@ -415,20 +424,110 @@ public class ColossalCombatRound implements Listener {
         if (!roundActive) {
             return;
         }
-        if (!antiSuffocation) {
-            return;
-        }
-        Location to = event.getTo();
         Player participant = event.getPlayer();
         if (firstPlaceParticipants.contains(participant)) {
+            onFirstPlaceParticipantMove(participant, event);
+        } else if (secondPlaceParticipants.contains(participant)) {
+            onSecondPlaceParticipantMove(participant, event);
+        }
+    }
+    
+    private void onFirstPlaceParticipantMove(Player participant, PlayerMoveEvent event) {
+        if (antiSuffocation) {
+            Location to = event.getTo();
             if (config.getFirstPlaceAntiSuffocationArea().contains(to.toVector())) {
                 event.setCancelled(true);
             }
-        } else if (secondPlaceParticipants.contains(participant)) {
+            return;
+        }
+        if (!captureTheFlagStarted) {
+            return;
+        }
+        Location location = participant.getLocation();
+        if (canPickUpFlag(location)) {
+            pickupFlag(participant);
+            return;
+        }
+        if (canDeliverFlagToFirst(participant)) {
+            deliverFlagToFirst(participant);
+        }
+    }
+    
+    private void onSecondPlaceParticipantMove(Player participant, PlayerMoveEvent event) {
+        if (antiSuffocation) {
+            Location to = event.getTo();
             if (config.getSecondPlaceAntiSuffocationArea().contains(to.toVector())) {
                 event.setCancelled(true);
             }
+            return;
         }
+        if (!captureTheFlagStarted) {
+            return;
+        }
+        Location location = participant.getLocation();
+        if (canPickUpFlag(location)) {
+            pickupFlag(participant);
+            return;
+        }
+        if (canDeliverFlagToSecond(participant)) {
+            deliverFlagToSecond(participant);
+        }
+    }
+    
+    /**
+     * @param location the location to check
+     * @return true if the flag is on the ground, and the given location's blockLocation is equal to the flag's current position
+     */
+    private boolean canPickUpFlag(Location location) {
+        if (flagPosition == null) {
+            return false;
+        }
+        return flagPosition.getBlockX() == location.getBlockX() && flagPosition.getBlockY() == location.getBlockY() && flagPosition.getBlockZ() == location.getBlockZ();
+    }
+    
+    private void pickupFlag(Player participant) {
+        String team = gameManager.getTeamName(participant.getUniqueId());
+        Component formattedTeamDisplayName = gameManager.getFormattedTeamDisplayName(team);
+        messageAllParticipants(Component.empty()
+                .append(formattedTeamDisplayName)
+                .append(Component.text(" has the flag")));
+        flagPosition.getBlock().setType(Material.AIR);
+        flagPosition = null;
+        hasFlag = participant;
+    }
+    
+    private boolean canDeliverFlagToFirst(Player first) {
+        if (!Objects.equals(first, hasFlag)) {
+            return false;
+        }
+        Location location = first.getLocation();
+        return config.getFirstPlaceFlagGoal().contains(location.toVector());
+    }
+    
+    private boolean canDeliverFlagToSecond(Player second) {
+        if (!Objects.equals(second, hasFlag)) {
+            return false;
+        }
+        Location location = second.getLocation();
+        return config.getSecondPlaceFlagGoal().contains(location.toVector());
+    }
+    
+    private void deliverFlagToFirst(Player first) {
+        String team = gameManager.getTeamName(first.getUniqueId());
+        Component formattedTeamDisplayName = gameManager.getFormattedTeamDisplayName(team);
+        messageAllParticipants(Component.empty()
+                .append(formattedTeamDisplayName)
+                .append(Component.text(" captured the flag!")));
+        onFirstPlaceTeamWin();
+    }
+    
+    private void deliverFlagToSecond(Player second) {
+        String team = gameManager.getTeamName(second.getUniqueId());
+        Component formattedTeamDisplayName = gameManager.getFormattedTeamDisplayName(team);
+        messageAllParticipants(Component.empty()
+                .append(formattedTeamDisplayName)
+                .append(Component.text(" captured the flag!")));
+        onSecondPlaceTeamWin();
     }
     
     private void setupTeamOptions() {
