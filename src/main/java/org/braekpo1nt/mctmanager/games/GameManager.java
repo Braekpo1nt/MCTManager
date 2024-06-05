@@ -930,19 +930,18 @@ public class GameManager implements Listener {
      * @param participant The participant to award points to
      * @param points The points to award to the participant
      */
-    
     public void awardPointsToParticipant(Player participant, int points) {
         UUID participantUUID = participant.getUniqueId();
         if (!gameStateStorageUtil.containsPlayer(participantUUID)) {
             return;
         }
         String teamName = gameStateStorageUtil.getPlayerTeamName(participantUUID);
-        int multipliedPoints = (int) (points * eventManager.matchProgressPointMultiplier());
-        addScore(participantUUID, multipliedPoints);
+        double multiplier = eventManager.matchProgressPointMultiplier();
+        int multipliedPoints = (int) (points * multiplier);
+        addScore(participantUUID, points);
         addScore(teamName, multipliedPoints);
-        eventManager.trackPoints(participantUUID, multipliedPoints, activeGame.getType());
+        eventManager.trackPoints(participantUUID, points, activeGame.getType());
         eventManager.trackPoints(teamName, multipliedPoints, activeGame.getType());
-    
         participant.sendMessage(Component.text("+")
                 .append(Component.text(multipliedPoints))
                 .append(Component.text(" points"))
@@ -1118,6 +1117,28 @@ public class GameManager implements Listener {
             updateTeamScore(teamName);
         } catch (ConfigIOException e) {
             reportGameStateException("adding score to team", e);
+        }
+    }
+    
+    /**
+     * Set all the teams and players scores to the given score
+     * @param score the score to set to. If the score is negative, the score will be set to 0.
+     */
+    public void setScoreAll(int score) {
+        try {
+            if (score < 0) {
+                gameStateStorageUtil.setAllScores(0);
+                return;
+            }
+            gameStateStorageUtil.setAllScores(score);
+            for (Player participant : getOnlineParticipants()) {
+                updatePersonalScore(participant);
+            }
+            for (String teamName : getTeamNames()) {
+                updateTeamScore(teamName);
+            }
+        } catch (ConfigIOException e) {
+            reportGameStateException("setting all scores", e);
         }
     }
     
@@ -1302,7 +1323,7 @@ public class GameManager implements Listener {
         int teamScore = getScore(team);
         if (activeGame != null && activeGame instanceof Headerable headerable) {
             for (Player participant : getOnlinePlayersOnTeam(team)) {
-                headerable.updateTeamScore(participant, String.format("%s%s: %s", teamChatColor, displayName, teamScore));
+                headerable.updateTeamScore(participant, String.format("%s%s: %s%s", teamChatColor, displayName, ChatColor.GOLD, teamScore));
             }
         }
         if (eventManager.eventIsActive()) {
@@ -1312,7 +1333,7 @@ public class GameManager implements Listener {
     
     private void updatePersonalScore(Player participant) {
         int score = getScore(participant.getUniqueId());
-        String contents = String.format("%sPoints: %s", ChatColor.GOLD, score);
+        String contents = String.format("%sPersonal: %s", ChatColor.GOLD, score);
         if (activeGame != null && activeGame instanceof Headerable headerable) {
             headerable.updatePersonalScore(participant, contents);
         }

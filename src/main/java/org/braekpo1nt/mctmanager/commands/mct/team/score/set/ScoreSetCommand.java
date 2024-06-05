@@ -9,5 +9,6 @@ public class ScoreSetCommand extends CommandManager {
         super(name);
         addSubCommand(new ScoreSetPlayerSubCommand(gameManager, "player"));
         addSubCommand(new ScoreSetTeamSubCommand(gameManager, "team"));
+        addSubCommand(new ScoreSetAllSubCommand(gameManager, "all"));
     }
 }
