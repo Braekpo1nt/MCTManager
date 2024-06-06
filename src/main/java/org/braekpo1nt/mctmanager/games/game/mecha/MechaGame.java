@@ -544,7 +544,9 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         for (HumanEntity viewer : viewers) {
             if (viewer instanceof Player participant) {
                 if (participants.contains(participant)) {
-                    count++;
+                    if (livingPlayers.contains(participant.getUniqueId())) {
+                        count++;
+                    }
                 }
             }
         }
