@@ -472,6 +472,22 @@ public class ColossalCombatGame implements Listener, Configurable {
                 config.getSecondPlacePlaceArea(), 
                 gameManager.getTeamPowderColor(secondTeamName)
         );
+        placeConcrete();
+    }
+    
+    private void placeConcrete() {
+        if (config.shouldReplaceWithConcrete()) {
+            BlockPlacementUtils.createCubeReplace(
+                    config.getWorld(),
+                    config.getFirstPlaceFlagReplaceArea(),
+                    config.getReplaceBlock(),
+                    gameManager.getTeamConcreteColor(firstTeamName));
+            BlockPlacementUtils.createCubeReplace(
+                    config.getWorld(),
+                    config.getSecondPlaceFlagReplaceArea(),
+                    config.getReplaceBlock(),
+                    gameManager.getTeamConcreteColor(secondTeamName));
+        }
     }
     
     private void closeGate(BoundingBox clearArea, BoundingBox stoneArea, BoundingBox placeArea, Material teamPowderColor) {

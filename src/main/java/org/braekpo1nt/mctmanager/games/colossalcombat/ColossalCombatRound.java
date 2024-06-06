@@ -46,9 +46,13 @@ public class ColossalCombatRound implements Listener {
     private List<Player> spectators = new ArrayList<>();
     private int startCountDownTaskId;
     private int antiSuffocationTaskId;
+    private int captureTheFlagCountdownTaskId;
     private boolean antiSuffocation = false;
     private boolean roundActive = false;
     private boolean roundHasStarted = false;
+    private boolean captureTheFlagStarted = false;
+    private Location flagPosition = null;
+    private Player hasFlag = null;
     
     public ColossalCombatRound(Main plugin, GameManager gameManager, ColossalCombatGame colossalCombatGame, ColossalCombatConfig config, Sidebar sidebar, Sidebar adminSidebar) {
         this.plugin = plugin;
@@ -73,6 +77,9 @@ public class ColossalCombatRound implements Listener {
         spectators = new ArrayList<>(newSpectators.size());
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         antiSuffocation = false;
+        captureTheFlagStarted = false;
+        flagPosition = null;
+        hasFlag = null;
         colossalCombatGame.closeGates();
         for (Player first : newFirstPlaceParticipants) {
             initializeFirstPlaceParticipant(first);
@@ -88,6 +95,9 @@ public class ColossalCombatRound implements Listener {
         roundActive = true;
         roundHasStarted = false;
         startRoundStartingCountDown();
+        if (shouldStartCaptureTheFlag()) {
+            startCaptureTheFlagCountdown();
+        }
         Bukkit.getLogger().info("Starting Colossal Combat round");
     }
     
@@ -154,6 +164,8 @@ public class ColossalCombatRound implements Listener {
         cancelAllTasks();
         roundActive = false;
         antiSuffocation = false;
+        captureTheFlagStarted = false;
+        hasFlag = null;
         resetArena();
         for (Player participant : firstPlaceParticipants) {
             resetParticipant(participant);
@@ -166,6 +178,7 @@ public class ColossalCombatRound implements Listener {
         for (Player participant : spectators) {
             resetParticipant(participant);
         }
+        flagPosition = null;
         spectators.clear();
         firstTeamName = null;
         secondTeamName = null;
@@ -186,6 +199,10 @@ public class ColossalCombatRound implements Listener {
                 item.remove();
             }
         }
+        if (flagPosition != null) {
+            flagPosition.getBlock().setType(Material.AIR);
+        }
+        removeConcrete();
     }
     
     private void resetParticipant(Player participant) {
@@ -275,6 +292,7 @@ public class ColossalCombatRound implements Listener {
     private void cancelAllTasks() {
         Bukkit.getScheduler().cancelTask(startCountDownTaskId);
         Bukkit.getScheduler().cancelTask(antiSuffocationTaskId);
+        Bukkit.getScheduler().cancelTask(captureTheFlagCountdownTaskId);
     }
     
     @EventHandler
@@ -313,19 +331,76 @@ public class ColossalCombatRound implements Listener {
         ParticipantInitializer.resetHealthAndHunger(killed);
         ParticipantInitializer.clearStatusEffects(killed);
         Bukkit.getScheduler().runTaskLater(plugin, () -> ParticipantInitializer.clearStatusEffects(killed), 2L);
+        if (captureTheFlagStarted) {
+            if (hasFlag(killed)) {
+                dropFlag(killed);
+            }
+        }
         if (firstPlaceParticipants.contains(killed)) {
             firstPlaceParticipantsAlive.put(killed.getUniqueId(), false);
             if (allParticipantsAreDead(firstPlaceParticipantsAlive)) {
                 onSecondPlaceTeamWin();
+                return;
             }
-            return;
-        }
-        if (secondPlaceParticipants.contains(killed)) {
+        } else if (secondPlaceParticipants.contains(killed)) {
             secondPlaceParticipantsAlive.put(killed.getUniqueId(), false);
             if (allParticipantsAreDead(secondPlaceParticipantsAlive)) {
                 onFirstPlaceTeamWin();
+                return;
             }
         }
+        if (shouldStartCaptureTheFlag()) {
+            startCaptureTheFlagCountdown();
+        }
+    }
+    
+    /**
+     * @return true if the capture-the-flag countdown should start, false otherwise
+     */
+    private boolean shouldStartCaptureTheFlag() {
+        if (!config.shouldStartCaptureTheFlag()) {
+            return false;
+        }
+        if (captureTheFlagStarted) {
+            return false;
+        }
+        long firstCount = firstPlaceParticipantsAlive.values().stream().filter(alive -> alive).count();
+        long secondCount = secondPlaceParticipantsAlive.values().stream().filter(alive -> alive).count();
+        return firstCount <= config.getCaptureTheFlagMaximumPlayers() && secondCount <= config.getCaptureTheFlagMaximumPlayers();
+    }
+    
+    private void startCaptureTheFlagCountdown() {
+        this.captureTheFlagCountdownTaskId = new BukkitRunnable() {
+            private int count = config.getCaptureTheFlagDuration();
+            @Override
+            public void run() {
+                if (count <= 0) {
+                    adminSidebar.updateLine("timer", "");
+                    startCaptureTheFlag();
+                    this.cancel();
+                    return;
+                }
+                String timeLeft = TimeStringUtils.getTimeString(count);
+                adminSidebar.updateLine("timer", String.format("Flag spawns in: %s", timeLeft));
+                count--;
+            }
+        }.runTaskTimer(plugin, 0L,  20L).getTaskId();
+    }
+    
+    private void startCaptureTheFlag() {
+        captureTheFlagStarted = true;
+        flagPosition = config.getFlagLocation();
+        BlockPlacementUtils.placeFlag(config.getFlagMaterial(), flagPosition, config.getInitialFlagDirection());
+        messageAllParticipants(config.getFlagSpawnMessage());
+    }
+    
+    /**
+     * @param participant the participant
+     * @return true if this participant has the flag
+     */
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    private boolean hasFlag(Player participant) {
+        return Objects.equals(participant, hasFlag);
     }
     
     /**
@@ -363,7 +438,10 @@ public class ColossalCombatRound implements Listener {
     }
     
     private void spawnItemDrops() {
-        if (config.getItemDropLocations().isEmpty()) {
+        if (config.getItemDropLocations() == null 
+                || config.getItemDropLocations().isEmpty() 
+                || config.getItemDrops() == null 
+                || config.getItemDrops().isEmpty()) {
             return;
         }
         for (int i = 0; i < config.getItemDropLocations().size(); i++) {
@@ -410,25 +488,150 @@ public class ColossalCombatRound implements Listener {
         BlockPlacementUtils.createCube(config.getWorld(), config.getSecondPlaceStone(), Material.AIR);
     }
     
+    private void removeConcrete() {
+        if (config.shouldReplaceWithConcrete()) {
+            BlockPlacementUtils.createCubeReplace(
+                    config.getWorld(),
+                    config.getFirstPlaceFlagReplaceArea(),
+                    gameManager.getTeamConcreteColor(firstTeamName),
+                    config.getReplaceBlock());
+            BlockPlacementUtils.createCubeReplace(
+                    config.getWorld(),
+                    config.getSecondPlaceFlagReplaceArea(),
+                    gameManager.getTeamConcreteColor(secondTeamName),
+                    config.getReplaceBlock());
+        }
+    }
+    
     @EventHandler
-    public void antiSuffocationMovementDetection(PlayerMoveEvent event) {
+    public void onPlayerMove(PlayerMoveEvent event) {
         if (!roundActive) {
             return;
         }
-        if (!antiSuffocation) {
-            return;
-        }
-        Location to = event.getTo();
         Player participant = event.getPlayer();
         if (firstPlaceParticipants.contains(participant)) {
+            onFirstPlaceParticipantMove(participant, event);
+        } else if (secondPlaceParticipants.contains(participant)) {
+            onSecondPlaceParticipantMove(participant, event);
+        }
+    }
+    
+    private void onFirstPlaceParticipantMove(Player participant, PlayerMoveEvent event) {
+        if (antiSuffocation) {
+            Location to = event.getTo();
             if (config.getFirstPlaceAntiSuffocationArea().contains(to.toVector())) {
                 event.setCancelled(true);
             }
-        } else if (secondPlaceParticipants.contains(participant)) {
+            return;
+        }
+        if (!captureTheFlagStarted) {
+            return;
+        }
+        if (!firstPlaceParticipantsAlive.get(participant.getUniqueId())) {
+            return;
+        }
+        Location location = participant.getLocation();
+        if (canPickUpFlag(location)) {
+            pickupFlag(participant);
+            return;
+        }
+        if (canDeliverFlagToFirst(participant)) {
+            deliverFlagToFirst(participant);
+        }
+    }
+    
+    private void onSecondPlaceParticipantMove(Player participant, PlayerMoveEvent event) {
+        if (antiSuffocation) {
+            Location to = event.getTo();
             if (config.getSecondPlaceAntiSuffocationArea().contains(to.toVector())) {
                 event.setCancelled(true);
             }
+            return;
         }
+        if (!captureTheFlagStarted) {
+            return;
+        }
+        if (!secondPlaceParticipantsAlive.get(participant.getUniqueId())) {
+            return;
+        }
+        Location location = participant.getLocation();
+        if (canPickUpFlag(location)) {
+            pickupFlag(participant);
+            return;
+        }
+        if (canDeliverFlagToSecond(participant)) {
+            deliverFlagToSecond(participant);
+        }
+    }
+    
+    /**
+     * @param location the location to check
+     * @return true if the flag is on the ground, and the given location's blockLocation is equal to the flag's current position
+     */
+    private boolean canPickUpFlag(Location location) {
+        if (flagPosition == null) {
+            return false;
+        }
+        return flagPosition.getBlockX() == location.getBlockX() && flagPosition.getBlockY() == location.getBlockY() && flagPosition.getBlockZ() == location.getBlockZ();
+    }
+    
+    private void pickupFlag(Player participant) {
+        String team = gameManager.getTeamName(participant.getUniqueId());
+        Component formattedTeamDisplayName = gameManager.getFormattedTeamDisplayName(team);
+        messageAllParticipants(Component.empty()
+                .append(formattedTeamDisplayName)
+                .append(Component.text(" has the flag")));
+        participant.getEquipment().setHelmet(new ItemStack(config.getFlagMaterial()));
+        flagPosition.getBlock().setType(Material.AIR);
+        flagPosition = null;
+        hasFlag = participant;
+    }
+    
+    private void dropFlag(Player participant) {
+        String team = gameManager.getTeamName(participant.getUniqueId());
+        Component formattedTeamDisplayName = gameManager.getFormattedTeamDisplayName(team);
+        messageAllParticipants(Component.empty()
+                .append(formattedTeamDisplayName)
+                .append(Component.text(" dropped the flag")));
+        participant.getEquipment().setHelmet(null);
+        Location ground = BlockPlacementUtils.getSolidBlockBelow(participant.getLocation());
+        flagPosition = ground.add(0, 1, 0);
+        BlockPlacementUtils.placeFlag(config.getFlagMaterial(), flagPosition, participant.getFacing());
+        hasFlag = null;
+    }
+    
+    private boolean canDeliverFlagToFirst(Player first) {
+        if (!hasFlag(first)) {
+            return false;
+        }
+        Location location = first.getLocation();
+        return config.getFirstPlaceFlagGoal().contains(location.toVector());
+    }
+    
+    private boolean canDeliverFlagToSecond(Player second) {
+        if (!hasFlag(second)) {
+            return false;
+        }
+        Location location = second.getLocation();
+        return config.getSecondPlaceFlagGoal().contains(location.toVector());
+    }
+    
+    private void deliverFlagToFirst(Player first) {
+        String team = gameManager.getTeamName(first.getUniqueId());
+        Component formattedTeamDisplayName = gameManager.getFormattedTeamDisplayName(team);
+        messageAllParticipants(Component.empty()
+                .append(formattedTeamDisplayName)
+                .append(Component.text(" captured the flag!")));
+        onFirstPlaceTeamWin();
+    }
+    
+    private void deliverFlagToSecond(Player second) {
+        String team = gameManager.getTeamName(second.getUniqueId());
+        Component formattedTeamDisplayName = gameManager.getFormattedTeamDisplayName(team);
+        messageAllParticipants(Component.empty()
+                .append(formattedTeamDisplayName)
+                .append(Component.text(" captured the flag!")));
+        onSecondPlaceTeamWin();
     }
     
     private void setupTeamOptions() {
