@@ -68,16 +68,16 @@ public class GameManagerUtils {
      * @return a Component with a formatted display of all team and player scores
      */
     public static Component getTeamDisplay(GameManager gameManager) {
-        TextComponent.Builder messageBuilder = Component.text().append(Component.text("TEAMS\n")
+        TextComponent.Builder messageBuilder = Component.text().append(Component.text("Scores:\n")
                     .decorate(TextDecoration.BOLD));
-        List<OfflinePlayer> offlinePlayers = gameManager.getOfflineParticipants();
-        List<String> teamNames = gameManager.getTeamNames().stream().toList();
+        List<OfflinePlayer> offlinePlayers = getSortedOfflinePlayers(gameManager);
+        List<String> sortedTeams = getSortedTeams(gameManager);
         
-        for (String teamName : teamNames) {
-            int teamScore = gameManager.getScore(teamName);
-            NamedTextColor teamNamedTextColor = gameManager.getTeamNamedTextColor(teamName);
+        for (String team : sortedTeams) {
+            int teamScore = gameManager.getScore(team);
+            NamedTextColor teamNamedTextColor = gameManager.getTeamNamedTextColor(team);
             messageBuilder.append(Component.empty()
-                            .append(gameManager.getFormattedTeamDisplayName(teamName))
+                            .append(gameManager.getFormattedTeamDisplayName(team))
                             .append(Component.text(" - "))
                             .append(Component.text(teamScore)
                                     .decorate(TextDecoration.BOLD)
@@ -89,7 +89,7 @@ public class GameManagerUtils {
                 if (offlinePlayer.getName() == null) {
                     continue;
                 }
-                if (playerTeam.equals(teamName)) {
+                if (playerTeam.equals(team)) {
                     messageBuilder.append(Component.empty()
                             .append(Component.text("  "))
                             .append(Component.text(offlinePlayer.getName())
@@ -98,7 +98,7 @@ public class GameManagerUtils {
                             .append(Component.text(playerScore)
                                     .decorate(TextDecoration.BOLD)
                                     .color(NamedTextColor.GOLD))
-                            .append(Component.text("\n")));
+                            .append(Component.newline()));
                 }
             }
         }
