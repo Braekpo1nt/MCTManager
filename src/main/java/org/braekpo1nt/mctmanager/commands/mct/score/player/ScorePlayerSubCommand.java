@@ -7,6 +7,7 @@ import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
@@ -81,7 +82,7 @@ public class ScorePlayerSubCommand extends TabSubCommand {
         TextComponent.Builder builder = Component.text()
                 .append(Component.text("Player Scores (Un-multiplied):")
                         .decorate(TextDecoration.BOLD));
-        List<OfflinePlayer> sortedOfflinePlayers = getSortedOfflinePlayers();
+        List<OfflinePlayer> sortedOfflinePlayers = GameManagerUtils.getSortedOfflinePlayers(gameManager);
         for (OfflinePlayer participant : sortedOfflinePlayers) {
             Component displayName = gameManager.getDisplayName(participant);
             int score = gameManager.getScore(participant.getUniqueId());
@@ -95,29 +96,6 @@ public class ScorePlayerSubCommand extends TabSubCommand {
         return builder.build();
     }
     
-    /**
-     * @return a sorted list of OfflinePlayers representing the participants. Sorted first by score from greatest to least, then alphabetically (A first, Z last).
-     */
-    private @NotNull List<OfflinePlayer> getSortedOfflinePlayers() {
-        List<OfflinePlayer> offlinePlayers = gameManager.getOfflineParticipants();
-        offlinePlayers.sort((p1, p2) -> {
-            int scoreComparison = gameManager.getScore(p2.getUniqueId()) - gameManager.getScore(p1.getUniqueId());
-            if (scoreComparison != 0) {
-                return scoreComparison;
-            }
-            
-            String p1Name = p1.getName();
-            if (p1Name == null) {
-                p1Name = p1.getUniqueId().toString();
-            }
-            String p2Name = p2.getName();
-            if (p2Name == null) {
-                p2Name = p2.getUniqueId().toString();
-            }
-            return p1Name.compareToIgnoreCase(p2Name);
-        });
-        return offlinePlayers;
-    }
     
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {

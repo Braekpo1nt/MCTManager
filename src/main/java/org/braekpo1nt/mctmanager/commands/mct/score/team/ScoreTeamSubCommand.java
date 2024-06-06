@@ -7,6 +7,7 @@ import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -69,7 +70,7 @@ public class ScoreTeamSubCommand extends TabSubCommand {
         TextComponent.Builder builder = Component.text()
                 .append(Component.text("Teams:")
                         .decorate(TextDecoration.BOLD));
-        List<String> sortedTeams = getSortedTeams();
+        List<String> sortedTeams = GameManagerUtils.getSortedTeams(gameManager);
         for (String team : sortedTeams) {
             Component displayName = gameManager.getFormattedTeamDisplayName(team);
             int score = gameManager.getScore(team);
@@ -81,21 +82,6 @@ public class ScoreTeamSubCommand extends TabSubCommand {
                             .color(NamedTextColor.GOLD)));
         }
         return builder.build();
-    }
-    
-    /**
-     * @return a sorted list of team names. Sorted first by score from greatest to least, then alphabetically (A to Z).
-     */
-    private List<String> getSortedTeams() {
-        List<String> teamNames = new ArrayList<>(gameManager.getTeamNames());
-        teamNames.sort((t1, t2) -> {
-            int scoreComparison = gameManager.getScore(t2) - gameManager.getScore(t1);
-            if (scoreComparison != 0) {
-                return scoreComparison;
-            }
-            return t1.compareToIgnoreCase(t2);
-        });
-        return teamNames;
     }
     
     @Override

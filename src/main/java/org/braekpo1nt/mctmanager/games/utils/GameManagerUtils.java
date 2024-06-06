@@ -105,4 +105,43 @@ public class GameManagerUtils {
         
         return messageBuilder.build();
     }
+    
+    /**
+     * @return a sorted list of OfflinePlayers representing the participants. Sorted first by score from greatest to least, then alphabetically (A first, Z last).
+     */
+    public static @NotNull List<OfflinePlayer> getSortedOfflinePlayers(GameManager gameManager) {
+        List<OfflinePlayer> offlinePlayers = gameManager.getOfflineParticipants();
+        offlinePlayers.sort((p1, p2) -> {
+            int scoreComparison = gameManager.getScore(p2.getUniqueId()) - gameManager.getScore(p1.getUniqueId());
+            if (scoreComparison != 0) {
+                return scoreComparison;
+            }
+            
+            String p1Name = p1.getName();
+            if (p1Name == null) {
+                p1Name = p1.getUniqueId().toString();
+            }
+            String p2Name = p2.getName();
+            if (p2Name == null) {
+                p2Name = p2.getUniqueId().toString();
+            }
+            return p1Name.compareToIgnoreCase(p2Name);
+        });
+        return offlinePlayers;
+    }
+    
+    /**
+     * @return a sorted list of team names. Sorted first by score from greatest to least, then alphabetically (A to Z).
+     */
+    public static List<String> getSortedTeams(GameManager gameManager) {
+        List<String> teamNames = new ArrayList<>(gameManager.getTeamNames());
+        teamNames.sort((t1, t2) -> {
+            int scoreComparison = gameManager.getScore(t2) - gameManager.getScore(t1);
+            if (scoreComparison != 0) {
+                return scoreComparison;
+            }
+            return t1.compareToIgnoreCase(t2);
+        });
+        return teamNames;
+    }
 }
