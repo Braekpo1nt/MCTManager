@@ -29,6 +29,7 @@ public class MechaConfig {
     private int endDuration;
     private int killScore;
     private int surviveTeamScore;
+    private boolean lockOtherInventories;
     private double initialBorderSize;
     private double worldBorderCenterX;
     private double worldBorderCenterZ;
@@ -41,5 +42,12 @@ public class MechaConfig {
     private int[] durations;
     private int descriptionDuration;
     private Component description;
+    
+    /**
+     * @return true if the other inventories should be locked, false otherwise
+     */
+    public boolean lockOtherInventories() {
+        return lockOtherInventories;
+    }
     
 }

@@ -205,6 +205,7 @@ class MechaConfigDTO implements Validatable {
                 .invulnerabilityDuration(this.durations.invulnerability)
                 .killScore(this.scores.kill)
                 .surviveTeamScore(this.scores.surviveTeam)
+                .lockOtherInventories(this.lockOtherInventories)
                 .initialBorderSize(this.border.initialBorderSize())
                 .worldBorderCenterX(this.border.center().x())
                 .worldBorderCenterZ(this.border.center().z())

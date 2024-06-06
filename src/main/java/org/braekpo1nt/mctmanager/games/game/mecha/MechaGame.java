@@ -35,6 +35,7 @@ import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
+import org.bukkit.inventory.BlockInventoryHolder;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
@@ -511,18 +512,29 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         }
     }
     
+    @EventHandler
     public void onPlayerOpenInventory(InventoryOpenEvent event) {
         if (!gameActive) {
             return;
         }
-        Inventory inventory = event.getInventory();
-        Location location = inventory.getLocation();
-        if (location == null) {
+        if (!config.lockOtherInventories()) {
             return;
         }
+        if (!(event.getPlayer() instanceof Player participant)) {
+            return;
+        }
+        if (!participants.contains(participant)) {
+            return;
+        }
+        Inventory inventory = event.getInventory();
+        InventoryHolder holder = inventory.getHolder();
+        if (!(holder instanceof BlockInventoryHolder blockInventoryHolder)) {
+            return;
+        }
+        Location location = blockInventoryHolder.getBlock().getLocation();
         Vector pos = location.toVector();
         if (config.getSpawnChestCoords().contains(pos)
-                && config.getMapChestCoords().contains(pos)) {
+                || config.getMapChestCoords().contains(pos)) {
             return;
         }
         event.setCancelled(true);
