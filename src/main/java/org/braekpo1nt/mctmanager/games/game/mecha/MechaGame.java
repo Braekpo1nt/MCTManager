@@ -511,8 +511,25 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         }
     }
     
+    public void onPlayerOpenInventory(InventoryOpenEvent event) {
+        if (!gameActive) {
+            return;
+        }
+        Inventory inventory = event.getInventory();
+        Location location = inventory.getLocation();
+        if (location == null) {
+            return;
+        }
+        Vector pos = location.toVector();
+        if (config.getSpawnChestCoords().contains(pos)
+                && config.getMapChestCoords().contains(pos)) {
+            return;
+        }
+        event.setCancelled(true);
+    }
+    
     @EventHandler
-    public void onPlayerCloseChest(InventoryCloseEvent event) {
+    public void onPlayerCloseInventory(InventoryCloseEvent event) {
         if (!gameActive) {
             return;
         }
@@ -749,7 +766,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
      * living players.
      */
     private boolean allLivingPlayersAreOnOneTeam() {
-        if (livingPlayers.size() == 0) {
+        if (livingPlayers.isEmpty()) {
             return false;
         }
         if (livingPlayers.size() == 1) {

@@ -25,36 +25,46 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-/**
- * @param version
- * @param world the world
- * @param spectatorArea
- * @param removeArea The area to empty containers and remove floor items
- * @param border the information about the world border
- * @param spawnLootTable The loot table for the spawn chests
- * @param weightedMechaLootTables The loot tables for the chests, with weights for the weighted random selection
- * @param spawnChestCoords The coordinates of the spawn chests
- * @param mapChestCoords the coordinates of the map chests
- * @param platformCenter the place where players will be looking when they spawn in at the start of the game. If this is null, then the Platforms.facingDirection() will be used. If Platforms.facingDirection is null, then they will face yaw=0,pitch=0.
- * @param platforms
- * @param scores
- * @param durations
- * @param description
- */
-record MechaConfigDTO(
-        String version, 
-        String world, 
-        BoundingBoxDTO spectatorArea, 
-        BoundingBoxDTO removeArea, 
-        BorderDTO border, 
-        NamespacedKeyDTO spawnLootTable, 
-        List<WeightedNamespacedKey> weightedMechaLootTables, 
-        List<Vector> spawnChestCoords, 
-        List<Vector> mapChestCoords, 
-        Vector platformCenter, 
-        List<Platform> platforms, 
-        Scores scores, Durations durations, 
-        Component description) implements Validatable {
+@Data
+class MechaConfigDTO implements Validatable {
+    
+    private String version;
+    private String world;
+    private BoundingBoxDTO spectatorArea;
+    /**
+     * The area to empty containers and remove floor items
+     */
+    private BoundingBoxDTO removeArea;
+    /**
+     * the information about the world border
+     */
+    private BorderDTO border;
+    /**
+     * The loot table for the spawn chests
+     */
+    private NamespacedKeyDTO spawnLootTable;
+    /**
+     * The loot tables for the chests, with weights for the weighted random selection
+     */
+    private List<WeightedNamespacedKey> weightedMechaLootTables;
+    /**
+     * The coordinates of the spawn chests
+     */
+    private List<Vector> spawnChestCoords;
+    /**
+     * the coordinates of the map chests
+     */
+    private List<Vector> mapChestCoords;
+    /**
+     * the place where players will be looking when they spawn in at the start of the game. If this is null, then the Platforms.facingDirection() will be used. If Platforms.facingDirection is null, then they will face yaw=0,pitch=0.
+     */
+    private Vector platformCenter;
+    private List<Platform> platforms;
+    /** If true, players will be unable to open any block inventories that aren't spawn chests or map chests. Defaults to true. */
+    private boolean lockOtherInventories = true;
+    private Scores scores;
+    private Durations durations;
+    private Component description;
     
     @Override
     public void validate(@NotNull Validator validator) {
@@ -78,7 +88,7 @@ record MechaConfigDTO(
                 "Could not find spawn loot table \"%s\"", this.spawnLootTable);
         validator.notNull(this.weightedMechaLootTables,
                 "weightedMechaLootTables");
-        validator.validate(this.weightedMechaLootTables.size() >= 1,
+        validator.validate(!this.weightedMechaLootTables.isEmpty(),
                 "weightedMechaLootTables must have at least 1 entry");
         for (int i = 0; i < this.weightedMechaLootTables.size(); i++) {
             MechaConfigDTO.WeightedNamespacedKey weightedNamespacedKey = this.weightedMechaLootTables.get(i);
@@ -104,7 +114,7 @@ record MechaConfigDTO(
                     "mapChestCoord (%s) is not inside removeArea (%s)", pos, this.removeArea.toBoundingBox());
         }
         validator.notNull(this.platforms, "platforms");
-        validator.validate(this.platforms.size() > 0, "platforms must have at least one element");
+        validator.validate(!this.platforms.isEmpty(), "platforms must have at least one element");
         for (MechaConfigDTO.Platform platform : this.platforms) {
             validator.notNull(platform.barrier(), "platforms.barrier");
             BoundingBox barrier = platform.barrier().toBoundingBox();
@@ -144,8 +154,8 @@ record MechaConfigDTO(
     
         List<BoundingBox> newPlatformBarriers = new ArrayList<>();
         List<Location> newPlatformSpawns = new ArrayList<>();
-        for (int i = 0; i < this.platforms().size(); i++) {
-            MechaConfigDTO.Platform platform = this.platforms().get(i);
+        for (int i = 0; i < this.platforms.size(); i++) {
+            MechaConfigDTO.Platform platform = this.platforms.get(i);
             BoundingBox barrierArea = platform.barrier().toBoundingBox();
             newPlatformBarriers.add(barrierArea);
             double spawnX = barrierArea.getCenterX() + 0.5;
@@ -171,7 +181,7 @@ record MechaConfigDTO(
             newAdminSpawn.setPitch(direction.pitch());
         }
         
-        List<BorderDTO.BorderStage> borderStages = this.border().borderStages();
+        List<BorderDTO.BorderStage> borderStages = this.border.borderStages();
         int[] sizes = new int[borderStages.size()];
         int[] delays = new int[borderStages.size()];
         int[] durations = new int[borderStages.size()];
