@@ -96,7 +96,7 @@ class MechaConfigDTO implements Validatable {
         this.border.validate(validator.path("border"));
         validator.notNull(this.spawnLootTable, "spawnLootTable");
         validator.validate(lootTableExists(this.spawnLootTable.toNamespacedKey()),
-                "Could not find spawn loot table \"%s\"", this.spawnLootTable);
+                "spawnLootTable: Could not find spawn loot table \"%s\"", this.spawnLootTable);
         validator.notNull(this.weightedMechaLootTables,
                 "weightedMechaLootTables");
         validator.validate(!this.weightedMechaLootTables.isEmpty(),

@@ -63,6 +63,10 @@ public class GameManagerUtils {
         return teamName.matches(TEAM_NAME_REGEX);
     }
     
+    /**
+     * @param gameManager the GameManager to get the data from
+     * @return a Component with a formatted display of all team and player scores
+     */
     public static Component getTeamDisplay(GameManager gameManager) {
         TextComponent.Builder messageBuilder = Component.text().append(Component.text("TEAMS\n")
                     .decorate(TextDecoration.BOLD));
