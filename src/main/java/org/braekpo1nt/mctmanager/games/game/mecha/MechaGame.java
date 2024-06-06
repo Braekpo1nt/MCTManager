@@ -520,20 +520,14 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
             return;
         }
         Inventory inventory = event.getInventory();
-        List<HumanEntity> viewers = inventory.getViewers();
-        if (viewers.size() != 1) {
-            return;
-        }
-        if (!(viewers.get(0) instanceof Player participant)) {
-            return;
-        }
-        if (!participants.contains(participant)) {
+        if (!(inventory.getHolder() instanceof Chest chest)) {
             return;
         }
         if (!inventory.isEmpty()) {
             return;
         }
-        if (!(inventory.getHolder() instanceof Chest chest)) {
+        List<HumanEntity> viewers = inventory.getViewers();
+        if (countParticipantViewers(viewers) > 1) {
             return;
         }
         Block block = chest.getBlock();
@@ -543,6 +537,18 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
             return;
         }
         block.setType(Material.AIR);
+    }
+    
+    private int countParticipantViewers(List<HumanEntity> viewers) {
+        int count = 0;
+        for (HumanEntity viewer : viewers) {
+            if (viewer instanceof Player participant) {
+                if (participants.contains(participant)) {
+                    count++;
+                }
+            }
+        }
+        return count;
     }
     
     /**
