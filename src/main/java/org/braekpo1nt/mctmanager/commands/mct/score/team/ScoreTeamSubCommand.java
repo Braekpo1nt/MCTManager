@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.commands.mct.score.team;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
@@ -12,6 +13,7 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -40,6 +42,9 @@ public class ScoreTeamSubCommand extends TabSubCommand {
             team = gameManager.getTeamName(participant.getUniqueId());
         } else {
             team = args[0];
+            if (team.equals("all")) {
+                return CommandResult.success(getAllTeamScores());
+            }
             if (!gameManager.hasTeam(team)) {
                 return CommandResult.failure(Component.empty()
                         .append(Component.text(team)
@@ -57,11 +62,49 @@ public class ScoreTeamSubCommand extends TabSubCommand {
                         .color(NamedTextColor.GOLD)));
     }
     
+    /**
+     * @return a component with all teams and their scores in order from highest to lowest, ties broken alphabetically.
+     */
+    private Component getAllTeamScores() {
+        TextComponent.Builder builder = Component.text()
+                .append(Component.text("Teams:")
+                        .decorate(TextDecoration.BOLD));
+        List<String> sortedTeams = getSortedTeams();
+        for (String team : sortedTeams) {
+            Component displayName = gameManager.getFormattedTeamDisplayName(team);
+            int score = gameManager.getScore(team);
+            builder.append(Component.empty()
+                    .append(Component.newline())
+                    .append(displayName)
+                    .append(Component.text(": "))
+                    .append(Component.text(score)
+                            .color(NamedTextColor.GOLD)));
+        }
+        return builder.build();
+    }
+    
+    /**
+     * @return a sorted list of team names. Sorted first by score from greatest to least, then alphabetically (A to Z).
+     */
+    private List<String> getSortedTeams() {
+        List<String> teamNames = new ArrayList<>(gameManager.getTeamNames());
+        teamNames.sort((t1, t2) -> {
+            int scoreComparison = gameManager.getScore(t2) - gameManager.getScore(t1);
+            if (scoreComparison != 0) {
+                return scoreComparison;
+            }
+            return t1.compareToIgnoreCase(t2);
+        });
+        return teamNames;
+    }
+    
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length != 1) {
             return Collections.emptyList();
         }
-        return gameManager.getAllTeamNames();
+        List<String> result = new ArrayList<>(Collections.singletonList("all"));
+        result.addAll(gameManager.getAllTeamNames());
+        return result;
     }
 }

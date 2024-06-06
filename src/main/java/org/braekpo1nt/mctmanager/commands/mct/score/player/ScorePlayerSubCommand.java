@@ -79,7 +79,7 @@ public class ScorePlayerSubCommand extends TabSubCommand {
      */
     private Component getAllPlayersScores() {
         TextComponent.Builder builder = Component.text()
-                .append(Component.text("Scores:")
+                .append(Component.text("Player Scores (Un-multiplied):")
                         .decorate(TextDecoration.BOLD));
         List<OfflinePlayer> sortedOfflinePlayers = getSortedOfflinePlayers();
         for (OfflinePlayer participant : sortedOfflinePlayers) {
@@ -124,6 +124,8 @@ public class ScorePlayerSubCommand extends TabSubCommand {
         if (args.length != 1) {
             return Collections.emptyList();
         }
-        return gameManager.getAllParticipantNames();
+        List<String> result = new ArrayList<>(Collections.singletonList("all"));
+        result.addAll(gameManager.getAllParticipantNames());
+        return result;
     }
 }
