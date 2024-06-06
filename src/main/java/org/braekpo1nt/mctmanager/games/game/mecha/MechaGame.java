@@ -526,6 +526,12 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         if (!inventory.isEmpty()) {
             return;
         }
+        if (!(event.getPlayer() instanceof Player participant)) {
+            return;
+        }
+        if (participants.contains(participant)) {
+            return;
+        }
         List<HumanEntity> viewers = inventory.getViewers();
         if (countParticipantViewers(viewers) > 1) {
             return;
