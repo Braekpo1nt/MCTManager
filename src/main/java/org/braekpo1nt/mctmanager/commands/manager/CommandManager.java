@@ -79,7 +79,7 @@ public abstract class CommandManager extends TabSubCommand {
     @Override
     public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length < 1) {
-            return CommandResult.failure(getUsage().of(getSubCommandUsageArg(sender)));
+            return noArgumentAction(sender, command, label);
         }
         String subCommandName = args[0];
         SubCommand subCommand = subCommands.get(subCommandName);
@@ -90,6 +90,18 @@ public abstract class CommandManager extends TabSubCommand {
                     .append(Component.text(" is not recognized.")));
         }
         return subCommand.onSubCommand(sender, command, label, Arrays.copyOfRange(args, 1, args.length));
+    }
+    
+    /**
+     * The action performed by there being no arguments passed to this CommandManager.
+     * This defaults to returning the usage. Override this to get different functionality.
+     * @param sender the sender
+     * @param command the command
+     * @param label the label
+     * @return the {@link CommandResult} detailing the action. Defaults to failure with a usage message. 
+     */
+    protected @NotNull CommandResult noArgumentAction(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label) {
+        return CommandResult.failure(getUsage().of(getSubCommandUsageArg(sender)));
     }
     
     @Override

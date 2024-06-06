@@ -204,8 +204,7 @@ public class GameManager implements Listener {
         participant.setScoreboard(mctScoreboard);
         participant.addPotionEffect(Main.NIGHT_VISION);
         String teamName = getTeamName(participant.getUniqueId());
-        NamedTextColor teamNamedTextColor = getTeamNamedTextColor(teamName);
-        Component displayName = Component.text(participant.getName(), teamNamedTextColor);
+        Component displayName = getDisplayName(participant);
         participant.displayName(displayName);
         participant.playerListName(displayName);
         hubManager.onParticipantJoin(participant);
@@ -999,6 +998,41 @@ public class GameManager implements Listener {
         return Component.text(displayName).color(teamColor).decorate(TextDecoration.BOLD);
     }
     
+    /**
+     * @param participant must be a valid participant in the GameState
+     * @return the display name of the given participant
+     */
+    public Component getDisplayName(@NotNull Player participant) {
+        return getDisplayName(participant.getUniqueId(), participant.getName());
+    }
+    
+    /**
+     * @param offlineParticipant an OfflinePlayer with the UUID of a valid participant. 
+     *                           If the OfflinePlayer's name is null, then the
+     *                           UUID will be used as the name.
+     * @return the displayName of the participant represented by the given offline participant
+     */
+    public Component getDisplayName(@NotNull OfflinePlayer offlineParticipant) {
+        String name = offlineParticipant.getName();
+        UUID uuid = offlineParticipant.getUniqueId();
+        if (name == null) {
+            return getDisplayName(uuid, uuid.toString());
+        }
+        return getDisplayName(uuid, name);
+    }
+    
+    /**
+     * Get the display name of the given participant's UUID. Throws an error if this is not a valid participant UUID.
+     * @param participantUUID a valid participant's UUID in the GameState
+     * @param name the name of the player
+     * @return the display name of the given participant's UUID
+     */
+    public Component getDisplayName(@NotNull UUID participantUUID, @NotNull String name) {
+        String teamName = getTeamName(participantUUID);
+        NamedTextColor teamNamedTextColor = getTeamNamedTextColor(teamName);
+        return Component.text(name, teamNamedTextColor);
+    }
+    
     public String getTeamDisplayName(String teamName) {
         return gameStateStorageUtil.getTeamDisplayName(teamName);
     }
@@ -1031,6 +1065,13 @@ public class GameManager implements Listener {
             playerNames.add(name);
         }
         return playerNames;
+    }
+    
+    /**
+     * @return a list of the names of all the teams in the game state
+     */
+    public List<String> getAllTeamNames() {
+        return new ArrayList<>(gameStateStorageUtil.getTeamNames());
     }
     
     /**

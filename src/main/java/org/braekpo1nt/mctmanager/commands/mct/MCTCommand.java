@@ -10,6 +10,7 @@ import org.braekpo1nt.mctmanager.commands.mct.admin.AdminCommand;
 import org.braekpo1nt.mctmanager.commands.mct.edit.EditCommand;
 import org.braekpo1nt.mctmanager.commands.mct.event.EventCommand;
 import org.braekpo1nt.mctmanager.commands.mct.game.GameCommand;
+import org.braekpo1nt.mctmanager.commands.mct.score.ScoreCommand;
 import org.braekpo1nt.mctmanager.commands.mct.team.TeamCommand;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.listeners.BlockEffectsListener;
@@ -46,7 +47,7 @@ public class MCTCommand extends MasterCommandManager {
                 return CommandResult.success(Component.text("Loaded gameState.json"));
             }
         });
-        addSubCommand(new ScoreSubCommand(gameManager, "score"));
+        addSubCommand(new ScoreCommand(gameManager, "score"));
         onInit(plugin.getServer().getPluginManager());
     }
     

@@ -1,5 +1,11 @@
 package org.braekpo1nt.mctmanager.games.utils;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
+import org.braekpo1nt.mctmanager.games.GameManager;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.event.inventory.InventoryAction;
 import org.jetbrains.annotations.NotNull;
 
@@ -55,5 +61,98 @@ public class GameManagerUtils {
     
     public static boolean validTeamName(String teamName) {
         return teamName.matches(TEAM_NAME_REGEX);
+    }
+    
+    /**
+     * @param gameManager the GameManager to get the data from
+     * @return a Component with a formatted display of all team and player scores
+     */
+    public static Component getTeamDisplay(GameManager gameManager) {
+        TextComponent.Builder messageBuilder = Component.text().append(Component.text("Scores:\n")
+                    .decorate(TextDecoration.BOLD));
+        List<OfflinePlayer> offlinePlayers = getSortedOfflinePlayers(gameManager);
+        List<String> sortedTeams = getSortedTeams(gameManager);
+        
+        for (String team : sortedTeams) {
+            int teamScore = gameManager.getScore(team);
+            NamedTextColor teamNamedTextColor = gameManager.getTeamNamedTextColor(team);
+            messageBuilder.append(Component.empty()
+                            .append(gameManager.getFormattedTeamDisplayName(team))
+                            .append(Component.text(" - "))
+                            .append(Component.text(teamScore)
+                                    .decorate(TextDecoration.BOLD)
+                                    .color(NamedTextColor.GOLD))
+                    .append(Component.text(":\n")));
+            for (OfflinePlayer offlinePlayer : offlinePlayers) {
+                String playerTeam = gameManager.getTeamName(offlinePlayer.getUniqueId());
+                int playerScore = gameManager.getScore(offlinePlayer.getUniqueId());
+                if (offlinePlayer.getName() == null) {
+                    continue;
+                }
+                if (playerTeam.equals(team)) {
+                    messageBuilder.append(Component.empty()
+                            .append(Component.text("  "))
+                            .append(Component.text(offlinePlayer.getName())
+                                    .color(teamNamedTextColor))
+                            .append(Component.text(" - "))
+                            .append(Component.text(playerScore)
+                                    .decorate(TextDecoration.BOLD)
+                                    .color(NamedTextColor.GOLD))
+                            .append(Component.newline()));
+                }
+            }
+        }
+        
+        return messageBuilder.build();
+    }
+    
+    /**
+     * @param gameManager the GameManager to get the data from
+     * @return a sorted list of OfflinePlayers representing the participants. Sorted first by score from greatest to least, then alphabetically (A first, Z last).
+     */
+    public static @NotNull List<OfflinePlayer> getSortedOfflinePlayers(GameManager gameManager) {
+        List<OfflinePlayer> offlinePlayers = gameManager.getOfflineParticipants();
+        sortOfflinePlayers(offlinePlayers, gameManager);
+        return offlinePlayers;
+    }
+    
+    /**
+     * Sorts the provided list of OfflinePlayer objects. Sorts in place.
+     * @param offlinePlayers each entry must have a UUID of a valid participant in the GameState of the given GameManager
+     * @param gameManager the GameManager to get the data from
+     */
+    public static void sortOfflinePlayers(List<OfflinePlayer> offlinePlayers, GameManager gameManager) {
+        offlinePlayers.sort((p1, p2) -> {
+            int scoreComparison = gameManager.getScore(p2.getUniqueId()) - gameManager.getScore(p1.getUniqueId());
+            if (scoreComparison != 0) {
+                return scoreComparison;
+            }
+            
+            String p1Name = p1.getName();
+            if (p1Name == null) {
+                p1Name = p1.getUniqueId().toString();
+            }
+            String p2Name = p2.getName();
+            if (p2Name == null) {
+                p2Name = p2.getUniqueId().toString();
+            }
+            return p1Name.compareToIgnoreCase(p2Name);
+        });
+    }
+    
+    /**
+     * @param gameManager the GameManager to get the data from
+     * @return a sorted list of team names. Sorted first by score from greatest to least, then alphabetically (A to Z).
+     */
+    public static List<String> getSortedTeams(GameManager gameManager) {
+        List<String> teamNames = new ArrayList<>(gameManager.getTeamNames());
+        teamNames.sort((t1, t2) -> {
+            int scoreComparison = gameManager.getScore(t2) - gameManager.getScore(t1);
+            if (scoreComparison != 0) {
+                return scoreComparison;
+            }
+            return t1.compareToIgnoreCase(t2);
+        });
+        return teamNames;
     }
 }
