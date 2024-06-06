@@ -16,6 +16,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collections;
 import java.util.List;
 
+@Deprecated
 public class ScoreSubCommand extends TabSubCommand {
     
     private final GameManager gameManager;
