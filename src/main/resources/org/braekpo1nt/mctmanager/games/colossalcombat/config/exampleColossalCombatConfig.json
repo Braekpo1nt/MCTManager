@@ -144,6 +144,7 @@
       "y": 2,
       "z": 0
     },
+    "flagSpawnMessage": {"text":"The flag has appeared! Capture it to win the round!","color":"green"},
     "maxPlayers": 1,
     "countdown": 60,
     "firstPlaceGoal": {
