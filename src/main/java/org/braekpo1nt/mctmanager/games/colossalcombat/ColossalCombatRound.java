@@ -202,7 +202,7 @@ public class ColossalCombatRound implements Listener {
         if (flagPosition != null) {
             flagPosition.getBlock().setType(Material.AIR);
         }
-        removeConcrete();
+        colossalCombatGame.removeConcrete();
     }
     
     private void resetParticipant(Player participant) {
@@ -486,21 +486,6 @@ public class ColossalCombatRound implements Listener {
         BlockPlacementUtils.createCube(config.getWorld(), config.getFirstPlaceStone(), Material.AIR);
         //second
         BlockPlacementUtils.createCube(config.getWorld(), config.getSecondPlaceStone(), Material.AIR);
-    }
-    
-    private void removeConcrete() {
-        if (config.shouldReplaceWithConcrete()) {
-            BlockPlacementUtils.createCubeReplace(
-                    config.getWorld(),
-                    config.getFirstPlaceFlagReplaceArea(),
-                    gameManager.getTeamConcreteColor(firstTeamName),
-                    config.getReplaceBlock());
-            BlockPlacementUtils.createCubeReplace(
-                    config.getWorld(),
-                    config.getSecondPlaceFlagReplaceArea(),
-                    gameManager.getTeamConcreteColor(secondTeamName),
-                    config.getReplaceBlock());
-        }
     }
     
     @EventHandler

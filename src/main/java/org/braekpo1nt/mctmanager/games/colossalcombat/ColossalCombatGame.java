@@ -245,6 +245,7 @@ public class ColossalCombatGame implements Listener, Configurable {
             }
         }
         rounds.clear();
+        removeConcrete();
         for (Player participant : firstPlaceParticipants) {
             resetParticipant(participant);
         }
@@ -475,7 +476,7 @@ public class ColossalCombatGame implements Listener, Configurable {
         placeConcrete();
     }
     
-    private void placeConcrete() {
+    void placeConcrete() {
         if (config.shouldReplaceWithConcrete()) {
             BlockPlacementUtils.createCubeReplace(
                     config.getWorld(),
@@ -487,6 +488,21 @@ public class ColossalCombatGame implements Listener, Configurable {
                     config.getSecondPlaceFlagReplaceArea(),
                     config.getReplaceBlock(),
                     gameManager.getTeamConcreteColor(secondTeamName));
+        }
+    }
+    
+    void removeConcrete() {
+        if (config.shouldReplaceWithConcrete()) {
+            BlockPlacementUtils.createCubeReplace(
+                    config.getWorld(),
+                    config.getFirstPlaceFlagReplaceArea(),
+                    gameManager.getTeamConcreteColor(firstTeamName),
+                    config.getReplaceBlock());
+            BlockPlacementUtils.createCubeReplace(
+                    config.getWorld(),
+                    config.getSecondPlaceFlagReplaceArea(),
+                    gameManager.getTeamConcreteColor(secondTeamName),
+                    config.getReplaceBlock());
         }
     }
     
