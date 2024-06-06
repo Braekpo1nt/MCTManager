@@ -204,6 +204,9 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     }
     
     private void clearContainers() {
+        if (!config.shouldClearContainers()) {
+            return;
+        }
         Bukkit.getLogger().info("Clearing containers");
         List<Chunk> chunks = getChunksInBoundingBox(config.getWorld(), config.getRemoveArea());
         int count = 0;

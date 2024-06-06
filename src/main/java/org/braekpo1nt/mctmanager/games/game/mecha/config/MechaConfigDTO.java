@@ -60,8 +60,19 @@ class MechaConfigDTO implements Validatable {
      */
     private Vector platformCenter;
     private List<Platform> platforms;
-    /** If true, players will be unable to open any block inventories that aren't spawn chests or map chests. Defaults to true. */
+    /** 
+     * If true, players will be unable to open any block inventories that aren't spawn chests or map chests. 
+     * Defaults to true. 
+     */
     private boolean lockOtherInventories = true;
+    /**
+     * If true, containers will be cleared in the {@link MechaConfigDTO#removeArea} area. 
+     * All chunks found in that area will be searched for blocks with inventories, and those will be cleared.
+     * If false, this phase will be skipped. Useful in combination with {@link MechaConfigDTO#lockOtherInventories} 
+     * set to true, because players shouldn't be able to put anything in those inventories anyway. 
+     * Defaults to true.
+     */
+    private boolean shouldClearContainers = true;
     private Scores scores;
     private Durations durations;
     private Component description;
@@ -206,6 +217,7 @@ class MechaConfigDTO implements Validatable {
                 .killScore(this.scores.kill)
                 .surviveTeamScore(this.scores.surviveTeam)
                 .lockOtherInventories(this.lockOtherInventories)
+                .shouldClearContainers(this.shouldClearContainers)
                 .initialBorderSize(this.border.initialBorderSize())
                 .worldBorderCenterX(this.border.center().x())
                 .worldBorderCenterZ(this.border.center().z())

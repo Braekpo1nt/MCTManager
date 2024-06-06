@@ -123,6 +123,8 @@
     "secondPlace": 70,
     "thirdPlace": 50
   },
+  "lockOtherInventories": true,
+  "shouldClearContainers": false,
   "durations": {
     "start": 10,
     "invulnerability": 20,
