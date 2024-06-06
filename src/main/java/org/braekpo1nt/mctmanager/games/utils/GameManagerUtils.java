@@ -107,10 +107,21 @@ public class GameManagerUtils {
     }
     
     /**
+     * @param gameManager the GameManager to get the data from
      * @return a sorted list of OfflinePlayers representing the participants. Sorted first by score from greatest to least, then alphabetically (A first, Z last).
      */
     public static @NotNull List<OfflinePlayer> getSortedOfflinePlayers(GameManager gameManager) {
         List<OfflinePlayer> offlinePlayers = gameManager.getOfflineParticipants();
+        sortOfflinePlayers(offlinePlayers, gameManager);
+        return offlinePlayers;
+    }
+    
+    /**
+     * Sorts the provided list of OfflinePlayer objects. Sorts in place.
+     * @param offlinePlayers each entry must have a UUID of a valid participant in the GameState of the given GameManager
+     * @param gameManager the GameManager to get the data from
+     */
+    public static void sortOfflinePlayers(List<OfflinePlayer> offlinePlayers, GameManager gameManager) {
         offlinePlayers.sort((p1, p2) -> {
             int scoreComparison = gameManager.getScore(p2.getUniqueId()) - gameManager.getScore(p1.getUniqueId());
             if (scoreComparison != 0) {
@@ -127,10 +138,10 @@ public class GameManagerUtils {
             }
             return p1Name.compareToIgnoreCase(p2Name);
         });
-        return offlinePlayers;
     }
     
     /**
+     * @param gameManager the GameManager to get the data from
      * @return a sorted list of team names. Sorted first by score from greatest to least, then alphabetically (A to Z).
      */
     public static List<String> getSortedTeams(GameManager gameManager) {
