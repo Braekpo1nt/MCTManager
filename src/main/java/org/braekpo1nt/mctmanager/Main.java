@@ -93,7 +93,6 @@ public class Main extends JavaPlugin {
         if (saveGameStateOnDisable && gameManager != null) {
             gameManager.cancelVote();
             gameManager.cancelAllTasks();
-            gameManager.saveGameState();
             if (gameManager.getEventManager().eventIsActive()) {
                 gameManager.getEventManager().stopEvent(Bukkit.getConsoleSender());
             }
@@ -106,6 +105,7 @@ public class Main extends JavaPlugin {
             if (gameManager.editorIsRunning()) {
                 gameManager.stopEditor(Bukkit.getConsoleSender());
             }
+            gameManager.saveGameState();
         } else {
             Bukkit.getLogger().info("[MCTManager] Skipping save game state.");
         }

@@ -22,10 +22,7 @@ import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Chest;
-import org.bukkit.entity.ArmorStand;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Item;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
@@ -33,8 +30,12 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.hanging.HangingBreakByEntityEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryOpenEvent;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.loot.LootTable;
@@ -43,6 +44,7 @@ import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -509,7 +511,39 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         }
     }
     
-    
+    @EventHandler
+    public void onPlayerCloseChest(InventoryCloseEvent event) {
+        if (!gameActive) {
+            return;
+        }
+        if (!event.getInventory().getType().equals(InventoryType.CHEST)) {
+            return;
+        }
+        Inventory inventory = event.getInventory();
+        List<HumanEntity> viewers = inventory.getViewers();
+        if (viewers.size() != 1) {
+            return;
+        }
+        if (!(viewers.get(0) instanceof Player participant)) {
+            return;
+        }
+        if (!participants.contains(participant)) {
+            return;
+        }
+        if (!inventory.isEmpty()) {
+            return;
+        }
+        if (!(inventory.getHolder() instanceof Chest chest)) {
+            return;
+        }
+        Block block = chest.getBlock();
+        Vector chestPos = block.getLocation().toVector();
+        if (!config.getSpawnChestCoords().contains(chestPos) 
+                && !config.getMapChestCoords().contains(chestPos)) {
+            return;
+        }
+        block.setType(Material.AIR);
+    }
     
     /**
      * Called when:
