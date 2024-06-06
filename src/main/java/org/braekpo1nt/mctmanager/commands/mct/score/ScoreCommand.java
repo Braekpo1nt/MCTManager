@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.commands.mct.score;
 
 import org.braekpo1nt.mctmanager.commands.manager.CommandManager;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
+import org.braekpo1nt.mctmanager.commands.mct.score.all.ScoreAllSubCommand;
 import org.braekpo1nt.mctmanager.commands.mct.score.player.ScorePlayerSubCommand;
 import org.braekpo1nt.mctmanager.commands.mct.score.team.ScoreTeamSubCommand;
 import org.braekpo1nt.mctmanager.games.GameManager;
@@ -18,6 +19,7 @@ public class ScoreCommand extends CommandManager {
         playerSubCommand = new ScorePlayerSubCommand(gameManager, "player");
         addSubCommand(playerSubCommand);
         addSubCommand(new ScoreTeamSubCommand(gameManager, "team"));
+        addSubCommand(new ScoreAllSubCommand(gameManager, "all"));
     }
     
     /**

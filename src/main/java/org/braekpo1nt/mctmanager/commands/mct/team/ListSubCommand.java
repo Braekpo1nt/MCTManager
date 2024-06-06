@@ -1,14 +1,13 @@
 package org.braekpo1nt.mctmanager.commands.mct.team;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.bukkit.Bukkit;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
@@ -31,7 +30,7 @@ public class ListSubCommand extends TabSubCommand {
         if (args.length > 1) {
             return CommandResult.failure(getUsage().of("[true|false]"));
         }
-        Component teamDisplay = getTeamDisplay();
+        Component teamDisplay = GameManagerUtils.getTeamDisplay(gameManager);
         if (args.length == 0) {
             sender.sendMessage(teamDisplay);
             return CommandResult.success();
@@ -56,45 +55,6 @@ public class ListSubCommand extends TabSubCommand {
         return CommandResult.success();
     }
     
-    private Component getTeamDisplay() {
-        TextComponent.Builder messageBuilder = Component.text().append(Component.text("TEAMS\n")
-                    .decorate(TextDecoration.BOLD));
-        List<OfflinePlayer> offlinePlayers = gameManager.getOfflineParticipants();
-        List<String> teamNames = gameManager.getTeamNames().stream().toList();
-        
-        for (String teamName : teamNames) {
-            int teamScore = gameManager.getScore(teamName);
-            NamedTextColor teamNamedTextColor = gameManager.getTeamNamedTextColor(teamName);
-            messageBuilder.append(Component.empty()
-                            .append(gameManager.getFormattedTeamDisplayName(teamName))
-                            .append(Component.text(" - "))
-                            .append(Component.text(teamScore)
-                                    .decorate(TextDecoration.BOLD)
-                                    .color(NamedTextColor.GOLD))
-                    .append(Component.text(":\n")));
-            for (OfflinePlayer offlinePlayer : offlinePlayers) {
-                String playerTeam = gameManager.getTeamName(offlinePlayer.getUniqueId());
-                int playerScore = gameManager.getScore(offlinePlayer.getUniqueId());
-                if (offlinePlayer.getName() == null) {
-                    continue;
-                }
-                if (playerTeam.equals(teamName)) {
-                    messageBuilder.append(Component.empty()
-                            .append(Component.text("  "))
-                            .append(Component.text(offlinePlayer.getName())
-                                    .color(teamNamedTextColor))
-                            .append(Component.text(" - "))
-                            .append(Component.text(playerScore)
-                                    .decorate(TextDecoration.BOLD)
-                                    .color(NamedTextColor.GOLD))
-                            .append(Component.text("\n")));
-                }
-            }
-        }
-        
-        return messageBuilder.build();
-    }
-
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length == 1) {

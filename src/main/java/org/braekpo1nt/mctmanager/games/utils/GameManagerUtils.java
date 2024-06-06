@@ -1,5 +1,11 @@
 package org.braekpo1nt.mctmanager.games.utils;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
+import org.braekpo1nt.mctmanager.games.GameManager;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.event.inventory.InventoryAction;
 import org.jetbrains.annotations.NotNull;
 
@@ -55,5 +61,44 @@ public class GameManagerUtils {
     
     public static boolean validTeamName(String teamName) {
         return teamName.matches(TEAM_NAME_REGEX);
+    }
+    
+    public static Component getTeamDisplay(GameManager gameManager) {
+        TextComponent.Builder messageBuilder = Component.text().append(Component.text("TEAMS\n")
+                    .decorate(TextDecoration.BOLD));
+        List<OfflinePlayer> offlinePlayers = gameManager.getOfflineParticipants();
+        List<String> teamNames = gameManager.getTeamNames().stream().toList();
+        
+        for (String teamName : teamNames) {
+            int teamScore = gameManager.getScore(teamName);
+            NamedTextColor teamNamedTextColor = gameManager.getTeamNamedTextColor(teamName);
+            messageBuilder.append(Component.empty()
+                            .append(gameManager.getFormattedTeamDisplayName(teamName))
+                            .append(Component.text(" - "))
+                            .append(Component.text(teamScore)
+                                    .decorate(TextDecoration.BOLD)
+                                    .color(NamedTextColor.GOLD))
+                    .append(Component.text(":\n")));
+            for (OfflinePlayer offlinePlayer : offlinePlayers) {
+                String playerTeam = gameManager.getTeamName(offlinePlayer.getUniqueId());
+                int playerScore = gameManager.getScore(offlinePlayer.getUniqueId());
+                if (offlinePlayer.getName() == null) {
+                    continue;
+                }
+                if (playerTeam.equals(teamName)) {
+                    messageBuilder.append(Component.empty()
+                            .append(Component.text("  "))
+                            .append(Component.text(offlinePlayer.getName())
+                                    .color(teamNamedTextColor))
+                            .append(Component.text(" - "))
+                            .append(Component.text(playerScore)
+                                    .decorate(TextDecoration.BOLD)
+                                    .color(NamedTextColor.GOLD))
+                            .append(Component.text("\n")));
+                }
+            }
+        }
+        
+        return messageBuilder.build();
     }
 }
