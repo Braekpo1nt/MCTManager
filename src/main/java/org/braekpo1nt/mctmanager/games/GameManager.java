@@ -1034,6 +1034,13 @@ public class GameManager implements Listener {
     }
     
     /**
+     * @return a list of the names of all the teams in the game state
+     */
+    public List<String> getAllTeamNames() {
+        return new ArrayList<>(gameStateStorageUtil.getTeamNames());
+    }
+    
+    /**
      * Gets a list of all participants in the form of OfflinePlayers. This will
      * return all participants in the game state whether they are offline or online. 
      * @return A list of all OfflinePlayers in the game state. These players could
