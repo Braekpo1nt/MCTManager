@@ -219,6 +219,7 @@ public class BlockPlacementUtils {
      * @return the location below the given location that is a solid block. If there are no solid blocks
      */
     public static Location getSolidBlockBelow(Location location) {
+        //TODO: this doesn't check the block the location is in, so if the location is inside a block, and there's a solid block below, then this returns the block the location is in
         Location nonAirLocation = location.subtract(0, 1, 0);
         while (nonAirLocation.getBlockY() > -64) {
             Block block = nonAirLocation.getBlock();

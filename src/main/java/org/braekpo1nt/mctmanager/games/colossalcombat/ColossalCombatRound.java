@@ -361,6 +361,9 @@ public class ColossalCombatRound implements Listener {
         if (!config.shouldStartCaptureTheFlag()) {
             return false;
         }
+        if (captureTheFlagStarted) {
+            return false;
+        }
         long firstCount = firstPlaceParticipantsAlive.values().stream().filter(alive -> alive).count();
         long secondCount = secondPlaceParticipantsAlive.values().stream().filter(alive -> alive).count();
         return firstCount <= config.getCaptureTheFlagMaximumPlayers() && secondCount <= config.getCaptureTheFlagMaximumPlayers();
@@ -501,7 +504,7 @@ public class ColossalCombatRound implements Listener {
     }
     
     @EventHandler
-    public void antiSuffocationMovementDetection(PlayerMoveEvent event) {
+    public void onPlayerMove(PlayerMoveEvent event) {
         if (!roundActive) {
             return;
         }
@@ -524,6 +527,9 @@ public class ColossalCombatRound implements Listener {
         if (!captureTheFlagStarted) {
             return;
         }
+        if (!firstPlaceParticipantsAlive.get(participant.getUniqueId())) {
+            return;
+        }
         Location location = participant.getLocation();
         if (canPickUpFlag(location)) {
             pickupFlag(participant);
@@ -543,6 +549,9 @@ public class ColossalCombatRound implements Listener {
             return;
         }
         if (!captureTheFlagStarted) {
+            return;
+        }
+        if (!secondPlaceParticipantsAlive.get(participant.getUniqueId())) {
             return;
         }
         Location location = participant.getLocation();
