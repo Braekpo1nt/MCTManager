@@ -393,13 +393,15 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
      */
     private void startGameEndCountdownTask() {
         gameEndCountDown = true;
+        sidebar.addLine("ending", "");
+        adminSidebar.addLine("ending", "");
         gameEndCountdownTaskId = new BukkitRunnable() {
             int count = config.getEndDuration();
             @Override
             public void run() {
                 if (count <= 0) {
-                    sidebar.updateLine("timer", "");
-                    adminSidebar.updateLine("timer", "");
+                    sidebar.deleteLine("ending");
+                    adminSidebar.deleteLine("ending");
                     gameEndCountDown = false;
                     stop();
                     this.cancel();
@@ -407,8 +409,8 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
                 }
                 String timeString = TimeStringUtils.getTimeString(count);
                 String timerString = String.format("Game ending: %s", timeString);
-                sidebar.updateLine("timer", timerString);
-                adminSidebar.updateLine("timer", timerString);
+                sidebar.updateLine("ending", timerString);
+                adminSidebar.updateLine("ending", timerString);
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
