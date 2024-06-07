@@ -45,7 +45,6 @@ import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -63,17 +62,24 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     private List<Player> participants = new ArrayList<>();
     private List<Player> admins = new ArrayList<>();
     private int startMechaTaskId;
-    private int stopMechaCountdownTaskId;
+    private int gameEndCountdownTaskId;
     private int startInvulnerableTaskID;
     private WorldBorder worldBorder;
     private int borderShrinkingTaskId;
-    private String lastKilledTeam;
+    /**
+     * A list of all teams who are alive
+     */
+    private List<String> livingTeams;
     private List<UUID> livingPlayers;
     private List<UUID> deadPlayers;
     private Map<UUID, Integer> killCounts;
     private int descriptionPeriodTaskId;
     private boolean descriptionShowing = false;
     private final String title = ChatColor.BLUE+"MECHA";
+    /**
+     * true when the game is over, and countdown is started, so no points should be awarded
+     */
+    private boolean gameEndCountDown = false;
     
     public MechaGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
@@ -96,7 +102,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         this.participants = new ArrayList<>(newParticipants.size());
         livingPlayers = new ArrayList<>(newParticipants.size());
         deadPlayers = new ArrayList<>();
-        lastKilledTeam = null;
+        livingTeams = gameManager.getTeamNames(newParticipants);
         killCounts = new HashMap<>(newParticipants.size());
         worldBorder = config.getWorld().getWorldBorder();
         isInvulnerable = false;
@@ -115,6 +121,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         initializeWorldBorder();
         startAdmins(newAdmins);
         displayDescription();
+        gameEndCountDown = false;
         gameActive = true;
         startDescriptionPeriod();
         Bukkit.getLogger().info("Started mecha");
@@ -167,12 +174,12 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     public void stop() {
         HandlerList.unregisterAll(this);
         descriptionShowing = false;
+        gameEndCountDown = false;
         cancelAllTasks();
         clearFloorItems();
         clearAllChests();
         clearContainers();
         removePlatforms();
-        lastKilledTeam = null;
         worldBorder.reset();
         stopAdmins();
         for (Player participant : participants) {
@@ -180,6 +187,9 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         }
         clearSidebar();
         participants.clear();
+        livingPlayers.clear();
+        deadPlayers.clear();
+        livingTeams.clear();
         mechaHasStarted = false;
         gameActive = false;
         gameManager.gameIsOver();
@@ -330,7 +340,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     private void cancelAllTasks() {
         Bukkit.getScheduler().cancelTask(startMechaTaskId);
         Bukkit.getScheduler().cancelTask(borderShrinkingTaskId);
-        Bukkit.getScheduler().cancelTask(stopMechaCountdownTaskId);
+        Bukkit.getScheduler().cancelTask(gameEndCountdownTaskId);
         Bukkit.getScheduler().cancelTask(startInvulnerableTaskID);
         Bukkit.getScheduler().cancelTask(descriptionPeriodTaskId);
     }
@@ -378,23 +388,27 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
     }
     
-    private void startStopMechaCountdownTask() {
-        String endDuration = TimeStringUtils.getTimeString(config.getEndDuration());
-        messageAllParticipants(Component.text("Game ending in ")
-                .append(Component.text(endDuration)));
-        stopMechaCountdownTaskId = new BukkitRunnable() {
+    /**
+     * This adds a slight delay to the end of the match, so that players can have time to revel
+     */
+    private void startGameEndCountdownTask() {
+        gameEndCountDown = true;
+        gameEndCountdownTaskId = new BukkitRunnable() {
             int count = config.getEndDuration();
             @Override
             public void run() {
                 if (count <= 0) {
+                    sidebar.updateLine("timer", "");
+                    adminSidebar.updateLine("timer", "");
+                    gameEndCountDown = false;
                     stop();
                     this.cancel();
                     return;
                 }
-                if (count <= 3) {
-                    messageAllParticipants(Component.text("Game ending in ")
-                            .append(Component.text(count)));
-                }
+                String timeString = TimeStringUtils.getTimeString(count);
+                String timerString = String.format("Game ending: %s", timeString);
+                sidebar.updateLine("timer", timerString);
+                adminSidebar.updateLine("timer", timerString);
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -441,12 +455,13 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
     }
     
-    private void onTeamWin(String winningTeamName) {
-        Component displayNameComponent = gameManager.getFormattedTeamDisplayName(winningTeamName);
-        Bukkit.getServer().sendMessage(Component.text("Team ")
-                .append(displayNameComponent)
+    private void onTeamWin(String winningTeam) {
+        Component displayName = gameManager.getFormattedTeamDisplayName(winningTeam);
+        plugin.getServer().sendMessage(Component.text("Team ")
+                .append(displayName)
                 .append(Component.text(" wins!")));
-        startStopMechaCountdownTask();
+        gameManager.awardPointsToTeam(winningTeam, config.getFirstPlaceScore());
+        startGameEndCountdownTask();
     }
     
     private void startSuddenDeath() {
@@ -503,16 +518,16 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         }
         Component deathMessage = event.deathMessage();
         if (deathMessage != null) {
-            Bukkit.getServer().sendMessage(deathMessage);
+            plugin.getServer().sendMessage(deathMessage);
         }
-        onParticipantDeath(killed);
         if (killed.getKiller() != null) {
             onParticipantGetKill(killed);
         }
-        String winningTeam = getWinningTeam();
-        if (winningTeam != null) {
-            onTeamWin(winningTeam);
-        }
+        onParticipantDeath(killed);
+//        String winningTeam = getWinningTeam();
+//        if (winningTeam != null) {
+//            onTeamWin(winningTeam);
+//        }
     }
     
     @EventHandler
@@ -697,17 +712,46 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         if (teamIsAllDead(teamName)) {
             onTeamDeath(teamName);
         }
-        lastKilledTeam = teamName;
     }
     
-    private void onTeamDeath(String teamName) {
-        Component formattedTeamDisplayName = gameManager.getFormattedTeamDisplayName(teamName);
+    /**
+     * Call when all of a team's members are dead. 
+     * @param deadTeam the team who just died
+     */
+    private void onTeamDeath(String deadTeam) {
+        Component formattedTeamDisplayName = gameManager.getFormattedTeamDisplayName(deadTeam);
         messageAllParticipants(Component.empty()
                 .append(formattedTeamDisplayName)
                 .append(Component.text(" has been eliminated.")));
+        livingTeams.remove(deadTeam);
+        if (gameEndCountDown) {
+            // points shouldn't be awarded and a team has already won if this is true
+            return;
+        }
         for (Player participant : participants) {
-            if (livingPlayers.contains(participant.getUniqueId())) {
+            String team = gameManager.getTeamName(participant.getUniqueId());
+            if (livingPlayers.contains(participant.getUniqueId()) && !deadTeam.equals(team)) {
                 gameManager.awardPointsToParticipant(participant, config.getSurviveTeamScore());
+            }
+        }
+        Component displayName = gameManager.getFormattedTeamDisplayName(deadTeam);
+        switch (livingTeams.size()) {
+            case 2 -> {
+                plugin.getServer().sendMessage(Component.empty()
+                        .append(displayName)
+                        .append(Component.text(" got third place!")));
+                gameManager.awardPointsToTeam(deadTeam, config.getThirdPlaceScore());
+            }
+            case 1 -> {
+                plugin.getServer().sendMessage(Component.empty()
+                        .append(displayName)
+                        .append(Component.text(" got second place!")));
+                gameManager.awardPointsToTeam(deadTeam, config.getSecondPlaceScore());
+                onTeamWin(livingTeams.get(0));
+            }
+            case 0 -> {
+                // this is a provision for when there is only 1 team at the beginning, for testing purposes
+                onTeamWin(deadTeam);
             }
         }
     }
@@ -749,54 +793,6 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         }
         addKill(killer.getUniqueId());
         gameManager.awardPointsToParticipant(killer, config.getKillScore());
-    }
-    
-    /**
-     * Returns the winning team if there is one
-     * @return The team name of the winning team, or null if there is no winning team
-     */
-    public String getWinningTeam() {
-        if (allLivingPlayersAreOnOneTeam()) {
-            UUID winningPlayerUniqueId = livingPlayers.get(0);
-            return gameManager.getTeamName(winningPlayerUniqueId);
-        }
-        if (allPlayersAreDead()) {
-            return lastKilledTeam;
-        }
-        return null;
-    }
-    
-    /**
-     * Checks if there are no living players anymore
-     * @return True if all players are dead, false if not
-     */
-    private boolean allPlayersAreDead() {
-        return livingPlayers.isEmpty();
-    }
-    
-    /**
-     * Check if all the living players belong to a single team.
-     * @return True if all living players are on a single team. False if there
-     * are at least two players alive on different teams, or there are no
-     * living players.
-     */
-    private boolean allLivingPlayersAreOnOneTeam() {
-        if (livingPlayers.isEmpty()) {
-            return false;
-        }
-        if (livingPlayers.size() == 1) {
-            return true;
-        }
-        UUID firstPlayerUUID = livingPlayers.get(0);
-        String firstTeam = gameManager.getTeamName(firstPlayerUUID);
-        for (int i = 1; i < livingPlayers.size(); i++) {
-            UUID nextPlayerUUID = livingPlayers.get(i);
-            String nextTeam = gameManager.getTeamName(nextPlayerUUID);
-            if (!nextTeam.equals(firstTeam)) {
-                return false;
-            }
-        }
-        return true;
     }
     
     private void addKill(UUID killerUniqueId) {
