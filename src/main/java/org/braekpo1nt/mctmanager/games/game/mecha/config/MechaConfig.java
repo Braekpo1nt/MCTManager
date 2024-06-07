@@ -29,6 +29,9 @@ public class MechaConfig {
     private int endDuration;
     private int killScore;
     private int surviveTeamScore;
+    private int firstPlaceScore;
+    private int secondPlaceScore;
+    private int thirdPlaceScore;
     private boolean lockOtherInventories;
     private boolean shouldClearContainers;
     private double initialBorderSize;
