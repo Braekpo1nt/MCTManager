@@ -526,10 +526,6 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
             onParticipantGetKill(killed);
         }
         onParticipantDeath(killed);
-//        String winningTeam = getWinningTeam();
-//        if (winningTeam != null) {
-//            onTeamWin(winningTeam);
-//        }
     }
     
     @EventHandler
