@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -18,6 +19,11 @@ import java.util.*;
 public class GameState {
     @Builder.Default
     private @NotNull Map<UUID, MCTPlayer> players = new HashMap<>();
+    /**
+     * holds the list of players who are to be added upon joining
+     */
+    @Builder.Default
+    private @NotNull Map<String, UnvalidatedMCTPlayer> unvalidatedPlayers = new HashMap<>();
     @Builder.Default
     private @NotNull Map<String, MCTTeam> teams = new HashMap<>();
     @Builder.Default
@@ -56,6 +62,15 @@ public class GameState {
     public void addPlayer(UUID playerUniqueId, String teamName) {
         MCTPlayer newPlayer = new MCTPlayer(playerUniqueId, 0, teamName);
         players.put(playerUniqueId, newPlayer);
+    }
+    
+    /**
+     * @param ign the participant's in-game-name
+     * @param teamName the teamId of the team this participant belongs to
+     * @param offlineUniqueId can be null, but represents the offlineUniqueId of the participant
+     */
+    public void addUnvalidatedPlayer(@NotNull String ign, @NotNull String teamName, @Nullable UUID offlineUniqueId) {
+        UnvalidatedMCTPlayer newPlayer = new UnvalidatedMCTPlayer(offlineUniqueId, ign, teamName);
     }
     
     /**

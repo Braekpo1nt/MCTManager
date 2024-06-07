@@ -19,6 +19,11 @@ class GameStateDTO implements Validatable {
     
     @Builder.Default
     private @Nullable Map<UUID, MCTPlayerDTO> players = new HashMap<>();
+    /**
+     * Holds the list of players who are to be added upon joining
+     */
+    @Builder.Default
+    private @Nullable Map<String, UnvalidatedMCTPlayerDTO> unvalidatedPlayers = new HashMap<>();
     @Builder.Default
     private @Nullable Map<String, MCTTeamDTO> teams = new HashMap<>();
     @Builder.Default

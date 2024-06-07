@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.games.gamestate;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.jetbrains.annotations.NotNull;
@@ -12,6 +13,7 @@ import java.util.UUID;
 
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 class MCTPlayerDTO implements Validatable {
     private UUID uniqueId;
     private int score;
