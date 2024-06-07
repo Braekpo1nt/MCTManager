@@ -69,10 +69,10 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     /**
      * A list of all teams who are alive
      */
-    private List<String> livingTeams;
-    private List<UUID> livingPlayers;
-    private List<UUID> deadPlayers;
-    private Map<UUID, Integer> killCounts;
+    private List<String> livingTeams = new ArrayList<>();;
+    private List<UUID> livingPlayers = new ArrayList<>();;
+    private List<UUID> deadPlayers = new ArrayList<>();
+    private Map<UUID, Integer> killCounts = new HashMap<>();
     private int descriptionPeriodTaskId;
     private boolean descriptionShowing = false;
     private final String title = ChatColor.BLUE+"MECHA";
