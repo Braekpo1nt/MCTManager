@@ -21,7 +21,7 @@ public class GameStateController extends ConfigController<GameStateDTO> {
     
     @Override
     protected @NotNull Gson getGson() {
-        return Main.GSON_PRETTY;
+        return Main.GSON;
     }
     
     /**
