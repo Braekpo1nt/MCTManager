@@ -219,8 +219,25 @@ public class GameStateStorageUtil {
                 .toList();
     }
     
+    /**
+     * Removes the player with the given UUID from the game state, if it exists.
+     * If the player did not exist, nothing happens. 
+     * @param playerUniqueId The UUID for the player
+     * @throws ConfigIOException if there is an IO error saving the game state
+     */
     public void leavePlayer(UUID playerUniqueId) throws ConfigIOException {
         gameState.removePlayer(playerUniqueId);
+        saveGameState();
+    }
+    
+    /**
+     * Removes the offline player with the given IGN from the game state, if it exists.
+     * If it did not exist, nothing happens. 
+     * @param ign the in-game-name of a player who never logged in
+     * @throws ConfigIOException if there is an IO error saving the game state
+     */
+    public void leaveOfflineIGN(@NotNull String ign) {
+        gameState.removeOfflinePlayer(ign);
         saveGameState();
     }
     

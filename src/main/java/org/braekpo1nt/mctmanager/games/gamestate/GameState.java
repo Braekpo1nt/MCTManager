@@ -117,6 +117,15 @@ public class GameState {
         players.remove(playerUniqueId);
     }
     
+    /**
+     * Removes the offline player with the given IGN from the game state, if it exists.
+     * If it did not exist, nothing happens. 
+     * @param ign the in-game-name of a player who never logged in
+     */
+    public void removeOfflinePlayer(@NotNull String ign) {
+        offlinePlayers.remove(ign);
+    }
+    
     public MCTTeam getTeam(String teamName) {
         return teams.get(teamName);
     }

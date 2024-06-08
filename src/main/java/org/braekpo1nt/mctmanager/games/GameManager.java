@@ -960,6 +960,28 @@ public class GameManager implements Listener {
     }
     
     /**
+     * Leaves the offline IGN from the team and removes them from the game state.
+     * @param sender the sender of the command, who will receive success/error messages
+     * @param ign the in-game-name of a participant who has never logged on
+     */
+    public void leaveOfflineIGN(CommandSender sender, @NotNull String ign) {
+        String teamName = gameStateStorageUtil.getOfflineIGNTeamName(ign);
+        Component teamDisplayName = getFormattedTeamDisplayName(teamName);
+        try {
+            gameStateStorageUtil.leaveOfflineIGN(ign);
+        } catch (ConfigIOException e) {
+            reportGameStateException("leaving offline IGN", e);
+            sender.sendMessage(Component.text("error occurred leaving offline IGN, see console for details.")
+                    .color(NamedTextColor.RED));
+        }
+        sender.sendMessage(Component.text("Removed ")
+                .append(Component.text(ign)
+                        .decorate(TextDecoration.BOLD))
+                .append(Component.text(" from team "))
+                .append(teamDisplayName));
+    }
+    
+    /**
      * Gets the teamId of the player with the given UUID
      * @param playerUniqueId The UUID of the player to find the team of
      * @return The teamId of the player with the given UUID
