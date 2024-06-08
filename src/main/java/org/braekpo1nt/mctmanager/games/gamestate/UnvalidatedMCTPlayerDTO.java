@@ -8,9 +8,10 @@ import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -37,11 +38,15 @@ class UnvalidatedMCTPlayerDTO implements Validatable {
         return new UnvalidatedMCTPlayer(offlineUniqueId, ign, teamName);
     }
     
-    static List<UnvalidatedMCTPlayer> toUnvalidatedMCTPlayers(List<UnvalidatedMCTPlayerDTO> uvPlayers) {
-        return uvPlayers.stream().map(UnvalidatedMCTPlayerDTO::toUnvalidatedMCTPlayer).collect(Collectors.toCollection(ArrayList::new));
+    static Map<String, UnvalidatedMCTPlayer> toUnvalidatedMCTPlayers(List<UnvalidatedMCTPlayerDTO> uvPlayers) {
+        return uvPlayers.stream().map(UnvalidatedMCTPlayerDTO::toUnvalidatedMCTPlayer).collect(Collectors.toMap(UnvalidatedMCTPlayer::getIgn, Function.identity()));
     }
     
-    static UnvalidatedMCTPlayerDTO toUnvalidatedMCTPlayerDTO(UnvalidatedMCTPlayer uvPlayer) {
+    static UnvalidatedMCTPlayerDTO fromUnvalidatedMCTPlayer(UnvalidatedMCTPlayer uvPlayer) {
         return new UnvalidatedMCTPlayerDTO(uvPlayer.getIgn(), uvPlayer.getOfflineUniqueId(), uvPlayer.getTeamName());
+    }
+    
+    static List<UnvalidatedMCTPlayerDTO> fromUnvalidatedMCTPlayers(Map<String, UnvalidatedMCTPlayer> uvPlayers) {
+        return uvPlayers.values().stream().map(UnvalidatedMCTPlayerDTO::fromUnvalidatedMCTPlayer).toList();
     }
 }

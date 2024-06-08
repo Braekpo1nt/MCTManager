@@ -63,9 +63,18 @@ class GameStateDTO implements Validatable {
     
     @NotNull GameState toGameState() {
         return GameState.builder()
-                .players(this.players != null ? MCTPlayerDTO.toMCTPlayers(this.players) : new HashMap<>())
-                .teams(this.teams != null ? MCTTeamDTO.toMCTTeams(this.teams) : new HashMap<>())
-                .admins(this.admins != null ? this.admins : new ArrayList<>())
+                .players(this.players != null 
+                        ? MCTPlayerDTO.toMCTPlayers(this.players) 
+                        : new HashMap<>())
+                .unvalidatedPlayers(this.unvalidatedPlayers != null 
+                        ? UnvalidatedMCTPlayerDTO.toUnvalidatedMCTPlayers(this.unvalidatedPlayers) 
+                        : new HashMap<>())
+                .teams(this.teams != null 
+                        ? MCTTeamDTO.toMCTTeams(this.teams) 
+                        : new HashMap<>())
+                .admins(this.admins != null 
+                        ? this.admins 
+                        : new ArrayList<>())
                 .build();
     }
     
