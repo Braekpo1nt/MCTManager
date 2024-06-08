@@ -23,7 +23,7 @@ class GameStateDTO implements Validatable {
      * Holds the list of players who are to be added upon joining
      */
     @Builder.Default
-    private @Nullable Map<String, UnvalidatedMCTPlayerDTO> unvalidatedPlayers = new HashMap<>();
+    private @Nullable List<UnvalidatedMCTPlayerDTO> unvalidatedPlayers = new ArrayList<>();
     @Builder.Default
     private @Nullable Map<String, MCTTeamDTO> teams = new HashMap<>();
     @Builder.Default
@@ -36,11 +36,27 @@ class GameStateDTO implements Validatable {
         }
         validator.validate(players != null, "players can't be null if teams is null");
         validator.validate(teams != null, "teams can't be null if players is null");
+        Set<UUID> uniqueUUIDs = new HashSet<>(players.size());
         for (Map.Entry<UUID, MCTPlayerDTO> entry : players.entrySet()) {
             MCTPlayerDTO mctPlayer = entry.getValue();
             validator.validate(mctPlayer != null, "players can't contain null values");
             mctPlayer.validate(validator.path("players[%s]", entry.getKey()));
             validator.validate(teams.containsKey(mctPlayer.getTeamName()), "players[%s].teamName could not be found in teams");
+            UUID uuid = mctPlayer.getUniqueId();
+            validator.validate(entry.getKey().equals(uuid), "players[%s].uniqueId must match it's key. Instead it was \"%s\"", uuid);
+            validator.validate(!uniqueUUIDs.contains(uuid), "players[%s].uniqueId is a duplicate of \"%s\"", entry.getKey(), uuid);
+            uniqueUUIDs.add(uuid);
+        }
+        if (unvalidatedPlayers != null) {
+            Set<String> uniqueIGNs = new HashSet<>(unvalidatedPlayers.size());
+            for (int i = 0; i < unvalidatedPlayers.size(); i++) {
+                UnvalidatedMCTPlayerDTO uvPlayer = unvalidatedPlayers.get(i);
+                validator.validate(uvPlayer != null, "unvalidatedPlayers can't contain null values");
+                uvPlayer.validate(validator.path("unvalidatedPlayers[%d]", i));
+                String ign = uvPlayer.getIgn();
+                validator.validate(!uniqueIGNs.contains(ign), "unvalidatedPlayers[%d].ign is a duplicate of \"%s\"", i, ign);
+                uniqueIGNs.add(ign);
+            }
         }
         validator.validateMap(this.teams, "teams");
     }

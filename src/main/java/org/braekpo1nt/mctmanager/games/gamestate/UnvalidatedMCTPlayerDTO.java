@@ -8,7 +8,10 @@ import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Represents a player who has never logged on before
@@ -28,5 +31,17 @@ class UnvalidatedMCTPlayerDTO implements Validatable {
     public void validate(@NotNull Validator validator) {
         validator.notNull(ign, "ign");
         validator.notNull(teamName, "teamName");
+    }
+    
+    UnvalidatedMCTPlayer toUnvalidatedMCTPlayer() {
+        return new UnvalidatedMCTPlayer(offlineUniqueId, ign, teamName);
+    }
+    
+    static List<UnvalidatedMCTPlayer> toUnvalidatedMCTPlayers(List<UnvalidatedMCTPlayerDTO> uvPlayers) {
+        return uvPlayers.stream().map(UnvalidatedMCTPlayerDTO::toUnvalidatedMCTPlayer).collect(Collectors.toCollection(ArrayList::new));
+    }
+    
+    static UnvalidatedMCTPlayerDTO toUnvalidatedMCTPlayerDTO(UnvalidatedMCTPlayer uvPlayer) {
+        return new UnvalidatedMCTPlayerDTO(uvPlayer.getIgn(), uvPlayer.getOfflineUniqueId(), uvPlayer.getTeamName());
     }
 }

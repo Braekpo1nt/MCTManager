@@ -71,6 +71,7 @@ public class GameState {
      */
     public void addUnvalidatedPlayer(@NotNull String ign, @NotNull String teamName, @Nullable UUID offlineUniqueId) {
         UnvalidatedMCTPlayer newPlayer = new UnvalidatedMCTPlayer(offlineUniqueId, ign, teamName);
+        unvalidatedPlayers.put(ign, newPlayer);
     }
     
     /**
