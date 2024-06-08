@@ -13,7 +13,7 @@ public class MockGameStateStorageUtil extends GameStateStorageUtil {
     
     @Override
     public void loadGameState() {
-        this.gameState = new GameState(new HashMap<>(), new HashMap<>(), new ArrayList<>());
+        this.gameState = new GameState();
     }
     
     @Override

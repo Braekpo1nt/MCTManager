@@ -240,9 +240,9 @@ public class GameManager implements Listener {
         joinPlayerToTeam(Bukkit.getConsoleSender(), participant, team);
         messageAdmins(Component.empty()
                 .append(participant.displayName())
-                .append(Component.text(" logged in for the first time. They were joined to "))
+                .append(Component.text(" logged in (perhaps for the first time.) They were joined to "))
                 .append(getFormattedTeamDisplayName(team))
-                .append(Component.text(" because their IGN was listed in the GameState's offlinePlayers list as a member of that team.")));
+                .append(Component.text(" because their IGN was listed in the GameState's offlinePlayers list.")));
     }
     
     public Scoreboard getMctScoreboard() {
