@@ -12,21 +12,16 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 class GameStateDTO implements Validatable {
     
-    @Builder.Default
     private @Nullable Map<UUID, MCTPlayerDTO> players = new HashMap<>();
     /**
      * Holds the list of players who are to be added upon joining
      */
-    @Builder.Default
     private @Nullable List<OfflineMCTPlayerDTO> offlinePlayers = new ArrayList<>();
-    @Builder.Default
     private @Nullable Map<String, MCTTeamDTO> teams = new HashMap<>();
-    @Builder.Default
     private @Nullable List<UUID> admins = new ArrayList<>();
     
     @Override
@@ -43,7 +38,7 @@ class GameStateDTO implements Validatable {
             mctPlayer.validate(validator.path("players[%s]", entry.getKey()));
             validator.validate(teams.containsKey(mctPlayer.getTeamName()), "players[%s].teamName could not be found in teams");
             UUID uuid = mctPlayer.getUniqueId();
-            validator.validate(entry.getKey().equals(uuid), "players[%s].uniqueId must match it's key. Instead it was \"%s\"", uuid);
+            validator.validate(entry.getKey().equals(uuid), "players[%s].uniqueId must match it's key. Instead it was \"%s\"", entry.getKey(), uuid);
             validator.validate(!uniqueUUIDs.contains(uuid), "players[%s].uniqueId is a duplicate of \"%s\"", entry.getKey(), uuid);
             uniqueUUIDs.add(uuid);
         }
@@ -79,12 +74,12 @@ class GameStateDTO implements Validatable {
     }
     
     static @NotNull GameStateDTO fromGameState(@NotNull GameState gameState) {
-        return GameStateDTO.builder()
-                .players(MCTPlayerDTO.fromMCTPlayers(gameState.getPlayers()))
-                .offlinePlayers(OfflineMCTPlayerDTO.fromOfflineMCTPlayers(gameState.getOfflinePlayers()))
-                .teams(MCTTeamDTO.fromMCTTeams(gameState.getTeams()))
-                .admins(gameState.getAdmins())
-                .build();
+        return new GameStateDTO(
+                MCTPlayerDTO.fromMCTPlayers(gameState.getPlayers()),
+                OfflineMCTPlayerDTO.fromOfflineMCTPlayers(gameState.getOfflinePlayers()),
+                MCTTeamDTO.fromMCTTeams(gameState.getTeams()),
+                gameState.getAdmins()
+        );
     }
     
 }
