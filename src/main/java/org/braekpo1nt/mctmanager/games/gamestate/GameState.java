@@ -59,17 +59,23 @@ public class GameState {
         teams.remove(teamName);
     }
     
+    /**
+     * Adds the given player to the game state, joined to the given team
+     * @param playerUniqueId the UUID of the player
+     * @param teamName the teamId to join it to
+     */
     public void addPlayer(UUID playerUniqueId, String teamName) {
         MCTPlayer newPlayer = new MCTPlayer(playerUniqueId, 0, teamName);
         players.put(playerUniqueId, newPlayer);
     }
     
     /**
+     * Adds the given offline player to the game state, joined to the given team
      * @param ign the participant's in-game-name
-     * @param teamName the teamId of the team this participant belongs to
      * @param offlineUniqueId can be null, but represents the offlineUniqueId of the participant
+     * @param teamName the teamId of the team this participant belongs to
      */
-    public void addOfflinePlayer(@NotNull String ign, @NotNull String teamName, @Nullable UUID offlineUniqueId) {
+    public void addOfflinePlayer(@NotNull String ign, @Nullable UUID offlineUniqueId, @NotNull String teamName) {
         OfflineMCTPlayer newPlayer = new OfflineMCTPlayer(offlineUniqueId, ign, teamName);
         offlinePlayers.put(ign, newPlayer);
     }

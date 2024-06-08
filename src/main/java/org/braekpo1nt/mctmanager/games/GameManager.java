@@ -848,7 +848,7 @@ public class GameManager implements Listener {
     
     /**
      * @param sender the sender of the command, who will receive success/error messages
-     * @param ign The in-game-name of the participant who has never joined the server before, which you are joining to the given team
+     * @param ign The in-game-name of the participant who has never logged in before, which you are joining to the given team
      * @param offlineUniqueId nullable. The UUID of the offline player with the ign, if you know it. 
      * @param teamName the teamId of the team to join the participant to. Must be a valid teamId. 
      */
@@ -899,6 +899,23 @@ public class GameManager implements Listener {
         Player onlineNewPlayer = newPlayer.getPlayer();
         if (onlineNewPlayer != null) {
             onParticipantJoin(onlineNewPlayer);
+        }
+    }
+    
+    /**
+     * Adds the new offline IGN to the game state and joins them the given team. 
+     * @param sender the sender of the command, who will receive success/error messages
+     * @param ign The in-game-name of the participant who has never logged in before
+     * @param offlineUniqueId nullable. The UUID of the offline player with the ign, if you know it.
+     * @param teamName The valid teamId of the team to join the new player to. 
+     */
+    private void addNewOfflineIGN(CommandSender sender, @NotNull String ign, @Nullable UUID offlineUniqueId, String teamName) {
+        try {
+            gameStateStorageUtil.addNewOfflineIGN(ign, offlineUniqueId, teamName);
+        } catch (ConfigIOException e) {
+            reportGameStateException("adding new offline IGN", e);
+            sender.sendMessage(Component.text("error occurred adding new offline IGN, see console for details.")
+                    .color(NamedTextColor.RED));
         }
     }
     

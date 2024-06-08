@@ -13,6 +13,7 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.logging.Logger;
@@ -162,9 +163,26 @@ public class GameStateStorageUtil {
         return gameState.getTeams().keySet();
     }
     
-    
+    /**
+     * Adds the given player to the game state, joined to the given team
+     * @param playerToJoin the UUID of the player
+     * @param teamName the teamId to join it to
+     * @throws ConfigIOException if there is an IO error saving the game state
+     */
     public void addNewPlayer(UUID playerToJoin, String teamName) throws ConfigIOException {
         gameState.addPlayer(playerToJoin, teamName);
+        saveGameState();
+    }
+    
+    /**
+     * Adds the given offline player to the game state, joined to the given team
+     * @param ign the participant's in-game-name
+     * @param offlineUniqueId can be null, but represents the offlineUniqueId of the participant
+     * @param teamName the teamId of the team this participant belongs to
+     * @throws ConfigIOException if there is an IO error saving the game state
+     */
+    public void addNewOfflineIGN(@NotNull String ign, @Nullable UUID offlineUniqueId, String teamName) {
+        gameState.addOfflinePlayer(ign, offlineUniqueId, teamName);
         saveGameState();
     }
     
