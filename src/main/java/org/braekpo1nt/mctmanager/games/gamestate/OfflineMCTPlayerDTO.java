@@ -8,6 +8,7 @@ import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -47,6 +48,9 @@ class OfflineMCTPlayerDTO implements Validatable {
     }
     
     static List<OfflineMCTPlayerDTO> fromOfflineMCTPlayers(Map<String, OfflineMCTPlayer> offlineMCTPlayers) {
+        if (offlineMCTPlayers.isEmpty()) {
+            return Collections.emptyList();
+        }
         return offlineMCTPlayers.values().stream().map(OfflineMCTPlayerDTO::fromOfflineMCTPlayer).toList();
     }
 }
