@@ -81,6 +81,7 @@ class GameStateDTO implements Validatable {
     static @NotNull GameStateDTO fromGameState(@NotNull GameState gameState) {
         return GameStateDTO.builder()
                 .players(MCTPlayerDTO.fromMCTPlayers(gameState.getPlayers()))
+                .offlinePlayers(OfflineMCTPlayerDTO.fromOfflineMCTPlayers(gameState.getOfflinePlayers()))
                 .teams(MCTTeamDTO.fromMCTTeams(gameState.getTeams()))
                 .admins(gameState.getAdmins())
                 .build();
