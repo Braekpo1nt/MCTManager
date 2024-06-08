@@ -173,6 +173,10 @@ public class GameManager implements Listener {
         }
         if (isParticipant(player.getUniqueId())) {
             onParticipantJoin(player);
+            return;
+        }
+        if (isOfflineIGN(player.getName())) {
+            onOfflineIGNJoin(player);
         }
     }
     
@@ -220,6 +224,24 @@ public class GameManager implements Listener {
         }
         updateTeamScore(teamName);
         updatePersonalScore(participant);
+    }
+    
+    /**
+     * Handles when a participant who's in-game-name (IGN) matches that of an OfflinePlayer in the GameState,
+     * meaning they have joined the server for the first time.
+     * The OfflinePlayer is transitioned to a normal participant in the game state, the player is joined to the 
+     * appropriate team, and they are alerted to their new status
+     * @param participant the participant who has joined for the first time
+     */
+    private void onOfflineIGNJoin(@NotNull Player participant) {
+        String team = getOfflineIGNTeamName(participant.getName());
+        leaveOfflineIGN(Bukkit.getConsoleSender(), participant.getName());
+        joinPlayerToTeam(Bukkit.getConsoleSender(), participant, team);
+        messageAdmins(Component.empty()
+                .append(participant.displayName())
+                .append(Component.text(" logged in for the first time. They were joined to "))
+                .append(getFormattedTeamDisplayName(team))
+                .append(Component.text(" because their IGN was listed in the GameState's offlinePlayers list as a member of that team.")));
     }
     
     public Scoreboard getMctScoreboard() {
@@ -995,7 +1017,8 @@ public class GameManager implements Listener {
                 .append(Component.text(ign)
                         .decorate(TextDecoration.BOLD))
                 .append(Component.text(" from team "))
-                .append(teamDisplayName));
+                .append(teamDisplayName)
+                .append(Component.text(". This was a player who had never logged in before.")));
     }
     
     /**
