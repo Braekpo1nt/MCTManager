@@ -874,7 +874,7 @@ public class GameManager implements Listener {
      * @param offlineUniqueId nullable. The UUID of the offline player with the ign, if you know it. 
      * @param teamName the teamId of the team to join the participant to. Must be a valid teamId. 
      */
-    public void joinOfflinePlayerToTeam(CommandSender sender, @NotNull String ign, @Nullable UUID offlineUniqueId, String teamName) {
+    public void joinOfflineIGNToTeam(CommandSender sender, @NotNull String ign, @Nullable UUID offlineUniqueId, String teamName) {
         if (isOfflineIGN(ign)) {
             String originalTeamName = getOfflineIGNTeamName(ign);
             if (originalTeamName.equals(teamName)) {
@@ -896,7 +896,9 @@ public class GameManager implements Listener {
                         .color(teamNamedTextColor)
                         .decorate(TextDecoration.BOLD))
                 .append(Component.text(" to team "))
-                .append(displayName));
+                .append(displayName)
+                .append(Component.newline())
+                .append(Component.text("This player is offline, and will be added to the GameState when they log in next.")));
     }
     
     /**

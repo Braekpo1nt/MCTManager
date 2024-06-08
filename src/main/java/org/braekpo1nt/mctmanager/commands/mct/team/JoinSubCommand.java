@@ -53,7 +53,7 @@ public class JoinSubCommand extends TabSubCommand {
                 }
             }
             OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(playerName);
-            gameManager.joinOfflinePlayerToTeam(sender, playerName, offlinePlayer.getUniqueId(), teamName);
+            gameManager.joinOfflineIGNToTeam(sender, playerName, offlinePlayer.getUniqueId(), teamName);
             return CommandResult.success();
         }
         if (gameManager.isParticipant(playerToJoin.getUniqueId())) {
