@@ -13,7 +13,7 @@ import java.util.UUID;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class UnvalidatedMCTPlayer {
+public class OfflineMCTPlayer {
     private @Nullable UUID offlineUniqueId;
     /**
      * the in-game-name of the participant

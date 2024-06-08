@@ -23,7 +23,7 @@ public class GameState {
      * holds the list of players who are to be added upon joining
      */
     @Builder.Default
-    private @NotNull Map<String, UnvalidatedMCTPlayer> unvalidatedPlayers = new HashMap<>();
+    private @NotNull Map<String, OfflineMCTPlayer> offlinePlayers = new HashMap<>();
     @Builder.Default
     private @NotNull Map<String, MCTTeam> teams = new HashMap<>();
     @Builder.Default
@@ -69,9 +69,9 @@ public class GameState {
      * @param teamName the teamId of the team this participant belongs to
      * @param offlineUniqueId can be null, but represents the offlineUniqueId of the participant
      */
-    public void addUnvalidatedPlayer(@NotNull String ign, @NotNull String teamName, @Nullable UUID offlineUniqueId) {
-        UnvalidatedMCTPlayer newPlayer = new UnvalidatedMCTPlayer(offlineUniqueId, ign, teamName);
-        unvalidatedPlayers.put(ign, newPlayer);
+    public void addOfflinePlayer(@NotNull String ign, @NotNull String teamName, @Nullable UUID offlineUniqueId) {
+        OfflineMCTPlayer newPlayer = new OfflineMCTPlayer(offlineUniqueId, ign, teamName);
+        offlinePlayers.put(ign, newPlayer);
     }
     
     /**
