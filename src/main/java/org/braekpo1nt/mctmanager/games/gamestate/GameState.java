@@ -84,12 +84,28 @@ public class GameState {
     }
     
     /**
+     * @param ign the in-game-name of a participant who has never logged in before
+     * @return true if the ign is in the current list of offline players (who have yet to log in for the first time), false otherwise
+     */
+    public boolean containsOfflineIGN(String ign) {
+        return offlinePlayers.containsKey(ign);
+    }
+    
+    /**
      * Returns the player with the given UUID
      * @param playerUniqueId The UUID of the player to get
      * @return The player with the given UUID, null if the player does not exist.
      */
     public MCTPlayer getPlayer(UUID playerUniqueId) {
         return players.get(playerUniqueId);
+    }
+    
+    /**
+     * @param ign the in-game-name of a participant who has never logged in before
+     * @return the matching {@link OfflineMCTPlayer} of the ign
+     */
+    public OfflineMCTPlayer getOfflinePlayer(String ign) {
+        return offlinePlayers.get(ign);
     }
     
     /**

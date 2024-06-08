@@ -12,6 +12,7 @@ import org.bukkit.Color;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.logging.Logger;
@@ -23,7 +24,7 @@ public class GameStateStorageUtil {
     
     private final Logger LOGGER;
     private final GameStateController gameStateController;
-    protected GameState gameState = new GameState(new HashMap<>(), new HashMap<>(), new ArrayList<>());
+    protected GameState gameState = new GameState(new HashMap<>(), new HashMap<>(), new HashMap<>(), new ArrayList<>());
     
     public GameStateStorageUtil(Main plugin) {
         this.LOGGER = plugin.getLogger();
@@ -167,8 +168,21 @@ public class GameStateStorageUtil {
         saveGameState();
     }
     
+    /**
+     * Checks if the game state contains the given player
+     * @param playerUniqueId The UUID of the player to check for
+     * @return True if the player with the given UUID exists, false otherwise 
+     */
     public boolean containsPlayer(UUID playerUniqueId) {
         return gameState.containsPlayer(playerUniqueId);
+    }
+    
+    /**
+     * @param ign the in-game-name of a participant who has never logged in before
+     * @return true if the ign is in the current list of offline players (who have yet to log in for the first time), false otherwise
+     */
+    public boolean containsOfflineIGN(String ign) {
+        return gameState.containsOfflineIGN(ign);
     }
     
     /**
@@ -179,6 +193,15 @@ public class GameStateStorageUtil {
      */
     public String getPlayerTeamName(UUID playerUniqueId) {
         return gameState.getPlayer(playerUniqueId).getTeamName();
+    }
+    
+    /**
+     * @param ign the in-game-name of a participant who has never logged in before
+     * @return the teamId of the OfflineParticipant with the given ign
+     * @throws NullPointerException if the ign doesn't exist in the GameState
+     */
+    public String getOfflineIGNTeamName(@NotNull String ign) {
+        return gameState.getOfflinePlayer(ign).getTeamName();
     }
     
     /**

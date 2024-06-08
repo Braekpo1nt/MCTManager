@@ -796,6 +796,14 @@ public class GameManager implements Listener {
     }
     
     /**
+     * @param ign the in-game-name of the OfflineParticipant
+     * @return true if the ign is that of an OfflineParticipant (one who has never logged in before), false otherwise
+     */
+    public boolean isOfflineIGN(@NotNull String ign) {
+        return gameStateStorageUtil.containsOfflineIGN(ign);
+    }
+    
+    /**
      * Joins the given player to the team with the given teamName. If the player was on a team already (not teamName) they will be removed from that team and added to the other team. 
      * Note, this will not join a player to a team if that player is an admin. 
      * @param sender the sender of the command, who will receive success/error messages
@@ -835,6 +843,15 @@ public class GameManager implements Listener {
         Component displayName = Component.text(participant.getName(), teamNamedTextColor);
         participant.displayName(displayName);
         participant.playerListName(displayName);
+    }
+    
+    /**
+     * @param sender the sender of the command, who will receive success/error messages
+     * @param offlineParticipant The participant who has never joined the server before to join to the given team
+     * @param teamName the teamId of the team to join the participant to. Must be a valid teamId. 
+     */
+    public void joinOfflinePlayerToTeam(CommandSender sender, OfflinePlayer offlineParticipant, String teamName) {
+        
     }
     
     /**
@@ -919,8 +936,23 @@ public class GameManager implements Listener {
         team.removePlayer(offlinePlayer);
     }
     
+    /**
+     * Gets the teamId of the player with the given UUID
+     * @param playerUniqueId The UUID of the player to find the team of
+     * @return The teamId of the player with the given UUID
+     * @throws NullPointerException if the game state doesn't contain the player's UUID
+     */
     public String getTeamName(UUID playerUniqueId) {
         return gameStateStorageUtil.getPlayerTeamName(playerUniqueId);
+    }
+    
+    /**
+     * @param ign the in-game-name of a participant who has never logged in before
+     * @return the teamId of the OfflineParticipant with the given ign
+     * @throws NullPointerException if the ign doesn't exist in the GameState
+     */
+    public String getOfflineIGNTeamName(@NotNull String ign) {
+        return gameStateStorageUtil.getOfflineIGNTeamName(ign);
     }
     
     /**
