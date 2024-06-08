@@ -37,6 +37,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.logging.Logger;
@@ -834,24 +835,46 @@ public class GameManager implements Listener {
         Component teamDisplayName = getFormattedTeamDisplayName(teamName);
         participant.sendMessage(Component.text("You've been joined to team ")
                 .append(teamDisplayName));
+        NamedTextColor teamNamedTextColor = getTeamNamedTextColor(teamName);
+        Component displayName = Component.text(participant.getName(), teamNamedTextColor);
         sender.sendMessage(Component.text("Joined ")
-                .append(Component.text(participant.getName())
+                .append(displayName
                         .decorate(TextDecoration.BOLD))
                 .append(Component.text(" to team "))
                 .append(teamDisplayName));
-        NamedTextColor teamNamedTextColor = getTeamNamedTextColor(teamName);
-        Component displayName = Component.text(participant.getName(), teamNamedTextColor);
         participant.displayName(displayName);
         participant.playerListName(displayName);
     }
     
     /**
      * @param sender the sender of the command, who will receive success/error messages
-     * @param offlineParticipant The participant who has never joined the server before to join to the given team
+     * @param ign The in-game-name of the participant who has never joined the server before, which you are joining to the given team
+     * @param offlineUniqueId nullable. The UUID of the offline player with the ign, if you know it. 
      * @param teamName the teamId of the team to join the participant to. Must be a valid teamId. 
      */
-    public void joinOfflinePlayerToTeam(CommandSender sender, OfflinePlayer offlineParticipant, String teamName) {
-        
+    public void joinOfflinePlayerToTeam(CommandSender sender, @NotNull String ign, @Nullable UUID offlineUniqueId, String teamName) {
+        if (isOfflineIGN(ign)) {
+            String originalTeamName = getOfflineIGNTeamName(ign);
+            if (originalTeamName.equals(teamName)) {
+                sender.sendMessage(Component.text()
+                        .append(Component.text(ign)
+                                .decorate(TextDecoration.BOLD))
+                        .append(Component.text(" is already a member of team "))
+                        .append(Component.text(teamName))
+                        .append(Component.text(". Nothing happened.")));
+                return;
+            }
+            leaveOfflineIGN(sender, ign);
+        }
+        addNewOfflineIGN(sender, ign, offlineUniqueId, teamName);
+        Component displayName = getFormattedTeamDisplayName(teamName);
+        NamedTextColor teamNamedTextColor = getTeamNamedTextColor(teamName);
+        sender.sendMessage(Component.text("Joined ")
+                .append(Component.text(ign)
+                        .color(teamNamedTextColor)
+                        .decorate(TextDecoration.BOLD))
+                .append(Component.text(" to team "))
+                .append(displayName));
     }
     
     /**
