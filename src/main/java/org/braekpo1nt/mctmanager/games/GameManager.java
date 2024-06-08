@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.games;
 
 import com.google.common.base.Preconditions;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -165,7 +166,7 @@ public class GameManager implements Listener {
     }
     
     @EventHandler
-    public void playerJoinEvent(PlayerJoinEvent event) {
+    public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         if (isAdmin(player.getUniqueId())) {
             onAdminJoin(player);
@@ -840,7 +841,7 @@ public class GameManager implements Listener {
         if (isAdmin(playerUniqueId)) {
             removeAdmin(sender, participant, participant.getName());
         }
-        if (gameStateStorageUtil.containsPlayer(playerUniqueId)) {
+        if (isParticipant(playerUniqueId)) {
             String originalTeamName = getTeamName(playerUniqueId);
             if (originalTeamName.equals(teamName)) {
                 sender.sendMessage(Component.text()
@@ -875,6 +876,26 @@ public class GameManager implements Listener {
      * @param teamName the teamId of the team to join the participant to. Must be a valid teamId. 
      */
     public void joinOfflineIGNToTeam(CommandSender sender, @NotNull String ign, @Nullable UUID offlineUniqueId, String teamName) {
+        if (offlineUniqueId != null) {
+            if (isAdmin(offlineUniqueId)) {
+                OfflinePlayer offlineAdmin = Bukkit.getOfflinePlayer(offlineUniqueId);
+                removeAdmin(sender, offlineAdmin, ign);
+            }
+            if (isParticipant(offlineUniqueId)) {
+                String originalTeamName = getTeamName(offlineUniqueId);
+                if (originalTeamName.equals(teamName)) {
+                    sender.sendMessage(Component.text()
+                            .append(Component.text(ign)
+                                    .decorate(TextDecoration.BOLD))
+                            .append(Component.text(" is already a member of team "))
+                            .append(Component.text(teamName))
+                            .append(Component.text(". Nothing happened.")));
+                    return;
+                }
+                OfflinePlayer offlineParticipant = Bukkit.getOfflinePlayer(offlineUniqueId);
+                leavePlayer(sender, offlineParticipant, ign);
+            }
+        }
         if (isOfflineIGN(ign)) {
             String originalTeamName = getOfflineIGNTeamName(ign);
             if (originalTeamName.equals(teamName)) {
@@ -889,16 +910,21 @@ public class GameManager implements Listener {
             leaveOfflineIGN(sender, ign);
         }
         addNewOfflineIGN(sender, ign, offlineUniqueId, teamName);
-        Component displayName = getFormattedTeamDisplayName(teamName);
+        Component teamDisplayName = getFormattedTeamDisplayName(teamName);
         NamedTextColor teamNamedTextColor = getTeamNamedTextColor(teamName);
+        TextComponent displayName = Component.text(ign)
+                .color(teamNamedTextColor)
+                .decorate(TextDecoration.BOLD);
         sender.sendMessage(Component.text("Joined ")
-                .append(Component.text(ign)
-                        .color(teamNamedTextColor)
-                        .decorate(TextDecoration.BOLD))
-                .append(Component.text(" to team "))
                 .append(displayName)
+                .append(Component.text(" to team "))
+                .append(teamDisplayName)
                 .append(Component.newline())
-                .append(Component.text("This player is offline, and will be added to the GameState when they log in next.")));
+                .append(Component.empty()
+                    .append(displayName)
+                    .append(Component.text(" is offline, and will be added to the GameState when they log in next."))
+                    .decorate(TextDecoration.ITALIC))
+        );
     }
     
     /**
