@@ -12,6 +12,8 @@ import org.bukkit.Color;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.logging.Logger;
@@ -23,7 +25,7 @@ public class GameStateStorageUtil {
     
     private final Logger LOGGER;
     private final GameStateController gameStateController;
-    protected GameState gameState = new GameState(new HashMap<>(), new HashMap<>(), new ArrayList<>());
+    protected GameState gameState = new GameState(new HashMap<>(), new HashMap<>(), new HashMap<>(), new ArrayList<>());
     
     public GameStateStorageUtil(Main plugin) {
         this.LOGGER = plugin.getLogger();
@@ -161,14 +163,44 @@ public class GameStateStorageUtil {
         return gameState.getTeams().keySet();
     }
     
-    
+    /**
+     * Adds the given player to the game state, joined to the given team
+     * @param playerToJoin the UUID of the player
+     * @param teamName the teamId to join it to
+     * @throws ConfigIOException if there is an IO error saving the game state
+     */
     public void addNewPlayer(UUID playerToJoin, String teamName) throws ConfigIOException {
         gameState.addPlayer(playerToJoin, teamName);
         saveGameState();
     }
     
+    /**
+     * Adds the given offline player to the game state, joined to the given team
+     * @param ign the participant's in-game-name
+     * @param offlineUniqueId can be null, but represents the offlineUniqueId of the participant
+     * @param teamName the teamId of the team this participant belongs to
+     * @throws ConfigIOException if there is an IO error saving the game state
+     */
+    public void addNewOfflineIGN(@NotNull String ign, @Nullable UUID offlineUniqueId, String teamName) {
+        gameState.addOfflinePlayer(ign, offlineUniqueId, teamName);
+        saveGameState();
+    }
+    
+    /**
+     * Checks if the game state contains the given player
+     * @param playerUniqueId The UUID of the player to check for
+     * @return True if the player with the given UUID exists, false otherwise 
+     */
     public boolean containsPlayer(UUID playerUniqueId) {
         return gameState.containsPlayer(playerUniqueId);
+    }
+    
+    /**
+     * @param ign the in-game-name of a participant who has never logged in before
+     * @return true if the ign is in the current list of offline players (who have yet to log in for the first time), false otherwise
+     */
+    public boolean containsOfflineIGN(String ign) {
+        return gameState.containsOfflineIGN(ign);
     }
     
     /**
@@ -179,6 +211,15 @@ public class GameStateStorageUtil {
      */
     public String getPlayerTeamName(UUID playerUniqueId) {
         return gameState.getPlayer(playerUniqueId).getTeamName();
+    }
+    
+    /**
+     * @param ign the in-game-name of a participant who has never logged in before
+     * @return the teamId of the OfflineParticipant with the given ign
+     * @throws NullPointerException if the ign doesn't exist in the GameState
+     */
+    public String getOfflineIGNTeamName(@NotNull String ign) {
+        return gameState.getOfflinePlayer(ign).getTeamName();
     }
     
     /**
@@ -196,8 +237,25 @@ public class GameStateStorageUtil {
                 .toList();
     }
     
+    /**
+     * Removes the player with the given UUID from the game state, if it exists.
+     * If the player did not exist, nothing happens. 
+     * @param playerUniqueId The UUID for the player
+     * @throws ConfigIOException if there is an IO error saving the game state
+     */
     public void leavePlayer(UUID playerUniqueId) throws ConfigIOException {
         gameState.removePlayer(playerUniqueId);
+        saveGameState();
+    }
+    
+    /**
+     * Removes the offline player with the given IGN from the game state, if it exists.
+     * If it did not exist, nothing happens. 
+     * @param ign the in-game-name of a player who never logged in
+     * @throws ConfigIOException if there is an IO error saving the game state
+     */
+    public void leaveOfflineIGN(@NotNull String ign) {
+        gameState.removeOfflinePlayer(ign);
         saveGameState();
     }
     

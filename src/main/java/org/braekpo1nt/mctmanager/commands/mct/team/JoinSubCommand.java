@@ -7,6 +7,7 @@ import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -38,14 +39,23 @@ public class JoinSubCommand extends TabSubCommand {
         }
         String playerName = args[1];
         Player playerToJoin = Bukkit.getPlayer(playerName);
+        Component teamDisplayName = gameManager.getFormattedTeamDisplayName(teamName);
         if (playerToJoin == null) {
-            return CommandResult.failure(Component.empty()
-                    .append(Component.text("Player "))
-                    .append(Component.text(playerName)
-                            .decorate(TextDecoration.BOLD))
-                    .append(Component.text(" is not online.")));
+            if (gameManager.isOfflineIGN(playerName)) {
+                String oldTeamName = gameManager.getOfflineIGNTeamName(playerName);
+                if (oldTeamName.equals(teamName)) {
+                    return CommandResult.success(Component.empty()
+                            .append(Component.text(playerName)
+                                    .decorate(TextDecoration.BOLD))
+                            .append(Component.text(" is already on team "))
+                            .append(teamDisplayName)
+                            .color(NamedTextColor.YELLOW));
+                }
+            }
+            OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(playerName);
+            gameManager.joinOfflineIGNToTeam(sender, playerName, offlinePlayer.getUniqueId(), teamName);
+            return CommandResult.success();
         }
-        Component formattedTeamDisplayName = gameManager.getFormattedTeamDisplayName(teamName);
         if (gameManager.isParticipant(playerToJoin.getUniqueId())) {
             String oldTeamName = gameManager.getTeamName(playerToJoin.getUniqueId());
             if (oldTeamName.equals(teamName)) {
@@ -53,7 +63,7 @@ public class JoinSubCommand extends TabSubCommand {
                         .append(Component.text(playerName)
                                 .decorate(TextDecoration.BOLD))
                         .append(Component.text(" is already on team "))
-                        .append(formattedTeamDisplayName)
+                        .append(teamDisplayName)
                         .color(NamedTextColor.YELLOW));
             }
         }

@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.games;
 
 import com.google.common.base.Preconditions;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -37,6 +38,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.logging.Logger;
@@ -164,7 +166,7 @@ public class GameManager implements Listener {
     }
     
     @EventHandler
-    public void playerJoinEvent(PlayerJoinEvent event) {
+    public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         if (isAdmin(player.getUniqueId())) {
             onAdminJoin(player);
@@ -172,6 +174,10 @@ public class GameManager implements Listener {
         }
         if (isParticipant(player.getUniqueId())) {
             onParticipantJoin(player);
+            return;
+        }
+        if (isOfflineIGN(player.getName())) {
+            onOfflineIGNJoin(player);
         }
     }
     
@@ -219,6 +225,24 @@ public class GameManager implements Listener {
         }
         updateTeamScore(teamName);
         updatePersonalScore(participant);
+    }
+    
+    /**
+     * Handles when a participant who's in-game-name (IGN) matches that of an OfflinePlayer in the GameState,
+     * meaning they have joined the server for the first time.
+     * The OfflinePlayer is transitioned to a normal participant in the game state, the player is joined to the 
+     * appropriate team, and they are alerted to their new status
+     * @param participant the participant who has joined for the first time
+     */
+    private void onOfflineIGNJoin(@NotNull Player participant) {
+        String team = getOfflineIGNTeamName(participant.getName());
+        leaveOfflineIGN(Bukkit.getConsoleSender(), participant.getName());
+        joinPlayerToTeam(Bukkit.getConsoleSender(), participant, team);
+        messageAdmins(Component.empty()
+                .append(participant.displayName())
+                .append(Component.text(" logged in (perhaps for the first time.) They were joined to "))
+                .append(getFormattedTeamDisplayName(team))
+                .append(Component.text(" because their IGN was listed in the GameState's offlinePlayers list.")));
     }
     
     public Scoreboard getMctScoreboard() {
@@ -796,6 +820,14 @@ public class GameManager implements Listener {
     }
     
     /**
+     * @param ign the in-game-name of the OfflineParticipant
+     * @return true if the ign is that of an OfflineParticipant (one who has never logged in before), false otherwise
+     */
+    public boolean isOfflineIGN(@NotNull String ign) {
+        return gameStateStorageUtil.containsOfflineIGN(ign);
+    }
+    
+    /**
      * Joins the given player to the team with the given teamName. If the player was on a team already (not teamName) they will be removed from that team and added to the other team. 
      * Note, this will not join a player to a team if that player is an admin. 
      * @param sender the sender of the command, who will receive success/error messages
@@ -809,7 +841,7 @@ public class GameManager implements Listener {
         if (isAdmin(playerUniqueId)) {
             removeAdmin(sender, participant, participant.getName());
         }
-        if (gameStateStorageUtil.containsPlayer(playerUniqueId)) {
+        if (isParticipant(playerUniqueId)) {
             String originalTeamName = getTeamName(playerUniqueId);
             if (originalTeamName.equals(teamName)) {
                 sender.sendMessage(Component.text()
@@ -826,15 +858,73 @@ public class GameManager implements Listener {
         Component teamDisplayName = getFormattedTeamDisplayName(teamName);
         participant.sendMessage(Component.text("You've been joined to team ")
                 .append(teamDisplayName));
+        NamedTextColor teamNamedTextColor = getTeamNamedTextColor(teamName);
+        Component displayName = Component.text(participant.getName(), teamNamedTextColor);
         sender.sendMessage(Component.text("Joined ")
-                .append(Component.text(participant.getName())
+                .append(displayName
                         .decorate(TextDecoration.BOLD))
                 .append(Component.text(" to team "))
                 .append(teamDisplayName));
-        NamedTextColor teamNamedTextColor = getTeamNamedTextColor(teamName);
-        Component displayName = Component.text(participant.getName(), teamNamedTextColor);
         participant.displayName(displayName);
         participant.playerListName(displayName);
+    }
+    
+    /**
+     * @param sender the sender of the command, who will receive success/error messages
+     * @param ign The in-game-name of the participant who has never logged in before, which you are joining to the given team
+     * @param offlineUniqueId nullable. The UUID of the offline player with the ign, if you know it. 
+     * @param teamName the teamId of the team to join the participant to. Must be a valid teamId. 
+     */
+    public void joinOfflineIGNToTeam(CommandSender sender, @NotNull String ign, @Nullable UUID offlineUniqueId, String teamName) {
+        if (offlineUniqueId != null) {
+            if (isAdmin(offlineUniqueId)) {
+                OfflinePlayer offlineAdmin = Bukkit.getOfflinePlayer(offlineUniqueId);
+                removeAdmin(sender, offlineAdmin, ign);
+            }
+            if (isParticipant(offlineUniqueId)) {
+                String originalTeamName = getTeamName(offlineUniqueId);
+                if (originalTeamName.equals(teamName)) {
+                    sender.sendMessage(Component.text()
+                            .append(Component.text(ign)
+                                    .decorate(TextDecoration.BOLD))
+                            .append(Component.text(" is already a member of team "))
+                            .append(Component.text(teamName))
+                            .append(Component.text(". Nothing happened.")));
+                    return;
+                }
+                OfflinePlayer offlineParticipant = Bukkit.getOfflinePlayer(offlineUniqueId);
+                leavePlayer(sender, offlineParticipant, ign);
+            }
+        }
+        if (isOfflineIGN(ign)) {
+            String originalTeamName = getOfflineIGNTeamName(ign);
+            if (originalTeamName.equals(teamName)) {
+                sender.sendMessage(Component.text()
+                        .append(Component.text(ign)
+                                .decorate(TextDecoration.BOLD))
+                        .append(Component.text(" is already a member of team "))
+                        .append(Component.text(teamName))
+                        .append(Component.text(". Nothing happened.")));
+                return;
+            }
+            leaveOfflineIGN(sender, ign);
+        }
+        addNewOfflineIGN(sender, ign, offlineUniqueId, teamName);
+        Component teamDisplayName = getFormattedTeamDisplayName(teamName);
+        NamedTextColor teamNamedTextColor = getTeamNamedTextColor(teamName);
+        TextComponent displayName = Component.text(ign)
+                .color(teamNamedTextColor)
+                .decorate(TextDecoration.BOLD);
+        sender.sendMessage(Component.text("Joined ")
+                .append(displayName)
+                .append(Component.text(" to team "))
+                .append(teamDisplayName)
+                .append(Component.newline())
+                .append(Component.empty()
+                    .append(displayName)
+                    .append(Component.text(" is offline, and will be added to the GameState when they log in next."))
+                    .decorate(TextDecoration.ITALIC))
+        );
     }
     
     /**
@@ -859,6 +949,23 @@ public class GameManager implements Listener {
         Player onlineNewPlayer = newPlayer.getPlayer();
         if (onlineNewPlayer != null) {
             onParticipantJoin(onlineNewPlayer);
+        }
+    }
+    
+    /**
+     * Adds the new offline IGN to the game state and joins them the given team. 
+     * @param sender the sender of the command, who will receive success/error messages
+     * @param ign The in-game-name of the participant who has never logged in before
+     * @param offlineUniqueId nullable. The UUID of the offline player with the ign, if you know it.
+     * @param teamName The valid teamId of the team to join the new player to. 
+     */
+    private void addNewOfflineIGN(CommandSender sender, @NotNull String ign, @Nullable UUID offlineUniqueId, String teamName) {
+        try {
+            gameStateStorageUtil.addNewOfflineIGN(ign, offlineUniqueId, teamName);
+        } catch (ConfigIOException e) {
+            reportGameStateException("adding new offline IGN", e);
+            sender.sendMessage(Component.text("error occurred adding new offline IGN, see console for details.")
+                    .color(NamedTextColor.RED));
         }
     }
     
@@ -919,8 +1026,46 @@ public class GameManager implements Listener {
         team.removePlayer(offlinePlayer);
     }
     
+    /**
+     * Leaves the offline IGN from the team and removes them from the game state.
+     * @param sender the sender of the command, who will receive success/error messages
+     * @param ign the in-game-name of a participant who has never logged on
+     */
+    public void leaveOfflineIGN(CommandSender sender, @NotNull String ign) {
+        String teamName = gameStateStorageUtil.getOfflineIGNTeamName(ign);
+        Component teamDisplayName = getFormattedTeamDisplayName(teamName);
+        try {
+            gameStateStorageUtil.leaveOfflineIGN(ign);
+        } catch (ConfigIOException e) {
+            reportGameStateException("leaving offline IGN", e);
+            sender.sendMessage(Component.text("error occurred leaving offline IGN, see console for details.")
+                    .color(NamedTextColor.RED));
+        }
+        sender.sendMessage(Component.text("Removed ")
+                .append(Component.text(ign)
+                        .decorate(TextDecoration.BOLD))
+                .append(Component.text(" from team "))
+                .append(teamDisplayName)
+                .append(Component.text(". This was a player who had never logged in before.")));
+    }
+    
+    /**
+     * Gets the teamId of the player with the given UUID
+     * @param playerUniqueId The UUID of the player to find the team of
+     * @return The teamId of the player with the given UUID
+     * @throws NullPointerException if the game state doesn't contain the player's UUID
+     */
     public String getTeamName(UUID playerUniqueId) {
         return gameStateStorageUtil.getPlayerTeamName(playerUniqueId);
+    }
+    
+    /**
+     * @param ign the in-game-name of a participant who has never logged in before
+     * @return the teamId of the OfflineParticipant with the given ign
+     * @throws NullPointerException if the ign doesn't exist in the GameState
+     */
+    public String getOfflineIGNTeamName(@NotNull String ign) {
+        return gameStateStorageUtil.getOfflineIGNTeamName(ign);
     }
     
     /**
