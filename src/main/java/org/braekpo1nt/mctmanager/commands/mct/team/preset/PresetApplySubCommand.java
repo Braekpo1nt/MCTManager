@@ -7,10 +7,14 @@ import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.gamestate.preset.Preset;
 import org.braekpo1nt.mctmanager.games.gamestate.preset.PresetController;
+import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Retrieves the saved preset file and performs the equivalent 
@@ -42,7 +46,17 @@ public class PresetApplySubCommand extends SubCommand {
         
         // check if they want to overwrite or merge the game state
         // create all the teams
+        
+        List<CommandResult> commandResults = new ArrayList<>(preset.getTeamCount() + preset.getParticipantCount());
+        for (Preset.PresetTeam team : preset.getTeams()) {
+            CommandResult commandResult = GameManagerUtils.addTeam(gameManager, team.getTeamId(), team.getDisplayName(), team.getColor());
+            commandResults.add(commandResult);
+        }
+        
         // add all the members
+        for (Preset.PresetTeam team : preset.getTeams()) {
+            
+        }
         
         return CommandResult.success();
     }

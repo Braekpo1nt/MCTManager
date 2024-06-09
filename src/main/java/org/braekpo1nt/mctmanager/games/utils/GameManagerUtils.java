@@ -4,7 +4,9 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.event.inventory.InventoryAction;
 import org.jetbrains.annotations.NotNull;
@@ -154,5 +156,57 @@ public class GameManagerUtils {
             return t1.compareToIgnoreCase(t2);
         });
         return teamNames;
+    }
+    
+    /**
+     * This validation and creation is used across multiple commands, so I've put it here for easy replication. 
+     * <br>
+     * Makes sure the inputs are able to form a valid team that doesn't already exist. 
+     * Returns a failure response if anything goes wrong that would prevent the team from being created, otherwise creates the given team. 
+     * @param gameManager the GameManager to add the team to
+     * @param teamId the teamId
+     * @param teamDisplayName the team display name
+     * @param colorString the string representing the team's color
+     * @return a comprehensive message about the success or failure of the addition of the given team
+     */
+    public static CommandResult addTeam(GameManager gameManager, @NotNull String teamId, @NotNull String teamDisplayName, @NotNull String colorString) {
+        if (gameManager.hasTeam(teamId)) {
+            return CommandResult.failure(Component.text("A team already exists with the teamId \"")
+                    .append(Component.text(teamId))
+                    .append(Component.text("\"")));
+        }
+        if (teamId.equals(GameManager.ADMIN_TEAM)) {
+            return CommandResult.failure(Component.empty()
+                    .append(Component.text(teamId)
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(" cannot be "))
+                    .append(Component.text(GameManager.ADMIN_TEAM)
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(" because that is reserved for the admin team.")));
+        }
+        if (!GameManagerUtils.validTeamName(teamId)) {
+            return CommandResult.failure(Component.text("Provide a valid team name\n")
+                    .append(Component.text(
+                            "Allowed characters: -, +, ., _, A-Z, a-z, and 0-9")));
+        }
+        
+        if (teamDisplayName.isEmpty()) {
+            return CommandResult.failure("Display name can't be blank");
+        }
+        
+        if (!ColorMap.hasNamedTextColor(colorString)) {
+            return CommandResult.failure(Component.empty()
+                    .append(Component.text(colorString)
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(" is not a recognized color")));
+        }
+        
+        gameManager.addTeam(teamId, teamDisplayName, colorString);
+        Component formattedTeamDisplayName = gameManager.getFormattedTeamDisplayName(teamId);
+        return CommandResult.success(Component.text("Created team ")
+                .append(formattedTeamDisplayName)
+                .append(Component.text(" (teamId=\""))
+                .append(Component.text(teamId))
+                .append(Component.text("\")")));
     }
 }

@@ -41,20 +41,6 @@ public class AddSubCommand extends TabSubCommand {
                         .append(Component.text(" \"<displayName>\" <color>"))));
         }
         String teamName = args[0];
-        if (teamName.equals(GameManager.ADMIN_TEAM)) {
-            return CommandResult.failure(Component.empty()
-                            .append(Component.text(teamName)
-                                    .decorate(TextDecoration.BOLD))
-                            .append(Component.text(" cannot be "))
-                            .append(Component.text(GameManager.ADMIN_TEAM)
-                                    .decorate(TextDecoration.BOLD))
-                            .append(Component.text(" because that is reserved for the admin team.")));
-        }
-        if (!GameManagerUtils.validTeamName(teamName)) {
-            return CommandResult.failure(Component.text("Provide a valid team name\n")
-                            .append(Component.text(
-                                    "Allowed characters: -, +, ., _, A-Z, a-z, and 0-9")));
-        }
         
         if (displayNameIndexesAreInvalid(displayNameStart, displayNameEnd)) {
             return CommandResult.failure("Display name must be surrounded by quotation marks")
@@ -71,25 +57,7 @@ public class AddSubCommand extends TabSubCommand {
                     .and(CommandResult.failure(getUsage().of("<team>").of("\"<displayName>\"").of("<color>", TextDecoration.BOLD)));
         }
         String colorString = args[displayNameEnd + 1];
-        
-        if (!ColorMap.hasNamedTextColor(colorString)) {
-            return CommandResult.failure(Component.empty()
-                            .append(Component.text(colorString)
-                                    .decorate(TextDecoration.BOLD))
-                            .append(Component.text(" is not a recognized color")));
-        }
-        boolean teamExists = !gameManager.addTeam(teamName, teamDisplayName, colorString);
-        if (teamExists) {
-            return CommandResult.failure(Component.text("A team already exists with the teamId \"")
-                    .append(Component.text(teamName))
-                    .append(Component.text("\"")));
-        }
-        Component formattedTeamDisplayName = gameManager.getFormattedTeamDisplayName(teamName);
-        return CommandResult.success(Component.text("Created team ")
-                .append(formattedTeamDisplayName)
-                .append(Component.text(" (teamId=\""))
-                .append(Component.text(teamName))
-                .append(Component.text("\")")));
+        return GameManagerUtils.addTeam(gameManager, teamName, teamDisplayName, colorString);
     }
     
     private static boolean displayNameIndexesAreInvalid(int displayNameStart, int displayNameEnd) {

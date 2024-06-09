@@ -68,7 +68,7 @@ class PresetDTO implements Validatable {
         public void validate(@NotNull Validator validator) {
             validator.notNull(teamId, "teamId");
             validator.notNull(!teamId.equals(GameManager.ADMIN_TEAM), "teamId can't be reserved id \"%s\"", GameManager.ADMIN_TEAM);
-            validator.validate(teamId.matches(GameManagerUtils.TEAM_NAME_REGEX), "teamId must match regex \"%s\"", GameManagerUtils.TEAM_NAME_REGEX);
+            validator.validate(GameManagerUtils.validTeamName(teamId), "teamId must match regex \"%s\"", GameManagerUtils.TEAM_NAME_REGEX);
             validator.notNull(displayName, "displayName");
             validator.validate(!displayName.isEmpty(), "displayName can't be blank");
             validator.notNull(color, "color");

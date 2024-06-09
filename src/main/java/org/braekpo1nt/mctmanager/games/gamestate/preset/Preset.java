@@ -13,6 +13,21 @@ import java.util.List;
 public class Preset {
     private List<PresetTeam> teams = new ArrayList<>();
     
+    public int getTeamCount() {
+        return teams.size();
+    }
+    
+    /**
+     * @return the number of unique members (participants) in the Preset
+     */
+    public int getParticipantCount() {
+        int sum = 0;
+        for (PresetTeam team : teams) {
+            sum += team.getMembers().size();
+        }
+        return sum;
+    }
+    
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
