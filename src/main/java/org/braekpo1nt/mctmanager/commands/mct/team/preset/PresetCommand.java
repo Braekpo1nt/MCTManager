@@ -8,5 +8,6 @@ public class PresetCommand extends CommandManager {
     
     public PresetCommand(GameManager gameManager, @NotNull String name) {
         super(name);
+        addSubCommand(new PresetApplySubCommand(gameManager, "apply"));
     }
 }

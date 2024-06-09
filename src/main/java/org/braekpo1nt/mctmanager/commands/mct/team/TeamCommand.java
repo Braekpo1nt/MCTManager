@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.commands.mct.team;
 
 import org.braekpo1nt.mctmanager.commands.manager.CommandManager;
 import org.braekpo1nt.mctmanager.commands.manager.Usage;
+import org.braekpo1nt.mctmanager.commands.mct.team.preset.PresetCommand;
 import org.braekpo1nt.mctmanager.commands.mct.team.score.ScoreCommand;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.bukkit.permissions.Permissible;
@@ -17,6 +18,7 @@ public class TeamCommand extends CommandManager {
         addSubCommand(new ListSubCommand(gameManager, "list"));
         addSubCommand(new RemoveSubCommand(gameManager, "remove"));
         addSubCommand(new ScoreCommand(gameManager, "score"));
+        addSubCommand(new PresetCommand(gameManager, "preset"));
     }
     
     @Override
