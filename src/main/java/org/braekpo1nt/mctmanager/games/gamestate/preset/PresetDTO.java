@@ -16,6 +16,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * Represents a preset GameState. Allows users to set up a GameState configuration 
+ * with teams and members (by IGN) for use right before an event to get it to the 
+ * state they want it in one little command instead of several commands. 
+ * This contains all the necessary data to set up the teams and members. 
+ */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
