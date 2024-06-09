@@ -46,8 +46,8 @@ public class PresetApplySubCommand extends SubCommand {
         }
         
         // check if they want to overwrite or merge the game state
-        // create all the teams
         
+        // add all the teams
         int teamCount = preset.getTeamCount();
         int participantCount = preset.getParticipantCount();
         List<CommandResult> commandResults = new ArrayList<>(teamCount + participantCount + 1);
@@ -56,7 +56,7 @@ public class PresetApplySubCommand extends SubCommand {
             commandResults.add(commandResult);
         }
         
-        // add all the members
+        // join all the participants
         for (Preset.PresetTeam team : preset.getTeams()) {
             for (String ign : team.getMembers()) {
                 CommandResult commandResult = GameManagerUtils.joinParticipant(sender, gameManager, ign, team.getTeamId());
@@ -69,7 +69,7 @@ public class PresetApplySubCommand extends SubCommand {
                 .append(Component.text(teamCount))
                 .append(Component.text(" team(s) and joined "))
                 .append(Component.text(participantCount))
-                .append(Component.text(" participants."))));
+                .append(Component.text(" participant(s)."))));
         return CompositeCommandResult.all(commandResults);
     }
 }

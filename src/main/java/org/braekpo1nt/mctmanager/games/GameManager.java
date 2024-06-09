@@ -921,7 +921,7 @@ public class GameManager implements Listener {
                 .append(Component.newline())
                 .append(Component.empty()
                     .append(displayName)
-                    .append(Component.text(" is offline, and will be added to the GameState when they log in next."))
+                    .append(Component.text(" is offline, and will be joined to their team when they log"))
                     .decorate(TextDecoration.ITALIC))
         );
     }
