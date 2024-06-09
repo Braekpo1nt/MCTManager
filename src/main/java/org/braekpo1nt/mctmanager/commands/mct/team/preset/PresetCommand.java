@@ -2,12 +2,18 @@ package org.braekpo1nt.mctmanager.commands.mct.team.preset;
 
 import org.braekpo1nt.mctmanager.commands.manager.CommandManager;
 import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.gamestate.preset.PresetController;
 import org.jetbrains.annotations.NotNull;
+
+import java.io.File;
 
 public class PresetCommand extends CommandManager {
     
-    public PresetCommand(GameManager gameManager, @NotNull String name) {
+    private final PresetController controller;
+    
+    public PresetCommand(GameManager gameManager, File configDirectory, @NotNull String name) {
         super(name);
-        addSubCommand(new PresetApplySubCommand(gameManager, "apply"));
+        this.controller = new PresetController(configDirectory);
+        addSubCommand(new PresetApplySubCommand(gameManager, controller, "apply"));
     }
 }
