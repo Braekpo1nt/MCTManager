@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.commands.mct.team.preset;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.commands.manager.SubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
+import org.braekpo1nt.mctmanager.commands.manager.commandresult.CompositeCommandResult;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.gamestate.preset.Preset;
@@ -55,9 +56,12 @@ public class PresetApplySubCommand extends SubCommand {
         
         // add all the members
         for (Preset.PresetTeam team : preset.getTeams()) {
-            
+            for (String ign : team.getMembers()) {
+                CommandResult commandResult = GameManagerUtils.joinParticipant(sender, gameManager, ign, team.getTeamId());
+                commandResults.add(commandResult);
+            }
         }
         
-        return CommandResult.success();
+        return CompositeCommandResult.all(commandResults);
     }
 }

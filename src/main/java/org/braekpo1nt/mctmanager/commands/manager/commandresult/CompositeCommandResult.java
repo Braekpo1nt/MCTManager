@@ -10,11 +10,16 @@ import java.util.List;
 
 public class CompositeCommandResult implements CommandResult {
     
-    protected final List<CommandResult> commandResults = new ArrayList<>();
+    protected final List<CommandResult> commandResults;
     
     public CompositeCommandResult(CommandResult first, CommandResult second) {
+        this.commandResults = new ArrayList<>();
         commandResults.add(first);
         commandResults.add(second);
+    }
+    
+    public CompositeCommandResult(@NotNull List<@NotNull CommandResult> commandResults) {
+        this.commandResults = commandResults;
     }
     
     @Override
@@ -36,5 +41,9 @@ public class CompositeCommandResult implements CommandResult {
     public @NotNull CommandResult and(CommandResult other) {
         commandResults.add(other);
         return this;
+    }
+    
+    public static @NotNull CommandResult all(List<CommandResult> commandResults) {
+        return new CompositeCommandResult(commandResults);
     }
 }

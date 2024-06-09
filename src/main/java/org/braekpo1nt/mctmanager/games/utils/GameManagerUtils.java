@@ -7,7 +7,10 @@ import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
+import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryAction;
 import org.jetbrains.annotations.NotNull;
 
@@ -208,5 +211,49 @@ public class GameManagerUtils {
                 .append(Component.text(" (teamId=\""))
                 .append(Component.text(teamId))
                 .append(Component.text("\")")));
+    }
+    
+    public static CommandResult joinParticipant(@NotNull CommandSender sender, @NotNull GameManager gameManager, @NotNull String ign, @NotNull String teamId) {
+        if (teamId.isEmpty()) {
+            return CommandResult.failure("teamId must not be blank");
+        }
+        if (!gameManager.hasTeam(teamId)) {
+            return CommandResult.failure(Component.text("Team ")
+                    .append(Component.text(teamId)
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(" does not exist.")));
+        }
+        
+        Player playerToJoin = Bukkit.getPlayer(ign);
+        Component teamDisplayName = gameManager.getFormattedTeamDisplayName(teamId);
+        if (playerToJoin == null) {
+            if (gameManager.isOfflineIGN(ign)) {
+                String oldTeamName = gameManager.getOfflineIGNTeamName(ign);
+                if (oldTeamName.equals(teamId)) {
+                    return CommandResult.success(Component.empty()
+                            .append(Component.text(ign)
+                                    .decorate(TextDecoration.BOLD))
+                            .append(Component.text(" is already on team "))
+                            .append(teamDisplayName)
+                            .color(NamedTextColor.YELLOW));
+                }
+            }
+            OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(ign);
+            gameManager.joinOfflineIGNToTeam(sender, ign, offlinePlayer.getUniqueId(), teamId);
+            return CommandResult.success();
+        }
+        if (gameManager.isParticipant(playerToJoin.getUniqueId())) {
+            String oldTeamName = gameManager.getTeamName(playerToJoin.getUniqueId());
+            if (oldTeamName.equals(teamId)) {
+                return CommandResult.success(Component.empty()
+                        .append(Component.text(ign)
+                                .decorate(TextDecoration.BOLD))
+                        .append(Component.text(" is already on team "))
+                        .append(teamDisplayName)
+                        .color(NamedTextColor.YELLOW));
+            }
+        }
+        gameManager.joinPlayerToTeam(sender, playerToJoin, teamId);
+        return CommandResult.success();
     }
 }
