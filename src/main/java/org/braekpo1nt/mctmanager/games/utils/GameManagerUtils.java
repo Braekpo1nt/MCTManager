@@ -247,12 +247,12 @@ public class GameManagerUtils {
             if (gameManager.isOfflineIGN(ign)) {
                 String oldTeamName = gameManager.getOfflineIGNTeamName(ign);
                 if (oldTeamName.equals(teamId)) {
+                    NamedTextColor teamColor = gameManager.getTeamNamedTextColor(teamId);
                     return CommandResult.success(Component.empty()
                             .append(Component.text(ign)
-                                    .decorate(TextDecoration.BOLD))
+                                    .color(teamColor))
                             .append(Component.text(" is already on team "))
-                            .append(teamDisplayName)
-                            .color(NamedTextColor.YELLOW));
+                            .append(teamDisplayName));
                 }
             }
             OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(ign);
@@ -263,11 +263,9 @@ public class GameManagerUtils {
             String oldTeamName = gameManager.getTeamName(playerToJoin.getUniqueId());
             if (oldTeamName.equals(teamId)) {
                 return CommandResult.success(Component.empty()
-                        .append(Component.text(ign)
-                                .decorate(TextDecoration.BOLD))
+                        .append(playerToJoin.displayName())
                         .append(Component.text(" is already on team "))
-                        .append(teamDisplayName)
-                        .color(NamedTextColor.YELLOW));
+                        .append(teamDisplayName));
             }
         }
         gameManager.joinPlayerToTeam(sender, playerToJoin, teamId);

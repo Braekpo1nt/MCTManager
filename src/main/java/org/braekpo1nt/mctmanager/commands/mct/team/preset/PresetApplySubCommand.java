@@ -99,7 +99,7 @@ public class PresetApplySubCommand extends TabSubCommand {
         }
         
         // check if they want to overwrite or merge the game state
-        List<CommandResult> commandResults = new LinkedList<>();
+        List<CommandResult> results = new LinkedList<>();
         if (override) {
             // remove all existing teams and leave all existing players
             int oldParticipantCount = gameManager.getOfflineParticipants().size();
@@ -107,9 +107,9 @@ public class PresetApplySubCommand extends TabSubCommand {
             int oldTeamCount = teamIds.size();
             for (String teamId : teamIds) {
                 CommandResult commandResult = GameManagerUtils.removeTeam(sender, gameManager, teamId);
-                commandResults.add(commandResult);
+                results.add(commandResult);
             }
-            commandResults.add(CommandResult.success(Component.empty()
+            results.add(CommandResult.success(Component.empty()
                     .append(Component.text("Removed "))
                     .append(Component.text(oldTeamCount))
                     .append(Component.text(" team(s) and left "))
@@ -121,19 +121,27 @@ public class PresetApplySubCommand extends TabSubCommand {
         int teamCount = preset.getTeamCount();
         int participantCount = preset.getParticipantCount();
         for (Preset.PresetTeam team : preset.getTeams()) {
-            CommandResult commandResult = GameManagerUtils.addTeam(gameManager, team.getTeamId(), team.getDisplayName(), team.getColor());
-            commandResults.add(commandResult);
+            if (gameManager.hasTeam(team.getTeamId())) {
+                Component teamDisplayName = gameManager.getFormattedTeamDisplayName(team.getTeamId());
+                results.add(CommandResult.success(Component.empty()
+                        .append(teamDisplayName)
+                        .append(Component.text(" already exists."))
+                ));
+            } else {
+                CommandResult commandResult = GameManagerUtils.addTeam(gameManager, team.getTeamId(), team.getDisplayName(), team.getColor());
+                results.add(commandResult);
+            }
         }
         
         // join all the participants
         for (Preset.PresetTeam team : preset.getTeams()) {
             for (String ign : team.getMembers()) {
                 CommandResult commandResult = GameManagerUtils.joinParticipant(sender, gameManager, ign, team.getTeamId());
-                commandResults.add(commandResult);
+                results.add(commandResult);
             }
         }
         
-        commandResults.add(CommandResult.success(Component.empty()
+        results.add(CommandResult.success(Component.empty()
                 .append(Component.text("Successfully added "))
                 .append(Component.text(teamCount))
                 .append(Component.text(" team(s) and joined "))
@@ -142,7 +150,7 @@ public class PresetApplySubCommand extends TabSubCommand {
         
         if (resetScores) {
             gameManager.setScoreAll(0);
-            commandResults.add(CommandResult.success(Component.empty()
+            results.add(CommandResult.success(Component.empty()
                     .append(Component.text("All team and player scores have been set to 0"))));
         }
         
@@ -155,13 +163,13 @@ public class PresetApplySubCommand extends TabSubCommand {
                     }
                 }
             }
-            commandResults.add(CommandResult.success(Component.empty()
+            results.add(CommandResult.success(Component.empty()
                     .append(Component.text("Whitelisted "))
                     .append(Component.text(participantCount))
                     .append(Component.text(" participant(s)"))));
         }
         
-        return CompositeCommandResult.all(commandResults);
+        return CompositeCommandResult.all(results);
     }
     
     private final List<String> validOptions = Arrays.asList("override", "resetScores", "whiteList");
