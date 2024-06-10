@@ -213,6 +213,23 @@ public class GameManagerUtils {
                 .append(Component.text("\")")));
     }
     
+    /**
+     * Removes the specified team from the GameState, and leaves all participants of that team
+     * @param sender the sender who will receive success/error messages
+     * @param gameManager the GameManager to modify
+     * @param teamId the teamId of the team to remove. Must be a valid teamId.
+     * @return a CommandResult detailing what happened. 
+     */
+    public static CommandResult removeTeam(@NotNull CommandSender sender, @NotNull GameManager gameManager, @NotNull String teamId) {
+        if (!gameManager.hasTeam(teamId)) {
+            return CommandResult.failure(Component.text("Team ")
+                    .append(Component.text(teamId))
+                    .append(Component.text(" does not exist.")));
+        }
+        gameManager.removeTeam(sender, teamId);
+        return CommandResult.success();
+    }
+    
     public static CommandResult joinParticipant(@NotNull CommandSender sender, @NotNull GameManager gameManager, @NotNull String ign, @NotNull String teamId) {
         if (teamId.isEmpty()) {
             return CommandResult.failure("teamId must not be blank");
