@@ -43,7 +43,7 @@ public class ScoreSetAllSubCommand extends TabSubCommand {
         gameManager.setScoreAll(score);
         
         return CommandResult.success(Component.empty()
-                .append(Component.text("All team and player scores have been set to "))
+                .append(Component.text("All team and participant scores have been set to "))
                 .append(Component.text(score)));
     }
     

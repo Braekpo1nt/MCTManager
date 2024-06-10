@@ -1,7 +1,8 @@
 package org.braekpo1nt.mctmanager.commands.mct.team.preset;
 
 import net.kyori.adventure.text.Component;
-import org.braekpo1nt.mctmanager.commands.manager.SubCommand;
+import net.kyori.adventure.text.format.TextDecoration;
+import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CompositeCommandResult;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
@@ -15,16 +16,14 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Retrieves the saved preset file and performs the equivalent 
  * of executing the commands in order to achieve the specified GameState. 
  */
-public class PresetApplySubCommand extends SubCommand {
+public class PresetApplySubCommand extends TabSubCommand {
     
     private final PresetController controller;
     private final GameManager gameManager;
@@ -38,15 +37,52 @@ public class PresetApplySubCommand extends SubCommand {
     @Override
     public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         
+        boolean override = false;
+        boolean resetScores = false;
+        boolean whiteList = false;
         
-        return applyPreset(sender, false, false, false);
+        Set<String> seenArguments = new HashSet<>();
+        
+        for (String arg : args) {
+            if (seenArguments.contains(arg)) {
+                return CommandResult.failure(Component.empty()
+                        .append(Component.text("Duplicate argument: "))
+                        .append(Component.text(arg)
+                                .decorate(TextDecoration.BOLD))
+                );
+            }
+            switch (arg) {
+                case "override":
+                    override = true;
+                    break;
+                case "resetScores":
+                    resetScores = true;
+                    break;
+                case "whiteList":
+                    whiteList = true;
+                    break;
+                default:
+                    return CommandResult.failure(Component.empty()
+                            .append(Component.text(arg)
+                                    .decorate(TextDecoration.BOLD))
+                            .append(Component.text(" is not a recognized option")));
+            }
+            seenArguments.add(arg);
+        }
+        
+        return applyPreset(sender, override, resetScores, whiteList);
     }
     
     /**
      * 
      * @param sender the sender
      * @param whiteList if true, all players listed in the preset will be whitelisted as well
-     * @param override if true, all previous teams and participants will be cleared and the preset teams and participants will be added (thus replacing everything with the preset). If false, the previous GameSate will not be changed, and it will try to add all teams from the preset but not override existing teams, and participants will be joined to teams according to the preset but any participants not mentioned in preset will be ignored/unchanged.
+     * @param override if true, all previous teams and participants will be cleared and the preset 
+     *                 teams and participants will be added (thus replacing everything with the 
+     *                 preset). If false, the previous GameSate will not be changed, and it will 
+     *                 try to add all teams from the preset but not override existing teams, 
+     *                 and participants will be joined to teams according to the preset but 
+     *                 any participants not mentioned in preset will be ignored/unchanged.
      * @param resetScores if true, all scores will be set to 0 for all teams mentioned in the preset, even if the teams already exist. 
      * @return a comprehensive {@link CompositeCommandResult} including every {@link CommandResult} of the (perhaps many) operations performed here.
      */
@@ -126,5 +162,19 @@ public class PresetApplySubCommand extends SubCommand {
         }
         
         return CompositeCommandResult.all(commandResults);
+    }
+    
+    private final List<String> validOptions = Arrays.asList("override", "resetScores", "whiteList");
+    
+    @Override
+    public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, String[] args) {
+        Set<String> seenArguments = Arrays.stream(args).collect(Collectors.toSet());
+        List<String> suggestions = new ArrayList<>();
+        for (String option : validOptions) {
+            if (!seenArguments.contains(option)) {
+                suggestions.add(option);
+            }
+        }
+        return suggestions;
     }
 }

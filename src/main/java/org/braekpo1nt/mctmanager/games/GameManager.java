@@ -1040,12 +1040,19 @@ public class GameManager implements Listener {
             sender.sendMessage(Component.text("error occurred leaving offline IGN, see console for details.")
                     .color(NamedTextColor.RED));
         }
+        TextComponent displayName = Component.text(ign)
+                .decorate(TextDecoration.BOLD);
         sender.sendMessage(Component.text("Removed ")
-                .append(Component.text(ign)
-                        .decorate(TextDecoration.BOLD))
+                .append(displayName)
                 .append(Component.text(" from team "))
                 .append(teamDisplayName)
-                .append(Component.text(". This was a player who had never logged in before.")));
+                .append(Component.newline())
+                .append(Component.empty()
+                        .append(displayName)
+                        .append(Component.text(" is offline"))
+                        .decorate(TextDecoration.ITALIC)
+                )
+        );
     }
     
     /**
