@@ -30,5 +30,6 @@ public class PresetCommand extends CommandManager {
         addSubCommand(new PresetRemoveSubCommand(storageUtil, "remove"));
         addSubCommand(new PresetJoinSubCommand(storageUtil, "join"));
         addSubCommand(new PresetLeaveSubCommand(storageUtil, "leave"));
+        addSubCommand(new PresetLoadSubCommand(storageUtil, "load"));
     }
 }
