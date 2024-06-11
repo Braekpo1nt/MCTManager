@@ -11,12 +11,15 @@ import org.braekpo1nt.mctmanager.games.gamestate.preset.PresetStorageUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Lets you join a player to the preset by ign
@@ -123,7 +126,9 @@ public class PresetJoinSubCommand extends TabSubCommand {
         }
         if (args.length == 2) {
             // this is intentional to allow default auto-completing of online players
-            return null;
+            List<String> onlinePlayers = Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toCollection(LinkedList::new));
+            onlinePlayers.addAll(storageUtil.getPreset().getMembers());
+            return onlinePlayers;
         }
         return Collections.emptyList();
     }
