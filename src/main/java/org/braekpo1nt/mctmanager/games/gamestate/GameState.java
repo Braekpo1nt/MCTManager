@@ -102,7 +102,7 @@ public class GameState {
      * @param playerUniqueId The UUID of the player to get
      * @return The player with the given UUID, null if the player does not exist.
      */
-    public MCTPlayer getPlayer(UUID playerUniqueId) {
+    public @Nullable MCTPlayer getPlayer(@NotNull UUID playerUniqueId) {
         return players.get(playerUniqueId);
     }
     
