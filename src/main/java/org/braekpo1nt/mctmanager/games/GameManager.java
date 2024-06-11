@@ -753,8 +753,7 @@ public class GameManager implements Listener {
         }
         List<String> offlineIGNs = gameStateStorageUtil.getOfflineIGNsOnTeam(teamName);
         for (String offlineIGN : offlineIGNs) {
-            OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(offlineIGN);
-            leavePlayer(sender, offlinePlayer, offlineIGN);
+            leaveOfflineIGN(sender, offlineIGN);
         }
     }
     
