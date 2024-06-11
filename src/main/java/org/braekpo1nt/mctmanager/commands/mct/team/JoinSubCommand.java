@@ -6,6 +6,7 @@ import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
@@ -31,44 +32,8 @@ public class JoinSubCommand extends TabSubCommand {
             return CommandResult.failure(getUsage().of("<team>").of("<member>"));
         }
         String teamName = args[0];
-        if (!gameManager.hasTeam(teamName)) {
-            return CommandResult.failure(Component.text("Team ")
-                    .append(Component.text(teamName)
-                            .decorate(TextDecoration.BOLD))
-                    .append(Component.text(" does not exist.")));
-        }
         String playerName = args[1];
-        Player playerToJoin = Bukkit.getPlayer(playerName);
-        Component teamDisplayName = gameManager.getFormattedTeamDisplayName(teamName);
-        if (playerToJoin == null) {
-            if (gameManager.isOfflineIGN(playerName)) {
-                String oldTeamName = gameManager.getOfflineIGNTeamName(playerName);
-                if (oldTeamName.equals(teamName)) {
-                    return CommandResult.success(Component.empty()
-                            .append(Component.text(playerName)
-                                    .decorate(TextDecoration.BOLD))
-                            .append(Component.text(" is already on team "))
-                            .append(teamDisplayName)
-                            .color(NamedTextColor.YELLOW));
-                }
-            }
-            OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(playerName);
-            gameManager.joinOfflineIGNToTeam(sender, playerName, offlinePlayer.getUniqueId(), teamName);
-            return CommandResult.success();
-        }
-        if (gameManager.isParticipant(playerToJoin.getUniqueId())) {
-            String oldTeamName = gameManager.getTeamName(playerToJoin.getUniqueId());
-            if (oldTeamName.equals(teamName)) {
-                return CommandResult.success(Component.empty()
-                        .append(Component.text(playerName)
-                                .decorate(TextDecoration.BOLD))
-                        .append(Component.text(" is already on team "))
-                        .append(teamDisplayName)
-                        .color(NamedTextColor.YELLOW));
-            }
-        }
-        gameManager.joinPlayerToTeam(sender, playerToJoin, teamName);
-        return CommandResult.success();
+        return GameManagerUtils.joinParticipant(sender, gameManager, playerName, teamName);
     }
     
     @Override

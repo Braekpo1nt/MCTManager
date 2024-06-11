@@ -755,13 +755,13 @@ public class GameManager implements Listener {
     
     /**
      * Add a team to the game.
-     * @param teamName The internal name of the team.
+     * @param teamName The teamId of the team. If a team with the given id already exists, nothing happens.
      * @param teamDisplayName The display name of the team.
-     * @return True if the team was successfully created. False if the team already exists, or if the name matches the admin team's name.
+     * @param colorString the string representing the color
      */
-    public boolean addTeam(String teamName, String teamDisplayName, String colorString) {
+    public void addTeam(String teamName, String teamDisplayName, String colorString) {
         if (gameStateStorageUtil.containsTeam(teamName)) {
-            return false;
+            return;
         }
         try {
             gameStateStorageUtil.addTeam(teamName, teamDisplayName, colorString);
@@ -773,7 +773,6 @@ public class GameManager implements Listener {
         NamedTextColor color = ColorMap.getNamedTextColor(colorString);
         newTeam.color(color);
         updateTeamScore(teamName);
-        return true;
     }
     
     /**
@@ -922,7 +921,7 @@ public class GameManager implements Listener {
                 .append(Component.newline())
                 .append(Component.empty()
                     .append(displayName)
-                    .append(Component.text(" is offline, and will be added to the GameState when they log in next."))
+                    .append(Component.text(" is offline, and will be joined to their team when they log on"))
                     .decorate(TextDecoration.ITALIC))
         );
     }
@@ -1041,12 +1040,19 @@ public class GameManager implements Listener {
             sender.sendMessage(Component.text("error occurred leaving offline IGN, see console for details.")
                     .color(NamedTextColor.RED));
         }
+        TextComponent displayName = Component.text(ign)
+                .decorate(TextDecoration.BOLD);
         sender.sendMessage(Component.text("Removed ")
-                .append(Component.text(ign)
-                        .decorate(TextDecoration.BOLD))
+                .append(displayName)
                 .append(Component.text(" from team "))
                 .append(teamDisplayName)
-                .append(Component.text(". This was a player who had never logged in before.")));
+                .append(Component.newline())
+                .append(Component.empty()
+                        .append(displayName)
+                        .append(Component.text(" is offline"))
+                        .decorate(TextDecoration.ITALIC)
+                )
+        );
     }
     
     /**
