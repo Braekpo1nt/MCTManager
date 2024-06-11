@@ -86,6 +86,7 @@ public class PresetJoinSubCommand extends TabSubCommand {
                             .append(Component.text(" from "))
                             .append(Component.text(previousTeamId)
                                     .decorate(TextDecoration.BOLD))
+                            .append(Component.text(" in the preset"))
                     ));
                 }
             }
@@ -108,6 +109,7 @@ public class PresetJoinSubCommand extends TabSubCommand {
                 .append(Component.text(" to "))
                 .append(Component.text(teamId)
                         .decorate(TextDecoration.BOLD))
+                .append(Component.text(" in the preset"))
         ));
         return CompositeCommandResult.all(results);
     }

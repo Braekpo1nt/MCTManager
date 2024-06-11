@@ -20,6 +20,7 @@ import java.util.logging.Logger;
 
 /**
  * Handles the CRUD operations for storing GameState objects
+ * keeps the most recently loaded GameState in memory so that each call to it doesn't need to be a file IO operation
  */
 public class GameStateStorageUtil {
     

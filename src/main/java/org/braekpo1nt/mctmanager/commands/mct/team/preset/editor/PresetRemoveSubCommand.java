@@ -68,7 +68,8 @@ public class PresetRemoveSubCommand extends TabSubCommand {
         }
         return CommandResult.success(Component.empty()
                 .append(Component.text("Removed "))
-                .append(Component.text(teamId))
+                .append(Component.text(teamId)
+                        .decorate(TextDecoration.BOLD))
                 .append(Component.text(" from preset"))
         );
     }
