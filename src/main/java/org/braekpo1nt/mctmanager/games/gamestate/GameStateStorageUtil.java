@@ -219,7 +219,7 @@ public class GameStateStorageUtil {
      * @return the teamId of the OfflineParticipant with the given ign
      * @throws NullPointerException if the ign doesn't exist in the GameState
      */
-    public String getOfflineIGNTeamName(@NotNull String ign) {
+    public @NotNull String getOfflineIGNTeamName(@NotNull String ign) {
         return gameState.getOfflinePlayer(ign).getTeamName();
     }
     

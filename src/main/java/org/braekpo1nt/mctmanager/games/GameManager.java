@@ -872,9 +872,9 @@ public class GameManager implements Listener {
      * @param sender the sender of the command, who will receive success/error messages
      * @param ign The in-game-name of the participant who has never logged in before, which you are joining to the given team
      * @param offlineUniqueId nullable. The UUID of the offline player with the ign, if you know it. 
-     * @param teamName the teamId of the team to join the participant to. Must be a valid teamId. 
+     * @param teamId the teamId of the team to join the participant to. Must be a valid teamId. 
      */
-    public void joinOfflineIGNToTeam(CommandSender sender, @NotNull String ign, @Nullable UUID offlineUniqueId, String teamName) {
+    public void joinOfflineIGNToTeam(CommandSender sender, @NotNull String ign, @Nullable UUID offlineUniqueId, @NotNull String teamId) {
         if (offlineUniqueId != null) {
             if (isAdmin(offlineUniqueId)) {
                 OfflinePlayer offlineAdmin = Bukkit.getOfflinePlayer(offlineUniqueId);
@@ -882,12 +882,12 @@ public class GameManager implements Listener {
             }
             if (isParticipant(offlineUniqueId)) {
                 String originalTeamName = getTeamName(offlineUniqueId);
-                if (originalTeamName.equals(teamName)) {
+                if (originalTeamName.equals(teamId)) {
                     sender.sendMessage(Component.text()
                             .append(Component.text(ign)
                                     .decorate(TextDecoration.BOLD))
                             .append(Component.text(" is already a member of team "))
-                            .append(Component.text(teamName))
+                            .append(Component.text(teamId))
                             .append(Component.text(". Nothing happened.")));
                     return;
                 }
@@ -897,20 +897,20 @@ public class GameManager implements Listener {
         }
         if (isOfflineIGN(ign)) {
             String originalTeamName = getOfflineIGNTeamName(ign);
-            if (originalTeamName.equals(teamName)) {
+            if (originalTeamName.equals(teamId)) {
                 sender.sendMessage(Component.text()
                         .append(Component.text(ign)
                                 .decorate(TextDecoration.BOLD))
                         .append(Component.text(" is already a member of team "))
-                        .append(Component.text(teamName))
+                        .append(Component.text(teamId))
                         .append(Component.text(". Nothing happened.")));
                 return;
             }
             leaveOfflineIGN(sender, ign);
         }
-        addNewOfflineIGN(sender, ign, offlineUniqueId, teamName);
-        Component teamDisplayName = getFormattedTeamDisplayName(teamName);
-        NamedTextColor teamNamedTextColor = getTeamNamedTextColor(teamName);
+        addNewOfflineIGN(sender, ign, offlineUniqueId, teamId);
+        Component teamDisplayName = getFormattedTeamDisplayName(teamId);
+        NamedTextColor teamNamedTextColor = getTeamNamedTextColor(teamId);
         TextComponent displayName = Component.text(ign)
                 .color(teamNamedTextColor)
                 .decorate(TextDecoration.BOLD);
@@ -1140,12 +1140,12 @@ public class GameManager implements Listener {
     /**
      * Gets the team's display name as a Component with the team's text color
      * and in bold
-     * @param teamName The internal name of the team
+     * @param teamId The internal name of the team
      * @return A Component with the formatted team dislay name
      */
-    public Component getFormattedTeamDisplayName(String teamName) {
-        String displayName = gameStateStorageUtil.getTeamDisplayName(teamName);
-        NamedTextColor teamColor = gameStateStorageUtil.getTeamNamedTextColor(teamName);
+    public Component getFormattedTeamDisplayName(@NotNull String teamId) {
+        String displayName = gameStateStorageUtil.getTeamDisplayName(teamId);
+        NamedTextColor teamColor = gameStateStorageUtil.getTeamNamedTextColor(teamId);
         return Component.text(displayName).color(teamColor).decorate(TextDecoration.BOLD);
     }
     
