@@ -15,5 +15,6 @@ public class PresetCommand extends CommandManager {
         super(name);
         this.controller = new PresetController(configDirectory);
         addSubCommand(new PresetApplySubCommand(gameManager, controller, "apply"));
+        addSubCommand(new PresetWhitelistSubCommand(gameManager, controller, "whitelist"));
     }
 }
