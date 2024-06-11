@@ -42,6 +42,7 @@ public class JoinSubCommand extends TabSubCommand {
             return gameManager.getTeamNames().stream().sorted().toList();
         }
         if (args.length == 2) {
+            // this is intentional to allow default auto-completing of online players
             return null;
         }
         return Collections.emptyList();

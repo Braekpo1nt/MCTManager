@@ -84,6 +84,20 @@ public class Preset {
         teams.stream().filter(t -> t.getTeamId().equals(teamId)).findFirst().ifPresent(presetTeam -> presetTeam.getMembers().add(ign));
     }
     
+    /**
+     * @return the teamIds of the teams in this preset (in alphabetical order). Note this list is unmodifiable. 
+     */
+    public @NotNull List<String> getTeamIds() {
+        return teams.stream().map(PresetTeam::getTeamId).sorted().toList();
+    }
+    
+    /**
+     * @return a list of all the members in-game-names that are in the preset
+     */
+    public @NotNull List<String> getMembers() {
+        return teams.stream().flatMap(t -> t.getMembers().stream()).toList();
+    }
+    
     @Data
     @AllArgsConstructor
     @NoArgsConstructor

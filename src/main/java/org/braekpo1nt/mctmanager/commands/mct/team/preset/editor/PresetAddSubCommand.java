@@ -17,6 +17,7 @@ import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -134,7 +135,18 @@ public class PresetAddSubCommand extends TabSubCommand {
     }
     
     @Override
-    public @Nullable List<String> onTabComplete(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
-        return List.of();
+    public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+        if (args.length >= 3) {
+            int[] displayNameIndexes = AddSubCommand.getDisplayNameIndexes(args);
+            int displayNameStart = displayNameIndexes[0];
+            int displayNameEnd = displayNameIndexes[1];
+            if (!AddSubCommand.displayNameIndexesAreInvalid(displayNameStart, displayNameEnd)) {
+                if (args.length == displayNameEnd + 2) {
+                    String colorString = args[displayNameEnd + 1];
+                    return ColorMap.getPartiallyMatchingColorStrings(colorString);
+                }
+            }
+        }
+        return Collections.emptyList();
     }
 }
