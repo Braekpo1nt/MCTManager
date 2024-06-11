@@ -161,7 +161,7 @@ public class GameStateStorageUtil {
      * @return A list of all the teams. Empty list if there are no teams.
      */
     public Set<String> getTeamNames() {
-        return gameState.getTeams().keySet();
+        return new HashSet<>(gameState.getTeams().keySet());
     }
     
     /**
