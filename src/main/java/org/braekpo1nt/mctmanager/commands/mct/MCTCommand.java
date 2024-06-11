@@ -30,7 +30,7 @@ public class MCTCommand extends MasterCommandManager {
         addSubCommand(new GameCommand(gameManager));
         addSubCommand(new EditCommand(gameManager, "edit"));
         addSubCommand(new OptionSubCommand(gameManager, blockEffectsListener, "option"));
-        addSubCommand(new TeamCommand(gameManager, plugin.getDataFolder(), "team"));
+        addSubCommand(new TeamCommand(plugin, gameManager, "team"));
         addSubCommand(new AdminCommand(gameManager));
         addSubCommand(new EventCommand(gameManager, "event"));
         addSubCommand(new SubCommand("save") {
