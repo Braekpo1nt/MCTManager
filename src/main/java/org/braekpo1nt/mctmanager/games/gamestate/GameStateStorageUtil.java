@@ -228,13 +228,28 @@ public class GameStateStorageUtil {
      * @param teamName The internal name of the team
      * @return Empty list if no players are on that team, or if the team doesn't exist
      */
-    public List<UUID> getPlayerUniqueIdsOnTeam(String teamName) {
+    public List<UUID> getParticipantUUIDsOnTeam(String teamName) {
         if (!gameState.containsTeam(teamName)) {
             return Collections.emptyList();
         }
         return gameState.getPlayers().entrySet().stream()
                 .filter(mctPlayer -> mctPlayer.getValue().getTeamName().equals(teamName))
                 .map(Map.Entry::getKey)
+                .toList();
+    }
+    
+    /**
+     * Gets the offline in-game-names of the participants on the given team
+     * @param teamId the team id
+     * @return The in-game-names on the team. Empty list if the team doesn't exist.
+     */
+    public @NotNull List<String> getOfflineIGNsOnTeam(@NotNull String teamId) {
+        if (!gameState.containsTeam(teamId)) {
+            return Collections.emptyList();
+        }
+        return gameState.getOfflinePlayers().values().stream()
+                .filter(offlineMCTPlayer -> offlineMCTPlayer.getTeamName().equals(teamId))
+                .map(OfflineMCTPlayer::getIgn)
                 .toList();
     }
     

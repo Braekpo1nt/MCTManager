@@ -745,11 +745,16 @@ public class GameManager implements Listener {
     }
     
     private void leavePlayersOnTeam(CommandSender sender, String teamName) {
-        List<UUID> playerUniqueIds = gameStateStorageUtil.getPlayerUniqueIdsOnTeam(teamName);
+        List<UUID> playerUniqueIds = gameStateStorageUtil.getParticipantUUIDsOnTeam(teamName);
         for (UUID playerUniqueId : playerUniqueIds) {
             OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(playerUniqueId);
             String name = offlinePlayer.getName() != null ? offlinePlayer.getName() : "unknown";
             leavePlayer(sender, offlinePlayer, name);
+        }
+        List<String> offlineIGNs = gameStateStorageUtil.getOfflineIGNsOnTeam(teamName);
+        for (String offlineIGN : offlineIGNs) {
+            OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(offlineIGN);
+            leavePlayer(sender, offlinePlayer, offlineIGN);
         }
     }
     
@@ -975,7 +980,7 @@ public class GameManager implements Listener {
      * or empty list if there are no players on that team or the team doesn't exist.
      */
     public List<Player> getOnlinePlayersOnTeam(String teamName) {
-        List<UUID> playerUniqueIds = gameStateStorageUtil.getPlayerUniqueIdsOnTeam(teamName);
+        List<UUID> playerUniqueIds = gameStateStorageUtil.getParticipantUUIDsOnTeam(teamName);
         List<Player> onlinePlayersOnTeam = new ArrayList<>();
         for (UUID playerUniqueId : playerUniqueIds) {
             Player player = Bukkit.getPlayer(playerUniqueId);
@@ -987,7 +992,7 @@ public class GameManager implements Listener {
     }
     
     public List<UUID> getParticipantUUIDsOnTeam(String teamName) {
-        return gameStateStorageUtil.getPlayerUniqueIdsOnTeam(teamName);
+        return gameStateStorageUtil.getParticipantUUIDsOnTeam(teamName);
     }
     
     /**
