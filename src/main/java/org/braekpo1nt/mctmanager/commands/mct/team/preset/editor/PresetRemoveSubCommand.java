@@ -6,7 +6,7 @@ import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.games.gamestate.preset.Preset;
-import org.braekpo1nt.mctmanager.games.gamestate.preset.PresetController;
+import org.braekpo1nt.mctmanager.games.gamestate.preset.PresetStorageUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -21,11 +21,11 @@ import java.util.List;
 public class PresetRemoveSubCommand extends TabSubCommand {
     
     
-    private final PresetController controller;
+    private final PresetStorageUtil storageUtil;
     
-    public PresetRemoveSubCommand(PresetController controller, @NotNull String name) {
+    public PresetRemoveSubCommand(PresetStorageUtil storageUtil, @NotNull String name) {
         super(name);
-        this.controller = controller;
+        this.storageUtil = storageUtil;
     }
     
     @Override
@@ -40,7 +40,8 @@ public class PresetRemoveSubCommand extends TabSubCommand {
     private @NotNull CommandResult removeTeam(@NotNull String teamId) {
         Preset preset;
         try {
-            preset = controller.getPreset();
+            storageUtil.loadPreset();
+            preset = storageUtil.getPreset();
         } catch (ConfigException e) {
             Bukkit.getLogger().severe(String.format("Could not load preset. %s", e.getMessage()));
             e.printStackTrace();
@@ -58,7 +59,7 @@ public class PresetRemoveSubCommand extends TabSubCommand {
         
         preset.removeTeam(teamId);
         try {
-            controller.savePreset(preset);
+            storageUtil.savePreset();
         } catch (ConfigException e) {
             Bukkit.getLogger().severe(String.format("Could not save preset. %s", e.getMessage()));
             e.printStackTrace();
