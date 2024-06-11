@@ -8,7 +8,7 @@ import org.braekpo1nt.mctmanager.commands.manager.commandresult.CompositeCommand
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.gamestate.preset.Preset;
-import org.braekpo1nt.mctmanager.games.gamestate.preset.PresetController;
+import org.braekpo1nt.mctmanager.games.gamestate.preset.PresetStorageUtil;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
@@ -25,13 +25,13 @@ import java.util.stream.Collectors;
  */
 public class PresetApplySubCommand extends TabSubCommand {
     
-    private final PresetController controller;
+    private final PresetStorageUtil storageUtil;
     private final GameManager gameManager;
     
-    public PresetApplySubCommand(GameManager gameManager, PresetController controller, @NotNull String name) {
+    public PresetApplySubCommand(GameManager gameManager, PresetStorageUtil storageUtil, @NotNull String name) {
         super(name);
         this.gameManager = gameManager;
-        this.controller = controller;
+        this.storageUtil = storageUtil;
     }
     
     @Override
@@ -89,7 +89,8 @@ public class PresetApplySubCommand extends TabSubCommand {
     private @NotNull CommandResult applyPreset(@NotNull CommandSender sender, boolean override, boolean resetScores, boolean whiteList) {
         Preset preset;
         try {
-            preset = controller.getPreset();
+            storageUtil.loadPreset();
+            preset = storageUtil.getPreset();
         } catch (ConfigException e) {
             Bukkit.getLogger().severe(String.format("Could not load preset. %s", e.getMessage()));
             e.printStackTrace();
