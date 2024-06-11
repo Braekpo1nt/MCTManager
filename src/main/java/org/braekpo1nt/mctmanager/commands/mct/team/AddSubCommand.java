@@ -60,12 +60,12 @@ public class AddSubCommand extends TabSubCommand {
         return GameManagerUtils.addTeam(gameManager, teamName, teamDisplayName, colorString);
     }
     
-    private static boolean displayNameIndexesAreInvalid(int displayNameStart, int displayNameEnd) {
+    public static boolean displayNameIndexesAreInvalid(int displayNameStart, int displayNameEnd) {
         return displayNameStart == -1 || displayNameEnd == -1 || displayNameStart > displayNameEnd;
     }
     
     @NotNull
-    private static String getDisplayName(@NotNull String @NotNull [] args, int displayNameStart, int displayNameEnd) {
+    public static String getDisplayName(@NotNull String @NotNull [] args, int displayNameStart, int displayNameEnd) {
         StringBuilder displayNameBuilder = new StringBuilder();
         for (int i = displayNameStart; i <= displayNameEnd; i++) {
             displayNameBuilder.append(args[i]);
@@ -77,7 +77,7 @@ public class AddSubCommand extends TabSubCommand {
     }
     
     @NotNull
-    private static int[] getDisplayNameIndexes(@NotNull String @NotNull [] args) {
+    public static int[] getDisplayNameIndexes(@NotNull String @NotNull [] args) {
         int startIndex = -1;
         int endIndex = -1;
         

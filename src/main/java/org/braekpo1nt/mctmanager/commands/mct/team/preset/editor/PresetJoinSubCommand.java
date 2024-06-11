@@ -25,7 +25,7 @@ public class PresetJoinSubCommand extends TabSubCommand {
     
     @Override
     public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        return null;
+        throw new UnsupportedOperationException("Not yet implemented");
     }
     
     @Override

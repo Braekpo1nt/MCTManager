@@ -49,7 +49,7 @@ public class PresetWhitelistSubCommand extends TabSubCommand {
         try {
             preset = controller.getPreset();
         } catch (ConfigException e) {
-            Bukkit.getLogger().severe(String.format("Could not load preset. %S", e.getMessage()));
+            Bukkit.getLogger().severe(String.format("Could not load preset. %s", e.getMessage()));
             e.printStackTrace();
             return CommandResult.failure(Component.empty()
                     .append(Component.text("Error occurred loading preset. See console for details: "))

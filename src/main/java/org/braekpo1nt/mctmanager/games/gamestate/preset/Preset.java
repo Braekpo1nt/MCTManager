@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.gamestate.preset;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,10 +29,29 @@ public class Preset {
         return sum;
     }
     
+    /**
+     * @param teamId the teamId to check
+     * @return true if a team with the given teamId exists in this preset
+     */
+    public boolean hasTeamId(@NotNull String teamId) {
+        return teams.stream().anyMatch(t -> t.getTeamId().equals(teamId));
+    }
+    
+    public void addTeam(@NotNull String teamId, @NotNull String displayName, @NotNull String color) {
+        teams.add(new PresetTeam(teamId, displayName, color));
+    }
+    
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
     public static class PresetTeam {
+        
+        public PresetTeam(@NotNull String teamId, @NotNull String displayName, @NotNull String color) {
+            this.teamId = teamId;
+            this.displayName = displayName;
+            this.color = color;
+        }
+        
         private String teamId;
         private String displayName;
         private String color;
