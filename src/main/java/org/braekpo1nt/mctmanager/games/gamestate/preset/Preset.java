@@ -7,6 +7,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Data
 @AllArgsConstructor
@@ -39,6 +40,14 @@ public class Preset {
     
     public void addTeam(@NotNull String teamId, @NotNull String displayName, @NotNull String color) {
         teams.add(new PresetTeam(teamId, displayName, color));
+    }
+    
+    /**
+     * removes the team with the given teamId from the teams list. This also leaves all the participants from that team. 
+     * @param teamId the teamId to remove
+     */
+    public void removeTeam(@NotNull String teamId) {
+        teams = teams.stream().filter(t -> !t.getTeamId().equals(teamId)).collect(Collectors.toCollection(ArrayList::new));
     }
     
     @Data
