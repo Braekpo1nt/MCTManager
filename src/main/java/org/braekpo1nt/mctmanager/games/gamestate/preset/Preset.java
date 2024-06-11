@@ -4,9 +4,11 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Data
@@ -48,6 +50,38 @@ public class Preset {
      */
     public void removeTeam(@NotNull String teamId) {
         teams = teams.stream().filter(t -> !t.getTeamId().equals(teamId)).collect(Collectors.toCollection(ArrayList::new));
+    }
+    
+    /**
+     * @param ign the in-game-name to search for
+     * @return true if the given ign is contained in any of the team members
+     */
+    public boolean hasMember(@NotNull String ign) {
+        return teams.stream().anyMatch(t -> t.getMembers().contains(ign));
+    }
+    
+    /**
+     * @param ign the in-game-name to search for the team of
+     * @return The teamId that the given ign is a member of. null if the ign isn't on any team
+     */
+    public @Nullable String getMemberTeamId(@NotNull String ign) {
+        return teams.stream().filter(t -> t.getMembers().contains(ign)).findFirst().orElse(new PresetTeam()).getTeamId();
+    }
+    
+    /**
+     * leave the player from their team (if they are on one)
+     * @param ign the in-game-name of the member to remove
+     */
+    public void leaveMember(@NotNull String ign) {
+        teams.stream().filter(t -> t.getMembers().contains(ign)).findFirst().ifPresent(presetTeam -> presetTeam.getMembers().remove(ign));
+    }
+    
+    /**
+     * @param ign the in-game-name of the member to join
+     * @param teamId the teamId of the team to join the member to
+     */
+    public void joinMember(@NotNull String ign, @NotNull String teamId) {
+        teams.stream().filter(t -> t.getTeamId().equals(teamId)).findFirst().ifPresent(presetTeam -> presetTeam.getMembers().add(ign));
     }
     
     @Data

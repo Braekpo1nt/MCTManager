@@ -235,6 +235,9 @@ public class GameManagerUtils {
         if (teamId.isEmpty()) {
             return CommandResult.failure("teamId must not be blank");
         }
+        if (ign.isEmpty()) {
+            return CommandResult.failure("player name must not be blank");
+        }
         if (!gameManager.hasTeam(teamId)) {
             return CommandResult.failure(Component.text("Team ")
                     .append(Component.text(teamId)
