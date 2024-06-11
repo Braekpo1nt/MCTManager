@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.commands.mct.team;
 
+import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.CommandManager;
 import org.braekpo1nt.mctmanager.commands.manager.Usage;
 import org.braekpo1nt.mctmanager.commands.mct.team.preset.PresetCommand;
@@ -12,7 +13,7 @@ import java.io.File;
 
 public class TeamCommand extends CommandManager {
     
-    public TeamCommand(GameManager gameManager, File configDirectory, @NotNull String name) {
+    public TeamCommand(Main plugin, GameManager gameManager, @NotNull String name) {
         super(name);
         addSubCommand(new AddSubCommand(gameManager, "add"));
         addSubCommand(new JoinSubCommand(gameManager, "join"));
@@ -20,7 +21,7 @@ public class TeamCommand extends CommandManager {
         addSubCommand(new ListSubCommand(gameManager, "list"));
         addSubCommand(new RemoveSubCommand(gameManager, "remove"));
         addSubCommand(new ScoreCommand(gameManager, "score"));
-        addSubCommand(new PresetCommand(gameManager, configDirectory, "preset"));
+        addSubCommand(new PresetCommand(plugin, gameManager, "preset"));
     }
     
     @Override

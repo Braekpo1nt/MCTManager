@@ -223,8 +223,9 @@ public class GameManagerUtils {
     public static CommandResult removeTeam(@NotNull CommandSender sender, @NotNull GameManager gameManager, @NotNull String teamId) {
         if (!gameManager.hasTeam(teamId)) {
             return CommandResult.failure(Component.text("Team ")
-                    .append(Component.text(teamId))
-                    .append(Component.text(" does not exist.")));
+                    .append(Component.text(teamId)
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(" does not exist")));
         }
         gameManager.removeTeam(sender, teamId);
         return CommandResult.success();
@@ -233,6 +234,9 @@ public class GameManagerUtils {
     public static CommandResult joinParticipant(@NotNull CommandSender sender, @NotNull GameManager gameManager, @NotNull String ign, @NotNull String teamId) {
         if (teamId.isEmpty()) {
             return CommandResult.failure("teamId must not be blank");
+        }
+        if (ign.isEmpty()) {
+            return CommandResult.failure("player name must not be blank");
         }
         if (!gameManager.hasTeam(teamId)) {
             return CommandResult.failure(Component.text("Team ")
