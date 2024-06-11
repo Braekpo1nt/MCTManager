@@ -7,7 +7,7 @@ import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CompositeCommandResult;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.games.gamestate.preset.Preset;
-import org.braekpo1nt.mctmanager.games.gamestate.preset.PresetController;
+import org.braekpo1nt.mctmanager.games.gamestate.preset.PresetStorageUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -23,11 +23,11 @@ import java.util.List;
 public class PresetJoinSubCommand extends TabSubCommand {
     
     
-    private final PresetController controller;
+    private final PresetStorageUtil storageUtil;
     
-    public PresetJoinSubCommand(PresetController controller, @NotNull String name) {
+    public PresetJoinSubCommand(PresetStorageUtil storageUtil, @NotNull String name) {
         super(name);
-        this.controller = controller;
+        this.storageUtil = storageUtil;
     }
     
     @Override
@@ -50,7 +50,8 @@ public class PresetJoinSubCommand extends TabSubCommand {
         
         Preset preset;
         try {
-            preset = controller.getPreset();
+            storageUtil.loadPreset();
+            preset = storageUtil.getPreset();
         } catch (ConfigException e) {
             Bukkit.getLogger().severe(String.format("Could not load preset. %s", e.getMessage()));
             e.printStackTrace();
@@ -94,7 +95,7 @@ public class PresetJoinSubCommand extends TabSubCommand {
         
         preset.joinMember(ign, teamId);
         try {
-            controller.savePreset(preset);
+            storageUtil.savePreset();
         } catch (ConfigException e) {
             Bukkit.getLogger().severe(String.format("Could not save preset. %s", e.getMessage()));
             e.printStackTrace();
