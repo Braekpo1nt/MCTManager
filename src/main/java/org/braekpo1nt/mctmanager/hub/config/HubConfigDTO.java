@@ -78,10 +78,15 @@ record HubConfigDTO(
     @Data
     static class Leaderboard implements Validatable {
         private LocationDTO location;
+        /**
+         * how many players should be shown (i.e. top 10, top 20, top 5, etc.)
+         */
+        private int topNumber = 10;
         
         @Override
         public void validate(@NotNull Validator validator) {
             // location can be null if the external HubConfigDTO#leaderBoard Vector is not null, so that validation is left up to external validation
+            validator.validate(topNumber >= 0, "topNumber can't be negative");
         }
         
     }

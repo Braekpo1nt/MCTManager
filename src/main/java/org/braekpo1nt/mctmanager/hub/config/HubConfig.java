@@ -15,6 +15,10 @@ public class HubConfig {
     private Location podium;
     private Location podiumObservation;
     private Location leaderboardLocation;
+    /**
+     * how many players should be shown (i.e. top 10, top 20, top 5, etc.)
+     */
+    private int topNumber;
     private double yLimit;
     private int tpToHubDuration;
     
