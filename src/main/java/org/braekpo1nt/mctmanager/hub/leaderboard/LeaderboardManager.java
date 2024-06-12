@@ -95,11 +95,12 @@ public class LeaderboardManager {
             Standing standing = standings.get(i);
             lines.add(standing.toLine());
         }
+        lines.add("");
         for (Standing standing : standings) {
             Hologram hologram = holograms.get(standing.getUuid());
             if (hologram != null) {
                 DHAPI.setHologramLines(hologram, lines);
-                String personalLine = standing.toLine();
+                String personalLine = standing.toBoldLine();
                 DHAPI.addHologramLine(hologram, personalLine);
             }
         }
@@ -112,6 +113,9 @@ public class LeaderboardManager {
         private final @NotNull String displayName;
         private final int score;
         
+        public String toBoldLine() {
+            return String.format("%s%s%d.%s %s%s - %s%d", ChatColor.BOLD, ChatColor.GOLD, placement, ChatColor.WHITE, displayName, ChatColor.WHITE, ChatColor.GOLD, score);
+        }
         public String toLine() {
             return String.format("%s%d.%s %s%s - %s%d", ChatColor.GOLD, placement, ChatColor.WHITE, displayName, ChatColor.WHITE, ChatColor.GOLD, score);
         }
