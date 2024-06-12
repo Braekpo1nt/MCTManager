@@ -5,6 +5,7 @@ import eu.decentsoftware.holograms.api.holograms.Hologram;
 import lombok.Data;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
@@ -92,18 +93,23 @@ public class LeaderboardManager {
     }
     
     public void updateScores() {
-        // and a highlight of their position if they're in the top 10
         List<OfflinePlayer> sortedOfflineParticipants = GameManagerUtils.getSortedOfflineParticipants(gameManager);
         List<Standing> standings = new ArrayList<>(sortedOfflineParticipants.size());
         for (int i = 0; i < Math.min(topPlayers, sortedOfflineParticipants.size()); i++) {
             OfflinePlayer participant = sortedOfflineParticipants.get(i);
             int placement = i+1;
             UUID uuid = participant.getUniqueId();
-            String displayName = participant.getName() != null ? participant.getName() : uuid.toString(); 
+            String name = participant.getName(); 
+            if (name == null) {
+                name = gameManager.getOfflineIGN(uuid);
+                if (name == null) {
+                    name = uuid.toString();
+                }
+            }
             String teamId = gameManager.getTeamName(uuid);
             ChatColor teamColor = gameManager.getTeamChatColor(teamId);
             int score = gameManager.getScore(uuid);
-            standings.add(new Standing(uuid, placement, teamColor, displayName, score));
+            standings.add(new Standing(uuid, placement, teamColor, name, score));
         }
         List<String> lines = new ArrayList<>(Math.min(topPlayers, standings.size())+1);
         for (int i = 0; i < Math.min(topPlayers, standings.size()); i++) {

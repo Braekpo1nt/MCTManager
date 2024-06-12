@@ -1179,24 +1179,13 @@ public class GameManager implements Listener {
         String name = offlineParticipant.getName();
         UUID uuid = offlineParticipant.getUniqueId();
         if (name == null) {
+            String ign = gameStateStorageUtil.getOfflineIGN(uuid);
+            if (ign != null) {
+                return getDisplayName(uuid, ign);
+            }
             return getDisplayName(uuid, uuid.toString());
         }
         return getDisplayName(uuid, name);
-    }
-    
-    public String getDisplayNameAsString(@NotNull OfflinePlayer offlineParticipant) {
-        String name = offlineParticipant.getName();
-        UUID uuid = offlineParticipant.getUniqueId();
-        if (name == null) {
-            return getDisplayNameAsString(uuid, uuid.toString());
-        }
-        return getDisplayNameAsString(uuid, name);
-    }
-    
-    public String getDisplayNameAsString(@NotNull UUID participantUUID, @NotNull String name) {
-        String teamName = getTeamName(participantUUID);
-        ChatColor teamChatColor = getTeamChatColor(teamName);
-        return String.format("%s%s", teamChatColor, name);
     }
     
     /**
