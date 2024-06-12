@@ -93,10 +93,10 @@ public class LeaderboardManager {
     
     public void updateScores() {
         // and a highlight of their position if they're in the top 10
-        List<OfflinePlayer> sortedOfflinePlayers = GameManagerUtils.getSortedOfflinePlayers(gameManager);
-        List<Standing> standings = new ArrayList<>(sortedOfflinePlayers.size());
-        for (int i = 0; i < Math.min(topPlayers, sortedOfflinePlayers.size()); i++) {
-            OfflinePlayer participant = sortedOfflinePlayers.get(i);
+        List<OfflinePlayer> sortedOfflineParticipants = GameManagerUtils.getSortedOfflineParticipants(gameManager);
+        List<Standing> standings = new ArrayList<>(sortedOfflineParticipants.size());
+        for (int i = 0; i < Math.min(topPlayers, sortedOfflineParticipants.size()); i++) {
+            OfflinePlayer participant = sortedOfflineParticipants.get(i);
             int placement = i+1;
             UUID uuid = participant.getUniqueId();
             String displayName = participant.getName() != null ? participant.getName() : uuid.toString(); 

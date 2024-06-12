@@ -75,7 +75,7 @@ public class GameManagerUtils {
     public static Component getTeamDisplay(GameManager gameManager) {
         TextComponent.Builder messageBuilder = Component.text().append(Component.text("Scores:\n")
                     .decorate(TextDecoration.BOLD));
-        List<OfflinePlayer> offlinePlayers = getSortedOfflinePlayers(gameManager);
+        List<OfflinePlayer> offlinePlayers = getSortedOfflineParticipants(gameManager);
         List<String> sortedTeams = getSortedTeams(gameManager);
         
         for (String team : sortedTeams) {
@@ -115,10 +115,10 @@ public class GameManagerUtils {
      * @param gameManager the GameManager to get the data from
      * @return a sorted list of OfflinePlayers representing the participants. Sorted first by score from greatest to least, then alphabetically (A first, Z last).
      */
-    public static @NotNull List<OfflinePlayer> getSortedOfflinePlayers(GameManager gameManager) {
-        List<OfflinePlayer> offlinePlayers = gameManager.getOfflineParticipants();
-        sortOfflinePlayers(offlinePlayers, gameManager);
-        return offlinePlayers;
+    public static @NotNull List<OfflinePlayer> getSortedOfflineParticipants(GameManager gameManager) {
+        List<OfflinePlayer> offlineParticipants = gameManager.getOfflineParticipants();
+        sortOfflinePlayers(offlineParticipants, gameManager);
+        return offlineParticipants;
     }
     
     /**
