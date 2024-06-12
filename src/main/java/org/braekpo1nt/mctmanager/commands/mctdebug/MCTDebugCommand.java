@@ -1,9 +1,11 @@
 package org.braekpo1nt.mctmanager.commands.mctdebug;
 
 import eu.decentsoftware.holograms.api.DHAPI;
+import eu.decentsoftware.holograms.api.holograms.Hologram;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -43,10 +45,15 @@ public class MCTDebugCommand implements TabExecutor, Listener {
         String name = "example";
         Location location = player.getLocation();
         List<String> lines = List.of("Test");
-        if (DHAPI.getHologram(name) == null) {
-            DHAPI.createHologram(name, location, lines);
+        Hologram hologram = getHologram(name, location, lines);
+        hologram.setDefaultVisibleState(false);
+        hologram.setShowPlayer(player);
+        Player rstln = Bukkit.getPlayer("rstln");
+        if (rstln != null) {
+            hologram.setShowPlayer(rstln);
         }
-    
+
+
 //        Component mainTitle = Component.text("Main title");
 //        Component subTitle = Component.text("Subtitle");
 //
@@ -54,6 +61,16 @@ public class MCTDebugCommand implements TabExecutor, Listener {
 //        Title title = Title.title(mainTitle, subTitle, times);
 //        sender.showTitle(title);
         return true;
+    }
+    
+    public Hologram getHologram(String name, Location location, List<String> lines) {
+        Hologram hologram = DHAPI.getHologram(name);
+        if (hologram != null) {
+            DHAPI.setHologramLines(hologram, lines);
+            DHAPI.moveHologram(hologram, location);
+            return hologram;
+        }
+        return DHAPI.createHologram(name, location, lines);
     }
     
     @Override
