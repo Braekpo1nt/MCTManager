@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.hub;
 
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
 import org.braekpo1nt.mctmanager.games.GameManager;
@@ -9,6 +10,7 @@ import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.hub.config.HubConfig;
 import org.braekpo1nt.mctmanager.hub.config.HubConfigController;
+import org.braekpo1nt.mctmanager.hub.leaderboard.LeaderboardManager;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.sidebar.SidebarFactory;
@@ -34,6 +36,7 @@ public class HubManager implements Listener, Configurable {
     private final Main plugin;
     private final GameManager gameManager;
     private final HubConfigController configController;
+    private final LeaderboardManager leaderboardManager;
     private HubConfig config;
     private int returnToHubTaskId;
     /**
@@ -50,12 +53,15 @@ public class HubManager implements Listener, Configurable {
         this.plugin = plugin;
         this.gameManager = gameManager;
         this.configController = new HubConfigController(plugin.getDataFolder());
+        this.config = this.configController.getDefaultConfig();
+        this.leaderboardManager = new LeaderboardManager(this.config.getLeaderboardLocation());
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
     
     @Override
     public void loadConfig() throws ConfigIOException, ConfigInvalidException {
         this.config = configController.getConfig();
+        this.leaderboardManager.setLocation(this.config.getLeaderboardLocation());
     }
     
     /**
@@ -172,6 +178,8 @@ public class HubManager implements Listener, Configurable {
     
     public void onParticipantQuit(Player participant) {
         participants.remove(participant);
+        plugin.getLogger().info("HubManager.onParticipantJoin()");
+        leaderboardManager.onParticipantQuit(participant);
     }
     
     /**
@@ -180,6 +188,8 @@ public class HubManager implements Listener, Configurable {
      */
     public void onParticipantJoin(Player participant) {
         participants.add(participant);
+        plugin.getLogger().info("HubManager.onParticipantJoin()");
+        leaderboardManager.onParticipantJoin(participant);
     }
     
     public void onAdminJoin(Player admin) {

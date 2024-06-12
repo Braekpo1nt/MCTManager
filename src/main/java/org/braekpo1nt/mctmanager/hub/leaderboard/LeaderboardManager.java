@@ -7,6 +7,7 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -65,6 +66,7 @@ public class LeaderboardManager {
         } else {
             DHAPI.moveHologram(hologram, location);
         }
+        DHAPI.setHologramLines(hologram, List.of("Test"));
         hologram.setDefaultVisibleState(false);
         return hologram;
     }

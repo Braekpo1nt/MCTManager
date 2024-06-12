@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.config.dto.org.bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * An abstraction of {@link Location} for gson serialization/deserialization purposes.
@@ -38,7 +39,7 @@ public class LocationDTO {
      * @param world the world the location should be in
      * @return A new {@link Location} with the values this DTO was storing and the given world
      */
-    public Location toLocation(World world) {
+    public @NotNull Location toLocation(@NotNull World world) {
         return new Location(world, x, y, z, yaw, pitch);
     }
     

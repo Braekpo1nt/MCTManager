@@ -1,7 +1,9 @@
 package org.braekpo1nt.mctmanager.hub.config;
 
 import com.google.common.base.Preconditions;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.LocationDTO;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
@@ -58,7 +60,7 @@ record HubConfigDTO(
             } else {
                 newLeaderboardLocation = this.leaderBoard.toLocation(newWorld);
             }
-            newTopNumber = this.leaderboard.getTopNumber();
+            newTopNumber = this.leaderboard.getTopPlayers();
         } else {
             newLeaderboardLocation = this.leaderBoard.toLocation(newWorld);
         }
@@ -69,7 +71,7 @@ record HubConfigDTO(
                 .podium(this.podium.toLocation(newWorld))
                 .podiumObservation(this.podiumObservation.toLocation(newWorld))
                 .leaderboardLocation(newLeaderboardLocation)
-                .topNumber(newTopNumber)
+                .topPlayers(newTopNumber)
                 .yLimit(this.yLimit)
                 .tpToHubDuration(this.durations.tpToHub)
                 .build();
@@ -79,17 +81,19 @@ record HubConfigDTO(
     }
     
     @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
     static class Leaderboard implements Validatable {
         private LocationDTO location;
         /**
          * how many players should be shown (i.e. top 10, top 20, top 5, etc.)
          */
-        private int topNumber = 10;
+        private int topPlayers = 10;
         
         @Override
         public void validate(@NotNull Validator validator) {
             // location can be null if the external HubConfigDTO#leaderBoard Vector is not null, so that validation is left up to external validation
-            validator.validate(topNumber >= 0, "topNumber can't be negative");
+            validator.validate(topPlayers >= 0, "topNumber can't be negative");
         }
         
     }
