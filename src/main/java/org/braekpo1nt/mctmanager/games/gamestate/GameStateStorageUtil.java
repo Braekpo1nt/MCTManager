@@ -314,8 +314,18 @@ public class GameStateStorageUtil {
         return team.getDisplayName();
     }
     
+    /**
+     * @return the UUIDs of the players
+     */
     public List<UUID> getPlayerUniqueIds() {
         return gameState.getPlayers().keySet().stream().toList();
+    }
+    
+    /**
+     * @return the UUIDs of the offline players 
+     */
+    public List<UUID> getOfflinePlayerUniqueIds() {
+        return gameState.getOfflinePlayers().values().stream().map(OfflineMCTPlayer::getOfflineUniqueId).toList();
     }
     
     public void addScore(UUID uniqueId, int score) throws ConfigIOException {

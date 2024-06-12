@@ -1245,20 +1245,22 @@ public class GameManager implements Listener {
     }
     
     /**
-     * Gets a list of all participants in the form of OfflinePlayers. This will
-     * return all participants in the game state whether they are offline or online. 
      * @return A list of all OfflinePlayers in the game state. These players could
-     * be offline or online, exist or not. The only guarantee is that their UUID is
-     * in the game state. 
+     * be offline or online, have names or not
      */
     public List<OfflinePlayer> getOfflineParticipants() {
         List<UUID> uniqueIds = gameStateStorageUtil.getPlayerUniqueIds();
-        List<OfflinePlayer> offlinePlayers = new ArrayList<>();
+        List<OfflinePlayer> offlineParticipants = new ArrayList<>();
         for (UUID uniqueId : uniqueIds) {
             OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(uniqueId);
-            offlinePlayers.add(offlinePlayer);
+            offlineParticipants.add(offlinePlayer);
         }
-        return offlinePlayers;
+        List<UUID> offlineUniqueIds = gameStateStorageUtil.getOfflinePlayerUniqueIds();
+        for (UUID offlineUniqueId : offlineUniqueIds) {
+            OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(offlineUniqueId);
+            offlineParticipants.add(offlinePlayer);
+        }
+        return offlineParticipants;
     }
     
     /**
