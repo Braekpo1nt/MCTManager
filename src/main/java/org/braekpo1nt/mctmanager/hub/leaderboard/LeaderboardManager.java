@@ -18,8 +18,16 @@ import java.util.*;
  */
 public class LeaderboardManager {
     
-    private final Map<UUID, Hologram> holograms = new HashMap<>();
     private static final String PREFIX = "leaderboard_";
+    private static final String LEADERBOARD_ALL = "leaderboard_all";
+    /**
+     * The holograms for the participants. Each is specific to them because they need to see their personal scores.
+     */
+    private final Map<UUID, Hologram> holograms = new HashMap<>();
+    /**
+     * the hologram that others see (admins and non-participants)
+     */
+    private final Hologram allHologram;
     private final GameManager gameManager;
     private @NotNull Location location;
     private int topPlayers;
@@ -31,6 +39,8 @@ public class LeaderboardManager {
         this.gameManager = gameManager;
         this.location = location;
         this.topPlayers = topPlayers;
+        this.allHologram = createHologram(LEADERBOARD_ALL);
+        allHologram.setDefaultVisibleState(true);
     }
     
     /**
@@ -42,6 +52,7 @@ public class LeaderboardManager {
         for (Hologram hologram : holograms.values()) {
             DHAPI.moveHologram(hologram, location);
         }
+        DHAPI.moveHologram(allHologram, location);
     }
     
     public void setTopPlayers(int topPlayers) {
@@ -52,6 +63,7 @@ public class LeaderboardManager {
     public void onParticipantJoin(@NotNull Player participant) {
         Hologram hologram = createHologram(PREFIX + participant.getName());
         hologram.setShowPlayer(participant);
+        allHologram.setHidePlayer(participant);
         holograms.put(participant.getUniqueId(), hologram);
     }
     
@@ -60,6 +72,7 @@ public class LeaderboardManager {
         if (hologram != null) {
             DHAPI.removeHologram(hologram.getName());
         }
+        allHologram.removeHidePlayer(participant);
     }
     
     /**
@@ -74,7 +87,6 @@ public class LeaderboardManager {
         } else {
             DHAPI.moveHologram(hologram, location);
         }
-        DHAPI.setHologramLines(hologram, List.of("Test"));
         hologram.setDefaultVisibleState(false);
         return hologram;
     }
@@ -98,6 +110,7 @@ public class LeaderboardManager {
             Standing standing = standings.get(i);
             lines.add(standing.toLine());
         }
+        DHAPI.setHologramLines(allHologram, lines);
         lines.add("");
         for (Standing standing : standings) {
             Hologram hologram = holograms.get(standing.getUuid());

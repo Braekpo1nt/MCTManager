@@ -45,14 +45,7 @@ public class MCTDebugCommand implements TabExecutor, Listener {
         String name = "example";
         Location location = player.getLocation();
         List<String> lines = List.of("Test");
-        Hologram hologram = getHologram(name, location, lines);
-        hologram.setDefaultVisibleState(false);
-        hologram.setShowPlayer(player);
-        Player rstln = Bukkit.getPlayer("rstln");
-        if (rstln != null) {
-            hologram.setShowPlayer(rstln);
-        }
-
+        getHologram(name, location, lines);
 
 //        Component mainTitle = Component.text("Main title");
 //        Component subTitle = Component.text("Subtitle");
