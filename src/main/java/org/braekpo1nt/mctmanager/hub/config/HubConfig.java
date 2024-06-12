@@ -14,7 +14,7 @@ public class HubConfig {
     private Location spawn;
     private Location podium;
     private Location podiumObservation;
-    private Vector leaderBoard;
+    private Location leaderboardLocation;
     private double yLimit;
     private int tpToHubDuration;
     
