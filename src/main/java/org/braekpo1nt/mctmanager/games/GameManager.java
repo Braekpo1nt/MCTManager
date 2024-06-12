@@ -823,6 +823,14 @@ public class GameManager implements Listener {
     }
     
     /**
+     * @param offlineUUID the UUID of the offline player which may be in the GameState
+     * @return true if the given UUID matches one of the offline players in the GameState, false otherwise
+     */
+    public boolean isOfflineParticipant(UUID offlineUUID) {
+        return gameStateStorageUtil.containsOfflinePlayer(offlineUUID);
+    }
+    
+    /**
      * @param ign the in-game-name of the OfflineParticipant
      * @return true if the ign is that of an OfflineParticipant (one who has never logged in before), false otherwise
      */

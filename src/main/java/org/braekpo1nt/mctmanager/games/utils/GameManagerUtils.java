@@ -91,13 +91,17 @@ public class GameManagerUtils {
             for (OfflinePlayer offlinePlayer : offlinePlayers) {
                 String playerTeam = gameManager.getTeamName(offlinePlayer.getUniqueId());
                 int playerScore = gameManager.getScore(offlinePlayer.getUniqueId());
-                if (offlinePlayer.getName() == null) {
-                    continue;
+                String name = offlinePlayer.getName();
+                if (name == null) {
+                    name = gameManager.getOfflineIGN(offlinePlayer.getUniqueId());
+                    if (name == null) {
+                        continue;
+                    }
                 }
                 if (playerTeam.equals(team)) {
                     messageBuilder.append(Component.empty()
                             .append(Component.text("  "))
-                            .append(Component.text(offlinePlayer.getName())
+                            .append(Component.text(name)
                                     .color(teamNamedTextColor))
                             .append(Component.text(" - "))
                             .append(Component.text(playerScore)

@@ -197,6 +197,14 @@ public class GameStateStorageUtil {
     }
     
     /**
+     * @param offlineUUID the UUID of the offline player which may be in the GameState
+     * @return true if the given UUID matches one of the offline players in the GameState, false otherwise
+     */
+    public boolean containsOfflinePlayer(UUID offlineUUID) {
+        return gameState.getOfflinePlayer(offlineUUID) != null;
+    }
+    
+    /**
      * @param ign the in-game-name of a participant who has never logged in before
      * @return true if the ign is in the current list of offline players (who have yet to log in for the first time), false otherwise
      */
