@@ -51,12 +51,14 @@ record HubConfigDTO(
         World newWorld = Bukkit.getWorld(this.world);
         Preconditions.checkState(newWorld != null, "Could not find world \"%s\"", this.world);
         Location newLeaderboardLocation;
+        int newTopNumber = 10;
         if (this.leaderboard != null) {
             if (this.leaderboard.location != null) {
-                newLeaderboardLocation = this.leaderboard.location.toLocation(newWorld);
+                newLeaderboardLocation = this.leaderboard.getLocation().toLocation(newWorld);
             } else {
                 newLeaderboardLocation = this.leaderBoard.toLocation(newWorld);
             }
+            newTopNumber = this.leaderboard.getTopNumber();
         } else {
             newLeaderboardLocation = this.leaderBoard.toLocation(newWorld);
         }
@@ -67,6 +69,7 @@ record HubConfigDTO(
                 .podium(this.podium.toLocation(newWorld))
                 .podiumObservation(this.podiumObservation.toLocation(newWorld))
                 .leaderboardLocation(newLeaderboardLocation)
+                .topNumber(newTopNumber)
                 .yLimit(this.yLimit)
                 .tpToHubDuration(this.durations.tpToHub)
                 .build();
