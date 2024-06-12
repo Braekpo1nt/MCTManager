@@ -183,13 +183,11 @@ public class HubManager implements Listener, Configurable {
      */
     public void onParticipantJoin(Player participant) {
         participants.add(participant);
-        plugin.getLogger().info("HubManager.onParticipantJoin()");
         leaderboardManager.onParticipantJoin(participant);
     }
     
     public void onParticipantQuit(Player participant) {
         participants.remove(participant);
-        plugin.getLogger().info("HubManager.onParticipantJoin()");
         leaderboardManager.onParticipantQuit(participant);
     }
     

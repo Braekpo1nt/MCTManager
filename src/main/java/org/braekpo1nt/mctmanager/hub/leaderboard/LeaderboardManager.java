@@ -64,8 +64,8 @@ public class LeaderboardManager {
     public void onParticipantJoin(@NotNull Player participant) {
         Hologram hologram = createHologram(PREFIX + participant.getName());
         hologram.setShowPlayer(participant);
-        allHologram.setHidePlayer(participant);
         holograms.put(participant.getUniqueId(), hologram);
+        allHologram.setHidePlayer(participant);
     }
     
     public void onParticipantQuit(@NotNull Player participant) {
@@ -95,7 +95,7 @@ public class LeaderboardManager {
     public void updateScores() {
         List<OfflinePlayer> sortedOfflineParticipants = GameManagerUtils.getSortedOfflineParticipants(gameManager);
         List<Standing> standings = new ArrayList<>(sortedOfflineParticipants.size());
-        for (int i = 0; i < Math.min(topPlayers, sortedOfflineParticipants.size()); i++) {
+        for (int i = 0; i < sortedOfflineParticipants.size(); i++) {
             OfflinePlayer participant = sortedOfflineParticipants.get(i);
             int placement = i+1;
             UUID uuid = participant.getUniqueId();
