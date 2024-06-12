@@ -1,8 +1,10 @@
 package org.braekpo1nt.mctmanager.commands.mctdebug;
 
+import eu.decentsoftware.holograms.api.DHAPI;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
+import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
@@ -37,6 +39,12 @@ public class MCTDebugCommand implements TabExecutor, Listener {
             sender.sendMessage(Component.text("Usage: /mctdebug <arg> [options]")
                     .color(NamedTextColor.RED));
             return true;
+        }
+        String name = "example";
+        Location location = player.getLocation();
+        List<String> lines = List.of("Test");
+        if (DHAPI.getHologram(name) == null) {
+            DHAPI.createHologram(name, location, lines);
         }
     
 //        Component mainTitle = Component.text("Main title");
