@@ -54,14 +54,15 @@ public class HubManager implements Listener, Configurable {
         this.gameManager = gameManager;
         this.configController = new HubConfigController(plugin.getDataFolder());
         this.config = this.configController.getDefaultConfig();
-        this.leaderboardManager = new LeaderboardManager(this.config.getLeaderboardLocation());
+        this.leaderboardManager = new LeaderboardManager(gameManager, this.config.getLeaderboardLocation(), this.config.getTopPlayers());
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
     
     @Override
     public void loadConfig() throws ConfigIOException, ConfigInvalidException {
         this.config = configController.getConfig();
-        this.leaderboardManager.setLocation(this.config.getLeaderboardLocation());
+        leaderboardManager.setLocation(config.getLeaderboardLocation());
+        leaderboardManager.setTopPlayers(config.getTopPlayers());
     }
     
     /**
@@ -176,12 +177,6 @@ public class HubManager implements Listener, Configurable {
         }
     }
     
-    public void onParticipantQuit(Player participant) {
-        participants.remove(participant);
-        plugin.getLogger().info("HubManager.onParticipantJoin()");
-        leaderboardManager.onParticipantQuit(participant);
-    }
-    
     /**
      * Should be called when the participant who joined should be in the hub
      * @param participant the participant to add
@@ -192,12 +187,22 @@ public class HubManager implements Listener, Configurable {
         leaderboardManager.onParticipantJoin(participant);
     }
     
+    public void onParticipantQuit(Player participant) {
+        participants.remove(participant);
+        plugin.getLogger().info("HubManager.onParticipantJoin()");
+        leaderboardManager.onParticipantQuit(participant);
+    }
+    
     public void onAdminJoin(Player admin) {
         initializeAdmin(admin);
     }
     
     public void onAdminQuit(Player admin) {
         
+    }
+    
+    public void updateLeaderboard() {
+        leaderboardManager.updateScores();
     }
     
     public void cancelAllTasks() {

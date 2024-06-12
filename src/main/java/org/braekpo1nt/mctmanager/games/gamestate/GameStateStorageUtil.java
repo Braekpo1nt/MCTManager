@@ -278,8 +278,19 @@ public class GameStateStorageUtil {
         saveGameState();
     }
     
-    public int getPlayerScore(UUID playerUniqueId) {
+    public int getParticipantScore(UUID playerUniqueId) {
         return gameState.getPlayer(playerUniqueId).getScore();
+    }
+    
+    /**
+     * @return a map of each participant's UUID to its score
+     */
+    public @NotNull Map<UUID, Integer> getParticipantScores() {
+        Map<UUID, Integer> participantScores = new HashMap<>(gameState.getPlayers().size());
+        for (MCTPlayer mctPlayer : gameState.getPlayers().values()) {
+            participantScores.put(mctPlayer.getUniqueId(), mctPlayer.getScore());
+        }
+        return participantScores;
     }
     
     /**

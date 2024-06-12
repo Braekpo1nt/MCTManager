@@ -1176,6 +1176,21 @@ public class GameManager implements Listener {
         return getDisplayName(uuid, name);
     }
     
+    public String getDisplayNameAsString(@NotNull OfflinePlayer offlineParticipant) {
+        String name = offlineParticipant.getName();
+        UUID uuid = offlineParticipant.getUniqueId();
+        if (name == null) {
+            return getDisplayNameAsString(uuid, uuid.toString());
+        }
+        return getDisplayNameAsString(uuid, name);
+    }
+    
+    public String getDisplayNameAsString(@NotNull UUID participantUUID, @NotNull String name) {
+        String teamName = getTeamName(participantUUID);
+        ChatColor teamChatColor = getTeamChatColor(teamName);
+        return String.format("%s%s", teamChatColor, name);
+    }
+    
     /**
      * Get the display name of the given participant's UUID. Throws an error if this is not a valid participant UUID.
      * @param participantUUID a valid participant's UUID in the GameState
@@ -1353,9 +1368,15 @@ public class GameManager implements Listener {
      * @return The score of the participant with the given UUID
      */
     public int getScore(UUID participantUniqueId) {
-        return gameStateStorageUtil.getPlayerScore(participantUniqueId);
+        return gameStateStorageUtil.getParticipantScore(participantUniqueId);
     }
     
+    /**
+     * @return a map of each participant's UUID to their score
+     */
+    public @NotNull Map<UUID, Integer> getParticipantScores() {
+        return gameStateStorageUtil.getParticipantScores();
+    }
     
     /**
      * Checks if the given player is an admin
@@ -1525,6 +1546,7 @@ public class GameManager implements Listener {
         if (eventManager.eventIsActive()) {
             eventManager.updateTeamScores();
         }
+        hubManager.updateLeaderboard();
     }
     
     private void updatePersonalScore(Player participant) {
@@ -1536,6 +1558,7 @@ public class GameManager implements Listener {
         if (eventManager.eventIsActive()) {
             eventManager.updatePersonalScore(participant, contents);
         }
+        hubManager.updateLeaderboard();
     }
     
 }
