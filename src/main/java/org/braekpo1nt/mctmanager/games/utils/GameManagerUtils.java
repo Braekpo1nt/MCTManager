@@ -135,11 +135,17 @@ public class GameManagerUtils {
             
             String p1Name = p1.getName();
             if (p1Name == null) {
-                p1Name = p1.getUniqueId().toString();
+                p1Name = gameManager.getOfflineIGN(p1.getUniqueId());
+                if (p1Name == null) {
+                    p1Name = p1.getUniqueId().toString();
+                }
             }
             String p2Name = p2.getName();
             if (p2Name == null) {
-                p2Name = p2.getUniqueId().toString();
+                p2Name = gameManager.getOfflineIGN(p2.getUniqueId());
+                if (p2Name == null) {
+                    p2Name = p2.getUniqueId().toString();
+                }
             }
             return p1Name.compareToIgnoreCase(p2Name);
         });

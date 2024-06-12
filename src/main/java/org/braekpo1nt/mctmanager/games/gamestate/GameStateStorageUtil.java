@@ -231,6 +231,18 @@ public class GameStateStorageUtil {
     }
     
     /**
+     * @param uniqueId the UUID to get the offline IGN for
+     * @return the IGN of the offlinePlayer with the given UUID. Null if no such player exists. 
+     */
+    public @Nullable String getOfflineIGN(@NotNull UUID uniqueId) {
+        OfflineMCTPlayer offlineMCTPlayer = gameState.getOfflinePlayer(uniqueId);
+        if (offlineMCTPlayer == null) {
+            return null;
+        }
+        return offlineMCTPlayer.getIgn();
+    }
+    
+    /**
      * Gets the UUIDs of the players on the given team
      * @param teamName The internal name of the team
      * @return Empty list if no players are on that team, or if the team doesn't exist

@@ -1079,6 +1079,14 @@ public class GameManager implements Listener {
     }
     
     /**
+     * @param uniqueId the UUID of the offline IGN to get
+     * @return the in-game-name of the offlinePlayer in the GameState with the given UUID. Null if the UUID doesn't belong to an offline player 
+     */
+    public @Nullable String getOfflineIGN(@NotNull UUID uniqueId) {
+        return gameStateStorageUtil.getOfflineIGN(uniqueId);
+    }
+    
+    /**
      * Awards points to the participant and their team and announces to that participant how many points they received. 
      * If the participant does not exist, nothing happens.
      * @param participant The participant to award points to
@@ -1235,7 +1243,12 @@ public class GameManager implements Listener {
             if (name != null){
                 playerNames.add(name);
             } else {
-                playerNames.add(offlinePlayer.getUniqueId().toString());
+                String ign = gameStateStorageUtil.getOfflineIGN(offlinePlayer.getUniqueId());
+                if (ign != null) {
+                    playerNames.add(ign);
+                } else {
+                    playerNames.add(offlinePlayer.getUniqueId().toString());
+                }
             }
         }
         return playerNames;
@@ -1566,5 +1579,4 @@ public class GameManager implements Listener {
         }
         hubManager.updateLeaderboard();
     }
-    
 }
