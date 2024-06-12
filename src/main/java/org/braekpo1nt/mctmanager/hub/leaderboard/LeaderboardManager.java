@@ -86,9 +86,12 @@ public class LeaderboardManager {
         for (int i = 0; i < Math.min(topPlayers, sortedOfflinePlayers.size()); i++) {
             OfflinePlayer participant = sortedOfflinePlayers.get(i);
             int placement = i+1;
-            String displayName = gameManager.getDisplayNameAsString(participant);
-            int score = gameManager.getScore(participant.getUniqueId());
-            standings.add(new Standing(participant.getUniqueId(), placement, displayName, score));
+            UUID uuid = participant.getUniqueId();
+            String displayName = participant.getName() != null ? participant.getName() : uuid.toString(); 
+            String teamId = gameManager.getTeamName(uuid);
+            ChatColor teamColor = gameManager.getTeamChatColor(teamId);
+            int score = gameManager.getScore(uuid);
+            standings.add(new Standing(uuid, placement, teamColor, displayName, score));
         }
         List<String> lines = new ArrayList<>(Math.min(topPlayers, standings.size())+1);
         for (int i = 0; i < Math.min(topPlayers, standings.size()); i++) {
@@ -102,6 +105,9 @@ public class LeaderboardManager {
                 DHAPI.setHologramLines(hologram, lines);
                 String personalLine = standing.toBoldLine();
                 DHAPI.addHologramLine(hologram, personalLine);
+                if (standing.getPlacement() - 1 <= topPlayers) {
+                    DHAPI.setHologramLine(hologram, standing.getPlacement() - 1, personalLine);
+                }
             }
         }
     }
@@ -110,14 +116,20 @@ public class LeaderboardManager {
     static class Standing {
         private final @NotNull UUID uuid;
         private final int placement;
-        private final @NotNull String displayName;
+        private final ChatColor teamColor;
+        private final @NotNull String ign;
         private final int score;
         
         public String toBoldLine() {
-            return String.format("%s%s%d.%s %s%s - %s%d", ChatColor.BOLD, ChatColor.GOLD, placement, ChatColor.WHITE, displayName, ChatColor.WHITE, ChatColor.GOLD, score);
+            return "" + ChatColor.GOLD + ChatColor.BOLD + placement + ". "
+                    + teamColor + ChatColor.BOLD + ign
+                    + ChatColor.WHITE + " - " + ChatColor.GOLD + ChatColor.BOLD + score;
         }
+        
         public String toLine() {
-            return String.format("%s%d.%s %s%s - %s%d", ChatColor.GOLD, placement, ChatColor.WHITE, displayName, ChatColor.WHITE, ChatColor.GOLD, score);
+            return "" + ChatColor.GOLD + placement + ". "
+                    + teamColor + ign
+                    + ChatColor.WHITE + " - " + ChatColor.GOLD + score;
         }
     }
 }
