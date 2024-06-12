@@ -211,10 +211,14 @@ public class GameStateStorageUtil {
      */
     public @Nullable String getPlayerTeamName(@NotNull UUID playerUniqueId) {
         MCTPlayer player = gameState.getPlayer(playerUniqueId);
-        if (player == null) {
-            return null;
+        if (player != null) {
+            return player.getTeamName();
         }
-        return player.getTeamName();
+        OfflineMCTPlayer offlineMCTPlayer = gameState.getOfflinePlayer(playerUniqueId);
+        if (offlineMCTPlayer != null) {
+            return offlineMCTPlayer.getTeamName();
+        }
+        return null;
     }
     
     /**
@@ -278,6 +282,10 @@ public class GameStateStorageUtil {
         saveGameState();
     }
     
+    /**
+     * @param playerUniqueId the UUID of the player to get the score of. 
+     * @return the given participant's score. 0 if the UUID isn't a player, or if it is an offlinePlayer.
+     */
     public int getParticipantScore(UUID playerUniqueId) {
         MCTPlayer player = gameState.getPlayer(playerUniqueId);
         if (player == null) {
@@ -375,7 +383,7 @@ public class GameStateStorageUtil {
      * @param teamName The team to get the color string of
      * @return The color string of the given team
      */
-    public String getTeamColorString(String teamName) {
+    public String getTeamColorString(@NotNull String teamName) {
         return gameState.getTeam(teamName).getColor();
     }
     

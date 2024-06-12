@@ -110,8 +110,16 @@ public class GameState {
      * @param ign the in-game-name of a participant who has never logged in before
      * @return the matching {@link OfflineMCTPlayer} of the ign
      */
-    public OfflineMCTPlayer getOfflinePlayer(String ign) {
+    public OfflineMCTPlayer getOfflinePlayer(@NotNull String ign) {
         return offlinePlayers.get(ign);
+    }
+    
+    /**
+     * @param uuid the UUID of the offlinePlayer to match
+     * @return the offlineMCTPlayer whose UUID matches the given UUID. Null if no such player exists in the GameState
+     */
+    public @Nullable OfflineMCTPlayer getOfflinePlayer(@NotNull UUID uuid) {
+        return offlinePlayers.values().stream().filter(p -> Objects.equals(p.getOfflineUniqueId(), uuid)).findFirst().orElse(null);
     }
     
     /**

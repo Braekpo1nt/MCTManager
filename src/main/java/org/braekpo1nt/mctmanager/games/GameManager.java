@@ -1468,27 +1468,27 @@ public class GameManager implements Listener {
         adminTeam.removePlayer(offlineAdmin);
     }
     
-    public Material getTeamPowderColor(String teamName) {
+    public Material getTeamPowderColor(@NotNull String teamName) {
         String colorString = gameStateStorageUtil.getTeamColorString(teamName);
         return ColorMap.getConcretePowderColor(colorString);
     }
     
-    public Material getTeamConcreteColor(String teamName) {
+    public Material getTeamConcreteColor(@NotNull String teamName) {
         String colorString = gameStateStorageUtil.getTeamColorString(teamName);
         return ColorMap.getConcreteColor(colorString);
     }
     
-    public Material getTeamStainedGlassColor(String teamName) {
+    public Material getTeamStainedGlassColor(@NotNull String teamName) {
         String colorString = gameStateStorageUtil.getTeamColorString(teamName);
         return ColorMap.getStainedGlassColor(colorString);
     }
     
-    public ChatColor getTeamChatColor(String teamName) {
+    public ChatColor getTeamChatColor(@NotNull String teamName) {
         String colorString = gameStateStorageUtil.getTeamColorString(teamName);
         return ColorMap.getChatColor(colorString);
     }
     
-    public Material getTeamBannerColor(String teamName) {
+    public Material getTeamBannerColor(@NotNull String teamName) {
         String colorString = gameStateStorageUtil.getTeamColorString(teamName);
         return ColorMap.getBannerColor(colorString);
     }
