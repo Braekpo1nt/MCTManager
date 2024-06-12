@@ -1227,12 +1227,16 @@ public class GameManager implements Listener {
      * whether they're offline or online. 
      * @return a list of the names of all participants in the game state
      */
-    public List<String> getAllParticipantNames() {
+    public List<@NotNull String> getAllParticipantNames() {
         List<OfflinePlayer> offlinePlayers = getOfflineParticipants();
-        List<String> playerNames = new ArrayList<>();
+        List<@NotNull String> playerNames = new ArrayList<>();
         for (OfflinePlayer offlinePlayer : offlinePlayers) {
             String name = offlinePlayer.getName();
-            playerNames.add(name);
+            if (name != null){
+                playerNames.add(name);
+            } else {
+                playerNames.add(offlinePlayer.getUniqueId().toString());
+            }
         }
         return playerNames;
     }

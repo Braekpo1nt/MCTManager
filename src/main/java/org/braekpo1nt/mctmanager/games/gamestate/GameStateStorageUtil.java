@@ -279,7 +279,11 @@ public class GameStateStorageUtil {
     }
     
     public int getParticipantScore(UUID playerUniqueId) {
-        return gameState.getPlayer(playerUniqueId).getScore();
+        MCTPlayer player = gameState.getPlayer(playerUniqueId);
+        if (player == null) {
+            return 0;
+        }
+        return player.getScore();
     }
     
     /**
