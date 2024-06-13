@@ -2,7 +2,6 @@ package org.braekpo1nt.mctmanager.hub;
 
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
 import org.braekpo1nt.mctmanager.games.GameManager;
@@ -27,6 +26,7 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Team;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,9 +35,9 @@ public class HubManager implements Listener, Configurable {
     
     private final Main plugin;
     private final GameManager gameManager;
-    private final HubConfigController configController;
-    private final LeaderboardManager leaderboardManager;
-    private HubConfig config;
+    protected final HubConfigController configController;
+    protected HubConfig config;
+    private @Nullable LeaderboardManager leaderboardManager;
     private int returnToHubTaskId;
     /**
      * Contains a list of the players who are about to be sent to the hub and can see the countdown
@@ -54,15 +54,13 @@ public class HubManager implements Listener, Configurable {
         this.gameManager = gameManager;
         this.configController = new HubConfigController(plugin.getDataFolder());
         this.config = this.configController.getDefaultConfig();
-        this.leaderboardManager = new LeaderboardManager(gameManager, this.config.getLeaderboardLocation(), this.config.getTopPlayers());
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
     
     @Override
     public void loadConfig() throws ConfigIOException, ConfigInvalidException {
         this.config = configController.getConfig();
-        leaderboardManager.setLocation(config.getLeaderboardLocation());
-        leaderboardManager.setTopPlayers(config.getTopPlayers());
+        leaderboardManager = new LeaderboardManager(gameManager, config.getLeaderboardLocation(), config.getTopPlayers());
     }
     
     /**
@@ -183,12 +181,16 @@ public class HubManager implements Listener, Configurable {
      */
     public void onParticipantJoin(Player participant) {
         participants.add(participant);
-        leaderboardManager.onParticipantJoin(participant);
+        if (leaderboardManager != null) {
+            leaderboardManager.onParticipantJoin(participant);
+        }
     }
     
     public void onParticipantQuit(Player participant) {
         participants.remove(participant);
-        leaderboardManager.onParticipantQuit(participant);
+        if (leaderboardManager != null) {
+            leaderboardManager.onParticipantQuit(participant);
+        }
     }
     
     public void onAdminJoin(Player admin) {
@@ -200,7 +202,9 @@ public class HubManager implements Listener, Configurable {
     }
     
     public void updateLeaderboard() {
-        leaderboardManager.updateScores();
+        if (leaderboardManager != null) {
+            leaderboardManager.updateScores();
+        }
     }
     
     public void cancelAllTasks() {

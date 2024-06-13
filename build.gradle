@@ -25,6 +25,9 @@ repositories {
         name = "jitpack"
         url = "https://jitpack.io/"
     }
+    maven {
+        url = "https://repo.codemc.org/repository/maven-public/"
+    }
 }
 
 dependencies {
@@ -41,6 +44,10 @@ dependencies {
     
     compileOnly 'io.papermc.paper:paper-api:1.19.3-R0.1-SNAPSHOT'
     compileOnly 'com.github.decentsoftware-eu:decentholograms:2.8.8'
+
+    implementation 'commons-lang:commons-lang:2.6'
+    testImplementation 'de.tr7zw:item-nbt-api:2.12.2'
+    testImplementation 'com.github.decentsoftware-eu:decentholograms:2.8.8'
     
 //    FastBoard
 //    https://github.com/MrMicky-FR/FastBoard
