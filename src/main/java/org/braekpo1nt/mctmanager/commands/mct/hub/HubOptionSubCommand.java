@@ -1,4 +1,4 @@
-package org.braekpo1nt.mctmanager.commands.mct;
+package org.braekpo1nt.mctmanager.commands.mct.hub;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -17,12 +17,12 @@ import java.util.List;
 /**
  * Handles toggling various options for MCT. Sort of like /gamerule. Mostly used for debugging.
  */
-public class OptionSubCommand extends TabSubCommand {
+public class HubOptionSubCommand extends TabSubCommand {
     
     private final GameManager gameManager;
     private final BlockEffectsListener blockEffectsListener;
     
-    public OptionSubCommand(GameManager gameManager, BlockEffectsListener blockEffectsListener, @NotNull String name) {
+    public HubOptionSubCommand(GameManager gameManager, BlockEffectsListener blockEffectsListener, @NotNull String name) {
         super(name);
         this.gameManager = gameManager;
         this.blockEffectsListener = blockEffectsListener;

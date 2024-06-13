@@ -239,11 +239,15 @@ public class GameManager implements Listener {
      */
     private void onOfflineIGNJoin(@NotNull Player participant) {
         String team = getOfflineIGNTeamName(participant.getName());
+        if (team == null) {
+            // this shouldn't happen
+            return;
+        }
         leaveOfflineIGN(Bukkit.getConsoleSender(), participant.getName());
         joinPlayerToTeam(Bukkit.getConsoleSender(), participant, team);
         messageAdmins(Component.empty()
                 .append(participant.displayName())
-                .append(Component.text(" logged in (perhaps for the first time.) They were joined to "))
+                .append(Component.text(" was joined to "))
                 .append(getFormattedTeamDisplayName(team))
                 .append(Component.text(" because their IGN was listed in the GameState's offlinePlayers list.")));
     }
@@ -826,6 +830,14 @@ public class GameManager implements Listener {
     }
     
     /**
+     * @param offlineUUID the UUID of the offline player which may be in the GameState
+     * @return true if the given UUID matches one of the offline players in the GameState, false otherwise
+     */
+    public boolean isOfflineParticipant(UUID offlineUUID) {
+        return gameStateStorageUtil.containsOfflinePlayer(offlineUUID);
+    }
+    
+    /**
      * @param ign the in-game-name of the OfflineParticipant
      * @return true if the ign is that of an OfflineParticipant (one who has never logged in before), false otherwise
      */
@@ -904,7 +916,7 @@ public class GameManager implements Listener {
         }
         if (isOfflineIGN(ign)) {
             String originalTeamName = getOfflineIGNTeamName(ign);
-            if (originalTeamName.equals(teamId)) {
+            if (originalTeamName != null && originalTeamName.equals(teamId)) {
                 sender.sendMessage(Component.text()
                         .append(Component.text(ign)
                                 .decorate(TextDecoration.BOLD))
@@ -1039,7 +1051,12 @@ public class GameManager implements Listener {
      */
     public void leaveOfflineIGN(CommandSender sender, @NotNull String ign) {
         String teamName = gameStateStorageUtil.getOfflineIGNTeamName(ign);
-        Component teamDisplayName = getFormattedTeamDisplayName(teamName);
+        Component teamDisplayName;
+        if (teamName != null) {
+            teamDisplayName = getFormattedTeamDisplayName(teamName);
+        } else {
+            teamDisplayName = Component.text("null").decorate(TextDecoration.ITALIC);
+        }
         try {
             gameStateStorageUtil.leaveOfflineIGN(ign);
         } catch (ConfigIOException e) {
@@ -1074,11 +1091,18 @@ public class GameManager implements Listener {
     
     /**
      * @param ign the in-game-name of a participant who has never logged in before
-     * @return the teamId of the OfflineParticipant with the given ign
-     * @throws NullPointerException if the ign doesn't exist in the GameState
+     * @return the teamId of the OfflineParticipant with the given ign. Null if the ign doesn't exist in the GameState
      */
-    public String getOfflineIGNTeamName(@NotNull String ign) {
+    public @Nullable String getOfflineIGNTeamName(@NotNull String ign) {
         return gameStateStorageUtil.getOfflineIGNTeamName(ign);
+    }
+    
+    /**
+     * @param uniqueId the UUID of the offline IGN to get
+     * @return the in-game-name of the offlinePlayer in the GameState with the given UUID. Null if the UUID doesn't belong to an offline player 
+     */
+    public @Nullable String getOfflineIGN(@NotNull UUID uniqueId) {
+        return gameStateStorageUtil.getOfflineIGN(uniqueId);
     }
     
     /**
@@ -1140,7 +1164,10 @@ public class GameManager implements Listener {
         return gameStateStorageUtil.getTeamColor(playerUniqueId);
     }
     
-    public NamedTextColor getTeamNamedTextColor(String teamName) {
+    public @NotNull NamedTextColor getTeamNamedTextColor(@Nullable String teamName) {
+        if (teamName == null) {
+            return NamedTextColor.WHITE;
+        }
         return gameStateStorageUtil.getTeamNamedTextColor(teamName);
     }
     
@@ -1150,7 +1177,7 @@ public class GameManager implements Listener {
      * @param teamId The internal name of the team
      * @return A Component with the formatted team dislay name
      */
-    public Component getFormattedTeamDisplayName(@NotNull String teamId) {
+    public @NotNull Component getFormattedTeamDisplayName(@NotNull String teamId) {
         String displayName = gameStateStorageUtil.getTeamDisplayName(teamId);
         NamedTextColor teamColor = gameStateStorageUtil.getTeamNamedTextColor(teamId);
         return Component.text(displayName).color(teamColor).decorate(TextDecoration.BOLD);
@@ -1174,6 +1201,10 @@ public class GameManager implements Listener {
         String name = offlineParticipant.getName();
         UUID uuid = offlineParticipant.getUniqueId();
         if (name == null) {
+            String ign = gameStateStorageUtil.getOfflineIGN(uuid);
+            if (ign != null) {
+                return getDisplayName(uuid, ign);
+            }
             return getDisplayName(uuid, uuid.toString());
         }
         return getDisplayName(uuid, name);
@@ -1215,12 +1246,21 @@ public class GameManager implements Listener {
      * whether they're offline or online. 
      * @return a list of the names of all participants in the game state
      */
-    public List<String> getAllParticipantNames() {
+    public List<@NotNull String> getAllParticipantNames() {
         List<OfflinePlayer> offlinePlayers = getOfflineParticipants();
-        List<String> playerNames = new ArrayList<>();
+        List<@NotNull String> playerNames = new ArrayList<>();
         for (OfflinePlayer offlinePlayer : offlinePlayers) {
             String name = offlinePlayer.getName();
-            playerNames.add(name);
+            if (name != null){
+                playerNames.add(name);
+            } else {
+                String ign = gameStateStorageUtil.getOfflineIGN(offlinePlayer.getUniqueId());
+                if (ign != null) {
+                    playerNames.add(ign);
+                } else {
+                    playerNames.add(offlinePlayer.getUniqueId().toString());
+                }
+            }
         }
         return playerNames;
     }
@@ -1233,20 +1273,22 @@ public class GameManager implements Listener {
     }
     
     /**
-     * Gets a list of all participants in the form of OfflinePlayers. This will
-     * return all participants in the game state whether they are offline or online. 
      * @return A list of all OfflinePlayers in the game state. These players could
-     * be offline or online, exist or not. The only guarantee is that their UUID is
-     * in the game state. 
+     * be offline or online, have names or not
      */
     public List<OfflinePlayer> getOfflineParticipants() {
         List<UUID> uniqueIds = gameStateStorageUtil.getPlayerUniqueIds();
-        List<OfflinePlayer> offlinePlayers = new ArrayList<>();
+        List<OfflinePlayer> offlineParticipants = new ArrayList<>();
         for (UUID uniqueId : uniqueIds) {
             OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(uniqueId);
-            offlinePlayers.add(offlinePlayer);
+            offlineParticipants.add(offlinePlayer);
         }
-        return offlinePlayers;
+        List<UUID> offlineUniqueIds = gameStateStorageUtil.getOfflinePlayerUniqueIds();
+        for (UUID offlineUniqueId : offlineUniqueIds) {
+            OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(offlineUniqueId);
+            offlineParticipants.add(offlinePlayer);
+        }
+        return offlineParticipants;
     }
     
     /**
@@ -1356,9 +1398,15 @@ public class GameManager implements Listener {
      * @return The score of the participant with the given UUID
      */
     public int getScore(UUID participantUniqueId) {
-        return gameStateStorageUtil.getPlayerScore(participantUniqueId);
+        return gameStateStorageUtil.getParticipantScore(participantUniqueId);
     }
     
+    /**
+     * @return a map of each participant's UUID to their score
+     */
+    public @NotNull Map<UUID, Integer> getParticipantScores() {
+        return gameStateStorageUtil.getParticipantScores();
+    }
     
     /**
      * Checks if the given player is an admin
@@ -1444,27 +1492,27 @@ public class GameManager implements Listener {
         adminTeam.removePlayer(offlineAdmin);
     }
     
-    public Material getTeamPowderColor(String teamName) {
+    public Material getTeamPowderColor(@NotNull String teamName) {
         String colorString = gameStateStorageUtil.getTeamColorString(teamName);
         return ColorMap.getConcretePowderColor(colorString);
     }
     
-    public Material getTeamConcreteColor(String teamName) {
+    public Material getTeamConcreteColor(@NotNull String teamName) {
         String colorString = gameStateStorageUtil.getTeamColorString(teamName);
         return ColorMap.getConcreteColor(colorString);
     }
     
-    public Material getTeamStainedGlassColor(String teamName) {
+    public Material getTeamStainedGlassColor(@NotNull String teamName) {
         String colorString = gameStateStorageUtil.getTeamColorString(teamName);
         return ColorMap.getStainedGlassColor(colorString);
     }
     
-    public ChatColor getTeamChatColor(String teamName) {
+    public ChatColor getTeamChatColor(@NotNull String teamName) {
         String colorString = gameStateStorageUtil.getTeamColorString(teamName);
         return ColorMap.getChatColor(colorString);
     }
     
-    public Material getTeamBannerColor(String teamName) {
+    public Material getTeamBannerColor(@NotNull String teamName) {
         String colorString = gameStateStorageUtil.getTeamColorString(teamName);
         return ColorMap.getBannerColor(colorString);
     }
@@ -1528,6 +1576,7 @@ public class GameManager implements Listener {
         if (eventManager.eventIsActive()) {
             eventManager.updateTeamScores();
         }
+        hubManager.updateLeaderboard();
     }
     
     private void updatePersonalScore(Player participant) {
@@ -1539,6 +1588,6 @@ public class GameManager implements Listener {
         if (eventManager.eventIsActive()) {
             eventManager.updatePersonalScore(participant, contents);
         }
+        hubManager.updateLeaderboard();
     }
-    
 }

@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.commands.mct.team;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.braekpo1nt.mctmanager.commands.CommandUtils;
 import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.GameManager;
@@ -45,6 +46,6 @@ public class LeaveSubCommand extends TabSubCommand {
         if (args.length != 1) {
             return Collections.emptyList();
         }
-        return gameManager.getAllParticipantNames();
+        return CommandUtils.partialMatchParticipantsTabList(gameManager, args[0]);
     }
 }

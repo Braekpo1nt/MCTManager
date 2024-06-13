@@ -10,6 +10,7 @@ import org.braekpo1nt.mctmanager.commands.mct.admin.AdminCommand;
 import org.braekpo1nt.mctmanager.commands.mct.edit.EditCommand;
 import org.braekpo1nt.mctmanager.commands.mct.event.EventCommand;
 import org.braekpo1nt.mctmanager.commands.mct.game.GameCommand;
+import org.braekpo1nt.mctmanager.commands.mct.hub.HubCommand;
 import org.braekpo1nt.mctmanager.commands.mct.score.ScoreCommand;
 import org.braekpo1nt.mctmanager.commands.mct.team.TeamCommand;
 import org.braekpo1nt.mctmanager.games.GameManager;
@@ -29,7 +30,7 @@ public class MCTCommand extends MasterCommandManager {
         super(plugin, "mct");
         addSubCommand(new GameCommand(gameManager));
         addSubCommand(new EditCommand(gameManager, "edit"));
-        addSubCommand(new OptionSubCommand(gameManager, blockEffectsListener, "option"));
+        addSubCommand(new HubCommand(gameManager, blockEffectsListener, "hub"));
         addSubCommand(new TeamCommand(plugin, gameManager, "team"));
         addSubCommand(new AdminCommand(gameManager));
         addSubCommand(new EventCommand(gameManager, "event"));
