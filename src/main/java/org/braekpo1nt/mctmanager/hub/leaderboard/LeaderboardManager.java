@@ -10,6 +10,7 @@ import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -28,6 +29,10 @@ public class LeaderboardManager {
      */
     private final Map<UUID, Hologram> holograms = new HashMap<>();
     /**
+     * the title of the leaderboard. If null, there will be no title.
+     */
+    private final @Nullable String title;
+    /**
      * the hologram that others see (admins and non-participants)
      */
     private final Hologram allHologram;
@@ -38,8 +43,9 @@ public class LeaderboardManager {
     /**
      * @param location the location that the leaderboard should appear. Must not be null. 
      */
-    public LeaderboardManager(@NotNull GameManager gameManager, @NotNull Location location, int topPlayers) {
+    public LeaderboardManager(@NotNull GameManager gameManager, @Nullable String title, @NotNull Location location, int topPlayers) {
         this.gameManager = gameManager;
+        this.title = title;
         this.location = location;
         this.topPlayers = topPlayers;
         this.PREFIX = UUID.randomUUID() + "_leaderboard_";
@@ -109,7 +115,10 @@ public class LeaderboardManager {
             int score = gameManager.getScore(uuid);
             standings.add(new Standing(uuid, placement, teamColor, name, score));
         }
-        List<String> lines = new ArrayList<>(Math.min(topPlayers, standings.size())+1);
+        List<String> lines = new ArrayList<>(Math.min(topPlayers, standings.size())+(title != null ? 1 : 2));
+        if (title != null) {
+            lines.add(title);
+        }
         for (int i = 0; i < Math.min(topPlayers, standings.size()); i++) {
             Standing standing = standings.get(i);
             lines.add(standing.toLine());
