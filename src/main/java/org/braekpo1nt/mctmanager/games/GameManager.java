@@ -1561,7 +1561,6 @@ public class GameManager implements Listener {
     
     public void setSidebarFactory(SidebarFactory sidebarFactory) {
         this.sidebarFactory = sidebarFactory;
-        hubManager.initializeSidebar(sidebarFactory);
     }
     
     private void updateTeamScore(String team) {

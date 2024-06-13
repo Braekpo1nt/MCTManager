@@ -5,7 +5,6 @@ import eu.decentsoftware.holograms.api.holograms.Hologram;
 import lombok.Data;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
@@ -19,8 +18,11 @@ import java.util.*;
  */
 public class LeaderboardManager {
     
-    private static final String PREFIX = "leaderboard_";
-    private static final String LEADERBOARD_ALL = "leaderboard_all";
+    /**
+     * the prefix of the unique identifier of each participant's personal leaderboard
+     * this is because hologram names are global in {@link DHAPI}, so they must have unique names. 
+     */
+    private final String PREFIX;
     /**
      * The holograms for the participants. Each is specific to them because they need to see their personal scores.
      */
@@ -40,7 +42,9 @@ public class LeaderboardManager {
         this.gameManager = gameManager;
         this.location = location;
         this.topPlayers = topPlayers;
-        this.allHologram = createHologram(LEADERBOARD_ALL);
+        this.PREFIX = UUID.randomUUID() + "_leaderboard_";
+        String allLeaderboardName = UUID.randomUUID() + "_leaderboard_all";
+        this.allHologram = createHologram(allLeaderboardName);
         allHologram.setDefaultVisibleState(true);
     }
     
