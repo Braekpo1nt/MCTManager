@@ -61,6 +61,17 @@ public class LeaderboardManager {
         updateScores();
     }
     
+    /**
+     * Removes all the holograms from the world and clears the list of players
+     */
+    public void tearDown() {
+        for (Hologram hologram : holograms.values()) {
+            DHAPI.removeHologram(hologram.getName());
+        }
+        holograms.clear();
+        DHAPI.removeHologram(allHologram.getName());
+    }
+    
     public void onParticipantJoin(@NotNull Player participant) {
         Hologram hologram = createHologram(PREFIX + participant.getName());
         hologram.setShowPlayer(participant);

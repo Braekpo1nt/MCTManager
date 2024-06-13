@@ -60,6 +60,9 @@ public class HubManager implements Listener, Configurable {
     @Override
     public void loadConfig() throws ConfigIOException, ConfigInvalidException {
         this.config = configController.getConfig();
+        if (leaderboardManager != null) {
+            leaderboardManager.tearDown();
+        }
         leaderboardManager = new LeaderboardManager(gameManager, config.getLeaderboardLocation(), config.getTopPlayers());
     }
     
@@ -204,6 +207,13 @@ public class HubManager implements Listener, Configurable {
     public void updateLeaderboard() {
         if (leaderboardManager != null) {
             leaderboardManager.updateScores();
+        }
+    }
+    
+    public void tearDown() {
+        cancelAllTasks();
+        if (leaderboardManager != null) {
+            leaderboardManager.tearDown();
         }
     }
     

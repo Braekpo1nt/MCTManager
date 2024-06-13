@@ -374,9 +374,9 @@ public class GameManager implements Listener {
     /**
      * Cancel the return to hub if it's in progress
      */
-    public void cancelAllTasks() {
+    public void tearDown() {
         eventManager.cancelAllTasks();
-        hubManager.cancelAllTasks();
+        hubManager.tearDown();
     }
     
     public EventManager getEventManager() {
