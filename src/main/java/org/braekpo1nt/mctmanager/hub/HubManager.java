@@ -66,6 +66,9 @@ public class HubManager implements Listener, Configurable {
         for (HubConfig.Leaderboard leaderboard : config.getLeaderboards()) {
             LeaderboardManager leaderboardManager = new LeaderboardManager(gameManager, leaderboard.getLocation(), leaderboard.getTopPlayers());
             leaderboardManager.updateScores();
+            for (Player participant : participants) {
+                leaderboardManager.onParticipantJoin(participant);
+            }
             leaderboardManagers.add(leaderboardManager);
         }
     }
