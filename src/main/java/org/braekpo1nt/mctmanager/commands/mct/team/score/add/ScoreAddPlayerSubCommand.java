@@ -38,7 +38,9 @@ public class ScoreAddPlayerSubCommand extends TabSubCommand {
         
         if (!gameManager.isParticipant(offlinePlayer.getUniqueId())) {
             if (!gameManager.isOfflineParticipant(offlinePlayer.getUniqueId())) {
-                return CommandResult.failure(Component.text(playerName)
+                return CommandResult.failure(Component.empty()
+                        .append(Component.text(playerName)
+                                .decorate(TextDecoration.BOLD))
                         .append(Component.text(" is not a participant")));
             } else {
                 String teamName = gameManager.getOfflineIGNTeamName(playerName);
