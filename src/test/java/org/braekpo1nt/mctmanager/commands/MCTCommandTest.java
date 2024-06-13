@@ -32,9 +32,6 @@ class MCTCommandTest {
             System.exit(1);
         }
     
-        MockGameStateStorageUtil mockGameStateStorageUtil = new MockGameStateStorageUtil(plugin);
-        plugin.getGameManager().setGameStateStorageUtil(mockGameStateStorageUtil);
-        
         command = plugin.getCommand("mct");
     }
     

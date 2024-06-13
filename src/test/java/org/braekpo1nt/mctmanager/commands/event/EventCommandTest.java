@@ -34,8 +34,6 @@ class EventCommandTest {
             System.exit(1);
         }
         
-        MockGameStateStorageUtil mockGameStateStorageUtil = new MockGameStateStorageUtil(plugin);
-        plugin.getGameManager().setGameStateStorageUtil(mockGameStateStorageUtil);
         InputStream inputStream = EventConfigController.class.getResourceAsStream("exampleEventConfig.json");
         TestUtils.copyInputStreamToFile(inputStream, new File(plugin.getDataFolder(), "eventConfig.json"));
         command = plugin.getCommand("mct");

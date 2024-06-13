@@ -40,10 +40,6 @@ class CaptureTheFlagTest {
             System.exit(1);
         }
         gameManager = plugin.getGameManager();
-        MockSidebarFactory mockSidebarFactory = new MockSidebarFactory();
-        gameManager.setSidebarFactory(mockSidebarFactory);
-        MockGameStateStorageUtil mockGameStateStorageUtil = new MockGameStateStorageUtil(plugin);
-        gameManager.setGameStateStorageUtil(mockGameStateStorageUtil);
         sender = server.getConsoleSender();
         InputStream inputStream = CaptureTheFlagConfigController.class.getResourceAsStream("exampleCaptureTheFlagConfig.json");
         TestUtils.copyInputStreamToFile(inputStream, new File(plugin.getDataFolder(), "captureTheFlagConfig.json"));

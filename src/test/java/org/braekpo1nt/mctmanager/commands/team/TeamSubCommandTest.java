@@ -37,14 +37,7 @@ class TeamSubCommandTest {
             ex.printStackTrace();
             System.exit(1);
         }
-        
-        MockGameStateStorageUtil mockGameStateStorageUtil = new MockGameStateStorageUtil(plugin);
         gameManager = plugin.getGameManager();
-        gameManager.setGameStateStorageUtil(mockGameStateStorageUtil);
-        
-        MockSidebarFactory mockSidebarManager = new MockSidebarFactory();
-        gameManager.setSidebarFactory(mockSidebarManager);
-        
         command = plugin.getCommand("mct");
         sender = server.getConsoleSender();
     }
