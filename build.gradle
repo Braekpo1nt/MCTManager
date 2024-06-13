@@ -21,6 +21,13 @@ repositories {
         name = "onarandombox"
         url = "https://repo.onarandombox.com/content/groups/public/"
     }
+    maven {
+        name = "jitpack"
+        url = "https://jitpack.io/"
+    }
+    maven {
+        url = "https://repo.codemc.org/repository/maven-public/"
+    }
 }
 
 dependencies {
@@ -36,7 +43,8 @@ dependencies {
     testImplementation 'org.slf4j:slf4j-jdk14:2.0.5'
     
     compileOnly 'io.papermc.paper:paper-api:1.19.3-R0.1-SNAPSHOT'
-    
+    compileOnly 'com.github.decentsoftware-eu:decentholograms:2.8.8'
+
 //    FastBoard
 //    https://github.com/MrMicky-FR/FastBoard
     implementation 'fr.mrmicky:fastboard:1.2.1'
@@ -49,6 +57,7 @@ shadowJar {
     exclude 'org/junit/jupiter'
     exclude 'org/mockito'
     exclude 'io/papermc/paper'
+    exclude 'com/github/decentsoftware-eu'
     exclude 'com/github/seeseemelk'
     exclude 'org/slf4j'
     

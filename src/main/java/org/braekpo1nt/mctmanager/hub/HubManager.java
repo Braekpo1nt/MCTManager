@@ -9,6 +9,7 @@ import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.hub.config.HubConfig;
 import org.braekpo1nt.mctmanager.hub.config.HubConfigController;
+import org.braekpo1nt.mctmanager.hub.leaderboard.LeaderboardManager;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.sidebar.SidebarFactory;
@@ -25,6 +26,7 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Team;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,8 +35,9 @@ public class HubManager implements Listener, Configurable {
     
     private final Main plugin;
     private final GameManager gameManager;
-    private final HubConfigController configController;
-    private HubConfig config;
+    protected final HubConfigController configController;
+    protected HubConfig config;
+    private @Nullable LeaderboardManager leaderboardManager;
     private int returnToHubTaskId;
     /**
      * Contains a list of the players who are about to be sent to the hub and can see the countdown
@@ -50,12 +53,14 @@ public class HubManager implements Listener, Configurable {
         this.plugin = plugin;
         this.gameManager = gameManager;
         this.configController = new HubConfigController(plugin.getDataFolder());
+        this.config = this.configController.getDefaultConfig();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
     
     @Override
     public void loadConfig() throws ConfigIOException, ConfigInvalidException {
         this.config = configController.getConfig();
+        leaderboardManager = new LeaderboardManager(gameManager, config.getLeaderboardLocation(), config.getTopPlayers());
     }
     
     /**
@@ -170,16 +175,22 @@ public class HubManager implements Listener, Configurable {
         }
     }
     
-    public void onParticipantQuit(Player participant) {
-        participants.remove(participant);
-    }
-    
     /**
      * Should be called when the participant who joined should be in the hub
      * @param participant the participant to add
      */
     public void onParticipantJoin(Player participant) {
         participants.add(participant);
+        if (leaderboardManager != null) {
+            leaderboardManager.onParticipantJoin(participant);
+        }
+    }
+    
+    public void onParticipantQuit(Player participant) {
+        participants.remove(participant);
+        if (leaderboardManager != null) {
+            leaderboardManager.onParticipantQuit(participant);
+        }
     }
     
     public void onAdminJoin(Player admin) {
@@ -188,6 +199,12 @@ public class HubManager implements Listener, Configurable {
     
     public void onAdminQuit(Player admin) {
         
+    }
+    
+    public void updateLeaderboard() {
+        if (leaderboardManager != null) {
+            leaderboardManager.updateScores();
+        }
     }
     
     public void cancelAllTasks() {

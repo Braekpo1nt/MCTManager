@@ -1,11 +1,12 @@
 name: MCTManager
 version: '${version}'
-main: org.braekpo1nt.mctmanager.Main
+# made the plugin.yml main property match the MockMain class
+main: org.braekpo1nt.mctmanager.MockMain
 description: The plugin that manages MCT
 author: Braekpo1nt
 api-version: 1.19
 
-softdepend: [LuckPerms, DecentHolograms]
+softdepend: [LuckPerms]
 
 commands:
   mct:

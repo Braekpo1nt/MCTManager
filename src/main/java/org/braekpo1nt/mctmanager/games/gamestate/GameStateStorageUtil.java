@@ -197,6 +197,14 @@ public class GameStateStorageUtil {
     }
     
     /**
+     * @param offlineUUID the UUID of the offline player which may be in the GameState
+     * @return true if the given UUID matches one of the offline players in the GameState, false otherwise
+     */
+    public boolean containsOfflinePlayer(UUID offlineUUID) {
+        return gameState.getOfflinePlayer(offlineUUID) != null;
+    }
+    
+    /**
      * @param ign the in-game-name of a participant who has never logged in before
      * @return true if the ign is in the current list of offline players (who have yet to log in for the first time), false otherwise
      */
@@ -211,19 +219,38 @@ public class GameStateStorageUtil {
      */
     public @Nullable String getPlayerTeamName(@NotNull UUID playerUniqueId) {
         MCTPlayer player = gameState.getPlayer(playerUniqueId);
-        if (player == null) {
-            return null;
+        if (player != null) {
+            return player.getTeamName();
         }
-        return player.getTeamName();
+        OfflineMCTPlayer offlineMCTPlayer = gameState.getOfflinePlayer(playerUniqueId);
+        if (offlineMCTPlayer != null) {
+            return offlineMCTPlayer.getTeamName();
+        }
+        return null;
     }
     
     /**
      * @param ign the in-game-name of a participant who has never logged in before
-     * @return the teamId of the OfflineParticipant with the given ign
-     * @throws NullPointerException if the ign doesn't exist in the GameState
+     * @return the teamId of the OfflineParticipant with the given ign. Null if the ign doesn't exist in the GameState
      */
-    public @NotNull String getOfflineIGNTeamName(@NotNull String ign) {
-        return gameState.getOfflinePlayer(ign).getTeamName();
+    public @Nullable String getOfflineIGNTeamName(@NotNull String ign) {
+        OfflineMCTPlayer offlineMCTPlayer = gameState.getOfflinePlayer(ign);
+        if (offlineMCTPlayer == null) {
+            return null;
+        }
+        return offlineMCTPlayer.getTeamName();
+    }
+    
+    /**
+     * @param uniqueId the UUID to get the offline IGN for
+     * @return the IGN of the offlinePlayer with the given UUID. Null if no such player exists. 
+     */
+    public @Nullable String getOfflineIGN(@NotNull UUID uniqueId) {
+        OfflineMCTPlayer offlineMCTPlayer = gameState.getOfflinePlayer(uniqueId);
+        if (offlineMCTPlayer == null) {
+            return null;
+        }
+        return offlineMCTPlayer.getIgn();
     }
     
     /**
@@ -278,8 +305,27 @@ public class GameStateStorageUtil {
         saveGameState();
     }
     
-    public int getPlayerScore(UUID playerUniqueId) {
-        return gameState.getPlayer(playerUniqueId).getScore();
+    /**
+     * @param playerUniqueId the UUID of the player to get the score of. 
+     * @return the given participant's score. 0 if the UUID isn't a player, or if it is an offlinePlayer.
+     */
+    public int getParticipantScore(UUID playerUniqueId) {
+        MCTPlayer player = gameState.getPlayer(playerUniqueId);
+        if (player == null) {
+            return 0;
+        }
+        return player.getScore();
+    }
+    
+    /**
+     * @return a map of each participant's UUID to its score
+     */
+    public @NotNull Map<UUID, Integer> getParticipantScores() {
+        Map<UUID, Integer> participantScores = new HashMap<>(gameState.getPlayers().size());
+        for (MCTPlayer mctPlayer : gameState.getPlayers().values()) {
+            participantScores.put(mctPlayer.getUniqueId(), mctPlayer.getScore());
+        }
+        return participantScores;
     }
     
     /**
@@ -293,7 +339,7 @@ public class GameStateStorageUtil {
         return ColorMap.getColor(teamColor);
     }
     
-    public NamedTextColor getTeamNamedTextColor(String teamName) {
+    public @NotNull NamedTextColor getTeamNamedTextColor(@NotNull String teamName) {
         String colorString = gameState.getTeam(teamName).getColor();
         return ColorMap.getNamedTextColor(colorString);
     }
@@ -303,8 +349,18 @@ public class GameStateStorageUtil {
         return team.getDisplayName();
     }
     
+    /**
+     * @return the UUIDs of the players
+     */
     public List<UUID> getPlayerUniqueIds() {
         return gameState.getPlayers().keySet().stream().toList();
+    }
+    
+    /**
+     * @return the UUIDs of the offline players 
+     */
+    public List<UUID> getOfflinePlayerUniqueIds() {
+        return gameState.getOfflinePlayers().values().stream().map(OfflineMCTPlayer::getOfflineUniqueId).toList();
     }
     
     public void addScore(UUID uniqueId, int score) throws ConfigIOException {
@@ -350,7 +406,7 @@ public class GameStateStorageUtil {
      * @param teamName The team to get the color string of
      * @return The color string of the given team
      */
-    public String getTeamColorString(String teamName) {
+    public String getTeamColorString(@NotNull String teamName) {
         return gameState.getTeam(teamName).getColor();
     }
     

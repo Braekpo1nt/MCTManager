@@ -75,7 +75,7 @@ public class GameManagerUtils {
     public static Component getTeamDisplay(GameManager gameManager) {
         TextComponent.Builder messageBuilder = Component.text().append(Component.text("Scores:\n")
                     .decorate(TextDecoration.BOLD));
-        List<OfflinePlayer> offlinePlayers = getSortedOfflinePlayers(gameManager);
+        List<OfflinePlayer> offlinePlayers = getSortedOfflineParticipants(gameManager);
         List<String> sortedTeams = getSortedTeams(gameManager);
         
         for (String team : sortedTeams) {
@@ -91,13 +91,17 @@ public class GameManagerUtils {
             for (OfflinePlayer offlinePlayer : offlinePlayers) {
                 String playerTeam = gameManager.getTeamName(offlinePlayer.getUniqueId());
                 int playerScore = gameManager.getScore(offlinePlayer.getUniqueId());
-                if (offlinePlayer.getName() == null) {
-                    continue;
+                String name = offlinePlayer.getName();
+                if (name == null) {
+                    name = gameManager.getOfflineIGN(offlinePlayer.getUniqueId());
+                    if (name == null) {
+                        continue;
+                    }
                 }
                 if (playerTeam.equals(team)) {
                     messageBuilder.append(Component.empty()
                             .append(Component.text("  "))
-                            .append(Component.text(offlinePlayer.getName())
+                            .append(Component.text(name)
                                     .color(teamNamedTextColor))
                             .append(Component.text(" - "))
                             .append(Component.text(playerScore)
@@ -115,10 +119,10 @@ public class GameManagerUtils {
      * @param gameManager the GameManager to get the data from
      * @return a sorted list of OfflinePlayers representing the participants. Sorted first by score from greatest to least, then alphabetically (A first, Z last).
      */
-    public static @NotNull List<OfflinePlayer> getSortedOfflinePlayers(GameManager gameManager) {
-        List<OfflinePlayer> offlinePlayers = gameManager.getOfflineParticipants();
-        sortOfflinePlayers(offlinePlayers, gameManager);
-        return offlinePlayers;
+    public static @NotNull List<OfflinePlayer> getSortedOfflineParticipants(GameManager gameManager) {
+        List<OfflinePlayer> offlineParticipants = gameManager.getOfflineParticipants();
+        sortOfflinePlayers(offlineParticipants, gameManager);
+        return offlineParticipants;
     }
     
     /**
@@ -135,11 +139,17 @@ public class GameManagerUtils {
             
             String p1Name = p1.getName();
             if (p1Name == null) {
-                p1Name = p1.getUniqueId().toString();
+                p1Name = gameManager.getOfflineIGN(p1.getUniqueId());
+                if (p1Name == null) {
+                    p1Name = p1.getUniqueId().toString();
+                }
             }
             String p2Name = p2.getName();
             if (p2Name == null) {
-                p2Name = p2.getUniqueId().toString();
+                p2Name = gameManager.getOfflineIGN(p2.getUniqueId());
+                if (p2Name == null) {
+                    p2Name = p2.getUniqueId().toString();
+                }
             }
             return p1Name.compareToIgnoreCase(p2Name);
         });
@@ -250,7 +260,7 @@ public class GameManagerUtils {
         if (playerToJoin == null) {
             if (gameManager.isOfflineIGN(ign)) {
                 String oldTeamName = gameManager.getOfflineIGNTeamName(ign);
-                if (oldTeamName.equals(teamId)) {
+                if (oldTeamName != null && oldTeamName.equals(teamId)) {
                     NamedTextColor teamColor = gameManager.getTeamNamedTextColor(teamId);
                     return CommandResult.success(Component.empty()
                             .append(Component.text(ign)

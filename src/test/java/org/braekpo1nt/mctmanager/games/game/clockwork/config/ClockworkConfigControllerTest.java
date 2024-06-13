@@ -4,6 +4,7 @@ import be.seeseemelk.mockbukkit.MockBukkit;
 import be.seeseemelk.mockbukkit.ServerMock;
 import com.google.gson.JsonObject;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.MockMain;
 import org.braekpo1nt.mctmanager.MyCustomServerMock;
 import org.braekpo1nt.mctmanager.TestUtils;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
@@ -27,7 +28,7 @@ public class ClockworkConfigControllerTest {
     void setupServerAndPlugin() {
         ServerMock server = MockBukkit.mock(new MyCustomServerMock());
         server.getLogger().setLevel(Level.OFF);
-        plugin = MockBukkit.load(Main.class);
+        plugin = MockBukkit.load(MockMain.class);
         controller = new ClockworkConfigController(plugin.getDataFolder());
     }
     

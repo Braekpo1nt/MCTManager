@@ -36,13 +36,17 @@ public class Main extends JavaPlugin {
     public final static PotionEffect NIGHT_VISION = new PotionEffect(PotionEffectType.NIGHT_VISION, 300, 3, true, false, false);
     private MCTCommand mctCommand;
     
+    protected GameManager initialGameManager(Scoreboard mctScoreboard) {
+        return new GameManager(this, mctScoreboard);
+    }
+    
     @Override
     public void onEnable() {
         
         Scoreboard mctScoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
         ParticipantInitializer.setPlugin(this); //TODO: remove this in favor of death and respawn combination 
         
-        gameManager = new GameManager(this, mctScoreboard);
+        gameManager = initialGameManager(mctScoreboard);
         try {
             gameManager.loadHubConfig();
         } catch (ConfigException e) {

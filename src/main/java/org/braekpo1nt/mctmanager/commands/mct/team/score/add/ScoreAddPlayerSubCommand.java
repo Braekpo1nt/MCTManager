@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.commands.mct.team.score.add;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.CommandUtils;
 import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
@@ -36,8 +37,21 @@ public class ScoreAddPlayerSubCommand extends TabSubCommand {
         OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(playerName);
         
         if (!gameManager.isParticipant(offlinePlayer.getUniqueId())) {
-            return CommandResult.failure(Component.text(playerName)
-                    .append(Component.text(" is not a participant")));
+            if (!gameManager.isOfflineParticipant(offlinePlayer.getUniqueId())) {
+                return CommandResult.failure(Component.empty()
+                        .append(Component.text(playerName)
+                                .decorate(TextDecoration.BOLD))
+                        .append(Component.text(" is not a participant")));
+            } else {
+                String teamName = gameManager.getOfflineIGNTeamName(playerName);
+                NamedTextColor teamColor = gameManager.getTeamNamedTextColor(teamName);
+                return CommandResult.failure(Component.empty()
+                        .append(Component.text("Can't change the score of "))
+                        .append(Component.text(playerName)
+                                .color(teamColor))
+                        .append(Component.text(" because they have not logged in since being joined to a team"))
+                );
+            }
         }
         String scoreString = args[1];
         if (!CommandUtils.isInteger(scoreString)) {
@@ -47,12 +61,12 @@ public class ScoreAddPlayerSubCommand extends TabSubCommand {
                     .append(Component.text(" is not an integer")));
         }
         int score = Integer.parseInt(scoreString);
+        int currentScore = gameManager.getScore(offlinePlayer.getUniqueId());
         if (invert) {
             score = -score;
-            int currentScore = gameManager.getScore(offlinePlayer.getUniqueId());
-            if (currentScore + score < 0) {
-                score = -currentScore;
-            }
+        }
+        if (currentScore + score < 0) {
+            score = -currentScore;
         }
         gameManager.addScore(offlinePlayer.getUniqueId(), score);
         int newScore = gameManager.getScore(offlinePlayer.getUniqueId());
@@ -65,7 +79,7 @@ public class ScoreAddPlayerSubCommand extends TabSubCommand {
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length == 1) {
-            return gameManager.getAllParticipantNames();
+            return CommandUtils.partialMatchParticipantsTabList(gameManager, args[0]);
         }
         return Collections.emptyList();
     }
