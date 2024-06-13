@@ -61,12 +61,12 @@ public class ScoreAddPlayerSubCommand extends TabSubCommand {
                     .append(Component.text(" is not an integer")));
         }
         int score = Integer.parseInt(scoreString);
+        int currentScore = gameManager.getScore(offlinePlayer.getUniqueId());
         if (invert) {
             score = -score;
-            int currentScore = gameManager.getScore(offlinePlayer.getUniqueId());
-            if (currentScore + score < 0) {
-                score = -currentScore;
-            }
+        }
+        if (currentScore + score < 0) {
+            score = -currentScore;
         }
         gameManager.addScore(offlinePlayer.getUniqueId(), score);
         int newScore = gameManager.getScore(offlinePlayer.getUniqueId());
