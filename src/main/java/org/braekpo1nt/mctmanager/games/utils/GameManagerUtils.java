@@ -260,7 +260,7 @@ public class GameManagerUtils {
         if (playerToJoin == null) {
             if (gameManager.isOfflineIGN(ign)) {
                 String oldTeamName = gameManager.getOfflineIGNTeamName(ign);
-                if (oldTeamName.equals(teamId)) {
+                if (oldTeamName != null && oldTeamName.equals(teamId)) {
                     NamedTextColor teamColor = gameManager.getTeamNamedTextColor(teamId);
                     return CommandResult.success(Component.empty()
                             .append(Component.text(ign)

@@ -231,11 +231,14 @@ public class GameStateStorageUtil {
     
     /**
      * @param ign the in-game-name of a participant who has never logged in before
-     * @return the teamId of the OfflineParticipant with the given ign
-     * @throws NullPointerException if the ign doesn't exist in the GameState
+     * @return the teamId of the OfflineParticipant with the given ign. Null if the ign doesn't exist in the GameState
      */
-    public @NotNull String getOfflineIGNTeamName(@NotNull String ign) {
-        return gameState.getOfflinePlayer(ign).getTeamName();
+    public @Nullable String getOfflineIGNTeamName(@NotNull String ign) {
+        OfflineMCTPlayer offlineMCTPlayer = gameState.getOfflinePlayer(ign);
+        if (offlineMCTPlayer == null) {
+            return null;
+        }
+        return offlineMCTPlayer.getTeamName();
     }
     
     /**
@@ -336,7 +339,7 @@ public class GameStateStorageUtil {
         return ColorMap.getColor(teamColor);
     }
     
-    public NamedTextColor getTeamNamedTextColor(String teamName) {
+    public @NotNull NamedTextColor getTeamNamedTextColor(@NotNull String teamName) {
         String colorString = gameState.getTeam(teamName).getColor();
         return ColorMap.getNamedTextColor(colorString);
     }

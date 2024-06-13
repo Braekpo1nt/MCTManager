@@ -110,7 +110,7 @@ public class GameState {
      * @param ign the in-game-name of a participant who has never logged in before
      * @return the matching {@link OfflineMCTPlayer} of the ign
      */
-    public OfflineMCTPlayer getOfflinePlayer(@NotNull String ign) {
+    public @Nullable OfflineMCTPlayer getOfflinePlayer(@NotNull String ign) {
         return offlinePlayers.get(ign);
     }
     

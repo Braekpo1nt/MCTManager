@@ -236,11 +236,15 @@ public class GameManager implements Listener {
      */
     private void onOfflineIGNJoin(@NotNull Player participant) {
         String team = getOfflineIGNTeamName(participant.getName());
+        if (team == null) {
+            // this shouldn't happen
+            return;
+        }
         leaveOfflineIGN(Bukkit.getConsoleSender(), participant.getName());
         joinPlayerToTeam(Bukkit.getConsoleSender(), participant, team);
         messageAdmins(Component.empty()
                 .append(participant.displayName())
-                .append(Component.text(" logged in (perhaps for the first time.) They were joined to "))
+                .append(Component.text(" was joined to "))
                 .append(getFormattedTeamDisplayName(team))
                 .append(Component.text(" because their IGN was listed in the GameState's offlinePlayers list.")));
     }
@@ -909,7 +913,7 @@ public class GameManager implements Listener {
         }
         if (isOfflineIGN(ign)) {
             String originalTeamName = getOfflineIGNTeamName(ign);
-            if (originalTeamName.equals(teamId)) {
+            if (originalTeamName != null && originalTeamName.equals(teamId)) {
                 sender.sendMessage(Component.text()
                         .append(Component.text(ign)
                                 .decorate(TextDecoration.BOLD))
@@ -1044,7 +1048,12 @@ public class GameManager implements Listener {
      */
     public void leaveOfflineIGN(CommandSender sender, @NotNull String ign) {
         String teamName = gameStateStorageUtil.getOfflineIGNTeamName(ign);
-        Component teamDisplayName = getFormattedTeamDisplayName(teamName);
+        Component teamDisplayName;
+        if (teamName != null) {
+            teamDisplayName = getFormattedTeamDisplayName(teamName);
+        } else {
+            teamDisplayName = Component.text("null").decorate(TextDecoration.ITALIC);
+        }
         try {
             gameStateStorageUtil.leaveOfflineIGN(ign);
         } catch (ConfigIOException e) {
@@ -1079,10 +1088,9 @@ public class GameManager implements Listener {
     
     /**
      * @param ign the in-game-name of a participant who has never logged in before
-     * @return the teamId of the OfflineParticipant with the given ign
-     * @throws NullPointerException if the ign doesn't exist in the GameState
+     * @return the teamId of the OfflineParticipant with the given ign. Null if the ign doesn't exist in the GameState
      */
-    public String getOfflineIGNTeamName(@NotNull String ign) {
+    public @Nullable String getOfflineIGNTeamName(@NotNull String ign) {
         return gameStateStorageUtil.getOfflineIGNTeamName(ign);
     }
     
@@ -1153,7 +1161,10 @@ public class GameManager implements Listener {
         return gameStateStorageUtil.getTeamColor(playerUniqueId);
     }
     
-    public NamedTextColor getTeamNamedTextColor(String teamName) {
+    public @NotNull NamedTextColor getTeamNamedTextColor(@Nullable String teamName) {
+        if (teamName == null) {
+            return NamedTextColor.WHITE;
+        }
         return gameStateStorageUtil.getTeamNamedTextColor(teamName);
     }
     
@@ -1163,7 +1174,7 @@ public class GameManager implements Listener {
      * @param teamId The internal name of the team
      * @return A Component with the formatted team dislay name
      */
-    public Component getFormattedTeamDisplayName(@NotNull String teamId) {
+    public @NotNull Component getFormattedTeamDisplayName(@NotNull String teamId) {
         String displayName = gameStateStorageUtil.getTeamDisplayName(teamId);
         NamedTextColor teamColor = gameStateStorageUtil.getTeamNamedTextColor(teamId);
         return Component.text(displayName).color(teamColor).decorate(TextDecoration.BOLD);
