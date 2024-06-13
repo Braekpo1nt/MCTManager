@@ -4,6 +4,7 @@ import be.seeseemelk.mockbukkit.MockBukkit;
 import be.seeseemelk.mockbukkit.ServerMock;
 import be.seeseemelk.mockbukkit.UnimplementedOperationException;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.MockMain;
 import org.braekpo1nt.mctmanager.MyCustomServerMock;
 import org.braekpo1nt.mctmanager.TestUtils;
 import org.braekpo1nt.mctmanager.games.event.config.EventConfigController;
@@ -26,7 +27,7 @@ class EventCommandTest {
         server = MockBukkit.mock(new MyCustomServerMock());
         server.getLogger().setLevel(Level.OFF);
         try {
-            plugin = MockBukkit.load(Main.class);
+            plugin = MockBukkit.load(MockMain.class);
         } catch (UnimplementedOperationException ex) {
             System.out.println("UnimplementedOperationException while setting up " + this.getClass() + ". MockBukkit must not support the functionality/operation you are trying to test. Check the stack trace below for the exact method that threw the exception. Message from exception:" + ex.getMessage());
             ex.printStackTrace();
