@@ -30,8 +30,8 @@ public class LeaderboardManager {
      */
     private final Hologram allHologram;
     private final GameManager gameManager;
-    private @NotNull Location location;
-    private int topPlayers;
+    private final @NotNull Location location;
+    private final int topPlayers;
     
     /**
      * @param location the location that the leaderboard should appear. Must not be null. 
@@ -42,23 +42,6 @@ public class LeaderboardManager {
         this.topPlayers = topPlayers;
         this.allHologram = createHologram(LEADERBOARD_ALL);
         allHologram.setDefaultVisibleState(true);
-    }
-    
-    /**
-     * Set the location of the leaderboard. Updates any existing holograms. 
-     * @param location the location of the leaderboard 
-     */
-    public void setLocation(@NotNull Location location) {
-        this.location = location;
-        for (Hologram hologram : holograms.values()) {
-            DHAPI.moveHologram(hologram, location);
-        }
-        DHAPI.moveHologram(allHologram, location);
-    }
-    
-    public void setTopPlayers(int topPlayers) {
-        this.topPlayers = topPlayers;
-        updateScores();
     }
     
     /**
