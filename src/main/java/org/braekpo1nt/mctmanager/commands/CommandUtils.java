@@ -1,7 +1,10 @@
 package org.braekpo1nt.mctmanager.commands;
 
+import org.braekpo1nt.mctmanager.games.GameManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 public class CommandUtils {
     
@@ -64,5 +67,19 @@ public class CommandUtils {
                 return null;
             }
         }
+    }
+    
+    public static @NotNull List<String> partialMatchParticipantsTabList(GameManager gameManager, @Nullable String partialName) {
+        if (partialName == null || partialName.isEmpty()) {
+            return gameManager.getAllParticipantNames();
+        }
+        return gameManager.getAllParticipantNames().stream().filter(n -> n.startsWith(partialName)).toList();
+    }
+    
+    public static @NotNull List<String> partialMatchTabList(@NotNull List<@NotNull String> list, @Nullable String partial) {
+        if (partial == null || partial.isEmpty()) {
+            return list;
+        }
+        return list.stream().filter(s -> s.startsWith(partial)).toList();
     }
 }

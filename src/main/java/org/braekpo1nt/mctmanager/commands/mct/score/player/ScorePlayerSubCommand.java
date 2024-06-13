@@ -4,6 +4,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.braekpo1nt.mctmanager.commands.CommandUtils;
 import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.GameManager;
@@ -104,7 +105,7 @@ public class ScorePlayerSubCommand extends TabSubCommand {
             return Collections.emptyList();
         }
         List<String> result = new ArrayList<>(Collections.singletonList("all"));
-        result.addAll(gameManager.getAllParticipantNames());
+        result.addAll(CommandUtils.partialMatchParticipantsTabList(gameManager, args[0]));
         return result;
     }
 }

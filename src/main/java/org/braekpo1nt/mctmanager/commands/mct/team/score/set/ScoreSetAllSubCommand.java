@@ -3,17 +3,14 @@ package org.braekpo1nt.mctmanager.commands.mct.team.score.set;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.CommandUtils;
-import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
+import org.braekpo1nt.mctmanager.commands.manager.SubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-
-public class ScoreSetAllSubCommand extends TabSubCommand {
+public class ScoreSetAllSubCommand extends SubCommand {
     
     private final GameManager gameManager;
     
@@ -45,10 +42,5 @@ public class ScoreSetAllSubCommand extends TabSubCommand {
         return CommandResult.success(Component.empty()
                 .append(Component.text("All team and participant scores have been set to "))
                 .append(Component.text(score)));
-    }
-    
-    @Override
-    public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        return List.of();
     }
 }

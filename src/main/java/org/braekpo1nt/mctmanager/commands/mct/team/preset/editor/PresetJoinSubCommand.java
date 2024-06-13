@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.commands.mct.team.preset.editor;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.braekpo1nt.mctmanager.commands.CommandUtils;
 import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CompositeCommandResult;
@@ -128,7 +129,7 @@ public class PresetJoinSubCommand extends TabSubCommand {
             // this is intentional to allow default auto-completing of online players
             List<String> onlinePlayers = Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toCollection(LinkedList::new));
             onlinePlayers.addAll(storageUtil.getPreset().getMembers());
-            return onlinePlayers;
+            return CommandUtils.partialMatchTabList(onlinePlayers, args[1]);
         }
         return Collections.emptyList();
     }

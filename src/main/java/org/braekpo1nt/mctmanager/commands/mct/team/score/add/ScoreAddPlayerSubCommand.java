@@ -79,11 +79,7 @@ public class ScoreAddPlayerSubCommand extends TabSubCommand {
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length == 1) {
-            String partial = args[0];
-            if (partial.isEmpty()) {
-                return gameManager.getAllParticipantNames();
-            }
-            return gameManager.getAllParticipantNames().stream().filter(n -> n.startsWith(partial)).toList();
+            return CommandUtils.partialMatchParticipantsTabList(gameManager, args[0]);
         }
         return Collections.emptyList();
     }
