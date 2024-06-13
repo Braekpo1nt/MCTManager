@@ -90,9 +90,12 @@ public class GameManager implements Listener {
         this.editors = new HashMap<>();
         addEditor(new ParkourPathwayEditor(plugin, this));
         this.sidebarFactory = new SidebarFactory();
-        this.hubManager = new HubManager(plugin, this);
-        hubManager.initializeSidebar(sidebarFactory);
+        this.hubManager = initializeHubManager(plugin, this);
         this.eventManager = new EventManager(plugin, this, voteManager);
+    }
+    
+    protected HubManager initializeHubManager(Main plugin, GameManager gameManager) {
+        return new HubManager(plugin, gameManager);
     }
     
     /**

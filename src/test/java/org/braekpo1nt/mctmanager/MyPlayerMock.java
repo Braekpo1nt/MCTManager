@@ -85,7 +85,7 @@ public class MyPlayerMock extends PlayerMock {
         @Test
         @DisplayName("Make sure the temporary files created by plugin.getDataFolder() are getting deleted on MockBukkit.unmock()")
         void getDataFolder_CleanEnvironment_CreatesTemporaryDataDirectory() throws IOException {
-            Main plugin = MockBukkit.load(Main.class);
+            Main plugin = MockBukkit.load(MockMain.class);
             File folder = plugin.getDataFolder();
             Assertions.assertNotNull(folder);
             Assertions.assertTrue(folder.isDirectory());
