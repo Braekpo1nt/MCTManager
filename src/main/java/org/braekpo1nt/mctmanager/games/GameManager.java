@@ -873,18 +873,19 @@ public class GameManager implements Listener {
             leavePlayer(sender, participant, participant.getName());
         }
         addNewPlayer(sender, playerUniqueId, teamName);
+        hubManager.updateLeaderboards();
+        NamedTextColor teamNamedTextColor = getTeamNamedTextColor(teamName);
+        Component displayName = Component.text(participant.getName(), teamNamedTextColor);
+        participant.displayName(displayName);
+        participant.playerListName(displayName);
         Component teamDisplayName = getFormattedTeamDisplayName(teamName);
         participant.sendMessage(Component.text("You've been joined to team ")
                 .append(teamDisplayName));
-        NamedTextColor teamNamedTextColor = getTeamNamedTextColor(teamName);
-        Component displayName = Component.text(participant.getName(), teamNamedTextColor);
         sender.sendMessage(Component.text("Joined ")
                 .append(displayName
                         .decorate(TextDecoration.BOLD))
                 .append(Component.text(" to team "))
                 .append(teamDisplayName));
-        participant.displayName(displayName);
-        participant.playerListName(displayName);
     }
     
     /**
@@ -928,6 +929,7 @@ public class GameManager implements Listener {
             leaveOfflineIGN(sender, ign);
         }
         addNewOfflineIGN(sender, ign, offlineUniqueId, teamId);
+        hubManager.updateLeaderboards();
         Component teamDisplayName = getFormattedTeamDisplayName(teamId);
         NamedTextColor teamNamedTextColor = getTeamNamedTextColor(teamId);
         TextComponent displayName = Component.text(ign)
@@ -1034,6 +1036,7 @@ public class GameManager implements Listener {
             sender.sendMessage(Component.text("error occurred leaving player, see console for details.")
                     .color(NamedTextColor.RED));
         }
+        hubManager.updateLeaderboards();
         sender.sendMessage(Component.text("Removed ")
                 .append(Component.text(playerName)
                         .decorate(TextDecoration.BOLD))
@@ -1575,7 +1578,7 @@ public class GameManager implements Listener {
         if (eventManager.eventIsActive()) {
             eventManager.updateTeamScores();
         }
-        hubManager.updateLeaderboard();
+        hubManager.updateLeaderboards();
     }
     
     private void updatePersonalScore(Player participant) {
@@ -1587,6 +1590,6 @@ public class GameManager implements Listener {
         if (eventManager.eventIsActive()) {
             eventManager.updatePersonalScore(participant, contents);
         }
-        hubManager.updateLeaderboard();
+        hubManager.updateLeaderboards();
     }
 }

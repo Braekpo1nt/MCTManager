@@ -216,7 +216,7 @@ public class HubManager implements Listener, Configurable {
         
     }
     
-    public void updateLeaderboard() {
+    public void updateLeaderboards() {
         for (LeaderboardManager leaderboardManager : leaderboardManagers) {
             leaderboardManager.updateScores();
         }
