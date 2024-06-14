@@ -200,6 +200,16 @@
   "initialChimeInterval": 20.0,
   "chimeIntervalDecrement": 0.5,
   "collisionRule": "ALWAYS",
+  "preventInteractions": [
+    "OAK_TRAPDOOR",
+    "SPRUCE_TRAPDOOR",
+    "BIRCH_TRAPDOOR",
+    "JUNGLE_TRAPDOOR",
+    "ACACIA_TRAPDOOR",
+    "DARK_OAK_TRAPDOOR",
+    "CRIMSON_TRAPDOOR",
+    "WARPED_TRAPDOOR"
+  ],
   "scores": {
     "playerElimination": 5,
     "teamElimination": 20,

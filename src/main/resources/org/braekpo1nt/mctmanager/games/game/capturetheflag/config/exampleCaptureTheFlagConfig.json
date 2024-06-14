@@ -353,6 +353,16 @@
     "maxY": -17,
     "maxZ": -958
   },
+  "preventInteractions": [
+    "OAK_TRAPDOOR",
+    "SPRUCE_TRAPDOOR",
+    "BIRCH_TRAPDOOR",
+    "JUNGLE_TRAPDOOR",
+    "ACACIA_TRAPDOOR",
+    "DARK_OAK_TRAPDOOR",
+    "CRIMSON_TRAPDOOR",
+    "WARPED_TRAPDOOR"
+  ],
   "scores": {
     "kill": 20,
     "win": 100

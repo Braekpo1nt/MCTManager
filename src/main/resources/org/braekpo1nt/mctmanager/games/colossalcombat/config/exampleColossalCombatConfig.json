@@ -205,6 +205,16 @@
     "maxY": 3,
     "maxZ": 3
   },
+  "preventInteractions": [
+    "OAK_TRAPDOOR",
+    "SPRUCE_TRAPDOOR",
+    "BIRCH_TRAPDOOR",
+    "JUNGLE_TRAPDOOR",
+    "ACACIA_TRAPDOOR",
+    "DARK_OAK_TRAPDOOR",
+    "CRIMSON_TRAPDOOR",
+    "WARPED_TRAPDOOR"
+  ],
   "durations": {
     "roundStarting": 10,
     "antiSuffocation": 30,
