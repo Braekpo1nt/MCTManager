@@ -13,5 +13,6 @@ public class MockHubManager extends HubManager {
     @Override
     public void loadConfig() throws ConfigIOException, ConfigInvalidException {
         this.config = configController.getDefaultConfig();
+        // intentionally skipping addition of leaderboardManagers
     }
 }

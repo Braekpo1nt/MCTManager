@@ -12,7 +12,6 @@ import org.braekpo1nt.mctmanager.hub.config.HubConfigController;
 import org.braekpo1nt.mctmanager.hub.leaderboard.LeaderboardManager;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
-import org.braekpo1nt.mctmanager.ui.sidebar.SidebarFactory;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -26,7 +25,7 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Team;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,7 +36,7 @@ public class HubManager implements Listener, Configurable {
     private final GameManager gameManager;
     protected final HubConfigController configController;
     protected HubConfig config;
-    private @Nullable LeaderboardManager leaderboardManager;
+    private @NotNull final List<LeaderboardManager> leaderboardManagers;
     private int returnToHubTaskId;
     /**
      * Contains a list of the players who are about to be sent to the hub and can see the countdown
@@ -53,14 +52,30 @@ public class HubManager implements Listener, Configurable {
         this.plugin = plugin;
         this.gameManager = gameManager;
         this.configController = new HubConfigController(plugin.getDataFolder());
-        this.config = this.configController.getDefaultConfig();
+        this.leaderboardManagers = new ArrayList<>();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
     
     @Override
     public void loadConfig() throws ConfigIOException, ConfigInvalidException {
         this.config = configController.getConfig();
-        leaderboardManager = new LeaderboardManager(gameManager, config.getLeaderboardLocation(), config.getTopPlayers());
+        for (LeaderboardManager leaderboardManager : leaderboardManagers) {
+            leaderboardManager.tearDown();
+        }
+        leaderboardManagers.clear();
+        for (HubConfig.Leaderboard leaderboard : config.getLeaderboards()) {
+            LeaderboardManager leaderboardManager = new LeaderboardManager(
+                    gameManager, 
+                    leaderboard.getTitle(), 
+                    leaderboard.getLocation(), 
+                    leaderboard.getTopPlayers()
+            );
+            for (Player participant : participants) {
+                leaderboardManager.onParticipantJoin(participant);
+            }
+            leaderboardManager.updateScores();
+            leaderboardManagers.add(leaderboardManager);
+        }
     }
     
     /**
@@ -181,14 +196,14 @@ public class HubManager implements Listener, Configurable {
      */
     public void onParticipantJoin(Player participant) {
         participants.add(participant);
-        if (leaderboardManager != null) {
+        for (LeaderboardManager leaderboardManager : leaderboardManagers) {
             leaderboardManager.onParticipantJoin(participant);
         }
     }
     
     public void onParticipantQuit(Player participant) {
         participants.remove(participant);
-        if (leaderboardManager != null) {
+        for (LeaderboardManager leaderboardManager : leaderboardManagers) {
             leaderboardManager.onParticipantQuit(participant);
         }
     }
@@ -201,9 +216,16 @@ public class HubManager implements Listener, Configurable {
         
     }
     
-    public void updateLeaderboard() {
-        if (leaderboardManager != null) {
+    public void updateLeaderboards() {
+        for (LeaderboardManager leaderboardManager : leaderboardManagers) {
             leaderboardManager.updateScores();
+        }
+    }
+    
+    public void tearDown() {
+        cancelAllTasks();
+        for (LeaderboardManager leaderboardManager : leaderboardManagers) {
+            leaderboardManager.tearDown();
         }
     }
     
@@ -321,9 +343,5 @@ public class HubManager implements Listener, Configurable {
     
     public void setBoundaryEnabled(boolean boundaryEnabled) {
         this.boundaryEnabled = boundaryEnabled;
-    }
-    
-    public void initializeSidebar(SidebarFactory sidebarFactory) {
-//        sidebar = sidebarFactory.createSidebar();
     }
 }

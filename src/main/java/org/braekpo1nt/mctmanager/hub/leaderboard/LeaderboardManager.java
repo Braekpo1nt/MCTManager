@@ -5,12 +5,12 @@ import eu.decentsoftware.holograms.api.holograms.Hologram;
 import lombok.Data;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -19,46 +19,50 @@ import java.util.*;
  */
 public class LeaderboardManager {
     
-    private static final String PREFIX = "leaderboard_";
-    private static final String LEADERBOARD_ALL = "leaderboard_all";
+    /**
+     * the prefix of the unique identifier of each participant's personal leaderboard
+     * this is because hologram names are global in {@link DHAPI}, so they must have unique names. 
+     */
+    private final String PREFIX;
     /**
      * The holograms for the participants. Each is specific to them because they need to see their personal scores.
      */
     private final Map<UUID, Hologram> holograms = new HashMap<>();
     /**
+     * the title of the leaderboard. If null, there will be no title.
+     */
+    private final @Nullable String title;
+    /**
      * the hologram that others see (admins and non-participants)
      */
     private final Hologram allHologram;
     private final GameManager gameManager;
-    private @NotNull Location location;
-    private int topPlayers;
+    private final @NotNull Location location;
+    private final int topPlayers;
     
     /**
      * @param location the location that the leaderboard should appear. Must not be null. 
      */
-    public LeaderboardManager(@NotNull GameManager gameManager, @NotNull Location location, int topPlayers) {
+    public LeaderboardManager(@NotNull GameManager gameManager, @Nullable String title, @NotNull Location location, int topPlayers) {
         this.gameManager = gameManager;
+        this.title = title;
         this.location = location;
         this.topPlayers = topPlayers;
-        this.allHologram = createHologram(LEADERBOARD_ALL);
+        this.PREFIX = UUID.randomUUID() + "_leaderboard_";
+        String allLeaderboardName = UUID.randomUUID() + "_leaderboard_all";
+        this.allHologram = createHologram(allLeaderboardName);
         allHologram.setDefaultVisibleState(true);
     }
     
     /**
-     * Set the location of the leaderboard. Updates any existing holograms. 
-     * @param location the location of the leaderboard 
+     * Removes all the holograms from the world and clears the list of players
      */
-    public void setLocation(@NotNull Location location) {
-        this.location = location;
+    public void tearDown() {
         for (Hologram hologram : holograms.values()) {
-            DHAPI.moveHologram(hologram, location);
+            DHAPI.removeHologram(hologram.getName());
         }
-        DHAPI.moveHologram(allHologram, location);
-    }
-    
-    public void setTopPlayers(int topPlayers) {
-        this.topPlayers = topPlayers;
-        updateScores();
+        holograms.clear();
+        DHAPI.removeHologram(allHologram.getName());
     }
     
     public void onParticipantJoin(@NotNull Player participant) {
@@ -111,7 +115,10 @@ public class LeaderboardManager {
             int score = gameManager.getScore(uuid);
             standings.add(new Standing(uuid, placement, teamColor, name, score));
         }
-        List<String> lines = new ArrayList<>(Math.min(topPlayers, standings.size())+1);
+        List<String> lines = new ArrayList<>(Math.min(topPlayers, standings.size())+(title != null ? 1 : 2));
+        if (title != null) {
+            lines.add(title);
+        }
         for (int i = 0; i < Math.min(topPlayers, standings.size()); i++) {
             Standing standing = standings.get(i);
             lines.add(standing.toLine());
@@ -124,8 +131,8 @@ public class LeaderboardManager {
                 DHAPI.setHologramLines(hologram, lines);
                 String personalLine = standing.toBoldLine();
                 DHAPI.addHologramLine(hologram, personalLine);
-                if (standing.getPlacement() - 1 <= topPlayers) {
-                    DHAPI.setHologramLine(hologram, standing.getPlacement() - 1, personalLine);
+                if (standing.getPlacement() - (title != null ? 0 : 1) <= topPlayers) {
+                    DHAPI.setHologramLine(hologram, standing.getPlacement() - (title != null ? 0 : 1), personalLine);
                 }
             }
         }

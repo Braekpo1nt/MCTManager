@@ -32,12 +32,17 @@ public class LeaveSubCommand extends TabSubCommand {
         String playerName = args[0];
         OfflinePlayer playerToLeave = Bukkit.getOfflinePlayer(playerName);
         if (!gameManager.isParticipant(playerToLeave.getUniqueId())) {
-            return CommandResult.failure(Component.text("Player ")
-                    .append(Component.text(playerName)
-                            .decorate(TextDecoration.BOLD))
-                    .append(Component.text(" is not on a team.")));
+            if (!gameManager.isOfflineParticipant(playerToLeave.getUniqueId())) {
+                return CommandResult.failure(Component.text("Player ")
+                        .append(Component.text(playerName)
+                                .decorate(TextDecoration.BOLD))
+                        .append(Component.text(" is not on a team.")));
+            } else {
+                gameManager.leaveOfflineIGN(sender, playerName);
+            }
+        } else {
+            gameManager.leavePlayer(sender, playerToLeave, playerName);
         }
-        gameManager.leavePlayer(sender, playerToLeave, playerName);
         return CommandResult.success();
     }
     

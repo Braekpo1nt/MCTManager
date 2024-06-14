@@ -96,7 +96,7 @@ public class Main extends JavaPlugin {
         ParticipantInitializer.setPlugin(null); //TODO: remove this in favor of death and respawn combination 
         if (saveGameStateOnDisable && gameManager != null) {
             gameManager.cancelVote();
-            gameManager.cancelAllTasks();
+            gameManager.tearDown();
             if (gameManager.getEventManager().eventIsActive()) {
                 gameManager.getEventManager().stopEvent(Bukkit.getConsoleSender());
             }

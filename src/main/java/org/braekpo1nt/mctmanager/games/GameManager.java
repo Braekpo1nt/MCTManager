@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
@@ -374,9 +375,9 @@ public class GameManager implements Listener {
     /**
      * Cancel the return to hub if it's in progress
      */
-    public void cancelAllTasks() {
+    public void tearDown() {
         eventManager.cancelAllTasks();
-        hubManager.cancelAllTasks();
+        hubManager.tearDown();
     }
     
     public EventManager getEventManager() {
@@ -873,18 +874,19 @@ public class GameManager implements Listener {
             leavePlayer(sender, participant, participant.getName());
         }
         addNewPlayer(sender, playerUniqueId, teamName);
+        hubManager.updateLeaderboards();
+        NamedTextColor teamNamedTextColor = getTeamNamedTextColor(teamName);
+        Component displayName = Component.text(participant.getName(), teamNamedTextColor);
+        participant.displayName(displayName);
+        participant.playerListName(displayName);
         Component teamDisplayName = getFormattedTeamDisplayName(teamName);
         participant.sendMessage(Component.text("You've been joined to team ")
                 .append(teamDisplayName));
-        NamedTextColor teamNamedTextColor = getTeamNamedTextColor(teamName);
-        Component displayName = Component.text(participant.getName(), teamNamedTextColor);
         sender.sendMessage(Component.text("Joined ")
                 .append(displayName
                         .decorate(TextDecoration.BOLD))
                 .append(Component.text(" to team "))
                 .append(teamDisplayName));
-        participant.displayName(displayName);
-        participant.playerListName(displayName);
     }
     
     /**
@@ -928,6 +930,7 @@ public class GameManager implements Listener {
             leaveOfflineIGN(sender, ign);
         }
         addNewOfflineIGN(sender, ign, offlineUniqueId, teamId);
+        hubManager.updateLeaderboards();
         Component teamDisplayName = getFormattedTeamDisplayName(teamId);
         NamedTextColor teamNamedTextColor = getTeamNamedTextColor(teamId);
         TextComponent displayName = Component.text(ign)
@@ -1018,6 +1021,17 @@ public class GameManager implements Listener {
     public void leavePlayer(CommandSender sender, @NotNull OfflinePlayer offlinePlayer, @NotNull String playerName) {
         UUID playerUniqueId = offlinePlayer.getUniqueId();
         String teamName = gameStateStorageUtil.getPlayerTeamName(playerUniqueId);
+        if (teamName == null) {
+            sender.sendMessage(Component.empty()
+                    .append(Component.text("Could not find team for UUID "))
+                    .append(Component.text(playerUniqueId.toString())
+                            .decorate(TextDecoration.BOLD)
+                            .hoverEvent(HoverEvent.showText(Component.text("Copy to clipboard")))
+                            .clickEvent(ClickEvent.copyToClipboard(playerUniqueId.toString()))
+                    )
+            );
+            return;
+        }
         Component teamDisplayName = getFormattedTeamDisplayName(teamName);
         if (offlinePlayer.isOnline()) {
             Player onlinePlayer = offlinePlayer.getPlayer();
@@ -1034,6 +1048,7 @@ public class GameManager implements Listener {
             sender.sendMessage(Component.text("error occurred leaving player, see console for details.")
                     .color(NamedTextColor.RED));
         }
+        hubManager.updateLeaderboards();
         sender.sendMessage(Component.text("Removed ")
                 .append(Component.text(playerName)
                         .decorate(TextDecoration.BOLD))
@@ -1064,6 +1079,7 @@ public class GameManager implements Listener {
             sender.sendMessage(Component.text("error occurred leaving offline IGN, see console for details.")
                     .color(NamedTextColor.RED));
         }
+        hubManager.updateLeaderboards();
         TextComponent displayName = Component.text(ign)
                 .decorate(TextDecoration.BOLD);
         sender.sendMessage(Component.text("Removed ")
@@ -1561,7 +1577,6 @@ public class GameManager implements Listener {
     
     public void setSidebarFactory(SidebarFactory sidebarFactory) {
         this.sidebarFactory = sidebarFactory;
-        hubManager.initializeSidebar(sidebarFactory);
     }
     
     private void updateTeamScore(String team) {
@@ -1576,7 +1591,7 @@ public class GameManager implements Listener {
         if (eventManager.eventIsActive()) {
             eventManager.updateTeamScores();
         }
-        hubManager.updateLeaderboard();
+        hubManager.updateLeaderboards();
     }
     
     private void updatePersonalScore(Player participant) {
@@ -1588,6 +1603,6 @@ public class GameManager implements Listener {
         if (eventManager.eventIsActive()) {
             eventManager.updatePersonalScore(participant, contents);
         }
-        hubManager.updateLeaderboard();
+        hubManager.updateLeaderboards();
     }
 }

@@ -70,16 +70,14 @@ public class CommandUtils {
     }
     
     public static @NotNull List<String> partialMatchParticipantsTabList(GameManager gameManager, @Nullable String partialName) {
-        if (partialName == null || partialName.isEmpty()) {
-            return gameManager.getAllParticipantNames();
-        }
-        return gameManager.getAllParticipantNames().stream().filter(n -> n.startsWith(partialName)).toList();
+        return partialMatchTabList(gameManager.getAllParticipantNames(), partialName);
     }
     
     public static @NotNull List<String> partialMatchTabList(@NotNull List<@NotNull String> list, @Nullable String partial) {
         if (partial == null || partial.isEmpty()) {
             return list;
         }
-        return list.stream().filter(s -> s.startsWith(partial)).toList();
+        String lowerCasePartial = partial.toLowerCase();
+        return list.stream().filter(s -> s.toLowerCase().startsWith(lowerCasePartial)).toList();
     }
 }
