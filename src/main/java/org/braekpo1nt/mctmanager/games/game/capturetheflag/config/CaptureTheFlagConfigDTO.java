@@ -13,11 +13,9 @@ import org.bukkit.World;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 record CaptureTheFlagConfigDTO(
         String version, 
@@ -25,7 +23,8 @@ record CaptureTheFlagConfigDTO(
         Vector spawnObservatory, 
         List<ArenaDTO> arenas, 
         Map<String, LoadoutDTO> loadouts, 
-        BoundingBoxDTO spectatorArea, 
+        BoundingBoxDTO spectatorArea,
+        @Nullable List<Material> preventInteractions,
         Scores scores, 
         Durations durations, 
         Component description) implements Validatable {
@@ -36,7 +35,7 @@ record CaptureTheFlagConfigDTO(
         validator.validate(Main.VALID_CONFIG_VERSIONS.contains(this.version), "invalid config version (%s)", this.version);
         validator.validate(Bukkit.getWorld(this.world) != null, "Could not find world \"%s\"", this.world);
         validator.notNull(this.arenas, "arenas");
-        validator.validate(this.arenas.size() >= 1, "arenas: there must be at least 1 arena");
+        validator.validate(!this.arenas.isEmpty(), "arenas: there must be at least 1 arena");
         validator.validateList(this.arenas, "arenas");
         validator.notNull(this.spectatorArea, "spectatorArea");
         BoundingBox spectatorArea = this.spectatorArea.toBoundingBox();
@@ -74,6 +73,7 @@ record CaptureTheFlagConfigDTO(
                 .winScore(this.scores.win)
                 .killScore(this.scores.kill)
                 .descriptionDuration(this.durations.description)
+                .preventInteractions(this.preventInteractions != null ? this.preventInteractions : Collections.emptyList())
                 .description(this.description)
                 .build();
     }
