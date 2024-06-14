@@ -17,7 +17,7 @@ public class CompositeGeometry {
      * overlaps at least one other object in the list. False otherwise. true if the list is empty.
      */
     public boolean isCohesive() {
-        if (geometries.isEmpty()) {
+        if (geometries.size() <= 1) {
             return true;
         }
         

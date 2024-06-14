@@ -24,11 +24,13 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 import org.bukkit.structure.Structure;
 import org.bukkit.util.BoundingBox;
+import org.bukkit.util.Vector;
 
 import java.util.*;
 
@@ -411,6 +413,27 @@ public class SpleefRound implements Listener {
         }
         powerupManager.onParticipantBreakBlock(participant);
         event.setDropItems(false);
+    }
+    
+    @EventHandler
+    public void onPlayerMove(PlayerMoveEvent event) {
+        if (!roundActive) {
+            return;
+        }
+        if (spleefHasStarted) {
+            return;
+        }
+        if (config.getSafetyArea() == null) {
+            return;
+        }
+        Player participant = event.getPlayer();
+        if (!participants.contains(participant)) {
+            return;
+        }
+        Vector to = event.getTo().toVector();
+        if (!config.getSafetyArea().contains(to)) {
+            event.setCancelled(true);
+        }
     }
     
     private void setupTeamOptions() {
