@@ -61,9 +61,12 @@ public class HubConfigControllerTest {
     
     @Test
     void wellFormedJsonValidData() {
-        InputStream inputStream = controller.getClass().getResourceAsStream(exampleConfigFileName);
-        TestUtils.copyInputStreamToFile(inputStream, new File(plugin.getDataFolder(), configFileName));
-        Assertions.assertDoesNotThrow(controller::getConfig);
+        wellFormedJsonValidData(exampleConfigFileName);
+    }
+    
+    @Test
+    void testBackwardsCompatibility() {
+        wellFormedJsonValidData("exampleHubConfig_v0.1.0.json");
     }
     
     @Test
@@ -76,5 +79,11 @@ public class HubConfigControllerTest {
         json.addProperty("yValue", 100);
         TestUtils.saveJsonToFile(json, new File(plugin.getDataFolder(), configFileName));
         Assertions.assertThrows(ConfigInvalidException.class, controller::getConfig);
+    }
+    
+    void wellFormedJsonValidData(String filename) {
+        InputStream inputStream = controller.getClass().getResourceAsStream(filename);
+        TestUtils.copyInputStreamToFile(inputStream, new File(plugin.getDataFolder(), configFileName));
+        Assertions.assertDoesNotThrow(controller::getConfig);
     }
 }

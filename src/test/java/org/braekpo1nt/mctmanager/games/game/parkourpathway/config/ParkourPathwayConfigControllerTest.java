@@ -22,14 +22,14 @@ class ParkourPathwayConfigControllerTest {
     String configFileName = "parkourPathwayConfig.json";
     String exampleConfigFileName = "exampleParkourPathwayConfig.json";
     Main plugin;
-    ParkourPathwayConfigController storageUtil;
+    ParkourPathwayConfigController controller;
     
     @BeforeEach
     void setupServerAndPlugin() {
         ServerMock server = MockBukkit.mock(new MyCustomServerMock());
         server.getLogger().setLevel(Level.OFF);
         plugin = MockBukkit.load(MockMain.class);
-        storageUtil = new ParkourPathwayConfigController(plugin.getDataFolder());
+        controller = new ParkourPathwayConfigController(plugin.getDataFolder());
     }
     
     @AfterEach
@@ -39,13 +39,13 @@ class ParkourPathwayConfigControllerTest {
     
     @Test
     void configDoesNotExist() {
-        Assertions.assertThrows(ConfigIOException.class, storageUtil::getConfig);
+        Assertions.assertThrows(ConfigIOException.class, controller::getConfig);
     }
     
     @Test
     void malformedJson() {
         TestUtils.createFileInDirectory(plugin.getDataFolder(), configFileName, "{,");
-        Assertions.assertThrows(ConfigInvalidException.class, storageUtil::getConfig);
+        Assertions.assertThrows(ConfigInvalidException.class, controller::getConfig);
     }
     
     @Test
@@ -60,7 +60,7 @@ class ParkourPathwayConfigControllerTest {
     
     @Test
     void wellFormedJsonInvalidData() {
-        InputStream inputStream = storageUtil.getClass().getResourceAsStream(exampleConfigFileName);
+        InputStream inputStream = controller.getClass().getResourceAsStream(exampleConfigFileName);
         JsonObject json = TestUtils.inputStreamToJson(inputStream);
         JsonObject spectatorArea = new JsonObject();
         spectatorArea.addProperty("minX", 0);
@@ -71,12 +71,12 @@ class ParkourPathwayConfigControllerTest {
         spectatorArea.addProperty("maxZ", 0);
         json.add("spectatorArea", spectatorArea);
         TestUtils.saveJsonToFile(json, new File(plugin.getDataFolder(), configFileName));
-        Assertions.assertThrows(ConfigInvalidException.class, storageUtil::getConfig);
+        Assertions.assertThrows(ConfigInvalidException.class, controller::getConfig);
     }
     
     void wellFormedJsonValidData(String filename) {
-        InputStream inputStream = storageUtil.getClass().getResourceAsStream(filename);
+        InputStream inputStream = controller.getClass().getResourceAsStream(filename);
         TestUtils.copyInputStreamToFile(inputStream, new File(plugin.getDataFolder(), configFileName));
-        Assertions.assertDoesNotThrow(storageUtil::getConfig);
+        Assertions.assertDoesNotThrow(controller::getConfig);
     }
 }
