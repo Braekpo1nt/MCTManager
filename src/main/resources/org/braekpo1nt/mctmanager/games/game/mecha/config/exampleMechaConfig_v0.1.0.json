@@ -1,5 +1,5 @@
 {
-  "version": "0.1.1",
+  "version": "0.1.0",
   "world": "TestWorld",
   "spectatorArea": {
     "minX": -175,
@@ -123,8 +123,6 @@
     "secondPlace": 70,
     "thirdPlace": 50
   },
-  "lockOtherInventories": true,
-  "shouldClearContainers": false,
   "durations": {
     "start": 10,
     "invulnerability": 20,
