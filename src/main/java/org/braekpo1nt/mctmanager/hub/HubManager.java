@@ -70,10 +70,10 @@ public class HubManager implements Listener, Configurable {
                     leaderboard.getLocation(), 
                     leaderboard.getTopPlayers()
             );
-            leaderboardManager.updateScores();
             for (Player participant : participants) {
                 leaderboardManager.onParticipantJoin(participant);
             }
+            leaderboardManager.updateScores();
             leaderboardManagers.add(leaderboardManager);
         }
     }
