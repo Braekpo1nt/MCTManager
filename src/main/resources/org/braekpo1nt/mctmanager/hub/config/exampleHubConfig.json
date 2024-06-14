@@ -1,5 +1,5 @@
 {
-  "version": "0.1.0",
+  "version": "0.1.1",
   "world": "TestWorld",
   "spawn": {
     "x": -0.5,
@@ -20,11 +20,25 @@
     "yaw": -90,
     "pitch": 0
   },
-  "leaderBoard": {
-    "x": 0,
-    "y": 0,
-    "z": 0
-  },
+  "leaderboards": [
+    {
+      "title": "Top 10",
+      "location": {
+        "x": 0,
+        "y": 154,
+        "z": -141
+      },
+      "topPlayers": 10
+    },
+    {
+      "location": {
+        "x": -2.5,
+        "y": 153,
+        "z": -132.5
+      },
+      "topPlayers": 5
+    }
+  ],
   "yLimit": 130,
   "durations": {
     "tpToHub": 10
