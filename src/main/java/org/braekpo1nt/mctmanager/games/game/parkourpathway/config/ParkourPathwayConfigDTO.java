@@ -156,6 +156,7 @@ class ParkourPathwayConfigDTO implements Validatable {
                 .puzzles(PuzzleDTO.fromPuzzles(config.getPuzzles()))
                 .spectatorArea(BoundingBoxDTO.from(config.getSpectatorArea()))
                 .scores(new Scores(config.getCheckpointScore(), config.getWinScore()))
+                .preventInteractions(config.getPreventInteractions())
                 .durations(new Durations(config.getTeamSpawnsDuration(), config.getStartingDuration(), config.getTimeLimitDuration(), config.getCheckpointCounterDuration(), config.getCheckpointCounterAlertDuration(), config.getDescriptionDuration()))
                 .description(config.getDescription())
                 .build();
