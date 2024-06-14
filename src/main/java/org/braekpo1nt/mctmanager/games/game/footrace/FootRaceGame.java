@@ -18,6 +18,7 @@ import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.bukkit.*;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
@@ -26,6 +27,7 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
@@ -575,6 +577,25 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
             return;
         }
         participant.setFoodLevel(20);
+        event.setCancelled(true);
+    }
+    
+    @EventHandler
+    public void onPlayerInteract(PlayerInteractEvent event) {
+        if (!gameActive) {
+            return;
+        }
+        Block clickedBlock = event.getClickedBlock();
+        if (clickedBlock == null) {
+            return;
+        }
+        if (!participants.contains(event.getPlayer())) {
+            return;
+        }
+        Material blockType = clickedBlock.getType();
+        if (!config.getPreventInteractions().contains(blockType)) {
+            return;
+        }
         event.setCancelled(true);
     }
     
