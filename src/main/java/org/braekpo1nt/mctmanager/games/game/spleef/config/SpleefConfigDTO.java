@@ -95,6 +95,10 @@ record SpleefConfigDTO(
         }
         if (safetyArea != null) {
             validator.validate(safetyArea.isCohesive(), "safetyArea: each geometry must overlap with at least one other geometry");
+            for (int i = 0; i < startingLocations.size(); i++) {
+                Vector startingLocation = startingLocations.get(i);
+                validator.validate(safetyArea.contains(startingLocation), "startingLocations[%d] is not contained in safetyArea", i);
+            }
         }
         validator.validate(this.scores() != null, "scores can't be null");
         validator.validate(this.durations() != null, "durations can't be null");
@@ -144,6 +148,7 @@ record SpleefConfigDTO(
                 .roundEndingDuration(this.durations.roundEnding)
                 .descriptionDuration(this.durations.description)
                 .preventInteractions(this.preventInteractions != null ? this.preventInteractions : Collections.emptyList())
+                .safetyArea(this.safetyArea)
                 .description(this.description)
                 .build();
     }

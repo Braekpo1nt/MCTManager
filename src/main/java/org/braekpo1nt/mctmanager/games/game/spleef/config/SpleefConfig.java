@@ -6,6 +6,7 @@ import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.games.game.spleef.DecayStage;
 import org.braekpo1nt.mctmanager.games.game.spleef.powerup.Powerup;
+import org.braekpo1nt.mctmanager.geometry.CompositeGeometry;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -46,6 +47,10 @@ public class SpleefConfig {
     private int surviveScore;
     private int rounds;
     private List<Material> preventInteractions;
+    /**
+     * Players will be forced to stay in this area until the game starts
+     */
+    private @Nullable CompositeGeometry safetyArea;
     private List<DecayStage> stages;
     private int descriptionDuration;
     private Component description;
