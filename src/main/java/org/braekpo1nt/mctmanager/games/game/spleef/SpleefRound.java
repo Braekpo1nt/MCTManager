@@ -12,6 +12,7 @@ import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
+import org.bukkit.block.Block;
 import org.bukkit.block.structure.Mirror;
 import org.bukkit.block.structure.StructureRotation;
 import org.bukkit.entity.Player;
@@ -281,6 +282,14 @@ public class SpleefRound implements Listener {
             if (powerupManager.isPowerup(event.getItem())) {
                 return;
             }
+            event.setCancelled(true);
+            return;
+        }
+        Block clickedBlock = event.getClickedBlock();
+        if (clickedBlock == null) {
+            return;
+        }
+        if (config.getPreventInteractions().contains(clickedBlock.getType())) {
             event.setCancelled(true);
         }
     }

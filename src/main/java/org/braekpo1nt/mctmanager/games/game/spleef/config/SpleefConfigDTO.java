@@ -53,6 +53,7 @@ record SpleefConfigDTO(
         @Nullable ItemStackDTO tool, 
         int rounds, 
         PowerupsDTO powerups, 
+        @Nullable List<Material> preventInteractions,
         Scores scores, 
         Durations durations, 
         Component description) implements Validatable {
@@ -70,7 +71,7 @@ record SpleefConfigDTO(
         validator.validate(Main.VALID_CONFIG_VERSIONS.contains(this.version()), "invalid config version (%s)", this.version());
         validator.validate(Bukkit.getWorld(this.world()) != null, "world: Could not find world \"%s\"", this.world());
         validator.validate(this.startingLocations() != null, "startingLocations can't be null");
-        validator.validate(this.startingLocations.size() >= 1, "startingLocations must have at least one entry");
+        validator.validate(!this.startingLocations.isEmpty(), "startingLocations must have at least one entry");
         validator.validate(!this.startingLocations.contains(null), "startingLocations can't contain any null elements");
         validator.validate(this.spectatorArea() != null, "spectatorArea can't be null");
         validator.validate(this.spectatorArea.toBoundingBox().getVolume() >= 1.0, "spectatorArea (%s) must have a volume (%s) of at least 1.0", this.spectatorArea(), this.spectatorArea.toBoundingBox().getVolume());
@@ -80,7 +81,7 @@ record SpleefConfigDTO(
         validator.validateList(this.layers, "layers");
         
         validator.notNull(this.decayStages, "decayStages");
-        validator.validate(this.decayStages.size() > 0, "decayStages must have at least one entry");
+        validator.validate(!this.decayStages.isEmpty(), "decayStages must have at least one entry");
         for (int i = 0; i < decayStages.size(); i++) {
             DecayStageDTO decayStageDTO = decayStages.get(i);
             validator.notNull(decayStageDTO, "decayStages[%d]", i);
@@ -142,6 +143,7 @@ record SpleefConfigDTO(
                 .roundStartingDuration(this.durations.roundStarting)
                 .roundEndingDuration(this.durations.roundEnding)
                 .descriptionDuration(this.durations.description)
+                .preventInteractions(this.preventInteractions != null ? this.preventInteractions : Collections.emptyList())
                 .description(this.description)
                 .build();
     }
