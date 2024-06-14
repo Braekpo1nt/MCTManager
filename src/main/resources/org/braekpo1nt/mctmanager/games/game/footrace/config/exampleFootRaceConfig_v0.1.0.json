@@ -1,5 +1,5 @@
 {
-  "version": "0.1.1",
+  "version": "0.1.0",
   "world": "TestWorld",
   "startingLocation": {
     "x": 2400,
@@ -32,16 +32,6 @@
     "maxY": 80,
     "maxZ": 317
   },
-  "preventInteractions": [
-    "OAK_TRAPDOOR",
-    "SPRUCE_TRAPDOOR",
-    "BIRCH_TRAPDOOR",
-    "JUNGLE_TRAPDOOR",
-    "ACACIA_TRAPDOOR",
-    "DARK_OAK_TRAPDOOR",
-    "CRIMSON_TRAPDOOR",
-    "WARPED_TRAPDOOR"
-  ],
   "scores": {
     "completeLap": 5,
     "placementPoints": [
