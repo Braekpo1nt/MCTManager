@@ -131,8 +131,8 @@ public class LeaderboardManager {
                 DHAPI.setHologramLines(hologram, lines);
                 String personalLine = standing.toBoldLine();
                 DHAPI.addHologramLine(hologram, personalLine);
-                if (standing.getPlacement() - 1 <= topPlayers) {
-                    DHAPI.setHologramLine(hologram, standing.getPlacement() - 1, personalLine);
+                if (standing.getPlacement() - (title != null ? 0 : 1) <= topPlayers) {
+                    DHAPI.setHologramLine(hologram, standing.getPlacement() - (title != null ? 0 : 1), personalLine);
                 }
             }
         }
