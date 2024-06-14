@@ -10,6 +10,7 @@ import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.braekpo1nt.mctmanager.games.game.spleef.powerup.Powerup;
+import org.braekpo1nt.mctmanager.geometry.CompositeGeometry;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -36,6 +37,8 @@ import java.util.*;
  * @param decayStages the stages of decay (must have at least 1). The last stage will go on forever, regardless of the duration or minParticipants values
  * @param tool the tool players receive to break the blocks (if null, a diamond shovel will be used).
  * @param rounds the number of rounds
+ * @param preventInteractions
+ * @param safetyArea the area where players should be kept before the game starts, to stop them from falling off too early
  * @param scores the scores for spleef
  * @param durations the durations for spleef
  * @param description the description of spleef
@@ -54,6 +57,7 @@ record SpleefConfigDTO(
         int rounds, 
         PowerupsDTO powerups, 
         @Nullable List<Material> preventInteractions,
+        @Nullable CompositeGeometry safetyArea,
         Scores scores, 
         Durations durations, 
         Component description) implements Validatable {
@@ -88,6 +92,9 @@ record SpleefConfigDTO(
         validator.validate(this.rounds() >= 1, "rounds must be greater than 0");
         if (this.powerups != null) {
             powerups.validate(validator.path("powerups"));
+        }
+        if (safetyArea != null) {
+            validator.validate(safetyArea.isCohesive(), "safetyArea: each geometry must overlap with at least one other geometry");
         }
         validator.validate(this.scores() != null, "scores can't be null");
         validator.validate(this.durations() != null, "durations can't be null");
