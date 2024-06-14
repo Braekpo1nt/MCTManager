@@ -69,6 +69,7 @@ public class ColossalCombatConfig {
     private BoundingBox secondPlaceFlagReplaceArea;
     private long antiSuffocationDuration;
     private int roundStartingDuration;
+    private List<Material> preventInteractions;
     private int descriptionDuration;
     private Component description;
     

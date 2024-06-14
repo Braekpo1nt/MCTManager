@@ -19,6 +19,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
@@ -27,6 +28,7 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
@@ -409,6 +411,28 @@ public class ColossalCombatGame implements Listener, Configurable {
                 || spectators.contains(participant)) {
             event.setCancelled(true);
         }
+    }
+    
+    @EventHandler
+    public void onPlayerInteract(PlayerInteractEvent event) {
+        if (!gameActive) {
+            return;
+        }
+        Block clickedBlock = event.getClickedBlock();
+        if (clickedBlock == null) {
+            return;
+        }
+        Player participant = event.getPlayer();
+        if (!firstPlaceParticipants.contains(participant)
+                && !secondPlaceParticipants.contains(participant)
+                && !spectators.contains(participant)) {
+            return;
+        }
+        Material blockType = clickedBlock.getType();
+        if (!config.getPreventInteractions().contains(blockType)) {
+            return;
+        }
+        event.setCancelled(true);
     }
     
     private void updateRoundWinSidebar() {

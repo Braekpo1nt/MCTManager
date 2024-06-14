@@ -22,6 +22,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -57,6 +58,7 @@ record ColossalCombatConfigDTO(
         BoundingBoxDTO firstPlaceSupport, 
         BoundingBoxDTO secondPlaceSupport, 
         CaptureTheFlag captureTheFlag,
+        @Nullable List<Material> preventInteractions,
         Durations durations, 
         Component description) implements Validatable {
     
@@ -158,6 +160,7 @@ record ColossalCombatConfigDTO(
                 .itemDrops(newItemDrops)
                 .itemDropLocations(newItemDropLocations)
                 .glowingItemDrops(newGlowingItemDrops)
+                .preventInteractions(this.preventInteractions != null ? this.preventInteractions : Collections.emptyList())
                 .description(this.description);
         
         if (captureTheFlag != null) {
