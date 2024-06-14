@@ -11,11 +11,13 @@ import org.braekpo1nt.mctmanager.games.game.parkourpathway.TeamSpawn;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.puzzle.Puzzle;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collections;
 import java.util.List;
 
 @Data
@@ -44,6 +46,7 @@ class ParkourPathwayConfigDTO implements Validatable {
     /** the list of puzzles for this parkour game */
     private List<PuzzleDTO> puzzles;
     private BoundingBoxDTO spectatorArea;
+    private @Nullable List<Material> preventInteractions;
     private Scores scores;
     private Durations durations;
     private Component description;
@@ -136,6 +139,7 @@ class ParkourPathwayConfigDTO implements Validatable {
                 .checkpointCounterAlertDuration(this.durations.checkpointCounterAlert)
                 .checkpointScore(this.scores.checkpoint)
                 .winScore(this.scores.win)
+                .preventInteractions(this.preventInteractions != null ? this.preventInteractions : Collections.emptyList())
                 .descriptionDuration(this.durations.description)
                 .description(this.description)
                 .build();
