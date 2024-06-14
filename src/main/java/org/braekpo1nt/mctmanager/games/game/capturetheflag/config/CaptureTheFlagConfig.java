@@ -6,6 +6,7 @@ import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.Arena;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.Loadout;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
 
 import java.util.List;
@@ -25,6 +26,7 @@ public class CaptureTheFlagConfig {
     private int winScore;
     private int killScore;
     private int descriptionDuration;
+    private List<Material> preventInteractions;
     private Component description;
     
 }

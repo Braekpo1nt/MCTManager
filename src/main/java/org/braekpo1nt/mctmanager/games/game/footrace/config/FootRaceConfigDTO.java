@@ -8,9 +8,14 @@ import org.braekpo1nt.mctmanager.config.dto.org.bukkit.util.BoundingBoxDTO;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Collections;
+import java.util.List;
 
 record FootRaceConfigDTO(
         String version, 
@@ -18,7 +23,8 @@ record FootRaceConfigDTO(
         LocationDTO startingLocation, 
         BoundingBoxDTO finishLine, 
         BoundingBoxDTO spectatorArea, 
-        BoundingBoxDTO glassBarrier, 
+        BoundingBoxDTO glassBarrier,
+        @Nullable List<Material> preventInteractions,
         Scores scores, 
         Durations durations, 
         Component description) implements Validatable {
@@ -67,6 +73,7 @@ record FootRaceConfigDTO(
                 .startRaceDuration(this.durations.startRace)
                 .raceEndCountdownDuration(this.durations.raceEndCountdown)
                 .descriptionDuration(this.durations.description)
+                .preventInteractions(this.preventInteractions != null ? this.preventInteractions : Collections.emptyList())
                 .description(this.description)
                 .build();
     }

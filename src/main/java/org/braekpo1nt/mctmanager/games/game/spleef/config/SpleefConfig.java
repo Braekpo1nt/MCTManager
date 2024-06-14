@@ -45,6 +45,7 @@ public class SpleefConfig {
     private int roundEndingDuration;
     private int surviveScore;
     private int rounds;
+    private List<Material> preventInteractions;
     private List<DecayStage> stages;
     private int descriptionDuration;
     private Component description;

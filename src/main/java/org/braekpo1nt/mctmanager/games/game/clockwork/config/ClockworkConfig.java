@@ -6,6 +6,7 @@ import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.games.game.clockwork.Chaos;
 import org.braekpo1nt.mctmanager.games.game.clockwork.Wedge;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.scoreboard.Team;
 
@@ -32,6 +33,7 @@ public class ClockworkConfig {
     public Chaos chaos;
     public Team.OptionStatus collisionRule;
     private List<Wedge> wedges;
+    private List<Material> preventInteractions;
     private int descriptionDuration;
     private Component description;
     

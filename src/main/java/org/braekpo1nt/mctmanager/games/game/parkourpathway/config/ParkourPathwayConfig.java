@@ -6,6 +6,7 @@ import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.TeamSpawn;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.puzzle.Puzzle;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.Nullable;
@@ -30,6 +31,7 @@ public class ParkourPathwayConfig {
     private int checkpointCounterAlertDuration;
     public int[] checkpointScore;
     public int[] winScore;
+    private List<Material> preventInteractions;
     private int descriptionDuration;
     private Component description;
     

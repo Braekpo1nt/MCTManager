@@ -4,8 +4,11 @@ import lombok.Builder;
 import lombok.Data;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.util.BoundingBox;
+
+import java.util.List;
 
 @Data
 @Builder
@@ -20,6 +23,7 @@ public class FootRaceConfig {
     private int startRaceDuration;
     private int raceEndCountdownDuration;
     private int descriptionDuration;
+    private List<Material> preventInteractions;
     private Component description;
     
 }
