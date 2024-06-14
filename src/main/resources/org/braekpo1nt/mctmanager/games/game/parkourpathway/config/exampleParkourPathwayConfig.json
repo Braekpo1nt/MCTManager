@@ -9,6 +9,16 @@
     "maxY": 2,
     "maxZ": 2
   },
+  "preventInteractions": [
+    "OAK_TRAPDOOR",
+    "SPRUCE_TRAPDOOR",
+    "BIRCH_TRAPDOOR",
+    "JUNGLE_TRAPDOOR",
+    "ACACIA_TRAPDOOR",
+    "DARK_OAK_TRAPDOOR",
+    "CRIMSON_TRAPDOOR",
+    "WARPED_TRAPDOOR"
+  ],
   "scores": {
     "checkpoint": [
       50,
