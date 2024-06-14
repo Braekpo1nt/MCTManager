@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
@@ -1020,6 +1021,17 @@ public class GameManager implements Listener {
     public void leavePlayer(CommandSender sender, @NotNull OfflinePlayer offlinePlayer, @NotNull String playerName) {
         UUID playerUniqueId = offlinePlayer.getUniqueId();
         String teamName = gameStateStorageUtil.getPlayerTeamName(playerUniqueId);
+        if (teamName == null) {
+            sender.sendMessage(Component.empty()
+                    .append(Component.text("Could not find team for UUID "))
+                    .append(Component.text(playerUniqueId.toString())
+                            .decorate(TextDecoration.BOLD)
+                            .hoverEvent(HoverEvent.showText(Component.text("Copy to clipboard")))
+                            .clickEvent(ClickEvent.copyToClipboard(playerUniqueId.toString()))
+                    )
+            );
+            return;
+        }
         Component teamDisplayName = getFormattedTeamDisplayName(teamName);
         if (offlinePlayer.isOnline()) {
             Player onlinePlayer = offlinePlayer.getPlayer();
