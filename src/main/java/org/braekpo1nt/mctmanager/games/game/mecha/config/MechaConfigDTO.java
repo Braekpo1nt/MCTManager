@@ -11,10 +11,7 @@ import org.braekpo1nt.mctmanager.config.dto.org.bukkit.util.BoundingBoxDTO;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.braekpo1nt.mctmanager.utils.EntityUtils;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.NamespacedKey;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.loot.LootTable;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
@@ -22,6 +19,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
@@ -73,6 +71,7 @@ class MechaConfigDTO implements Validatable {
      * Defaults to true.
      */
     private boolean shouldClearContainers = true;
+    private @Nullable List<Material> preventInteractions;
     private Scores scores;
     private Durations durations;
     private Component description;
@@ -231,6 +230,7 @@ class MechaConfigDTO implements Validatable {
                 .sizes(sizes)
                 .delays(delays)
                 .durations(durations)
+                .preventInteractions(this.preventInteractions != null ? this.preventInteractions : Collections.emptyList())
                 .descriptionDuration(this.durations.description)
                 .description(this.description)
                 .build();
