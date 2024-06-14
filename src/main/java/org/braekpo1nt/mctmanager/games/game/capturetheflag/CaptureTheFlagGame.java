@@ -19,6 +19,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
@@ -349,13 +350,14 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         if (!gameActive) {
             return;
         }
-        if (event.getClickedBlock() == null) {
+        Block clickedBlock = event.getClickedBlock();
+        if (clickedBlock == null) {
             return;
         }
         if (!participants.contains(event.getPlayer())) {
             return;
         }
-        Material blockType = event.getClickedBlock().getType();
+        Material blockType = clickedBlock.getType();
         if (!config.getPreventInteractions().contains(blockType)) {
             return;
         }
