@@ -58,13 +58,6 @@ record SpleefConfigDTO(
         Durations durations, 
         Component description) implements Validatable {
     
-    /**
-     * @throws UnsupportedOperationException always because this is not yet implemented
-     */
-    public static SpleefConfigDTO fromConfig(SpleefConfig config) {
-        throw new UnsupportedOperationException("fromConfig is not supported for SpleefConfigDTO");
-    }
-    
     @Override
     public void validate(@NotNull Validator validator) throws ConfigInvalidException {
         validator.validate(this.version() != null, "version can't be null");
