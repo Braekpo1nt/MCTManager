@@ -1079,6 +1079,7 @@ public class GameManager implements Listener {
             sender.sendMessage(Component.text("error occurred leaving offline IGN, see console for details.")
                     .color(NamedTextColor.RED));
         }
+        hubManager.updateLeaderboards();
         TextComponent displayName = Component.text(ign)
                 .decorate(TextDecoration.BOLD);
         sender.sendMessage(Component.text("Removed ")

@@ -37,9 +37,12 @@ public class LeaveSubCommand extends TabSubCommand {
                         .append(Component.text(playerName)
                                 .decorate(TextDecoration.BOLD))
                         .append(Component.text(" is not on a team.")));
+            } else {
+                gameManager.leaveOfflineIGN(sender, playerName);
             }
+        } else {
+            gameManager.leavePlayer(sender, playerToLeave, playerName);
         }
-        gameManager.leavePlayer(sender, playerToLeave, playerName);
         return CommandResult.success();
     }
     
