@@ -11,12 +11,15 @@ import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.braekpo1nt.mctmanager.games.game.clockwork.Chaos;
 import org.braekpo1nt.mctmanager.games.game.clockwork.Wedge;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.scoreboard.Team;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 record ClockworkConfigDTO(
@@ -30,7 +33,8 @@ record ClockworkConfigDTO(
         SoundDTO clockChime, 
         double initialChimeInterval, 
         double chimeIntervalDecrement, 
-        Team.OptionStatus collisionRule, 
+        Team.OptionStatus collisionRule,
+        @Nullable List<Material> preventInteractions,
         Scores scores, 
         Durations durations, 
         Component description) implements Validatable {
@@ -91,6 +95,7 @@ record ClockworkConfigDTO(
                 .chaos(this.chaos)
                 .collisionRule(this.collisionRule)
                 .wedges(newWedges)
+                .preventInteractions(this.preventInteractions != null ? this.preventInteractions : Collections.emptyList())
                 .descriptionDuration(this.durations.description)
                 .description(this.description)
                 .build();
