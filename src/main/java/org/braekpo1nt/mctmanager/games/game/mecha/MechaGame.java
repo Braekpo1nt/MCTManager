@@ -46,6 +46,7 @@ import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -76,7 +77,8 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     private Map<UUID, Integer> killCounts = new HashMap<>();
     private int descriptionPeriodTaskId;
     private boolean descriptionShowing = false;
-    private final String title = ChatColor.BLUE+"MECHA";
+    private final String baseTitle = ChatColor.BLUE+"MECHA";
+    private String title = baseTitle;
     /**
      * true when the game is over, and countdown is started, so no points should be awarded
      */
@@ -86,6 +88,22 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         this.plugin = plugin;
         this.gameManager = gameManager;
         this.configController = new MechaConfigController(plugin.getDataFolder());
+    }
+    
+    @Override
+    public void setTitle(@NotNull String title) {
+        this.title = title;
+        if (sidebar != null) {
+            sidebar.updateLine("title", title);
+        }
+        if (adminSidebar != null) {
+            adminSidebar.updateLine("title", title);
+        }
+    }
+    
+    @Override
+    public @NotNull String getBaseTitle() {
+        return baseTitle;
     }
     
     @Override

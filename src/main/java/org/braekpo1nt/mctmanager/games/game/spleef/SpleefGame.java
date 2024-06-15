@@ -26,6 +26,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,7 +40,8 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
     private Sidebar adminSidebar;
     private final SpleefConfigController configController;
     private SpleefConfig config;
-    private final String title = ChatColor.BLUE+"Spleef";
+    private final String baseTitle = ChatColor.BLUE+"Spleef";
+    private String title = baseTitle;
     private List<Player> participants = new ArrayList<>();
     private List<Player> admins = new ArrayList<>();
     private List<SpleefRound> rounds = new ArrayList<>();
@@ -50,6 +52,22 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
         this.plugin = plugin;
         this.gameManager = gameManager;
         this.configController = new SpleefConfigController(plugin.getDataFolder());
+    }
+    
+    @Override
+    public @NotNull String getBaseTitle() {
+        return baseTitle;
+    }
+    
+    @Override
+    public void setTitle(@NotNull String title) {
+        this.title = title;
+        if (sidebar != null) {
+            sidebar.updateLine("title", title);
+        }
+        if (adminSidebar != null) {
+            adminSidebar.updateLine("title", title);
+        }
     }
     
     @Override
