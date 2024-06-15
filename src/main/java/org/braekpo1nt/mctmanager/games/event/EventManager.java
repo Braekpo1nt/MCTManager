@@ -502,6 +502,7 @@ public class EventManager implements Listener {
         maxGames = newMaxGames;
         sidebar.updateLine("currentGame", getCurrentGameLine());
         adminSidebar.updateLine("currentGame", getCurrentGameLine());
+        gameManager.updateGameTitle();
         sender.sendMessage(Component.text("Max games has been set to ")
                 .append(Component.text(newMaxGames)));
     }
@@ -1292,12 +1293,19 @@ public class EventManager implements Listener {
      */
     private String getCurrentGameLine() {
         if (currentGameNumber <= maxGames) {
-            return String.format("Game %d/%d", currentGameNumber, maxGames);
+            return String.format("Game [%d/%d]", currentGameNumber, maxGames);
         }
         if (currentState == EventState.PODIUM) {
             return "Thanks for playing!";
         }
         return "Final Round";
+    }
+    
+    /**
+     * @return true if the game number should be displayed in-game
+     */
+    public boolean shouldDisplayGameNumber() {
+        return config.shouldDisplayGameNumber();
     }
     
     public void updateTeamScores() {
@@ -1402,6 +1410,10 @@ public class EventManager implements Listener {
     
     public int getMaxGames() {
         return maxGames;
+    }
+    
+    public int getCurrentGameNumber() {
+        return currentGameNumber;
     }
     
 }
