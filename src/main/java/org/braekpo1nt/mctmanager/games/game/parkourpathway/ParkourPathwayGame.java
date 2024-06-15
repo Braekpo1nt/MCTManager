@@ -57,7 +57,8 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
     private Sidebar adminSidebar;
     private final ParkourPathwayConfigController configController;
     private ParkourPathwayConfig config;
-    private final String title = ChatColor.BLUE+"Parkour Pathway";
+    private final String baseTitle = ChatColor.BLUE+"Parkour Pathway";
+    private String title = baseTitle;
     private final PotionEffect INVISIBILITY = new PotionEffect(PotionEffectType.INVISIBILITY, 10000, 1, true, false, false);
     private int statusEffectsTaskId;
     private int startNextRoundTimerTaskId;
@@ -93,6 +94,22 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         this.plugin = plugin;
         this.gameManager = gameManager;
         this.configController = new ParkourPathwayConfigController(plugin.getDataFolder());
+    }
+    
+    @Override
+    public void setTitle(@NotNull String title) {
+        this.title = title;
+        if (sidebar != null) {
+            sidebar.updateLine("title", title);
+        }
+        if (adminSidebar != null) {
+            adminSidebar.updateLine("title", title);
+        }
+    }
+    
+    @Override
+    public @NotNull String getBaseTitle() {
+        return baseTitle;
     }
     
     @Override

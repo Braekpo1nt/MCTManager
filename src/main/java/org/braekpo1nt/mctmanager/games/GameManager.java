@@ -467,6 +467,14 @@ public class GameManager implements Listener {
             }
         }
         
+        if (eventManager.eventIsActive() && eventManager.shouldDisplayGameNumber()) {
+            int currentGameNumber = eventManager.getCurrentGameNumber();
+            int maxGames = eventManager.getMaxGames();
+            String baseTitle = selectedGame.getBaseTitle();
+            String newTitle = String.format("%s %s[%d/%d]", baseTitle, ChatColor.GRAY, currentGameNumber, maxGames);
+            selectedGame.setTitle(newTitle);
+        }
+        
         hubManager.removeParticipantsFromHub(onlineParticipants);
         selectedGame.start(onlineParticipants, onlineAdmins);
         activeGame = selectedGame;
@@ -477,6 +485,20 @@ public class GameManager implements Listener {
             updatePersonalScore(participant);
         }
         return true;
+    }
+    
+    public void updateGameTitle() {
+        if (!gameIsRunning()) {
+            return;
+        }
+        if (eventManager.eventIsActive() && eventManager.shouldDisplayGameNumber()) {
+            int currentGameNumber = eventManager.getCurrentGameNumber();
+            int maxGames = eventManager.getMaxGames();
+            String baseTitle = activeGame.getBaseTitle();
+            String newTitle = String.format("%s %s[%d/%d]", baseTitle, ChatColor.GRAY, currentGameNumber, maxGames);
+            Bukkit.getLogger().info(newTitle);
+            activeGame.setTitle(newTitle);
+        }
     }
     
     /**

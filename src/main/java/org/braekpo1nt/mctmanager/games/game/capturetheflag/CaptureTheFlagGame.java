@@ -29,6 +29,7 @@ import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,7 +50,8 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     private CaptureTheFlagConfig config;
     private RoundManager roundManager;
     private CaptureTheFlagRound currentRound;
-    private final String title = ChatColor.BLUE+"Capture the Flag";
+    private final String baseTitle = ChatColor.BLUE+"Capture the Flag";
+    private String title = baseTitle;
     private List<Player> participants = new ArrayList<>();
     private List<Player> admins = new ArrayList<>();
     private boolean firstRound = true;
@@ -59,6 +61,22 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         this.plugin = plugin;
         this.gameManager = gameManager;
         this.configController = new CaptureTheFlagConfigController(plugin.getDataFolder());
+    }
+    
+    @Override
+    public void setTitle(@NotNull String title) {
+        this.title = title;
+        if (sidebar != null) {
+            sidebar.updateLine("title", title);
+        }
+        if (adminSidebar != null) {
+            adminSidebar.updateLine("title", title);
+        }
+    }
+    
+    @Override
+    public @NotNull String getBaseTitle() {
+        return baseTitle;
     }
     
     @Override

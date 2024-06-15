@@ -14,6 +14,7 @@ record EventConfigDTO(
         String version, 
         String title, 
         double[] multipliers, 
+        boolean shouldDisplayGameNumber,
         Durations durations) implements Validatable {
     
     @Override
@@ -40,6 +41,7 @@ record EventConfigDTO(
                 .startingGameDuration(this.durations.startingGame)
                 .backToHubDuration(this.durations.backToHub)
                 .multipliers(this.multipliers)
+                .shouldDisplayGameNumber(this.shouldDisplayGameNumber)
                 .title(this.title)
                 .build();
     }

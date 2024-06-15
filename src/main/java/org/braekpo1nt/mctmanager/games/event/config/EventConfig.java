@@ -13,6 +13,10 @@ public class EventConfig {
     private int startingGameDuration;
     private int backToHubDuration;
     private double[] multipliers;
+    private boolean shouldDisplayGameNumber;
     private String title;
     
+    public boolean shouldDisplayGameNumber() {
+        return shouldDisplayGameNumber;
+    }
 }

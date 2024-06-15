@@ -32,6 +32,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,7 +44,8 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
     private Sidebar adminSidebar;
     private final ClockworkConfigController configController;
     private ClockworkConfig config;
-    private final String title = ChatColor.BLUE+"Clockwork";
+    private final String baseTitle = ChatColor.BLUE+"Clockwork";
+    private String title = baseTitle;
     private List<Player> participants = new ArrayList<>();
     private List<Player> admins = new ArrayList<>();
     private List<ClockworkRound> rounds;
@@ -56,6 +58,22 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
         this.plugin = plugin;
         this.gameManager = gameManager;
         this.configController = new ClockworkConfigController(plugin.getDataFolder());
+    }
+    
+    @Override
+    public void setTitle(@NotNull String title) {
+        this.title = title;
+        if (sidebar != null) {
+            sidebar.updateLine("title", title);
+        }
+        if (adminSidebar != null) {
+            adminSidebar.updateLine("title", title);
+        }
+    }
+    
+    @Override
+    public @NotNull String getBaseTitle() {
+        return baseTitle;
     }
     
     @Override

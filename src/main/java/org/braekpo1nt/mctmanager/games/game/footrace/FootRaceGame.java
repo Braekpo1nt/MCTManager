@@ -36,6 +36,7 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
+import org.jetbrains.annotations.NotNull;
 
 import java.time.Duration;
 import java.util.*;
@@ -72,7 +73,8 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     private int statusEffectsTaskId;
     private int descriptionPeriodTaskId;
     private boolean descriptionShowing = false;
-    private final String title = ChatColor.BLUE+"Foot Race";
+    private final String baseTitle = ChatColor.BLUE+"Foot Race";
+    private String title = baseTitle;
     
     public FootRaceGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
@@ -88,6 +90,22 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     @Override
     public void loadConfig() throws ConfigIOException, ConfigInvalidException {
         this.config = configController.getConfig();
+    }
+    
+    @Override
+    public void setTitle(@NotNull String title) {
+        this.title = title;
+        if (sidebar != null) {
+            sidebar.updateLine("title", title);
+        }
+        if (adminSidebar != null) {
+            adminSidebar.updateLine("title", title);
+        }
+    }
+    
+    @Override
+    public @NotNull String getBaseTitle() {
+        return baseTitle;
     }
     
     @Override
