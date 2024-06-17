@@ -289,7 +289,8 @@ public class CaptureTheFlagMatch implements Listener {
             northParticipants.remove(northParticipant);
             return;
         }
-        Component deathMessage = Component.text(northParticipant.getName())
+        Component deathMessage = Component.empty()
+                .append(Component.text(northParticipant.getName()))
                 .append(Component.text(" left early. Their life is forfeit."));
         PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(northParticipant, Collections.emptyList(), 0, deathMessage);
         Bukkit.getServer().getPluginManager().callEvent(fakeDeathEvent);
@@ -312,7 +313,8 @@ public class CaptureTheFlagMatch implements Listener {
             southParticipants.remove(soutParticipant);
             return;
         }
-        Component deathMessage = Component.text(soutParticipant.getName())
+        Component deathMessage = Component.empty()
+                .append(Component.text(soutParticipant.getName()))
                 .append(Component.text(" left early. Their life is forfeit."));
         PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(soutParticipant, Collections.emptyList(), 0, deathMessage);
         Bukkit.getServer().getPluginManager().callEvent(fakeDeathEvent);

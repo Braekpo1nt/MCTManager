@@ -337,7 +337,8 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
                 .filter(Objects::nonNull)
                 .toList();
         int droppedExp = calculateExpPoints(participant.getLevel());
-        Component deathMessage = Component.text(participant.getName())
+        Component deathMessage = Component.empty()
+                .append(Component.text(participant.getName()))
                 .append(Component.text(" left early. Their life is forfeit."));
         PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(participant, drops, droppedExp, deathMessage);
         Bukkit.getServer().getPluginManager().callEvent(fakeDeathEvent);
