@@ -579,8 +579,7 @@ public class ColossalCombatRound implements Listener {
                 .append(formattedTeamDisplayName)
                 .append(Component.text(" dropped the flag")));
         participant.getEquipment().setHelmet(null);
-        Location ground = BlockPlacementUtils.getSolidBlockBelow(participant.getLocation());
-        flagPosition = ground.add(0, 1, 0);
+        flagPosition = BlockPlacementUtils.getBlockDropLocation(participant.getLocation());
         BlockPlacementUtils.placeFlag(config.getFlagMaterial(), flagPosition, participant.getFacing());
         hasFlag = null;
     }
