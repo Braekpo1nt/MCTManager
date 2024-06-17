@@ -283,7 +283,8 @@ public class ColossalCombatRound implements Listener {
     }
     
     public void killParticipant(Player participant) {
-        Component deathMessage = Component.text(participant.getName())
+        Component deathMessage = Component.empty()
+                .append(Component.text(participant.getName()))
                 .append(Component.text(" left early. Their life is forfeit."));
         PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(participant, Collections.emptyList(), 0, deathMessage);
         Bukkit.getServer().getPluginManager().callEvent(fakeDeathEvent);

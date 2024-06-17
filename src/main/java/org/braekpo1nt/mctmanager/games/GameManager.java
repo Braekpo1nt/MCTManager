@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games;
 import com.google.common.base.Preconditions;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -34,6 +35,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.scoreboard.Scoreboard;
@@ -117,6 +119,32 @@ public class GameManager implements Listener {
     private void addEditor(GameEditor editor) {
         Preconditions.checkArgument(!this.editors.containsKey(editor.getType()), "An editor with type %s already exists in the games map", editor.getType());
         this.editors.put(editor.getType(), editor);
+    }
+    
+    @EventHandler
+    public void onParticipantDeath(PlayerDeathEvent event) {
+        Player killed = event.getPlayer();
+        if (isParticipant(killed.getUniqueId())) {
+            replaceWithDisplayName(event, killed);
+        }
+        Player killer = killed.getKiller();
+        if (killer == null) {
+            return;
+        }
+        if (isParticipant(killer.getUniqueId())) {
+            replaceWithDisplayName(event, killer);
+        }
+    }
+    
+    private static void replaceWithDisplayName(PlayerDeathEvent event, Player player) {
+        Component deathMessage = event.deathMessage();
+        if (deathMessage != null) {
+            Component newDeathMessage = deathMessage.replaceText(TextReplacementConfig.builder()
+                    .match(player.getName())
+                    .replacement(player.displayName())
+                    .build());
+            event.deathMessage(newDeathMessage);
+        }
     }
     
     @EventHandler
