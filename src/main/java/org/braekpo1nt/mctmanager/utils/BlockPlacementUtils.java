@@ -213,24 +213,60 @@ public class BlockPlacementUtils {
         return solidBlocks;
     }
     
+    public static final List<Material> AIR_BLOCKS = List.of(
+            Material.AIR,
+            Material.CAVE_AIR,
+            Material.VOID_AIR
+    );
+    
     /**
      * Gets the first solid block below the given location. If there is no floor all the way to the min height, returns the given location.
      * @param location The location to check below
-     * @return the location below the given location that is a solid block. If there are no solid blocks
+     * @return the location below the given location that is a solid block. If there are no solid blocks, returns the given location. 
      */
-    public static Location getSolidBlockBelow(Location location) {
-        //TODO: this doesn't check the block the location is in, so if the location is inside a block, and there's a solid block below, then this returns the block the location is in
+    public static Location getSolidBlockBelow(@NotNull Location location) {
         Location nonAirLocation = location.subtract(0, 1, 0);
-        while (nonAirLocation.getBlockY() > -64) {
+        int minHeight = location.getWorld().getMinHeight();
+        while (nonAirLocation.getBlockY() > minHeight) {
             Block block = nonAirLocation.getBlock();
-            if (!block.getType().equals(Material.AIR) &&
-                    !block.getType().equals(Material.CAVE_AIR) &&
-                    !block.getType().equals(Material.VOID_AIR)) {
+            if (!AIR_BLOCKS.contains(block.getType())) {
                 return nonAirLocation;
             }
             nonAirLocation = nonAirLocation.subtract(0, 1, 0);
         }
         return location;
+    }
+    
+    /**
+     * Gets the first non-solid block above the given location. If there is nothing all the way to the max height, returns the given location.
+     * @param location the location to check above
+     * @return the location above the given location that is not a solid block. If there is no non-solid blocks, returns the given location. 
+     */
+    public static Location getNonSolidBlockAbove(@NotNull Location location) {
+        Location airLocation = location.add(0, 1, 0);
+        int maxHeight = location.getWorld().getMaxHeight();
+        while (airLocation.getBlockY() < maxHeight) {
+            Block block = airLocation.getBlock();
+            if (AIR_BLOCKS.contains(block.getType())) {
+                return airLocation;
+            }
+            airLocation = airLocation.add(0, 1, 0);
+        }
+        return location;
+    }
+    
+    /**
+     * This is so that many block drops (such as flags in Capture the Flag) can seem to "land" on the ground without disturbing the environment or floating where no player can reach them. 
+     * If the location is in a body of water or some other non-air block, then it will return the lowest location of an empty block above the given location. If the location is an air block, then it will return the lowest location of an empty block below the given location. 
+     * @param location the location where the block drop has appeared
+     * @return the location to place the block drop. Should be an empty block just above the ground.
+     */
+    public static Location getBlockDropLocation(@NotNull Location location) {
+        if (AIR_BLOCKS.contains(location.getBlock().getType())) {
+            return getSolidBlockBelow(location).add(0, 1, 0);
+        } else {
+            return getNonSolidBlockAbove(location);
+        }
     }
     
     /**

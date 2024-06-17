@@ -513,8 +513,7 @@ public class CaptureTheFlagMatch implements Listener {
                 .append(Component.text("You dropped the flag"))
                 .color(NamedTextColor.DARK_RED));
         northParticipant.getEquipment().setHelmet(null);
-        Location ground = BlockPlacementUtils.getSolidBlockBelow(northParticipant.getLocation());
-        southFlagPosition = ground.add(0, 1, 0);
+        southFlagPosition = BlockPlacementUtils.getBlockDropLocation(northParticipant.getLocation());
         BlockPlacementUtils.placeFlag(southBanner, southFlagPosition, northParticipant.getFacing());
         hasSouthFlag = null;
     }
@@ -590,8 +589,7 @@ public class CaptureTheFlagMatch implements Listener {
                 .append(Component.text("You dropped the flag"))
                 .color(NamedTextColor.DARK_RED));
         southParticipant.getEquipment().setHelmet(null);
-        Location ground = BlockPlacementUtils.getSolidBlockBelow(southParticipant.getLocation());
-        northFlagPosition = ground.add(0, 1, 0);
+        northFlagPosition = BlockPlacementUtils.getBlockDropLocation(southParticipant.getLocation());
         BlockPlacementUtils.placeFlag(northBanner, northFlagPosition, southParticipant.getFacing());
         hasNorthFlag = null;
     }
