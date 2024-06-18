@@ -1,8 +1,9 @@
 package org.braekpo1nt.mctmanager.ui.topbar;
 
-import lombok.Data;
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -30,17 +31,21 @@ public class Topbar {
         
         public void setLeft(@NotNull Component left) {
             this.left = left;
-            bossBar.name(createName(left, middle, right));
+            reformat();
         }
         
         public void setMiddle(@NotNull Component middle) {
             this.middle = middle;
-            bossBar.name(createName(left, middle, right));
+            reformat();
         }
         
         public void setRight(@NotNull Component right) {
             this.right = right;
-            bossBar.name(createName(left, middle, right));
+            reformat();
+        }
+        
+        private void reformat() {
+            bossBar.name(format(left, middle, right));
         }
         
         public void show(@NotNull Player player) {
@@ -51,14 +56,28 @@ public class Topbar {
             player.hideBossBar(bossBar);
         }
         
-        public static @NotNull Component createName(@NotNull Component left, @NotNull Component middle, @NotNull Component right) {
-            return Component.empty()
-                    .append(left)
-                    .append(Component.text("          "))
-                    .append(middle)
-                    .append(Component.text("          "))
-                    .append(right)
-                    ;
+        private static final int SPACE_BETWEEN = 40;
+        
+        /**
+         * Formats the input components with 40 spaces between the centers of each component.
+         *
+         * @param left the left component
+         * @param middle the middle component
+         * @param right the right component
+         * @return the formatted component
+         */
+        public static @NotNull Component format(@NotNull Component left, @NotNull Component middle, @NotNull Component right) {
+            String leftStr = PlainTextComponentSerializer.plainText().serialize(left);
+            String middleStr = PlainTextComponentSerializer.plainText().serialize(middle);
+            String rightStr = PlainTextComponentSerializer.plainText().serialize(right);
+            
+            int leftPadding = SPACE_BETWEEN - leftStr.length() / 2 - middleStr.length() / 2;
+            int rightPadding = SPACE_BETWEEN - middleStr.length() / 2 - rightStr.length() / 2;
+            
+            TextComponent paddingLeft = Component.text(" ".repeat(Math.max(0, leftPadding)));
+            TextComponent paddingRight = Component.text(" ".repeat(Math.max(0, rightPadding)));
+            
+            return left.append(paddingLeft).append(middle).append(paddingRight).append(right);
         }
         
     }
@@ -70,7 +89,7 @@ public class Topbar {
     }
     
     public void removePlayer(@NotNull Player player) {
-        IndividualBar bossBar = bossBars.get(player.getUniqueId());
+        IndividualBar bossBar = bossBars.remove(player.getUniqueId());
         if (bossBar != null) {
             bossBar.hide(player);
         }
