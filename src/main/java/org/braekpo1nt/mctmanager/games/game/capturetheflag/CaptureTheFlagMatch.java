@@ -10,6 +10,7 @@ import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
+import org.braekpo1nt.mctmanager.ui.topbar.Topbar;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.braekpo1nt.mctmanager.utils.MaterialUtils;
 import org.bukkit.*;
@@ -43,6 +44,7 @@ public class CaptureTheFlagMatch implements Listener {
     private final Arena arena;
     private final Sidebar sidebar;
     private final Sidebar adminSidebar;
+    private final Topbar topbar;
     private List<Player> northParticipants = new ArrayList<>();
     private List<Player> southParticipants = new ArrayList<>();
     private List<Player> allParticipants = new ArrayList<>();
@@ -85,6 +87,7 @@ public class CaptureTheFlagMatch implements Listener {
         this.southClassPicker = new ClassPicker();
         this.sidebar = sidebar;
         this.adminSidebar = adminSidebar;
+        this.topbar = new Topbar();
     }
     
     public MatchPairing getMatchPairing() {
@@ -131,6 +134,7 @@ public class CaptureTheFlagMatch implements Listener {
             participant.teleport(arena.southSpawn());
             participant.lookAt(arena.northSpawn().getX(), arena.northSpawn().getY(), arena.northSpawn().getZ(), LookAnchor.EYES);
         }
+        topbar.addPlayer(participant);
         initializeSidebar(participant);
         allParticipants.add(participant);
         participant.getInventory().clear();
@@ -423,6 +427,9 @@ public class CaptureTheFlagMatch implements Listener {
                 "kills",
                 ChatColor.RED+"Kills: " + newKillCount
         );
+        topbar.setRight(killerUniqueId,
+                Component.text("Kills: ")
+                .append(Component.text(newKillCount)));
     }
     
     private void onParicipantDeath(Player killed) {
@@ -692,6 +699,7 @@ public class CaptureTheFlagMatch implements Listener {
                 String timer = String.format("Class selection: %s", timeLeft);
                 sidebar.updateLine("timer", timer);
                 adminSidebar.updateLine("timer", timer);
+                topbar.setMiddle(Component.text(timer));
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -711,6 +719,7 @@ public class CaptureTheFlagMatch implements Listener {
                 String timer = String.format("Round: %s", timeLeft);
                 sidebar.updateLine("timer", timer);
                 adminSidebar.updateLine("timer", timer);
+                topbar.setMiddle(Component.text(timer));
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -719,14 +728,19 @@ public class CaptureTheFlagMatch implements Listener {
     private void initializeSidebar() {
         sidebar.updateLine("timer", "Round: ");
         adminSidebar.updateLine("timer", "Round: ");
+        topbar.setMiddle(Component.text("Round: "));
     }
     
     private void initializeSidebar(Player participant) {
         sidebar.updateLine(participant.getUniqueId(),"kills", String.format("%sKills: %s", ChatColor.RED, killCounts.get(participant.getUniqueId())));
+        topbar.setRight(participant.getUniqueId(), Component.text("Kills: ")
+                .append(Component.text(killCounts.get(participant.getUniqueId()))));
     }
     
     private void clearSidebar() {
         sidebar.updateLine("kills", "");
+        topbar.setRight(Component.empty());
+        topbar.removePlayers(allParticipants);
     }
     
     private void placeFlags() {
