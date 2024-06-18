@@ -24,6 +24,7 @@ import org.braekpo1nt.mctmanager.games.game.parkourpathway.ParkourPathwayGame;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.editor.ParkourPathwayEditor;
 import org.braekpo1nt.mctmanager.games.game.spleef.SpleefGame;
 import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
+import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.voting.VoteManager;
 import org.braekpo1nt.mctmanager.hub.HubManager;
 import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
@@ -34,6 +35,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.scoreboard.Scoreboard;
@@ -120,13 +122,43 @@ public class GameManager implements Listener {
     }
     
     @EventHandler
+    public void onParticipantDeath(PlayerDeathEvent event) {
+        Player killed = event.getPlayer();
+        if (isParticipant(killed.getUniqueId())) {
+            replaceWithDisplayName(event, killed);
+        }
+        Player killer = killed.getKiller();
+        if (killer == null) {
+            return;
+        }
+        if (isParticipant(killer.getUniqueId())) {
+            replaceWithDisplayName(event, killer);
+        }
+    }
+    
+    /**
+     * Takes in a {@link PlayerDeathEvent} and replaces all instances of the given player's name with the given player's display name
+     * @param event the event
+     * @param player the player whose name should be replaced with their display name. 
+     */
+    private static void replaceWithDisplayName(PlayerDeathEvent event, Player player) {
+        Component deathMessage = event.deathMessage();
+        if (deathMessage != null) {
+            Component newDeathMessage = GameManagerUtils.replaceWithDisplayName(player, deathMessage);
+            event.deathMessage(newDeathMessage);
+        }
+    }
+    
+    @EventHandler
     public void playerQuitEvent(PlayerQuitEvent event) {
         Player player = event.getPlayer();
         if (isAdmin(player.getUniqueId())) {
+            event.quitMessage(GameManagerUtils.replaceWithDisplayName(player, event.quitMessage()));
             onAdminQuit(player);
             return;
         }
         if (isParticipant(player.getUniqueId())) {
+            event.quitMessage(GameManagerUtils.replaceWithDisplayName(player, event.quitMessage()));
             onParticipantQuit(player);
         }
     }
@@ -174,14 +206,17 @@ public class GameManager implements Listener {
         Player player = event.getPlayer();
         if (isAdmin(player.getUniqueId())) {
             onAdminJoin(player);
+            event.joinMessage(GameManagerUtils.replaceWithDisplayName(player, event.joinMessage()));
             return;
         }
         if (isParticipant(player.getUniqueId())) {
             onParticipantJoin(player);
+            event.joinMessage(GameManagerUtils.replaceWithDisplayName(player, event.joinMessage()));
             return;
         }
         if (isOfflineIGN(player.getName())) {
             onOfflineIGNJoin(player);
+            event.joinMessage(GameManagerUtils.replaceWithDisplayName(player, event.joinMessage()));
         }
     }
     
