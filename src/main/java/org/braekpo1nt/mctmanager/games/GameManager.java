@@ -3,7 +3,6 @@ package org.braekpo1nt.mctmanager.games;
 import com.google.common.base.Preconditions;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
-import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -25,6 +24,7 @@ import org.braekpo1nt.mctmanager.games.game.parkourpathway.ParkourPathwayGame;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.editor.ParkourPathwayEditor;
 import org.braekpo1nt.mctmanager.games.game.spleef.SpleefGame;
 import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
+import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.voting.VoteManager;
 import org.braekpo1nt.mctmanager.hub.HubManager;
 import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
@@ -136,13 +136,15 @@ public class GameManager implements Listener {
         }
     }
     
+    /**
+     * Takes in a {@link PlayerDeathEvent} and replaces all instances of the given player's name with the given player's display name
+     * @param event the event
+     * @param player the player whose name should be replaced with their display name. 
+     */
     private static void replaceWithDisplayName(PlayerDeathEvent event, Player player) {
         Component deathMessage = event.deathMessage();
         if (deathMessage != null) {
-            Component newDeathMessage = deathMessage.replaceText(TextReplacementConfig.builder()
-                    .match(player.getName())
-                    .replacement(player.displayName())
-                    .build());
+            Component newDeathMessage = GameManagerUtils.replaceWithDisplayName(player, deathMessage);
             event.deathMessage(newDeathMessage);
         }
     }
@@ -151,10 +153,12 @@ public class GameManager implements Listener {
     public void playerQuitEvent(PlayerQuitEvent event) {
         Player player = event.getPlayer();
         if (isAdmin(player.getUniqueId())) {
+            event.quitMessage(GameManagerUtils.replaceWithDisplayName(player, event.quitMessage()));
             onAdminQuit(player);
             return;
         }
         if (isParticipant(player.getUniqueId())) {
+            event.quitMessage(GameManagerUtils.replaceWithDisplayName(player, event.quitMessage()));
             onParticipantQuit(player);
         }
     }
@@ -202,14 +206,17 @@ public class GameManager implements Listener {
         Player player = event.getPlayer();
         if (isAdmin(player.getUniqueId())) {
             onAdminJoin(player);
+            event.joinMessage(GameManagerUtils.replaceWithDisplayName(player, event.joinMessage()));
             return;
         }
         if (isParticipant(player.getUniqueId())) {
             onParticipantJoin(player);
+            event.joinMessage(GameManagerUtils.replaceWithDisplayName(player, event.joinMessage()));
             return;
         }
         if (isOfflineIGN(player.getName())) {
             onOfflineIGNJoin(player);
+            event.joinMessage(GameManagerUtils.replaceWithDisplayName(player, event.joinMessage()));
         }
     }
     

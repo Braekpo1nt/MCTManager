@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.games.utils;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
@@ -12,7 +13,9 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryAction;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -284,5 +287,22 @@ public class GameManagerUtils {
         }
         gameManager.joinPlayerToTeam(sender, playerToJoin, teamId);
         return CommandResult.success();
+    }
+    
+    /**
+     * Replaces instances of the given player's name in the given component with the player's display name. 
+     * @param player the player whose name should be replaced with their display name
+     * @param component the component in which the name should be replaced
+     * @return a new component with the replacements. Null if the component is null
+     */
+    @Contract("_, null -> null")
+    public static Component replaceWithDisplayName(@NotNull Player player, Component component) {
+        if (component == null) {
+            return null;
+        }
+        return component.replaceText(TextReplacementConfig.builder()
+                .match(player.getName())
+                .replacement(player.displayName())
+                .build());
     }
 }
