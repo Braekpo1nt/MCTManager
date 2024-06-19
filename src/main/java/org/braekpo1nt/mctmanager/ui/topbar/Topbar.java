@@ -1,9 +1,6 @@
 package org.braekpo1nt.mctmanager.ui.topbar;
 
-import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.TextComponent;
-import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -15,72 +12,6 @@ import java.util.UUID;
 public class Topbar {
     
     private final Map<UUID, IndividualBar> bossBars = new HashMap<>();
-    
-    public static class IndividualBar {
-        private final @NotNull BossBar bossBar;
-        private @NotNull Component left;
-        private @NotNull Component middle;
-        private @NotNull Component right;
-        
-        public IndividualBar() {
-            this.bossBar = BossBar.bossBar(Component.empty(), 1f, BossBar.Color.WHITE, BossBar.Overlay.PROGRESS);
-            this.left = Component.empty();
-            this.middle = Component.empty();
-            this.right = Component.empty();
-        }
-        
-        public void setLeft(@NotNull Component left) {
-            this.left = left;
-            reformat();
-        }
-        
-        public void setMiddle(@NotNull Component middle) {
-            this.middle = middle;
-            reformat();
-        }
-        
-        public void setRight(@NotNull Component right) {
-            this.right = right;
-            reformat();
-        }
-        
-        private void reformat() {
-            bossBar.name(format(left, middle, right));
-        }
-        
-        public void show(@NotNull Player player) {
-            player.showBossBar(bossBar);
-        }
-        
-        public void hide(@NotNull Player player) {
-            player.hideBossBar(bossBar);
-        }
-        
-        private static final int SPACE_BETWEEN = 40;
-        
-        /**
-         * Formats the input components with 40 spaces between the centers of each component.
-         *
-         * @param left the left component
-         * @param middle the middle component
-         * @param right the right component
-         * @return the formatted component
-         */
-        public static @NotNull Component format(@NotNull Component left, @NotNull Component middle, @NotNull Component right) {
-            String leftStr = PlainTextComponentSerializer.plainText().serialize(left);
-            String middleStr = PlainTextComponentSerializer.plainText().serialize(middle);
-            String rightStr = PlainTextComponentSerializer.plainText().serialize(right);
-            
-            int leftPadding = SPACE_BETWEEN - leftStr.length() / 2 - middleStr.length() / 2;
-            int rightPadding = SPACE_BETWEEN - middleStr.length() / 2 - rightStr.length() / 2;
-            
-            TextComponent paddingLeft = Component.text(" ".repeat(Math.max(0, leftPadding)));
-            TextComponent paddingRight = Component.text(" ".repeat(Math.max(0, rightPadding)));
-            
-            return left.append(paddingLeft).append(middle).append(paddingRight).append(right);
-        }
-        
-    }
     
     public void addPlayer(@NotNull Player player) {
         IndividualBar bossBar = new IndividualBar();
