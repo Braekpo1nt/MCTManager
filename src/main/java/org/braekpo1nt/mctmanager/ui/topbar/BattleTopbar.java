@@ -155,4 +155,14 @@ public class BattleTopbar {
         bossBar.hide(player);
     }
     
+    /**
+     * A bulk operation version of {@link BattleTopbar#hidePlayer(Player, String)}
+     * @param playersToTeams a map of each player to remove to the teamId of the team they are a member of
+     */
+    public void hidePlayers(@NotNull Map<Player, String> playersToTeams) {
+        for (Map.Entry<Player, String> entry : playersToTeams.entrySet()) {
+            hidePlayer(entry.getKey(), entry.getValue());
+        }
+    }
+    
 }

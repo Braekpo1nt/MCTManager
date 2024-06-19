@@ -10,6 +10,7 @@ import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
+import org.braekpo1nt.mctmanager.ui.topbar.BattleTopbar;
 import org.braekpo1nt.mctmanager.ui.topbar.Topbar;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.braekpo1nt.mctmanager.utils.MaterialUtils;
@@ -44,7 +45,7 @@ public class CaptureTheFlagMatch implements Listener {
     private final Arena arena;
     private final Sidebar sidebar;
     private final Sidebar adminSidebar;
-    private final Topbar topbar;
+    private final BattleTopbar topbar;
     private List<Player> northParticipants = new ArrayList<>();
     private List<Player> southParticipants = new ArrayList<>();
     private List<Player> allParticipants = new ArrayList<>();
@@ -87,7 +88,7 @@ public class CaptureTheFlagMatch implements Listener {
         this.southClassPicker = new ClassPicker();
         this.sidebar = sidebar;
         this.adminSidebar = adminSidebar;
-        this.topbar = new Topbar();
+        this.topbar = new BattleTopbar();
     }
     
     public MatchPairing getMatchPairing() {
@@ -108,6 +109,9 @@ public class CaptureTheFlagMatch implements Listener {
         killCounts = new HashMap<>();
         placeFlags();
         closeGlassBarriers();
+        NamedTextColor northColor = gameManager.getTeamNamedTextColor(matchPairing.northTeam());
+        NamedTextColor southColor = gameManager.getTeamNamedTextColor(matchPairing.southTeam());
+        topbar.addTeamPair(matchPairing.northTeam(), northColor, matchPairing.southTeam(), southColor);
         for (Player northParticipant : newNorthParticipants) {
             initializeParticipant(northParticipant, true);
         }
@@ -134,13 +138,32 @@ public class CaptureTheFlagMatch implements Listener {
             participant.teleport(arena.southSpawn());
             participant.lookAt(arena.northSpawn().getX(), arena.northSpawn().getY(), arena.northSpawn().getZ(), LookAnchor.EYES);
         }
-        topbar.showPlayer(participant);
+        String teamId = gameManager.getTeamName(participant.getUniqueId());
+        topbar.showPlayer(participant, teamId);
+        topbar.addMember(true, teamId);
         initializeSidebar(participant);
         allParticipants.add(participant);
         participant.getInventory().clear();
         participant.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
+    }
+    
+    private void rejoinParticipant(Player participant, boolean north) {
+        UUID participantUniqueId = participant.getUniqueId();
+        if (north) {
+            northParticipants.add(participant);
+            participant.teleport(arena.northSpawn());
+            participant.lookAt(arena.southSpawn().getX(), arena.southSpawn().getY(), arena.southSpawn().getZ(), LookAnchor.EYES);
+        } else {
+            southParticipants.add(participant);
+            participant.teleport(arena.southSpawn());
+            participant.lookAt(arena.northSpawn().getX(), arena.northSpawn().getY(), arena.northSpawn().getZ(), LookAnchor.EYES);
+        }
+        String teamId = gameManager.getTeamName(participant.getUniqueId());
+        topbar.showPlayer(participant, teamId);
+        initializeSidebar(participant);
+        allParticipants.add(participant);
     }
     
     private void initializeDeadParticipant(Player participant, boolean north) {
@@ -152,6 +175,7 @@ public class CaptureTheFlagMatch implements Listener {
             southParticipants.add(participant);
             lookLocation = arena.southFlag();
         }
+        
         initializeSidebar(participant);
         allParticipants.add(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
@@ -229,10 +253,22 @@ public class CaptureTheFlagMatch implements Listener {
         }
     }
     
+    /**
+     * @param participant the participant
+     * @return true if the participant has been in this match and logged out, false if this participant has never been in this match
+     */
+    private boolean shouldRejoin(Player participant) {
+        return participantsAreAlive.containsKey(participant.getUniqueId());
+    }
+    
     private void onNorthParticipantJoin(Player northParticipant) {
         announceMatchToParticipant(northParticipant, matchPairing.northTeam(), matchPairing.southTeam());
-        if (northClassPicker.isActive()) {
+        if (shouldRejoin(northParticipant)) {
+            rejoinParticipant(northParticipant, true);
+        } else {
             initializeParticipant(northParticipant, true);
+        }
+        if (northClassPicker.isActive()) {
             northClassPicker.addTeamMate(northParticipant);
             return;
         }
@@ -242,8 +278,12 @@ public class CaptureTheFlagMatch implements Listener {
     
     private void onSouthParticipantJoin(Player southParticipant) {
         announceMatchToParticipant(southParticipant, matchPairing.southTeam(), matchPairing.northTeam());
-        if (southClassPicker.isActive()) {
+        if (shouldRejoin(southParticipant)) {
+            rejoinParticipant(southParticipant, false);
+        } else {
             initializeParticipant(southParticipant, false);
+        }
+        if (southClassPicker.isActive()) {
             southClassPicker.addTeamMate(southParticipant);
             return;
         }
@@ -448,6 +488,9 @@ public class CaptureTheFlagMatch implements Listener {
         ParticipantInitializer.clearStatusEffects(killed);
         killed.teleport(config.getSpawnObservatory());
         killed.lookAt(arena.northFlag().getX(), arena.northFlag().getY(), arena.northFlag().getZ(), LookAnchor.EYES);
+        
+        String teamId = gameManager.getTeamName(killed.getUniqueId());
+        topbar.addDeath(teamId);
     }
     
     @EventHandler
@@ -740,7 +783,10 @@ public class CaptureTheFlagMatch implements Listener {
     private void clearSidebar() {
         sidebar.updateLine("kills", "");
         topbar.setRight(Component.empty());
-        topbar.hidePlayers(allParticipants);
+        for (Player participant : allParticipants) {
+            String teamId = gameManager.getTeamName(participant.getUniqueId());
+            topbar.hidePlayer(participant, teamId);
+        }
     }
     
     private void placeFlags() {
