@@ -9,9 +9,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * Represents a custom BossBar display for one or more players. Can update the information
+ * displayed for all players at once, or for individual players. 
+ */
 public class Topbar {
     
-    private final Map<UUID, FormattedBar> bossBars = new HashMap<>();
+    protected final Map<UUID, FormattedBar> bossBars = new HashMap<>();
     
     public void addPlayer(@NotNull Player player) {
         FormattedBar bossBar = new FormattedBar();
