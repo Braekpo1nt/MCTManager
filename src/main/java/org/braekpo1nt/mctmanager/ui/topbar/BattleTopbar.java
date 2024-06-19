@@ -1,132 +1,94 @@
 package org.braekpo1nt.mctmanager.ui.topbar;
 
+
 import com.google.common.base.Preconditions;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.TextComponent;
+import lombok.Data;
 import net.kyori.adventure.text.format.TextColor;
-import net.kyori.adventure.text.format.TextDecoration;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
-public class BattleTopbar extends Topbar {
+public class BattleTopbar {
     
-    /**
-     * A component representing a team and which members of it are alive/dead
-     * can be converted to a {@link Component} for displaying to the user
-     */
-    public static class TeamComponent {
-        
-        private final @NotNull List<@NotNull Boolean> alive;
-        private final @NotNull Component aliveComponent;
-        private final @NotNull Component deadComponent;
-        
-        /**
-         * Initial state of the team is that all members are alive
-         * @param size the number of members in the team. Can't be negative.
-         * @param color the color of the team, to be used in the living and dead components
-         */
-        public TeamComponent(int size, TextColor color) {
-            alive = createAlive(size);
-            aliveComponent = Component.text("O")
-                    .decorate(TextDecoration.BOLD)
-                    .color(color);
-            deadComponent = Component.text("X")
-                    .decorate(TextDecoration.BOLD)
-                    .color(color);
-        }
-        
-        /**
-         * Initial state of the team is that all members are alive
-         * @param size the number of members in the team. Can't be negative.
-         * @param aliveComponent the component to represent a living member
-         * @param deadComponent the component to represent a dead member
-         */
-        public TeamComponent(int size, @NotNull Component aliveComponent, @NotNull Component deadComponent) {
-            alive = createAlive(size);
-            this.aliveComponent = aliveComponent;
-            this.deadComponent = deadComponent;
-        }
-        
-        private @NotNull List<@NotNull Boolean> createAlive(int size) {
-            Preconditions.checkArgument(size >= 0, "size can't be negative");
-            List<Boolean> newAlive = new ArrayList<>(size);
-            for (int i = 0; i < size; i++) {
-                newAlive.add(true);
-            }
-            return newAlive;
-        }
-        
-        /**
-         * Sets 'deaths' elements in the isLiving list to false from right to left, 
-         * skipping any that are already false.
-         * @param deaths the number of deaths to mark. 
-         *               Nothing happens if deaths is negative, and if deaths is greater 
-         *               than the number of members or living members in this TeamComponent, 
-         *               all the members will be set to dead.
-         */
-        public void addDeaths(int deaths) {
-            int count = 0;
-            for (int i = alive.size() - 1; i >= 0 && count < deaths; i--) {
-                if (alive.get(i)) {
-                    alive.set(i, false);
-                    count++;
-                }
-            }
-        }
-        
-        /**
-         * Sets 'living' elements in the alive list to true from left to right, 
-         * skipping any that are already true.
-         * @param living the number of living members to add.
-         *               Nothing happens if the living is negative, and if living is greater
-         *               than the number of members or dead members in this TeamComponent,
-         *               all the members will be set to living
-         */
-        public void addLiving(int living) {
-            int count = 0;
-            for (int i = 0; i < alive.size() && count < living; i++) {
-                if (!alive.get(i)) {
-                    alive.set(i, true);
-                    count++;
-                }
-            }
-        }
-        
-        /**
-         * @return this TeamComponent as a {@link Component} object for display to the user
-         */
-        public @NotNull Component toComponent() {
-            TextComponent.Builder builder = Component.text();
-            for (int i = 0; i < alive.size(); i++) {
-                boolean isAlive = alive.get(i);
-                builder.append(getStatusComponent(isAlive));
-                if (i < alive.size() - 1) {
-                    builder.append(Component.space());
-                }
-            }
-            return builder.asComponent();
-        }
-        
-        /**
-         * @param isAlive whether to get an alive or dead status component
-         * @return a component representing the alive or dead status (true is alive, false is dead)
-         */
-        private @NotNull Component getStatusComponent(boolean isAlive) {
-            return isAlive ? aliveComponent : deadComponent;
-        }
-        
+    @Data
+    protected static class TeamData {
+        private final VersusComponent versusComponent;
+        private final String enemyTeam;
+        private final List<UUID> members = new ArrayList<>();
     }
     
     /**
-     * Represents two teams battling
+     * each team's VersusComponent
      */
-    public static class VersusComponent {
-        private TeamComponent left;
-        private TeamComponent right;
+    protected final Map<String, TeamData> teamDatas = new HashMap<>();
+    protected final Map<UUID, FormattedBar> bossBars = new HashMap<>();
+    
+    public void addTeamPair(
+            @NotNull String teamAId, @NotNull TextColor teamAColor, 
+            @NotNull String teamBId, @NotNull TextColor teamBColor) {
+        VersusComponent versusComponentA = new VersusComponent(
+                new TeamComponent(0, teamAColor),
+                new TeamComponent(0, teamBColor)
+        );
+        teamDatas.put(teamAId, new TeamData(versusComponentA, teamBId));
         
+        VersusComponent versusComponentB = new VersusComponent(
+                new TeamComponent(0, teamBColor),
+                new TeamComponent(0, teamAColor)
+        );
+        teamDatas.put(teamBId, new TeamData(versusComponentB, teamAId));
+    }
+    
+    /**
+     * Update all appropriate BossBar displays with the death of a member of the given teamId
+     * @param teamId the teamId of the player who died
+     * @throws IllegalArgumentException if the given teamId is not already contained in this BattleTopbar
+     */
+    public void addDeath(@NotNull String teamId) {
+        TeamData teamData = teamDatas.get(teamId);
+        Preconditions.checkArgument(teamData != null, "team \"%s\" is not in this BattleTopbar", teamId);
+        TeamData enemyTeamData = teamDatas.get(teamData.getEnemyTeam());
+        teamData.getVersusComponent().getLeft().addDeaths(1);
+        enemyTeamData.getVersusComponent().getRight().addDeaths(1);
+        updateBossBars(teamData);
+        updateBossBars(enemyTeamData);
+    }
+    
+    /**
+     * Updates all the given {@link TeamData#getMembers()}' BossBars with the given {@link TeamData#getVersusComponent()}
+     * @param teamData the TeamData to update all the members' bossBars. Each member is expected to be a valid key in {@link BattleTopbar#bossBars}. 
+     */
+    private void updateBossBars(@NotNull TeamData teamData) {
+        for (UUID member : teamData.getMembers()) {
+            bossBars.get(member).setLeft(teamData.getVersusComponent().toComponent());
+        }
+    }
+    
+    /**
+     * Make the given player see this BattleTopbar. This also updates the appropriate displays to reflect
+     * the new team member and their alive status
+     * @param player the player to add to this BattleTopbar
+     * @param isAlive whether the player is alive
+     * @param teamId the teamId the player is a member of
+     */
+    public void addPlayer(@NotNull Player player, boolean isAlive, @NotNull String teamId) {
+        Preconditions.checkArgument(!bossBars.containsKey(player.getUniqueId()), "player with UUID \"%s\" already exists in this BattleTopbar");
         
+        TeamData teamData = teamDatas.get(teamId);
+        Preconditions.checkArgument(teamData != null, "team %s does not exist in this BattleTopbar", teamId);
+        teamData.getMembers().add(player.getUniqueId());
+        teamData.getVersusComponent().getLeft().addMember(isAlive);
+        
+        TeamData enemyTeamData = teamDatas.get(teamData.getEnemyTeam());
+        enemyTeamData.getVersusComponent().getRight().addMember(isAlive);
+        
+        FormattedBar bossBar = new FormattedBar();
+        bossBar.show(player);
+        bossBars.put(player.getUniqueId(), bossBar);
+        
+        updateBossBars(teamData);
+        updateBossBars(enemyTeamData);
     }
     
 }
