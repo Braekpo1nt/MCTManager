@@ -13,9 +13,22 @@ public class BattleTopbar {
     
     @Data
     protected static class TeamData {
+        /**
+         * Holds info about who is dead and alive, and provides an easy way to
+         * display that information to the user.
+         */
         private final VersusComponent versusComponent;
+        /**
+         * The enemy team associated with this TeamData. This is useful for
+         * updating the displays of both sides of a conflict.
+         */
         private final String enemyTeam;
-        private final List<UUID> members = new ArrayList<>();
+        /**
+         * the UUIDs of the players who are viewing this TeamData in their
+         * BossBar display. This is useful for updating all appropriate 
+         * displays when this TeamData is changed.
+         */
+        private final List<UUID> viewingMembers = new ArrayList<>();
     }
     
     /**
@@ -56,39 +69,90 @@ public class BattleTopbar {
     }
     
     /**
-     * Updates all the given {@link TeamData#getMembers()}' BossBars with the given {@link TeamData#getVersusComponent()}
+     * Update all appropriate BossBar displays with the life of a member of the given teamId
+     * @param teamId the teamId of the player who is no longer dead
+     */
+    public void removeDeath(@NotNull String teamId) {
+        TeamData teamData = teamDatas.get(teamId);
+        Preconditions.checkArgument(teamData != null, "team \"%s\" is not in this BattleTopbar", teamId);
+        TeamData enemyTeamData = teamDatas.get(teamData.getEnemyTeam());
+        teamData.getVersusComponent().getLeft().addLiving(1);
+        enemyTeamData.getVersusComponent().getRight().addLiving(1);
+        updateBossBars(teamData);
+        updateBossBars(enemyTeamData);
+    }
+    
+    /**
+     * Updates all the given {@link TeamData#getViewingMembers()}' BossBars with the given {@link TeamData#getVersusComponent()}
      * @param teamData the TeamData to update all the members' bossBars. Each member is expected to be a valid key in {@link BattleTopbar#bossBars}. 
      */
     private void updateBossBars(@NotNull TeamData teamData) {
-        for (UUID member : teamData.getMembers()) {
+        for (UUID member : teamData.getViewingMembers()) {
             bossBars.get(member).setLeft(teamData.getVersusComponent().toComponent());
         }
     }
     
     /**
-     * Make the given player see this BattleTopbar. This also updates the appropriate displays to reflect
-     * the new team member and their alive status
-     * @param player the player to add to this BattleTopbar
-     * @param isAlive whether the player is alive
+     * Add a member of the given teamId. Updates all applicable BossBar displays
+     * @param isAlive whether the new member is alive
+     * @param teamId the teamId of the team this member belongs to
+     */
+    public void addMember(boolean isAlive, @NotNull String teamId) {
+        TeamData teamData = teamDatas.get(teamId);
+        Preconditions.checkArgument(teamData != null, "team %s does not exist in this BattleTopbar", teamId);
+        teamData.getVersusComponent().getLeft().addMember(isAlive);
+        TeamData enemyTeamData = teamDatas.get(teamData.getEnemyTeam());
+        enemyTeamData.getVersusComponent().getRight().addMember(isAlive);
+        updateBossBars(teamData);
+        updateBossBars(enemyTeamData);
+    }
+    
+    /**
+     * Remove a member of the given teamId. Updates all applicable BossBar displays
+     * @param isAlive whether the new member is alive
+     * @param teamId the teamId of the team this member belongs to
+     */
+    public void removeMember(boolean isAlive, @NotNull String teamId) {
+        TeamData teamData = teamDatas.get(teamId);
+        Preconditions.checkArgument(teamData != null, "team %s does not exist in this BattleTopbar", teamId);
+        teamData.getVersusComponent().getLeft().removeMember(isAlive);
+        TeamData enemyTeamData = teamDatas.get(teamData.getEnemyTeam());
+        enemyTeamData.getVersusComponent().getRight().removeMember(isAlive);
+        updateBossBars(teamData);
+        updateBossBars(enemyTeamData);
+    }
+    
+    /**
+     * Make the given player see this BattleTopbar 
+     * @param player the player to show this BattleTopbar to
      * @param teamId the teamId the player is a member of
      */
-    public void addPlayer(@NotNull Player player, boolean isAlive, @NotNull String teamId) {
-        Preconditions.checkArgument(!bossBars.containsKey(player.getUniqueId()), "player with UUID \"%s\" already exists in this BattleTopbar");
+    public void showPlayer(@NotNull Player player, @NotNull String teamId) {
+        Preconditions.checkArgument(!bossBars.containsKey(player.getUniqueId()), "player with UUID \"%s\" already exists in this BattleTopbar", player.getUniqueId());
         
         TeamData teamData = teamDatas.get(teamId);
         Preconditions.checkArgument(teamData != null, "team %s does not exist in this BattleTopbar", teamId);
-        teamData.getMembers().add(player.getUniqueId());
-        teamData.getVersusComponent().getLeft().addMember(isAlive);
-        
-        TeamData enemyTeamData = teamDatas.get(teamData.getEnemyTeam());
-        enemyTeamData.getVersusComponent().getRight().addMember(isAlive);
+        teamData.getViewingMembers().add(player.getUniqueId());
         
         FormattedBar bossBar = new FormattedBar();
         bossBar.show(player);
         bossBars.put(player.getUniqueId(), bossBar);
         
         updateBossBars(teamData);
-        updateBossBars(enemyTeamData);
+    }
+    
+    /**
+     * Make the given player no longer see this BattleTopbar
+     * @param player the player to hide
+     * @param teamId the teamId the player is a member of
+     */
+    public void hidePlayer(@NotNull Player player, @NotNull String teamId) {
+        FormattedBar bossBar = bossBars.remove(player.getUniqueId());
+        Preconditions.checkArgument(bossBar != null, "player with UUID \"%s\" does not exist in this BattleTopbar", player.getUniqueId());
+        TeamData teamData = teamDatas.get(teamId);
+        Preconditions.checkArgument(teamData != null, "team %s does not exist in this BattleTopbar", teamId);
+        teamData.getViewingMembers().remove(player.getUniqueId());
+        bossBar.hide(player);
     }
     
 }

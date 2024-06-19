@@ -17,22 +17,22 @@ public class Topbar {
     
     protected final Map<UUID, FormattedBar> bossBars = new HashMap<>();
     
-    public void addPlayer(@NotNull Player player) {
+    public void showPlayer(@NotNull Player player) {
         FormattedBar bossBar = new FormattedBar();
         bossBar.show(player);
         bossBars.put(player.getUniqueId(), bossBar);
     }
     
-    public void removePlayer(@NotNull Player player) {
+    public void hidePlayer(@NotNull Player player) {
         FormattedBar bossBar = bossBars.remove(player.getUniqueId());
         if (bossBar != null) {
             bossBar.hide(player);
         }
     }
     
-    public void removePlayers(@NotNull List<@NotNull Player> players) {
+    public void hidePlayers(@NotNull List<@NotNull Player> players) {
         for (Player player : players) {
-            this.removePlayer(player);
+            this.hidePlayer(player);
         }
     }
     

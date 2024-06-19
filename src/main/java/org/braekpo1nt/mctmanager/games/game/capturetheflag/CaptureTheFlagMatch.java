@@ -134,7 +134,7 @@ public class CaptureTheFlagMatch implements Listener {
             participant.teleport(arena.southSpawn());
             participant.lookAt(arena.northSpawn().getX(), arena.northSpawn().getY(), arena.northSpawn().getZ(), LookAnchor.EYES);
         }
-        topbar.addPlayer(participant);
+        topbar.showPlayer(participant);
         initializeSidebar(participant);
         allParticipants.add(participant);
         participant.getInventory().clear();
@@ -740,7 +740,7 @@ public class CaptureTheFlagMatch implements Listener {
     private void clearSidebar() {
         sidebar.updateLine("kills", "");
         topbar.setRight(Component.empty());
-        topbar.removePlayers(allParticipants);
+        topbar.hidePlayers(allParticipants);
     }
     
     private void placeFlags() {
