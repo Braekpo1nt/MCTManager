@@ -9,9 +9,10 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Represents the BossBar gui for an individual player. Has a left, middle, and right components which
- * can be easily updated for convenient display of information. 
+ * can be easily updated for convenient display of information, and is properly formatted
+ * to remain in place when any element is updated.
  */
-public class IndividualBar {
+public class FormattedBar {
     /**
      * the number of characters between the centers of the right, middle, and left components
      */
@@ -42,7 +43,7 @@ public class IndividualBar {
      */
     private int rightLength;
     
-    public IndividualBar() {
+    public FormattedBar() {
         this.bossBar = BossBar.bossBar(Component.empty(), 1f, BossBar.Color.WHITE, BossBar.Overlay.PROGRESS);
         this.left = Component.empty();
         this.middle = Component.empty();
@@ -84,7 +85,7 @@ public class IndividualBar {
     
     /**
      * Used when one or more of the components are changed. Sets the name of the BossBar to be the
-     * left, middle, and right components with the {@link IndividualBar#SPACE_BETWEEN} each component's middle
+     * left, middle, and right components with the {@link FormattedBar#SPACE_BETWEEN} each component's middle
      * appropriately padded with spaces.
      */
     private void reformat() {
