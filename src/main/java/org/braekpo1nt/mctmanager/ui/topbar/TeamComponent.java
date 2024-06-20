@@ -57,12 +57,11 @@ public class TeamComponent {
     private @NotNull List<@NotNull Boolean> createAlive(int living, int dead) {
         Preconditions.checkArgument(living >= 0, "living can't be negative");
         Preconditions.checkArgument(dead >= 0, "dead can't be negative");
-        int size = living + dead;
-        List<Boolean> newAlive = new ArrayList<>(size);
+        List<Boolean> newAlive = new ArrayList<>(living + dead);
         for (int i = 0; i < living; i++) {
             newAlive.add(true);
         }
-        for (int i = living; i < dead; i++) {
+        for (int i = 0; i < dead; i++) {
             newAlive.add(false);
         }
         return newAlive;

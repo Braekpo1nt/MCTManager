@@ -468,6 +468,7 @@ public class CaptureTheFlagMatch implements Listener {
     }
     
     private void onParticipantDeath(Player killed) {
+        participantsAreAlive.put(killed.getUniqueId(), false);
         int alive = 0;
         int dead = 0;
         if (northParticipants.contains(killed)) {
@@ -484,9 +485,6 @@ public class CaptureTheFlagMatch implements Listener {
             dead = southParticipants.size() - alive;
         }
         
-        participantsAreAlive.put(killed.getUniqueId(), false);
-        alive--;
-        dead++;
         ParticipantInitializer.resetHealthAndHunger(killed);
         ParticipantInitializer.clearStatusEffects(killed);
         killed.teleport(config.getSpawnObservatory());
