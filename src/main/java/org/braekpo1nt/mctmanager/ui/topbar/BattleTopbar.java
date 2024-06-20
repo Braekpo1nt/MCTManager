@@ -206,6 +206,21 @@ public class BattleTopbar {
     }
     
     /**
+     * 
+     * @param playerUUID the player to set the kills for
+     * @param kills the number of kills
+     */
+    public void setKills(@NotNull UUID playerUUID, int kills) {
+        PlayerData playerData = playerDatas.get(playerUUID);
+        Preconditions.checkArgument(playerData != null, "player with UUID \"%s\" does not exist in this BattleTopbar", playerUUID);
+        playerData.setKills(kills);
+        setRight(Component.empty()
+                .append(Component.text("K: "))
+                .append(Component.text(kills))
+        );
+    }
+    
+    /**
      * Set the right display of the BattleTopbar to the given component
      * @param right the component to set the right section to
      */
