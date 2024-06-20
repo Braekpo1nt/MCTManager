@@ -178,25 +178,42 @@ public class BattleTopbar {
         }
     }
     
+    /**
+     * Set the middle display of the BattleTopbar to the given component
+     * @param middle the component to set the middle section to
+     */
     public void setMiddle(@NotNull Component middle) {
         for (FormattedBar bossBar : bossBars.values()) {
             bossBar.setMiddle(middle);
         }
     }
     
+    /**
+     * Set the middle display of the BattleTopbar to the given component, specifically for one player
+     * @param playerUUID the player to set the middle section for
+     * @param middle the component to set the middle section to
+     */
     public void setMiddle(@NotNull UUID playerUUID, @NotNull Component middle) {
         FormattedBar bossBar = bossBars.get(playerUUID);
-        if (bossBar != null) {
-            bossBar.setMiddle(middle);
-        }
+        Preconditions.checkArgument(bossBar != null, "player with UUID \"%s\" does not exist in this BattleTopbar", playerUUID);
+        bossBar.setMiddle(middle);
     }
     
+    /**
+     * Set the right display of the BattleTopbar to the given component
+     * @param right the component to set the right section to
+     */
     public void setRight(@NotNull Component right) {
         for (FormattedBar bossBar : bossBars.values()) {
             bossBar.setRight(right);
         }
     }
     
+    /**
+     * Set the right display of the BattleTopbar to the given component, specifically for one player
+     * @param playerUUID the player to set the right section for
+     * @param right the component to set the right section to
+     */
     public void setRight(@NotNull UUID playerUUID, @NotNull Component right) {
         FormattedBar bossBar = bossBars.get(playerUUID);
         if (bossBar != null) {
