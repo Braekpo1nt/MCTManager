@@ -37,11 +37,18 @@ public class BattleTopbar {
         private final List<UUID> viewingMembers = new ArrayList<>();
     }
     
+    @Data
+    protected static class PlayerData {
+        private final @NotNull FormattedBar bossBar;
+        private final @NotNull String teamId;
+        private int kills;
+    }
+    
     /**
      * each team's VersusComponent
      */
     protected final Map<String, TeamData> teamDatas = new HashMap<>();
-    protected final Map<UUID, FormattedBar> bossBars = new HashMap<>();
+    protected final Map<UUID, PlayerData> playerDatas = new HashMap<>();
     
     /**
      * Add a pair of teams to this BattleTopbar. The two teams should be opposing each other.
@@ -97,11 +104,11 @@ public class BattleTopbar {
     
     /**
      * Updates all the given {@link TeamData#getViewingMembers()}' BossBars with the given {@link TeamData#getVersusComponent()}
-     * @param teamData the TeamData to update all the members' bossBars. Each member is expected to be a valid key in {@link BattleTopbar#bossBars}. 
+     * @param teamData the TeamData to update all the members' bossBars. Each member is expected to be a valid key in {@link BattleTopbar#playerDatas}. 
      */
     private void updateBossBars(@NotNull TeamData teamData) {
         for (UUID member : teamData.getViewingMembers()) {
-            bossBars.get(member).setLeft(teamData.getVersusComponent().toComponent());
+            playerDatas.get(member).getBossBar().setLeft(teamData.getVersusComponent().toComponent());
         }
     }
     
@@ -141,7 +148,7 @@ public class BattleTopbar {
      * @param teamId the teamId the player is a member of
      */
     public void showPlayer(@NotNull Player player, @NotNull String teamId) {
-        Preconditions.checkArgument(!bossBars.containsKey(player.getUniqueId()), "player with UUID \"%s\" already exists in this BattleTopbar", player.getUniqueId());
+        Preconditions.checkArgument(!playerDatas.containsKey(player.getUniqueId()), "player with UUID \"%s\" already exists in this BattleTopbar", player.getUniqueId());
         
         TeamData teamData = teamDatas.get(teamId);
         Preconditions.checkArgument(teamData != null, "team %s does not exist in this BattleTopbar", teamId);
@@ -149,7 +156,7 @@ public class BattleTopbar {
         
         FormattedBar bossBar = new FormattedBar();
         bossBar.show(player);
-        bossBars.put(player.getUniqueId(), bossBar);
+        playerDatas.put(player.getUniqueId(), new PlayerData(bossBar, teamId));
         
         updateBossBars(teamData);
     }
@@ -157,24 +164,23 @@ public class BattleTopbar {
     /**
      * Make the given player no longer see this BattleTopbar
      * @param player the player to hide
-     * @param teamId the teamId the player is a member of
      */
-    public void hidePlayer(@NotNull Player player, @NotNull String teamId) {
-        FormattedBar bossBar = bossBars.remove(player.getUniqueId());
-        Preconditions.checkArgument(bossBar != null, "player with UUID \"%s\" does not exist in this BattleTopbar", player.getUniqueId());
-        TeamData teamData = teamDatas.get(teamId);
-        Preconditions.checkArgument(teamData != null, "team %s does not exist in this BattleTopbar", teamId);
+    public void hidePlayer(@NotNull Player player) {
+        PlayerData playerData = playerDatas.remove(player.getUniqueId());
+        Preconditions.checkArgument(playerData != null, "player with UUID \"%s\" does not exist in this BattleTopbar", player.getUniqueId());
+        TeamData teamData = teamDatas.get(playerData.getTeamId());
+        Preconditions.checkArgument(teamData != null, "team %s does not exist in this BattleTopbar", playerData.getTeamId());
         teamData.getViewingMembers().remove(player.getUniqueId());
-        bossBar.hide(player);
+        playerData.getBossBar().hide(player);
     }
     
     /**
-     * A bulk operation version of {@link BattleTopbar#hidePlayer(Player, String)}
-     * @param playersToTeams a map of each player to remove to the teamId of the team they are a member of
+     * A bulk operation version of {@link BattleTopbar#hidePlayer(Player)}
+     * @param players a List of each player to remove
      */
-    public void hidePlayers(@NotNull Map<Player, String> playersToTeams) {
-        for (Map.Entry<Player, String> entry : playersToTeams.entrySet()) {
-            hidePlayer(entry.getKey(), entry.getValue());
+    public void hidePlayers(@NotNull List<Player> players) {
+        for (Player player : players) {
+            hidePlayer(player);
         }
     }
     
@@ -183,8 +189,8 @@ public class BattleTopbar {
      * @param middle the component to set the middle section to
      */
     public void setMiddle(@NotNull Component middle) {
-        for (FormattedBar bossBar : bossBars.values()) {
-            bossBar.setMiddle(middle);
+        for (PlayerData playerData : playerDatas.values()) {
+            playerData.getBossBar().setMiddle(middle);
         }
     }
     
@@ -194,9 +200,9 @@ public class BattleTopbar {
      * @param middle the component to set the middle section to
      */
     public void setMiddle(@NotNull UUID playerUUID, @NotNull Component middle) {
-        FormattedBar bossBar = bossBars.get(playerUUID);
-        Preconditions.checkArgument(bossBar != null, "player with UUID \"%s\" does not exist in this BattleTopbar", playerUUID);
-        bossBar.setMiddle(middle);
+        PlayerData playerData = playerDatas.get(playerUUID);
+        Preconditions.checkArgument(playerData != null, "player with UUID \"%s\" does not exist in this BattleTopbar", playerUUID);
+        playerData.getBossBar().setMiddle(middle);
     }
     
     /**
@@ -204,8 +210,8 @@ public class BattleTopbar {
      * @param right the component to set the right section to
      */
     public void setRight(@NotNull Component right) {
-        for (FormattedBar bossBar : bossBars.values()) {
-            bossBar.setRight(right);
+        for (PlayerData playerData : playerDatas.values()) {
+            playerData.getBossBar().setRight(right);
         }
     }
     
@@ -215,10 +221,9 @@ public class BattleTopbar {
      * @param right the component to set the right section to
      */
     public void setRight(@NotNull UUID playerUUID, @NotNull Component right) {
-        FormattedBar bossBar = bossBars.get(playerUUID);
-        if (bossBar != null) {
-            bossBar.setRight(right);
-        }
+        PlayerData playerData = playerDatas.get(playerUUID);
+        Preconditions.checkArgument(playerData != null, "player with UUID \"%s\" does not exist in this BattleTopbar", playerUUID);
+        playerData.getBossBar().setRight(right);
     }
     
 }

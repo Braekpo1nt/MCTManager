@@ -783,10 +783,7 @@ public class CaptureTheFlagMatch implements Listener {
     private void clearSidebar() {
         sidebar.updateLine("kills", "");
         topbar.setRight(Component.empty());
-        for (Player participant : allParticipants) {
-            String teamId = gameManager.getTeamName(participant.getUniqueId());
-            topbar.hidePlayer(participant, teamId);
-        }
+        topbar.hidePlayers(allParticipants);
     }
     
     private void placeFlags() {
