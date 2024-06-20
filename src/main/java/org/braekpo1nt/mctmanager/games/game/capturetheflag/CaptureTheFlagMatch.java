@@ -236,6 +236,7 @@ public class CaptureTheFlagMatch implements Listener {
         participant.getInventory().clear();
         participant.closeInventory();
         ParticipantInitializer.resetHealthAndHunger(participant);
+        ParticipantInitializer.clearStatusEffects(participant);
     }
     
     public void onParticipantJoin(Player participant) {
@@ -325,12 +326,14 @@ public class CaptureTheFlagMatch implements Listener {
             resetParticipant(northParticipant);
             allParticipants.remove(northParticipant);
             northParticipants.remove(northParticipant);
+            topbar.hidePlayer(northParticipant.getUniqueId());
             return;
         }
         if (!participantsAreAlive.get(northParticipant.getUniqueId())) {
             resetParticipant(northParticipant);
             allParticipants.remove(northParticipant);
             northParticipants.remove(northParticipant);
+            topbar.hidePlayer(northParticipant.getUniqueId());
             return;
         }
         Component deathMessage = Component.empty()
@@ -341,6 +344,7 @@ public class CaptureTheFlagMatch implements Listener {
         resetParticipant(northParticipant);
         allParticipants.remove(northParticipant);
         northParticipants.remove(northParticipant);
+        topbar.hidePlayer(northParticipant.getUniqueId());
     }
     
     private void onSouthParticipantQuit(Player soutParticipant) {
@@ -349,12 +353,14 @@ public class CaptureTheFlagMatch implements Listener {
             resetParticipant(soutParticipant);
             allParticipants.remove(soutParticipant);
             southParticipants.remove(soutParticipant);
+            topbar.hidePlayer(soutParticipant.getUniqueId());
             return;
         }
         if (!participantsAreAlive.get(soutParticipant.getUniqueId())) {
             resetParticipant(soutParticipant);
             allParticipants.remove(soutParticipant);
             southParticipants.remove(soutParticipant);
+            topbar.hidePlayer(soutParticipant.getUniqueId());
             return;
         }
         Component deathMessage = Component.empty()
@@ -365,6 +371,7 @@ public class CaptureTheFlagMatch implements Listener {
         resetParticipant(soutParticipant);
         allParticipants.remove(soutParticipant);
         southParticipants.remove(soutParticipant);
+        topbar.hidePlayer(soutParticipant.getUniqueId());
     }
     
     private void startMatch() {
@@ -783,7 +790,8 @@ public class CaptureTheFlagMatch implements Listener {
     private void clearSidebar() {
         sidebar.updateLine("kills", "");
         topbar.setRight(Component.empty());
-        topbar.hidePlayers(allParticipants);
+        topbar.hideAllPlayers();
+        topbar.removeAllTeamPairs();
     }
     
     private void placeFlags() {

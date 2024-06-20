@@ -18,6 +18,7 @@ public class FormattedBar {
      */
     private static final int SPACE_BETWEEN = 40;
     private final @NotNull BossBar bossBar;
+    private final Player viewer;
     /**
      * The component in the left portion of the BossBar
      */
@@ -43,8 +44,10 @@ public class FormattedBar {
      */
     private int rightLength;
     
-    public FormattedBar() {
+    
+    public FormattedBar(Player viewer) {
         this.bossBar = BossBar.bossBar(Component.empty(), 1f, BossBar.Color.WHITE, BossBar.Overlay.PROGRESS);
+        this.viewer = viewer;
         this.left = Component.empty();
         this.middle = Component.empty();
         this.right = Component.empty();
@@ -93,19 +96,17 @@ public class FormattedBar {
     }
     
     /**
-     * Show the given player this BossBar
-     * @param player the player to show this to
+     * Show this BossBar to its viewer
      */
-    public void show(@NotNull Player player) {
-        player.showBossBar(bossBar);
+    public void show() {
+        viewer.showBossBar(bossBar);
     }
     
     /**
-     * Hide this BossBar from the given player
-     * @param player the player to hide this from
+     * Hide this BossBar from its viewer
      */
-    public void hide(@NotNull Player player) {
-        player.hideBossBar(bossBar);
+    public void hide() {
+        viewer.hideBossBar(bossBar);
     }
     
     

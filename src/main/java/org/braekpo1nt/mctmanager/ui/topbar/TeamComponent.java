@@ -31,8 +31,7 @@ public class TeamComponent {
         aliveComponent = Component.text("O")
                 .decorate(TextDecoration.BOLD)
                 .color(color);
-        deadComponent = Component.text("X")
-                .decorate(TextDecoration.BOLD)
+        deadComponent = Component.text("x")
                 .color(color);
     }
     
