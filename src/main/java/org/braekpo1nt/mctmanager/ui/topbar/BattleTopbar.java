@@ -160,6 +160,27 @@ public class BattleTopbar {
     }
     
     /**
+     * Set the left display of the BattleTopbar to the given component
+     * @param left the component to set the left section to
+     */
+    public void setLeft(@NotNull Component left) {
+        for (PlayerData playerData : playerDatas.values()) {
+            playerData.getBossBar().setLeft(left);
+        }
+    }
+    
+    /**
+     * Set the left display of the BattleTopbar to the given component, specifically for one player
+     * @param playerUUID the player to set the left section for
+     * @param left the component to set the left section to
+     */
+    public void setLeft(@NotNull UUID playerUUID, @NotNull Component left) {
+        PlayerData playerData = playerDatas.get(playerUUID);
+        Preconditions.checkArgument(playerData != null, "player with UUID \"%s\" does not exist in this BattleTopbar", playerUUID);
+        playerData.getBossBar().setLeft(left);
+    }
+    
+    /**
      * Set the middle display of the BattleTopbar to the given component
      * @param middle the component to set the middle section to
      */
@@ -193,4 +214,5 @@ public class BattleTopbar {
                 .append(Component.text(kills))
         );
     }
+    
 }
