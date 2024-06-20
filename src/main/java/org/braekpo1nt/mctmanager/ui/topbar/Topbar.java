@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.ui.topbar;
 
+import com.google.common.base.Preconditions;
 import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -25,9 +26,8 @@ public class Topbar {
     
     public void hidePlayer(@NotNull Player player) {
         FormattedBar bossBar = bossBars.remove(player.getUniqueId());
-        if (bossBar != null) {
-            bossBar.hide();
-        }
+        Preconditions.checkArgument(bossBar != null, "player with UUID \"%s\" does not exist in this BattleTopbar", player.getUniqueId());
+        bossBar.hide();
     }
     
     public void hidePlayers(@NotNull List<@NotNull Player> players) {
@@ -44,9 +44,8 @@ public class Topbar {
     
     public void setLeft(@NotNull UUID playerUUID, @NotNull Component left) {
         FormattedBar bossBar = bossBars.get(playerUUID);
-        if (bossBar != null) {
-            bossBar.setLeft(left);
-        }
+        Preconditions.checkArgument(bossBar != null, "player with UUID \"%s\" does not exist in this BattleTopbar", playerUUID);
+        bossBar.setLeft(left);
     }
     
     public void setMiddle(@NotNull Component middle) {
@@ -57,9 +56,8 @@ public class Topbar {
     
     public void setMiddle(@NotNull UUID playerUUID, @NotNull Component middle) {
         FormattedBar bossBar = bossBars.get(playerUUID);
-        if (bossBar != null) {
-            bossBar.setMiddle(middle);
-        }
+        Preconditions.checkArgument(bossBar != null, "player with UUID \"%s\" does not exist in this BattleTopbar", playerUUID);
+        bossBar.setMiddle(middle);
     }
     
     public void setRight(@NotNull Component right) {
@@ -70,9 +68,8 @@ public class Topbar {
     
     public void setRight(@NotNull UUID playerUUID, @NotNull Component right) {
         FormattedBar bossBar = bossBars.get(playerUUID);
-        if (bossBar != null) {
-            bossBar.setRight(right);
-        }
+        Preconditions.checkArgument(bossBar != null, "player with UUID \"%s\" does not exist in this BattleTopbar", playerUUID);
+        bossBar.setRight(right);
     }
     
 }
