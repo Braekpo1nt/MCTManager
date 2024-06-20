@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.ui.topbar;
 
 import com.google.common.base.Preconditions;
 import lombok.Data;
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -162,6 +163,32 @@ public class BattleTopbar {
     public void hidePlayers(@NotNull Map<Player, String> playersToTeams) {
         for (Map.Entry<Player, String> entry : playersToTeams.entrySet()) {
             hidePlayer(entry.getKey(), entry.getValue());
+        }
+    }
+    
+    public void setMiddle(@NotNull Component middle) {
+        for (FormattedBar bossBar : bossBars.values()) {
+            bossBar.setMiddle(middle);
+        }
+    }
+    
+    public void setMiddle(@NotNull UUID playerUUID, @NotNull Component middle) {
+        FormattedBar bossBar = bossBars.get(playerUUID);
+        if (bossBar != null) {
+            bossBar.setMiddle(middle);
+        }
+    }
+    
+    public void setRight(@NotNull Component right) {
+        for (FormattedBar bossBar : bossBars.values()) {
+            bossBar.setRight(right);
+        }
+    }
+    
+    public void setRight(@NotNull UUID playerUUID, @NotNull Component right) {
+        FormattedBar bossBar = bossBars.get(playerUUID);
+        if (bossBar != null) {
+            bossBar.setRight(right);
         }
     }
     
