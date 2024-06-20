@@ -140,7 +140,7 @@ public class CaptureTheFlagMatch implements Listener {
         }
         String teamId = gameManager.getTeamName(participant.getUniqueId());
         topbar.showPlayer(participant, teamId);
-        topbar.addMember(true, teamId);
+        topbar.setMembers(teamId, );
         initializeSidebar(participant);
         allParticipants.add(participant);
         participant.getInventory().clear();
@@ -254,22 +254,10 @@ public class CaptureTheFlagMatch implements Listener {
         }
     }
     
-    /**
-     * @param participant the participant
-     * @return true if the participant has been in this match and logged out, false if this participant has never been in this match
-     */
-    private boolean shouldRejoin(Player participant) {
-        return participantsAreAlive.containsKey(participant.getUniqueId());
-    }
-    
     private void onNorthParticipantJoin(Player northParticipant) {
         announceMatchToParticipant(northParticipant, matchPairing.northTeam(), matchPairing.southTeam());
-        if (shouldRejoin(northParticipant)) {
-            rejoinParticipant(northParticipant, true);
-        } else {
-            initializeParticipant(northParticipant, true);
-        }
         if (northClassPicker.isActive()) {
+            initializeParticipant(northParticipant, true);
             northClassPicker.addTeamMate(northParticipant);
             return;
         }
@@ -279,12 +267,8 @@ public class CaptureTheFlagMatch implements Listener {
     
     private void onSouthParticipantJoin(Player southParticipant) {
         announceMatchToParticipant(southParticipant, matchPairing.southTeam(), matchPairing.northTeam());
-        if (shouldRejoin(southParticipant)) {
-            rejoinParticipant(southParticipant, false);
-        } else {
-            initializeParticipant(southParticipant, false);
-        }
         if (southClassPicker.isActive()) {
+            initializeParticipant(southParticipant, false);
             southClassPicker.addTeamMate(southParticipant);
             return;
         }
@@ -474,9 +458,7 @@ public class CaptureTheFlagMatch implements Listener {
                 "kills",
                 ChatColor.RED+"Kills: " + newKillCount
         );
-        topbar.setRight(killerUniqueId,
-                Component.text("Kills: ")
-                .append(Component.text(newKillCount)));
+        topbar.setKills(killerUniqueId, newKillCount);
     }
     
     private void onParicipantDeath(Player killed) {
@@ -497,7 +479,7 @@ public class CaptureTheFlagMatch implements Listener {
         killed.lookAt(arena.northFlag().getX(), arena.northFlag().getY(), arena.northFlag().getZ(), LookAnchor.EYES);
         
         String teamId = gameManager.getTeamName(killed.getUniqueId());
-        topbar.addDeath(teamId);
+        topbar.setMembers(teamId, );
     }
     
     @EventHandler
@@ -782,14 +764,13 @@ public class CaptureTheFlagMatch implements Listener {
     }
     
     private void initializeSidebar(Player participant) {
-        sidebar.updateLine(participant.getUniqueId(),"kills", String.format("%sKills: %s", ChatColor.RED, killCounts.get(participant.getUniqueId())));
-        topbar.setRight(participant.getUniqueId(), Component.text("Kills: ")
-                .append(Component.text(killCounts.get(participant.getUniqueId()))));
+        int kills = killCounts.get(participant.getUniqueId());
+        sidebar.updateLine(participant.getUniqueId(),"kills", String.format("%sKills: %s", ChatColor.RED, kills));
+        topbar.setKills(participant.getUniqueId(), kills);
     }
     
     private void clearSidebar() {
         sidebar.updateLine("kills", "");
-        topbar.setRight(Component.empty());
         topbar.hideAllPlayers();
         topbar.removeAllTeamPairs();
     }

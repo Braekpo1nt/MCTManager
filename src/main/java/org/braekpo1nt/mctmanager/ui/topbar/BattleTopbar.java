@@ -41,7 +41,6 @@ public class BattleTopbar {
     protected static class PlayerData {
         private final @NotNull FormattedBar bossBar;
         private final @NotNull String teamId;
-        private int kills;
     }
     
     /**
@@ -84,35 +83,6 @@ public class BattleTopbar {
     }
     
     /**
-     * Update all appropriate BossBar displays with the death of a member of the given teamId
-     * @param teamId the teamId of the player who died
-     * @throws IllegalArgumentException if the given teamId is not already contained in this BattleTopbar
-     */
-    public void addDeath(@NotNull String teamId) {
-        TeamData teamData = teamDatas.get(teamId);
-        Preconditions.checkArgument(teamData != null, "team \"%s\" is not in this BattleTopbar", teamId);
-        TeamData enemyTeamData = teamDatas.get(teamData.getEnemyTeam());
-        teamData.getVersusComponent().getLeft().addDeaths(1);
-        enemyTeamData.getVersusComponent().getRight().addDeaths(1);
-        updateBossBars(teamData);
-        updateBossBars(enemyTeamData);
-    }
-    
-    /**
-     * Update all appropriate BossBar displays with the life of a member of the given teamId
-     * @param teamId the teamId of the player who is no longer dead
-     */
-    public void removeDeath(@NotNull String teamId) {
-        TeamData teamData = teamDatas.get(teamId);
-        Preconditions.checkArgument(teamData != null, "team \"%s\" is not in this BattleTopbar", teamId);
-        TeamData enemyTeamData = teamDatas.get(teamData.getEnemyTeam());
-        teamData.getVersusComponent().getLeft().addLiving(1);
-        enemyTeamData.getVersusComponent().getRight().addLiving(1);
-        updateBossBars(teamData);
-        updateBossBars(enemyTeamData);
-    }
-    
-    /**
      * Updates all the given {@link TeamData#getViewingMembers()}' BossBars with the given {@link TeamData#getVersusComponent()}
      * @param teamData the TeamData to update all the members' bossBars. Each member is expected to be a valid key in {@link BattleTopbar#playerDatas}. 
      */
@@ -124,30 +94,18 @@ public class BattleTopbar {
     
     /**
      * Add a member of the given teamId. Updates all applicable BossBar displays
-     * @param isAlive whether the new member is alive
      * @param teamId the teamId of the team this member belongs to
+     * @param living the number of living players on the team
+     * @param dead the number of dead players on the team
      */
-    public void addMember(boolean isAlive, @NotNull String teamId) {
+    public void setMembers(@NotNull String teamId, int living, int dead) {
+        Preconditions.checkArgument(living >= 0, "living can't be negative");
+        Preconditions.checkArgument(dead >= 0, "dead can't be negative");
         TeamData teamData = teamDatas.get(teamId);
         Preconditions.checkArgument(teamData != null, "team %s does not exist in this BattleTopbar", teamId);
-        teamData.getVersusComponent().getLeft().addMember(isAlive);
+        teamData.getVersusComponent().getLeft().setMembers(living, dead);
         TeamData enemyTeamData = teamDatas.get(teamData.getEnemyTeam());
-        enemyTeamData.getVersusComponent().getRight().addMember(isAlive);
-        updateBossBars(teamData);
-        updateBossBars(enemyTeamData);
-    }
-    
-    /**
-     * Remove a member of the given teamId. Updates all applicable BossBar displays
-     * @param isAlive whether the new member is alive
-     * @param teamId the teamId of the team this member belongs to
-     */
-    public void removeMember(boolean isAlive, @NotNull String teamId) {
-        TeamData teamData = teamDatas.get(teamId);
-        Preconditions.checkArgument(teamData != null, "team %s does not exist in this BattleTopbar", teamId);
-        teamData.getVersusComponent().getLeft().removeMember(isAlive);
-        TeamData enemyTeamData = teamDatas.get(teamData.getEnemyTeam());
-        enemyTeamData.getVersusComponent().getRight().removeMember(isAlive);
+        enemyTeamData.getVersusComponent().getRight().setMembers(living, dead);
         updateBossBars(teamData);
         updateBossBars(enemyTeamData);
     }
@@ -230,32 +188,9 @@ public class BattleTopbar {
     public void setKills(@NotNull UUID playerUUID, int kills) {
         PlayerData playerData = playerDatas.get(playerUUID);
         Preconditions.checkArgument(playerData != null, "player with UUID \"%s\" does not exist in this BattleTopbar", playerUUID);
-        playerData.setKills(kills);
-        setRight(Component.empty()
+        playerData.getBossBar().setRight(Component.empty()
                 .append(Component.text("K: "))
                 .append(Component.text(kills))
         );
     }
-    
-    /**
-     * Set the right display of the BattleTopbar to the given component
-     * @param right the component to set the right section to
-     */
-    public void setRight(@NotNull Component right) {
-        for (PlayerData playerData : playerDatas.values()) {
-            playerData.getBossBar().setRight(right);
-        }
-    }
-    
-    /**
-     * Set the right display of the BattleTopbar to the given component, specifically for one player
-     * @param playerUUID the player to set the right section for
-     * @param right the component to set the right section to
-     */
-    public void setRight(@NotNull UUID playerUUID, @NotNull Component right) {
-        PlayerData playerData = playerDatas.get(playerUUID);
-        Preconditions.checkArgument(playerData != null, "player with UUID \"%s\" does not exist in this BattleTopbar", playerUUID);
-        playerData.getBossBar().setRight(right);
-    }
-    
 }

@@ -16,7 +16,7 @@ import java.util.List;
  */
 public class TeamComponent {
     
-    private final @NotNull List<@NotNull Boolean> alive;
+    private @NotNull List<@NotNull Boolean> alive;
     private final @NotNull Component aliveComponent;
     private final @NotNull Component deadComponent;
     
@@ -27,7 +27,7 @@ public class TeamComponent {
      * @param color the color of the team, to be used in the living and dead components
      */
     public TeamComponent(int size, TextColor color) {
-        alive = createAlive(size);
+        alive = createAlive(size, 0);
         aliveComponent = Component.text("O")
                 .decorate(TextDecoration.BOLD)
                 .color(color);
@@ -43,76 +43,38 @@ public class TeamComponent {
      * @param deadComponent  the component to represent a dead member
      */
     public TeamComponent(int size, @NotNull Component aliveComponent, @NotNull Component deadComponent) {
-        alive = createAlive(size);
+        alive = createAlive(size, 0);
         this.aliveComponent = aliveComponent;
         this.deadComponent = deadComponent;
     }
     
-    private @NotNull List<@NotNull Boolean> createAlive(int size) {
-        Preconditions.checkArgument(size >= 0, "size can't be negative");
+    /**
+     * Create the alive list based on the given numbers
+     * @param living the number of living players on the team
+     * @param dead the number of dead players on the team
+     * @return a list containing `living` trues, and `dead` falses, in that order
+     */
+    private @NotNull List<@NotNull Boolean> createAlive(int living, int dead) {
+        Preconditions.checkArgument(living >= 0, "living can't be negative");
+        Preconditions.checkArgument(dead >= 0, "dead can't be negative");
+        int size = living + dead;
         List<Boolean> newAlive = new ArrayList<>(size);
-        for (int i = 0; i < size; i++) {
+        for (int i = 0; i < living; i++) {
             newAlive.add(true);
+        }
+        for (int i = living; i < dead; i++) {
+            newAlive.add(false);
         }
         return newAlive;
     }
     
     /**
-     * Add a team member to this TeamComponent 
-     * @param isAlive whether the member is alive or dead (this determines where in the component the new member is displayed, etc.)
+     * set the members of this TeamComponent to the given number of living and dead
+     * @param living the number of living players on this team
+     * @param dead the number of dead players on this team
      */
-    public void addMember(boolean isAlive) {
-        if (isAlive) {
-            alive.add(0, true);
-        } else {
-            alive.add(false);
-        }
-    }
-    
-    /**
-     * Remove a team member from this TeamComponent
-     * @param isAlive whether the member is alive or dead (this determines if it's taken from the front or back
-     */
-    public void removeMember(boolean isAlive) {
-        alive.remove(isAlive);
-    }
-    
-    /**
-     * Sets 'deaths' elements in the isLiving list to false from right to left,
-     * skipping any that are already false.
-     *
-     * @param deaths the number of deaths to mark.
-     *               Nothing happens if deaths is negative, and if deaths is greater
-     *               than the number of members or living members in this TeamComponent,
-     *               all the members will be set to dead.
-     */
-    public void addDeaths(int deaths) {
-        int count = 0;
-        for (int i = alive.size() - 1; i >= 0 && count < deaths; i--) {
-            if (alive.get(i)) {
-                alive.set(i, false);
-                count++;
-            }
-        }
-    }
-    
-    /**
-     * Sets 'living' elements in the alive list to true from left to right,
-     * skipping any that are already true.
-     *
-     * @param living the number of living members to add.
-     *               Nothing happens if the living is negative, and if living is greater
-     *               than the number of members or dead members in this TeamComponent,
-     *               all the members will be set to living
-     */
-    public void addLiving(int living) {
-        int count = 0;
-        for (int i = 0; i < alive.size() && count < living; i++) {
-            if (!alive.get(i)) {
-                alive.set(i, true);
-                count++;
-            }
-        }
+    public void setMembers(int living, int dead) {
+        alive = createAlive(living, dead);
     }
     
     /**
