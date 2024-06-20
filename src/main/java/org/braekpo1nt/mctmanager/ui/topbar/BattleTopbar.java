@@ -7,6 +7,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -40,7 +41,7 @@ public class BattleTopbar {
     @Data
     protected static class PlayerData {
         private final @NotNull FormattedBar bossBar;
-        private final @NotNull String teamId;
+        private final @Nullable String teamId;
     }
     
     /**
@@ -48,6 +49,28 @@ public class BattleTopbar {
      */
     protected final Map<String, TeamData> teamDatas = new HashMap<>();
     protected final Map<UUID, PlayerData> playerDatas = new HashMap<>();
+    
+    /**
+     * @param teamId the teamId of the TeamData. Must be a valid key in {@link BattleTopbar#teamDatas} 
+     * @return the {@link TeamData} associated with this team
+     * @throws IllegalArgumentException if the teamId is not contained in {@link BattleTopbar#teamDatas}
+     */
+    private @NotNull TeamData getTeamData(@NotNull String teamId) {
+        TeamData teamData = teamDatas.get(teamId);
+        Preconditions.checkArgument(teamData != null, "team %s does not exist in this BattleTopbar", teamId);
+        return teamData;
+    }
+    
+    /**
+     * @param playerUUID the UUID of the PlayerData. Must be a valid key in {@link BattleTopbar#playerDatas}
+     * @return the {@link PlayerData} associated with this UUID
+     * @throws IllegalArgumentException if the UUID is not contained in {@link BattleTopbar#playerDatas}
+     */
+    private @NotNull PlayerData getPlayerData(@NotNull UUID playerUUID) {
+        PlayerData playerData = playerDatas.get(playerUUID);
+        Preconditions.checkArgument(playerData != null, "player with UUID \"%s\" does not exist in this BattleTopbar", playerUUID);
+        return playerData;
+    }
     
     /**
      * Add a pair of teams to this BattleTopbar. The two teams should be opposing each other.
@@ -101,10 +124,9 @@ public class BattleTopbar {
     public void setMembers(@NotNull String teamId, int living, int dead) {
         Preconditions.checkArgument(living >= 0, "living can't be negative");
         Preconditions.checkArgument(dead >= 0, "dead can't be negative");
-        TeamData teamData = teamDatas.get(teamId);
-        Preconditions.checkArgument(teamData != null, "team %s does not exist in this BattleTopbar", teamId);
+        TeamData teamData = getTeamData(teamId);
         teamData.getVersusComponent().getLeft().setMembers(living, dead);
-        TeamData enemyTeamData = teamDatas.get(teamData.getEnemyTeam());
+        TeamData enemyTeamData = getTeamData(teamData.getEnemyTeam());
         enemyTeamData.getVersusComponent().getRight().setMembers(living, dead);
         updateBossBars(teamData);
         updateBossBars(enemyTeamData);
@@ -118,8 +140,7 @@ public class BattleTopbar {
     public void showPlayer(@NotNull Player player, @NotNull String teamId) {
         Preconditions.checkArgument(!playerDatas.containsKey(player.getUniqueId()), "player with UUID \"%s\" already exists in this BattleTopbar", player.getUniqueId());
         
-        TeamData teamData = teamDatas.get(teamId);
-        Preconditions.checkArgument(teamData != null, "team %s does not exist in this BattleTopbar", teamId);
+        TeamData teamData = getTeamData(teamId);
         teamData.getViewingMembers().add(player.getUniqueId());
         
         FormattedBar bossBar = new FormattedBar(player);
@@ -136,9 +157,10 @@ public class BattleTopbar {
     public void hidePlayer(@NotNull UUID playerUUID) {
         PlayerData playerData = playerDatas.remove(playerUUID);
         Preconditions.checkArgument(playerData != null, "player with UUID \"%s\" does not exist in this BattleTopbar", playerUUID);
-        TeamData teamData = teamDatas.get(playerData.getTeamId());
-        Preconditions.checkArgument(teamData != null, "team %s does not exist in this BattleTopbar", playerData.getTeamId());
-        teamData.getViewingMembers().remove(playerUUID);
+        if (playerData.getTeamId() != null) {
+            TeamData teamData = getTeamData(playerData.getTeamId());
+            teamData.getViewingMembers().remove(playerUUID);
+        }
         playerData.getBossBar().hide();
     }
     
@@ -175,8 +197,7 @@ public class BattleTopbar {
      * @param left the component to set the left section to
      */
     public void setLeft(@NotNull UUID playerUUID, @NotNull Component left) {
-        PlayerData playerData = playerDatas.get(playerUUID);
-        Preconditions.checkArgument(playerData != null, "player with UUID \"%s\" does not exist in this BattleTopbar", playerUUID);
+        PlayerData playerData = getPlayerData(playerUUID);
         playerData.getBossBar().setLeft(left);
     }
     
@@ -196,8 +217,7 @@ public class BattleTopbar {
      * @param middle the component to set the middle section to
      */
     public void setMiddle(@NotNull UUID playerUUID, @NotNull Component middle) {
-        PlayerData playerData = playerDatas.get(playerUUID);
-        Preconditions.checkArgument(playerData != null, "player with UUID \"%s\" does not exist in this BattleTopbar", playerUUID);
+        PlayerData playerData = getPlayerData(playerUUID);
         playerData.getBossBar().setMiddle(middle);
     }
     
@@ -207,8 +227,7 @@ public class BattleTopbar {
      * @param kills the number of kills
      */
     public void setKills(@NotNull UUID playerUUID, int kills) {
-        PlayerData playerData = playerDatas.get(playerUUID);
-        Preconditions.checkArgument(playerData != null, "player with UUID \"%s\" does not exist in this BattleTopbar", playerUUID);
+        PlayerData playerData = getPlayerData(playerUUID);
         playerData.getBossBar().setRight(Component.empty()
                 .append(Component.text("K: "))
                 .append(Component.text(kills))
