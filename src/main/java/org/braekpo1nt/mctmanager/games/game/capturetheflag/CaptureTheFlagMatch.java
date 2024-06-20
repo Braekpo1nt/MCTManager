@@ -760,7 +760,7 @@ public class CaptureTheFlagMatch implements Listener {
                 String timer = String.format("Class selection: %s", timeLeft);
                 sidebar.updateLine("timer", timer);
                 adminSidebar.updateLine("timer", timer);
-                topbar.setMiddle(Component.text(timer));
+                topbar.setMiddle(Component.text(timeLeft));
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -780,7 +780,7 @@ public class CaptureTheFlagMatch implements Listener {
                 String timer = String.format("Round: %s", timeLeft);
                 sidebar.updateLine("timer", timer);
                 adminSidebar.updateLine("timer", timer);
-                topbar.setMiddle(Component.text(timer));
+                topbar.setMiddle(Component.text(timeLeft));
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -789,7 +789,7 @@ public class CaptureTheFlagMatch implements Listener {
     private void initializeSidebar() {
         sidebar.updateLine("timer", "Round: ");
         adminSidebar.updateLine("timer", "Round: ");
-        topbar.setMiddle(Component.text("Round: "));
+        topbar.setMiddle(Component.empty());
     }
     
     private void initializeSidebar(Player participant) {
