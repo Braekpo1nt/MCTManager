@@ -74,6 +74,16 @@ public class BattleTopbar {
     }
     
     /**
+     * Removes all the team pairs from this BattleTopbar
+     */
+    public void removeAllTeamPairs() {
+        teamDatas.clear();
+        for (PlayerData playerData : playerDatas.values()) {
+            playerData.getBossBar().setLeft(Component.empty());
+        }
+    }
+    
+    /**
      * Update all appropriate BossBar displays with the death of a member of the given teamId
      * @param teamId the teamId of the player who died
      * @throws IllegalArgumentException if the given teamId is not already contained in this BattleTopbar
@@ -154,8 +164,8 @@ public class BattleTopbar {
         Preconditions.checkArgument(teamData != null, "team %s does not exist in this BattleTopbar", teamId);
         teamData.getViewingMembers().add(player.getUniqueId());
         
-        FormattedBar bossBar = new FormattedBar();
-        bossBar.show(player);
+        FormattedBar bossBar = new FormattedBar(player);
+        bossBar.show();
         playerDatas.put(player.getUniqueId(), new PlayerData(bossBar, teamId));
         
         updateBossBars(teamData);
@@ -163,25 +173,32 @@ public class BattleTopbar {
     
     /**
      * Make the given player no longer see this BattleTopbar
-     * @param player the player to hide
+     * @param playerUUID the UUID of the player to hide
      */
-    public void hidePlayer(@NotNull Player player) {
-        PlayerData playerData = playerDatas.remove(player.getUniqueId());
-        Preconditions.checkArgument(playerData != null, "player with UUID \"%s\" does not exist in this BattleTopbar", player.getUniqueId());
+    public void hidePlayer(@NotNull UUID playerUUID) {
+        PlayerData playerData = playerDatas.remove(playerUUID);
+        Preconditions.checkArgument(playerData != null, "player with UUID \"%s\" does not exist in this BattleTopbar", playerUUID);
         TeamData teamData = teamDatas.get(playerData.getTeamId());
         Preconditions.checkArgument(teamData != null, "team %s does not exist in this BattleTopbar", playerData.getTeamId());
-        teamData.getViewingMembers().remove(player.getUniqueId());
-        playerData.getBossBar().hide(player);
+        teamData.getViewingMembers().remove(playerUUID);
+        playerData.getBossBar().hide();
     }
     
     /**
-     * A bulk operation version of {@link BattleTopbar#hidePlayer(Player)}
-     * @param players a List of each player to remove
+     * A bulk operation version of {@link BattleTopbar#hidePlayer(UUID)}
+     * @param playerUUIDs a List of the UUIDs of each player to remove
      */
-    public void hidePlayers(@NotNull List<Player> players) {
-        for (Player player : players) {
-            hidePlayer(player);
+    public void hidePlayers(@NotNull List<UUID> playerUUIDs) {
+        for (UUID playerUUID : playerUUIDs) {
+            hidePlayer(playerUUID);
         }
+    }
+    
+    public void hideAllPlayers() {
+        for (PlayerData playerData : playerDatas.values()) {
+            playerData.getBossBar().hide();
+        }
+        playerDatas.clear();
     }
     
     /**

@@ -18,15 +18,15 @@ public class Topbar {
     protected final Map<UUID, FormattedBar> bossBars = new HashMap<>();
     
     public void showPlayer(@NotNull Player player) {
-        FormattedBar bossBar = new FormattedBar();
-        bossBar.show(player);
+        FormattedBar bossBar = new FormattedBar(player);
+        bossBar.show();
         bossBars.put(player.getUniqueId(), bossBar);
     }
     
     public void hidePlayer(@NotNull Player player) {
         FormattedBar bossBar = bossBars.remove(player.getUniqueId());
         if (bossBar != null) {
-            bossBar.hide(player);
+            bossBar.hide();
         }
     }
     
