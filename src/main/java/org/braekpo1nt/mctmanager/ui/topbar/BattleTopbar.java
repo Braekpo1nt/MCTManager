@@ -10,6 +10,11 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
+/**
+ * An implementation of a Topbar specifically oriented toward pairs of teams fighting each other.
+ * You can add pairs of fighting teams, and add members to them. Then you can add viewers of
+ * the Topbar, and each viewer is associated with one of the teams.
+ */
 public class BattleTopbar {
     
     @Data
@@ -38,6 +43,13 @@ public class BattleTopbar {
     protected final Map<String, TeamData> teamDatas = new HashMap<>();
     protected final Map<UUID, FormattedBar> bossBars = new HashMap<>();
     
+    /**
+     * Add a pair of teams to this BattleTopbar. The two teams should be opposing each other.
+     * @param teamAId a team involved in the pair
+     * @param teamAColor the color of the team
+     * @param teamBId another team involved in the pair
+     * @param teamBColor the color of the other team
+     */
     public void addTeamPair(
             @NotNull String teamAId, @NotNull TextColor teamAColor, 
             @NotNull String teamBId, @NotNull TextColor teamBColor) {
