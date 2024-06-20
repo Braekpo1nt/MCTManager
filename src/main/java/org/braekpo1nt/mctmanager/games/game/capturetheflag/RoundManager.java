@@ -90,8 +90,9 @@ public class RoundManager {
             }
         }
         for (String onDeckTeam : onDeckTeams) {
-            int oldRoundsSpentOnDeck = roundsSpentOnDeck.get(onDeckTeam);
-            roundsSpentOnDeck.put(onDeckTeam, oldRoundsSpentOnDeck + 1);
+            roundsSpentOnDeck.compute(onDeckTeam, 
+                    (k, oldRoundsSpentOnDeck) -> 
+                            oldRoundsSpentOnDeck != null ? oldRoundsSpentOnDeck + 1 : 1);
         }
         playedMatchPairings.addAll(roundMatchPairings);
         for (MatchPairing roundMP : roundMatchPairings) {

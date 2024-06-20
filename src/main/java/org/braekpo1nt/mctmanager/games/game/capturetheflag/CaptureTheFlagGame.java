@@ -15,6 +15,7 @@ import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
+import org.braekpo1nt.mctmanager.ui.topbar.BattleTopbar;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
@@ -46,6 +47,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     private final GameManager gameManager;
     private Sidebar sidebar;
     private Sidebar adminSidebar;
+    private final BattleTopbar topbar;
     private CaptureTheFlagConfigController configController;
     private CaptureTheFlagConfig config;
     private RoundManager roundManager;
@@ -61,6 +63,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         this.plugin = plugin;
         this.gameManager = gameManager;
         this.configController = new CaptureTheFlagConfigController(plugin.getDataFolder());
+        this.topbar = new BattleTopbar();
     }
     
     @Override
@@ -119,6 +122,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     private void initializeParticipant(Player participant) {
         participants.add(participant);
         sidebar.addPlayer(participant);
+        topbar.showPlayer(participant);
     }
     
     private void startAdmins(List<Player> newAdmins) {
@@ -176,6 +180,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     private void resetParticipant(Player participant) {
         participant.getInventory().clear();
         sidebar.removePlayer(participant.getUniqueId());
+        topbar.hidePlayer(participant.getUniqueId());
     }
     
     private void stopAdmins() {
@@ -243,14 +248,15 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     }
     
     public void startNextRound(List<String> participantTeams, List<MatchPairing> roundMatchPairings) {
-        currentRound = new CaptureTheFlagRound(this, plugin, gameManager, config, roundMatchPairings, sidebar, adminSidebar);
+        
+        currentRound = new CaptureTheFlagRound(this, plugin, gameManager, config, roundMatchPairings, sidebar, adminSidebar, topbar);
         List<Player> roundParticipants = new ArrayList<>();
         List<Player> onDeckParticipants = new ArrayList<>();
         for (Player participant : participants) {
-            String team = gameManager.getTeamName(participant.getUniqueId());
-            Component teamDisplayName = gameManager.getFormattedTeamDisplayName(team);
-            if (participantTeams.contains(team)) {
-                announceMatchToParticipant(participant, team, teamDisplayName);
+            String teamId = gameManager.getTeamName(participant.getUniqueId());
+            Component teamDisplayName = gameManager.getFormattedTeamDisplayName(teamId);
+            if (participantTeams.contains(teamId)) {
+                announceMatchToParticipant(participant, teamId, teamDisplayName);
                 roundParticipants.add(participant);
             } else {
                 participant.sendMessage(Component.empty()
@@ -260,12 +266,36 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
                 onDeckParticipants.add(participant);
             }
         }
+        setUpTopbarForRound(roundMatchPairings);
         currentRound.setFirstRound(firstRound);
         firstRound = false; // the first round only happens once
         currentRound.start(roundParticipants, onDeckParticipants);
         String round = String.format("Round %d/%d", roundManager.getPlayedRounds() + 1, roundManager.getMaxRounds());
         sidebar.updateLine("round", round);
         adminSidebar.updateLine("round", round);
+    }
+    
+    private void setUpTopbarForRound(List<MatchPairing> roundMatchPairings) {
+        topbar.removeAllTeamPairs();
+        for (MatchPairing mp : roundMatchPairings) {
+            NamedTextColor northColor = gameManager.getTeamNamedTextColor(mp.northTeam());
+            NamedTextColor southColor = gameManager.getTeamNamedTextColor(mp.southTeam());
+            topbar.addTeamPair(mp.northTeam(), northColor, mp.southTeam(), southColor);
+            int northAlive = 0;
+            int southAlive = 0;
+            for (Player participant : participants) {
+                String teamId = gameManager.getTeamName(participant.getUniqueId());
+                if (mp.northTeam().equals(teamId)) {
+                    topbar.linkToTeam(participant.getUniqueId(), teamId);
+                    northAlive++;
+                } else if (mp.southTeam().equals(teamId)) {
+                    topbar.linkToTeam(participant.getUniqueId(), teamId);
+                    southAlive++;
+                }
+            }
+            topbar.setMembers(mp.northTeam(), northAlive, 0);
+            topbar.setMembers(mp.southTeam(), southAlive, 0);
+        }
     }
     
     /**
@@ -410,6 +440,8 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     private void clearSidebar() {
         sidebar.deleteAllLines();
         sidebar = null;
+        topbar.removeAllTeamPairs();
+        topbar.hideAllPlayers();
     }
     
     @Override
@@ -454,6 +486,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         this.plugin = null;
         this.gameManager = null;
         this.config = null;
+        this.topbar = new BattleTopbar();
     }
     
     /**
