@@ -41,7 +41,7 @@ public class BattleTopbar {
     @Data
     protected static class PlayerData {
         private final @NotNull FormattedBar bossBar;
-        private final @Nullable String teamId;
+        private @Nullable String teamId;
     }
     
     /**
@@ -133,21 +133,45 @@ public class BattleTopbar {
     }
     
     /**
-     * Make the given player see this BattleTopbar 
+     * Make the given player see this BattleTopbar. Please note that this player will start off
+     * as not being associated with a teamId. Use {@link BattleTopbar#linkToTeam(UUID, String)}
+     * to make the appropriate association.
      * @param player the player to show this BattleTopbar to
-     * @param teamId the teamId the player is a member of
      */
-    public void showPlayer(@NotNull Player player, @NotNull String teamId) {
+    public void showPlayer(@NotNull Player player) {
         Preconditions.checkArgument(!playerDatas.containsKey(player.getUniqueId()), "player with UUID \"%s\" already exists in this BattleTopbar", player.getUniqueId());
-        
-        TeamData teamData = getTeamData(teamId);
-        teamData.getViewingMembers().add(player.getUniqueId());
         
         FormattedBar bossBar = new FormattedBar(player);
         bossBar.show();
-        playerDatas.put(player.getUniqueId(), new PlayerData(bossBar, teamId));
+        playerDatas.put(player.getUniqueId(), new PlayerData(bossBar));
+    }
+    
+    /**
+     * Link the given player to the given team, so that they are viewing the appropriate
+     * components in their BossBar ui and so that they are updated when values relating to 
+     * this team are updated. 
+     * @param playerUUID the UUID of a player who is viewing this BattleTopbar. Must not already be linked to a teamId in this BattleTopbar.
+     * @param teamId the teamId to link this player to (must be a teamId which is already in a teamPair in this BattleTopbar)
+     */
+    public void linkToTeam(@NotNull UUID playerUUID, @NotNull String teamId) {
+        TeamData teamData = getTeamData(teamId);
+        PlayerData playerData = getPlayerData(playerUUID);
+        Preconditions.checkArgument(playerData.getTeamId() == null, "player with UUID \"%s\" is already linked to a team in this bar: \"%s\"", playerUUID, playerData.getTeamId());
+        
+        teamData.getViewingMembers().add(playerUUID);
+        playerData.setTeamId(teamId);
         
         updateBossBars(teamData);
+    }
+    
+    public void unlinkFromTeam(@NotNull UUID playerUUID, @NotNull String teamId) {
+        TeamData teamData = getTeamData(teamId);
+        PlayerData playerData = getPlayerData(playerUUID);
+        Preconditions.checkArgument(playerData.getTeamId() != null, "player with UUID \"%s\" is not linked to any team", playerUUID);
+        Preconditions.checkArgument(playerData.getTeamId().equals(teamId), "player with UUID \"%s\" is not linked to teamId \"%s\", but instead are linked to \"%s\"", playerUUID, teamId, playerData.getTeamId());
+        
+        teamData.getViewingMembers().remove(playerUUID);
+        playerData.setTeamId(teamId);
     }
     
     /**
