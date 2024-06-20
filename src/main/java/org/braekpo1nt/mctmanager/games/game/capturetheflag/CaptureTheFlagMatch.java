@@ -792,6 +792,7 @@ public class CaptureTheFlagMatch implements Listener {
     }
     
     private void initializeSidebar(Player participant) {
+        killCounts.putIfAbsent(participant.getUniqueId(), 0);
         int kills = killCounts.get(participant.getUniqueId());
         sidebar.updateLine(participant.getUniqueId(),"kills", String.format("%sKills: %s", ChatColor.RED, kills));
         topbar.setKills(participant.getUniqueId(), kills);
