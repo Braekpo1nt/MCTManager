@@ -11,7 +11,6 @@ import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.topbar.BattleTopbar;
-import org.braekpo1nt.mctmanager.ui.topbar.Topbar;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.braekpo1nt.mctmanager.utils.MaterialUtils;
 import org.bukkit.*;
@@ -32,6 +31,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 import org.bukkit.util.BoundingBox;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -129,18 +129,24 @@ public class CaptureTheFlagMatch implements Listener {
         UUID participantUniqueId = participant.getUniqueId();
         participantsAreAlive.put(participantUniqueId, true);
         killCounts.put(participantUniqueId, 0);
+        int alive = 0;
+        int dead = 0;
         if (north) {
             northParticipants.add(participant);
             participant.teleport(arena.northSpawn());
             participant.lookAt(arena.southSpawn().getX(), arena.southSpawn().getY(), arena.southSpawn().getZ(), LookAnchor.EYES);
+            alive = countAlive(northParticipants);
+            dead = northParticipants.size() - alive;
         } else {
             southParticipants.add(participant);
             participant.teleport(arena.southSpawn());
             participant.lookAt(arena.northSpawn().getX(), arena.northSpawn().getY(), arena.northSpawn().getZ(), LookAnchor.EYES);
+            alive = countAlive(southParticipants);
+            dead = southParticipants.size() - alive;
         }
         String teamId = gameManager.getTeamName(participant.getUniqueId());
         topbar.showPlayer(participant, teamId);
-        topbar.setMembers(teamId, );
+        topbar.setMembers(teamId, alive, dead);
         initializeSidebar(participant);
         allParticipants.add(participant);
         participant.getInventory().clear();
@@ -403,7 +409,7 @@ public class CaptureTheFlagMatch implements Listener {
         if (deathMessage != null) {
             Bukkit.getServer().sendMessage(deathMessage);
         }
-        onParicipantDeath(killed);
+        onParticipantDeath(killed);
         if (killed.getKiller() != null) {
             onParticipantGetKill(killed);
         }
@@ -461,25 +467,57 @@ public class CaptureTheFlagMatch implements Listener {
         topbar.setKills(killerUniqueId, newKillCount);
     }
     
-    private void onParicipantDeath(Player killed) {
+    private void onParticipantDeath(Player killed) {
+        int alive = 0;
+        int dead = 0;
         if (northParticipants.contains(killed)) {
             if (hasSouthFlag(killed)) {
                 dropSouthFlag(killed);
             }
+            alive = countAlive(northParticipants);
+            dead = northParticipants.size() - alive;
         } else if (southParticipants.contains(killed)) {
             if (hasNorthFlag(killed)){
                 dropNorthFlag(killed);
             }
+            alive = countAlive(southParticipants);
+            dead = southParticipants.size() - alive;
         }
         
         participantsAreAlive.put(killed.getUniqueId(), false);
+        alive--;
+        dead++;
         ParticipantInitializer.resetHealthAndHunger(killed);
         ParticipantInitializer.clearStatusEffects(killed);
         killed.teleport(config.getSpawnObservatory());
         killed.lookAt(arena.northFlag().getX(), arena.northFlag().getY(), arena.northFlag().getZ(), LookAnchor.EYES);
         
         String teamId = gameManager.getTeamName(killed.getUniqueId());
-        topbar.setMembers(teamId, );
+        topbar.setMembers(teamId, alive, dead);
+    }
+    
+    /**
+     * @param teamId the teamId of the team to get the living members of
+     * @return the number of players on the given team who are alive. 0 if the given team is not one of the teams fighting in this match.
+     */
+    private int getLivingMembers(@NotNull String teamId) {
+        int living = 0;
+        if (matchPairing.northTeam().equals(teamId)) {
+            return countAlive(northParticipants);
+        } else if (matchPairing.southTeam().equals(teamId)) {
+            return countAlive(southParticipants);
+        }
+        return 0;
+    }
+    
+    private int countAlive(List<Player> participants) {
+        int living = 0;
+        for (Player participant : participants) {
+            if (participantsAreAlive.get(participant.getUniqueId())) {
+                living++;
+            }
+        }
+        return living;
     }
     
     @EventHandler
