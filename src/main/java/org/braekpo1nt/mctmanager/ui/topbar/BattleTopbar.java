@@ -96,12 +96,15 @@ public class BattleTopbar {
     }
     
     /**
-     * Removes all the team pairs from this BattleTopbar
+     * Removes all the team pairs from this BattleTopbar, and unlinks all
+     * players from their teamIds
      */
     public void removeAllTeamPairs() {
         teamDatas.clear();
         for (PlayerData playerData : playerDatas.values()) {
             playerData.getBossBar().setLeft(Component.empty());
+            playerData.setTeamId(null);
+            update(playerData);
         }
     }
     
@@ -109,10 +112,26 @@ public class BattleTopbar {
      * Updates all the given {@link TeamData#getViewingMembers()}' BossBars with the given {@link TeamData#getVersusComponent()}
      * @param teamData the TeamData to update all the members' bossBars. Each member is expected to be a valid key in {@link BattleTopbar#playerDatas}. 
      */
-    private void updateBossBars(@NotNull TeamData teamData) {
+    private void update(@NotNull TeamData teamData) {
         for (UUID member : teamData.getViewingMembers()) {
-            playerDatas.get(member).getBossBar().setLeft(teamData.getVersusComponent().toComponent());
+            PlayerData playerData = getPlayerData(member);
+            playerData.getBossBar().setLeft(teamData.getVersusComponent().toComponent());
         }
+    }
+    
+    /**
+     * Updates the display BossBar for the given PlayerData. If the player
+     * is on a team, they will see the appropriate TeamData. Otherwise, they
+     * will see noTeamData
+     * @param playerData the PlayerData to update
+     */
+    private void update(@NotNull PlayerData playerData) {
+        if (playerData.getTeamId() == null) {
+            playerData.getBossBar().setLeft(Component.empty());
+            return;
+        }
+        TeamData teamData = getTeamData(playerData.getTeamId());
+        playerData.getBossBar().setLeft(teamData.getVersusComponent().toComponent());
     }
     
     /**
@@ -128,8 +147,8 @@ public class BattleTopbar {
         teamData.getVersusComponent().getLeft().setMembers(living, dead);
         TeamData enemyTeamData = getTeamData(teamData.getEnemyTeam());
         enemyTeamData.getVersusComponent().getRight().setMembers(living, dead);
-        updateBossBars(teamData);
-        updateBossBars(enemyTeamData);
+        update(teamData);
+        update(enemyTeamData);
     }
     
     /**
@@ -143,7 +162,9 @@ public class BattleTopbar {
         
         FormattedBar bossBar = new FormattedBar(player);
         bossBar.show();
-        playerDatas.put(player.getUniqueId(), new PlayerData(bossBar));
+        PlayerData playerData = new PlayerData(bossBar);
+        playerDatas.put(player.getUniqueId(), playerData);
+        update(playerData);
     }
     
     /**
@@ -161,17 +182,20 @@ public class BattleTopbar {
         teamData.getViewingMembers().add(playerUUID);
         playerData.setTeamId(teamId);
         
-        updateBossBars(teamData);
+        update(teamData);
+        update(playerData);
     }
     
-    public void unlinkFromTeam(@NotNull UUID playerUUID, @NotNull String teamId) {
-        TeamData teamData = getTeamData(teamId);
+    public void unlinkFromTeam(@NotNull UUID playerUUID) {
         PlayerData playerData = getPlayerData(playerUUID);
         Preconditions.checkArgument(playerData.getTeamId() != null, "player with UUID \"%s\" is not linked to any team", playerUUID);
-        Preconditions.checkArgument(playerData.getTeamId().equals(teamId), "player with UUID \"%s\" is not linked to teamId \"%s\", but instead are linked to \"%s\"", playerUUID, teamId, playerData.getTeamId());
+        String teamId = playerData.getTeamId();
+        TeamData teamData = getTeamData(teamId);
         
         teamData.getViewingMembers().remove(playerUUID);
         playerData.setTeamId(teamId);
+        
+        update(playerData);
     }
     
     /**
