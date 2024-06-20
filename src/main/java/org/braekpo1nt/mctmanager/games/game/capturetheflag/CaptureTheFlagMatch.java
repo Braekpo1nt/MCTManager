@@ -310,6 +310,9 @@ public class CaptureTheFlagMatch implements Listener {
             allParticipants.remove(northParticipant);
             northParticipants.remove(northParticipant);
             topbar.hidePlayer(northParticipant.getUniqueId());
+            int alive = countAlive(northParticipants);
+            int dead = northParticipants.size() - alive;
+            topbar.setMembers(matchPairing.northTeam(), alive, dead);
             return;
         }
         if (!participantsAreAlive.get(northParticipant.getUniqueId())) {
@@ -337,6 +340,9 @@ public class CaptureTheFlagMatch implements Listener {
             allParticipants.remove(soutParticipant);
             southParticipants.remove(soutParticipant);
             topbar.hidePlayer(soutParticipant.getUniqueId());
+            int alive = countAlive(southParticipants);
+            int dead = southParticipants.size() - alive;
+            topbar.setMembers(matchPairing.southTeam(), alive, dead);
             return;
         }
         if (!participantsAreAlive.get(soutParticipant.getUniqueId())) {
