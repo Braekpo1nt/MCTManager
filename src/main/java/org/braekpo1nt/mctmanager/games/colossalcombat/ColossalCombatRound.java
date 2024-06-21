@@ -7,6 +7,7 @@ import org.braekpo1nt.mctmanager.games.colossalcombat.config.ColossalCombatConfi
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
+import org.braekpo1nt.mctmanager.ui.topbar.BattleTopbar;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
@@ -26,6 +27,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 import org.bukkit.util.BoundingBox;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -36,6 +38,7 @@ public class ColossalCombatRound implements Listener {
     private final ColossalCombatGame colossalCombatGame;
     private final Sidebar sidebar;
     private final Sidebar adminSidebar;
+    private final BattleTopbar topbar;
     private ColossalCombatConfig config;
     private Map<UUID, Boolean> firstPlaceParticipantsAlive = new HashMap<>();
     private Map<UUID, Boolean> secondPlaceParticipantsAlive = new HashMap<>();
@@ -54,13 +57,14 @@ public class ColossalCombatRound implements Listener {
     private Location flagPosition = null;
     private Player hasFlag = null;
     
-    public ColossalCombatRound(Main plugin, GameManager gameManager, ColossalCombatGame colossalCombatGame, ColossalCombatConfig config, Sidebar sidebar, Sidebar adminSidebar) {
+    public ColossalCombatRound(Main plugin, GameManager gameManager, ColossalCombatGame colossalCombatGame, ColossalCombatConfig config, Sidebar sidebar, Sidebar adminSidebar, @NotNull BattleTopbar topbar) {
         this.plugin = plugin;
         this.gameManager = gameManager;
         this.colossalCombatGame = colossalCombatGame;
         this.config = config;
         this.sidebar = sidebar;
         this.adminSidebar = adminSidebar;
+        this.topbar = topbar;
     }
     
     public void setConfig(ColossalCombatConfig config) {
@@ -463,6 +467,7 @@ public class ColossalCombatRound implements Listener {
                 if (count <= 0) {
                     sidebar.updateLine("timer", "");
                     adminSidebar.updateLine("timer", "");
+                    topbar.setMiddle(Component.empty());
                     startRound();
                     this.cancel();
                     return;
@@ -470,6 +475,7 @@ public class ColossalCombatRound implements Listener {
                 String timeLeft = TimeStringUtils.getTimeString(count);
                 sidebar.updateLine("timer", String.format("Starting: %s", timeLeft));
                 adminSidebar.updateLine("timer", String.format("Starting: %s", timeLeft));
+                topbar.setMiddle(Component.text(timeLeft));
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -478,6 +484,7 @@ public class ColossalCombatRound implements Listener {
     private void initializeSidebar() {
         sidebar.updateLine("timer", "Starting:");
         adminSidebar.updateLine("timer", "Starting:");
+        topbar.setMiddle(Component.empty());
     }
     
     private void openGates() {
