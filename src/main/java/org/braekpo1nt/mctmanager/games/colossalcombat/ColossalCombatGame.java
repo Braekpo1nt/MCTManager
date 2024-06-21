@@ -136,12 +136,22 @@ public class ColossalCombatGame implements Listener, Configurable {
         firstPlaceParticipants.add(first);
         first.teleport(config.getFirstPlaceSpawn());
         initializeParticipant(first);
+        killCount.putIfAbsent(first.getUniqueId(), 0);
+        deathCount.putIfAbsent(first.getUniqueId(), 0);
+        int kills = killCount.get(first.getUniqueId());
+        int deaths = deathCount.get(first.getUniqueId());
+        topbar.setKillsAndDeaths(first.getUniqueId(), kills, deaths);
     }
     
     private void initializeSecondPlaceParticipant(Player second) {
         secondPlaceParticipants.add(second);
         second.teleport(config.getSecondPlaceSpawn());
         initializeParticipant(second);
+        killCount.putIfAbsent(second.getUniqueId(), 0);
+        deathCount.putIfAbsent(second.getUniqueId(), 0);
+        int kills = killCount.get(second.getUniqueId());
+        int deaths = deathCount.get(second.getUniqueId());
+        topbar.setKillsAndDeaths(second.getUniqueId(), kills, deaths);
     }
     
     private void initializeSpectator(Player spectator) {
@@ -161,11 +171,6 @@ public class ColossalCombatGame implements Listener, Configurable {
         ParticipantInitializer.clearStatusEffects(participant);
         sidebar.addPlayer(participant);
         topbar.showPlayer(participant);
-        killCount.putIfAbsent(participant.getUniqueId(), 0);
-        deathCount.putIfAbsent(participant.getUniqueId(), 0);
-        int kills = killCount.get(participant.getUniqueId());
-        int deaths = deathCount.get(participant.getUniqueId());
-        topbar.setKillsAndDeaths(participant.getUniqueId(), kills, deaths);
     }
     
     private void startAdmins(List<Player> newAdmins) {
