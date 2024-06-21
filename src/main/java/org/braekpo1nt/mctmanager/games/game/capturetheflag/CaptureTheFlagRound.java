@@ -362,7 +362,12 @@ public class CaptureTheFlagRound {
             event.setCancelled(true);
             return;
         }
-        for (CaptureTheFlagMatch match : matches) {
+        String teamId = gameManager.getTeamName(participant.getUniqueId());
+        CaptureTheFlagMatch match = this.getMatch(teamId);
+        if (match == null || !match.isActive()) {
+            // the match is over or the player is on-deck/spectating
+            event.setCancelled(true);
+        } else {
             match.onPlayerDamage(participant, event);
         }
     }
