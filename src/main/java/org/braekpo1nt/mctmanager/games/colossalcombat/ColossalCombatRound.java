@@ -113,6 +113,7 @@ public class ColossalCombatRound implements Listener {
         first.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearStatusEffects(first);
         ParticipantInitializer.resetHealthAndHunger(first);
+        updateAliveCount(firstPlaceParticipantsAlive, firstTeamName);
     }
     
     private void rejoinFirstPlaceParticipant(Player first) {
@@ -131,6 +132,7 @@ public class ColossalCombatRound implements Listener {
         second.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearStatusEffects(second);
         ParticipantInitializer.resetHealthAndHunger(second);
+        updateAliveCount(secondPlaceParticipantsAlive, secondTeamName);
     }
     
     private void rejoinSecondPlaceParticipant(Player second) {
@@ -269,6 +271,7 @@ public class ColossalCombatRound implements Listener {
                 killParticipant(participant);
             } else {
                 firstPlaceParticipantsAlive.remove(participant.getUniqueId());
+                updateAliveCount(firstPlaceParticipantsAlive, firstTeamName);
             }
             resetParticipant(participant);
             firstPlaceParticipants.remove(participant);
@@ -277,6 +280,7 @@ public class ColossalCombatRound implements Listener {
                 killParticipant(participant);
             } else {
                 secondPlaceParticipantsAlive.remove(participant.getUniqueId());
+                updateAliveCount(secondPlaceParticipantsAlive, secondTeamName);
             }
             resetParticipant(participant);
             secondPlaceParticipants.remove(participant);
@@ -327,6 +331,10 @@ public class ColossalCombatRound implements Listener {
         if (deathMessage != null) {
             Bukkit.getServer().sendMessage(deathMessage);
         }
+        Player killer = killed.getKiller();
+        if (killer != null) {
+            onParticipantGetKill(killer);
+        }
         onParticipantDeath(killed);
     }
     
@@ -341,14 +349,17 @@ public class ColossalCombatRound implements Listener {
                 dropFlag(killed);
             }
         }
+        colossalCombatGame.addDeath(killed.getUniqueId());
         if (firstPlaceParticipants.contains(killed)) {
             firstPlaceParticipantsAlive.put(killed.getUniqueId(), false);
+            updateAliveCount(firstPlaceParticipantsAlive, firstTeamName);
             if (allParticipantsAreDead(firstPlaceParticipantsAlive)) {
                 onSecondPlaceTeamWin();
                 return;
             }
         } else if (secondPlaceParticipants.contains(killed)) {
             secondPlaceParticipantsAlive.put(killed.getUniqueId(), false);
+            updateAliveCount(secondPlaceParticipantsAlive, secondTeamName);
             if (allParticipantsAreDead(secondPlaceParticipantsAlive)) {
                 onFirstPlaceTeamWin();
                 return;
@@ -357,6 +368,10 @@ public class ColossalCombatRound implements Listener {
         if (shouldStartCaptureTheFlag()) {
             startCaptureTheFlagCountdown();
         }
+    }
+    
+    private void onParticipantGetKill(@NotNull Player killer) {
+        colossalCombatGame.addKill(killer.getUniqueId());
     }
     
     /**
@@ -369,9 +384,19 @@ public class ColossalCombatRound implements Listener {
         if (captureTheFlagStarted) {
             return false;
         }
-        long firstCount = firstPlaceParticipantsAlive.values().stream().filter(alive -> alive).count();
-        long secondCount = secondPlaceParticipantsAlive.values().stream().filter(alive -> alive).count();
+        long firstCount = countLivingParticipants(firstPlaceParticipantsAlive);
+        long secondCount = countLivingParticipants(secondPlaceParticipantsAlive);
         return firstCount <= config.getCaptureTheFlagMaximumPlayers() && secondCount <= config.getCaptureTheFlagMaximumPlayers();
+    }
+    
+    private long countLivingParticipants(Map<UUID, Boolean> participantsAlive) {
+        return participantsAlive.values().stream().filter(alive -> alive).count();
+    }
+    
+    private void updateAliveCount(@NotNull Map<UUID, Boolean> participantsAlive, @NotNull String teamId) {
+        int alive = (int) countLivingParticipants(participantsAlive);
+        int dead = participantsAlive.size() - alive;
+        topbar.setMembers(teamId, alive, dead);
     }
     
     private void startCaptureTheFlagCountdown() {
