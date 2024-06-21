@@ -50,7 +50,6 @@ public class CaptureTheFlagMatch implements Listener {
     private List<Player> southParticipants = new ArrayList<>();
     private List<Player> allParticipants = new ArrayList<>();
     private Map<UUID, Boolean> participantsAreAlive;
-    private Map<UUID, Integer> killCounts;
     private boolean matchActive = false;
     private int classSelectionCountdownTaskId;
     private int matchTimerTaskId;
@@ -106,7 +105,6 @@ public class CaptureTheFlagMatch implements Listener {
         southParticipants = new ArrayList<>();
         allParticipants = new ArrayList<>();
         participantsAreAlive = new HashMap<>();
-        killCounts = new HashMap<>();
         placeFlags();
         closeGlassBarriers();
         NamedTextColor northColor = gameManager.getTeamNamedTextColor(matchPairing.northTeam());
@@ -127,7 +125,6 @@ public class CaptureTheFlagMatch implements Listener {
     private void initializeParticipant(Player participant, boolean north) {
         UUID participantUniqueId = participant.getUniqueId();
         participantsAreAlive.put(participantUniqueId, true);
-        killCounts.put(participantUniqueId, 0);
         int alive = 0;
         int dead = 0;
         if (north) {
@@ -171,7 +168,6 @@ public class CaptureTheFlagMatch implements Listener {
         
         String teamId = gameManager.getTeamName(participant.getUniqueId());
         topbar.setMembers(teamId, alive, dead);
-        killCounts.putIfAbsent(participant.getUniqueId(), 0);
         initializeSidebar(participant);
         allParticipants.add(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
@@ -447,16 +443,14 @@ public class CaptureTheFlagMatch implements Listener {
         gameManager.awardPointsToParticipant(killer, config.getKillScore());
     }
     
-    private void addKill(UUID killerUniqueId) {
-        int oldKillCount = killCounts.get(killerUniqueId);
-        int newKillCount = oldKillCount + 1;
-        killCounts.put(killerUniqueId, newKillCount);
+    private void addKill(UUID killerUUID) {
+        captureTheFlagRound.addKill(killerUUID);
+        int newKillCount = captureTheFlagRound.getKills(killerUUID);
         sidebar.updateLine(
-                killerUniqueId,
+                killerUUID,
                 "kills",
                 ChatColor.RED+"Kills: " + newKillCount
         );
-        topbar.setKills(killerUniqueId, newKillCount);
     }
     
     private void onParticipantDeath(Player killed) {
@@ -792,7 +786,7 @@ public class CaptureTheFlagMatch implements Listener {
     }
     
     private void initializeSidebar(Player participant) {
-        int kills = killCounts.get(participant.getUniqueId());
+        int kills = captureTheFlagRound.getKills(participant.getUniqueId());
         sidebar.updateLine(participant.getUniqueId(),"kills", String.format("%sKills: %s", ChatColor.RED, kills));
         topbar.setKills(participant.getUniqueId(), kills);
     }

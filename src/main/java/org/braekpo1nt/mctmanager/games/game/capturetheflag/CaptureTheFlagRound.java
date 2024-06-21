@@ -22,6 +22,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * A round is made up of multiple matches. It kicks off the matches it contains, and ends
@@ -514,6 +515,14 @@ public class CaptureTheFlagRound {
      */
     public @NotNull List<CaptureTheFlagMatch> getMatches() {
         return new ArrayList<>(matches);
+    }
+    
+    void addKill(UUID killerUUID) {
+        captureTheFlagGame.addKill(killerUUID);
+    }
+    
+    int getKills(UUID killerUUID) {
+        return captureTheFlagGame.getKills(killerUUID);
     }
     
     // Test methods

@@ -32,8 +32,7 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Capture the flag games are broken down into the following hierarchy:
@@ -56,6 +55,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     private String title = baseTitle;
     private List<Player> participants = new ArrayList<>();
     private List<Player> admins = new ArrayList<>();
+    private Map<UUID, Integer> killCount = new HashMap<>();
     private boolean firstRound = true;
     private boolean gameActive = false;
     
@@ -98,10 +98,11 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     @Override
     public void start(List<Player> newParticipants, List<Player> newAdmins) {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
-        participants = new ArrayList<>();
+        participants = new ArrayList<>(newParticipants.size());
         sidebar = gameManager.getSidebarFactory().createSidebar();
         adminSidebar = gameManager.getSidebarFactory().createSidebar();
         roundManager = new RoundManager(this, config.getArenas().size());
+        killCount = new HashMap<>(newParticipants.size());
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
         }
@@ -121,6 +122,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     
     private void initializeParticipant(Player participant) {
         participants.add(participant);
+        killCount.putIfAbsent(participant.getUniqueId(), 0);
         sidebar.addPlayer(participant);
         topbar.showPlayer(participant);
     }
@@ -207,6 +209,8 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         String roundLine = String.format("Round %d/%d", roundManager.getPlayedRounds() + 1, roundManager.getMaxRounds());
         sidebar.updateLine("round", roundLine);
         adminSidebar.updateLine("round", roundLine);
+        int kills = killCount.get(participant.getUniqueId());
+        topbar.setKills(participant.getUniqueId(), kills);
     }
     
     @Override
@@ -477,6 +481,17 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         for (Player participant : participants) {
             participant.sendMessage(message);
         }
+    }
+    
+    void addKill(UUID killerUUID) {
+        int oldKillCount = killCount.get(killerUUID);
+        int newKillCount = oldKillCount + 1;
+        killCount.put(killerUUID, newKillCount);
+        topbar.setKills(killerUUID, newKillCount);
+    }
+    
+    int getKills(UUID killerUUID) {
+        return killCount.get(killerUUID);
     }
     
     // Testing methods
