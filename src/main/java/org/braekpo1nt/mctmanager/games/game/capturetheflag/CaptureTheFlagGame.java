@@ -440,10 +440,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
                 new KeyLine("personalTeam", ""),
                 new KeyLine("personalScore", ""),
                 new KeyLine("title", title),
-                new KeyLine("enemy", ""),
-                new KeyLine("round", ""),
-                new KeyLine("timer", ""),
-                new KeyLine("kills", "")
+                new KeyLine("round", "")
         );
     }
     
@@ -495,14 +492,6 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         int newKillCount = oldKillCount + 1;
         killCount.put(playerUUID, newKillCount);
         topbar.setKills(playerUUID, newKillCount);
-    }
-    
-    /**
-     * @param playerUUID the player to get the kills for
-     * @return the kills for the playerUUID
-     */
-    int getKills(@NotNull UUID playerUUID) {
-        return killCount.get(playerUUID);
     }
     
     /**

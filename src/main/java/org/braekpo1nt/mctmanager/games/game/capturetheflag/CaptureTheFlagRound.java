@@ -169,14 +169,9 @@ public class CaptureTheFlagRound {
                     .append(teamDisplayName)
                     .append(Component.text(" is on-deck this round."))
                     .color(NamedTextColor.YELLOW));
-            sidebar.updateLine(participant.getUniqueId(), "enemy", "On Deck");
             return;
         }
         initializeParticipant(participant);
-        String enemyTeamId = getOppositeTeam(teamId);
-        ChatColor enemyColor = gameManager.getTeamChatColor(enemyTeamId);
-        String enemyDisplayName = gameManager.getTeamDisplayName(enemyTeamId);
-        sidebar.updateLine(participant.getUniqueId(), "enemy", String.format("%svs: %s%s", ChatColor.BOLD, enemyColor, enemyDisplayName));
         if (match.isActive()) {
             match.onParticipantJoin(participant);
         }
@@ -254,7 +249,6 @@ public class CaptureTheFlagRound {
                 }
                 String timeLeft = TimeStringUtils.getTimeString(count);
                 String timer = String.format("Class selection: %s", timeLeft);
-                sidebar.updateLine("timer", timer);
                 adminSidebar.updateLine("timer", timer);
                 topbar.setMiddle(Component.text(timeLeft));
                 count--;
@@ -273,7 +267,6 @@ public class CaptureTheFlagRound {
                 }
                 String timeLeft = TimeStringUtils.getTimeString(count);
                 String timer = String.format("Round: %s", timeLeft);
-                sidebar.updateLine("timer", timer);
                 adminSidebar.updateLine("timer", timer);
                 topbar.setMiddle(Component.text(timeLeft));
                 count--;
@@ -292,8 +285,6 @@ public class CaptureTheFlagRound {
             @Override
             public void run() {
                 if (count <= 0) {
-                    sidebar.updateLine("timer", "");
-                    adminSidebar.updateLine("timer", "");
                     topbar.setMiddle(Component.empty());
                     descriptionShowing = false;
                     startMatchesStartingCountDown();
@@ -302,7 +293,6 @@ public class CaptureTheFlagRound {
                 }
                 String timeLeft = TimeStringUtils.getTimeString(count);
                 String timerString = String.format("Starting soon: %s", timeLeft);
-                sidebar.updateLine("timer", timerString);
                 adminSidebar.updateLine("timer", timerString);
                 topbar.setMiddle(Component.text(timeLeft));
                 count--;
@@ -323,7 +313,6 @@ public class CaptureTheFlagRound {
                 }
                 String timeLeft = TimeStringUtils.getTimeString(count);
                 String timer = String.format("Starting: %s", timeLeft);
-                sidebar.updateLine("timer", timer);
                 adminSidebar.updateLine("timer", timer);
                 topbar.setMiddle(Component.text(timeLeft));
                 count--;
@@ -440,19 +429,8 @@ public class CaptureTheFlagRound {
     }
 
     private void initializeSidebar() {
-        for (Player participant : participants) {
-            String teamId = gameManager.getTeamName(participant.getUniqueId());
-            String enemyTeamId = getOppositeTeam(teamId);
-            ChatColor enemyColor = gameManager.getTeamChatColor(enemyTeamId);
-            String enemyDisplayName = gameManager.getTeamDisplayName(enemyTeamId);
-            sidebar.updateLine(participant.getUniqueId(), "enemy", String.format("%svs: %s%s", ChatColor.BOLD, enemyColor, enemyDisplayName));
-        }
-        sidebar.updateLine("timer", "");
         adminSidebar.updateLine("timer", "");
         topbar.setMiddle(Component.empty());
-        for (Player onDeckParticipant : onDeckParticipants) {
-            sidebar.updateLine(onDeckParticipant.getUniqueId(), "enemy", "On Deck");
-        }
     }
     
     /**
@@ -522,14 +500,6 @@ public class CaptureTheFlagRound {
      */
     void addKill(@NotNull UUID playerUUID) {
         captureTheFlagGame.addKill(playerUUID);
-    }
-    
-    /**
-     * @param playerUUID the player to get the kills for
-     * @return the kills for the playerUUID
-     */
-    int getKills(@NotNull UUID playerUUID) {
-        return captureTheFlagGame.getKills(playerUUID);
     }
     
     /**

@@ -445,12 +445,6 @@ public class CaptureTheFlagMatch implements Listener {
     
     private void addKill(UUID killerUUID) {
         captureTheFlagRound.addKill(killerUUID);
-        int newKillCount = captureTheFlagRound.getKills(killerUUID);
-        sidebar.updateLine(
-                killerUUID,
-                "kills",
-                ChatColor.RED+"Kills: " + newKillCount
-        );
     }
     
     private void onParticipantDeath(Player killed) {
@@ -752,7 +746,6 @@ public class CaptureTheFlagMatch implements Listener {
                 }
                 String timeLeft = TimeStringUtils.getTimeString(count);
                 String timer = String.format("Class selection: %s", timeLeft);
-                sidebar.updateLine("timer", timer);
                 adminSidebar.updateLine("timer", timer);
                 topbar.setMiddle(Component.text(timeLeft));
                 count--;
@@ -772,7 +765,6 @@ public class CaptureTheFlagMatch implements Listener {
                 }
                 String timeLeft = TimeStringUtils.getTimeString(count);
                 String timer = String.format("Round: %s", timeLeft);
-                sidebar.updateLine("timer", timer);
                 adminSidebar.updateLine("timer", timer);
                 topbar.setMiddle(Component.text(timeLeft));
                 count--;
@@ -781,19 +773,14 @@ public class CaptureTheFlagMatch implements Listener {
     }
     
     private void initializeSidebar() {
-        sidebar.updateLine("timer", "Round: ");
         adminSidebar.updateLine("timer", "Round: ");
         topbar.setMiddle(Component.empty());
     }
     
     private void initializeSidebar(Player participant) {
-        int kills = captureTheFlagRound.getKills(participant.getUniqueId());
-        sidebar.updateLine(participant.getUniqueId(),"kills", String.format("%sKills: %s", ChatColor.RED, kills));
-        topbar.setKills(participant.getUniqueId(), kills);
     }
     
     private void clearSidebar() {
-        sidebar.updateLine("kills", "");
     }
     
     private void placeFlags() {
