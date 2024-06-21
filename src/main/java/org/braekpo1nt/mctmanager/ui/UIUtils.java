@@ -49,6 +49,11 @@ public class UIUtils {
         TextComponent paddingLeft = Component.text(" ".repeat(Math.max(0, leftPadding)));
         TextComponent paddingRight = Component.text(" ".repeat(Math.max(0, rightPadding)));
         
-        return left.append(paddingLeft).append(middle).append(paddingRight).append(right);
+        return Component.empty()
+                .append(left)
+                .append(paddingLeft)
+                .append(middle)
+                .append(paddingRight)
+                .append(right);
     }
 }
