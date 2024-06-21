@@ -15,6 +15,7 @@ import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
+import org.braekpo1nt.mctmanager.ui.topbar.BattleTopbar;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
@@ -31,8 +32,7 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Capture the flag games are broken down into the following hierarchy:
@@ -46,6 +46,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     private final GameManager gameManager;
     private Sidebar sidebar;
     private Sidebar adminSidebar;
+    private final BattleTopbar topbar;
     private CaptureTheFlagConfigController configController;
     private CaptureTheFlagConfig config;
     private RoundManager roundManager;
@@ -54,6 +55,8 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     private String title = baseTitle;
     private List<Player> participants = new ArrayList<>();
     private List<Player> admins = new ArrayList<>();
+    private Map<UUID, Integer> killCount = new HashMap<>();
+    private Map<UUID, Integer> deathCount = new HashMap<>();
     private boolean firstRound = true;
     private boolean gameActive = false;
     
@@ -61,6 +64,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         this.plugin = plugin;
         this.gameManager = gameManager;
         this.configController = new CaptureTheFlagConfigController(plugin.getDataFolder());
+        this.topbar = new BattleTopbar();
     }
     
     @Override
@@ -95,10 +99,12 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     @Override
     public void start(List<Player> newParticipants, List<Player> newAdmins) {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
-        participants = new ArrayList<>();
+        participants = new ArrayList<>(newParticipants.size());
         sidebar = gameManager.getSidebarFactory().createSidebar();
         adminSidebar = gameManager.getSidebarFactory().createSidebar();
         roundManager = new RoundManager(this, config.getArenas().size());
+        killCount = new HashMap<>(newParticipants.size());
+        deathCount = new HashMap<>(newParticipants.size());
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
         }
@@ -119,6 +125,12 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     private void initializeParticipant(Player participant) {
         participants.add(participant);
         sidebar.addPlayer(participant);
+        topbar.showPlayer(participant);
+        killCount.putIfAbsent(participant.getUniqueId(), 0);
+        deathCount.putIfAbsent(participant.getUniqueId(), 0);
+        int kills = killCount.get(participant.getUniqueId());
+        int deaths = deathCount.get(participant.getUniqueId());
+        topbar.setKillsAndDeaths(participant.getUniqueId(), kills, deaths);
     }
     
     private void startAdmins(List<Player> newAdmins) {
@@ -176,6 +188,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     private void resetParticipant(Player participant) {
         participant.getInventory().clear();
         sidebar.removePlayer(participant.getUniqueId());
+        topbar.hidePlayer(participant.getUniqueId());
     }
     
     private void stopAdmins() {
@@ -243,14 +256,15 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     }
     
     public void startNextRound(List<String> participantTeams, List<MatchPairing> roundMatchPairings) {
-        currentRound = new CaptureTheFlagRound(this, plugin, gameManager, config, roundMatchPairings, sidebar, adminSidebar);
+        
+        currentRound = new CaptureTheFlagRound(this, plugin, gameManager, config, roundMatchPairings, sidebar, adminSidebar, topbar);
         List<Player> roundParticipants = new ArrayList<>();
         List<Player> onDeckParticipants = new ArrayList<>();
         for (Player participant : participants) {
-            String team = gameManager.getTeamName(participant.getUniqueId());
-            Component teamDisplayName = gameManager.getFormattedTeamDisplayName(team);
-            if (participantTeams.contains(team)) {
-                announceMatchToParticipant(participant, team, teamDisplayName);
+            String teamId = gameManager.getTeamName(participant.getUniqueId());
+            Component teamDisplayName = gameManager.getFormattedTeamDisplayName(teamId);
+            if (participantTeams.contains(teamId)) {
+                announceMatchToParticipant(participant, teamId, teamDisplayName);
                 roundParticipants.add(participant);
             } else {
                 participant.sendMessage(Component.empty()
@@ -260,12 +274,38 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
                 onDeckParticipants.add(participant);
             }
         }
+        setUpTopbarForRound(roundMatchPairings);
         currentRound.setFirstRound(firstRound);
         firstRound = false; // the first round only happens once
         currentRound.start(roundParticipants, onDeckParticipants);
         String round = String.format("Round %d/%d", roundManager.getPlayedRounds() + 1, roundManager.getMaxRounds());
         sidebar.updateLine("round", round);
         adminSidebar.updateLine("round", round);
+    }
+    
+    private void setUpTopbarForRound(List<MatchPairing> roundMatchPairings) {
+        topbar.removeAllTeamPairs();
+        for (MatchPairing mp : roundMatchPairings) {
+            NamedTextColor northColor = gameManager.getTeamNamedTextColor(mp.northTeam());
+            NamedTextColor southColor = gameManager.getTeamNamedTextColor(mp.southTeam());
+            topbar.addTeamPair(mp.northTeam(), northColor, mp.southTeam(), southColor);
+            int northAlive = 0;
+            int southAlive = 0;
+            for (Player participant : participants) {
+                String teamId = gameManager.getTeamName(participant.getUniqueId());
+                if (mp.northTeam().equals(teamId)) {
+                    topbar.linkToTeam(participant.getUniqueId(), teamId);
+                    northAlive++;
+                } else if (mp.southTeam().equals(teamId)) {
+                    topbar.linkToTeam(participant.getUniqueId(), teamId);
+                    southAlive++;
+                }
+            }
+            topbar.setMembers(mp.northTeam(), northAlive, 0);
+            topbar.setMembers(mp.southTeam(), southAlive, 0);
+        }
+        topbar.setNoTeamLeft(Component.text("On Deck")
+                .color(NamedTextColor.GRAY));
     }
     
     /**
@@ -400,16 +440,15 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
                 new KeyLine("personalTeam", ""),
                 new KeyLine("personalScore", ""),
                 new KeyLine("title", title),
-                new KeyLine("enemy", ""),
-                new KeyLine("round", ""),
-                new KeyLine("timer", ""),
-                new KeyLine("kills", "")
+                new KeyLine("round", "")
         );
     }
     
     private void clearSidebar() {
         sidebar.deleteAllLines();
         sidebar = null;
+        topbar.removeAllTeamPairs();
+        topbar.hideAllPlayers();
     }
     
     @Override
@@ -445,6 +484,26 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         }
     }
     
+    /**
+     * @param playerUUID the player to add a kill to
+     */
+    void addKill(@NotNull UUID playerUUID) {
+        int oldKillCount = killCount.get(playerUUID);
+        int newKillCount = oldKillCount + 1;
+        killCount.put(playerUUID, newKillCount);
+        topbar.setKills(playerUUID, newKillCount);
+    }
+    
+    /**
+     * @param playerUUID the player to add a death to
+     */
+    void addDeath(@NotNull UUID playerUUID) {
+        int oldDeathCount = deathCount.get(playerUUID);
+        int newDeathCount = oldDeathCount + 1;
+        deathCount.put(playerUUID, newDeathCount);
+        topbar.setDeaths(playerUUID, newDeathCount);
+    }
+    
     // Testing methods
     
     /**
@@ -454,6 +513,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         this.plugin = null;
         this.gameManager = null;
         this.config = null;
+        this.topbar = new BattleTopbar();
     }
     
     /**

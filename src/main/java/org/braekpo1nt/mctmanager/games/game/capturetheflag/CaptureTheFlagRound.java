@@ -8,6 +8,7 @@ import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlag
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
+import org.braekpo1nt.mctmanager.ui.topbar.BattleTopbar;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
@@ -21,6 +22,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * A round is made up of multiple matches. It kicks off the matches it contains, and ends
@@ -34,6 +36,7 @@ public class CaptureTheFlagRound {
     private final CaptureTheFlagConfig config;
     private final Sidebar sidebar;
     private final Sidebar adminSidebar;
+    private final BattleTopbar topbar;
     private final List<CaptureTheFlagMatch> matches;
     private List<Player> participants = new ArrayList<>();
     private List<Player> onDeckParticipants;
@@ -49,13 +52,14 @@ public class CaptureTheFlagRound {
      */
     private boolean matchesStarted = false;
     
-    public CaptureTheFlagRound(CaptureTheFlagGame captureTheFlagGame, Main plugin, GameManager gameManager, CaptureTheFlagConfig config, List<MatchPairing> matchPairings, Sidebar sidebar, Sidebar adminSidebar) {
+    public CaptureTheFlagRound(CaptureTheFlagGame captureTheFlagGame, Main plugin, GameManager gameManager, CaptureTheFlagConfig config, List<MatchPairing> matchPairings, Sidebar sidebar, Sidebar adminSidebar, BattleTopbar topbar) {
         this.captureTheFlagGame = captureTheFlagGame;
         this.plugin = plugin;
         this.gameManager = gameManager;
         this.config = config;
         this.sidebar = sidebar;
         this.adminSidebar = adminSidebar;
+        this.topbar = topbar;
         this.matches = createMatches(matchPairings, config.getArenas());
     }
     
@@ -72,7 +76,7 @@ public class CaptureTheFlagRound {
             MatchPairing matchPairing = matchPairings.get(i);
             Arena arena = arenas.get(i);
             CaptureTheFlagMatch match = new CaptureTheFlagMatch(this, plugin, gameManager, 
-                    matchPairing, arena, config, sidebar, adminSidebar);
+                    matchPairing, arena, config, sidebar, adminSidebar, topbar);
             newMatches.add(match);
         }
         return newMatches;
@@ -156,23 +160,18 @@ public class CaptureTheFlagRound {
     }
     
     public void onParticipantJoin(Player participant) {
-        String teamName = gameManager.getTeamName(participant.getUniqueId());
-        Component teamDisplayName = gameManager.getFormattedTeamDisplayName(teamName);
-        CaptureTheFlagMatch match = getMatch(teamName);
+        String teamId = gameManager.getTeamName(participant.getUniqueId());
+        Component teamDisplayName = gameManager.getFormattedTeamDisplayName(teamId);
+        CaptureTheFlagMatch match = getMatch(teamId);
         if (match == null) {
             initializeOnDeckParticipant(participant);
             participant.sendMessage(Component.empty()
                     .append(teamDisplayName)
                     .append(Component.text(" is on-deck this round."))
                     .color(NamedTextColor.YELLOW));
-            sidebar.updateLine(participant.getUniqueId(), "enemy", "On Deck");
             return;
         }
         initializeParticipant(participant);
-        String enemyTeam = getOppositeTeam(teamName);
-        ChatColor enemyColor = gameManager.getTeamChatColor(enemyTeam);
-        String enemyDisplayName = gameManager.getTeamDisplayName(enemyTeam);
-        sidebar.updateLine(participant.getUniqueId(), "enemy", String.format("%svs: %s%s", ChatColor.BOLD, enemyColor, enemyDisplayName));
         if (match.isActive()) {
             match.onParticipantJoin(participant);
         }
@@ -250,8 +249,8 @@ public class CaptureTheFlagRound {
                 }
                 String timeLeft = TimeStringUtils.getTimeString(count);
                 String timer = String.format("Class selection: %s", timeLeft);
-                sidebar.updateLine("timer", timer);
                 adminSidebar.updateLine("timer", timer);
+                topbar.setMiddle(Component.text(timeLeft));
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -268,8 +267,8 @@ public class CaptureTheFlagRound {
                 }
                 String timeLeft = TimeStringUtils.getTimeString(count);
                 String timer = String.format("Round: %s", timeLeft);
-                sidebar.updateLine("timer", timer);
                 adminSidebar.updateLine("timer", timer);
+                topbar.setMiddle(Component.text(timeLeft));
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -286,8 +285,7 @@ public class CaptureTheFlagRound {
             @Override
             public void run() {
                 if (count <= 0) {
-                    sidebar.updateLine("timer", "");
-                    adminSidebar.updateLine("timer", "");
+                    topbar.setMiddle(Component.empty());
                     descriptionShowing = false;
                     startMatchesStartingCountDown();
                     this.cancel();
@@ -295,8 +293,8 @@ public class CaptureTheFlagRound {
                 }
                 String timeLeft = TimeStringUtils.getTimeString(count);
                 String timerString = String.format("Starting soon: %s", timeLeft);
-                sidebar.updateLine("timer", timerString);
                 adminSidebar.updateLine("timer", timerString);
+                topbar.setMiddle(Component.text(timeLeft));
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -315,8 +313,8 @@ public class CaptureTheFlagRound {
                 }
                 String timeLeft = TimeStringUtils.getTimeString(count);
                 String timer = String.format("Starting: %s", timeLeft);
-                sidebar.updateLine("timer", timer);
                 adminSidebar.updateLine("timer", timer);
+                topbar.setMiddle(Component.text(timeLeft));
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
@@ -354,7 +352,12 @@ public class CaptureTheFlagRound {
             event.setCancelled(true);
             return;
         }
-        for (CaptureTheFlagMatch match : matches) {
+        String teamId = gameManager.getTeamName(participant.getUniqueId());
+        CaptureTheFlagMatch match = this.getMatch(teamId);
+        if (match == null || !match.isActive()) {
+            // the match is over or the player is on-deck/spectating
+            event.setCancelled(true);
+        } else {
             match.onPlayerDamage(participant, event);
         }
     }
@@ -426,18 +429,8 @@ public class CaptureTheFlagRound {
     }
 
     private void initializeSidebar() {
-        for (Player participant : participants) {
-            String teamName = gameManager.getTeamName(participant.getUniqueId());
-            String enemyTeam = getOppositeTeam(teamName);
-            ChatColor enemyColor = gameManager.getTeamChatColor(enemyTeam);
-            String enemyDisplayName = gameManager.getTeamDisplayName(enemyTeam);
-            sidebar.updateLine(participant.getUniqueId(), "enemy", String.format("%svs: %s%s", ChatColor.BOLD, enemyColor, enemyDisplayName));
-        }
-        sidebar.updateLine("timer", "");
         adminSidebar.updateLine("timer", "");
-        for (Player onDeckParticipant : onDeckParticipants) {
-            sidebar.updateLine(onDeckParticipant.getUniqueId(), "enemy", "On Deck");
-        }
+        topbar.setMiddle(Component.empty());
     }
     
     /**
@@ -500,6 +493,20 @@ public class CaptureTheFlagRound {
      */
     public @NotNull List<CaptureTheFlagMatch> getMatches() {
         return new ArrayList<>(matches);
+    }
+    
+    /**
+     * @param playerUUID the player to add a kill to
+     */
+    void addKill(@NotNull UUID playerUUID) {
+        captureTheFlagGame.addKill(playerUUID);
+    }
+    
+    /**
+     * @param playerUUID the player to add a death to
+     */
+    void addDeath(@NotNull UUID playerUUID) {
+        captureTheFlagGame.addDeath(playerUUID);
     }
     
     // Test methods
