@@ -239,12 +239,14 @@ public class CaptureTheFlagMatch implements Listener {
         if (!matchActive) {
             return;
         }
-        String teamName = gameManager.getTeamName(participant.getUniqueId());
-        if (matchPairing.northTeam().equals(teamName)) {
+        String teamId = gameManager.getTeamName(participant.getUniqueId());
+        if (matchPairing.northTeam().equals(teamId)) {
+            topbar.linkToTeam(participant.getUniqueId(), teamId);
             onNorthParticipantJoin(participant);
             return;
         }
-        if (matchPairing.southTeam().equals(teamName)) {
+        if (matchPairing.southTeam().equals(teamId)) {
+            topbar.linkToTeam(participant.getUniqueId(), teamId);
             onSouthParticipantJoin(participant);
             return;
         }

@@ -45,10 +45,43 @@ public class BattleTopbar {
     }
     
     /**
-     * each team's VersusComponent
+     * each team's TeamData
      */
     protected final Map<String, TeamData> teamDatas = new HashMap<>();
+    /**
+     * Each player's PlayerData
+     */
     protected final Map<UUID, PlayerData> playerDatas = new HashMap<>();
+    /**
+     * the component to use as the default left section of the BossBar display
+     * if the viewing player is not linked to a team. 
+     * @see BattleTopbar#linkToTeam(UUID, String) 
+     * @see BattleTopbar#unlinkFromTeam(UUID) 
+     */
+    protected @NotNull Component noTeamLeft;
+    
+    public BattleTopbar() {
+        noTeamLeft = Component.empty();
+    }
+    
+    /**
+     * @param noTeamLeft the component to use as the default left section of the 
+     *                   BossBar display if the viewing player is not linked to a team.
+     */
+    public BattleTopbar(@NotNull Component noTeamLeft) {
+        this.noTeamLeft = noTeamLeft;
+    }
+    
+    /**
+     * @param noTeamLeft the component to use as the default left section of the 
+     *                   BossBar display if the viewing player is not linked to a team.
+     */
+    public void setNoTeamLeft(@NotNull Component noTeamLeft) {
+        this.noTeamLeft = noTeamLeft;
+        for (PlayerData playerData : playerDatas.values()) {
+            update(playerData);
+        }
+    }
     
     /**
      * @param teamId the teamId of the TeamData. Must be a valid key in {@link BattleTopbar#teamDatas} 
@@ -102,7 +135,6 @@ public class BattleTopbar {
     public void removeAllTeamPairs() {
         teamDatas.clear();
         for (PlayerData playerData : playerDatas.values()) {
-            playerData.getBossBar().setLeft(Component.empty());
             playerData.setTeamId(null);
             update(playerData);
         }
@@ -127,7 +159,7 @@ public class BattleTopbar {
      */
     private void update(@NotNull PlayerData playerData) {
         if (playerData.getTeamId() == null) {
-            playerData.getBossBar().setLeft(Component.empty());
+            playerData.getBossBar().setLeft(noTeamLeft);
             return;
         }
         TeamData teamData = getTeamData(playerData.getTeamId());

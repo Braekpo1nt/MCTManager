@@ -169,7 +169,6 @@ public class CaptureTheFlagRound {
                     .append(Component.text(" is on-deck this round."))
                     .color(NamedTextColor.YELLOW));
             sidebar.updateLine(participant.getUniqueId(), "enemy", "On Deck");
-            topbar.setLeft(Component.text("On Deck"));
             return;
         }
         initializeParticipant(participant);

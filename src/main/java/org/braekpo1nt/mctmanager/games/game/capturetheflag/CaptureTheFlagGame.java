@@ -296,6 +296,8 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
             topbar.setMembers(mp.northTeam(), northAlive, 0);
             topbar.setMembers(mp.southTeam(), southAlive, 0);
         }
+        topbar.setNoTeamLeft(Component.text("On Deck")
+                .color(NamedTextColor.GRAY));
     }
     
     /**
