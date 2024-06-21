@@ -124,9 +124,13 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     
     private void initializeParticipant(Player participant) {
         participants.add(participant);
-        killCount.putIfAbsent(participant.getUniqueId(), 0);
         sidebar.addPlayer(participant);
         topbar.showPlayer(participant);
+        killCount.putIfAbsent(participant.getUniqueId(), 0);
+        deathCount.putIfAbsent(participant.getUniqueId(), 0);
+        int kills = killCount.get(participant.getUniqueId());
+        int deaths = deathCount.get(participant.getUniqueId());
+        topbar.setKillsAndDeaths(participant.getUniqueId(), kills, deaths);
     }
     
     private void startAdmins(List<Player> newAdmins) {
@@ -211,9 +215,6 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         String roundLine = String.format("Round %d/%d", roundManager.getPlayedRounds() + 1, roundManager.getMaxRounds());
         sidebar.updateLine("round", roundLine);
         adminSidebar.updateLine("round", roundLine);
-        int kills = killCount.get(participant.getUniqueId());
-        int deaths = deathCount.get(participant.getUniqueId());
-        topbar.setKillsAndDeaths(participant.getUniqueId(), kills, deaths);
     }
     
     @Override
