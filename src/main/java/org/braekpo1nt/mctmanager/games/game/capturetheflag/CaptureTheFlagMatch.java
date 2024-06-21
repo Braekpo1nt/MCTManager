@@ -478,6 +478,7 @@ public class CaptureTheFlagMatch implements Listener {
         
         String teamId = gameManager.getTeamName(killed.getUniqueId());
         topbar.setMembers(teamId, alive, dead);
+        captureTheFlagRound.addDeath(killed.getUniqueId());
     }
     
     /**

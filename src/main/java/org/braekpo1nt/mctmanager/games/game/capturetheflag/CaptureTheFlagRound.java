@@ -517,12 +517,26 @@ public class CaptureTheFlagRound {
         return new ArrayList<>(matches);
     }
     
-    void addKill(UUID killerUUID) {
-        captureTheFlagGame.addKill(killerUUID);
+    /**
+     * @param playerUUID the player to add a kill to
+     */
+    void addKill(@NotNull UUID playerUUID) {
+        captureTheFlagGame.addKill(playerUUID);
     }
     
-    int getKills(UUID killerUUID) {
-        return captureTheFlagGame.getKills(killerUUID);
+    /**
+     * @param playerUUID the player to get the kills for
+     * @return the kills for the playerUUID
+     */
+    int getKills(@NotNull UUID playerUUID) {
+        return captureTheFlagGame.getKills(playerUUID);
+    }
+    
+    /**
+     * @param playerUUID the player to add a death to
+     */
+    void addDeath(@NotNull UUID playerUUID) {
+        captureTheFlagGame.addDeath(playerUUID);
     }
     
     // Test methods

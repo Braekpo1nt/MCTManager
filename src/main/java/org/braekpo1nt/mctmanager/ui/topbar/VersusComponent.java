@@ -10,10 +10,14 @@ import org.jetbrains.annotations.NotNull;
  */
 @Data
 public class VersusComponent {
-    private @NotNull
-    final TeamComponent left;
-    private @NotNull
-    final TeamComponent right;
+    /**
+     * The TeamComponent to be displayed to the left of the "vs"
+     */
+    private final @NotNull TeamComponent left;
+    /**
+     * The TeamComponent to be displayed to the right of the "vs"
+     */
+    private final @NotNull TeamComponent right;
     
     /**
      * @return a {@link Component}-ized representation of this VersusComponent,

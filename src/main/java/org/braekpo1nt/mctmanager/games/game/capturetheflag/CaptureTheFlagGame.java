@@ -56,6 +56,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     private List<Player> participants = new ArrayList<>();
     private List<Player> admins = new ArrayList<>();
     private Map<UUID, Integer> killCount = new HashMap<>();
+    private Map<UUID, Integer> deathCount = new HashMap<>();
     private boolean firstRound = true;
     private boolean gameActive = false;
     
@@ -103,6 +104,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         adminSidebar = gameManager.getSidebarFactory().createSidebar();
         roundManager = new RoundManager(this, config.getArenas().size());
         killCount = new HashMap<>(newParticipants.size());
+        deathCount = new HashMap<>(newParticipants.size());
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
         }
@@ -210,7 +212,8 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         sidebar.updateLine("round", roundLine);
         adminSidebar.updateLine("round", roundLine);
         int kills = killCount.get(participant.getUniqueId());
-        topbar.setKills(participant.getUniqueId(), kills);
+        int deaths = deathCount.get(participant.getUniqueId());
+        topbar.setKillsAndDeaths(participant.getUniqueId(), kills, deaths);
     }
     
     @Override
@@ -483,15 +486,32 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         }
     }
     
-    void addKill(UUID killerUUID) {
-        int oldKillCount = killCount.get(killerUUID);
+    /**
+     * @param playerUUID the player to add a kill to
+     */
+    void addKill(@NotNull UUID playerUUID) {
+        int oldKillCount = killCount.get(playerUUID);
         int newKillCount = oldKillCount + 1;
-        killCount.put(killerUUID, newKillCount);
-        topbar.setKills(killerUUID, newKillCount);
+        killCount.put(playerUUID, newKillCount);
+        topbar.setKills(playerUUID, newKillCount);
     }
     
-    int getKills(UUID killerUUID) {
-        return killCount.get(killerUUID);
+    /**
+     * @param playerUUID the player to get the kills for
+     * @return the kills for the playerUUID
+     */
+    int getKills(@NotNull UUID playerUUID) {
+        return killCount.get(playerUUID);
+    }
+    
+    /**
+     * @param playerUUID the player to add a death to
+     */
+    void addDeath(@NotNull UUID playerUUID) {
+        int oldDeathCount = deathCount.get(playerUUID);
+        int newDeathCount = oldDeathCount + 1;
+        deathCount.put(playerUUID, newDeathCount);
+        topbar.setDeaths(playerUUID, newDeathCount);
     }
     
     // Testing methods

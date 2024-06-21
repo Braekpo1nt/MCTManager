@@ -42,6 +42,7 @@ public class BattleTopbar {
     protected static class PlayerData {
         private final @NotNull FormattedBar bossBar;
         private @Nullable String teamId;
+        private final @NotNull KillDeathComponent killDeathComponent = new KillDeathComponent();
     }
     
     /**
@@ -218,6 +219,11 @@ public class BattleTopbar {
         update(playerData);
     }
     
+    /**
+     * Unlink the given player from their team. 
+     * @param playerUUID the UUID of the player to remove this. Must already be linked to a teamId in this BattleTopbar.
+     * @throws IllegalArgumentException if they are not already linked to a team, or if they are not in this BattleTopbar
+     */
     public void unlinkFromTeam(@NotNull UUID playerUUID) {
         PlayerData playerData = getPlayerData(playerUUID);
         Preconditions.checkArgument(playerData.getTeamId() != null, "player with UUID \"%s\" is not linked to any team", playerUUID);
@@ -302,16 +308,35 @@ public class BattleTopbar {
     }
     
     /**
-     * 
      * @param playerUUID the player to set the kills for
      * @param kills the number of kills
      */
     public void setKills(@NotNull UUID playerUUID, int kills) {
         PlayerData playerData = getPlayerData(playerUUID);
-        playerData.getBossBar().setRight(Component.empty()
-                .append(Component.text("K: "))
-                .append(Component.text(kills))
-        );
+        playerData.getKillDeathComponent().setKills(kills);
+        playerData.getBossBar().setRight(playerData.getKillDeathComponent().toComponent());
+    }
+    
+    /**
+     * @param playerUUID the player to set the deaths for
+     * @param deaths the number of deaths
+     */
+    public void setDeaths(@NotNull UUID playerUUID, int deaths) {
+        PlayerData playerData = getPlayerData(playerUUID);
+        playerData.getKillDeathComponent().setDeaths(deaths);
+        playerData.getBossBar().setRight(playerData.getKillDeathComponent().toComponent());
+    }
+    
+    /**
+     * @param playerUUID the player to set the kills and deaths for
+     * @param kills the number of kills
+     * @param deaths the number of deaths
+     */
+    public void setKillsAndDeaths(@NotNull UUID playerUUID, int kills, int deaths) {
+        PlayerData playerData = getPlayerData(playerUUID);
+        playerData.getKillDeathComponent().setKills(kills);
+        playerData.getKillDeathComponent().setDeaths(deaths);
+        playerData.getBossBar().setRight(playerData.getKillDeathComponent().toComponent());
     }
     
 }
