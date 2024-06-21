@@ -465,7 +465,6 @@ public class ColossalCombatRound implements Listener {
             @Override
             public void run() {
                 if (count <= 0) {
-                    sidebar.updateLine("timer", "");
                     adminSidebar.updateLine("timer", "");
                     topbar.setMiddle(Component.empty());
                     startRound();
@@ -473,7 +472,6 @@ public class ColossalCombatRound implements Listener {
                     return;
                 }
                 String timeLeft = TimeStringUtils.getTimeString(count);
-                sidebar.updateLine("timer", String.format("Starting: %s", timeLeft));
                 adminSidebar.updateLine("timer", String.format("Starting: %s", timeLeft));
                 topbar.setMiddle(Component.text(timeLeft));
                 count--;
@@ -482,7 +480,6 @@ public class ColossalCombatRound implements Listener {
     }
     
     private void initializeSidebar() {
-        sidebar.updateLine("timer", "Starting:");
         adminSidebar.updateLine("timer", "Starting:");
         topbar.setMiddle(Component.empty());
     }

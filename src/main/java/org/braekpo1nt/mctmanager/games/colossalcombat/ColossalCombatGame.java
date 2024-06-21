@@ -195,7 +195,6 @@ public class ColossalCombatGame implements Listener, Configurable {
             @Override
             public void run() {
                 if (count <= 0) {
-                    sidebar.updateLine("timer", "");
                     adminSidebar.updateLine("timer", "");
                     topbar.setMiddle(Component.empty());
                     descriptionShowing = false;
@@ -205,7 +204,6 @@ public class ColossalCombatGame implements Listener, Configurable {
                 }
                 String timeLeft = TimeStringUtils.getTimeString(count);
                 String timerString = String.format("Starting soon: %s", timeLeft);
-                sidebar.updateLine("timer", timerString);
                 adminSidebar.updateLine("timer", timerString);
                 topbar.setMiddle(Component.text(timeLeft));
                 count--;
@@ -485,8 +483,7 @@ public class ColossalCombatGame implements Listener, Configurable {
                 new KeyLine("title", title),
                 new KeyLine("firstWinCount", String.format("%s: 0/%s", firstDisplayName, config.getRequiredWins())),
                 new KeyLine("secondWinCount", String.format("%s: 0/%s", secondDisplayName, config.getRequiredWins())),
-                new KeyLine("round", "Round: 1"),
-                new KeyLine("timer", "")
+                new KeyLine("round", "Round: 1")
         );
         topbar.setMiddle(Component.empty());
     }
