@@ -295,7 +295,7 @@ public class ColossalCombatRound implements Listener {
                 .append(Component.text(participant.getName()))
                 .append(Component.text(" left early. Their life is forfeit."));
         PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(participant, Collections.emptyList(), 0, deathMessage);
-        Bukkit.getServer().getPluginManager().callEvent(fakeDeathEvent);
+        onPlayerDeath(fakeDeathEvent);
     }
     
     private void cancelAllTasks() {
@@ -319,7 +319,6 @@ public class ColossalCombatRound implements Listener {
     @EventHandler
     public void onPlayerDeath(PlayerDeathEvent event) {
         Player killed = event.getPlayer();
-        Bukkit.getLogger().info("onPlayerDeath " + killed.getName());
         if (!firstPlaceParticipants.contains(killed) && !secondPlaceParticipants.contains(killed)) {
             return;
         }
