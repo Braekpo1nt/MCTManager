@@ -22,7 +22,7 @@ import java.util.*;
 public class BattleTopbar {
     
     @Data
-    protected static class TeamData {
+    private static class TeamData {
         /**
          * Holds info about who is dead and alive, and provides an easy way to
          * display that information to the user.
@@ -42,7 +42,7 @@ public class BattleTopbar {
     }
     
     @Data
-    protected static class PlayerData {
+    private static class PlayerData {
         private final @NotNull FormattedBar bossBar;
         private @Nullable String teamId;
         private @Nullable KillDeathComponent killDeathComponent;
@@ -51,11 +51,11 @@ public class BattleTopbar {
     /**
      * each team's TeamData
      */
-    protected final Map<String, TeamData> teamDatas = new HashMap<>();
+    private final Map<String, TeamData> teamDatas = new HashMap<>();
     /**
      * Each player's PlayerData
      */
-    protected final Map<UUID, PlayerData> playerDatas = new HashMap<>();
+    private final Map<UUID, PlayerData> playerDatas = new HashMap<>();
     /**
      * the component to use as the default left section of the BossBar display
      * if the viewing player is not linked to a team. 
@@ -65,7 +65,7 @@ public class BattleTopbar {
     protected @NotNull Component noTeamLeft;
     
     public BattleTopbar() {
-        noTeamLeft = Component.empty();
+        this.noTeamLeft = Component.empty();
     }
     
     /**
@@ -171,7 +171,7 @@ public class BattleTopbar {
     }
     
     /**
-     * Add a member of the given teamId. Updates all applicable BossBar displays
+     * Set the number of living and dead players on a team. Updates all applicable BossBar displays
      * @param teamId the teamId of the team this member belongs to
      * @param living the number of living players on the team
      * @param dead the number of dead players on the team
@@ -188,10 +188,10 @@ public class BattleTopbar {
     }
     
     /**
-     * Make the given player see this BattleTopbar. Please note that this player will start off
+     * Make the given player see this Topbar. Please note that this player will start off
      * as not being associated with a teamId. Use {@link BattleTopbar#linkToTeam(UUID, String)}
      * to make the appropriate association.
-     * @param player the player to show this BattleTopbar to
+     * @param player the player to show this Topbar to
      */
     public void showPlayer(@NotNull Player player) {
         Preconditions.checkArgument(!playerDatas.containsKey(player.getUniqueId()), "player with UUID \"%s\" already exists in this BattleTopbar", player.getUniqueId());
@@ -208,7 +208,7 @@ public class BattleTopbar {
      * components in their BossBar ui and so that they are updated when values relating to 
      * this team are updated. 
      * @param playerUUID the UUID of a player who is viewing this BattleTopbar. Must not already be linked to a teamId in this BattleTopbar.
-     * @param teamId the teamId to link this player to (must be a teamId which is already in a teamPair in this BattleTopbar)
+     * @param teamId the teamId to link this player to (must be a teamId which is already in this Topbar)
      */
     public void linkToTeam(@NotNull UUID playerUUID, @NotNull String teamId) {
         TeamData teamData = getTeamData(teamId);
@@ -218,7 +218,6 @@ public class BattleTopbar {
         teamData.getViewingMembers().add(playerUUID);
         playerData.setTeamId(teamId);
         
-        update(teamData);
         update(playerData);
     }
     
