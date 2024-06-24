@@ -7,6 +7,7 @@ import org.braekpo1nt.mctmanager.games.colossalcombat.config.ColossalCombatConfi
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
+import org.braekpo1nt.mctmanager.ui.topbar.BattleTopbar;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
@@ -26,6 +27,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 import org.bukkit.util.BoundingBox;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -36,6 +38,7 @@ public class ColossalCombatRound implements Listener {
     private final ColossalCombatGame colossalCombatGame;
     private final Sidebar sidebar;
     private final Sidebar adminSidebar;
+    private final BattleTopbar topbar;
     private ColossalCombatConfig config;
     private Map<UUID, Boolean> firstPlaceParticipantsAlive = new HashMap<>();
     private Map<UUID, Boolean> secondPlaceParticipantsAlive = new HashMap<>();
@@ -54,13 +57,14 @@ public class ColossalCombatRound implements Listener {
     private Location flagPosition = null;
     private Player hasFlag = null;
     
-    public ColossalCombatRound(Main plugin, GameManager gameManager, ColossalCombatGame colossalCombatGame, ColossalCombatConfig config, Sidebar sidebar, Sidebar adminSidebar) {
+    public ColossalCombatRound(Main plugin, GameManager gameManager, ColossalCombatGame colossalCombatGame, ColossalCombatConfig config, Sidebar sidebar, Sidebar adminSidebar, @NotNull BattleTopbar topbar) {
         this.plugin = plugin;
         this.gameManager = gameManager;
         this.colossalCombatGame = colossalCombatGame;
         this.config = config;
         this.sidebar = sidebar;
         this.adminSidebar = adminSidebar;
+        this.topbar = topbar;
     }
     
     public void setConfig(ColossalCombatConfig config) {
@@ -109,6 +113,7 @@ public class ColossalCombatRound implements Listener {
         first.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearStatusEffects(first);
         ParticipantInitializer.resetHealthAndHunger(first);
+        updateAliveCount(firstPlaceParticipantsAlive, firstTeamName);
     }
     
     private void rejoinFirstPlaceParticipant(Player first) {
@@ -127,6 +132,7 @@ public class ColossalCombatRound implements Listener {
         second.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearStatusEffects(second);
         ParticipantInitializer.resetHealthAndHunger(second);
+        updateAliveCount(secondPlaceParticipantsAlive, secondTeamName);
     }
     
     private void rejoinSecondPlaceParticipant(Player second) {
@@ -265,6 +271,7 @@ public class ColossalCombatRound implements Listener {
                 killParticipant(participant);
             } else {
                 firstPlaceParticipantsAlive.remove(participant.getUniqueId());
+                updateAliveCount(firstPlaceParticipantsAlive, firstTeamName);
             }
             resetParticipant(participant);
             firstPlaceParticipants.remove(participant);
@@ -273,6 +280,7 @@ public class ColossalCombatRound implements Listener {
                 killParticipant(participant);
             } else {
                 secondPlaceParticipantsAlive.remove(participant.getUniqueId());
+                updateAliveCount(secondPlaceParticipantsAlive, secondTeamName);
             }
             resetParticipant(participant);
             secondPlaceParticipants.remove(participant);
@@ -287,7 +295,7 @@ public class ColossalCombatRound implements Listener {
                 .append(Component.text(participant.getName()))
                 .append(Component.text(" left early. Their life is forfeit."));
         PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(participant, Collections.emptyList(), 0, deathMessage);
-        Bukkit.getServer().getPluginManager().callEvent(fakeDeathEvent);
+        onPlayerDeath(fakeDeathEvent);
     }
     
     private void cancelAllTasks() {
@@ -311,7 +319,6 @@ public class ColossalCombatRound implements Listener {
     @EventHandler
     public void onPlayerDeath(PlayerDeathEvent event) {
         Player killed = event.getPlayer();
-        Bukkit.getLogger().info("onPlayerDeath " + killed.getName());
         if (!firstPlaceParticipants.contains(killed) && !secondPlaceParticipants.contains(killed)) {
             return;
         }
@@ -322,6 +329,10 @@ public class ColossalCombatRound implements Listener {
         Component deathMessage = event.deathMessage();
         if (deathMessage != null) {
             Bukkit.getServer().sendMessage(deathMessage);
+        }
+        Player killer = killed.getKiller();
+        if (killer != null) {
+            onParticipantGetKill(killer);
         }
         onParticipantDeath(killed);
     }
@@ -337,14 +348,17 @@ public class ColossalCombatRound implements Listener {
                 dropFlag(killed);
             }
         }
+        colossalCombatGame.addDeath(killed.getUniqueId());
         if (firstPlaceParticipants.contains(killed)) {
             firstPlaceParticipantsAlive.put(killed.getUniqueId(), false);
+            updateAliveCount(firstPlaceParticipantsAlive, firstTeamName);
             if (allParticipantsAreDead(firstPlaceParticipantsAlive)) {
                 onSecondPlaceTeamWin();
                 return;
             }
         } else if (secondPlaceParticipants.contains(killed)) {
             secondPlaceParticipantsAlive.put(killed.getUniqueId(), false);
+            updateAliveCount(secondPlaceParticipantsAlive, secondTeamName);
             if (allParticipantsAreDead(secondPlaceParticipantsAlive)) {
                 onFirstPlaceTeamWin();
                 return;
@@ -353,6 +367,10 @@ public class ColossalCombatRound implements Listener {
         if (shouldStartCaptureTheFlag()) {
             startCaptureTheFlagCountdown();
         }
+    }
+    
+    private void onParticipantGetKill(@NotNull Player killer) {
+        colossalCombatGame.addKill(killer.getUniqueId());
     }
     
     /**
@@ -365,9 +383,19 @@ public class ColossalCombatRound implements Listener {
         if (captureTheFlagStarted) {
             return false;
         }
-        long firstCount = firstPlaceParticipantsAlive.values().stream().filter(alive -> alive).count();
-        long secondCount = secondPlaceParticipantsAlive.values().stream().filter(alive -> alive).count();
+        long firstCount = countLivingParticipants(firstPlaceParticipantsAlive);
+        long secondCount = countLivingParticipants(secondPlaceParticipantsAlive);
         return firstCount <= config.getCaptureTheFlagMaximumPlayers() && secondCount <= config.getCaptureTheFlagMaximumPlayers();
+    }
+    
+    private long countLivingParticipants(Map<UUID, Boolean> participantsAlive) {
+        return participantsAlive.values().stream().filter(alive -> alive).count();
+    }
+    
+    private void updateAliveCount(@NotNull Map<UUID, Boolean> participantsAlive, @NotNull String teamId) {
+        int alive = (int) countLivingParticipants(participantsAlive);
+        int dead = participantsAlive.size() - alive;
+        topbar.setMembers(teamId, alive, dead);
     }
     
     private void startCaptureTheFlagCountdown() {
@@ -461,23 +489,23 @@ public class ColossalCombatRound implements Listener {
             @Override
             public void run() {
                 if (count <= 0) {
-                    sidebar.updateLine("timer", "");
                     adminSidebar.updateLine("timer", "");
+                    topbar.setMiddle(Component.empty());
                     startRound();
                     this.cancel();
                     return;
                 }
                 String timeLeft = TimeStringUtils.getTimeString(count);
-                sidebar.updateLine("timer", String.format("Starting: %s", timeLeft));
                 adminSidebar.updateLine("timer", String.format("Starting: %s", timeLeft));
+                topbar.setMiddle(Component.text(timeLeft));
                 count--;
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
     }
     
     private void initializeSidebar() {
-        sidebar.updateLine("timer", "Starting:");
         adminSidebar.updateLine("timer", "Starting:");
+        topbar.setMiddle(Component.empty());
     }
     
     private void openGates() {

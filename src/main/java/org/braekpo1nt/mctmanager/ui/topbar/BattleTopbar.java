@@ -42,7 +42,7 @@ public class BattleTopbar {
     protected static class PlayerData {
         private final @NotNull FormattedBar bossBar;
         private @Nullable String teamId;
-        private final @NotNull KillDeathComponent killDeathComponent = new KillDeathComponent();
+        private @Nullable KillDeathComponent killDeathComponent;
     }
     
     /**
@@ -313,6 +313,9 @@ public class BattleTopbar {
      */
     public void setKills(@NotNull UUID playerUUID, int kills) {
         PlayerData playerData = getPlayerData(playerUUID);
+        if (playerData.getKillDeathComponent() == null) {
+            playerData.setKillDeathComponent(new KillDeathComponent());
+        }
         playerData.getKillDeathComponent().setKills(kills);
         playerData.getBossBar().setRight(playerData.getKillDeathComponent().toComponent());
     }
@@ -323,6 +326,9 @@ public class BattleTopbar {
      */
     public void setDeaths(@NotNull UUID playerUUID, int deaths) {
         PlayerData playerData = getPlayerData(playerUUID);
+        if (playerData.getKillDeathComponent() == null) {
+            playerData.setKillDeathComponent(new KillDeathComponent());
+        }
         playerData.getKillDeathComponent().setDeaths(deaths);
         playerData.getBossBar().setRight(playerData.getKillDeathComponent().toComponent());
     }
@@ -334,6 +340,9 @@ public class BattleTopbar {
      */
     public void setKillsAndDeaths(@NotNull UUID playerUUID, int kills, int deaths) {
         PlayerData playerData = getPlayerData(playerUUID);
+        if (playerData.getKillDeathComponent() == null) {
+            playerData.setKillDeathComponent(new KillDeathComponent());
+        }
         playerData.getKillDeathComponent().setKills(kills);
         playerData.getKillDeathComponent().setDeaths(deaths);
         playerData.getBossBar().setRight(playerData.getKillDeathComponent().toComponent());

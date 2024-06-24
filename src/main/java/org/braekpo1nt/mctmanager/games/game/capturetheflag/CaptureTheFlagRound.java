@@ -174,6 +174,13 @@ public class CaptureTheFlagRound {
         initializeParticipant(participant);
         if (match.isActive()) {
             match.onParticipantJoin(participant);
+        } else {
+            MatchPairing matchPairing = match.getMatchPairing();
+            if (matchPairing.northTeam().equals(teamId)) {
+                topbar.linkToTeam(participant.getUniqueId(), teamId);
+            } else if (matchPairing.southTeam().equals(teamId)) {
+                topbar.linkToTeam(participant.getUniqueId(), teamId);
+            }
         }
     }
     
