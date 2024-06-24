@@ -1,8 +1,7 @@
-package org.braekpo1nt.mctmanager.ui.topbar;
+package org.braekpo1nt.mctmanager.ui.topbar.components;
 
 import lombok.Data;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.TextComponent;
 import org.jetbrains.annotations.NotNull;
 
 /**
