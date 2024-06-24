@@ -223,8 +223,8 @@ public class BattleTopbar {
     
     /**
      * Unlink the given player from their team. 
-     * @param playerUUID the UUID of the player to remove this. Must already be linked to a teamId in this BattleTopbar.
-     * @throws IllegalArgumentException if they are not already linked to a team, or if they are not in this BattleTopbar
+     * @param playerUUID the UUID of the player to remove this. Must already be linked to a teamId in this Topbar.
+     * @throws IllegalArgumentException if they are not already linked to a team, or if they are not in this Topbar
      */
     public void unlinkFromTeam(@NotNull UUID playerUUID) {
         PlayerData playerData = getPlayerData(playerUUID);
@@ -267,26 +267,6 @@ public class BattleTopbar {
             playerData.getBossBar().hide();
         }
         playerDatas.clear();
-    }
-    
-    /**
-     * Set the left display of the BattleTopbar to the given component
-     * @param left the component to set the left section to
-     */
-    public void setLeft(@NotNull Component left) {
-        for (PlayerData playerData : playerDatas.values()) {
-            playerData.getBossBar().setLeft(left);
-        }
-    }
-    
-    /**
-     * Set the left display of the BattleTopbar to the given component, specifically for one player
-     * @param playerUUID the player to set the left section for
-     * @param left the component to set the left section to
-     */
-    public void setLeft(@NotNull UUID playerUUID, @NotNull Component left) {
-        PlayerData playerData = getPlayerData(playerUUID);
-        playerData.getBossBar().setLeft(left);
     }
     
     /**

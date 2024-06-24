@@ -119,11 +119,12 @@ public class ManyBattleTopbar {
     }
     
     /**
-     * Add a new team to this Topbar
+     * Add a new team to this Topbar. Updates appropriate BossBar displays. 
      * @param teamId the teamId of the team to add
      */
     public void addTeam(@NotNull String teamId, @NotNull TextColor teamColor) {
         teamDatas.put(teamId, new TeamData(new VersusManyComponent(new TeamComponent(0, teamColor))));
+        update();
     }
     
     /**
@@ -159,6 +160,23 @@ public class ManyBattleTopbar {
         Preconditions.checkArgument(playerData.getTeamId() == null, "player with UUID \"%s\" is already linked to a team in this bar: \"%s\"", playerUUID, playerData.getTeamId());
         
         teamData.getViewingMembers().add(playerUUID);
+        playerData.setTeamId(teamId);
+        
+        update(playerData);
+    }
+    
+    /**
+     * Unlink the given player from their team. 
+     * @param playerUUID the UUID of the player to remove this. Must already be linked to a teamId in this Topbar.
+     * @throws IllegalArgumentException if they are not already linked to a team, or if they are not in this Topbar
+     */
+    public void unlinkFromTeam(@NotNull UUID playerUUID) {
+        PlayerData playerData = getPlayerData(playerUUID);
+        Preconditions.checkArgument(playerData.getTeamId() != null, "player with UUID \"%s\" is not linked to any team", playerUUID);
+        String teamId = playerData.getTeamId();
+        TeamData teamData = getTeamData(teamId);
+        
+        teamData.getViewingMembers().remove(playerUUID);
         playerData.setTeamId(teamId);
         
         update(playerData);
