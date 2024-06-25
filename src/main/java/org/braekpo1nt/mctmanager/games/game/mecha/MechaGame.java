@@ -180,12 +180,12 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     private void initializeParticipant(Player participant) {
         participants.add(participant);
         livingPlayers.add(participant.getUniqueId());
-        initializeKillCount(participant);
         String teamId = gameManager.getTeamName(participant.getUniqueId());
         livingMembers.compute(teamId, (k, oldAliveCount) -> 
                 oldAliveCount == null ? 0 : oldAliveCount + 1);
         sidebar.addPlayer(participant);
         topbar.showPlayer(participant);
+        initializeKillCount(participant);
         participant.setGameMode(GameMode.ADVENTURE);
         participant.getInventory().clear();
         ParticipantInitializer.resetHealthAndHunger(participant);
@@ -970,6 +970,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
                 new KeyLine("timer", ChatColor.LIGHT_PURPLE+"Border: 0:00"),
                 new KeyLine("invuln", "")
         );
+        topbar.setMiddle(Component.empty());
     }
     
     private void clearSidebar() {
