@@ -324,7 +324,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
             }
             initializeParticipant(participant);
             topbar.linkToTeam(participant.getUniqueId(), teamId);
-            topbar.setMembers(teamId, livingMembers.get(teamId), getDeadMembers(teamId));
+            updateAliveCount(teamId);
             if (!mechaHasStarted) {
                 List<String> teams = gameManager.getTeamNames(participants);
                 createPlatforms(teams);
@@ -354,6 +354,19 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
             }
         }
         return count;
+    }
+    
+    /**
+     * @return a list of the teamIds of the teams which are still alive (have at least 1 living member)
+     */
+    private @NotNull List<String> getLivingTeamIds() {
+        return livingMembers.entrySet().stream().filter(entry -> entry.getValue() > 0).map(Map.Entry::getKey).toList();
+    }
+    
+    private void updateAliveCount(@NotNull String teamId) {
+        int alive = livingMembers.get(teamId);
+        int dead = getDeadMembers(teamId);
+        topbar.setMembers(teamId, alive, dead);
     }
     
     private void rejoinParticipant(Player participant) {
@@ -429,7 +442,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
             @Override
             public void run() {
                 if (count <= 0) {
-                    sidebar.updateLine("timer", "");
+                    topbar.setMiddle(Component.empty());
                     adminSidebar.updateLine("timer", "");
                     descriptionShowing = false;
                     startStartMechaCountdownTask();
@@ -438,7 +451,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
                 }
                 String timeLeft = TimeStringUtils.getTimeString(count);
                 String timerString = String.format("Starting soon: %s", timeLeft);
-                sidebar.updateLine("timer", timerString);
+                topbar.setMiddle(Component.text(timeLeft));
                 adminSidebar.updateLine("timer", timerString);
                 count--;
             }
@@ -458,7 +471,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
                 }
                 String timeLeft = TimeStringUtils.getTimeString(count);
                 String message = String.format("Starting: %s", timeLeft);
-                sidebar.updateLine("timer", message);
+                topbar.setMiddle(Component.text(timeLeft));
                 adminSidebar.updateLine("timer", message);
                 count--;
             }
@@ -545,7 +558,8 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     
     private void startSuddenDeath() {
         String message = String.format("%sSudden death", ChatColor.RED);
-        sidebar.updateLine("timer", message);
+        topbar.setMiddle(Component.text("Sudden death")
+                .color(NamedTextColor.RED));
         adminSidebar.updateLine("timer", message);
         messageAllParticipants(Component.text("Sudden death!"));
     }
@@ -806,6 +820,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         livingMembers.compute(teamId, (k, aliveCount) -> 
                 aliveCount == null ? 0 : aliveCount - 1);
         addDeath(killedUUID);
+        updateAliveCount(teamId);
         if (livingMembers.get(teamId) <= 0) {
             onTeamDeath(teamId);
         }
@@ -848,13 +863,6 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
                 onTeamWin(deadTeam);
             }
         }
-    }
-    
-    /**
-     * @return a list of the teamIds of the teams which are still alive (have at least 1 living member)
-     */
-    private @NotNull List<String> getLivingTeamIds() {
-        return livingMembers.entrySet().stream().filter(entry -> entry.getValue() > 0).map(Map.Entry::getKey).toList();
     }
     
     private int calculateExpPoints(int level) {
@@ -1023,6 +1031,8 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         String timeString = TimeStringUtils.getTimeString(duration);
         String message = String.format("%sShrinking: %s", ChatColor.RED, timeString);
         sidebar.updateLine("timer", message);
+        topbar.setMiddle(Component.text(timeString)
+                .color(NamedTextColor.RED));
         adminSidebar.updateLine("timer", message);
     }
     
@@ -1034,6 +1044,8 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         String timeString = TimeStringUtils.getTimeString(delay);
         String message = String.format("%sBorder: %s", ChatColor.LIGHT_PURPLE, timeString);
         sidebar.updateLine("timer", message);
+        topbar.setMiddle(Component.text(timeString)
+                .color(NamedTextColor.LIGHT_PURPLE));
         adminSidebar.updateLine("timer", message);
     }
     
