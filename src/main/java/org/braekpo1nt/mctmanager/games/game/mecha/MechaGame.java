@@ -817,11 +817,12 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         UUID killedUUID = killed.getUniqueId();
         switchPlayerFromLivingToDead(killedUUID);
         String teamId = gameManager.getTeamName(killedUUID);
-        livingMembers.compute(teamId, (k, aliveCount) -> 
-                aliveCount == null ? 0 : aliveCount - 1);
+        int oldLivingMembers = livingMembers.get(teamId);
+        livingMembers.put(teamId, oldLivingMembers - 1);
         addDeath(killedUUID);
         updateAliveCount(teamId);
         if (livingMembers.get(teamId) <= 0) {
+            plugin.getLogger().info("living members is less than or equal to 0");
             onTeamDeath(teamId);
         }
     }
