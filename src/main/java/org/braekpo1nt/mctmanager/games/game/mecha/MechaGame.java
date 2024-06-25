@@ -371,10 +371,10 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     
     private void rejoinParticipant(Player participant) {
         participants.add(participant);
-        initializeKillCount(participant);
         participant.setGameMode(GameMode.SPECTATOR);
         sidebar.addPlayer(participant);
         topbar.showPlayer(participant);
+        initializeKillCount(participant);
         String teamId = gameManager.getTeamName(participant.getUniqueId());
         topbar.linkToTeam(participant.getUniqueId(), teamId);
     }
