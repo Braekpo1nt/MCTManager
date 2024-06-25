@@ -314,6 +314,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         if (participantShouldRejoin(participant)) {
             rejoinParticipant(participant);
         } else {
+            deadPlayers.remove(participant.getUniqueId());
             String teamId = gameManager.getTeamName(participant.getUniqueId());
             if (!livingMembers.containsKey(teamId)) {
                 NamedTextColor color = gameManager.getTeamNamedTextColor(teamId);
@@ -386,7 +387,8 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         if (!mechaHasStarted) {
             return false;
         }
-        return deadPlayers.contains(participant.getUniqueId());
+        String teamId = gameManager.getTeamName(participant.getUniqueId());
+        return livingMembers.containsKey(teamId) && deadPlayers.contains(participant.getUniqueId());
     }
     
     @Override
