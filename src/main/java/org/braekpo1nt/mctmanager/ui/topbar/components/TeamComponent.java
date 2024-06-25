@@ -1,4 +1,4 @@
-package org.braekpo1nt.mctmanager.ui.topbar;
+package org.braekpo1nt.mctmanager.ui.topbar.components;
 
 import com.google.common.base.Preconditions;
 import net.kyori.adventure.text.Component;

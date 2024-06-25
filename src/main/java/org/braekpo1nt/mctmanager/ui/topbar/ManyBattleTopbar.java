@@ -1,13 +1,13 @@
 package org.braekpo1nt.mctmanager.ui.topbar;
 
-
 import com.google.common.base.Preconditions;
 import lombok.Data;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
 import org.braekpo1nt.mctmanager.ui.topbar.components.KillDeathComponent;
 import org.braekpo1nt.mctmanager.ui.topbar.components.TeamComponent;
-import org.braekpo1nt.mctmanager.ui.topbar.components.VersusComponent;
+import org.braekpo1nt.mctmanager.ui.topbar.components.VersusManyComponent;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -15,34 +15,25 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 /**
- * An implementation of a Topbar specifically oriented toward pairs of teams fighting each other.
- * You can add pairs of fighting teams, and add members to them. Then you can add viewers of
- * the Topbar, and each viewer is associated with one of the teams.
+ * An implementation of a Topbar specifically oriented towards many teams fighting each other.
+ * You can add teams, and add members to them. Then you can add viewers of the Topbar,
+ * and each viewer is associated with one of the teams.
  */
-public class BattleTopbar {
+public class ManyBattleTopbar {
     
     @Data
-    private static class TeamData {
+    protected static class TeamData {
+        private final VersusManyComponent versusManyComponent;
         /**
-         * Holds info about who is dead and alive, and provides an easy way to
-         * display that information to the user.
+         * how many players are alive on this team
          */
-        private final VersusComponent versusComponent;
-        /**
-         * The enemy team associated with this TeamData. This is useful for
-         * updating the displays of both sides of a conflict.
-         */
-        private final String enemyTeam;
-        /**
-         * the UUIDs of the players who are viewing this TeamData in their
-         * BossBar display. This is useful for updating all appropriate 
-         * displays when this TeamData is changed.
-         */
+        private int aliveCount = 0;
+        private final TextColor color;
         private final List<UUID> viewingMembers = new ArrayList<>();
     }
     
     @Data
-    private static class PlayerData {
+    protected static class PlayerData {
         private final @NotNull FormattedBar bossBar;
         private @Nullable String teamId;
         private @Nullable KillDeathComponent killDeathComponent;
@@ -53,27 +44,19 @@ public class BattleTopbar {
      */
     private final Map<String, TeamData> teamDatas = new HashMap<>();
     /**
-     * Each player's PlayerData
+     * each player's PlayerData
      */
     private final Map<UUID, PlayerData> playerDatas = new HashMap<>();
     /**
      * the component to use as the default left section of the BossBar display
      * if the viewing player is not linked to a team. 
-     * @see BattleTopbar#linkToTeam(UUID, String) 
-     * @see BattleTopbar#unlinkFromTeam(UUID) 
+     * @see BattleTopbar#linkToTeam(UUID, String)
+     * @see BattleTopbar#unlinkFromTeam(UUID)
      */
     protected @NotNull Component noTeamLeft;
     
-    public BattleTopbar() {
+    public ManyBattleTopbar() {
         this.noTeamLeft = Component.empty();
-    }
-    
-    /**
-     * @param noTeamLeft the component to use as the default left section of the 
-     *                   BossBar display if the viewing player is not linked to a team.
-     */
-    public BattleTopbar(@NotNull Component noTeamLeft) {
-        this.noTeamLeft = noTeamLeft;
     }
     
     /**
@@ -88,9 +71,9 @@ public class BattleTopbar {
     }
     
     /**
-     * @param teamId the teamId of the TeamData. Must be a valid key in {@link BattleTopbar#teamDatas} 
-     * @return the {@link TeamData} associated with this team
-     * @throws IllegalArgumentException if the teamId is not contained in {@link BattleTopbar#teamDatas}
+     * @param teamId the teamId of the TeamData. Must be a valid key in {@link ManyBattleTopbar#teamDatas}
+     * @return the {@link ManyBattleTopbar.TeamData} associated with this team
+     * @throws IllegalArgumentException if the teamId is not contained in {@link ManyBattleTopbar#teamDatas}
      */
     private @NotNull TeamData getTeamData(@NotNull String teamId) {
         TeamData teamData = teamDatas.get(teamId);
@@ -99,9 +82,9 @@ public class BattleTopbar {
     }
     
     /**
-     * @param playerUUID the UUID of the PlayerData. Must be a valid key in {@link BattleTopbar#playerDatas}
-     * @return the {@link PlayerData} associated with this UUID
-     * @throws IllegalArgumentException if the UUID is not contained in {@link BattleTopbar#playerDatas}
+     * @param playerUUID the UUID of the PlayerData. Must be a valid key in {@link ManyBattleTopbar#playerDatas}
+     * @return the {@link ManyBattleTopbar.PlayerData} associated with this UUID
+     * @throws IllegalArgumentException if the UUID is not contained in {@link ManyBattleTopbar#playerDatas}
      */
     private @NotNull PlayerData getPlayerData(@NotNull UUID playerUUID) {
         PlayerData playerData = playerDatas.get(playerUUID);
@@ -110,48 +93,15 @@ public class BattleTopbar {
     }
     
     /**
-     * Add a pair of teams to this BattleTopbar. The two teams should be opposing each other.
-     * @param teamAId a team involved in the pair
-     * @param teamAColor the color of the team
-     * @param teamBId another team involved in the pair
-     * @param teamBColor the color of the other team
+     * To be called when the number of living or dead members changes on any team.
+     * Updates all views to reflect the new number of living members on the specific team.
      */
-    public void addTeamPair(
-            @NotNull String teamAId, @NotNull TextColor teamAColor, 
-            @NotNull String teamBId, @NotNull TextColor teamBColor) {
-        VersusComponent versusComponentA = new VersusComponent(
-                new TeamComponent(0, teamAColor),
-                new TeamComponent(0, teamBColor)
-        );
-        teamDatas.put(teamAId, new TeamData(versusComponentA, teamBId));
-        
-        VersusComponent versusComponentB = new VersusComponent(
-                new TeamComponent(0, teamBColor),
-                new TeamComponent(0, teamAColor)
-        );
-        teamDatas.put(teamBId, new TeamData(versusComponentB, teamAId));
-    }
-    
-    /**
-     * Removes all the team pairs from this Topbar, and unlinks all
-     * players from their teamIds
-     */
-    public void removeAllTeamPairs() {
-        teamDatas.clear();
-        for (PlayerData playerData : playerDatas.values()) {
-            playerData.setTeamId(null);
-            update(playerData);
-        }
-    }
-    
-    /**
-     * Updates all the given {@link TeamData#getViewingMembers()}' BossBars with the given {@link TeamData#getVersusComponent()}
-     * @param teamData the TeamData to update all the members' bossBars. Each member is expected to be a valid key in {@link BattleTopbar#playerDatas}. 
-     */
-    private void update(@NotNull TeamData teamData) {
-        for (UUID member : teamData.getViewingMembers()) {
-            PlayerData playerData = getPlayerData(member);
-            playerData.getBossBar().setLeft(teamData.getVersusComponent().toComponent());
+    private void update() {
+        for (TeamData teamData : teamDatas.values()) {
+            for (UUID member : teamData.getViewingMembers()) {
+                PlayerData playerData = getPlayerData(member);
+                playerData.getBossBar().setLeft(teamData.getVersusManyComponent().toComponent());
+            }
         }
     }
     
@@ -167,40 +117,56 @@ public class BattleTopbar {
             return;
         }
         TeamData teamData = getTeamData(playerData.getTeamId());
-        playerData.getBossBar().setLeft(teamData.getVersusComponent().toComponent());
+        playerData.getBossBar().setLeft(teamData.getVersusManyComponent().toComponent());
     }
     
     /**
-     * Set the number of living and dead players on a team. Updates all applicable BossBar displays
-     * @param teamId the teamId of the team this member belongs to
+     * Add a new team to this Topbar. Updates appropriate BossBar displays. 
+     * @param teamId the teamId of the team to add
+     */
+    public void addTeam(@NotNull String teamId, @NotNull TextColor teamColor) {
+        TeamData newTeamData = new TeamData(new VersusManyComponent(new TeamComponent(0, teamColor)), teamColor);
+        teamDatas.put(teamId, newTeamData);
+        for (Map.Entry<String, TeamData> entry : teamDatas.entrySet()) {
+            String opponentTeamId = entry.getKey();
+            if (!opponentTeamId.equals(teamId)) {
+                TeamData teamData = entry.getValue();
+                teamData.getVersusManyComponent().getOpponents().addTeam(teamId, teamColor);
+                newTeamData.getVersusManyComponent().getOpponents().addTeam(opponentTeamId, teamData.getColor());
+            }
+        }
+        update();
+    }
+    
+    /**
+     * Removes all the teams from this Topbar, and unlinks all players from their teamIds
+     */
+    public void removeAllTeams() {
+        teamDatas.clear();
+        for (PlayerData playerData : playerDatas.values()) {
+            playerData.setTeamId(null);
+            update(playerData);
+        }
+    }
+    
+    /**
+     * Set the number of living and dead players on a team. The members of that team will see the left part of the {@link VersusManyComponent} updated, and all other viewers will see the right part updated. 
+     * @param teamId the teamId to set the living/dead members for
      * @param living the number of living players on the team
      * @param dead the number of dead players on the team
      */
     public void setMembers(@NotNull String teamId, int living, int dead) {
         Preconditions.checkArgument(living >= 0, "living can't be negative");
-        Preconditions.checkArgument(dead >= 0, "dead can't be negative");
         TeamData teamData = getTeamData(teamId);
-        teamData.getVersusComponent().getLeft().setMembers(living, dead);
-        TeamData enemyTeamData = getTeamData(teamData.getEnemyTeam());
-        enemyTeamData.getVersusComponent().getRight().setMembers(living, dead);
-        update(teamData);
-        update(enemyTeamData);
-    }
-    
-    /**
-     * Make the given player see this Topbar. Please note that this player will start off
-     * as not being associated with a teamId. Use {@link BattleTopbar#linkToTeam(UUID, String)}
-     * to make the appropriate association.
-     * @param player the player to show this Topbar to
-     */
-    public void showPlayer(@NotNull Player player) {
-        Preconditions.checkArgument(!playerDatas.containsKey(player.getUniqueId()), "player with UUID \"%s\" already exists in this BattleTopbar", player.getUniqueId());
-        
-        FormattedBar bossBar = new FormattedBar(player);
-        bossBar.show();
-        PlayerData playerData = new PlayerData(bossBar);
-        playerDatas.put(player.getUniqueId(), playerData);
-        update(playerData);
+        teamData.getVersusManyComponent().getFriendly().setMembers(living, dead);
+        for (Map.Entry<String, TeamData> entry : teamDatas.entrySet()) {
+            if (!entry.getKey().equals(teamId)) {
+                TeamData eachTeamData = entry.getValue();
+                eachTeamData.getVersusManyComponent()
+                        .getOpponents().setAliveCount(teamId, living);
+            }
+        }
+        update();
     }
     
     /**
@@ -235,6 +201,21 @@ public class BattleTopbar {
         teamData.getViewingMembers().remove(playerUUID);
         playerData.setTeamId(teamId);
         
+        update(playerData);
+    }
+    
+    /**
+     * Make the given player see this Topbar. Please note that this player will start off
+     * as not being associated with a teamId. Use {@link ManyBattleTopbar#linkToTeam(UUID, String)}
+     * to make the appropriate association.
+     * @param player the player to show this Topbar to
+     */
+    public void showPlayer(@NotNull Player player) {
+        Preconditions.checkArgument(!playerDatas.containsKey(player.getUniqueId()), "player with UUID \"%s\" already exists in this ManyBattleTopbar", player.getUniqueId());
+        FormattedBar bossBar = new FormattedBar(player);
+        bossBar.show();
+        PlayerData playerData = new PlayerData(bossBar);
+        playerDatas.put(player.getUniqueId(), playerData);
         update(playerData);
     }
     

@@ -180,7 +180,6 @@ class MechaConfigDTO implements Validatable {
                 YawPitch direction = EntityUtils.getPlayerLookAtYawPitch(new Vector(spawnX, spawnY, spawnZ), this.platformCenter);
                 spawnYaw = direction.yaw();
                 spawnPitch = direction.pitch();
-                Bukkit.getLogger().info(String.format("%s: yaw=%s, pitch=%s", i+1, spawnYaw, spawnPitch));
             }
             newPlatformSpawns.add(new Location(newWorld, spawnX, spawnY, spawnZ, spawnYaw, spawnPitch));
         }

@@ -53,8 +53,8 @@ public class ColossalCombatGame implements Listener, Configurable {
     private List<Player> firstPlaceParticipants = new ArrayList<>();
     private List<Player> secondPlaceParticipants = new ArrayList<>();
     private List<Player> spectators = new ArrayList<>();
-    private Map<UUID, Integer> killCount = new HashMap<>();
-    private Map<UUID, Integer> deathCount = new HashMap<>();
+    private Map<UUID, Integer> killCounts = new HashMap<>();
+    private Map<UUID, Integer> deathCounts = new HashMap<>();
     private List<Player> admins = new ArrayList<>();
     private List<ColossalCombatRound> rounds = new ArrayList<>();
     private int currentRoundIndex = 0;
@@ -99,8 +99,8 @@ public class ColossalCombatGame implements Listener, Configurable {
         firstPlaceParticipants = new ArrayList<>(newFirstPlaceParticipants.size());
         secondPlaceParticipants = new ArrayList<>(newSecondPlaceParticipants.size());
         spectators = new ArrayList<>(newSpectators.size());
-        killCount = new HashMap<>(newFirstPlaceParticipants.size() + newSecondPlaceParticipants.size());
-        deathCount = new HashMap<>(newFirstPlaceParticipants.size() + newSecondPlaceParticipants.size());
+        killCounts = new HashMap<>(newFirstPlaceParticipants.size() + newSecondPlaceParticipants.size());
+        deathCounts = new HashMap<>(newFirstPlaceParticipants.size() + newSecondPlaceParticipants.size());
         sidebar = gameManager.getSidebarFactory().createSidebar();
         adminSidebar = gameManager.getSidebarFactory().createSidebar();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
@@ -140,10 +140,10 @@ public class ColossalCombatGame implements Listener, Configurable {
     }
     
     private void initializeKillCount(Player participant) {
-        killCount.putIfAbsent(participant.getUniqueId(), 0);
-        deathCount.putIfAbsent(participant.getUniqueId(), 0);
-        int kills = killCount.get(participant.getUniqueId());
-        int deaths = deathCount.get(participant.getUniqueId());
+        killCounts.putIfAbsent(participant.getUniqueId(), 0);
+        deathCounts.putIfAbsent(participant.getUniqueId(), 0);
+        int kills = killCounts.get(participant.getUniqueId());
+        int deaths = deathCounts.get(participant.getUniqueId());
         topbar.setKillsAndDeaths(participant.getUniqueId(), kills, deaths);
     }
     
@@ -299,6 +299,8 @@ public class ColossalCombatGame implements Listener, Configurable {
         }
         clearSidebar();
         stopAdmins();
+        killCounts.clear();
+        deathCounts.clear();
         spectators.clear();
         gameManager.getEventManager().colossalCombatIsOver(winningTeam);
         Bukkit.getLogger().info("Stopping Colossal Combat");
@@ -539,9 +541,9 @@ public class ColossalCombatGame implements Listener, Configurable {
      * @param playerUUID the player to add a kill to
      */
     void addKill(@NotNull UUID playerUUID) {
-        int oldKillCount = killCount.get(playerUUID);
+        int oldKillCount = killCounts.get(playerUUID);
         int newKillCount = oldKillCount + 1;
-        killCount.put(playerUUID, newKillCount);
+        killCounts.put(playerUUID, newKillCount);
         topbar.setKills(playerUUID, newKillCount);
     }
     
@@ -549,9 +551,9 @@ public class ColossalCombatGame implements Listener, Configurable {
      * @param playerUUID the player to add a death to
      */
     void addDeath(@NotNull UUID playerUUID) {
-        int oldDeathCount = deathCount.get(playerUUID);
+        int oldDeathCount = deathCounts.get(playerUUID);
         int newDeathCount = oldDeathCount + 1;
-        deathCount.put(playerUUID, newDeathCount);
+        deathCounts.put(playerUUID, newDeathCount);
         topbar.setDeaths(playerUUID, newDeathCount);
     }
     
