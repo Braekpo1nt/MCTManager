@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.meta;
 import com.destroystokyo.paper.Namespaced;
 import lombok.Data;
 import net.kyori.adventure.text.Component;
+import org.braekpo1nt.mctmanager.config.dto.org.bukkit.persistence.PersistentDataContainerDTO;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.bukkit.Material;
@@ -33,6 +34,7 @@ public class ItemMetaDTOImpl implements ItemMetaDTO, Validatable {
     protected @Nullable Set<Namespaced> destroyableKeys;
     protected @Nullable Set<Namespaced> placeableKeys;
     protected @Nullable Integer customModelData;
+    protected @Nullable PersistentDataContainerDTO persistentDataContainer;
     
     @Override
     public Component displayName() {
@@ -82,6 +84,11 @@ public class ItemMetaDTOImpl implements ItemMetaDTO, Validatable {
     }
     
     @Override
+    public @Nullable PersistentDataContainerDTO getPersistentDataContainerDTO() {
+        return persistentDataContainer;
+    }
+    
+    @Override
     public void validate(@NotNull Validator validator) {
         // nothing to validate
     }
@@ -109,6 +116,9 @@ public class ItemMetaDTOImpl implements ItemMetaDTO, Validatable {
                     meta.addAttributeModifier(entry.getKey(), modifier);
                 }
             }
+        }
+        if (persistentDataContainer != null) {
+            persistentDataContainer.toPersistentDataContainer(meta.getPersistentDataContainer());
         }
         if (customModelData != null) {
             meta.setCustomModelData(customModelData);
