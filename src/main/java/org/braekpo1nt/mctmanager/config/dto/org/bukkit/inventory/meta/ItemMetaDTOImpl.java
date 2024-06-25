@@ -110,6 +110,9 @@ public class ItemMetaDTOImpl implements ItemMetaDTO, Validatable {
                 }
             }
         }
+        if (customModelData != null) {
+            meta.setCustomModelData(customModelData);
+        }
         if (destroyableKeys != null) {
             meta.setDestroyableKeys(destroyableKeys);
         }
