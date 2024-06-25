@@ -18,12 +18,6 @@ import java.util.Map;
  */
 public class ManyTeamsComponent {
     
-    public void setAliveCount(@NotNull String teamId, int aliveCount) {
-        Team team = teams.get(teamId);
-        Preconditions.checkArgument(team != null, "teamId \"%s\" is not contained in this ManyTeamsComponent");
-        team.setAliveCount(aliveCount);
-    }
-    
     @Data
     @AllArgsConstructor
     private static class Team {
@@ -50,6 +44,12 @@ public class ManyTeamsComponent {
     
     public void addTeam(@NotNull String teamId, @NotNull TextColor color) {
         teams.put(teamId, new Team(0, color));
+    }
+    
+    public void setAliveCount(@NotNull String teamId, int aliveCount) {
+        Team team = teams.get(teamId);
+        Preconditions.checkArgument(team != null, "teamId \"%s\" is not contained in this ManyTeamsComponent", teamId);
+        team.setAliveCount(aliveCount);
     }
     
     public Component toComponent() {

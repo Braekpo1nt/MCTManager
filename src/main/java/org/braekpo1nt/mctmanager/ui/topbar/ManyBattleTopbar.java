@@ -27,6 +27,7 @@ public class ManyBattleTopbar {
          * how many players are alive on this team
          */
         private int aliveCount = 0;
+        private final TextColor color;
         private final List<UUID> viewingMembers = new ArrayList<>();
     }
     
@@ -123,7 +124,16 @@ public class ManyBattleTopbar {
      * @param teamId the teamId of the team to add
      */
     public void addTeam(@NotNull String teamId, @NotNull TextColor teamColor) {
-        teamDatas.put(teamId, new TeamData(new VersusManyComponent(new TeamComponent(0, teamColor))));
+        TeamData newTeamData = new TeamData(new VersusManyComponent(new TeamComponent(0, teamColor)), teamColor);
+        teamDatas.put(teamId, newTeamData);
+        for (Map.Entry<String, TeamData> entry : teamDatas.entrySet()) {
+            String opponentTeamId = entry.getKey();
+            if (!opponentTeamId.equals(teamId)) {
+                TeamData teamData = entry.getValue();
+                teamData.getVersusManyComponent().getOpponents().addTeam(teamId, teamColor);
+                newTeamData.getVersusManyComponent().getOpponents().addTeam(opponentTeamId, teamData.getColor());
+            }
+        }
         update();
     }
     
