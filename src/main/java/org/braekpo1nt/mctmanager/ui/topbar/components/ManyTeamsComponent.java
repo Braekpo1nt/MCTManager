@@ -25,7 +25,7 @@ public class ManyTeamsComponent {
         private final TextColor color;
         
         public Component toComponent() {
-            if (aliveCount <= 0) {
+            if (aliveCount > 0) {
                 return Component.empty()
                         .append(Component.text(aliveCount)
                                 .color(color));

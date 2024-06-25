@@ -7,6 +7,7 @@ import net.kyori.adventure.text.format.TextColor;
 import org.braekpo1nt.mctmanager.ui.topbar.components.KillDeathComponent;
 import org.braekpo1nt.mctmanager.ui.topbar.components.TeamComponent;
 import org.braekpo1nt.mctmanager.ui.topbar.components.VersusManyComponent;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -156,6 +157,7 @@ public class ManyBattleTopbar {
      */
     public void setMembers(@NotNull String teamId, int living, int dead) {
         Preconditions.checkArgument(living >= 0, "living can't be negative");
+        Bukkit.getLogger().info(String.format("teamId: %s, living: %d, dead: %d", teamId, living, dead));
         TeamData teamData = getTeamData(teamId);
         teamData.getVersusManyComponent().getFriendly().setMembers(living, dead);
         for (Map.Entry<String, TeamData> entry : teamDatas.entrySet()) {
