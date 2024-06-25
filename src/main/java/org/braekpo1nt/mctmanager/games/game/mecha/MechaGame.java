@@ -329,10 +329,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
                 participant.teleport(config.getPlatformSpawns().get(0));
             }
         }
-        sidebar.updateLines(participant.getUniqueId(),
-                new KeyLine("title", title),
-                new KeyLine("kills", String.format("%sKills: %s", ChatColor.RED, killCounts.get(participant.getUniqueId())))
-        );
+        sidebar.updateLine(participant.getUniqueId(), "title", title);
     }
     
     /**
@@ -477,6 +474,8 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
             @Override
             public void run() {
                 if (count <= 0) {
+                    topbar.setMiddle(Component.empty());
+                    adminSidebar.updateLine("timer", "");
                     startMecha();
                     this.cancel();
                     return;
@@ -537,14 +536,17 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         messageAllParticipants(Component.text("Invulnerable for ")
                 .append(Component.text(invulnerabilityDuration))
                 .append(Component.text("!")));
+        String initialTimer = String.format("Invulnerable: %s", invulnerabilityDuration);
+        sidebar.addLine("invuln", initialTimer);
+        adminSidebar.addLine("invuln", initialTimer);
         this.startInvulnerableTaskID = new BukkitRunnable() {
             private int count = config.getInvulnerabilityDuration();
             
             @Override
             public void run() {
                 if (count <= 0) {
-                    sidebar.updateLine("invuln", "");
-                    adminSidebar.updateLine("invuln", "");
+                    sidebar.deleteLine("invuln");
+                    adminSidebar.deleteLine("invuln");
                     isInvulnerable = false;
                     messageAllParticipants(Component.text("Invulnerability has ended!"));
                     this.cancel();
@@ -964,8 +966,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     private void initializeAdminSidebar() {
         adminSidebar.addLines(
                 new KeyLine("title", title),
-                new KeyLine("timer", ""),
-                new KeyLine("invuln", "")
+                new KeyLine("timer", "")
         );
     }
     
@@ -978,10 +979,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         sidebar.addLines(
                 new KeyLine("personalTeam", ""),
                 new KeyLine("personalScore", ""),
-                new KeyLine("title", title),
-                new KeyLine("kills", ChatColor.RED+"Kills: 0"),
-                new KeyLine("timer", ChatColor.LIGHT_PURPLE+"Border: 0:00"),
-                new KeyLine("invuln", "")
+                new KeyLine("title", title)
         );
         topbar.setMiddle(Component.empty());
     }
@@ -1043,10 +1041,12 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
      */
     private void displayBorderShrinkingFor(int duration) {
         String timeString = TimeStringUtils.getTimeString(duration);
+        topbar.setMiddle(Component.empty()
+                .append(Component.text("Shrinking: "))
+                .append(Component.text(timeString))
+                .color(NamedTextColor.RED)
+        );
         String message = String.format("%sShrinking: %s", ChatColor.RED, timeString);
-        sidebar.updateLine("timer", message);
-        topbar.setMiddle(Component.text(timeString)
-                .color(NamedTextColor.RED));
         adminSidebar.updateLine("timer", message);
     }
     
@@ -1056,10 +1056,12 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
      */
     private void displayBorderDelayFor(int delay) {
         String timeString = TimeStringUtils.getTimeString(delay);
+        topbar.setMiddle(Component.empty()
+                .append(Component.text("Border: "))
+                .append(Component.text(timeString))
+                .color(NamedTextColor.LIGHT_PURPLE)
+        );
         String message = String.format("%sBorder: %s", ChatColor.LIGHT_PURPLE, timeString);
-        sidebar.updateLine("timer", message);
-        topbar.setMiddle(Component.text(timeString)
-                .color(NamedTextColor.LIGHT_PURPLE));
         adminSidebar.updateLine("timer", message);
     }
     
@@ -1135,7 +1137,6 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         int newKillCount = oldKillCount + 1;
         killCounts.put(playerUUID, newKillCount);
         topbar.setKills(playerUUID, newKillCount);
-        sidebar.updateLine(playerUUID, "kills", String.format("%sKills: %s", ChatColor.RED, newKillCount));
     }
     
     /**
