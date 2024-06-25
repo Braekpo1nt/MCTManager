@@ -133,7 +133,7 @@ public class BattleTopbar {
     }
     
     /**
-     * Removes all the team pairs from this BattleTopbar, and unlinks all
+     * Removes all the team pairs from this Topbar, and unlinks all
      * players from their teamIds
      */
     public void removeAllTeamPairs() {

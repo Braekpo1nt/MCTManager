@@ -128,6 +128,17 @@ public class ManyBattleTopbar {
     }
     
     /**
+     * Removes all the teams from this Topbar, and unlinks all players from their teamIds
+     */
+    public void removeAllTeams() {
+        teamDatas.clear();
+        for (PlayerData playerData : playerDatas.values()) {
+            playerData.setTeamId(null);
+            update(playerData);
+        }
+    }
+    
+    /**
      * Set the number of living and dead players on a team. The members of that team will see the left part of the {@link VersusManyComponent} updated, and all other viewers will see the right part updated. 
      * @param teamId the teamId to set the living/dead members for
      * @param living the number of living players on the team

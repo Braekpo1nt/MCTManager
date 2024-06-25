@@ -16,6 +16,7 @@ import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
+import org.braekpo1nt.mctmanager.ui.topbar.ManyBattleTopbar;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.braekpo1nt.mctmanager.utils.MathUtils;
 import org.bukkit.*;
@@ -56,6 +57,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     private final GameManager gameManager;
     private Sidebar sidebar;
     private Sidebar adminSidebar;
+    private final @NotNull ManyBattleTopbar topbar;
     private final MechaConfigController configController;
     private MechaConfig config;
     private boolean gameActive = false;
@@ -68,13 +70,14 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     private int startInvulnerableTaskID;
     private WorldBorder worldBorder;
     private int borderShrinkingTaskId;
+    private List<UUID> livingPlayers = new ArrayList<>();
     /**
-     * A list of all teams who are alive
+     * a map of all teamIds to how many members are alive on that team
      */
-    private List<String> livingTeams = new ArrayList<>();;
-    private List<UUID> livingPlayers = new ArrayList<>();;
+    private Map<String, Integer> livingMembers = new HashMap<>();
     private List<UUID> deadPlayers = new ArrayList<>();
     private Map<UUID, Integer> killCounts = new HashMap<>();
+    private Map<UUID, Integer> deathCounts = new HashMap<>();
     private int descriptionPeriodTaskId;
     private boolean descriptionShowing = false;
     private final String baseTitle = ChatColor.BLUE+"MECHA";
@@ -88,6 +91,15 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         this.plugin = plugin;
         this.gameManager = gameManager;
         this.configController = new MechaConfigController(plugin.getDataFolder());
+        this.topbar = new ManyBattleTopbar();
+    }
+    
+    private void initializeKillCount(Player participant) {
+        killCounts.putIfAbsent(participant.getUniqueId(), 0);
+        deathCounts.putIfAbsent(participant.getUniqueId(), 0);
+        int kills = killCounts.get(participant.getUniqueId());
+        int deaths = deathCounts.get(participant.getUniqueId());
+        topbar.setKillsAndDeaths(participant.getUniqueId(), kills, deaths);
     }
     
     @Override
@@ -121,8 +133,9 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         this.participants = new ArrayList<>(newParticipants.size());
         livingPlayers = new ArrayList<>(newParticipants.size());
         deadPlayers = new ArrayList<>();
-        livingTeams = gameManager.getTeamNames(newParticipants);
+        livingMembers = new HashMap<>(gameManager.getTeamNames(newParticipants).size());
         killCounts = new HashMap<>(newParticipants.size());
+        deathCounts = new HashMap<>(newParticipants.size());
         worldBorder = config.getWorld().getWorldBorder();
         isInvulnerable = false;
         sidebar = gameManager.getSidebarFactory().createSidebar();
@@ -135,6 +148,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         List<String> teams = gameManager.getTeamNames(participants);
         createPlatforms(teams);
         teleportTeams(teams);
+        setUpTopbar(teams);
         initializeSidebar();
         setUpTeamOptions();
         initializeWorldBorder();
@@ -146,16 +160,32 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         Bukkit.getLogger().info("Started mecha");
     }
     
+    private void setUpTopbar(List<String> teamIds) {
+        topbar.removeAllTeams();
+        for (String teamId : teamIds) {
+            NamedTextColor color = gameManager.getTeamNamedTextColor(teamId);
+            topbar.addTeam(teamId, color);
+            topbar.setMembers(teamId, livingMembers.get(teamId), 0);
+        }
+        for (Player participant : participants) {
+            String teamId = gameManager.getTeamName(participant.getUniqueId());
+            topbar.linkToTeam(participant.getUniqueId(), teamId);
+        }
+    }
+    
     private void displayDescription() {
         messageAllParticipants(config.getDescription());
     }
-
+    
     private void initializeParticipant(Player participant) {
         participants.add(participant);
-        UUID participantUniqueId = participant.getUniqueId();
-        livingPlayers.add(participantUniqueId);
-        killCounts.put(participantUniqueId, 0);
+        livingPlayers.add(participant.getUniqueId());
+        initializeKillCount(participant);
+        String teamId = gameManager.getTeamName(participant.getUniqueId());
+        livingMembers.compute(teamId, (k, oldAliveCount) -> 
+                oldAliveCount == null ? 0 : oldAliveCount + 1);
         sidebar.addPlayer(participant);
+        topbar.showPlayer(participant);
         participant.setGameMode(GameMode.ADVENTURE);
         participant.getInventory().clear();
         ParticipantInitializer.resetHealthAndHunger(participant);
@@ -208,7 +238,9 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         participants.clear();
         livingPlayers.clear();
         deadPlayers.clear();
-        livingTeams.clear();
+        livingMembers.clear();
+        killCounts.clear();
+        deathCounts.clear();
         mechaHasStarted = false;
         gameActive = false;
         gameManager.gameIsOver();
@@ -229,7 +261,10 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     
     private void resetParticipant(Player participant) {
         participant.getInventory().clear();
+        ParticipantInitializer.clearStatusEffects(participant);
+        ParticipantInitializer.resetHealthAndHunger(participant);
         sidebar.removePlayer(participant.getUniqueId());
+        topbar.hidePlayer(participant.getUniqueId());
     }
     
     private void clearContainers() {
@@ -282,10 +317,14 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         if (participantShouldRejoin(participant)) {
             rejoinParticipant(participant);
         } else {
-            messageAllParticipants(Component.text(participant.getName())
-                    .append(Component.text(" is joining MECHA!"))
-                    .color(NamedTextColor.YELLOW));
+            String teamId = gameManager.getTeamName(participant.getUniqueId());
+            if (!livingMembers.containsKey(teamId)) {
+                NamedTextColor color = gameManager.getTeamNamedTextColor(teamId);
+                topbar.addTeam(teamId, color);
+            }
             initializeParticipant(participant);
+            topbar.linkToTeam(participant.getUniqueId(), teamId);
+            topbar.setMembers(teamId, livingMembers.get(teamId), getDeadMembers(teamId));
             if (!mechaHasStarted) {
                 List<String> teams = gameManager.getTeamNames(participants);
                 createPlatforms(teams);
@@ -300,11 +339,29 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         );
     }
     
+    /**
+     * @param teamId the teamId of the team to count the dead members of
+     * @return the number of dead players on the given team in this game
+     */
+    private int getDeadMembers(String teamId) {
+        int count = 0;
+        for (Player participant : participants) {
+            if (deadPlayers.contains(participant.getUniqueId())) {
+                String participantTeamId = gameManager.getTeamName(participant.getUniqueId());
+                if (teamId.equals(participantTeamId)) {
+                    count++;
+                }
+            }
+        }
+        return count;
+    }
+    
     private void rejoinParticipant(Player participant) {
-        participant.sendMessage(ChatColor.YELLOW + "You have rejoined MECHA");
         participants.add(participant);
+        initializeKillCount(participant);
         participant.setGameMode(GameMode.SPECTATOR);
         sidebar.addPlayer(participant);
+        topbar.showPlayer(participant);
     }
     
     /**
@@ -743,11 +800,14 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     }
 
     private void onParticipantDeath(Player killed) {
-        UUID killedUniqueId = killed.getUniqueId();
-        switchPlayerFromLivingToDead(killedUniqueId);
-        String teamName = gameManager.getTeamName(killedUniqueId);
-        if (teamIsAllDead(teamName)) {
-            onTeamDeath(teamName);
+        UUID killedUUID = killed.getUniqueId();
+        switchPlayerFromLivingToDead(killedUUID);
+        String teamId = gameManager.getTeamName(killedUUID);
+        livingMembers.compute(teamId, (k, aliveCount) -> 
+                aliveCount == null ? 0 : aliveCount - 1);
+        addDeath(killedUUID);
+        if (livingMembers.get(teamId) <= 0) {
+            onTeamDeath(teamId);
         }
     }
     
@@ -760,18 +820,15 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         messageAllParticipants(Component.empty()
                 .append(formattedTeamDisplayName)
                 .append(Component.text(" has been eliminated.")));
-        livingTeams.remove(deadTeam);
         if (gameEndCountDown) {
             // points shouldn't be awarded and a team has already won if this is true
             return;
         }
-        for (Player participant : participants) {
-            String team = gameManager.getTeamName(participant.getUniqueId());
-            if (livingPlayers.contains(participant.getUniqueId()) && !deadTeam.equals(team)) {
-                gameManager.awardPointsToParticipant(participant, config.getSurviveTeamScore());
-            }
-        }
         Component displayName = gameManager.getFormattedTeamDisplayName(deadTeam);
+        List<String> livingTeams = getLivingTeamIds();
+        for (String teamId : livingTeams) {
+            gameManager.awardPointsToTeam(teamId, config.getSurviveTeamScore());
+        }
         switch (livingTeams.size()) {
             case 2 -> {
                 plugin.getServer().sendMessage(Component.empty()
@@ -794,18 +851,10 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     }
     
     /**
-     * Checks if the given team name is all dead
-     * @param teamName The team to check
-     * @return True if the given team is entirely dead (no living players left), false otherwise
+     * @return a list of the teamIds of the teams which are still alive (have at least 1 living member)
      */
-    private boolean teamIsAllDead(String teamName) {
-        for (UUID livingPlayerUniqueId : livingPlayers) {
-            String livingTeam = gameManager.getTeamName(livingPlayerUniqueId);
-            if (teamName.equals(livingTeam)) {
-                return false;
-            }
-        }
-        return true;
+    private @NotNull List<String> getLivingTeamIds() {
+        return livingMembers.entrySet().stream().filter(entry -> entry.getValue() > 0).map(Map.Entry::getKey).toList();
     }
     
     private int calculateExpPoints(int level) {
@@ -830,13 +879,6 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         }
         addKill(killer.getUniqueId());
         gameManager.awardPointsToParticipant(killer, config.getKillScore());
-    }
-    
-    private void addKill(UUID killerUniqueId) {
-        int oldKillCount = killCounts.get(killerUniqueId);
-        int newKillCount = oldKillCount + 1;
-        killCounts.put(killerUniqueId, newKillCount);
-        sidebar.updateLine(killerUniqueId, "kills", String.format("%sKills: %s", ChatColor.RED, newKillCount));
     }
     
     private void initializeWorldBorder() {
@@ -925,6 +967,8 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     private void clearSidebar() {
         sidebar.deleteAllLines();
         sidebar = null;
+        topbar.removeAllTeams();
+        topbar.hideAllPlayers();
     }
     
     @Override
@@ -1055,6 +1099,27 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     private void fillAllChests() {
         fillSpawnChests();
         fillMapChests();
+    }
+    
+    /**
+     * @param playerUUID the player to add a kill to
+     */
+    private void addKill(@NotNull UUID playerUUID) {
+        int oldKillCount = killCounts.get(playerUUID);
+        int newKillCount = oldKillCount + 1;
+        killCounts.put(playerUUID, newKillCount);
+        topbar.setKills(playerUUID, newKillCount);
+        sidebar.updateLine(playerUUID, "kills", String.format("%sKills: %s", ChatColor.RED, newKillCount));
+    }
+    
+    /**
+     * @param playerUUID the player to add a death to
+     */
+    private void addDeath(@NotNull UUID playerUUID) {
+        int oldDeathCount = deathCounts.get(playerUUID);
+        int newDeathCount = oldDeathCount + 1;
+        deathCounts.put(playerUUID, newDeathCount);
+        topbar.setDeaths(playerUUID, newDeathCount);
     }
     
     private void clearAllChests() {
