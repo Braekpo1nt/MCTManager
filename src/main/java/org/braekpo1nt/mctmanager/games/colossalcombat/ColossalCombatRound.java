@@ -113,6 +113,7 @@ public class ColossalCombatRound implements Listener {
         first.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearStatusEffects(first);
         ParticipantInitializer.resetHealthAndHunger(first);
+        giveParticipantEquipment(first);
         updateAliveCount(firstPlaceParticipantsAlive, firstTeamName);
     }
     
@@ -132,6 +133,7 @@ public class ColossalCombatRound implements Listener {
         second.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearStatusEffects(second);
         ParticipantInitializer.resetHealthAndHunger(second);
+        giveParticipantEquipment(second);
         updateAliveCount(secondPlaceParticipantsAlive, secondTeamName);
     }
     
@@ -449,12 +451,6 @@ public class ColossalCombatRound implements Listener {
         roundHasStarted = true;
         openGates();
         spawnItemDrops();
-        for (Player participant : firstPlaceParticipants) {
-            giveParticipantEquipment(participant);
-        }
-        for (Player participant : secondPlaceParticipants) {
-            giveParticipantEquipment(participant);
-        }
         if (allParticipantsAreDead(firstPlaceParticipantsAlive) || firstPlaceParticipants.isEmpty()) {
             onSecondPlaceTeamWin();
         } else if (allParticipantsAreDead(secondPlaceParticipantsAlive) || secondPlaceParticipants.isEmpty()) {

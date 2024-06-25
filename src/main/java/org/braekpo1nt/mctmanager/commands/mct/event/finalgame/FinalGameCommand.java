@@ -47,9 +47,11 @@ public class FinalGameCommand extends CommandManager {
             }
             
             @Override
-            public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-                if (args.length >= 1 && args.length <= 2) {
+            public @NotNull List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+                if (args.length == 1) {
                     return gameManager.getTeamNames().stream().sorted().toList();
+                } else if (args.length == 2) {
+                    return gameManager.getTeamNames().stream().filter(t -> !t.equals(args[0])).sorted().toList();
                 }
                 return Collections.emptyList();
             }
