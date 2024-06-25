@@ -403,7 +403,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
             String teamId = gameManager.getTeamName(participantUUID);
             Integer oldLivingMembers = this.livingMembers.get(teamId);
             if (oldLivingMembers != null) {
-                livingMembers.put(teamId, Math.min(0, oldLivingMembers - 1));
+                livingMembers.put(teamId, Math.max(0, oldLivingMembers - 1));
                 updateAliveCount(teamId);
             }
             livingPlayers.remove(participantUUID);
@@ -413,15 +413,17 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
             topbar.hidePlayer(participantUUID);
             return;
         }
-        List<ItemStack> drops = Arrays.stream(participant.getInventory().getContents())
-                .filter(Objects::nonNull)
-                .toList();
-        int droppedExp = calculateExpPoints(participant.getLevel());
-        Component deathMessage = Component.empty()
-                .append(Component.text(participant.getName()))
-                .append(Component.text(" left early. Their life is forfeit."));
-        PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(participant, drops, droppedExp, deathMessage);
-        this.onPlayerDeath(fakeDeathEvent);
+        if (livingPlayers.contains(participant.getUniqueId())) {
+            List<ItemStack> drops = Arrays.stream(participant.getInventory().getContents())
+                    .filter(Objects::nonNull)
+                    .toList();
+            int droppedExp = calculateExpPoints(participant.getLevel());
+            Component deathMessage = Component.empty()
+                    .append(Component.text(participant.getName()))
+                    .append(Component.text(" left early. Their life is forfeit."));
+            PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(participant, drops, droppedExp, deathMessage);
+            this.onPlayerDeath(fakeDeathEvent);
+        }
         resetParticipant(participant);
         participants.remove(participant);
     }
