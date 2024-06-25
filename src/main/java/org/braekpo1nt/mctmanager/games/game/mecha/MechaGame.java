@@ -359,6 +359,10 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         return livingMembers.entrySet().stream().filter(entry -> entry.getValue() > 0).map(Map.Entry::getKey).toList();
     }
     
+    /**
+     * updates the number of living and dead players in the topbar
+     * @param teamId the team to update
+     */
     private void updateAliveCount(@NotNull String teamId) {
         int alive = livingMembers.get(teamId);
         int dead = getDeadMembers(teamId);
@@ -396,6 +400,12 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         if (!mechaHasStarted) {
             participants.remove(participant);
             UUID participantUUID = participant.getUniqueId();
+            String teamId = gameManager.getTeamName(participantUUID);
+            Integer oldLivingMembers = this.livingMembers.get(teamId);
+            if (oldLivingMembers != null) {
+                livingMembers.put(teamId, Math.min(0, oldLivingMembers - 1));
+                updateAliveCount(teamId);
+            }
             livingPlayers.remove(participantUUID);
             killCounts.remove(participantUUID);
             deathCounts.remove(participantUUID);
