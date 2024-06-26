@@ -213,6 +213,11 @@ public class GameManager implements Listener {
 //        Bukkit.getLogger().info(String.format("currentItem: %s, cursorItem: %s, result: %s, action: %s, slotType: %s, slotNum: %d", currentItem != null ? currentItem.getType() : "null", cursorItem != null ? cursorItem.getType() : "null", event.getResult(), event.getAction(), clickedSlot, event.getSlot()));
         if (isLeatherArmor(currentItem)) {
             if (event.getAction().equals(InventoryAction.MOVE_TO_OTHER_INVENTORY)) {
+                if (!event.getInventory().getType().equals(InventoryType.CRAFTING) 
+                        || event.getClickedInventory() == null 
+                        || !event.getClickedInventory().getType().equals(InventoryType.PLAYER)) {
+                    return;
+                }
                 if (!clickedSlot.equals(InventoryType.SlotType.ARMOR)) {
                     EquipmentSlot destSlot = currentItem.getType().getEquipmentSlot();
                     Material destSlotMaterial = participant.getEquipment().getItem(destSlot).getType();
@@ -244,11 +249,13 @@ public class GameManager implements Listener {
         }
     }
     
+    /**
+     * @param contents the contents to check if it has an open slot or not
+     * @return true if even one of the given entries is null or of Material type AIR
+     */
     private boolean hasOpenSlot(ItemStack[] contents) {
-        for (int i = 0; i < contents.length; i++) {
-            ItemStack itemStack = contents[i];
+        for (ItemStack itemStack : contents) {
             if (itemStack == null || itemStack.getType().equals(Material.AIR)) {
-                Bukkit.getLogger().info(String.format("empty slot: %d", i));
                 return true;
             }
         }
