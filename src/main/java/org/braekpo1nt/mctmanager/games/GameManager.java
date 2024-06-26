@@ -217,14 +217,16 @@ public class GameManager implements Listener {
                         // shift click leather armor from non-armor slot to empty armor slot
                         colorLeatherArmor(currentItem, participant);
                     }
+                } else {
+                    deColorLeatherArmor(currentItem);
                 }
             }
-            return;
         }
         if (isLeatherArmor(cursorItem)) {
             EquipmentSlot destSlot = cursorItem.getType().getEquipmentSlot();
             int destSlotNum = toArmorSlotNumber(destSlot);
             if (event.getSlot() == destSlotNum) {
+                // use mouse to place leather armor in armor slot (either empty or replacing another armor)
                 colorLeatherArmor(cursorItem, participant);
             }
         }
@@ -265,6 +267,17 @@ public class GameManager implements Listener {
         }
         Color teamColor = getTeamColor(participant.getUniqueId());
         leatherArmorMeta.setColor(teamColor);
+        leatherArmor.setItemMeta(leatherArmorMeta);
+    }
+    
+    private void deColorLeatherArmor(@NotNull ItemStack leatherArmor) {
+        if (!(leatherArmor.getItemMeta() instanceof LeatherArmorMeta leatherArmorMeta)) {
+            return;
+        }
+        if (leatherArmorMeta.getPersistentDataContainer().has(IGNORE_TEAM_COLOR, PersistentDataType.STRING)) {
+            return;
+        }
+        leatherArmorMeta.setColor(null);
         leatherArmor.setItemMeta(leatherArmorMeta);
     }
     
