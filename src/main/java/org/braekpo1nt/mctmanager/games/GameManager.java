@@ -209,7 +209,7 @@ public class GameManager implements Listener {
         ItemStack currentItem = event.getCurrentItem(); // current item in clicked slot
         ItemStack cursorItem = event.getCursor();
         InventoryType.SlotType clickedSlot = event.getSlotType();
-//        Bukkit.getLogger().info(String.format("currentItem: %s, cursorItem: %s, result: %s, action: %s, slotType: %s, slotNum: %d", currentItem != null ? currentItem.getType() : "null", cursorItem != null ? cursorItem.getType() : "null", event.getResult(), event.getAction(), clickedSlot, event.getSlot()));
+        Bukkit.getLogger().info(String.format("currentItem: %s, cursorItem: %s, result: %s, action: %s, slotType: %s, slotNum: %d", currentItem != null ? currentItem.getType() : "null", cursorItem != null ? cursorItem.getType() : "null", event.getResult(), event.getAction(), clickedSlot, event.getSlot()));
         if (isLeatherArmor(currentItem)) {
             if (event.getAction().equals(InventoryAction.MOVE_TO_OTHER_INVENTORY)) {
                 if (!clickedSlot.equals(InventoryType.SlotType.ARMOR)) {
@@ -220,7 +220,9 @@ public class GameManager implements Listener {
                         colorLeatherArmor(currentItem, participant);
                     }
                 } else {
-                    deColorLeatherArmor(currentItem);
+                    if (hasOpenSlot(participant.getInventory().getStorageContents())) {
+                        deColorLeatherArmor(currentItem);
+                    }
                 }
             } else {
                 if (clickedSlot.equals(InventoryType.SlotType.ARMOR)) {
@@ -240,6 +242,17 @@ public class GameManager implements Listener {
             }
         }
         
+    }
+    
+    private boolean hasOpenSlot(ItemStack[] contents) {
+        for (int i = 0; i < contents.length; i++) {
+            ItemStack itemStack = contents[i];
+            if (itemStack == null || itemStack.getType().equals(Material.AIR)) {
+                Bukkit.getLogger().info(String.format("empty slot: %d", i));
+                return true;
+            }
+        }
+        return false;
     }
     
     /**
