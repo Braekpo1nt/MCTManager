@@ -220,6 +220,10 @@ public class GameManager implements Listener {
                 } else {
                     deColorLeatherArmor(currentItem);
                 }
+            } else {
+                if (clickedSlot.equals(InventoryType.SlotType.ARMOR)) {
+                    deColorLeatherArmor(currentItem);
+                }
             }
         }
         if (isLeatherArmor(cursorItem)) {
