@@ -37,6 +37,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -166,6 +167,7 @@ public class GameManager implements Listener {
         if (!isParticipant(participant.getUniqueId())) {
             return;
         }
+        Bukkit.getLogger().info("onPlayerInteract");
         ItemStack item = event.getItem();
         if (!isLeatherArmor(item)) {
             return;
@@ -194,12 +196,10 @@ public class GameManager implements Listener {
             return;
         }
         ItemStack currentItem = event.getCurrentItem();
-        if (isLeatherArmor(currentItem)) {
-            onParticipantEquipLeatherArmor(participant.getUniqueId(), currentItem);
-        }
         ItemStack cursorItem = event.getCursor();
-        if (isLeatherArmor(cursorItem)) {
-            onParticipantEquipLeatherArmor(participant.getUniqueId(), cursorItem);
+        Bukkit.getLogger().info(String.format("currentItem: %s, cursorItem: %s, result: %s, action: %s, slotType: %s", currentItem != null ? currentItem.getType() : "null", cursorItem != null ? cursorItem.getType() : "null", event.getResult(), event.getAction(), event.getSlotType()));
+        if (!event.getSlotType().equals(InventoryType.SlotType.ARMOR)) {
+            return;
         }
     }
     
