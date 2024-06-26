@@ -204,12 +204,13 @@ public class GameManager implements Listener {
         if (!isParticipant(participant.getUniqueId())) {
             return;
         }
-        ItemStack currentItem = event.getCurrentItem();
+        ItemStack currentItem = event.getCurrentItem(); // current item in clicked slot
         ItemStack cursorItem = event.getCursor();
-        Bukkit.getLogger().info(String.format("currentItem: %s, cursorItem: %s, result: %s, action: %s, slotType: %s", currentItem != null ? currentItem.getType() : "null", cursorItem != null ? cursorItem.getType() : "null", event.getResult(), event.getAction(), event.getSlotType()));
+        InventoryType.SlotType clickedSlot = event.getSlotType();
+        Bukkit.getLogger().info(String.format("currentItem: %s, cursorItem: %s, result: %s, action: %s, slotType: %s, slotNum: %d", currentItem != null ? currentItem.getType() : "null", cursorItem != null ? cursorItem.getType() : "null", event.getResult(), event.getAction(), clickedSlot, event.getSlot()));
         if (isLeatherArmor(currentItem)) {
             if (event.getAction().equals(InventoryAction.MOVE_TO_OTHER_INVENTORY)) {
-                if (!event.getSlotType().equals(InventoryType.SlotType.ARMOR)) {
+                if (!clickedSlot.equals(InventoryType.SlotType.ARMOR)) {
                     EquipmentSlot destSlot = currentItem.getType().getEquipmentSlot();
                     Material destSlotMaterial = participant.getEquipment().getItem(destSlot).getType();
                     if (destSlotMaterial.equals(Material.AIR)) {
@@ -217,6 +218,40 @@ public class GameManager implements Listener {
                         colorLeatherArmor(currentItem, participant);
                     }
                 }
+            }
+            return;
+        }
+        if (isLeatherArmor(cursorItem)) {
+            EquipmentSlot destSlot = cursorItem.getType().getEquipmentSlot();
+            int destSlotNum = toArmorSlotNumber(destSlot);
+            if (event.getSlot() == destSlotNum) {
+                colorLeatherArmor(cursorItem, participant);
+            }
+        }
+        
+    }
+    
+    /**
+     * Get the player's inventory slot number for the given EquipmentSlot. This only works for player inventories, nothing else. 
+     * @param slot the equipment slot to get the slot number for
+     * @return [39, 38, 37, 36] for [HEAD, CHEST, LEGS, FEET], respectively. -1 for anything else. 
+     */
+    private int toArmorSlotNumber(EquipmentSlot slot) {
+        switch (slot) {
+            case HEAD -> {
+                return 39;
+            }
+            case CHEST -> {
+                return 38;
+            }
+            case LEGS -> {
+                return 37;
+            }
+            case FEET -> {
+                return 36;
+            }
+            default -> {
+                return -1;
             }
         }
     }
