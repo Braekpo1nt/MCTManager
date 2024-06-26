@@ -35,11 +35,10 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.inventory.InventoryAction;
-import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.event.inventory.*;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -196,8 +195,11 @@ public class GameManager implements Listener {
         return LEATHER_ARMOR.contains(item.getType());
     }
     
-    @EventHandler
+    @EventHandler(priority = EventPriority.LOWEST)
     public void onPlayerClickInventory(InventoryClickEvent event) {
+        if (event.isCancelled()) {
+            return;
+        }
         if (!(event.getWhoClicked() instanceof Player participant)) {
             return;
         }
@@ -207,7 +209,7 @@ public class GameManager implements Listener {
         ItemStack currentItem = event.getCurrentItem(); // current item in clicked slot
         ItemStack cursorItem = event.getCursor();
         InventoryType.SlotType clickedSlot = event.getSlotType();
-        Bukkit.getLogger().info(String.format("currentItem: %s, cursorItem: %s, result: %s, action: %s, slotType: %s, slotNum: %d", currentItem != null ? currentItem.getType() : "null", cursorItem != null ? cursorItem.getType() : "null", event.getResult(), event.getAction(), clickedSlot, event.getSlot()));
+//        Bukkit.getLogger().info(String.format("currentItem: %s, cursorItem: %s, result: %s, action: %s, slotType: %s, slotNum: %d", currentItem != null ? currentItem.getType() : "null", cursorItem != null ? cursorItem.getType() : "null", event.getResult(), event.getAction(), clickedSlot, event.getSlot()));
         if (isLeatherArmor(currentItem)) {
             if (event.getAction().equals(InventoryAction.MOVE_TO_OTHER_INVENTORY)) {
                 if (!clickedSlot.equals(InventoryType.SlotType.ARMOR)) {
@@ -227,6 +229,9 @@ public class GameManager implements Listener {
             }
         }
         if (isLeatherArmor(cursorItem)) {
+            if (event.getAction().equals(InventoryAction.COLLECT_TO_CURSOR)) {
+                return;
+            }
             EquipmentSlot destSlot = cursorItem.getType().getEquipmentSlot();
             int destSlotNum = toArmorSlotNumber(destSlot);
             if (event.getSlot() == destSlotNum) {
