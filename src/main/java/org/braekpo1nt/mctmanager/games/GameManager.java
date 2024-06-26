@@ -33,16 +33,18 @@ import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.bukkit.*;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scoreboard.Scoreboard;
@@ -158,7 +160,7 @@ public class GameManager implements Listener {
     }
     
     private static final NamespacedKey IGNORE_TEAM_COLOR = NamespacedKey.minecraft("ignoreteamcolor");
-    private static final List<Material> LEATHER_ARMOR = List.of(
+    public static final List<Material> LEATHER_ARMOR = List.of(
             Material.LEATHER_HELMET, Material.LEATHER_CHESTPLATE, Material.LEATHER_LEGGINGS, Material.LEATHER_BOOTS);
     
     @EventHandler
@@ -167,12 +169,19 @@ public class GameManager implements Listener {
         if (!isParticipant(participant.getUniqueId())) {
             return;
         }
-        Bukkit.getLogger().info("onPlayerInteract");
         ItemStack item = event.getItem();
+//        Bukkit.getLogger().info(String.format("action: %s, item: %s, useItemInHand: %s, interactionPoint: %s, material: %s", event.getAction(), item != null ? String.format("%s-%s", item.getType(), item.getType().getEquipmentSlot()) : "null", event.useItemInHand(), event.getInteractionPoint(), event.getMaterial()));
+        if (!event.useItemInHand().equals(Event.Result.DEFAULT)) {
+            return;
+        }
         if (!isLeatherArmor(item)) {
             return;
         }
-        onParticipantEquipLeatherArmor(participant.getUniqueId(), item);
+        EquipmentSlot slot = item.getType().getEquipmentSlot();
+        Material typeInDestinationSlot = participant.getEquipment().getItem(slot).getType();
+        if (typeInDestinationSlot.equals(Material.AIR)) {
+            colorLeatherArmor(item, participant);
+        }
     }
     
     /**
@@ -184,7 +193,7 @@ public class GameManager implements Listener {
         if (item == null) {
             return false;
         }
-        return !LEATHER_ARMOR.contains(item.getType());
+        return LEATHER_ARMOR.contains(item.getType());
     }
     
     @EventHandler
@@ -198,20 +207,28 @@ public class GameManager implements Listener {
         ItemStack currentItem = event.getCurrentItem();
         ItemStack cursorItem = event.getCursor();
         Bukkit.getLogger().info(String.format("currentItem: %s, cursorItem: %s, result: %s, action: %s, slotType: %s", currentItem != null ? currentItem.getType() : "null", cursorItem != null ? cursorItem.getType() : "null", event.getResult(), event.getAction(), event.getSlotType()));
-        if (!event.getSlotType().equals(InventoryType.SlotType.ARMOR)) {
-            return;
+        if (isLeatherArmor(currentItem)) {
+            if (event.getAction().equals(InventoryAction.MOVE_TO_OTHER_INVENTORY)) {
+                if (!event.getSlotType().equals(InventoryType.SlotType.ARMOR)) {
+                    EquipmentSlot destSlot = currentItem.getType().getEquipmentSlot();
+                    Material destSlotMaterial = participant.getEquipment().getItem(destSlot).getType();
+                    if (destSlotMaterial.equals(Material.AIR)) {
+                        // shift click leather armor from non-armor slot to empty armor slot
+                        colorLeatherArmor(currentItem, participant);
+                    }
+                }
+            }
         }
     }
     
-    private void onParticipantEquipLeatherArmor(@NotNull UUID participantUUID, @NotNull ItemStack leatherArmor) {
-        ItemMeta meta = leatherArmor.getItemMeta();
-        if (!(meta instanceof LeatherArmorMeta leatherArmorMeta)) {
+    private void colorLeatherArmor(@NotNull ItemStack leatherArmor, @NotNull Player participant) {
+        if (!(leatherArmor.getItemMeta() instanceof LeatherArmorMeta leatherArmorMeta)) {
             return;
         }
         if (leatherArmorMeta.getPersistentDataContainer().has(IGNORE_TEAM_COLOR, PersistentDataType.STRING)) {
             return;
         }
-        Color teamColor = getTeamColor(participantUUID);
+        Color teamColor = getTeamColor(participant.getUniqueId());
         leatherArmorMeta.setColor(teamColor);
         leatherArmor.setItemMeta(leatherArmorMeta);
     }

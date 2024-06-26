@@ -4,12 +4,15 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.CommandUtils;
+import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.ui.topbar.Topbar;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,6 +44,15 @@ public class MCTDebugCommand implements TabExecutor, Listener {
             sender.sendMessage(Component.text("Usage: /mctdebug <arg> [options]")
                     .color(NamedTextColor.RED));
             return true;
+        }
+        
+        for (ItemStack item : player.getInventory().getContents()) {
+            if (item != null) {
+                if (item.getItemMeta() instanceof LeatherArmorMeta leatherArmorMeta) {
+                    leatherArmorMeta.setColor(null);
+                    item.setItemMeta(leatherArmorMeta);
+                }
+            }
         }
         
 //        Component mainTitle = Component.text("Main title");
