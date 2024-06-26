@@ -83,8 +83,8 @@ public class CaptureTheFlagMatch implements Listener {
         this.config = config;
         this.matchPairing = matchPairing;
         this.arena = arena;
-        this.northClassPicker = new ClassPicker();
-        this.southClassPicker = new ClassPicker();
+        this.northClassPicker = new ClassPicker(gameManager);
+        this.southClassPicker = new ClassPicker(gameManager);
         this.sidebar = sidebar;
         this.adminSidebar = adminSidebar;
         this.topbar = topbar;

@@ -3,6 +3,8 @@ package org.braekpo1nt.mctmanager.games.game.capturetheflag;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -33,9 +35,14 @@ public class ClassPicker implements Listener {
     private final Component NETHER_STAR_NAME = Component.text("Vote");
     private final Map<UUID, String> pickedBattleClasses = new HashMap<>();
     private final List<Player> teamMates = new ArrayList<>();
+    private final GameManager gameManager;
     private boolean classPickingActive = false;
     private Map<String, Loadout> loadouts = new HashMap<>();
     private Map<Material, String> materialToBattleClass = new HashMap<>();
+    
+    public ClassPicker(@NotNull GameManager gameManager) {
+        this.gameManager = gameManager;
+    }
     
     /**
      * Registers event listeners, and starts the class picking phase for the given list of teammates
@@ -256,6 +263,7 @@ public class ClassPicker implements Listener {
         Loadout loadout = loadouts.get(battleClass);
         ItemStack[] contents = loadout.getContents();
         teamMate.getInventory().setContents(contents);
+        GameManagerUtils.colorLeatherArmor(gameManager, teamMate);
         teamMate.sendMessage(Component.text("Selected ")
                 .append(loadout.getName()));
     }

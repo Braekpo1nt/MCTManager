@@ -37,10 +37,12 @@ import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.*;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
@@ -158,11 +160,10 @@ public class GameManager implements Listener {
         }
     }
     
-    private static final NamespacedKey IGNORE_TEAM_COLOR = NamespacedKey.minecraft("ignoreteamcolor");
     public static final List<Material> LEATHER_ARMOR = List.of(
             Material.LEATHER_HELMET, Material.LEATHER_CHESTPLATE, Material.LEATHER_LEGGINGS, Material.LEATHER_BOOTS);
     
-    @EventHandler
+    @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerInteract(PlayerInteractEvent event) {
         Player participant = event.getPlayer();
         if (!isParticipant(participant.getUniqueId())) {
@@ -179,7 +180,7 @@ public class GameManager implements Listener {
         EquipmentSlot slot = item.getType().getEquipmentSlot();
         Material typeInDestinationSlot = participant.getEquipment().getItem(slot).getType();
         if (typeInDestinationSlot.equals(Material.AIR)) {
-            colorLeatherArmor(item, participant);
+            colorLeatherArmor(item, participant.getUniqueId());
         }
     }
     
@@ -195,7 +196,7 @@ public class GameManager implements Listener {
         return LEATHER_ARMOR.contains(item.getType());
     }
     
-    @EventHandler(priority = EventPriority.LOWEST)
+    @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerClickInventory(InventoryClickEvent event) {
         if (event.isCancelled()) {
             return;
@@ -209,7 +210,7 @@ public class GameManager implements Listener {
         ItemStack currentItem = event.getCurrentItem(); // current item in clicked slot
         ItemStack cursorItem = event.getCursor();
         InventoryType.SlotType clickedSlot = event.getSlotType();
-        Bukkit.getLogger().info(String.format("currentItem: %s, cursorItem: %s, result: %s, action: %s, slotType: %s, slotNum: %d", currentItem != null ? currentItem.getType() : "null", cursorItem != null ? cursorItem.getType() : "null", event.getResult(), event.getAction(), clickedSlot, event.getSlot()));
+//        Bukkit.getLogger().info(String.format("currentItem: %s, cursorItem: %s, result: %s, action: %s, slotType: %s, slotNum: %d", currentItem != null ? currentItem.getType() : "null", cursorItem != null ? cursorItem.getType() : "null", event.getResult(), event.getAction(), clickedSlot, event.getSlot()));
         if (isLeatherArmor(currentItem)) {
             if (event.getAction().equals(InventoryAction.MOVE_TO_OTHER_INVENTORY)) {
                 if (!clickedSlot.equals(InventoryType.SlotType.ARMOR)) {
@@ -217,16 +218,16 @@ public class GameManager implements Listener {
                     Material destSlotMaterial = participant.getEquipment().getItem(destSlot).getType();
                     if (destSlotMaterial.equals(Material.AIR)) {
                         // shift click leather armor from non-armor slot to empty armor slot
-                        colorLeatherArmor(currentItem, participant);
+                        colorLeatherArmor(currentItem, participant.getUniqueId());
                     }
                 } else {
                     if (hasOpenSlot(participant.getInventory().getStorageContents())) {
-                        deColorLeatherArmor(currentItem);
+                        GameManagerUtils.deColorLeatherArmor(currentItem);
                     }
                 }
             } else {
                 if (clickedSlot.equals(InventoryType.SlotType.ARMOR)) {
-                    deColorLeatherArmor(currentItem);
+                    GameManagerUtils.deColorLeatherArmor(currentItem);
                 }
             }
         }
@@ -238,10 +239,9 @@ public class GameManager implements Listener {
             int destSlotNum = toArmorSlotNumber(destSlot);
             if (event.getSlot() == destSlotNum) {
                 // use mouse to place leather armor in armor slot (either empty or replacing another armor)
-                colorLeatherArmor(cursorItem, participant);
+                colorLeatherArmor(cursorItem, participant.getUniqueId());
             }
         }
-        
     }
     
     private boolean hasOpenSlot(ItemStack[] contents) {
@@ -280,27 +280,9 @@ public class GameManager implements Listener {
         }
     }
     
-    private void colorLeatherArmor(@NotNull ItemStack leatherArmor, @NotNull Player participant) {
-        if (!(leatherArmor.getItemMeta() instanceof LeatherArmorMeta leatherArmorMeta)) {
-            return;
-        }
-        if (leatherArmorMeta.getPersistentDataContainer().has(IGNORE_TEAM_COLOR, PersistentDataType.STRING)) {
-            return;
-        }
-        Color teamColor = getTeamColor(participant.getUniqueId());
-        leatherArmorMeta.setColor(teamColor);
-        leatherArmor.setItemMeta(leatherArmorMeta);
-    }
-    
-    private void deColorLeatherArmor(@NotNull ItemStack leatherArmor) {
-        if (!(leatherArmor.getItemMeta() instanceof LeatherArmorMeta leatherArmorMeta)) {
-            return;
-        }
-        if (leatherArmorMeta.getPersistentDataContainer().has(IGNORE_TEAM_COLOR, PersistentDataType.STRING)) {
-            return;
-        }
-        leatherArmorMeta.setColor(null);
-        leatherArmor.setItemMeta(leatherArmorMeta);
+    private void colorLeatherArmor(@NotNull ItemStack leatherArmor, @NotNull UUID participantUUID) {
+        Color teamColor = getTeamColor(participantUUID);
+        GameManagerUtils.colorLeatherArmor(leatherArmor, teamColor);
     }
     
     @EventHandler

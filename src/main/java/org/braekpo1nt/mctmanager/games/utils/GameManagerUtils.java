@@ -9,18 +9,20 @@ import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.bukkit.Bukkit;
+import org.bukkit.Color;
+import org.bukkit.NamespacedKey;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryAction;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.LeatherArmorMeta;
+import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class GameManagerUtils {
     
@@ -31,6 +33,7 @@ public class GameManagerUtils {
      * removing items from the player's inventory
      */
     public final static List<InventoryAction> INV_REMOVE_ACTIONS = List.of(InventoryAction.DROP_ALL_CURSOR, InventoryAction.DROP_ALL_SLOT, InventoryAction.DROP_ONE_CURSOR, InventoryAction.DROP_ONE_SLOT, InventoryAction.MOVE_TO_OTHER_INVENTORY);
+    public static final NamespacedKey IGNORE_TEAM_COLOR = NamespacedKey.minecraft("ignoreteamcolor");
     
     /**
      * returns a list that contains the first place, or first place ties.
@@ -305,4 +308,61 @@ public class GameManagerUtils {
                 .replacement(player.displayName())
                 .build());
     }
+    
+    /**
+     * Colors all leather armor in the equipment slots of the participant to be the team color
+     * If the {@link org.bukkit.persistence.PersistentDataContainer} of an item's LeatherArmorMeta contains the {@link GameManagerUtils#IGNORE_TEAM_COLOR} {@link PersistentDataType#STRING} property, then that item will not be colored. 
+     * @param gameManager the game manager in which the given participant should be contained
+     * @param participant the participant whose armor slots may or may not contain leather armor, but for whom any existing leather armor slots should be colored their team color. If this participant is not a participiant in the given gameManager, then nothing happens. 
+     */
+    public static void colorLeatherArmor(@NotNull GameManager gameManager, @NotNull Player participant) {
+        if (!gameManager.isParticipant(participant.getUniqueId())) {
+            return;
+        }
+        Color teamColor = gameManager.getTeamColor(participant.getUniqueId());
+        colorLeatherArmor(participant.getInventory().getHelmet(), teamColor);
+        colorLeatherArmor(participant.getInventory().getChestplate(), teamColor);
+        colorLeatherArmor(participant.getInventory().getLeggings(), teamColor);
+        colorLeatherArmor(participant.getInventory().getBoots(), teamColor);
+    }
+    
+    /**
+     * Applies the given color to the LeatherArmorMeta of the given item, if it exists. If the item is null or has no LeatherArmorMeta, then nothing happens. 
+     * If the {@link org.bukkit.persistence.PersistentDataContainer} of the LeatherArmorMeta contains the {@link GameManagerUtils#IGNORE_TEAM_COLOR} {@link PersistentDataType#STRING} property, then nothing will happen. 
+     * @param leatherArmor the item to color the LeatherArmorMeta of
+     * @param color the color to apply to the LeatherArmorMeta
+     */
+    public static void colorLeatherArmor(@Nullable ItemStack leatherArmor, @Nullable Color color) {
+        if (leatherArmor == null) {
+            return;
+        }
+        if (!(leatherArmor.getItemMeta() instanceof LeatherArmorMeta leatherArmorMeta)) {
+            return;
+        }
+        if (leatherArmorMeta.getPersistentDataContainer().has(IGNORE_TEAM_COLOR, PersistentDataType.STRING)) {
+            return;
+        }
+        leatherArmorMeta.setColor(color);
+        leatherArmor.setItemMeta(leatherArmorMeta);
+    }
+    
+    /**
+     * Removes any color from the LeatherArmorMeta of the given item, if it exists. If the item is null or has no LeatherArmorMeta, then nothing happens.
+     * If the {@link org.bukkit.persistence.PersistentDataContainer} of the LeatherArmorMeta contains the {@link GameManagerUtils#IGNORE_TEAM_COLOR} {@link PersistentDataType#STRING} property, then nothing will happen. 
+     * @param leatherArmor the item to color the LeatherArmorMeta of
+     */
+    public static void deColorLeatherArmor(@Nullable ItemStack leatherArmor) {
+        if (leatherArmor == null) {
+            return;
+        }
+        if (!(leatherArmor.getItemMeta() instanceof LeatherArmorMeta leatherArmorMeta)) {
+            return;
+        }
+        if (leatherArmorMeta.getPersistentDataContainer().has(IGNORE_TEAM_COLOR, PersistentDataType.STRING)) {
+            return;
+        }
+        leatherArmorMeta.setColor(null);
+        leatherArmor.setItemMeta(leatherArmorMeta);
+    }
+    
 }
