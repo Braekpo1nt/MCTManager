@@ -377,4 +377,16 @@ public class GameManagerUtils {
         items.forEach(GameManagerUtils::deColorLeatherArmor);
     }
     
+    /**
+     * Removes the color from any and all leather armor items in the given player's armor slots. Uses {@link GameManagerUtils#deColorLeatherArmor(ItemStack)} on each armor item.
+     * @param player
+     * @see GameManagerUtils#deColorLeatherArmor(ItemStack)
+     */
+    public static void deColorLeatherArmor(@NotNull Player player) {
+        deColorLeatherArmor(player.getInventory().getHelmet());
+        deColorLeatherArmor(player.getInventory().getChestplate());
+        deColorLeatherArmor(player.getInventory().getLeggings());
+        deColorLeatherArmor(player.getInventory().getBoots());
+    }
+    
 }

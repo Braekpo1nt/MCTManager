@@ -340,6 +340,7 @@ public class GameManager implements Listener {
         Component displayName = Component.text(participant.getName(), NamedTextColor.WHITE);
         participant.displayName(displayName);
         participant.playerListName(displayName);
+        GameManagerUtils.deColorLeatherArmor(participant);
     }
     
     @EventHandler
@@ -403,6 +404,7 @@ public class GameManager implements Listener {
         } else if (voteManager.isVoting()) {
             voteManager.onParticipantJoin(participant);
         }
+        GameManagerUtils.colorLeatherArmor(this, participant);
         updateTeamScore(teamName);
         updatePersonalScore(participant);
     }
