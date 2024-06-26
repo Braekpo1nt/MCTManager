@@ -132,19 +132,19 @@ public class GameManager implements Listener {
         this.editors.put(editor.getType(), editor);
     }
     
-    @EventHandler
+    @EventHandler(priority = EventPriority.LOWEST) // happens first
     public void onParticipantDeath(PlayerDeathEvent event) {
         Player killed = event.getPlayer();
         if (isParticipant(killed.getUniqueId())) {
             replaceWithDisplayName(event, killed);
         }
         Player killer = killed.getKiller();
-        if (killer == null) {
-            return;
+        if (killer != null) {
+            if (isParticipant(killer.getUniqueId())) {
+                replaceWithDisplayName(event, killer);
+            }
         }
-        if (isParticipant(killer.getUniqueId())) {
-            replaceWithDisplayName(event, killer);
-        }
+        GameManagerUtils.deColorLeatherArmor(event.getDrops());
     }
     
     /**
@@ -170,7 +170,6 @@ public class GameManager implements Listener {
             return;
         }
         ItemStack item = event.getItem();
-//        Bukkit.getLogger().info(String.format("action: %s, item: %s, useItemInHand: %s, interactionPoint: %s, material: %s", event.getAction(), item != null ? String.format("%s-%s", item.getType(), item.getType().getEquipmentSlot()) : "null", event.useItemInHand(), event.getInteractionPoint(), event.getMaterial()));
         if (!event.useItemInHand().equals(Event.Result.DEFAULT)) {
             return;
         }
@@ -210,7 +209,6 @@ public class GameManager implements Listener {
         ItemStack currentItem = event.getCurrentItem(); // current item in clicked slot
         ItemStack cursorItem = event.getCursor();
         InventoryType.SlotType clickedSlot = event.getSlotType();
-//        Bukkit.getLogger().info(String.format("currentItem: %s, cursorItem: %s, result: %s, action: %s, slotType: %s, slotNum: %d", currentItem != null ? currentItem.getType() : "null", cursorItem != null ? cursorItem.getType() : "null", event.getResult(), event.getAction(), clickedSlot, event.getSlot()));
         if (isLeatherArmor(currentItem)) {
             if (event.getAction().equals(InventoryAction.MOVE_TO_OTHER_INVENTORY)) {
                 if (!event.getInventory().getType().equals(InventoryType.CRAFTING) 

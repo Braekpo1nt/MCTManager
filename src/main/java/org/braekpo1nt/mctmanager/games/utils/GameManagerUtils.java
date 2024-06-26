@@ -365,4 +365,16 @@ public class GameManagerUtils {
         leatherArmor.setItemMeta(leatherArmorMeta);
     }
     
+    /**
+     * Removes the color from any and all leather armor items in the given list. Uses {@link GameManagerUtils#deColorLeatherArmor(ItemStack)} on each item in the list.
+     * @param items the list of items
+     * @see GameManagerUtils#deColorLeatherArmor(ItemStack) 
+     */
+    public static void deColorLeatherArmor(@Nullable List<@Nullable ItemStack> items) {
+        if (items == null || items.isEmpty()) {
+            return;
+        }
+        items.forEach(GameManagerUtils::deColorLeatherArmor);
+    }
+    
 }
