@@ -36,10 +36,17 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.LeatherArmorMeta;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -147,6 +154,66 @@ public class GameManager implements Listener {
             Component newDeathMessage = GameManagerUtils.replaceWithDisplayName(player, deathMessage);
             event.deathMessage(newDeathMessage);
         }
+    }
+    
+    private static final NamespacedKey IGNORE_TEAM_COLOR = NamespacedKey.minecraft("ignoreteamcolor");
+    private static final List<Material> LEATHER_ARMOR = List.of(
+            Material.LEATHER_HELMET, Material.LEATHER_CHESTPLATE, Material.LEATHER_LEGGINGS, Material.LEATHER_BOOTS);
+    
+    @EventHandler
+    public void onPlayerInteract(PlayerInteractEvent event) {
+        Player participant = event.getPlayer();
+        if (!isParticipant(participant.getUniqueId())) {
+            return;
+        }
+        ItemStack item = event.getItem();
+        if (!isLeatherArmor(item)) {
+            return;
+        }
+        onParticipantEquipLeatherArmor(participant.getUniqueId(), item);
+    }
+    
+    /**
+     * @param item the item in question. If this is null, will return false. 
+     * @return true if the item is of a leather armor type, false otherwise. False if the given item is null. 
+     */
+    @Contract("null -> false")
+    private boolean isLeatherArmor(@Nullable ItemStack item) {
+        if (item == null) {
+            return false;
+        }
+        return !LEATHER_ARMOR.contains(item.getType());
+    }
+    
+    @EventHandler
+    public void onPlayerClickInventory(InventoryClickEvent event) {
+        if (!(event.getWhoClicked() instanceof Player participant)) {
+            return;
+        }
+        if (!isParticipant(participant.getUniqueId())) {
+            return;
+        }
+        ItemStack currentItem = event.getCurrentItem();
+        if (isLeatherArmor(currentItem)) {
+            onParticipantEquipLeatherArmor(participant.getUniqueId(), currentItem);
+        }
+        ItemStack cursorItem = event.getCursor();
+        if (isLeatherArmor(cursorItem)) {
+            onParticipantEquipLeatherArmor(participant.getUniqueId(), cursorItem);
+        }
+    }
+    
+    private void onParticipantEquipLeatherArmor(@NotNull UUID participantUUID, @NotNull ItemStack leatherArmor) {
+        ItemMeta meta = leatherArmor.getItemMeta();
+        if (!(meta instanceof LeatherArmorMeta leatherArmorMeta)) {
+            return;
+        }
+        if (leatherArmorMeta.getPersistentDataContainer().has(IGNORE_TEAM_COLOR, PersistentDataType.STRING)) {
+            return;
+        }
+        Color teamColor = getTeamColor(participantUUID);
+        leatherArmorMeta.setColor(teamColor);
+        leatherArmor.setItemMeta(leatherArmorMeta);
     }
     
     @EventHandler
