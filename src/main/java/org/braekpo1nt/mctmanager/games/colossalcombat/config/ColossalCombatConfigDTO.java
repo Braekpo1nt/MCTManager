@@ -141,6 +141,7 @@ record ColossalCombatConfigDTO(
                 .firstPlaceSpawn(this.firstPlaceSpawn.toLocation(newWorld))
                 .secondPlaceSpawn(this.secondPlaceSpawn.toLocation(newWorld))
                 .spectatorSpawn(this.spectatorSpawn.toLocation(newWorld))
+                .spectatorArea(this.spectatorArea != null ? this.spectatorArea.toBoundingBox() : null)
                 .requiredWins(this.requiredWins)
                 .loadout(this.loadout != null ? this.loadout.toInventoryContents() : getDefaultLoadout())
                 .firstPlaceClearArea(this.firstPlaceGate.clearArea.toBoundingBox())
