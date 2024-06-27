@@ -37,6 +37,7 @@ import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.*;
@@ -165,14 +166,15 @@ public class GameManager implements Listener {
     
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerInteract(PlayerInteractEvent event) {
+        if (event.useItemInHand().equals(Event.Result.DENY) || !event.getAction().equals(Action.RIGHT_CLICK_AIR)) {
+            Bukkit.getLogger().info("is canceled or deny");
+            return;
+        }
         Player participant = event.getPlayer();
         if (!isParticipant(participant.getUniqueId())) {
             return;
         }
         ItemStack item = event.getItem();
-        if (!event.useItemInHand().equals(Event.Result.DEFAULT)) {
-            return;
-        }
         if (!isLeatherArmor(item)) {
             return;
         }
@@ -192,12 +194,12 @@ public class GameManager implements Listener {
         if (item == null) {
             return false;
         }
-        return LEATHER_ARMOR.contains(item.getType());
+        return item.getItemMeta() instanceof LeatherArmorMeta;
     }
     
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerClickInventory(InventoryClickEvent event) {
-        if (event.isCancelled()) {
+        if (event.isCancelled() || event.getResult().equals(Event.Result.DENY)) {
             return;
         }
         if (!(event.getWhoClicked() instanceof Player participant)) {
