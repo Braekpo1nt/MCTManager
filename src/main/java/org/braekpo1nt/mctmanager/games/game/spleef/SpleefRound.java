@@ -283,10 +283,7 @@ public class SpleefRound implements Listener {
             return;
         }
         if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
-            if (powerupManager.isPowerup(event.getItem())) {
-                return;
-            }
-            event.setCancelled(true);
+            event.setUseInteractedBlock(Event.Result.DENY);
             return;
         }
         Block clickedBlock = event.getClickedBlock();
@@ -294,7 +291,7 @@ public class SpleefRound implements Listener {
             return;
         }
         if (config.getPreventInteractions().contains(clickedBlock.getType())) {
-            event.setCancelled(true);
+            event.setUseInteractedBlock(Event.Result.DENY);
         }
     }
     
