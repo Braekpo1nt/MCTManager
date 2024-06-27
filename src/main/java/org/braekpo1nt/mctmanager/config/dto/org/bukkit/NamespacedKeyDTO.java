@@ -36,6 +36,10 @@ public class NamespacedKeyDTO implements Validatable {
     @Override
     public void validate(@NotNull Validator validator) {
         validator.notNull(key, "key");
+        validator.validate(key.matches("[a-z0-9/._-]*"), "key must be [a-z0-9/._-]");
+        if (namespace != null) {
+            validator.validate(namespace.matches("[a-z0-9/._-]*"), "namespace must be [a-z0-9/._-]");
+        }
     }
     
 }

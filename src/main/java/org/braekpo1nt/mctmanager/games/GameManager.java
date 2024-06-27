@@ -33,13 +33,25 @@ import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.bukkit.*;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.inventory.*;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.LeatherArmorMeta;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -121,19 +133,19 @@ public class GameManager implements Listener {
         this.editors.put(editor.getType(), editor);
     }
     
-    @EventHandler
+    @EventHandler(priority = EventPriority.LOWEST) // happens first
     public void onParticipantDeath(PlayerDeathEvent event) {
         Player killed = event.getPlayer();
         if (isParticipant(killed.getUniqueId())) {
             replaceWithDisplayName(event, killed);
         }
         Player killer = killed.getKiller();
-        if (killer == null) {
-            return;
+        if (killer != null) {
+            if (isParticipant(killer.getUniqueId())) {
+                replaceWithDisplayName(event, killer);
+            }
         }
-        if (isParticipant(killer.getUniqueId())) {
-            replaceWithDisplayName(event, killer);
-        }
+        GameManagerUtils.deColorLeatherArmor(event.getDrops());
     }
     
     /**
@@ -147,6 +159,137 @@ public class GameManager implements Listener {
             Component newDeathMessage = GameManagerUtils.replaceWithDisplayName(player, deathMessage);
             event.deathMessage(newDeathMessage);
         }
+    }
+    
+    public static final List<Material> LEATHER_ARMOR = List.of(
+            Material.LEATHER_HELMET, Material.LEATHER_CHESTPLATE, Material.LEATHER_LEGGINGS, Material.LEATHER_BOOTS);
+    
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onPlayerInteract(PlayerInteractEvent event) {
+        if (event.useItemInHand().equals(Event.Result.DENY) || !event.getAction().equals(Action.RIGHT_CLICK_AIR)) {
+            Bukkit.getLogger().info("is canceled or deny");
+            return;
+        }
+        Player participant = event.getPlayer();
+        if (!isParticipant(participant.getUniqueId())) {
+            return;
+        }
+        ItemStack item = event.getItem();
+        if (!isLeatherArmor(item)) {
+            return;
+        }
+        EquipmentSlot slot = item.getType().getEquipmentSlot();
+        Material typeInDestinationSlot = participant.getEquipment().getItem(slot).getType();
+        if (typeInDestinationSlot.equals(Material.AIR)) {
+            colorLeatherArmor(item, participant.getUniqueId());
+        }
+    }
+    
+    /**
+     * @param item the item in question. If this is null, will return false. 
+     * @return true if the item is of a leather armor type, false otherwise. False if the given item is null. 
+     */
+    @Contract("null -> false")
+    private boolean isLeatherArmor(@Nullable ItemStack item) {
+        if (item == null) {
+            return false;
+        }
+        return item.getItemMeta() instanceof LeatherArmorMeta;
+    }
+    
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onPlayerClickInventory(InventoryClickEvent event) {
+        if (event.isCancelled() || event.getResult().equals(Event.Result.DENY)) {
+            return;
+        }
+        if (!(event.getWhoClicked() instanceof Player participant)) {
+            return;
+        }
+        if (!isParticipant(participant.getUniqueId())) {
+            return;
+        }
+        ItemStack currentItem = event.getCurrentItem(); // current item in clicked slot
+        ItemStack cursorItem = event.getCursor();
+        InventoryType.SlotType clickedSlot = event.getSlotType();
+        if (isLeatherArmor(currentItem)) {
+            if (event.getAction().equals(InventoryAction.MOVE_TO_OTHER_INVENTORY)) {
+                if (!event.getInventory().getType().equals(InventoryType.CRAFTING) 
+                        || event.getClickedInventory() == null 
+                        || !event.getClickedInventory().getType().equals(InventoryType.PLAYER)) {
+                    return;
+                }
+                if (!clickedSlot.equals(InventoryType.SlotType.ARMOR)) {
+                    EquipmentSlot destSlot = currentItem.getType().getEquipmentSlot();
+                    Material destSlotMaterial = participant.getEquipment().getItem(destSlot).getType();
+                    if (destSlotMaterial.equals(Material.AIR)) {
+                        // shift click leather armor from non-armor slot to empty armor slot
+                        colorLeatherArmor(currentItem, participant.getUniqueId());
+                    }
+                } else {
+                    if (hasOpenSlot(participant.getInventory().getStorageContents())) {
+                        GameManagerUtils.deColorLeatherArmor(currentItem);
+                    }
+                }
+            } else {
+                if (clickedSlot.equals(InventoryType.SlotType.ARMOR)) {
+                    GameManagerUtils.deColorLeatherArmor(currentItem);
+                }
+            }
+        }
+        if (isLeatherArmor(cursorItem)) {
+            if (event.getAction().equals(InventoryAction.COLLECT_TO_CURSOR)) {
+                return;
+            }
+            EquipmentSlot destSlot = cursorItem.getType().getEquipmentSlot();
+            int destSlotNum = toArmorSlotNumber(destSlot);
+            if (event.getSlot() == destSlotNum) {
+                // use mouse to place leather armor in armor slot (either empty or replacing another armor)
+                colorLeatherArmor(cursorItem, participant.getUniqueId());
+            }
+        }
+    }
+    
+    /**
+     * @param contents the contents to check if it has an open slot or not
+     * @return true if even one of the given entries is null or of Material type AIR
+     */
+    private boolean hasOpenSlot(ItemStack[] contents) {
+        for (ItemStack itemStack : contents) {
+            if (itemStack == null || itemStack.getType().equals(Material.AIR)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    /**
+     * Get the player's inventory slot number for the given EquipmentSlot. This only works for player inventories, nothing else. 
+     * @param slot the equipment slot to get the slot number for
+     * @return [39, 38, 37, 36] for [HEAD, CHEST, LEGS, FEET], respectively. -1 for anything else. 
+     */
+    private int toArmorSlotNumber(EquipmentSlot slot) {
+        switch (slot) {
+            case HEAD -> {
+                return 39;
+            }
+            case CHEST -> {
+                return 38;
+            }
+            case LEGS -> {
+                return 37;
+            }
+            case FEET -> {
+                return 36;
+            }
+            default -> {
+                return -1;
+            }
+        }
+    }
+    
+    private void colorLeatherArmor(@NotNull ItemStack leatherArmor, @NotNull UUID participantUUID) {
+        Color teamColor = getTeamColor(participantUUID);
+        GameManagerUtils.colorLeatherArmor(leatherArmor, teamColor);
     }
     
     @EventHandler
@@ -199,6 +342,7 @@ public class GameManager implements Listener {
         Component displayName = Component.text(participant.getName(), NamedTextColor.WHITE);
         participant.displayName(displayName);
         participant.playerListName(displayName);
+        GameManagerUtils.deColorLeatherArmor(participant);
     }
     
     @EventHandler
@@ -262,6 +406,7 @@ public class GameManager implements Listener {
         } else if (voteManager.isVoting()) {
             voteManager.onParticipantJoin(participant);
         }
+        GameManagerUtils.colorLeatherArmor(this, participant);
         updateTeamScore(teamName);
         updatePersonalScore(participant);
     }
