@@ -135,6 +135,7 @@ public class ColossalCombatGame implements Listener, Configurable {
     private void initializeFirstPlaceParticipant(Player first) {
         firstPlaceParticipants.add(first);
         first.teleport(config.getFirstPlaceSpawn());
+        first.setBedSpawnLocation(config.getFirstPlaceSpawn(), true);
         initializeParticipant(first);
         initializeKillCount(first);
     }
@@ -150,6 +151,7 @@ public class ColossalCombatGame implements Listener, Configurable {
     private void initializeSecondPlaceParticipant(Player second) {
         secondPlaceParticipants.add(second);
         second.teleport(config.getSecondPlaceSpawn());
+        second.setBedSpawnLocation(config.getSecondPlaceSpawn(), true);
         initializeParticipant(second);
         initializeKillCount(second);
     }
@@ -157,6 +159,7 @@ public class ColossalCombatGame implements Listener, Configurable {
     private void initializeSpectator(Player spectator) {
         spectators.add(spectator);
         spectator.teleport(config.getSpectatorSpawn());
+        spectator.setBedSpawnLocation(config.getSpectatorSpawn(), true);
         initializeParticipant(spectator);
     }
     
@@ -342,6 +345,7 @@ public class ColossalCombatGame implements Listener, Configurable {
                 firstPlaceParticipants.add(participant);
                 participant.setGameMode(GameMode.SPECTATOR);
                 participant.teleport(config.getFirstPlaceSpawn());
+                participant.setBedSpawnLocation(config.getFirstPlaceSpawn(), true);
                 sidebar.addPlayer(participant);
                 topbar.showPlayer(participant);
                 topbar.linkToTeam(participant.getUniqueId(), firstTeamName);
@@ -354,6 +358,7 @@ public class ColossalCombatGame implements Listener, Configurable {
                 secondPlaceParticipants.add(participant);
                 participant.setGameMode(GameMode.SPECTATOR);
                 participant.teleport(config.getSecondPlaceSpawn());
+                participant.setBedSpawnLocation(config.getSecondPlaceSpawn(), true);
                 sidebar.addPlayer(participant);
                 topbar.showPlayer(participant);
                 topbar.linkToTeam(participant.getUniqueId(), secondTeamName);
@@ -365,6 +370,7 @@ public class ColossalCombatGame implements Listener, Configurable {
             } else {
                 spectators.add(participant);
                 participant.teleport(config.getSpectatorSpawn());
+                participant.setBedSpawnLocation(config.getSpectatorSpawn(), true);
                 sidebar.addPlayer(participant);
                 topbar.showPlayer(participant);
                 topbar.linkToTeam(participant.getUniqueId(), firstTeamName);

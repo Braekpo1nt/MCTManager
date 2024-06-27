@@ -109,6 +109,7 @@ public class ColossalCombatRound implements Listener {
     private void initializeFirstPlaceParticipant(Player first) {
         firstPlaceParticipants.add(first);
         first.teleport(config.getFirstPlaceSpawn());
+        first.setBedSpawnLocation(config.getFirstPlaceSpawn(), true);
         firstPlaceParticipantsAlive.put(first.getUniqueId(), true);
         first.getInventory().clear();
         first.setGameMode(GameMode.ADVENTURE);
@@ -129,6 +130,7 @@ public class ColossalCombatRound implements Listener {
     private void initializeSecondPlaceParticipant(Player second) {
         secondPlaceParticipants.add(second);
         second.teleport(config.getSecondPlaceSpawn());
+        second.setBedSpawnLocation(config.getSecondPlaceSpawn(), true);
         secondPlaceParticipantsAlive.put(second.getUniqueId(), true);
         second.getInventory().clear();
         second.setGameMode(GameMode.ADVENTURE);

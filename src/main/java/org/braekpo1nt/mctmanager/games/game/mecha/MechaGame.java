@@ -328,6 +328,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
                 teleportTeams(teams);
             } else {
                 participant.teleport(config.getPlatformSpawns().get(0));
+                participant.setBedSpawnLocation(config.getPlatformSpawns().get(0), true);
             }
         }
         sidebar.updateLine(participant.getUniqueId(), "title", title);
@@ -1113,6 +1114,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
             String team = gameManager.getTeamName(participant.getUniqueId());
             Location spawn = teamSpawnLocations.get(team);
             participant.teleport(spawn);
+            participant.setBedSpawnLocation(spawn, true);
         }
     }
     
