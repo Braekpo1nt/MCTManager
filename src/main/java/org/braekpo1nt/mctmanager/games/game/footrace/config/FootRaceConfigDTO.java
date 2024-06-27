@@ -21,8 +21,8 @@ record FootRaceConfigDTO(
         String version, 
         String world, 
         LocationDTO startingLocation, 
-        BoundingBoxDTO finishLine, 
-        BoundingBoxDTO spectatorArea, 
+        BoundingBoxDTO finishLine,
+        @Nullable BoundingBoxDTO spectatorArea, 
         BoundingBoxDTO glassBarrier,
         @Nullable List<Material> preventInteractions,
         Scores scores, 
@@ -40,8 +40,10 @@ record FootRaceConfigDTO(
         BoundingBox finishLine = this.finishLine().toBoundingBox();
         validator.validate(finishLine.getVolume() >= 1.0, "finishLine's volume (%s) can't be less than 1. %s", finishLine.getVolume(), finishLine);
         validator.validate(!finishLine.contains(this.startingLocation().toVector()), "startingLocation (%S) can't be inside finishLine (%S)", this.startingLocation(), finishLine);
-        validator.notNull(this.spectatorArea(), "spectatorArea");
-        validator.validate(this.spectatorArea().toBoundingBox().getVolume() >= 1.0, "getSpectatorArea's volume (%s) can't be less than 1. %s", this.spectatorArea().toBoundingBox().getVolume(), this.spectatorArea().toBoundingBox());
+        if (spectatorArea != null) {
+            BoundingBox spectatorArea = this.spectatorArea.toBoundingBox();
+            validator.validate(spectatorArea.getVolume() >= 1.0, "spectatorArea (%s) volume (%s) must be at least 1.0", spectatorArea, spectatorArea.getVolume());
+        }
         validator.notNull(this.glassBarrier(), "glassBarrier");
         validator.notNull(this.scores(), "scores");
         validator.notNull(this.scores().placementPoints(), "placementPoints");
@@ -74,6 +76,7 @@ record FootRaceConfigDTO(
                 .raceEndCountdownDuration(this.durations.raceEndCountdown)
                 .descriptionDuration(this.durations.description)
                 .preventInteractions(this.preventInteractions != null ? this.preventInteractions : Collections.emptyList())
+                .spectatorArea(this.spectatorArea != null ? this.spectatorArea.toBoundingBox() : null)
                 .description(this.description)
                 .build();
     }

@@ -29,6 +29,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.potion.PotionEffect;
@@ -484,23 +485,52 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     }
     
     @EventHandler
-    public void onPlayerCrossFinishLine(PlayerMoveEvent event) {
+    public void onPlayerMove(PlayerMoveEvent event) {
         if (!gameActive) {
             return;
         }
+        Player participant = event.getPlayer();
+        if (!participants.contains(participant)) {
+            return;
+        }
+        onParticipantMove(participant);
+        if (participant.getGameMode().equals(GameMode.SPECTATOR)) {
+            keepSpectatorsInArea(participant, event);
+        }
+    }
+    
+    /**
+     * Prevent spectators from leaving the spectatorArea
+     * @param participant the participant (assumed to be a valid participant of this game in the SPECTATOR gamemode
+     * @param event the event which may be cancelled in order to keep the given participant in the spectator area
+     */
+    private void keepSpectatorsInArea(@NotNull Player participant, PlayerMoveEvent event) {
+        if (config.getSpectatorArea() == null){
+            return;
+        }
+        if (!config.getSpectatorArea().contains(event.getFrom().toVector())) {
+            participant.teleport(config.getStartingLocation());
+            return;
+        }
+        if (!config.getSpectatorArea().contains(event.getTo().toVector())) {
+            event.setCancelled(true);
+        }
+    }
+    
+    /**
+     * Handle when a participant moves
+     * @param participant the participant. Assumed to be a valid participant in this game
+     */
+    private void onParticipantMove(Player participant) {
         if (!raceHasStarted) {
             return;
         }
-        Player player = event.getPlayer();
-        UUID playerUUID = player.getUniqueId();
-        if (!participants.contains(player)) {
-            return;
-        }
-        if (!player.getWorld().equals(config.getWorld())) {
+        UUID playerUUID = participant.getUniqueId();
+        if (!participant.getWorld().equals(config.getWorld())) {
             return;
         }
         
-        if (isInFinishLineBoundingBox(player)) {
+        if (isInFinishLineBoundingBox(participant)) {
             long lastMoveTime = lapCooldowns.get(playerUUID);
             long currentTime = System.currentTimeMillis();
             if (currentTime - lastMoveTime < COOL_DOWN_TIME) {
@@ -518,18 +548,40 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
                         "lap",
                         String.format("Lap: %d/%d", laps.get(playerUUID), MAX_LAPS)
                 );
-                messageAllParticipants(Component.text(player.getName())
+                messageAllParticipants(Component.text(participant.getName())
                         .append(Component.text(" finished lap "))
                         .append(Component.text(currentLap))
                         .append(Component.text(" in "))
                         .append(Component.text(getTimeString(elapsedTime))));
-                gameManager.awardPointsToParticipant(player, config.getCompleteLapScore());
+                gameManager.awardPointsToParticipant(participant, config.getCompleteLapScore());
                 return;
             }
             if (currentLap == MAX_LAPS) {
                 laps.put(playerUUID, currentLap + 1);
-                onPlayerFinishedRace(player);
+                onPlayerFinishedRace(participant);
             }
+        }
+    }
+    
+    @EventHandler
+    public void onPlayerTeleport(PlayerTeleportEvent event) {
+        if (!gameActive) {
+            return;
+        }
+        if (config.getSpectatorArea() == null){
+            return;
+        }
+        if (!participants.contains(event.getPlayer())) {
+            return;
+        }
+        if (!event.getPlayer().getGameMode().equals(GameMode.SPECTATOR)) {
+            return;
+        }
+        if (!event.getCause().equals(PlayerTeleportEvent.TeleportCause.SPECTATE)) {
+            return;
+        }
+        if (!config.getSpectatorArea().contains(event.getTo().toVector())) {
+            event.setCancelled(true);
         }
     }
     
