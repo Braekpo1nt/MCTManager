@@ -18,7 +18,7 @@ import java.util.List;
 public class ParkourPathwayConfig {
     private World world;
     private Location startingLocation;
-    private BoundingBox spectatorArea;
+    private @Nullable BoundingBox spectatorArea;
     private List<Puzzle> puzzles;
     private @Nullable List<TeamSpawn> teamSpawns;
     private @Nullable BoundingBox glassBarrier;

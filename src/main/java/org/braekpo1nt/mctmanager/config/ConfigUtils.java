@@ -11,10 +11,17 @@ import org.braekpo1nt.mctmanager.geometry.Geometry;
 
 public class ConfigUtils {
     
-    public static final Gson GSON = new GsonBuilder()
+    private static final GsonBuilder GSON_BUILDER = new GsonBuilder()
             .registerTypeAdapter(ItemMetaDTO.class, new ItemMetaDTODeserializer())
             .registerTypeAdapter(Component.class, new ComponentAdapter())
             .registerTypeAdapter(Geometry.class, new GeometryDeserializer())
+            ;
+    
+    public static final Gson GSON = GSON_BUILDER
+            .create();
+    
+    public static final Gson PRETTY_GSON = GSON_BUILDER
+            .setPrettyPrinting()
             .create();
     
     private ConfigUtils() {

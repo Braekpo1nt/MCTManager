@@ -30,6 +30,9 @@ import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -361,6 +364,51 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
             return;
         }
         currentRound.onPlayerLoseHunger(participant, event);
+    }
+    
+    @EventHandler
+    public void onPlayerMove(PlayerMoveEvent event) {
+        if (!gameActive) {
+            return;
+        }
+        if (config.getSpectatorArea() == null){
+            return;
+        }
+        if (!participants.contains(event.getPlayer())) {
+            return;
+        }
+        if (!event.getPlayer().getGameMode().equals(GameMode.SPECTATOR)) {
+            return;
+        }
+        if (!config.getSpectatorArea().contains(event.getFrom().toVector())) {
+            event.getPlayer().teleport(config.getSpawnObservatory());
+            return;
+        }
+        if (!config.getSpectatorArea().contains(event.getTo().toVector())) {
+            event.setCancelled(true);
+        }
+    }
+    
+    @EventHandler
+    public void onPlayerTeleport(PlayerTeleportEvent event) {
+        if (!gameActive) {
+            return;
+        }
+        if (config.getSpectatorArea() == null){
+            return;
+        }
+        if (!participants.contains(event.getPlayer())) {
+            return;
+        }
+        if (!event.getPlayer().getGameMode().equals(GameMode.SPECTATOR)) {
+            return;
+        }
+        if (!event.getCause().equals(PlayerTeleportEvent.TeleportCause.SPECTATE)) {
+            return;
+        }
+        if (!config.getSpectatorArea().contains(event.getTo().toVector())) {
+            event.setCancelled(true);
+        }
     }
     
     /**

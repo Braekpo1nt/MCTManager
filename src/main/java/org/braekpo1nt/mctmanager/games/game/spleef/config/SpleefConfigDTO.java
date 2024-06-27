@@ -46,8 +46,8 @@ import java.util.*;
 record SpleefConfigDTO(
         String version, 
         String world, 
-        List<Vector> startingLocations, 
-        BoundingBoxDTO spectatorArea, 
+        List<Vector> startingLocations,
+        @Nullable BoundingBoxDTO spectatorArea, 
         @Nullable Material stencilBlock, 
         @Nullable Material layerBlock, 
         @Nullable Material decayBlock, 
@@ -70,8 +70,10 @@ record SpleefConfigDTO(
         validator.validate(this.startingLocations() != null, "startingLocations can't be null");
         validator.validate(!this.startingLocations.isEmpty(), "startingLocations must have at least one entry");
         validator.validate(!this.startingLocations.contains(null), "startingLocations can't contain any null elements");
-        validator.validate(this.spectatorArea() != null, "spectatorArea can't be null");
-        validator.validate(this.spectatorArea.toBoundingBox().getVolume() >= 1.0, "spectatorArea (%s) must have a volume (%s) of at least 1.0", this.spectatorArea(), this.spectatorArea.toBoundingBox().getVolume());
+        if (spectatorArea != null) {
+            BoundingBox spectatorArea = this.spectatorArea.toBoundingBox();
+            validator.validate(spectatorArea.getVolume() >= 1.0, "spectatorArea (%s) volume (%s) must be at least 1.0", spectatorArea, spectatorArea.getVolume());
+        }
         validator.validate(this.layers != null, "layers can't be null");
         int numberOfLayers = this.layers.size();
         validator.validate(numberOfLayers >= 2, "there must be at least 2 layers");
@@ -149,6 +151,7 @@ record SpleefConfigDTO(
                 .descriptionDuration(this.durations.description)
                 .preventInteractions(this.preventInteractions != null ? this.preventInteractions : Collections.emptyList())
                 .safetyArea(this.safetyArea)
+                .spectatorArea(this.spectatorArea != null ? this.spectatorArea.toBoundingBox() : null)
                 .description(this.description)
                 .build();
     }

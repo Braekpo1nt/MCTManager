@@ -23,7 +23,7 @@ record CaptureTheFlagConfigDTO(
         Vector spawnObservatory, 
         List<ArenaDTO> arenas, 
         Map<String, LoadoutDTO> loadouts, 
-        BoundingBoxDTO spectatorArea,
+        @Nullable BoundingBoxDTO spectatorArea,
         @Nullable List<Material> preventInteractions,
         Scores scores, 
         Durations durations, 
@@ -37,9 +37,10 @@ record CaptureTheFlagConfigDTO(
         validator.notNull(this.arenas, "arenas");
         validator.validate(!this.arenas.isEmpty(), "arenas: there must be at least 1 arena");
         validator.validateList(this.arenas, "arenas");
-        validator.notNull(this.spectatorArea, "spectatorArea");
-        BoundingBox spectatorArea = this.spectatorArea.toBoundingBox();
-        validator.validate(spectatorArea.getVolume() >= 1.0, "spectatorArea (%s) volume (%s) must be at least 1.0", spectatorArea, spectatorArea.getVolume());
+        if (spectatorArea != null) {
+            BoundingBox spectatorArea = this.spectatorArea.toBoundingBox();
+            validator.validate(spectatorArea.getVolume() >= 1.0, "spectatorArea (%s) volume (%s) must be at least 1.0", spectatorArea, spectatorArea.getVolume());
+        }
         validator.notNull(this.scores, "scores");
         validator.notNull(this.durations, "durations");
         validator.validate(this.durations.matchesStarting() >= 0, "durations.matchesStarting (%s) can't be negative", this.durations.matchesStarting());
@@ -74,6 +75,7 @@ record CaptureTheFlagConfigDTO(
                 .killScore(this.scores.kill)
                 .descriptionDuration(this.durations.description)
                 .preventInteractions(this.preventInteractions != null ? this.preventInteractions : Collections.emptyList())
+                .spectatorArea(this.spectatorArea != null ? this.spectatorArea.toBoundingBox() : null)
                 .description(this.description)
                 .build();
     }

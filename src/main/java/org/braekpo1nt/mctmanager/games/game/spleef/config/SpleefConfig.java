@@ -25,6 +25,7 @@ public class SpleefConfig {
     private World world;
     private List<Location> startingLocations;
     private List<Structure> structures;
+    private @Nullable BoundingBox spectatorArea;
     private List<Location> structureOrigins;
     private List<BoundingBox> decayLayers;
     private List<DecayStage> decayStages;

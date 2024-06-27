@@ -31,6 +31,8 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
@@ -490,6 +492,57 @@ public class ColossalCombatGame implements Listener, Configurable {
             return;
         }
         event.setCancelled(true);
+    }
+    
+    @EventHandler
+    public void onPlayerMove(PlayerMoveEvent event) {
+        if (!gameActive) {
+            return;
+        }
+        if (config.getSpectatorArea() == null){
+            return;
+        }
+        Player participant = event.getPlayer();
+        if (!firstPlaceParticipants.contains(participant)
+                && !secondPlaceParticipants.contains(participant)
+                && !spectators.contains(participant)) {
+            return;
+        }
+        if (!participant.getGameMode().equals(GameMode.SPECTATOR)) {
+            return;
+        }
+        if (!config.getSpectatorArea().contains(event.getFrom().toVector())) {
+            participant.teleport(config.getSpectatorSpawn());
+            return;
+        }
+        if (!config.getSpectatorArea().contains(event.getTo().toVector())) {
+            event.setCancelled(true);
+        }
+    }
+    
+    @EventHandler
+    public void onPlayerTeleport(PlayerTeleportEvent event) {
+        if (!gameActive) {
+            return;
+        }
+        if (config.getSpectatorArea() == null){
+            return;
+        }
+        Player participant = event.getPlayer();
+        if (!firstPlaceParticipants.contains(participant)
+                && !secondPlaceParticipants.contains(participant)
+                && !spectators.contains(participant)) {
+            return;
+        }
+        if (!participant.getGameMode().equals(GameMode.SPECTATOR)) {
+            return;
+        }
+        if (!event.getCause().equals(PlayerTeleportEvent.TeleportCause.SPECTATE)) {
+            return;
+        }
+        if (!config.getSpectatorArea().contains(event.getTo().toVector())) {
+            event.setCancelled(true);
+        }
     }
     
     private void updateRoundWinSidebar() {

@@ -21,6 +21,7 @@ public class ColossalCombatConfig {
     private Location firstPlaceSpawn;
     private Location secondPlaceSpawn;
     private Location spectatorSpawn;
+    private @Nullable BoundingBox spectatorArea;
     /**
      * each index corresponds to an index in the itemDropsList
      */

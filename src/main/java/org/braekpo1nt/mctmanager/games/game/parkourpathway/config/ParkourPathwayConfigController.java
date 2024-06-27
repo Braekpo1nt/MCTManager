@@ -1,6 +1,8 @@
 package org.braekpo1nt.mctmanager.games.game.parkourpathway.config;
 
+import com.google.gson.Gson;
 import org.braekpo1nt.mctmanager.config.ConfigController;
+import org.braekpo1nt.mctmanager.config.ConfigUtils;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
@@ -15,6 +17,11 @@ public class ParkourPathwayConfigController extends ConfigController<ParkourPath
     
     public ParkourPathwayConfigController(File configDirectory) {
         this.configFile = new File(configDirectory, "parkourPathwayConfig.json");
+    }
+    
+    @Override
+    protected @NotNull Gson getGson() {
+        return ConfigUtils.PRETTY_GSON;
     }
     
     /**

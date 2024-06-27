@@ -8,6 +8,8 @@ import org.braekpo1nt.mctmanager.games.game.capturetheflag.Loadout;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.util.BoundingBox;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Map;
@@ -27,6 +29,7 @@ public class CaptureTheFlagConfig {
     private int killScore;
     private int descriptionDuration;
     private List<Material> preventInteractions;
+    private @Nullable BoundingBox spectatorArea;
     private Component description;
     
 }

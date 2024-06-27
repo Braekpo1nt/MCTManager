@@ -429,8 +429,11 @@ public class SpleefRound implements Listener {
         if (!participants.contains(participant)) {
             return;
         }
-        Vector to = event.getTo().toVector();
-        if (!config.getSafetyArea().contains(to)) {
+        if (!config.getSafetyArea().contains(event.getFrom().toVector())) {
+            participant.teleport(config.getStartingLocations().get(0));
+            return;
+        }
+        if (!config.getSafetyArea().contains(event.getTo().toVector())) {
             event.setCancelled(true);
         }
     }

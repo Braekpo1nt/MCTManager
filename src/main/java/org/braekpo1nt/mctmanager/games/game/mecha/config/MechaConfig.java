@@ -9,6 +9,7 @@ import org.bukkit.World;
 import org.bukkit.loot.LootTable;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Map;
@@ -17,6 +18,7 @@ import java.util.Map;
 @Builder
 public class MechaConfig {
     private World world;
+    private @Nullable BoundingBox spectatorArea;
     private List<Vector> spawnChestCoords;
     private List<Vector> mapChestCoords;
     private LootTable spawnLootTable;

@@ -28,7 +28,7 @@ class MechaConfigDTO implements Validatable {
     
     private String version;
     private String world;
-    private BoundingBoxDTO spectatorArea;
+    private @Nullable BoundingBoxDTO spectatorArea;
     /**
      * The area to empty containers and remove floor items
      */
@@ -83,10 +83,10 @@ class MechaConfigDTO implements Validatable {
         validator.validate(Main.VALID_CONFIG_VERSIONS.contains(this.version), "invalid config version (%s)", this.version);
         validator.notNull(Bukkit.getWorld(this.world),
                 "Could not find world \"%s\"", this.world);
-        validator.notNull(this.spectatorArea,
-                "spectatorArea");
-        validator.validate(this.spectatorArea.toBoundingBox().getVolume() >= 1.0,
-                "getSpectatorArea's volume (%s) can't be less than 1. %s", this.spectatorArea.toBoundingBox().getVolume(), this.spectatorArea.toBoundingBox());
+        if (spectatorArea != null) {
+            BoundingBox spectatorArea = this.spectatorArea.toBoundingBox();
+            validator.validate(spectatorArea.getVolume() >= 1.0, "spectatorArea (%s) volume (%s) must be at least 1.0", spectatorArea, spectatorArea.getVolume());
+        }
         validator.notNull(this.removeArea,
                 "removeArea");
         validator.validate(this.removeArea.toBoundingBox().getVolume() >= 1.0,
@@ -201,6 +201,7 @@ class MechaConfigDTO implements Validatable {
         }
         return MechaConfig.builder()
                 .world(newWorld)
+                .spectatorArea(this.spectatorArea != null ? this.spectatorArea.toBoundingBox() : null)
                 .spawnChestCoords(this.spawnChestCoords)
                 .mapChestCoords(this.mapChestCoords)
                 .spawnLootTable(Bukkit.getLootTable(this.spawnLootTable.toNamespacedKey()))

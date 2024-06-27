@@ -7,6 +7,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.util.BoundingBox;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -24,6 +25,7 @@ public class FootRaceConfig {
     private int raceEndCountdownDuration;
     private int descriptionDuration;
     private List<Material> preventInteractions;
+    private @Nullable BoundingBox spectatorArea;
     private Component description;
     
 }

@@ -14,6 +14,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.scoreboard.Team;
+import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -25,8 +26,8 @@ import java.util.List;
 record ClockworkConfigDTO(
         String version, 
         String world, 
-        Vector startingLocation, 
-        BoundingBoxDTO spectatorArea, 
+        Vector startingLocation,
+        @Nullable BoundingBoxDTO spectatorArea, 
         Chaos chaos, 
         List<WedgeDTO> wedges, 
         int rounds, 
@@ -45,8 +46,10 @@ record ClockworkConfigDTO(
         validator.validate(Main.VALID_CONFIG_VERSIONS.contains(this.version), "invalid config version (%s)", this.version);
         validator.notNull(Bukkit.getWorld(this.world), "Could not find world \"%s\"", this.world);
         validator.notNull(this.startingLocation, "startingLocation");
-        validator.notNull(this.spectatorArea, "spectatorArea");
-        validator.validate(this.spectatorArea.toBoundingBox().getVolume() >= 1.0, "spectatorArea (%s) must have a volume (%s) of at least 1.0", this.spectatorArea, this.spectatorArea.toBoundingBox().getVolume());
+        if (spectatorArea != null) {
+            BoundingBox spectatorArea = this.spectatorArea.toBoundingBox();
+            validator.validate(spectatorArea.getVolume() >= 1.0, "spectatorArea (%s) volume (%s) must be at least 1.0", spectatorArea, spectatorArea.getVolume());
+        }
         this.chaos.validate(validator.path("chaos"));
         validator.notNull(this.wedges, "wedges");
         validator.validate(this.wedges.size() == 12, "wedges must have 12 entries");
@@ -97,6 +100,7 @@ record ClockworkConfigDTO(
                 .wedges(newWedges)
                 .preventInteractions(this.preventInteractions != null ? this.preventInteractions : Collections.emptyList())
                 .descriptionDuration(this.durations.description)
+                .spectatorArea(this.spectatorArea != null ? this.spectatorArea.toBoundingBox() : null)
                 .description(this.description)
                 .build();
     }
