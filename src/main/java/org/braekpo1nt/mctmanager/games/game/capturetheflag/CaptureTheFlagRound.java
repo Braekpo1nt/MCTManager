@@ -108,6 +108,7 @@ public class CaptureTheFlagRound {
     private void initializeParticipant(Player participant) {
         participants.add(participant);
         participant.teleport(config.getSpawnObservatory());
+        participant.setBedSpawnLocation(config.getSpawnObservatory(), true);
         participant.getInventory().clear();
         participant.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearStatusEffects(participant);
@@ -117,6 +118,7 @@ public class CaptureTheFlagRound {
     private void initializeOnDeckParticipant(Player onDeckParticipant) {
         onDeckParticipants.add(onDeckParticipant);
         onDeckParticipant.teleport(config.getSpawnObservatory());
+        onDeckParticipant.setBedSpawnLocation(config.getSpawnObservatory(), true);
         onDeckParticipant.getInventory().clear();
         onDeckParticipant.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearStatusEffects(onDeckParticipant);
@@ -227,6 +229,7 @@ public class CaptureTheFlagRound {
             String team = gameManager.getTeamName(participant.getUniqueId());
             if (matchPairing.containsTeam(team)) {
                 participant.teleport(config.getSpawnObservatory());
+                participant.setBedSpawnLocation(config.getSpawnObservatory(), true);
             }
         }
     }

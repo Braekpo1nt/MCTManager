@@ -192,6 +192,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
             String team = gameManager.getTeamName(participant.getUniqueId());
             teamSpawns.get(team).teleport(participant);
         }
+        participant.setBedSpawnLocation(config.getStartingLocation(), true);
         participant.getInventory().clear();
         giveBoots(participant);
         participant.setGameMode(GameMode.ADVENTURE);
@@ -335,6 +336,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
                 }
             }
         }
+        participant.setBedSpawnLocation(config.getStartingLocation(), true);
         sidebar.updateLine(uniqueId, "title", title);
         updateCheckpointSidebar(participant);
     }

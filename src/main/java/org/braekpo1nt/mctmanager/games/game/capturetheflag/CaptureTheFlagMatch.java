@@ -130,12 +130,14 @@ public class CaptureTheFlagMatch implements Listener {
         if (north) {
             northParticipants.add(participant);
             participant.teleport(arena.northSpawn());
+            participant.setBedSpawnLocation(arena.northSpawn(), true);
             participant.lookAt(arena.southSpawn().getX(), arena.southSpawn().getY(), arena.southSpawn().getZ(), LookAnchor.EYES);
             alive = countAlive(northParticipants);
             dead = northParticipants.size() - alive;
         } else {
             southParticipants.add(participant);
             participant.teleport(arena.southSpawn());
+            participant.setBedSpawnLocation(arena.southSpawn(), true);
             participant.lookAt(arena.northSpawn().getX(), arena.northSpawn().getY(), arena.northSpawn().getZ(), LookAnchor.EYES);
             alive = countAlive(southParticipants);
             dead = southParticipants.size() - alive;
@@ -173,6 +175,7 @@ public class CaptureTheFlagMatch implements Listener {
         ParticipantInitializer.resetHealthAndHunger(participant);
         ParticipantInitializer.clearStatusEffects(participant);
         participant.teleport(config.getSpawnObservatory());
+        participant.setBedSpawnLocation(config.getSpawnObservatory(), true);
         participant.lookAt(lookLocation.getX(), lookLocation.getY(), lookLocation.getZ(), LookAnchor.EYES);
     }
     
@@ -468,6 +471,7 @@ public class CaptureTheFlagMatch implements Listener {
         ParticipantInitializer.resetHealthAndHunger(killed);
         ParticipantInitializer.clearStatusEffects(killed);
         killed.teleport(config.getSpawnObservatory());
+        killed.setBedSpawnLocation(config.getSpawnObservatory(), true);
         killed.lookAt(arena.northFlag().getX(), arena.northFlag().getY(), arena.northFlag().getZ(), LookAnchor.EYES);
         
         String teamId = gameManager.getTeamName(killed.getUniqueId());

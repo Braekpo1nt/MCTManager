@@ -125,6 +125,7 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
     private void teleportParticipantToRandomStartingPosition(Player participant) {
         int index = random.nextInt(config.getStartingLocations().size());
         participant.teleport(config.getStartingLocations().get(index));
+        participant.setBedSpawnLocation(config.getStartingLocations().get(index), true);
     }
     
     private void startAdmins(List<Player> newAdmins) {

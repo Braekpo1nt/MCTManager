@@ -110,6 +110,7 @@ public class ClockworkRound implements Listener {
             teamsLivingMembers.put(team, 1);
         }
         participant.teleport(config.getStartingLocation());
+        participant.setBedSpawnLocation(config.getStartingLocation(), true);
         participant.getInventory().clear();
         participant.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearStatusEffects(participant);
@@ -119,6 +120,7 @@ public class ClockworkRound implements Listener {
     private void rejoinParticipant(Player participant) {
         participants.add(participant);
         participant.teleport(config.getStartingLocation());
+        participant.setBedSpawnLocation(config.getStartingLocation(), true);
         participant.getInventory().clear();
         participant.setGameMode(GameMode.SPECTATOR);
         ParticipantInitializer.clearStatusEffects(participant);
@@ -138,6 +140,7 @@ public class ClockworkRound implements Listener {
             teamsLivingMembers.put(team, 0);
         }
         participant.teleport(config.getStartingLocation());
+        participant.setBedSpawnLocation(config.getStartingLocation(), true);
         participant.getInventory().clear();
         participant.setGameMode(GameMode.SPECTATOR);
         ParticipantInitializer.clearStatusEffects(participant);

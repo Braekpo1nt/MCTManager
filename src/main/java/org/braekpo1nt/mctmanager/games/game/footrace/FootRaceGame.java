@@ -142,8 +142,8 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         lapCooldowns.put(participantUniqueId, System.currentTimeMillis());
         laps.put(participantUniqueId, 1);
         sidebar.addPlayer(participant);
-        participant.sendMessage("Teleporting to Foot Race");
         participant.teleport(config.getStartingLocation());
+        participant.setBedSpawnLocation(config.getStartingLocation(), true);
         participant.getInventory().clear();
         giveBoots(participant);
         participant.setGameMode(GameMode.ADVENTURE);
