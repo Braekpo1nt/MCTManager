@@ -9,6 +9,8 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.scoreboard.Team;
+import org.bukkit.util.BoundingBox;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -35,6 +37,7 @@ public class ClockworkConfig {
     private List<Wedge> wedges;
     private List<Material> preventInteractions;
     private int descriptionDuration;
+    private @Nullable BoundingBox spectatorArea;
     private Component description;
     
 }
