@@ -2,15 +2,21 @@ package org.braekpo1nt.mctmanager.commands.mctdebug;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
+import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
+import org.braekpo1nt.mctmanager.ui.topbar.Topbar;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 
@@ -19,9 +25,13 @@ import java.util.List;
  */
 public class MCTDebugCommand implements TabExecutor, Listener {
     
+    private final Topbar topbar = new Topbar();
+    private final Main plugin;
+    
     public MCTDebugCommand(Main plugin) {
         plugin.getCommand("mctdebug").setExecutor(this);
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
+        this.plugin = plugin;
     }
     
     @Override
@@ -39,6 +49,26 @@ public class MCTDebugCommand implements TabExecutor, Listener {
             return true;
         }
         
+        topbar.showPlayer(player);
+        new BukkitRunnable() {
+            int count = 5;
+            @Override
+            public void run() {
+                if (count <= 0) {
+                    topbar.hidePlayer(player);
+                    this.cancel();
+                    return;
+                }
+                String timeString = TimeStringUtils.getTimeString(count);
+                if (count <= 3) {
+                    Title title = Title.title(Component.text("Starting"), Component.text(count).color(getColorForTime(count)), Title.Times.times(Duration.ofMillis(0), Duration.ofMillis(1000), Duration.ofMillis(0)));
+                    player.showTitle(title);
+                }
+                topbar.setMiddle(Component.text(timeString));
+                count--;
+            }
+        }.runTaskTimer(plugin, 0L, 20L);
+        
 //        Component mainTitle = Component.text("Main title");
 //        Component subTitle = Component.text("Subtitle");
 //
@@ -46,6 +76,23 @@ public class MCTDebugCommand implements TabExecutor, Listener {
 //        Title title = Title.title(mainTitle, subTitle, times);
 //        sender.showTitle(title);
         return true;
+    }
+    
+    private static TextColor getColorForTime(int seconds) {
+        switch (seconds) {
+            case 3 -> {
+                return NamedTextColor.RED;
+            }
+            case 2 -> {
+                return NamedTextColor.YELLOW;
+            }
+            case 1 -> {
+                return NamedTextColor.GREEN;
+            }
+            default -> {
+                return NamedTextColor.WHITE;
+            }
+        }
     }
     
     @Override
