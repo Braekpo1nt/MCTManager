@@ -500,24 +500,6 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     }
     
     /**
-     * Prevent spectators from leaving the spectatorArea
-     * @param participant the participant (assumed to be a valid participant of this game in the SPECTATOR gamemode
-     * @param event the event which may be cancelled in order to keep the given participant in the spectator area
-     */
-    private void keepSpectatorsInArea(@NotNull Player participant, PlayerMoveEvent event) {
-        if (config.getSpectatorArea() == null){
-            return;
-        }
-        if (!config.getSpectatorArea().contains(event.getFrom().toVector())) {
-            participant.teleport(config.getStartingLocation());
-            return;
-        }
-        if (!config.getSpectatorArea().contains(event.getTo().toVector())) {
-            event.setCancelled(true);
-        }
-    }
-    
-    /**
      * Handle when a participant moves
      * @param participant the participant. Assumed to be a valid participant in this game
      */
@@ -560,6 +542,24 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
                 laps.put(playerUUID, currentLap + 1);
                 onPlayerFinishedRace(participant);
             }
+        }
+    }
+    
+    /**
+     * Prevent spectators from leaving the spectatorArea
+     * @param participant the participant (assumed to be a valid participant of this game in the SPECTATOR gamemode
+     * @param event the event which may be cancelled in order to keep the given participant in the spectator area
+     */
+    private void keepSpectatorsInArea(@NotNull Player participant, PlayerMoveEvent event) {
+        if (config.getSpectatorArea() == null){
+            return;
+        }
+        if (!config.getSpectatorArea().contains(event.getFrom().toVector())) {
+            participant.teleport(config.getStartingLocation());
+            return;
+        }
+        if (!config.getSpectatorArea().contains(event.getTo().toVector())) {
+            event.setCancelled(true);
         }
     }
     

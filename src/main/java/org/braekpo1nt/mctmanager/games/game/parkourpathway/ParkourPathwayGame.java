@@ -35,6 +35,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.potion.PotionEffect;
@@ -494,7 +495,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
     
     /**
      * @param teams the teams to get the spawns for. If there are more teams than spawns in the config, some teams will be in the same spawn.
-     * @return a list of {@link TeamSpawn}s for the given teams. Null if the config never specified a list of {@link TeamSpawn}s.
+     * @return a map of teamIds to their {@link TeamSpawn}s. Null if the config never specified a list of {@link TeamSpawn}s.
      */
     private @Nullable Map<String, @NotNull TeamSpawn> getTeamSpawns(@NotNull List<String> teams) {
         List<TeamSpawn> teamSpawns = config.getTeamSpawns();
@@ -590,10 +591,21 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
             }
         }
         // debug
-        UUID uuid = participant.getUniqueId();
         if (!participants.contains(participant)) {
             return;
         }
+        onParticipantMove(participant);
+        if (participant.getGameMode().equals(GameMode.SPECTATOR)) {
+            keepSpectatorsInArea(participant, event);
+        }
+    }
+    
+    /**
+     * Handle when a participant moves
+     * @param participant the participant. Assumed to be a valid participant in this game
+     */
+    private void onParticipantMove(@NotNull Player participant) {
+        UUID uuid = participant.getUniqueId();
         if (finishedParticipants.contains(uuid)) {
             return;
         }
@@ -623,6 +635,24 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         }
     }
     
+    /**
+     * Prevent spectators from leaving the spectatorArea
+     * @param participant the participant (assumed to be a valid participant of this game in the SPECTATOR gamemode
+     * @param event the event which may be cancelled in order to keep the given participant in the spectator area
+     */
+    private void keepSpectatorsInArea(@NotNull Player participant, PlayerMoveEvent event) {
+        if (config.getSpectatorArea() == null){
+            return;
+        }
+        if (!config.getSpectatorArea().contains(event.getFrom().toVector())) {
+            participant.teleport(config.getStartingLocation());
+            return;
+        }
+        if (!config.getSpectatorArea().contains(event.getTo().toVector())) {
+            event.setCancelled(true);
+        }
+    }
+    
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
         if (!gameActive) {
@@ -640,6 +670,28 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
             return;
         }
         event.setCancelled(true);
+    }
+    
+    @EventHandler
+    public void onPlayerTeleport(PlayerTeleportEvent event) {
+        if (!gameActive) {
+            return;
+        }
+        if (config.getSpectatorArea() == null){
+            return;
+        }
+        if (!participants.contains(event.getPlayer())) {
+            return;
+        }
+        if (!event.getPlayer().getGameMode().equals(GameMode.SPECTATOR)) {
+            return;
+        }
+        if (!event.getCause().equals(PlayerTeleportEvent.TeleportCause.SPECTATE)) {
+            return;
+        }
+        if (!config.getSpectatorArea().contains(event.getTo().toVector())) {
+            event.setCancelled(true);
+        }
     }
     
     private void onParticipantOutOfBounds(Player participant, Puzzle currentPuzzle) {

@@ -45,7 +45,7 @@ class ParkourPathwayConfigDTO implements Validatable {
     private @Nullable Component teamSpawnsOpenMessage;
     /** the list of puzzles for this parkour game */
     private List<PuzzleDTO> puzzles;
-    private BoundingBoxDTO spectatorArea;
+    private @Nullable BoundingBoxDTO spectatorArea;
     private @Nullable List<Material> preventInteractions;
     private Scores scores;
     private Durations durations;
@@ -56,8 +56,10 @@ class ParkourPathwayConfigDTO implements Validatable {
         validator.notNull(this.getVersion(), "version");
         validator.validate(Main.VALID_CONFIG_VERSIONS.contains(this.getVersion()), "invalid config version (%s)", this.getVersion());
         validator.notNull(Bukkit.getWorld(this.getWorld()), "Could not find world \"%s\"", this.getWorld());
-        validator.notNull(this.getSpectatorArea(), "spectatorArea");
-        validator.validate(this.getSpectatorArea().toBoundingBox().getVolume() >= 1.0, "getSpectatorArea's volume (%s) can't be less than 1. %s", this.getSpectatorArea().toBoundingBox().getVolume(), this.getSpectatorArea().toBoundingBox());
+        if (spectatorArea != null) {
+            BoundingBox spectatorArea = this.spectatorArea.toBoundingBox();
+            validator.validate(spectatorArea.getVolume() >= 1.0, "spectatorArea (%s) volume (%s) must be at least 1.0", spectatorArea, spectatorArea.getVolume());
+        }
         validator.notNull(this.getScores(), "scores");
         validator.notNull(this.getScores().getCheckpoint(), "scores.checkpoint");
         validator.validate(this.getScores().getCheckpoint().length >= 2, "scores.checkpoint must have at least two elements");
@@ -126,7 +128,7 @@ class ParkourPathwayConfigDTO implements Validatable {
         return ParkourPathwayConfig.builder()
                 .world(newWorld)
                 .startingLocation(newStartingLocation)
-                .spectatorArea(this.spectatorArea.toBoundingBox())
+                .spectatorArea(this.spectatorArea != null ? this.spectatorArea.toBoundingBox() : null)
                 .teamSpawns(newTeamSpawns)
                 .puzzles(newPuzzles)
                 .glassBarrier(newGlassBarrier)
@@ -154,7 +156,7 @@ class ParkourPathwayConfigDTO implements Validatable {
                 .teamSpawns(config.getTeamSpawns() != null ? TeamSpawnDTO.fromTeamSpawns(config.getTeamSpawns()) : null)
                 .teamSpawnsOpenMessage(config.getTeamSpawnsOpenMessage())
                 .puzzles(PuzzleDTO.fromPuzzles(config.getPuzzles()))
-                .spectatorArea(BoundingBoxDTO.from(config.getSpectatorArea()))
+                .spectatorArea(config.getSpectatorArea() != null ? BoundingBoxDTO.from(config.getSpectatorArea()) : null)
                 .scores(new Scores(config.getCheckpointScore(), config.getWinScore()))
                 .preventInteractions(config.getPreventInteractions())
                 .durations(new Durations(config.getTeamSpawnsDuration(), config.getStartingDuration(), config.getTimeLimitDuration(), config.getCheckpointCounterDuration(), config.getCheckpointCounterAlertDuration(), config.getDescriptionDuration()))
