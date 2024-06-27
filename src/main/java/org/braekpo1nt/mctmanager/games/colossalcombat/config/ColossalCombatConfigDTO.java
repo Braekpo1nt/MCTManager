@@ -45,7 +45,7 @@ import java.util.List;
 record ColossalCombatConfigDTO(
         String version, 
         String world, 
-        BoundingBoxDTO spectatorArea, 
+        @Nullable BoundingBoxDTO spectatorArea, 
         LocationDTO firstPlaceSpawn, 
         LocationDTO secondPlaceSpawn, 
         LocationDTO spectatorSpawn, 
@@ -67,10 +67,11 @@ record ColossalCombatConfigDTO(
         validator.notNull(this.version, "version");
         validator.validate(Main.VALID_CONFIG_VERSIONS.contains(this.version), "invalid config version (%s)", this.version);
         validator.notNull(Bukkit.getWorld(this.world), "Could not find world \"%s\"", this.world);
-    
-        validator.notNull(this.spectatorArea, "spectatorArea");
-        BoundingBox spectatorArea = this.spectatorArea.toBoundingBox();
-        validator.validate(spectatorArea.getVolume() >= 1.0, "spectatorArea (%s) volume (%s) must be at least 1.0", spectatorArea, spectatorArea.getVolume());
+        
+        if (spectatorArea != null) {
+            BoundingBox spectatorArea = this.spectatorArea.toBoundingBox();
+            validator.validate(spectatorArea.getVolume() >= 1.0, "spectatorArea (%s) volume (%s) must be at least 1.0", spectatorArea, spectatorArea.getVolume());
+        }
     
         validator.notNull(this.firstPlaceSpawn, "firstPlaceSpawn");
         validator.notNull(this.secondPlaceSpawn, "secondPlaceSpawn");
