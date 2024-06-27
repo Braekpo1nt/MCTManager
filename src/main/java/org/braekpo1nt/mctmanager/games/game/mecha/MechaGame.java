@@ -34,9 +34,7 @@ import org.bukkit.event.hanging.HangingBreakByEntityEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.inventory.InventoryType;
-import org.bukkit.event.player.PlayerInteractAtEntityEvent;
-import org.bukkit.event.player.PlayerInteractEntityEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.*;
 import org.bukkit.inventory.BlockInventoryHolder;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
@@ -828,6 +826,51 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
             return;
         }
         event.setCancelled(true);
+    }
+    
+    @EventHandler
+    public void onPlayerMove(PlayerMoveEvent event) {
+        if (!gameActive) {
+            return;
+        }
+        if (config.getSpectatorArea() == null){
+            return;
+        }
+        if (!participants.contains(event.getPlayer())) {
+            return;
+        }
+        if (!event.getPlayer().getGameMode().equals(GameMode.SPECTATOR)) {
+            return;
+        }
+        if (!config.getSpectatorArea().contains(event.getFrom().toVector())) {
+            event.getPlayer().teleport(config.getPlatformSpawns().get(0));
+            return;
+        }
+        if (!config.getSpectatorArea().contains(event.getTo().toVector())) {
+            event.setCancelled(true);
+        }
+    }
+    
+    @EventHandler
+    public void onPlayerTeleport(PlayerTeleportEvent event) {
+        if (!gameActive) {
+            return;
+        }
+        if (config.getSpectatorArea() == null){
+            return;
+        }
+        if (!participants.contains(event.getPlayer())) {
+            return;
+        }
+        if (!event.getPlayer().getGameMode().equals(GameMode.SPECTATOR)) {
+            return;
+        }
+        if (!event.getCause().equals(PlayerTeleportEvent.TeleportCause.SPECTATE)) {
+            return;
+        }
+        if (!config.getSpectatorArea().contains(event.getTo().toVector())) {
+            event.setCancelled(true);
+        }
     }
 
     private void onParticipantDeath(Player killed) {
