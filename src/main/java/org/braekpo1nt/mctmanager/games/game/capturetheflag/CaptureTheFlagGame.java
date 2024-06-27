@@ -381,6 +381,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
             return;
         }
         if (!config.getSpectatorArea().contains(event.getFrom().toVector())) {
+            event.getPlayer().teleport(config.getSpawnObservatory());
             return;
         }
         if (!config.getSpectatorArea().contains(event.getTo().toVector())) {
