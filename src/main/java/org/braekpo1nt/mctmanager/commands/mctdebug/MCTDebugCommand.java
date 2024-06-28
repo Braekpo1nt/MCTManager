@@ -51,17 +51,18 @@ public class MCTDebugCommand implements TabExecutor, Listener {
         
         topbar.showPlayer(player);
         new BukkitRunnable() {
-            int count = 5;
+            int count = 15;
             @Override
             public void run() {
                 if (count <= 0) {
                     topbar.hidePlayer(player);
+                    player.showTitle(Title.title(Component.empty(), Component.empty()));
                     this.cancel();
                     return;
                 }
                 String timeString = TimeStringUtils.getTimeString(count);
-                if (count <= 3) {
-                    Title title = Title.title(Component.text("Starting"), Component.text(count).color(getColorForTime(count)), Title.Times.times(Duration.ofMillis(0), Duration.ofMillis(1000), Duration.ofMillis(0)));
+                if (count <= 10) {
+                    Title title = Title.title(Component.text("Starting in"), Component.text(count).color(getColorForTime(count)), Title.Times.times(Duration.ofMillis(0), Duration.ofMillis(1500), Duration.ofMillis(0)));
                     player.showTitle(title);
                 }
                 topbar.setMiddle(Component.text(timeString));
