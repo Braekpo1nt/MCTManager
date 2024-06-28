@@ -2,10 +2,7 @@ package org.braekpo1nt.mctmanager.commands.mctdebug;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextColor;
-import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.sidebar.SidebarFactory;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
@@ -17,11 +14,9 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 
@@ -31,7 +26,6 @@ import java.util.List;
 public class MCTDebugCommand implements TabExecutor, Listener {
     
     private final BasicTopbar topbar = new BasicTopbar();
-    private final Main plugin;
     private final TimerManager timerManager;
     private final Sidebar sidebar;
     private @Nullable Timer timer;
@@ -39,7 +33,6 @@ public class MCTDebugCommand implements TabExecutor, Listener {
     public MCTDebugCommand(Main plugin) {
         plugin.getCommand("mctdebug").setExecutor(this);
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
-        this.plugin = plugin;
         this.timerManager = new TimerManager(plugin);
         this.sidebar = new SidebarFactory().createSidebar();
         sidebar.addLine("timer", "");
@@ -131,7 +124,7 @@ public class MCTDebugCommand implements TabExecutor, Listener {
                     .titleAudience(player)
                     .withTopbar(topbar)
                     .withSidebar(sidebar, "timer")
-                    .build().start(plugin);
+                    .build().start(timerManager);
         }
         
 //        Component mainTitle = Component.text("Main title");

@@ -178,7 +178,8 @@ public class Timer extends BukkitRunnable {
     
     /**
      * {@inheritDoc}
-     * if this is paused, sets the state to no longer be paused
+     * This will be called when this timer is over or stopped.
+     * If this is paused, sets the state to no longer be paused. If this is registered in a timerManager, also removes itself from that timerManager.
      * @throws IllegalStateException
      */
     @Override
