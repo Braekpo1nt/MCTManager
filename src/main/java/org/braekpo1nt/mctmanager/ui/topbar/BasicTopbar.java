@@ -16,7 +16,18 @@ import java.util.UUID;
  */
 public class BasicTopbar implements Topbar {
     
-    protected final Map<UUID, FormattedBar> bossBars = new HashMap<>();
+    private final Map<UUID, PlayerData> playerDatas = new HashMap<>();
+    
+    /**
+     * @param playerUUID the UUID of the PlayerData. Must be a valid key in {@link BasicTopbar#playerDatas}
+     * @return the {@link PlayerData} associated with this UUID
+     * @throws IllegalArgumentException if the UUID is not contained in {@link BasicTopbar#playerDatas}
+     */
+    protected @NotNull PlayerData getPlayerData(@NotNull UUID playerUUID) {
+        PlayerData playerData = playerDatas.get(playerUUID);
+        Preconditions.checkArgument(playerData != null, "player with UUID \"%s\" does not exist in this BattleTopbar", playerUUID);
+        return playerData;
+    }
     
     /**
      * {@inheritDoc}
@@ -25,7 +36,7 @@ public class BasicTopbar implements Topbar {
     public void showPlayer(@NotNull Player player) {
         FormattedBar bossBar = new FormattedBar(player);
         bossBar.show();
-        bossBars.put(player.getUniqueId(), bossBar);
+        playerDatas.put(player.getUniqueId(), new PlayerData(bossBar));
     }
     
     /**
@@ -33,9 +44,9 @@ public class BasicTopbar implements Topbar {
      */
     @Override
     public void hidePlayer(@NotNull UUID playerUUID) {
-        FormattedBar bossBar = bossBars.remove(playerUUID);
-        Preconditions.checkArgument(bossBar != null, "player with UUID \"%s\" does not exist in this BattleTopbar", playerUUID);
-        bossBar.hide();
+        PlayerData playerData = playerDatas.remove(playerUUID);
+        Preconditions.checkArgument(playerData != null, "player with UUID \"%s\" does not exist in this BattleTopbar", playerUUID);
+        playerData.getBossBar().hide();
     }
     
     /**
@@ -52,10 +63,10 @@ public class BasicTopbar implements Topbar {
      * Hides the BossBar display from all players in this Topbar
      */
     public void hideAllPlayers() {
-        for (FormattedBar bossBar : bossBars.values()) {
-            bossBar.hide();
+        for (PlayerData playerData : playerDatas.values()) {
+            playerData.getBossBar().hide();
         }
-        bossBars.clear();
+        playerDatas.clear();
     }
     
     /**
@@ -63,8 +74,8 @@ public class BasicTopbar implements Topbar {
      */
     @Override
     public void setLeft(@NotNull Component left) {
-        for (FormattedBar bossBar : bossBars.values()) {
-            bossBar.setLeft(left);
+        for (PlayerData playerData : playerDatas.values()) {
+            playerData.getBossBar().setLeft(left);
         }
     }
     
@@ -73,9 +84,8 @@ public class BasicTopbar implements Topbar {
      */
     @Override
     public void setLeft(@NotNull UUID playerUUID, @NotNull Component left) {
-        FormattedBar bossBar = bossBars.get(playerUUID);
-        Preconditions.checkArgument(bossBar != null, "player with UUID \"%s\" does not exist in this BattleTopbar", playerUUID);
-        bossBar.setLeft(left);
+        PlayerData playerData = getPlayerData(playerUUID);
+        playerData.getBossBar().setLeft(left);
     }
     
     /**
@@ -83,8 +93,8 @@ public class BasicTopbar implements Topbar {
      */
     @Override
     public void setMiddle(@NotNull Component middle) {
-        for (FormattedBar bossBar : bossBars.values()) {
-            bossBar.setMiddle(middle);
+        for (PlayerData playerData : playerDatas.values()) {
+            playerData.getBossBar().setMiddle(middle);
         }
     }
     
@@ -93,9 +103,8 @@ public class BasicTopbar implements Topbar {
      */
     @Override
     public void setMiddle(@NotNull UUID playerUUID, @NotNull Component middle) {
-        FormattedBar bossBar = bossBars.get(playerUUID);
-        Preconditions.checkArgument(bossBar != null, "player with UUID \"%s\" does not exist in this BattleTopbar", playerUUID);
-        bossBar.setMiddle(middle);
+        PlayerData playerData = getPlayerData(playerUUID);
+        playerData.getBossBar().setMiddle(middle);
     }
     
     /**
@@ -103,8 +112,8 @@ public class BasicTopbar implements Topbar {
      */
     @Override
     public void setRight(@NotNull Component right) {
-        for (FormattedBar bossBar : bossBars.values()) {
-            bossBar.setRight(right);
+        for (PlayerData playerData : playerDatas.values()) {
+            playerData.getBossBar().setRight(right);
         }
     }
     
@@ -113,9 +122,8 @@ public class BasicTopbar implements Topbar {
      */
     @Override
     public void setRight(@NotNull UUID playerUUID, @NotNull Component right) {
-        FormattedBar bossBar = bossBars.get(playerUUID);
-        Preconditions.checkArgument(bossBar != null, "player with UUID \"%s\" does not exist in this BattleTopbar", playerUUID);
-        bossBar.setRight(right);
+        PlayerData playerData = getPlayerData(playerUUID);
+        playerData.getBossBar().setRight(right);
     }
     
 }
