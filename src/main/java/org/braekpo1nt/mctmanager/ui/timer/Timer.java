@@ -30,6 +30,7 @@ public class Timer extends BukkitRunnable {
         private final @NotNull String key;
     }
     
+    private @Nullable TimerManager timerManager;
     private boolean started = false;
     private boolean paused = false;
     private int secondsLeft;
@@ -53,20 +54,6 @@ public class Timer extends BukkitRunnable {
     }
     
     /**
-     * Pauses this timer. The timer will not proceed until {@link Timer#resume()} is called.
-     */
-    public void pause() {
-        this.paused = true;
-    }
-    
-    /**
-     * Resumes this timer. The timer will proceed iterating. If this is not paused, nothing happens. 
-     */
-    public void resume() {
-        this.paused = false;
-    }
-    
-    /**
      * @return how many seconds are left in this timer.
      */
     public int getSecondsLeft() {
@@ -78,7 +65,6 @@ public class Timer extends BukkitRunnable {
      * @param secondsLeft the number of seconds left desired
      */
     public void setSecondsLeft(int secondsLeft) {
-        int oldSecondsLeft = this.secondsLeft;
         this.secondsLeft = secondsLeft;
     }
     
@@ -144,6 +130,38 @@ public class Timer extends BukkitRunnable {
     }
     
     /**
+     * The method to be called when the timer hits zero. Calls the specified competion method if it's not null, and always cancels this Timer. 
+     */
+    private void onComplete() {
+        clear();
+        if (completion != null) {
+            completion.run();
+        }
+        this.cancel();
+    }
+    
+    /**
+     * Pauses this timer. The timer will not proceed until {@link Timer#resume()} is called.
+     */
+    public void pause() {
+        this.paused = true;
+    }
+    
+    /**
+     * Resumes this timer. The timer will proceed iterating. If this is not paused, nothing happens. 
+     */
+    public void resume() {
+        this.paused = false;
+    }
+    
+    /**
+     * skip to the end, as if the timer had reached zero. Still performs any actions and cleanup, same as if the timer reached zero. 
+     */
+    public void skip() {
+        this.onComplete();
+    }
+    
+    /**
      * set all topbar middles to empty, set all assigned sidebar lines to empty, and clear the titleAudience's title. Note that this does not stop this timer on its own, so values might be reset on the next iteration of {@link Timer#run}. 
      */
     public void clear() {
@@ -159,17 +177,6 @@ public class Timer extends BukkitRunnable {
     }
     
     /**
-     * The method to be called when the timer hits zero. Calls the specified competion method if it's not null, and always cancels this Timer. 
-     */
-    private void onComplete() {
-        clear();
-        if (completion != null) {
-            completion.run();
-        }
-        this.cancel();
-    }
-    
-    /**
      * {@inheritDoc}
      * if this is paused, sets the state to no longer be paused
      * @throws IllegalStateException
@@ -178,6 +185,9 @@ public class Timer extends BukkitRunnable {
     public synchronized void cancel() throws IllegalStateException {
         super.cancel();
         paused = false;
+        if (timerManager != null) {
+            timerManager.remove(this);
+        }
     }
     
     /**
@@ -204,6 +214,17 @@ public class Timer extends BukkitRunnable {
     }
     
     /**
+     * Start this timer while simultaneously registering it with the given timerManager
+     * @param timerManager the timerManager to register this timer with
+     * @return this
+     */
+    public Timer start(@NotNull TimerManager timerManager) {
+        timerManager.start(this);
+        this.timerManager = timerManager;
+        return this;
+    }
+    
+    /**
      * {@inheritDoc}
      * also marks this Timer as having started, so that you can't start it again with {@link Timer#start(Plugin)}
      */
@@ -211,13 +232,6 @@ public class Timer extends BukkitRunnable {
     public synchronized @NotNull BukkitTask runTaskTimer(@NotNull Plugin plugin, long delay, long period) throws IllegalArgumentException, IllegalStateException {
         started = true;
         return super.runTaskTimer(plugin, delay, period);
-    }
-    
-    /**
-     * skip to the end, as if the timer had reached zero. Still performs any actions and cleanup, same as if the timer reached zero. 
-     */
-    public void skip() {
-        this.onComplete();
     }
     
     public static class Builder {
