@@ -291,7 +291,9 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         for (MatchPairing mp : roundMatchPairings) {
             NamedTextColor northColor = gameManager.getTeamNamedTextColor(mp.northTeam());
             NamedTextColor southColor = gameManager.getTeamNamedTextColor(mp.southTeam());
-            topbar.addTeamPair(mp.northTeam(), northColor, mp.southTeam(), southColor);
+            topbar.addTeam(mp.northTeam(), northColor);
+            topbar.addTeam(mp.southTeam(), southColor);
+            topbar.linkTeamPair(mp.northTeam(), mp.southTeam());
             int northAlive = 0;
             int southAlive = 0;
             for (Player participant : participants) {

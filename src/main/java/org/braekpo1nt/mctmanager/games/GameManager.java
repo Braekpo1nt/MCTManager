@@ -167,7 +167,6 @@ public class GameManager implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerInteract(PlayerInteractEvent event) {
         if (event.useItemInHand().equals(Event.Result.DENY) || !event.getAction().equals(Action.RIGHT_CLICK_AIR)) {
-            Bukkit.getLogger().info("is canceled or deny");
             return;
         }
         Player participant = event.getPlayer();

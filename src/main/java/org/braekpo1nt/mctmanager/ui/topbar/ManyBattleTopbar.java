@@ -7,7 +7,6 @@ import net.kyori.adventure.text.format.TextColor;
 import org.braekpo1nt.mctmanager.ui.topbar.components.KillDeathComponent;
 import org.braekpo1nt.mctmanager.ui.topbar.components.TeamComponent;
 import org.braekpo1nt.mctmanager.ui.topbar.components.VersusManyComponent;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -19,7 +18,7 @@ import java.util.*;
  * You can add teams, and add members to them. Then you can add viewers of the Topbar,
  * and each viewer is associated with one of the teams.
  */
-public class ManyBattleTopbar {
+public class ManyBattleTopbar implements Topbar {
     
     @Data
     protected static class TeamData {
@@ -125,7 +124,7 @@ public class ManyBattleTopbar {
      * @param teamId the teamId of the team to add
      */
     public void addTeam(@NotNull String teamId, @NotNull TextColor teamColor) {
-        TeamData newTeamData = new TeamData(new VersusManyComponent(new TeamComponent(0, teamColor)), teamColor);
+        TeamData newTeamData = new TeamData(new VersusManyComponent(new TeamComponent(teamColor)), teamColor);
         teamDatas.put(teamId, newTeamData);
         for (Map.Entry<String, TeamData> entry : teamDatas.entrySet()) {
             String opponentTeamId = entry.getKey();
@@ -251,9 +250,28 @@ public class ManyBattleTopbar {
     }
     
     /**
-     * Set the middle display of the BattleTopbar to the given component
-     * @param middle the component to set the middle section to
+     * {@inheritDoc}
      */
+    @Override
+    public void setLeft(@NotNull Component left) {
+        for (PlayerData playerData : playerDatas.values()) {
+            playerData.getBossBar().setLeft(left);
+        }
+    }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setLeft(@NotNull UUID playerUUID, @NotNull Component left) {
+        PlayerData playerData = getPlayerData(playerUUID);
+        playerData.getBossBar().setLeft(left);
+    }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public void setMiddle(@NotNull Component middle) {
         for (PlayerData playerData : playerDatas.values()) {
             playerData.getBossBar().setMiddle(middle);
@@ -261,13 +279,31 @@ public class ManyBattleTopbar {
     }
     
     /**
-     * Set the middle display of the BattleTopbar to the given component, specifically for one player
-     * @param playerUUID the player to set the middle section for
-     * @param middle the component to set the middle section to
+     * {@inheritDoc}
      */
+    @Override
     public void setMiddle(@NotNull UUID playerUUID, @NotNull Component middle) {
         PlayerData playerData = getPlayerData(playerUUID);
         playerData.getBossBar().setMiddle(middle);
+    }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setRight(@NotNull Component right) {
+        for (PlayerData playerData : playerDatas.values()) {
+            playerData.getBossBar().setRight(right);
+        }
+    }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setRight(@NotNull UUID playerUUID, @NotNull Component right) {
+        PlayerData playerData = getPlayerData(playerUUID);
+        playerData.getBossBar().setRight(right);
     }
     
     /**

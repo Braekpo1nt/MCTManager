@@ -242,7 +242,9 @@ public class ColossalCombatGame implements Listener, Configurable {
         topbar.removeAllTeamPairs();
         NamedTextColor firstColor = gameManager.getTeamNamedTextColor(firstTeamName);
         NamedTextColor secondColor = gameManager.getTeamNamedTextColor(secondTeamName);
-        topbar.addTeamPair(firstTeamName, firstColor, secondTeamName, secondColor);
+        topbar.addTeam(firstTeamName, firstColor);
+        topbar.addTeam(secondTeamName, secondColor);
+        topbar.linkTeamPair(firstTeamName, secondTeamName);
         for (Player firstPlaceParticipant : firstPlaceParticipants) {
             topbar.linkToTeam(firstPlaceParticipant.getUniqueId(), firstTeamName);
         }

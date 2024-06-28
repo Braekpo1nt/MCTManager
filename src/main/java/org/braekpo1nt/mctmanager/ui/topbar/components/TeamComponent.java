@@ -23,11 +23,10 @@ public class TeamComponent {
     /**
      * Initial state of the team is that all members are alive
      *
-     * @param size  the number of members in the team. Can't be negative.
      * @param color the color of the team, to be used in the living and dead components
      */
-    public TeamComponent(int size, TextColor color) {
-        alive = createAlive(size, 0);
+    public TeamComponent(TextColor color) {
+        alive = createAlive(0, 0);
         aliveComponent = Component.text("O")
                 .decorate(TextDecoration.BOLD)
                 .color(color);
