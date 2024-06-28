@@ -1,124 +1,73 @@
 package org.braekpo1nt.mctmanager.ui.topbar;
 
-import com.google.common.base.Preconditions;
 import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
-/**
- * Represents a custom BossBar display for one or more players. Can update the information
- * displayed for all players at once, or for individual players. 
- */
-public class Topbar {
-    
-    protected final Map<UUID, FormattedBar> bossBars = new HashMap<>();
+public interface Topbar {
     
     /**
      * Show this Topbar to the given player
      * @param player the player to show this Topbar to
      */
-    public void showPlayer(@NotNull Player player) {
-        FormattedBar bossBar = new FormattedBar(player);
-        bossBar.show();
-        bossBars.put(player.getUniqueId(), bossBar);
-    }
+    void showPlayer(@NotNull Player player);
     
     /**
-     * Hide the BossBar display from the given player
-     * @param player the player to hide this Topbar from. Must be a valid player in this Topbar.
+     * Make the given player no longer see this Topbar
+     * @param playerUUID the UUID of the player to hide this Topbar from. Must be the UUID of a valid player in this Topbar. 
      */
-    public void hidePlayer(@NotNull Player player) {
-        FormattedBar bossBar = bossBars.remove(player.getUniqueId());
-        Preconditions.checkArgument(bossBar != null, "player with UUID \"%s\" does not exist in this BattleTopbar", player.getUniqueId());
-        bossBar.hide();
-    }
+    void hidePlayer(@NotNull UUID playerUUID);
     
     /**
-     * Hide the BossBar display from all the given players
-     * @param players the players to hide this Topbar from. Must be valid players in this Topbar.
+     * A bulk operation version of {@link Topbar#hidePlayer(UUID)}.
+     * @param playerUUIDs a list of the UUIDs of each player to hide this Topbar from. Each UUID must be a valid player in this Topbar.
      */
-    public void hidePlayers(@NotNull List<@NotNull Player> players) {
-        for (Player player : players) {
-            this.hidePlayer(player);
-        }
-    }
+    void hidePlayers(@NotNull List<@NotNull UUID> playerUUIDs);
     
     /**
-     * Hides the BossBar display from all players in this Topbar
+     * Hides this Topbar from all players who are viewing it. 
      */
-    public void hideAllPlayers() {
-        for (FormattedBar bossBar : bossBars.values()) {
-            bossBar.hide();
-        }
-        bossBars.clear();
-    }
+    void hideAllPlayers();
     
     /**
-     * Set the left display of the BattleTopbar to the given component
+     * Set the left display of the Topbar to the given {@link Component}
      * @param left the component to set the left section to
      */
-    public void setLeft(@NotNull Component left) {
-        for (FormattedBar bossBar : bossBars.values()) {
-            bossBar.setLeft(left);
-        }
-    }
+    void setLeft(@NotNull Component left);
     
     /**
-     * Set the left display of the BattleTopbar to the given component, specifically for one player
-     * @param playerUUID the player to set the left section for
+     * Set the left display of this Topbar to the given {@link Component}, but only for the given player
+     * @param playerUUID the UUID of the player to set the left section for. Must be a valid player in this Topbar
      * @param left the component to set the left section to
      */
-    public void setLeft(@NotNull UUID playerUUID, @NotNull Component left) {
-        FormattedBar bossBar = bossBars.get(playerUUID);
-        Preconditions.checkArgument(bossBar != null, "player with UUID \"%s\" does not exist in this BattleTopbar", playerUUID);
-        bossBar.setLeft(left);
-    }
+    void setLeft(@NotNull UUID playerUUID, @NotNull Component left);
     
     /**
-     * Set the middle display of the BattleTopbar to the given component
+     * Set the middle display of the Topbar to the given {@link Component}
      * @param middle the component to set the middle section to
      */
-    public void setMiddle(@NotNull Component middle) {
-        for (FormattedBar bossBar : bossBars.values()) {
-            bossBar.setMiddle(middle);
-        }
-    }
+    void setMiddle(@NotNull Component middle);
     
     /**
-     * Set the middle display of the BattleTopbar to the given component, specifically for one player
-     * @param playerUUID the player to set the middle section for
+     * Set the middle display of this Topbar to the given {@link Component}, but only for the given player
+     * @param playerUUID the UUID of the player to set the middle section for. Must be a valid player in this Topbar
      * @param middle the component to set the middle section to
      */
-    public void setMiddle(@NotNull UUID playerUUID, @NotNull Component middle) {
-        FormattedBar bossBar = bossBars.get(playerUUID);
-        Preconditions.checkArgument(bossBar != null, "player with UUID \"%s\" does not exist in this BattleTopbar", playerUUID);
-        bossBar.setMiddle(middle);
-    }
+    void setMiddle(@NotNull UUID playerUUID, @NotNull Component middle);
     
     /**
-     * Set the right display of the BattleTopbar to the given component
+     * Set the right display of the Topbar to the given {@link Component}
      * @param right the component to set the right section to
      */
-    public void setRight(@NotNull Component right) {
-        for (FormattedBar bossBar : bossBars.values()) {
-            bossBar.setRight(right);
-        }
-    }
+    void setRight(@NotNull Component right);
     
     /**
-     * Set the right display of the BattleTopbar to the given component, specifically for one player
-     * @param playerUUID the player to set the right section for
+     * Set the right display of this Topbar to the given {@link Component}, but only for the given player
+     * @param playerUUID the UUID of the player to set the right section for. Must be a valid player in this Topbar
      * @param right the component to set the right section to
      */
-    public void setRight(@NotNull UUID playerUUID, @NotNull Component right) {
-        FormattedBar bossBar = bossBars.get(playerUUID);
-        Preconditions.checkArgument(bossBar != null, "player with UUID \"%s\" does not exist in this BattleTopbar", playerUUID);
-        bossBar.setRight(right);
-    }
-    
+    void setRight(@NotNull UUID playerUUID, @NotNull Component right);
 }

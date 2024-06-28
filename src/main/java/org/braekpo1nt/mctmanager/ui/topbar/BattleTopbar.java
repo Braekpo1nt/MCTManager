@@ -19,7 +19,7 @@ import java.util.*;
  * You can add pairs of fighting teams, and add members to them. Then you can add viewers of
  * the Topbar, and each viewer is associated with one of the teams.
  */
-public class BattleTopbar {
+public class BattleTopbar implements Topbar {
     
     @Data
     private static class TeamData {
@@ -27,12 +27,14 @@ public class BattleTopbar {
          * Holds info about who is dead and alive, and provides an easy way to
          * display that information to the user.
          */
-        private final VersusComponent versusComponent;
+        private @NotNull final VersusComponent versusComponent;
         /**
          * The enemy team associated with this TeamData. This is useful for
          * updating the displays of both sides of a conflict.
+         * If this is null, there is no enemy team associated with this team. Use {@link BattleTopbar#linkTeamPair(String, String)} to link with a team.
          */
-        private final String enemyTeam;
+        private @Nullable String enemyTeam;
+        private final @NotNull TextColor teamColor;
         /**
          * the UUIDs of the players who are viewing this TeamData in their
          * BossBar display. This is useful for updating all appropriate 
@@ -111,25 +113,63 @@ public class BattleTopbar {
     
     /**
      * Add a pair of teams to this BattleTopbar. The two teams should be opposing each other.
-     * @param teamAId a team involved in the pair
-     * @param teamAColor the color of the team
-     * @param teamBId another team involved in the pair
-     * @param teamBColor the color of the other team
+     * @param teamId a team involved in the pair
+     * @param teamColor the color of the team
      */
-    public void addTeamPair(
-            @NotNull String teamAId, @NotNull TextColor teamAColor, 
-            @NotNull String teamBId, @NotNull TextColor teamBColor) {
-        VersusComponent versusComponentA = new VersusComponent(
-                new TeamComponent(0, teamAColor),
-                new TeamComponent(0, teamBColor)
-        );
-        teamDatas.put(teamAId, new TeamData(versusComponentA, teamBId));
+    public void addTeam(
+            @NotNull String teamId, @NotNull TextColor teamColor) {
+        teamDatas.put(teamId, new TeamData(new VersusComponent(new TeamComponent(teamColor)), teamColor));
+    }
+    
+    /**
+     * set two teams to be opposing each other. Must be different teams. Both teams
+     * must have been added to this Topbar before the link operation 
+     * using {@link BattleTopbar#addTeam(String, TextColor)}
+     * @param teamIdA a valid teamId in this Topbar
+     * @param teamIdB another valid teamId in this Topbar
+     * @see BattleTopbar#addTeam(String, TextColor)
+     */
+    public void linkTeamPair(@NotNull String teamIdA, @NotNull String teamIdB) {
+        Preconditions.checkArgument(!teamIdA.equals(teamIdB), "teamIdA can't be equal to teamIdB");
+        TeamData teamDataA = getTeamData(teamIdA);
+        TeamData teamDataB = getTeamData(teamIdB);
         
-        VersusComponent versusComponentB = new VersusComponent(
-                new TeamComponent(0, teamBColor),
-                new TeamComponent(0, teamAColor)
+        teamDataA.setEnemyTeam(teamIdB);
+        teamDataA.getVersusComponent().setRight(
+                new TeamComponent(teamDataB.getTeamColor())
         );
-        teamDatas.put(teamBId, new TeamData(versusComponentB, teamAId));
+        
+        teamDataB.setEnemyTeam(teamIdA);
+        teamDataB.getVersusComponent().setRight(
+                new TeamComponent(teamDataA.getTeamColor())
+        );
+        
+        update(teamDataA);
+        update(teamDataB);
+    }
+    
+    /**
+     * The opposite operation of {@link BattleTopbar#linkTeamPair(String, String)}. Unlinks
+     * two teams from each other.
+     * @param teamIdA a valid teamId in this Topbar, which is linked to teamIdB
+     * @param teamIdB a valid teamId in this Topbar, which is linked to teamIdA
+     */
+    public void unlinkTeamPair(@NotNull String teamIdA, @NotNull String teamIdB) {
+        Preconditions.checkArgument(!teamIdA.equals(teamIdB), "teamIdA can't be equal to teamIdB");
+        TeamData teamDataA = getTeamData(teamIdA);
+        TeamData teamDataB = getTeamData(teamIdB);
+        Preconditions.checkArgument(teamDataA.getEnemyTeam() != null, "%s is not linked to any team", teamIdA);
+        Preconditions.checkArgument(teamDataA.getEnemyTeam().equals(teamIdB), "%s is not linked to %s", teamDataA, teamDataB);
+        Preconditions.checkArgument(teamDataB.getEnemyTeam() != null, "%s is not linked to any team", teamIdB);
+        Preconditions.checkArgument(teamDataB.getEnemyTeam().equals(teamIdA), "%s is not linked to %s", teamDataB, teamDataA);
+        
+        teamDataA.setEnemyTeam(null);
+        teamDataA.getVersusComponent().setRight(null);
+        teamDataB.setEnemyTeam(null);
+        teamDataB.getVersusComponent().setRight(null);
+        
+        update(teamDataA);
+        update(teamDataB);
     }
     
     /**
@@ -181,10 +221,14 @@ public class BattleTopbar {
         Preconditions.checkArgument(dead >= 0, "dead can't be negative");
         TeamData teamData = getTeamData(teamId);
         teamData.getVersusComponent().getLeft().setMembers(living, dead);
-        TeamData enemyTeamData = getTeamData(teamData.getEnemyTeam());
-        enemyTeamData.getVersusComponent().getRight().setMembers(living, dead);
         update(teamData);
-        update(enemyTeamData);
+        if (teamData.getEnemyTeam() != null) {
+            TeamData enemyTeamData = getTeamData(teamData.getEnemyTeam());
+            if (enemyTeamData.getVersusComponent().getRight() != null) {
+                enemyTeamData.getVersusComponent().getRight().setMembers(living, dead);
+                update(enemyTeamData);
+            }
+        }
     }
     
     /**
@@ -270,9 +314,28 @@ public class BattleTopbar {
     }
     
     /**
-     * Set the middle display of the BattleTopbar to the given component
-     * @param middle the component to set the middle section to
+     * {@inheritDoc}
      */
+    @Override
+    public void setLeft(@NotNull Component left) {
+        for (PlayerData playerData : playerDatas.values()) {
+            playerData.getBossBar().setLeft(left);
+        }
+    }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setLeft(@NotNull UUID playerUUID, @NotNull Component left) {
+        PlayerData playerData = getPlayerData(playerUUID);
+        playerData.getBossBar().setLeft(left);
+    }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public void setMiddle(@NotNull Component middle) {
         for (PlayerData playerData : playerDatas.values()) {
             playerData.getBossBar().setMiddle(middle);
@@ -280,13 +343,31 @@ public class BattleTopbar {
     }
     
     /**
-     * Set the middle display of the BattleTopbar to the given component, specifically for one player
-     * @param playerUUID the player to set the middle section for
-     * @param middle the component to set the middle section to
+     * {@inheritDoc}
      */
+    @Override
     public void setMiddle(@NotNull UUID playerUUID, @NotNull Component middle) {
         PlayerData playerData = getPlayerData(playerUUID);
         playerData.getBossBar().setMiddle(middle);
+    }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setRight(@NotNull Component right) {
+        for (PlayerData playerData : playerDatas.values()) {
+            playerData.getBossBar().setRight(right);
+        }
+    }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setRight(@NotNull UUID playerUUID, @NotNull Component right) {
+        PlayerData playerData = getPlayerData(playerUUID);
+        playerData.getBossBar().setRight(right);
     }
     
     /**
