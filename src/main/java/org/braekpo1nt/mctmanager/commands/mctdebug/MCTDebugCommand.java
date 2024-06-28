@@ -6,6 +6,7 @@ import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
+import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.braekpo1nt.mctmanager.ui.topbar.BasicTopbar;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -27,11 +28,13 @@ public class MCTDebugCommand implements TabExecutor, Listener {
     
     private final BasicTopbar topbar = new BasicTopbar();
     private final Main plugin;
+    private final TimerManager timerManager;
     
     public MCTDebugCommand(Main plugin) {
         plugin.getCommand("mctdebug").setExecutor(this);
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         this.plugin = plugin;
+        this.timerManager = new TimerManager(plugin);
     }
     
     @Override
@@ -43,32 +46,39 @@ public class MCTDebugCommand implements TabExecutor, Listener {
             return true;
         }
         
-        if (args.length != 0) {
+        if (args.length != 1) {
             sender.sendMessage(Component.text("Usage: /mctdebug <arg> [options]")
                     .color(NamedTextColor.RED));
             return true;
         }
-        
-        topbar.showPlayer(player);
-        new BukkitRunnable() {
-            int count = 15;
-            @Override
-            public void run() {
-                if (count <= 0) {
-                    topbar.hidePlayer(player.getUniqueId());
-                    player.showTitle(Title.title(Component.empty(), Component.empty()));
-                    this.cancel();
-                    return;
-                }
-                String timeString = TimeStringUtils.getTimeString(count);
-                if (count <= 10) {
-                    Title title = Title.title(Component.text("Starting in"), Component.text(count).color(getColorForTime(count)), Title.Times.times(Duration.ofMillis(0), Duration.ofMillis(1500), Duration.ofMillis(0)));
-                    player.showTitle(title);
-                }
-                topbar.setMiddle(Component.text(timeString));
-                count--;
+        switch (args[0]) {
+            case "timer" -> {
+                
             }
-        }.runTaskTimer(plugin, 0L, 20L);
+            case "runnable" -> {
+                topbar.showPlayer(player);
+                new BukkitRunnable() {
+                    int count = 15;
+                    @Override
+                    public void run() {
+                        if (count <= 0) {
+                            topbar.hidePlayer(player.getUniqueId());
+                            player.showTitle(Title.title(Component.empty(), Component.empty()));
+                            this.cancel();
+                            return;
+                        }
+                        String timeString = TimeStringUtils.getTimeString(count);
+                        if (count <= 10) {
+                            Title title = Title.title(Component.text("Starting in"), Component.text(count).color(getColorForTime(count)), Title.Times.times(Duration.ofMillis(0), Duration.ofMillis(1500), Duration.ofMillis(0)));
+                            player.showTitle(title);
+                        }
+                        topbar.setMiddle(Component.text(timeString));
+                        count--;
+                    }
+                }.runTaskTimer(plugin, 0L, 20L);
+            }
+        }
+        
 
 //        Component mainTitle = Component.text("Main title");
 //        Component subTitle = Component.text("Subtitle");
