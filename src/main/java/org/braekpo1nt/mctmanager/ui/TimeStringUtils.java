@@ -3,6 +3,11 @@ package org.braekpo1nt.mctmanager.ui;
 import java.time.Duration;
 
 public class TimeStringUtils {
+    
+    private TimeStringUtils() {
+        // do not instantiate
+    }
+    
     /**
      * Returns the given seconds as a string representing time in the format
      * MM:ss (or minutes:seconds)
