@@ -125,7 +125,7 @@ public class ManyBattleTopbar {
      * @param teamId the teamId of the team to add
      */
     public void addTeam(@NotNull String teamId, @NotNull TextColor teamColor) {
-        TeamData newTeamData = new TeamData(new VersusManyComponent(new TeamComponent(0, teamColor)), teamColor);
+        TeamData newTeamData = new TeamData(new VersusManyComponent(new TeamComponent(teamColor)), teamColor);
         teamDatas.put(teamId, newTeamData);
         for (Map.Entry<String, TeamData> entry : teamDatas.entrySet()) {
             String opponentTeamId = entry.getKey();

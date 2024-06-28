@@ -27,7 +27,7 @@ public class BattleTopbar implements Topbar {
          * Holds info about who is dead and alive, and provides an easy way to
          * display that information to the user.
          */
-        private @Nullable VersusComponent versusComponent;
+        private @NotNull final VersusComponent versusComponent;
         /**
          * The enemy team associated with this TeamData. This is useful for
          * updating the displays of both sides of a conflict.
@@ -118,24 +118,31 @@ public class BattleTopbar implements Topbar {
      */
     public void addTeam(
             @NotNull String teamId, @NotNull TextColor teamColor) {
-        teamDatas.put(teamId, new TeamData(teamColor));
+        teamDatas.put(teamId, new TeamData(new VersusComponent(new TeamComponent(teamColor)), teamColor));
     }
     
+    /**
+     * set two teams to be opposing each other. Must be different teams. Both teams
+     * must have been added to this Topbar before the link operation 
+     * using {@link BattleTopbar#addTeam(String, TextColor)}
+     * @param teamIdA a valid teamId in this Topbar
+     * @param teamIdB another valid teamId in this Topbar
+     * @see BattleTopbar#addTeam(String, TextColor)
+     */
     public void linkTeamPair(@NotNull String teamIdA, @NotNull String teamIdB) {
+        Preconditions.checkArgument(!teamIdA.equals(teamIdB), "teamIdA can't be equal to teamIdB");
         TeamData teamDataA = getTeamData(teamIdA);
         TeamData teamDataB = getTeamData(teamIdB);
         
         teamDataA.setEnemyTeam(teamIdB);
-        teamDataA.setVersusComponent(new VersusComponent(
-                new TeamComponent(0, teamDataA.getTeamColor()),
-                new TeamComponent(0, teamDataB.getTeamColor())
-        ));
+        teamDataA.getVersusComponent().setRight(
+                new TeamComponent(teamDataB.getTeamColor())
+        );
         
         teamDataB.setEnemyTeam(teamIdA);
-        teamDataB.setVersusComponent(new VersusComponent(
-                new TeamComponent(0, teamDataB.getTeamColor()),
-                new TeamComponent(0, teamDataA.getTeamColor())
-        ));
+        teamDataB.getVersusComponent().setRight(
+                new TeamComponent(teamDataA.getTeamColor())
+        );
     }
     
     /**
@@ -187,10 +194,14 @@ public class BattleTopbar implements Topbar {
         Preconditions.checkArgument(dead >= 0, "dead can't be negative");
         TeamData teamData = getTeamData(teamId);
         teamData.getVersusComponent().getLeft().setMembers(living, dead);
-        TeamData enemyTeamData = getTeamData(teamData.getEnemyTeam());
-        enemyTeamData.getVersusComponent().getRight().setMembers(living, dead);
         update(teamData);
-        update(enemyTeamData);
+        if (teamData.getEnemyTeam() != null) {
+            TeamData enemyTeamData = getTeamData(teamData.getEnemyTeam());
+            if (enemyTeamData.getVersusComponent().getRight() != null) {
+                enemyTeamData.getVersusComponent().getRight().setMembers(living, dead);
+                update(enemyTeamData);
+            }
+        }
     }
     
     /**
