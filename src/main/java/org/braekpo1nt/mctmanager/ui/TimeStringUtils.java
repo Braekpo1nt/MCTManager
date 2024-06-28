@@ -1,5 +1,8 @@
 package org.braekpo1nt.mctmanager.ui;
 
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
+
 import java.time.Duration;
 
 public class TimeStringUtils {
@@ -19,5 +22,22 @@ public class TimeStringUtils {
         long minutes = duration.toMinutes();
         long seconds = duration.minusMinutes(minutes).getSeconds();
         return String.format("%d:%02d", minutes, seconds);
+    }
+    
+    public static TextColor getColorForTime(int seconds) {
+        switch (seconds) {
+            case 3 -> {
+                return NamedTextColor.RED;
+            }
+            case 2 -> {
+                return NamedTextColor.YELLOW;
+            }
+            case 1 -> {
+                return NamedTextColor.GREEN;
+            }
+            default -> {
+                return NamedTextColor.WHITE;
+            }
+        }
     }
 }
