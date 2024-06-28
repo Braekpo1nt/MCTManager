@@ -204,17 +204,6 @@ public class Timer extends BukkitRunnable {
     }
     
     /**
-     * start this timer with the given duration
-     * @param plugin the plugin to register this BukkitRunnable with
-     * @param duration the number of seconds to set the timer to
-     * @return this
-     */
-    public Timer start(Plugin plugin, int duration) {
-        this.secondsLeft = duration;
-        return this.start(plugin);
-    }
-    
-    /**
      * Start this timer while simultaneously registering it with the given timerManager
      * @param timerManager the timerManager to register this timer with
      * @return this

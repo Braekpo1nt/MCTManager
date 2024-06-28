@@ -19,10 +19,12 @@ public class TimerManager {
     /**
      * Start the given timer and register it in this TimerManager. It will be included in all bulk operations this TimerManager performs. 
      * @param timer the timer to register and start
+     * @return the timer that was passed in, for convenience
      */
-    public void start(@NotNull Timer timer) {
+    public Timer start(@NotNull Timer timer) {
         timers.add(timer);
         timer.start(plugin);
+        return timer;
     }
     
     public void remove(@NotNull Timer timer) {
