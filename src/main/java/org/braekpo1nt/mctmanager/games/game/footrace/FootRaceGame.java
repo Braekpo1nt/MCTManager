@@ -16,6 +16,7 @@ import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
+import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -73,6 +74,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     private final PotionEffect INVISIBILITY = new PotionEffect(PotionEffectType.INVISIBILITY, 10000, 1, true, false, false);
     private int statusEffectsTaskId;
     private int descriptionPeriodTaskId;
+    private Timer descriptionPeriod;
     private boolean descriptionShowing = false;
     private final String baseTitle = ChatColor.BLUE+"Foot Race";
     private String title = baseTitle;
@@ -284,6 +286,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         Bukkit.getScheduler().cancelTask(timerRefreshTaskId);
         Bukkit.getScheduler().cancelTask(statusEffectsTaskId);
         Bukkit.getScheduler().cancelTask(descriptionPeriodTaskId);
+        descriptionPeriod.cancel();
     }
     
     private void giveBoots(Player participant) {
@@ -320,25 +323,35 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     
     private void startDescriptionPeriod() {
         descriptionShowing = true;
-        this.descriptionPeriodTaskId = new BukkitRunnable() {
-            private int count = config.getDescriptionDuration();
-            @Override
-            public void run() {
-                if (count <= 0) {
-                    sidebar.updateLine("timer", "");
-                    adminSidebar.updateLine("timer", "");
+//        this.descriptionPeriodTaskId = new BukkitRunnable() {
+//            private int count = config.getDescriptionDuration();
+//            @Override
+//            public void run() {
+//                if (count <= 0) {
+//                    sidebar.updateLine("timer", "");
+//                    adminSidebar.updateLine("timer", "");
+//                    descriptionShowing = false;
+//                    startStartRaceCountdownTask();
+//                    this.cancel();
+//                    return;
+//                }
+//                String timeLeft = TimeStringUtils.getTimeString(count);
+//                String timerString = String.format("Starting soon: %s", timeLeft);
+//                sidebar.updateLine("timer", timerString);
+//                adminSidebar.updateLine("timer", timerString);
+//                count--;
+//            }
+//        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+        descriptionPeriod = Timer.builder()
+                .duration(config.getDescriptionDuration())
+                .withSidebar(adminSidebar, "timer")
+                .withSidebar(sidebar, "timer")
+                .titleAudience(participants)
+                .onCompletion(() -> {
                     descriptionShowing = false;
                     startStartRaceCountdownTask();
-                    this.cancel();
-                    return;
-                }
-                String timeLeft = TimeStringUtils.getTimeString(count);
-                String timerString = String.format("Starting soon: %s", timeLeft);
-                sidebar.updateLine("timer", timerString);
-                adminSidebar.updateLine("timer", timerString);
-                count--;
-            }
-        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+                })
+                .build().start(gameManager.getTimerManager());
     }
     
     private void startStartRaceCountdownTask() {

@@ -70,9 +70,6 @@ public class MCTDebugCommand implements TabExecutor, Listener {
                 case "cancel" -> {
                     timer.cancel();
                 }
-                case "clear" -> {
-                    timer.clear();
-                }
                 case "skip" -> {
                     timer.skip();
                 }
@@ -110,7 +107,6 @@ public class MCTDebugCommand implements TabExecutor, Listener {
                 sidebar.removeAllPlayers();
                 topbar.hideAllPlayers();
                 timer.cancel();
-                timer.clear();
             }
             sidebar.addPlayer(player);
             topbar.showPlayer(player);

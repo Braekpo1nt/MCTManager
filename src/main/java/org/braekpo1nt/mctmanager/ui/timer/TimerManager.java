@@ -43,10 +43,6 @@ public class TimerManager {
         timers.forEach(Timer::skip);
     }
     
-    public void clear() {
-        timers.forEach(Timer::clear);
-    }
-    
     public void cancel() {
         timers.forEach(Timer::cancel);
     }

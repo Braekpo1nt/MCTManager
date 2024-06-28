@@ -7,6 +7,7 @@ import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.topbar.Topbar;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
@@ -133,7 +134,6 @@ public class Timer extends BukkitRunnable {
      * The method to be called when the timer hits zero. Calls the specified competion method if it's not null, and always cancels this Timer. 
      */
     private void onComplete() {
-        clear();
         if (completion != null) {
             completion.run();
         }
@@ -164,7 +164,7 @@ public class Timer extends BukkitRunnable {
     /**
      * set all topbar middles to empty, set all assigned sidebar lines to empty, and clear the titleAudience's title. Note that this does not stop this timer on its own, so values might be reset on the next iteration of {@link Timer#run}. 
      */
-    public void clear() {
+    private void clear() {
         for (Topbar topbar : topbars) {
             topbar.setMiddle(Component.empty());
         }
@@ -185,6 +185,7 @@ public class Timer extends BukkitRunnable {
     @Override
     public synchronized void cancel() throws IllegalStateException {
         super.cancel();
+        clear();
         paused = false;
         if (timerManager != null) {
             timerManager.remove(this);
@@ -302,6 +303,11 @@ public class Timer extends BukkitRunnable {
          */
         public Builder titleAudience(@Nullable Audience titleAudience) {
             this.titleAudience = titleAudience;
+            return this;
+        }
+        
+        public Builder titleAudience(@NotNull List<Player> titleAudience) {
+            this.titleAudience = Audience.audience(titleAudience);
             return this;
         }
         
