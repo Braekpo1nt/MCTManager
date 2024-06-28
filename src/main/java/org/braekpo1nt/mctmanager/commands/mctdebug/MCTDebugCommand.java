@@ -6,7 +6,7 @@ import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
-import org.braekpo1nt.mctmanager.ui.topbar.Topbar;
+import org.braekpo1nt.mctmanager.ui.topbar.BasicTopbar;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
@@ -25,7 +25,7 @@ import java.util.List;
  */
 public class MCTDebugCommand implements TabExecutor, Listener {
     
-    private final Topbar topbar = new Topbar();
+    private final BasicTopbar topbar = new BasicTopbar();
     private final Main plugin;
     
     public MCTDebugCommand(Main plugin) {
@@ -55,7 +55,7 @@ public class MCTDebugCommand implements TabExecutor, Listener {
             @Override
             public void run() {
                 if (count <= 0) {
-                    topbar.hidePlayer(player);
+                    topbar.hidePlayer(player.getUniqueId());
                     player.showTitle(Title.title(Component.empty(), Component.empty()));
                     this.cancel();
                     return;
