@@ -19,7 +19,7 @@ import java.util.*;
  * You can add pairs of fighting teams, and add members to them. Then you can add viewers of
  * the Topbar, and each viewer is associated with one of the teams.
  */
-public class BattleTopbar {
+public class BattleTopbar implements Topbar {
     
     @Data
     private static class TeamData {
@@ -270,6 +270,25 @@ public class BattleTopbar {
     }
     
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setLeft(@NotNull Component left) {
+        for (PlayerData playerData : playerDatas.values()) {
+            playerData.getBossBar().setLeft(left);
+        }
+    }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setLeft(@NotNull UUID playerUUID, @NotNull Component left) {
+        PlayerData playerData = getPlayerData(playerUUID);
+        playerData.getBossBar().setLeft(left);
+    }
+    
+    /**
      * Set the middle display of the BattleTopbar to the given component
      * @param middle the component to set the middle section to
      */
@@ -287,6 +306,25 @@ public class BattleTopbar {
     public void setMiddle(@NotNull UUID playerUUID, @NotNull Component middle) {
         PlayerData playerData = getPlayerData(playerUUID);
         playerData.getBossBar().setMiddle(middle);
+    }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setRight(@NotNull Component right) {
+        for (PlayerData playerData : playerDatas.values()) {
+            playerData.getBossBar().setRight(right);
+        }
+    }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setRight(@NotNull UUID playerUUID, @NotNull Component right) {
+        PlayerData playerData = getPlayerData(playerUUID);
+        playerData.getBossBar().setRight(right);
     }
     
     /**
