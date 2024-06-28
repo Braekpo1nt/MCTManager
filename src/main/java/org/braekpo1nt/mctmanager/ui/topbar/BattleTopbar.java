@@ -333,9 +333,9 @@ public class BattleTopbar implements Topbar {
     }
     
     /**
-     * Set the middle display of the BattleTopbar to the given component
-     * @param middle the component to set the middle section to
+     * {@inheritDoc}
      */
+    @Override
     public void setMiddle(@NotNull Component middle) {
         for (PlayerData playerData : playerDatas.values()) {
             playerData.getBossBar().setMiddle(middle);
@@ -343,10 +343,9 @@ public class BattleTopbar implements Topbar {
     }
     
     /**
-     * Set the middle display of the BattleTopbar to the given component, specifically for one player
-     * @param playerUUID the player to set the middle section for
-     * @param middle the component to set the middle section to
+     * {@inheritDoc}
      */
+    @Override
     public void setMiddle(@NotNull UUID playerUUID, @NotNull Component middle) {
         PlayerData playerData = getPlayerData(playerUUID);
         playerData.getBossBar().setMiddle(middle);
