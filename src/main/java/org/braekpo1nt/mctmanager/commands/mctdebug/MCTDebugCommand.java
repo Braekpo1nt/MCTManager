@@ -6,8 +6,12 @@ import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
+import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
+import org.braekpo1nt.mctmanager.ui.sidebar.SidebarFactory;
+import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.braekpo1nt.mctmanager.ui.topbar.BasicTopbar;
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
@@ -29,12 +33,17 @@ public class MCTDebugCommand implements TabExecutor, Listener {
     private final BasicTopbar topbar = new BasicTopbar();
     private final Main plugin;
     private final TimerManager timerManager;
+    private final Sidebar sidebar;
+    private @Nullable Timer timer;
     
     public MCTDebugCommand(Main plugin) {
         plugin.getCommand("mctdebug").setExecutor(this);
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         this.plugin = plugin;
         this.timerManager = new TimerManager(plugin);
+        this.sidebar = new SidebarFactory().createSidebar();
+        sidebar.addLine("timer", "");
+        sidebar.updateTitle("Title");
     }
     
     @Override
@@ -46,40 +55,85 @@ public class MCTDebugCommand implements TabExecutor, Listener {
             return true;
         }
         
-        if (args.length != 1) {
-            sender.sendMessage(Component.text("Usage: /mctdebug <arg> [options]")
-                    .color(NamedTextColor.RED));
-            return true;
-        }
-        switch (args[0]) {
-            case "timer" -> {
-                
+//        if (args.length != 0) {
+//            sender.sendMessage(Component.text("Usage: /mctdebug <arg> [options]")
+//                    .color(NamedTextColor.RED));
+//            return true;
+//        }
+        
+        if (args.length > 0) {
+            String arg = args[0];
+            if (timer == null) {
+                sender.sendMessage("no timer yet");
+                return true;
             }
-            case "runnable" -> {
-                topbar.showPlayer(player);
-                new BukkitRunnable() {
-                    int count = 15;
-                    @Override
-                    public void run() {
-                        if (count <= 0) {
-                            topbar.hidePlayer(player.getUniqueId());
-                            player.showTitle(Title.title(Component.empty(), Component.empty()));
-                            this.cancel();
-                            return;
-                        }
-                        String timeString = TimeStringUtils.getTimeString(count);
-                        if (count <= 10) {
-                            Title title = Title.title(Component.text("Starting in"), Component.text(count).color(getColorForTime(count)), Title.Times.times(Duration.ofMillis(0), Duration.ofMillis(1500), Duration.ofMillis(0)));
-                            player.showTitle(title);
-                        }
-                        topbar.setMiddle(Component.text(timeString));
-                        count--;
+            switch (arg) {
+                case "pause" -> {
+                    timer.pause();
+                }
+                case "resume" -> {
+                    timer.resume();
+                }
+                case "cancel" -> {
+                    timer.cancel();
+                }
+                case "clear" -> {
+                    timer.clear();
+                }
+                case "skip" -> {
+                    timer.skip();
+                }
+                case "addplayer" -> {
+                    if (args.length < 2) {
+                        sender.sendMessage("specify player");
+                        return true;
                     }
-                }.runTaskTimer(plugin, 0L, 20L);
+                    Player secondPlayer = Bukkit.getPlayer(args[1]);
+                    if (secondPlayer == null) {
+                        sender.sendMessage("player doesn't exist");
+                        return true;
+                    }
+                    timer.addTitleAudience(secondPlayer);
+                    sidebar.addPlayer(secondPlayer);
+                    topbar.showPlayer(secondPlayer);
+                }
+                case "removeplayer" -> {
+                    if (args.length < 2) {
+                        sender.sendMessage("specify player");
+                        return true;
+                    }
+                    Player secondPlayer = Bukkit.getPlayer(args[1]);
+                    if (secondPlayer == null) {
+                        sender.sendMessage("player doesn't exist");
+                        return true;
+                    }
+                    timer.removeTitleAudience(secondPlayer);
+                    sidebar.removePlayer(secondPlayer);
+                    topbar.hidePlayer(secondPlayer.getUniqueId());
+                }
             }
+        } else {
+            if (timer != null) {
+                sidebar.removeAllPlayers();
+                topbar.hideAllPlayers();
+                timer.cancel();
+                timer.clear();
+            }
+            sidebar.addPlayer(player);
+            topbar.showPlayer(player);
+            timer = Timer.builder()
+                    .onCompletion(() -> {
+                        sender.sendMessage("done!");
+                        sidebar.removeAllPlayers();
+                        topbar.hideAllPlayers();
+                    })
+                    .duration(20)
+                    .titleAudience(player)
+                    .withTopbar(topbar)
+                    .withSidebar(sidebar, "timer")
+                    .build().start(plugin);
         }
         
-
 //        Component mainTitle = Component.text("Main title");
 //        Component subTitle = Component.text("Subtitle");
 //
@@ -87,23 +141,6 @@ public class MCTDebugCommand implements TabExecutor, Listener {
 //        Title title = Title.title(mainTitle, subTitle, times);
 //        sender.showTitle(title);
         return true;
-    }
-    
-    private static TextColor getColorForTime(int seconds) {
-        switch (seconds) {
-            case 3 -> {
-                return NamedTextColor.RED;
-            }
-            case 2 -> {
-                return NamedTextColor.YELLOW;
-            }
-            case 1 -> {
-                return NamedTextColor.GREEN;
-            }
-            default -> {
-                return NamedTextColor.WHITE;
-            }
-        }
     }
     
     @Override
