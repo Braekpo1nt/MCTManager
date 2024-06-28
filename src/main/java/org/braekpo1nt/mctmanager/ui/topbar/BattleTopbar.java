@@ -27,12 +27,14 @@ public class BattleTopbar implements Topbar {
          * Holds info about who is dead and alive, and provides an easy way to
          * display that information to the user.
          */
-        private final VersusComponent versusComponent;
+        private @Nullable VersusComponent versusComponent;
         /**
          * The enemy team associated with this TeamData. This is useful for
          * updating the displays of both sides of a conflict.
+         * If this is null, there is no enemy team associated with this team. Use {@link BattleTopbar#linkTeamPair(String, String)} to link with a team.
          */
-        private final String enemyTeam;
+        private @Nullable String enemyTeam;
+        private final @NotNull TextColor teamColor;
         /**
          * the UUIDs of the players who are viewing this TeamData in their
          * BossBar display. This is useful for updating all appropriate 
@@ -111,25 +113,29 @@ public class BattleTopbar implements Topbar {
     
     /**
      * Add a pair of teams to this BattleTopbar. The two teams should be opposing each other.
-     * @param teamAId a team involved in the pair
-     * @param teamAColor the color of the team
-     * @param teamBId another team involved in the pair
-     * @param teamBColor the color of the other team
+     * @param teamId a team involved in the pair
+     * @param teamColor the color of the team
      */
-    public void addTeamPair(
-            @NotNull String teamAId, @NotNull TextColor teamAColor, 
-            @NotNull String teamBId, @NotNull TextColor teamBColor) {
-        VersusComponent versusComponentA = new VersusComponent(
-                new TeamComponent(0, teamAColor),
-                new TeamComponent(0, teamBColor)
-        );
-        teamDatas.put(teamAId, new TeamData(versusComponentA, teamBId));
+    public void addTeam(
+            @NotNull String teamId, @NotNull TextColor teamColor) {
+        teamDatas.put(teamId, new TeamData(teamColor));
+    }
+    
+    public void linkTeamPair(@NotNull String teamIdA, @NotNull String teamIdB) {
+        TeamData teamDataA = getTeamData(teamIdA);
+        TeamData teamDataB = getTeamData(teamIdB);
         
-        VersusComponent versusComponentB = new VersusComponent(
-                new TeamComponent(0, teamBColor),
-                new TeamComponent(0, teamAColor)
-        );
-        teamDatas.put(teamBId, new TeamData(versusComponentB, teamAId));
+        teamDataA.setEnemyTeam(teamIdB);
+        teamDataA.setVersusComponent(new VersusComponent(
+                new TeamComponent(0, teamDataA.getTeamColor()),
+                new TeamComponent(0, teamDataB.getTeamColor())
+        ));
+        
+        teamDataB.setEnemyTeam(teamIdA);
+        teamDataB.setVersusComponent(new VersusComponent(
+                new TeamComponent(0, teamDataB.getTeamColor()),
+                new TeamComponent(0, teamDataA.getTeamColor())
+        ));
     }
     
     /**
