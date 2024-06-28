@@ -143,6 +143,33 @@ public class BattleTopbar implements Topbar {
         teamDataB.getVersusComponent().setRight(
                 new TeamComponent(teamDataA.getTeamColor())
         );
+        
+        update(teamDataA);
+        update(teamDataB);
+    }
+    
+    /**
+     * The opposite operation of {@link BattleTopbar#linkTeamPair(String, String)}. Unlinks
+     * two teams from each other.
+     * @param teamIdA a valid teamId in this Topbar, which is linked to teamIdB
+     * @param teamIdB a valid teamId in this Topbar, which is linked to teamIdA
+     */
+    public void unlinkTeamPair(@NotNull String teamIdA, @NotNull String teamIdB) {
+        Preconditions.checkArgument(!teamIdA.equals(teamIdB), "teamIdA can't be equal to teamIdB");
+        TeamData teamDataA = getTeamData(teamIdA);
+        TeamData teamDataB = getTeamData(teamIdB);
+        Preconditions.checkArgument(teamDataA.getEnemyTeam() != null, "%s is not linked to any team", teamIdA);
+        Preconditions.checkArgument(teamDataA.getEnemyTeam().equals(teamIdB), "%s is not linked to %s", teamDataA, teamDataB);
+        Preconditions.checkArgument(teamDataB.getEnemyTeam() != null, "%s is not linked to any team", teamIdB);
+        Preconditions.checkArgument(teamDataB.getEnemyTeam().equals(teamIdA), "%s is not linked to %s", teamDataB, teamDataA);
+        
+        teamDataA.setEnemyTeam(null);
+        teamDataA.getVersusComponent().setRight(null);
+        teamDataB.setEnemyTeam(null);
+        teamDataB.getVersusComponent().setRight(null);
+        
+        update(teamDataA);
+        update(teamDataB);
     }
     
     /**
