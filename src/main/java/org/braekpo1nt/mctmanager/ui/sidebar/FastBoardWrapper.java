@@ -1,8 +1,11 @@
 package org.braekpo1nt.mctmanager.ui.sidebar;
 
-import fr.mrmicky.fastboard.FastBoard;
+import fr.mrmicky.fastboard.adventure.FastBoard;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+
+import java.util.Arrays;
 
 /**
  * A wrapper for the FastBoard class that is Mockable. This is necessary
@@ -32,7 +35,7 @@ public class FastBoardWrapper {
      * @param title the title
      */
     public void updateTitle(String title) {
-        board.updateTitle(title);
+        board.updateTitle(Component.text(title));
     }
     
     /**
@@ -40,7 +43,7 @@ public class FastBoardWrapper {
      * @param lines
      */
     public void updateLines(String... lines) {
-        board.updateLines(lines);
+        board.updateLines(Arrays.stream(lines).map(line -> (Component) Component.text(line)).toList());
     }
     
     /**
@@ -49,7 +52,7 @@ public class FastBoardWrapper {
      * @param text
      */
     public void updateLine(int line, String text) {
-        board.updateLine(line, text);
+        board.updateLine(line, Component.text(text));
     }
     
     
