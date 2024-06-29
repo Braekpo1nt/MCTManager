@@ -318,7 +318,7 @@ public class Sidebar {
             List<String> lines = entry.getValue();
             lines.clear();
             FastBoardWrapper board = boards.get(playerUUID);
-            board.updateLines();
+            board.updateLines(Collections.emptyList());
         }
     }
     
