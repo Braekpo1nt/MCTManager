@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.ui.sidebar;
 
 import com.google.common.base.Preconditions;
+import net.kyori.adventure.text.Component;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -25,7 +26,7 @@ public class Sidebar {
     /**
      * Holds the lines for the FastBoards for each player. This is kept in parallel to the actual visual lines held in {@link Sidebar#boards} for the purposes of reordering
      */
-    protected final Map<UUID, List<String>> boardsLines = new HashMap<>();
+    protected final Map<UUID, List<Component>> boardsLines = new HashMap<>();
     /**
      * The size of the Sidebar, or the number of lines in it
      */
@@ -54,7 +55,7 @@ public class Sidebar {
     }
     
     /**
-     * Adds a player to this Sidebar. The lines will be empty. You'll need to manually update the line contents for the new player using {@link Sidebar#updateLine(UUID, String, String)}.
+     * Adds a player to this Sidebar. The lines will be empty. You'll need to manually update the line contents for the new player using {@link Sidebar#updateLine(UUID, String, Component)}.
      * @param player the player to add to this manager and give a FastBoard
      */
     public synchronized void addPlayer(@NotNull Player player) {
@@ -63,9 +64,9 @@ public class Sidebar {
         newBoard.setPlayer(player);
         newBoard.updateTitle(this.title);
         boards.put(player.getUniqueId(), newBoard);
-        List<String> lines = new ArrayList<>(size);
+        List<Component> lines = new ArrayList<>(size);
         for (int i = 0; i < size; i++) {
-            lines.add("");
+            lines.add(Component.empty());
         }
         boardsLines.put(player.getUniqueId(), lines);
     }
@@ -74,9 +75,9 @@ public class Sidebar {
      * Removes all players from this Sidebar
      */
     public synchronized  void removeAllPlayers() {
-        Iterator<Map.Entry<UUID, List<String>>> iterator = boardsLines.entrySet().iterator();
+        Iterator<Map.Entry<UUID, List<Component>>> iterator = boardsLines.entrySet().iterator();
         while (iterator.hasNext()) {
-            Map.Entry<UUID, List<String>> entry = iterator.next();
+            Map.Entry<UUID, List<Component>> entry = iterator.next();
             UUID playerUUID = entry.getKey();
             iterator.remove();
             FastBoardWrapper board = boards.remove(playerUUID);
@@ -110,23 +111,31 @@ public class Sidebar {
         }
     }
     
+    public synchronized void addLine(@NotNull String key, @NotNull String contents) {
+        this.addLine(key, Component.text(contents));
+    }
+    
     /**
      * Adds a line to all FastBoards at the bottom of existing lines
      * @param key the key for the line (must not already exist)
      * @param contents the contents of the line
      */
-    public synchronized void addLine(@NotNull String key, @NotNull String contents) {
+    public synchronized void addLine(@NotNull String key, @NotNull Component contents) {
         Preconditions.checkArgument(!keyToIndex.containsKey(key), "attempted to add a line with an existing key (%s)", key);
         int index = size;
         size++;
         keyToIndex.put(key, index);
-        for (Map.Entry<UUID, List<String>> entry : boardsLines.entrySet()) {
+        for (Map.Entry<UUID, List<Component>> entry : boardsLines.entrySet()) {
             UUID playerUUID = entry.getKey();
-            List<String> lines = entry.getValue();
+            List<Component> lines = entry.getValue();
             lines.add(contents);
             FastBoardWrapper board = boards.get(playerUUID);
             board.updateLine(index, contents);
         }
+    }
+    
+    public synchronized void addLine(@NotNull String key, int index, @NotNull String contents) {
+        this.addLine(key, index, Component.text(contents));
     }
     
     /**
@@ -136,7 +145,7 @@ public class Sidebar {
      * @param contents the contents of the line
      * @throws IllegalArgumentException if the key exists, or the index is out of range ({@code index < 0 || index > size()})
      */
-    public synchronized void addLine(@NotNull String key, int index, @NotNull String contents) {
+    public synchronized void addLine(@NotNull String key, int index, @NotNull Component contents) {
         Preconditions.checkArgument(!keyToIndex.containsKey(key), "can't add a line with an existing key (%s)", key);
         Preconditions.checkArgument(index >= 0, "index (%s) can't be negative", index);
         Preconditions.checkArgument(index <= size, "index (%s) can't be greater than the size (%s) of the Sidebar", index, size);
@@ -148,12 +157,12 @@ public class Sidebar {
             }
         }
         keyToIndex.put(key, index);
-        for (Map.Entry<UUID, List<String>> entry : boardsLines.entrySet()) {
+        for (Map.Entry<UUID, List<Component>> entry : boardsLines.entrySet()) {
             UUID playerUUID = entry.getKey();
-            List<String> lines = entry.getValue();
+            List<Component> lines = entry.getValue();
             lines.add(index, contents);
             FastBoardWrapper board = boards.get(playerUUID);
-            board.updateLines(lines.toArray(new String[0]));
+            board.updateLines(lines);
         }
     }
     
@@ -163,7 +172,7 @@ public class Sidebar {
      */
     public synchronized void addLines(@NotNull KeyLine @NotNull... keyLines) {
         List<String> keys = new ArrayList<>(keyLines.length);
-        List<String> lineContents = new ArrayList<>(keyLines.length);
+        List<Component> lineContents = new ArrayList<>(keyLines.length);
         for (KeyLine keyLine : keyLines) {
             Preconditions.checkArgument(!keys.contains(keyLine.getKey()), "duplicate key found in keyLines (%s)", keyLine.getKey());
             Preconditions.checkArgument(!keyToIndex.containsKey(keyLine.getKey()), "can't add a line with an existing key (%s)", keyLine.getKey());
@@ -175,12 +184,12 @@ public class Sidebar {
             size++;
             keyToIndex.put(keyLine.getKey(), index);
         }
-        for (Map.Entry<UUID, List<String>> entry : boardsLines.entrySet()) {
+        for (Map.Entry<UUID, List<Component>> entry : boardsLines.entrySet()) {
             UUID playerUUID = entry.getKey();
-            List<String> lines = entry.getValue();
+            List<Component> lines = entry.getValue();
             lines.addAll(lineContents);
             FastBoardWrapper board = boards.get(playerUUID);
-            board.updateLines(lines.toArray(new String[0]));
+            board.updateLines(lines);
         }
     }
     
@@ -193,7 +202,7 @@ public class Sidebar {
         Preconditions.checkArgument(index >= 0, "index (%s) can't be negative", index);
         Preconditions.checkArgument(index <= size, "index (%s) can't be greater than the size (%s) of the Sidebar", index, size);
         List<String> keys = new ArrayList<>(keyLines.length);
-        List<String> lineContents = new ArrayList<>(keyLines.length);
+        List<Component> lineContents = new ArrayList<>(keyLines.length);
         for (KeyLine keyLine : keyLines) {
             Preconditions.checkArgument(!keys.contains(keyLine.getKey()), "duplicate key found in keyLines (%s)", keyLine.getKey());
             Preconditions.checkArgument(!keyToIndex.containsKey(keyLine.getKey()), "can't add a line with an existing key (%s)", keyLine.getKey());
@@ -213,12 +222,12 @@ public class Sidebar {
             putIndex++;
         }
         size += keyLines.length;
-        for (Map.Entry<UUID, List<String>> entry : boardsLines.entrySet()) {
+        for (Map.Entry<UUID, List<Component>> entry : boardsLines.entrySet()) {
             UUID playerUUID = entry.getKey();
-            List<String> lines = entry.getValue();
+            List<Component> lines = entry.getValue();
             lines.addAll(index, lineContents);
             FastBoardWrapper board = boards.get(playerUUID);
-            board.updateLines(lines.toArray(new String[0]));
+            board.updateLines(lines);
         }
     }
     
@@ -236,12 +245,12 @@ public class Sidebar {
                 keyToIndex.put(existingKey, oldIndex - 1);
             }
         }
-        for (Map.Entry<UUID, List<String>> entry : boardsLines.entrySet()) {
+        for (Map.Entry<UUID, List<Component>> entry : boardsLines.entrySet()) {
             UUID playerUUID = entry.getKey();
-            List<String> lines = entry.getValue();
+            List<Component> lines = entry.getValue();
             lines.remove(removeIndex);
             FastBoardWrapper board = boards.get(playerUUID);
-            board.updateLines(lines.toArray(new String[0]));
+            board.updateLines(lines);
         }
     }
     
@@ -264,14 +273,14 @@ public class Sidebar {
         }
         adjustValues(keyToIndex);
         removeIndexes.sort(Comparator.reverseOrder());
-        for (List<String> lines : boardsLines.values()) {
+        for (List<Component> lines : boardsLines.values()) {
             removeIndexes(lines, removeIndexes);
         }
-        for (Map.Entry<UUID, List<String>> entry : boardsLines.entrySet()) {
+        for (Map.Entry<UUID, List<Component>> entry : boardsLines.entrySet()) {
             UUID playerUUID = entry.getKey();
-            List<String> lines = entry.getValue();
+            List<Component> lines = entry.getValue();
             FastBoardWrapper board = boards.get(playerUUID);
-            board.updateLines(lines.toArray(new String[0]));
+            board.updateLines(lines);
         }
     }
     
@@ -281,7 +290,7 @@ public class Sidebar {
      * @param removeIndexes the indexes to remove from lines. Must be sorted in reverse order (higher indexes first) or this will throw {@link IndexOutOfBoundsException}
      * @throws IndexOutOfBoundsException if {@code removeIndexes} is not sorted in order from greatest to least (i.e. {@code removeIndexes[n] > removeIndexes[n+1]}
      */
-    private void removeIndexes(List<String> lines, List<Integer> removeIndexes) {
+    private void removeIndexes(List<Component> lines, List<Integer> removeIndexes) {
         List<Integer> reverseSortedIndexesToRemove = removeIndexes.stream().sorted(Comparator.reverseOrder()).toList();
         for (int indexToRemove : reverseSortedIndexesToRemove) {
             if (indexToRemove >= 0 && indexToRemove < lines.size()) {
@@ -313,13 +322,17 @@ public class Sidebar {
     public synchronized void deleteAllLines() {
         size = 0;
         keyToIndex.clear();
-        for (Map.Entry<UUID, List<String>> entry : boardsLines.entrySet()) {
+        for (Map.Entry<UUID, List<Component>> entry : boardsLines.entrySet()) {
             UUID playerUUID = entry.getKey();
-            List<String> lines = entry.getValue();
+            List<Component> lines = entry.getValue();
             lines.clear();
             FastBoardWrapper board = boards.get(playerUUID);
             board.updateLines(Collections.emptyList());
         }
+    }
+    
+    public synchronized void updateLine(@NotNull String key, @NotNull String contents) {
+        updateLine(key, Component.text(contents));
     }
     
     /**
@@ -327,12 +340,12 @@ public class Sidebar {
      * @param key the key for the line (must exist)
      * @param contents the contents of the line
      */
-    public synchronized void updateLine(@NotNull String key, @NotNull String contents) {
+    public synchronized void updateLine(@NotNull String key, @NotNull Component contents) {
         Preconditions.checkArgument(keyToIndex.containsKey(key), "can't update a line with nonexistent key (%s)", key);
         int index = keyToIndex.get(key);
-        for (Map.Entry<UUID, List<String>> entry : boardsLines.entrySet()) {
+        for (Map.Entry<UUID, List<Component>> entry : boardsLines.entrySet()) {
             UUID playerUUID = entry.getKey();
-            List<String> lines = entry.getValue();
+            List<Component> lines = entry.getValue();
             lines.set(index, contents);
             FastBoardWrapper board = boards.get(playerUUID);
             board.updateLine(index, contents);
@@ -347,9 +360,9 @@ public class Sidebar {
         for (KeyLine keyLine : keyLines) {
             Preconditions.checkArgument(keyToIndex.containsKey(keyLine.getKey()), "can't update a line with nonexistent key (%s)", keyLine.getKey());
         }
-        for (Map.Entry<UUID, List<String>> entry : boardsLines.entrySet()) {
+        for (Map.Entry<UUID, List<Component>> entry : boardsLines.entrySet()) {
             UUID playerUUID = entry.getKey();
-            List<String> lines = entry.getValue();
+            List<Component> lines = entry.getValue();
             FastBoardWrapper board = boards.get(playerUUID);
             for (KeyLine keyLine : keyLines) {
                 int index = keyToIndex.get(keyLine.getKey());
@@ -359,17 +372,21 @@ public class Sidebar {
         }
     }
     
+    public synchronized void updateLine(@NotNull UUID playerUUID, @NotNull String key, @NotNull String contents) {
+        updateLine(playerUUID, key, Component.text(contents));
+    }
+    
     /**
      * Updates the line associate with the key for the player with the given ID's FastBoard.
      * @param playerUUID the player UUID to update the line for (must have a FastBoard)
      * @param key the key for the line (must exist)
      * @param contents the contents of the line
      */
-    public synchronized void updateLine(@NotNull UUID playerUUID, @NotNull String key, @NotNull String contents) {
+    public synchronized void updateLine(@NotNull UUID playerUUID, @NotNull String key, @NotNull Component contents) {
         Preconditions.checkArgument(keyToIndex.containsKey(key), "can't update a line with nonexistent key (%s)", key);
         Preconditions.checkArgument(boardsLines.containsKey(playerUUID), "player with UUID \"%s\" does not have a board in this manager", playerUUID);
         int index = keyToIndex.get(key);
-        List<String> lines = boardsLines.get(playerUUID);
+        List<Component> lines = boardsLines.get(playerUUID);
         lines.set(index, contents);
         FastBoardWrapper board = boards.get(playerUUID);
         board.updateLine(index, contents);
@@ -384,7 +401,7 @@ public class Sidebar {
         for (KeyLine keyLine : keyLines) {
             Preconditions.checkArgument(keyToIndex.containsKey(keyLine.getKey()), "can't update a line with nonexistent key (%s)", keyLine.getKey());
         }
-        List<String> lines = boardsLines.get(playerUUID);
+        List<Component> lines = boardsLines.get(playerUUID);
         FastBoardWrapper board = boards.get(playerUUID);
         for (KeyLine keyLine : keyLines) {
             int index = keyToIndex.get(keyLine.getKey());
