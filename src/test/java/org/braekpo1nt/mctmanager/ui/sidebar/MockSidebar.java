@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.ui.sidebar;
 
 import com.google.common.base.Preconditions;
+import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Assertions;
@@ -17,9 +18,9 @@ class MockSidebar extends Sidebar {
         newBoard.setPlayer(player);
         newBoard.updateTitle(this.title);
         boards.put(player.getUniqueId(), newBoard);
-        List<String> lines = new ArrayList<>(size);
+        List<Component> lines = new ArrayList<>(size);
         for (int i = 0; i < size; i++) {
-            lines.add("");
+            lines.add(Component.empty());
         }
         boardsLines.put(player.getUniqueId(), lines);
     }
