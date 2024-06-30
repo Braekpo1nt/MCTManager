@@ -31,23 +31,33 @@ public class Timer extends BukkitRunnable {
         private final @NotNull String key;
     }
     
+    private int secondsLeft;
     private @Nullable TimerManager timerManager;
     private boolean started = false;
     private boolean paused = false;
-    private int secondsLeft;
-    private final int titleThreshold;
+    
+    private final @NotNull Component sidebarPrefix;
     private final @NotNull List<SidebarData> sidebarDatas;
+    
+    private final @NotNull Component topbarPrefix;
     private final @NotNull List<Topbar> topbars;
+    
+    private final int titleThreshold;
     private @Nullable Audience titleAudience;
+    
     private final @Nullable Runnable completion;
     
     private Timer(int secondsLeft,
+                  @NotNull Component sidebarPrefix,
                   @NotNull List<SidebarData> sidebarDatas,
+                  @NotNull Component topbarPrefix,
                   @NotNull List<Topbar> topbars,
                   int titleThreshold,
                   @Nullable Audience titleAudience, @Nullable Runnable completion) {
         this.secondsLeft = secondsLeft;
+        this.sidebarPrefix = sidebarPrefix;
         this.sidebarDatas = sidebarDatas;
+        this.topbarPrefix = topbarPrefix;
         this.topbars = topbars;
         this.titleAudience = titleAudience;
         this.titleThreshold = titleThreshold;
@@ -109,10 +119,18 @@ public class Timer extends BukkitRunnable {
         }
         Component timeString = TimeStringUtils.getTimeComponent(secondsLeft);
         for (Topbar topbar : topbars) {
-            topbar.setMiddle(timeString);
+            topbar.setMiddle(
+                    Component.empty()
+                            .append(topbarPrefix)
+                            .append(timeString)
+            );
         }
         for (SidebarData sidebarData : sidebarDatas) {
-            sidebarData.getSidebar().updateLine(sidebarData.getKey(), timeString);
+            sidebarData.getSidebar().updateLine(sidebarData.getKey(), 
+                    Component.empty()
+                            .append(sidebarPrefix)
+                            .append(timeString)
+            );
         }
         if (titleAudience != null && secondsLeft <= titleThreshold) {
             Title title = Title.title(
@@ -226,17 +244,26 @@ public class Timer extends BukkitRunnable {
     }
     
     public static class Builder {
-        private int count = 0;
+        private int duration = 0;
+        
+        private @Nullable Component sidebarPrefix;
         private @Nullable List<SidebarData> sidebarDatas;
+        
+        
+        private @Nullable Component topbarPrefix;
         private @Nullable List<Topbar> topbars;
+        
         private int titleThreshold = 10;
         private @Nullable Audience titleAudience;
+        
         private @Nullable Runnable completion;
         
         public Timer build() {
             return new Timer(
-                    count,
+                    duration,
+                    sidebarPrefix != null ? sidebarPrefix : Component.empty(),
                     sidebarDatas != null ? sidebarDatas : Collections.emptyList(),
+                    topbarPrefix != null ? topbarPrefix : Component.empty(),
                     topbars != null ? topbars : Collections.emptyList(),
                     titleThreshold,
                     titleAudience,
@@ -250,8 +277,16 @@ public class Timer extends BukkitRunnable {
          * @return this
          */
         public Builder duration(int seconds) {
-            this.count = seconds;
+            this.duration = seconds;
             return this;
+        }
+        
+        /**
+         * Set the prefix to display before the sidebar's timer
+         * @param sidebarPrefix the prefix to display before the timer
+         */
+        public void sidebarPrefix(@Nullable Component sidebarPrefix) {
+            this.sidebarPrefix = sidebarPrefix;
         }
         
         /**
@@ -268,6 +303,14 @@ public class Timer extends BukkitRunnable {
                 sidebarDatas.add(sidebarData);
             }
             return this;
+        }
+        
+        /**
+         * Set the prefix to display before the Topbar's timer
+         * @param topbarPrefix the prefix to display before the timer
+         */
+        public void topbarPrefix(@Nullable Component topbarPrefix) {
+            this.topbarPrefix = topbarPrefix;
         }
         
         /**
