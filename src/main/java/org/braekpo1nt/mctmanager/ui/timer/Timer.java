@@ -107,9 +107,9 @@ public class Timer extends BukkitRunnable {
             onComplete();
             return;
         }
-        String timeString = TimeStringUtils.getTimeString(secondsLeft);
+        Component timeString = TimeStringUtils.getTimeComponent(secondsLeft);
         for (Topbar topbar : topbars) {
-            topbar.setMiddle(Component.text(timeString));
+            topbar.setMiddle(timeString);
         }
         for (SidebarData sidebarData : sidebarDatas) {
             sidebarData.getSidebar().updateLine(sidebarData.getKey(), timeString);
