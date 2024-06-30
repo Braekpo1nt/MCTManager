@@ -345,6 +345,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         descriptionPeriod = Timer.builder()
                 .duration(config.getDescriptionDuration())
                 .withSidebar(adminSidebar, "timer")
+                .sidebarPrefix(Component.text("Starting soon: "))
                 .withSidebar(sidebar, "timer")
                 .titleAudience(participants)
                 .onCompletion(() -> {

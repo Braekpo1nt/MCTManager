@@ -284,9 +284,11 @@ public class Timer extends BukkitRunnable {
         /**
          * Set the prefix to display before the sidebar's timer
          * @param sidebarPrefix the prefix to display before the timer
+         * @return this
          */
-        public void sidebarPrefix(@Nullable Component sidebarPrefix) {
+        public Builder sidebarPrefix(@Nullable Component sidebarPrefix) {
             this.sidebarPrefix = sidebarPrefix;
+            return this;
         }
         
         /**
@@ -308,9 +310,11 @@ public class Timer extends BukkitRunnable {
         /**
          * Set the prefix to display before the Topbar's timer
          * @param topbarPrefix the prefix to display before the timer
+         * @return this
          */
-        public void topbarPrefix(@Nullable Component topbarPrefix) {
+        public Builder topbarPrefix(@Nullable Component topbarPrefix) {
             this.topbarPrefix = topbarPrefix;
+            return this;
         }
         
         /**
