@@ -111,6 +111,10 @@ public class Sidebar {
         }
     }
     
+    /**
+     * String overload of {@link #addLine(String, Component)}
+     * @see #addLine(String, Component)
+     */
     public synchronized void addLine(@NotNull String key, @NotNull String contents) {
         this.addLine(key, Component.text(contents));
     }
@@ -134,6 +138,10 @@ public class Sidebar {
         }
     }
     
+    /**
+     * String overload of {@link #addLine(String, int, Component)}
+     * @see #addLine(String, int, Component)
+     */
     public synchronized void addLine(@NotNull String key, int index, @NotNull String contents) {
         this.addLine(key, index, Component.text(contents));
     }
@@ -331,6 +339,10 @@ public class Sidebar {
         }
     }
     
+    /**
+     * String overload of {@link #updateLine(String, Component)}
+     * @see #updateLine(String, Component)
+     */
     public synchronized void updateLine(@NotNull String key, @NotNull String contents) {
         updateLine(key, Component.text(contents));
     }
@@ -372,6 +384,10 @@ public class Sidebar {
         }
     }
     
+    /**
+     * String overload of {@link #updateLine(UUID, String, Component)}
+     * @see #updateLine(UUID, String, Component)
+     */
     public synchronized void updateLine(@NotNull UUID playerUUID, @NotNull String key, @NotNull String contents) {
         updateLine(playerUUID, key, Component.text(contents));
     }
