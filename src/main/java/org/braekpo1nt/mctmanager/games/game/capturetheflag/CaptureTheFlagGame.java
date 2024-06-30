@@ -215,7 +215,12 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         String team = gameManager.getTeamName(participant.getUniqueId());
         roundManager.onTeamJoin(team);
         sidebar.updateLine(participant.getUniqueId(), "title", title);
-        String roundLine = String.format("Round %d/%d", roundManager.getPlayedRounds() + 1, roundManager.getMaxRounds());
+        Component roundLine = Component.empty()
+                .append(Component.text("Round "))
+                .append(Component.text(roundManager.getPlayedRounds() + 1))
+                .append(Component.text("/"))
+                .append(Component.text(roundManager.getMaxRounds()))
+                ;
         sidebar.updateLine("round", roundLine);
         adminSidebar.updateLine("round", roundLine);
     }
