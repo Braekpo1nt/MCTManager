@@ -165,15 +165,15 @@ public class Sidebar {
         List<String> keys = new ArrayList<>(keyLines.length);
         List<String> lineContents = new ArrayList<>(keyLines.length);
         for (KeyLine keyLine : keyLines) {
-            Preconditions.checkArgument(!keys.contains(keyLine.key()), "duplicate key found in keyLines (%s)", keyLine.key());
-            Preconditions.checkArgument(!keyToIndex.containsKey(keyLine.key()), "can't add a line with an existing key (%s)", keyLine.key());
-            keys.add(keyLine.key());
-            lineContents.add(keyLine.contents());
+            Preconditions.checkArgument(!keys.contains(keyLine.getKey()), "duplicate key found in keyLines (%s)", keyLine.getKey());
+            Preconditions.checkArgument(!keyToIndex.containsKey(keyLine.getKey()), "can't add a line with an existing key (%s)", keyLine.getKey());
+            keys.add(keyLine.getKey());
+            lineContents.add(keyLine.getContents());
         }
         for (KeyLine keyLine : keyLines) {
             int index = size;
             size++;
-            keyToIndex.put(keyLine.key(), index);
+            keyToIndex.put(keyLine.getKey(), index);
         }
         for (Map.Entry<UUID, List<String>> entry : boardsLines.entrySet()) {
             UUID playerUUID = entry.getKey();
@@ -195,10 +195,10 @@ public class Sidebar {
         List<String> keys = new ArrayList<>(keyLines.length);
         List<String> lineContents = new ArrayList<>(keyLines.length);
         for (KeyLine keyLine : keyLines) {
-            Preconditions.checkArgument(!keys.contains(keyLine.key()), "duplicate key found in keyLines (%s)", keyLine.key());
-            Preconditions.checkArgument(!keyToIndex.containsKey(keyLine.key()), "can't add a line with an existing key (%s)", keyLine.key());
-            keys.add(keyLine.key());
-            lineContents.add(keyLine.contents());
+            Preconditions.checkArgument(!keys.contains(keyLine.getKey()), "duplicate key found in keyLines (%s)", keyLine.getKey());
+            Preconditions.checkArgument(!keyToIndex.containsKey(keyLine.getKey()), "can't add a line with an existing key (%s)", keyLine.getKey());
+            keys.add(keyLine.getKey());
+            lineContents.add(keyLine.getContents());
         }
         int indexShift = keyLines.length;
         for (String existingKey : keyToIndex.keySet()) {
@@ -345,16 +345,16 @@ public class Sidebar {
      */
     public synchronized  void updateLines(@NotNull KeyLine @NotNull... keyLines) {
         for (KeyLine keyLine : keyLines) {
-            Preconditions.checkArgument(keyToIndex.containsKey(keyLine.key()), "can't update a line with nonexistent key (%s)", keyLine.key());
+            Preconditions.checkArgument(keyToIndex.containsKey(keyLine.getKey()), "can't update a line with nonexistent key (%s)", keyLine.getKey());
         }
         for (Map.Entry<UUID, List<String>> entry : boardsLines.entrySet()) {
             UUID playerUUID = entry.getKey();
             List<String> lines = entry.getValue();
             FastBoardWrapper board = boards.get(playerUUID);
             for (KeyLine keyLine : keyLines) {
-                int index = keyToIndex.get(keyLine.key());
-                lines.set(index, keyLine.contents());
-                board.updateLine(index, keyLine.contents());
+                int index = keyToIndex.get(keyLine.getKey());
+                lines.set(index, keyLine.getContents());
+                board.updateLine(index, keyLine.getContents());
             }
         }
     }
@@ -382,14 +382,14 @@ public class Sidebar {
      */
     public synchronized void updateLines(@NotNull UUID playerUUID, @NotNull KeyLine @NotNull... keyLines) {
         for (KeyLine keyLine : keyLines) {
-            Preconditions.checkArgument(keyToIndex.containsKey(keyLine.key()), "can't update a line with nonexistent key (%s)", keyLine.key());
+            Preconditions.checkArgument(keyToIndex.containsKey(keyLine.getKey()), "can't update a line with nonexistent key (%s)", keyLine.getKey());
         }
         List<String> lines = boardsLines.get(playerUUID);
         FastBoardWrapper board = boards.get(playerUUID);
         for (KeyLine keyLine : keyLines) {
-            int index = keyToIndex.get(keyLine.key());
-            lines.set(index, keyLine.contents());
-            board.updateLine(index, keyLine.contents());
+            int index = keyToIndex.get(keyLine.getKey());
+            lines.set(index, keyLine.getContents());
+            board.updateLine(index, keyLine.getContents());
         }
     }
 }
