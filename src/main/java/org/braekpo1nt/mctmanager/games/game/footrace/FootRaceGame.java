@@ -61,7 +61,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
      */
     private final Main plugin;
     private final GameManager gameManager;
-    private int startCountDownTaskID;
+    private Timer startCountDown;
     private int endRaceCountDownId;
     private int timerRefreshTaskId;
     private List<Player> participants;
@@ -73,7 +73,6 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     private final PotionEffect SPEED = new PotionEffect(PotionEffectType.SPEED, 10000, 8, true, false, false);
     private final PotionEffect INVISIBILITY = new PotionEffect(PotionEffectType.INVISIBILITY, 10000, 1, true, false, false);
     private int statusEffectsTaskId;
-    private int descriptionPeriodTaskId;
     private Timer descriptionPeriod;
     private boolean descriptionShowing = false;
     private final String baseTitle = ChatColor.BLUE+"Foot Race";
@@ -281,12 +280,11 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     }
     
     private void cancelAllTasks() {
-        Bukkit.getScheduler().cancelTask(startCountDownTaskID);
         Bukkit.getScheduler().cancelTask(endRaceCountDownId);
         Bukkit.getScheduler().cancelTask(timerRefreshTaskId);
         Bukkit.getScheduler().cancelTask(statusEffectsTaskId);
-        Bukkit.getScheduler().cancelTask(descriptionPeriodTaskId);
         descriptionPeriod.cancel();
+        startCountDown.cancel();
     }
     
     private void giveBoots(Player participant) {
@@ -347,7 +345,6 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
                 .withSidebar(adminSidebar, "timer")
                 .sidebarPrefix(Component.text("Starting soon: "))
                 .withSidebar(sidebar, "timer")
-                .titleAudience(participants)
                 .onCompletion(() -> {
                     descriptionShowing = false;
                     startStartRaceCountdownTask();
@@ -356,25 +353,33 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     }
     
     private void startStartRaceCountdownTask() {
-        this.startCountDownTaskID = new BukkitRunnable() {
-            int count = config.getStartRaceDuration();
-            
-            @Override
-            public void run() {
-                if (count <= 0) {
-                    messageAllParticipants(Component.text("Go!"));
-                    sidebar.updateLine("timer", "");
-                    adminSidebar.updateLine("timer", "");
-                    startRace();
-                    this.cancel();
-                    return;
-                }
-                String timeLeft = TimeStringUtils.getTimeString(count);
-                sidebar.updateLine("timer", String.format("Starting: %s", timeLeft));
-                adminSidebar.updateLine("timer", String.format("Starting: %s", timeLeft));
-                count--;
-            }
-        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+//        this.startCountDownTaskID = new BukkitRunnable() {
+//            int count = config.getStartRaceDuration();
+//            
+//            @Override
+//            public void run() {
+//                if (count <= 0) {
+//                    messageAllParticipants(Component.text("Go!"));
+//                    sidebar.updateLine("timer", "");
+//                    adminSidebar.updateLine("timer", "");
+//                    startRace();
+//                    this.cancel();
+//                    return;
+//                }
+//                String timeLeft = TimeStringUtils.getTimeString(count);
+//                sidebar.updateLine("timer", String.format("Starting: %s", timeLeft));
+//                adminSidebar.updateLine("timer", String.format("Starting: %s", timeLeft));
+//                count--;
+//            }
+//        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+        startCountDown = Timer.builder()
+                .duration(config.getStartRaceDuration())
+                .withSidebar(sidebar, "timer")
+                .withSidebar(adminSidebar, "timer")
+                .sidebarPrefix(Component.text("Starting: "))
+                .titleAudience(participants)
+                .onCompletion(this::startRace)
+                .build().start(gameManager.getTimerManager());
     }
     
     private void startEndRaceCountDown() {
