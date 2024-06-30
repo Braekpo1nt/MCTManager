@@ -98,6 +98,7 @@ public class GameManager implements Listener {
         this.gameStateStorageUtil = new GameStateStorageUtil(plugin);
         this.voteManager = new VoteManager(this, plugin);
         this.games = new HashMap<>();
+        this.timerManager = new TimerManager(plugin);
         addGame(new FootRaceGame(plugin, this));
         addGame(new MechaGame(plugin, this));
         addGame(new SpleefGame(plugin, this));
@@ -109,7 +110,6 @@ public class GameManager implements Listener {
         this.sidebarFactory = new SidebarFactory();
         this.hubManager = initializeHubManager(plugin, this);
         this.eventManager = new EventManager(plugin, this, voteManager);
-        this.timerManager = new TimerManager(plugin);
     }
     
     /**

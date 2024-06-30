@@ -110,7 +110,7 @@ public class MCTDebugCommand implements TabExecutor, Listener {
             }
             sidebar.addPlayer(player);
             topbar.showPlayer(player);
-            timer = Timer.builder()
+            timer = timerManager.start(Timer.builder()
                     .onCompletion(() -> {
                         sender.sendMessage("done!");
                         sidebar.removeAllPlayers();
@@ -120,7 +120,7 @@ public class MCTDebugCommand implements TabExecutor, Listener {
                     .titleAudience(player)
                     .withTopbar(topbar)
                     .withSidebar(sidebar, "timer")
-                    .build().start(timerManager);
+                    .build());
         }
         
 //        Component mainTitle = Component.text("Main title");

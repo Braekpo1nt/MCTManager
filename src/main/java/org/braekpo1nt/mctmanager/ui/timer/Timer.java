@@ -32,7 +32,6 @@ public class Timer extends BukkitRunnable {
     }
     
     private int secondsLeft;
-    private @Nullable TimerManager timerManager;
     private boolean started = false;
     private boolean paused = false;
     
@@ -205,9 +204,6 @@ public class Timer extends BukkitRunnable {
         super.cancel();
         clear();
         paused = false;
-        if (timerManager != null) {
-            timerManager.remove(this);
-        }
     }
     
     /**
@@ -219,17 +215,6 @@ public class Timer extends BukkitRunnable {
         if (!started) {
             this.runTaskTimer(plugin, 0L, 20L);
         }
-        return this;
-    }
-    
-    /**
-     * Start this timer while simultaneously registering it with the given timerManager
-     * @param timerManager the timerManager to register this timer with
-     * @return this
-     */
-    public Timer start(@NotNull TimerManager timerManager) {
-        timerManager.start(this);
-        this.timerManager = timerManager;
         return this;
     }
     

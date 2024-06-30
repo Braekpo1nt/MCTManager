@@ -17,6 +17,7 @@ import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
+import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -61,7 +62,6 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
      */
     private final Main plugin;
     private final GameManager gameManager;
-    private Timer startCountDown;
     private int endRaceCountDownId;
     private int timerRefreshTaskId;
     private List<Player> participants;
@@ -73,7 +73,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     private final PotionEffect SPEED = new PotionEffect(PotionEffectType.SPEED, 10000, 8, true, false, false);
     private final PotionEffect INVISIBILITY = new PotionEffect(PotionEffectType.INVISIBILITY, 10000, 1, true, false, false);
     private int statusEffectsTaskId;
-    private Timer descriptionPeriod;
+    private final TimerManager timerManager;
     private boolean descriptionShowing = false;
     private final String baseTitle = ChatColor.BLUE+"Foot Race";
     private String title = baseTitle;
@@ -81,6 +81,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     public FootRaceGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
         this.gameManager = gameManager;
+        this.timerManager = gameManager.getTimerManager().createManager();
         this.configController = new FootRaceConfigController(plugin.getDataFolder());
     }
     
@@ -283,8 +284,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         Bukkit.getScheduler().cancelTask(endRaceCountDownId);
         Bukkit.getScheduler().cancelTask(timerRefreshTaskId);
         Bukkit.getScheduler().cancelTask(statusEffectsTaskId);
-        descriptionPeriod.cancel();
-        startCountDown.cancel();
+        timerManager.cancel();
     }
     
     private void giveBoots(Player participant) {
@@ -321,26 +321,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     
     private void startDescriptionPeriod() {
         descriptionShowing = true;
-//        this.descriptionPeriodTaskId = new BukkitRunnable() {
-//            private int count = config.getDescriptionDuration();
-//            @Override
-//            public void run() {
-//                if (count <= 0) {
-//                    sidebar.updateLine("timer", "");
-//                    adminSidebar.updateLine("timer", "");
-//                    descriptionShowing = false;
-//                    startStartRaceCountdownTask();
-//                    this.cancel();
-//                    return;
-//                }
-//                String timeLeft = TimeStringUtils.getTimeString(count);
-//                String timerString = String.format("Starting soon: %s", timeLeft);
-//                sidebar.updateLine("timer", timerString);
-//                adminSidebar.updateLine("timer", timerString);
-//                count--;
-//            }
-//        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
-        descriptionPeriod = Timer.builder()
+        timerManager.start(Timer.builder()
                 .duration(config.getDescriptionDuration())
                 .withSidebar(adminSidebar, "timer")
                 .sidebarPrefix(Component.text("Starting soon: "))
@@ -349,37 +330,18 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
                     descriptionShowing = false;
                     startStartRaceCountdownTask();
                 })
-                .build().start(gameManager.getTimerManager());
+                .build());
     }
     
     private void startStartRaceCountdownTask() {
-//        this.startCountDownTaskID = new BukkitRunnable() {
-//            int count = config.getStartRaceDuration();
-//            
-//            @Override
-//            public void run() {
-//                if (count <= 0) {
-//                    messageAllParticipants(Component.text("Go!"));
-//                    sidebar.updateLine("timer", "");
-//                    adminSidebar.updateLine("timer", "");
-//                    startRace();
-//                    this.cancel();
-//                    return;
-//                }
-//                String timeLeft = TimeStringUtils.getTimeString(count);
-//                sidebar.updateLine("timer", String.format("Starting: %s", timeLeft));
-//                adminSidebar.updateLine("timer", String.format("Starting: %s", timeLeft));
-//                count--;
-//            }
-//        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
-        startCountDown = Timer.builder()
+        timerManager.start(Timer.builder()
                 .duration(config.getStartRaceDuration())
                 .withSidebar(sidebar, "timer")
                 .withSidebar(adminSidebar, "timer")
                 .sidebarPrefix(Component.text("Starting: "))
                 .titleAudience(participants)
                 .onCompletion(this::startRace)
-                .build().start(gameManager.getTimerManager());
+                .build());
     }
     
     private void startEndRaceCountDown() {
