@@ -5,6 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 public class TimerManager {
@@ -61,14 +62,24 @@ public class TimerManager {
         timers.forEach(Timer::resume);
     }
     
+    @SuppressWarnings("ForLoopReplaceableByForEach")
     public void skip() {
-        managers.forEach(TimerManager::skip);
-        timers.forEach(Timer::skip);
+        for (Iterator<@NotNull TimerManager> iterator = managers.iterator(); iterator.hasNext();) {
+            iterator.next().skip();
+        }
+        for (Iterator<@NotNull Timer> iterator = timers.iterator(); iterator.hasNext();) {
+            iterator.next().skip();
+        }
     }
     
+    @SuppressWarnings("ForLoopReplaceableByForEach")
     public void cancel() {
-        managers.forEach(TimerManager::cancel);
-        timers.forEach(Timer::cancel);
+        for (Iterator<@NotNull TimerManager> iterator = managers.iterator(); iterator.hasNext();) {
+            iterator.next().cancel();
+        }
+        for (Iterator<@NotNull Timer> iterator = timers.iterator(); iterator.hasNext();) {
+            iterator.next().cancel();
+        }
     }
     
 }
