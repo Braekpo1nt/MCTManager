@@ -12,43 +12,22 @@ public class TimerManager {
     
     private final Main plugin;
     
-    private final @Nullable TimerManager parentManager;
     private final List<@NotNull TimerManager> managers = new ArrayList<>();
     private final List<@NotNull Timer> timers = new ArrayList<>();
     
-    public TimerManager(@NotNull Main plugin, @Nullable TimerManager parentManager) {
-        this.plugin = plugin;
-        this.parentManager = parentManager;
-    }
-    
     public TimerManager(@NotNull Main plugin) {
-        this(plugin, null);
+        this.plugin = plugin;
     }
     
     public TimerManager createManager() {
         TimerManager manager = new TimerManager(plugin);
-        register(manager);
-        return manager;
-    }
-    
-    private void register(TimerManager manager) {
         managers.add(manager);
-    }
-    
-    public void register(@NotNull Timer timer) {
-        timers.add(timer);
-    }
-    
-    public void remove(@NotNull Timer timer) {
-        timers.remove(timer);
-    }
-    
-    public void remove(@NotNull TimerManager manager) {
-        managers.remove(manager);
+        return manager;
     }
     
     public Timer start(@NotNull Timer timer) {
         timer.start(plugin);
+        timers.add(timer);
         return timer;
     }
     
@@ -62,24 +41,18 @@ public class TimerManager {
         timers.forEach(Timer::resume);
     }
     
-    @SuppressWarnings("ForLoopReplaceableByForEach")
     public void skip() {
-        for (Iterator<@NotNull TimerManager> iterator = managers.iterator(); iterator.hasNext();) {
-            iterator.next().skip();
-        }
-        for (Iterator<@NotNull Timer> iterator = timers.iterator(); iterator.hasNext();) {
-            iterator.next().skip();
-        }
+        managers.forEach(TimerManager::skip);
+        managers.clear();
+        timers.forEach(Timer::skip);
+        timers.clear();
     }
     
-    @SuppressWarnings("ForLoopReplaceableByForEach")
     public void cancel() {
-        for (Iterator<@NotNull TimerManager> iterator = managers.iterator(); iterator.hasNext();) {
-            iterator.next().cancel();
-        }
-        for (Iterator<@NotNull Timer> iterator = timers.iterator(); iterator.hasNext();) {
-            iterator.next().cancel();
-        }
+        managers.forEach(TimerManager::cancel);
+        managers.clear();
+        timers.forEach(Timer::cancel);
+        timers.clear();
     }
     
 }
