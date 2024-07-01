@@ -1,6 +1,8 @@
 package org.braekpo1nt.mctmanager.ui.timer;
 
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.title.Title;
@@ -34,6 +36,9 @@ public class Timer extends BukkitRunnable {
     private int secondsLeft;
     private boolean started = false;
     private boolean paused = false;
+    
+    @Setter
+    private @Nullable TimerManager manager;
     
     private final @NotNull Component sidebarPrefix;
     private final @NotNull List<SidebarData> sidebarDatas;
@@ -201,9 +206,13 @@ public class Timer extends BukkitRunnable {
      */
     @Override
     public synchronized void cancel() throws IllegalStateException {
-        super.cancel();
         clear();
         paused = false;
+        if (manager != null) {
+            manager.remove(this);
+            manager = null;
+        }
+        super.cancel();
     }
     
     /**
