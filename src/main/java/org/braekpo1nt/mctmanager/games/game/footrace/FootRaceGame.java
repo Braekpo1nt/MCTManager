@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.footrace;
 
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
@@ -285,6 +286,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         Bukkit.getScheduler().cancelTask(timerRefreshTaskId);
         Bukkit.getScheduler().cancelTask(statusEffectsTaskId);
         timerManager.cancel();
+        timerManager = null;
     }
     
     private void giveBoots(Player participant) {
@@ -339,29 +341,19 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
                 .withSidebar(sidebar, "timer")
                 .withSidebar(adminSidebar, "timer")
                 .sidebarPrefix(Component.text("Starting: "))
-                .titleAudience(participants)
+                .titleAudience(Audience.audience(participants))
                 .onCompletion(this::startRace)
                 .build());
     }
     
     private void startEndRaceCountDown() {
-        this.endRaceCountDownId = new BukkitRunnable() {
-            int count = config.getRaceEndCountdownDuration();
-            @Override
-            public void run() {
-                if (count <= 0) {
-                    sidebar.updateLine("timer", "");
-                    adminSidebar.updateLine("timer", "");
-                    stop();
-                    this.cancel();
-                    return;
-                }
-                String timeLeft = TimeStringUtils.getTimeString(count);
-                sidebar.updateLine("timer", String.format("Ending: %s", timeLeft));
-                adminSidebar.updateLine("timer", String.format("Ending: %s", timeLeft));
-                count--;
-            }
-        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+        timerManager.start(Timer.builder()
+                .withSidebar(sidebar,"timer")
+                .withSidebar(adminSidebar, "timer")
+                .sidebarPrefix(Component.text("Ending: "))
+                .duration(config.getStartRaceDuration())
+                .onCompletion(this::stop)
+                .build());
     }
     
     private void startTimerRefreshTask() {

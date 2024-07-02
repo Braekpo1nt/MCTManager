@@ -83,7 +83,6 @@ public class MCTDebugCommand implements TabExecutor, Listener {
                         sender.sendMessage("player doesn't exist");
                         return true;
                     }
-                    timer.addTitleAudience(secondPlayer);
                     sidebar.addPlayer(secondPlayer);
                     topbar.showPlayer(secondPlayer);
                 }

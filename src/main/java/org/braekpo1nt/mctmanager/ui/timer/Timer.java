@@ -356,11 +356,6 @@ public class Timer extends BukkitRunnable {
             return this;
         }
         
-        public Builder titleAudience(@NotNull List<Player> titleAudience) {
-            this.titleAudience = Audience.audience(titleAudience);
-            return this;
-        }
-        
         /**
          * @param completion the {@link Runnable} to be called when the timer reaches 0
          * @return this
