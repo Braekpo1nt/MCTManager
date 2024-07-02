@@ -53,29 +53,25 @@ public class TimerManager {
     }
     
     public void skip() {
-        for (TimerManager manager : managers) {
-            manager.setParent(null);
+        List<TimerManager> managersCopy = new ArrayList<>(managers);
+        for (TimerManager manager : managersCopy) {
             manager.skip();
         }
-        managers.clear();
-        for (Timer timer : timers) {
-            timer.setManager(null);
+        List<Timer> timersCopy = new ArrayList<>(timers);
+        for (Timer timer : timersCopy) {
             timer.skip();
         }
-        timers.clear();
     }
     
     public void cancel() {
-        managers.forEach(manager -> {
-            manager.setParent(null);
+        List<TimerManager> managersCopy = new ArrayList<>(managers);
+        for (TimerManager manager : managersCopy) {
             manager.cancel();
-        });
-        managers.clear();
-        timers.forEach(timer -> {
-            timer.setManager(null);
+        }
+        List<Timer> timersCopy = new ArrayList<>(timers);
+        for (Timer timer : timersCopy) {
             timer.cancel();
-        });
-        timers.clear();
+        }
         if (parent != null) {
             parent.remove(this);
             parent = null;
