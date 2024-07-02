@@ -41,6 +41,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.time.Duration;
 import java.util.*;
@@ -63,7 +64,6 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
      */
     private final Main plugin;
     private final GameManager gameManager;
-    private int endRaceCountDownId;
     private int timerRefreshTaskId;
     private List<Player> participants;
     private List<Player> admins;
@@ -74,13 +74,14 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     private final PotionEffect SPEED = new PotionEffect(PotionEffectType.SPEED, 10000, 8, true, false, false);
     private final PotionEffect INVISIBILITY = new PotionEffect(PotionEffectType.INVISIBILITY, 10000, 1, true, false, false);
     private int statusEffectsTaskId;
-    private TimerManager timerManager;
+    private final TimerManager timerManager;
     private boolean descriptionShowing = false;
     private final String baseTitle = ChatColor.BLUE+"Foot Race";
     private String title = baseTitle;
     
     public FootRaceGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
+        this.timerManager = new TimerManager(plugin);
         this.gameManager = gameManager;
         this.configController = new FootRaceConfigController(plugin.getDataFolder());
     }
@@ -121,7 +122,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         sidebar = gameManager.getSidebarFactory().createSidebar();
         adminSidebar = gameManager.getSidebarFactory().createSidebar();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
-        this.timerManager = gameManager.getTimerManager().createManager();
+        gameManager.getTimerManager().register(timerManager);
         closeGlassBarrier();
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
@@ -282,11 +283,9 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     }
     
     private void cancelAllTasks() {
-        Bukkit.getScheduler().cancelTask(endRaceCountDownId);
         Bukkit.getScheduler().cancelTask(timerRefreshTaskId);
         Bukkit.getScheduler().cancelTask(statusEffectsTaskId);
         timerManager.cancel();
-        timerManager = null;
     }
     
     private void giveBoots(Player participant) {

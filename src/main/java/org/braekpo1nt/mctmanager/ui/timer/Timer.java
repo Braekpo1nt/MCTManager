@@ -7,7 +7,6 @@ import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.topbar.Topbar;
-import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
@@ -215,7 +214,7 @@ public class Timer extends BukkitRunnable {
         started = false;
         paused = false;
         if (manager != null) {
-            manager.remove(this);
+            manager.unregister(this);
             manager = null;
         }
         super.cancel();
