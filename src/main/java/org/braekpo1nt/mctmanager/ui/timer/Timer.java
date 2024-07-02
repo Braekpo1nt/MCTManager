@@ -1,7 +1,6 @@
 package org.braekpo1nt.mctmanager.ui.timer;
 
 import lombok.Data;
-import lombok.Setter;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.title.Title;
@@ -36,7 +35,10 @@ public class Timer extends BukkitRunnable {
     private boolean started = false;
     private boolean paused = false;
     
-    @Setter
+    /**
+     * if this Timer belongs to a TimerManager, this will retain a reference to that.
+     * Upon cancellation, this Timer will remove itself from this manager.
+     */
     private @Nullable TimerManager manager;
     
     private final @NotNull Component sidebarPrefix;
@@ -65,6 +67,10 @@ public class Timer extends BukkitRunnable {
         this.titleAudience = titleAudience;
         this.titleThreshold = titleThreshold;
         this.completion = completion;
+    }
+    
+    public void setTimerManager(@NotNull TimerManager timerManager) {
+        this.manager = timerManager;
     }
     
     /**
@@ -206,6 +212,7 @@ public class Timer extends BukkitRunnable {
     @Override
     public synchronized void cancel() throws IllegalStateException {
         clear();
+        started = false;
         paused = false;
         if (manager != null) {
             manager.remove(this);
@@ -232,6 +239,9 @@ public class Timer extends BukkitRunnable {
      */
     @Override
     public synchronized @NotNull BukkitTask runTaskTimer(@NotNull Plugin plugin, long delay, long period) throws IllegalArgumentException, IllegalStateException {
+        if (started) {
+            throw new IllegalStateException("can't start a timer which is already started");
+        }
         started = true;
         return super.runTaskTimer(plugin, delay, period);
     }

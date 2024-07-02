@@ -34,7 +34,7 @@ public class TimerManager {
     public Timer start(@NotNull Timer timer) {
         timer.start(plugin);
         timers.add(timer);
-        timer.setManager(this);
+        timer.setTimerManager(this);
         return timer;
     }
     
