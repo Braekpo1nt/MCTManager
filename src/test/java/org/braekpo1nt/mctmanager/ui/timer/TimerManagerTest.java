@@ -11,6 +11,8 @@ import org.braekpo1nt.mctmanager.TestUtils;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.footrace.config.FootRaceConfig;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -42,13 +44,18 @@ class TimerManagerTest {
         }
     }
     
+    @AfterEach
+    void teardown() {
+        MockBukkit.unmock();
+    }
+    
     @Test
     void test() {
         TimerManager subManager = timerManager.createManager();
         subManager.start(Timer.builder()
                         .duration(1)
                         .build());
-        timerManager.skip();
+        Assertions.assertDoesNotThrow(timerManager::skip);
     }
     
     @Test
@@ -57,7 +64,7 @@ class TimerManagerTest {
         gameManager.addTeam("test", "Test", "white");
         gameManager.joinPlayerToTeam(plugin.getServer().getConsoleSender(), playerMock, "test");
         gameManager.startGame(GameType.FOOT_RACE, plugin.getServer().getConsoleSender());
-        timerManager.skip();
+        Assertions.assertDoesNotThrow(timerManager::skip);
     }
     
 }
