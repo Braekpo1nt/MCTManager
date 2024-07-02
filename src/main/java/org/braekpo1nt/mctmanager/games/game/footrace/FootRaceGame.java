@@ -73,7 +73,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     private final PotionEffect SPEED = new PotionEffect(PotionEffectType.SPEED, 10000, 8, true, false, false);
     private final PotionEffect INVISIBILITY = new PotionEffect(PotionEffectType.INVISIBILITY, 10000, 1, true, false, false);
     private int statusEffectsTaskId;
-    private final TimerManager timerManager;
+    private TimerManager timerManager;
     private boolean descriptionShowing = false;
     private final String baseTitle = ChatColor.BLUE+"Foot Race";
     private String title = baseTitle;
@@ -81,7 +81,6 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     public FootRaceGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
         this.gameManager = gameManager;
-        this.timerManager = gameManager.getTimerManager().createManager();
         this.configController = new FootRaceConfigController(plugin.getDataFolder());
     }
     
@@ -121,6 +120,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         sidebar = gameManager.getSidebarFactory().createSidebar();
         adminSidebar = gameManager.getSidebarFactory().createSidebar();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
+        this.timerManager = gameManager.getTimerManager().createManager();
         closeGlassBarrier();
         for (Player participant : newParticipants) {
             initializeParticipant(participant);

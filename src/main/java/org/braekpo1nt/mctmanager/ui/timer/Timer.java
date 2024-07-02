@@ -1,7 +1,6 @@
 package org.braekpo1nt.mctmanager.ui.timer;
 
 import lombok.Data;
-import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;

@@ -13,6 +13,7 @@ import org.braekpo1nt.mctmanager.commands.mct.game.GameCommand;
 import org.braekpo1nt.mctmanager.commands.mct.hub.HubCommand;
 import org.braekpo1nt.mctmanager.commands.mct.score.ScoreCommand;
 import org.braekpo1nt.mctmanager.commands.mct.team.TeamCommand;
+import org.braekpo1nt.mctmanager.commands.mct.timer.TimerCommand;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.listeners.BlockEffectsListener;
 import org.bukkit.command.Command;
@@ -49,6 +50,7 @@ public class MCTCommand extends MasterCommandManager {
             }
         });
         addSubCommand(new ScoreCommand(gameManager, "score"));
+        addSubCommand(new TimerCommand(gameManager, "timer"));
         onInit(plugin.getServer().getPluginManager());
     }
     

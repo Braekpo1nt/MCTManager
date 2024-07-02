@@ -53,15 +53,15 @@ public class TimerManager {
     }
     
     public void skip() {
-        managers.forEach(manager -> {
+        for (TimerManager manager : managers) {
             manager.setParent(null);
             manager.skip();
-        });
+        }
         managers.clear();
-        timers.forEach(timer -> {
+        for (Timer timer : timers) {
             timer.setManager(null);
             timer.skip();
-        });
+        }
         timers.clear();
     }
     
