@@ -47,7 +47,7 @@ dependencies {
 
 //    FastBoard
 //    https://github.com/MrMicky-FR/FastBoard
-    implementation 'fr.mrmicky:fastboard:1.2.1'
+    implementation 'fr.mrmicky:fastboard:2.1.2'
     
     implementation 'com.google.code.gson:gson:2.10.1'
 }

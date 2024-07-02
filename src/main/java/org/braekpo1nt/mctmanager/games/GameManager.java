@@ -29,6 +29,7 @@ import org.braekpo1nt.mctmanager.games.voting.VoteManager;
 import org.braekpo1nt.mctmanager.hub.HubManager;
 import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.SidebarFactory;
+import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.bukkit.*;
 import org.bukkit.command.CommandSender;
@@ -83,6 +84,7 @@ public class GameManager implements Listener {
     private boolean shouldTeleportToHub = true;
     private final VoteManager voteManager;
     private final EventManager eventManager;
+    private final TimerManager timerManager;
     /**
      * Contains the list of online participants. Updated when participants are added/removed or quit/join
      */
@@ -96,6 +98,7 @@ public class GameManager implements Listener {
         this.gameStateStorageUtil = new GameStateStorageUtil(plugin);
         this.voteManager = new VoteManager(this, plugin);
         this.games = new HashMap<>();
+        this.timerManager = new TimerManager(plugin);
         addGame(new FootRaceGame(plugin, this));
         addGame(new MechaGame(plugin, this));
         addGame(new SpleefGame(plugin, this));
@@ -107,6 +110,13 @@ public class GameManager implements Listener {
         this.sidebarFactory = new SidebarFactory();
         this.hubManager = initializeHubManager(plugin, this);
         this.eventManager = new EventManager(plugin, this, voteManager);
+    }
+    
+    /**
+     * @return the TimerManager associated with this GameManager. This should be used to register all timers in games and events, so that they can be easily paused, resumed, skipped, etc. in bulk.
+     */
+    public TimerManager getTimerManager() {
+        return this.timerManager;
     }
     
     protected HubManager initializeHubManager(Main plugin, GameManager gameManager) {
