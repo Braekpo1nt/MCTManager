@@ -459,7 +459,6 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
                 .withSidebar(adminSidebar, "timer")
                 .withTopbar(topbar)
                 .sidebarPrefix(Component.text("Starting soon: "))
-                .titleAudience(Audience.audience(participants))
                 .onCompletion(() -> {
                     descriptionShowing = false;
                     startStartMechaCountdownTask();
@@ -488,9 +487,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         timerManager.start(Timer.builder()
                 .duration(config.getEndDuration())
                 .withSidebar(adminSidebar, "ending")
-                .withTopbar(topbar)
                 .sidebarPrefix(Component.text("Game ending: "))
-                .titleAudience(Audience.audience(participants))
                 .onCompletion(() -> {
                     sidebar.deleteLine("ending");
                     adminSidebar.deleteLine("ending");
@@ -524,10 +521,10 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         adminSidebar.addLine("invuln", initialTimer);
         timerManager.start(Timer.builder()
                 .duration(config.getInvulnerabilityDuration())
+                .withSidebar(sidebar, "invuln")
                 .withSidebar(adminSidebar, "invuln")
                 .withTopbar(topbar)
                 .sidebarPrefix(Component.text("Invulnerable: "))
-                .titleAudience(Audience.audience(participants))
                 .onCompletion(() -> {
                     sidebar.deleteLine("invuln");
                     adminSidebar.deleteLine("invuln");
