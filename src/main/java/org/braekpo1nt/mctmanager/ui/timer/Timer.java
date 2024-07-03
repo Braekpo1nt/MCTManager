@@ -177,6 +177,7 @@ public class Timer extends BukkitRunnable {
      * The method to be called when the timer hits zero. Calls the specified competion method if it's not null, and always cancels this Timer. 
      */
     private void onComplete() {
+        clear();
         if (completion != null) {
             completion.run();
         }
@@ -208,15 +209,15 @@ public class Timer extends BukkitRunnable {
      * set all topbar middles to empty, set all assigned sidebar lines to empty, and clear the titleAudience's title. Note that this does not stop this timer on its own, so values might be reset on the next iteration of {@link Timer#run}. 
      */
     private void clear() {
-//        for (Topbar topbar : topbars) {
-//            topbar.setMiddle(Component.empty());
-//        }
-//        for (SidebarData sidebarData : sidebarDatas) {
-//            sidebarData.getSidebar().updateLine(sidebarData.getKey(), Component.empty());
-//        }
-//        if (titleAudience != null) {
-//            titleAudience.clearTitle();
-//        }
+        for (Topbar topbar : topbars) {
+            topbar.setMiddle(Component.empty());
+        }
+        for (SidebarData sidebarData : sidebarDatas) {
+            sidebarData.getSidebar().updateLine(sidebarData.getKey(), Component.empty());
+        }
+        if (titleAudience != null) {
+            titleAudience.clearTitle();
+        }
     }
     
     /**
@@ -227,7 +228,6 @@ public class Timer extends BukkitRunnable {
      */
     @Override
     public synchronized void cancel() throws IllegalStateException {
-        clear();
         started = false;
         paused = false;
         if (manager != null) {
