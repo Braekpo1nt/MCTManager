@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.mecha;
 
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
@@ -16,6 +17,8 @@ import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
+import org.braekpo1nt.mctmanager.ui.timer.Timer;
+import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.braekpo1nt.mctmanager.ui.topbar.ManyBattleTopbar;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.braekpo1nt.mctmanager.utils.MathUtils;
@@ -84,9 +87,11 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
      * true when the game is over, and countdown is started, so no points should be awarded
      */
     private boolean gameEndCountDown = false;
+    private final TimerManager timerManager;
     
     public MechaGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
+        this.timerManager = new TimerManager(plugin);
         this.gameManager = gameManager;
         this.configController = new MechaConfigController(plugin.getDataFolder());
         this.topbar = new ManyBattleTopbar();
@@ -141,6 +146,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         List<String> teams = gameManager.getTeamNames(newParticipants);
         setUpTopbarTeams(teams);
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
+        gameManager.getTimerManager().register(timerManager);
         fillAllChests();
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
@@ -443,51 +449,33 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         Bukkit.getScheduler().cancelTask(gameEndCountdownTaskId);
         Bukkit.getScheduler().cancelTask(startInvulnerableTaskID);
         Bukkit.getScheduler().cancelTask(descriptionPeriodTaskId);
+        timerManager.cancel();
     }
     
     private void startDescriptionPeriod() {
         descriptionShowing = true;
-        this.descriptionPeriodTaskId = new BukkitRunnable() {
-            private int count = config.getDescriptionDuration();
-            @Override
-            public void run() {
-                if (count <= 0) {
-                    topbar.setMiddle(Component.empty());
-                    adminSidebar.updateLine("timer", "");
+        timerManager.start(Timer.builder()
+                .duration(config.getDescriptionDuration())
+                .withSidebar(adminSidebar, "timer")
+                .withTopbar(topbar)
+                .sidebarPrefix(Component.text("Starting soon: "))
+                .titleAudience(Audience.audience(participants))
+                .onCompletion(() -> {
                     descriptionShowing = false;
                     startStartMechaCountdownTask();
-                    this.cancel();
-                    return;
-                }
-                String timeLeft = TimeStringUtils.getTimeString(count);
-                String timerString = String.format("Starting soon: %s", timeLeft);
-                topbar.setMiddle(Component.text(timeLeft));
-                adminSidebar.updateLine("timer", timerString);
-                count--;
-            }
-        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+                })
+                .build());
     }
     
     private void startStartMechaCountdownTask() {
-        this.startMechaTaskId = new BukkitRunnable() {
-            private int count = config.getStartDuration();
-            
-            @Override
-            public void run() {
-                if (count <= 0) {
-                    topbar.setMiddle(Component.empty());
-                    adminSidebar.updateLine("timer", "");
-                    startMecha();
-                    this.cancel();
-                    return;
-                }
-                String timeLeft = TimeStringUtils.getTimeString(count);
-                String message = String.format("Starting: %s", timeLeft);
-                topbar.setMiddle(Component.text(timeLeft));
-                adminSidebar.updateLine("timer", message);
-                count--;
-            }
-        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+        timerManager.start(Timer.builder()
+                .duration(config.getStartDuration())
+                .withSidebar(adminSidebar, "timer")
+                .withTopbar(topbar)
+                .sidebarPrefix(Component.text("Starting: "))
+                .titleAudience(Audience.audience(participants))
+                .onCompletion(this::startMecha)
+                .build());
     }
     
     /**
@@ -497,25 +485,19 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         gameEndCountDown = true;
         sidebar.addLine("ending", "");
         adminSidebar.addLine("ending", "");
-        gameEndCountdownTaskId = new BukkitRunnable() {
-            int count = config.getEndDuration();
-            @Override
-            public void run() {
-                if (count <= 0) {
+        timerManager.start(Timer.builder()
+                .duration(config.getEndDuration())
+                .withSidebar(adminSidebar, "ending")
+                .withTopbar(topbar)
+                .sidebarPrefix(Component.text("Game ending: "))
+                .titleAudience(Audience.audience(participants))
+                .onCompletion(() -> {
                     sidebar.deleteLine("ending");
                     adminSidebar.deleteLine("ending");
                     gameEndCountDown = false;
                     stop();
-                    this.cancel();
-                    return;
-                }
-                String timeString = TimeStringUtils.getTimeString(count);
-                String timerString = String.format("Game ending: %s", timeString);
-                sidebar.updateLine("ending", timerString);
-                adminSidebar.updateLine("ending", timerString);
-                count--;
-            }
-        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+                })
+                .build());
     }
     
     private void switchPlayerFromLivingToDead(UUID playerUniqueId) {
@@ -540,26 +522,19 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         String initialTimer = String.format("Invulnerable: %s", invulnerabilityDuration);
         sidebar.addLine("invuln", initialTimer);
         adminSidebar.addLine("invuln", initialTimer);
-        this.startInvulnerableTaskID = new BukkitRunnable() {
-            private int count = config.getInvulnerabilityDuration();
-            
-            @Override
-            public void run() {
-                if (count <= 0) {
+        timerManager.start(Timer.builder()
+                .duration(config.getInvulnerabilityDuration())
+                .withSidebar(adminSidebar, "invuln")
+                .withTopbar(topbar)
+                .sidebarPrefix(Component.text("Invulnerable: "))
+                .titleAudience(Audience.audience(participants))
+                .onCompletion(() -> {
                     sidebar.deleteLine("invuln");
                     adminSidebar.deleteLine("invuln");
                     isInvulnerable = false;
                     messageAllParticipants(Component.text("Invulnerability has ended!"));
-                    this.cancel();
-                    return;
-                }
-                String timeLeft = TimeStringUtils.getTimeString(count);
-                String timer = String.format("Invulnerable: %s", timeLeft);
-                sidebar.updateLine("invuln", timer);
-                adminSidebar.updateLine("invuln", timer);
-                count--;
-            }
-        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+                })
+                .build());
     }
     
     private void onTeamWin(String winningTeam) {
