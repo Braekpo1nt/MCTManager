@@ -66,9 +66,6 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     private boolean isInvulnerable = false;
     private List<Player> participants = new ArrayList<>();
     private List<Player> admins = new ArrayList<>();
-    private int startMechaTaskId;
-    private int gameEndCountdownTaskId;
-    private int startInvulnerableTaskID;
     private WorldBorder worldBorder;
     private int borderShrinkingTaskId;
     private List<UUID> livingPlayers = new ArrayList<>();
@@ -444,10 +441,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     }
     
     private void cancelAllTasks() {
-        Bukkit.getScheduler().cancelTask(startMechaTaskId);
         Bukkit.getScheduler().cancelTask(borderShrinkingTaskId);
-        Bukkit.getScheduler().cancelTask(gameEndCountdownTaskId);
-        Bukkit.getScheduler().cancelTask(startInvulnerableTaskID);
         Bukkit.getScheduler().cancelTask(descriptionPeriodTaskId);
         timerManager.cancel();
     }
