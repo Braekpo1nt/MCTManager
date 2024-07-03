@@ -1,22 +1,22 @@
 package org.braekpo1nt.mctmanager.games.game.capturetheflag;
 
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlagConfig;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
-import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
+import org.braekpo1nt.mctmanager.ui.timer.Timer;
+import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.braekpo1nt.mctmanager.ui.topbar.BattleTopbar;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -51,10 +51,12 @@ public class CaptureTheFlagRound {
      * false if the countdown timer is still going and the matches haven't started yet for this round. False otherwise. 
      */
     private boolean matchesStarted = false;
+    private final TimerManager timerManager;
     
     public CaptureTheFlagRound(CaptureTheFlagGame captureTheFlagGame, Main plugin, GameManager gameManager, CaptureTheFlagConfig config, List<MatchPairing> matchPairings, Sidebar sidebar, Sidebar adminSidebar, BattleTopbar topbar) {
         this.captureTheFlagGame = captureTheFlagGame;
         this.plugin = plugin;
+        this.timerManager = new TimerManager(plugin);
         this.gameManager = gameManager;
         this.config = config;
         this.sidebar = sidebar;
@@ -87,8 +89,9 @@ public class CaptureTheFlagRound {
     }
     
     public void start(List<Player> newParticipants, List<Player> newOnDeckParticipants) {
-        participants = new ArrayList<>();
-        onDeckParticipants = new ArrayList<>();
+        participants = new ArrayList<>(newParticipants.size());
+        onDeckParticipants = new ArrayList<>(newOnDeckParticipants.size());
+        gameManager.getTimerManager().register(timerManager);
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
         }
@@ -248,40 +251,24 @@ public class CaptureTheFlagRound {
     }
     
     private void startOnDeckClassSelectionTimer() {
-        this.onDeckClassSelectionTimerTaskId = new BukkitRunnable() {
-            private int count = config.getClassSelectionDuration();
-            @Override
-            public void run() {
-                if (count <= 0) {
-                    startOnDeckMatchTimer();
-                    this.cancel();
-                    return;
-                }
-                String timeLeft = TimeStringUtils.getTimeString(count);
-                String timer = String.format("Class selection: %s", timeLeft);
-                adminSidebar.updateLine("timer", timer);
-                topbar.setMiddle(Component.text(timeLeft));
-                count--;
-            }
-        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+        timerManager.start(Timer.builder()
+                .duration(config.getClassSelectionDuration())
+                .withSidebar(adminSidebar, "timer")
+                .withTopbar(topbar)
+                .sidebarPrefix(Component.text("Class selection: "))
+                .titleAudience(Audience.audience(onDeckParticipants))
+                .onCompletion(this::startOnDeckMatchTimer)
+                .build());
     }
     
     private void startOnDeckMatchTimer() {
-        this.onDeckMatchTimerTaskId = new BukkitRunnable() {
-            int count = config.getRoundTimerDuration();
-            @Override
-            public void run() {
-                if (count <= 0) {
-                    this.cancel();
-                    return;
-                }
-                String timeLeft = TimeStringUtils.getTimeString(count);
-                String timer = String.format("Round: %s", timeLeft);
-                adminSidebar.updateLine("timer", timer);
-                topbar.setMiddle(Component.text(timeLeft));
-                count--;
-            }
-        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+        timerManager.start(Timer.builder()
+                .duration(config.getRoundTimerDuration())
+                .withSidebar(adminSidebar, "timer")
+                .withTopbar(topbar)
+                .sidebarPrefix(Component.text("Round: "))
+                .titleAudience(Audience.audience(onDeckParticipants))
+                .build());
     }
     
     /**
@@ -290,44 +277,37 @@ public class CaptureTheFlagRound {
      */
     private void startDescriptionPeriod() {
         descriptionShowing = true;
-        this.descriptionPeriodTaskId = new BukkitRunnable() {
-            private int count = config.getDescriptionDuration();
-            @Override
-            public void run() {
-                if (count <= 0) {
-                    topbar.setMiddle(Component.empty());
+        timerManager.start(Timer.builder()
+                .duration(config.getDescriptionDuration())
+                .withSidebar(adminSidebar, "timer")
+                .withTopbar(topbar)
+                .sidebarPrefix(Component.text("Starting soon: "))
+                .titleAudience(Audience.audience(
+                        Audience.audience(participants),
+                        Audience.audience(onDeckParticipants)
+                ))
+                .onCompletion(() -> {
                     descriptionShowing = false;
                     startMatchesStartingCountDown();
-                    this.cancel();
-                    return;
-                }
-                String timeLeft = TimeStringUtils.getTimeString(count);
-                String timerString = String.format("Starting soon: %s", timeLeft);
-                adminSidebar.updateLine("timer", timerString);
-                topbar.setMiddle(Component.text(timeLeft));
-                count--;
-            }
-        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+                })
+                .build());
     }
     
     private void startMatchesStartingCountDown() {
-        this.matchesStartingCountDownTaskId = new BukkitRunnable() {
-            int count = config.getMatchesStartingDuration();
-            @Override
-            public void run() {
-                if (count <= 0) {
+        timerManager.start(Timer.builder()
+                .duration(config.getDescriptionDuration())
+                .withSidebar(adminSidebar, "timer")
+                .withTopbar(topbar)
+                .sidebarPrefix(Component.text("Starting: "))
+                .titleAudience(Audience.audience(
+                        Audience.audience(participants),
+                        Audience.audience(onDeckParticipants)
+                ))
+                .onCompletion(() -> {
                     startMatches();
                     matchesStarted = true;
-                    this.cancel();
-                    return;
-                }
-                String timeLeft = TimeStringUtils.getTimeString(count);
-                String timer = String.format("Starting: %s", timeLeft);
-                adminSidebar.updateLine("timer", timer);
-                topbar.setMiddle(Component.text(timeLeft));
-                count--;
-            }
-        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+                })
+                .build());
     }
     
     /**
@@ -436,6 +416,7 @@ public class CaptureTheFlagRound {
         Bukkit.getScheduler().cancelTask(onDeckClassSelectionTimerTaskId);
         Bukkit.getScheduler().cancelTask(onDeckMatchTimerTaskId);
         Bukkit.getScheduler().cancelTask(descriptionPeriodTaskId);
+        timerManager.cancel();
     }
 
     private void initializeSidebar() {

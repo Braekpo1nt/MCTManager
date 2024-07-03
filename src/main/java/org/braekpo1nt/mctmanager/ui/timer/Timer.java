@@ -20,6 +20,17 @@ import java.util.List;
 
 public class Timer extends BukkitRunnable {
     
+    @Override
+    public String toString() {
+        return "Timer{" +
+                "manager=" + manager +
+                ", paused=" + paused +
+                ", started=" + started +
+                ", secondsLeft=" + secondsLeft +
+                ", name='" + name + '\'' +
+                '}';
+    }
+    
     public static Builder builder() {
         return new Builder();
     }
@@ -51,13 +62,18 @@ public class Timer extends BukkitRunnable {
     
     private final @Nullable Runnable completion;
     
+    //debug
+    private final @Nullable String name;
+    //debug
+    
     private Timer(int secondsLeft,
                   @NotNull Component sidebarPrefix,
                   @NotNull List<SidebarData> sidebarDatas,
                   @NotNull Component topbarPrefix,
                   @NotNull List<Topbar> topbars,
                   int titleThreshold,
-                  @Nullable Audience titleAudience, @Nullable Runnable completion) {
+                  @Nullable Audience titleAudience, @Nullable Runnable completion,
+                  @Nullable String name) {
         this.secondsLeft = secondsLeft;
         this.sidebarPrefix = sidebarPrefix;
         this.sidebarDatas = sidebarDatas;
@@ -66,6 +82,7 @@ public class Timer extends BukkitRunnable {
         this.titleAudience = titleAudience;
         this.titleThreshold = titleThreshold;
         this.completion = completion;
+        this.name = name;
     }
     
     public void setTimerManager(@NotNull TimerManager timerManager) {
@@ -191,15 +208,15 @@ public class Timer extends BukkitRunnable {
      * set all topbar middles to empty, set all assigned sidebar lines to empty, and clear the titleAudience's title. Note that this does not stop this timer on its own, so values might be reset on the next iteration of {@link Timer#run}. 
      */
     private void clear() {
-        for (Topbar topbar : topbars) {
-            topbar.setMiddle(Component.empty());
-        }
-        for (SidebarData sidebarData : sidebarDatas) {
-            sidebarData.getSidebar().updateLine(sidebarData.getKey(), "");
-        }
-        if (titleAudience != null) {
-            titleAudience.clearTitle();
-        }
+//        for (Topbar topbar : topbars) {
+//            topbar.setMiddle(Component.empty());
+//        }
+//        for (SidebarData sidebarData : sidebarDatas) {
+//            sidebarData.getSidebar().updateLine(sidebarData.getKey(), Component.empty());
+//        }
+//        if (titleAudience != null) {
+//            titleAudience.clearTitle();
+//        }
     }
     
     /**
@@ -260,6 +277,8 @@ public class Timer extends BukkitRunnable {
         
         private @Nullable Runnable completion;
         
+        private @Nullable String name;
+        
         public Timer build() {
             return new Timer(
                     duration,
@@ -269,8 +288,18 @@ public class Timer extends BukkitRunnable {
                     topbars != null ? topbars : Collections.emptyList(),
                     titleThreshold,
                     titleAudience,
-                    completion
+                    completion,
+                    name
             );
+        }
+        
+        /**
+         * @param name the name of this timer. Useful for debugging, not much else. 
+         * @return this
+         */
+        public Builder name(@Nullable String name) {
+            this.name = name;
+            return this;
         }
         
         /**
@@ -301,6 +330,7 @@ public class Timer extends BukkitRunnable {
          */
         public Builder withSidebar(@NotNull Sidebar sidebar, @NotNull String key) {
             SidebarData sidebarData = new SidebarData(sidebar, key);
+            sidebar.updateLine(key, Component.empty());
             if (sidebarDatas == null) {
                 sidebarDatas = new ArrayList<>(Collections.singletonList(sidebarData));
             } else {

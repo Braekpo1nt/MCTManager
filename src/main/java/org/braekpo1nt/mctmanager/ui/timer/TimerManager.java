@@ -10,14 +10,33 @@ import java.util.List;
 
 public class TimerManager {
     
+    // debug
+    private final @Nullable String name;
+    // debug
     private final Main plugin;
     @Setter
     private @Nullable TimerManager parent;
     private final List<@NotNull TimerManager> managers = new ArrayList<>();
     private final List<@NotNull Timer> timers = new ArrayList<>();
     
-    public TimerManager(@NotNull Main plugin) {
+    public TimerManager(@NotNull Main plugin, @Nullable String name) {
         this.plugin = plugin;
+        this.name = name;
+    }
+    
+    public TimerManager(@NotNull Main plugin) {
+        this(plugin, null);
+    }
+    
+    @Override
+    public String toString() {
+        return "TimerManager{" +
+                "name='" + name + '\'' +
+                ", plugin=" + plugin +
+                ", parent=" + parent +
+                ", nManagers=" + managers.size() +
+                ", nTimers=" + timers.size() +
+                '}';
     }
     
     /**
