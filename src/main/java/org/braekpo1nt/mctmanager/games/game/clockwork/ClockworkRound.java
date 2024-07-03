@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.clockwork;
 
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
@@ -8,6 +9,8 @@ import org.braekpo1nt.mctmanager.games.game.clockwork.config.ClockworkConfig;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
+import org.braekpo1nt.mctmanager.ui.timer.Timer;
+import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -59,9 +62,11 @@ public class ClockworkRound implements Listener {
      * indicates whether the clock is chiming still and players should be kept in the center
      */
     private boolean clockIsChiming = false;
+    private final TimerManager timerManager;
     
     public ClockworkRound(Main plugin, GameManager gameManager, ClockworkGame clockworkGame, ClockworkConfig config, int roundNumber, Sidebar sidebar, Sidebar adminSidebar) {
         this.plugin = plugin;
+        this.timerManager = new TimerManager(plugin);
         this.gameManager = gameManager;
         this.clockworkGame = clockworkGame;
         this.config = config;
@@ -88,6 +93,7 @@ public class ClockworkRound implements Listener {
         clockIsChiming = false;
         roundActive = true;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
+        gameManager.getTimerManager().register(timerManager);
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
         }
@@ -201,32 +207,23 @@ public class ClockworkRound implements Listener {
     }
     
     private void cancelAllTasks() {
-        Bukkit.getLogger().info("Cancelling tasks ");
         Bukkit.getScheduler().cancelTask(breatherDelayTaskId);
         Bukkit.getScheduler().cancelTask(clockChimeTaskId);
         Bukkit.getScheduler().cancelTask(getToWedgeDelayTaskId);
         Bukkit.getScheduler().cancelTask(stayOnWedgeDelayTaskId);
         Bukkit.getScheduler().cancelTask(statusEffectsTaskId);
+        timerManager.cancel();
     }
     
     private void startBreatherDelay() {
         mustStayOnWedge = false;
-        this.breatherDelayTaskId = new BukkitRunnable() {
-            int count = config.getBreatherDuration();
-            @Override
-            public void run() {
-                if (count <= 0) {
-                    startClockChime();
-                    this.cancel();
-                    return;
-                }
-                String timer = String.format("Clock chimes in: %s",
-                        TimeStringUtils.getTimeString(count));
-                sidebar.updateLine("timer", timer);
-                adminSidebar.updateLine("timer", timer);
-                count--;
-            }
-        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+        timerManager.start(Timer.builder()
+                .duration(config.getBreatherDuration())
+                .withSidebar(sidebar, "timer")
+                .withSidebar(adminSidebar, "timer")
+                .sidebarPrefix(Component.text("Clock chimes in: "))
+                .onCompletion(this::startClockChime)
+                .build());
     }
     
     private void startClockChime() {
@@ -266,51 +263,32 @@ public class ClockworkRound implements Listener {
     }
     
     private void startGetToWedgeDelay() {
-        this.getToWedgeDelayTaskId = new BukkitRunnable() {
-            int count = config.getGetToWedgeDuration();
-            @Override
-            public void run() {
-                if (count <= 0) {
-                    startStayOnWedgeDelay();
-                    this.cancel();
-                    return;
-                }
-                String timer = String.format("Get to wedge! %s",
-                        TimeStringUtils.getTimeString(count));
-                sidebar.updateLine("timer", timer);
-                adminSidebar.updateLine("timer", timer);
-                count--;
-            }
-        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+        timerManager.start(Timer.builder()
+                .duration(config.getGetToWedgeDuration())
+                .withSidebar(sidebar, "timer")
+                .withSidebar(adminSidebar, "timer")
+                .sidebarPrefix(Component.text("Get to wedge! "))
+                .onCompletion(this::startStayOnWedgeDelay)
+                .build());
     }
     
     private void startStayOnWedgeDelay() {
-        this.stayOnWedgeDelayTaskId = new BukkitRunnable() {
-            int count = config.getStayOnWedgeDuration();
-            @Override
-            public void run() {
-                if (count <= 0) {
+        timerManager.start(Timer.builder()
+                .duration(config.getStayOnWedgeDuration())
+                .withSidebar(sidebar, "timer")
+                .withSidebar(adminSidebar, "timer")
+                .sidebarPrefix(Component.text("Stay on wedge: "))
+                .onCompletion(() -> {
                     mustStayOnWedge = false;
                     List<String> livingTeams = getLivingTeams();
-                    Bukkit.getLogger().info(String.format("livingTeams.size() = %s", livingTeams.size()));
                     if (livingTeams.size() == 1) {
                         String winningTeam = livingTeams.get(0);
                         onTeamWinsRound(winningTeam);
-                        this.cancel();
-                        return;
                     }
                     incrementChaos();
                     startBreatherDelay();
-                    this.cancel();
-                    return;
-                }
-                String timer = String.format("Stay on wedge: %s",
-                        TimeStringUtils.getTimeString(count));
-                sidebar.updateLine("timer", timer);
-                adminSidebar.updateLine("timer", timer);
-                count--;
-            }
-        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+                })
+                .build());
         killParticipantsNotOnWedge();
         mustStayOnWedge = true;
     }
