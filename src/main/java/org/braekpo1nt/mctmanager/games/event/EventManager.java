@@ -47,7 +47,6 @@ public class EventManager implements Listener {
     private final EventConfigController configController;
     private EventConfig config;
     private EventState currentState;
-    private EventState lastStateBeforePause;
     private int maxGames = 6;
     private int currentGameNumber = 0;
     private final List<GameType> playedGames = new ArrayList<>();
@@ -204,61 +203,6 @@ public class EventManager implements Listener {
         currentGameNumber = 0;
         maxGames = 6;
         winningTeam = null;
-    }
-    
-    public void pauseEvent(CommandSender sender) {
-        if (currentState == null) {
-            sender.sendMessage(Component.text("There is no event running.")
-                    .color(NamedTextColor.RED));
-            return;
-        }
-        switch (currentState) {
-            case PAUSED -> {
-                sender.sendMessage(Component.text("The event is already paused.")
-                        .color(NamedTextColor.RED));
-                return;
-            }
-            case PLAYING_GAME -> {
-                sender.sendMessage(Component.text("Can't pause the event during a game.")
-                        .color(NamedTextColor.RED));
-                return;
-            }
-            case PODIUM -> {
-                sender.sendMessage(Component.text("Can't pause the event after the final game.")
-                        .color(NamedTextColor.RED));
-                return;
-            }
-        }
-        lastStateBeforePause = currentState;
-        currentState = EventState.PAUSED;
-        voteManager.pauseVote();
-        Component pauseMessage = Component.text("The event was paused.")
-                .color(NamedTextColor.YELLOW)
-                .decorate(TextDecoration.BOLD);
-        sender.sendMessage(pauseMessage);
-        messageAllAdmins(pauseMessage);
-        gameManager.messageOnlineParticipants(pauseMessage);
-    }
-    
-    public void resumeEvent(CommandSender sender) {
-        if (currentState == null) {
-            sender.sendMessage(Component.text("There isn't an event going on.")
-                    .color(NamedTextColor.RED));
-            return;
-        }
-        if (currentState != EventState.PAUSED) {
-            sender.sendMessage(Component.text("The event is not paused.")
-                    .color(NamedTextColor.RED));
-            return;
-        }
-        currentState = lastStateBeforePause;
-        voteManager.resumeVote();
-        Component pauseMessage = Component.text("The event was resumed.")
-                .color(NamedTextColor.YELLOW)
-                .decorate(TextDecoration.BOLD);
-        sender.sendMessage(pauseMessage);
-        messageAllAdmins(pauseMessage);
-        gameManager.messageOnlineParticipants(pauseMessage);
     }
     
     /**
@@ -443,8 +387,7 @@ public class EventManager implements Listener {
                     .color(NamedTextColor.RED));
             return;
         }
-        EventState state = currentState == EventState.PAUSED ? lastStateBeforePause : currentState;
-        switch (state) {
+        switch (currentState) {
             case WAITING_IN_HUB -> {
                 if (newMaxGames < currentGameNumber - 1) {
                     sender.sendMessage(Component.text("Can't set the max games for this event to less than ")
@@ -543,9 +486,8 @@ public class EventManager implements Listener {
         if (currentState == null) {
             return;
         }
-        EventState state = currentState == EventState.PAUSED ? lastStateBeforePause : currentState;
         // make sure the participant isn't stuck in whatever location they last logged out from, if they aren't supposed to be
-        switch (state) {
+        switch (currentState) {
             case WAITING_IN_HUB, VOTING -> {
                 gameManager.returnParticipantToHubInstantly(participant);
             }
@@ -562,7 +504,7 @@ public class EventManager implements Listener {
                 }
             }
         }
-        switch (state) {
+        switch (currentState) {
             case DELAY, WAITING_IN_HUB, PODIUM -> {
                 participants.add(participant);
                 if (sidebar != null) {
@@ -584,8 +526,7 @@ public class EventManager implements Listener {
             return;
         }
         participants.remove(participant);
-        EventState state = currentState == EventState.PAUSED ? lastStateBeforePause : currentState;
-        switch (state) {
+        switch (currentState) {
             case DELAY, WAITING_IN_HUB, PODIUM -> {
                 if (sidebar != null) {
                     sidebar.removePlayer(participant);
@@ -608,8 +549,7 @@ public class EventManager implements Listener {
         if (currentState == null) {
             return;
         }
-        EventState state = currentState == EventState.PAUSED ? lastStateBeforePause : currentState;
-        switch (state) {
+        switch (currentState) {
             case DELAY, WAITING_IN_HUB, PODIUM -> {
                 admins.add(admin);
                 if (adminSidebar != null) {
@@ -630,8 +570,7 @@ public class EventManager implements Listener {
             return;
         }
         admins.remove(admin);
-        EventState state = currentState == EventState.PAUSED ? lastStateBeforePause : currentState;
-        switch (state) {
+        switch (currentState) {
             case DELAY, WAITING_IN_HUB, PODIUM -> {
                 if (adminSidebar != null) {
                     adminSidebar.removePlayer(admin);
@@ -1074,7 +1013,7 @@ public class EventManager implements Listener {
             return;
         }
         switch (currentState) {
-            case WAITING_IN_HUB, VOTING, DELAY, PAUSED, PODIUM 
+            case WAITING_IN_HUB, VOTING, DELAY, PODIUM 
                     -> event.setCancelled(true);
         }
     }
