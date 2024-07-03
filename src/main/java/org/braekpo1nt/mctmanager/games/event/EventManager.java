@@ -17,6 +17,7 @@ import org.braekpo1nt.mctmanager.games.voting.VoteManager;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
+import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -73,9 +74,11 @@ public class EventManager implements Listener {
     private int startingGameCountdownTaskId;
     private int halftimeBreakTaskId;
     private int toPodiumDelayTaskId;
+    private final TimerManager timerManager;
     
     public EventManager(Main plugin, GameManager gameManager, VoteManager voteManager) {
         this.plugin = plugin;
+        this.timerManager = new TimerManager(plugin);
         this.gameManager = gameManager;
         this.voteManager = voteManager;
         this.configController = new EventConfigController(plugin.getDataFolder());
@@ -132,6 +135,7 @@ public class EventManager implements Listener {
         }
         
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
+        gameManager.getTimerManager().register(timerManager);
         winningTeam = null;
         maxGames = numberOfGames;
         currentGameNumber = 1;
@@ -652,6 +656,7 @@ public class EventManager implements Listener {
         Bukkit.getScheduler().cancelTask(halftimeBreakTaskId);
         Bukkit.getScheduler().cancelTask(toPodiumDelayTaskId);
         voteManager.cancelVote();
+        timerManager.cancel();
     }
     
     private void startWaitingInHub() {
