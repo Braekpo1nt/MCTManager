@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.spleef;
 
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
@@ -8,6 +9,8 @@ import org.braekpo1nt.mctmanager.games.game.spleef.powerup.PowerupManager;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
+import org.braekpo1nt.mctmanager.ui.timer.Timer;
+import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -49,13 +52,13 @@ public class SpleefRound implements Listener {
     private final SpleefGame spleefGame;
     private final DecayManager decayManager;
     private final PowerupManager powerupManager;
-    private int startCountDownTaskID;
-    private int descriptionPeriodTaskId;
     private boolean descriptionShowing = false;
     private boolean firstRound = false;
+    private final TimerManager timerManager;
     
     public SpleefRound(Main plugin, GameManager gameManager, SpleefGame spleefGame, SpleefConfig config, Sidebar sidebar, Sidebar adminSidebar) {
         this.plugin = plugin;
+        this.timerManager = new TimerManager(plugin);
         this.gameManager = gameManager;
         this.spleefGame = spleefGame;
         this.sidebar = sidebar;
@@ -75,6 +78,7 @@ public class SpleefRound implements Listener {
         this.participants = new ArrayList<>(newParticipants.size());
         participantsAlive = new HashMap<>(newParticipants.size());
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
+        gameManager.getTimerManager().register(timerManager);
         placeLayers(true);
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
@@ -346,47 +350,27 @@ public class SpleefRound implements Listener {
     private void startDescriptionPeriod() {
         descriptionShowing = true;
         firstRound = false;
-        this.descriptionPeriodTaskId = new BukkitRunnable() {
-            private int count = config.getDescriptionDuration();
-            @Override
-            public void run() {
-                if (count <= 0) {
-                    sidebar.updateLine("timer", "");
-                    adminSidebar.updateLine("timer", "");
+        timerManager.start(Timer.builder()
+                .duration(config.getDescriptionDuration())
+                .withSidebar(sidebar, "timer")
+                .withSidebar(adminSidebar, "timer")
+                .sidebarPrefix(Component.text("Starting soon: "))
+                .onCompletion(() -> {
                     descriptionShowing = false;
                     startRoundStartingCountDown();
-                    this.cancel();
-                    return;
-                }
-                String timeLeft = TimeStringUtils.getTimeString(count);
-                String timerString = String.format("Starting soon: %s", timeLeft);
-                sidebar.updateLine("timer", timerString);
-                adminSidebar.updateLine("timer", timerString);
-                count--;
-            }
-        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+                })
+                .build());
     }
     
     private void startRoundStartingCountDown() {
-        this.startCountDownTaskID = new BukkitRunnable() {
-            private int count = config.getRoundStartingDuration();
-
-            @Override
-            public void run() {
-                if (count <= 0) {
-                    sidebar.updateLine("timer", "");
-                    adminSidebar.updateLine("timer", "");
-                    startSpleef();
-                    this.cancel();
-                    return;
-                }
-                String timeLeft = TimeStringUtils.getTimeString(count);
-                String timer = String.format("Starting in: %s", timeLeft);
-                sidebar.updateLine("timer", timer);
-                adminSidebar.updateLine("timer", timer);
-                count--;
-            }
-        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+        timerManager.start(Timer.builder()
+                .duration(config.getRoundStartingDuration())
+                .withSidebar(sidebar, "timer")
+                .withSidebar(adminSidebar, "timer")
+                .sidebarPrefix(Component.text("Starting: "))
+                .titleAudience(Audience.audience(participants))
+                .onCompletion(this::startSpleef)
+                .build());
     }
     
     private void placeLayers(boolean replaceStencil) {
@@ -472,8 +456,7 @@ public class SpleefRound implements Listener {
     }
     
     private void cancelAllTasks() {
-        Bukkit.getScheduler().cancelTask(startCountDownTaskID);
-        Bukkit.getScheduler().cancelTask(descriptionPeriodTaskId);
+        timerManager.cancel();
     }
     
     void messageAllParticipants(Component message) {
