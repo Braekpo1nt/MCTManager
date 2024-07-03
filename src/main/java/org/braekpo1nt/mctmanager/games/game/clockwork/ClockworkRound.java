@@ -45,10 +45,7 @@ public class ClockworkRound implements Listener {
     private Map<UUID, Boolean> participantsAreAlive = new HashMap<>();
     private Map<String, Integer> teamsLivingMembers = new HashMap<>();
     private boolean roundActive = false;
-    private int breatherDelayTaskId;
     private int clockChimeTaskId;
-    private int getToWedgeDelayTaskId;
-    private int stayOnWedgeDelayTaskId;
     private int statusEffectsTaskId;
     private final PotionEffect INVISIBILITY = new PotionEffect(PotionEffectType.INVISIBILITY, 10000, 1, true, false, false);
     private final Random random = new Random();
@@ -207,10 +204,7 @@ public class ClockworkRound implements Listener {
     }
     
     private void cancelAllTasks() {
-        Bukkit.getScheduler().cancelTask(breatherDelayTaskId);
         Bukkit.getScheduler().cancelTask(clockChimeTaskId);
-        Bukkit.getScheduler().cancelTask(getToWedgeDelayTaskId);
-        Bukkit.getScheduler().cancelTask(stayOnWedgeDelayTaskId);
         Bukkit.getScheduler().cancelTask(statusEffectsTaskId);
         timerManager.cancel();
     }
