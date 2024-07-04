@@ -151,6 +151,13 @@ public class VoteManager implements Listener {
                 .withSidebar(adminSidebar, "timer")
                 .sidebarPrefix(Component.text("Voting: "))
                 .onCompletion(this::executeVote)
+                .onTogglePause((paused) -> {
+                    if (paused) {
+                        pauseVote();
+                    } else {
+                        resumeVote();
+                    }
+                })
                 .build());
     }
     
@@ -313,7 +320,11 @@ public class VoteManager implements Listener {
      * removes nether stars from players, pauses the timer, and retains player votes for resuming.
      */
     public void pauseVote() {
+        if (paused) {
+            return;
+        }
         paused = true;
+        timerManager.pause();
         for (Player voter : voters) {
             voter.closeInventory();
             voter.getInventory().remove(NETHER_STAR);
@@ -332,6 +343,7 @@ public class VoteManager implements Listener {
             return;
         }
         paused = false;
+        timerManager.resume();
         for (Player voter : voters) {
             if (!participantVoted(voter)) {
                 showVoteGui(voter);

@@ -17,6 +17,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class Timer extends BukkitRunnable {
     
@@ -44,6 +45,10 @@ public class Timer extends BukkitRunnable {
     private int secondsLeft;
     private boolean started = false;
     private boolean paused = false;
+    /**
+     * the consumer to execute on pause and resume. Will be passed true on pause, and false on resume. 
+     */
+    private final @Nullable Consumer<Boolean> onTogglePause;
     
     /**
      * if this Timer belongs to a TimerManager, this will retain a reference to that.
@@ -73,7 +78,9 @@ public class Timer extends BukkitRunnable {
                   @NotNull List<Topbar> topbars,
                   int titleThreshold,
                   @Nullable Audience titleAudience, @Nullable Runnable completion,
-                  @Nullable String name) {
+                  @Nullable Consumer<Boolean> onTogglePause,
+                  @Nullable String name
+    ) {
         this.secondsLeft = secondsLeft;
         this.sidebarPrefix = sidebarPrefix;
         this.sidebarDatas = sidebarDatas;
@@ -82,6 +89,7 @@ public class Timer extends BukkitRunnable {
         this.titleAudience = titleAudience;
         this.titleThreshold = titleThreshold;
         this.completion = completion;
+        this.onTogglePause = onTogglePause;
         this.name = name;
     }
     
@@ -185,17 +193,31 @@ public class Timer extends BukkitRunnable {
     }
     
     /**
-     * Pauses this timer. The timer will not proceed until {@link Timer#resume()} is called.
+     * Pauses this timer. The timer will not proceed until {@link Timer#resume()} is called. If this is paused already,
+     * nothing happens. If this is not paused, then {@link #onTogglePause} is called, passing true.
      */
     public void pause() {
+        if (paused) {
+            return;
+        }
         this.paused = true;
+        if (onTogglePause != null) {
+            onTogglePause.accept(true);
+        }
     }
     
     /**
      * Resumes this timer. The timer will proceed iterating. If this is not paused, nothing happens. 
+     * If this is paused, then {@link #onTogglePause} is called, passing false.
      */
     public void resume() {
+        if (!paused) {
+            return;
+        }
         this.paused = false;
+        if (onTogglePause != null) {
+            onTogglePause.accept(false);
+        }
     }
     
     /**
@@ -276,6 +298,7 @@ public class Timer extends BukkitRunnable {
         private @Nullable Audience titleAudience;
         
         private @Nullable Runnable completion;
+        private @Nullable Consumer<Boolean> onTogglePause;
         
         private @Nullable String name;
         
@@ -289,8 +312,22 @@ public class Timer extends BukkitRunnable {
                     titleThreshold,
                     titleAudience,
                     completion,
+                    onTogglePause,
                     name
             );
+        }
+        
+        /**
+         * A method to call when the pause state is toggled. 
+         * You can rely this Timer to only call this consumer when pause is actually toggled. For example,
+         * if the pause command is run twice in a row, this will only be called once. 
+         * @param onTogglePause the consumer to execute on pause and resume. 
+         *                      Will be passed true on pause, and false on resume. 
+         * @return this
+         */
+        public Builder onTogglePause(@Nullable Consumer<Boolean> onTogglePause) {
+            this.onTogglePause = onTogglePause;
+            return this;
         }
         
         /**
