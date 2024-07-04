@@ -3,6 +3,8 @@ package org.braekpo1nt.mctmanager.ui.timer;
 import lombok.Data;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
@@ -43,6 +45,7 @@ public class Timer extends BukkitRunnable {
     }
     
     private int secondsLeft;
+    private int completionSeconds;
     private boolean started = false;
     private boolean paused = false;
     /**
@@ -62,6 +65,8 @@ public class Timer extends BukkitRunnable {
     private final @NotNull Component topbarPrefix;
     private final @NotNull List<Topbar> topbars;
     
+    private final @NotNull TextColor timerColor;
+    
     private final int titleThreshold;
     private @Nullable Audience titleAudience;
     
@@ -72,20 +77,24 @@ public class Timer extends BukkitRunnable {
     //debug
     
     private Timer(int secondsLeft,
+                  int completionSeconds,
                   @NotNull Component sidebarPrefix,
                   @NotNull List<SidebarData> sidebarDatas,
                   @NotNull Component topbarPrefix,
                   @NotNull List<Topbar> topbars,
+                  @NotNull TextColor timerColor,
                   int titleThreshold,
                   @Nullable Audience titleAudience, @Nullable Runnable completion,
                   @Nullable Consumer<Boolean> onTogglePause,
                   @Nullable String name
     ) {
         this.secondsLeft = secondsLeft;
+        this.completionSeconds = completionSeconds;
         this.sidebarPrefix = sidebarPrefix;
         this.sidebarDatas = sidebarDatas;
         this.topbarPrefix = topbarPrefix;
         this.topbars = topbars;
+        this.timerColor = timerColor;
         this.titleAudience = titleAudience;
         this.titleThreshold = titleThreshold;
         this.completion = completion;
@@ -146,11 +155,12 @@ public class Timer extends BukkitRunnable {
         if (paused) {
             return;
         }
-        if (secondsLeft <= 0) {
+        if (secondsLeft <= completionSeconds) {
             onComplete();
             return;
         }
-        Component timeString = TimeStringUtils.getTimeComponent(secondsLeft);
+        Component timeString = TimeStringUtils.getTimeComponent(secondsLeft)
+                .color(timerColor);
         for (Topbar topbar : topbars) {
             topbar.setMiddle(
                     Component.empty()
@@ -286,6 +296,7 @@ public class Timer extends BukkitRunnable {
     
     public static class Builder {
         private int duration = 0;
+        private int completionSeconds = 0;
         
         private @Nullable Component sidebarPrefix;
         private @Nullable List<SidebarData> sidebarDatas;
@@ -293,6 +304,8 @@ public class Timer extends BukkitRunnable {
         
         private @Nullable Component topbarPrefix;
         private @Nullable List<Topbar> topbars;
+        
+        private @Nullable TextColor timerColor;
         
         private int titleThreshold = 10;
         private @Nullable Audience titleAudience;
@@ -305,10 +318,12 @@ public class Timer extends BukkitRunnable {
         public Timer build() {
             return new Timer(
                     duration,
+                    completionSeconds,
                     sidebarPrefix != null ? sidebarPrefix : Component.empty(),
                     sidebarDatas != null ? sidebarDatas : Collections.emptyList(),
                     topbarPrefix != null ? topbarPrefix : Component.empty(),
                     topbars != null ? topbars : Collections.emptyList(),
+                    timerColor != null ? timerColor : NamedTextColor.WHITE,
                     titleThreshold,
                     titleAudience,
                     completion,
@@ -346,6 +361,19 @@ public class Timer extends BukkitRunnable {
          */
         public Builder duration(int seconds) {
             this.duration = seconds;
+            return this;
+        }
+    
+        /**
+         * Set the number of seconds to be left for the timer to finish.
+         * For example, This allows for you to have a timer that goes from
+         * 30 seconds to 10 seconds, then start another timer with different
+         * colors/attributes with 10 seconds left, if you want. 
+         * @param completionSeconds Defaults to 0. The number of seconds left for the timer to complete. 
+         * @return this
+         */
+        public Builder completionSeconds(int completionSeconds) {
+            this.completionSeconds = completionSeconds;
             return this;
         }
         
@@ -397,6 +425,17 @@ public class Timer extends BukkitRunnable {
             } else {
                 topbars.add(topbar);
             }
+            return this;
+        }
+    
+        /**
+         * @param timerColor the color the time left component should be 
+         *                   (in both the Topbars and Sidebars, but not in the Title)
+         *                   Defaults to {@link NamedTextColor#WHITE}.
+         * @return this
+         */
+        public Builder timerColor(@Nullable TextColor timerColor) {
+            this.timerColor = timerColor;
             return this;
         }
         

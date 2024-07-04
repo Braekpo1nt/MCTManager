@@ -835,35 +835,36 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
             }
         }.runTaskTimer(plugin, 0L, 20L).getTaskId();
     }
-
+    
+    /**
+     * The time limit for the entire match
+     */
     private void startParkourPathwayTimer() {
         parkourHasStarted = true;
-        int timeLimit = config.getTimeLimitDuration();
-        int mercyRuleAlertDuration = config.getMercyRuleAlertDuration();
-        this.parkourPathwayTimerTaskId = new BukkitRunnable() {
-            int count = timeLimit;
-            @Override
-            public void run() {
-                if (count <= 0) {
-                    stop();
-                    this.cancel();
-                    return;
-                }
-                Component timeLeft = TimeStringUtils.getTimeComponent(count);
-                if (count == mercyRuleAlertDuration) {
-                    messageAllParticipants(Component.text("Ending in ")
-                            .append(Component.text(mercyRuleAlertDuration))
-                            .append(Component.text("."))
-                            .color(NamedTextColor.RED));
-                }
-                if (count <= mercyRuleAlertDuration) {
-                    timeLeft = timeLeft.color(NamedTextColor.RED);
-                }
-                sidebar.updateLine("timer", timeLeft);
-                adminSidebar.updateLine("timer", timeLeft);
-                count--;
-            }
-        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+        timerManager.start(Timer.builder()
+                .duration(config.getTimeLimitDuration())
+                .completionSeconds(config.getMercyRuleAlertDuration())
+                .withSidebar(sidebar, "timer")
+                .withSidebar(adminSidebar, "timer")
+                .onCompletion(this::startEndingGameTimer)
+                .build());
+    }
+    
+    /**
+     * A different timer color for the last 30 seconds (or whatever is configured)
+     */
+    private void startEndingGameTimer() {
+        messageAllParticipants(Component.empty()
+                .append(Component.text("Ending in "))
+                .append(TimeStringUtils.getTimeComponent(config.getMercyRuleAlertDuration()))
+                .color(NamedTextColor.RED));
+        timerManager.start(Timer.builder()
+                .duration(config.getMercyRuleAlertDuration())
+                .withSidebar(sidebar, "timer")
+                .withSidebar(adminSidebar, "timer")
+                .timerColor(NamedTextColor.RED)
+                .onCompletion(this::stop)
+                .build());
     }
     
     private void startStatusEffectsTask() {
