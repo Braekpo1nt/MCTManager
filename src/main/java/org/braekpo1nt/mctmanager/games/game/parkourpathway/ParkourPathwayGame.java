@@ -65,7 +65,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
     private String title = baseTitle;
     private final PotionEffect INVISIBILITY = new PotionEffect(PotionEffectType.INVISIBILITY, 10000, 1, true, false, false);
     private int statusEffectsTaskId;
-    private Timer mercryRuleCountdown;
+    private @Nullable Timer mercryRuleCountdown;
     private boolean gameActive = false;
     private boolean parkourHasStarted = false;
     private List<Player> participants = new ArrayList<>();
@@ -802,10 +802,11 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         }
         sidebar.updateLine("ending", "");
         adminSidebar.updateLine("ending", "");
-        this.mercryRuleCountdown = timerManager.start(Timer.builder()
+        this.mercryRuleCountdown = Timer.builder()
                 .duration(config.getMercyRuleDuration())
                 .completionSeconds(config.getMercyRuleAlertDuration())
-                .titleAudience(Audience.audience(participants))
+                .withSidebar(adminSidebar, "ending")
+                .sidebarPrefix(Component.text("Mercy Rule: "))
                 .onCompletion(() -> {
                     messageAllParticipants(Component.text("No one has reached a new checkpoint in the last ")
                             .append(TimeStringUtils.getTimeComponent(config.getMercyRuleDuration()))
@@ -815,26 +816,27 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
                             .color(NamedTextColor.RED));
                     startMercyRuleFinalCountdown();
                 })
-                .build());
+                .build().start(plugin);
     }
     
     private void startMercyRuleFinalCountdown() {
         if (this.mercryRuleCountdown != null) {
             this.mercryRuleCountdown.cancel();
         }
-        this.mercryRuleCountdown = timerManager.start(Timer.builder()
+        this.mercryRuleCountdown = Timer.builder()
                 .duration(config.getMercyRuleAlertDuration())
                 .withSidebar(sidebar, "ending")
                 .withSidebar(adminSidebar, "ending")
-                .sidebarPrefix(Component.text("Ending in: "))
-                .titleAudience(Audience.audience(participants))
+                .sidebarPrefix(Component.text("Ending in: ")
+                        .color(NamedTextColor.RED))
+                .timerColor(NamedTextColor.RED)
                 .onCompletion(() -> {
                     messageAllParticipants(Component.text("No one has reached a new checkpoint in the last ")
                             .append(TimeStringUtils.getTimeComponent(config.getMercyRuleDuration()))
                             .append(Component.text(". Stopping early")));
                     stop();
                 })
-                .build());
+                .build().start(plugin);
     }
     
     /**
@@ -859,6 +861,9 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
                 .append(Component.text("Ending in "))
                 .append(TimeStringUtils.getTimeComponent(config.getMercyRuleAlertDuration()))
                 .color(NamedTextColor.RED));
+        if (mercryRuleCountdown != null) {
+            mercryRuleCountdown.cancel();
+        }
         timerManager.start(Timer.builder()
                 .duration(config.getMercyRuleAlertDuration())
                 .withSidebar(sidebar, "timer")
@@ -898,10 +903,12 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
             team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER);
         }
     }
-
-
+    
     private void cancelAllTasks() {
         Bukkit.getScheduler().cancelTask(statusEffectsTaskId);
+        if (mercryRuleCountdown != null) {
+            mercryRuleCountdown.cancel();
+        }
         timerManager.cancel();
     }
     
