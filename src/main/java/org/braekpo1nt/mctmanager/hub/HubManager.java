@@ -98,7 +98,7 @@ public class HubManager implements Listener, Configurable {
         sidebar.addLine("backToHub", String.format("Back to Hub: %s", duration));
         timerManager.start(Timer.builder()
                 .duration(duration)
-                .withSidebar(sidebar, "timer")
+                .withSidebar(sidebar, "backToHub")
                 .sidebarPrefix(Component.text("Back to Hub: "))
                 .onCompletion(() -> {
                     sidebar.deleteAllLines();
