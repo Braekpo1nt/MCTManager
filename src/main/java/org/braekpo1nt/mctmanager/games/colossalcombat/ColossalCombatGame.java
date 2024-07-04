@@ -11,9 +11,10 @@ import org.braekpo1nt.mctmanager.games.colossalcombat.config.ColossalCombatConfi
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
-import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
+import org.braekpo1nt.mctmanager.ui.timer.Timer;
+import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.braekpo1nt.mctmanager.ui.topbar.BattleTopbar;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
@@ -33,7 +34,6 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 import org.bukkit.util.BoundingBox;
@@ -64,13 +64,14 @@ public class ColossalCombatGame implements Listener, Configurable {
     private int secondPlaceRoundWins = 0;
     private String firstTeamName;
     private String secondTeamName;
-    private int descriptionPeriodTaskId;
     private boolean descriptionShowing = false;
     private boolean gameActive = false;
+    private final TimerManager timerManager;
     
     public ColossalCombatGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
         this.gameManager = gameManager;
+        this.timerManager = new TimerManager(plugin);
         this.configController = new ColossalCombatConfigController(plugin.getDataFolder());
         this.topbar = new BattleTopbar();
     }
@@ -106,6 +107,7 @@ public class ColossalCombatGame implements Listener, Configurable {
         sidebar = gameManager.getSidebarFactory().createSidebar();
         adminSidebar = gameManager.getSidebarFactory().createSidebar();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
+        gameManager.getTimerManager().register(timerManager);
         int numOfRounds = (config.getRequiredWins() * 2) - 1;
         rounds = new ArrayList<>(numOfRounds);
         for (int i = 0; i < numOfRounds; i++) {
@@ -209,25 +211,16 @@ public class ColossalCombatGame implements Listener, Configurable {
     
     private void startDescriptionPeriod() {
         descriptionShowing = true;
-        this.descriptionPeriodTaskId = new BukkitRunnable() {
-            private int count = config.getDescriptionDuration();
-            @Override
-            public void run() {
-                if (count <= 0) {
-                    adminSidebar.updateLine("timer", "");
-                    topbar.setMiddle(Component.empty());
-                    descriptionShowing = false;
-                    startNextRound();
-                    this.cancel();
-                    return;
-                }
-                String timeLeft = TimeStringUtils.getTimeString(count);
-                String timerString = String.format("Starting soon: %s", timeLeft);
-                adminSidebar.updateLine("timer", timerString);
-                topbar.setMiddle(Component.text(timeLeft));
-                count--;
-            }
-        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+        timerManager.start(Timer.builder()
+                        .duration(config.getDescriptionDuration())
+                        .withSidebar(adminSidebar, "timer")
+                        .withTopbar(topbar)
+                        .sidebarPrefix(Component.text("Starting soon: "))
+                        .onCompletion(() -> {
+                            descriptionShowing = false;        
+                            startNextRound();
+                        })
+                        .build());
     }
     
     private void startNextRound() {
@@ -334,7 +327,7 @@ public class ColossalCombatGame implements Listener, Configurable {
     }
     
     private void cancelAllTasks() {
-        Bukkit.getScheduler().cancelTask(descriptionPeriodTaskId);
+        timerManager.cancel();
     }
     
     public void onParticipantJoin(Player participant) {

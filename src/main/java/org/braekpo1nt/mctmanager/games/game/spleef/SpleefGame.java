@@ -14,6 +14,7 @@ import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
+import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
@@ -49,9 +50,11 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
     private List<SpleefRound> rounds = new ArrayList<>();
     private int currentRoundIndex = 0;
     private boolean gameActive = false;
+    private final TimerManager timerManager;
     
     public SpleefGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
+        this.timerManager = new TimerManager(plugin);
         this.gameManager = gameManager;
         this.configController = new SpleefConfigController(plugin.getDataFolder());
     }
@@ -93,6 +96,7 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
         sidebar = gameManager.getSidebarFactory().createSidebar();
         adminSidebar = gameManager.getSidebarFactory().createSidebar();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
+        gameManager.getTimerManager().register(timerManager);
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
         }
@@ -344,7 +348,7 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
     }
     
     private void cancelAllTasks() {
-        
+        timerManager.cancel();
     }
     
     private void initializeAdminSidebar() {

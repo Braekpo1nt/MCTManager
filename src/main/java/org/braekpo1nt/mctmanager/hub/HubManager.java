@@ -10,9 +10,9 @@ import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.hub.config.HubConfig;
 import org.braekpo1nt.mctmanager.hub.config.HubConfigController;
 import org.braekpo1nt.mctmanager.hub.leaderboard.LeaderboardManager;
-import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
-import org.bukkit.Bukkit;
+import org.braekpo1nt.mctmanager.ui.timer.Timer;
+import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -23,7 +23,6 @@ import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.NotNull;
 
@@ -32,12 +31,10 @@ import java.util.List;
 
 public class HubManager implements Listener, Configurable {
     
-    private final Main plugin;
     private final GameManager gameManager;
     protected final HubConfigController configController;
     protected HubConfig config;
     private @NotNull final List<LeaderboardManager> leaderboardManagers;
-    private int returnToHubTaskId;
     /**
      * Contains a list of the players who are about to be sent to the hub and can see the countdown
      */
@@ -47,10 +44,11 @@ public class HubManager implements Listener, Configurable {
      * A list of the participants who are in the hub
      */
     private final List<Player> participants = new ArrayList<>();
+    private final TimerManager timerManager;
     
     public HubManager(Main plugin, GameManager gameManager) {
-        this.plugin = plugin;
         this.gameManager = gameManager;
+        this.timerManager = gameManager.getTimerManager().createManager();
         this.configController = new HubConfigController(plugin.getDataFolder());
         this.leaderboardManagers = new ArrayList<>();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
@@ -98,24 +96,18 @@ public class HubManager implements Listener, Configurable {
         sidebar.addPlayers(newParticipants);
         sidebar.addPlayers(newAdmins);
         sidebar.addLine("backToHub", String.format("Back to Hub: %s", duration));
-        this.returnToHubTaskId = new BukkitRunnable() {
-            private int count = duration;
-            @Override
-            public void run() {
-                if (count <= 0) {
+        timerManager.start(Timer.builder()
+                .duration(duration)
+                .withSidebar(sidebar, "backToHub")
+                .sidebarPrefix(Component.text("Back to Hub: "))
+                .onCompletion(() -> {
                     sidebar.deleteAllLines();
                     sidebar.removeAllPlayers();
                     returnParticipantsToHubInstantly(headingToHub, adminsHeadingToHub);
                     headingToHub.clear();
                     adminsHeadingToHub.clear();
-                    this.cancel();
-                    return;
-                }
-                String timeLeft = TimeStringUtils.getTimeString(count);
-                sidebar.updateLine("backToHub", String.format("Back to Hub: %s", timeLeft));
-                count--;
-            }
-        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+                })
+                .build());
     }
     
     private void returnParticipantsToHubInstantly(List<Player> newParticipants, List<Player> newAdmins) {
@@ -233,7 +225,7 @@ public class HubManager implements Listener, Configurable {
     }
     
     public void cancelAllTasks() {
-        Bukkit.getScheduler().cancelTask(returnToHubTaskId);
+        timerManager.cancel();
     }
     
     private void setupTeamOptions() {

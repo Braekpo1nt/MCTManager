@@ -1,13 +1,15 @@
 package org.braekpo1nt.mctmanager.games.colossalcombat;
 
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.colossalcombat.config.ColossalCombatConfig;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
-import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
+import org.braekpo1nt.mctmanager.ui.timer.Timer;
+import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.braekpo1nt.mctmanager.ui.topbar.BattleTopbar;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.bukkit.Bukkit;
@@ -24,7 +26,6 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerPickupArrowEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 import org.bukkit.util.BoundingBox;
@@ -40,6 +41,7 @@ public class ColossalCombatRound implements Listener {
     private final Sidebar sidebar;
     private final Sidebar adminSidebar;
     private final BattleTopbar topbar;
+    private final TimerManager timerManager;
     private ColossalCombatConfig config;
     private Map<UUID, Boolean> firstPlaceParticipantsAlive = new HashMap<>();
     private Map<UUID, Boolean> secondPlaceParticipantsAlive = new HashMap<>();
@@ -48,9 +50,7 @@ public class ColossalCombatRound implements Listener {
     private List<Player> firstPlaceParticipants = new ArrayList<>();
     private List<Player> secondPlaceParticipants = new ArrayList<>();
     private List<Player> spectators = new ArrayList<>();
-    private int startCountDownTaskId;
     private int antiSuffocationTaskId;
-    private int captureTheFlagCountdownTaskId;
     private boolean antiSuffocation = false;
     private boolean roundActive = false;
     private boolean roundHasStarted = false;
@@ -66,6 +66,7 @@ public class ColossalCombatRound implements Listener {
         this.sidebar = sidebar;
         this.adminSidebar = adminSidebar;
         this.topbar = topbar;
+        this.timerManager = new TimerManager(plugin);
     }
     
     public void setConfig(ColossalCombatConfig config) {
@@ -81,6 +82,7 @@ public class ColossalCombatRound implements Listener {
         secondPlaceParticipantsAlive = new HashMap<>();
         spectators = new ArrayList<>(newSpectators.size());
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
+        gameManager.getTimerManager().register(timerManager);
         antiSuffocation = false;
         captureTheFlagStarted = false;
         flagPosition = null;
@@ -304,9 +306,8 @@ public class ColossalCombatRound implements Listener {
     }
     
     private void cancelAllTasks() {
-        Bukkit.getScheduler().cancelTask(startCountDownTaskId);
         Bukkit.getScheduler().cancelTask(antiSuffocationTaskId);
-        Bukkit.getScheduler().cancelTask(captureTheFlagCountdownTaskId);
+        timerManager.cancel();
     }
     
     @EventHandler
@@ -404,21 +405,12 @@ public class ColossalCombatRound implements Listener {
     }
     
     private void startCaptureTheFlagCountdown() {
-        this.captureTheFlagCountdownTaskId = new BukkitRunnable() {
-            private int count = config.getCaptureTheFlagDuration();
-            @Override
-            public void run() {
-                if (count <= 0) {
-                    adminSidebar.updateLine("timer", "");
-                    startCaptureTheFlag();
-                    this.cancel();
-                    return;
-                }
-                String timeLeft = TimeStringUtils.getTimeString(count);
-                adminSidebar.updateLine("timer", String.format("Flag spawns in: %s", timeLeft));
-                count--;
-            }
-        }.runTaskTimer(plugin, 0L,  20L).getTaskId();
+        timerManager.start(Timer.builder()
+                        .duration(config.getCaptureTheFlagDuration())
+                        .withSidebar(adminSidebar, "timer")
+                        .sidebarPrefix(Component.text("Flag spawns in: "))
+                        .onCompletion(this::startCaptureTheFlag)
+                        .build());
     }
     
     private void startCaptureTheFlag() {
@@ -483,24 +475,18 @@ public class ColossalCombatRound implements Listener {
     }
     
     private void startRoundStartingCountDown() {
-        this.startCountDownTaskId = new BukkitRunnable() {
-            private int count = config.getRoundStartingDuration();
-            
-            @Override
-            public void run() {
-                if (count <= 0) {
-                    adminSidebar.updateLine("timer", "");
-                    topbar.setMiddle(Component.empty());
-                    startRound();
-                    this.cancel();
-                    return;
-                }
-                String timeLeft = TimeStringUtils.getTimeString(count);
-                adminSidebar.updateLine("timer", String.format("Starting: %s", timeLeft));
-                topbar.setMiddle(Component.text(timeLeft));
-                count--;
-            }
-        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+        timerManager.start(Timer.builder()
+                        .duration(config.getRoundStartingDuration())
+                        .withSidebar(adminSidebar, "timer")
+                        .withTopbar(topbar)
+                        .sidebarPrefix(Component.text("Starting: "))
+                        .titleThreshold(5)
+                        .titleAudience(Audience.audience(
+                                Audience.audience(firstPlaceParticipants),
+                                Audience.audience(secondPlaceParticipants),
+                                Audience.audience(spectators)))
+                        .onCompletion(this::startRound)
+                        .build());
     }
     
     private void initializeSidebar() {

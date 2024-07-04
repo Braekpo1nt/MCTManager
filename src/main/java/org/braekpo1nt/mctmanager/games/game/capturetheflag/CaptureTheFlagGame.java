@@ -32,7 +32,6 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
-import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -486,6 +485,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     }
     
     private void clearAdminSidebar() {
+        plugin.getLogger().info("delete all lines");
         adminSidebar.deleteAllLines();
         adminSidebar = null;
     }

@@ -14,9 +14,10 @@ import org.braekpo1nt.mctmanager.games.event.config.EventConfigController;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.voting.VoteManager;
-import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
+import org.braekpo1nt.mctmanager.ui.timer.Timer;
+import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -29,7 +30,6 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -47,7 +47,6 @@ public class EventManager implements Listener {
     private final EventConfigController configController;
     private EventConfig config;
     private EventState currentState;
-    private EventState lastStateBeforePause;
     private int maxGames = 6;
     private int currentGameNumber = 0;
     private final List<GameType> playedGames = new ArrayList<>();
@@ -67,15 +66,11 @@ public class EventManager implements Listener {
     private final ItemStack crown = new ItemStack(Material.CARVED_PUMPKIN);
     private String winningTeam;
     // Task IDs
-    private int waitingInHubTaskId;
-    private int toColossalCombatDelayTaskId;
-    private int backToHubDelayTaskId;
-    private int startingGameCountdownTaskId;
-    private int halftimeBreakTaskId;
-    private int toPodiumDelayTaskId;
+    private final TimerManager timerManager;
     
     public EventManager(Main plugin, GameManager gameManager, VoteManager voteManager) {
         this.plugin = plugin;
+        this.timerManager = new TimerManager(plugin);
         this.gameManager = gameManager;
         this.voteManager = voteManager;
         this.configController = new EventConfigController(plugin.getDataFolder());
@@ -132,6 +127,7 @@ public class EventManager implements Listener {
         }
         
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
+        gameManager.getTimerManager().register(timerManager);
         winningTeam = null;
         maxGames = numberOfGames;
         currentGameNumber = 1;
@@ -207,61 +203,6 @@ public class EventManager implements Listener {
         currentGameNumber = 0;
         maxGames = 6;
         winningTeam = null;
-    }
-    
-    public void pauseEvent(CommandSender sender) {
-        if (currentState == null) {
-            sender.sendMessage(Component.text("There is no event running.")
-                    .color(NamedTextColor.RED));
-            return;
-        }
-        switch (currentState) {
-            case PAUSED -> {
-                sender.sendMessage(Component.text("The event is already paused.")
-                        .color(NamedTextColor.RED));
-                return;
-            }
-            case PLAYING_GAME -> {
-                sender.sendMessage(Component.text("Can't pause the event during a game.")
-                        .color(NamedTextColor.RED));
-                return;
-            }
-            case PODIUM -> {
-                sender.sendMessage(Component.text("Can't pause the event after the final game.")
-                        .color(NamedTextColor.RED));
-                return;
-            }
-        }
-        lastStateBeforePause = currentState;
-        currentState = EventState.PAUSED;
-        voteManager.pauseVote();
-        Component pauseMessage = Component.text("The event was paused.")
-                .color(NamedTextColor.YELLOW)
-                .decorate(TextDecoration.BOLD);
-        sender.sendMessage(pauseMessage);
-        messageAllAdmins(pauseMessage);
-        gameManager.messageOnlineParticipants(pauseMessage);
-    }
-    
-    public void resumeEvent(CommandSender sender) {
-        if (currentState == null) {
-            sender.sendMessage(Component.text("There isn't an event going on.")
-                    .color(NamedTextColor.RED));
-            return;
-        }
-        if (currentState != EventState.PAUSED) {
-            sender.sendMessage(Component.text("The event is not paused.")
-                    .color(NamedTextColor.RED));
-            return;
-        }
-        currentState = lastStateBeforePause;
-        voteManager.resumeVote();
-        Component pauseMessage = Component.text("The event was resumed.")
-                .color(NamedTextColor.YELLOW)
-                .decorate(TextDecoration.BOLD);
-        sender.sendMessage(pauseMessage);
-        messageAllAdmins(pauseMessage);
-        gameManager.messageOnlineParticipants(pauseMessage);
     }
     
     /**
@@ -446,8 +387,7 @@ public class EventManager implements Listener {
                     .color(NamedTextColor.RED));
             return;
         }
-        EventState state = currentState == EventState.PAUSED ? lastStateBeforePause : currentState;
-        switch (state) {
+        switch (currentState) {
             case WAITING_IN_HUB -> {
                 if (newMaxGames < currentGameNumber - 1) {
                     sender.sendMessage(Component.text("Can't set the max games for this event to less than ")
@@ -546,9 +486,8 @@ public class EventManager implements Listener {
         if (currentState == null) {
             return;
         }
-        EventState state = currentState == EventState.PAUSED ? lastStateBeforePause : currentState;
         // make sure the participant isn't stuck in whatever location they last logged out from, if they aren't supposed to be
-        switch (state) {
+        switch (currentState) {
             case WAITING_IN_HUB, VOTING -> {
                 gameManager.returnParticipantToHubInstantly(participant);
             }
@@ -565,7 +504,7 @@ public class EventManager implements Listener {
                 }
             }
         }
-        switch (state) {
+        switch (currentState) {
             case DELAY, WAITING_IN_HUB, PODIUM -> {
                 participants.add(participant);
                 if (sidebar != null) {
@@ -587,8 +526,7 @@ public class EventManager implements Listener {
             return;
         }
         participants.remove(participant);
-        EventState state = currentState == EventState.PAUSED ? lastStateBeforePause : currentState;
-        switch (state) {
+        switch (currentState) {
             case DELAY, WAITING_IN_HUB, PODIUM -> {
                 if (sidebar != null) {
                     sidebar.removePlayer(participant);
@@ -611,8 +549,7 @@ public class EventManager implements Listener {
         if (currentState == null) {
             return;
         }
-        EventState state = currentState == EventState.PAUSED ? lastStateBeforePause : currentState;
-        switch (state) {
+        switch (currentState) {
             case DELAY, WAITING_IN_HUB, PODIUM -> {
                 admins.add(admin);
                 if (adminSidebar != null) {
@@ -633,8 +570,7 @@ public class EventManager implements Listener {
             return;
         }
         admins.remove(admin);
-        EventState state = currentState == EventState.PAUSED ? lastStateBeforePause : currentState;
-        switch (state) {
+        switch (currentState) {
             case DELAY, WAITING_IN_HUB, PODIUM -> {
                 if (adminSidebar != null) {
                     adminSidebar.removePlayer(admin);
@@ -645,13 +581,8 @@ public class EventManager implements Listener {
     }
     
     public void cancelAllTasks() {
-        Bukkit.getScheduler().cancelTask(waitingInHubTaskId);
-        Bukkit.getScheduler().cancelTask(toColossalCombatDelayTaskId);
-        Bukkit.getScheduler().cancelTask(backToHubDelayTaskId);
-        Bukkit.getScheduler().cancelTask(startingGameCountdownTaskId);
-        Bukkit.getScheduler().cancelTask(halftimeBreakTaskId);
-        Bukkit.getScheduler().cancelTask(toPodiumDelayTaskId);
         voteManager.cancelVote();
+        timerManager.cancel();
     }
     
     private void startWaitingInHub() {
@@ -661,81 +592,58 @@ public class EventManager implements Listener {
         gameManager.messageOnlineParticipants(Component.text("Score multiplier: ")
                 .append(Component.text(scoreMultiplier))
                 .color(NamedTextColor.GOLD));
-        this.waitingInHubTaskId = new BukkitRunnable() {
-            int count = config.getWaitingInHubDuration();
-            @Override
-            public void run() {
-                if (currentState == EventState.PAUSED) {
-                    return;
-                }
-                if (count <= 0) {
+        Component prefix;
+        if (allGamesHaveBeenPlayed()) {
+            prefix = Component.text("Final round: ");
+        } else {
+            prefix = Component.text("Vote starts in: ");
+        }
+        timerManager.start(Timer.builder()
+                .duration(config.getWaitingInHubDuration())
+                .withSidebar(sidebar, "timer")
+                .withSidebar(adminSidebar, "timer")
+                .sidebarPrefix(prefix)
+                .onCompletion(() -> {
                     if (allGamesHaveBeenPlayed()) {
                         toColossalCombatDelay();
                     } else {
                         startVoting();
                     }
-                    this.cancel();
-                    return;
-                }
-                if (!allGamesHaveBeenPlayed()) {
-                    sidebar.updateLine("timer", String.format("Vote starts in: %s", TimeStringUtils.getTimeString(count)));
-                    adminSidebar.updateLine("timer", String.format("Vote starts in: %s", TimeStringUtils.getTimeString(count)));
-                } else {
-                    sidebar.updateLine("timer", String.format("Final round: %s", TimeStringUtils.getTimeString(count)));
-                    adminSidebar.updateLine("timer", String.format("Final round: %s", TimeStringUtils.getTimeString(count)));
-                }
-                count--;
-            }
-        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+                })
+                .build());
     }
     
     private void startHalftimeBreak() {
         currentState = EventState.WAITING_IN_HUB;
         gameManager.returnAllParticipantsToHub();
-        this.halftimeBreakTaskId = new BukkitRunnable() {
-            int count = config.getHalftimeBreakDuration();
-            @Override
-            public void run() {
-                if (currentState == EventState.PAUSED) {
-                    return;
-                }
-                if (count <= 0) {
-                    startVoting();
-                    this.cancel();
-                    return;
-                }
-                sidebar.updateLine("timer", String.format(ChatColor.YELLOW+"Break: %s", TimeStringUtils.getTimeString(count)));
-                adminSidebar.updateLine("timer", String.format(ChatColor.YELLOW+"Break: %s", TimeStringUtils.getTimeString(count)));
-                count--;
-            }
-        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+        timerManager.start(Timer.builder()
+                .duration(config.getHalftimeBreakDuration())
+                .withSidebar(sidebar, "timer")
+                .withSidebar(adminSidebar, "timer")
+                .sidebarPrefix(Component.text("Break: ").color(NamedTextColor.YELLOW))
+                .onCompletion(this::startVoting)
+                .build());
     }
     
     private void toPodiumDelay(@NotNull String winningTeam) {
         currentState = EventState.DELAY;
         this.winningTeam = winningTeam;
         initializeParticipantsAndAdmins();
-        ChatColor winningChatColor = gameManager.getTeamChatColor(winningTeam);
-        String winningDisplayName = gameManager.getTeamDisplayName(winningTeam);
-        this.toPodiumDelayTaskId = new BukkitRunnable() {
-            int count = config.getBackToHubDuration();
-            @Override
-            public void run() {
-                if (currentState == EventState.PAUSED) {
-                    return;
-                }
-                if (count <= 0) {
+        Component teamDisplayName = gameManager.getFormattedTeamDisplayName(winningTeam);
+        Component winner = Component.empty()
+                .append(Component.text("Winner: "))
+                .append(teamDisplayName);
+        timerManager.start(Timer.builder()
+                .duration(config.getBackToHubDuration())
+                .withSidebar(sidebar, "timer")
+                .withSidebar(adminSidebar, "timer")
+                .sidebarPrefix(Component.text("Heading to Podium: "))
+                .onCompletion(() -> {
                     currentState = EventState.PODIUM;
-                    sidebar.addLine("winner", String.format("%sWinner: %s", winningChatColor, winningDisplayName));
-                    sidebar.updateLines(
-                            new KeyLine("currentGame", getCurrentGameLine()),
-                            new KeyLine("timer", "")
-                    );
-                    adminSidebar.addLine("winner", String.format("%sWinner: %s", winningChatColor, winningDisplayName));
-                    adminSidebar.updateLines(
-                            new KeyLine("currentGame", getCurrentGameLine()),
-                            new KeyLine("timer", "")
-                    );
+                    sidebar.addLine("winner", winner);
+                    adminSidebar.addLine("winner", winner);
+                    sidebar.updateLine("currentGame", getCurrentGameLine());
+                    adminSidebar.updateLine("currentGame", getCurrentGameLine());
                     gameManager.returnAllParticipantsToPodium(winningTeam);
                     for (Player participant : participants) {
                         String team = gameManager.getTeamName(participant.getUniqueId());
@@ -743,14 +651,8 @@ public class EventManager implements Listener {
                             giveCrown(participant);
                         }
                     }
-                    this.cancel();
-                    return;
-                }
-                sidebar.updateLine("timer", String.format("Heading to Podium: %s", TimeStringUtils.getTimeString(count)));
-                adminSidebar.updateLine("timer", String.format("Heading to Podium: %s", TimeStringUtils.getTimeString(count)));
-                count--;
-            }
-        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+                })
+                .build());
     }
     
     private void giveCrown(Player participant) {
@@ -782,14 +684,14 @@ public class EventManager implements Listener {
     private void startingGameDelay(GameType gameType) {
         currentState = EventState.DELAY;
         initializeParticipantsAndAdmins();
-        this.startingGameCountdownTaskId = new BukkitRunnable() {
-            int count = config.getStartingGameDuration();
-            @Override
-            public void run() {
-                if (currentState == EventState.PAUSED) {
-                    return;
-                }
-                if (count <= 0) {
+        timerManager.start(Timer.builder()
+                .duration(config.getStartingGameDuration())
+                .withSidebar(sidebar, "timer")
+                .withSidebar(adminSidebar, "timer")
+                .sidebarPrefix(Component.empty()
+                        .append(Component.text(gameType.getTitle()))
+                        .append(Component.text(": ")))
+                .onCompletion(() -> {
                     currentState = EventState.PLAYING_GAME;
                     createScoreKeeperForGame(gameType);
                     for (Player participant : participants) {
@@ -814,14 +716,8 @@ public class EventManager implements Listener {
                         initializeParticipantsAndAdmins();
                         startWaitingInHub();
                     }
-                    this.cancel();
-                    return;
-                }
-                sidebar.updateLine("timer", String.format("%s: %s", gameType.getTitle(), TimeStringUtils.getTimeString(count)));
-                adminSidebar.updateLine("timer", String.format("%s: %s", gameType.getTitle(), TimeStringUtils.getTimeString(count)));
-                count--;
-            }
-        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+                })
+                .build());
     }
     
     /**
@@ -850,53 +746,36 @@ public class EventManager implements Listener {
         currentGameNumber += 1;
         sidebar.updateLine("currentGame", getCurrentGameLine());
         adminSidebar.updateLine("currentGame", getCurrentGameLine());
-        this.backToHubDelayTaskId = new BukkitRunnable() {
-            int count = config.getBackToHubDuration();
-            @Override
-            public void run() {
-                if (currentState == EventState.PAUSED) {
-                    return;
-                }
-                if (count <= 0) {
+        timerManager.start(Timer.builder()
+                .duration(config.getBackToHubDuration())
+                .withSidebar(sidebar, "timer")
+                .withSidebar(adminSidebar, "timer")
+                .sidebarPrefix(Component.text("Back to Hub: "))
+                .onCompletion(() -> {
                     if (isItHalfTime()) {
                         startHalftimeBreak();
                     } else {
                         startWaitingInHub();
                     }
-                    this.cancel();
-                    return;
-                }
-                sidebar.updateLine("timer", String.format("Back to Hub: %s", TimeStringUtils.getTimeString(count)));
-                adminSidebar.updateLine("timer", String.format("Back to Hub: %s", TimeStringUtils.getTimeString(count)));
-                count--;
-            }
-        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+                })
+                .build());
     }
     
     private void toColossalCombatDelay() {
         currentState = EventState.DELAY;
-        this.toColossalCombatDelayTaskId = new BukkitRunnable() {
-            int count = config.getStartingGameDuration();
-            @Override
-            public void run() {
-                if (currentState == EventState.PAUSED) {
-                    return;
-                }
-                if (count <= 0) {
-                    // start selected game
+        timerManager.start(Timer.builder()
+                .duration(config.getStartingGameDuration())
+                .withSidebar(sidebar, "timer")
+                .withSidebar(adminSidebar, "timer")
+                .sidebarPrefix(Component.text("Colossal Combat: "))
+                .onCompletion(() -> {
                     if (identifyWinnersAndStartColossalCombat()) {
                         currentState = EventState.PLAYING_GAME;
                     } else {
                         messageAllAdmins(Component.text("Unable to start Colossal Combat."));
                     }
-                    this.cancel();
-                    return;
-                }
-                sidebar.updateLine("timer", String.format("Colossal Combat: %s", TimeStringUtils.getTimeString(count)));
-                adminSidebar.updateLine("timer", String.format("Colossal Combat: %s", TimeStringUtils.getTimeString(count)));
-                count--;
-            }
-        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+                })
+                .build());
     }
     
     /**
@@ -1134,7 +1013,7 @@ public class EventManager implements Listener {
             return;
         }
         switch (currentState) {
-            case WAITING_IN_HUB, VOTING, DELAY, PAUSED, PODIUM 
+            case WAITING_IN_HUB, VOTING, DELAY, PODIUM 
                     -> event.setCancelled(true);
         }
     }

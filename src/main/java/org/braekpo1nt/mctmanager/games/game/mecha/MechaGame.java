@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.mecha;
 
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
@@ -16,6 +17,8 @@ import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
+import org.braekpo1nt.mctmanager.ui.timer.Timer;
+import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.braekpo1nt.mctmanager.ui.topbar.ManyBattleTopbar;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.braekpo1nt.mctmanager.utils.MathUtils;
@@ -40,7 +43,6 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.loot.LootTable;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 import org.bukkit.util.BoundingBox;
@@ -63,11 +65,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     private boolean isInvulnerable = false;
     private List<Player> participants = new ArrayList<>();
     private List<Player> admins = new ArrayList<>();
-    private int startMechaTaskId;
-    private int gameEndCountdownTaskId;
-    private int startInvulnerableTaskID;
     private WorldBorder worldBorder;
-    private int borderShrinkingTaskId;
     private List<UUID> livingPlayers = new ArrayList<>();
     /**
      * a map of all teamIds to how many members are alive on that team
@@ -76,7 +74,6 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     private List<UUID> deadPlayers = new ArrayList<>();
     private Map<UUID, Integer> killCounts = new HashMap<>();
     private Map<UUID, Integer> deathCounts = new HashMap<>();
-    private int descriptionPeriodTaskId;
     private boolean descriptionShowing = false;
     private final String baseTitle = ChatColor.BLUE+"MECHA";
     private String title = baseTitle;
@@ -84,9 +81,15 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
      * true when the game is over, and countdown is started, so no points should be awarded
      */
     private boolean gameEndCountDown = false;
+    /**
+     * the index of the border stage
+     */
+    private int borderStageIndex = 0;
+    private final TimerManager timerManager;
     
     public MechaGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
+        this.timerManager = new TimerManager(plugin);
         this.gameManager = gameManager;
         this.configController = new MechaConfigController(plugin.getDataFolder());
         this.topbar = new ManyBattleTopbar();
@@ -141,6 +144,8 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         List<String> teams = gameManager.getTeamNames(newParticipants);
         setUpTopbarTeams(teams);
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
+        gameManager.getTimerManager().register(timerManager);
+        borderStageIndex = 0;
         fillAllChests();
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
@@ -219,6 +224,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         HandlerList.unregisterAll(this);
         descriptionShowing = false;
         gameEndCountDown = false;
+        borderStageIndex = 0;
         cancelAllTasks();
         clearFloorItems();
         clearAllChests();
@@ -438,56 +444,32 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     }
     
     private void cancelAllTasks() {
-        Bukkit.getScheduler().cancelTask(startMechaTaskId);
-        Bukkit.getScheduler().cancelTask(borderShrinkingTaskId);
-        Bukkit.getScheduler().cancelTask(gameEndCountdownTaskId);
-        Bukkit.getScheduler().cancelTask(startInvulnerableTaskID);
-        Bukkit.getScheduler().cancelTask(descriptionPeriodTaskId);
+        timerManager.cancel();
     }
     
     private void startDescriptionPeriod() {
         descriptionShowing = true;
-        this.descriptionPeriodTaskId = new BukkitRunnable() {
-            private int count = config.getDescriptionDuration();
-            @Override
-            public void run() {
-                if (count <= 0) {
-                    topbar.setMiddle(Component.empty());
-                    adminSidebar.updateLine("timer", "");
+        timerManager.start(Timer.builder()
+                .duration(config.getDescriptionDuration())
+                .withSidebar(adminSidebar, "timer")
+                .withTopbar(topbar)
+                .sidebarPrefix(Component.text("Starting soon: "))
+                .onCompletion(() -> {
                     descriptionShowing = false;
                     startStartMechaCountdownTask();
-                    this.cancel();
-                    return;
-                }
-                String timeLeft = TimeStringUtils.getTimeString(count);
-                String timerString = String.format("Starting soon: %s", timeLeft);
-                topbar.setMiddle(Component.text(timeLeft));
-                adminSidebar.updateLine("timer", timerString);
-                count--;
-            }
-        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+                })
+                .build());
     }
     
     private void startStartMechaCountdownTask() {
-        this.startMechaTaskId = new BukkitRunnable() {
-            private int count = config.getStartDuration();
-            
-            @Override
-            public void run() {
-                if (count <= 0) {
-                    topbar.setMiddle(Component.empty());
-                    adminSidebar.updateLine("timer", "");
-                    startMecha();
-                    this.cancel();
-                    return;
-                }
-                String timeLeft = TimeStringUtils.getTimeString(count);
-                String message = String.format("Starting: %s", timeLeft);
-                topbar.setMiddle(Component.text(timeLeft));
-                adminSidebar.updateLine("timer", message);
-                count--;
-            }
-        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+        timerManager.start(Timer.builder()
+                .duration(config.getStartDuration())
+                .withSidebar(adminSidebar, "timer")
+                .withTopbar(topbar)
+                .sidebarPrefix(Component.text("Starting: "))
+                .titleAudience(Audience.audience(participants))
+                .onCompletion(this::startMecha)
+                .build());
     }
     
     /**
@@ -497,25 +479,17 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         gameEndCountDown = true;
         sidebar.addLine("ending", "");
         adminSidebar.addLine("ending", "");
-        gameEndCountdownTaskId = new BukkitRunnable() {
-            int count = config.getEndDuration();
-            @Override
-            public void run() {
-                if (count <= 0) {
+        timerManager.start(Timer.builder()
+                .duration(config.getEndDuration())
+                .withSidebar(adminSidebar, "ending")
+                .sidebarPrefix(Component.text("Game ending: "))
+                .onCompletion(() -> {
                     sidebar.deleteLine("ending");
                     adminSidebar.deleteLine("ending");
                     gameEndCountDown = false;
                     stop();
-                    this.cancel();
-                    return;
-                }
-                String timeString = TimeStringUtils.getTimeString(count);
-                String timerString = String.format("Game ending: %s", timeString);
-                sidebar.updateLine("ending", timerString);
-                adminSidebar.updateLine("ending", timerString);
-                count--;
-            }
-        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+                })
+                .build());
     }
     
     private void switchPlayerFromLivingToDead(UUID playerUniqueId) {
@@ -525,7 +499,8 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     
     private void startMecha() {
         this.mechaHasStarted = true;
-        kickOffBorderShrinking();
+        borderStageIndex = 0;
+        startBorderDelay();
         removePlatforms();
         messageAllParticipants(Component.text("Go!"));
         startInvulnerableTimer();
@@ -540,26 +515,18 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         String initialTimer = String.format("Invulnerable: %s", invulnerabilityDuration);
         sidebar.addLine("invuln", initialTimer);
         adminSidebar.addLine("invuln", initialTimer);
-        this.startInvulnerableTaskID = new BukkitRunnable() {
-            private int count = config.getInvulnerabilityDuration();
-            
-            @Override
-            public void run() {
-                if (count <= 0) {
+        timerManager.start(Timer.builder()
+                .duration(config.getInvulnerabilityDuration())
+                .withSidebar(sidebar, "invuln")
+                .withSidebar(adminSidebar, "invuln")
+                .sidebarPrefix(Component.text("Invulnerable: "))
+                .onCompletion(() -> {
                     sidebar.deleteLine("invuln");
                     adminSidebar.deleteLine("invuln");
                     isInvulnerable = false;
                     messageAllParticipants(Component.text("Invulnerability has ended!"));
-                    this.cancel();
-                    return;
-                }
-                String timeLeft = TimeStringUtils.getTimeString(count);
-                String timer = String.format("Invulnerable: %s", timeLeft);
-                sidebar.updateLine("invuln", timer);
-                adminSidebar.updateLine("invuln", timer);
-                count--;
-            }
-        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+                })
+                .build());
     }
     
     private void onTeamWin(String winningTeam) {
@@ -959,54 +926,47 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         worldBorder.setWarningTime(config.getWorldBorderWarningTime());
     }
     
-    private void kickOffBorderShrinking() {
-        int [] sizes = config.getSizes();
-        int [] delays = config.getDelays();
-        int [] durations = config.getDurations();
-        this.borderShrinkingTaskId = new BukkitRunnable() {
-            int delay = 0;
-            int duration = 0;
-            boolean onDelay = false;
-            boolean onDuration = false;
-            int stage = 0;
-            @Override
-            public void run() {
-                if (onDelay) {
-                    displayBorderDelayFor(delay);
-                    if (delay <= 1) {
-                        onDelay = false;
-                        onDuration = true;
-                        duration = durations[stage];
-                        int size = sizes[stage];
-                        worldBorder.setSize(size, duration);
-                        sendBorderShrinkAnnouncement(duration, size);
+    private void startBorderDelay() {
+        timerManager.start(Timer.builder()
+                .duration(config.getDelays()[borderStageIndex])
+                .withSidebar(adminSidebar, "timer")
+                .withTopbar(topbar)
+                .sidebarPrefix(Component.text("Border: ")
+                        .color(NamedTextColor.LIGHT_PURPLE))
+                .topbarPrefix(Component.text("Border: ")
+                        .color(NamedTextColor.LIGHT_PURPLE))
+                .timerColor(NamedTextColor.LIGHT_PURPLE)
+                .onCompletion(() -> {
+                    int size = config.getSizes()[borderStageIndex];
+                    int duration = config.getDurations()[borderStageIndex];
+                    worldBorder.setSize(size, duration);
+                    sendBorderShrinkAnnouncement(duration, size);
+                    startBorderShrinking();
+                })
+                .build());
+    }
+    
+    private void startBorderShrinking() {
+        timerManager.start(Timer.builder()
+                .duration(config.getDurations()[borderStageIndex])
+                .withSidebar(adminSidebar, "timer")
+                .withTopbar(topbar)
+                .sidebarPrefix(Component.text("Border shrinking: ")
+                        .color(NamedTextColor.RED))
+                .topbarPrefix(Component.text("Border shrinking: ")
+                        .color(NamedTextColor.RED))
+                .timerColor(NamedTextColor.RED)
+                .onCompletion(() -> {
+                    borderStageIndex++;
+                    if (borderStageIndex >= config.getDelays().length) {
+                        startSuddenDeath();
                         return;
                     }
-                    delay--;
-                } else if (onDuration) {
-                    displayBorderShrinkingFor(duration);
-                    if (duration <= 1) {
-                        onDuration = false;
-                        onDelay = true;
-                        stage++;
-                        if (stage >= delays.length) {
-                            startSuddenDeath();
-                            Bukkit.getLogger().info("Border is in final position.");
-                            this.cancel();
-                            return;
-                        }
-                        delay = delays[stage];
-                        sendBorderDelayAnnouncement(delay);
-                        return;
-                    }
-                    duration--;
-                } else {
-                    //initialize
-                    onDelay = true;
-                    delay = delays[0];
-                }
-            }
-        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+                    int delay = config.getDelays()[borderStageIndex];
+                    sendBorderDelayAnnouncement(delay);
+                    startBorderDelay();
+                })
+                .build());
     }
     
     private void initializeAdminSidebar() {
@@ -1080,37 +1040,6 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
                 .append(Component.text(" for "))
                 .append(Component.text(timeString)));
     }
-    
-    /**
-     * Displays the time left for the border shrink to the participants on the FastBoards
-     * @param duration The seconds left in the border shrink
-     */
-    private void displayBorderShrinkingFor(int duration) {
-        String timeString = TimeStringUtils.getTimeString(duration);
-        topbar.setMiddle(Component.empty()
-                .append(Component.text("Shrinking: "))
-                .append(Component.text(timeString))
-                .color(NamedTextColor.RED)
-        );
-        String message = String.format("%sShrinking: %s", ChatColor.RED, timeString);
-        adminSidebar.updateLine("timer", message);
-    }
-    
-    /**
-     * Displays the time left till the border shrinks again on the FastBoards
-     * @param delay The seconds left till the border shrinks
-     */
-    private void displayBorderDelayFor(int delay) {
-        String timeString = TimeStringUtils.getTimeString(delay);
-        topbar.setMiddle(Component.empty()
-                .append(Component.text("Border: "))
-                .append(Component.text(timeString))
-                .color(NamedTextColor.LIGHT_PURPLE)
-        );
-        String message = String.format("%sBorder: %s", ChatColor.LIGHT_PURPLE, timeString);
-        adminSidebar.updateLine("timer", message);
-    }
-    
     
     /**
      * Creates platforms for teams to spawn on made of a hollow rectangle of Barrier blocks where the bottom layer is Concrete that matches the color of the team
