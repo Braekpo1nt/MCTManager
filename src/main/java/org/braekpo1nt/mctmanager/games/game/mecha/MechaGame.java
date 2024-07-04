@@ -519,7 +519,6 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
                 .duration(config.getInvulnerabilityDuration())
                 .withSidebar(sidebar, "invuln")
                 .withSidebar(adminSidebar, "invuln")
-                .withTopbar(topbar)
                 .sidebarPrefix(Component.text("Invulnerable: "))
                 .onCompletion(() -> {
                     sidebar.deleteLine("invuln");
@@ -936,6 +935,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
                         .color(NamedTextColor.LIGHT_PURPLE))
                 .topbarPrefix(Component.text("Border: ")
                         .color(NamedTextColor.LIGHT_PURPLE))
+                .timerColor(NamedTextColor.LIGHT_PURPLE)
                 .onCompletion(() -> {
                     int size = config.getSizes()[borderStageIndex];
                     int duration = config.getDurations()[borderStageIndex];
@@ -955,6 +955,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
                         .color(NamedTextColor.RED))
                 .topbarPrefix(Component.text("Border shrinking: ")
                         .color(NamedTextColor.RED))
+                .timerColor(NamedTextColor.RED)
                 .onCompletion(() -> {
                     borderStageIndex++;
                     if (borderStageIndex >= config.getDelays().length) {
