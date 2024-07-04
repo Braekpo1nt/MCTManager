@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.ui.timer;
 
+import com.google.common.base.Preconditions;
 import lombok.Data;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
@@ -9,6 +10,7 @@ import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.topbar.Topbar;
+import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
@@ -231,21 +233,30 @@ public class Timer extends BukkitRunnable {
     }
     
     /**
-     * skip to the end, as if the timer had reached zero. Still performs any actions and cleanup, same as if the timer reached zero. 
+     * skip to the end, as if the timer had reached zero. Still performs any actions and cleanup, 
+     * same as if the timer reached zero. 
      */
     public void skip() {
         this.onComplete();
     }
     
     /**
-     * set all topbar middles to empty, set all assigned sidebar lines to empty, and clear the titleAudience's title. Note that this does not stop this timer on its own, so values might be reset on the next iteration of {@link Timer#run}. 
+     * set all topbar middles to empty, set all assigned sidebar lines to empty, and clear the titleAudience's title. 
+     * Note that this does not stop this timer on its own, so values might be reset on the next iteration of 
+     * {@link Timer#run}. 
      */
     private void clear() {
         for (Topbar topbar : topbars) {
             topbar.setMiddle(Component.empty());
         }
         for (SidebarData sidebarData : sidebarDatas) {
-            sidebarData.getSidebar().updateLine(sidebarData.getKey(), Component.empty());
+            Sidebar sidebar = sidebarData.getSidebar();
+            String key = sidebarData.getKey();
+            if (sidebar.containsKey(key)) {
+                sidebar.updateLine(key, Component.empty());
+            } else {
+                Bukkit.getLogger().severe(String.format("Attempted to edit the line of a sidebar which does not contain the key \"%s\"", key));
+            }
         }
         if (titleAudience != null) {
             titleAudience.clearTitle();
@@ -255,7 +266,8 @@ public class Timer extends BukkitRunnable {
     /**
      * {@inheritDoc}
      * This will be called when this timer is over or stopped.
-     * If this is paused, sets the state to no longer be paused. If this is registered in a timerManager, also removes itself from that timerManager.
+     * If this is paused, sets the state to no longer be paused. If this is registered in a timerManager, 
+     * also removes itself from that timerManager.
      * @throws IllegalStateException
      */
     @Override
@@ -394,6 +406,7 @@ public class Timer extends BukkitRunnable {
          * @return this
          */
         public Builder withSidebar(@NotNull Sidebar sidebar, @NotNull String key) {
+            Preconditions.checkArgument(sidebar.containsKey(key), "given sidebar does not contain the given key \"%s\"", key);
             SidebarData sidebarData = new SidebarData(sidebar, key);
             if (sidebarDatas == null) {
                 sidebarDatas = new ArrayList<>(Collections.singletonList(sidebarData));
