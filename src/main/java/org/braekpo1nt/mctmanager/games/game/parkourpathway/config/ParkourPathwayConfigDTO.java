@@ -137,8 +137,8 @@ class ParkourPathwayConfigDTO implements Validatable {
                 .startingDuration(this.durations.starting)
                 .timeLimitDuration(this.durations.timeLimit)
                 .teamSpawnsDuration(this.durations.teamSpawn)
-                .checkpointCounterDuration(this.durations.checkpointCounter)
-                .checkpointCounterAlertDuration(this.durations.checkpointCounterAlert)
+                .mercyRuleDuration(this.durations.checkpointCounter)
+                .mercyRuleAlertDuration(this.durations.checkpointCounterAlert)
                 .checkpointScore(this.scores.checkpoint)
                 .winScore(this.scores.win)
                 .preventInteractions(this.preventInteractions != null ? this.preventInteractions : Collections.emptyList())
@@ -159,7 +159,7 @@ class ParkourPathwayConfigDTO implements Validatable {
                 .spectatorArea(config.getSpectatorArea() != null ? BoundingBoxDTO.from(config.getSpectatorArea()) : null)
                 .scores(new Scores(config.getCheckpointScore(), config.getWinScore()))
                 .preventInteractions(config.getPreventInteractions())
-                .durations(new Durations(config.getTeamSpawnsDuration(), config.getStartingDuration(), config.getTimeLimitDuration(), config.getCheckpointCounterDuration(), config.getCheckpointCounterAlertDuration(), config.getDescriptionDuration()))
+                .durations(new Durations(config.getTeamSpawnsDuration(), config.getStartingDuration(), config.getTimeLimitDuration(), config.getMercyRuleDuration(), config.getMercyRuleAlertDuration(), config.getDescriptionDuration()))
                 .description(config.getDescription())
                 .build();
     }
