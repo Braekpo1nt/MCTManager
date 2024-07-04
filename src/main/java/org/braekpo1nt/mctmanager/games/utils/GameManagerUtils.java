@@ -5,6 +5,7 @@ import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
@@ -22,6 +23,7 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.time.Duration;
 import java.util.*;
 
 public class GameManagerUtils {
@@ -34,6 +36,18 @@ public class GameManagerUtils {
      */
     public final static List<InventoryAction> INV_REMOVE_ACTIONS = List.of(InventoryAction.DROP_ALL_CURSOR, InventoryAction.DROP_ALL_SLOT, InventoryAction.DROP_ONE_CURSOR, InventoryAction.DROP_ONE_SLOT, InventoryAction.MOVE_TO_OTHER_INVENTORY);
     public static final NamespacedKey IGNORE_TEAM_COLOR = NamespacedKey.minecraft("ignoreteamcolor");
+    
+    private static final Component KILL_PREFIX = Component.empty()
+            .append(Component.text("["))
+            .append(Component.text("k")
+                    .color(NamedTextColor.GREEN))
+            .append(Component.text("] "))
+            ;
+    private static final Title.Times KILL_TIMES = Title.Times.times(
+            Duration.ZERO,
+            Duration.ofSeconds(3),
+            Duration.ofMillis(500)
+    );
     
     /**
      * returns a list that contains the first place, or first place ties.
@@ -389,4 +403,18 @@ public class GameManagerUtils {
         deColorLeatherArmor(player.getInventory().getBoots());
     }
     
+    /**
+     * Shows a subtitle to the killer indicating that they killed the given player
+     * @param killer the one who killed
+     * @param killed the one who was killed (the one who died)
+     */
+    public static void showKillTitle(Player killer, Player killed) {
+        killer.showTitle(Title.title(
+                Component.empty(), 
+                Component.empty()
+                        .append(KILL_PREFIX)
+                        .append(killed.displayName()),
+                KILL_TIMES
+        ));
+    }
 }
