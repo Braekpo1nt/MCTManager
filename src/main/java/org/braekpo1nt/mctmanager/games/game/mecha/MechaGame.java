@@ -43,7 +43,6 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.loot.LootTable;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 import org.bukkit.util.BoundingBox;
@@ -67,7 +66,6 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     private List<Player> participants = new ArrayList<>();
     private List<Player> admins = new ArrayList<>();
     private WorldBorder worldBorder;
-    private int borderShrinkingTaskId;
     private List<UUID> livingPlayers = new ArrayList<>();
     /**
      * a map of all teamIds to how many members are alive on that team
@@ -76,7 +74,6 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     private List<UUID> deadPlayers = new ArrayList<>();
     private Map<UUID, Integer> killCounts = new HashMap<>();
     private Map<UUID, Integer> deathCounts = new HashMap<>();
-    private int descriptionPeriodTaskId;
     private boolean descriptionShowing = false;
     private final String baseTitle = ChatColor.BLUE+"MECHA";
     private String title = baseTitle;
@@ -84,6 +81,10 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
      * true when the game is over, and countdown is started, so no points should be awarded
      */
     private boolean gameEndCountDown = false;
+    /**
+     * the index of the border stage
+     */
+    private int borderStageIndex = 0;
     private final TimerManager timerManager;
     
     public MechaGame(Main plugin, GameManager gameManager) {
@@ -144,6 +145,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         setUpTopbarTeams(teams);
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         gameManager.getTimerManager().register(timerManager);
+        borderStageIndex = 0;
         fillAllChests();
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
@@ -222,6 +224,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         HandlerList.unregisterAll(this);
         descriptionShowing = false;
         gameEndCountDown = false;
+        borderStageIndex = 0;
         cancelAllTasks();
         clearFloorItems();
         clearAllChests();
@@ -441,8 +444,6 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     }
     
     private void cancelAllTasks() {
-        Bukkit.getScheduler().cancelTask(borderShrinkingTaskId);
-        Bukkit.getScheduler().cancelTask(descriptionPeriodTaskId);
         timerManager.cancel();
     }
     
@@ -498,7 +499,8 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     
     private void startMecha() {
         this.mechaHasStarted = true;
-        kickOffBorderShrinking();
+        borderStageIndex = 0;
+        startBorderDelay();
         removePlatforms();
         messageAllParticipants(Component.text("Go!"));
         startInvulnerableTimer();
@@ -925,54 +927,45 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         worldBorder.setWarningTime(config.getWorldBorderWarningTime());
     }
     
-    private void kickOffBorderShrinking() {
-        int [] sizes = config.getSizes();
-        int [] delays = config.getDelays();
-        int [] durations = config.getDurations();
-        this.borderShrinkingTaskId = new BukkitRunnable() {
-            int delay = 0;
-            int duration = 0;
-            boolean onDelay = false;
-            boolean onDuration = false;
-            int stage = 0;
-            @Override
-            public void run() {
-                if (onDelay) {
-                    displayBorderDelayFor(delay);
-                    if (delay <= 1) {
-                        onDelay = false;
-                        onDuration = true;
-                        duration = durations[stage];
-                        int size = sizes[stage];
-                        worldBorder.setSize(size, duration);
-                        sendBorderShrinkAnnouncement(duration, size);
+    private void startBorderDelay() {
+        timerManager.start(Timer.builder()
+                .duration(config.getDelays()[borderStageIndex])
+                .withSidebar(adminSidebar, "timer")
+                .withTopbar(topbar)
+                .sidebarPrefix(Component.text("Border: ")
+                        .color(NamedTextColor.LIGHT_PURPLE))
+                .topbarPrefix(Component.text("Border: ")
+                        .color(NamedTextColor.LIGHT_PURPLE))
+                .onCompletion(() -> {
+                    int size = config.getSizes()[borderStageIndex];
+                    int duration = config.getDurations()[borderStageIndex];
+                    worldBorder.setSize(size, duration);
+                    sendBorderShrinkAnnouncement(duration, size);
+                    startBorderShrinking();
+                })
+                .build());
+    }
+    
+    private void startBorderShrinking() {
+        timerManager.start(Timer.builder()
+                .duration(config.getDurations()[borderStageIndex])
+                .withSidebar(adminSidebar, "timer")
+                .withTopbar(topbar)
+                .sidebarPrefix(Component.text("Border shrinking: ")
+                        .color(NamedTextColor.RED))
+                .topbarPrefix(Component.text("Border shrinking: ")
+                        .color(NamedTextColor.RED))
+                .onCompletion(() -> {
+                    borderStageIndex++;
+                    if (borderStageIndex >= config.getDelays().length) {
+                        startSuddenDeath();
                         return;
                     }
-                    delay--;
-                } else if (onDuration) {
-                    displayBorderShrinkingFor(duration);
-                    if (duration <= 1) {
-                        onDuration = false;
-                        onDelay = true;
-                        stage++;
-                        if (stage >= delays.length) {
-                            startSuddenDeath();
-                            Bukkit.getLogger().info("Border is in final position.");
-                            this.cancel();
-                            return;
-                        }
-                        delay = delays[stage];
-                        sendBorderDelayAnnouncement(delay);
-                        return;
-                    }
-                    duration--;
-                } else {
-                    //initialize
-                    onDelay = true;
-                    delay = delays[0];
-                }
-            }
-        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+                    int delay = config.getDelays()[borderStageIndex];
+                    sendBorderDelayAnnouncement(delay);
+                    startBorderDelay();
+                })
+                .build());
     }
     
     private void initializeAdminSidebar() {
@@ -1046,37 +1039,6 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
                 .append(Component.text(" for "))
                 .append(Component.text(timeString)));
     }
-    
-    /**
-     * Displays the time left for the border shrink to the participants on the FastBoards
-     * @param duration The seconds left in the border shrink
-     */
-    private void displayBorderShrinkingFor(int duration) {
-        String timeString = TimeStringUtils.getTimeString(duration);
-        topbar.setMiddle(Component.empty()
-                .append(Component.text("Shrinking: "))
-                .append(Component.text(timeString))
-                .color(NamedTextColor.RED)
-        );
-        String message = String.format("%sShrinking: %s", ChatColor.RED, timeString);
-        adminSidebar.updateLine("timer", message);
-    }
-    
-    /**
-     * Displays the time left till the border shrinks again on the FastBoards
-     * @param delay The seconds left till the border shrinks
-     */
-    private void displayBorderDelayFor(int delay) {
-        String timeString = TimeStringUtils.getTimeString(delay);
-        topbar.setMiddle(Component.empty()
-                .append(Component.text("Border: "))
-                .append(Component.text(timeString))
-                .color(NamedTextColor.LIGHT_PURPLE)
-        );
-        String message = String.format("%sBorder: %s", ChatColor.LIGHT_PURPLE, timeString);
-        adminSidebar.updateLine("timer", message);
-    }
-    
     
     /**
      * Creates platforms for teams to spawn on made of a hollow rectangle of Barrier blocks where the bottom layer is Concrete that matches the color of the team

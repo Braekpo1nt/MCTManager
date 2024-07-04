@@ -367,7 +367,6 @@ public class Timer extends BukkitRunnable {
          */
         public Builder withSidebar(@NotNull Sidebar sidebar, @NotNull String key) {
             SidebarData sidebarData = new SidebarData(sidebar, key);
-            sidebar.updateLine(key, Component.empty());
             if (sidebarDatas == null) {
                 sidebarDatas = new ArrayList<>(Collections.singletonList(sidebarData));
             } else {
