@@ -65,8 +65,8 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
     private String title = baseTitle;
     private final PotionEffect INVISIBILITY = new PotionEffect(PotionEffectType.INVISIBILITY, 10000, 1, true, false, false);
     private int statusEffectsTaskId;
-    private int startNextRoundTimerTaskId;
-    private int checkpointCounterTask;
+    private int parkourPathwayTimerTaskId;
+    private int mercryRuleCountdownTaskId;
     private boolean gameActive = false;
     private boolean parkourHasStarted = false;
     private List<Player> participants = new ArrayList<>();
@@ -435,7 +435,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
                     }
                     openGlassBarrier();
                     startParkourPathwayTimer();
-                    restartCheckpointCounter();
+                    restartMercyRuleCountdown();
                 })
                 .build());
     }
@@ -716,7 +716,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
             stop();
             return;
         }
-        restartCheckpointCounter();
+        restartMercyRuleCountdown();
     }
     
     /**
@@ -798,18 +798,18 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         }
     }
     
-    private void restartCheckpointCounter() {
-        Bukkit.getScheduler().cancelTask(this.checkpointCounterTask);
+    private void restartMercyRuleCountdown() {
+        Bukkit.getScheduler().cancelTask(this.mercryRuleCountdownTaskId);
         sidebar.updateLine("ending", "");
         adminSidebar.updateLine("ending", "");
-        int checkpointCounter = config.getCheckpointCounterDuration();
-        int checkpointCounterAlert = config.getCheckpointCounterAlertDuration();
-        this.checkpointCounterTask = new BukkitRunnable() {
-            int count = checkpointCounter;
+        int mercyRuleDuration = config.getCheckpointCounterDuration();
+        int mercyRuleAlert = config.getCheckpointCounterAlertDuration();
+        this.mercryRuleCountdownTaskId = new BukkitRunnable() {
+            int count = mercyRuleDuration;
             @Override
             public void run() {
                 if (count <= 0) {
-                    String timeString = TimeStringUtils.getTimeString(checkpointCounter);
+                    String timeString = TimeStringUtils.getTimeString(mercyRuleDuration);
                     messageAllParticipants(Component.text("No one has reached a new checkpoint in the last ")
                             .append(Component.text(timeString))
                             .append(Component.text(". Stopping early")));
@@ -817,16 +817,16 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
                     this.cancel();
                     return;
                 }
-                if (count == checkpointCounterAlert) {
-                    String timeString = TimeStringUtils.getTimeString(checkpointCounter);
+                if (count == mercyRuleAlert) {
+                    String timeString = TimeStringUtils.getTimeString(mercyRuleDuration);
                     messageAllParticipants(Component.text("No one has reached a new checkpoint in the last ")
                             .append(Component.text(timeString))
                             .append(Component.text(". Ending in "))
-                            .append(Component.text(checkpointCounterAlert))
+                            .append(Component.text(mercyRuleAlert))
                             .append(Component.text("."))
                             .color(NamedTextColor.RED));
                 }
-                if (count <= checkpointCounterAlert) {
+                if (count <= mercyRuleAlert) {
                     String timeString = TimeStringUtils.getTimeString(count);
                     String ending = String.format("%sEnding in: %s", ChatColor.RED, timeString);
                     sidebar.updateLine("ending", ending);
@@ -841,7 +841,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         parkourHasStarted = true;
         int timeLimit = config.getTimeLimitDuration();
         int checkpointCounterAlert = config.getCheckpointCounterAlertDuration();
-        this.startNextRoundTimerTaskId = new BukkitRunnable() {
+        this.parkourPathwayTimerTaskId = new BukkitRunnable() {
             int count = timeLimit;
             @Override
             public void run() {
@@ -901,8 +901,8 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
 
     private void cancelAllTasks() {
         Bukkit.getScheduler().cancelTask(statusEffectsTaskId);
-        Bukkit.getScheduler().cancelTask(startNextRoundTimerTaskId);
-        Bukkit.getScheduler().cancelTask(checkpointCounterTask);
+        Bukkit.getScheduler().cancelTask(parkourPathwayTimerTaskId);
+        Bukkit.getScheduler().cancelTask(mercryRuleCountdownTaskId);
         Bukkit.getScheduler().cancelTask(descriptionPeriodTaskId);
         timerManager.cancel();
     }
