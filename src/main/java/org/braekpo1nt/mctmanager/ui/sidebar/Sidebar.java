@@ -112,6 +112,15 @@ public class Sidebar {
     }
     
     /**
+     * Check if the sidebar contains a line with the given key
+     * @param key the key to check if this sidebar contains
+     * @return true if this sidebar has a line with the given key
+     */
+    public synchronized boolean containsKey(@NotNull String key) {
+        return keyToIndex.containsKey(key);
+    }
+    
+    /**
      * String overload of {@link #addLine(String, Component)}
      * @see #addLine(String, Component)
      */

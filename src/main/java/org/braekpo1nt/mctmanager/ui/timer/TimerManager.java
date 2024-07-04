@@ -10,35 +10,65 @@ import java.util.List;
 
 public class TimerManager {
     
+    // debug
+    private final @Nullable String name;
+    // debug
     private final Main plugin;
     @Setter
     private @Nullable TimerManager parent;
     private final List<@NotNull TimerManager> managers = new ArrayList<>();
     private final List<@NotNull Timer> timers = new ArrayList<>();
     
-    public TimerManager(@NotNull Main plugin) {
+    public TimerManager(@NotNull Main plugin, @Nullable String name) {
         this.plugin = plugin;
+        this.name = name;
     }
     
+    public TimerManager(@NotNull Main plugin) {
+        this(plugin, null);
+    }
+    
+    @Override
+    public String toString() {
+        return "TimerManager{" +
+                "name='" + name + '\'' +
+                ", plugin=" + plugin +
+                ", parent=" + parent +
+                ", nManagers=" + managers.size() +
+                ", nTimers=" + timers.size() +
+                '}';
+    }
+    
+    /**
+     * @return a new TimerManager instance which is already 
+     * registered with this TimerManager as its parent
+     */
     public TimerManager createManager() {
         TimerManager manager = new TimerManager(plugin);
+        return register(manager);
+    }
+    
+    public TimerManager register(@NotNull TimerManager manager) {
         managers.add(manager);
         manager.setParent(this);
         return manager;
     }
     
-    private void remove(@NotNull TimerManager manager) {
-        managers.remove(manager);
-    }
-    
-    public Timer start(@NotNull Timer timer) {
-        timer.start(plugin);
+    public Timer register(@NotNull Timer timer) {
         timers.add(timer);
         timer.setTimerManager(this);
         return timer;
     }
     
-    public void remove(@NotNull Timer timer) {
+    private void unregister(@NotNull TimerManager manager) {
+        managers.remove(manager);
+    }
+    
+    public Timer start(@NotNull Timer timer) {
+        return register(timer.start(plugin));
+    }
+    
+    public void unregister(@NotNull Timer timer) {
         timers.remove(timer);
     }
     
@@ -63,6 +93,10 @@ public class TimerManager {
         }
     }
     
+    /**
+     * Cancel all sub TimerManagers and Timers handled by this TimerManager.
+     * This also removes itself from its parent, if it has one. 
+     */
     public void cancel() {
         List<TimerManager> managersCopy = new ArrayList<>(managers);
         for (TimerManager manager : managersCopy) {
@@ -73,7 +107,7 @@ public class TimerManager {
             timer.cancel();
         }
         if (parent != null) {
-            parent.remove(this);
+            parent.unregister(this);
             parent = null;
         }
     }

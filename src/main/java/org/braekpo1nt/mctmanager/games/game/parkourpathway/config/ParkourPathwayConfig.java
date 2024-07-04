@@ -27,8 +27,8 @@ public class ParkourPathwayConfig {
     private int startingDuration;
     private int timeLimitDuration;
     private int teamSpawnsDuration;
-    private int checkpointCounterDuration;
-    private int checkpointCounterAlertDuration;
+    private int mercyRuleDuration;
+    private int mercyRuleAlertDuration;
     public int[] checkpointScore;
     public int[] winScore;
     private List<Material> preventInteractions;

@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.clockwork;
 
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
@@ -15,6 +16,8 @@ import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
+import org.braekpo1nt.mctmanager.ui.timer.Timer;
+import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
@@ -52,12 +55,13 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
     private List<Player> admins = new ArrayList<>();
     private List<ClockworkRound> rounds;
     private int currentRoundIndex = 0;
-    private int descriptionPeriodTaskId;
     private boolean descriptionShowing = false;
     private boolean gameActive = false;
+    private final TimerManager timerManager;
     
     public ClockworkGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
+        this.timerManager = new TimerManager(plugin);
         this.gameManager = gameManager;
         this.configController = new ClockworkConfigController(plugin.getDataFolder());
     }
@@ -99,6 +103,7 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
         sidebar = gameManager.getSidebarFactory().createSidebar();
         adminSidebar = gameManager.getSidebarFactory().createSidebar();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
+        gameManager.getTimerManager().register(timerManager);
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
         }
@@ -203,25 +208,17 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
     
     private void startDescriptionPeriod() {
         descriptionShowing = true;
-        this.descriptionPeriodTaskId = new BukkitRunnable() {
-            private int count = config.getDescriptionDuration();
-            @Override
-            public void run() {
-                if (count <= 0) {
-                    sidebar.updateLine("timer", "");
-                    adminSidebar.updateLine("timer", "");
+        timerManager.start(Timer.builder()
+                .duration(config.getDescriptionDuration())
+                .withSidebar(sidebar, "timer")
+                .withSidebar(adminSidebar, "timer")
+                .sidebarPrefix(Component.text("Starting soon: "))
+                .titleAudience(Audience.audience(participants))
+                .onCompletion(() -> {
                     descriptionShowing = false;
                     startNextRound();
-                    this.cancel();
-                    return;
-                }
-                String timeLeft = TimeStringUtils.getTimeString(count);
-                String timerString = String.format("Starting soon: %s", timeLeft);
-                sidebar.updateLine("timer", timerString);
-                adminSidebar.updateLine("timer", timerString);
-                count--;
-            }
-        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+                })
+                .build());
     }
     
     public void roundIsOver() {
@@ -279,7 +276,7 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
     }
     
     private void cancelAllTasks() {
-        Bukkit.getScheduler().cancelTask(descriptionPeriodTaskId);
+        timerManager.cancel();
     }
     
     @EventHandler

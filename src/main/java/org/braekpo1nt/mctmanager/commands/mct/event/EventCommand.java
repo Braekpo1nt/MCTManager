@@ -79,20 +79,6 @@ public class EventCommand extends CommandManager {
                 return Collections.emptyList();
             }
         });
-        addSubCommand(new SubCommand("pause") {
-            @Override
-            public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-                gameManager.getEventManager().pauseEvent(sender);
-                return CommandResult.success();
-            }
-        });
-        addSubCommand(new SubCommand("resume") {
-            @Override
-            public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-                gameManager.getEventManager().resumeEvent(sender);
-                return CommandResult.success();
-            }
-        });
         addSubCommand(new FinalGameCommand(gameManager, "finalgame"));
         addSubCommand(new EventUndoSubCommand(gameManager, "undo"));
         addSubCommand(new VoteCommand(gameManager, "vote"));

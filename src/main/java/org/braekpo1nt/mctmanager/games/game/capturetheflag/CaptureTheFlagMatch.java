@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.games.game.capturetheflag;
 
 import io.papermc.paper.entity.LookAnchor;
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
@@ -10,6 +11,8 @@ import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
+import org.braekpo1nt.mctmanager.ui.timer.Timer;
+import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.braekpo1nt.mctmanager.ui.topbar.BattleTopbar;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.braekpo1nt.mctmanager.utils.MaterialUtils;
@@ -51,8 +54,6 @@ public class CaptureTheFlagMatch implements Listener {
     private List<Player> allParticipants = new ArrayList<>();
     private Map<UUID, Boolean> participantsAreAlive;
     private boolean matchActive = false;
-    private int classSelectionCountdownTaskId;
-    private int matchTimerTaskId;
     private final ClassPicker northClassPicker;
     private final ClassPicker southClassPicker;
     /**
@@ -73,12 +74,14 @@ public class CaptureTheFlagMatch implements Listener {
     private Player hasSouthFlag;
     private Material northBanner;
     private Material southBanner;
+    private final TimerManager timerManager;
     
     public CaptureTheFlagMatch(CaptureTheFlagRound captureTheFlagRound, Main plugin,
                                GameManager gameManager, MatchPairing matchPairing, Arena arena,
                                CaptureTheFlagConfig config, Sidebar sidebar, Sidebar adminSidebar, BattleTopbar topbar) {
         this.captureTheFlagRound = captureTheFlagRound;
         this.plugin = plugin;
+        this.timerManager = new TimerManager(plugin);
         this.gameManager = gameManager;
         this.config = config;
         this.matchPairing = matchPairing;
@@ -101,6 +104,7 @@ public class CaptureTheFlagMatch implements Listener {
             return;
         }
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
+        gameManager.getTimerManager().register(timerManager);
         northParticipants = new ArrayList<>();
         southParticipants = new ArrayList<>();
         allParticipants = new ArrayList<>();
@@ -365,8 +369,7 @@ public class CaptureTheFlagMatch implements Listener {
     }
     
     private void cancelAllTasks() {
-        Bukkit.getScheduler().cancelTask(classSelectionCountdownTaskId);
-        Bukkit.getScheduler().cancelTask(matchTimerTaskId);
+        timerManager.cancel();
     }
     
     public void onPlayerDamage(Player participant, EntityDamageEvent event) {
@@ -736,44 +739,31 @@ public class CaptureTheFlagMatch implements Listener {
     public void startClassSelectionPeriod() {
         northClassPicker.start(plugin, northParticipants, config.getLoadouts());
         southClassPicker.start(plugin, southParticipants, config.getLoadouts());
-        
-        this.classSelectionCountdownTaskId = new BukkitRunnable() {
-            private int count = config.getClassSelectionDuration();
-            @Override
-            public void run() {
-                if (count <= 0) {
+        timerManager.start(Timer.builder()
+                .duration(config.getClassSelectionDuration())
+                .withSidebar(adminSidebar, "timer")
+                .withTopbar(topbar)
+                .sidebarPrefix(Component.text("Starting: "))
+                .titleAudience(Audience.audience(allParticipants))
+                .onCompletion(() -> {
                     northClassPicker.stop(true);
                     southClassPicker.stop(true);
                     startMatch();
-                    this.cancel();
-                    return;
-                }
-                String timeLeft = TimeStringUtils.getTimeString(count);
-                String timer = String.format("Class selection: %s", timeLeft);
-                adminSidebar.updateLine("timer", timer);
-                topbar.setMiddle(Component.text(timeLeft));
-                count--;
-            }
-        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+                })
+                .build());
     }
     
     private void startMatchTimer() {
-        this.matchTimerTaskId = new BukkitRunnable() {
-            int count = config.getRoundTimerDuration();
-            @Override
-            public void run() {
-                if (count <= 0) {
+        timerManager.start(Timer.builder()
+                .duration(config.getRoundTimerDuration())
+                .withSidebar(adminSidebar, "timer")
+                .withTopbar(topbar)
+                .sidebarPrefix(Component.text("Starting: "))
+                .titleAudience(Audience.audience(allParticipants))
+                .onCompletion(() -> {
                     onBothTeamsLose(Component.text("Time ran out."));
-                    this.cancel();
-                    return;
-                }
-                String timeLeft = TimeStringUtils.getTimeString(count);
-                String timer = String.format("Round: %s", timeLeft);
-                adminSidebar.updateLine("timer", timer);
-                topbar.setMiddle(Component.text(timeLeft));
-                count--;
-            }
-        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+                })
+                .build());
     }
     
     private void initializeSidebar() {
