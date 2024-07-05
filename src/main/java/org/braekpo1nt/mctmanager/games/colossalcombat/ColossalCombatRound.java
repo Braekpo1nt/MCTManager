@@ -338,7 +338,7 @@ public class ColossalCombatRound implements Listener {
         }
         Player killer = killed.getKiller();
         if (killer != null) {
-            onParticipantGetKill(killer);
+            onParticipantGetKill(killer, killed);
         }
         onParticipantDeath(killed);
     }
@@ -375,7 +375,8 @@ public class ColossalCombatRound implements Listener {
         }
     }
     
-    private void onParticipantGetKill(@NotNull Player killer) {
+    private void onParticipantGetKill(@NotNull Player killer, @NotNull Player killed) {
+        GameManagerUtils.showKillTitle(killer, killed);
         colossalCombatGame.addKill(killer.getUniqueId());
     }
     
