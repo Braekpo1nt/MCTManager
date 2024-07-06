@@ -19,6 +19,7 @@ import org.braekpo1nt.mctmanager.games.game.parkourpathway.puzzle.CheckPoint;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.puzzle.Puzzle;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
+import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
@@ -689,12 +690,21 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         if (puzzleIndex >= config.getPuzzlesSize()-1) {
             onParticipantFinish(participant);
         } else {
+            Component checkpointNum = Component.empty()
+                    .append(Component.text(puzzleIndex))
+                    .append(Component.text("/"))
+                    .append(Component.text(config.getPuzzlesSize()-1));
             messageAllParticipants(Component.empty()
                     .append(Component.text(participant.getName()))
                     .append(Component.text(" reached checkpoint "))
-                    .append(Component.text(puzzleIndex))
-                    .append(Component.text("/"))
-                    .append(Component.text(config.getPuzzlesSize()-1)));
+                    .append(checkpointNum));
+            participant.showTitle(UIUtils.defaultTitle(
+                    Component.empty(),
+                    Component.empty()
+                            .append(Component.text("Checkpoint "))
+                            .append(checkpointNum)
+                            .color(NamedTextColor.YELLOW)
+            ));
             int playersCheckpoint = currentPuzzles.get(uuid);
             int points = calculatePointsForPuzzle(playersCheckpoint, config.getCheckpointScore());
             gameManager.awardPointsToParticipant(participant, points);
