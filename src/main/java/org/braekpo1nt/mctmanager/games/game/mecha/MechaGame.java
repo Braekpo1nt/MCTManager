@@ -509,23 +509,38 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     
     private void startInvulnerableTimer() {
         isInvulnerable = true;
-        String invulnerabilityDuration = TimeStringUtils.getTimeString(config.getInvulnerabilityDuration());
-        messageAllParticipants(Component.text("Invulnerable for ")
-                .append(Component.text(invulnerabilityDuration))
-                .append(Component.text("!")));
-        String initialTimer = String.format("Invulnerable: %s", invulnerabilityDuration);
-        sidebar.addLine("invuln", initialTimer);
-        adminSidebar.addLine("invuln", initialTimer);
+        Component gracePeriodDuration = TimeStringUtils.getTimeComponent(config.getGracePeriodDuration());
+        Component gracePeriodStarted = Component.empty()
+                .append(gracePeriodDuration)
+                .append(Component.text(" grace period"))
+                .color(NamedTextColor.GREEN);
+        messageAllParticipants(gracePeriodStarted);
+        Audience.audience(participants).showTitle(UIUtils.defaultTitle(
+                Component.empty(),
+                gracePeriodStarted
+        ));
+        Component initialTimer = Component.empty()
+                .append(Component.text("Grace period: "))
+                .append(gracePeriodDuration);
+        sidebar.addLine("grace", initialTimer);
+        adminSidebar.addLine("grace", initialTimer);
         timerManager.start(Timer.builder()
-                .duration(config.getInvulnerabilityDuration())
-                .withSidebar(sidebar, "invuln")
-                .withSidebar(adminSidebar, "invuln")
-                .sidebarPrefix(Component.text("Invulnerable: "))
+                .duration(config.getGracePeriodDuration())
+                .withSidebar(sidebar, "grace")
+                .withSidebar(adminSidebar, "grace")
+                .sidebarPrefix(Component.text("Grace Period: "))
                 .onCompletion(() -> {
-                    sidebar.deleteLine("invuln");
-                    adminSidebar.deleteLine("invuln");
+                    sidebar.deleteLine("grace");
+                    adminSidebar.deleteLine("grace");
                     isInvulnerable = false;
-                    messageAllParticipants(Component.text("Invulnerability has ended!"));
+                    Component gracePeriodEnded = Component.empty()
+                            .append(Component.text("Grace period ended"))
+                            .color(NamedTextColor.RED);
+                    messageAllParticipants(gracePeriodEnded);
+                    Audience.audience(participants).showTitle(UIUtils.defaultTitle(
+                            Component.empty(),
+                            gracePeriodEnded
+                    ));
                 })
                 .build());
     }

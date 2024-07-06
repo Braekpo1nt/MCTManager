@@ -212,7 +212,7 @@ class MechaConfigDTO implements Validatable {
                 .adminSpawn(newAdminSpawn)
                 .startDuration(this.durations.start)
                 .endDuration(this.durations.end)
-                .invulnerabilityDuration(this.durations.invulnerability)
+                .gracePeriodDuration(this.durations.invulnerability)
                 .killScore(this.scores.kill)
                 .surviveTeamScore(this.scores.surviveTeam)
                 .firstPlaceScore(this.scores.firstPlace)

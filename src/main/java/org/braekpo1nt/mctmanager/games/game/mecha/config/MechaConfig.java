@@ -28,7 +28,7 @@ public class MechaConfig {
     private List<Location> platformSpawns;
     private Location adminSpawn;
     private int startDuration;
-    private int invulnerabilityDuration;
+    private int gracePeriodDuration;
     private int endDuration;
     private int killScore;
     private int surviveTeamScore;
