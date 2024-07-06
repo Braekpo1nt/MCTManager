@@ -267,7 +267,6 @@ public class CaptureTheFlagRound {
                 .withSidebar(adminSidebar, "timer")
                 .withTopbar(topbar)
                 .sidebarPrefix(Component.text("Round: "))
-                .titleAudience(Audience.audience(onDeckParticipants))
                 .build());
     }
     
@@ -282,10 +281,6 @@ public class CaptureTheFlagRound {
                 .withSidebar(adminSidebar, "timer")
                 .withTopbar(topbar)
                 .sidebarPrefix(Component.text("Starting soon: "))
-                .titleAudience(Audience.audience(
-                        Audience.audience(participants),
-                        Audience.audience(onDeckParticipants)
-                ))
                 .onCompletion(() -> {
                     descriptionShowing = false;
                     startMatchesStartingCountDown();
@@ -299,10 +294,6 @@ public class CaptureTheFlagRound {
                 .withSidebar(adminSidebar, "timer")
                 .withTopbar(topbar)
                 .sidebarPrefix(Component.text("Starting: "))
-                .titleAudience(Audience.audience(
-                        Audience.audience(participants),
-                        Audience.audience(onDeckParticipants)
-                ))
                 .onCompletion(() -> {
                     startMatches();
                     matchesStarted = true;

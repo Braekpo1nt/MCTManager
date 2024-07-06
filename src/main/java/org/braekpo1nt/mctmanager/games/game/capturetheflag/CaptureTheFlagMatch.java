@@ -743,7 +743,7 @@ public class CaptureTheFlagMatch implements Listener {
                 .duration(config.getClassSelectionDuration())
                 .withSidebar(adminSidebar, "timer")
                 .withTopbar(topbar)
-                .sidebarPrefix(Component.text("Starting: "))
+                .sidebarPrefix(Component.text("Class selection: "))
                 .titleAudience(Audience.audience(allParticipants))
                 .onCompletion(() -> {
                     northClassPicker.stop(true);
@@ -759,7 +759,6 @@ public class CaptureTheFlagMatch implements Listener {
                 .withSidebar(adminSidebar, "timer")
                 .withTopbar(topbar)
                 .sidebarPrefix(Component.text("Starting: "))
-                .titleAudience(Audience.audience(allParticipants))
                 .onCompletion(() -> {
                     onBothTeamsLose(Component.text("Time ran out."));
                 })
