@@ -405,7 +405,7 @@ public class CaptureTheFlagMatch implements Listener {
         }
         onParticipantDeath(killed);
         if (killed.getKiller() != null) {
-            onParticipantGetKill(killed);
+            onParticipantGetKill(killed.getKiller(), killed);
         }
         if (allParticipantsAreDead()) {
             onBothTeamsLose(Component.text("Both teams are dead."));
@@ -440,12 +440,12 @@ public class CaptureTheFlagMatch implements Listener {
         return !participantsAreAlive.containsValue(true);
     }
     
-    private void onParticipantGetKill(Player killed) {
-        Player killer = killed.getKiller();
+    private void onParticipantGetKill(@NotNull Player killer, @NotNull Player killed) {
         if (!allParticipants.contains(killer)) {
             return;
         }
         addKill(killer.getUniqueId());
+        GameManagerUtils.showKillTitle(killer, killed);
         gameManager.awardPointsToParticipant(killer, config.getKillScore());
     }
     

@@ -376,8 +376,12 @@ public class ColossalCombatRound implements Listener {
     }
     
     private void onParticipantGetKill(@NotNull Player killer, @NotNull Player killed) {
-        GameManagerUtils.showKillTitle(killer, killed);
+        if (!firstPlaceParticipants.contains(killer) 
+                && !secondPlaceParticipants.contains(killer)) {
+            return;
+        }
         colossalCombatGame.addKill(killer.getUniqueId());
+        GameManagerUtils.showKillTitle(killer, killed);
     }
     
     /**
