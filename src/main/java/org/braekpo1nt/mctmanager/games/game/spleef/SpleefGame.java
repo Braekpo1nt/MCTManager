@@ -1,6 +1,8 @@
 package org.braekpo1nt.mctmanager.games.game.spleef;
 
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
@@ -417,5 +419,12 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
         for (Player participant : participants) {
             participant.sendMessage(message);
         }
+    }
+    
+    public void showTitle(@NotNull Title title) {
+        Audience.audience(
+                Audience.audience(admins),
+                Audience.audience(participants)
+        ).showTitle(title);
     }
 }

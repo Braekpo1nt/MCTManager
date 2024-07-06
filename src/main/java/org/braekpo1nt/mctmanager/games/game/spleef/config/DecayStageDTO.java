@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.games.game.spleef.config;
 
 import com.google.gson.annotations.SerializedName;
 import lombok.Data;
+import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.braekpo1nt.mctmanager.games.game.spleef.DecayStage;
@@ -38,7 +39,11 @@ public class DecayStageDTO implements Validatable {
     /**
      * the message to print to the chat when the phase begins (null means no message will be displayed)
      */
-    String startMessage;
+    Component startMessage;
+    /**
+     * the subtitle to show when the phase begins (null means no subtitle will be displayed)
+     */
+    Component startSubtitle;
     
     @Data
     static class LayerInfoDTO implements Validatable {
@@ -99,7 +104,15 @@ public class DecayStageDTO implements Validatable {
     }
     
     DecayStage toDecayStage() {
-        return new DecayStage(LayerInfoDTO.toLayerInfos(layerInfos), duration, minParticipants, minParticipantsPercent, powerups, startMessage);
+        return DecayStage.builder()
+                .layerInfos(LayerInfoDTO.toLayerInfos(layerInfos))
+                .duration(duration)
+                .minParticipants(minParticipants)
+                .minParticipantsPercent(minParticipantsPercent)
+                .powerups(powerups)
+                .startMessage(startMessage)
+                .startSubtitle(startSubtitle)
+                .build();
     }
     
     static List<DecayStage> toDecayStages(List<DecayStageDTO> decayStageDTOS) {
