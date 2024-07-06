@@ -37,7 +37,8 @@ record ClockworkConfigDTO(
         Team.OptionStatus collisionRule,
         @Nullable List<Material> preventInteractions,
         Scores scores, 
-        Durations durations, 
+        Durations durations,
+        Component getToWedgeMessage,
         Component description) implements Validatable {
     
     @Override
@@ -101,6 +102,7 @@ record ClockworkConfigDTO(
                 .preventInteractions(this.preventInteractions != null ? this.preventInteractions : Collections.emptyList())
                 .descriptionDuration(this.durations.description)
                 .spectatorArea(this.spectatorArea != null ? this.spectatorArea.toBoundingBox() : null)
+                .getToWedgeMessage(getToWedgeMessage)
                 .description(this.description)
                 .build();
     }

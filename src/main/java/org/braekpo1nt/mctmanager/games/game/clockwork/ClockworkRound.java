@@ -8,6 +8,7 @@ import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.clockwork.config.ClockworkConfig;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
+import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
@@ -239,6 +240,12 @@ public class ClockworkRound implements Listener {
                 if (count <= 0) {
                     clockIsChiming = false;
                     turnOnCollisions();
+                    if (config.getGetToWedgeMessage() != null) {
+                        Audience.audience(participants).showTitle(UIUtils.defaultTitle(
+                                Component.empty(),
+                                config.getGetToWedgeMessage()
+                        ));
+                    }
                     startGetToWedgeDelay();
                     this.cancel();
                     return;
