@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.event.config;
 
+import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
@@ -12,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
  */
 record EventConfigDTO(
         String version, 
-        String title, 
+        Component title, 
         double[] multipliers, 
         boolean shouldDisplayGameNumber,
         Durations durations) implements Validatable {
@@ -22,7 +23,6 @@ record EventConfigDTO(
         validator.notNull(this.version, "version");
         validator.validate(Main.VALID_CONFIG_VERSIONS.contains(this.version), "invalid config version (%s)", this.version);
         validator.notNull(this.title, "title");
-        validator.validate(this.title.length() >= 1, "title must be at least 1 character");
         validator.notNull(this.multipliers, "multipliers");
         validator.validate(this.multipliers.length >= 1, "there must be at least 1 multiplier");
         validator.notNull(this.durations, "durations");

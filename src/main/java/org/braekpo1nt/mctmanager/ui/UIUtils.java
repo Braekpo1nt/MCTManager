@@ -22,7 +22,7 @@ public class UIUtils {
             Duration.ofSeconds(3),
             Duration.ofMillis(500)
     );
-    private static final Title.Times DEFAULT_ANNOUNCEMENT_TIMES = Title.Times.times(
+    public static final Title.Times DEFAULT_ANNOUNCEMENT_TIMES = Title.Times.times(
             Duration.ZERO,
             Duration.ofSeconds(3),
             Duration.ofMillis(500)
