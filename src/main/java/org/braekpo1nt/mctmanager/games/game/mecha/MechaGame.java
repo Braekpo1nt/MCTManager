@@ -3,7 +3,6 @@ package org.braekpo1nt.mctmanager.games.game.mecha;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
@@ -13,9 +12,9 @@ import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.game.mecha.config.MechaConfig;
 import org.braekpo1nt.mctmanager.games.game.mecha.config.MechaConfigController;
-import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
+import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
@@ -912,7 +911,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
             return;
         }
         addKill(killer.getUniqueId());
-        GameManagerUtils.showKillTitle(killer, killed);
+        UIUtils.showKillTitle(killer, killed);
         gameManager.awardPointsToParticipant(killer, config.getKillScore());
     }
     

@@ -7,6 +7,7 @@ import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.colossalcombat.config.ColossalCombatConfig;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
+import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
@@ -381,7 +382,7 @@ public class ColossalCombatRound implements Listener {
             return;
         }
         colossalCombatGame.addKill(killer.getUniqueId());
-        GameManagerUtils.showKillTitle(killer, killed);
+        UIUtils.showKillTitle(killer, killed);
     }
     
     /**
