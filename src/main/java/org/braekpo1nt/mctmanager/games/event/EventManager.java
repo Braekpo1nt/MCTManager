@@ -993,7 +993,7 @@ public class EventManager implements Listener {
                     Audience.audience(admins),
                     Audience.audience(gameManager.getOnlineParticipants())
             ).showTitle(Title.title(formattedTeamDisplayName, Component.text("wins!")
-                    .color(teamColor), UIUtils.DEFAULT_ANNOUNCEMENT_TIMES));
+                    .color(teamColor), UIUtils.DEFAULT_TIMES));
             return;
         }
         Component message = Component.empty()
@@ -1011,7 +1011,7 @@ public class EventManager implements Listener {
                         .append(config.getTitle())
                         .append(Component.text("!"))
                         .color(teamColor), 
-                UIUtils.DEFAULT_ANNOUNCEMENT_TIMES));
+                UIUtils.DEFAULT_TIMES));
         toPodiumDelay(winningTeam);
     }
     

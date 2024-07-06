@@ -1,7 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.spleef;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.spleef.config.SpleefConfig;
@@ -136,7 +135,7 @@ public class DecayManager implements Listener {
             spleefRound.messageAllParticipants(currentStage.getStartMessage());
         }
         if (currentStage.getStartSubtitle() != null) {
-            spleefRound.showTitle(Title.title(Component.empty(), currentStage.getStartSubtitle(), UIUtils.DEFAULT_ANNOUNCEMENT_TIMES));
+            spleefRound.showTitle(Title.title(Component.empty(), currentStage.getStartSubtitle(), UIUtils.DEFAULT_TIMES));
         }
         spleefRound.setShouldGivePowerups(currentStage.shouldGivePowerups());
     }
