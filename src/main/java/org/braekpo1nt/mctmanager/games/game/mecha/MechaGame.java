@@ -1033,10 +1033,21 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
      */
     private void sendBorderShrinkAnnouncement(int duration, int size) {
         String timeString = TimeStringUtils.getTimeString(duration);
-        messageAllParticipants(Component.text("Border shrinking to ")
+        messageAllParticipants(Component.empty()
+                .append(Component.text("Border shrinking to "))
                 .append(Component.text(size))
                 .append(Component.text(" for "))
-                .append(Component.text(timeString)));
+                .append(Component.text(timeString))
+                .color(NamedTextColor.RED)
+        );
+        Audience.audience(
+                Audience.audience(admins),
+                Audience.audience(participants)
+        ).showTitle(UIUtils.defaultTitle(
+                Component.empty(), 
+                Component.text("Border shrinking")
+                        .color(NamedTextColor.RED)
+        ));
     }
     
     /**

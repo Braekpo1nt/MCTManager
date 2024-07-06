@@ -135,7 +135,7 @@ public class DecayManager implements Listener {
             spleefRound.messageAllParticipants(currentStage.getStartMessage());
         }
         if (currentStage.getStartSubtitle() != null) {
-            spleefRound.showTitle(Title.title(Component.empty(), currentStage.getStartSubtitle(), UIUtils.DEFAULT_TIMES));
+            spleefRound.showTitle(UIUtils.defaultTitle(Component.empty(), currentStage.getStartSubtitle()));
         }
         spleefRound.setShouldGivePowerups(currentStage.shouldGivePowerups());
     }
