@@ -149,6 +149,15 @@ public class EventManager implements Listener {
                 .append(Component.text("/"))
                 .append(Component.text(maxGames))
                 .append(Component.text(".")));
+        Audience.audience(
+                Audience.audience(admins),
+                Audience.audience(participants)
+        ).showTitle(UIUtils.defaultTitle(
+                Component.empty(),
+                Component.empty()
+                        .append(Component.text("Event Starting"))
+                        .color(NamedTextColor.GOLD)
+        ));
         startWaitingInHub();
     }
     
@@ -623,6 +632,8 @@ public class EventManager implements Listener {
                 .duration(config.getHalftimeBreakDuration())
                 .withSidebar(sidebar, "timer")
                 .withSidebar(adminSidebar, "timer")
+                .titleThreshold(20)
+                .titleAudience(Audience.audience(participants))
                 .sidebarPrefix(Component.text("Break: ").color(NamedTextColor.YELLOW))
                 .onCompletion(this::startVoting)
                 .build());
