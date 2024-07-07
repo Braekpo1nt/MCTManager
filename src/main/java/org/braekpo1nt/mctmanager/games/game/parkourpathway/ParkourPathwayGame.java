@@ -824,6 +824,13 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
                             .append(TimeStringUtils.getTimeComponent(config.getMercyRuleAlertDuration()))
                             .append(Component.text("."))
                             .color(NamedTextColor.RED));
+                    Audience.audience(participants).showTitle(UIUtils.defaultTitle(
+                            Component.empty(), 
+                            Component.empty()
+                                .append(Component.text(config.getMercyRuleAlertDuration()))
+                                .append(Component.text("s left"))
+                                .color(NamedTextColor.RED))
+                    );
                     startMercyRuleFinalCountdown();
                 })
                 .build().start(plugin);
