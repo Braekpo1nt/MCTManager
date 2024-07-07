@@ -744,6 +744,14 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
     }
     
     private void onParticipantFinish(Player participant) {
+        participant.showTitle(UIUtils.defaultTitle(
+                Component.empty()
+                        .append(Component.text("You finished!"))
+                        .color(NamedTextColor.GREEN),
+                Component.empty()
+                        .append(Component.text("Well done"))
+                        .color(NamedTextColor.GREEN)
+        ));
         messageAllParticipants(Component.empty()
                 .append(Component.text(participant.getName()))
                 .append(Component.text(" finished!"))
@@ -818,17 +826,18 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
                 .withSidebar(adminSidebar, "ending")
                 .sidebarPrefix(Component.text("Mercy Rule: "))
                 .onCompletion(() -> {
+                    Component timeLeft = TimeStringUtils.getTimeComponent(config.getMercyRuleAlertDuration());
                     messageAllParticipants(Component.text("No one has reached a new checkpoint in the last ")
                             .append(TimeStringUtils.getTimeComponent(config.getMercyRuleDuration()))
                             .append(Component.text(". Ending in "))
-                            .append(TimeStringUtils.getTimeComponent(config.getMercyRuleAlertDuration()))
+                            .append(timeLeft)
                             .append(Component.text("."))
                             .color(NamedTextColor.RED));
                     Audience.audience(participants).showTitle(UIUtils.defaultTitle(
                             Component.empty(), 
                             Component.empty()
-                                .append(Component.text(config.getMercyRuleAlertDuration()))
-                                .append(Component.text("s left"))
+                                .append(timeLeft)
+                                .append(Component.text(" left"))
                                 .color(NamedTextColor.RED))
                     );
                     startMercyRuleFinalCountdown();
