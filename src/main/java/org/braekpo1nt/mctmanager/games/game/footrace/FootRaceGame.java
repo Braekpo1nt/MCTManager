@@ -336,23 +336,23 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     
     private void startStartRaceCountdownTask() {
         timerManager.start(Timer.builder()
-                        .duration(config.getStartRaceDuration())
-                        .withSidebar(sidebar, "timer")
-                        .withSidebar(adminSidebar, "timer")
-                        .sidebarPrefix(Component.text("Starting: "))
-                        .titleAudience(Audience.audience(participants))
-                        .onCompletion(this::startRace)
-                        .build());
+                .duration(config.getStartRaceDuration())
+                .withSidebar(sidebar, "timer")
+                .withSidebar(adminSidebar, "timer")
+                .sidebarPrefix(Component.text("Starting: "))
+                .titleAudience(Audience.audience(participants))
+                .onCompletion(this::startRace)
+                .build());
     }
     
     private void startEndRaceCountDown() {
         timerManager.start(Timer.builder()
-                        .withSidebar(sidebar,"timer")
-                        .withSidebar(adminSidebar, "timer")
-                        .sidebarPrefix(Component.text("Ending: "))
-                        .duration(config.getStartRaceDuration())
-                        .onCompletion(this::stop)
-                        .build());
+                .duration(config.getRaceEndCountdownDuration())
+                .withSidebar(sidebar,"timer")
+                .withSidebar(adminSidebar, "timer")
+                .sidebarPrefix(Component.text("Ending: "))
+                .onCompletion(this::stop)
+                .build());
     }
     
     private void startTimerRefreshTask() {
