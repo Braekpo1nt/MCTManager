@@ -4,6 +4,7 @@ import io.papermc.paper.entity.LookAnchor;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlagConfig;
@@ -560,9 +561,21 @@ public class CaptureTheFlagMatch implements Listener {
         messageSouthParticipants(Component.empty()
                 .append(Component.text("Your flag was captured"))
                 .color(NamedTextColor.DARK_RED));
+        titleSouthParticipants(UIUtils.defaultTitle(
+                Component.empty(),
+                Component.empty()
+                        .append(Component.text("flag captured"))
+                        .color(NamedTextColor.DARK_RED)
+        ));
         messageNorthParticipants(Component.empty()
                 .append(Component.text("You captured the flag"))
                 .color(NamedTextColor.GREEN));
+        titleNorthParticipants(UIUtils.defaultTitle(
+                Component.empty(),
+                Component.empty()
+                        .append(Component.text("flag captured"))
+                        .color(NamedTextColor.GREEN)
+        ));
         northParticipant.getEquipment().setHelmet(new ItemStack(southBanner));
         southFlagPosition.getBlock().setType(Material.AIR);
         southFlagPosition = null;
@@ -573,9 +586,21 @@ public class CaptureTheFlagMatch implements Listener {
         messageSouthParticipants(Component.empty()
                 .append(Component.text("Your flag was dropped"))
                 .color(NamedTextColor.GREEN));
+        titleSouthParticipants(UIUtils.defaultTitle(
+                Component.empty(),
+                Component.empty()
+                        .append(Component.text("flag dropped"))
+                        .color(NamedTextColor.GREEN)
+        ));
         messageNorthParticipants(Component.empty()
                 .append(Component.text("You dropped the flag"))
                 .color(NamedTextColor.DARK_RED));
+        titleNorthParticipants(UIUtils.defaultTitle(
+                Component.empty(),
+                Component.empty()
+                        .append(Component.text("flag dropped"))
+                        .color(NamedTextColor.DARK_RED)
+        ));
         northParticipant.getEquipment().setHelmet(null);
         southFlagPosition = BlockPlacementUtils.getBlockDropLocation(northParticipant.getLocation());
         BlockPlacementUtils.placeFlag(southBanner, southFlagPosition, northParticipant.getFacing());
@@ -609,9 +634,21 @@ public class CaptureTheFlagMatch implements Listener {
         messageSouthParticipants(Component.empty()
                 .append(Component.text("Your flag was recovered"))
                 .color(NamedTextColor.GREEN));
+        titleSouthParticipants(UIUtils.defaultTitle(
+                Component.empty(),
+                Component.empty()
+                        .append(Component.text("flag recovered"))
+                        .color(NamedTextColor.GREEN)
+        ));
         messageNorthParticipants(Component.empty()
                 .append(Component.text("Opponents' flag was recovered"))
                 .color(NamedTextColor.DARK_RED));
+        titleNorthParticipants(UIUtils.defaultTitle(
+                Component.empty(),
+                Component.empty()
+                        .append(Component.text("flag recovered"))
+                        .color(NamedTextColor.DARK_RED)
+        ));
         southFlagPosition.getBlock().setType(Material.AIR);
         southFlagPosition = arena.southFlag();
         BlockPlacementUtils.placeFlag(southBanner, southFlagPosition, BlockFace.NORTH);
@@ -645,19 +682,6 @@ public class CaptureTheFlagMatch implements Listener {
         return northFlagPosition.getBlockX() == location.getBlockX() && northFlagPosition.getBlockY() == location.getBlockY() && northFlagPosition.getBlockZ() == location.getBlockZ();
     }
     
-    private synchronized void dropNorthFlag(Player southParticipant) {
-        messageNorthParticipants(Component.empty()
-                .append(Component.text("Your flag was dropped"))
-                .color(NamedTextColor.GREEN));
-        messageSouthParticipants(Component.empty()
-                .append(Component.text("You dropped the flag"))
-                .color(NamedTextColor.DARK_RED));
-        southParticipant.getEquipment().setHelmet(null);
-        northFlagPosition = BlockPlacementUtils.getBlockDropLocation(southParticipant.getLocation());
-        BlockPlacementUtils.placeFlag(northBanner, northFlagPosition, southParticipant.getFacing());
-        hasNorthFlag = null;
-    }
-    
     private boolean hasNorthFlag(Player southParticipant) {
         return Objects.equals(hasNorthFlag, southParticipant);
     }
@@ -666,13 +690,50 @@ public class CaptureTheFlagMatch implements Listener {
         messageNorthParticipants(Component.empty()
                 .append(Component.text("Your flag was captured!"))
                 .color(NamedTextColor.DARK_RED));
+        titleNorthParticipants(UIUtils.defaultTitle(
+                Component.empty(),
+                Component.empty()
+                        .append(Component.text("flag captured"))
+                        .color(NamedTextColor.DARK_RED)
+        ));
         messageSouthParticipants(Component.empty()
                 .append(Component.text("You captured the flag!"))
                 .color(NamedTextColor.GREEN));
+        titleSouthParticipants(UIUtils.defaultTitle(
+                Component.empty(),
+                Component.empty()
+                        .append(Component.text("flag captured"))
+                        .color(NamedTextColor.GREEN)
+        ));
         southParticipant.getEquipment().setHelmet(new ItemStack(northBanner));
         northFlagPosition.getBlock().setType(Material.AIR);
         northFlagPosition = null;
         hasNorthFlag = southParticipant;
+    }
+    
+    private synchronized void dropNorthFlag(Player southParticipant) {
+        messageNorthParticipants(Component.empty()
+                .append(Component.text("Your flag was dropped"))
+                .color(NamedTextColor.GREEN));
+        titleNorthParticipants(UIUtils.defaultTitle(
+                Component.empty(),
+                Component.empty()
+                        .append(Component.text("flag dropped"))
+                        .color(NamedTextColor.GREEN)
+        ));
+        messageSouthParticipants(Component.empty()
+                .append(Component.text("You dropped the flag"))
+                .color(NamedTextColor.DARK_RED));
+        titleSouthParticipants(UIUtils.defaultTitle(
+                Component.empty(),
+                Component.empty()
+                        .append(Component.text("flag dropped"))
+                        .color(NamedTextColor.DARK_RED)
+        ));
+        southParticipant.getEquipment().setHelmet(null);
+        northFlagPosition = BlockPlacementUtils.getBlockDropLocation(southParticipant.getLocation());
+        BlockPlacementUtils.placeFlag(northBanner, northFlagPosition, southParticipant.getFacing());
+        hasNorthFlag = null;
     }
     
     private boolean canDeliverNorthFlag(Player southParticipant) {
@@ -702,9 +763,21 @@ public class CaptureTheFlagMatch implements Listener {
         messageNorthParticipants(Component.empty()
                 .append(Component.text("Your flag was recovered"))
                 .color(NamedTextColor.GREEN));
+        titleNorthParticipants(UIUtils.defaultTitle(
+                Component.empty(),
+                Component.empty()
+                        .append(Component.text("flag recovered"))
+                        .color(NamedTextColor.GREEN)
+        ));
         messageSouthParticipants(Component.empty()
                 .append(Component.text("Opponents' flag was recovered"))
                 .color(NamedTextColor.DARK_RED));
+        titleSouthParticipants(UIUtils.defaultTitle(
+                Component.empty(),
+                Component.empty()
+                        .append(Component.text("flag recovered"))
+                        .color(NamedTextColor.DARK_RED)
+        ));
         northFlagPosition.getBlock().setType(Material.AIR);
         northFlagPosition = arena.northFlag();
         BlockPlacementUtils.placeFlag(northBanner, northFlagPosition, BlockFace.SOUTH);
@@ -846,15 +919,19 @@ public class CaptureTheFlagMatch implements Listener {
     }
     
     private void messageNorthParticipants(Component message) {
-        for (Player participant : northParticipants) {
-            participant.sendMessage(message);
-        }
+        Audience.audience(northParticipants).sendMessage(message);
+    }
+    
+    private void titleNorthParticipants(Title title) {
+        Audience.audience(northParticipants).showTitle(title);
     }
     
     private void messageSouthParticipants(Component message) {
-        for (Player participant : southParticipants) {
-            participant.sendMessage(message);
-        }
+        Audience.audience(southParticipants).sendMessage(message);
+    }
+    
+    private void titleSouthParticipants(Title title) {
+        Audience.audience(southParticipants).showTitle(title);
     }
     
     /**
