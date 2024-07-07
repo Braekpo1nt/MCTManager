@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.games.game.spleef;
 
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.spleef.config.SpleefConfig;
@@ -35,6 +36,7 @@ import org.bukkit.scoreboard.Team;
 import org.bukkit.structure.Structure;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -464,6 +466,10 @@ public class SpleefRound implements Listener {
         for (Player participant : participants) {
             participant.sendMessage(message);
         }
+    }
+    
+    public void showTitle(@NotNull Title title) {
+        spleefGame.showTitle(title);
     }
     
     /**

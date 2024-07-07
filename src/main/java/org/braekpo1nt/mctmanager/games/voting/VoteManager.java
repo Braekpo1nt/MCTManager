@@ -1,11 +1,13 @@
 package org.braekpo1nt.mctmanager.games.voting;
 
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
+import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
@@ -381,11 +383,17 @@ public class VoteManager implements Listener {
     private void executeVote() {
         voting = false;
         paused = false;
+        GameType gameType = getVotedForGame();
+        Audience.audience(voters).showTitle(UIUtils.defaultTitle(
+                Component.empty()
+                        .append(Component.text(gameType.getTitle()))
+                        .color(NamedTextColor.BLUE),
+                Component.empty()
+        ));
         cancelAllTasks();
         for (Player voter : voters) {
             resetParticipant(voter);
         }
-        GameType gameType = getVotedForGame();
         HandlerList.unregisterAll(this);
         votes.clear();
         voters.clear();

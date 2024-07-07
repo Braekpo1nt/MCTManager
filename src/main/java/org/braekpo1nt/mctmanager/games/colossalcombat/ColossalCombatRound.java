@@ -7,6 +7,7 @@ import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.colossalcombat.config.ColossalCombatConfig;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
+import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
@@ -338,7 +339,7 @@ public class ColossalCombatRound implements Listener {
         }
         Player killer = killed.getKiller();
         if (killer != null) {
-            onParticipantGetKill(killer);
+            onParticipantGetKill(killer, killed);
         }
         onParticipantDeath(killed);
     }
@@ -375,8 +376,13 @@ public class ColossalCombatRound implements Listener {
         }
     }
     
-    private void onParticipantGetKill(@NotNull Player killer) {
+    private void onParticipantGetKill(@NotNull Player killer, @NotNull Player killed) {
+        if (!firstPlaceParticipants.contains(killer) 
+                && !secondPlaceParticipants.contains(killer)) {
+            return;
+        }
         colossalCombatGame.addKill(killer.getUniqueId());
+        UIUtils.showKillTitle(killer, killed);
     }
     
     /**

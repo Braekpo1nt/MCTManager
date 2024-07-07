@@ -19,6 +19,7 @@ import org.braekpo1nt.mctmanager.games.game.parkourpathway.puzzle.CheckPoint;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.puzzle.Puzzle;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
+import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
@@ -689,12 +690,21 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         if (puzzleIndex >= config.getPuzzlesSize()-1) {
             onParticipantFinish(participant);
         } else {
+            Component checkpointNum = Component.empty()
+                    .append(Component.text(puzzleIndex))
+                    .append(Component.text("/"))
+                    .append(Component.text(config.getPuzzlesSize()-1));
             messageAllParticipants(Component.empty()
                     .append(Component.text(participant.getName()))
                     .append(Component.text(" reached checkpoint "))
-                    .append(Component.text(puzzleIndex))
-                    .append(Component.text("/"))
-                    .append(Component.text(config.getPuzzlesSize()-1)));
+                    .append(checkpointNum));
+            participant.showTitle(UIUtils.defaultTitle(
+                    Component.empty(),
+                    Component.empty()
+                            .append(Component.text("Checkpoint "))
+                            .append(checkpointNum)
+                            .color(NamedTextColor.YELLOW)
+            ));
             int playersCheckpoint = currentPuzzles.get(uuid);
             int points = calculatePointsForPuzzle(playersCheckpoint, config.getCheckpointScore());
             gameManager.awardPointsToParticipant(participant, points);
@@ -734,6 +744,14 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
     }
     
     private void onParticipantFinish(Player participant) {
+        participant.showTitle(UIUtils.defaultTitle(
+                Component.empty()
+                        .append(Component.text("You finished!"))
+                        .color(NamedTextColor.GREEN),
+                Component.empty()
+                        .append(Component.text("Well done"))
+                        .color(NamedTextColor.GREEN)
+        ));
         messageAllParticipants(Component.empty()
                 .append(Component.text(participant.getName()))
                 .append(Component.text(" finished!"))
@@ -808,12 +826,20 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
                 .withSidebar(adminSidebar, "ending")
                 .sidebarPrefix(Component.text("Mercy Rule: "))
                 .onCompletion(() -> {
+                    Component timeLeft = TimeStringUtils.getTimeComponent(config.getMercyRuleAlertDuration());
                     messageAllParticipants(Component.text("No one has reached a new checkpoint in the last ")
                             .append(TimeStringUtils.getTimeComponent(config.getMercyRuleDuration()))
                             .append(Component.text(". Ending in "))
-                            .append(TimeStringUtils.getTimeComponent(config.getMercyRuleAlertDuration()))
+                            .append(timeLeft)
                             .append(Component.text("."))
                             .color(NamedTextColor.RED));
+                    Audience.audience(participants).showTitle(UIUtils.defaultTitle(
+                            Component.empty(), 
+                            Component.empty()
+                                .append(timeLeft)
+                                .append(Component.text(" left"))
+                                .color(NamedTextColor.RED))
+                    );
                     startMercyRuleFinalCountdown();
                 })
                 .build().start(plugin);

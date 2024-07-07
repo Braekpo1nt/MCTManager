@@ -12,6 +12,7 @@ import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlag
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
+import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
@@ -270,14 +271,24 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         for (Player participant : participants) {
             String teamId = gameManager.getTeamName(participant.getUniqueId());
             Component teamDisplayName = gameManager.getFormattedTeamDisplayName(teamId);
+            Component roundDisplay = Component.empty()
+                    .append(Component.text("Round "))
+                    .append(Component.text(roundManager.getPlayedRounds() + 1))
+                    .append(Component.text(":"));
             if (participantTeams.contains(teamId)) {
-                announceMatchToParticipant(participant, teamId, teamDisplayName);
+                announceMatchToParticipant(participant, teamId, teamDisplayName, roundDisplay);
                 roundParticipants.add(participant);
             } else {
                 participant.sendMessage(Component.empty()
                         .append(teamDisplayName)
                         .append(Component.text(" is on-deck this round."))
                         .color(NamedTextColor.YELLOW));
+                participant.showTitle(UIUtils.defaultTitle(
+                        roundDisplay,
+                        Component.empty()
+                                .append(teamDisplayName)
+                                .append(Component.text(" is on-deck"))
+                ));
                 onDeckParticipants.add(participant);
             }
         }
@@ -320,17 +331,24 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     /**
      * Send a message to the participant who they are fighting against in the current match
      * @param participant the participant to send the message to
-     * @param team the team that the participant is on
+     * @param teamId the team that the participant is on
      */
-    private void announceMatchToParticipant(Player participant, String team, Component teamDisplayName) {
-        String oppositeTeam = currentRound.getOppositeTeam(team);
-        Component oppositeTeamDisplayName = gameManager.getFormattedTeamDisplayName(oppositeTeam);
+    private void announceMatchToParticipant(Player participant, String teamId, Component teamDisplayName, Component roundDisplay) {
+        String oppositeTeamId = currentRound.getOppositeTeam(teamId);
+        Component oppositeTeamDisplayName = gameManager.getFormattedTeamDisplayName(oppositeTeamId);
         participant.sendMessage(Component.empty()
                 .append(teamDisplayName)
                 .append(Component.text(" is competing against "))
                 .append(oppositeTeamDisplayName)
                 .append(Component.text(" this round."))
                 .color(NamedTextColor.YELLOW));
+        participant.showTitle(UIUtils.defaultTitle(
+                roundDisplay,
+                Component.empty()
+                        .append(teamDisplayName)
+                        .append(Component.text(" vs "))
+                        .append(oppositeTeamDisplayName)
+        ));
     }
     
     @EventHandler

@@ -1,10 +1,12 @@
 package org.braekpo1nt.mctmanager.games.event;
 
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.games.GameManager;
@@ -14,6 +16,7 @@ import org.braekpo1nt.mctmanager.games.event.config.EventConfigController;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.voting.VoteManager;
+import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
@@ -146,6 +149,15 @@ public class EventManager implements Listener {
                 .append(Component.text("/"))
                 .append(Component.text(maxGames))
                 .append(Component.text(".")));
+        Audience.audience(
+                Audience.audience(admins),
+                Audience.audience(participants)
+        ).showTitle(UIUtils.defaultTitle(
+                Component.empty(),
+                Component.empty()
+                        .append(Component.text("Event Starting"))
+                        .color(NamedTextColor.GOLD)
+        ));
         startWaitingInHub();
     }
     
@@ -620,6 +632,8 @@ public class EventManager implements Listener {
                 .duration(config.getHalftimeBreakDuration())
                 .withSidebar(sidebar, "timer")
                 .withSidebar(adminSidebar, "timer")
+                .titleThreshold(20)
+                .titleAudience(Audience.audience(participants))
                 .sidebarPrefix(Component.text("Break: ").color(NamedTextColor.YELLOW))
                 .onCompletion(this::startVoting)
                 .build());
@@ -986,15 +1000,29 @@ public class EventManager implements Listener {
                     .decorate(TextDecoration.BOLD);
             messageAllAdmins(message);
             gameManager.messageOnlineParticipants(message);
+            Audience.audience(
+                    Audience.audience(admins),
+                    Audience.audience(gameManager.getOnlineParticipants())
+            ).showTitle(Title.title(formattedTeamDisplayName, Component.text("wins!")
+                    .color(teamColor), UIUtils.DEFAULT_TIMES));
             return;
         }
-        Bukkit.getServer().sendMessage(Component.empty()
+        Component message = Component.empty()
                 .append(formattedTeamDisplayName)
                 .append(Component.text(" wins ")
-                    .append(Component.text(config.getTitle()))
-                    .append(Component.text("!")))
+                        .append(config.getTitle())
+                        .append(Component.text("!")))
                 .color(teamColor)
-                .decorate(TextDecoration.BOLD));
+                .decorate(TextDecoration.BOLD);
+        Bukkit.getServer().sendMessage(message);
+        Bukkit.getServer().showTitle(Title.title(
+                formattedTeamDisplayName, 
+                Component.empty()
+                        .append(Component.text("wins "))
+                        .append(config.getTitle())
+                        .append(Component.text("!"))
+                        .color(teamColor), 
+                UIUtils.DEFAULT_TIMES));
         toPodiumDelay(winningTeam);
     }
     

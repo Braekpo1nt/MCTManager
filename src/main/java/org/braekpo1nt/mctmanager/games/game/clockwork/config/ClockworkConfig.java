@@ -38,6 +38,7 @@ public class ClockworkConfig {
     private List<Material> preventInteractions;
     private int descriptionDuration;
     private @Nullable BoundingBox spectatorArea;
+    private @Nullable Component getToWedgeMessage;
     private Component description;
     
 }

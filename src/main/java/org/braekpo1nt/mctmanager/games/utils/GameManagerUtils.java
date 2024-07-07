@@ -379,7 +379,7 @@ public class GameManagerUtils {
     
     /**
      * Removes the color from any and all leather armor items in the given player's armor slots. Uses {@link GameManagerUtils#deColorLeatherArmor(ItemStack)} on each armor item.
-     * @param player
+     * @param player the player wearing the armor
      * @see GameManagerUtils#deColorLeatherArmor(ItemStack)
      */
     public static void deColorLeatherArmor(@NotNull Player player) {

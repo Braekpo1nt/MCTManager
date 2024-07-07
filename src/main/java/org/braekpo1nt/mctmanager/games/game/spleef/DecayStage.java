@@ -1,13 +1,13 @@
 package org.braekpo1nt.mctmanager.games.game.spleef;
 
 import lombok.*;
+import net.kyori.adventure.text.Component;
 import org.bukkit.block.Block;
 
 import java.util.List;
 
-@Getter
-@AllArgsConstructor
-@NoArgsConstructor
+@Data
+@Builder
 public class DecayStage {
     
     /**
@@ -25,15 +25,19 @@ public class DecayStage {
     /**
      * the minimum percentage of participants for this stage. Values between 0 and 1. Negative value means there is no minimum percent of players and the stage will not proceed until some other requirement is met. (defaults to -1)
      */
-    private double minParticipantsPercent = -1;
+    private double minParticipantsPercent;
     /**
      * whether powerups should be given during this phase (defaults to true)
      */
-    private boolean powerups = true;
+    private boolean powerups;
     /**
      * the message to print to the chat when the phase begins (null means no message will be displayed)
      */
-    private String startMessage;
+    private Component startMessage;
+    /**
+     * the subtitle to show when the phase begins (null means no subtitle will be displayed)
+     */
+    private Component startSubtitle;
     
     /**
      * sets the solid and decaying block lists to null to save space

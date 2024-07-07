@@ -14,6 +14,7 @@ import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
+import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
@@ -335,23 +336,23 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     
     private void startStartRaceCountdownTask() {
         timerManager.start(Timer.builder()
-                        .duration(config.getStartRaceDuration())
-                        .withSidebar(sidebar, "timer")
-                        .withSidebar(adminSidebar, "timer")
-                        .sidebarPrefix(Component.text("Starting: "))
-                        .titleAudience(Audience.audience(participants))
-                        .onCompletion(this::startRace)
-                        .build());
+                .duration(config.getStartRaceDuration())
+                .withSidebar(sidebar, "timer")
+                .withSidebar(adminSidebar, "timer")
+                .sidebarPrefix(Component.text("Starting: "))
+                .titleAudience(Audience.audience(participants))
+                .onCompletion(this::startRace)
+                .build());
     }
     
     private void startEndRaceCountDown() {
         timerManager.start(Timer.builder()
-                        .withSidebar(sidebar,"timer")
-                        .withSidebar(adminSidebar, "timer")
-                        .sidebarPrefix(Component.text("Ending: "))
-                        .duration(config.getStartRaceDuration())
-                        .onCompletion(this::stop)
-                        .build());
+                .duration(config.getRaceEndCountdownDuration())
+                .withSidebar(sidebar,"timer")
+                .withSidebar(adminSidebar, "timer")
+                .sidebarPrefix(Component.text("Ending: "))
+                .onCompletion(this::stop)
+                .build());
     }
     
     private void startTimerRefreshTask() {
@@ -501,7 +502,15 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
                         "lap",
                         String.format("Lap: %d/%d", laps.get(playerUUID), MAX_LAPS)
                 );
-                messageAllParticipants(Component.text(participant.getName())
+                participant.showTitle(UIUtils.defaultTitle(
+                        Component.empty(),
+                        Component.empty()
+                                .append(Component.text("Lap "))
+                                .append(Component.text(currentLap+1))
+                                .color(NamedTextColor.YELLOW)
+                ));
+                messageAllParticipants(Component.empty()
+                        .append(participant.displayName())
                         .append(Component.text(" finished lap "))
                         .append(Component.text(currentLap))
                         .append(Component.text(" in "))
@@ -655,34 +664,55 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     }
     
     /**
-     * Code to run when a single player crosses the finish line for the last time
-     * @param player The player who crossed the finish line
+     * Code to run when a single participant crosses the finish line for the last time
+     * @param participant The participant who crossed the finish line
      */
-    private void onPlayerFinishedRace(Player player) {
+    private void onPlayerFinishedRace(Player participant) {
         long elapsedTime = System.currentTimeMillis() - raceStartTime;
-        placements.add(player.getUniqueId());
-        showRaceCompleteFastBoard(player.getUniqueId());
-        int placement = placements.indexOf(player.getUniqueId()) + 1;
+        placements.add(participant.getUniqueId());
+        showRaceCompleteFastBoard(participant.getUniqueId());
+        int placement = placements.indexOf(participant.getUniqueId()) + 1;
         int points = calculatePointsForPlacement(placement);
-        gameManager.awardPointsToParticipant(player, points);
-        String placementTitle = getPlacementTitle(placement);
+        gameManager.awardPointsToParticipant(participant, points);
         String timeString = getTimeString(elapsedTime);
-        String endCountDown = TimeStringUtils.getTimeString(config.getRaceEndCountdownDuration());
+        Component endCountDown = TimeStringUtils.getTimeComponent(config.getRaceEndCountdownDuration());
+        String placementTitle = getPlacementTitle(placement);
+        Component placementComponent = Component.text(placementTitle);
+        participant.showTitle(UIUtils.defaultTitle(
+                Component.empty()
+                        .append(Component.text("Finished "))
+                        .append(placementComponent)
+                        .color(NamedTextColor.GREEN),
+                Component.empty()
+                        .append(Component.text("Well done"))
+                        .color(NamedTextColor.GREEN)
+        ));
         if (placements.size() == 1) {
-            messageAllParticipants(Component.text(player.getName())
+            messageAllParticipants(Component.empty()
+                    .append(Component.text(participant.getName()))
                     .append(Component.text(" finished 1st in "))
                     .append(Component.text(timeString))
-                    .append(Component.text("! Only ")
-                            .append(Component.text(endCountDown))
-                            .append(Component.text(" remains!"))
+                    .append(Component.text("! "))
+                    .append(Component.text("Only ")
+                            .append(endCountDown)
+                            .append(Component.text(" remain!"))
                             .color(NamedTextColor.RED))
                     .color(NamedTextColor.GREEN));
+            Audience.audience(participants.stream()
+                    .filter(p -> !p.equals(participant)).toList())
+                    .showTitle(UIUtils.defaultTitle(
+                            Component.empty(),
+                            Component.empty()
+                                    .append(endCountDown)
+                                    .append(Component.text(" left"))
+                                    .color(NamedTextColor.RED)
+            ));
             startEndRaceCountDown();
             return;
         }
-        messageAllParticipants(Component.text(player.getName())
+        messageAllParticipants(Component.text(participant.getName())
                 .append(Component.text(" finished "))
-                .append(Component.text(placementTitle))
+                .append(placementComponent)
                 .append(Component.text(" in "))
                 .append(Component.text(timeString)));
     }

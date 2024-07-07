@@ -2,6 +2,8 @@ package org.braekpo1nt.mctmanager.ui.sidebar;
 
 import com.google.common.base.Preconditions;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -35,13 +37,20 @@ public class Sidebar {
      * The actual FastBoards, which handle the display of information to the player
      */
     protected final Map<UUID, FastBoardWrapper> boards = new HashMap<>();
-    public static final String DEFAULT_TITLE = ChatColor.BOLD + "" + ChatColor.DARK_RED + "MCT";
+    public static final Component DEFAULT_TITLE = Component.empty()
+            .append(Component.text("MCT")
+                    .color(NamedTextColor.DARK_RED)
+                    .decorate(TextDecoration.BOLD));
     /**
      * The title to be used at the top of the FastBoard
      */
-    protected String title = DEFAULT_TITLE;
+    protected Component title = DEFAULT_TITLE;
     
     public synchronized void updateTitle(String title) {
+        updateTitle(Component.text(title));
+    }
+    
+    public synchronized void updateTitle(@NotNull Component title) {
         this.title = title;
         for (FastBoardWrapper board : boards.values()) {
             board.updateTitle(title);

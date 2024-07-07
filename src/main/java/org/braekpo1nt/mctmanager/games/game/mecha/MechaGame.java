@@ -14,6 +14,7 @@ import org.braekpo1nt.mctmanager.games.game.mecha.config.MechaConfig;
 import org.braekpo1nt.mctmanager.games.game.mecha.config.MechaConfigController;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
+import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
@@ -508,23 +509,38 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     
     private void startInvulnerableTimer() {
         isInvulnerable = true;
-        String invulnerabilityDuration = TimeStringUtils.getTimeString(config.getInvulnerabilityDuration());
-        messageAllParticipants(Component.text("Invulnerable for ")
-                .append(Component.text(invulnerabilityDuration))
-                .append(Component.text("!")));
-        String initialTimer = String.format("Invulnerable: %s", invulnerabilityDuration);
-        sidebar.addLine("invuln", initialTimer);
-        adminSidebar.addLine("invuln", initialTimer);
+        Component gracePeriodDuration = TimeStringUtils.getTimeComponent(config.getGracePeriodDuration());
+        Component gracePeriodStarted = Component.empty()
+                .append(gracePeriodDuration)
+                .append(Component.text(" grace period"))
+                .color(NamedTextColor.GREEN);
+        messageAllParticipants(gracePeriodStarted);
+        Audience.audience(participants).showTitle(UIUtils.defaultTitle(
+                Component.empty(),
+                gracePeriodStarted
+        ));
+        Component initialTimer = Component.empty()
+                .append(Component.text("Grace period: "))
+                .append(gracePeriodDuration);
+        sidebar.addLine("grace", initialTimer);
+        adminSidebar.addLine("grace", initialTimer);
         timerManager.start(Timer.builder()
-                .duration(config.getInvulnerabilityDuration())
-                .withSidebar(sidebar, "invuln")
-                .withSidebar(adminSidebar, "invuln")
-                .sidebarPrefix(Component.text("Invulnerable: "))
+                .duration(config.getGracePeriodDuration())
+                .withSidebar(sidebar, "grace")
+                .withSidebar(adminSidebar, "grace")
+                .sidebarPrefix(Component.text("Grace Period: "))
                 .onCompletion(() -> {
-                    sidebar.deleteLine("invuln");
-                    adminSidebar.deleteLine("invuln");
+                    sidebar.deleteLine("grace");
+                    adminSidebar.deleteLine("grace");
                     isInvulnerable = false;
-                    messageAllParticipants(Component.text("Invulnerability has ended!"));
+                    Component gracePeriodEnded = Component.empty()
+                            .append(Component.text("Grace period ended"))
+                            .color(NamedTextColor.RED);
+                    messageAllParticipants(gracePeriodEnded);
+                    Audience.audience(participants).showTitle(UIUtils.defaultTitle(
+                            Component.empty(),
+                            gracePeriodEnded
+                    ));
                 })
                 .build());
     }
@@ -596,7 +612,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
             plugin.getServer().sendMessage(deathMessage);
         }
         if (killed.getKiller() != null) {
-            onParticipantGetKill(killed);
+            onParticipantGetKill(killed.getKiller(), killed);
         }
         onParticipantDeath(killed);
     }
@@ -905,15 +921,12 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         killed.getInventory().clear();
     }
     
-    private void onParticipantGetKill(Player killed) {
-        Player killer = killed.getKiller();
-        if (killer == null) {
-            return;
-        }
+    private void onParticipantGetKill(@NotNull Player killer, @NotNull Player killed) {
         if (!participants.contains(killer)) {
             return;
         }
         addKill(killer.getUniqueId());
+        UIUtils.showKillTitle(killer, killed);
         gameManager.awardPointsToParticipant(killer, config.getKillScore());
     }
     
@@ -1035,10 +1048,21 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
      */
     private void sendBorderShrinkAnnouncement(int duration, int size) {
         String timeString = TimeStringUtils.getTimeString(duration);
-        messageAllParticipants(Component.text("Border shrinking to ")
+        messageAllParticipants(Component.empty()
+                .append(Component.text("Border shrinking to "))
                 .append(Component.text(size))
                 .append(Component.text(" for "))
-                .append(Component.text(timeString)));
+                .append(Component.text(timeString))
+                .color(NamedTextColor.RED)
+        );
+        Audience.audience(
+                Audience.audience(admins),
+                Audience.audience(participants)
+        ).showTitle(UIUtils.defaultTitle(
+                Component.empty(), 
+                Component.text("Border shrinking")
+                        .color(NamedTextColor.RED)
+        ));
     }
     
     /**

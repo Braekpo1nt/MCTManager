@@ -2,10 +2,45 @@ package org.braekpo1nt.mctmanager.ui;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+import net.kyori.adventure.title.Title;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
+import java.time.Duration;
+
 public class UIUtils {
+    private static final Component KILL_PREFIX = Component.empty()
+            .append(Component.text("["))
+            .append(Component.text("k")
+                    .color(NamedTextColor.GREEN))
+            .append(Component.text("] "))
+            ;
+    private static final Title.Times KILL_TIMES = Title.Times.times(
+            Duration.ZERO,
+            Duration.ofSeconds(3),
+            Duration.ofMillis(500)
+    );
+    /**
+     * The title times used across the plugin
+     */
+    public static final Title.Times DEFAULT_TIMES = Title.Times.times(
+            Duration.ZERO,
+            Duration.ofSeconds(3),
+            Duration.ofMillis(500)
+    );
+    
+    /**
+     * Used across the plugin to show titles with unified timings
+     * @param title the title component
+     * @param subtitle the subtitle component
+     * @return a new title with the given title and subtitle, with the {@link #DEFAULT_TIMES} times
+     */
+    public static Title defaultTitle(@NotNull Component title, @NotNull Component subtitle) {
+        return Title.title(title,subtitle, DEFAULT_TIMES);
+    }
+    
     private UIUtils() {
         // do not instantiate
     }
@@ -55,5 +90,20 @@ public class UIUtils {
                 .append(middle)
                 .append(paddingRight)
                 .append(right);
+    }
+    
+    /**
+     * Shows a subtitle to the killer indicating that they killed the given player
+     * @param killer the one who killed
+     * @param killed the one who was killed (the one who died)
+     */
+    public static void showKillTitle(Player killer, Player killed) {
+        killer.showTitle(Title.title(
+                Component.empty(), 
+                Component.empty()
+                        .append(KILL_PREFIX)
+                        .append(killed.displayName()),
+                KILL_TIMES
+        ));
     }
 }
