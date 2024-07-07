@@ -675,7 +675,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         int points = calculatePointsForPlacement(placement);
         gameManager.awardPointsToParticipant(participant, points);
         String timeString = getTimeString(elapsedTime);
-        String endCountDown = TimeStringUtils.getTimeString(config.getRaceEndCountdownDuration());
+        Component endCountDown = TimeStringUtils.getTimeComponent(config.getRaceEndCountdownDuration());
         String placementTitle = getPlacementTitle(placement);
         Component placementComponent = Component.text(placementTitle);
         participant.showTitle(UIUtils.defaultTitle(
@@ -694,10 +694,19 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
                     .append(Component.text(timeString))
                     .append(Component.text("! "))
                     .append(Component.text("Only ")
-                            .append(Component.text(endCountDown))
-                            .append(Component.text(" remains!"))
+                            .append(endCountDown)
+                            .append(Component.text(" remain!"))
                             .color(NamedTextColor.RED))
                     .color(NamedTextColor.GREEN));
+            Audience.audience(participants.stream()
+                    .filter(p -> !p.equals(participant)).toList())
+                    .showTitle(UIUtils.defaultTitle(
+                            Component.empty(),
+                            Component.empty()
+                                    .append(endCountDown)
+                                    .append(Component.text(" left"))
+                                    .color(NamedTextColor.RED)
+            ));
             startEndRaceCountDown();
             return;
         }
