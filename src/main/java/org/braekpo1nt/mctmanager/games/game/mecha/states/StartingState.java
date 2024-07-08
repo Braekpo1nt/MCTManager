@@ -1,48 +1,28 @@
 package org.braekpo1nt.mctmanager.games.game.mecha.states;
 
-import lombok.AllArgsConstructor;
+import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.games.game.mecha.MechaGame;
-import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
-import org.bukkit.GameMode;
-import org.bukkit.entity.Player;
+import org.braekpo1nt.mctmanager.ui.timer.Timer;
+import org.jetbrains.annotations.NotNull;
 
-@AllArgsConstructor
-public class StartingState implements MechaState {
-    private MechaGame context;
+public class StartingState extends DescriptionState {
     
-    @Override
-    public void onParticipantJoin(Player participant) {
-        
+    public StartingState(@NotNull MechaGame context) {
+        super(context);
     }
     
     @Override
-    public void onParticipantQuit(Player participant) {
-        
-    }
-    
-    public void initializeParticipant(Player participant) {
-        context.getParticipants().add(participant);
-        context.getLivingPlayers().add(participant.getUniqueId());
-        String teamId = context.getGameManager().getTeamName(participant.getUniqueId());
-        context.getLivingMembers().putIfAbsent(teamId, 0);
-        int oldAliveCount = context.getLivingMembers().get(teamId);
-        context.getLivingMembers().put(teamId, oldAliveCount + 1);
-        context.getSidebar().addPlayer(participant);
-        context.getTopbar().showPlayer(participant);
-        context.getTopbar().linkToTeam(participant.getUniqueId(), teamId);
-        context.updateAliveCount(teamId);
-        context.initializeKillCount(participant);
-        participant.setGameMode(GameMode.ADVENTURE);
-        participant.getInventory().clear();
-        ParticipantInitializer.resetHealthAndHunger(participant);
-        ParticipantInitializer.clearStatusEffects(participant);
-    }
-    
-    public void resetParticipant(Player participant) {
-        participant.getInventory().clear();
-        ParticipantInitializer.clearStatusEffects(participant);
-        ParticipantInitializer.resetHealthAndHunger(participant);
-        context.getSidebar().removePlayer(participant.getUniqueId());
-        context.getTopbar().hidePlayer(participant.getUniqueId());
+    protected void startTimer() {
+        context.getTimerManager().start(Timer.builder()
+                .duration(context.getConfig().getStartDuration())
+                .withSidebar(context.getAdminSidebar(), "timer")
+                .withTopbar(context.getTopbar())
+                .sidebarPrefix(Component.text("Starting: "))
+                .titleAudience(Audience.audience(context.getParticipants()))
+                .onCompletion(() -> {
+                    context.setState(new ActiveState(context));
+                })
+                .build());
     }
 }

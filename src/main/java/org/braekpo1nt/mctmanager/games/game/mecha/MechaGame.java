@@ -12,8 +12,9 @@ import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.game.mecha.config.MechaConfig;
 import org.braekpo1nt.mctmanager.games.game.mecha.config.MechaConfigController;
+import org.braekpo1nt.mctmanager.games.game.mecha.states.DescriptionState;
 import org.braekpo1nt.mctmanager.games.game.mecha.states.MechaState;
-import org.braekpo1nt.mctmanager.games.game.mecha.states.StartingState;
+import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
@@ -67,10 +68,6 @@ public class MechaGame implements MCTGame, Configurable, Listener {
     private Map<UUID, Integer> killCounts = new HashMap<>();
     private Map<UUID, Integer> deathCounts = new HashMap<>();
     private String title = baseTitle;
-    /**
-     * the index of the border stage
-     */
-    private int borderStageIndex = 0;
     
     public MechaGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
@@ -108,7 +105,6 @@ public class MechaGame implements MCTGame, Configurable, Listener {
     
     @Override
     public void start(List<Player> newParticipants, List<Player> newAdmins) {
-        state = new StartingState(this);
         this.participants = new ArrayList<>(newParticipants.size());
         livingPlayers = new ArrayList<>(newParticipants.size());
         deadPlayers = new ArrayList<>();
@@ -122,18 +118,43 @@ public class MechaGame implements MCTGame, Configurable, Listener {
         setUpTopbarTeams(teams);
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         gameManager.getTimerManager().register(timerManager);
-        borderStageIndex = 0;
         fillAllChests();
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
         }
-        createPlatforms(teams);
-        teleportTeams(teams);
+        createPlatformsAndTeleportTeams();
         initializeSidebar();
         setUpTeamOptions();
         initializeWorldBorder();
         startAdmins(newAdmins);
+        state = new DescriptionState(this);
         Bukkit.getLogger().info("Started mecha");
+    }
+    
+    public void initializeParticipant(Player participant) {
+        participants.add(participant);
+        livingPlayers.add(participant.getUniqueId());
+        String teamId = gameManager.getTeamName(participant.getUniqueId());
+        livingMembers.putIfAbsent(teamId, 0);
+        int oldAliveCount = livingMembers.get(teamId);
+        livingMembers.put(teamId, oldAliveCount + 1);
+        sidebar.addPlayer(participant);
+        topbar.showPlayer(participant);
+        topbar.linkToTeam(participant.getUniqueId(), teamId);
+        updateAliveCount(teamId);
+        initializeKillCount(participant);
+        participant.setGameMode(GameMode.ADVENTURE);
+        participant.getInventory().clear();
+        ParticipantInitializer.resetHealthAndHunger(participant);
+        ParticipantInitializer.clearStatusEffects(participant);
+    }
+    
+    public void resetParticipant(Player participant) {
+        participant.getInventory().clear();
+        ParticipantInitializer.clearStatusEffects(participant);
+        ParticipantInitializer.resetHealthAndHunger(participant);
+        sidebar.removePlayer(participant.getUniqueId());
+        topbar.hidePlayer(participant.getUniqueId());
     }
     
     private void setUpTopbarTeams(List<String> newTeamIds) {
@@ -143,14 +164,9 @@ public class MechaGame implements MCTGame, Configurable, Listener {
         }
     }
     
-    private void initializeParticipant(Player participant) {
-        state.initializeParticipant(participant);
-    }
-    
     @Override
     public void stop() {
         HandlerList.unregisterAll(this);
-        borderStageIndex = 0;
         cancelAllTasks();
         clearFloorItems();
         clearAllChests();
@@ -260,6 +276,12 @@ public class MechaGame implements MCTGame, Configurable, Listener {
         LootTable lootTable = MathUtils.getWeightedRandomValue(config.getWeightedMechaLootTables());
         chest.setLootTable(lootTable);
         chest.update();
+    }
+    
+    public void createPlatformsAndTeleportTeams() {
+        List<String> teams = gameManager.getTeamNames(participants);
+        createPlatforms(teams);
+        teleportTeams(teams);
     }
     
     /**
@@ -442,7 +464,7 @@ public class MechaGame implements MCTGame, Configurable, Listener {
         return chunksInBoundingBox;
     }
     
-    private void removePlatforms() {
+    public void removePlatforms() {
         List<BoundingBox> platformBarriers = config.getPlatformBarriers();
         for (BoundingBox barrier : platformBarriers) {
             BlockPlacementUtils.createCube(config.getWorld(), barrier, Material.AIR);
@@ -454,5 +476,12 @@ public class MechaGame implements MCTGame, Configurable, Listener {
         sidebar = null;
         topbar.removeAllTeams();
         topbar.hideAllPlayers();
+    }
+    
+    public void messageAllParticipants(Component message) {
+        gameManager.messageAdmins(message);
+        for (Player participant : participants) {
+            participant.sendMessage(message);
+        }
     }
 }

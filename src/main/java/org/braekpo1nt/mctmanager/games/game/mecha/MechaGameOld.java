@@ -341,6 +341,42 @@ public class MechaGameOld implements MCTGame, Configurable, Listener, Headerable
         sidebar.updateLine(participant.getUniqueId(), "title", title);
     }
     
+    @Override
+    public void onParticipantQuit(Player participant) {
+        if (!gameActive) {
+            return;
+        }
+        if (!mechaHasStarted) {
+            participants.remove(participant);
+            UUID participantUUID = participant.getUniqueId();
+            String teamId = gameManager.getTeamName(participantUUID);
+            Integer oldLivingMembers = this.livingMembers.get(teamId);
+            if (oldLivingMembers != null) {
+                livingMembers.put(teamId, Math.max(0, oldLivingMembers - 1));
+                updateAliveCount(teamId);
+            }
+            livingPlayers.remove(participantUUID);
+            killCounts.remove(participantUUID);
+            deathCounts.remove(participantUUID);
+            sidebar.removePlayer(participant);
+            topbar.hidePlayer(participantUUID);
+            return;
+        }
+        if (livingPlayers.contains(participant.getUniqueId())) {
+            List<ItemStack> drops = Arrays.stream(participant.getInventory().getContents())
+                    .filter(Objects::nonNull)
+                    .toList();
+            int droppedExp = calculateExpPoints(participant.getLevel());
+            Component deathMessage = Component.empty()
+                    .append(Component.text(participant.getName()))
+                    .append(Component.text(" left early. Their life is forfeit."));
+            PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(participant, drops, droppedExp, deathMessage);
+            this.onPlayerDeath(fakeDeathEvent);
+        }
+        resetParticipant(participant);
+        participants.remove(participant);
+    }
+    
     /**
      * @param teamId the teamId of the team to count the dead members of
      * @return the number of dead players on the given team in this game
@@ -397,42 +433,6 @@ public class MechaGameOld implements MCTGame, Configurable, Listener, Headerable
         }
         String teamId = gameManager.getTeamName(participant.getUniqueId());
         return livingMembers.containsKey(teamId) && deadPlayers.contains(participant.getUniqueId());
-    }
-    
-    @Override
-    public void onParticipantQuit(Player participant) {
-        if (!gameActive) {
-            return;
-        }
-        if (!mechaHasStarted) {
-            participants.remove(participant);
-            UUID participantUUID = participant.getUniqueId();
-            String teamId = gameManager.getTeamName(participantUUID);
-            Integer oldLivingMembers = this.livingMembers.get(teamId);
-            if (oldLivingMembers != null) {
-                livingMembers.put(teamId, Math.max(0, oldLivingMembers - 1));
-                updateAliveCount(teamId);
-            }
-            livingPlayers.remove(participantUUID);
-            killCounts.remove(participantUUID);
-            deathCounts.remove(participantUUID);
-            sidebar.removePlayer(participant);
-            topbar.hidePlayer(participantUUID);
-            return;
-        }
-        if (livingPlayers.contains(participant.getUniqueId())) {
-            List<ItemStack> drops = Arrays.stream(participant.getInventory().getContents())
-                    .filter(Objects::nonNull)
-                    .toList();
-            int droppedExp = calculateExpPoints(participant.getLevel());
-            Component deathMessage = Component.empty()
-                    .append(Component.text(participant.getName()))
-                    .append(Component.text(" left early. Their life is forfeit."));
-            PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(participant, drops, droppedExp, deathMessage);
-            this.onPlayerDeath(fakeDeathEvent);
-        }
-        resetParticipant(participant);
-        participants.remove(participant);
     }
     
     private void setUpTeamOptions() {
