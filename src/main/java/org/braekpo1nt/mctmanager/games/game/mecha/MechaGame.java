@@ -25,10 +25,20 @@ import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Chest;
+import org.bukkit.entity.ArmorStand;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.hanging.HangingBreakByEntityEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryOpenEvent;
+import org.bukkit.event.player.*;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.loot.LootTable;
 import org.bukkit.scoreboard.Scoreboard;
@@ -483,5 +493,204 @@ public class MechaGame implements MCTGame, Configurable, Listener {
         for (Player participant : participants) {
             participant.sendMessage(message);
         }
+    }
+    
+    // EventHandlers
+    /**
+     * Called when:
+     * Right-clicking an armor stand
+     * Right-clicking an item frame (also; onPlayerInteractEntity() )
+     * <p>
+     * Not called when:
+     * Left-clicking an armor stand
+     * Left-clicking an item frame with an item in it
+     * Left-clicking an item frame without an item in it
+     */
+    @EventHandler
+    public void onPlayerInteractAtEntity(PlayerInteractAtEntityEvent event) {
+        Player clicker = event.getPlayer();
+        if (!participants.contains(clicker)) {
+            return;
+        }
+        if (event.getRightClicked() instanceof ArmorStand || event.getRightClicked().getType() == EntityType.ITEM_FRAME || event.getRightClicked().getType() == EntityType.GLOW_ITEM_FRAME) {
+            event.setCancelled(true);
+        }
+    }
+    
+    /**
+     * Called when:
+     * Right-clicking an item frame (also; onPlayerInteractAtEntity() )
+     * <p>
+     * Not called when:
+     * Right-clicking an armor stand
+     * Left-clicking an armor stand
+     * Left-clicking an item frame with an item in it
+     * Left-clicking an item frame without an item in it
+     */
+    
+    @EventHandler
+    public void onPlayerInteractEntity(PlayerInteractEntityEvent event) {
+        Player clicker = event.getPlayer();
+        if (!participants.contains(clicker)) {
+            return;
+        }
+        if (event.getRightClicked().getType() == EntityType.ITEM_FRAME || event.getRightClicked().getType() == EntityType.GLOW_ITEM_FRAME) {
+            event.setCancelled(true);
+        }
+    }
+    
+    /**
+     * Called when:
+     * Left-clicking an armor stand
+     * Left-clicking an item frame with an item in it
+     * <p>
+     * Not called when:
+     * Right-clicking an armor stand
+     * Right-clicking an item frame
+     * Left-clicking an item frame without an item in it
+     */
+    @EventHandler
+    public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
+        if (event.getDamager() instanceof Player clicker) {
+            if (!participants.contains(clicker)) {
+                return;
+            }
+        }
+        if (event.getEntity() instanceof ArmorStand || event.getEntity().getType() == EntityType.ITEM_FRAME || event.getEntity().getType() == EntityType.GLOW_ITEM_FRAME) {
+            event.setCancelled(true);
+        }
+    }
+    
+    /**
+     * Called when:
+     * Left-clicking an item frame without an item in it
+     * <p>
+     * Not called when:
+     * Right-clicking an armor stand
+     * Left-clicking an armor stand
+     * Right-clicking an item frame
+     * Left-clicking an item frame with an item in it
+     * Left-clicking an item frame without an item in it
+     */
+    @EventHandler
+    public void onHangingBreakByEntity(HangingBreakByEntityEvent event) {
+        Player clicker = (Player) event.getRemover();
+        if (!participants.contains(clicker)) {
+            return;
+        }
+        if (event.getEntity().getType() == EntityType.ITEM_FRAME || event.getEntity().getType() == EntityType.GLOW_ITEM_FRAME) {
+            event.setCancelled(true);
+        }
+    }
+    
+    @EventHandler
+    public void onPlayerInteract(PlayerInteractEvent event) {
+        Block clickedBlock = event.getClickedBlock();
+        if (clickedBlock == null) {
+            return;
+        }
+        if (!participants.contains(event.getPlayer())) {
+            return;
+        }
+        Material blockType = clickedBlock.getType();
+        if (!config.getPreventInteractions().contains(blockType)) {
+            return;
+        }
+        event.setCancelled(true);
+    }
+    
+    @EventHandler
+    public void onPlayerMove(PlayerMoveEvent event) {
+        if (config.getSpectatorArea() == null){
+            return;
+        }
+        if (!participants.contains(event.getPlayer())) {
+            return;
+        }
+        if (!event.getPlayer().getGameMode().equals(GameMode.SPECTATOR)) {
+            return;
+        }
+        if (!config.getSpectatorArea().contains(event.getFrom().toVector())) {
+            event.getPlayer().teleport(config.getPlatformSpawns().get(0));
+            return;
+        }
+        if (!config.getSpectatorArea().contains(event.getTo().toVector())) {
+            event.setCancelled(true);
+        }
+    }
+    
+    @EventHandler
+    public void onPlayerTeleport(PlayerTeleportEvent event) {
+        if (config.getSpectatorArea() == null){
+            return;
+        }
+        if (!participants.contains(event.getPlayer())) {
+            return;
+        }
+        if (!event.getPlayer().getGameMode().equals(GameMode.SPECTATOR)) {
+            return;
+        }
+        if (!event.getCause().equals(PlayerTeleportEvent.TeleportCause.SPECTATE)) {
+            return;
+        }
+        if (!config.getSpectatorArea().contains(event.getTo().toVector())) {
+            event.setCancelled(true);
+        }
+    }
+    
+    // State-specific callers
+    
+    @EventHandler
+    public void onPlayerDamage(EntityDamageEvent event) {
+        if (state == null) {
+            return;
+        }
+        if (!(event.getEntity() instanceof Player participant)) {
+            return;
+        }
+        if (!participants.contains(participant)) {
+            return;
+        }
+        state.onPlayerDamage(event);
+    }
+    
+    @EventHandler
+    public void onPlayerDeath(PlayerDeathEvent event) {
+        if (state == null) {
+            return;
+        }
+        Player participant = event.getPlayer();
+        if (!participants.contains(participant)) {
+            return;
+        }
+        state.onPlayerDeath(event);
+    }
+    
+    @EventHandler
+    public void onPlayerOpenInventory(InventoryOpenEvent event) {
+        if (state == null) {
+            return;
+        }
+        if (!(event.getPlayer() instanceof Player participant)) {
+            return;
+        }
+        if (!participants.contains(participant)) {
+            return;
+        }
+        state.onPlayerOpenInventory(event);
+    }
+    
+    @EventHandler
+    public void onPlayerCloseInventory(InventoryCloseEvent event) {
+        if (state == null) {
+            return;
+        }
+        if (!(event.getPlayer() instanceof Player participant)) {
+            return;
+        }
+        if (!participants.contains(participant)) {
+            return;
+        }
+        state.onPlayerCloseInventory(event);
     }
 }

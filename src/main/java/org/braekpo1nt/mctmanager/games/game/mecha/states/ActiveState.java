@@ -14,6 +14,10 @@ import org.braekpo1nt.mctmanager.ui.topbar.ManyBattleTopbar;
 import org.bukkit.ChatColor;
 import org.bukkit.WorldBorder;
 import org.bukkit.entity.Player;
+import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.jetbrains.annotations.NotNull;
 
 public class ActiveState implements MechaState {
@@ -185,4 +189,26 @@ public class ActiveState implements MechaState {
     public void resetParticipant(Player participant) {
         
     }
+    
+    @Override
+    public void onPlayerDamage(EntityDamageEvent event) {
+        
+    }
+    
+    @Override
+    public void onPlayerDeath(PlayerDeathEvent event) {
+        
+    }
+    
+    @Override
+    public void onPlayerOpenInventory(InventoryOpenEvent event) {
+        
+    }
+    
+    @Override
+    public void onPlayerCloseInventory(InventoryCloseEvent event) {
+        
+    }
+    
+    
 }
