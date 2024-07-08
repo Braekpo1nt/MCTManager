@@ -61,9 +61,16 @@ public class MechaGameOld implements MCTGame, Configurable, Listener, Headerable
     private final @NotNull ManyBattleTopbar topbar;
     private final MechaConfigController configController;
     private MechaConfig config;
+    
     private boolean gameActive = false;
     private boolean mechaHasStarted = false;
     private boolean isInvulnerable = false;
+    private boolean descriptionShowing = false;
+    /**
+     * true when the game is over, and countdown is started, so no points should be awarded
+     */
+    private boolean gameEndCountDown = false;
+    
     private List<Player> participants = new ArrayList<>();
     private List<Player> admins = new ArrayList<>();
     private WorldBorder worldBorder;
@@ -75,13 +82,8 @@ public class MechaGameOld implements MCTGame, Configurable, Listener, Headerable
     private List<UUID> deadPlayers = new ArrayList<>();
     private Map<UUID, Integer> killCounts = new HashMap<>();
     private Map<UUID, Integer> deathCounts = new HashMap<>();
-    private boolean descriptionShowing = false;
     private final String baseTitle = ChatColor.BLUE+"MECHA";
     private String title = baseTitle;
-    /**
-     * true when the game is over, and countdown is started, so no points should be awarded
-     */
-    private boolean gameEndCountDown = false;
     /**
      * the index of the border stage
      */
