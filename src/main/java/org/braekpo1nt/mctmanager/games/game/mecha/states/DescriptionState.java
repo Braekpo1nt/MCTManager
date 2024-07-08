@@ -6,11 +6,16 @@ import org.braekpo1nt.mctmanager.games.game.mecha.MechaGame;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.bukkit.GameMode;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
+import org.bukkit.inventory.BlockInventoryHolder;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryHolder;
+import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
@@ -104,16 +109,6 @@ public class DescriptionState implements MechaState {
     
     @Override
     public void onPlayerDeath(PlayerDeathEvent event) {
-        
-    }
-    
-    @Override
-    public void onPlayerOpenInventory(InventoryOpenEvent event) {
-        
-    }
-    
-    @Override
-    public void onPlayerCloseInventory(InventoryCloseEvent event) {
-        
+        event.setCancelled(true);
     }
 }

@@ -867,7 +867,6 @@ public class MechaGameOld implements MCTGame, Configurable, Listener, Headerable
         addDeath(killedUUID);
         updateAliveCount(teamId);
         if (livingMembers.get(teamId) <= 0) {
-            plugin.getLogger().info("living members is less than or equal to 0");
             onTeamDeath(teamId);
         }
     }

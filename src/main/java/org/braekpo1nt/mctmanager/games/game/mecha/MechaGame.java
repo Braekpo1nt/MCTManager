@@ -25,10 +25,7 @@ import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Chest;
-import org.bukkit.entity.ArmorStand;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Item;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
@@ -38,7 +35,10 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.hanging.HangingBreakByEntityEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.*;
+import org.bukkit.inventory.BlockInventoryHolder;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.loot.LootTable;
 import org.bukkit.scoreboard.Scoreboard;
@@ -638,6 +638,82 @@ public class MechaGame implements MCTGame, Configurable, Listener {
         }
     }
     
+    @EventHandler
+    public void onPlayerOpenInventory(InventoryOpenEvent event) {
+        if (state == null) {
+            return;
+        }
+        if (!config.lockOtherInventories()) {
+            return;
+        }
+        if (!(event.getPlayer() instanceof Player participant)) {
+            return;
+        }
+        if (!participants.contains(participant)) {
+            return;
+        }
+        Inventory inventory = event.getInventory();
+        InventoryHolder holder = inventory.getHolder();
+        if (!(holder instanceof BlockInventoryHolder blockInventoryHolder)) {
+            return;
+        }
+        Location location = blockInventoryHolder.getBlock().getLocation();
+        Vector pos = location.toVector();
+        if (config.getSpawnChestCoords().contains(pos)
+                || config.getMapChestCoords().contains(pos)) {
+            return;
+        }
+        event.setCancelled(true);
+    }
+    
+    @EventHandler
+    public void onPlayerCloseInventory(InventoryCloseEvent event) {
+        if (state == null) {
+            return;
+        }
+        if (!event.getInventory().getType().equals(InventoryType.CHEST)) {
+            return;
+        }
+        Inventory inventory = event.getInventory();
+        if (!(inventory.getHolder() instanceof Chest chest)) {
+            return;
+        }
+        if (!inventory.isEmpty()) {
+            return;
+        }
+        if (!(event.getPlayer() instanceof Player participant)) {
+            return;
+        }
+        if (!participants.contains(participant)) {
+            return;
+        }
+        List<HumanEntity> viewers = inventory.getViewers();
+        if (countParticipantViewers(viewers) > 1) {
+            return;
+        }
+        Block block = chest.getBlock();
+        Vector chestPos = block.getLocation().toVector();
+        if (!config.getSpawnChestCoords().contains(chestPos)
+                && !config.getMapChestCoords().contains(chestPos)) {
+            return;
+        }
+        block.setType(Material.AIR);
+    }
+    
+    private int countParticipantViewers(List<HumanEntity> viewers) {
+        int count = 0;
+        for (HumanEntity viewer : viewers) {
+            if (viewer instanceof Player participant) {
+                if (participants.contains(participant)) {
+                    if (livingPlayers.contains(participant.getUniqueId())) {
+                        count++;
+                    }
+                }
+            }
+        }
+        return count;
+    }
+    
     // State-specific callers
     
     @EventHandler
@@ -664,33 +740,5 @@ public class MechaGame implements MCTGame, Configurable, Listener {
             return;
         }
         state.onPlayerDeath(event);
-    }
-    
-    @EventHandler
-    public void onPlayerOpenInventory(InventoryOpenEvent event) {
-        if (state == null) {
-            return;
-        }
-        if (!(event.getPlayer() instanceof Player participant)) {
-            return;
-        }
-        if (!participants.contains(participant)) {
-            return;
-        }
-        state.onPlayerOpenInventory(event);
-    }
-    
-    @EventHandler
-    public void onPlayerCloseInventory(InventoryCloseEvent event) {
-        if (state == null) {
-            return;
-        }
-        if (!(event.getPlayer() instanceof Player participant)) {
-            return;
-        }
-        if (!participants.contains(participant)) {
-            return;
-        }
-        state.onPlayerCloseInventory(event);
     }
 }

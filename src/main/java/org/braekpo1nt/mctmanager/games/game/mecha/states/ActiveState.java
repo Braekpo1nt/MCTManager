@@ -3,6 +3,8 @@ package org.braekpo1nt.mctmanager.games.game.mecha.states;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.mecha.MechaGame;
 import org.braekpo1nt.mctmanager.games.game.mecha.config.MechaConfig;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
@@ -12,17 +14,23 @@ import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.braekpo1nt.mctmanager.ui.topbar.ManyBattleTopbar;
 import org.bukkit.ChatColor;
+import org.bukkit.GameMode;
 import org.bukkit.WorldBorder;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.inventory.InventoryCloseEvent;
-import org.bukkit.event.inventory.InventoryOpenEvent;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 public class ActiveState implements MechaState {
     
     private final @NotNull MechaGame context;
+    private final Main plugin;
+    private final GameManager gameManager;
     private final TimerManager timerManager;
     private final MechaConfig config;
     private final Sidebar sidebar;
@@ -37,6 +45,8 @@ public class ActiveState implements MechaState {
     
     public ActiveState(@NotNull MechaGame context) {
         this.context = context;
+        this.plugin = context.getPlugin();
+        this.gameManager = context.getGameManager();
         this.timerManager = context.getTimerManager();
         this.config = context.getConfig();
         this.sidebar = context.getSidebar();
@@ -197,18 +207,129 @@ public class ActiveState implements MechaState {
     
     @Override
     public void onPlayerDeath(PlayerDeathEvent event) {
-        
+        Player killed = event.getPlayer();
+        if (!context.getParticipants().contains(killed)) {
+            return;
+        }
+        killed.setGameMode(GameMode.SPECTATOR);
+        dropInventory(killed, event.getDrops());
+        event.setCancelled(true);
+        if (event.getDeathSound() != null && event.getDeathSoundCategory() != null) {
+            killed.getWorld().playSound(killed.getLocation(), event.getDeathSound(), event.getDeathSoundCategory(), event.getDeathSoundVolume(), event.getDeathSoundPitch());
+        }
+        Component deathMessage = event.deathMessage();
+        if (deathMessage != null) {
+            plugin.getServer().sendMessage(deathMessage);
+        }
+        if (killed.getKiller() != null) {
+            onParticipantGetKill(killed.getKiller(), killed);
+        }
+        onParticipantDeath(killed);
     }
     
-    @Override
-    public void onPlayerOpenInventory(InventoryOpenEvent event) {
-        
+    private void dropInventory(Player killed, List<ItemStack> drops) {
+        for (ItemStack item : drops) {
+            config.getWorld().dropItemNaturally(killed.getLocation(), item);
+        }
+        killed.getInventory().clear();
     }
     
-    @Override
-    public void onPlayerCloseInventory(InventoryCloseEvent event) {
-        
+    private void onParticipantGetKill(@NotNull Player killer, @NotNull Player killed) {
+        if (!context.getParticipants().contains(killer)) {
+            return;
+        }
+        addKill(killer.getUniqueId());
+        UIUtils.showKillTitle(killer, killed);
+        gameManager.awardPointsToParticipant(killer, config.getKillScore());
     }
     
+    /**
+     * @param playerUUID the player to add a kill to
+     */
+    private void addKill(@NotNull UUID playerUUID) {
+        int oldKillCount = context.getKillCounts().get(playerUUID);
+        int newKillCount = oldKillCount + 1;
+        context.getKillCounts().put(playerUUID, newKillCount);
+        topbar.setKills(playerUUID, newKillCount);
+    }
     
+    /**
+     * @param playerUUID the player to add a death to
+     */
+    private void addDeath(@NotNull UUID playerUUID) {
+        int oldDeathCount = context.getDeathCounts().get(playerUUID);
+        int newDeathCount = oldDeathCount + 1;
+        context.getDeathCounts().put(playerUUID, newDeathCount);
+        topbar.setDeaths(playerUUID, newDeathCount);
+    }
+    
+    private void onParticipantDeath(Player killed) {
+        UUID killedUUID = killed.getUniqueId();
+        switchPlayerFromLivingToDead(killedUUID);
+        String teamId = gameManager.getTeamName(killedUUID);
+        int oldLivingMembers = context.getLivingMembers().get(teamId);
+        context.getLivingMembers().put(teamId, oldLivingMembers - 1);
+        addDeath(killedUUID);
+        context.updateAliveCount(teamId);
+        if (context.getLivingMembers().get(teamId) <= 0) {
+            onTeamDeath(teamId);
+        }
+    }
+    
+    private void switchPlayerFromLivingToDead(UUID playerUniqueId) {
+        context.getLivingPlayers().remove(playerUniqueId);
+        context.getDeadPlayers().add(playerUniqueId);
+    }
+    
+    /**
+     * Call when all of a team's members are dead. 
+     * @param deadTeam the team who just died
+     */
+    private void onTeamDeath(String deadTeam) {
+        Component formattedTeamDisplayName = gameManager.getFormattedTeamDisplayName(deadTeam);
+        context.messageAllParticipants(Component.empty()
+                .append(formattedTeamDisplayName)
+                .append(Component.text(" has been eliminated.")));
+        Component displayName = gameManager.getFormattedTeamDisplayName(deadTeam);
+        List<String> livingTeams = getLivingTeamIds();
+        for (String teamId : livingTeams) {
+            gameManager.awardPointsToTeam(teamId, config.getSurviveTeamScore());
+        }
+        switch (livingTeams.size()) {
+            case 2 -> {
+                plugin.getServer().sendMessage(Component.empty()
+                        .append(displayName)
+                        .append(Component.text(" got third place!")));
+                gameManager.awardPointsToTeam(deadTeam, config.getThirdPlaceScore());
+            }
+            case 1 -> {
+                plugin.getServer().sendMessage(Component.empty()
+                        .append(displayName)
+                        .append(Component.text(" got second place!")));
+                gameManager.awardPointsToTeam(deadTeam, config.getSecondPlaceScore());
+                onTeamWin(livingTeams.get(0));
+            }
+            case 0 -> {
+                // this is a provision for when there is only 1 team at the beginning, for testing purposes
+                onTeamWin(deadTeam);
+            }
+        }
+    }
+    
+    /**
+     * @return a list of the teamIds of the teams which are still alive (have at least 1 living member)
+     */
+    private @NotNull List<String> getLivingTeamIds() {
+        return context.getLivingMembers().entrySet().stream()
+                .filter(entry -> entry.getValue() > 0).map(Map.Entry::getKey).toList();
+    }
+    
+    private void onTeamWin(String winningTeam) {
+        Component displayName = gameManager.getFormattedTeamDisplayName(winningTeam);
+        plugin.getServer().sendMessage(Component.text("Team ")
+                .append(displayName)
+                .append(Component.text(" wins!")));
+        gameManager.awardPointsToTeam(winningTeam, config.getFirstPlaceScore());
+        context.setState(new GameOverState(context));
+    }
 }
