@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.games.game.interfaces;
 
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
@@ -17,4 +18,6 @@ public interface MCTGame {
     
     void onAdminJoin(Player admin);
     void onAdminQuit(Player admin);
+    @NotNull String getBaseTitle();
+    void setTitle(@NotNull String title);
 }

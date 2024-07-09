@@ -1,20 +1,25 @@
 package org.braekpo1nt.mctmanager.games.game.clockwork;
 
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
-import org.braekpo1nt.mctmanager.games.game.clockwork.config.ClockworkStorageUtil;
+import org.braekpo1nt.mctmanager.games.game.clockwork.config.ClockworkConfig;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
+import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
-import org.bukkit.*;
+import org.braekpo1nt.mctmanager.ui.timer.Timer;
+import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
+import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -34,17 +39,14 @@ public class ClockworkRound implements Listener {
     private final Sidebar sidebar;
     private final Sidebar adminSidebar;
     private final ClockworkGame clockworkGame;
-    private final ClockworkStorageUtil storageUtil;
+    private ClockworkConfig config;
     private final ChaosManager chaosManager;
     private final int roundNumber;
     private List<Player> participants = new ArrayList<>();
     private Map<UUID, Boolean> participantsAreAlive = new HashMap<>();
     private Map<String, Integer> teamsLivingMembers = new HashMap<>();
     private boolean roundActive = false;
-    private int breatherDelayTaskId;
     private int clockChimeTaskId;
-    private int getToWedgeDelayTaskId;
-    private int stayOnWedgeDelayTaskId;
     private int statusEffectsTaskId;
     private final PotionEffect INVISIBILITY = new PotionEffect(PotionEffectType.INVISIBILITY, 10000, 1, true, false, false);
     private final Random random = new Random();
@@ -58,16 +60,23 @@ public class ClockworkRound implements Listener {
      * indicates whether the clock is chiming still and players should be kept in the center
      */
     private boolean clockIsChiming = false;
+    private final TimerManager timerManager;
     
-    public ClockworkRound(Main plugin, GameManager gameManager, ClockworkGame clockworkGame, ClockworkStorageUtil storageUtil, int roundNumber, Sidebar sidebar, Sidebar adminSidebar) {
+    public ClockworkRound(Main plugin, GameManager gameManager, ClockworkGame clockworkGame, ClockworkConfig config, int roundNumber, Sidebar sidebar, Sidebar adminSidebar) {
         this.plugin = plugin;
+        this.timerManager = new TimerManager(plugin);
         this.gameManager = gameManager;
         this.clockworkGame = clockworkGame;
-        this.storageUtil = storageUtil;
+        this.config = config;
         this.roundNumber = roundNumber;
-        this.chaosManager = new ChaosManager(plugin, storageUtil);
+        this.chaosManager = new ChaosManager(plugin, config);
         this.sidebar = sidebar;
         this.adminSidebar = adminSidebar;
+    }
+    
+    public void setConfig(ClockworkConfig config) {
+        this.config = config;
+        chaosManager.setConfig(config);
     }
     
     public boolean isActive() {
@@ -82,10 +91,11 @@ public class ClockworkRound implements Listener {
         clockIsChiming = false;
         roundActive = true;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
+        gameManager.getTimerManager().register(timerManager);
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
         }
-        chimeInterval = storageUtil.getInitialChimeInterval();
+        chimeInterval = config.getInitialChimeInterval();
         setupTeamOptions();
         startStatusEffectsTask();
         startBreatherDelay();
@@ -103,7 +113,8 @@ public class ClockworkRound implements Listener {
         } else {
             teamsLivingMembers.put(team, 1);
         }
-        participant.teleport(storageUtil.getStartingLocation());
+        participant.teleport(config.getStartingLocation());
+        participant.setBedSpawnLocation(config.getStartingLocation(), true);
         participant.getInventory().clear();
         participant.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearStatusEffects(participant);
@@ -112,7 +123,8 @@ public class ClockworkRound implements Listener {
     
     private void rejoinParticipant(Player participant) {
         participants.add(participant);
-        participant.teleport(storageUtil.getStartingLocation());
+        participant.teleport(config.getStartingLocation());
+        participant.setBedSpawnLocation(config.getStartingLocation(), true);
         participant.getInventory().clear();
         participant.setGameMode(GameMode.SPECTATOR);
         ParticipantInitializer.clearStatusEffects(participant);
@@ -131,7 +143,8 @@ public class ClockworkRound implements Listener {
         if (!teamsLivingMembers.containsKey(team)) {
             teamsLivingMembers.put(team, 0);
         }
-        participant.teleport(storageUtil.getStartingLocation());
+        participant.teleport(config.getStartingLocation());
+        participant.setBedSpawnLocation(config.getStartingLocation(), true);
         participant.getInventory().clear();
         participant.setGameMode(GameMode.SPECTATOR);
         ParticipantInitializer.clearStatusEffects(participant);
@@ -192,32 +205,20 @@ public class ClockworkRound implements Listener {
     }
     
     private void cancelAllTasks() {
-        Bukkit.getLogger().info("Cancelling tasks ");
-        Bukkit.getScheduler().cancelTask(breatherDelayTaskId);
         Bukkit.getScheduler().cancelTask(clockChimeTaskId);
-        Bukkit.getScheduler().cancelTask(getToWedgeDelayTaskId);
-        Bukkit.getScheduler().cancelTask(stayOnWedgeDelayTaskId);
         Bukkit.getScheduler().cancelTask(statusEffectsTaskId);
+        timerManager.cancel();
     }
     
     private void startBreatherDelay() {
         mustStayOnWedge = false;
-        this.breatherDelayTaskId = new BukkitRunnable() {
-            int count = storageUtil.getBreatherDuration();
-            @Override
-            public void run() {
-                if (count <= 0) {
-                    startClockChime();
-                    this.cancel();
-                    return;
-                }
-                String timer = String.format("Clock chimes in: %s",
-                        TimeStringUtils.getTimeString(count));
-                sidebar.updateLine("timer", timer);
-                adminSidebar.updateLine("timer", timer);
-                count--;
-            }
-        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+        timerManager.start(Timer.builder()
+                .duration(config.getBreatherDuration())
+                .withSidebar(sidebar, "timer")
+                .withSidebar(adminSidebar, "timer")
+                .sidebarPrefix(Component.text("Clock chimes in: "))
+                .onCompletion(this::startClockChime)
+                .build());
     }
     
     private void startClockChime() {
@@ -228,7 +229,7 @@ public class ClockworkRound implements Listener {
         turnOffCollisions();
         for (Player participant : participants) {
             if (participantsAreAlive.get(participant.getUniqueId())) {
-                participant.teleport(storageUtil.getStartingLocation());
+                participant.teleport(config.getStartingLocation());
                 participant.setArrowsInBody(0);
             }
         }
@@ -239,6 +240,12 @@ public class ClockworkRound implements Listener {
                 if (count <= 0) {
                     clockIsChiming = false;
                     turnOnCollisions();
+                    if (config.getGetToWedgeMessage() != null) {
+                        Audience.audience(participants).showTitle(UIUtils.defaultTitle(
+                                Component.empty(),
+                                config.getGetToWedgeMessage()
+                        ));
+                    }
                     startGetToWedgeDelay();
                     this.cancel();
                     return;
@@ -251,64 +258,45 @@ public class ClockworkRound implements Listener {
     
     private void playChimeSound() {
         for (Player participant : participants) {
-            participant.playSound(participant.getLocation(), storageUtil.getClockChimeSound(), storageUtil.getClockChimeVolume(), storageUtil.getClockChimePitch());
+            participant.playSound(participant.getLocation(), config.getClockChimeSound(), config.getClockChimeVolume(), config.getClockChimePitch());
         }
-        gameManager.playSoundForAdmins(storageUtil.getClockChimeSound(), storageUtil.getClockChimeVolume(), storageUtil.getClockChimePitch());
+        gameManager.playSoundForAdmins(config.getClockChimeSound(), config.getClockChimeVolume(), config.getClockChimePitch());
     }
     
     private void startGetToWedgeDelay() {
-        this.getToWedgeDelayTaskId = new BukkitRunnable() {
-            int count = storageUtil.getGetToWedgeDuration();
-            @Override
-            public void run() {
-                if (count <= 0) {
-                    startStayOnWedgeDelay();
-                    this.cancel();
-                    return;
-                }
-                String timer = String.format("Get to wedge! %s",
-                        TimeStringUtils.getTimeString(count));
-                sidebar.updateLine("timer", timer);
-                adminSidebar.updateLine("timer", timer);
-                count--;
-            }
-        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+        timerManager.start(Timer.builder()
+                .duration(config.getGetToWedgeDuration())
+                .withSidebar(sidebar, "timer")
+                .withSidebar(adminSidebar, "timer")
+                .sidebarPrefix(Component.text("Get to wedge! "))
+                .onCompletion(this::startStayOnWedgeDelay)
+                .build());
     }
     
     private void startStayOnWedgeDelay() {
-        this.stayOnWedgeDelayTaskId = new BukkitRunnable() {
-            int count = storageUtil.getStayOnWedgeDuration();
-            @Override
-            public void run() {
-                if (count <= 0) {
+        timerManager.start(Timer.builder()
+                .duration(config.getStayOnWedgeDuration())
+                .withSidebar(sidebar, "timer")
+                .withSidebar(adminSidebar, "timer")
+                .sidebarPrefix(Component.text("Stay on wedge: "))
+                .onCompletion(() -> {
                     mustStayOnWedge = false;
                     List<String> livingTeams = getLivingTeams();
-                    Bukkit.getLogger().info(String.format("livingTeams.size() = %s", livingTeams.size()));
                     if (livingTeams.size() == 1) {
                         String winningTeam = livingTeams.get(0);
                         onTeamWinsRound(winningTeam);
-                        this.cancel();
-                        return;
                     }
                     incrementChaos();
                     startBreatherDelay();
-                    this.cancel();
-                    return;
-                }
-                String timer = String.format("Stay on wedge: %s",
-                        TimeStringUtils.getTimeString(count));
-                sidebar.updateLine("timer", timer);
-                adminSidebar.updateLine("timer", timer);
-                count--;
-            }
-        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+                })
+                .build());
         killParticipantsNotOnWedge();
         mustStayOnWedge = true;
     }
     
     private void killParticipantsNotOnWedge() {
         List<Player> participantsToKill = new ArrayList<>();
-        Wedge currentWedge = storageUtil.getWedges().get(numberOfChimes - 1);
+        Wedge currentWedge = config.getWedges().get(numberOfChimes - 1);
         for (Player participant : participants) {
             if (participantsAreAlive.get(participant.getUniqueId())) {
                 if (!currentWedge.contains(participant.getLocation().toVector())) {
@@ -323,22 +311,18 @@ public class ClockworkRound implements Listener {
     }
     
     private void incrementChaos() {
-        chimeInterval -= storageUtil.getChimeIntervalDecrement();
+        chimeInterval -= config.getChimeIntervalDecrement();
         if (chimeInterval < 0) {
             chimeInterval = 0;
         }
         chaosManager.incrementChaos();
     }
     
-    @EventHandler
-    public void onPlayerDamage(EntityDamageEvent event) {
+    public void onPlayerDamage(Player participant, EntityDamageEvent event) {
         if (!roundActive) {
             return;
         }
         if (event.getCause().equals(EntityDamageEvent.DamageCause.VOID)) {
-            return;
-        }
-        if (!(event.getEntity() instanceof Player participant)) {
             return;
         }
         if (!participants.contains(participant)) {
@@ -349,18 +333,6 @@ public class ClockworkRound implements Listener {
             ParticipantInitializer.resetHealthAndHunger(participant);
             return;
         }
-        event.setCancelled(true);
-    }
-    
-    @EventHandler
-    public void onPlayerLoseHunger(FoodLevelChangeEvent event) {
-        if (!(event.getEntity() instanceof Player participant)) {
-            return;
-        }
-        if (!participants.contains(participant)) {
-            return;
-        }
-        participant.setFoodLevel(20);
         event.setCancelled(true);
     }
     
@@ -378,7 +350,7 @@ public class ClockworkRound implements Listener {
         }
         if (clockIsChiming) {
             Location stayLoc = event.getTo();
-            Vector position = storageUtil.getStartingLocation().toVector();
+            Vector position = config.getStartingLocation().toVector();
             if (!stayLoc.toVector().equals(position)) {
                 participant.teleport(position.toLocation(stayLoc.getWorld(), stayLoc.getYaw(), stayLoc.getPitch()));
             }
@@ -387,7 +359,7 @@ public class ClockworkRound implements Listener {
         if (!mustStayOnWedge) {
             return;
         }
-        Wedge currentWedge = storageUtil.getWedges().get(numberOfChimes - 1);
+        Wedge currentWedge = config.getWedges().get(numberOfChimes - 1);
         if (!currentWedge.contains(participant.getLocation().toVector())) {
             killParticipants(Collections.singletonList(participant));
         }
@@ -405,7 +377,7 @@ public class ClockworkRound implements Listener {
             participantsAreAlive.put(killed.getUniqueId(), false);
             for (Player participant : participants) {
                 if (participantsAreAlive.get(participant.getUniqueId()) && !killedParticipants.contains(participant)) {
-                    gameManager.awardPointsToParticipant(participant, storageUtil.getPlayerEliminationScore());
+                    gameManager.awardPointsToParticipant(participant, config.getPlayerEliminationScore());
                 }
             }
             String team = gameManager.getTeamName(killed.getUniqueId());
@@ -450,7 +422,7 @@ public class ClockworkRound implements Listener {
             }
             for (String team : allTeams) {
                 if (teamsLivingMembers.get(team) > 0 && !newlyKilledTeams.contains(team)) {
-                    gameManager.awardPointsToTeam(team, storageUtil.getTeamEliminationScore());
+                    gameManager.awardPointsToTeam(team, config.getTeamEliminationScore());
                 }
             }
         }
@@ -480,7 +452,7 @@ public class ClockworkRound implements Listener {
     }
     
     private void onTeamWinsRound(String winningTeam) {
-        gameManager.awardPointsToTeam(winningTeam, storageUtil.getWinRoundScore());
+        gameManager.awardPointsToTeam(winningTeam, config.getWinRoundScore());
         Component teamDisplayName = gameManager.getFormattedTeamDisplayName(winningTeam);
         for (Player participant : participants) {
             String team = gameManager.getTeamName(participant.getUniqueId());
@@ -506,7 +478,7 @@ public class ClockworkRound implements Listener {
             team.setCanSeeFriendlyInvisibles(true);
             team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.ALWAYS);
             team.setOption(Team.Option.DEATH_MESSAGE_VISIBILITY, Team.OptionStatus.ALWAYS);
-            team.setOption(Team.Option.COLLISION_RULE, storageUtil.getCollisionRule());
+            team.setOption(Team.Option.COLLISION_RULE, config.getCollisionRule());
         }
     }
     
@@ -523,7 +495,7 @@ public class ClockworkRound implements Listener {
     private void turnOnCollisions() {
         Scoreboard mctScoreboard = gameManager.getMctScoreboard();
         for (Team team : mctScoreboard.getTeams()) {
-            team.setOption(Team.Option.COLLISION_RULE, storageUtil.getCollisionRule());
+            team.setOption(Team.Option.COLLISION_RULE, config.getCollisionRule());
         }
     }
     

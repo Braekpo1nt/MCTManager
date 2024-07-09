@@ -1,16 +1,28 @@
 package org.braekpo1nt.mctmanager.games.colossalcombat;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
+import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
 import org.braekpo1nt.mctmanager.games.GameManager;
-import org.braekpo1nt.mctmanager.games.colossalcombat.config.ColossalCombatStorageUtil;
+import org.braekpo1nt.mctmanager.games.colossalcombat.config.ColossalCombatConfig;
+import org.braekpo1nt.mctmanager.games.colossalcombat.config.ColossalCombatConfigController;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
+import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
+import org.braekpo1nt.mctmanager.ui.timer.Timer;
+import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
+import org.braekpo1nt.mctmanager.ui.topbar.BattleTopbar;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.GameMode;
+import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
@@ -19,13 +31,16 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 import org.bukkit.util.BoundingBox;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class ColossalCombatGame implements Listener, Configurable {
     
@@ -33,11 +48,15 @@ public class ColossalCombatGame implements Listener, Configurable {
     private final GameManager gameManager;
     private Sidebar sidebar;
     private Sidebar adminSidebar;
-    private final ColossalCombatStorageUtil storageUtil;
+    private final @NotNull BattleTopbar topbar;
+    private final ColossalCombatConfigController configController;
+    private ColossalCombatConfig config;
     private final String title = ChatColor.BLUE+"Colossal Combat";
     private List<Player> firstPlaceParticipants = new ArrayList<>();
     private List<Player> secondPlaceParticipants = new ArrayList<>();
     private List<Player> spectators = new ArrayList<>();
+    private Map<UUID, Integer> killCounts = new HashMap<>();
+    private Map<UUID, Integer> deathCounts = new HashMap<>();
     private List<Player> admins = new ArrayList<>();
     private List<ColossalCombatRound> rounds = new ArrayList<>();
     private int currentRoundIndex = 0;
@@ -45,17 +64,26 @@ public class ColossalCombatGame implements Listener, Configurable {
     private int secondPlaceRoundWins = 0;
     private String firstTeamName;
     private String secondTeamName;
+    private boolean descriptionShowing = false;
     private boolean gameActive = false;
+    private final TimerManager timerManager;
     
     public ColossalCombatGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
         this.gameManager = gameManager;
-        this.storageUtil = new ColossalCombatStorageUtil(plugin.getDataFolder());
+        this.timerManager = new TimerManager(plugin);
+        this.configController = new ColossalCombatConfigController(plugin.getDataFolder());
+        this.topbar = new BattleTopbar();
     }
     
     @Override
-    public boolean loadConfig() throws IllegalArgumentException {
-        return storageUtil.loadConfig();
+    public void loadConfig() throws ConfigIOException, ConfigInvalidException {
+        this.config = configController.getConfig();
+        if (gameActive) {
+            for (ColossalCombatRound round : rounds) {
+                round.setConfig(this.config);
+            }
+        }
     }
     
     /**
@@ -74,13 +102,16 @@ public class ColossalCombatGame implements Listener, Configurable {
         firstPlaceParticipants = new ArrayList<>(newFirstPlaceParticipants.size());
         secondPlaceParticipants = new ArrayList<>(newSecondPlaceParticipants.size());
         spectators = new ArrayList<>(newSpectators.size());
+        killCounts = new HashMap<>(newFirstPlaceParticipants.size() + newSecondPlaceParticipants.size());
+        deathCounts = new HashMap<>(newFirstPlaceParticipants.size() + newSecondPlaceParticipants.size());
         sidebar = gameManager.getSidebarFactory().createSidebar();
         adminSidebar = gameManager.getSidebarFactory().createSidebar();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
-        int numOfRounds = (storageUtil.getRequiredWins() * 2) - 1;
+        gameManager.getTimerManager().register(timerManager);
+        int numOfRounds = (config.getRequiredWins() * 2) - 1;
         rounds = new ArrayList<>(numOfRounds);
         for (int i = 0; i < numOfRounds; i++) {
-            rounds.add(new ColossalCombatRound(plugin, gameManager, this, storageUtil, sidebar, adminSidebar));
+            rounds.add(new ColossalCombatRound(plugin, gameManager, this, config, sidebar, adminSidebar, topbar));
         }
         currentRoundIndex = 0;
         for (Player first : newFirstPlaceParticipants) {
@@ -95,35 +126,58 @@ public class ColossalCombatGame implements Listener, Configurable {
         initializeSidebar();
         setupTeamOptions();
         startAdmins(newAdmins);
-        startNextRound();
-        displayDescription();
         gameActive = true;
+        startDescriptionPeriod();
+        displayDescription();
         Bukkit.getLogger().info("Started Colossal Combat");
     }
     
     private void displayDescription() {
-        messageAllParticipants(storageUtil.getDescription());
+        messageAllParticipants(config.getDescription());
     }
     
     private void initializeFirstPlaceParticipant(Player first) {
         firstPlaceParticipants.add(first);
-        first.teleport(storageUtil.getFirstPlaceSpawn());
-        first.setGameMode(GameMode.ADVENTURE);
-        sidebar.addPlayer(first);
+        first.teleport(config.getFirstPlaceSpawn());
+        first.setBedSpawnLocation(config.getFirstPlaceSpawn(), true);
+        initializeParticipant(first);
+        initializeKillCount(first);
+    }
+    
+    private void initializeKillCount(Player participant) {
+        killCounts.putIfAbsent(participant.getUniqueId(), 0);
+        deathCounts.putIfAbsent(participant.getUniqueId(), 0);
+        int kills = killCounts.get(participant.getUniqueId());
+        int deaths = deathCounts.get(participant.getUniqueId());
+        topbar.setKillsAndDeaths(participant.getUniqueId(), kills, deaths);
     }
     
     private void initializeSecondPlaceParticipant(Player second) {
         secondPlaceParticipants.add(second);
-        second.teleport(storageUtil.getSecondPlaceSpawn());
-        second.setGameMode(GameMode.ADVENTURE);
-        sidebar.addPlayer(second);
+        second.teleport(config.getSecondPlaceSpawn());
+        second.setBedSpawnLocation(config.getSecondPlaceSpawn(), true);
+        initializeParticipant(second);
+        initializeKillCount(second);
     }
     
     private void initializeSpectator(Player spectator) {
         spectators.add(spectator);
-        spectator.teleport(storageUtil.getSpectatorSpawn());
-        spectator.setGameMode(GameMode.ADVENTURE);
-        sidebar.addPlayer(spectator);
+        spectator.teleport(config.getSpectatorSpawn());
+        spectator.setBedSpawnLocation(config.getSpectatorSpawn(), true);
+        initializeParticipant(spectator);
+    }
+    
+    /**
+     * General initialization for every participant, first, second, and spectator
+     * @param participant the participant
+     */
+    private void initializeParticipant(Player participant) {
+        participant.setGameMode(GameMode.ADVENTURE);
+        participant.getInventory().clear();
+        ParticipantInitializer.resetHealthAndHunger(participant);
+        ParticipantInitializer.clearStatusEffects(participant);
+        sidebar.addPlayer(participant);
+        topbar.showPlayer(participant);
     }
     
     private void startAdmins(List<Player> newAdmins) {
@@ -152,20 +206,55 @@ public class ColossalCombatGame implements Listener, Configurable {
         admins.add(admin);
         adminSidebar.addPlayer(admin);
         admin.setGameMode(GameMode.SPECTATOR);
-        admin.teleport(storageUtil.getSpectatorSpawn());
+        admin.teleport(config.getSpectatorSpawn());
+    }
+    
+    private void startDescriptionPeriod() {
+        descriptionShowing = true;
+        timerManager.start(Timer.builder()
+                        .duration(config.getDescriptionDuration())
+                        .withSidebar(adminSidebar, "timer")
+                        .withTopbar(topbar)
+                        .sidebarPrefix(Component.text("Starting soon: "))
+                        .onCompletion(() -> {
+                            descriptionShowing = false;        
+                            startNextRound();
+                        })
+                        .build());
     }
     
     private void startNextRound() {
         ColossalCombatRound nextRound = rounds.get(currentRoundIndex);
+        setUpTopbarForRound();
         nextRound.start(firstPlaceParticipants, secondPlaceParticipants, spectators, firstTeamName, secondTeamName);
         sidebar.updateLine("round", String.format("Round: %s", currentRoundIndex+1));
         adminSidebar.updateLine("round", String.format("Round: %s", currentRoundIndex+1));
     }
     
+    private void setUpTopbarForRound() {
+        topbar.removeAllTeamPairs();
+        NamedTextColor firstColor = gameManager.getTeamNamedTextColor(firstTeamName);
+        NamedTextColor secondColor = gameManager.getTeamNamedTextColor(secondTeamName);
+        topbar.addTeam(firstTeamName, firstColor);
+        topbar.addTeam(secondTeamName, secondColor);
+        topbar.linkTeamPair(firstTeamName, secondTeamName);
+        for (Player firstPlaceParticipant : firstPlaceParticipants) {
+            topbar.linkToTeam(firstPlaceParticipant.getUniqueId(), firstTeamName);
+        }
+        for (Player secondPlaceParticipant : secondPlaceParticipants) {
+            topbar.linkToTeam(secondPlaceParticipant.getUniqueId(), secondTeamName);
+        }
+        for (Player spectator : spectators) {
+            topbar.linkToTeam(spectator.getUniqueId(), firstTeamName);
+        }
+        topbar.setMembers(firstTeamName, firstPlaceParticipants.size(), 0);
+        topbar.setMembers(secondTeamName, secondPlaceParticipants.size(), 0);
+    }
+    
     public void onFirstPlaceWinRound() {
         firstPlaceRoundWins++;
         updateRoundWinSidebar();
-        if (firstPlaceRoundWins >= storageUtil.getRequiredWins()) {
+        if (firstPlaceRoundWins >= config.getRequiredWins()) {
             stop(firstTeamName);
             return;
         }
@@ -176,7 +265,7 @@ public class ColossalCombatGame implements Listener, Configurable {
     public void onSecondPlaceWinRound() {
         secondPlaceRoundWins++;
         updateRoundWinSidebar();
-        if (secondPlaceRoundWins >= storageUtil.getRequiredWins()) {
+        if (secondPlaceRoundWins >= config.getRequiredWins()) {
             stop(secondTeamName);
             return;
         }
@@ -186,7 +275,9 @@ public class ColossalCombatGame implements Listener, Configurable {
     
     public void stop(@Nullable String winningTeam) {
         gameActive = false;
+        descriptionShowing = false;
         HandlerList.unregisterAll(this);
+        cancelAllTasks();
         if (currentRoundIndex < rounds.size()) {
             ColossalCombatRound currentRound = rounds.get(currentRoundIndex);
             if (currentRound.isActive()) {
@@ -194,6 +285,7 @@ public class ColossalCombatGame implements Listener, Configurable {
             }
         }
         rounds.clear();
+        removeConcrete();
         for (Player participant : firstPlaceParticipants) {
             resetParticipant(participant);
         }
@@ -207,6 +299,8 @@ public class ColossalCombatGame implements Listener, Configurable {
         }
         clearSidebar();
         stopAdmins();
+        killCounts.clear();
+        deathCounts.clear();
         spectators.clear();
         gameManager.getEventManager().colossalCombatIsOver(winningTeam);
         Bukkit.getLogger().info("Stopping Colossal Combat");
@@ -214,7 +308,10 @@ public class ColossalCombatGame implements Listener, Configurable {
     
     private void resetParticipant(Player participant) {
         participant.getInventory().clear();
+        ParticipantInitializer.clearStatusEffects(participant);
+        ParticipantInitializer.resetHealthAndHunger(participant);
         sidebar.removePlayer(participant.getUniqueId());
+        topbar.hidePlayer(participant.getUniqueId());
     }
     
     private void stopAdmins() {
@@ -229,25 +326,54 @@ public class ColossalCombatGame implements Listener, Configurable {
         adminSidebar.removePlayer(admin);
     }
     
+    private void cancelAllTasks() {
+        timerManager.cancel();
+    }
+    
     public void onParticipantJoin(Player participant) {
         if (!gameActive) {
             return;
         }
         String teamName = gameManager.getTeamName(participant.getUniqueId());
         if (firstTeamName.equals(teamName)) {
-            firstPlaceParticipants.add(participant);
-            participant.setGameMode(GameMode.SPECTATOR);
-            participant.teleport(storageUtil.getFirstPlaceSpawn());
+            if (descriptionShowing) {
+                initializeFirstPlaceParticipant(participant);
+            } else {
+                firstPlaceParticipants.add(participant);
+                participant.setGameMode(GameMode.SPECTATOR);
+                participant.teleport(config.getFirstPlaceSpawn());
+                participant.setBedSpawnLocation(config.getFirstPlaceSpawn(), true);
+                sidebar.addPlayer(participant);
+                topbar.showPlayer(participant);
+                topbar.linkToTeam(participant.getUniqueId(), firstTeamName);
+                initializeKillCount(participant);
+            }
         } else if (secondTeamName.equals(teamName)) {
-            secondPlaceParticipants.add(participant);
-            participant.setGameMode(GameMode.SPECTATOR);
-            participant.teleport(storageUtil.getSecondPlaceSpawn());
+            if (descriptionShowing) {
+                initializeSecondPlaceParticipant(participant);
+            } else {
+                secondPlaceParticipants.add(participant);
+                participant.setGameMode(GameMode.SPECTATOR);
+                participant.teleport(config.getSecondPlaceSpawn());
+                participant.setBedSpawnLocation(config.getSecondPlaceSpawn(), true);
+                sidebar.addPlayer(participant);
+                topbar.showPlayer(participant);
+                topbar.linkToTeam(participant.getUniqueId(), secondTeamName);
+                initializeKillCount(participant);
+            }
         } else {
-            spectators.add(participant);
-            participant.teleport(storageUtil.getSpectatorSpawn());
+            if (descriptionShowing) {
+                initializeSpectator(participant);
+            } else {
+                spectators.add(participant);
+                participant.teleport(config.getSpectatorSpawn());
+                participant.setBedSpawnLocation(config.getSpectatorSpawn(), true);
+                sidebar.addPlayer(participant);
+                topbar.showPlayer(participant);
+                topbar.linkToTeam(participant.getUniqueId(), firstTeamName);
+            }
         }
-        sidebar.addPlayer(participant);
-        if (currentRoundIndex < rounds.size()) {
+        if ( 0 <= currentRoundIndex && currentRoundIndex < rounds.size()) {
             ColossalCombatRound currentRound = rounds.get(currentRoundIndex);
             if (currentRound.isActive()) {
                 currentRound.onParticipantJoin(participant);
@@ -264,6 +390,12 @@ public class ColossalCombatGame implements Listener, Configurable {
         if (!gameActive) {
             return;
         }
+        if (0 <= currentRoundIndex && currentRoundIndex < rounds.size()) {
+            ColossalCombatRound currentRound = rounds.get(currentRoundIndex);
+            if (currentRound.isActive()) {
+                currentRound.onParticipantQuit(participant);
+            }
+        }
         resetParticipant(participant);
         String teamName = gameManager.getTeamName(participant.getUniqueId());
         if (firstTeamName.equals(teamName)) {
@@ -272,12 +404,6 @@ public class ColossalCombatGame implements Listener, Configurable {
             secondPlaceParticipants.remove(participant);
         } else {
             spectators.remove(participant);
-        }
-        if (currentRoundIndex < rounds.size()) {
-            ColossalCombatRound currentRound = rounds.get(currentRoundIndex);
-            if (currentRound.isActive()) {
-                currentRound.onParticipantQuit(participant);
-            }
         }
     }
     
@@ -341,15 +467,88 @@ public class ColossalCombatGame implements Listener, Configurable {
         }
     }
     
+    @EventHandler
+    public void onPlayerInteract(PlayerInteractEvent event) {
+        if (!gameActive) {
+            return;
+        }
+        Block clickedBlock = event.getClickedBlock();
+        if (clickedBlock == null) {
+            return;
+        }
+        Player participant = event.getPlayer();
+        if (!firstPlaceParticipants.contains(participant)
+                && !secondPlaceParticipants.contains(participant)
+                && !spectators.contains(participant)) {
+            return;
+        }
+        Material blockType = clickedBlock.getType();
+        if (!config.getPreventInteractions().contains(blockType)) {
+            return;
+        }
+        event.setCancelled(true);
+    }
+    
+    @EventHandler
+    public void onPlayerMove(PlayerMoveEvent event) {
+        if (!gameActive) {
+            return;
+        }
+        if (config.getSpectatorArea() == null){
+            return;
+        }
+        Player participant = event.getPlayer();
+        if (!firstPlaceParticipants.contains(participant)
+                && !secondPlaceParticipants.contains(participant)
+                && !spectators.contains(participant)) {
+            return;
+        }
+        if (!participant.getGameMode().equals(GameMode.SPECTATOR)) {
+            return;
+        }
+        if (!config.getSpectatorArea().contains(event.getFrom().toVector())) {
+            participant.teleport(config.getSpectatorSpawn());
+            return;
+        }
+        if (!config.getSpectatorArea().contains(event.getTo().toVector())) {
+            event.setCancelled(true);
+        }
+    }
+    
+    @EventHandler
+    public void onPlayerTeleport(PlayerTeleportEvent event) {
+        if (!gameActive) {
+            return;
+        }
+        if (config.getSpectatorArea() == null){
+            return;
+        }
+        Player participant = event.getPlayer();
+        if (!firstPlaceParticipants.contains(participant)
+                && !secondPlaceParticipants.contains(participant)
+                && !spectators.contains(participant)) {
+            return;
+        }
+        if (!participant.getGameMode().equals(GameMode.SPECTATOR)) {
+            return;
+        }
+        if (!event.getCause().equals(PlayerTeleportEvent.TeleportCause.SPECTATE)) {
+            return;
+        }
+        if (!config.getSpectatorArea().contains(event.getTo().toVector())) {
+            event.setCancelled(true);
+        }
+    }
+    
     private void updateRoundWinSidebar() {
         ChatColor firstChatColor = gameManager.getTeamChatColor(firstTeamName);
         String firstDisplayName = ChatColor.BOLD + "" +  firstChatColor + gameManager.getTeamDisplayName(firstTeamName);
         ChatColor secondChatColor = gameManager.getTeamChatColor(secondTeamName);
         String secondDisplayName = ChatColor.BOLD + "" +  secondChatColor + gameManager.getTeamDisplayName(secondTeamName);
-        sidebar.updateLine("firstWinCount", String.format("%s: %s/%s", firstDisplayName, firstPlaceRoundWins, storageUtil.getRequiredWins()));
-        sidebar.updateLine("secondWinCount", String.format("%s: %s/%s", secondDisplayName, secondPlaceRoundWins, storageUtil.getRequiredWins()));
-        adminSidebar.updateLine("firstWinCount", String.format("%s: %s/%s", firstDisplayName, firstPlaceRoundWins, storageUtil.getRequiredWins()));
-        adminSidebar.updateLine("secondWinCount", String.format("%s: %s/%s", secondDisplayName, secondPlaceRoundWins, storageUtil.getRequiredWins()));
+        sidebar.updateLine("firstWinCount", String.format("%s: %s/%s", firstDisplayName, firstPlaceRoundWins, config.getRequiredWins()));
+        sidebar.updateLine("secondWinCount", String.format("%s: %s/%s", secondDisplayName, secondPlaceRoundWins, config.getRequiredWins()));
+        adminSidebar.updateLine("firstWinCount", String.format("%s: %s/%s", firstDisplayName, firstPlaceRoundWins, config.getRequiredWins()));
+        adminSidebar.updateLine("secondWinCount", String.format("%s: %s/%s", secondDisplayName, secondPlaceRoundWins, config.getRequiredWins()));
     }
     
     private void initializeAdminSidebar() {
@@ -359,8 +558,8 @@ public class ColossalCombatGame implements Listener, Configurable {
         String secondDisplayName = ChatColor.BOLD + "" +  secondChatColor + gameManager.getTeamDisplayName(secondTeamName);
         adminSidebar.addLines(
                 new KeyLine("title", title),
-                new KeyLine("firstWinCount", String.format("%s: 0/%s", firstDisplayName, storageUtil.getRequiredWins())),
-                new KeyLine("secondWinCount", String.format("%s: 0/%s", secondDisplayName, storageUtil.getRequiredWins())),
+                new KeyLine("firstWinCount", String.format("%s: 0/%s", firstDisplayName, config.getRequiredWins())),
+                new KeyLine("secondWinCount", String.format("%s: 0/%s", secondDisplayName, config.getRequiredWins())),
                 new KeyLine("round", "Round: 1"),
                 new KeyLine("timer", "")
         );
@@ -378,42 +577,95 @@ public class ColossalCombatGame implements Listener, Configurable {
         String secondDisplayName = ChatColor.BOLD + "" +  secondChatColor + gameManager.getTeamDisplayName(secondTeamName);
         sidebar.addLines(
                 new KeyLine("title", title),
-                new KeyLine("firstWinCount", String.format("%s: 0/%s", firstDisplayName, storageUtil.getRequiredWins())),
-                new KeyLine("secondWinCount", String.format("%s: 0/%s", secondDisplayName, storageUtil.getRequiredWins())),
-                new KeyLine("round", "Round: 1"),
-                new KeyLine("timer", "")
+                new KeyLine("firstWinCount", String.format("%s: 0/%s", firstDisplayName, config.getRequiredWins())),
+                new KeyLine("secondWinCount", String.format("%s: 0/%s", secondDisplayName, config.getRequiredWins())),
+                new KeyLine("round", "Round: 1")
         );
+        topbar.setMiddle(Component.empty());
     }
     
     private void clearSidebar() {
         sidebar.deleteAllLines();
         sidebar = null;
+        topbar.removeAllTeamPairs();
+        topbar.hideAllPlayers();
+    }
+    
+    /**
+     * @param playerUUID the player to add a kill to
+     */
+    void addKill(@NotNull UUID playerUUID) {
+        int oldKillCount = killCounts.get(playerUUID);
+        int newKillCount = oldKillCount + 1;
+        killCounts.put(playerUUID, newKillCount);
+        topbar.setKills(playerUUID, newKillCount);
+    }
+    
+    /**
+     * @param playerUUID the player to add a death to
+     */
+    void addDeath(@NotNull UUID playerUUID) {
+        int oldDeathCount = deathCounts.get(playerUUID);
+        int newDeathCount = oldDeathCount + 1;
+        deathCounts.put(playerUUID, newDeathCount);
+        topbar.setDeaths(playerUUID, newDeathCount);
     }
     
     void closeGates() {
         closeGate(
-                storageUtil.getFirstPlaceClearArea(), 
-                storageUtil.getFirstPlaceStone(), 
-                storageUtil.getFirstPlacePlaceArea(), 
+                config.getFirstPlaceClearArea(), 
+                config.getFirstPlaceStone(), 
+                config.getFirstPlacePlaceArea(), 
                 gameManager.getTeamPowderColor(firstTeamName)
         );
         closeGate(
-                storageUtil.getSecondPlaceClearArea(), 
-                storageUtil.getSecondPlaceStone(), 
-                storageUtil.getSecondPlacePlaceArea(), 
+                config.getSecondPlaceClearArea(), 
+                config.getSecondPlaceStone(), 
+                config.getSecondPlacePlaceArea(), 
                 gameManager.getTeamPowderColor(secondTeamName)
         );
+        placeConcrete();
+    }
+    
+    void placeConcrete() {
+        if (config.shouldReplaceWithConcrete()) {
+            BlockPlacementUtils.createCubeReplace(
+                    config.getWorld(),
+                    config.getFirstPlaceFlagReplaceArea(),
+                    config.getReplaceBlock(),
+                    gameManager.getTeamConcreteColor(firstTeamName));
+            BlockPlacementUtils.createCubeReplace(
+                    config.getWorld(),
+                    config.getSecondPlaceFlagReplaceArea(),
+                    config.getReplaceBlock(),
+                    gameManager.getTeamConcreteColor(secondTeamName));
+        }
+    }
+    
+    void removeConcrete() {
+        if (config.shouldReplaceWithConcrete()) {
+            BlockPlacementUtils.createCubeReplace(
+                    config.getWorld(),
+                    config.getFirstPlaceFlagReplaceArea(),
+                    gameManager.getTeamConcreteColor(firstTeamName),
+                    config.getReplaceBlock());
+            BlockPlacementUtils.createCubeReplace(
+                    config.getWorld(),
+                    config.getSecondPlaceFlagReplaceArea(),
+                    gameManager.getTeamConcreteColor(secondTeamName),
+                    config.getReplaceBlock());
+        }
     }
     
     private void closeGate(BoundingBox clearArea, BoundingBox stoneArea, BoundingBox placeArea, Material teamPowderColor) {
         //replace powder with air
         for (Material powderColor : ColorMap.getAllConcretePowderColors()) {
-            BlockPlacementUtils.createCubeReplace(storageUtil.getWorld(), clearArea, powderColor, Material.AIR);
+            BlockPlacementUtils.createCubeReplace(config.getWorld(), clearArea, powderColor, Material.AIR);
         }
         //place stone under the powder area
-        BlockPlacementUtils.createCube(storageUtil.getWorld(), stoneArea, Material.STONE);
+        BlockPlacementUtils.createCube(config.getWorld(), stoneArea, Material.STONE);
         //replace air with team powder color
-        BlockPlacementUtils.createCubeReplace(storageUtil.getWorld(), placeArea, Material.AIR, teamPowderColor);
+        BlockPlacementUtils.createCubeReplace(config.getWorld(), placeArea, Material.AIR, teamPowderColor);
     }
     
     private void setupTeamOptions() {

@@ -1,8 +1,11 @@
 package org.braekpo1nt.mctmanager.games.game.clockwork;
 
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.games.game.clockwork.config.ClockworkStorageUtil;
-import org.bukkit.*;
+import org.braekpo1nt.mctmanager.games.game.clockwork.config.ClockworkConfig;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Entity;
@@ -25,7 +28,7 @@ import java.util.Random;
 public class ChaosManager implements Listener {
     private final BlockData sandBlockData = Material.SAND.createBlockData();
     private final BlockData anvilBlockData = Material.ANVIL.createBlockData();
-    private final ClockworkStorageUtil storageUtil;
+    private ClockworkConfig config;
     private double minArrows;
     private double maxArrows;
     private double minFallingBlocks;
@@ -37,20 +40,24 @@ public class ChaosManager implements Listener {
     
     private final Main plugin;
     
-    public ChaosManager(Main plugin, ClockworkStorageUtil storageUtil) {
+    public ChaosManager(Main plugin, ClockworkConfig config) {
         this.plugin = plugin;
-        this.storageUtil = storageUtil;
-        minArrows = storageUtil.getChaos().arrows().initial().min();
-        maxArrows = storageUtil.getChaos().arrows().initial().max();
-        minFallingBlocks = storageUtil.getChaos().fallingBlocks().initial().min();
-        maxFallingBlocks = storageUtil.getChaos().fallingBlocks().initial().max();
-        minDelay += storageUtil.getChaos().summonDelay().initial().min();
-        maxDelay += storageUtil.getChaos().summonDelay().initial().max();
+        this.config = config;
+        minArrows = config.getChaos().arrows().initial().min();
+        maxArrows = config.getChaos().arrows().initial().max();
+        minFallingBlocks = config.getChaos().fallingBlocks().initial().min();
+        maxFallingBlocks = config.getChaos().fallingBlocks().initial().max();
+        minDelay += config.getChaos().summonDelay().initial().min();
+        maxDelay += config.getChaos().summonDelay().initial().max();
+    }
+    
+    public void setConfig(ClockworkConfig config) {
+        this.config = config;
     }
     
     public void incrementChaos() {
-        minArrows += storageUtil.getChaos().arrows().increment().min();
-        maxArrows += storageUtil.getChaos().arrows().increment().max();
+        minArrows += config.getChaos().arrows().increment().min();
+        maxArrows += config.getChaos().arrows().increment().max();
         if (minArrows < 0) {
             minArrows = 0;
         }
@@ -58,8 +65,8 @@ public class ChaosManager implements Listener {
             maxArrows = minArrows;
         }
         
-        minFallingBlocks += storageUtil.getChaos().fallingBlocks().increment().min();
-        maxFallingBlocks += storageUtil.getChaos().fallingBlocks().increment().max();
+        minFallingBlocks += config.getChaos().fallingBlocks().increment().min();
+        maxFallingBlocks += config.getChaos().fallingBlocks().increment().max();
         if (minFallingBlocks < 0) {
             minFallingBlocks = 0;
         }
@@ -67,11 +74,11 @@ public class ChaosManager implements Listener {
             maxFallingBlocks = minFallingBlocks;
         }
         
-        minDelay -= storageUtil.getChaos().summonDelay().decrement().min();
+        minDelay -= config.getChaos().summonDelay().decrement().min();
         if (((long) minDelay) < 5.0) {
             minDelay = 5.0;
         }
-        maxDelay -= storageUtil.getChaos().summonDelay().decrement().max();
+        maxDelay -= config.getChaos().summonDelay().decrement().max();
         if (((long) minDelay) >= ((long) maxDelay + 1)) {
             maxDelay = minDelay;
         }
@@ -114,9 +121,9 @@ public class ChaosManager implements Listener {
         for (int i = 0; i < numArrows; i++) {
             Location spawnLocation = randomLocationInCylinder();
             if (spawnLocation.getBlock().getType().equals(Material.AIR)) {
-                float arrowSpeed = random.nextFloat(storageUtil.getChaos().arrowSpeed().min(), storageUtil.getChaos().arrowSpeed().max());
-                float arrowSpread = random.nextFloat(storageUtil.getChaos().arrowSpread().min(), storageUtil.getChaos().arrowSpread().max());
-                Arrow arrow = storageUtil.getWorld().spawnArrow(spawnLocation, new Vector(0, -1, 0), arrowSpeed, arrowSpread);
+                float arrowSpeed = random.nextFloat(config.getChaos().arrowSpeed().min(), config.getChaos().arrowSpeed().max());
+                float arrowSpread = random.nextFloat(config.getChaos().arrowSpread().min(), config.getChaos().arrowSpread().max());
+                Arrow arrow = config.getWorld().spawnArrow(spawnLocation, new Vector(0, -1, 0), arrowSpeed, arrowSpread);
                 arrow.setGravity(true);
                 arrow.setPickupStatus(Arrow.PickupStatus.DISALLOWED);
             }
@@ -131,7 +138,7 @@ public class ChaosManager implements Listener {
         for (int i = 0; i < numOfFallingBlocks; i++) {
             Location spawnLocation = randomLocationInCylinder();
             if (spawnLocation.getBlock().getType().equals(Material.AIR)) {
-                FallingBlock fallingBlock = storageUtil.getWorld().spawnFallingBlock(spawnLocation, random.nextBoolean() ? sandBlockData : anvilBlockData);
+                FallingBlock fallingBlock = config.getWorld().spawnFallingBlock(spawnLocation, random.nextBoolean() ? sandBlockData : anvilBlockData);
                 fallingBlock.setDropItem(false);
             }
         }
@@ -139,12 +146,12 @@ public class ChaosManager implements Listener {
     
     @NotNull
     private Location randomLocationInCylinder() {
-        double randomRadius = storageUtil.getChaos().cylinder().radius() * Math.sqrt(random.nextDouble()); // generate a "uniformly random" radius (see https://stackoverflow.com/questions/5837572/generate-a-random-point-within-a-circle-uniformly)
+        double randomRadius = config.getChaos().cylinder().radius() * Math.sqrt(random.nextDouble()); // generate a "uniformly random" radius (see https://stackoverflow.com/questions/5837572/generate-a-random-point-within-a-circle-uniformly)
         double randomAngle = random.nextDouble() * 2 * Math.PI;
-        double x = storageUtil.getChaos().cylinder().centerX() + randomRadius * Math.cos(randomAngle);
-        double z = storageUtil.getChaos().cylinder().centerZ() + randomRadius * Math.sin(randomAngle);
-        double y = random.nextDouble(storageUtil.getChaos().cylinder().spawnY().min(), storageUtil.getChaos().cylinder().spawnY().max());
-        return new Location(storageUtil.getWorld(), x, y, z);
+        double x = config.getChaos().cylinder().centerX() + randomRadius * Math.cos(randomAngle);
+        double z = config.getChaos().cylinder().centerZ() + randomRadius * Math.sin(randomAngle);
+        double y = random.nextDouble(config.getChaos().cylinder().spawnY().min(), config.getChaos().cylinder().spawnY().max());
+        return new Location(config.getWorld(), x, y, z);
     }
     
     @EventHandler
@@ -170,7 +177,7 @@ public class ChaosManager implements Listener {
     }
     
     private void removeArrowsAndFallingBlocks() {
-        for (Entity entity : getEntitiesInCylinder(storageUtil.getWorld(), storageUtil.getChaos().cylinder().centerX(), storageUtil.getChaos().cylinder().centerZ(), storageUtil.getChaos().cylinder().radius(), Arrow.class, FallingBlock.class)) {
+        for (Entity entity : getEntitiesInCylinder(config.getWorld(), config.getChaos().cylinder().centerX(), config.getChaos().cylinder().centerZ(), config.getChaos().cylinder().radius(), Arrow.class, FallingBlock.class)) {
             entity.remove();
         }
     }

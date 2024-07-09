@@ -1,5 +1,5 @@
 {
-  "version": "0.1.0",
+  "version": "0.1.1",
   "world": "TestWorld",
   "spectatorArea": {
     "minX": 0,
@@ -9,6 +9,16 @@
     "maxY": 2,
     "maxZ": 2
   },
+  "preventInteractions": [
+    "OAK_TRAPDOOR",
+    "SPRUCE_TRAPDOOR",
+    "BIRCH_TRAPDOOR",
+    "JUNGLE_TRAPDOOR",
+    "ACACIA_TRAPDOOR",
+    "DARK_OAK_TRAPDOOR",
+    "CRIMSON_TRAPDOOR",
+    "WARPED_TRAPDOOR"
+  ],
   "scores": {
     "checkpoint": [
       50,
@@ -24,11 +34,76 @@
     ]
   },
   "durations": {
+    "teamSpawn": 10,
     "starting": 10,
     "timeLimit": 600,
     "checkpointCounter": 120,
-    "checkpointCounterAlert": 30
+    "checkpointCounterAlert": 30,
+    "description": 10
   },
+  "glassBarrier": {
+    "minX": 1006,
+    "minY": 0,
+    "minZ": -6,
+    "maxX": 1006,
+    "maxY": 4,
+    "maxZ": 6
+  },
+  "glassBarrierOpenMessage": {"text":"Go!","color":"green"},
+  "teamSpawns": [
+    {
+      "barrierArea": {
+        "minX": 1000,
+        "minY": 0,
+        "minZ": -4,
+        "maxX": 1003,
+        "maxY": 1,
+        "maxZ": -4
+      },
+      "spawn": {
+        "x": 1002,
+        "y": 0,
+        "z": -5,
+        "yaw": 0,
+        "pitch": 0
+      }
+    },
+    {
+      "barrierArea": {
+        "minX": 1000,
+        "minY": 0,
+        "minZ": 4,
+        "maxX": 1003,
+        "maxY": 1,
+        "maxZ": 4
+      },
+      "spawn": {
+        "x": 1002,
+        "y": 0,
+        "z": 6,
+        "yaw": -180,
+        "pitch": 0
+      }
+    },
+    {
+      "barrierArea": {
+        "minX": 1001,
+        "minY": 0,
+        "minZ": -2,
+        "maxX": 1001,
+        "maxY": 1,
+        "maxZ": 2
+      },
+      "spawn": {
+        "x": 1000.5,
+        "y": 0,
+        "z": 0.5,
+        "yaw": -90,
+        "pitch": 0
+      }
+    }
+  ],
+  "teamSpawnsOpenMessage": "Head to the gate!",
   "puzzles": [
     {
       "index": 0,

@@ -1,87 +1,60 @@
 package org.braekpo1nt.mctmanager.games.gamestate;
 
-import com.google.gson.Gson;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
+import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
 import org.braekpo1nt.mctmanager.games.GameManager;
-import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.io.*;
 import java.util.*;
+import java.util.logging.Logger;
 
 /**
  * Handles the CRUD operations for storing GameState objects
+ * keeps the most recently loaded GameState in memory so that each call to it doesn't need to be a file IO operation
  */
 public class GameStateStorageUtil {
     
-    private static final String GAME_STATE_FILE_NAME = "gameState.json";
-    private final File gameStateDirectory;
-    protected GameState gameState = new GameState();
+    private final Logger LOGGER;
+    private final GameStateController gameStateController;
+    protected GameState gameState = new GameState(new HashMap<>(), new HashMap<>(), new HashMap<>(), new ArrayList<>());
     
     public GameStateStorageUtil(Main plugin) {
-        this.gameStateDirectory = plugin.getDataFolder();
+        this.LOGGER = plugin.getLogger();
+        this.gameStateController = new GameStateController(plugin.getDataFolder());
     }
     
     /**
      * Save the GameState to storage
-     * @throws IOException if there is a problem
+     * @throws ConfigIOException if there is a problem
      * - creating a new game state file
      * - writing to the game state file
      * - converting the game state to json
      */
-    public void saveGameState() throws IOException {
-        Gson gson = new Gson();
-        File gameStateFile = getGameStateFile();
-        Writer writer = new FileWriter(gameStateFile, false);
-        gson.toJson(this.gameState, writer);
-        writer.flush();
-        writer.close();
-//        Bukkit.getLogger().info("[MCTManager] Saved game state.");
+    public void saveGameState() throws ConfigIOException {
+        gameStateController.saveGameState(gameState);
     }
     
     /**
      * Load the GameState from storage
-     * @throws IOException if there is a problem 
+     * @throws ConfigInvalidException if the config is invalid
+     * @throws ConfigIOException if there is a problem 
      * - creating a new game state file
      * - reading the existing game state file
      * - parsing the game state from json
      */
-    public void loadGameState() throws IOException {
-        Gson gson = new Gson();
-        File gameStateFile = getGameStateFile();
-        Reader reader = new FileReader(gameStateFile);
-        GameState newGameState = gson.fromJson(reader, GameState.class);
-        reader.close();
-        if (newGameState == null) {
-            newGameState = new GameState();
-        }
-        this.gameState = newGameState;
-        Bukkit.getLogger().info("[MCTManager] Loaded gameState.json");
-    }
-    
-    /**
-     * Get the game state file from the given game state directory. Creates the file
-     * if one doesn't already exist.
-     * @return The game state file
-     * @throws IOException if there is an error creating a new game state file
-     */
-    private File getGameStateFile() throws IOException {
-        File gameStateFile = new File(gameStateDirectory.getAbsolutePath(), GAME_STATE_FILE_NAME);
-        if (!gameStateFile.exists()) {
-            if (!gameStateDirectory.exists()) {
-                gameStateDirectory.mkdirs();
-            }
-            gameStateFile.createNewFile();
-        }
-        return gameStateFile;
+    public void loadGameState() throws ConfigIOException, ConfigInvalidException {
+        this.gameState = gameStateController.getGameState();
+        LOGGER.info("Loaded gameState.json");
     }
     
     /**
@@ -98,14 +71,14 @@ public class GameStateStorageUtil {
      * @param teamName The internal name of the team.
      * @param teamDisplayName The display name of the team.
      * @param color The color of the team
-     * @throws IOException If there is an error saving the game state while adding a new team.
+     * @throws ConfigIOException If there is an error saving the game state while adding a new team.
      */
-    public void addTeam(String teamName, String teamDisplayName, String color) throws IOException {
+    public void addTeam(String teamName, String teamDisplayName, String color) throws ConfigIOException {
         gameState.addTeam(teamName, teamDisplayName, color);
         saveGameState();
     }
     
-    public void removeTeam(String teamName) throws IOException {
+    public void removeTeam(String teamName) throws ConfigIOException {
         gameState.removeTeam(teamName);
         saveGameState();
     }
@@ -161,11 +134,23 @@ public class GameStateStorageUtil {
         for (UUID adminUniqueId : gameState.getAdmins()) {
             Team adminTeam = scoreboard.getTeam(GameManager.ADMIN_TEAM);
             OfflinePlayer admin = Bukkit.getOfflinePlayer(adminUniqueId);
+            if (adminTeam == null) {
+                // this should never happen
+                String message = String.format("Could not find player with UUID %s", adminUniqueId);
+                LOGGER.severe(message);
+                throw new RuntimeException(message);
+            }
             adminTeam.addPlayer(admin);
         }
         for (MCTPlayer mctPlayer : gameState.getPlayers().values()) {
             Team team = scoreboard.getTeam(mctPlayer.getTeamName());
             OfflinePlayer player = Bukkit.getOfflinePlayer(mctPlayer.getUniqueId());
+            if (team == null) {
+                // this should never happen
+                String message = String.format("Could not find team with name %s", mctPlayer.getTeamName());
+                LOGGER.severe(message);
+                throw new RuntimeException(message);
+            }
             team.addPlayer(player);
         }
         
@@ -175,37 +160,97 @@ public class GameStateStorageUtil {
      * Gets a list of the internal names of all the teams in the game state
      * @return A list of all the teams. Empty list if there are no teams.
      */
-    public Set<String> getTeamNames() {
-        return gameState.getTeams().keySet();
+    public @NotNull Set<String> getTeamNames() {
+        return new HashSet<>(gameState.getTeams().keySet());
     }
     
-    
-    public void addNewPlayer(UUID playerToJoin, String teamName) throws IOException {
+    /**
+     * Adds the given player to the game state, joined to the given team
+     * @param playerToJoin the UUID of the player
+     * @param teamName the teamId to join it to
+     * @throws ConfigIOException if there is an IO error saving the game state
+     */
+    public void addNewPlayer(UUID playerToJoin, String teamName) throws ConfigIOException {
         gameState.addPlayer(playerToJoin, teamName);
         saveGameState();
     }
     
+    /**
+     * Adds the given offline player to the game state, joined to the given team
+     * @param ign the participant's in-game-name
+     * @param offlineUniqueId can be null, but represents the offlineUniqueId of the participant
+     * @param teamName the teamId of the team this participant belongs to
+     * @throws ConfigIOException if there is an IO error saving the game state
+     */
+    public void addNewOfflineIGN(@NotNull String ign, @Nullable UUID offlineUniqueId, String teamName) {
+        gameState.addOfflinePlayer(ign, offlineUniqueId, teamName);
+        saveGameState();
+    }
+    
+    /**
+     * Checks if the game state contains the given player
+     * @param playerUniqueId The UUID of the player to check for
+     * @return True if the player with the given UUID exists, false otherwise 
+     */
     public boolean containsPlayer(UUID playerUniqueId) {
         return gameState.containsPlayer(playerUniqueId);
     }
     
     /**
-     * Gets the internal team name of the player with the given UUID
-     * @param playerUniqueId The UUID of the player to find the team of
-     * @return The internal team name of the player with the given UUID
-     * @throws NullPointerException if the game state doesn't contain the player's UUID
+     * @param offlineUUID the UUID of the offline player which may be in the GameState
+     * @return true if the given UUID matches one of the offline players in the GameState, false otherwise
      */
-    public String getPlayerTeamName(UUID playerUniqueId) {
-        return gameState.getPlayer(playerUniqueId).getTeamName();
+    public boolean containsOfflinePlayer(UUID offlineUUID) {
+        return gameState.getOfflinePlayer(offlineUUID) != null;
     }
     
     /**
-     * Sets the team name of the player with the given UUID
-     * @param playerUniqueId The UUID of the player to set the team name of
-     * @param teamName The team name
+     * @param ign the in-game-name of a participant who has never logged in before
+     * @return true if the ign is in the current list of offline players (who have yet to log in for the first time), false otherwise
      */
-    public void setPlayerTeamName(UUID playerUniqueId, String teamName) {
-        gameState.getPlayer(playerUniqueId).setTeamName(teamName);
+    public boolean containsOfflineIGN(String ign) {
+        return gameState.containsOfflineIGN(ign);
+    }
+    
+    /**
+     * Gets the internal team name of the player with the given UUID
+     * @param playerUniqueId The UUID of the player to find the team of
+     * @return The internal team name of the player with the given UUID, null if the game state doesn't contain the player's UUID
+     */
+    public @Nullable String getPlayerTeamName(@NotNull UUID playerUniqueId) {
+        MCTPlayer player = gameState.getPlayer(playerUniqueId);
+        if (player != null) {
+            return player.getTeamName();
+        }
+        OfflineMCTPlayer offlineMCTPlayer = gameState.getOfflinePlayer(playerUniqueId);
+        if (offlineMCTPlayer != null) {
+            return offlineMCTPlayer.getTeamName();
+        }
+        return null;
+    }
+    
+    /**
+     * @param ign the in-game-name of a participant who has never logged in before
+     * @return the teamId of the OfflineParticipant with the given ign. Null if the ign doesn't exist in the GameState
+     */
+    public @Nullable String getOfflineIGNTeamName(@NotNull String ign) {
+        OfflineMCTPlayer offlineMCTPlayer = gameState.getOfflinePlayer(ign);
+        if (offlineMCTPlayer == null) {
+            return null;
+        }
+        return offlineMCTPlayer.getTeamName();
+    }
+    
+    /**
+     * @param uniqueId the UUID to get the offline IGN for
+     * @return the IGN of the offlinePlayer with the given UUID. Null if no such player exists. 
+     */
+    public @Nullable String getOfflineIGN(@NotNull UUID uniqueId) {
+        OfflineMCTPlayer offlineMCTPlayer = gameState.getOfflinePlayer(uniqueId);
+        if (offlineMCTPlayer == null) {
+            return null;
+        }
+        return offlineMCTPlayer.getIgn();
     }
     
     /**
@@ -213,7 +258,7 @@ public class GameStateStorageUtil {
      * @param teamName The internal name of the team
      * @return Empty list if no players are on that team, or if the team doesn't exist
      */
-    public List<UUID> getPlayerUniqueIdsOnTeam(String teamName) {
+    public List<UUID> getParticipantUUIDsOnTeam(String teamName) {
         if (!gameState.containsTeam(teamName)) {
             return Collections.emptyList();
         }
@@ -223,13 +268,64 @@ public class GameStateStorageUtil {
                 .toList();
     }
     
-    public void leavePlayer(UUID playerUniqueId) throws IOException {
+    /**
+     * Gets the offline in-game-names of the participants on the given team
+     * @param teamId the team id
+     * @return The in-game-names on the team. Empty list if the team doesn't exist.
+     */
+    public @NotNull List<String> getOfflineIGNsOnTeam(@NotNull String teamId) {
+        if (!gameState.containsTeam(teamId)) {
+            return Collections.emptyList();
+        }
+        return gameState.getOfflinePlayers().values().stream()
+                .filter(offlineMCTPlayer -> offlineMCTPlayer.getTeamName().equals(teamId))
+                .map(OfflineMCTPlayer::getIgn)
+                .toList();
+    }
+    
+    /**
+     * Removes the player with the given UUID from the game state, if it exists.
+     * If the player did not exist, nothing happens. 
+     * @param playerUniqueId The UUID for the player
+     * @throws ConfigIOException if there is an IO error saving the game state
+     */
+    public void leavePlayer(UUID playerUniqueId) throws ConfigIOException {
         gameState.removePlayer(playerUniqueId);
         saveGameState();
     }
     
-    public int getPlayerScore(UUID playerUniqueId) {
-        return gameState.getPlayer(playerUniqueId).getScore();
+    /**
+     * Removes the offline player with the given IGN from the game state, if it exists.
+     * If it did not exist, nothing happens. 
+     * @param ign the in-game-name of a player who never logged in
+     * @throws ConfigIOException if there is an IO error saving the game state
+     */
+    public void leaveOfflineIGN(@NotNull String ign) {
+        gameState.removeOfflinePlayer(ign);
+        saveGameState();
+    }
+    
+    /**
+     * @param playerUniqueId the UUID of the player to get the score of. 
+     * @return the given participant's score. 0 if the UUID isn't a player, or if it is an offlinePlayer.
+     */
+    public int getParticipantScore(UUID playerUniqueId) {
+        MCTPlayer player = gameState.getPlayer(playerUniqueId);
+        if (player == null) {
+            return 0;
+        }
+        return player.getScore();
+    }
+    
+    /**
+     * @return a map of each participant's UUID to its score
+     */
+    public @NotNull Map<UUID, Integer> getParticipantScores() {
+        Map<UUID, Integer> participantScores = new HashMap<>(gameState.getPlayers().size());
+        for (MCTPlayer mctPlayer : gameState.getPlayers().values()) {
+            participantScores.put(mctPlayer.getUniqueId(), mctPlayer.getScore());
+        }
+        return participantScores;
     }
     
     /**
@@ -243,7 +339,7 @@ public class GameStateStorageUtil {
         return ColorMap.getColor(teamColor);
     }
     
-    public NamedTextColor getTeamNamedTextColor(String teamName) {
+    public @NotNull NamedTextColor getTeamNamedTextColor(@NotNull String teamName) {
         String colorString = gameState.getTeam(teamName).getColor();
         return ColorMap.getNamedTextColor(colorString);
     }
@@ -253,36 +349,51 @@ public class GameStateStorageUtil {
         return team.getDisplayName();
     }
     
-    public ChatColor getTeamChatColor(String teamName) {
-        String teamColor = gameState.getTeam(teamName).getColor();
-        return ColorMap.getChatColor(teamColor);
-    }
-    
+    /**
+     * @return the UUIDs of the players
+     */
     public List<UUID> getPlayerUniqueIds() {
         return gameState.getPlayers().keySet().stream().toList();
     }
     
-    public void addScore(UUID uniqueId, int score) throws IOException {
+    /**
+     * @return the UUIDs of the offline players 
+     */
+    public List<UUID> getOfflinePlayerUniqueIds() {
+        return gameState.getOfflinePlayers().values().stream().map(OfflineMCTPlayer::getOfflineUniqueId).toList();
+    }
+    
+    public void addScore(UUID uniqueId, int score) throws ConfigIOException {
         MCTPlayer player = gameState.getPlayers().get(uniqueId);
         player.setScore(player.getScore() + score);
         saveGameState();
     }
     
-    public void addScore(String teamName, int score) throws IOException {
+    public void addScore(String teamName, int score) throws ConfigIOException {
         MCTTeam team = gameState.getTeams().get(teamName);
         team.setScore(team.getScore() + score);
         saveGameState();
     }
     
-    public void setScore(UUID uniqueId, int score) throws IOException {
+    public void setScore(UUID uniqueId, int score) throws ConfigIOException {
         MCTPlayer player = gameState.getPlayers().get(uniqueId);
         player.setScore(score);
         saveGameState();
     }
 
-    public void setScore(String teamName, int score) throws IOException {
+    public void setScore(String teamName, int score) throws ConfigIOException {
         MCTTeam team = gameState.getTeams().get(teamName);
         team.setScore(score);
+        saveGameState();
+    }
+    
+    public void setAllScores(int score) throws ConfigIOException {
+        for (MCTPlayer player : gameState.getPlayers().values()) {
+            player.setScore(score);
+        }
+        for (MCTTeam team : gameState.getTeams().values()) {
+            team.setScore(score);
+        }
         saveGameState();
     }
     
@@ -295,36 +406,8 @@ public class GameStateStorageUtil {
      * @param teamName The team to get the color string of
      * @return The color string of the given team
      */
-    public String getTeamColorString(String teamName) {
+    public String getTeamColorString(@NotNull String teamName) {
         return gameState.getTeam(teamName).getColor();
-    }
-    
-    /**
-     * Clear the stored played games from the last event.
-     * @throws IOException if there is an issue saving the game state
-     */
-    public void clearPlayedGames() throws IOException {
-        gameState.setPlayedGames(new ArrayList<>());
-        saveGameState();
-    }
-    
-    /**
-     * Gets the list of played games for the game state
-     * @return A list of the GameTypes that have been played in this game state
-     */
-    public List<GameType> getPlayedGames() {
-        return gameState.getPlayedGames();
-    }
-    
-    /**
-     * Add a played game to the game state
-     * @param type the GameType representing the played game
-     */
-    public void addPlayedGame(GameType type) throws IOException {
-        List<GameType> playedGames = gameState.getPlayedGames();
-        playedGames.add(type);
-        gameState.setPlayedGames(playedGames);
-        saveGameState();
     }
     
     /**
@@ -339,9 +422,9 @@ public class GameStateStorageUtil {
     /**
      * Add an admin to the game state
      * @param adminUniqueId the unique id of the admin
-     * @throws IOException If there is an issue saving the game state
+     * @throws ConfigIOException If there is an issue saving the game state
      */
-    public void addAdmin(UUID adminUniqueId) throws IOException {
+    public void addAdmin(UUID adminUniqueId) throws ConfigIOException {
         gameState.addAdmin(adminUniqueId);
         saveGameState();
     }
@@ -349,9 +432,9 @@ public class GameStateStorageUtil {
     /**
      * Remove an admin from the game state
      * @param adminUniqueId the unique id of the admin
-     * @throws IOException If there is an issue saving the game state
+     * @throws ConfigIOException If there is an issue saving the game state
      */
-    public void removeAdmin(UUID adminUniqueId) throws IOException {
+    public void removeAdmin(UUID adminUniqueId) throws ConfigIOException {
         gameState.removeAdmin(adminUniqueId);
         saveGameState();
     }

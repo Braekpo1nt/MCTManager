@@ -1,36 +1,40 @@
 package org.braekpo1nt.mctmanager.games.game.capturetheflag;
 
 import io.papermc.paper.entity.LookAnchor;
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
-import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlagStorageUtil;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlagConfig;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
-import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
+import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
+import org.braekpo1nt.mctmanager.ui.timer.Timer;
+import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
+import org.braekpo1nt.mctmanager.ui.topbar.BattleTopbar;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.braekpo1nt.mctmanager.utils.MaterialUtils;
 import org.bukkit.*;
-import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.block.data.Rotatable;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 import org.bukkit.util.BoundingBox;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -39,19 +43,17 @@ public class CaptureTheFlagMatch implements Listener {
     private final CaptureTheFlagRound captureTheFlagRound;
     private final Main plugin;
     private final GameManager gameManager;
-    private final CaptureTheFlagStorageUtil storageUtil;
+    private final CaptureTheFlagConfig config;
     private final MatchPairing matchPairing;
     private final Arena arena;
     private final Sidebar sidebar;
     private final Sidebar adminSidebar;
+    private final BattleTopbar topbar;
     private List<Player> northParticipants = new ArrayList<>();
     private List<Player> southParticipants = new ArrayList<>();
     private List<Player> allParticipants = new ArrayList<>();
     private Map<UUID, Boolean> participantsAreAlive;
-    private Map<UUID, Integer> killCounts;
     private boolean matchActive = false;
-    private int classSelectionCountdownTaskId;
-    private int matchTimerTaskId;
     private final ClassPicker northClassPicker;
     private final ClassPicker southClassPicker;
     /**
@@ -72,20 +74,23 @@ public class CaptureTheFlagMatch implements Listener {
     private Player hasSouthFlag;
     private Material northBanner;
     private Material southBanner;
+    private final TimerManager timerManager;
     
     public CaptureTheFlagMatch(CaptureTheFlagRound captureTheFlagRound, Main plugin,
                                GameManager gameManager, MatchPairing matchPairing, Arena arena,
-                               CaptureTheFlagStorageUtil storageUtil, Sidebar sidebar, Sidebar adminSidebar) {
+                               CaptureTheFlagConfig config, Sidebar sidebar, Sidebar adminSidebar, BattleTopbar topbar) {
         this.captureTheFlagRound = captureTheFlagRound;
         this.plugin = plugin;
+        this.timerManager = new TimerManager(plugin);
         this.gameManager = gameManager;
-        this.storageUtil = storageUtil;
+        this.config = config;
         this.matchPairing = matchPairing;
         this.arena = arena;
-        this.northClassPicker = new ClassPicker();
-        this.southClassPicker = new ClassPicker();
+        this.northClassPicker = new ClassPicker(gameManager);
+        this.southClassPicker = new ClassPicker(gameManager);
         this.sidebar = sidebar;
         this.adminSidebar = adminSidebar;
+        this.topbar = topbar;
     }
     
     public MatchPairing getMatchPairing() {
@@ -99,13 +104,15 @@ public class CaptureTheFlagMatch implements Listener {
             return;
         }
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
+        gameManager.getTimerManager().register(timerManager);
         northParticipants = new ArrayList<>();
         southParticipants = new ArrayList<>();
         allParticipants = new ArrayList<>();
         participantsAreAlive = new HashMap<>();
-        killCounts = new HashMap<>();
         placeFlags();
         closeGlassBarriers();
+        NamedTextColor northColor = gameManager.getTeamNamedTextColor(matchPairing.northTeam());
+        NamedTextColor southColor = gameManager.getTeamNamedTextColor(matchPairing.southTeam());
         for (Player northParticipant : newNorthParticipants) {
             initializeParticipant(northParticipant, true);
         }
@@ -122,16 +129,25 @@ public class CaptureTheFlagMatch implements Listener {
     private void initializeParticipant(Player participant, boolean north) {
         UUID participantUniqueId = participant.getUniqueId();
         participantsAreAlive.put(participantUniqueId, true);
-        killCounts.put(participantUniqueId, 0);
+        int alive = 0;
+        int dead = 0;
         if (north) {
             northParticipants.add(participant);
             participant.teleport(arena.northSpawn());
+            participant.setBedSpawnLocation(arena.northSpawn(), true);
             participant.lookAt(arena.southSpawn().getX(), arena.southSpawn().getY(), arena.southSpawn().getZ(), LookAnchor.EYES);
+            alive = countAlive(northParticipants);
+            dead = northParticipants.size() - alive;
         } else {
             southParticipants.add(participant);
             participant.teleport(arena.southSpawn());
+            participant.setBedSpawnLocation(arena.southSpawn(), true);
             participant.lookAt(arena.northSpawn().getX(), arena.northSpawn().getY(), arena.northSpawn().getZ(), LookAnchor.EYES);
+            alive = countAlive(southParticipants);
+            dead = southParticipants.size() - alive;
         }
+        String teamId = gameManager.getTeamName(participant.getUniqueId());
+        topbar.setMembers(teamId, alive, dead);
         initializeSidebar(participant);
         allParticipants.add(participant);
         participant.getInventory().clear();
@@ -142,18 +158,28 @@ public class CaptureTheFlagMatch implements Listener {
     
     private void initializeDeadParticipant(Player participant, boolean north) {
         Location lookLocation;
+        int alive = 0;
+        int dead = 0;
         if (north) {
             northParticipants.add(participant);
             lookLocation = arena.northFlag();
+            alive = countAlive(northParticipants);
+            dead = northParticipants.size() - alive;
         } else {
             southParticipants.add(participant);
             lookLocation = arena.southFlag();
+            alive = countAlive(southParticipants);
+            dead = southParticipants.size() - alive;
         }
+        
+        String teamId = gameManager.getTeamName(participant.getUniqueId());
+        topbar.setMembers(teamId, alive, dead);
         initializeSidebar(participant);
         allParticipants.add(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
         ParticipantInitializer.clearStatusEffects(participant);
-        participant.teleport(storageUtil.getSpawnObservatory());
+        participant.teleport(config.getSpawnObservatory());
+        participant.setBedSpawnLocation(config.getSpawnObservatory(), true);
         participant.lookAt(lookLocation.getX(), lookLocation.getY(), lookLocation.getZ(), LookAnchor.EYES);
     }
     
@@ -193,12 +219,12 @@ public class CaptureTheFlagMatch implements Listener {
         }
         // remove items/arrows on the ground
         BoundingBox removeArea = arena.boundingBox();
-        for (Arrow arrow : storageUtil.getWorld().getEntitiesByClass(Arrow.class)) {
+        for (Arrow arrow : config.getWorld().getEntitiesByClass(Arrow.class)) {
             if (removeArea.contains(arrow.getLocation().toVector())) {
                 arrow.remove();
             }
         }
-        for (Item item : storageUtil.getWorld().getEntitiesByClass(Item.class)) {
+        for (Item item : config.getWorld().getEntitiesByClass(Item.class)) {
             if (removeArea.contains(item.getLocation().toVector())) {
                 item.remove();
             }
@@ -209,18 +235,21 @@ public class CaptureTheFlagMatch implements Listener {
         participant.getInventory().clear();
         participant.closeInventory();
         ParticipantInitializer.resetHealthAndHunger(participant);
+        ParticipantInitializer.clearStatusEffects(participant);
     }
     
     public void onParticipantJoin(Player participant) {
         if (!matchActive) {
             return;
         }
-        String teamName = gameManager.getTeamName(participant.getUniqueId());
-        if (matchPairing.northTeam().equals(teamName)) {
+        String teamId = gameManager.getTeamName(participant.getUniqueId());
+        if (matchPairing.northTeam().equals(teamId)) {
+            topbar.linkToTeam(participant.getUniqueId(), teamId);
             onNorthParticipantJoin(participant);
             return;
         }
-        if (matchPairing.southTeam().equals(teamName)) {
+        if (matchPairing.southTeam().equals(teamId)) {
+            topbar.linkToTeam(participant.getUniqueId(), teamId);
             onSouthParticipantJoin(participant);
             return;
         }
@@ -282,6 +311,9 @@ public class CaptureTheFlagMatch implements Listener {
             resetParticipant(northParticipant);
             allParticipants.remove(northParticipant);
             northParticipants.remove(northParticipant);
+            int alive = countAlive(northParticipants);
+            int dead = northParticipants.size() - alive;
+            topbar.setMembers(matchPairing.northTeam(), alive, dead);
             return;
         }
         if (!participantsAreAlive.get(northParticipant.getUniqueId())) {
@@ -290,7 +322,8 @@ public class CaptureTheFlagMatch implements Listener {
             northParticipants.remove(northParticipant);
             return;
         }
-        Component deathMessage = Component.text(northParticipant.getName())
+        Component deathMessage = Component.empty()
+                .append(Component.text(northParticipant.getName()))
                 .append(Component.text(" left early. Their life is forfeit."));
         PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(northParticipant, Collections.emptyList(), 0, deathMessage);
         Bukkit.getServer().getPluginManager().callEvent(fakeDeathEvent);
@@ -305,6 +338,9 @@ public class CaptureTheFlagMatch implements Listener {
             resetParticipant(soutParticipant);
             allParticipants.remove(soutParticipant);
             southParticipants.remove(soutParticipant);
+            int alive = countAlive(southParticipants);
+            int dead = southParticipants.size() - alive;
+            topbar.setMembers(matchPairing.southTeam(), alive, dead);
             return;
         }
         if (!participantsAreAlive.get(soutParticipant.getUniqueId())) {
@@ -313,7 +349,8 @@ public class CaptureTheFlagMatch implements Listener {
             southParticipants.remove(soutParticipant);
             return;
         }
-        Component deathMessage = Component.text(soutParticipant.getName())
+        Component deathMessage = Component.empty()
+                .append(Component.text(soutParticipant.getName()))
                 .append(Component.text(" left early. Their life is forfeit."));
         PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(soutParticipant, Collections.emptyList(), 0, deathMessage);
         Bukkit.getServer().getPluginManager().callEvent(fakeDeathEvent);
@@ -332,8 +369,20 @@ public class CaptureTheFlagMatch implements Listener {
     }
     
     private void cancelAllTasks() {
-        Bukkit.getScheduler().cancelTask(classSelectionCountdownTaskId);
-        Bukkit.getScheduler().cancelTask(matchTimerTaskId);
+        timerManager.cancel();
+    }
+    
+    public void onPlayerDamage(Player participant, EntityDamageEvent event) {
+        if (!matchActive) {
+            return;
+        }
+        if (!allParticipants.contains(participant)) {
+            return;
+        }
+        if (participantsAreAlive.get(participant.getUniqueId())) {
+            return;
+        }
+        event.setCancelled(true);
     }
     
     @EventHandler
@@ -354,9 +403,9 @@ public class CaptureTheFlagMatch implements Listener {
         if (deathMessage != null) {
             Bukkit.getServer().sendMessage(deathMessage);
         }
-        onParicipantDeath(killed);
+        onParticipantDeath(killed);
         if (killed.getKiller() != null) {
-            onParticipantGetKill(killed);
+            onParticipantGetKill(killed.getKiller(), killed);
         }
         if (allParticipantsAreDead()) {
             onBothTeamsLose(Component.text("Both teams are dead."));
@@ -391,42 +440,70 @@ public class CaptureTheFlagMatch implements Listener {
         return !participantsAreAlive.containsValue(true);
     }
     
-    private void onParticipantGetKill(Player killed) {
-        Player killer = killed.getKiller();
+    private void onParticipantGetKill(@NotNull Player killer, @NotNull Player killed) {
         if (!allParticipants.contains(killer)) {
             return;
         }
         addKill(killer.getUniqueId());
-        gameManager.awardPointsToParticipant(killer, storageUtil.getKillScore());
+        UIUtils.showKillTitle(killer, killed);
+        gameManager.awardPointsToParticipant(killer, config.getKillScore());
     }
     
-    private void addKill(UUID killerUniqueId) {
-        int oldKillCount = killCounts.get(killerUniqueId);
-        int newKillCount = oldKillCount + 1;
-        killCounts.put(killerUniqueId, newKillCount);
-        sidebar.updateLine(
-                killerUniqueId,
-                "kills",
-                ChatColor.RED+"Kills: " + newKillCount
-        );
+    private void addKill(UUID killerUUID) {
+        captureTheFlagRound.addKill(killerUUID);
     }
     
-    private void onParicipantDeath(Player killed) {
+    private void onParticipantDeath(Player killed) {
+        participantsAreAlive.put(killed.getUniqueId(), false);
+        int alive = 0;
+        int dead = 0;
         if (northParticipants.contains(killed)) {
             if (hasSouthFlag(killed)) {
                 dropSouthFlag(killed);
             }
+            alive = countAlive(northParticipants);
+            dead = northParticipants.size() - alive;
         } else if (southParticipants.contains(killed)) {
             if (hasNorthFlag(killed)){
                 dropNorthFlag(killed);
             }
+            alive = countAlive(southParticipants);
+            dead = southParticipants.size() - alive;
         }
         
-        participantsAreAlive.put(killed.getUniqueId(), false);
         ParticipantInitializer.resetHealthAndHunger(killed);
         ParticipantInitializer.clearStatusEffects(killed);
-        killed.teleport(storageUtil.getSpawnObservatory());
+        killed.teleport(config.getSpawnObservatory());
+        killed.setBedSpawnLocation(config.getSpawnObservatory(), true);
         killed.lookAt(arena.northFlag().getX(), arena.northFlag().getY(), arena.northFlag().getZ(), LookAnchor.EYES);
+        
+        String teamId = gameManager.getTeamName(killed.getUniqueId());
+        topbar.setMembers(teamId, alive, dead);
+        captureTheFlagRound.addDeath(killed.getUniqueId());
+    }
+    
+    /**
+     * @param teamId the teamId of the team to get the living members of
+     * @return the number of players on the given team who are alive. 0 if the given team is not one of the teams fighting in this match.
+     */
+    private int getLivingMembers(@NotNull String teamId) {
+        int living = 0;
+        if (matchPairing.northTeam().equals(teamId)) {
+            return countAlive(northParticipants);
+        } else if (matchPairing.southTeam().equals(teamId)) {
+            return countAlive(southParticipants);
+        }
+        return 0;
+    }
+    
+    private int countAlive(List<Player> participants) {
+        int living = 0;
+        for (Player participant : participants) {
+            if (participantsAreAlive.get(participant.getUniqueId())) {
+                living++;
+            }
+        }
+        return living;
     }
     
     @EventHandler
@@ -484,9 +561,21 @@ public class CaptureTheFlagMatch implements Listener {
         messageSouthParticipants(Component.empty()
                 .append(Component.text("Your flag was captured"))
                 .color(NamedTextColor.DARK_RED));
+        titleSouthParticipants(UIUtils.defaultTitle(
+                Component.empty(),
+                Component.empty()
+                        .append(Component.text("flag captured"))
+                        .color(NamedTextColor.DARK_RED)
+        ));
         messageNorthParticipants(Component.empty()
                 .append(Component.text("You captured the flag"))
                 .color(NamedTextColor.GREEN));
+        titleNorthParticipants(UIUtils.defaultTitle(
+                Component.empty(),
+                Component.empty()
+                        .append(Component.text("flag captured"))
+                        .color(NamedTextColor.GREEN)
+        ));
         northParticipant.getEquipment().setHelmet(new ItemStack(southBanner));
         southFlagPosition.getBlock().setType(Material.AIR);
         southFlagPosition = null;
@@ -497,33 +586,25 @@ public class CaptureTheFlagMatch implements Listener {
         messageSouthParticipants(Component.empty()
                 .append(Component.text("Your flag was dropped"))
                 .color(NamedTextColor.GREEN));
+        titleSouthParticipants(UIUtils.defaultTitle(
+                Component.empty(),
+                Component.empty()
+                        .append(Component.text("flag dropped"))
+                        .color(NamedTextColor.GREEN)
+        ));
         messageNorthParticipants(Component.empty()
                 .append(Component.text("You dropped the flag"))
                 .color(NamedTextColor.DARK_RED));
+        titleNorthParticipants(UIUtils.defaultTitle(
+                Component.empty(),
+                Component.empty()
+                        .append(Component.text("flag dropped"))
+                        .color(NamedTextColor.DARK_RED)
+        ));
         northParticipant.getEquipment().setHelmet(null);
-        Location ground = getSolidBlockBelow(northParticipant.getLocation());
-        southFlagPosition = ground.add(0, 1, 0);
-        placeFlag(southBanner, southFlagPosition, northParticipant.getFacing());
+        southFlagPosition = BlockPlacementUtils.getBlockDropLocation(northParticipant.getLocation());
+        BlockPlacementUtils.placeFlag(southBanner, southFlagPosition, northParticipant.getFacing());
         hasSouthFlag = null;
-    }
-    
-    /**
-     * Gets the first solid block below the given location. If there is no floor all the way to the min height, returns the given location.
-     * @param location The location to check below
-     * @return the location below the given location that is a solid block. If there are no solid blocks
-     */
-    private Location getSolidBlockBelow(Location location) {
-        Location nonAirLocation = location.subtract(0, 1, 0);
-        while (nonAirLocation.getBlockY() > -64) {
-            Block block = nonAirLocation.getBlock();
-            if (!block.getType().equals(Material.AIR) &&
-                !block.getType().equals(Material.CAVE_AIR) &&
-                !block.getType().equals(Material.VOID_AIR)) {
-                return nonAirLocation;
-            }
-            nonAirLocation = nonAirLocation.subtract(0, 1, 0);
-        }
-        return location;
     }
     
     private boolean canDeliverSouthFlag(Player northParticipant) {
@@ -536,7 +617,7 @@ public class CaptureTheFlagMatch implements Listener {
     }
     
     private void deliverSouthFlag(Player northParticipant) {
-        placeFlag(southBanner, arena.northFlag(), BlockFace.NORTH);
+        BlockPlacementUtils.placeFlag(southBanner, arena.northFlag(), BlockFace.NORTH);
         northParticipant.getInventory().remove(southBanner);
         onParticipantWin(northParticipant);
     }
@@ -553,27 +634,24 @@ public class CaptureTheFlagMatch implements Listener {
         messageSouthParticipants(Component.empty()
                 .append(Component.text("Your flag was recovered"))
                 .color(NamedTextColor.GREEN));
+        titleSouthParticipants(UIUtils.defaultTitle(
+                Component.empty(),
+                Component.empty()
+                        .append(Component.text("flag recovered"))
+                        .color(NamedTextColor.GREEN)
+        ));
         messageNorthParticipants(Component.empty()
                 .append(Component.text("Opponents' flag was recovered"))
                 .color(NamedTextColor.DARK_RED));
+        titleNorthParticipants(UIUtils.defaultTitle(
+                Component.empty(),
+                Component.empty()
+                        .append(Component.text("flag recovered"))
+                        .color(NamedTextColor.DARK_RED)
+        ));
         southFlagPosition.getBlock().setType(Material.AIR);
         southFlagPosition = arena.southFlag();
-        placeFlag(southBanner, southFlagPosition, BlockFace.NORTH);
-    }
-    
-    /**
-     * Places the provided flag type at the given location facing the given direction
-     * @param flagType
-     * @param facing
-     * @param flagType
-     */
-    private void placeFlag(Material flagType, Location flagLocation, BlockFace facing) {
-        Block flagBlock = flagLocation.getBlock();
-        flagBlock.setType(flagType);
-        if (flagBlock.getBlockData() instanceof Rotatable flagData) {
-            flagData.setRotation(facing);
-            flagBlock.setBlockData(flagData);
-        }
+        BlockPlacementUtils.placeFlag(southBanner, southFlagPosition, BlockFace.NORTH);
     }
     
     private void onSouthParticipantMove(Player southParticipant) {
@@ -604,20 +682,6 @@ public class CaptureTheFlagMatch implements Listener {
         return northFlagPosition.getBlockX() == location.getBlockX() && northFlagPosition.getBlockY() == location.getBlockY() && northFlagPosition.getBlockZ() == location.getBlockZ();
     }
     
-    private synchronized void dropNorthFlag(Player southParticipant) {
-        messageNorthParticipants(Component.empty()
-                .append(Component.text("Your flag was dropped"))
-                .color(NamedTextColor.GREEN));
-        messageSouthParticipants(Component.empty()
-                .append(Component.text("You dropped the flag"))
-                .color(NamedTextColor.DARK_RED));
-        southParticipant.getEquipment().setHelmet(null);
-        Location ground = getSolidBlockBelow(southParticipant.getLocation());
-        northFlagPosition = ground.add(0, 1, 0);
-        placeFlag(northBanner, northFlagPosition, southParticipant.getFacing());
-        hasNorthFlag = null;
-    }
-    
     private boolean hasNorthFlag(Player southParticipant) {
         return Objects.equals(hasNorthFlag, southParticipant);
     }
@@ -626,13 +690,50 @@ public class CaptureTheFlagMatch implements Listener {
         messageNorthParticipants(Component.empty()
                 .append(Component.text("Your flag was captured!"))
                 .color(NamedTextColor.DARK_RED));
+        titleNorthParticipants(UIUtils.defaultTitle(
+                Component.empty(),
+                Component.empty()
+                        .append(Component.text("flag captured"))
+                        .color(NamedTextColor.DARK_RED)
+        ));
         messageSouthParticipants(Component.empty()
                 .append(Component.text("You captured the flag!"))
                 .color(NamedTextColor.GREEN));
+        titleSouthParticipants(UIUtils.defaultTitle(
+                Component.empty(),
+                Component.empty()
+                        .append(Component.text("flag captured"))
+                        .color(NamedTextColor.GREEN)
+        ));
         southParticipant.getEquipment().setHelmet(new ItemStack(northBanner));
         northFlagPosition.getBlock().setType(Material.AIR);
         northFlagPosition = null;
         hasNorthFlag = southParticipant;
+    }
+    
+    private synchronized void dropNorthFlag(Player southParticipant) {
+        messageNorthParticipants(Component.empty()
+                .append(Component.text("Your flag was dropped"))
+                .color(NamedTextColor.GREEN));
+        titleNorthParticipants(UIUtils.defaultTitle(
+                Component.empty(),
+                Component.empty()
+                        .append(Component.text("flag dropped"))
+                        .color(NamedTextColor.GREEN)
+        ));
+        messageSouthParticipants(Component.empty()
+                .append(Component.text("You dropped the flag"))
+                .color(NamedTextColor.DARK_RED));
+        titleSouthParticipants(UIUtils.defaultTitle(
+                Component.empty(),
+                Component.empty()
+                        .append(Component.text("flag dropped"))
+                        .color(NamedTextColor.DARK_RED)
+        ));
+        southParticipant.getEquipment().setHelmet(null);
+        northFlagPosition = BlockPlacementUtils.getBlockDropLocation(southParticipant.getLocation());
+        BlockPlacementUtils.placeFlag(northBanner, northFlagPosition, southParticipant.getFacing());
+        hasNorthFlag = null;
     }
     
     private boolean canDeliverNorthFlag(Player southParticipant) {
@@ -645,7 +746,7 @@ public class CaptureTheFlagMatch implements Listener {
     }
     
     private void deliverNorthFlag(Player southParticipant) {
-        placeFlag(northBanner, arena.southFlag(), BlockFace.SOUTH);
+        BlockPlacementUtils.placeFlag(northBanner, arena.southFlag(), BlockFace.SOUTH);
         southParticipant.getInventory().remove(northBanner);
         onParticipantWin(southParticipant);
     }
@@ -662,12 +763,24 @@ public class CaptureTheFlagMatch implements Listener {
         messageNorthParticipants(Component.empty()
                 .append(Component.text("Your flag was recovered"))
                 .color(NamedTextColor.GREEN));
+        titleNorthParticipants(UIUtils.defaultTitle(
+                Component.empty(),
+                Component.empty()
+                        .append(Component.text("flag recovered"))
+                        .color(NamedTextColor.GREEN)
+        ));
         messageSouthParticipants(Component.empty()
                 .append(Component.text("Opponents' flag was recovered"))
                 .color(NamedTextColor.DARK_RED));
+        titleSouthParticipants(UIUtils.defaultTitle(
+                Component.empty(),
+                Component.empty()
+                        .append(Component.text("flag recovered"))
+                        .color(NamedTextColor.DARK_RED)
+        ));
         northFlagPosition.getBlock().setType(Material.AIR);
         northFlagPosition = arena.northFlag();
-        placeFlag(northBanner, northFlagPosition, BlockFace.SOUTH);
+        BlockPlacementUtils.placeFlag(northBanner, northFlagPosition, BlockFace.SOUTH);
     }
     
     private void onParticipantWin(Player participant) {
@@ -684,7 +797,7 @@ public class CaptureTheFlagMatch implements Listener {
                 .append(losingTeamDisplayName)
                 .append(Component.text("'s flag!"))
                 .color(NamedTextColor.YELLOW));
-        gameManager.awardPointsToTeam(winningTeam, storageUtil.getWinScore());
+        gameManager.awardPointsToTeam(winningTeam, config.getWinScore());
         matchIsOver();
     }
     
@@ -696,69 +809,53 @@ public class CaptureTheFlagMatch implements Listener {
     }
     
     public void startClassSelectionPeriod() {
-        northClassPicker.start(plugin, northParticipants, storageUtil.getLoadouts());
-        southClassPicker.start(plugin, southParticipants, storageUtil.getLoadouts());
-        
-        this.classSelectionCountdownTaskId = new BukkitRunnable() {
-            private int count = storageUtil.getClassSelectionDuration();
-            @Override
-            public void run() {
-                if (count <= 0) {
+        northClassPicker.start(plugin, northParticipants, config.getLoadouts());
+        southClassPicker.start(plugin, southParticipants, config.getLoadouts());
+        timerManager.start(Timer.builder()
+                .duration(config.getClassSelectionDuration())
+                .withSidebar(adminSidebar, "timer")
+                .withTopbar(topbar)
+                .sidebarPrefix(Component.text("Class selection: "))
+                .titleAudience(Audience.audience(allParticipants))
+                .onCompletion(() -> {
                     northClassPicker.stop(true);
                     southClassPicker.stop(true);
                     startMatch();
-                    this.cancel();
-                    return;
-                }
-                String timeLeft = TimeStringUtils.getTimeString(count);
-                String timer = String.format("Class selection: %s", timeLeft);
-                sidebar.updateLine("timer", timer);
-                adminSidebar.updateLine("timer", timer);
-                count--;
-            }
-        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+                })
+                .build());
     }
     
     private void startMatchTimer() {
-        this.matchTimerTaskId = new BukkitRunnable() {
-            int count = storageUtil.getRoundTimerDuration();
-            @Override
-            public void run() {
-                if (count <= 0) {
+        timerManager.start(Timer.builder()
+                .duration(config.getRoundTimerDuration())
+                .withSidebar(adminSidebar, "timer")
+                .withTopbar(topbar)
+                .sidebarPrefix(Component.text("Starting: "))
+                .onCompletion(() -> {
                     onBothTeamsLose(Component.text("Time ran out."));
-                    this.cancel();
-                    return;
-                }
-                String timeLeft = TimeStringUtils.getTimeString(count);
-                String timer = String.format("Round: %s", timeLeft);
-                sidebar.updateLine("timer", timer);
-                adminSidebar.updateLine("timer", timer);
-                count--;
-            }
-        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+                })
+                .build());
     }
     
     private void initializeSidebar() {
-        sidebar.updateLine("timer", "Round: ");
         adminSidebar.updateLine("timer", "Round: ");
+        topbar.setMiddle(Component.empty());
     }
     
     private void initializeSidebar(Player participant) {
-        sidebar.updateLine(participant.getUniqueId(),"kills", String.format("%sKills: %s", ChatColor.RED, killCounts.get(participant.getUniqueId())));
     }
     
     private void clearSidebar() {
-        sidebar.updateLine("kills", "");
     }
     
     private void placeFlags() {
         northBanner = gameManager.getTeamBannerColor(matchPairing.northTeam());
         northFlagPosition = arena.northFlag();
-        placeFlag(northBanner, northFlagPosition, BlockFace.SOUTH);
+        BlockPlacementUtils.placeFlag(northBanner, northFlagPosition, BlockFace.SOUTH);
         
         southBanner = gameManager.getTeamBannerColor(matchPairing.southTeam());
         southFlagPosition = arena.southFlag();
-        placeFlag(southBanner, southFlagPosition, BlockFace.NORTH);
+        BlockPlacementUtils.placeFlag(southBanner, southFlagPosition, BlockFace.NORTH);
     }
     
     /**
@@ -822,15 +919,19 @@ public class CaptureTheFlagMatch implements Listener {
     }
     
     private void messageNorthParticipants(Component message) {
-        for (Player participant : northParticipants) {
-            participant.sendMessage(message);
-        }
+        Audience.audience(northParticipants).sendMessage(message);
+    }
+    
+    private void titleNorthParticipants(Title title) {
+        Audience.audience(northParticipants).showTitle(title);
     }
     
     private void messageSouthParticipants(Component message) {
-        for (Player participant : southParticipants) {
-            participant.sendMessage(message);
-        }
+        Audience.audience(southParticipants).sendMessage(message);
+    }
+    
+    private void titleSouthParticipants(Title title) {
+        Audience.audience(southParticipants).showTitle(title);
     }
     
     /**
@@ -920,4 +1021,6 @@ public class CaptureTheFlagMatch implements Listener {
             event.setCancelled(true);
         }
     }
+    
+    
 }

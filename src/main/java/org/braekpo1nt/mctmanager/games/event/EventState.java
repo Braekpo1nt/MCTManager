@@ -5,6 +5,5 @@ public enum EventState {
     VOTING,
     DELAY,
     PLAYING_GAME,
-    PAUSED,
     PODIUM,
 }

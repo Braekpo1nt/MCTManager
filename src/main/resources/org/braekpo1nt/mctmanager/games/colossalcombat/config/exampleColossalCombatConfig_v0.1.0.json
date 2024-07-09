@@ -1,0 +1,131 @@
+{
+  "version": "0.1.0",
+  "world": "TestWorld",
+  "spectatorArea": {
+    "minX": 0,
+    "minY": 0,
+    "minZ": 0,
+    "maxX": 2,
+    "maxY": 2,
+    "maxZ": 2
+  },
+  "firstPlaceSpawn": {
+    "x": -1000,
+    "y": 2,
+    "z": -22,
+    "yaw": 0,
+    "pitch": 0
+  },
+  "secondPlaceSpawn": {
+    "x": -1000,
+    "y": 2,
+    "z": 22,
+    "yaw": 180,
+    "pitch": 0
+  },
+  "spectatorSpawn": {
+    "x": -1021,
+    "y": 9,
+    "z": 0,
+    "yaw": -90,
+    "pitch": 6
+  },
+  "requiredWins": 3,
+  "firstPlaceGate": {
+    "clearArea": {
+      "minX": -1002,
+      "minY": -2,
+      "minZ": -19,
+      "maxX": -998,
+      "maxY": 6,
+      "maxZ": -19
+    },
+    "placeArea": {
+      "minX": -1002,
+      "minY": 2,
+      "minZ": -19,
+      "maxX": -998,
+      "maxY": 6,
+      "maxZ": -19
+    },
+    "stone": {
+      "minX": -1002,
+      "minY": 1,
+      "minZ": -19,
+      "maxX": -998,
+      "maxY": 1,
+      "maxZ": -19
+    },
+    "antiSuffocationArea": {
+      "minX": -1002,
+      "minY": 1,
+      "minZ": -19.5,
+      "maxX": -998,
+      "maxY": 5,
+      "maxZ": -18.5
+    }
+  },
+  "secondPlaceGate": {
+    "clearArea": {
+      "minX": -1002,
+      "minY": -2,
+      "minZ": 19,
+      "maxX": -998,
+      "maxY": 6,
+      "maxZ": 19
+    },
+    "placeArea": {
+      "minX": -1002,
+      "minY": 2,
+      "minZ": 19,
+      "maxX": -998,
+      "maxY": 6,
+      "maxZ": 19
+    },
+    "stone": {
+      "minX": -1002,
+      "minY": 1,
+      "minZ": 19,
+      "maxX": -998,
+      "maxY": 1,
+      "maxZ": 19
+    },
+    "antiSuffocationArea": {
+      "minX": -1002,
+      "minY": 1,
+      "minZ": 18.5,
+      "maxX": -998,
+      "maxY": 5,
+      "maxZ": 20
+    }
+  },
+  "removeArea": {
+    "minX": -1031,
+    "minY": -4,
+    "minZ": -31,
+    "maxX": -969,
+    "maxY": 33,
+    "maxZ": 32
+  },
+  "firstPlaceSupport": {
+    "minX": 0,
+    "minY": 0,
+    "minZ": 0,
+    "maxX": 1,
+    "maxY": 1,
+    "maxZ": 1
+  },
+  "secondPlaceSupport": {
+    "minX": 2,
+    "minY": 2,
+    "minZ": 2,
+    "maxX": 3,
+    "maxY": 3,
+    "maxZ": 3
+  },
+  "durations": {
+    "roundStarting": 10,
+    "antiSuffocation": 30
+  },
+  "description": ["",{"text":"-----------------------","bold":true,"color":"gray"},{"text":"\n"},{"text":"How To Play","bold":true,"color":"yellow"},{"text":" Colossal Combat","bold":true,"italic":true,"color":"yellow"},{"text":"\n"},{"text":"For each tournament the battle ground of this colosseum changes with each tournament, making each one special.\nWith this final game being the deciding victor between the top two teams, there is one simple goal: Win 3 rounds of pvp with ","color":"#FFFFDF"},{"text":"NO RESPAWNS","bold":true,"color":"#FFFFDF"},{"text":" against the opposing team.\n\n","color":"#FFFFDF"},{"text":"Punching is also removed for spectators during the duration of this game.","italic":true,"color":"#FFFFDF"},{"text":" \n"},{"text":"-----------------------","bold":true,"color":"gray"},{"text":" "}]
+}

@@ -1,8 +1,11 @@
 package org.braekpo1nt.mctmanager;
 
-import org.braekpo1nt.mctmanager.commands.MCTCommand;
-import org.braekpo1nt.mctmanager.commands.MCTDebugCommand;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import org.braekpo1nt.mctmanager.commands.mct.MCTCommand;
+import org.braekpo1nt.mctmanager.commands.mctdebug.MCTDebugCommand;
 import org.braekpo1nt.mctmanager.commands.utils.UtilsCommand;
+import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.listeners.BlockEffectsListener;
@@ -14,13 +17,28 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 
+import java.util.List;
+
 public class Main extends JavaPlugin {
 
-    public static final String CONFIG_VERSION = "0.1.0";
+    public static final List<String> VALID_CONFIG_VERSIONS = List.of("0.1.0", "0.1.1");
+    
+    /**
+     * A default Gson instance for general use
+     */
+    public static final Gson GSON = new Gson();
+    /**
+     * A pretty printing Gson instance for general use
+     */
+    public static final Gson GSON_PRETTY = new GsonBuilder().setPrettyPrinting().create();
     private GameManager gameManager;
     private boolean saveGameStateOnDisable = true;
     public final static PotionEffect NIGHT_VISION = new PotionEffect(PotionEffectType.NIGHT_VISION, 300, 3, true, false, false);
     private MCTCommand mctCommand;
+    
+    protected GameManager initialGameManager(Scoreboard mctScoreboard) {
+        return new GameManager(this, mctScoreboard);
+    }
     
     @Override
     public void onEnable() {
@@ -28,12 +46,10 @@ public class Main extends JavaPlugin {
         Scoreboard mctScoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
         ParticipantInitializer.setPlugin(this); //TODO: remove this in favor of death and respawn combination 
         
-        gameManager = new GameManager(this, mctScoreboard);
+        gameManager = initialGameManager(mctScoreboard);
         try {
-            if (!gameManager.loadHubConfig()) {
-                throw new IllegalArgumentException("Could not load config");
-            }
-        } catch (IllegalArgumentException e) {
+            gameManager.loadHubConfig();
+        } catch (ConfigException e) {
             Bukkit.getLogger().severe(String.format("[MCTManager] Could not load hub config, see console for details. %s", e.getMessage()));
             e.printStackTrace();
             saveGameStateOnDisable = false;
@@ -77,10 +93,10 @@ public class Main extends JavaPlugin {
     
     @Override
     public void onDisable() {
+        ParticipantInitializer.setPlugin(null); //TODO: remove this in favor of death and respawn combination 
         if (saveGameStateOnDisable && gameManager != null) {
             gameManager.cancelVote();
-            gameManager.cancelAllTasks();
-            gameManager.saveGameState();
+            gameManager.tearDown();
             if (gameManager.getEventManager().eventIsActive()) {
                 gameManager.getEventManager().stopEvent(Bukkit.getConsoleSender());
             }
@@ -93,6 +109,7 @@ public class Main extends JavaPlugin {
             if (gameManager.editorIsRunning()) {
                 gameManager.stopEditor(Bukkit.getConsoleSender());
             }
+            gameManager.saveGameState();
         } else {
             Bukkit.getLogger().info("[MCTManager] Skipping save game state.");
         }

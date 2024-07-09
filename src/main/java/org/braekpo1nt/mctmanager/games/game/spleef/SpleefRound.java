@@ -1,39 +1,42 @@
 package org.braekpo1nt.mctmanager.games.game.spleef;
 
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
-import org.braekpo1nt.mctmanager.games.game.spleef.config.SpleefStorageUtil;
+import org.braekpo1nt.mctmanager.games.game.spleef.config.SpleefConfig;
+import org.braekpo1nt.mctmanager.games.game.spleef.powerup.PowerupManager;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
+import org.braekpo1nt.mctmanager.ui.timer.Timer;
+import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
+import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
-import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
 import org.bukkit.block.structure.Mirror;
 import org.bukkit.block.structure.StructureRotation;
-import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
-import org.bukkit.event.block.Action;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.Material;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 import org.bukkit.structure.Structure;
 import org.bukkit.util.BoundingBox;
+import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -42,38 +45,58 @@ public class SpleefRound implements Listener {
     private final GameManager gameManager;
     private final Sidebar sidebar;
     private final Sidebar adminSidebar;
-    private final SpleefStorageUtil storageUtil;
+    private final Random random = new Random();
+    private SpleefConfig config;
     private List<Player> participants = new ArrayList<>();
     private Map<UUID, Boolean> participantsAlive;
     private boolean spleefHasStarted = false;
     private boolean roundActive = false;
     private final SpleefGame spleefGame;
-    private int startCountDownTaskID;
-    private int decayTaskId;
+    private final DecayManager decayManager;
+    private final PowerupManager powerupManager;
+    private boolean descriptionShowing = false;
+    private boolean firstRound = false;
+    private final TimerManager timerManager;
     
-    public SpleefRound(Main plugin, GameManager gameManager, SpleefGame spleefGame, SpleefStorageUtil spleefStorageUtil, Sidebar sidebar, Sidebar adminSidebar) {
+    public SpleefRound(Main plugin, GameManager gameManager, SpleefGame spleefGame, SpleefConfig config, Sidebar sidebar, Sidebar adminSidebar) {
         this.plugin = plugin;
+        this.timerManager = new TimerManager(plugin);
         this.gameManager = gameManager;
         this.spleefGame = spleefGame;
-        this.storageUtil = spleefStorageUtil;
         this.sidebar = sidebar;
         this.adminSidebar = adminSidebar;
+        this.config = config;
+        this.decayManager = new DecayManager(plugin, config, this);
+        this.powerupManager = new PowerupManager(plugin, config);
+    }
+    
+    public void setConfig(SpleefConfig config) {
+        this.config = config;
+        this.decayManager.setConfig(config);
+        this.powerupManager.setConfig(config);
     }
     
     public void start(List<Player> newParticipants) {
         this.participants = new ArrayList<>(newParticipants.size());
         participantsAlive = new HashMap<>(newParticipants.size());
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
-        placeLayers();
+        gameManager.getTimerManager().register(timerManager);
+        placeLayers(true);
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
         }
         initializeSidebar();
         initializeAdminSidebar();
         setupTeamOptions();
-        startRoundStartingCountDown();
+        decayManager.setAliveCount(newParticipants.size());
+        decayManager.setAlivePercent(1);
         spleefHasStarted = false;
         roundActive = true;
+        if (firstRound) {
+            startDescriptionPeriod();
+        } else {
+            startRoundStartingCountDown();
+        }
         Bukkit.getLogger().info("Starting Spleef round");
     }
     
@@ -81,7 +104,7 @@ public class SpleefRound implements Listener {
         UUID participantUniqueId = participant.getUniqueId();
         participants.add(participant);
         participantsAlive.put(participantUniqueId, true);
-        teleportPlayerToRandomStartingPosition(participant);
+        teleportParticipantToRandomStartingPosition(participant);
         participant.getInventory().clear();
         participant.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearStatusEffects(participant);
@@ -100,6 +123,14 @@ public class SpleefRound implements Listener {
         ParticipantInitializer.resetHealthAndHunger(participant);
     }
     
+    /**
+     * If this is the first round, then the description period will be used
+     * @param firstRound true if this is the first round, false otherwise
+     */
+    public void setFirstRound(boolean firstRound) {
+        this.firstRound = firstRound;
+    }
+    
     private void roundIsOver() {
         stop();
         spleefGame.roundIsOver();
@@ -108,8 +139,12 @@ public class SpleefRound implements Listener {
     public void stop() {
         spleefHasStarted = false;
         roundActive = false;
+        firstRound = false;
+        descriptionShowing = false;
         HandlerList.unregisterAll(this);
-        placeLayers();
+        decayManager.stop();
+        powerupManager.stop();
+        placeLayers(false);
         cancelAllTasks();
         for (Player participant : participants) {
             resetParticipant(participant);
@@ -131,27 +166,27 @@ public class SpleefRound implements Listener {
         }
         if (participantShouldRejoin(participant)) {
             rejoinParticipant(participant);
-            messageAllParticipants(Component.text(participant.getName())
-                    .append(Component.text(" is rejoining Spleef!"))
-                    .color(NamedTextColor.YELLOW));
         } else {
             initializeParticipant(participant);
             if (spleefHasStarted) {
-                giveParticipantShovel(participant);
+                giveTool(participant);
                 participant.setGameMode(GameMode.SURVIVAL);
             }
-            messageAllParticipants(Component.text(participant.getName())
-                    .append(Component.text(" is joining Spleef!"))
-                    .color(NamedTextColor.YELLOW));
         }
-        long aliveCount = participantsAlive.values().stream().filter((alive) -> alive).count();
+        powerupManager.addParticipant(participant);
+        long aliveCount = getAliveCount();
         String alive = String.format("Alive: %s", aliveCount);
         sidebar.updateLine("alive", alive);
         adminSidebar.updateLine("alive", alive);
+        decayManager.setAliveCount(aliveCount);
+        decayManager.setAlivePercent(aliveCount / (double) participants.size());
     }
     
     private boolean participantShouldRejoin(Player participant) {
         if (!roundActive) {
+            return false;
+        }
+        if (descriptionShowing) {
             return false;
         }
         return participantsAlive.containsKey(participant.getUniqueId());
@@ -161,13 +196,15 @@ public class SpleefRound implements Listener {
         if (!roundActive) {
             return;
         }
-        List<ItemStack> drops = Arrays.stream(participant.getInventory().getContents())
-                .filter(Objects::nonNull)
-                .toList();
-        int droppedExp = calculateExpPoints(participant.getLevel());
-        Component deathMessage = Component.text(participant.getName())
+        if (descriptionShowing) {
+            resetParticipant(participant);
+            participants.remove(participant);
+            return;
+        }
+        Component deathMessage = Component.empty()
+                .append(Component.text(participant.getName()))
                 .append(Component.text(" left early. Their life is forfeit."));
-        PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(participant, drops, droppedExp, deathMessage);
+        PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(participant, Collections.emptyList(), 0, deathMessage);
         Bukkit.getServer().getPluginManager().callEvent(fakeDeathEvent);
         resetParticipant(participant);
         participants.remove(participant);
@@ -196,18 +233,6 @@ public class SpleefRound implements Listener {
         if (!spleefHasStarted) {
             event.setCancelled(true);
         }
-    }
-    
-    @EventHandler
-    public void onPlayerLoseHunger(FoodLevelChangeEvent event) {
-        if (!(event.getEntity() instanceof Player participant)) {
-            return;
-        }
-        if (!participants.contains(participant)) {
-            return;
-        }
-        participant.setFoodLevel(20);
-        event.setCancelled(true);
     }
     
     @EventHandler
@@ -251,13 +276,7 @@ public class SpleefRound implements Listener {
     }
     
     private boolean lessThanTwoPlayersAlive() {
-        int aliveCount = 0;
-        for (boolean isAlive : participantsAlive.values()) {
-            if (isAlive) {
-                aliveCount += 1;
-            }
-        }
-        return aliveCount < 2;
+        return getAliveCount() < 2;
     }
     
     @EventHandler
@@ -270,7 +289,15 @@ public class SpleefRound implements Listener {
             return;
         }
         if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
-            event.setCancelled(true);
+            event.setUseInteractedBlock(Event.Result.DENY);
+            return;
+        }
+        Block clickedBlock = event.getClickedBlock();
+        if (clickedBlock == null) {
+            return;
+        }
+        if (config.getPreventInteractions().contains(clickedBlock.getType())) {
+            event.setUseInteractedBlock(Event.Result.DENY);
         }
     }
     
@@ -279,172 +306,84 @@ public class SpleefRound implements Listener {
         ParticipantInitializer.resetHealthAndHunger(killed);
         killed.getInventory().clear();
         participantsAlive.put(killed.getUniqueId(), false);
+        powerupManager.removeParticipant(killed);
         String killedTeam = gameManager.getTeamName(killed.getUniqueId());
-        int count = participants.size();
+        int aliveCount = participants.size();
         for (Player participant : participants) {
             if (participantsAlive.get(participant.getUniqueId())) {
                 String teamName = gameManager.getTeamName(participant.getUniqueId());
                 if (!teamName.equals(killedTeam)) {
-                    gameManager.awardPointsToParticipant(participant, storageUtil.getSurviveScore());
+                    gameManager.awardPointsToParticipant(participant, config.getSurviveScore());
                 }
             } else {
-                count--;
+                aliveCount--;
             }
         }
-        String alive = String.format("Alive: %s", count);
+        String alive = String.format("Alive: %s", aliveCount);
         sidebar.updateLine("alive", alive);
         adminSidebar.updateLine("alive", alive);
+        decayManager.setAliveCount(aliveCount);
+        decayManager.setAlivePercent(aliveCount / (double) participants.size());
     }
     
     private void startSpleef() {
-        placeLayers();
         String alive = String.format("Alive: %s", participants.size());
         sidebar.updateLine("alive", alive);
         adminSidebar.updateLine("alive", alive);
-        givePlayersShovels();
+        giveTools();
         for (Player participant : participants) {
             participant.setGameMode(GameMode.SURVIVAL);
         }
         spleefHasStarted = true;
-        startDecayTask();
+        decayManager.start();
+        powerupManager.start(participants);
     }
     
-    private void startDecayTask() {
-        List<DecayStage> stages = storageUtil.getStages();
-        this.decayTaskId = new BukkitRunnable() {
-            private final Random random = new Random();
-            private int currentStageIndex = 0;
-            private DecayStage currentStage = stages.get(currentStageIndex);
-            private int secondsLeft = currentStage.duration();
-            @Override
-            public void run() {
-                long livingNum = participantsAlive.values().stream().filter(value -> value).count();
-                // if time is up, or num of living players is below threshold
-                // the final stage will continue on forever, regardless of the value of the duration or minParticipants
-                if ((secondsLeft <= 0 || livingNum < currentStage.minParticipants())) {
-                    // if this is not the final stage in the list
-                    if (currentStageIndex + 1 < stages.size()) {
-                        // move to the next stage
-                        currentStageIndex++;
-                        currentStage = stages.get(currentStageIndex);
-                        secondsLeft = currentStage.duration();
-                        if (currentStage.startMessage() != null) {
-                            messageAllParticipants(Component.text(currentStage.startMessage())
-                                    .color(NamedTextColor.DARK_RED));
-                        }
-                        return;
-                    }
-                    // otherwise, the final stage continues indefinitely
-                }
-                secondsLeft--;
-    
-                for (DecayStage.LayerInfo layerInfo : currentStage.layerInfos()) {
-                    BoundingBox decayLayer = storageUtil.getDecayLayers().get(layerInfo.index());
-                    decayLayer(decayLayer, layerInfo.blocksPerSecond());
-                }
-            }
-    
-            /**
-             * 
-             * @param decayLayer the area to decay within
-             * @param blocks the number of blocks to decay
-             */
-            private void decayLayer(BoundingBox decayLayer, int blocks) {
-                List<Block> coarseDirtBlocks = getCoarseDirtBlocks(decayLayer);
-                List<Block> dirtBlocks = getDirtBlocks(decayLayer);
-        
-                // Decay coarse dirt blocks to air
-                if (!coarseDirtBlocks.isEmpty()) {
-                    for (int i = 0; i < blocks; i++) {
-                        Block randomCoarseDirtBlock = coarseDirtBlocks.get(random.nextInt(coarseDirtBlocks.size()));
-                        randomCoarseDirtBlock.setType(Material.AIR);
-                    }
-                }
-        
-                // Decay dirt blocks to coarse dirt
-                if (!dirtBlocks.isEmpty()) {
-                    for (int i = 0; i < blocks; i++) {
-                        Block randomDirtBlock = dirtBlocks.get(random.nextInt(dirtBlocks.size()));
-                        randomDirtBlock.setType(Material.COARSE_DIRT);
-                    }
-                }
-            }
-    
-            private List<Block> getDirtBlocks(BoundingBox layer) {
-                List<Block> dirtBlocks = new ArrayList<>();
-        
-                for (int x = layer.getMin().getBlockX(); x <= layer.getMaxX(); x++) {
-                    for (int y = layer.getMin().getBlockY(); y <= layer.getMaxY(); y++) {
-                        for (int z = layer.getMin().getBlockZ(); z <= layer.getMaxZ(); z++) {
-                            Block block = storageUtil.getWorld().getBlockAt(x, y, z);
-                            if (block.getType() == Material.DIRT) {
-                                dirtBlocks.add(block);
-                            }
-                        }
-                    }
-                }
-        
-                return dirtBlocks;
-            }
-    
-            private List<Block> getCoarseDirtBlocks(BoundingBox layer) {
-                List<Block> coarseDirtBlocks = new ArrayList<>();
-        
-                for (int x = layer.getMin().getBlockX(); x <= layer.getMaxX(); x++) {
-                    for (int y = layer.getMin().getBlockY(); y <= layer.getMaxY(); y++) {
-                        for (int z = layer.getMin().getBlockZ(); z <= layer.getMaxZ(); z++) {
-                            Block block = storageUtil.getWorld().getBlockAt(x, y, z);
-                            if (block.getType() == Material.COARSE_DIRT) {
-                                coarseDirtBlocks.add(block);
-                            }
-                        }
-                    }
-                }
-        
-                return coarseDirtBlocks;
-            }
-        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
-    }
-    
-    private void givePlayersShovels() {
+    private void giveTools() {
         for (Player participant : participants) {
-            giveParticipantShovel(participant);
+            participant.getInventory().addItem(config.getTool());
         }
     }
     
-    private void giveParticipantShovel(Player participant) {
-        ItemStack diamondShovel = new ItemStack(Material.DIAMOND_SHOVEL);
-        diamondShovel.addEnchantment(Enchantment.DIG_SPEED, 5);
-        diamondShovel.addUnsafeEnchantment(Enchantment.DURABILITY, 10);
-        participant.getInventory().addItem(diamondShovel);
+    private void giveTool(Player participant) {
+        participant.getInventory().addItem(config.getTool());
+    }
+    
+    private void startDescriptionPeriod() {
+        descriptionShowing = true;
+        firstRound = false;
+        timerManager.start(Timer.builder()
+                .duration(config.getDescriptionDuration())
+                .withSidebar(sidebar, "timer")
+                .withSidebar(adminSidebar, "timer")
+                .sidebarPrefix(Component.text("Starting soon: "))
+                .onCompletion(() -> {
+                    descriptionShowing = false;
+                    startRoundStartingCountDown();
+                })
+                .build());
     }
     
     private void startRoundStartingCountDown() {
-        this.startCountDownTaskID = new BukkitRunnable() {
-            private int count = storageUtil.getRoundStartingDuration();
-
-            @Override
-            public void run() {
-                if (count <= 0) {
-                    sidebar.updateLine("timer", "");
-                    adminSidebar.updateLine("timer", "");
-                    startSpleef();
-                    this.cancel();
-                    return;
-                }
-                String timeLeft = TimeStringUtils.getTimeString(count);
-                String timer = String.format("Starting in: %s", timeLeft);
-                sidebar.updateLine("timer", timer);
-                adminSidebar.updateLine("timer", timer);
-                count--;
-            }
-        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+        timerManager.start(Timer.builder()
+                .duration(config.getRoundStartingDuration())
+                .withSidebar(sidebar, "timer")
+                .withSidebar(adminSidebar, "timer")
+                .sidebarPrefix(Component.text("Starting: "))
+                .titleAudience(Audience.audience(participants))
+                .onCompletion(this::startSpleef)
+                .build());
     }
     
-    private void placeLayers() {
-        for (int i = 0; i < storageUtil.getStructures().size(); i++) {
-            Structure layer = storageUtil.getStructures().get(i);
-            layer.place(storageUtil.getStructureOrigins().get(i), true, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random());
+    private void placeLayers(boolean replaceStencil) {
+        for (int i = 0; i < config.getStructures().size(); i++) {
+            Structure layer = config.getStructures().get(i);
+            layer.place(config.getStructureOrigins().get(i), true, StructureRotation.NONE, Mirror.NONE, 0, 1, random);
+        }
+        if (replaceStencil && config.getStencilBlock() != null) {
+            for (BoundingBox layerArea : config.getDecayLayers()) {
+                BlockPlacementUtils.createCubeReplace(config.getWorld(), layerArea, config.getStencilBlock(), config.getLayerBlock());
+            }
         }
     }
     
@@ -457,7 +396,32 @@ public class SpleefRound implements Listener {
         if (!participants.contains(participant)) {
             return;
         }
+        powerupManager.onParticipantBreakBlock(participant);
         event.setDropItems(false);
+    }
+    
+    @EventHandler
+    public void onPlayerMove(PlayerMoveEvent event) {
+        if (!roundActive) {
+            return;
+        }
+        if (spleefHasStarted) {
+            return;
+        }
+        if (config.getSafetyArea() == null) {
+            return;
+        }
+        Player participant = event.getPlayer();
+        if (!participants.contains(participant)) {
+            return;
+        }
+        if (!config.getSafetyArea().contains(event.getFrom().toVector())) {
+            participant.teleport(config.getStartingLocations().get(0));
+            return;
+        }
+        if (!config.getSafetyArea().contains(event.getTo().toVector())) {
+            event.setCancelled(true);
+        }
     }
     
     private void setupTeamOptions() {
@@ -487,26 +451,38 @@ public class SpleefRound implements Listener {
         sidebar.deleteLine("alive");
     }
     
-    private void teleportPlayerToRandomStartingPosition(Player player) {
-        player.sendMessage("Teleporting to Spleef");
-        int index = new Random().nextInt(storageUtil.getStartingLocations().size());
-        player.teleport(storageUtil.getStartingLocations().get(index));
+    private void teleportParticipantToRandomStartingPosition(Player participant) {
+        int index = random.nextInt(config.getStartingLocations().size());
+        participant.teleport(config.getStartingLocations().get(index));
+        participant.setBedSpawnLocation(config.getStartingLocations().get(index), true);
     }
     
     private void cancelAllTasks() {
-        Bukkit.getScheduler().cancelTask(startCountDownTaskID);
-        Bukkit.getScheduler().cancelTask(decayTaskId);
+        timerManager.cancel();
     }
     
-    private void messageAllParticipants(Component message) {
+    void messageAllParticipants(Component message) {
         gameManager.messageAdmins(message);
         for (Player participant : participants) {
             participant.sendMessage(message);
         }
     }
     
-    private int calculateExpPoints(int level) {
-        int maxExpPoints = level > 7 ? 100 : level * 7;
-        return maxExpPoints / 10;
+    public void showTitle(@NotNull Title title) {
+        spleefGame.showTitle(title);
+    }
+    
+    /**
+     * @return the number of participants who are alive in this round
+     */
+    private long getAliveCount() {
+        return participantsAlive.values().stream().filter(value -> value).count();
+    }
+    
+    /**
+     * @param shouldGivePowerups true means powerups should be given, false means they should not
+     */
+    public void setShouldGivePowerups(boolean shouldGivePowerups) {
+        powerupManager.setShouldGivePowerups(shouldGivePowerups);
     }
 }

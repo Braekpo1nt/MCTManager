@@ -191,13 +191,25 @@
   ],
   "rounds": 3,
   "clockChime": {
-    "sound": "block.bell.use",
+    "namespacedKey": {
+      "key": "block.bell.use"
+    },
     "volume": 100.0,
     "pitch": 2.0
   },
   "initialChimeInterval": 20.0,
   "chimeIntervalDecrement": 0.5,
   "collisionRule": "ALWAYS",
+  "preventInteractions": [
+    "OAK_TRAPDOOR",
+    "SPRUCE_TRAPDOOR",
+    "BIRCH_TRAPDOOR",
+    "JUNGLE_TRAPDOOR",
+    "ACACIA_TRAPDOOR",
+    "DARK_OAK_TRAPDOOR",
+    "CRIMSON_TRAPDOOR",
+    "WARPED_TRAPDOOR"
+  ],
   "scores": {
     "playerElimination": 5,
     "teamElimination": 20,
@@ -206,7 +218,8 @@
   "durations": {
     "breather": 5,
     "getToWedge": 8,
-    "stayOnWedge": 5
+    "stayOnWedge": 5,
+    "description": 10
   },
   "description": ["",{"text":"-----------------------","bold":true,"color":"gray"},{"text":"\n"},{"text":"How To Play","bold":true,"color":"yellow"},{"text":" Clockwork","bold":true,"color":"yellow"},{"text":"\n"},{"text":"A bell will ring X amount of times ranging from 1-12.\nRun to the corresponding granite platform and watch the others die.\nThings will speed up and get more difficult as time goes on, so be careful","color":"#FFFFDF"},{"text":"! ","color":"#DBDEE1"},{"text":"\n"},{"text":"-----------------------","bold":true,"color":"gray"},{"text":" "}]
 }

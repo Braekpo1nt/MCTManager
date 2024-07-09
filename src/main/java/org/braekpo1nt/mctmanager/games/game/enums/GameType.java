@@ -46,7 +46,7 @@ public enum GameType {
      * For example, if the ID is "foot-race", this will return {@link GameType#FOOT_RACE}.
      * 
      * @param id The string ID of the game type
-     * @return The game type matching the given Command ID, or null if the given
+     * @return The game type matching the given SubCommand ID, or null if the given
      * string is not a recognized ID or is null
      */
     public static GameType fromID(String id) {

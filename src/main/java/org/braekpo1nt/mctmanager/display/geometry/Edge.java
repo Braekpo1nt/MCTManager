@@ -5,6 +5,7 @@ import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class Edge {
@@ -91,12 +92,16 @@ public class Edge {
     /**
      * @param edge the edge to get the points along
      * @param distance the distance between points (should not be longer than the length of the edge)
-     * @return a list of points that are equidistant along the edge
+     * @return a list of points that are equidistant along the edge. Ensures that both endpoints of the edge are included (one at the beginning of the list and one at the end), even if the last two points are less than the provided distance apart from each other.
      */
     public static List<Vector> pointsAlongEdgeWithDistance(Edge edge, double distance) {
         List<Vector> points = new ArrayList<>();
         Vector a = edge.getA();
         Vector b = edge.getB();
+        
+        if (a.equals(b)) {
+            return Collections.singletonList(a);
+        }
         
         double length = Math.sqrt(Math.pow(b.getX() - a.getX(), 2) +
                 Math.pow(b.getY() - a.getY(), 2) +
@@ -117,6 +122,10 @@ public class Edge {
             x += deltaX;
             y += deltaY;
             z += deltaZ;
+        }
+        
+        if (!points.get(points.size() - 1).equals(b)) {
+            points.add(b);
         }
         
         return points;

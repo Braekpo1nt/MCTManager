@@ -6,7 +6,12 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.MultipleFacing;
+import org.bukkit.block.data.Rotatable;
 import org.bukkit.util.BoundingBox;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class BlockPlacementUtils {
     /**
@@ -100,8 +105,8 @@ public class BlockPlacementUtils {
                 for (int z = minZ; z <= maxZ; z++) {
                     if (
                             x == minX || x == maxX
-                            || y == minY || y == maxY
-                            || z == minZ || z == maxZ) {
+                                    || y == minY || y == maxY
+                                    || z == minZ || z == maxZ) {
                         Block block = world.getBlockAt(x, y, z);
                         block.setType(material);
                     }
@@ -181,6 +186,103 @@ public class BlockPlacementUtils {
                     }
                 }
             }
+        }
+    }
+    
+    /**
+     *
+     * @param world the world to search for blocks in
+     * @param box the box to search for blocks in
+     * @param types the types of blocks to search for
+     * @return all the blocks of the given types which are in the given BoundingBox
+     */
+    public static List<Block> getBlocks(@NotNull World world, @NotNull BoundingBox box, @NotNull List<Material> types) {
+        List<Block> solidBlocks = new ArrayList<>();
+        
+        for (int x = box.getMin().getBlockX(); x <= box.getMaxX(); x++) {
+            for (int y = box.getMin().getBlockY(); y <= box.getMaxY(); y++) {
+                for (int z = box.getMin().getBlockZ(); z <= box.getMaxZ(); z++) {
+                    Block block = world.getBlockAt(x, y, z);
+                    if (types.contains(block.getType())) {
+                        solidBlocks.add(block);
+                    }
+                }
+            }
+        }
+        
+        return solidBlocks;
+    }
+    
+    public static final List<Material> AIR_BLOCKS = List.of(
+            Material.AIR,
+            Material.CAVE_AIR,
+            Material.VOID_AIR
+    );
+    
+    /**
+     * Gets the first solid block below the given location. If there is no floor all the way to the min height, returns the given location.
+     * @param location The location to check below
+     * @return the location below the given location that is a solid block. If there are no solid blocks, returns the given location. 
+     */
+    public static Location getSolidBlockBelow(@NotNull Location location) {
+        Location nonAirLocation = location.subtract(0, 1, 0);
+        int minHeight = location.getWorld().getMinHeight();
+        while (nonAirLocation.getBlockY() > minHeight) {
+            Block block = nonAirLocation.getBlock();
+            if (!AIR_BLOCKS.contains(block.getType())) {
+                return nonAirLocation;
+            }
+            nonAirLocation = nonAirLocation.subtract(0, 1, 0);
+        }
+        return location;
+    }
+    
+    /**
+     * Gets the first non-solid block above the given location. If there is nothing all the way to the max height, returns the given location.
+     * @param location the location to check above
+     * @return the location above the given location that is not a solid block. If there is no non-solid blocks, returns the given location. 
+     */
+    public static Location getNonSolidBlockAbove(@NotNull Location location) {
+        Location airLocation = location.add(0, 1, 0);
+        int maxHeight = location.getWorld().getMaxHeight();
+        while (airLocation.getBlockY() < maxHeight) {
+            Block block = airLocation.getBlock();
+            if (AIR_BLOCKS.contains(block.getType())) {
+                return airLocation;
+            }
+            airLocation = airLocation.add(0, 1, 0);
+        }
+        return location;
+    }
+    
+    /**
+     * This is so that many block drops (such as flags in Capture the Flag) can seem to "land" on the ground without disturbing the environment or floating where no player can reach them. 
+     * If the location is in a body of water or some other non-air block, then it will return the lowest location of an empty block above the given location. If the location is an air block, then it will return the lowest location of an empty block below the given location. 
+     * @param location the location where the block drop has appeared
+     * @return the location to place the block drop. Should be an empty block just above the ground.
+     */
+    public static Location getBlockDropLocation(@NotNull Location location) {
+        if (AIR_BLOCKS.contains(location.getBlock().getType())) {
+            return getSolidBlockBelow(location).add(0, 1, 0);
+        } else {
+            return getNonSolidBlockAbove(location);
+        }
+    }
+    
+    /**
+     * Places the provided banner type at the given location facing the given direction
+     * If the given material's blockData does not implement {@link Rotatable}, then the facing direction
+     * will be ignored and the block will simply be placed.
+     * @param bannerType the material type of the banner to place
+     * @param location the location to place the banner
+     * @param facing the direction to face the banner
+     */
+    public static void placeFlag(Material bannerType, Location location, BlockFace facing) {
+        Block flagBlock = location.getBlock();
+        flagBlock.setType(bannerType);
+        if (flagBlock.getBlockData() instanceof Rotatable flagData) {
+            flagData.setRotation(facing);
+            flagBlock.setBlockData(flagData);
         }
     }
 }

@@ -1,5 +1,5 @@
 {
-  "version": "0.1.0",
+  "version": "0.1.1",
   "world": "TestWorld",
   "startingLocations": [
     {
@@ -15,6 +15,28 @@
     "maxX": -32,
     "maxY": 8,
     "maxZ": -1968
+  },
+  "stencilBlock": "DIRT",
+  "layerBlock": "SNOW_BLOCK",
+  "decayBlock": "CLAY",
+  "tool": {
+    "type": "DIAMOND_SHOVEL",
+    "enchantments": [
+      {
+        "namespacedKey": {
+          "namespace": "minecraft",
+          "key": "efficiency"
+        },
+        "level": 5
+      },
+      {
+        "namespacedKey": {
+          "namespace": "minecraft",
+          "key": "unbreaking"
+        },
+        "level": 10
+      }
+    ]
   },
   "layers": [
     {
@@ -32,7 +54,7 @@
         "minY": 37,
         "minZ": -2022,
         "maxX": 22,
-        "maxY": 37,
+        "maxY": 38,
         "maxZ": -1978
       }
     },
@@ -51,7 +73,7 @@
         "minY": 30,
         "minZ": -2022,
         "maxX": 22,
-        "maxY": 30,
+        "maxY": 31,
         "maxZ": -1978
       }
     },
@@ -70,7 +92,7 @@
         "minY": 24,
         "minZ": -2022,
         "maxX": 22,
-        "maxY": 24,
+        "maxY": 25,
         "maxZ": -1978
       }
     },
@@ -89,7 +111,7 @@
         "minY": 19,
         "minZ": -2022,
         "maxX": 22,
-        "maxY": 19,
+        "maxY": 20,
         "maxZ": -1978
       }
     }
@@ -99,18 +121,22 @@
       "startMessage": null,
       "layerInfos": [],
       "duration": 30,
-      "minParticipants": -1
+      "minParticipants": -1,
+      "minParticipantsPercent": 0.67,
+      "powerups": false
     },
     {
       "startMessage": "The top 2 layers are decaying!",
       "layerInfos": [
         {
           "index": 0,
-          "blocksPerSecond": 8
+          "solidBlockRate": 8,
+          "decayingBlockRate": 7
         },
         {
           "index": 1,
-          "blocksPerSecond": 6
+          "solidBlockRate": 6,
+          "decayingBlockRate": 5
         }
       ],
       "duration": 60,
@@ -121,19 +147,23 @@
       "layerInfos": [
         {
           "index": 0,
-          "blocksPerSecond": 10
+          "solidBlockRate": 10,
+          "decayingBlockRate": 9
         },
         {
           "index": 1,
-          "blocksPerSecond": 8
+          "solidBlockRate": 8,
+          "decayingBlockRate": 7
         },
         {
           "index": 2,
-          "blocksPerSecond": 6
+          "solidBlockRate": 6,
+          "decayingBlockRate": 5
         },
         {
           "index": 3,
-          "blocksPerSecond": 4
+          "solidBlockRate": 4,
+          "decayingBlockRate": 3
         }
       ],
       "duration": 60,
@@ -144,24 +174,111 @@
       "layerInfos": [
         {
           "index": 0,
-          "blocksPerSecond": 20
+          "solidBlockRate": 20,
+          "decayingBlockRate": 15
         },
         {
           "index": 1,
-          "blocksPerSecond": 14
+          "solidBlockRate": 14,
+          "decayingBlockRate": 12
         },
         {
           "index": 2,
-          "blocksPerSecond": 12
+          "solidBlockRate": 12,
+          "decayingBlockRate": 11
         },
         {
           "index": 3,
-          "blocksPerSecond": 10
+          "solidBlockRate": 10
         }
       ],
       "duration": 300,
       "minParticipants": -1
     }
+  ],
+  "powerups": {
+    "minTimeBetween": 5000,
+    "maxPowerups": 5,
+    "initialLoadout": {
+      "SHIELD": 1
+    },
+    "sources": {
+      "GENERAL": {
+        "chance": 0.05,
+        "types": {
+          "PLAYER_SWAPPER": 45,
+          "BLOCK_BREAKER": 45,
+          "SHIELD": 10
+        }
+      },
+      "BREAK_BLOCK": {
+        "chance": 0.1,
+        "types": {
+          "PLAYER_SWAPPER": 1,
+          "BLOCK_BREAKER": 1
+        }
+      }
+    },
+    "powerups": {
+      "PLAYER_SWAPPER": {
+        "userSound": {
+          "namespacedKey": {
+            "key": "entity.enderman.teleport",
+            "volume": 100,
+            "pitch": 1
+          }
+        },
+        "affectedSound": {
+          "namespacedKey": {
+            "key": "entity.enderman.teleport",
+            "volume": 100,
+            "pitch": 1
+          }
+        }
+      },
+      "BLOCK_BREAKER": {
+        "userSound": {
+          "namespacedKey": {
+            "key": "block.snow.break",
+            "volume": 100,
+            "pitch": 1
+          }
+        },
+        "affectedSound": {
+          "namespacedKey": {
+            "key": "block.snow.break",
+            "volume": 100,
+            "pitch": 1
+          }
+        }
+      },
+      "SHIELD": {
+        "userSound": {
+          "namespacedKey": {
+            "key": "item.shield.block",
+            "volume": 100,
+            "pitch": 1
+          }
+        },
+        "affectedSound": {
+          "namespacedKey": {
+            "key": "entity.endermite.hurt",
+            "volume": 100,
+            "pitch": 1
+          }
+        }
+      }
+    }
+  },
+  "preventInteractions": [
+    "OAK_TRAPDOOR",
+    "SPRUCE_TRAPDOOR",
+    "BIRCH_TRAPDOOR",
+    "JUNGLE_TRAPDOOR",
+    "ACACIA_TRAPDOOR",
+    "DARK_OAK_TRAPDOOR",
+    "CRIMSON_TRAPDOOR",
+    "WARPED_TRAPDOOR"
   ],
   "scores": {
     "survive": 10
@@ -169,7 +286,8 @@
   "rounds": 3,
   "durations": {
     "roundStarting": 10,
-    "roundEnding": 5
+    "roundEnding": 5,
+    "description": 10
   },
   "description": ["",{"text":"-----------------------","bold":true,"color":"gray"},{"text":"\n"},{"text":"How To Play","bold":true,"color":"yellow"},{"text":" Spleef","bold":true,"color":"yellow"},{"text":"\n"},{"text":"Everyone knows how to play Spleef!\nSwing your shovel at the dirt below your opponents and be the last one standing!\nThe ground will slowly disintegrate so be careful!\nThis game will also be played 3 times in succession!","color":"#FFFFDF"},{"text":"\n"},{"text":"-----------------------","bold":true,"color":"gray"}]
 }

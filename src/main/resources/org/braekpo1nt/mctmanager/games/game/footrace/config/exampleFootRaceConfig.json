@@ -1,5 +1,5 @@
 {
-  "version": "0.1.0",
+  "version": "0.1.1",
   "world": "TestWorld",
   "startingLocation": {
     "x": 2400,
@@ -32,6 +32,16 @@
     "maxY": 80,
     "maxZ": 317
   },
+  "preventInteractions": [
+    "OAK_TRAPDOOR",
+    "SPRUCE_TRAPDOOR",
+    "BIRCH_TRAPDOOR",
+    "JUNGLE_TRAPDOOR",
+    "ACACIA_TRAPDOOR",
+    "DARK_OAK_TRAPDOOR",
+    "CRIMSON_TRAPDOOR",
+    "WARPED_TRAPDOOR"
+  ],
   "scores": {
     "completeLap": 5,
     "placementPoints": [
@@ -45,7 +55,8 @@
   },
   "durations": {
     "startRace": 10,
-    "raceEndCountdown": 60
+    "raceEndCountdown": 60,
+    "description": 10
   },
   "description": ["",{"text":"-----------------------","bold":true,"color":"gray"},{"text":"\n"},{"text":"How To Play","bold":true,"color":"yellow"},{"text":" Foot Race","bold":true,"color":"yellow"},{"text":"\n"},{"text":"Circle the map a total of 3 times!\nWatch out for soul sand and warped stem!\nMake sure you stay up front, because the lead earns more points than everyone else!","color":"#FFFFDF"},{"text":"\n"},{"text":"-----------------------","bold":true,"color":"gray"}]
 }

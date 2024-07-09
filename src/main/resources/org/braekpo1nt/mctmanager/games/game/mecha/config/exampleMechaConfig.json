@@ -1,5 +1,5 @@
 {
-  "version": "0.1.0",
+  "version": "0.1.1",
   "world": "TestWorld",
   "spectatorArea": {
     "minX": -175,
@@ -116,6 +116,16 @@
       }
     }
   ],
+  "preventInteractions": [
+    "OAK_TRAPDOOR",
+    "SPRUCE_TRAPDOOR",
+    "BIRCH_TRAPDOOR",
+    "JUNGLE_TRAPDOOR",
+    "ACACIA_TRAPDOOR",
+    "DARK_OAK_TRAPDOOR",
+    "CRIMSON_TRAPDOOR",
+    "WARPED_TRAPDOOR"
+  ],
   "scores": {
     "kill": 40,
     "surviveTeam": 40,
@@ -123,10 +133,13 @@
     "secondPlace": 70,
     "thirdPlace": 50
   },
+  "lockOtherInventories": true,
+  "shouldClearContainers": false,
   "durations": {
     "start": 10,
     "invulnerability": 20,
-    "end": 10
+    "end": 10,
+    "description": 10
   },
   "description": ["",{"text":"-----------------------\n","bold":true,"color":"gray"},{"text":"How To Play MECHA","bold":true,"color":"yellow"},"\n",{"text":"MECHA stands for Majorly Epic Combat Hunting Arena, or just Survival Games.","color":"#FFFFDF"},"\n",{"text":"When the game starts you will have a number of seconds of immunity\nafter that you must race through the map to collect armor, weapons,\nand tools to carry you and your team to victory! Last team standing wins!","color":"#FFFFDF"},"\n",{"text":"-----------------------","bold":true,"color":"gray"}]
 }

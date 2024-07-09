@@ -1,5 +1,5 @@
 {
-  "version": "0.1.0",
+  "version": "0.1.1",
   "world": "TestWorld",
   "spectatorArea": {
     "minX": 0,
@@ -31,6 +31,43 @@
     "pitch": 6
   },
   "requiredWins": 3,
+  "itemDrops": [
+    {
+      "location": {
+        "x": -1000,
+        "y": 2,
+        "z": 22
+      },
+      "item": {
+        "type": "ARROW",
+        "amount": 2
+      }
+    }
+  ],
+  "loadout": {
+    "contents": {
+      "36": {
+        "type": "LEATHER_BOOTS"
+      },
+      "38": {
+        "type": "LEATHER_CHESTPLATE"
+      },
+      "0": {
+        "type": "STONE_SWORD"
+      },
+      "1": {
+        "type": "BOW"
+      },
+      "2": {
+        "type": "ARROW",
+        "amount": 16
+      },
+      "3": {
+        "type": "COOKED_BEEF",
+        "amount": 16
+      }
+    }
+  },
   "firstPlaceGate": {
     "clearArea": {
       "minX": -1002,
@@ -99,6 +136,51 @@
       "maxZ": 20
     }
   },
+  "captureTheFlag": {
+    "flagMaterial": "WHITE_BANNER",
+    "flagDirection": "NORTH",
+    "flagLocation": {
+      "x": -1000,
+      "y": 2,
+      "z": 0
+    },
+    "flagSpawnMessage": {"text":"The flag has appeared! Capture it to win the round!","color":"green"},
+    "maxPlayers": 1,
+    "countdown": 60,
+    "firstPlaceGoal": {
+      "minX": -1005,
+      "minY": 2,
+      "minZ": -25,
+      "maxX": -994,
+      "maxY": 12,
+      "maxZ": -19
+    },
+    "secondPlaceGoal": {
+      "minX": -1005,
+      "minY": 2,
+      "minZ": 20,
+      "maxX": -994,
+      "maxY": 8,
+      "maxZ": 26
+    },
+    "replaceBlock": "TERRACOTTA",
+    "firstPlaceReplaceArea": {
+      "minX": -1005,
+      "minY": 1,
+      "minZ": -25,
+      "maxX": -995,
+      "maxY": 1,
+      "maxZ": -20
+    },
+    "secondPlaceReplaceArea": {
+      "minX": -1005,
+      "minY": 1,
+      "minZ": 20,
+      "maxX": -995,
+      "maxY": 1,
+      "maxZ": 25
+    }
+  },
   "removeArea": {
     "minX": -1031,
     "minY": -4,
@@ -123,9 +205,20 @@
     "maxY": 3,
     "maxZ": 3
   },
+  "preventInteractions": [
+    "OAK_TRAPDOOR",
+    "SPRUCE_TRAPDOOR",
+    "BIRCH_TRAPDOOR",
+    "JUNGLE_TRAPDOOR",
+    "ACACIA_TRAPDOOR",
+    "DARK_OAK_TRAPDOOR",
+    "CRIMSON_TRAPDOOR",
+    "WARPED_TRAPDOOR"
+  ],
   "durations": {
     "roundStarting": 10,
-    "antiSuffocation": 30
+    "antiSuffocation": 30,
+    "description": 10
   },
   "description": ["",{"text":"-----------------------","bold":true,"color":"gray"},{"text":"\n"},{"text":"How To Play","bold":true,"color":"yellow"},{"text":" Colossal Combat","bold":true,"italic":true,"color":"yellow"},{"text":"\n"},{"text":"For each tournament the battle ground of this colosseum changes with each tournament, making each one special.\nWith this final game being the deciding victor between the top two teams, there is one simple goal: Win 3 rounds of pvp with ","color":"#FFFFDF"},{"text":"NO RESPAWNS","bold":true,"color":"#FFFFDF"},{"text":" against the opposing team.\n\n","color":"#FFFFDF"},{"text":"Punching is also removed for spectators during the duration of this game.","italic":true,"color":"#FFFFDF"},{"text":" \n"},{"text":"-----------------------","bold":true,"color":"gray"},{"text":" "}]
 }

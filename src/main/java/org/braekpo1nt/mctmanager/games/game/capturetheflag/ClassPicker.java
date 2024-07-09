@@ -3,6 +3,8 @@ package org.braekpo1nt.mctmanager.games.game.capturetheflag;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.games.GameManager;
+import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -31,11 +33,16 @@ public class ClassPicker implements Listener {
             .append(Component.text(" (One per team)")
                     .color(NamedTextColor.GRAY));
     private final Component NETHER_STAR_NAME = Component.text("Vote");
-    private final Map<UUID, BattleClass> pickedBattleClasses = new HashMap<>();
+    private final Map<UUID, String> pickedBattleClasses = new HashMap<>();
     private final List<Player> teamMates = new ArrayList<>();
+    private final GameManager gameManager;
     private boolean classPickingActive = false;
-    private Map<BattleClass, Loadout> loadouts = new HashMap<>();
-    private Map<Material, BattleClass> materialToBattleClass = new HashMap<>();
+    private Map<String, Loadout> loadouts = new HashMap<>();
+    private Map<Material, String> materialToBattleClass = new HashMap<>();
+    
+    public ClassPicker(@NotNull GameManager gameManager) {
+        this.gameManager = gameManager;
+    }
     
     /**
      * Registers event listeners, and starts the class picking phase for the given list of teammates
@@ -45,10 +52,10 @@ public class ClassPicker implements Listener {
      * @param loadouts the loadouts for each BattleClass
      */
     public void start(Main plugin, List<Player> newTeamMates, 
-                      Map<BattleClass, Loadout> loadouts) {
+                      Map<String, Loadout> loadouts) {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         this.materialToBattleClass = new HashMap<>();
-        for (Map.Entry<BattleClass, Loadout> entry : loadouts.entrySet()) {
+        for (Map.Entry<String, Loadout> entry : loadouts.entrySet()) {
             this.materialToBattleClass.put(entry.getValue().getMenuItem().getType(), entry.getKey());
         }
         this.loadouts = loadouts;
@@ -143,7 +150,7 @@ public class ClassPicker implements Listener {
      */
     public void onClickClassPickerInventory(Player teamMate, ItemStack clickedItem) {
         Material itemType = clickedItem.getType();
-        BattleClass battleClass = materialToBattleClass.get(itemType);
+        String battleClass = materialToBattleClass.get(itemType);
         if (battleClass == null) {
             return;
         }
@@ -195,11 +202,12 @@ public class ClassPicker implements Listener {
         onClickNetherStar(teamMate, netherStar);
     }
     
-    private boolean selectBattleClass(@NotNull Player participant, @NotNull BattleClass battleClass) {
+    private boolean selectBattleClass(@NotNull Player participant, @NotNull String battleClass) {
         if (pickedBattleClasses.containsValue(battleClass)) {
+            Loadout loadout = loadouts.get(battleClass);
             participant.sendMessage(Component.empty()
                             .append(Component.text("Someone on your team already selected "))
-                            .append(Component.text(battleClass.getName()))
+                            .append(loadout.getName())
                             .color(NamedTextColor.DARK_RED));
             return false;
         }
@@ -249,13 +257,15 @@ public class ClassPicker implements Listener {
      * @param teamMate the teamMate to assign a class to
      * @param battleClass the class to assign
      */
-    private void assignClass(Player teamMate, BattleClass battleClass) {
+    private void assignClass(Player teamMate, @NotNull String battleClass) {
         pickedBattleClasses.put(teamMate.getUniqueId(), battleClass);
         teamMate.getInventory().clear();
-        ItemStack[] loadout = loadouts.get(battleClass).getContents();
-        teamMate.getInventory().setContents(loadout);
+        Loadout loadout = loadouts.get(battleClass);
+        ItemStack[] contents = loadout.getContents();
+        teamMate.getInventory().setContents(contents);
+        GameManagerUtils.colorLeatherArmor(gameManager, teamMate);
         teamMate.sendMessage(Component.text("Selected ")
-                .append(Component.text(battleClass.getName())));
+                .append(loadout.getName()));
     }
     
     private void unAssignClass(Player teamMate) {
@@ -273,7 +283,7 @@ public class ClassPicker implements Listener {
      * @throws NullPointerException if the participant is not in the game state
      */
     private void randomlyAssignClass(Player participant) {
-        for (BattleClass battleClass : BattleClass.values()) {
+        for (String battleClass : loadouts.keySet()) {
             if (!pickedBattleClasses.containsValue(battleClass)) {
                 assignClass(participant, battleClass);
                 return;
@@ -288,7 +298,7 @@ public class ClassPicker implements Listener {
     private void showClassPickerGui(Player teamMate) {
         Inventory newGui = Bukkit.createInventory(null, 9, TITLE);
         int column = 1;
-        for (BattleClass battleClass : BattleClass.values()) {
+        for (String battleClass : loadouts.keySet()) {
             ItemStack menuItem = loadouts.get(battleClass).getMenuItem();
             newGui.setItem(getSlotIndex(1, column), menuItem);
             column++;

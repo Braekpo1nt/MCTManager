@@ -1,0 +1,26 @@
+name: MCTManager
+version: '${version}'
+# made the plugin.yml main property match the MockMain class
+main: org.braekpo1nt.mctmanager.MockMain
+description: The plugin that manages MCT
+author: Braekpo1nt
+api-version: 1.19
+
+softdepend: [LuckPerms]
+
+commands:
+  mct:
+    description: The command for managing Minecraft Tournament (MCT)
+    usage: "/mct <option>"
+    permission: mctmanager.mct
+    permission-message: "You do not have permission to use this command"
+  mctdebug:
+    description: Debug command
+    usage: "/debug <args>"
+    permission: mctmanager.mctdebug
+    permission-message: "You do not have permission to use this command"
+  utils:
+    description: Utilities useful for working with MCT
+    permission: mctmanager.utils
+    permission-message: "You do not have permission to use this command"
+  

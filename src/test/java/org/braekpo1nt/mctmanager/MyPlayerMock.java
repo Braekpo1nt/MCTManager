@@ -4,7 +4,7 @@ import be.seeseemelk.mockbukkit.MockBukkit;
 import be.seeseemelk.mockbukkit.ServerMock;
 import be.seeseemelk.mockbukkit.entity.PlayerMock;
 import io.papermc.paper.entity.LookAnchor;
-import net.kyori.adventure.text.*;
+import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.*;
 
@@ -85,7 +85,7 @@ public class MyPlayerMock extends PlayerMock {
         @Test
         @DisplayName("Make sure the temporary files created by plugin.getDataFolder() are getting deleted on MockBukkit.unmock()")
         void getDataFolder_CleanEnvironment_CreatesTemporaryDataDirectory() throws IOException {
-            Main plugin = MockBukkit.load(Main.class);
+            Main plugin = MockBukkit.load(MockMain.class);
             File folder = plugin.getDataFolder();
             Assertions.assertNotNull(folder);
             Assertions.assertTrue(folder.isDirectory());

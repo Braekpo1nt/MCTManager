@@ -1,14 +1,22 @@
 package org.braekpo1nt.mctmanager.games.colossalcombat;
 
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
-import org.braekpo1nt.mctmanager.games.colossalcombat.config.ColossalCombatStorageUtil;
+import org.braekpo1nt.mctmanager.games.colossalcombat.config.ColossalCombatConfig;
+import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
-import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
+import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
+import org.braekpo1nt.mctmanager.ui.timer.Timer;
+import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
+import org.braekpo1nt.mctmanager.ui.topbar.BattleTopbar;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
+import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
@@ -17,11 +25,12 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerPickupArrowEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 import org.bukkit.util.BoundingBox;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -32,7 +41,9 @@ public class ColossalCombatRound implements Listener {
     private final ColossalCombatGame colossalCombatGame;
     private final Sidebar sidebar;
     private final Sidebar adminSidebar;
-    private final ColossalCombatStorageUtil storageUtil;
+    private final BattleTopbar topbar;
+    private final TimerManager timerManager;
+    private ColossalCombatConfig config;
     private Map<UUID, Boolean> firstPlaceParticipantsAlive = new HashMap<>();
     private Map<UUID, Boolean> secondPlaceParticipantsAlive = new HashMap<>();
     private String firstTeamName;
@@ -40,19 +51,27 @@ public class ColossalCombatRound implements Listener {
     private List<Player> firstPlaceParticipants = new ArrayList<>();
     private List<Player> secondPlaceParticipants = new ArrayList<>();
     private List<Player> spectators = new ArrayList<>();
-    private int startCountDownTaskId;
     private int antiSuffocationTaskId;
     private boolean antiSuffocation = false;
     private boolean roundActive = false;
     private boolean roundHasStarted = false;
+    private boolean captureTheFlagStarted = false;
+    private Location flagPosition = null;
+    private Player hasFlag = null;
     
-    public ColossalCombatRound(Main plugin, GameManager gameManager, ColossalCombatGame colossalCombatGame, ColossalCombatStorageUtil storageUtil, Sidebar sidebar, Sidebar adminSidebar) {
+    public ColossalCombatRound(Main plugin, GameManager gameManager, ColossalCombatGame colossalCombatGame, ColossalCombatConfig config, Sidebar sidebar, Sidebar adminSidebar, @NotNull BattleTopbar topbar) {
         this.plugin = plugin;
         this.gameManager = gameManager;
         this.colossalCombatGame = colossalCombatGame;
-        this.storageUtil = storageUtil;
+        this.config = config;
         this.sidebar = sidebar;
         this.adminSidebar = adminSidebar;
+        this.topbar = topbar;
+        this.timerManager = new TimerManager(plugin);
+    }
+    
+    public void setConfig(ColossalCombatConfig config) {
+        this.config = config;
     }
     
     public void start(List<Player> newFirstPlaceParticipants, List<Player> newSecondPlaceParticipants, List<Player> newSpectators, String firstTeamName, String secondTeamName) {
@@ -64,7 +83,11 @@ public class ColossalCombatRound implements Listener {
         secondPlaceParticipantsAlive = new HashMap<>();
         spectators = new ArrayList<>(newSpectators.size());
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
+        gameManager.getTimerManager().register(timerManager);
         antiSuffocation = false;
+        captureTheFlagStarted = false;
+        flagPosition = null;
+        hasFlag = null;
         colossalCombatGame.closeGates();
         for (Player first : newFirstPlaceParticipants) {
             initializeFirstPlaceParticipant(first);
@@ -80,17 +103,23 @@ public class ColossalCombatRound implements Listener {
         roundActive = true;
         roundHasStarted = false;
         startRoundStartingCountDown();
+        if (shouldStartCaptureTheFlag()) {
+            startCaptureTheFlagCountdown();
+        }
         Bukkit.getLogger().info("Starting Colossal Combat round");
     }
     
     private void initializeFirstPlaceParticipant(Player first) {
         firstPlaceParticipants.add(first);
-        first.teleport(storageUtil.getFirstPlaceSpawn());
+        first.teleport(config.getFirstPlaceSpawn());
+        first.setBedSpawnLocation(config.getFirstPlaceSpawn(), true);
         firstPlaceParticipantsAlive.put(first.getUniqueId(), true);
         first.getInventory().clear();
         first.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearStatusEffects(first);
         ParticipantInitializer.resetHealthAndHunger(first);
+        giveParticipantEquipment(first);
+        updateAliveCount(firstPlaceParticipantsAlive, firstTeamName);
     }
     
     private void rejoinFirstPlaceParticipant(Player first) {
@@ -103,12 +132,15 @@ public class ColossalCombatRound implements Listener {
     
     private void initializeSecondPlaceParticipant(Player second) {
         secondPlaceParticipants.add(second);
-        second.teleport(storageUtil.getSecondPlaceSpawn());
+        second.teleport(config.getSecondPlaceSpawn());
+        second.setBedSpawnLocation(config.getSecondPlaceSpawn(), true);
         secondPlaceParticipantsAlive.put(second.getUniqueId(), true);
         second.getInventory().clear();
         second.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearStatusEffects(second);
         ParticipantInitializer.resetHealthAndHunger(second);
+        giveParticipantEquipment(second);
+        updateAliveCount(secondPlaceParticipantsAlive, secondTeamName);
     }
     
     private void rejoinSecondPlaceParticipant(Player second) {
@@ -146,6 +178,8 @@ public class ColossalCombatRound implements Listener {
         cancelAllTasks();
         roundActive = false;
         antiSuffocation = false;
+        captureTheFlagStarted = false;
+        hasFlag = null;
         resetArena();
         for (Player participant : firstPlaceParticipants) {
             resetParticipant(participant);
@@ -158,6 +192,7 @@ public class ColossalCombatRound implements Listener {
         for (Player participant : spectators) {
             resetParticipant(participant);
         }
+        flagPosition = null;
         spectators.clear();
         firstTeamName = null;
         secondTeamName = null;
@@ -167,17 +202,21 @@ public class ColossalCombatRound implements Listener {
     private void resetArena() {
         colossalCombatGame.closeGates();
         // remove items/arrows on the ground
-        BoundingBox removeArea = storageUtil.getRemoveArea();
-        for (Arrow arrow : storageUtil.getWorld().getEntitiesByClass(Arrow.class)) {
+        BoundingBox removeArea = config.getRemoveArea();
+        for (Arrow arrow : config.getWorld().getEntitiesByClass(Arrow.class)) {
             if (removeArea.contains(arrow.getLocation().toVector())) {
                 arrow.remove();
             }
         }
-        for (Item item : storageUtil.getWorld().getEntitiesByClass(Item.class)) {
+        for (Item item : config.getWorld().getEntitiesByClass(Item.class)) {
             if (removeArea.contains(item.getLocation().toVector())) {
                 item.remove();
             }
         }
+        if (flagPosition != null) {
+            flagPosition.getBlock().setType(Material.AIR);
+        }
+        colossalCombatGame.removeConcrete();
     }
     
     private void resetParticipant(Player participant) {
@@ -240,6 +279,7 @@ public class ColossalCombatRound implements Listener {
                 killParticipant(participant);
             } else {
                 firstPlaceParticipantsAlive.remove(participant.getUniqueId());
+                updateAliveCount(firstPlaceParticipantsAlive, firstTeamName);
             }
             resetParticipant(participant);
             firstPlaceParticipants.remove(participant);
@@ -248,6 +288,7 @@ public class ColossalCombatRound implements Listener {
                 killParticipant(participant);
             } else {
                 secondPlaceParticipantsAlive.remove(participant.getUniqueId());
+                updateAliveCount(secondPlaceParticipantsAlive, secondTeamName);
             }
             resetParticipant(participant);
             secondPlaceParticipants.remove(participant);
@@ -258,21 +299,33 @@ public class ColossalCombatRound implements Listener {
     }
     
     public void killParticipant(Player participant) {
-        Component deathMessage = Component.text(participant.getName())
+        Component deathMessage = Component.empty()
+                .append(Component.text(participant.getName()))
                 .append(Component.text(" left early. Their life is forfeit."));
         PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(participant, Collections.emptyList(), 0, deathMessage);
-        Bukkit.getServer().getPluginManager().callEvent(fakeDeathEvent);
+        onPlayerDeath(fakeDeathEvent);
     }
     
     private void cancelAllTasks() {
-        Bukkit.getScheduler().cancelTask(startCountDownTaskId);
         Bukkit.getScheduler().cancelTask(antiSuffocationTaskId);
+        timerManager.cancel();
+    }
+    
+    @EventHandler
+    public void onPickupArrow(PlayerPickupArrowEvent event) {
+        Player participant = event.getPlayer();
+        if (!firstPlaceParticipants.contains(participant) 
+                && !secondPlaceParticipants.contains(participant) 
+                && !spectators.contains(participant)) {
+            return;
+        }
+        event.getArrow().remove();
+        event.setCancelled(true);
     }
     
     @EventHandler
     public void onPlayerDeath(PlayerDeathEvent event) {
         Player killed = event.getPlayer();
-        Bukkit.getLogger().info("onPlayerDeath " + killed.getName());
         if (!firstPlaceParticipants.contains(killed) && !secondPlaceParticipants.contains(killed)) {
             return;
         }
@@ -284,6 +337,10 @@ public class ColossalCombatRound implements Listener {
         if (deathMessage != null) {
             Bukkit.getServer().sendMessage(deathMessage);
         }
+        Player killer = killed.getKiller();
+        if (killer != null) {
+            onParticipantGetKill(killer, killed);
+        }
         onParticipantDeath(killed);
     }
     
@@ -293,19 +350,89 @@ public class ColossalCombatRound implements Listener {
         ParticipantInitializer.resetHealthAndHunger(killed);
         ParticipantInitializer.clearStatusEffects(killed);
         Bukkit.getScheduler().runTaskLater(plugin, () -> ParticipantInitializer.clearStatusEffects(killed), 2L);
+        if (captureTheFlagStarted) {
+            if (hasFlag(killed)) {
+                dropFlag(killed);
+            }
+        }
+        colossalCombatGame.addDeath(killed.getUniqueId());
         if (firstPlaceParticipants.contains(killed)) {
             firstPlaceParticipantsAlive.put(killed.getUniqueId(), false);
+            updateAliveCount(firstPlaceParticipantsAlive, firstTeamName);
             if (allParticipantsAreDead(firstPlaceParticipantsAlive)) {
                 onSecondPlaceTeamWin();
+                return;
             }
-            return;
-        }
-        if (secondPlaceParticipants.contains(killed)) {
+        } else if (secondPlaceParticipants.contains(killed)) {
             secondPlaceParticipantsAlive.put(killed.getUniqueId(), false);
+            updateAliveCount(secondPlaceParticipantsAlive, secondTeamName);
             if (allParticipantsAreDead(secondPlaceParticipantsAlive)) {
                 onFirstPlaceTeamWin();
+                return;
             }
         }
+        if (shouldStartCaptureTheFlag()) {
+            startCaptureTheFlagCountdown();
+        }
+    }
+    
+    private void onParticipantGetKill(@NotNull Player killer, @NotNull Player killed) {
+        if (!firstPlaceParticipants.contains(killer) 
+                && !secondPlaceParticipants.contains(killer)) {
+            return;
+        }
+        colossalCombatGame.addKill(killer.getUniqueId());
+        UIUtils.showKillTitle(killer, killed);
+    }
+    
+    /**
+     * @return true if the capture-the-flag countdown should start, false otherwise
+     */
+    private boolean shouldStartCaptureTheFlag() {
+        if (!config.shouldStartCaptureTheFlag()) {
+            return false;
+        }
+        if (captureTheFlagStarted) {
+            return false;
+        }
+        long firstCount = countLivingParticipants(firstPlaceParticipantsAlive);
+        long secondCount = countLivingParticipants(secondPlaceParticipantsAlive);
+        return firstCount <= config.getCaptureTheFlagMaximumPlayers() && secondCount <= config.getCaptureTheFlagMaximumPlayers();
+    }
+    
+    private long countLivingParticipants(Map<UUID, Boolean> participantsAlive) {
+        return participantsAlive.values().stream().filter(alive -> alive).count();
+    }
+    
+    private void updateAliveCount(@NotNull Map<UUID, Boolean> participantsAlive, @NotNull String teamId) {
+        int alive = (int) countLivingParticipants(participantsAlive);
+        int dead = participantsAlive.size() - alive;
+        topbar.setMembers(teamId, alive, dead);
+    }
+    
+    private void startCaptureTheFlagCountdown() {
+        timerManager.start(Timer.builder()
+                        .duration(config.getCaptureTheFlagDuration())
+                        .withSidebar(adminSidebar, "timer")
+                        .sidebarPrefix(Component.text("Flag spawns in: "))
+                        .onCompletion(this::startCaptureTheFlag)
+                        .build());
+    }
+    
+    private void startCaptureTheFlag() {
+        captureTheFlagStarted = true;
+        flagPosition = config.getFlagLocation();
+        BlockPlacementUtils.placeFlag(config.getFlagMaterial(), flagPosition, config.getInitialFlagDirection());
+        messageAllParticipants(config.getFlagSpawnMessage());
+    }
+    
+    /**
+     * @param participant the participant
+     * @return true if this participant has the flag
+     */
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    private boolean hasFlag(Player participant) {
+        return Objects.equals(participant, hasFlag);
     }
     
     /**
@@ -324,12 +451,7 @@ public class ColossalCombatRound implements Listener {
     private void startRound() {
         roundHasStarted = true;
         openGates();
-        for (Player participant : firstPlaceParticipants) {
-            giveParticipantEquipment(participant);
-        }
-        for (Player participant : secondPlaceParticipants) {
-            giveParticipantEquipment(participant);
-        }
+        spawnItemDrops();
         if (allParticipantsAreDead(firstPlaceParticipantsAlive) || firstPlaceParticipants.isEmpty()) {
             onSecondPlaceTeamWin();
         } else if (allParticipantsAreDead(secondPlaceParticipantsAlive) || secondPlaceParticipants.isEmpty()) {
@@ -338,69 +460,183 @@ public class ColossalCombatRound implements Listener {
     }
     
     private void giveParticipantEquipment(Player participant) {
-        //stone sword, bow, 16 arrows, leather chest and boots, 16 steak
-        participant.getInventory().addItem(new ItemStack(Material.STONE_SWORD));
-        participant.getInventory().addItem(new ItemStack(Material.BOW));
-        participant.getInventory().addItem(new ItemStack(Material.ARROW, 16));
-        participant.getInventory().addItem(new ItemStack(Material.COOKED_BEEF, 16));
-        participant.getEquipment().setChestplate(new ItemStack(Material.LEATHER_CHESTPLATE));
-        participant.getEquipment().setBoots(new ItemStack(Material.LEATHER_BOOTS));
+        participant.getInventory().setContents(config.getLoadout());
+        GameManagerUtils.colorLeatherArmor(gameManager, participant);
+    }
+    
+    private void spawnItemDrops() {
+        if (config.getItemDropLocations() == null 
+                || config.getItemDropLocations().isEmpty() 
+                || config.getItemDrops() == null 
+                || config.getItemDrops().isEmpty()) {
+            return;
+        }
+        for (int i = 0; i < config.getItemDropLocations().size(); i++) {
+            Location location = config.getItemDropLocations().get(i);
+            ItemStack item = config.getItemDrops().get(i);
+            boolean glowing = config.getGlowingItemDrops().get(i);
+            Item itemEntity = config.getWorld().dropItem(location, item);
+            itemEntity.setGlowing(glowing);
+        }
     }
     
     private void startRoundStartingCountDown() {
-        this.startCountDownTaskId = new BukkitRunnable() {
-            private int count = storageUtil.getRoundStartingDuration();
-    
-            @Override
-            public void run() {
-                if (count <= 0) {
-                    sidebar.updateLine("timer", "");
-                    adminSidebar.updateLine("timer", "");
-                    startRound();
-                    this.cancel();
-                    return;
-                }
-                String timeLeft = TimeStringUtils.getTimeString(count);
-                sidebar.updateLine("timer", String.format("Starting: %s", timeLeft));
-                adminSidebar.updateLine("timer", String.format("Starting: %s", timeLeft));
-                count--;
-            }
-        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+        timerManager.start(Timer.builder()
+                        .duration(config.getRoundStartingDuration())
+                        .withSidebar(adminSidebar, "timer")
+                        .withTopbar(topbar)
+                        .sidebarPrefix(Component.text("Starting: "))
+                        .titleThreshold(5)
+                        .titleAudience(Audience.audience(
+                                Audience.audience(firstPlaceParticipants),
+                                Audience.audience(secondPlaceParticipants),
+                                Audience.audience(spectators)))
+                        .onCompletion(this::startRound)
+                        .build());
     }
     
     private void initializeSidebar() {
-        sidebar.updateLine("timer", "Starting:");
         adminSidebar.updateLine("timer", "Starting:");
+        topbar.setMiddle(Component.empty());
     }
     
     private void openGates() {
         antiSuffocation = true;
-        this.antiSuffocationTaskId = Bukkit.getScheduler().runTaskLater(plugin, () -> antiSuffocation = false, storageUtil.getAntiSuffocationDuration()).getTaskId();
+        this.antiSuffocationTaskId = Bukkit.getScheduler().runTaskLater(plugin, () -> antiSuffocation = false, config.getAntiSuffocationDuration()).getTaskId();
         //first
-        BlockPlacementUtils.createCube(storageUtil.getWorld(), storageUtil.getFirstPlaceStone(), Material.AIR);
+        BlockPlacementUtils.createCube(config.getWorld(), config.getFirstPlaceStone(), Material.AIR);
         //second
-        BlockPlacementUtils.createCube(storageUtil.getWorld(), storageUtil.getSecondPlaceStone(), Material.AIR);
+        BlockPlacementUtils.createCube(config.getWorld(), config.getSecondPlaceStone(), Material.AIR);
     }
     
     @EventHandler
-    public void antiSuffocationMovementDetection(PlayerMoveEvent event) {
+    public void onPlayerMove(PlayerMoveEvent event) {
         if (!roundActive) {
             return;
         }
-        if (!antiSuffocation) {
-            return;
-        }
-        Location to = event.getTo();
         Player participant = event.getPlayer();
         if (firstPlaceParticipants.contains(participant)) {
-            if (storageUtil.getFirstPlaceAntiSuffocationArea().contains(to.toVector())) {
-                event.setCancelled(true);
-            }
+            onFirstPlaceParticipantMove(participant, event);
         } else if (secondPlaceParticipants.contains(participant)) {
-            if (storageUtil.getSecondPlaceAntiSuffocationArea().contains(to.toVector())) {
+            onSecondPlaceParticipantMove(participant, event);
+        }
+    }
+    
+    private void onFirstPlaceParticipantMove(Player participant, PlayerMoveEvent event) {
+        if (antiSuffocation) {
+            Location to = event.getTo();
+            if (config.getFirstPlaceAntiSuffocationArea().contains(to.toVector())) {
                 event.setCancelled(true);
             }
+            return;
         }
+        if (!captureTheFlagStarted) {
+            return;
+        }
+        if (!firstPlaceParticipantsAlive.get(participant.getUniqueId())) {
+            return;
+        }
+        Location location = participant.getLocation();
+        if (canPickUpFlag(location)) {
+            pickupFlag(participant);
+            return;
+        }
+        if (canDeliverFlagToFirst(participant)) {
+            deliverFlagToFirst(participant);
+        }
+    }
+    
+    private void onSecondPlaceParticipantMove(Player participant, PlayerMoveEvent event) {
+        if (antiSuffocation) {
+            Location to = event.getTo();
+            if (config.getSecondPlaceAntiSuffocationArea().contains(to.toVector())) {
+                event.setCancelled(true);
+            }
+            return;
+        }
+        if (!captureTheFlagStarted) {
+            return;
+        }
+        if (!secondPlaceParticipantsAlive.get(participant.getUniqueId())) {
+            return;
+        }
+        Location location = participant.getLocation();
+        if (canPickUpFlag(location)) {
+            pickupFlag(participant);
+            return;
+        }
+        if (canDeliverFlagToSecond(participant)) {
+            deliverFlagToSecond(participant);
+        }
+    }
+    
+    /**
+     * @param location the location to check
+     * @return true if the flag is on the ground, and the given location's blockLocation is equal to the flag's current position
+     */
+    private boolean canPickUpFlag(Location location) {
+        if (flagPosition == null) {
+            return false;
+        }
+        return flagPosition.getBlockX() == location.getBlockX() && flagPosition.getBlockY() == location.getBlockY() && flagPosition.getBlockZ() == location.getBlockZ();
+    }
+    
+    private void pickupFlag(Player participant) {
+        String team = gameManager.getTeamName(participant.getUniqueId());
+        Component formattedTeamDisplayName = gameManager.getFormattedTeamDisplayName(team);
+        messageAllParticipants(Component.empty()
+                .append(formattedTeamDisplayName)
+                .append(Component.text(" has the flag")));
+        participant.getEquipment().setHelmet(new ItemStack(config.getFlagMaterial()));
+        flagPosition.getBlock().setType(Material.AIR);
+        flagPosition = null;
+        hasFlag = participant;
+    }
+    
+    private void dropFlag(Player participant) {
+        String team = gameManager.getTeamName(participant.getUniqueId());
+        Component formattedTeamDisplayName = gameManager.getFormattedTeamDisplayName(team);
+        messageAllParticipants(Component.empty()
+                .append(formattedTeamDisplayName)
+                .append(Component.text(" dropped the flag")));
+        participant.getEquipment().setHelmet(null);
+        flagPosition = BlockPlacementUtils.getBlockDropLocation(participant.getLocation());
+        BlockPlacementUtils.placeFlag(config.getFlagMaterial(), flagPosition, participant.getFacing());
+        hasFlag = null;
+    }
+    
+    private boolean canDeliverFlagToFirst(Player first) {
+        if (!hasFlag(first)) {
+            return false;
+        }
+        Location location = first.getLocation();
+        return config.getFirstPlaceFlagGoal().contains(location.toVector());
+    }
+    
+    private boolean canDeliverFlagToSecond(Player second) {
+        if (!hasFlag(second)) {
+            return false;
+        }
+        Location location = second.getLocation();
+        return config.getSecondPlaceFlagGoal().contains(location.toVector());
+    }
+    
+    private void deliverFlagToFirst(Player first) {
+        String team = gameManager.getTeamName(first.getUniqueId());
+        Component formattedTeamDisplayName = gameManager.getFormattedTeamDisplayName(team);
+        messageAllParticipants(Component.empty()
+                .append(formattedTeamDisplayName)
+                .append(Component.text(" captured the flag!")));
+        onFirstPlaceTeamWin();
+    }
+    
+    private void deliverFlagToSecond(Player second) {
+        String team = gameManager.getTeamName(second.getUniqueId());
+        Component formattedTeamDisplayName = gameManager.getFormattedTeamDisplayName(team);
+        messageAllParticipants(Component.empty()
+                .append(formattedTeamDisplayName)
+                .append(Component.text(" captured the flag!")));
+        onSecondPlaceTeamWin();
     }
     
     private void setupTeamOptions() {

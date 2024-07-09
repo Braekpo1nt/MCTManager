@@ -1,12 +1,14 @@
 package org.braekpo1nt.mctmanager.utils;
 
-import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.Material;
+
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class ColorMap {
 
@@ -71,7 +73,7 @@ public class ColorMap {
         POWDER_TYPE_MAP.put("dark_green", Material.GREEN_CONCRETE_POWDER);
         POWDER_TYPE_MAP.put("dark_purple", Material.PURPLE_CONCRETE_POWDER);
         POWDER_TYPE_MAP.put("dark_red", Material.RED_CONCRETE_POWDER);
-        POWDER_TYPE_MAP.put("gold", Material.YELLOW_CONCRETE_POWDER);
+        POWDER_TYPE_MAP.put("gold", Material.ORANGE_CONCRETE_POWDER);
         POWDER_TYPE_MAP.put("gray", Material.LIGHT_GRAY_CONCRETE_POWDER);
         POWDER_TYPE_MAP.put("green", Material.LIME_CONCRETE_POWDER);
         POWDER_TYPE_MAP.put("light_purple", Material.MAGENTA_CONCRETE_POWDER);
@@ -91,7 +93,7 @@ public class ColorMap {
         CONCRETE_TYPE_MAP.put("dark_green", Material.GREEN_CONCRETE);
         CONCRETE_TYPE_MAP.put("dark_purple", Material.PURPLE_CONCRETE);
         CONCRETE_TYPE_MAP.put("dark_red", Material.RED_CONCRETE);
-        CONCRETE_TYPE_MAP.put("gold", Material.YELLOW_CONCRETE);
+        CONCRETE_TYPE_MAP.put("gold", Material.ORANGE_CONCRETE);
         CONCRETE_TYPE_MAP.put("gray", Material.LIGHT_GRAY_CONCRETE);
         CONCRETE_TYPE_MAP.put("green", Material.LIME_CONCRETE);
         CONCRETE_TYPE_MAP.put("light_purple", Material.MAGENTA_CONCRETE);
@@ -99,6 +101,26 @@ public class ColorMap {
         CONCRETE_TYPE_MAP.put("white", Material.WHITE_CONCRETE);
         CONCRETE_TYPE_MAP.put("blue", Material.LIGHT_BLUE_CONCRETE);
         CONCRETE_TYPE_MAP.put("yellow", Material.YELLOW_CONCRETE);
+    }
+    
+    private static final Map<String, Material> STAINED_GLASS_MAP = new HashMap<>();
+    static {
+        STAINED_GLASS_MAP.put("aqua", Material.LIGHT_BLUE_STAINED_GLASS);
+        STAINED_GLASS_MAP.put("black", Material.BLACK_STAINED_GLASS);
+        STAINED_GLASS_MAP.put("dark_aqua", Material.CYAN_STAINED_GLASS);
+        STAINED_GLASS_MAP.put("dark_blue", Material.BLUE_STAINED_GLASS);
+        STAINED_GLASS_MAP.put("dark_gray", Material.GRAY_STAINED_GLASS);
+        STAINED_GLASS_MAP.put("dark_green", Material.GREEN_STAINED_GLASS);
+        STAINED_GLASS_MAP.put("dark_purple", Material.PURPLE_STAINED_GLASS);
+        STAINED_GLASS_MAP.put("dark_red", Material.RED_STAINED_GLASS);
+        STAINED_GLASS_MAP.put("gold", Material.ORANGE_STAINED_GLASS);
+        STAINED_GLASS_MAP.put("gray", Material.LIGHT_GRAY_STAINED_GLASS);
+        STAINED_GLASS_MAP.put("green", Material.LIME_STAINED_GLASS);
+        STAINED_GLASS_MAP.put("light_purple", Material.MAGENTA_STAINED_GLASS);
+        STAINED_GLASS_MAP.put("red", Material.RED_STAINED_GLASS);
+        STAINED_GLASS_MAP.put("white", Material.WHITE_STAINED_GLASS);
+        STAINED_GLASS_MAP.put("blue", Material.LIGHT_BLUE_STAINED_GLASS);
+        STAINED_GLASS_MAP.put("yellow", Material.YELLOW_STAINED_GLASS);
     }
     
     private static final Map<String, Material> BANNER_TYPE_MAP = new HashMap<>();
@@ -111,7 +133,7 @@ public class ColorMap {
         BANNER_TYPE_MAP.put("dark_green", Material.GREEN_BANNER);
         BANNER_TYPE_MAP.put("dark_purple", Material.PURPLE_BANNER);
         BANNER_TYPE_MAP.put("dark_red", Material.RED_BANNER);
-        BANNER_TYPE_MAP.put("gold", Material.YELLOW_BANNER);
+        BANNER_TYPE_MAP.put("gold", Material.ORANGE_BANNER);
         BANNER_TYPE_MAP.put("gray", Material.LIGHT_GRAY_BANNER);
         BANNER_TYPE_MAP.put("green", Material.LIME_BANNER);
         BANNER_TYPE_MAP.put("light_purple", Material.MAGENTA_BANNER);
@@ -131,6 +153,10 @@ public class ColorMap {
     
     public static boolean hasNamedTextColor(String colorString) {
         return NAMED_TEXT_COLOR_MAP.containsKey(colorString);
+    }
+    
+    public static Collection<NamedTextColor> getNamedTextColors() {
+        return NAMED_TEXT_COLOR_MAP.values();
     }
     
     public static List<String> getPartiallyMatchingColorStrings(String colorString) {
@@ -177,5 +203,14 @@ public class ColorMap {
      */
     public static Material getBannerColor(String colorString) {
         return BANNER_TYPE_MAP.getOrDefault(colorString, Material.WHITE_BANNER);
+    }
+    
+    /**
+     * Gets the color of stained-glass associated with the given color string. 
+     * @param colorString the color string to get the concrete for. Should be the color string matching the ChatColor values.
+     * @return The stained-glass color that best matches the given color string. White if unrecognized.
+     */
+    public static Material getStainedGlassColor(String colorString) {
+        return STAINED_GLASS_MAP.getOrDefault(colorString, Material.WHITE_STAINED_GLASS);
     }
 }

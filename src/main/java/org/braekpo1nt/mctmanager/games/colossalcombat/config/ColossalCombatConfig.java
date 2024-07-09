@@ -1,34 +1,85 @@
 package org.braekpo1nt.mctmanager.games.colossalcombat.config;
 
-import com.google.gson.JsonElement;
-import org.braekpo1nt.mctmanager.games.game.config.BoundingBoxDTO;
-import org.braekpo1nt.mctmanager.games.game.config.LocationDTO;
+import lombok.Builder;
+import lombok.Data;
+import net.kyori.adventure.text.Component;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.World;
+import org.bukkit.block.BlockFace;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.util.BoundingBox;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-/**
- * 
- * @param version
- * @param world
- * @param spectatorArea
- * @param firstPlaceSpawn
- * @param secondPlaceSpawn
- * @param spectatorSpawn
- * @param requiredWins
- * @param firstPlaceGate
- * @param secondPlaceGate
- * @param removeArea the area to remove all items from in between rounds
- * @param firstPlaceSupport
- * @param secondPlaceSupport
- * @param durations
- * @param description
- */
-record ColossalCombatConfig(String version, String world, BoundingBoxDTO spectatorArea, LocationDTO firstPlaceSpawn, LocationDTO secondPlaceSpawn, LocationDTO spectatorSpawn, int requiredWins, Gate firstPlaceGate, Gate secondPlaceGate, BoundingBoxDTO removeArea, BoundingBoxDTO firstPlaceSupport, BoundingBoxDTO secondPlaceSupport, Durations durations, JsonElement description) {
-    record Gate(BoundingBoxDTO clearArea, BoundingBoxDTO placeArea, BoundingBoxDTO stone, BoundingBoxDTO antiSuffocationArea) {
+import java.util.List;
+
+@Data
+@Builder
+public class ColossalCombatConfig {
+    private World world;
+    private Location firstPlaceSpawn;
+    private Location secondPlaceSpawn;
+    private Location spectatorSpawn;
+    private @Nullable BoundingBox spectatorArea;
+    /**
+     * each index corresponds to an index in the itemDropsList
+     */
+    private @Nullable List<Location> itemDropLocations;
+    /**
+     * each index corresponds to an index in the itemDropLocations list
+     */
+    private @Nullable List<ItemStack> itemDrops;
+    private List<Boolean> glowingItemDrops;
+    private int requiredWins;
+    private @NotNull ItemStack[] loadout;
+    private BoundingBox firstPlaceClearArea;
+    private BoundingBox firstPlacePlaceArea;
+    private BoundingBox firstPlaceStone;
+    private BoundingBox firstPlaceAntiSuffocationArea;
+    private BoundingBox firstPlaceFlagGoal;
+    private BoundingBox secondPlaceClearArea;
+    private BoundingBox secondPlacePlaceArea;
+    private BoundingBox secondPlaceStone;
+    private BoundingBox secondPlaceAntiSuffocationArea;
+    private BoundingBox secondPlaceFlagGoal;
+    private BoundingBox removeArea;
+    private BoundingBox firstPlaceSupport;
+    private BoundingBox secondPlaceSupport;
+    private Material flagMaterial;
+    private BlockFace initialFlagDirection;
+    private Location flagLocation;
+    private Component flagSpawnMessage;
+    private boolean shouldStartCaptureTheFlag;
+    /**
+     * if the number of living players falls below this amount on each team, then the capture the flag countdown will start.
+     */
+    private int captureTheFlagMaximumPlayers;
+    private int captureTheFlagDuration;
+    /**
+     * If null, no blocks will be replaced.
+     */
+    private @Nullable Material replaceBlock;
+    /**
+     * The area to replace with the concrete of the team's color. At the start of the game, the {@link ColossalCombatConfig#replaceBlock} material will be replaced with the concrete of the team's color, and at the end of the game it will be returned to what it was before.
+     */
+    private BoundingBox firstPlaceFlagReplaceArea;
+    /**
+     * The same as {@link ColossalCombatConfig#firstPlaceFlagReplaceArea}, but for second place
+     */
+    private BoundingBox secondPlaceFlagReplaceArea;
+    private long antiSuffocationDuration;
+    private int roundStartingDuration;
+    private List<Material> preventInteractions;
+    private int descriptionDuration;
+    private Component description;
+    
+    public boolean shouldStartCaptureTheFlag() {
+        return shouldStartCaptureTheFlag;
     }
     
-    /**
-     * @param roundStarting the duration (in seconds) to count down before the gates drop and the match starts
-     * @param antiSuffocation the duration (in ticks) to prevent players from walking over the area that would cause them to suffocate in the concrete powder wall as the blocks fall. Careful, if this is not long enough the players will suffocate, and if it's too long they'll get frustrated. TODO: implement a more automated version of this. 
-     */
-    record Durations(int roundStarting, long antiSuffocation) {
+    
+    public boolean shouldReplaceWithConcrete() {
+        return replaceBlock != null;
     }
 }

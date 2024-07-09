@@ -13,6 +13,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TestUtils {
+    
+    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+    
     /**
      * Takes in a Component with 1 or more children, and converts it to a plaintext string without formatting.
      * Assumes it is made up of TextComponents and empty components.
@@ -105,12 +108,9 @@ public class TestUtils {
     }
     
     public static void saveJsonToFile(JsonObject json, File toFile) {
-        // Create Gson instance with pretty printing
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        
         // Write the modified JSON to a new file
         try (FileWriter writer = new FileWriter(toFile)) {
-            gson.toJson(json, writer);
+            GSON.toJson(json, writer);
         } catch (IOException e) {
             e.printStackTrace();
         }

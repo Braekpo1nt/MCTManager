@@ -1,13 +1,16 @@
 package org.braekpo1nt.mctmanager.games.voting;
 
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
-import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
+import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
+import org.braekpo1nt.mctmanager.ui.timer.Timer;
+import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.Material;
@@ -24,7 +27,6 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -44,14 +46,15 @@ public class VoteManager implements Listener {
     private boolean voting = false;
     private final Component NETHER_STAR_NAME = Component.text("Vote");
     private final ItemStack NETHER_STAR;
-    private int voteCountDownTaskId;
     private List<GameType> votingPool = new ArrayList<>();
     private Consumer<GameType> executeMethod;
     private boolean paused = false;
+    private final TimerManager timerManager;
     
     public VoteManager(GameManager gameManager, Main plugin) {
         this.gameManager = gameManager;
         this.plugin = plugin;
+        this.timerManager = new TimerManager(plugin);
         this.NETHER_STAR = new ItemStack(Material.NETHER_STAR);
         ItemMeta netherStarMeta = this.NETHER_STAR.getItemMeta();
         netherStarMeta.displayName(NETHER_STAR_NAME);
@@ -78,6 +81,7 @@ public class VoteManager implements Listener {
         sidebar = gameManager.getSidebarFactory().createSidebar();
         adminSidebar = gameManager.getSidebarFactory().createSidebar();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
+        gameManager.getTimerManager().register(timerManager);
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
         }
@@ -139,31 +143,24 @@ public class VoteManager implements Listener {
         resetParticipant(voter);
         voters.remove(voter);
         sidebar.removePlayer(voter);
-        if (votes.containsKey(voter.getUniqueId())) {
-            votes.remove(voter.getUniqueId());
-        }
+        votes.remove(voter.getUniqueId());
     }
     
     private void startVoteCountDown() {
-        this.voteCountDownTaskId = new BukkitRunnable() {
-            private int count = voteCountDownDuration;
-            @Override
-            public void run() {
-                if (paused) {
-                    return;
-                }
-                if (count <= 0) {
-                    messageAllVoters(Component.text("Voting is over"));
-                    executeVote();
-                    this.cancel();
-                    return;
-                }
-                String timeLeft = TimeStringUtils.getTimeString(count);
-                sidebar.updateLine("timer", String.format("Voting: %s", timeLeft));
-                adminSidebar.updateLine("timer", String.format("Voting: %s", timeLeft));
-                count--;
-            }
-        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+        timerManager.start(Timer.builder()
+                .duration(voteCountDownDuration)
+                .withSidebar(sidebar, "timer")
+                .withSidebar(adminSidebar, "timer")
+                .sidebarPrefix(Component.text("Voting: "))
+                .onCompletion(this::executeVote)
+                .onTogglePause((paused) -> {
+                    if (paused) {
+                        pauseVote();
+                    } else {
+                        resumeVote();
+                    }
+                })
+                .build());
     }
     
     private void initializeAdminSidebar() {
@@ -325,7 +322,11 @@ public class VoteManager implements Listener {
      * removes nether stars from players, pauses the timer, and retains player votes for resuming.
      */
     public void pauseVote() {
+        if (paused) {
+            return;
+        }
         paused = true;
+        timerManager.pause();
         for (Player voter : voters) {
             voter.closeInventory();
             voter.getInventory().remove(NETHER_STAR);
@@ -344,6 +345,7 @@ public class VoteManager implements Listener {
             return;
         }
         paused = false;
+        timerManager.resume();
         for (Player voter : voters) {
             if (!participantVoted(voter)) {
                 showVoteGui(voter);
@@ -381,11 +383,17 @@ public class VoteManager implements Listener {
     private void executeVote() {
         voting = false;
         paused = false;
+        GameType gameType = getVotedForGame();
+        Audience.audience(voters).showTitle(UIUtils.defaultTitle(
+                Component.empty()
+                        .append(Component.text(gameType.getTitle()))
+                        .color(NamedTextColor.BLUE),
+                Component.empty()
+        ));
         cancelAllTasks();
         for (Player voter : voters) {
             resetParticipant(voter);
         }
-        GameType gameType = getVotedForGame();
         HandlerList.unregisterAll(this);
         votes.clear();
         voters.clear();
@@ -396,7 +404,7 @@ public class VoteManager implements Listener {
     }
     
     private void cancelAllTasks() {
-        Bukkit.getScheduler().cancelTask(voteCountDownTaskId);
+        timerManager.cancel();
     }
     
     @EventHandler

@@ -1,25 +1,28 @@
 package org.braekpo1nt.mctmanager.games.game.capturetheflag;
 
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
-import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlagStorageUtil;
-import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlagConfig;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
-import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
-import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
-import org.bukkit.*;
+import org.braekpo1nt.mctmanager.ui.timer.Timer;
+import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
+import org.braekpo1nt.mctmanager.ui.topbar.BattleTopbar;
+import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
-import org.bukkit.event.inventory.InventoryAction;
+import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * A round is made up of multiple matches. It kicks off the matches it contains, and ends
@@ -30,29 +33,36 @@ public class CaptureTheFlagRound {
     private final CaptureTheFlagGame captureTheFlagGame;
     private final Main plugin;
     private final GameManager gameManager;
-    private final CaptureTheFlagStorageUtil storageUtil;
+    private final CaptureTheFlagConfig config;
     private final Sidebar sidebar;
     private final Sidebar adminSidebar;
-    private List<CaptureTheFlagMatch> matches;
+    private final BattleTopbar topbar;
+    private final List<CaptureTheFlagMatch> matches;
     private List<Player> participants = new ArrayList<>();
     private List<Player> onDeckParticipants;
     private int matchesStartingCountDownTaskId;
     private int onDeckClassSelectionTimerTaskId;
     private int onDeckMatchTimerTaskId;
     private boolean roundActive = false;
+    private boolean firstRound = false;
+    private int descriptionPeriodTaskId;
+    private boolean descriptionShowing = false;
     /**
      * false if the countdown timer is still going and the matches haven't started yet for this round. False otherwise. 
      */
     private boolean matchesStarted = false;
+    private final TimerManager timerManager;
     
-    public CaptureTheFlagRound(CaptureTheFlagGame captureTheFlagGame, Main plugin, GameManager gameManager, CaptureTheFlagStorageUtil storageUtil, List<MatchPairing> matchPairings, Sidebar sidebar, Sidebar adminSidebar) {
+    public CaptureTheFlagRound(CaptureTheFlagGame captureTheFlagGame, Main plugin, GameManager gameManager, CaptureTheFlagConfig config, List<MatchPairing> matchPairings, Sidebar sidebar, Sidebar adminSidebar, BattleTopbar topbar) {
         this.captureTheFlagGame = captureTheFlagGame;
         this.plugin = plugin;
+        this.timerManager = new TimerManager(plugin);
         this.gameManager = gameManager;
-        this.storageUtil = storageUtil;
+        this.config = config;
         this.sidebar = sidebar;
         this.adminSidebar = adminSidebar;
-        matches = createMatches(matchPairings, storageUtil.getArenas());
+        this.topbar = topbar;
+        this.matches = createMatches(matchPairings, config.getArenas());
     }
     
     /**
@@ -68,7 +78,7 @@ public class CaptureTheFlagRound {
             MatchPairing matchPairing = matchPairings.get(i);
             Arena arena = arenas.get(i);
             CaptureTheFlagMatch match = new CaptureTheFlagMatch(this, plugin, gameManager, 
-                    matchPairing, arena, storageUtil, sidebar, adminSidebar);
+                    matchPairing, arena, config, sidebar, adminSidebar, topbar);
             newMatches.add(match);
         }
         return newMatches;
@@ -79,8 +89,9 @@ public class CaptureTheFlagRound {
     }
     
     public void start(List<Player> newParticipants, List<Player> newOnDeckParticipants) {
-        participants = new ArrayList<>();
-        onDeckParticipants = new ArrayList<>();
+        participants = new ArrayList<>(newParticipants.size());
+        onDeckParticipants = new ArrayList<>(newOnDeckParticipants.size());
+        gameManager.getTimerManager().register(timerManager);
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
         }
@@ -90,12 +101,17 @@ public class CaptureTheFlagRound {
         initializeSidebar();
         roundActive = true;
         matchesStarted = false;
-        startMatchesStartingCountDown();
+        if (firstRound) {
+            startDescriptionPeriod();
+        } else {
+            startMatchesStartingCountDown();
+        }
     }
     
     private void initializeParticipant(Player participant) {
         participants.add(participant);
-        participant.teleport(storageUtil.getSpawnObservatory());
+        participant.teleport(config.getSpawnObservatory());
+        participant.setBedSpawnLocation(config.getSpawnObservatory(), true);
         participant.getInventory().clear();
         participant.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearStatusEffects(participant);
@@ -104,7 +120,8 @@ public class CaptureTheFlagRound {
     
     private void initializeOnDeckParticipant(Player onDeckParticipant) {
         onDeckParticipants.add(onDeckParticipant);
-        onDeckParticipant.teleport(storageUtil.getSpawnObservatory());
+        onDeckParticipant.teleport(config.getSpawnObservatory());
+        onDeckParticipant.setBedSpawnLocation(config.getSpawnObservatory(), true);
         onDeckParticipant.getInventory().clear();
         onDeckParticipant.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearStatusEffects(onDeckParticipant);
@@ -118,6 +135,7 @@ public class CaptureTheFlagRound {
     public void stop() {
         cancelAllTasks();
         roundActive = false;
+        descriptionShowing = false;
         for (CaptureTheFlagMatch match : matches) {
             if (match.isActive()) {
                 match.stop();
@@ -147,25 +165,27 @@ public class CaptureTheFlagRound {
     }
     
     public void onParticipantJoin(Player participant) {
-        String teamName = gameManager.getTeamName(participant.getUniqueId());
-        Component teamDisplayName = gameManager.getFormattedTeamDisplayName(teamName);
-        CaptureTheFlagMatch match = getMatch(teamName);
+        String teamId = gameManager.getTeamName(participant.getUniqueId());
+        Component teamDisplayName = gameManager.getFormattedTeamDisplayName(teamId);
+        CaptureTheFlagMatch match = getMatch(teamId);
         if (match == null) {
             initializeOnDeckParticipant(participant);
             participant.sendMessage(Component.empty()
                     .append(teamDisplayName)
                     .append(Component.text(" is on-deck this round."))
                     .color(NamedTextColor.YELLOW));
-            sidebar.updateLine(participant.getUniqueId(), "enemy", "On Deck");
             return;
         }
         initializeParticipant(participant);
-        String enemyTeam = getOppositeTeam(teamName);
-        ChatColor enemyColor = gameManager.getTeamChatColor(enemyTeam);
-        String enemyDisplayName = gameManager.getTeamDisplayName(enemyTeam);
-        sidebar.updateLine(participant.getUniqueId(), "enemy", String.format("%svs: %s%s", ChatColor.BOLD, enemyColor, enemyDisplayName));
         if (match.isActive()) {
             match.onParticipantJoin(participant);
+        } else {
+            MatchPairing matchPairing = match.getMatchPairing();
+            if (matchPairing.northTeam().equals(teamId)) {
+                topbar.linkToTeam(participant.getUniqueId(), teamId);
+            } else if (matchPairing.southTeam().equals(teamId)) {
+                topbar.linkToTeam(participant.getUniqueId(), teamId);
+            }
         }
     }
     
@@ -211,7 +231,8 @@ public class CaptureTheFlagRound {
         for (Player participant : participants) {
             String team = gameManager.getTeamName(participant.getUniqueId());
             if (matchPairing.containsTeam(team)) {
-                participant.teleport(storageUtil.getSpawnObservatory());
+                participant.teleport(config.getSpawnObservatory());
+                participant.setBedSpawnLocation(config.getSpawnObservatory(), true);
             }
         }
     }
@@ -230,61 +251,54 @@ public class CaptureTheFlagRound {
     }
     
     private void startOnDeckClassSelectionTimer() {
-        this.onDeckClassSelectionTimerTaskId = new BukkitRunnable() {
-            private int count = storageUtil.getClassSelectionDuration();
-            @Override
-            public void run() {
-                if (count <= 0) {
-                    startOnDeckMatchTimer();
-                    this.cancel();
-                    return;
-                }
-                String timeLeft = TimeStringUtils.getTimeString(count);
-                String timer = String.format("Class selection: %s", timeLeft);
-                sidebar.updateLine("timer", timer);
-                adminSidebar.updateLine("timer", timer);
-                count--;
-            }
-        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+        timerManager.start(Timer.builder()
+                .duration(config.getClassSelectionDuration())
+                .withSidebar(adminSidebar, "timer")
+                .withTopbar(topbar)
+                .sidebarPrefix(Component.text("Class selection: "))
+                .titleAudience(Audience.audience(onDeckParticipants))
+                .onCompletion(this::startOnDeckMatchTimer)
+                .build());
     }
     
     private void startOnDeckMatchTimer() {
-        this.onDeckMatchTimerTaskId = new BukkitRunnable() {
-            int count = storageUtil.getRoundTimerDuration();
-            @Override
-            public void run() {
-                if (count <= 0) {
-                    this.cancel();
-                    return;
-                }
-                String timeLeft = TimeStringUtils.getTimeString(count);
-                String timer = String.format("Round: %s", timeLeft);
-                sidebar.updateLine("timer", timer);
-                adminSidebar.updateLine("timer", timer);
-                count--;
-            }
-        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+        timerManager.start(Timer.builder()
+                .duration(config.getRoundTimerDuration())
+                .withSidebar(adminSidebar, "timer")
+                .withTopbar(topbar)
+                .sidebarPrefix(Component.text("Round: "))
+                .build());
+    }
+    
+    /**
+     * An alternate version of {@link CaptureTheFlagRound#startMatchesStartingCountDown()}
+     * reserved for the first round in a game, which uses the 
+     */
+    private void startDescriptionPeriod() {
+        descriptionShowing = true;
+        timerManager.start(Timer.builder()
+                .duration(config.getDescriptionDuration())
+                .withSidebar(adminSidebar, "timer")
+                .withTopbar(topbar)
+                .sidebarPrefix(Component.text("Starting soon: "))
+                .onCompletion(() -> {
+                    descriptionShowing = false;
+                    startMatchesStartingCountDown();
+                })
+                .build());
     }
     
     private void startMatchesStartingCountDown() {
-        matchesStarted = false;
-        this.matchesStartingCountDownTaskId = new BukkitRunnable() {
-            int count = storageUtil.getMatchesStartingDuration();
-            @Override
-            public void run() {
-                if (count <= 0) {
+        timerManager.start(Timer.builder()
+                .duration(config.getDescriptionDuration())
+                .withSidebar(adminSidebar, "timer")
+                .withTopbar(topbar)
+                .sidebarPrefix(Component.text("Starting: "))
+                .onCompletion(() -> {
                     startMatches();
                     matchesStarted = true;
-                    this.cancel();
-                    return;
-                }
-                String timeLeft = TimeStringUtils.getTimeString(count);
-                String timer = String.format("Starting: %s", timeLeft);
-                sidebar.updateLine("timer", timer);
-                adminSidebar.updateLine("timer", timer);
-                count--;
-            }
-        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+                })
+                .build());
     }
     
     /**
@@ -300,6 +314,59 @@ public class CaptureTheFlagRound {
         startOnDeckClassSelectionTimer();
     }
     
+    public void onPlayerDamage(Player participant, EntityDamageEvent event) {
+        if (!roundActive) {
+            return;
+        }
+        if (onDeckParticipants.contains(participant)) {
+            event.setCancelled(true);
+            return;
+        }
+        if (!participants.contains(participant)) {
+            return;
+        }
+        if (descriptionShowing) {
+            event.setCancelled(true);
+            return;
+        }
+        if (!matchesStarted) {
+            event.setCancelled(true);
+            return;
+        }
+        String teamId = gameManager.getTeamName(participant.getUniqueId());
+        CaptureTheFlagMatch match = this.getMatch(teamId);
+        if (match == null || !match.isActive()) {
+            // the match is over or the player is on-deck/spectating
+            event.setCancelled(true);
+        } else {
+            match.onPlayerDamage(participant, event);
+        }
+    }
+    
+    public void onPlayerLoseHunger(Player participant, FoodLevelChangeEvent event) {
+        if (!roundActive) {
+            return;
+        }
+        if (onDeckParticipants.contains(participant)) {
+            participant.setFoodLevel(20);
+            event.setCancelled(true);
+            return;
+        }
+        if (!participants.contains(participant)) {
+            return;
+        }
+        if (descriptionShowing) {
+            participant.setFoodLevel(20);
+            event.setCancelled(true);
+            return;
+        }
+        if (matchesStarted) {
+            return;
+        }
+        participant.setFoodLevel(20);
+        event.setCancelled(true);
+    }
+    
     public void onClickInventory(Player participant, InventoryClickEvent event) {
         if (!roundActive) {
             return;
@@ -309,6 +376,10 @@ public class CaptureTheFlagRound {
             return;
         }
         if (!participants.contains(participant)) {
+            return;
+        }
+        if (descriptionShowing) {
+            event.setCancelled(true);
             return;
         }
         if (!matchesStarted) {
@@ -335,21 +406,13 @@ public class CaptureTheFlagRound {
         Bukkit.getScheduler().cancelTask(matchesStartingCountDownTaskId);
         Bukkit.getScheduler().cancelTask(onDeckClassSelectionTimerTaskId);
         Bukkit.getScheduler().cancelTask(onDeckMatchTimerTaskId);
+        Bukkit.getScheduler().cancelTask(descriptionPeriodTaskId);
+        timerManager.cancel();
     }
 
     private void initializeSidebar() {
-        for (Player participant : participants) {
-            String teamName = gameManager.getTeamName(participant.getUniqueId());
-            String enemyTeam = getOppositeTeam(teamName);
-            ChatColor enemyColor = gameManager.getTeamChatColor(enemyTeam);
-            String enemyDisplayName = gameManager.getTeamDisplayName(enemyTeam);
-            sidebar.updateLine(participant.getUniqueId(), "enemy", String.format("%svs: %s%s", ChatColor.BOLD, enemyColor, enemyDisplayName));
-        }
-        sidebar.updateLine("timer", "");
         adminSidebar.updateLine("timer", "");
-        for (Player onDeckParticipant : onDeckParticipants) {
-            sidebar.updateLine(onDeckParticipant.getUniqueId(), "enemy", "On Deck");
-        }
+        topbar.setMiddle(Component.empty());
     }
     
     /**
@@ -414,6 +477,20 @@ public class CaptureTheFlagRound {
         return new ArrayList<>(matches);
     }
     
+    /**
+     * @param playerUUID the player to add a kill to
+     */
+    void addKill(@NotNull UUID playerUUID) {
+        captureTheFlagGame.addKill(playerUUID);
+    }
+    
+    /**
+     * @param playerUUID the player to add a death to
+     */
+    void addDeath(@NotNull UUID playerUUID) {
+        captureTheFlagGame.addDeath(playerUUID);
+    }
+    
     // Test methods
     
     
@@ -453,4 +530,9 @@ public class CaptureTheFlagRound {
         }
         return false;
     }
+    
+    public void setFirstRound(boolean firstRound) {
+        this.firstRound = firstRound;
+    }
+    
 }

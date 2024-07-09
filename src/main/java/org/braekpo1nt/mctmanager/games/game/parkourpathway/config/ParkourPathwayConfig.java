@@ -1,57 +1,45 @@
 package org.braekpo1nt.mctmanager.games.game.parkourpathway.config;
 
-import com.google.gson.JsonElement;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import org.braekpo1nt.mctmanager.games.game.config.BoundingBoxDTO;
+import lombok.Builder;
+import lombok.Data;
+import net.kyori.adventure.text.Component;
+import org.braekpo1nt.mctmanager.games.game.parkourpathway.TeamSpawn;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.puzzle.Puzzle;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.World;
+import org.bukkit.util.BoundingBox;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-@Getter
-@AllArgsConstructor
-class ParkourPathwayConfig {
+@Data
+@Builder
+public class ParkourPathwayConfig {
+    private World world;
+    private Location startingLocation;
+    private @Nullable BoundingBox spectatorArea;
+    private List<Puzzle> puzzles;
+    private @Nullable List<TeamSpawn> teamSpawns;
+    private @Nullable BoundingBox glassBarrier;
+    private @Nullable Component glassBarrierOpenMessage;
+    private @Nullable Component teamSpawnsOpenMessage;
+    private int startingDuration;
+    private int timeLimitDuration;
+    private int teamSpawnsDuration;
+    private int mercyRuleDuration;
+    private int mercyRuleAlertDuration;
+    public int[] checkpointScore;
+    public int[] winScore;
+    private List<Material> preventInteractions;
+    private int descriptionDuration;
+    private Component description;
     
-    private final String version;
-    private final String world;
-    /** the list of puzzles for this parkour game */
-    private List<PuzzleDTO> puzzles;
-    private final BoundingBoxDTO spectatorArea;
-    private final Scores scores;
-    private final Durations durations;
-    private final JsonElement description;
-    
-    /**
-     * Set this config's {@link ParkourPathwayConfig#puzzles} to be the given list of {@link Puzzle} objects
-     * @param puzzles {@link Puzzle} list to be assigned to this config
-     */
-    public void setPuzzles(List<Puzzle> puzzles) {
-        this.puzzles = puzzles.stream().map(PuzzleDTO::from).toList();
-        for (int i = 0; i < this.puzzles.size(); i++) {
-            this.puzzles.get(i).setIndex(i);
-        }
+    public int getPuzzlesSize() {
+        return puzzles.size();
     }
     
-    @Getter
-    @AllArgsConstructor
-    static class Scores {
-        /**
-         * points for reaching puzzle checkpoints. for x elements, nth score will be awarded unless n is greater than or equal to x in which case the xth score will be awarded 
-         */
-        private final int[] checkpoint;
-        /**
-         * points for winning. for x elements, nth score will be awarded unless n is greater than or equal to x in which case the xth score will be awarded 
-         */
-        private final int[] win;
+    public Puzzle getPuzzle(int index) {
+        return puzzles.get(index);
     }
-    
-    @Getter
-    @AllArgsConstructor
-    static class Durations {
-        private final int starting;
-        private final int timeLimit;
-        private final int checkpointCounter;
-        private final int checkpointCounterAlert;
-    }
-    
 }

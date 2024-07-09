@@ -191,10 +191,11 @@
   "loadouts": {
     "KNIGHT": {
       "menuItem": "STONE_SWORD",
+      "name": "Knight",
       "menuLore": [
-        {"text":"- Stone Sword"},
-        {"text":"- Chest Plate"},
-        {"text":"- Boots"}
+        "- Stone Sword",
+        "- Chest Plate",
+        "- Boots"
       ],
       "inventory": {
         "contents": {
@@ -209,27 +210,25 @@
           },
           "1": {
             "type": "COOKED_BEEF",
-            "amount": 8
+            "amount": 2
           }
         }
       }
     },
     "ARCHER": {
       "menuItem": "BOW",
+      "name": "Archer",
       "menuLore": [
         "- Bow",
         "- 16 Arrows",
         "- Wooden Sword",
-        "- Chest Plate",
+        "- Leggings",
         "- Boots"
       ],
       "inventory": {
         "contents": {
-          "36": {
-            "type": "LEATHER_BOOTS"
-          },
-          "38": {
-            "type": "LEATHER_CHESTPLATE"
+          "37": {
+            "type": "LEATHER_LEGGINGS"
           },
           "0": {
             "type": "BOW"
@@ -243,38 +242,44 @@
           },
           "3": {
             "type": "COOKED_BEEF",
-            "amount": 8
+            "amount": 2
           }
         }
       }
     },
     "ASSASSIN": {
       "menuItem": "IRON_SWORD",
+      "name": "Assassin",
       "menuLore": [
-        {"text":"- Iron Sword"},
-        {"text":"- No Armor"}
+        {
+          "text": "- Iron Sword"
+        },
+        {
+          "text": "- Leather Leggings"
+        }
       ],
       "inventory": {
         "contents": {
           "0": {
             "type": "IRON_SWORD",
             "itemMeta": {
-              "displayName": "Assassin's Knife"
+              "displayName": {"text": "Assassin's Knife"}
             }
           },
           "1": {
             "type": "COOKED_BEEF",
-            "amount": 8
+            "amount": 2
           }
         }
       }
     },
     "TANK": {
       "menuItem": "LEATHER_CHESTPLATE",
+      "name": "Tank",
       "menuLore": [
-        {"text":"- Full Leather Armor"},
-        {"text":"- Chainmail Leggings"},
-        {"text":"- No Sword","italic":true}
+        "- Full Leather Armor",
+        "- Chainmail Leggings",
+        "- Iron Hoe"
       ],
       "inventory": {
         "contents": {
@@ -287,9 +292,54 @@
           "38": {
             "type": "LEATHER_CHESTPLATE"
           },
-          "0": {
+          "1": {
             "type": "COOKED_BEEF",
-            "amount": 8
+            "amount": 2
+          },
+          "0": {
+            "type": "IRON_HOE"
+          }
+        }
+      }
+    },
+    "HEALER":{
+      "name": "Healer",
+      "menuItem": "SPLASH_POTION",
+      "menuLore": [
+        "- Some Leather Armor",
+        "- Wooden Sword",
+        "- 2 Healing Potions"
+      ],
+      "menuMeta": {
+        "basePotionData": {
+          "type": "INSTANT_HEAL"
+        }
+      },
+      "inventory": {
+        "contents": {
+          "36": {
+            "type": "LEATHER_BOOTS"
+          },
+          "38": {
+            "type": "LEATHER_CHESTPLATE"
+          },
+          "3": {
+            "type": "COOKED_BEEF",
+            "amount": 2
+          },
+          "0": {
+            "type": "WOODEN_SWORD"
+          },
+          "1":{
+            "type": "SPLASH_POTION",
+            "amount": 2,
+            "itemMeta": {
+              "basePotionData": {
+                "type": "INSTANT_HEAL",
+                "extended": false,
+                "upgraded": false
+              }
+            }
           }
         }
       }
@@ -303,6 +353,16 @@
     "maxY": -17,
     "maxZ": -958
   },
+  "preventInteractions": [
+    "OAK_TRAPDOOR",
+    "SPRUCE_TRAPDOOR",
+    "BIRCH_TRAPDOOR",
+    "JUNGLE_TRAPDOOR",
+    "ACACIA_TRAPDOOR",
+    "DARK_OAK_TRAPDOOR",
+    "CRIMSON_TRAPDOOR",
+    "WARPED_TRAPDOOR"
+  ],
   "scores": {
     "kill": 20,
     "win": 100
@@ -310,7 +370,8 @@
   "durations": {
     "matchesStarting": 10,
     "classSelection": 20,
-    "roundTimer": 180
+    "roundTimer": 180,
+    "description": 10
   },
   "description": ["",{"text":"How To Play","bold":true,"color":"yellow"},{"text":" Capture The Flag","bold":true,"color":"yellow"},{"text":"\n"},{"text":"Two teams will be placed in a court, first one to collect the banner on the opposite side and deliver it to their own banner wins!\nAfter all teams have played each other, the game ends (So get them points!)\nIn Capture the Flag their are 4 classes. Assassin, Knight, Tank, and Archer. Only one of each class may be selected on a team.\n-The Assassin has an iron sword, but no armor.\n-The Knight has leather boots and a chestplate, as well as a stone sword.\n-The Tank has leather pants, boots, and tunic, but no weapons.\n-The Archer has a wood sword, leather boots and tunic, a bow, and 16 arrows.","color":"#FFFFDF"}]
 }

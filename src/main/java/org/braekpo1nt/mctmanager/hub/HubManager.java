@@ -2,14 +2,19 @@ package org.braekpo1nt.mctmanager.hub;
 
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
+import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
-import org.braekpo1nt.mctmanager.hub.config.HubStorageUtil;
-import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
+import org.braekpo1nt.mctmanager.hub.config.HubConfig;
+import org.braekpo1nt.mctmanager.hub.config.HubConfigController;
+import org.braekpo1nt.mctmanager.hub.leaderboard.LeaderboardManager;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
-import org.braekpo1nt.mctmanager.ui.sidebar.SidebarFactory;
-import org.bukkit.*;
+import org.braekpo1nt.mctmanager.ui.timer.Timer;
+import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
+import org.bukkit.GameMode;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -18,18 +23,18 @@ import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Team;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class HubManager implements Listener, Configurable {
     
-    private final Main plugin;
     private final GameManager gameManager;
-    private final HubStorageUtil storageUtil;
-    private int returnToHubTaskId;
+    protected final HubConfigController configController;
+    protected HubConfig config;
+    private @NotNull final List<LeaderboardManager> leaderboardManagers;
     /**
      * Contains a list of the players who are about to be sent to the hub and can see the countdown
      */
@@ -39,17 +44,36 @@ public class HubManager implements Listener, Configurable {
      * A list of the participants who are in the hub
      */
     private final List<Player> participants = new ArrayList<>();
+    private final TimerManager timerManager;
     
     public HubManager(Main plugin, GameManager gameManager) {
-        this.plugin = plugin;
         this.gameManager = gameManager;
-        this.storageUtil = new HubStorageUtil(plugin.getDataFolder());
+        this.timerManager = gameManager.getTimerManager().createManager();
+        this.configController = new HubConfigController(plugin.getDataFolder());
+        this.leaderboardManagers = new ArrayList<>();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
     
     @Override
-    public boolean loadConfig() throws IllegalArgumentException {
-        return storageUtil.loadConfig();
+    public void loadConfig() throws ConfigIOException, ConfigInvalidException {
+        this.config = configController.getConfig();
+        for (LeaderboardManager leaderboardManager : leaderboardManagers) {
+            leaderboardManager.tearDown();
+        }
+        leaderboardManagers.clear();
+        for (HubConfig.Leaderboard leaderboard : config.getLeaderboards()) {
+            LeaderboardManager leaderboardManager = new LeaderboardManager(
+                    gameManager, 
+                    leaderboard.getTitle(), 
+                    leaderboard.getLocation(), 
+                    leaderboard.getTopPlayers()
+            );
+            for (Player participant : participants) {
+                leaderboardManager.onParticipantJoin(participant);
+            }
+            leaderboardManager.updateScores();
+            leaderboardManagers.add(leaderboardManager);
+        }
     }
     
     /**
@@ -59,35 +83,31 @@ public class HubManager implements Listener, Configurable {
      */
     public void returnParticipantsToHub(List<Player> newParticipants, List<Player> newAdmins, boolean delay) {
         if (delay) {
-            returnParticipantsToHub(newParticipants, newAdmins, storageUtil.getTpToHubDuration());
+            returnParticipantsToHub(new ArrayList<>(newParticipants), new ArrayList<>(newAdmins), config.getTpToHubDuration());
         } else {
-            returnParticipantsToHubInstantly(newParticipants, newAdmins);
+            returnParticipantsToHubInstantly(new ArrayList<>(newParticipants), new ArrayList<>(newAdmins));
         }
     }
     
     private void returnParticipantsToHub(List<Player> newParticipants, List<Player> newAdmins, int duration) {
         headingToHub.addAll(newParticipants);
-        Sidebar sidebar = gameManager.getSidebarFactory().createSidebar();
+        final List<Player> adminsHeadingToHub = new ArrayList<>(newAdmins);
+        final Sidebar sidebar = gameManager.getSidebarFactory().createSidebar();
         sidebar.addPlayers(newParticipants);
         sidebar.addPlayers(newAdmins);
         sidebar.addLine("backToHub", String.format("Back to Hub: %s", duration));
-        this.returnToHubTaskId = new BukkitRunnable() {
-            private int count = duration;
-            @Override
-            public void run() {
-                if (count <= 0) {
+        timerManager.start(Timer.builder()
+                .duration(duration)
+                .withSidebar(sidebar, "backToHub")
+                .sidebarPrefix(Component.text("Back to Hub: "))
+                .onCompletion(() -> {
                     sidebar.deleteAllLines();
-                    sidebar.removePlayers(newParticipants);
-                    returnParticipantsToHubInstantly(newParticipants, newAdmins);
+                    sidebar.removeAllPlayers();
+                    returnParticipantsToHubInstantly(headingToHub, adminsHeadingToHub);
                     headingToHub.clear();
-                    this.cancel();
-                    return;
-                }
-                String timeLeft = TimeStringUtils.getTimeString(count);
-                sidebar.updateLine("backToHub", String.format("Back to Hub: %s", timeLeft));
-                count--;
-            }
-        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+                    adminsHeadingToHub.clear();
+                })
+                .build());
     }
     
     private void returnParticipantsToHubInstantly(List<Player> newParticipants, List<Player> newAdmins) {
@@ -102,7 +122,8 @@ public class HubManager implements Listener, Configurable {
     
     private void returnParticipantToHub(Player participant) {
         participant.sendMessage(Component.text("Returning to hub"));
-        participant.teleport(storageUtil.getSpawn());
+        participant.teleport(config.getSpawn());
+        participant.setBedSpawnLocation(config.getSpawn(), true);
         initializeParticipant(participant);
     }
     
@@ -116,7 +137,7 @@ public class HubManager implements Listener, Configurable {
     
     private void returnAdminToHub(Player admin) {
         admin.sendMessage(Component.text("Returning to hub"));
-        admin.teleport(storageUtil.getSpawn());
+        admin.teleport(config.getSpawn());
         initializeAdmin(admin);
     }
     
@@ -140,16 +161,17 @@ public class HubManager implements Listener, Configurable {
     public void sendParticipantToPodium(Player participant, boolean winner) {
         participant.sendMessage(Component.text("Returning to hub"));
         if (winner) {
-            participant.teleport(storageUtil.getPodium());
+            participant.teleport(config.getPodium());
         } else {
-            participant.teleport(storageUtil.getPodiumObservation());
+            participant.teleport(config.getPodiumObservation());
         }
+        participant.setBedSpawnLocation(config.getSpawn(), true);
         initializeParticipant(participant);
     }
     
     private void sendAdminToPodium(Player admin) {
         admin.sendMessage(Component.text("Returning to hub"));
-        admin.teleport(storageUtil.getPodiumObservation());
+        admin.teleport(config.getPodiumObservation());
     }
     
     /**
@@ -162,16 +184,23 @@ public class HubManager implements Listener, Configurable {
         }
     }
     
-    public void onParticipantQuit(Player participant) {
-        participants.remove(participant);
-    }
-    
     /**
      * Should be called when the participant who joined should be in the hub
      * @param participant the participant to add
      */
     public void onParticipantJoin(Player participant) {
         participants.add(participant);
+        for (LeaderboardManager leaderboardManager : leaderboardManagers) {
+            leaderboardManager.onParticipantJoin(participant);
+        }
+    }
+    
+    public void onParticipantQuit(Player participant) {
+        participants.remove(participant);
+        for (LeaderboardManager leaderboardManager : leaderboardManagers) {
+            leaderboardManager.onParticipantQuit(participant);
+        }
+        participant.setBedSpawnLocation(config.getSpawn(), true);
     }
     
     public void onAdminJoin(Player admin) {
@@ -182,8 +211,21 @@ public class HubManager implements Listener, Configurable {
         
     }
     
+    public void updateLeaderboards() {
+        for (LeaderboardManager leaderboardManager : leaderboardManagers) {
+            leaderboardManager.updateScores();
+        }
+    }
+    
+    public void tearDown() {
+        cancelAllTasks();
+        for (LeaderboardManager leaderboardManager : leaderboardManagers) {
+            leaderboardManager.tearDown();
+        }
+    }
+    
     public void cancelAllTasks() {
-        Bukkit.getScheduler().cancelTask(returnToHubTaskId);
+        timerManager.cancel();
     }
     
     private void setupTeamOptions() {
@@ -284,21 +326,17 @@ public class HubManager implements Listener, Configurable {
         if (!participants.contains(participant)) {
             return;
         }
-        if (!participant.getWorld().equals(storageUtil.getWorld())) {
+        if (!participant.getWorld().equals(config.getWorld())) {
             return;
         }
         Location location = participant.getLocation();
-        if (location.getY() < storageUtil.getYLimit()) {
-            participant.teleport(storageUtil.getSpawn());
+        if (location.getY() < config.getYLimit()) {
+            participant.teleport(config.getSpawn());
             participant.sendMessage("You fell out of the hub boundary");
         }
     }
     
     public void setBoundaryEnabled(boolean boundaryEnabled) {
         this.boundaryEnabled = boundaryEnabled;
-    }
-    
-    public void initializeSidebar(SidebarFactory sidebarFactory) {
-//        sidebar = sidebarFactory.createSidebar();
     }
 }

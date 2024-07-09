@@ -1,7 +1,13 @@
 package org.braekpo1nt.mctmanager.ui.sidebar;
 
-import org.braekpo1nt.mctmanager.ui.sidebar.FastBoardWrapper;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.entity.Player;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.stream.Collectors;
 
 public class MockFastBoardWrapper extends FastBoardWrapper {
     
@@ -23,13 +29,45 @@ public class MockFastBoardWrapper extends FastBoardWrapper {
     }
     
     @Override
+    public void updateLine(int line, Component text) {
+        updateLine(line, PlainTextComponentSerializer.plainText().serialize(text));
+    }
+    
+    @Override
     public void updateTitle(String title) {
+        
+    }
+    
+    @Override
+    public int size() {
+        return lines.length;
+    }
+    
+    @Override
+    public void removeLine(int line) {
+        ArrayList<String> collect = Arrays.stream(this.lines).collect(Collectors.toCollection(ArrayList::new));
+        collect.remove(line);
+        this.lines = collect.toArray(new String[0]);
+    }
+    
+    @Override
+    public void updateTitle(Component title) {
         
     }
     
     @Override
     public void updateLines(String... lines) {
         this.lines = lines;
+    }
+    
+    @Override
+    public void updateLines(Collection<Component> lines) {
+        this.lines = lines.stream().map(line -> PlainTextComponentSerializer.plainText().serialize(line)).toList().toArray(new String[0]);
+    }
+    
+    @Override
+    public void updateLines(Component... lines) {
+        updateLines(Arrays.stream(lines).toList());
     }
     
     @Override
