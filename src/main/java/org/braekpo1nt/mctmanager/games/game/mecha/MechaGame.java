@@ -419,9 +419,12 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     
     public void initializeKillCount(Player participant) {
         killCounts.putIfAbsent(participant.getUniqueId(), 0);
-        deathCounts.putIfAbsent(participant.getUniqueId(), 0);
         int kills = killCounts.get(participant.getUniqueId());
-        int deaths = deathCounts.get(participant.getUniqueId());
+        int deaths = -1;
+        if (config.showDeathCount()) {
+            deathCounts.putIfAbsent(participant.getUniqueId(), 0);
+            deaths = deathCounts.get(participant.getUniqueId());
+        }
         topbar.setKillsAndDeaths(participant.getUniqueId(), kills, deaths);
     }
     

@@ -71,6 +71,11 @@ class MechaConfigDTO implements Validatable {
      * Defaults to true.
      */
     private boolean shouldClearContainers = true;
+    /**
+     * Whether the Topbar should show the death count in the top right corner or not.
+     * Defaults to false.
+     */
+    private boolean showDeathCount = false;
     private @Nullable List<Material> preventInteractions;
     private Scores scores;
     private Durations durations;
@@ -161,11 +166,10 @@ class MechaConfigDTO implements Validatable {
             int weight = weightedNamespacedKey.weight();
             newWeightedMechaLootTables.put(lootTable, weight);
         }
-    
+        
         List<BoundingBox> newPlatformBarriers = new ArrayList<>();
         List<Location> newPlatformSpawns = new ArrayList<>();
-        for (int i = 0; i < this.platforms.size(); i++) {
-            MechaConfigDTO.Platform platform = this.platforms.get(i);
+        for (Platform platform : this.platforms) {
             BoundingBox barrierArea = platform.barrier().toBoundingBox();
             newPlatformBarriers.add(barrierArea);
             double spawnX = barrierArea.getCenterX() + 0.5;
@@ -220,6 +224,7 @@ class MechaConfigDTO implements Validatable {
                 .thirdPlaceScore(this.scores.thirdPlace)
                 .lockOtherInventories(this.lockOtherInventories)
                 .shouldClearContainers(this.shouldClearContainers)
+                .showDeathCount(this.showDeathCount)
                 .initialBorderSize(this.border.initialBorderSize())
                 .worldBorderCenterX(this.border.center().x())
                 .worldBorderCenterZ(this.border.center().z())

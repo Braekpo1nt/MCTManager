@@ -37,6 +37,7 @@ public class MechaConfig {
     private int thirdPlaceScore;
     private boolean lockOtherInventories;
     private boolean shouldClearContainers;
+    private boolean showDeathCount;
     private double initialBorderSize;
     private double worldBorderCenterX;
     private double worldBorderCenterZ;
@@ -60,5 +61,9 @@ public class MechaConfig {
     
     public boolean shouldClearContainers() {
         return shouldClearContainers;
+    }
+    
+    public boolean showDeathCount() {
+        return showDeathCount;
     }
 }

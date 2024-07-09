@@ -338,7 +338,8 @@ public class ManyBattleTopbar implements Topbar {
     /**
      * @param playerUUID the player to set the kills and deaths for
      * @param kills the number of kills
-     * @param deaths the number of deaths
+     * @param deaths the number of deaths. Negative numbers will result in no
+     *               deaths being shown. 
      */
     public void setKillsAndDeaths(@NotNull UUID playerUUID, int kills, int deaths) {
         PlayerData playerData = getPlayerData(playerUUID);
