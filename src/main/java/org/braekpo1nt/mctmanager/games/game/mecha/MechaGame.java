@@ -15,6 +15,7 @@ import org.braekpo1nt.mctmanager.games.game.mecha.config.MechaConfigController;
 import org.braekpo1nt.mctmanager.games.game.mecha.states.DescriptionState;
 import org.braekpo1nt.mctmanager.games.game.mecha.states.MechaState;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
+import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
@@ -54,7 +55,7 @@ import java.util.*;
  * The context for the state pattern
  */
 @Data
-public class MechaGame implements MCTGame, Configurable, Listener {
+public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     
     private @Nullable MechaState state;
     
@@ -750,5 +751,27 @@ public class MechaGame implements MCTGame, Configurable, Listener {
             return;
         }
         state.onPlayerDeath(event);
+    }
+    
+    @Override
+    public void updateTeamScore(Player participant, String contents) {
+        if (sidebar == null) {
+            return;
+        }
+        if (!participants.contains(participant)) {
+            return;
+        }
+        sidebar.updateLine(participant.getUniqueId(), "personalTeam", contents);
+    }
+    
+    @Override
+    public void updatePersonalScore(Player participant, String contents) {
+        if (sidebar == null) {
+            return;
+        }
+        if (!participants.contains(participant)) {
+            return;
+        }
+        sidebar.updateLine(participant.getUniqueId(), "personalScore", contents);
     }
 }
