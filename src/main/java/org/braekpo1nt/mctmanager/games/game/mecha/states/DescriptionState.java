@@ -60,9 +60,8 @@ public class DescriptionState implements MechaState {
         context.getLivingPlayers().remove(participantUUID);
         context.getKillCounts().remove(participantUUID);
         context.getDeathCounts().remove(participantUUID);
-        context.getSidebar().removePlayer(participant);
         context.getTopbar().unlinkFromTeam(participantUUID);
-        context.getTopbar().hidePlayer(participantUUID);
+        resetParticipant(participant);
     }
     
     @Override

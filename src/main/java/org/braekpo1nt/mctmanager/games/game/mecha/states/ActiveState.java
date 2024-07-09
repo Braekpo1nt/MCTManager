@@ -7,6 +7,7 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.mecha.MechaGame;
 import org.braekpo1nt.mctmanager.games.game.mecha.config.MechaConfig;
+import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
@@ -23,9 +24,7 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class ActiveState implements MechaState {
     
@@ -217,7 +216,19 @@ public class ActiveState implements MechaState {
     
     @Override
     public void onParticipantQuit(Player participant) {
-        
+        if (context.getLivingPlayers().contains(participant.getUniqueId())) {
+            List<ItemStack> drops = Arrays.stream(participant.getInventory().getContents())
+                    .filter(Objects::nonNull)
+                    .toList();
+            int droppedExp = GameManagerUtils.calculateExpPoints(participant.getLevel());
+            Component deathMessage = Component.empty()
+                    .append(participant.displayName())
+                    .append(Component.text(" left early. Their life is forfeit."));
+            PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(participant, drops, droppedExp, deathMessage);
+            this.onPlayerDeath(fakeDeathEvent);
+        }
+        resetParticipant(participant);
+        context.getParticipants().remove(participant);
     }
     
     @Override
@@ -241,7 +252,11 @@ public class ActiveState implements MechaState {
     
     @Override
     public void resetParticipant(Player participant) {
-        context.resetParticipant(participant);
+        participant.getInventory().clear();
+        ParticipantInitializer.clearStatusEffects(participant);
+        ParticipantInitializer.resetHealthAndHunger(participant);
+        context.getSidebar().removePlayer(participant.getUniqueId());
+        context.getTopbar().hidePlayer(participant.getUniqueId());
     }
     
     @Override

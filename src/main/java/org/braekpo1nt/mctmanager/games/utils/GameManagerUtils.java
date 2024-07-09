@@ -389,4 +389,8 @@ public class GameManagerUtils {
         deColorLeatherArmor(player.getInventory().getBoots());
     }
     
+    public static int calculateExpPoints(int level) {
+        int maxExpPoints = level > 7 ? 100 : level * 7;
+        return maxExpPoints / 10;
+    }
 }

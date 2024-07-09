@@ -12,6 +12,7 @@ import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.game.mecha.config.MechaConfig;
 import org.braekpo1nt.mctmanager.games.game.mecha.config.MechaConfigController;
+import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
@@ -370,13 +371,14 @@ public class MechaGameOld implements MCTGame, Configurable, Listener, Headerable
             deathCounts.remove(participantUUID);
             sidebar.removePlayer(participant);
             topbar.hidePlayer(participantUUID);
+            resetParticipant(participant);
             return;
         }
         if (livingPlayers.contains(participant.getUniqueId())) {
             List<ItemStack> drops = Arrays.stream(participant.getInventory().getContents())
                     .filter(Objects::nonNull)
                     .toList();
-            int droppedExp = calculateExpPoints(participant.getLevel());
+            int droppedExp = GameManagerUtils.calculateExpPoints(participant.getLevel());
             Component deathMessage = Component.empty()
                     .append(Component.text(participant.getName()))
                     .append(Component.text(" left early. Their life is forfeit."));
@@ -908,11 +910,6 @@ public class MechaGameOld implements MCTGame, Configurable, Listener, Headerable
                 onTeamWin(deadTeam);
             }
         }
-    }
-    
-    private int calculateExpPoints(int level) {
-        int maxExpPoints = level > 7 ? 100 : level * 7;
-        return maxExpPoints / 10;
     }
     
     private void dropInventory(Player killed, List<ItemStack> drops) {
