@@ -7,6 +7,7 @@ import net.kyori.adventure.text.format.TextColor;
 import org.braekpo1nt.mctmanager.ui.topbar.components.KillDeathComponent;
 import org.braekpo1nt.mctmanager.ui.topbar.components.TeamComponent;
 import org.braekpo1nt.mctmanager.ui.topbar.components.VersusManyComponent;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -132,6 +133,7 @@ public class ManyBattleTopbar implements Topbar {
                 TeamData teamData = entry.getValue();
                 teamData.getVersusManyComponent().getOpponents().addTeam(teamId, teamColor);
                 newTeamData.getVersusManyComponent().getOpponents().addTeam(opponentTeamId, teamData.getColor());
+                newTeamData.getVersusManyComponent().getOpponents().setAliveCount(opponentTeamId, teamData.getAliveCount());
             }
         }
         update();
@@ -158,6 +160,7 @@ public class ManyBattleTopbar implements Topbar {
         Preconditions.checkArgument(living >= 0, "living can't be negative");
         TeamData teamData = getTeamData(teamId);
         teamData.getVersusManyComponent().getFriendly().setMembers(living, dead);
+        teamData.setAliveCount(living);
         for (Map.Entry<String, TeamData> entry : teamDatas.entrySet()) {
             if (!entry.getKey().equals(teamId)) {
                 TeamData eachTeamData = entry.getValue();
@@ -335,7 +338,8 @@ public class ManyBattleTopbar implements Topbar {
     /**
      * @param playerUUID the player to set the kills and deaths for
      * @param kills the number of kills
-     * @param deaths the number of deaths
+     * @param deaths the number of deaths. Negative numbers will result in no
+     *               deaths being shown. 
      */
     public void setKillsAndDeaths(@NotNull UUID playerUUID, int kills, int deaths) {
         PlayerData playerData = getPlayerData(playerUUID);

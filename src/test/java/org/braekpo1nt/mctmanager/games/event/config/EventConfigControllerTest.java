@@ -18,7 +18,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.util.logging.Level;
 
-class EventStorageUtilTest {
+class EventConfigControllerTest {
     String configFileName = "eventConfig.json";
     String exampleConfigFileName = "exampleEventConfig.json";
     Main plugin;
@@ -59,7 +59,7 @@ class EventStorageUtilTest {
     void wellFormedJsonInvalidData() {
         InputStream inputStream = controller.getClass().getResourceAsStream(exampleConfigFileName);
         JsonObject json = TestUtils.inputStreamToJson(inputStream);
-        json.addProperty("title", "");
+        json.remove("title");
         TestUtils.saveJsonToFile(json, new File(plugin.getDataFolder(), configFileName));
         Assertions.assertThrows(ConfigInvalidException.class, controller::getConfig);
     }
