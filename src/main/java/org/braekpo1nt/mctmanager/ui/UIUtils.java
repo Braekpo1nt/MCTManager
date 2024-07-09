@@ -106,4 +106,17 @@ public class UIUtils {
                 KILL_TIMES
         ));
     }
+    
+    /**
+     * @return the default game over title, used everywhere
+     */
+    public static Title gameOverTitle() {
+        return Title.title(
+                Component.empty()
+                        .append(Component.text("Game Over!"))
+                        .color(NamedTextColor.RED),
+                Component.empty(),
+                DEFAULT_TIMES
+        );
+    }
 }

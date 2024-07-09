@@ -23,6 +23,7 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -42,6 +43,9 @@ public class ActiveState implements MechaState {
      */
     private int borderStageIndex = 0;
     private boolean invulnerable = false;
+    private @Nullable Timer borderDelay;
+    private @Nullable Timer borderShrinking;
+    private @Nullable Timer gracePeriodTimer;
     
     public ActiveState(@NotNull MechaGame context) {
         this.context = context;
@@ -74,7 +78,7 @@ public class ActiveState implements MechaState {
                 .append(gracePeriodDuration);
         sidebar.addLine("grace", initialTimer);
         adminSidebar.addLine("grace", initialTimer);
-        timerManager.start(Timer.builder()
+        gracePeriodTimer = timerManager.start(Timer.builder()
                 .duration(config.getGracePeriodDuration())
                 .withSidebar(sidebar, "grace")
                 .withSidebar(adminSidebar, "grace")
@@ -97,7 +101,7 @@ public class ActiveState implements MechaState {
     }
     
     private void startBorderDelay() {
-        timerManager.start(Timer.builder()
+        borderDelay = timerManager.start(Timer.builder()
                 .duration(config.getDelays()[borderStageIndex])
                 .withSidebar(adminSidebar, "timer")
                 .withTopbar(topbar)
@@ -117,7 +121,7 @@ public class ActiveState implements MechaState {
     }
     
     private void startBorderShrinking() {
-        timerManager.start(Timer.builder()
+        borderShrinking = timerManager.start(Timer.builder()
                 .duration(config.getDurations()[borderStageIndex])
                 .withSidebar(adminSidebar, "timer")
                 .withTopbar(topbar)
@@ -394,6 +398,15 @@ public class ActiveState implements MechaState {
                 .append(displayName)
                 .append(Component.text(" wins!")));
         gameManager.awardPointsToTeam(winningTeam, config.getFirstPlaceScore());
+        if (borderDelay != null) {
+            borderDelay.cancel();
+        }
+        if (borderShrinking != null) {
+            borderShrinking.cancel();
+        }
+        if (gracePeriodTimer != null) {
+            gracePeriodTimer.cancel();
+        }
         context.setState(new GameOverState(context));
     }
 }
