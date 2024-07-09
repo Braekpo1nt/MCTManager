@@ -202,7 +202,12 @@ public class ActiveState implements MechaState {
     
     @Override
     public void onPlayerDamage(EntityDamageEvent event) {
-        
+        if (event.getCause().equals(EntityDamageEvent.DamageCause.VOID)) {
+            return;
+        }
+        if (invulnerable) {
+            event.setCancelled(true);
+        }
     }
     
     @Override

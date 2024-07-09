@@ -341,6 +341,16 @@ public class MechaGameOld implements MCTGame, Configurable, Listener, Headerable
         sidebar.updateLine(participant.getUniqueId(), "title", title);
     }
     
+    private void rejoinParticipant(Player participant) {
+        participants.add(participant);
+        participant.setGameMode(GameMode.SPECTATOR);
+        sidebar.addPlayer(participant);
+        topbar.showPlayer(participant);
+        initializeKillCount(participant);
+        String teamId = gameManager.getTeamName(participant.getUniqueId());
+        topbar.linkToTeam(participant.getUniqueId(), teamId);
+    }
+    
     @Override
     public void onParticipantQuit(Player participant) {
         if (!gameActive) {
@@ -409,16 +419,6 @@ public class MechaGameOld implements MCTGame, Configurable, Listener, Headerable
         int alive = livingMembers.get(teamId);
         int dead = getDeadMembers(teamId);
         topbar.setMembers(teamId, alive, dead);
-    }
-    
-    private void rejoinParticipant(Player participant) {
-        participants.add(participant);
-        participant.setGameMode(GameMode.SPECTATOR);
-        sidebar.addPlayer(participant);
-        topbar.showPlayer(participant);
-        initializeKillCount(participant);
-        String teamId = gameManager.getTeamName(participant.getUniqueId());
-        topbar.linkToTeam(participant.getUniqueId(), teamId);
     }
     
     /**

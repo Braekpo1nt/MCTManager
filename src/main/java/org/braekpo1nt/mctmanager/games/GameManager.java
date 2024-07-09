@@ -19,7 +19,7 @@ import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceGame;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.GameEditor;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
-import org.braekpo1nt.mctmanager.games.game.mecha.MechaGameOld;
+import org.braekpo1nt.mctmanager.games.game.mecha.MechaGame;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.ParkourPathwayGame;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.editor.ParkourPathwayEditor;
 import org.braekpo1nt.mctmanager.games.game.spleef.SpleefGame;
@@ -97,7 +97,7 @@ public class GameManager implements Listener {
         this.games = new HashMap<>();
         this.timerManager = new TimerManager(plugin);
         addGame(new FootRaceGame(plugin, this));
-        addGame(new MechaGameOld(plugin, this));
+        addGame(new MechaGame(plugin, this));
         addGame(new SpleefGame(plugin, this));
         addGame(new ParkourPathwayGame(plugin, this));
         addGame(new CaptureTheFlagGame(plugin, this));
