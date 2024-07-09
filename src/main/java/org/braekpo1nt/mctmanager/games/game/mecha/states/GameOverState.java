@@ -10,6 +10,8 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.UUID;
+
 public class GameOverState implements MechaState {
     private final @NotNull MechaGame context;
     
@@ -37,7 +39,19 @@ public class GameOverState implements MechaState {
     
     @Override
     public void onParticipantQuit(Player participant) {
-        // do nothing
+        context.getParticipants().remove(participant);
+        UUID participantUUID = participant.getUniqueId();
+        String teamId = context.getGameManager().getTeamName(participantUUID);
+        Integer oldLivingMembers = context.getLivingMembers().get(teamId);
+        if (oldLivingMembers != null) {
+            context.getLivingMembers().put(teamId, Math.max(0, oldLivingMembers - 1));
+            context.updateAliveCount(teamId);
+        }
+        context.getLivingPlayers().remove(participantUUID);
+        context.getKillCounts().remove(participantUUID);
+        context.getDeathCounts().remove(participantUUID);
+        context.getTopbar().unlinkFromTeam(participantUUID);
+        resetParticipant(participant);
     }
     
     @Override
