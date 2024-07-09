@@ -7,6 +7,7 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.mecha.MechaGame;
 import org.braekpo1nt.mctmanager.games.game.mecha.config.MechaConfig;
+import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
@@ -182,7 +183,36 @@ public class ActiveState implements MechaState {
     
     @Override
     public void onParticipantJoin(Player participant) {
-        
+        if (participantShouldRejoin(participant)) {
+            rejoinParticipant(participant);
+        } else {
+            context.getDeadPlayers().remove(participant.getUniqueId());
+            String teamId = context.getGameManager().getTeamName(participant.getUniqueId());
+            if (!context.getLivingMembers().containsKey(teamId)) {
+                NamedTextColor color = context.getGameManager().getTeamNamedTextColor(teamId);
+                context.getTopbar().addTeam(teamId, color);
+            }
+            initializeParticipant(participant);
+            participant.teleport(config.getPlatformSpawns().get(0));
+            participant.setBedSpawnLocation(config.getPlatformSpawns().get(0), true);
+        }
+        sidebar.updateLine(participant.getUniqueId(), "title", context.getTitle());
+    }
+    
+    private boolean participantShouldRejoin(Player participant) {
+        String teamId = gameManager.getTeamName(participant.getUniqueId());
+        return context.getLivingMembers().containsKey(teamId) && 
+                context.getDeadPlayers().contains(participant.getUniqueId());
+    }
+    
+    private void rejoinParticipant(Player participant) {
+        context.getParticipants().add(participant);
+        participant.setGameMode(GameMode.SPECTATOR);
+        sidebar.addPlayer(participant);
+        topbar.showPlayer(participant);
+        context.initializeKillCount(participant);
+        String teamId = gameManager.getTeamName(participant.getUniqueId());
+        topbar.linkToTeam(participant.getUniqueId(), teamId);
     }
     
     @Override
@@ -192,12 +222,26 @@ public class ActiveState implements MechaState {
     
     @Override
     public void initializeParticipant(Player participant) {
-        
+        context.getParticipants().add(participant);
+        context.getLivingPlayers().add(participant.getUniqueId());
+        String teamId = context.getGameManager().getTeamName(participant.getUniqueId());
+        context.getLivingMembers().putIfAbsent(teamId, 0);
+        int oldAliveCount = context.getLivingMembers().get(teamId);
+        context.getLivingMembers().put(teamId, oldAliveCount + 1);
+        sidebar.addPlayer(participant);
+        topbar.showPlayer(participant);
+        topbar.linkToTeam(participant.getUniqueId(), teamId);
+        context.updateAliveCount(teamId);
+        context.initializeKillCount(participant);
+        participant.setGameMode(GameMode.ADVENTURE);
+        participant.getInventory().clear();
+        ParticipantInitializer.resetHealthAndHunger(participant);
+        ParticipantInitializer.clearStatusEffects(participant);
     }
     
     @Override
     public void resetParticipant(Player participant) {
-        
+        context.resetParticipant(participant);
     }
     
     @Override
