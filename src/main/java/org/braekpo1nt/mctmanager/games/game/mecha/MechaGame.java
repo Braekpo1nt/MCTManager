@@ -46,6 +46,7 @@ import org.bukkit.scoreboard.Team;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -55,7 +56,7 @@ import java.util.*;
 @Data
 public class MechaGame implements MCTGame, Configurable, Listener {
     
-    private MechaState state;
+    private @Nullable MechaState state;
     
     private final Main plugin;
     private final GameManager gameManager;
@@ -185,7 +186,11 @@ public class MechaGame implements MCTGame, Configurable, Listener {
         worldBorder.reset();
         stopAdmins();
         for (Player participant : participants) {
-            state.resetParticipant(participant);
+            if (state != null) {
+                state.resetParticipant(participant);
+            } else {
+                resetParticipant(participant);
+            }
         }
         clearSidebar();
         participants.clear();
@@ -195,17 +200,22 @@ public class MechaGame implements MCTGame, Configurable, Listener {
         killCounts.clear();
         deathCounts.clear();
         gameManager.gameIsOver();
+        state = null;
         Bukkit.getLogger().info("Stopped mecha");
     }
     
     @Override
     public void onParticipantJoin(Player participant) {
-        state.onParticipantJoin(participant);
+        if (state != null) {
+            state.onParticipantJoin(participant);
+        }
     }
     
     @Override
     public void onParticipantQuit(Player participant) {
-        state.onParticipantQuit(participant);
+        if (state != null) {
+            state.onParticipantQuit(participant);
+        }
     }
     
     private void startAdmins(List<Player> newAdmins) {
