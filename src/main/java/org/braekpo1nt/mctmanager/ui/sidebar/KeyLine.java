@@ -10,6 +10,11 @@ public class KeyLine {
     private final @NotNull String key;
     private final @NotNull Component contents;
     
+    public KeyLine(@NotNull String key, @NotNull Component contents) {
+        this.key = key;
+        this.contents = contents;
+    }
+    
     public KeyLine(@NotNull String key, @NotNull String contents) {
         this.key = key;
         this.contents = Component.text(contents);

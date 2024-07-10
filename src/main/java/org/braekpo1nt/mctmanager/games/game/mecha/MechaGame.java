@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.games.game.mecha;
 
 import lombok.Data;
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
@@ -506,9 +507,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     
     public void messageAllParticipants(Component message) {
         gameManager.messageAdmins(message);
-        for (Player participant : participants) {
-            participant.sendMessage(message);
-        }
+        Audience.audience(participants).sendMessage(message);
     }
     
     // EventHandlers

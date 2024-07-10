@@ -393,4 +393,46 @@ public class GameManagerUtils {
         int maxExpPoints = level > 7 ? 100 : level * 7;
         return maxExpPoints / 10;
     }
+    
+    /**
+     * Returns the formal placement title of the given place. 
+     * 1 gives 1st, 2 gives second, 11 gives 11th, 103 gives 103rd.
+     * @param placement A number representing the placement
+     * @return The placement number with the appropriate postfix (st, nd, rd, th)
+     */
+    public static Component getPlacementTitle(int placement) {
+        return Component.empty()
+                .append(Component.text(placement))
+                .append(Component.text(getStandingSuffix(placement)));
+    }
+    
+    /**
+     * Returns the number suffix title of the given standing. 
+     * 1 gives 1st, 2 gives {@code "nd"}, 11 gives {@code "th"} (11th), 
+     * 103 gives {@code "rd"} (103rd).
+     * @param standing A number representing the standing
+     * @return The appropriate suffix for the standing (st, nd, rd, th)
+     */
+    public static String getStandingSuffix(int standing) {
+        if (standing % 100 >= 11 && standing % 100 <= 13) {
+            return "th";
+        } else {
+            return switch (standing % 10) {
+                case 1 -> "st";
+                case 2 -> "nd";
+                case 3 -> "rd";
+                default -> "th";
+            };
+        }
+    }
+    
+    /**
+     * Returns the formal placement title of the given place. 
+     * 1 gives 1st, 2 gives second, 11 gives 11th, 103 gives 103rd.
+     * @param placement A number representing the placement
+     * @return The placement number with the appropriate postfix (st, nd, rd, th)
+     */
+    public static String getPlacementTitleString(int placement) {
+        return placement + getStandingSuffix(placement);
+    }
 }

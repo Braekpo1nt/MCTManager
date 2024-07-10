@@ -57,7 +57,7 @@ record FootRaceConfigDTO(
     record Scores(int completeLap, int[] placementPoints, int detriment) {
     }
     
-    record Durations(int startRace, int raceEndCountdown, int description) {
+    record Durations(int startRace, int raceEndCountdown, int description, int end) {
     }
     
     FootRaceConfig toConfig() {
@@ -75,6 +75,7 @@ record FootRaceConfigDTO(
                 .startRaceDuration(this.durations.startRace)
                 .raceEndCountdownDuration(this.durations.raceEndCountdown)
                 .descriptionDuration(this.durations.description)
+                .endDuration(this.durations.end)
                 .preventInteractions(this.preventInteractions != null ? this.preventInteractions : Collections.emptyList())
                 .spectatorArea(this.spectatorArea != null ? this.spectatorArea.toBoundingBox() : null)
                 .description(this.description)
