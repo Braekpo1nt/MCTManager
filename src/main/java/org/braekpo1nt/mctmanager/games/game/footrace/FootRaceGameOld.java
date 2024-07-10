@@ -360,7 +360,7 @@ public class FootRaceGameOld implements Listener, MCTGame, Configurable, Headera
             @Override
             public void run() {
                 long elapsedTime = System.currentTimeMillis() - raceStartTime;
-                String timeString = getTimeString(elapsedTime);
+                String timeString = getTimeStringMillis(elapsedTime);
                 for (Player participant : participants) {
                     if (!placements.contains(participant.getUniqueId())) {
                         sidebar.updateLine(
@@ -451,7 +451,7 @@ public class FootRaceGameOld implements Listener, MCTGame, Configurable, Headera
     private void showRaceCompleteFastBoard(UUID playerUUID) {
         long elapsedTime = System.currentTimeMillis() - raceStartTime;
         sidebar.updateLines(playerUUID, 
-                new KeyLine("elapsedTime", getTimeString(elapsedTime)), 
+                new KeyLine("elapsedTime", getTimeStringMillis(elapsedTime)), 
                 new KeyLine("lap", String.format("Finished %s!", getPlacementTitle(placements.indexOf(playerUUID) + 1)))
         );
     }
@@ -514,7 +514,7 @@ public class FootRaceGameOld implements Listener, MCTGame, Configurable, Headera
                         .append(Component.text(" finished lap "))
                         .append(Component.text(currentLap))
                         .append(Component.text(" in "))
-                        .append(Component.text(getTimeString(elapsedTime))));
+                        .append(Component.text(getTimeStringMillis(elapsedTime))));
                 gameManager.awardPointsToParticipant(participant, config.getCompleteLapScore());
                 return;
             }
@@ -655,7 +655,7 @@ public class FootRaceGameOld implements Listener, MCTGame, Configurable, Headera
      * @param timeMillis The time in milliseconds
      * @return Time string MM:ss:mmm
      */
-    private String getTimeString(long timeMillis) {
+    private String getTimeStringMillis(long timeMillis) {
         Duration duration = Duration.ofMillis(timeMillis);
         long minutes = duration.toMinutes();
         long seconds = duration.minusMinutes(minutes).getSeconds();
@@ -674,7 +674,7 @@ public class FootRaceGameOld implements Listener, MCTGame, Configurable, Headera
         int placement = placements.indexOf(participant.getUniqueId()) + 1;
         int points = calculatePointsForPlacement(placement);
         gameManager.awardPointsToParticipant(participant, points);
-        String timeString = getTimeString(elapsedTime);
+        String timeString = getTimeStringMillis(elapsedTime);
         Component endCountDown = TimeStringUtils.getTimeComponent(config.getRaceEndCountdownDuration());
         String placementTitle = getPlacementTitle(placement);
         Component placementComponent = Component.text(placementTitle);
