@@ -16,6 +16,7 @@ import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
@@ -27,6 +28,7 @@ public class ActiveState implements FootRaceState {
     private final Sidebar sidebar;
     private final Sidebar adminSidebar;
     private final TimerManager timerManager;
+    private @Nullable Timer endRaceTimer;
     
     public ActiveState(@NotNull FootRaceGame context) {
         this.context = context;
@@ -246,6 +248,12 @@ public class ActiveState implements FootRaceState {
                 .append(placementComponent)
                 .append(Component.text(" in "))
                 .append(timeComponent));
+        if (context.getPlacements().size() == context.getParticipants().size()) {
+            if (endRaceTimer != null) {
+                endRaceTimer.cancel();
+            }
+            context.setState(new GameOverState(context));
+        }
     }
     
     /**
@@ -267,9 +275,9 @@ public class ActiveState implements FootRaceState {
     }
     
     private void startEndRaceCountDown() {
-        timerManager.start(Timer.builder()
+        endRaceTimer = timerManager.start(Timer.builder()
                 .duration(config.getRaceEndCountdownDuration())
-                .withSidebar(sidebar,"timer")
+                .withSidebar(sidebar, "timer")
                 .withSidebar(adminSidebar, "timer")
                 .sidebarPrefix(Component.text("Ending: "))
                 .onCompletion(() -> {
