@@ -22,9 +22,8 @@ public class GameOverState implements MechaState {
         context.getTimerManager().start(Timer.builder()
                 .duration(context.getConfig().getEndDuration())
                 .withSidebar(context.getAdminSidebar(), "over")
-                .sidebarPrefix(Component.text("Game over: "))
+                .sidebarPrefix(Component.text("Game Over: "))
                 .withTopbar(context.getTopbar())
-                .topbarPrefix(Component.text("Game over: "))
                 .onCompletion(() -> {
                     context.getAdminSidebar().deleteLine("over");
                     context.stop();

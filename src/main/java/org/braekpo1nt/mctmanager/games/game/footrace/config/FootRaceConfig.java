@@ -24,6 +24,7 @@ public class FootRaceConfig {
     private int startRaceDuration;
     private int raceEndCountdownDuration;
     private int descriptionDuration;
+    private int endDuration;
     private List<Material> preventInteractions;
     private @Nullable BoundingBox spectatorArea;
     private Component description;
