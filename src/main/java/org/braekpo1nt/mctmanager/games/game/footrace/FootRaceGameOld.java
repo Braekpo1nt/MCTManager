@@ -52,9 +52,9 @@ import java.util.*;
 public class FootRaceGameOld implements Listener, MCTGame, Configurable, Headerable {
     
     private final int MAX_LAPS = 3;
+    private static final long COOL_DOWN_TIME = 3000L;
     private final FootRaceConfigController configController;
     private FootRaceConfig config;// 3 second
-    private static final long COOL_DOWN_TIME = 3000L;
     private Sidebar sidebar;
     private Sidebar adminSidebar;
     private boolean gameActive = false;
