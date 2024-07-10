@@ -323,15 +323,15 @@ public class FootRaceGameOld implements Listener, MCTGame, Configurable, Headera
     private void startDescriptionPeriod() {
         descriptionShowing = true;
         timerManager.start(Timer.builder()
-                        .duration(config.getDescriptionDuration())
-                        .withSidebar(adminSidebar, "timer")
-                        .sidebarPrefix(Component.text("Starting soon: "))
-                        .withSidebar(sidebar, "timer")
-                        .onCompletion(() -> {
-                            descriptionShowing = false;
-                            startStartRaceCountdownTask();
-                        })
-                        .build());
+                .duration(config.getDescriptionDuration())
+                .withSidebar(adminSidebar, "timer")
+                .withSidebar(sidebar, "timer")
+                .sidebarPrefix(Component.text("Starting soon: "))
+                .onCompletion(() -> {
+                    descriptionShowing = false;
+                    startStartRaceCountdownTask();
+                })
+                .build());
     }
     
     private void startStartRaceCountdownTask() {
