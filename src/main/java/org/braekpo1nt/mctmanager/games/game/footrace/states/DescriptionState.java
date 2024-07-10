@@ -15,26 +15,32 @@ public class DescriptionState implements FootRaceState {
     
     @Override
     public void onParticipantJoin(Player participant) {
-        
+        initializeParticipant(participant);
+        context.getSidebar().updateLine(participant.getUniqueId(), "title", context.getTitle());
+        Integer currentLap = context.getLaps().get(participant.getUniqueId());
+        context.getSidebar().updateLine(participant.getUniqueId(), "lap", String.format("Lap: %d/%d", currentLap, FootRaceGame.MAX_LAPS));
     }
     
     @Override
     public void onParticipantQuit(Player participant) {
-        
+        resetParticipant(participant);
+        context.getParticipants().remove(participant);
+        context.getLapCooldowns().remove(participant.getUniqueId());
+        context.getLaps().remove(participant.getUniqueId());
     }
     
     @Override
     public void initializeParticipant(Player participant) {
-        
+        context.initializeParticipant(participant);
     }
     
     @Override
     public void resetParticipant(Player participant) {
-        
+        context.resetParticipant(participant);
     }
     
     @Override
     public void onPlayerMove(PlayerMoveEvent event) {
-        
+        // do nothing
     }
 }
