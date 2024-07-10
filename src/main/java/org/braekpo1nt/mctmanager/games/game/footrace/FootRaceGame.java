@@ -10,32 +10,33 @@ import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.footrace.config.FootRaceConfig;
 import org.braekpo1nt.mctmanager.games.game.footrace.config.FootRaceConfigController;
+import org.braekpo1nt.mctmanager.games.game.footrace.states.DescriptionState;
 import org.braekpo1nt.mctmanager.games.game.footrace.states.FootRaceState;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
+import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
-import org.bukkit.ChatColor;
-import org.bukkit.Color;
-import org.bukkit.GameMode;
-import org.bukkit.Material;
+import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
+import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @Data
 public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable {
@@ -99,7 +100,53 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     
     @Override
     public void start(List<Player> newParticipants, List<Player> newAdmins) {
-        
+        this.participants = new ArrayList<>(newParticipants.size());
+        lapCooldowns = new HashMap<>(newParticipants.size());
+        laps = new HashMap<>(newParticipants.size());
+        placements = new ArrayList<>(newParticipants.size());
+        admins = new ArrayList<>(newAdmins.size());
+        sidebar = gameManager.getSidebarFactory().createSidebar();
+        adminSidebar = gameManager.getSidebarFactory().createSidebar();
+        plugin.getServer().getPluginManager().registerEvents(this, plugin);
+        gameManager.getTimerManager().register(timerManager);
+        closeGlassBarrier();
+        for (Player participant : newParticipants) {
+            initializeParticipant(participant);
+        }
+        startAdmins(newAdmins);
+        initializeSidebar();
+        startStatusEffectsTask();
+        setupTeamOptions();
+        state = new DescriptionState(this);
+        Bukkit.getLogger().info("Starting Foot Race game");
+    }
+    
+    private void closeGlassBarrier() {
+        BlockPlacementUtils.createCubeReplace(config.getWorld(), config.getGlassBarrier(), Material.AIR, Material.WHITE_STAINED_GLASS_PANE);
+        BlockPlacementUtils.updateDirection(config.getWorld(), config.getGlassBarrier());
+    }
+    
+    private void startStatusEffectsTask() {
+        this.statusEffectsTaskId = new BukkitRunnable(){
+            @Override
+            public void run() {
+                for (Player participant : participants) {
+                    participant.addPotionEffect(SPEED);
+                    participant.addPotionEffect(INVISIBILITY);
+                }
+            }
+        }.runTaskTimer(plugin, 0L, 60L).getTaskId();
+    }
+    
+    private void setupTeamOptions() {
+        Scoreboard mctScoreboard = gameManager.getMctScoreboard();
+        for (Team team : mctScoreboard.getTeams()) {
+            team.setAllowFriendlyFire(false);
+            team.setCanSeeFriendlyInvisibles(true);
+            team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.ALWAYS);
+            team.setOption(Team.Option.DEATH_MESSAGE_VISIBILITY, Team.OptionStatus.ALWAYS);
+            team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER);
+        }
     }
     
     public void initializeParticipant(Player participant) {
@@ -128,7 +175,26 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     
     @Override
     public void stop() {
-        
+        HandlerList.unregisterAll(this);
+        closeGlassBarrier();
+        cancelAllTasks();
+        stopAdmins();
+        for (Player participant : participants) {
+            resetParticipant(participant);
+        }
+        clearSidebar();
+        participants.clear();
+        lapCooldowns.clear();
+        laps.clear();
+        placements.clear();
+        gameManager.gameIsOver();
+        Bukkit.getLogger().info("Stopping Foot Race game");
+    }
+    
+    private void cancelAllTasks() {
+        Bukkit.getScheduler().cancelTask(timerRefreshTaskId);
+        Bukkit.getScheduler().cancelTask(statusEffectsTaskId);
+        timerManager.cancel();
     }
     
     public void resetParticipant(Player participant) {
@@ -148,24 +214,94 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         
     }
     
+    private void startAdmins(List<Player> newAdmins) {
+        this.admins = new ArrayList<>(newAdmins.size());
+        for (Player admin : newAdmins) {
+            initializeAdmin(admin);
+        }
+        initializeAdminSidebar();
+    }
+    
+    private void initializeAdminSidebar() {
+        adminSidebar.addLines(
+                new KeyLine("title", title),
+                new KeyLine("elapsedTime", "00:00:000"),
+                new KeyLine("timer", "")
+        );
+    }
+    
     @Override
     public void onAdminJoin(Player admin) {
-        
+        initializeAdmin(admin);
+        adminSidebar.updateLine(admin.getUniqueId(), "title", title);
+    }
+    
+    private void initializeAdmin(Player admin) {
+        admins.add(admin);
+        adminSidebar.addPlayer(admin);
+        admin.setGameMode(GameMode.SPECTATOR);
+        admin.teleport(config.getStartingLocation());
     }
     
     @Override
     public void onAdminQuit(Player admin) {
-        
+        resetAdmin(admin);
+        admins.remove(admin);
     }
     
-    @Override
-    public void updatePersonalScore(Player participant, String contents) {
-        
+    private void stopAdmins() {
+        for (Player admin : admins) {
+            resetAdmin(admin);
+        }
+        clearAdminSidebar();
+        admins.clear();
+    }
+    
+    private void resetAdmin(Player admin) {
+        adminSidebar.removePlayer(admin);
     }
     
     @Override
     public void updateTeamScore(Player participant, String contents) {
-        
+        if (sidebar == null) {
+            return;
+        }
+        if (!participants.contains(participant)) {
+            return;
+        }
+        sidebar.updateLine(participant.getUniqueId(), "personalTeam", contents);
+    }
+    
+    @Override
+    public void updatePersonalScore(Player participant, String contents) {
+        if (sidebar == null) {
+            return;
+        }
+        if (!participants.contains(participant)) {
+            return;
+        }
+        sidebar.updateLine(participant.getUniqueId(), "personalScore", contents);
+    }
+    
+    private void clearAdminSidebar() {
+        adminSidebar.deleteAllLines();
+        adminSidebar = null;
+    }
+    
+    private void initializeSidebar() {
+        sidebar.addLines(
+                new KeyLine("personalTeam", ""),
+                new KeyLine("personalScore", ""),
+                new KeyLine("title", title),
+                new KeyLine("elapsedTime", "00:00:000"),
+                new KeyLine("lap", String.format("Lap: %d/%d", 1, MAX_LAPS)),
+                new KeyLine("timer", "")
+        );
+    }
+    
+    private void clearSidebar() {
+        sidebar.deleteAllLines();
+        sidebar = null;
     }
     
     // state calling methods

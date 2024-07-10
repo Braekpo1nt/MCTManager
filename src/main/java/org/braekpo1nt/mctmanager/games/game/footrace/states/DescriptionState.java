@@ -16,6 +16,7 @@ public class DescriptionState implements FootRaceState {
     }
     
     protected void startTimer() {
+        context.messageAllParticipants(context.getConfig().getDescription());
         context.getTimerManager().start(Timer.builder()
                 .duration(context.getConfig().getDescriptionDuration())
                 .withSidebar(context.getSidebar(), "timer")

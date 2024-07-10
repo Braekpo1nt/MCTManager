@@ -23,6 +23,7 @@ public class DescriptionState implements MechaState {
     }
     
     protected void startTimer() {
+        context.messageAllParticipants(context.getConfig().getDescription());
         context.getTimerManager().start(Timer.builder()
                 .duration(context.getConfig().getDescriptionDuration())
                 .withSidebar(context.getAdminSidebar(), "timer")
