@@ -1,4 +1,4 @@
 package org.braekpo1nt.mctmanager.games.game.footrace.states;
 
-public class StartingState implements FootRaceState {
+public class StartingState extends DescriptionState {
 }
