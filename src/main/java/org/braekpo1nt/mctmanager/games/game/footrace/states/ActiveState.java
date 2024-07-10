@@ -14,6 +14,7 @@ import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
@@ -34,6 +35,39 @@ public class ActiveState implements FootRaceState {
         this.sidebar = context.getSidebar();
         this.adminSidebar = context.getAdminSidebar();
         this.timerManager = context.getTimerManager();
+        startRace();
+    }
+    
+    private void startRace() {
+        context.openGlassBarrier();
+        context.setRaceStartTime(System.currentTimeMillis());
+        startTimerRefreshTask();
+    }
+    
+    private void startTimerRefreshTask() {
+        context.setTimerRefreshTaskId(new BukkitRunnable(){
+            @Override
+            public void run() {
+                long elapsedTime = System.currentTimeMillis() - context.getRaceStartTime();
+                Component timeComponent = TimeStringUtils.getTimeComponentMillis(elapsedTime);
+                for (Player participant : context.getParticipants()) {
+                    if (!completedRace(participant)) {
+                        sidebar.updateLine(
+                                participant.getUniqueId(),
+                                "elapsedTime",
+                                timeComponent
+                        );
+                    }
+                }
+                for (Player admin : context.getAdmins()) {
+                    adminSidebar.updateLine(
+                            admin.getUniqueId(),
+                            "elapsedTime",
+                            timeComponent
+                    );
+                }
+            }
+        }.runTaskTimer(context.getPlugin(), 0, 1).getTaskId());
     }
     
     @Override

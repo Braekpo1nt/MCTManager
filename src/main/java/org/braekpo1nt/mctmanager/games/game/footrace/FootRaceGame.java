@@ -121,9 +121,13 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         Bukkit.getLogger().info("Starting Foot Race game");
     }
     
-    private void closeGlassBarrier() {
+    public void closeGlassBarrier() {
         BlockPlacementUtils.createCubeReplace(config.getWorld(), config.getGlassBarrier(), Material.AIR, Material.WHITE_STAINED_GLASS_PANE);
         BlockPlacementUtils.updateDirection(config.getWorld(), config.getGlassBarrier());
+    }
+    
+    public void openGlassBarrier() {
+        BlockPlacementUtils.createCubeReplace(config.getWorld(), config.getGlassBarrier(), Material.WHITE_STAINED_GLASS_PANE, Material.AIR);
     }
     
     private void startStatusEffectsTask() {
@@ -206,12 +210,16 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     
     @Override
     public void onParticipantJoin(Player participant) {
-        
+        if (state != null) {
+            state.onParticipantJoin(participant);
+        }
     }
     
     @Override
     public void onParticipantQuit(Player participant) {
-        
+        if (state != null) {
+            state.onParticipantQuit(participant);
+        }
     }
     
     private void startAdmins(List<Player> newAdmins) {

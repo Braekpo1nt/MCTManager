@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.footrace.states;
 
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceGame;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
@@ -17,7 +18,8 @@ public class StartingState extends DescriptionState {
                 .duration(context.getConfig().getDescriptionDuration())
                 .withSidebar(context.getSidebar(), "timer")
                 .withSidebar(context.getAdminSidebar(), "timer")
-                .sidebarPrefix(Component.text("Starting soon: "))
+                .sidebarPrefix(Component.text("Starting: "))
+                .titleAudience(Audience.audience(context.getParticipants()))
                 .onCompletion(() -> {
                     context.setState(new ActiveState(context));
                 })
