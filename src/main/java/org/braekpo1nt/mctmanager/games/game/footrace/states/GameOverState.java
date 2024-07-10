@@ -2,7 +2,6 @@ package org.braekpo1nt.mctmanager.games.game.footrace.states;
 
 import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceGame;
 import org.bukkit.entity.Player;
-import org.bukkit.event.player.PlayerMoveEvent;
 import org.jetbrains.annotations.NotNull;
 
 public class GameOverState implements FootRaceState {
@@ -34,7 +33,7 @@ public class GameOverState implements FootRaceState {
     }
     
     @Override
-    public void onPlayerMove(PlayerMoveEvent event) {
+    public void onParticipantMove(Player participant) {
         
     }
 }

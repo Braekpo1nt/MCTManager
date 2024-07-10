@@ -1,12 +1,19 @@
 package org.braekpo1nt.mctmanager.games.game.footrace.states;
 
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceGame;
+import org.braekpo1nt.mctmanager.games.game.footrace.config.FootRaceConfig;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
+import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
+import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
+import org.braekpo1nt.mctmanager.ui.timer.Timer;
+import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.bukkit.entity.Player;
-import org.bukkit.event.player.PlayerMoveEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
@@ -14,9 +21,19 @@ import java.util.UUID;
 public class ActiveState implements FootRaceState {
     
     private final @NotNull FootRaceGame context;
+    private final FootRaceConfig config;
+    private final GameManager gameManager;
+    private final Sidebar sidebar;
+    private final Sidebar adminSidebar;
+    private final TimerManager timerManager;
     
     public ActiveState(@NotNull FootRaceGame context) {
         this.context = context;
+        this.gameManager = context.getGameManager();
+        this.config = context.getConfig();
+        this.sidebar = context.getSidebar();
+        this.adminSidebar = context.getAdminSidebar();
+        this.timerManager = context.getTimerManager();
     }
     
     @Override
@@ -26,13 +43,13 @@ public class ActiveState implements FootRaceState {
         } else {
             initializeParticipant(participant);
         }
-        context.getSidebar().updateLine(participant.getUniqueId(), "title", context.getTitle());
+        sidebar.updateLine(participant.getUniqueId(), "title", context.getTitle());
         
         Integer currentLap = context.getLaps().get(participant.getUniqueId());
         if (currentLap > FootRaceGame.MAX_LAPS) {
             showRaceCompleteFastBoard(participant.getUniqueId());
         } else {
-            context.getSidebar().updateLine(participant.getUniqueId(), "lap", String.format("Lap: %d/%d", currentLap, FootRaceGame.MAX_LAPS));
+            sidebar.updateLine(participant.getUniqueId(), "lap", String.format("Lap: %d/%d", currentLap, FootRaceGame.MAX_LAPS));
         }
     }
     
@@ -49,7 +66,7 @@ public class ActiveState implements FootRaceState {
     
     private void rejoinParticipant(Player participant) {
         context.getParticipants().add(participant);
-        context.getSidebar().addPlayer(participant);
+        sidebar.addPlayer(participant);
         if (completedRace(participant)) {
             showRaceCompleteFastBoard(participant.getUniqueId());
         }
@@ -66,7 +83,7 @@ public class ActiveState implements FootRaceState {
     
     private void showRaceCompleteFastBoard(UUID playerUUID) {
         long elapsedTime = System.currentTimeMillis() - context.getRaceStartTime();
-        context.getSidebar().updateLines(playerUUID,
+        sidebar.updateLines(playerUUID,
                 new KeyLine("elapsedTime", TimeStringUtils.getTimeComponentMillis(elapsedTime)),
                 new KeyLine("lap", Component.empty()
                         .append(Component.text("Finished "))
@@ -93,7 +110,137 @@ public class ActiveState implements FootRaceState {
     }
     
     @Override
-    public void onPlayerMove(PlayerMoveEvent event) {
+    public void onParticipantMove(Player participant) {
+        UUID playerUUID = participant.getUniqueId();
+        if (!participant.getWorld().equals(config.getWorld())) {
+            return;
+        }
         
+        if (isInFinishLineBoundingBox(participant)) {
+            long lastMoveTime = context.getLapCooldowns().get(playerUUID);
+            long currentTime = System.currentTimeMillis();
+            if (currentTime - lastMoveTime < FootRaceGame.COOL_DOWN_TIME) {
+                return;
+            }
+            context.getLapCooldowns().put(playerUUID, currentTime);
+            
+            int currentLap = context.getLaps().get(playerUUID);
+            if (currentLap < FootRaceGame.MAX_LAPS) {
+                long elapsedTime = currentTime - context.getRaceStartTime();
+                int newLap = currentLap + 1;
+                context.getLaps().put(playerUUID, newLap);
+                sidebar.updateLine(
+                        playerUUID,
+                        "lap",
+                        String.format("Lap: %d/%d", context.getLaps().get(playerUUID), FootRaceGame.MAX_LAPS)
+                );
+                participant.showTitle(UIUtils.defaultTitle(
+                        Component.empty(),
+                        Component.empty()
+                                .append(Component.text("Lap "))
+                                .append(Component.text(currentLap+1))
+                                .color(NamedTextColor.YELLOW)
+                ));
+                context.messageAllParticipants(Component.empty()
+                        .append(participant.displayName())
+                        .append(Component.text(" finished lap "))
+                        .append(Component.text(currentLap))
+                        .append(Component.text(" in "))
+                        .append(TimeStringUtils.getTimeComponentMillis(elapsedTime)));
+                gameManager.awardPointsToParticipant(participant, config.getCompleteLapScore());
+                return;
+            }
+            if (currentLap == FootRaceGame.MAX_LAPS) {
+                context.getLaps().put(playerUUID, currentLap + 1);
+                onPlayerFinishedRace(participant);
+            }
+        }
+    }
+    
+    private boolean isInFinishLineBoundingBox(Player player) {
+        return config.getFinishLine().contains(player.getLocation().toVector());
+    }
+    
+    /**
+     * Code to run when a single participant crosses the finish line for the last time
+     * @param participant The participant who crossed the finish line
+     */
+    private void onPlayerFinishedRace(Player participant) {
+        long elapsedTime = System.currentTimeMillis() - context.getRaceStartTime();
+        context.getPlacements().add(participant.getUniqueId());
+        showRaceCompleteFastBoard(participant.getUniqueId());
+        int placement = context.getPlacements().indexOf(participant.getUniqueId()) + 1;
+        int points = calculatePointsForPlacement(placement);
+        gameManager.awardPointsToParticipant(participant, points);
+        Component timeComponent = TimeStringUtils.getTimeComponentMillis(elapsedTime);
+        Component endCountDown = TimeStringUtils.getTimeComponent(config.getRaceEndCountdownDuration());
+        Component placementComponent = GameManagerUtils.getPlacementTitle(placement);
+        participant.showTitle(UIUtils.defaultTitle(
+                Component.empty()
+                        .append(Component.text("Finished "))
+                        .append(placementComponent)
+                        .color(NamedTextColor.GREEN),
+                Component.empty()
+                        .append(Component.text("Well done"))
+                        .color(NamedTextColor.GREEN)
+        ));
+        if (context.getPlacements().size() == 1) {
+            context.messageAllParticipants(Component.empty()
+                    .append(Component.text(participant.getName()))
+                    .append(Component.text(" finished 1st in "))
+                    .append(timeComponent)
+                    .append(Component.text("! "))
+                    .append(Component.text("Only ")
+                            .append(endCountDown)
+                            .append(Component.text(" remain!"))
+                            .color(NamedTextColor.RED))
+                    .color(NamedTextColor.GREEN));
+            Audience.audience(context.getParticipants().stream()
+                            .filter(p -> !p.equals(participant)).toList())
+                    .showTitle(UIUtils.defaultTitle(
+                            Component.empty(),
+                            Component.empty()
+                                    .append(endCountDown)
+                                    .append(Component.text(" left"))
+                                    .color(NamedTextColor.RED)
+                    ));
+            startEndRaceCountDown();
+            return;
+        }
+        context.messageAllParticipants(Component.text(participant.getName())
+                .append(Component.text(" finished "))
+                .append(placementComponent)
+                .append(Component.text(" in "))
+                .append(timeComponent));
+    }
+    
+    /**
+     * Calculates the points to be awarded for the given placement. This is based on user-configured values. Returns a set number of values for placement less than or equal to x, and a detriment of 10 points for each successive placement greater than x
+     * @param placement the placement number (1=1st place, 2=2nd place, 300=300th place) to get the points for. Must be 1 or more.
+     * @return The number of points to award for the placement, no less than 0.
+     */
+    private int calculatePointsForPlacement(int placement) {
+        if (placement < 1) {
+            throw new IllegalArgumentException("placement can't be less than 1");
+        }
+        int[] placementPoints = config.getPlacementPoints();
+        if (placement <= placementPoints.length) {
+            return placementPoints[placement-1];
+        }
+        int minPlacementPoints = placementPoints[placementPoints.length-1];
+        int points = minPlacementPoints - ((placement-placementPoints.length) * config.getDetriment());
+        return Math.max(points, 0);
+    }
+    
+    private void startEndRaceCountDown() {
+        timerManager.start(Timer.builder()
+                .duration(config.getRaceEndCountdownDuration())
+                .withSidebar(sidebar,"timer")
+                .withSidebar(adminSidebar, "timer")
+                .sidebarPrefix(Component.text("Ending: "))
+                .onCompletion(() -> {
+                    context.setState(new GameOverState(context));
+                })
+                .build());
     }
 }

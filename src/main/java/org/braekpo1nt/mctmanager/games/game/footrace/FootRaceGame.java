@@ -1,6 +1,8 @@
 package org.braekpo1nt.mctmanager.games.game.footrace;
 
 import lombok.Data;
+import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
@@ -20,7 +22,9 @@ import org.bukkit.Color;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.potion.PotionEffect;
@@ -39,7 +43,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     private @Nullable FootRaceState state;
     
     public static final int MAX_LAPS = 3;
-    private static final long COOL_DOWN_TIME = 3000L;
+    public static final long COOL_DOWN_TIME = 3000L;
     private final FootRaceConfigController configController;
     private final Main plugin;
     private final GameManager gameManager;
@@ -162,5 +166,44 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     @Override
     public void updateTeamScore(Player participant, String contents) {
         
+    }
+    
+    // state calling methods
+    
+    @EventHandler
+    public void onPlayerMove(PlayerMoveEvent event) {
+        Player participant = event.getPlayer();
+        if (!participants.contains(participant)) {
+            return;
+        }
+        if (state != null) {
+            state.onParticipantMove(participant);
+        }
+        if (participant.getGameMode().equals(GameMode.SPECTATOR)) {
+            keepSpectatorsInArea(participant, event);
+        }
+    }
+    
+    /**
+     * Prevent spectators from leaving the spectatorArea
+     * @param participant the participant (assumed to be a valid participant of this game in the SPECTATOR gamemode
+     * @param event the event which may be cancelled in order to keep the given participant in the spectator area
+     */
+    private void keepSpectatorsInArea(@NotNull Player participant, PlayerMoveEvent event) {
+        if (config.getSpectatorArea() == null){
+            return;
+        }
+        if (!config.getSpectatorArea().contains(event.getFrom().toVector())) {
+            participant.teleport(config.getStartingLocation());
+            return;
+        }
+        if (!config.getSpectatorArea().contains(event.getTo().toVector())) {
+            event.setCancelled(true);
+        }
+    }
+    
+    public void messageAllParticipants(Component message) {
+        gameManager.messageAdmins(message);
+        Audience.audience(participants).sendMessage(message);
     }
 }
