@@ -71,8 +71,11 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
      * the index in the checkpoint list that each participant is in
      */
     private Map<UUID, Integer> checkpointIndexes;
+    /**
+     * Participants who have finished the race, stored in standing order
+     * (first entry came in first place, second entry came in second place, etc.)
+     */
     private List<UUID> finishedParticipants;
-    private ArrayList<UUID> placements;
     private long raceStartTime;
     private int statusEffectsTaskId;
     private String title = baseTitle;
@@ -115,7 +118,6 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         this.participants = new ArrayList<>(newParticipants.size());
         lapCooldowns = new HashMap<>(newParticipants.size());
         laps = new HashMap<>(newParticipants.size());
-        placements = new ArrayList<>(newParticipants.size());
         checkpointIndexes = new HashMap<>(newParticipants.size());
         finishedParticipants = new ArrayList<>(newParticipants.size());
         admins = new ArrayList<>(newAdmins.size());
@@ -205,9 +207,8 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         participants.clear();
         lapCooldowns.clear();
         laps.clear();
-        placements.clear();
-        checkpointIndexes.clear();
         finishedParticipants.clear();
+        checkpointIndexes.clear();
         gameManager.gameIsOver();
         Bukkit.getLogger().info("Stopping Foot Race game");
     }

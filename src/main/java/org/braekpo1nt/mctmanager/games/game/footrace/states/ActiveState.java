@@ -115,7 +115,7 @@ public class ActiveState implements FootRaceState {
      * @return true if the given participant has already completed the race
      */
     private boolean completedRace(Player participant) {
-        return context.getPlacements().contains(participant.getUniqueId());
+        return context.getFinishedParticipants().contains(participant.getUniqueId());
     }
     
     private void showRaceCompleteFastBoard(UUID playerUUID) {
@@ -125,7 +125,7 @@ public class ActiveState implements FootRaceState {
                 new KeyLine("lap", Component.empty()
                         .append(Component.text("Finished "))
                         .append(GameManagerUtils.getPlacementTitle(
-                                context.getPlacements().indexOf(playerUUID) + 1))
+                                context.getFinishedParticipants().indexOf(playerUUID) + 1))
                         .append(Component.text("!")))
         );
     }
@@ -162,7 +162,6 @@ public class ActiveState implements FootRaceState {
         if (nextCheckpoint.contains(participant.getLocation().toVector())) {
             onParticipantReachCheckpoint(participant, nextCheckpointIndex);
         }
-        updateStandings(participant);
     }
     
     /**
@@ -179,6 +178,7 @@ public class ActiveState implements FootRaceState {
         if (nextCheckpointIndex >= context.getCheckpointIndexes().size() - 1) {
             onParticipantCrossFinishLine(participant);
         }
+        updateStandings(participant);
     }
     
     private void onParticipantCrossFinishLine(Player participant) {
@@ -222,9 +222,9 @@ public class ActiveState implements FootRaceState {
      */
     private void onPlayerFinishedRace(Player participant) {
         long elapsedTime = System.currentTimeMillis() - context.getRaceStartTime();
-        context.getPlacements().add(participant.getUniqueId());
+        context.getFinishedParticipants().add(participant.getUniqueId());
         showRaceCompleteFastBoard(participant.getUniqueId());
-        int placement = context.getPlacements().indexOf(participant.getUniqueId()) + 1;
+        int placement = context.getFinishedParticipants().indexOf(participant.getUniqueId()) + 1;
         int points = calculatePointsForPlacement(placement);
         gameManager.awardPointsToParticipant(participant, points);
         Component timeComponent = TimeStringUtils.getTimeComponentMillis(elapsedTime);
@@ -239,7 +239,7 @@ public class ActiveState implements FootRaceState {
                         .append(Component.text("Well done"))
                         .color(NamedTextColor.GREEN)
         ));
-        if (context.getPlacements().size() == 1) {
+        if (context.getFinishedParticipants().size() == 1) {
             context.messageAllParticipants(Component.empty()
                     .append(Component.text(participant.getName()))
                     .append(Component.text(" finished 1st in "))
@@ -267,7 +267,7 @@ public class ActiveState implements FootRaceState {
                 .append(placementComponent)
                 .append(Component.text(" in "))
                 .append(timeComponent));
-        if (context.getPlacements().size() == context.getParticipants().size()) {
+        if (context.getFinishedParticipants().size() == context.getParticipants().size()) {
             if (endRaceTimer != null) {
                 endRaceTimer.cancel();
             }

@@ -56,7 +56,7 @@ public class ActiveStateLegacy implements FootRaceState {
                 long elapsedTime = System.currentTimeMillis() - context.getRaceStartTime();
                 Component timeComponent = TimeStringUtils.getTimeComponentMillis(elapsedTime);
                 for (Player participant : context.getParticipants()) {
-                    if (!completedRace(participant)) {
+                    if (!finishedRace(participant)) {
                         sidebar.updateLine(
                                 participant.getUniqueId(),
                                 "elapsedTime",
@@ -99,14 +99,14 @@ public class ActiveStateLegacy implements FootRaceState {
      * if the participant wasn't in the game before. 
      */
     private boolean participantShouldRejoin(Player participant) {
-        return completedRace(participant) 
+        return finishedRace(participant) 
                 || context.getLaps().containsKey(participant.getUniqueId());
     }
     
     private void rejoinParticipant(Player participant) {
         context.getParticipants().add(participant);
         sidebar.addPlayer(participant);
-        if (completedRace(participant)) {
+        if (finishedRace(participant)) {
             showRaceCompleteFastBoard(participant.getUniqueId());
         }
         context.giveBoots(participant);
@@ -116,8 +116,8 @@ public class ActiveStateLegacy implements FootRaceState {
      * @param participant the participant
      * @return true if the given participant has already completed the race
      */
-    private boolean completedRace(Player participant) {
-        return context.getPlacements().contains(participant.getUniqueId());
+    private boolean finishedRace(Player participant) {
+        return context.getFinishedParticipants().contains(participant.getUniqueId());
     }
     
     private void showRaceCompleteFastBoard(UUID playerUUID) {
@@ -127,7 +127,7 @@ public class ActiveStateLegacy implements FootRaceState {
                 new KeyLine("lap", Component.empty()
                         .append(Component.text("Finished "))
                         .append(GameManagerUtils.getPlacementTitle(
-                                context.getPlacements().indexOf(playerUUID) + 1))
+                                context.getFinishedParticipants().indexOf(playerUUID) + 1))
                         .append(Component.text("!")))
         );
     }
@@ -206,9 +206,9 @@ public class ActiveStateLegacy implements FootRaceState {
      */
     private void onPlayerFinishedRace(Player participant) {
         long elapsedTime = System.currentTimeMillis() - context.getRaceStartTime();
-        context.getPlacements().add(participant.getUniqueId());
+        context.getFinishedParticipants().add(participant.getUniqueId());
         showRaceCompleteFastBoard(participant.getUniqueId());
-        int placement = context.getPlacements().indexOf(participant.getUniqueId()) + 1;
+        int placement = context.getFinishedParticipants().indexOf(participant.getUniqueId()) + 1;
         int points = calculatePointsForPlacement(placement);
         gameManager.awardPointsToParticipant(participant, points);
         Component timeComponent = TimeStringUtils.getTimeComponentMillis(elapsedTime);
@@ -223,7 +223,7 @@ public class ActiveStateLegacy implements FootRaceState {
                         .append(Component.text("Well done"))
                         .color(NamedTextColor.GREEN)
         ));
-        if (context.getPlacements().size() == 1) {
+        if (context.getFinishedParticipants().size() == 1) {
             context.messageAllParticipants(Component.empty()
                     .append(Component.text(participant.getName()))
                     .append(Component.text(" finished 1st in "))
@@ -251,7 +251,7 @@ public class ActiveStateLegacy implements FootRaceState {
                 .append(placementComponent)
                 .append(Component.text(" in "))
                 .append(timeComponent));
-        if (context.getPlacements().size() == context.getParticipants().size()) {
+        if (context.getFinishedParticipants().size() == context.getParticipants().size()) {
             if (endRaceTimer != null) {
                 endRaceTimer.cancel();
             }
