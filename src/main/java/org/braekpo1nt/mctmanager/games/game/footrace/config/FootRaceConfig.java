@@ -31,7 +31,7 @@ public class FootRaceConfig {
      * pass through all of these in order to be considered a lap. If this is null, then use
      * the {@link #finishLine}
      */
-    private @Nullable List<BoundingBox> checkpoints;
+    private List<BoundingBox> checkpoints;
     private @Nullable BoundingBox spectatorArea;
     private Component description;
     

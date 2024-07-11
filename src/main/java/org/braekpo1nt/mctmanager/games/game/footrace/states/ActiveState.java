@@ -15,6 +15,7 @@ import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -147,54 +148,63 @@ public class ActiveState implements FootRaceState {
     
     @Override
     public void onParticipantMove(Player participant) {
-        UUID playerUUID = participant.getUniqueId();
-        if (!participant.getWorld().equals(config.getWorld())) {
+        UUID uuid = participant.getUniqueId();
+        if (context.getFinishedParticipants().contains(uuid)) {
             return;
         }
-        
-        if (isInFinishLineBoundingBox(participant)) {
-            long lastMoveTime = context.getLapCooldowns().get(playerUUID);
-            long currentTime = System.currentTimeMillis();
-            if (currentTime - lastMoveTime < FootRaceGame.COOL_DOWN_TIME) {
-                return;
-            }
-            context.getLapCooldowns().put(playerUUID, currentTime);
-            
-            int currentLap = context.getLaps().get(playerUUID);
-            if (currentLap < FootRaceGame.MAX_LAPS) {
-                long elapsedTime = currentTime - context.getRaceStartTime();
-                int newLap = currentLap + 1;
-                context.getLaps().put(playerUUID, newLap);
-                sidebar.updateLine(
-                        playerUUID,
-                        "lap",
-                        String.format("Lap: %d/%d", context.getLaps().get(playerUUID), FootRaceGame.MAX_LAPS)
-                );
-                participant.showTitle(UIUtils.defaultTitle(
-                        Component.empty(),
-                        Component.empty()
-                                .append(Component.text("Lap "))
-                                .append(Component.text(currentLap+1))
-                                .color(NamedTextColor.YELLOW)
-                ));
-                context.messageAllParticipants(Component.empty()
-                        .append(participant.displayName())
-                        .append(Component.text(" finished lap "))
-                        .append(Component.text(currentLap))
-                        .append(Component.text(" in "))
-                        .append(TimeStringUtils.getTimeComponentMillis(elapsedTime)));
-                gameManager.awardPointsToParticipant(participant, config.getCompleteLapScore());
-                return;
-            }
-            if (currentLap == FootRaceGame.MAX_LAPS) {
-                context.getLaps().put(playerUUID, currentLap + 1);
-                onPlayerFinishedRace(participant);
-            }
+        int currentCheckpointIndex = context.getCheckpointIndexes().get(uuid);
+        int nextCheckpointIndex = currentCheckpointIndex + 1;
+        if (nextCheckpointIndex >= config.getCheckpoints().size()) {
+            // should not occur because of the above check
+            return;
+        }
+        BoundingBox nextCheckpoint = config.getCheckpoints().get(nextCheckpointIndex);
+        if (nextCheckpoint.contains(participant.getLocation().toVector())) {
+            onParticipantReachCheckpoint(participant, nextCheckpointIndex);
         }
     }
     
-    private boolean isInFinishLineBoundingBox(Player player) {
-        return config.getFinishLine().contains(player.getLocation().toVector());
+    private void onParticipantReachCheckpoint(Player participant, int nextCheckpointIndex) {
+        UUID uuid = participant.getUniqueId();
+        context.getCheckpointIndexes().put(uuid, nextCheckpointIndex);
+        if (nextCheckpointIndex >= context.getCheckpointIndexes().size() - 1) {
+            onParticipantCrossFinishLine(participant);
+        }
+    }
+    
+    private void onParticipantCrossFinishLine(Player participant) {
+        UUID uuid = participant.getUniqueId();
+        int currentLap = context.getLaps().get(uuid);
+        if (currentLap < FootRaceGame.MAX_LAPS) {
+            int newLap = currentLap + 1;
+            context.getLaps().put(uuid, newLap);
+            sidebar.updateLine(
+                    uuid,
+                    "lap",
+                    String.format("Lap: %d/%d", context.getLaps().get(uuid), FootRaceGame.MAX_LAPS)
+            );
+            participant.showTitle(UIUtils.defaultTitle(
+                    Component.empty(),
+                    Component.empty()
+                            .append(Component.text("Lap "))
+                            .append(Component.text(currentLap+1))
+                            .color(NamedTextColor.YELLOW)
+            ));
+            long currentTime = System.currentTimeMillis();
+            long elapsedTime = currentTime - context.getRaceStartTime();
+            context.messageAllParticipants(Component.empty()
+                    .append(participant.displayName())
+                    .append(Component.text(" finished lap "))
+                    .append(Component.text(currentLap))
+                    .append(Component.text(" in "))
+                    .append(TimeStringUtils.getTimeComponentMillis(elapsedTime)));
+            gameManager.awardPointsToParticipant(participant, config.getCompleteLapScore());
+            return;
+        }
+        if (currentLap == FootRaceGame.MAX_LAPS) {
+            context.getLaps().put(uuid, currentLap + 1);
+            onPlayerFinishedRace(participant);
+        }
     }
     
     /**

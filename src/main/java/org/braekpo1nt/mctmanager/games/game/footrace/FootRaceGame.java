@@ -70,7 +70,8 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     /**
      * the index in the checkpoint list that each participant is in
      */
-    private Map<UUID, Integer> checkpointIndex;
+    private Map<UUID, Integer> checkpointIndexes;
+    private List<UUID> finishedParticipants;
     private ArrayList<UUID> placements;
     private long raceStartTime;
     private int statusEffectsTaskId;
@@ -115,6 +116,8 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         lapCooldowns = new HashMap<>(newParticipants.size());
         laps = new HashMap<>(newParticipants.size());
         placements = new ArrayList<>(newParticipants.size());
+        checkpointIndexes = new HashMap<>(newParticipants.size());
+        finishedParticipants = new ArrayList<>(newParticipants.size());
         admins = new ArrayList<>(newAdmins.size());
         sidebar = gameManager.getSidebarFactory().createSidebar();
         adminSidebar = gameManager.getSidebarFactory().createSidebar();
@@ -169,7 +172,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         participants.add(participant);
         lapCooldowns.put(participantUUID, System.currentTimeMillis());
         laps.put(participantUUID, 1);
-        checkpointIndex.put(participantUUID, 0);
+        checkpointIndexes.put(participantUUID, 0);
         sidebar.addPlayer(participant);
         participant.teleport(config.getStartingLocation());
         participant.setBedSpawnLocation(config.getStartingLocation(), true);
@@ -203,6 +206,8 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         lapCooldowns.clear();
         laps.clear();
         placements.clear();
+        checkpointIndexes.clear();
+        finishedParticipants.clear();
         gameManager.gameIsOver();
         Bukkit.getLogger().info("Stopping Foot Race game");
     }
