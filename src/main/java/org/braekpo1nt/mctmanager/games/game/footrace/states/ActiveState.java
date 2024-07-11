@@ -162,6 +162,15 @@ public class ActiveState implements FootRaceState {
         if (nextCheckpoint.contains(participant.getLocation().toVector())) {
             onParticipantReachCheckpoint(participant, nextCheckpointIndex);
         }
+        updateStandings(participant);
+    }
+    
+    /**
+     * check if the given participant's standings changed. If they did, update the standings visually. 
+     * @param movedParticipant the participant whose standing might have changed
+     */
+    private void updateStandings(Player movedParticipant) {
+        throw new UnsupportedOperationException("not yet implemented");
     }
     
     private void onParticipantReachCheckpoint(Player participant, int nextCheckpointIndex) {
