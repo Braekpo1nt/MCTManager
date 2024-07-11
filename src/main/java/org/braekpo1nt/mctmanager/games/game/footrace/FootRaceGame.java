@@ -67,6 +67,9 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     private List<Player> admins;
     private Map<UUID, Long> lapCooldowns;
     private Map<UUID, Integer> laps;
+    /**
+     * the index in the checkpoint list that each participant is in
+     */
     private Map<UUID, Integer> checkpointIndex;
     private ArrayList<UUID> placements;
     private long raceStartTime;
@@ -162,10 +165,11 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     }
     
     public void initializeParticipant(Player participant) {
-        UUID participantUniqueId = participant.getUniqueId();
+        UUID participantUUID = participant.getUniqueId();
         participants.add(participant);
-        lapCooldowns.put(participantUniqueId, System.currentTimeMillis());
-        laps.put(participantUniqueId, 1);
+        lapCooldowns.put(participantUUID, System.currentTimeMillis());
+        laps.put(participantUUID, 1);
+        checkpointIndex.put(participantUUID, 0);
         sidebar.addPlayer(participant);
         participant.teleport(config.getStartingLocation());
         participant.setBedSpawnLocation(config.getStartingLocation(), true);

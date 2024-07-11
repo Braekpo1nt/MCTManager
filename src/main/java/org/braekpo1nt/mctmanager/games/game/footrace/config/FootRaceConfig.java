@@ -26,6 +26,12 @@ public class FootRaceConfig {
     private int descriptionDuration;
     private int endDuration;
     private List<Material> preventInteractions;
+    /**
+     * the checkpoints in the race. The last one is the finish line. Players must
+     * pass through all of these in order to be considered a lap. If this is null, then use
+     * the {@link #finishLine}
+     */
+    private @Nullable List<BoundingBox> checkpoints;
     private @Nullable BoundingBox spectatorArea;
     private Component description;
     
