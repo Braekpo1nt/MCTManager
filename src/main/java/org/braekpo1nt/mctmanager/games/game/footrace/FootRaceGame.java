@@ -67,6 +67,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     private List<Player> admins;
     private Map<UUID, Long> lapCooldowns;
     private Map<UUID, Integer> laps;
+    private Map<UUID, Integer> checkpointIndex;
     private ArrayList<UUID> placements;
     private long raceStartTime;
     private int statusEffectsTaskId;

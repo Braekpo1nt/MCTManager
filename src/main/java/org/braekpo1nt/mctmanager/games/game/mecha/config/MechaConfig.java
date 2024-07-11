@@ -53,6 +53,12 @@ public class MechaConfig {
     private Component description;
     
     /**
+     * the checkpoints in the race. The last one is the finish line. Players must
+     * pass through all of these in order to be considered a lap
+     */
+    private List<BoundingBox> checkpoints;
+    
+    /**
      * @return true if the other inventories should be locked, false otherwise
      */
     public boolean lockOtherInventories() {
