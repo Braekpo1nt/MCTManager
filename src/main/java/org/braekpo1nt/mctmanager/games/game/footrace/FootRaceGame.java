@@ -140,21 +140,11 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         }
         startAdmins(newAdmins);
         initializeSidebar();
-        initiallySortStandings();
+        updateStandings();
         startStatusEffectsTask();
         setupTeamOptions();
         state = new DescriptionState(this);
         Bukkit.getLogger().info("Starting Foot Race game");
-    }
-    
-    private void initiallySortStandings() {
-        standings.sort((uuid1, uuid2) -> {
-            Player player1 = plugin.getServer().getPlayer(uuid1);
-            Player player2 = plugin.getServer().getPlayer(uuid2);
-            String name1 = player1 != null ? player1.getName() : uuid1.toString();
-            String name2 = player2 != null ? player2.getName() : uuid2.toString();
-            return name1.compareTo(name2);
-        });
     }
     
     public void updateStandings() {
@@ -290,7 +280,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         lapCooldowns.put(participantUUID, System.currentTimeMillis());
         laps.put(participantUUID, 1);
         checkpointIndexes.put(participantUUID, 0);
-        standings.add(participantUUID);
+        standings.add(participant);
         sidebar.addPlayer(participant);
         participant.teleport(config.getStartingLocation());
         participant.setBedSpawnLocation(config.getStartingLocation(), true);
