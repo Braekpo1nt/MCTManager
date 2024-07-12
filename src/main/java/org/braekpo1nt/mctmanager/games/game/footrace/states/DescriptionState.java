@@ -42,7 +42,7 @@ public class DescriptionState implements FootRaceState {
         context.getParticipants().remove(participant);
         context.getLapCooldowns().remove(participant.getUniqueId());
         context.getLaps().remove(participant.getUniqueId());
-        context.getCheckpointIndexes().remove(participant.getUniqueId());
+        context.getCurrentCheckpoints().remove(participant.getUniqueId());
         context.getStandings().remove(participant);
         context.updateStandings();
     }

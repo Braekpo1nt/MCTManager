@@ -13,6 +13,7 @@ import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
+import org.braekpo1nt.mctmanager.utils.MathUtils;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.BoundingBox;
@@ -151,8 +152,18 @@ public class ActiveState implements FootRaceState {
     
     private void startStandingsUpdateTask() {
         context.setStandingsDisplayTaskId(new BukkitRunnable() {
+            int count = 0;
             @Override
             public void run() {
+                count++;
+                if (count == 20*3) {
+                    count = 0;
+                    for (Player participant : context.getParticipants()) {
+                        context.getPlugin().getLogger().info(
+                                String.format("%s: %d", participant.getName(), 
+                                context.getCurrentCheckpoints().get(participant.getUniqueId())));
+                    }
+                }
                 context.updateStandings();
                 context.displayStandings();
             }
@@ -165,22 +176,18 @@ public class ActiveState implements FootRaceState {
         if (context.getFinishedParticipants().contains(uuid)) {
             return;
         }
-        int currentCheckpointIndex = context.getCheckpointIndexes().get(uuid);
-        int nextCheckpointIndex = currentCheckpointIndex + 1;
-        if (nextCheckpointIndex >= config.getCheckpoints().size()) {
-            // should not occur because of the above check
-            return;
-        }
+        int currentCheckpointIndex = context.getCurrentCheckpoints().get(uuid);
+        int nextCheckpointIndex = MathUtils.wrapIndex(currentCheckpointIndex + 1, config.getCheckpoints().size());
         BoundingBox nextCheckpoint = config.getCheckpoints().get(nextCheckpointIndex);
         if (nextCheckpoint.contains(participant.getLocation().toVector())) {
             onParticipantReachCheckpoint(participant, nextCheckpointIndex);
         }
     }
     
-    private void onParticipantReachCheckpoint(Player participant, int nextCheckpointIndex) {
+    private void onParticipantReachCheckpoint(Player participant, int reachedCheckpointIndex) {
         UUID uuid = participant.getUniqueId();
-        context.getCheckpointIndexes().put(uuid, nextCheckpointIndex);
-        if (nextCheckpointIndex >= context.getCheckpointIndexes().size() - 1) {
+        context.getCurrentCheckpoints().put(uuid, reachedCheckpointIndex);
+        if (reachedCheckpointIndex == context.getCurrentCheckpoints().size() - 1) {
             onParticipantCrossFinishLine(participant);
         }
     }
@@ -189,7 +196,6 @@ public class ActiveState implements FootRaceState {
         UUID uuid = participant.getUniqueId();
         int currentLap = context.getLaps().get(uuid);
         int newLap = currentLap + 1;
-        context.getCheckpointIndexes().put(uuid, 0);
         context.getLaps().put(uuid, newLap);
         if (currentLap < FootRaceGame.MAX_LAPS) {
             sidebar.updateLine(

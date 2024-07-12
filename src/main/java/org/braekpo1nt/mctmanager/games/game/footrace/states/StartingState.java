@@ -26,6 +26,7 @@ public class StartingState extends DescriptionState {
                         Bukkit.getLogger().info("using legacy footrace");
                         context.setState(new ActiveStateLegacy(context));
                     } else {
+                        Bukkit.getLogger().info("using new footrace");
                         context.setState(new ActiveState(context));
                     }
                 })

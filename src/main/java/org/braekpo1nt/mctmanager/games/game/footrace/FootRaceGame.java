@@ -72,9 +72,9 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     private Map<UUID, Long> lapCooldowns;
     private Map<UUID, Integer> laps;
     /**
-     * the index in the checkpoint list that each participant is in
+     * the index of each participant's current checkpoint. (the checkpoint they just passed).
      */
-    private Map<UUID, Integer> checkpointIndexes;
+    private Map<UUID, Integer> currentCheckpoints;
     /**
      * Participants who have finished the race, stored in standing order
      * (first entry came in first place, second entry came in second place, etc.)
@@ -127,7 +127,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         this.participants = new ArrayList<>(newParticipants.size());
         lapCooldowns = new HashMap<>(newParticipants.size());
         laps = new HashMap<>(newParticipants.size());
-        checkpointIndexes = new HashMap<>(newParticipants.size());
+        currentCheckpoints = new HashMap<>(newParticipants.size());
         finishedParticipants = new ArrayList<>(newParticipants.size());
         standings = new ArrayList<>(newParticipants.size());
         admins = new ArrayList<>(newAdmins.size());
@@ -141,6 +141,10 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         }
         startAdmins(newAdmins);
         initializeSidebar();
+        if (!config.useLegacy()) {
+            updateStandings();
+            displayStandings();
+        }
         startStatusEffectsTask();
         setupTeamOptions();
         state = new DescriptionState(this);
@@ -175,8 +179,8 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
                         return currentLap1 - currentLap2;
                     }
                     
-                    int nextCheckpoint1 = MathUtils.wrapIndex(checkpointIndexes.get(uuid1) + 1, checkpointIndexes.size());
-                    int nextCheckpoint2 = MathUtils.wrapIndex(checkpointIndexes.get(uuid2) + 1, checkpointIndexes.size());
+                    int nextCheckpoint1 = MathUtils.wrapIndex(currentCheckpoints.get(uuid1) + 1, currentCheckpoints.size());
+                    int nextCheckpoint2 = MathUtils.wrapIndex(currentCheckpoints.get(uuid2) + 1, currentCheckpoints.size());
                     if (nextCheckpoint1 != nextCheckpoint2) {
                         return nextCheckpoint1 - nextCheckpoint2;
                     }
@@ -198,7 +202,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
             UUID uuid = participant.getUniqueId();
             if (!finishedParticipants.contains(uuid)) {
                 List<KeyLine> standingLines = createStandingLines(i);
-                sidebar.updateLines(participant.getUniqueId(), standingLines);
+                sidebar.updateLines(uuid, standingLines);
             }
         }
     }
@@ -239,7 +243,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
             return Component.empty();
         }
         return Component.empty()
-                .append(Component.text(standing))
+                .append(Component.text(standing + 1))
                 .append(Component.text(". "))
                 .append(standings.get(standing).displayName())
                 ;
@@ -282,7 +286,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         participants.add(participant);
         lapCooldowns.put(participantUUID, System.currentTimeMillis());
         laps.put(participantUUID, 1);
-        checkpointIndexes.put(participantUUID, 0);
+        currentCheckpoints.put(participantUUID, config.getCheckpoints().size() - 1);
         standings.add(participant);
         sidebar.addPlayer(participant);
         participant.teleport(config.getStartingLocation());
@@ -317,7 +321,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         lapCooldowns.clear();
         laps.clear();
         finishedParticipants.clear();
-        checkpointIndexes.clear();
+        currentCheckpoints.clear();
         standings.clear();
         gameManager.gameIsOver();
         Bukkit.getLogger().info("Stopping Foot Race game");
