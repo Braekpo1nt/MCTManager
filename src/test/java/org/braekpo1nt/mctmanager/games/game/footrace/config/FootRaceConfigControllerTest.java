@@ -55,7 +55,12 @@ class FootRaceConfigControllerTest {
     }
     
     @Test
-    void testBackwardsCompatibility() {
+    void testBackwardsCompatibility_0_1_2() {
+        wellFormedJsonValidData("exampleFootRaceConfig_v0.1.2.json");
+    }
+    
+    @Test
+    void testBackwardsCompatibility_0_1_1() {
         wellFormedJsonValidData("exampleFootRaceConfig_v0.1.0.json");
     }
     

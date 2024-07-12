@@ -21,7 +21,7 @@ import java.util.List;
 
 public class Main extends JavaPlugin {
 
-    public static final List<String> VALID_CONFIG_VERSIONS = List.of("0.1.0", "0.1.1");
+    public static final List<String> VALID_CONFIG_VERSIONS = List.of("0.1.0", "0.1.1", "0.1.2");
     
     /**
      * A default Gson instance for general use

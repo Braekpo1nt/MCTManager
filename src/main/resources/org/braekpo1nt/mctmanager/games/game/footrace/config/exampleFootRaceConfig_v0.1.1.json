@@ -1,5 +1,5 @@
 {
-  "version": "0.1.2",
+  "version": "0.1.1",
   "world": "TestWorld",
   "startingLocation": {
     "x": 2400,
@@ -8,9 +8,14 @@
     "yaw": -180,
     "pitch": 0
   },
-  "checkpoints": [
-    
-  ],
+  "finishLine": {
+    "minX": 2396,
+    "minY": 80,
+    "minZ": 295,
+    "maxX": 2404,
+    "maxY": 79,
+    "maxZ": 308
+  },
   "spectatorArea": {
     "minX": 2393,
     "minY": 60,
