@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.game.footrace;
 import lombok.Data;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
@@ -81,7 +82,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     /**
      * what place every participant is in at any given moment in the race
      */
-    private List<UUID> standings;
+    private List<Player> standings;
     private long raceStartTime;
     private int statusEffectsTaskId;
     private int standingsDisplayTaskId;
@@ -157,7 +158,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     }
     
     public void updateStandings() {
-        standings = participants.stream()
+        standings = standings.stream()
                 .filter(participant -> !finishedParticipants.contains(participant.getUniqueId()))
                 .sorted((participant1, participant2) -> {
                     UUID uuid1 = participant1.getUniqueId();
@@ -182,46 +183,59 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
                     }
     
                     return participant1.getName().compareTo(participant2.getName());
-                }).map(Player::getUniqueId).toList();
+                }).toList();
     }
     
     public void displayStandings() {
-        for (Player participant : participants) {
+        for (int i = 0; i < standings.size(); i++) {
+            Player participant = standings.get(i);
             UUID uuid = participant.getUniqueId();
             if (!finishedParticipants.contains(uuid)) {
-                List<KeyLine> standingLines = createStandingLines(uuid);
-                sidebar.updateLines(uuid, standingLines);
+                List<KeyLine> standingLines = createStandingLines(i);
+                sidebar.updateLines(participant.getUniqueId(), standingLines);
             }
         }
     }
     
-    private List<KeyLine> createStandingLines(UUID uuid) {
-        int standing = standings.indexOf(uuid);
-        if (standing < 0) {
+    private List<KeyLine> createStandingLines(int standing) {
+        // there are 5 or fewer participants, or the standing is top 4
+        if (standings.size() <= 5 || (0 <= standing && standing <= 3)) {
             return List.of(
-                    new KeyLine("standing1", Component.empty()),
-                    new KeyLine("standing2", Component.empty()),
-                    new KeyLine("standing3", Component.empty()),
-                    new KeyLine("standing4", Component.empty()),
-                    new KeyLine("standing5", Component.empty())
+                    new KeyLine("standing1", standingLine(0)),
+                    new KeyLine("standing2", standingLine(1)),
+                    new KeyLine("standing3", standingLine(2)),
+                    new KeyLine("standing4", standingLine(3)),
+                    new KeyLine("standing5", standingLine(4))
             );
         }
-        if (standing == 0) {
+        // last place
+        if (standing == standings.size() - 1) {
             return List.of(
-                    new KeyLine("standing1", Component.empty()),
-                    new KeyLine("standing2", Component.empty()),
-                    new KeyLine("standing3", Component.empty()),
-                    new KeyLine("standing4", Component.empty()),
-                    new KeyLine("standing5", Component.empty())
+                    new KeyLine("standing1", standingLine(0)),
+                    new KeyLine("standing2", Component.text("...").color(NamedTextColor.GRAY)),
+                    new KeyLine("standing3", standingLine(standing - 2)),
+                    new KeyLine("standing4", standingLine(standing - 1)),
+                    new KeyLine("standing5", standingLine(standing))
             );
         }
+        // 5th place or lower (but not last)
+        return List.of(
+                new KeyLine("standing1", standingLine(0)),
+                new KeyLine("standing2", Component.text("...").color(NamedTextColor.GRAY)),
+                new KeyLine("standing3", standingLine(standing - 1)),
+                new KeyLine("standing4", standingLine(standing)),
+                new KeyLine("standing5", standingLine(standing + 1))
+        );
     }
     
     private Component standingLine(int standing) {
-        UUID uuid = standings.get(standing);
+        if (standing < 0 || standings.size() <= standing) {
+            return Component.empty();
+        }
         return Component.empty()
                 .append(Component.text(standing))
-                .append(Component.text()) //TODO: make standing list use player object as a whole
+                .append(Component.text(". "))
+                .append(standings.get(standing).displayName())
                 ;
     }
     
