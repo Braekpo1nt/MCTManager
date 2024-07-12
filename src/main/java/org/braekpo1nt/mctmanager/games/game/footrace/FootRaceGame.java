@@ -84,6 +84,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     private List<UUID> standings;
     private long raceStartTime;
     private int statusEffectsTaskId;
+    private int standingsDisplayTaskId;
     private String title = baseTitle;
     
     public FootRaceGame(Main plugin, GameManager gameManager) {
@@ -155,7 +156,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         });
     }
     
-    private void updateStandings() {
+    public void updateStandings() {
         standings = participants.stream().sorted((participant1, participant2) -> {
             UUID uuid1 = participant1.getUniqueId();
             int currentLap1 = laps.get(uuid1);
@@ -276,6 +277,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     private void cancelAllTasks() {
         Bukkit.getScheduler().cancelTask(timerRefreshTaskId);
         Bukkit.getScheduler().cancelTask(statusEffectsTaskId);
+        Bukkit.getScheduler().cancelTask(standingsDisplayTaskId);
         timerManager.cancel();
     }
     

@@ -146,6 +146,15 @@ public class ActiveState implements FootRaceState {
         context.resetParticipant(participant);
     }
     
+    private void startStandingsUpdateTask() {
+        context.setStandingsDisplayTaskId(new BukkitRunnable() {
+            @Override
+            public void run() {
+                
+            }
+        }.runTaskTimer(context.getPlugin(), 0L, 1L).getTaskId());
+    }
+    
     @Override
     public void onParticipantMove(Player participant) {
         UUID uuid = participant.getUniqueId();
@@ -164,21 +173,13 @@ public class ActiveState implements FootRaceState {
         }
     }
     
-    /**
-     * check if the given participant's standings changed. If they did, update the standings visually. 
-     * @param movedParticipant the participant whose standing might have changed
-     */
-    private void updateStandings(Player movedParticipant) {
-        throw new UnsupportedOperationException("not yet implemented");
-    }
-    
     private void onParticipantReachCheckpoint(Player participant, int nextCheckpointIndex) {
         UUID uuid = participant.getUniqueId();
         context.getCheckpointIndexes().put(uuid, nextCheckpointIndex);
         if (nextCheckpointIndex >= context.getCheckpointIndexes().size() - 1) {
             onParticipantCrossFinishLine(participant);
         }
-        updateStandings(participant);
+        context.updateStandings();
     }
     
     private void onParticipantCrossFinishLine(Player participant) {
