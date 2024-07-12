@@ -21,6 +21,7 @@ import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
+import org.braekpo1nt.mctmanager.utils.MathUtils;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -42,7 +43,6 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 import org.bukkit.util.BoundingBox;
-import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -149,25 +149,41 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     
     public void updateStandings() {
         standings = standings.stream()
-                .filter(participant -> !finishedParticipants.contains(participant.getUniqueId()))
                 .sorted((participant1, participant2) -> {
                     UUID uuid1 = participant1.getUniqueId();
-                    int currentLap1 = laps.get(uuid1);
                     UUID uuid2 = participant2.getUniqueId();
+                    
+                    boolean finished1 = finishedParticipants.contains(uuid1);
+                    boolean finished2 = finishedParticipants.contains(uuid2);
+                    if (finished1 || finished2) {
+                        if (finished1 && finished2) {
+                            int placement1 = finishedParticipants.indexOf(uuid1);
+                            int placement2 = finishedParticipants.indexOf(uuid2);
+                            return placement1 - placement2;
+                        } else {
+                            if (finished1) {
+                                return 1;
+                            } else {
+                                return -1;
+                            }
+                        }
+                    }
+                    
+                    int currentLap1 = laps.get(uuid1);
                     int currentLap2 = laps.get(uuid2);
                     if (currentLap1 != currentLap2) {
                         return currentLap1 - currentLap2;
                     }
                     
-                    int currentCheckpoint1 = checkpointIndexes.get(uuid1);
-                    int currentCheckpoint2 = checkpointIndexes.get(uuid2);
-                    if (currentCheckpoint1 != currentCheckpoint2) {
-                        return currentCheckpoint1 - currentCheckpoint2;
+                    int nextCheckpoint1 = MathUtils.wrapIndex(checkpointIndexes.get(uuid1) + 1, checkpointIndexes.size());
+                    int nextCheckpoint2 = MathUtils.wrapIndex(checkpointIndexes.get(uuid2) + 1, checkpointIndexes.size());
+                    if (nextCheckpoint1 != nextCheckpoint2) {
+                        return nextCheckpoint1 - nextCheckpoint2;
                     }
                     
-                    BoundingBox checkpoint = config.getCheckpoints().get(currentCheckpoint1);
-                    double distance1 = getMinimumDistance(checkpoint, participant1.getLocation().toVector());
-                    double distance2 = getMinimumDistance(checkpoint, participant2.getLocation().toVector());
+                    BoundingBox checkpoint = config.getCheckpoints().get(nextCheckpoint1);
+                    double distance1 = MathUtils.getMinimumDistance(checkpoint, participant1.getLocation().toVector());
+                    double distance2 = MathUtils.getMinimumDistance(checkpoint, participant2.getLocation().toVector());
                     if (distance1 != distance2) {
                         return Double.compare(distance1, distance2);
                     }
@@ -227,19 +243,6 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
                 .append(Component.text(". "))
                 .append(standings.get(standing).displayName())
                 ;
-    }
-    
-    public static double getMinimumDistance(BoundingBox box, Vector point) {
-        // Get the closest point on the bounding box to the given point
-        double closestX = Math.max(box.getMinX(), Math.min(point.getX(), box.getMaxX()));
-        double closestY = Math.max(box.getMinY(), Math.min(point.getY(), box.getMaxY()));
-        double closestZ = Math.max(box.getMinZ(), Math.min(point.getZ(), box.getMaxZ()));
-
-        // Create a vector for the closest point
-        Vector closestPoint = new Vector(closestX, closestY, closestZ);
-
-        // Calculate the distance between the point and the closest point on the bounding box
-        return closestPoint.distance(point);
     }
     
     public void closeGlassBarrier() {

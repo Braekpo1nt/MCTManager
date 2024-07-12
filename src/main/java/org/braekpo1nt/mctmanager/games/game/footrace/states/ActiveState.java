@@ -128,6 +128,7 @@ public class ActiveState implements FootRaceState {
                                 context.getFinishedParticipants().indexOf(playerUUID) + 1))
                         .append(Component.text("!")))
         );
+        context.updateStandings();
     }
     
     @Override
