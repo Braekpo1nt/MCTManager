@@ -166,9 +166,9 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
                             return placement1 - placement2;
                         } else {
                             if (finished1) {
-                                return 1;
-                            } else {
                                 return -1;
+                            } else {
+                                return 1;
                             }
                         }
                     }
@@ -176,13 +176,13 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
                     int currentLap1 = laps.get(uuid1);
                     int currentLap2 = laps.get(uuid2);
                     if (currentLap1 != currentLap2) {
-                        return currentLap1 - currentLap2;
+                        return currentLap2 - currentLap1; // Reverse order
                     }
                     
                     int nextCheckpoint1 = MathUtils.wrapIndex(currentCheckpoints.get(uuid1) + 1, currentCheckpoints.size());
                     int nextCheckpoint2 = MathUtils.wrapIndex(currentCheckpoints.get(uuid2) + 1, currentCheckpoints.size());
                     if (nextCheckpoint1 != nextCheckpoint2) {
-                        return nextCheckpoint1 - nextCheckpoint2;
+                        return nextCheckpoint2 - nextCheckpoint1; // Reverse order
                     }
                     
                     BoundingBox checkpoint = config.getCheckpoints().get(nextCheckpoint1);
