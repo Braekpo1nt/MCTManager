@@ -152,18 +152,8 @@ public class ActiveState implements FootRaceState {
     
     private void startStandingsUpdateTask() {
         context.setStandingsDisplayTaskId(new BukkitRunnable() {
-            int count = 0;
             @Override
             public void run() {
-                count++;
-                if (count == 20*3) {
-                    count = 0;
-                    for (Player participant : context.getParticipants()) {
-                        context.getPlugin().getLogger().info(
-                                String.format("%s: %d", participant.getName(), 
-                                context.getCurrentCheckpoints().get(participant.getUniqueId())));
-                    }
-                }
                 context.updateStandings();
                 context.displayStandings();
             }
@@ -187,7 +177,7 @@ public class ActiveState implements FootRaceState {
     private void onParticipantReachCheckpoint(Player participant, int reachedCheckpointIndex) {
         UUID uuid = participant.getUniqueId();
         context.getCurrentCheckpoints().put(uuid, reachedCheckpointIndex);
-        if (reachedCheckpointIndex == context.getCurrentCheckpoints().size() - 1) {
+        if (reachedCheckpointIndex == config.getCheckpoints().size() - 1) {
             onParticipantCrossFinishLine(participant);
         }
     }
