@@ -431,7 +431,7 @@ public class Sidebar {
      * @param playerUUID THe player UUID to update the lines for (must have a FastBoard)
      * @param keyLines the KeyLine pairs to update (each key must exist)
      */
-    public synchronized void updateLines(@NotNull UUID playerUUID, @NotNull KeyLine @NotNull... keyLines) {
+    public synchronized void updateLines(@NotNull UUID playerUUID, @NotNull List<KeyLine> keyLines) {
         for (KeyLine keyLine : keyLines) {
             Preconditions.checkArgument(keyToIndex.containsKey(keyLine.getKey()), "can't update a line with nonexistent key (%s)", keyLine.getKey());
         }
@@ -442,5 +442,14 @@ public class Sidebar {
             lines.set(index, keyLine.getContents());
             board.updateLine(index, keyLine.getContents());
         }
+    }
+    
+    /**
+     * Updates the lines associated with the KeyLine pairs for the given player's FastBoard.
+     * @param playerUUID THe player UUID to update the lines for (must have a FastBoard)
+     * @param keyLines the KeyLine pairs to update (each key must exist)
+     */
+    public synchronized void updateLines(@NotNull UUID playerUUID, @NotNull KeyLine @NotNull... keyLines) {
+        updateLines(playerUUID, Arrays.asList(keyLines));
     }
 }

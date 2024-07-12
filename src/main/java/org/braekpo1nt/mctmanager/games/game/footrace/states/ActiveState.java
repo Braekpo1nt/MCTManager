@@ -150,7 +150,8 @@ public class ActiveState implements FootRaceState {
         context.setStandingsDisplayTaskId(new BukkitRunnable() {
             @Override
             public void run() {
-                
+                context.updateStandings();
+                context.displayStandings();
             }
         }.runTaskTimer(context.getPlugin(), 0L, 1L).getTaskId());
     }
@@ -179,7 +180,6 @@ public class ActiveState implements FootRaceState {
         if (nextCheckpointIndex >= context.getCheckpointIndexes().size() - 1) {
             onParticipantCrossFinishLine(participant);
         }
-        context.updateStandings();
     }
     
     private void onParticipantCrossFinishLine(Player participant) {

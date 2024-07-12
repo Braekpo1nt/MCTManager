@@ -157,30 +157,72 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     }
     
     public void updateStandings() {
-        standings = participants.stream().sorted((participant1, participant2) -> {
-            UUID uuid1 = participant1.getUniqueId();
-            int currentLap1 = laps.get(uuid1);
-            UUID uuid2 = participant2.getUniqueId();
-            int currentLap2 = laps.get(uuid2);
-            if (currentLap1 != currentLap2) {
-                return currentLap1 - currentLap2;
+        standings = participants.stream()
+                .filter(participant -> !finishedParticipants.contains(participant.getUniqueId()))
+                .sorted((participant1, participant2) -> {
+                    UUID uuid1 = participant1.getUniqueId();
+                    int currentLap1 = laps.get(uuid1);
+                    UUID uuid2 = participant2.getUniqueId();
+                    int currentLap2 = laps.get(uuid2);
+                    if (currentLap1 != currentLap2) {
+                        return currentLap1 - currentLap2;
+                    }
+                    
+                    int currentCheckpoint1 = checkpointIndexes.get(uuid1);
+                    int currentCheckpoint2 = checkpointIndexes.get(uuid2);
+                    if (currentCheckpoint1 != currentCheckpoint2) {
+                        return currentCheckpoint1 - currentCheckpoint2;
+                    }
+                    
+                    BoundingBox checkpoint = config.getCheckpoints().get(currentCheckpoint1);
+                    double distance1 = getMinimumDistance(checkpoint, participant1.getLocation().toVector());
+                    double distance2 = getMinimumDistance(checkpoint, participant2.getLocation().toVector());
+                    if (distance1 != distance2) {
+                        return Double.compare(distance1, distance2);
+                    }
+    
+                    return participant1.getName().compareTo(participant2.getName());
+                }).map(Player::getUniqueId).toList();
+    }
+    
+    public void displayStandings() {
+        for (Player participant : participants) {
+            UUID uuid = participant.getUniqueId();
+            if (!finishedParticipants.contains(uuid)) {
+                List<KeyLine> standingLines = createStandingLines(uuid);
+                sidebar.updateLines(uuid, standingLines);
             }
-            
-            int currentCheckpoint1 = checkpointIndexes.get(uuid1);
-            int currentCheckpoint2 = checkpointIndexes.get(uuid2);
-            if (currentCheckpoint1 != currentCheckpoint2) {
-                return currentCheckpoint1 - currentCheckpoint2;
-            }
-            
-            BoundingBox checkpoint = config.getCheckpoints().get(currentCheckpoint1);
-            double distance1 = getMinimumDistance(checkpoint, participant1.getLocation().toVector());
-            double distance2 = getMinimumDistance(checkpoint, participant2.getLocation().toVector());
-            if (distance1 != distance2) {
-                return Double.compare(distance1, distance2);
-            }
-            
-            return participant1.getName().compareTo(participant2.getName());
-        }).map(Player::getUniqueId).toList();
+        }
+    }
+    
+    private List<KeyLine> createStandingLines(UUID uuid) {
+        int standing = standings.indexOf(uuid);
+        if (standing < 0) {
+            return List.of(
+                    new KeyLine("standing1", Component.empty()),
+                    new KeyLine("standing2", Component.empty()),
+                    new KeyLine("standing3", Component.empty()),
+                    new KeyLine("standing4", Component.empty()),
+                    new KeyLine("standing5", Component.empty())
+            );
+        }
+        if (standing == 0) {
+            return List.of(
+                    new KeyLine("standing1", Component.empty()),
+                    new KeyLine("standing2", Component.empty()),
+                    new KeyLine("standing3", Component.empty()),
+                    new KeyLine("standing4", Component.empty()),
+                    new KeyLine("standing5", Component.empty())
+            );
+        }
+    }
+    
+    private Component standingLine(int standing) {
+        UUID uuid = standings.get(standing);
+        return Component.empty()
+                .append(Component.text(standing))
+                .append(Component.text()) //TODO: make standing list use player object as a whole
+                ;
     }
     
     public static double getMinimumDistance(BoundingBox box, Vector point) {
@@ -383,7 +425,12 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
                 new KeyLine("title", title),
                 new KeyLine("elapsedTime", "00:00:000"),
                 new KeyLine("lap", String.format("Lap: %d/%d", 1, MAX_LAPS)),
-                new KeyLine("timer", "")
+                new KeyLine("timer", Component.empty()),
+                new KeyLine("standing1", Component.empty()),
+                new KeyLine("standing2", Component.empty()),
+                new KeyLine("standing3", Component.empty()),
+                new KeyLine("standing4", Component.empty()),
+                new KeyLine("standing5", Component.empty())
         );
     }
     
