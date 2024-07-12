@@ -186,9 +186,10 @@ public class ActiveState implements FootRaceState {
     private void onParticipantCrossFinishLine(Player participant) {
         UUID uuid = participant.getUniqueId();
         int currentLap = context.getLaps().get(uuid);
+        int newLap = currentLap + 1;
+        context.getCheckpointIndexes().put(uuid, 0);
+        context.getLaps().put(uuid, newLap);
         if (currentLap < FootRaceGame.MAX_LAPS) {
-            int newLap = currentLap + 1;
-            context.getLaps().put(uuid, newLap);
             sidebar.updateLine(
                     uuid,
                     "lap",
@@ -213,7 +214,6 @@ public class ActiveState implements FootRaceState {
             return;
         }
         if (currentLap == FootRaceGame.MAX_LAPS) {
-            context.getLaps().put(uuid, currentLap + 1);
             onPlayerFinishedRace(participant);
         }
     }
