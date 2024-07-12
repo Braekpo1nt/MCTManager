@@ -47,6 +47,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Data
 public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable {
@@ -188,7 +189,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
                     }
     
                     return participant1.getName().compareTo(participant2.getName());
-                }).toList();
+                }).collect(Collectors.toCollection(ArrayList::new));
     }
     
     public void displayStandings() {
