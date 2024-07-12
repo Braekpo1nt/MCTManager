@@ -44,6 +44,7 @@ record FootRaceConfigDTO(
             validator.validate(finishLine.getVolume() >= 1.0, "finishLine's volume (%s) can't be less than 1. %s", finishLine.getVolume(), finishLine);
             validator.validate(!finishLine.contains(this.startingLocation().toVector()), "startingLocation (%S) can't be inside finishLine (%S)", this.startingLocation(), finishLine);
         } else {
+            validator.validate(this.checkpoints.size() >= 2, "checkpoints must have at least 2 elements");
             List<BoundingBox> realCheckpoints = new ArrayList<>(this.checkpoints.size());
             for (int i = 0; i < this.checkpoints.size(); i++) {
                 BoundingBoxDTO checkpointDTO = this.checkpoints.get(i);
@@ -54,7 +55,7 @@ record FootRaceConfigDTO(
             }
             for (int i = 0; i < realCheckpoints.size(); i++) {
                 BoundingBox checkpoint = realCheckpoints.get(i);
-                for (int j = 1; j < realCheckpoints.size(); j++) {
+                for (int j = i + 1; j < realCheckpoints.size(); j++) {
                     BoundingBox other = realCheckpoints.get(j);
                     validator.validate(!checkpoint.overlaps(other), "checkpoints[%d] can't overlap checkpoints[%d]", i, j);
                 }

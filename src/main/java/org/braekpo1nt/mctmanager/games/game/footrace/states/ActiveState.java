@@ -45,6 +45,7 @@ public class ActiveState implements FootRaceState {
         context.openGlassBarrier();
         context.setRaceStartTime(System.currentTimeMillis());
         startTimerRefreshTask();
+        startStandingsUpdateTask();
     }
     
     private void startTimerRefreshTask() {
