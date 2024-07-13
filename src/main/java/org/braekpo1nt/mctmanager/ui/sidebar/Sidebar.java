@@ -440,6 +440,7 @@ public class Sidebar {
      * @param keyLines the KeyLine pairs to update (each key must exist)
      */
     public synchronized void updateLines(@NotNull UUID playerUUID, @NotNull List<KeyLine> keyLines) {
+        Preconditions.checkArgument(boardsLines.containsKey(playerUUID), "player with UUID \"%s\" does not have a board in this manager", playerUUID);
         for (KeyLine keyLine : keyLines) {
             Preconditions.checkArgument(keyToIndex.containsKey(keyLine.getKey()), "can't update a line with nonexistent key (%s)", keyLine.getKey());
         }

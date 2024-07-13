@@ -91,6 +91,7 @@ public class ActiveState implements FootRaceState {
             sidebar.updateLine(participant.getUniqueId(), "lap", String.format("Lap: %d/%d", currentLap, FootRaceGame.MAX_LAPS));
         }
         context.updateStandings();
+        context.displayStandings();
     }
     
     /**
@@ -138,6 +139,9 @@ public class ActiveState implements FootRaceState {
     public void onParticipantQuit(Player participant) {
         resetParticipant(participant);
         context.getParticipants().remove(participant);
+        context.getStandings().remove(participant);
+        context.updateStandings();
+        context.displayStandings();
     }
     
     @Override
