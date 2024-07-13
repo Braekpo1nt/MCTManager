@@ -108,6 +108,7 @@ public class ActiveState implements FootRaceState {
     private void rejoinParticipant(Player participant) {
         context.getParticipants().add(participant);
         sidebar.addPlayer(participant);
+        context.getStandings().add(participant);
         if (completedRace(participant)) {
             showRaceCompleteFastBoard(participant.getUniqueId());
         }
@@ -133,6 +134,7 @@ public class ActiveState implements FootRaceState {
                         .append(Component.text("!")))
         );
         context.updateStandings();
+        context.displayStandings();
     }
     
     @Override

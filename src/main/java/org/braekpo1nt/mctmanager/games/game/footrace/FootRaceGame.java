@@ -199,10 +199,8 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         for (int i = 0; i < standings.size(); i++) {
             Player participant = standings.get(i);
             UUID uuid = participant.getUniqueId();
-            if (!finishedParticipants.contains(uuid)) {
-                List<KeyLine> standingLines = createStandingLines(i);
-                sidebar.updateLines(uuid, standingLines);
-            }
+            List<KeyLine> standingLines = createStandingLines(i);
+            sidebar.updateLines(uuid, standingLines);
         }
         adminSidebar.updateLines(createStandingLines(0));
     }
