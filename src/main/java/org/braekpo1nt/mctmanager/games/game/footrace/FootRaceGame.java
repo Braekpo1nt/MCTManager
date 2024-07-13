@@ -156,7 +156,6 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
                 .sorted((participant1, participant2) -> {
                     UUID uuid1 = participant1.getUniqueId();
                     UUID uuid2 = participant2.getUniqueId();
-                    
                     boolean finished1 = finishedParticipants.contains(uuid1);
                     boolean finished2 = finishedParticipants.contains(uuid2);
                     if (finished1 || finished2) {
@@ -179,8 +178,8 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
                         return currentLap2 - currentLap1; // Reverse order
                     }
                     
-                    int nextCheckpoint1 = MathUtils.wrapIndex(currentCheckpoints.get(uuid1) + 1, currentCheckpoints.size());
-                    int nextCheckpoint2 = MathUtils.wrapIndex(currentCheckpoints.get(uuid2) + 1, currentCheckpoints.size());
+                    int nextCheckpoint1 = MathUtils.wrapIndex(currentCheckpoints.get(uuid1) + 1, config.getCheckpoints().size());
+                    int nextCheckpoint2 = MathUtils.wrapIndex(currentCheckpoints.get(uuid2) + 1, config.getCheckpoints().size());
                     if (nextCheckpoint1 != nextCheckpoint2) {
                         return nextCheckpoint2 - nextCheckpoint1; // Reverse order
                     }
@@ -191,7 +190,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
                     if (distance1 != distance2) {
                         return Double.compare(distance1, distance2);
                     }
-    
+                    
                     return participant1.getName().compareTo(participant2.getName());
                 }).collect(Collectors.toCollection(ArrayList::new));
     }
