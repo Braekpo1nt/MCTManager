@@ -204,6 +204,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
                 sidebar.updateLines(uuid, standingLines);
             }
         }
+        adminSidebar.updateLines(createStandingLines(0));
     }
     
     private List<KeyLine> createStandingLines(int standing) {
@@ -366,7 +367,12 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         adminSidebar.addLines(
                 new KeyLine("title", title),
                 new KeyLine("elapsedTime", "00:00:000"),
-                new KeyLine("timer", "")
+                new KeyLine("timer", Component.empty()),
+                new KeyLine("standing1", Component.empty()),
+                new KeyLine("standing2", Component.empty()),
+                new KeyLine("standing3", Component.empty()),
+                new KeyLine("standing4", Component.empty()),
+                new KeyLine("standing5", Component.empty())
         );
     }
     

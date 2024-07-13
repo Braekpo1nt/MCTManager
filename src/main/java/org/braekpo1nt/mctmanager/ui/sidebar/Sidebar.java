@@ -384,9 +384,9 @@ public class Sidebar {
     
     /**
      * Updates the line associated with the KeyLine pair for all FastBoards
-     * @param keyLines the KeyLine pair (all keys must exist)
+     * @param keyLines the KeyLine pairs (all keys must exist)
      */
-    public synchronized  void updateLines(@NotNull KeyLine @NotNull... keyLines) {
+    public synchronized void updateLines(@NotNull List<@NotNull KeyLine> keyLines) {
         for (KeyLine keyLine : keyLines) {
             Preconditions.checkArgument(keyToIndex.containsKey(keyLine.getKey()), "can't update a line with nonexistent key (%s)", keyLine.getKey());
         }
@@ -400,6 +400,14 @@ public class Sidebar {
                 board.updateLine(index, keyLine.getContents());
             }
         }
+    }
+    
+    /**
+     * Updates the line associated with the KeyLine pair for all FastBoards
+     * @param keyLines the KeyLine pairs (all keys must exist)
+     */
+    public synchronized void updateLines(@NotNull KeyLine @NotNull... keyLines) {
+        updateLines(Arrays.asList(keyLines));
     }
     
     /**
