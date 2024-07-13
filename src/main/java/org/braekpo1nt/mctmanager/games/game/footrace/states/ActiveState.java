@@ -273,12 +273,21 @@ public class ActiveState implements FootRaceState {
                 .append(placementComponent)
                 .append(Component.text(" in "))
                 .append(timeComponent));
-        if (context.getFinishedParticipants().size() == context.getParticipants().size()) {
+        if (allParticipantsHaveFinished()) {
             if (endRaceTimer != null) {
                 endRaceTimer.cancel();
             }
             context.setState(new GameOverState(context));
         }
+    }
+    
+    private boolean allParticipantsHaveFinished() {
+        for (Player participant : context.getParticipants()) {
+            if (!context.getFinishedParticipants().contains(participant.getUniqueId())) {
+                return false;
+            }
+        }
+        return true;
     }
     
     /**
