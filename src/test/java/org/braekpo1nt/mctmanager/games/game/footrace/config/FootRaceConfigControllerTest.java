@@ -55,7 +55,12 @@ class FootRaceConfigControllerTest {
     }
     
     @Test
-    void testBackwardsCompatibility() {
+    void testBackwardsCompatibility_0_1_2() {
+        wellFormedJsonValidData("exampleFootRaceConfig_v0.1.1.json");
+    }
+    
+    @Test
+    void testBackwardsCompatibility_0_1_1() {
         wellFormedJsonValidData("exampleFootRaceConfig_v0.1.0.json");
     }
     
@@ -63,14 +68,8 @@ class FootRaceConfigControllerTest {
     void wellFormedJsonInvalidData() {
         InputStream inputStream = controller.getClass().getResourceAsStream(exampleConfigFileName);
         JsonObject json = TestUtils.inputStreamToJson(inputStream);
-        JsonObject finishLine = new JsonObject();
-        finishLine.addProperty("minX", 0);
-        finishLine.addProperty("minY", 0);
-        finishLine.addProperty("minZ", 0);
-        finishLine.addProperty("maxX", 0);
-        finishLine.addProperty("maxY", 0);
-        finishLine.addProperty("maxZ", 0);
-        json.add("finishLine", finishLine);
+        JsonObject checkpoints = new JsonObject();
+        json.add("checkpoints", checkpoints);
         TestUtils.saveJsonToFile(json, new File(plugin.getDataFolder(), configFileName));
         Assertions.assertThrows(ConfigInvalidException.class, controller::getConfig);
     }

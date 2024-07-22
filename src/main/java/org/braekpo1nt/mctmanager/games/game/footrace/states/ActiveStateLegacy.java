@@ -13,16 +13,17 @@ import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
-import org.braekpo1nt.mctmanager.utils.MathUtils;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
-public class ActiveState implements FootRaceState {
+/**
+ * The version of footrace to use when a legacy version of the config is used
+ */
+public class ActiveStateLegacy implements FootRaceState {
     
     private final @NotNull FootRaceGame context;
     private final FootRaceConfig config;
@@ -32,7 +33,7 @@ public class ActiveState implements FootRaceState {
     private final TimerManager timerManager;
     private @Nullable Timer endRaceTimer;
     
-    public ActiveState(@NotNull FootRaceGame context) {
+    public ActiveStateLegacy(@NotNull FootRaceGame context) {
         this.context = context;
         this.gameManager = context.getGameManager();
         this.config = context.getConfig();
@@ -46,7 +47,6 @@ public class ActiveState implements FootRaceState {
         context.openGlassBarrier();
         context.setRaceStartTime(System.currentTimeMillis());
         startTimerRefreshTask();
-        startStandingsUpdateTask();
     }
     
     private void startTimerRefreshTask() {
@@ -56,7 +56,7 @@ public class ActiveState implements FootRaceState {
                 long elapsedTime = System.currentTimeMillis() - context.getRaceStartTime();
                 Component timeComponent = TimeStringUtils.getTimeComponentMillis(elapsedTime);
                 for (Player participant : context.getParticipants()) {
-                    if (!completedRace(participant)) {
+                    if (!finishedRace(participant)) {
                         sidebar.updateLine(
                                 participant.getUniqueId(),
                                 "elapsedTime",
@@ -90,8 +90,6 @@ public class ActiveState implements FootRaceState {
         } else {
             sidebar.updateLine(participant.getUniqueId(), "lap", String.format("Lap: %d/%d", currentLap, FootRaceGame.MAX_LAPS));
         }
-        context.updateStandings();
-        context.displayStandings();
     }
     
     /**
@@ -101,15 +99,14 @@ public class ActiveState implements FootRaceState {
      * if the participant wasn't in the game before. 
      */
     private boolean participantShouldRejoin(Player participant) {
-        return completedRace(participant) 
+        return finishedRace(participant) 
                 || context.getLaps().containsKey(participant.getUniqueId());
     }
     
     private void rejoinParticipant(Player participant) {
         context.getParticipants().add(participant);
         sidebar.addPlayer(participant);
-        context.getStandings().add(participant);
-        if (completedRace(participant)) {
+        if (finishedRace(participant)) {
             showRaceCompleteFastBoard(participant.getUniqueId());
         }
         context.giveBoots(participant);
@@ -119,7 +116,7 @@ public class ActiveState implements FootRaceState {
      * @param participant the participant
      * @return true if the given participant has already completed the race
      */
-    private boolean completedRace(Player participant) {
+    private boolean finishedRace(Player participant) {
         return context.getFinishedParticipants().contains(participant.getUniqueId());
     }
     
@@ -133,17 +130,12 @@ public class ActiveState implements FootRaceState {
                                 context.getFinishedParticipants().indexOf(playerUUID) + 1))
                         .append(Component.text("!")))
         );
-        context.updateStandings();
-        context.displayStandings();
     }
     
     @Override
     public void onParticipantQuit(Player participant) {
         resetParticipant(participant);
         context.getParticipants().remove(participant);
-        context.getStandings().remove(participant);
-        context.updateStandings();
-        context.displayStandings();
     }
     
     @Override
@@ -156,70 +148,56 @@ public class ActiveState implements FootRaceState {
         context.resetParticipant(participant);
     }
     
-    private void startStandingsUpdateTask() {
-        context.setStandingsDisplayTaskId(new BukkitRunnable() {
-            @Override
-            public void run() {
-                context.updateStandings();
-                context.displayStandings();
-            }
-        }.runTaskTimer(context.getPlugin(), 0L, 1L).getTaskId());
-    }
-    
     @Override
     public void onParticipantMove(Player participant) {
         UUID uuid = participant.getUniqueId();
-        if (context.getFinishedParticipants().contains(uuid)) {
+        if (!participant.getWorld().equals(config.getWorld())) {
             return;
         }
-        int currentCheckpointIndex = context.getCurrentCheckpoints().get(uuid);
-        int nextCheckpointIndex = MathUtils.wrapIndex(currentCheckpointIndex + 1, config.getCheckpoints().size());
-        BoundingBox nextCheckpoint = config.getCheckpoints().get(nextCheckpointIndex);
-        if (nextCheckpoint.contains(participant.getLocation().toVector())) {
-            onParticipantReachCheckpoint(participant, nextCheckpointIndex);
-        }
-    }
-    
-    private void onParticipantReachCheckpoint(Player participant, int reachedCheckpointIndex) {
-        UUID uuid = participant.getUniqueId();
-        context.getCurrentCheckpoints().put(uuid, reachedCheckpointIndex);
-        if (reachedCheckpointIndex == config.getCheckpoints().size() - 1) {
-            onParticipantCrossFinishLine(participant);
-        }
-    }
-    
-    private void onParticipantCrossFinishLine(Player participant) {
-        UUID uuid = participant.getUniqueId();
-        int currentLap = context.getLaps().get(uuid);
-        int newLap = currentLap + 1;
-        context.getLaps().put(uuid, newLap);
-        if (currentLap < FootRaceGame.MAX_LAPS) {
-            sidebar.updateLine(
-                    uuid,
-                    "lap",
-                    String.format("Lap: %d/%d", context.getLaps().get(uuid), FootRaceGame.MAX_LAPS)
-            );
-            participant.showTitle(UIUtils.defaultTitle(
-                    Component.empty(),
-                    Component.empty()
-                            .append(Component.text("Lap "))
-                            .append(Component.text(currentLap+1))
-                            .color(NamedTextColor.YELLOW)
-            ));
+        
+        if (isInFinishLineBoundingBox(participant)) {
+            long lastMoveTime = context.getLapCooldowns().get(uuid);
             long currentTime = System.currentTimeMillis();
-            long elapsedTime = currentTime - context.getRaceStartTime();
-            context.messageAllParticipants(Component.empty()
-                    .append(participant.displayName())
-                    .append(Component.text(" finished lap "))
-                    .append(Component.text(currentLap))
-                    .append(Component.text(" in "))
-                    .append(TimeStringUtils.getTimeComponentMillis(elapsedTime)));
-            gameManager.awardPointsToParticipant(participant, config.getCompleteLapScore());
-            return;
+            if (currentTime - lastMoveTime < FootRaceGame.COOL_DOWN_TIME) {
+                return;
+            }
+            context.getLapCooldowns().put(uuid, currentTime);
+            
+            int currentLap = context.getLaps().get(uuid);
+            if (currentLap < FootRaceGame.MAX_LAPS) {
+                long elapsedTime = currentTime - context.getRaceStartTime();
+                int newLap = currentLap + 1;
+                context.getLaps().put(uuid, newLap);
+                sidebar.updateLine(
+                        uuid,
+                        "lap",
+                        String.format("Lap: %d/%d", context.getLaps().get(uuid), FootRaceGame.MAX_LAPS)
+                );
+                participant.showTitle(UIUtils.defaultTitle(
+                        Component.empty(),
+                        Component.empty()
+                                .append(Component.text("Lap "))
+                                .append(Component.text(currentLap+1))
+                                .color(NamedTextColor.YELLOW)
+                ));
+                context.messageAllParticipants(Component.empty()
+                        .append(participant.displayName())
+                        .append(Component.text(" finished lap "))
+                        .append(Component.text(currentLap))
+                        .append(Component.text(" in "))
+                        .append(TimeStringUtils.getTimeComponentMillis(elapsedTime)));
+                gameManager.awardPointsToParticipant(participant, config.getCompleteLapScore());
+                return;
+            }
+            if (currentLap == FootRaceGame.MAX_LAPS) {
+                context.getLaps().put(uuid, currentLap + 1);
+                onPlayerFinishedRace(participant);
+            }
         }
-        if (currentLap == FootRaceGame.MAX_LAPS) {
-            onPlayerFinishedRace(participant);
-        }
+    }
+    
+    private boolean isInFinishLineBoundingBox(Player player) {
+        return config.getFinishLine().contains(player.getLocation().toVector());
     }
     
     /**
@@ -273,21 +251,12 @@ public class ActiveState implements FootRaceState {
                 .append(placementComponent)
                 .append(Component.text(" in "))
                 .append(timeComponent));
-        if (allParticipantsHaveFinished()) {
+        if (context.getFinishedParticipants().size() == context.getParticipants().size()) {
             if (endRaceTimer != null) {
                 endRaceTimer.cancel();
             }
             context.setState(new GameOverState(context));
         }
-    }
-    
-    private boolean allParticipantsHaveFinished() {
-        for (Player participant : context.getParticipants()) {
-            if (!context.getFinishedParticipants().contains(participant.getUniqueId())) {
-                return false;
-            }
-        }
-        return true;
     }
     
     /**

@@ -21,7 +21,11 @@ public class StartingState extends DescriptionState {
                 .sidebarPrefix(Component.text("Starting: "))
                 .titleAudience(Audience.audience(context.getParticipants()))
                 .onCompletion(() -> {
-                    context.setState(new ActiveState(context));
+                    if (context.getConfig().useLegacy()) {
+                        context.setState(new ActiveStateLegacy(context));
+                    } else {
+                        context.setState(new ActiveState(context));
+                    }
                 })
                 .build());
     }

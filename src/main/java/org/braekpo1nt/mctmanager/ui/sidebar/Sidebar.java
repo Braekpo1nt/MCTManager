@@ -384,9 +384,9 @@ public class Sidebar {
     
     /**
      * Updates the line associated with the KeyLine pair for all FastBoards
-     * @param keyLines the KeyLine pair (all keys must exist)
+     * @param keyLines the KeyLine pairs (all keys must exist)
      */
-    public synchronized  void updateLines(@NotNull KeyLine @NotNull... keyLines) {
+    public synchronized void updateLines(@NotNull List<@NotNull KeyLine> keyLines) {
         for (KeyLine keyLine : keyLines) {
             Preconditions.checkArgument(keyToIndex.containsKey(keyLine.getKey()), "can't update a line with nonexistent key (%s)", keyLine.getKey());
         }
@@ -400,6 +400,14 @@ public class Sidebar {
                 board.updateLine(index, keyLine.getContents());
             }
         }
+    }
+    
+    /**
+     * Updates the line associated with the KeyLine pair for all FastBoards
+     * @param keyLines the KeyLine pairs (all keys must exist)
+     */
+    public synchronized void updateLines(@NotNull KeyLine @NotNull... keyLines) {
+        updateLines(Arrays.asList(keyLines));
     }
     
     /**
@@ -431,7 +439,8 @@ public class Sidebar {
      * @param playerUUID THe player UUID to update the lines for (must have a FastBoard)
      * @param keyLines the KeyLine pairs to update (each key must exist)
      */
-    public synchronized void updateLines(@NotNull UUID playerUUID, @NotNull KeyLine @NotNull... keyLines) {
+    public synchronized void updateLines(@NotNull UUID playerUUID, @NotNull List<KeyLine> keyLines) {
+        Preconditions.checkArgument(boardsLines.containsKey(playerUUID), "player with UUID \"%s\" does not have a board in this manager", playerUUID);
         for (KeyLine keyLine : keyLines) {
             Preconditions.checkArgument(keyToIndex.containsKey(keyLine.getKey()), "can't update a line with nonexistent key (%s)", keyLine.getKey());
         }
@@ -442,5 +451,14 @@ public class Sidebar {
             lines.set(index, keyLine.getContents());
             board.updateLine(index, keyLine.getContents());
         }
+    }
+    
+    /**
+     * Updates the lines associated with the KeyLine pairs for the given player's FastBoard.
+     * @param playerUUID THe player UUID to update the lines for (must have a FastBoard)
+     * @param keyLines the KeyLine pairs to update (each key must exist)
+     */
+    public synchronized void updateLines(@NotNull UUID playerUUID, @NotNull KeyLine @NotNull... keyLines) {
+        updateLines(playerUUID, Arrays.asList(keyLines));
     }
 }

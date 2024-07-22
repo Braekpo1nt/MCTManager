@@ -34,6 +34,8 @@ public class DescriptionState implements FootRaceState {
         context.getSidebar().updateLine(participant.getUniqueId(), "title", context.getTitle());
         Integer currentLap = context.getLaps().get(participant.getUniqueId());
         context.getSidebar().updateLine(participant.getUniqueId(), "lap", String.format("Lap: %d/%d", currentLap, FootRaceGame.MAX_LAPS));
+        context.updateStandings();
+        context.displayStandings();
     }
     
     @Override
@@ -42,6 +44,10 @@ public class DescriptionState implements FootRaceState {
         context.getParticipants().remove(participant);
         context.getLapCooldowns().remove(participant.getUniqueId());
         context.getLaps().remove(participant.getUniqueId());
+        context.getCurrentCheckpoints().remove(participant.getUniqueId());
+        context.getStandings().remove(participant);
+        context.updateStandings();
+        context.displayStandings();
     }
     
     @Override

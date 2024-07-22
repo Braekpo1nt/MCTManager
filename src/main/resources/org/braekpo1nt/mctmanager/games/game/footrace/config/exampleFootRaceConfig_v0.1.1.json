@@ -1,5 +1,5 @@
 {
-  "version": "0.1.2",
+  "version": "0.1.1",
   "world": "TestWorld",
   "startingLocation": {
     "x": 2400,
@@ -8,56 +8,14 @@
     "yaw": -180,
     "pitch": 0
   },
-  "checkpoints": [
-    {
-      "minX": 40,
-      "minY": 50,
-      "minZ": -20,
-      "maxX": 43,
-      "maxY": 52,
-      "maxZ": -19
-    },
-    {
-      "minX": 39,
-      "minY": 50,
-      "minZ": -25,
-      "maxX": 40,
-      "maxY": 52,
-      "maxZ": -22
-    },
-    {
-      "minX": 33,
-      "minY": 50,
-      "minZ": -16,
-      "maxX": 37,
-      "maxY": 52,
-      "maxZ": -15
-    },
-    {
-      "minX": 35,
-      "minY": 58,
-      "minZ": -7,
-      "maxX": 37,
-      "maxY": 60,
-      "maxZ": -6
-    },
-    {
-      "minX": 37,
-      "minY": 58,
-      "minZ": 2,
-      "maxX": 38,
-      "maxY": 60,
-      "maxZ": 4
-    },
-    {
-      "minX": 38,
-      "minY": 55,
-      "minZ": -2,
-      "maxX": 45,
-      "maxY": 57,
-      "maxZ": -1
-    }
-  ],
+  "finishLine": {
+    "minX": 2396,
+    "minY": 80,
+    "minZ": 295,
+    "maxX": 2404,
+    "maxY": 79,
+    "maxZ": 308
+  },
   "spectatorArea": {
     "minX": 2393,
     "minY": 60,

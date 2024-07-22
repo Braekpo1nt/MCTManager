@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.game.footrace;
 import lombok.Data;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
@@ -20,6 +21,7 @@ import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
+import org.braekpo1nt.mctmanager.utils.MathUtils;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -40,10 +42,12 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
+import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Data
 public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable {
@@ -67,9 +71,22 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     private List<Player> admins;
     private Map<UUID, Long> lapCooldowns;
     private Map<UUID, Integer> laps;
-    private ArrayList<UUID> placements;
+    /**
+     * the index of each participant's current checkpoint. (the checkpoint they just passed).
+     */
+    private Map<UUID, Integer> currentCheckpoints;
+    /**
+     * Participants who have finished the race, stored in standing order
+     * (first entry came in first place, second entry came in second place, etc.)
+     */
+    private List<UUID> finishedParticipants;
+    /**
+     * what place every participant is in at any given moment in the race
+     */
+    private List<Player> standings;
     private long raceStartTime;
     private int statusEffectsTaskId;
+    private int standingsDisplayTaskId;
     private String title = baseTitle;
     
     public FootRaceGame(Main plugin, GameManager gameManager) {
@@ -110,7 +127,9 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         this.participants = new ArrayList<>(newParticipants.size());
         lapCooldowns = new HashMap<>(newParticipants.size());
         laps = new HashMap<>(newParticipants.size());
-        placements = new ArrayList<>(newParticipants.size());
+        currentCheckpoints = new HashMap<>(newParticipants.size());
+        finishedParticipants = new ArrayList<>(newParticipants.size());
+        standings = new ArrayList<>(newParticipants.size());
         admins = new ArrayList<>(newAdmins.size());
         sidebar = gameManager.getSidebarFactory().createSidebar();
         adminSidebar = gameManager.getSidebarFactory().createSidebar();
@@ -122,10 +141,110 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         }
         startAdmins(newAdmins);
         initializeSidebar();
+        if (!config.useLegacy()) {
+            updateStandings();
+            displayStandings();
+        }
         startStatusEffectsTask();
         setupTeamOptions();
         state = new DescriptionState(this);
         Bukkit.getLogger().info("Starting Foot Race game");
+    }
+    
+    public void updateStandings() {
+        standings = standings.stream()
+                .sorted((participant1, participant2) -> {
+                    UUID uuid1 = participant1.getUniqueId();
+                    UUID uuid2 = participant2.getUniqueId();
+                    boolean finished1 = finishedParticipants.contains(uuid1);
+                    boolean finished2 = finishedParticipants.contains(uuid2);
+                    if (finished1 || finished2) {
+                        if (finished1 && finished2) {
+                            int placement1 = finishedParticipants.indexOf(uuid1);
+                            int placement2 = finishedParticipants.indexOf(uuid2);
+                            return placement1 - placement2;
+                        } else {
+                            if (finished1) {
+                                return -1;
+                            } else {
+                                return 1;
+                            }
+                        }
+                    }
+                    
+                    int currentLap1 = laps.get(uuid1);
+                    int currentLap2 = laps.get(uuid2);
+                    if (currentLap1 != currentLap2) {
+                        return currentLap2 - currentLap1; // Reverse order
+                    }
+                    
+                    int nextCheckpoint1 = MathUtils.wrapIndex(currentCheckpoints.get(uuid1) + 1, config.getCheckpoints().size());
+                    int nextCheckpoint2 = MathUtils.wrapIndex(currentCheckpoints.get(uuid2) + 1, config.getCheckpoints().size());
+                    if (nextCheckpoint1 != nextCheckpoint2) {
+                        return nextCheckpoint2 - nextCheckpoint1; // Reverse order
+                    }
+                    
+                    BoundingBox checkpoint = config.getCheckpoints().get(nextCheckpoint1);
+                    double distance1 = MathUtils.getMinimumDistance(checkpoint, participant1.getLocation().toVector());
+                    double distance2 = MathUtils.getMinimumDistance(checkpoint, participant2.getLocation().toVector());
+                    if (distance1 != distance2) {
+                        return Double.compare(distance1, distance2);
+                    }
+                    
+                    return participant1.getName().compareTo(participant2.getName());
+                }).collect(Collectors.toCollection(ArrayList::new));
+    }
+    
+    public void displayStandings() {
+        for (int i = 0; i < standings.size(); i++) {
+            Player participant = standings.get(i);
+            UUID uuid = participant.getUniqueId();
+            List<KeyLine> standingLines = createStandingLines(i);
+            sidebar.updateLines(uuid, standingLines);
+        }
+        adminSidebar.updateLines(createStandingLines(0));
+    }
+    
+    private List<KeyLine> createStandingLines(int standing) {
+        // there are 5 or fewer participants, or the standing is top 4
+        if (standings.size() <= 5 || (0 <= standing && standing <= 3)) {
+            return List.of(
+                    new KeyLine("standing1", standingLine(0)),
+                    new KeyLine("standing2", standingLine(1)),
+                    new KeyLine("standing3", standingLine(2)),
+                    new KeyLine("standing4", standingLine(3)),
+                    new KeyLine("standing5", standingLine(4))
+            );
+        }
+        // last place
+        if (standing == standings.size() - 1) {
+            return List.of(
+                    new KeyLine("standing1", standingLine(0)),
+                    new KeyLine("standing2", Component.text("...").color(NamedTextColor.GRAY)),
+                    new KeyLine("standing3", standingLine(standing - 2)),
+                    new KeyLine("standing4", standingLine(standing - 1)),
+                    new KeyLine("standing5", standingLine(standing))
+            );
+        }
+        // 5th place or lower (but not last)
+        return List.of(
+                new KeyLine("standing1", standingLine(0)),
+                new KeyLine("standing2", Component.text("...").color(NamedTextColor.GRAY)),
+                new KeyLine("standing3", standingLine(standing - 1)),
+                new KeyLine("standing4", standingLine(standing)),
+                new KeyLine("standing5", standingLine(standing + 1))
+        );
+    }
+    
+    private Component standingLine(int standing) {
+        if (standing < 0 || standings.size() <= standing) {
+            return Component.empty();
+        }
+        return Component.empty()
+                .append(Component.text(standing + 1))
+                .append(Component.text(". "))
+                .append(standings.get(standing).displayName())
+                ;
     }
     
     public void closeGlassBarrier() {
@@ -161,10 +280,12 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     }
     
     public void initializeParticipant(Player participant) {
-        UUID participantUniqueId = participant.getUniqueId();
+        UUID participantUUID = participant.getUniqueId();
         participants.add(participant);
-        lapCooldowns.put(participantUniqueId, System.currentTimeMillis());
-        laps.put(participantUniqueId, 1);
+        lapCooldowns.put(participantUUID, System.currentTimeMillis());
+        laps.put(participantUUID, 1);
+        currentCheckpoints.put(participantUUID, config.getCheckpoints().size() - 1);
+        standings.add(participant);
         sidebar.addPlayer(participant);
         participant.teleport(config.getStartingLocation());
         participant.setBedSpawnLocation(config.getStartingLocation(), true);
@@ -197,7 +318,9 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         participants.clear();
         lapCooldowns.clear();
         laps.clear();
-        placements.clear();
+        finishedParticipants.clear();
+        currentCheckpoints.clear();
+        standings.clear();
         gameManager.gameIsOver();
         Bukkit.getLogger().info("Stopping Foot Race game");
     }
@@ -205,6 +328,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     private void cancelAllTasks() {
         Bukkit.getScheduler().cancelTask(timerRefreshTaskId);
         Bukkit.getScheduler().cancelTask(statusEffectsTaskId);
+        Bukkit.getScheduler().cancelTask(standingsDisplayTaskId);
         timerManager.cancel();
     }
     
@@ -241,7 +365,12 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         adminSidebar.addLines(
                 new KeyLine("title", title),
                 new KeyLine("elapsedTime", "00:00:000"),
-                new KeyLine("timer", "")
+                new KeyLine("timer", Component.empty()),
+                new KeyLine("standing1", Component.empty()),
+                new KeyLine("standing2", Component.empty()),
+                new KeyLine("standing3", Component.empty()),
+                new KeyLine("standing4", Component.empty()),
+                new KeyLine("standing5", Component.empty())
         );
     }
     
@@ -310,7 +439,12 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
                 new KeyLine("title", title),
                 new KeyLine("elapsedTime", "00:00:000"),
                 new KeyLine("lap", String.format("Lap: %d/%d", 1, MAX_LAPS)),
-                new KeyLine("timer", "")
+                new KeyLine("timer", Component.empty()),
+                new KeyLine("standing1", Component.empty()),
+                new KeyLine("standing2", Component.empty()),
+                new KeyLine("standing3", Component.empty()),
+                new KeyLine("standing4", Component.empty()),
+                new KeyLine("standing5", Component.empty())
         );
     }
     
