@@ -68,14 +68,8 @@ class FootRaceConfigControllerTest {
     void wellFormedJsonInvalidData() {
         InputStream inputStream = controller.getClass().getResourceAsStream(exampleConfigFileName);
         JsonObject json = TestUtils.inputStreamToJson(inputStream);
-        JsonObject finishLine = new JsonObject();
-        finishLine.addProperty("minX", 0);
-        finishLine.addProperty("minY", 0);
-        finishLine.addProperty("minZ", 0);
-        finishLine.addProperty("maxX", 0);
-        finishLine.addProperty("maxY", 0);
-        finishLine.addProperty("maxZ", 0);
-        json.add("finishLine", finishLine);
+        JsonObject checkpoints = new JsonObject();
+        json.add("checkpoints", checkpoints);
         TestUtils.saveJsonToFile(json, new File(plugin.getDataFolder(), configFileName));
         Assertions.assertThrows(ConfigInvalidException.class, controller::getConfig);
     }
