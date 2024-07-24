@@ -1,6 +1,8 @@
 package org.braekpo1nt.mctmanager.games.game.footrace.config;
 
+import com.google.gson.Gson;
 import org.braekpo1nt.mctmanager.config.ConfigController;
+import org.braekpo1nt.mctmanager.config.ConfigUtils;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
@@ -12,6 +14,11 @@ import java.io.File;
 public class FootRaceConfigController extends ConfigController<FootRaceConfigDTO> {
     
     private final File configFile;
+    
+    @Override
+    protected @NotNull Gson getGson() {
+        return ConfigUtils.PRETTY_GSON;
+    }
     
     public FootRaceConfigController(File configDirectory) {
         this.configFile = new File(configDirectory, "footRaceConfig.json");
