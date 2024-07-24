@@ -230,12 +230,13 @@ public class FootRaceEditor implements GameEditor, Configurable, Listener {
     
     @Override
     public boolean configIsValid() {
-        return false;
+        controller.validateConfig(config);
+        return true;
     }
     
     @Override
     public void saveConfig() throws ConfigIOException, ConfigInvalidException {
-        
+        controller.saveConfig(config);
     }
     
     @Override

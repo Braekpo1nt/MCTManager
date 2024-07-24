@@ -76,11 +76,11 @@ record FootRaceConfigDTO(
     }
     
     record Scores(int completeLap, int[] placementPoints, int detriment) {
+        
     }
-    
     record Durations(int startRace, int raceEndCountdown, int description, int end) {
+        
     }
-    
     FootRaceConfig toConfig() {
         World newWorld = Bukkit.getWorld(this.world);
         Preconditions.checkState(newWorld != null, "Could not find world \"%s\"", this.world);
@@ -110,6 +110,31 @@ record FootRaceConfigDTO(
                     .useLegacy(false);
         }
         return builder.build();
+    }
+    
+    public static FootRaceConfigDTO fromConfig(@NotNull FootRaceConfig config) {
+        return new FootRaceConfigDTO(
+                Main.VALID_CONFIG_VERSIONS.get(Main.VALID_CONFIG_VERSIONS.size() - 1),
+                config.getWorld().getName(),
+                LocationDTO.from(config.getStartingLocation()),
+                BoundingBoxDTO.from(config.getFinishLine()),
+                BoundingBoxDTO.from(config.getCheckpoints()),
+                config.getSpectatorArea() != null ? BoundingBoxDTO.from(config.getSpectatorArea()) : null,
+                BoundingBoxDTO.from(config.getGlassBarrier()),
+                config.getPreventInteractions(),
+                new Scores(
+                        config.getCompleteLapScore(),
+                        config.getPlacementPoints(),
+                        config.getDetriment()
+                ),
+                new Durations(
+                        config.getStartRaceDuration(),
+                        config.getRaceEndCountdownDuration(),
+                        config.getDescriptionDuration(),
+                        config.getEndDuration()
+                ),
+                config.getDescription()
+        );
     }
     
 }

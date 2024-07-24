@@ -29,4 +29,13 @@ public class FootRaceConfigController extends ConfigController<FootRaceConfigDTO
         return configDTO.toConfig();
     }
     
+    public void validateConfig(FootRaceConfig config) {
+        FootRaceConfigDTO configDTO = FootRaceConfigDTO.fromConfig(config);
+        configDTO.validate(new Validator("footRaceConfig"));
+    }
+    
+    public void saveConfig(FootRaceConfig config) {
+        FootRaceConfigDTO configDTO = FootRaceConfigDTO.fromConfig(config);
+        saveConfigDTO(configDTO, configFile);
+    }
 }
