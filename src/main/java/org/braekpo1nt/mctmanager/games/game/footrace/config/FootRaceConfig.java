@@ -16,7 +16,7 @@ import java.util.List;
 public class FootRaceConfig {
     private World world;
     private Location startingLocation;
-    private BoundingBox finishLine;
+    private @Nullable BoundingBox finishLine;
     private BoundingBox glassBarrier;
     private int completeLapScore;
     private int[] placementPoints;

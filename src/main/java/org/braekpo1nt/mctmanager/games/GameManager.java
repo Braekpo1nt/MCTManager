@@ -16,6 +16,7 @@ import org.braekpo1nt.mctmanager.games.game.capturetheflag.CaptureTheFlagGame;
 import org.braekpo1nt.mctmanager.games.game.clockwork.ClockworkGame;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceGame;
+import org.braekpo1nt.mctmanager.games.game.footrace.editor.FootRaceEditor;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.GameEditor;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
@@ -94,8 +95,8 @@ public class GameManager implements Listener {
         this.mctScoreboard = mctScoreboard;
         this.gameStateStorageUtil = new GameStateStorageUtil(plugin);
         this.voteManager = new VoteManager(this, plugin);
-        this.games = new HashMap<>();
         this.timerManager = new TimerManager(plugin);
+        this.games = new HashMap<>();
         addGame(new FootRaceGame(plugin, this));
         addGame(new MechaGame(plugin, this));
         addGame(new SpleefGame(plugin, this));
@@ -104,6 +105,7 @@ public class GameManager implements Listener {
         addGame(new ClockworkGame(plugin, this));
         this.editors = new HashMap<>();
         addEditor(new ParkourPathwayEditor(plugin, this));
+        addEditor(new FootRaceEditor(plugin, this));
         this.sidebarFactory = new SidebarFactory();
         this.hubManager = initializeHubManager(plugin, this);
         this.eventManager = new EventManager(plugin, this, voteManager);

@@ -76,11 +76,11 @@ record FootRaceConfigDTO(
     }
     
     record Scores(int completeLap, int[] placementPoints, int detriment) {
+        
     }
-    
     record Durations(int startRace, int raceEndCountdown, int description, int end) {
+        
     }
-    
     FootRaceConfig toConfig() {
         World newWorld = Bukkit.getWorld(this.world);
         Preconditions.checkState(newWorld != null, "Could not find world \"%s\"", this.world);
@@ -106,10 +106,35 @@ record FootRaceConfigDTO(
                     .useLegacy(true);
         } else {
             builder
-                    .checkpoints(BoundingBoxDTO.toBoundingBoxes(this.checkpoints))
+                    .checkpoints(new ArrayList<>(BoundingBoxDTO.toBoundingBoxes(this.checkpoints)))
                     .useLegacy(false);
         }
         return builder.build();
+    }
+    
+    public static FootRaceConfigDTO fromConfig(@NotNull FootRaceConfig config) {
+        return new FootRaceConfigDTO(
+                Main.VALID_CONFIG_VERSIONS.get(Main.VALID_CONFIG_VERSIONS.size() - 1),
+                config.getWorld().getName(),
+                LocationDTO.from(config.getStartingLocation()),
+                config.getFinishLine() != null ? BoundingBoxDTO.from(config.getFinishLine()) : null,
+                BoundingBoxDTO.from(config.getCheckpoints()),
+                config.getSpectatorArea() != null ? BoundingBoxDTO.from(config.getSpectatorArea()) : null,
+                BoundingBoxDTO.from(config.getGlassBarrier()),
+                config.getPreventInteractions(),
+                new Scores(
+                        config.getCompleteLapScore(),
+                        config.getPlacementPoints(),
+                        config.getDetriment()
+                ),
+                new Durations(
+                        config.getStartRaceDuration(),
+                        config.getRaceEndCountdownDuration(),
+                        config.getDescriptionDuration(),
+                        config.getEndDuration()
+                ),
+                config.getDescription()
+        );
     }
     
 }
