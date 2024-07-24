@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.game.footrace.editor;
 import com.google.common.base.Preconditions;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
@@ -19,10 +20,12 @@ import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
+import org.braekpo1nt.mctmanager.utils.EntityUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
@@ -47,6 +50,7 @@ public class FootRaceEditor implements GameEditor, Configurable, Listener {
     private List<Player> participants;
     private Map<UUID, Display> displays;
     // wands
+    private final ItemStack checkpointWand;
     private final ItemStack addRemoveCheckpointWand;
     private final List<ItemStack> allWands = new ArrayList<>();
     // end wands
@@ -65,6 +69,14 @@ public class FootRaceEditor implements GameEditor, Configurable, Listener {
                 List.of(
                         Component.text("Left Click: add checkpoint"),
                         Component.text("Right Click: remove checkpoint")
+                )
+        );
+        this.checkpointWand = addWand(
+                Component.text("checkpoint"),
+                List.of(
+                        Component.text("Left Click: push box face away"),
+                        Component.text("Right Click: pull box face toward"),
+                        Component.text("(Crouch to adjust by 0.5 blocks)")
                 )
         );
     }
@@ -132,6 +144,15 @@ public class FootRaceEditor implements GameEditor, Configurable, Listener {
         if (teleport) {
             Vector center = config.getCheckpoints().get(checkpointIndex).getCenter();
             participant.teleport(center.toLocation(config.getWorld()));
+        }
+    }
+    
+    private void reloadDisplaysForCheckpoint(int checkpointIndex) {
+        for (Player participant : participants) {
+            int currentCheckpointIndex = currentCheckpoints.get(participant.getUniqueId());
+            if (currentCheckpointIndex == checkpointIndex) {
+                reloadDisplay(participant);
+            }
         }
     }
     
@@ -237,7 +258,44 @@ public class FootRaceEditor implements GameEditor, Configurable, Listener {
         Action action = event.getAction();
         if (item.equals(addRemoveCheckpointWand)) {
             useInAddRemoveCheckpointWand(participant, action);
+        } else if (item.equals(checkpointWand)) {
+            useCheckpointWand(participant, action);
         }
+    }
+    
+    private void useCheckpointWand(Player participant, Action action) {
+        BlockFace direction = EntityUtils.getPlayerDirection(participant.getLocation());
+        int currentCheckpointIndex = currentCheckpoints.get(participant.getUniqueId());
+        BoundingBox checkpoint = config.getCheckpoints().get(currentCheckpointIndex);
+        double increment = participant.isSneaking() ? 0.5 : 1.0;
+        switch (action) {
+            case LEFT_CLICK_AIR, LEFT_CLICK_BLOCK -> {
+                participant.sendMessage(Component.text("Expand ")
+                        .append(Component.text("checkpoint")
+                                .decorate(TextDecoration.BOLD))
+                        .append(Component.text(" "))
+                        .append(Component.text(direction.toString()))
+                        .append(Component.text(" by "))
+                        .append(Component.text(increment))
+                        .append(Component.text(" block(s)")));
+                checkpoint.expand(direction, increment);
+            }
+            case RIGHT_CLICK_AIR, RIGHT_CLICK_BLOCK -> {
+                participant.sendMessage(Component.text("Expand ")
+                        .append(Component.text("checkpoint")
+                                .decorate(TextDecoration.BOLD))
+                        .append(Component.text(" "))
+                        .append(Component.text(direction.toString()))
+                        .append(Component.text(" by "))
+                        .append(Component.text(-increment))
+                        .append(Component.text(" block(s)")));
+                checkpoint.expand(direction, -increment);
+            }
+            default -> {
+                return;
+            }
+        }
+        reloadDisplaysForCheckpoint(currentCheckpointIndex);
     }
     
     private void useInAddRemoveCheckpointWand(Player participant, Action action) {

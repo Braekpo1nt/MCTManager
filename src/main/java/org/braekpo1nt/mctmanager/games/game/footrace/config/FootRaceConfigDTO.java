@@ -106,7 +106,7 @@ record FootRaceConfigDTO(
                     .useLegacy(true);
         } else {
             builder
-                    .checkpoints(BoundingBoxDTO.toBoundingBoxes(this.checkpoints))
+                    .checkpoints(new ArrayList<>(BoundingBoxDTO.toBoundingBoxes(this.checkpoints)))
                     .useLegacy(false);
         }
         return builder.build();
