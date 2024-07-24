@@ -117,7 +117,7 @@ record FootRaceConfigDTO(
                 Main.VALID_CONFIG_VERSIONS.get(Main.VALID_CONFIG_VERSIONS.size() - 1),
                 config.getWorld().getName(),
                 LocationDTO.from(config.getStartingLocation()),
-                BoundingBoxDTO.from(config.getFinishLine()),
+                config.getFinishLine() != null ? BoundingBoxDTO.from(config.getFinishLine()) : null,
                 BoundingBoxDTO.from(config.getCheckpoints()),
                 config.getSpectatorArea() != null ? BoundingBoxDTO.from(config.getSpectatorArea()) : null,
                 BoundingBoxDTO.from(config.getGlassBarrier()),
