@@ -50,8 +50,8 @@ public class FootRaceEditor implements GameEditor, Configurable, Listener {
     private Map<UUID, Display> displays;
     // wands
     private final ItemStack checkpointWand;
-    private final ItemStack addRemoveCheckpointWand;
     private final ItemStack checkpointSelectWand;
+    private final ItemStack addRemoveCheckpointWand;
     private final List<ItemStack> allWands = new ArrayList<>();
     // end wands
     /**
@@ -64,13 +64,6 @@ public class FootRaceEditor implements GameEditor, Configurable, Listener {
         this.plugin = plugin;
         this.gameManager = gameManager;
         this.controller = new FootRaceConfigController(plugin.getDataFolder());
-        this.addRemoveCheckpointWand = addWand(
-                Component.text("Add/Remove Checkpoint"),
-                List.of(
-                        Component.text("Left Click: add checkpoint"),
-                        Component.text("Right Click: remove checkpoint")
-                )
-        );
         this.checkpointWand = addWand(
                 Component.text("checkpoint"),
                 List.of(
@@ -85,6 +78,13 @@ public class FootRaceEditor implements GameEditor, Configurable, Listener {
                         Component.text("Left Click: previous checkpoint"),
                         Component.text("Right Click: next checkpoint"),
                         Component.text("(Crouch to be teleported)")
+                )
+        );
+        this.addRemoveCheckpointWand = addWand(
+                Component.text("Add/Remove Checkpoint"),
+                List.of(
+                        Component.text("Left Click: add checkpoint"),
+                        Component.text("Right Click: remove checkpoint")
                 )
         );
     }
@@ -148,7 +148,7 @@ public class FootRaceEditor implements GameEditor, Configurable, Listener {
                 .append(Component.text(checkpointIndex))
                 .append(Component.text("/"))
                 .append(Component.text(config.getCheckpoints().size() - 1)));
-        sidebar.updateLine(participant.getUniqueId(), "checkpoint", String.format("Checkpoint: %s/%s", 0, config.getCheckpoints().size() - 1));
+        sidebar.updateLine(participant.getUniqueId(), "checkpoint", String.format("Checkpoint: %s/%s", checkpointIndex, config.getCheckpoints().size() - 1));
         if (teleport) {
             Vector center = config.getCheckpoints().get(checkpointIndex).getCenter();
             participant.teleport(center.toLocation(config.getWorld()));
@@ -265,12 +265,12 @@ public class FootRaceEditor implements GameEditor, Configurable, Listener {
         }
         event.setCancelled(true);
         Action action = event.getAction();
-        if (item.equals(addRemoveCheckpointWand)) {
-            useInAddRemoveCheckpointWand(participant, action);
-        } else if (item.equals(checkpointWand)) {
+        if (item.equals(checkpointWand)) {
             useCheckpointWand(participant, action);
         } else if (item.equals(checkpointSelectWand)) {
             useCheckpointSelectWand(participant, action);
+        } else if (item.equals(addRemoveCheckpointWand)) {
+            useInAddRemoveCheckpointWand(participant, action);
         }
     }
     
