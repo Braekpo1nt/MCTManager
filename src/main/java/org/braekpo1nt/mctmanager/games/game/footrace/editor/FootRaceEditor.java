@@ -52,6 +52,7 @@ public class FootRaceEditor implements GameEditor, Configurable, Listener {
     // wands
     private final ItemStack checkpointWand;
     private final ItemStack addRemoveCheckpointWand;
+    private final ItemStack checkpointSelectWand;
     private final List<ItemStack> allWands = new ArrayList<>();
     // end wands
     /**
@@ -77,6 +78,14 @@ public class FootRaceEditor implements GameEditor, Configurable, Listener {
                         Component.text("Left Click: push box face away"),
                         Component.text("Right Click: pull box face toward"),
                         Component.text("(Crouch to adjust by 0.5 blocks)")
+                )
+        );
+        this.checkpointSelectWand = addWand(
+                Component.text("checkpoint select"),
+                List.of(
+                        Component.text("Left Click: previous checkpoint"),
+                        Component.text("Right Click: next checkpoint"),
+                        Component.text("(Crouch to be teleported)")
                 )
         );
     }
@@ -260,6 +269,8 @@ public class FootRaceEditor implements GameEditor, Configurable, Listener {
             useInAddRemoveCheckpointWand(participant, action);
         } else if (item.equals(checkpointWand)) {
             useCheckpointWand(participant, action);
+        } else if (item.equals(checkpointSelectWand)) {
+            useCheckpointSelectWand(participant, action);
         }
     }
     
@@ -329,6 +340,32 @@ public class FootRaceEditor implements GameEditor, Configurable, Listener {
                 );
                 config.getCheckpoints().remove(currentCheckpointIndex);
                 selectCheckpoint(participant, currentCheckpointIndex - 1, false);
+            }
+        }
+    }
+    
+    private void useCheckpointSelectWand(Player participant, Action action) {
+        int currentCheckpoint = currentCheckpoints.get(participant.getUniqueId());
+        switch (action) {
+            case LEFT_CLICK_AIR, LEFT_CLICK_BLOCK -> {
+                if (currentCheckpoint == config.getCheckpoints().size() - 1) {
+                    participant.sendMessage(Component.text("Already at puzzle index ")
+                            .append(Component.text(currentCheckpoint))
+                            .append(Component.text("/"))
+                            .append(Component.text(config.getCheckpoints().size() - 1))
+                            .color(NamedTextColor.RED));
+                    return;
+                }
+                selectCheckpoint(participant, currentCheckpoint + 1, participant.isSneaking());
+            }
+            case RIGHT_CLICK_AIR, RIGHT_CLICK_BLOCK -> {
+                if (currentCheckpoint == 0) {
+                    participant.sendMessage(Component.text("Already at puzzle index 0/")
+                            .append(Component.text(config.getCheckpoints().size() - 1))
+                            .color(NamedTextColor.RED));
+                    return;
+                }
+                selectCheckpoint(participant, currentCheckpoint - 1, participant.isSneaking());
             }
         }
     }
