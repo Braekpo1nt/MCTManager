@@ -176,54 +176,27 @@ public class GameManager implements Listener {
     
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerInteract(PlayerInteractEvent event) {
-        StringBuilder str = new StringBuilder("onPlayerInteract: ");
         Action action = event.getAction();
-        Bukkit.getLogger().info(action.toString());
         if (event.useItemInHand().equals(Event.Result.DENY) 
                 || (!action.equals(Action.RIGHT_CLICK_AIR) && !action.equals(Action.RIGHT_CLICK_BLOCK))) {
-            str
-                    .append("DENY:")
-                    .append(event.useItemInHand().equals(Event.Result.DENY))
-                    .append("; Right Click Air:")
-                    .append(action.equals(Action.RIGHT_CLICK_AIR))
-                    .append("; Right Click Block:")
-                    .append(action.equals(Action.RIGHT_CLICK_BLOCK));
-            Bukkit.getLogger().info(str.toString());
             return;
         }
         Block clickedBlock = event.getClickedBlock();
         if (clickedBlock != null && clickedBlock.getType().isInteractable()) {
-            str
-                    .append("clicked block is interactable");
-            Bukkit.getLogger().info(str.toString());
             return;
         }
         Player participant = event.getPlayer();
         if (!isParticipant(participant.getUniqueId())) {
-            str.append("not a participant");
-            Bukkit.getLogger().info(str.toString());
             return;
         }
         ItemStack item = event.getItem();
         if (!isLeatherArmor(item)) {
-            str
-                    .append("not leather armor: ")
-                    .append(item != null ? item.getType() : "null");
-            Bukkit.getLogger().info(str.toString());
             return;
         }
         EquipmentSlot slot = item.getType().getEquipmentSlot();
         Material typeInDestinationSlot = participant.getEquipment().getItem(slot).getType();
         if (typeInDestinationSlot.equals(Material.AIR)) {
             colorLeatherArmor(item, participant.getUniqueId());
-            str.append("+++++++++++");
-        } else {
-            str
-                    .append("type in slot ")
-                    .append(slot)
-                    .append(" is not air: ")
-                    .append(typeInDestinationSlot);
-            Bukkit.getLogger().info(str.toString());
         }
     }
     
