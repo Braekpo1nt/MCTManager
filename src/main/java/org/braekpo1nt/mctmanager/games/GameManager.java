@@ -33,6 +33,7 @@ import org.braekpo1nt.mctmanager.ui.sidebar.SidebarFactory;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.bukkit.*;
+import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
@@ -175,7 +176,13 @@ public class GameManager implements Listener {
     
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerInteract(PlayerInteractEvent event) {
-        if (event.useItemInHand().equals(Event.Result.DENY) || !event.getAction().equals(Action.RIGHT_CLICK_AIR)) {
+        Action action = event.getAction();
+        if (event.useItemInHand().equals(Event.Result.DENY) 
+                || (!action.equals(Action.RIGHT_CLICK_AIR) && !action.equals(Action.RIGHT_CLICK_BLOCK))) {
+            return;
+        }
+        Block clickedBlock = event.getClickedBlock();
+        if (clickedBlock != null && clickedBlock.getType().isInteractable()) {
             return;
         }
         Player participant = event.getPlayer();
