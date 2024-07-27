@@ -38,7 +38,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public class EventManager implements Listener {
+public class EventManagerOld implements Listener {
     
     private final Main plugin;
     private final GameManager gameManager;
@@ -71,7 +71,7 @@ public class EventManager implements Listener {
     // Task IDs
     private final TimerManager timerManager;
     
-    public EventManager(Main plugin, GameManager gameManager, VoteManager voteManager) {
+    public EventManagerOld(Main plugin, GameManager gameManager, VoteManager voteManager) {
         this.plugin = plugin;
         this.timerManager = new TimerManager(plugin);
         this.gameManager = gameManager;
@@ -162,7 +162,7 @@ public class EventManager implements Listener {
     }
     
     /**
-     * Add the participants back to the {@link EventManager#participants} list and the {@link EventManager#sidebar}, add the admins back to the {@link EventManager#admins} list and the {@link EventManager#adminSidebar}, and update the scores on all sidebars.
+     * Add the participants back to the {@link EventManagerOld#participants} list and the {@link EventManagerOld#sidebar}, add the admins back to the {@link EventManagerOld#admins} list and the {@link EventManagerOld#adminSidebar}, and update the scores on all sidebars.
      */
     private void initializeParticipantsAndAdmins() {
         for (Player participant : gameManager.getOnlineParticipants()) {
