@@ -68,7 +68,6 @@ public class EventManagerOld implements Listener {
     private List<Player> admins = new ArrayList<>();
     private final ItemStack crown = new ItemStack(Material.CARVED_PUMPKIN);
     private String winningTeam;
-    // Task IDs
     private final TimerManager timerManager;
     
     public EventManagerOld(Main plugin, GameManager gameManager, VoteManager voteManager) {
