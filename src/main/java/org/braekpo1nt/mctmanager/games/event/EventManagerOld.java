@@ -1267,7 +1267,6 @@ public class EventManagerOld implements Listener {
         }
     }
     
-    
     public void updatePersonalScore(Player participant, String contents) {
         if (sidebar == null) {
             return;

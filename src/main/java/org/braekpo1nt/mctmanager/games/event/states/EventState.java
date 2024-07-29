@@ -19,4 +19,5 @@ public interface EventState {
     void onPlayerDamage(EntityDamageEvent event);
     void onClickInventory(InventoryClickEvent event);
     void onDropItem(PlayerDropItemEvent event);
+    void gameIsOver(GameType finishedGameType);
 }

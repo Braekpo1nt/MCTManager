@@ -11,6 +11,7 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
+import org.braekpo1nt.mctmanager.games.event.EventManager;
 import org.braekpo1nt.mctmanager.games.event.EventManagerOld;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.CaptureTheFlagGame;
 import org.braekpo1nt.mctmanager.games.game.clockwork.ClockworkGame;
@@ -82,7 +83,7 @@ public class GameManager implements Listener {
     private final Scoreboard mctScoreboard;
     private boolean shouldTeleportToHub = true;
     private final VoteManager voteManager;
-    private final EventManagerOld eventManager;
+    private final EventManager eventManager;
     private final TimerManager timerManager;
     /**
      * Contains the list of online participants. Updated when participants are added/removed or quit/join
@@ -109,7 +110,7 @@ public class GameManager implements Listener {
         addEditor(new FootRaceEditor(plugin, this));
         this.sidebarFactory = new SidebarFactory();
         this.hubManager = initializeHubManager(plugin, this);
-        this.eventManager = new EventManagerOld(plugin, this, voteManager);
+        this.eventManager = new EventManager(plugin, this, voteManager);
     }
     
     /**
@@ -575,7 +576,7 @@ public class GameManager implements Listener {
         hubManager.tearDown();
     }
     
-    public EventManagerOld getEventManager() {
+    public EventManager getEventManager() {
         return eventManager;
     }
     

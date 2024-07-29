@@ -58,4 +58,9 @@ public class DelayState implements EventState {
     public void onDropItem(PlayerDropItemEvent event) {
         
     }
+    
+    @Override
+    public void gameIsOver(GameType finishedGameType) {
+        
+    }
 }

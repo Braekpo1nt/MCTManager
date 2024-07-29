@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.event.states;
 
+import org.braekpo1nt.mctmanager.games.event.EventManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -9,6 +10,13 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 import org.jetbrains.annotations.NotNull;
 
 public class WaitingInHubState implements EventState {
+    
+    private final EventManager context;
+    
+    public WaitingInHubState(EventManager context) {
+        this.context = context;
+    }
+    
     @Override
     public void onParticipantJoin(Player participant) {
         
@@ -56,6 +64,11 @@ public class WaitingInHubState implements EventState {
     
     @Override
     public void onDropItem(PlayerDropItemEvent event) {
+        
+    }
+    
+    @Override
+    public void gameIsOver(GameType finishedGameType) {
         
     }
 }
