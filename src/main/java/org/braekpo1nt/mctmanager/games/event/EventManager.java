@@ -147,6 +147,15 @@ public class EventManager implements Listener {
     
     @EventHandler
     public void onPlayerDamage(EntityDamageEvent event) {
+        if (event.getCause().equals(EntityDamageEvent.DamageCause.VOID)) {
+            return;
+        }
+        if (!(event.getEntity() instanceof Player participant)) {
+            return;
+        }
+        if (!participants.contains(participant)) {
+            return;
+        }
         state.onPlayerDamage(event);
     }
     
@@ -176,6 +185,13 @@ public class EventManager implements Listener {
     public void cancelAllTasks() {
         voteManager.cancelVote();
         timerManager.cancel();
+    }
+    
+    public void removeCrown(Player participant) {
+        ItemStack helmet = participant.getInventory().getHelmet();
+        if (helmet != null && helmet.equals(crown)) {
+            participant.getInventory().setHelmet(null);
+        }
     }
     
     /**
@@ -328,5 +344,9 @@ public class EventManager implements Listener {
     
     public void messageAllAdmins(Component message) {
         gameManager.messageAdmins(message);
+    }
+    
+    public boolean allGamesHaveBeenPlayed() {
+        return currentGameNumber >= maxGames + 1;
     }
 }
