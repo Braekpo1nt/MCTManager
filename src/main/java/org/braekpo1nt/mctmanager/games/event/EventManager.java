@@ -8,12 +8,12 @@ import org.braekpo1nt.mctmanager.games.colossalcombat.ColossalCombatGame;
 import org.braekpo1nt.mctmanager.games.event.config.EventConfig;
 import org.braekpo1nt.mctmanager.games.event.config.EventConfigController;
 import org.braekpo1nt.mctmanager.games.event.states.EventState;
+import org.braekpo1nt.mctmanager.games.event.states.OffState;
 import org.braekpo1nt.mctmanager.games.event.states.PodiumState;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.voting.VoteManager;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
-import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -26,13 +26,12 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
 @Data
 public class EventManager implements Listener {
-    private @Nullable EventState state;
+    private @NotNull EventState state;
     
     private final Main plugin;
     private final GameManager gameManager;
@@ -71,6 +70,7 @@ public class EventManager implements Listener {
         this.configController = new EventConfigController(plugin.getDataFolder());
         this.colossalCombatGame = new ColossalCombatGame(plugin, gameManager);
         this.crown.editMeta(meta -> meta.setCustomModelData(1));
+        this.state = new OffState(this);
     }
     
     /**
@@ -91,7 +91,7 @@ public class EventManager implements Listener {
         adminSidebar.updateLine("currentGame", getCurrentGameLine());
     }
     
-    private void updatePersonalScores() {
+    public void updatePersonalScores() {
         for (Player participant : participants) {
             int score = gameManager.getScore(participant.getUniqueId());
             String contents = String.format("%sPersonal: %s", ChatColor.GOLD, score);
@@ -118,66 +118,46 @@ public class EventManager implements Listener {
     }
     
     public void onParticipantJoin(Player participant) {
-        if (state != null) {
-            state.onParticipantJoin(participant);
-        }
+        state.onParticipantJoin(participant);
     }
     
     public void onParticipantQuit(Player participant) {
-        if (state != null) {
-            state.onParticipantQuit(participant);
-        }
+        state.onParticipantQuit(participant);
     }
     
     public void onAdminJoin(Player admin) {
-        if (state != null) {
-            state.onAdminJoin(admin);
-        }
+        state.onAdminJoin(admin);
     }
     
     public void onAdminQuit(Player admin) {
-        if (state != null) {
-            state.onAdminQuit(admin);
-        }
+        state.onAdminQuit(admin);
     }
     
     public void startEvent(CommandSender sender, int numberOfGames) {
-        if (state != null) {
-            state.startEvent(sender, numberOfGames);
-        }
+        state.startEvent(sender, numberOfGames);
     }
     
     public void stopEvent(CommandSender sender) {
-        if (state != null) {
-            stopEvent(sender);
-        }
+        state.stopEvent(sender);
     }
     
     public void undoGame(@NotNull CommandSender sender, @NotNull GameType gameType, int iterationIndex) {
-        if (state != null) {
-            state.undoGame(sender, gameType, iterationIndex);
-        }
+        state.undoGame(sender, gameType, iterationIndex);
     }
     
     @EventHandler
     public void onPlayerDamage(EntityDamageEvent event) {
-        if (state != null) {
-            state.onPlayerDamage(event);
-        }
+        state.onPlayerDamage(event);
     }
     
     @EventHandler
     public void onClickInventory(InventoryClickEvent event) {
-        if (state != null) {
-            state.onClickInventory(event);
-        }
+        state.onClickInventory(event);
     }
     
     @EventHandler
     public void onDropItem(PlayerDropItemEvent event) {
-        if (state != null) {
-            state.onDropItem(event);
-        }
+        state.onDropItem(event);
     }
     
     /**
@@ -186,14 +166,11 @@ public class EventManager implements Listener {
      * @param finishedGameType The GameType of the game that just ended
      */
     public void gameIsOver(GameType finishedGameType) {
-        if (state == null) {
-            return;
-        }
         state.gameIsOver(finishedGameType);
     }
     
     public boolean eventIsActive() {
-        return state != null;
+        return !(state instanceof OffState);
     }
     
     public void cancelAllTasks() {
@@ -260,7 +237,7 @@ public class EventManager implements Listener {
         adminSidebar.updateLines(teamLines);
     }
     
-    protected List<String> sortTeamNames(Set<String> teamNames) {
+    public List<String> sortTeamNames(Set<String> teamNames) {
         List<String> sortedTeamNames = new ArrayList<>(teamNames);
         sortedTeamNames.sort(Comparator.comparing(gameManager::getScore, Comparator.reverseOrder()));
         sortedTeamNames.sort(Comparator
@@ -310,9 +287,6 @@ public class EventManager implements Listener {
      * @param gameType the game that the points came from
      */
     public void trackPoints(String teamName, int points, GameType gameType) {
-        if (state == null) {
-            return;
-        }
         List<ScoreKeeper> iterationScoreKeepers = scoreKeepers.get(gameType);
         ScoreKeeper iteration = iterationScoreKeepers.get(iterationScoreKeepers.size() - 1);
         iteration.addPoints(teamName, points);
@@ -326,11 +300,12 @@ public class EventManager implements Listener {
      * @param gameType the game that the points came from
      */
     public void trackPoints(UUID participantUUID, int points, GameType gameType) {
-        if (state == null) {
-            return;
-        }
         List<ScoreKeeper> iterationScoreKeepers = scoreKeepers.get(gameType);
         ScoreKeeper iteration = iterationScoreKeepers.get(iterationScoreKeepers.size() - 1);
         iteration.addPoints(participantUUID, points);
+    }
+    
+    public void messageAllAdmins(Component message) {
+        gameManager.messageAdmins(message);
     }
 }
