@@ -66,6 +66,7 @@ public class WaitingInHubState implements EventState {
     
     @Override
     public void onParticipantQuit(Player participant) {
+        context.getParticipants().remove(participant);
         if (sidebar != null) {
             sidebar.removePlayer(participant);
         }
@@ -88,6 +89,7 @@ public class WaitingInHubState implements EventState {
     
     @Override
     public void onAdminQuit(Player admin) {
+        context.getAdmins().remove(admin);
         if (adminSidebar != null) {
             adminSidebar.removePlayer(admin);
         }
