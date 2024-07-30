@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.games.event.states;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
@@ -41,7 +42,8 @@ public class PlayingGameState implements EventState {
     
     @Override
     public void startEvent(@NotNull CommandSender sender, int numberOfGames) {
-        
+        sender.sendMessage(Component.text("An event is already running.")
+                .color(NamedTextColor.RED));
     }
     
     @Override
