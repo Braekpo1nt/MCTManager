@@ -186,6 +186,10 @@ public class EventManager implements Listener {
         state.gameIsOver(finishedGameType);
     }
     
+    public void colossalCombatIsOver(String winningTeam) {
+        state.colossalCombatIsOver(winningTeam);
+    }
+    
     public boolean eventIsActive() {
         return !(state instanceof OffState);
     }
@@ -193,6 +197,10 @@ public class EventManager implements Listener {
     public void cancelAllTasks() {
         voteManager.cancelVote();
         timerManager.cancel();
+    }
+    
+    public void giveCrown(Player participant) {
+        participant.getInventory().setHelmet(crown);
     }
     
     public void removeCrown(Player participant) {

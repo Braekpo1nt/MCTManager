@@ -11,6 +11,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class PodiumState implements EventState {
     
@@ -79,6 +80,11 @@ public class PodiumState implements EventState {
     
     @Override
     public void gameIsOver(@NotNull GameType finishedGameType) {
+        
+    }
+    
+    @Override
+    public void colossalCombatIsOver(@Nullable String winningTeam) {
         
     }
     

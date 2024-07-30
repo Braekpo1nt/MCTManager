@@ -13,6 +13,7 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -106,6 +107,11 @@ public class VotingState implements EventState {
     @Override
     public void gameIsOver(@NotNull GameType finishedGameType) {
         // do nothing
+    }
+    
+    @Override
+    public void colossalCombatIsOver(@Nullable String winningTeam) {
+        
     }
     
     @Override

@@ -14,6 +14,7 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class WaitingInHubState implements EventState {
     
@@ -128,6 +129,11 @@ public class WaitingInHubState implements EventState {
     
     @Override
     public void gameIsOver(@NotNull GameType finishedGameType) {
+        
+    }
+    
+    @Override
+    public void colossalCombatIsOver(@Nullable String winningTeam) {
         
     }
     

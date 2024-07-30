@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.games.event.states;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
@@ -11,13 +12,16 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class PlayingGameState implements EventState {
     
-    private final EventManager context;
+    protected final EventManager context;
+    protected final GameManager gameManager;
     
     public PlayingGameState(EventManager context) {
         this.context = context;
+        this.gameManager = context.getGameManager();
     }
     
     @Override
@@ -84,13 +88,14 @@ public class PlayingGameState implements EventState {
                 .withSidebar(context.getAdminSidebar(), "timer")
                 .sidebarPrefix(Component.text("Back to Hub: "))
                 .onCompletion(() -> {
-                    if (context.isItHalfTime()) {
-                        // TODO: start halftime break
-                    } else {
-                        // TODO: start waiting in hub
-                    }
+                    context.setState(new BackToHubDelayState(context, finishedGameType));
                 })
                 .build());
+    }
+    
+    @Override
+    public void colossalCombatIsOver(@Nullable String winningTeam) {
+        
     }
     
     @Override

@@ -3,6 +3,8 @@ package org.braekpo1nt.mctmanager.games.event.states;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
+import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
@@ -17,6 +19,7 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -173,6 +176,31 @@ public class OffState implements EventState {
     @Override
     public void gameIsOver(@NotNull GameType finishedGameType) {
         // do nothing
+    }
+    
+    @Override
+    public void colossalCombatIsOver(@Nullable String winningTeam) {
+        if (winningTeam == null) {
+            Component message = Component.text("No winner declared.");
+            context.messageAllAdmins(message);
+            gameManager.messageOnlineParticipants(message);
+            gameManager.returnAllParticipantsToHub();
+            return;
+        }
+        NamedTextColor teamColor = gameManager.getTeamNamedTextColor(winningTeam);
+        Component formattedTeamDisplayName = gameManager.getFormattedTeamDisplayName(winningTeam);
+        Component message = Component.empty()
+                .append(formattedTeamDisplayName)
+                .append(Component.text(" wins!"))
+                .color(teamColor)
+                .decorate(TextDecoration.BOLD);
+        context.messageAllAdmins(message);
+        gameManager.messageOnlineParticipants(message);
+        Audience.audience(
+                Audience.audience(context.getAdmins()),
+                Audience.audience(gameManager.getOnlineParticipants())
+        ).showTitle(Title.title(formattedTeamDisplayName, Component.text("wins!")
+                .color(teamColor), UIUtils.DEFAULT_TIMES));
     }
     
     @Override

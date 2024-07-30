@@ -7,6 +7,7 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public interface EventState {
     void onParticipantJoin(Player participant);
@@ -20,5 +21,6 @@ public interface EventState {
     void onClickInventory(InventoryClickEvent event);
     void onDropItem(PlayerDropItemEvent event);
     void gameIsOver(@NotNull GameType finishedGameType);
+    void colossalCombatIsOver(@Nullable String winningTeam);
     void setMaxGames(@NotNull CommandSender sender, int newMaxGames);
 }

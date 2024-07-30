@@ -11,6 +11,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class DelayState implements EventState {
     
@@ -97,6 +98,11 @@ public abstract class DelayState implements EventState {
     @Override
     public void gameIsOver(@NotNull GameType finishedGameType) {
         // do nothing
+    }
+    
+    @Override
+    public void colossalCombatIsOver(@Nullable String winningTeam) {
+        
     }
     
     @Override
