@@ -7,6 +7,7 @@ import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
 import org.braekpo1nt.mctmanager.games.event.ScoreKeeper;
+import org.braekpo1nt.mctmanager.games.event.states.PlayingGameState;
 import org.braekpo1nt.mctmanager.games.event.states.WaitingInHubState;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
@@ -55,6 +56,7 @@ public class StartingGameDelayState extends DelayState {
                         context.initializeParticipantsAndAdmins();
                         context.setState(new WaitingInHubState(context));
                     }
+                    context.setState(new PlayingGameState(context));
                 })
                 .build());
     }

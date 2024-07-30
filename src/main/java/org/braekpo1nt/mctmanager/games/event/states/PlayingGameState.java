@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.games.event.states;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
 import org.braekpo1nt.mctmanager.games.event.states.delay.BackToHubDelayState;
@@ -27,22 +28,22 @@ public class PlayingGameState implements EventState {
     
     @Override
     public void onParticipantJoin(Player participant) {
-        
+        // do nothing
     }
     
     @Override
     public void onParticipantQuit(Player participant) {
-        
+        // do nothing
     }
     
     @Override
     public void onAdminJoin(Player admin) {
-        
+        // do nothing
     }
     
     @Override
     public void onAdminQuit(Player admin) {
-        
+        // do nothing
     }
     
     @Override
@@ -63,17 +64,17 @@ public class PlayingGameState implements EventState {
     
     @Override
     public void onPlayerDamage(EntityDamageEvent event) {
-        
+        // do nothing
     }
     
     @Override
     public void onClickInventory(InventoryClickEvent event) {
-        
+        // do nothing
     }
     
     @Override
     public void onDropItem(PlayerDropItemEvent event) {
-        
+        // do nothing
     }
     
     @Override
@@ -96,11 +97,26 @@ public class PlayingGameState implements EventState {
     
     @Override
     public void colossalCombatIsOver(@Nullable String winningTeam) {
-        
+        // do nothing
     }
     
     @Override
     public void setMaxGames(@NotNull CommandSender sender, int newMaxGames) {
-        
+        if (newMaxGames < context.getCurrentGameNumber()) {
+            sender.sendMessage(Component.text("Can't set the max games for this event to less than ")
+                    .append(Component.text(context.getCurrentGameNumber())
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(" because "))
+                    .append(Component.text(context.getCurrentGameNumber()))
+                    .append(Component.text(" game(s) have been played."))
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        context.setMaxGames(newMaxGames);
+        context.getSidebar().updateLine("currentGame", context.getCurrentGameLine());
+        context.getAdminSidebar().updateLine("currentGame", context.getCurrentGameLine());
+        gameManager.updateGameTitle();
+        sender.sendMessage(Component.text("Max games has been set to ")
+                .append(Component.text(newMaxGames)));
     }
 }
