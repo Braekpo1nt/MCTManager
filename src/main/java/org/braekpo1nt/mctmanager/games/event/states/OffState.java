@@ -145,12 +145,14 @@ public class OffState implements EventState {
     
     @Override
     public void stopEvent(CommandSender sender) {
-        
+        sender.sendMessage(Component.text("There is no event running.")
+                .color(NamedTextColor.RED));
     }
     
     @Override
     public void undoGame(@NotNull CommandSender sender, @NotNull GameType gameType, int iterationIndex) {
-        
+        sender.sendMessage(Component.text("There is no event running.")
+                .color(NamedTextColor.RED));
     }
     
     @Override
