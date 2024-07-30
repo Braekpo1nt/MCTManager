@@ -9,6 +9,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 public class DelayState implements EventState {
@@ -21,22 +22,38 @@ public class DelayState implements EventState {
     
     @Override
     public void onParticipantJoin(Player participant) {
-        
+        context.getParticipants().add(participant);
+        if (context.getSidebar() != null) {
+            context.getSidebar().addPlayer(participant);
+            context.updateTeamScores();
+            context.getSidebar().updateLine(participant.getUniqueId(), "currentGame", context.getCurrentGameLine());
+        }
     }
     
     @Override
     public void onParticipantQuit(Player participant) {
-        
+        context.getParticipants().remove(participant);
+        if (context.getSidebar() != null) {
+            context.getSidebar().removePlayer(participant);
+        }
     }
     
     @Override
     public void onAdminJoin(Player admin) {
-        
+        context.getAdmins().add(admin);
+        if (context.getAdminSidebar() != null) {
+            context.getAdminSidebar().addPlayer(admin);
+            context.updateTeamScores();
+            context.getAdminSidebar().updateLine(admin.getUniqueId(), "currentGame", 
+                    context.getCurrentGameLine());
+        }
     }
     
     @Override
     public void onAdminQuit(Player admin) {
-        
+        if (context.getAdminSidebar() != null) {
+            context.getAdminSidebar().removePlayer(admin);
+        }
     }
     
     @Override
@@ -57,17 +74,24 @@ public class DelayState implements EventState {
     
     @Override
     public void onPlayerDamage(EntityDamageEvent event) {
-        
+        event.setCancelled(true);
     }
     
     @Override
     public void onClickInventory(InventoryClickEvent event) {
-        
+        if (event.getClickedInventory() == null) {
+            return;
+        }
+        ItemStack currentItem = event.getCurrentItem();
+        if (currentItem == null) {
+            return;
+        }
+        event.setCancelled(true);
     }
     
     @Override
     public void onDropItem(PlayerDropItemEvent event) {
-        
+        event.setCancelled(true);
     }
     
     @Override
@@ -77,6 +101,7 @@ public class DelayState implements EventState {
     
     @Override
     public void setMaxGames(@NotNull CommandSender sender, int newMaxGames) {
-        
+        sender.sendMessage(Component.text("Can't change the max games during transition period.")
+                .color(NamedTextColor.RED));
     }
 }

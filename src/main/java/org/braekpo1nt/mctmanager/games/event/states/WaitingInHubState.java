@@ -118,7 +118,7 @@ public class WaitingInHubState implements EventState {
     
     @Override
     public void onClickInventory(InventoryClickEvent event) {
-        
+        // do nothing
     }
     
     @Override

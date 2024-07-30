@@ -161,11 +161,19 @@ public class EventManager implements Listener {
     
     @EventHandler
     public void onClickInventory(InventoryClickEvent event) {
+        Player participant = ((Player) event.getWhoClicked());
+        if (!participants.contains(participant)) {
+            return;
+        }
         state.onClickInventory(event);
     }
     
     @EventHandler
     public void onDropItem(PlayerDropItemEvent event) {
+        Player participant = event.getPlayer();
+        if (!participants.contains(participant)) {
+            return;
+        }
         state.onDropItem(event);
     }
     

@@ -9,6 +9,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 public class PodiumState implements EventState {
@@ -62,7 +63,13 @@ public class PodiumState implements EventState {
     
     @Override
     public void onClickInventory(InventoryClickEvent event) {
-        
+        if (event.getClickedInventory() == null) {
+            return;
+        }
+        ItemStack currentItem = event.getCurrentItem();
+        if (currentItem == null) {
+            return;
+        }
     }
     
     @Override
