@@ -41,7 +41,7 @@ public class VotingState implements EventState {
     }
     
     private void startingGameDelay(GameType gameType) {
-        context.setState(new StartingGameDelayState(context));
+        context.setState(new StartingGameDelayState(context, gameType));
     }
     
     @Override
