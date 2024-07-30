@@ -12,9 +12,9 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
-public class DelayState implements EventState {
+public abstract class DelayState implements EventState {
     
-    private final EventManager context;
+    protected final EventManager context;
     
     public DelayState(EventManager context) {
         this.context = context;
@@ -96,7 +96,7 @@ public class DelayState implements EventState {
     
     @Override
     public void gameIsOver(@NotNull GameType finishedGameType) {
-        
+        // do nothing
     }
     
     @Override

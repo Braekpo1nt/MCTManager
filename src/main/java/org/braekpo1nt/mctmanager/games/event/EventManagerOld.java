@@ -815,7 +815,7 @@ public class EventManagerOld implements Listener {
             String firstPlace = firstPlaces[0];
             String secondPlace = firstPlaces[1];
             startColossalCombat(Bukkit.getConsoleSender(), firstPlace, secondPlace);
-            return false;
+            return true;
         }
         if (firstPlaces.length > 2) {
             messageAllAdmins(Component.empty()
