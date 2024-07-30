@@ -13,11 +13,12 @@ public interface EventState {
     void onParticipantQuit(Player participant);
     void onAdminJoin(Player admin);
     void onAdminQuit(Player admin);
-    void startEvent(CommandSender sender, int numberOfGames);
-    void stopEvent(CommandSender sender);
+    void startEvent(@NotNull CommandSender sender, int numberOfGames);
+    void stopEvent(@NotNull CommandSender sender);
     void undoGame(@NotNull CommandSender sender, @NotNull GameType gameType, int iterationIndex);
     void onPlayerDamage(EntityDamageEvent event);
     void onClickInventory(InventoryClickEvent event);
     void onDropItem(PlayerDropItemEvent event);
-    void gameIsOver(GameType finishedGameType);
+    void gameIsOver(@NotNull GameType finishedGameType);
+    void setMaxGames(@NotNull CommandSender sender, int newMaxGames);
 }

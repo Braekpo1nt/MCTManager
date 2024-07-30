@@ -38,7 +38,7 @@ public class ModifyCommand extends CommandManager {
                 }
                 
                 int newCount = Integer.parseInt(newCountString);
-                gameManager.getEventManager().setMaxGames(sender, newCount);
+                gameManager.getEventManager().modifyMaxGames(sender, newCount);
                 return CommandResult.success();
             }
             

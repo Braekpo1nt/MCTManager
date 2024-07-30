@@ -40,12 +40,12 @@ public class PlayingGameState implements EventState {
     }
     
     @Override
-    public void startEvent(CommandSender sender, int numberOfGames) {
+    public void startEvent(@NotNull CommandSender sender, int numberOfGames) {
         
     }
     
     @Override
-    public void stopEvent(CommandSender sender) {
+    public void stopEvent(@NotNull CommandSender sender) {
         
     }
     
@@ -70,7 +70,7 @@ public class PlayingGameState implements EventState {
     }
     
     @Override
-    public void gameIsOver(GameType finishedGameType) {
+    public void gameIsOver(@NotNull GameType finishedGameType) {
         context.initializeParticipantsAndAdmins();
         context.getPlayedGames().add(finishedGameType);
         context.setCurrentGameNumber(context.getCurrentGameNumber() + 1);
@@ -89,5 +89,10 @@ public class PlayingGameState implements EventState {
                     }
                 })
                 .build());
+    }
+    
+    @Override
+    public void setMaxGames(@NotNull CommandSender sender, int newMaxGames) {
+        
     }
 }

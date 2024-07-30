@@ -38,12 +38,12 @@ public class VotingState implements EventState {
     }
     
     @Override
-    public void startEvent(CommandSender sender, int numberOfGames) {
+    public void startEvent(@NotNull CommandSender sender, int numberOfGames) {
         
     }
     
     @Override
-    public void stopEvent(CommandSender sender) {
+    public void stopEvent(@NotNull CommandSender sender) {
         
     }
     
@@ -68,7 +68,12 @@ public class VotingState implements EventState {
     }
     
     @Override
-    public void gameIsOver(GameType finishedGameType) {
+    public void gameIsOver(@NotNull GameType finishedGameType) {
+        
+    }
+    
+    @Override
+    public void setMaxGames(@NotNull CommandSender sender, int newMaxGames) {
         
     }
 }

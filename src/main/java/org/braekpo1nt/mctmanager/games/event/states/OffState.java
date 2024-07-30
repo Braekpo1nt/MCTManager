@@ -52,7 +52,7 @@ public class OffState implements EventState {
     }
     
     @Override
-    public void startEvent(CommandSender sender, int numberOfGames) {
+    public void startEvent(@NotNull CommandSender sender, int numberOfGames) {
         if (context.getGameManager().gameIsRunning()) {
             sender.sendMessage(Component.text("Can't start an event while a game is running.")
                     .color(NamedTextColor.RED));
@@ -144,7 +144,7 @@ public class OffState implements EventState {
     }
     
     @Override
-    public void stopEvent(CommandSender sender) {
+    public void stopEvent(@NotNull CommandSender sender) {
         sender.sendMessage(Component.text("There is no event running.")
                 .color(NamedTextColor.RED));
     }
@@ -171,7 +171,12 @@ public class OffState implements EventState {
     }
     
     @Override
-    public void gameIsOver(GameType finishedGameType) {
+    public void gameIsOver(@NotNull GameType finishedGameType) {
         // do nothing
+    }
+    
+    @Override
+    public void setMaxGames(@NotNull CommandSender sender, int newMaxGames) {
+        
     }
 }

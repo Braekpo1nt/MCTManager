@@ -199,6 +199,27 @@ public class EventManager implements Listener {
     }
     
     /**
+     * Assigns a value to the {@link #maxGames} field. This should not be used unless you know
+     * what you're doing. Instead, use {@link #modifyMaxGames(CommandSender, int)}
+     * @param maxGames the value to set the maxGames to
+     * @see #modifyMaxGames(CommandSender, int) 
+     */
+    public void setMaxGames(int maxGames) {
+        this.maxGames = maxGames;
+    }
+    
+    /**
+     * This is used to change the maxGames of the event. This calls state-specific
+     * behavior and can safely be used at any time without causing any errors. The state
+     * may or may not ignore the value with a message sent to the sender.
+     * @param sender the sender of the modify command
+     * @param newMaxGames the number to set the max games to
+     */
+    public void modifyMaxGames(@NotNull CommandSender sender, int newMaxGames) {
+        state.setMaxGames(sender, newMaxGames);
+    }
+    
+    /**
      * The nth multiplier is used on the nth game in the event. If there are x multipliers, and we're on game z where z is greater than x, the xth multiplier is used.
      * @return a multiplier for the score based on the progression in the match.
      */
