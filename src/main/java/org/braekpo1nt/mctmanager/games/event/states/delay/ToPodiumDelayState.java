@@ -1,4 +1,4 @@
-package org.braekpo1nt.mctmanager.games.event.states;
+package org.braekpo1nt.mctmanager.games.event.states.delay;
 
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.games.GameManager;

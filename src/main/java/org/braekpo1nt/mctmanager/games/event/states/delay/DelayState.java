@@ -1,8 +1,9 @@
-package org.braekpo1nt.mctmanager.games.event.states;
+package org.braekpo1nt.mctmanager.games.event.states.delay;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
+import org.braekpo1nt.mctmanager.games.event.states.EventState;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
