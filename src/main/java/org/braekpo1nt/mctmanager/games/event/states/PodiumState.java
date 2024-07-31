@@ -53,11 +53,6 @@ public class PodiumState implements EventState {
     }
     
     @Override
-    public void undoGame(@NotNull CommandSender sender, @NotNull GameType gameType, int iterationIndex) {
-        
-    }
-    
-    @Override
     public void onPlayerDamage(EntityDamageEvent event) {
         
     }
@@ -90,6 +85,16 @@ public class PodiumState implements EventState {
     
     @Override
     public void setMaxGames(@NotNull CommandSender sender, int newMaxGames) {
+        
+    }
+    
+    @Override
+    public void stopColossalCombat(@NotNull CommandSender sender) {
+        
+    }
+    
+    @Override
+    public void startColossalCombat(@NotNull CommandSender sender, @NotNull String firstTeam, @NotNull String secondTeam) {
         
     }
 }

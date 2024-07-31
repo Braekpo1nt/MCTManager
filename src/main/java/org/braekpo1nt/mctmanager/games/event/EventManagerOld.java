@@ -79,7 +79,7 @@ public class EventManagerOld implements Listener {
         this.colossalCombatGame = new ColossalCombatGame(plugin, gameManager);
         this.crown.editMeta(meta -> meta.setCustomModelData(1));
     }
-        
+    
     /**
      * The nth multiplier is used on the nth game in the event. If there are x multipliers, and we're on game z where z is greater than x, the xth multiplier is used.
      * @return a multiplier for the score based on the progression in the match.

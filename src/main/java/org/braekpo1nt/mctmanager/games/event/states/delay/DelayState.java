@@ -70,11 +70,6 @@ public abstract class DelayState implements EventState {
     }
     
     @Override
-    public void undoGame(@NotNull CommandSender sender, @NotNull GameType gameType, int iterationIndex) {
-        
-    }
-    
-    @Override
     public void onPlayerDamage(EntityDamageEvent event) {
         event.setCancelled(true);
     }
@@ -103,6 +98,16 @@ public abstract class DelayState implements EventState {
     
     @Override
     public void colossalCombatIsOver(@Nullable String winningTeam) {
+        
+    }
+    
+    @Override
+    public void startColossalCombat(@NotNull CommandSender sender, @NotNull String firstTeam, @NotNull String secondTeam) {
+        
+    }
+    
+    @Override
+    public void stopColossalCombat(@NotNull CommandSender sender) {
         
     }
     

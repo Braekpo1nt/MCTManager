@@ -58,11 +58,6 @@ public class PlayingGameState implements EventState {
     }
     
     @Override
-    public void undoGame(@NotNull CommandSender sender, @NotNull GameType gameType, int iterationIndex) {
-        
-    }
-    
-    @Override
     public void onPlayerDamage(EntityDamageEvent event) {
         // do nothing
     }
@@ -118,5 +113,15 @@ public class PlayingGameState implements EventState {
         gameManager.updateGameTitle();
         sender.sendMessage(Component.text("Max games has been set to ")
                 .append(Component.text(newMaxGames)));
+    }
+    
+    @Override
+    public void stopColossalCombat(@NotNull CommandSender sender) {
+        
+    }
+    
+    @Override
+    public void startColossalCombat(@NotNull CommandSender sender, @NotNull String firstTeam, @NotNull String secondTeam) {
+        
     }
 }

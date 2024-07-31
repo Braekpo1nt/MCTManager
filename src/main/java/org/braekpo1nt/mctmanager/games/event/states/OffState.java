@@ -153,12 +153,6 @@ public class OffState implements EventState {
     }
     
     @Override
-    public void undoGame(@NotNull CommandSender sender, @NotNull GameType gameType, int iterationIndex) {
-        sender.sendMessage(Component.text("There is no event running.")
-                .color(NamedTextColor.RED));
-    }
-    
-    @Override
     public void onPlayerDamage(EntityDamageEvent event) {
         // do nothing
     }
@@ -205,6 +199,16 @@ public class OffState implements EventState {
     
     @Override
     public void setMaxGames(@NotNull CommandSender sender, int newMaxGames) {
+        
+    }
+    
+    @Override
+    public void stopColossalCombat(@NotNull CommandSender sender) {
+        
+    }
+    
+    @Override
+    public void startColossalCombat(@NotNull CommandSender sender, @NotNull String firstTeam, @NotNull String secondTeam) {
         
     }
 }

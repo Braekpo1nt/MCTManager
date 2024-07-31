@@ -2,6 +2,9 @@ package org.braekpo1nt.mctmanager.games.event;
 
 import lombok.Data;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.colossalcombat.ColossalCombatGame;
@@ -15,6 +18,7 @@ import org.braekpo1nt.mctmanager.games.voting.VoteManager;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
@@ -142,7 +146,180 @@ public class EventManager implements Listener {
     }
     
     public void undoGame(@NotNull CommandSender sender, @NotNull GameType gameType, int iterationIndex) {
-        state.undoGame(sender, gameType, iterationIndex);
+        // TODO: handle when undoGame is called while colossal combat is started but with no event going on
+        if (state instanceof OffState) {
+            sender.sendMessage(Component.text("There isn't an event going on.")
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        if (gameManager.getActiveGame() != null && gameManager.getActiveGame().getType().equals(gameType)) {
+            sender.sendMessage(Component.text("Can't undo ")
+                    .append(Component.text(gameType.getTitle())
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(" because it is in progress"))
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        if (!scoreKeepers.containsKey(gameType)) {
+            sender.sendMessage(Component.empty()
+                    .append(Component.text("No points were tracked for "))
+                    .append(Component.text(gameType.getTitle())
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text("."))
+                    .color(NamedTextColor.YELLOW));
+            return;
+        }
+        List<ScoreKeeper> gameScoreKeepers = scoreKeepers.get(gameType);
+        if (iterationIndex < 0) {
+            sender.sendMessage(Component.empty()
+                    .append(Component.text(iterationIndex+1)
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(" is not a valid play-through"))
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        if (iterationIndex >= gameScoreKeepers.size()) {
+            sender.sendMessage(Component.text(gameType.getTitle())
+                    .append(Component.text(" has only been played "))
+                    .append(Component.text(gameScoreKeepers.size()))
+                    .append(Component.text(" time(s). Can't undo play-through "))
+                    .append(Component.text(iterationIndex + 1))
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        ScoreKeeper iterationScoreKeeper = gameScoreKeepers.get(iterationIndex);
+        if (iterationScoreKeeper == null) {
+            sender.sendMessage(Component.empty()
+                    .append(Component.text("No points were tracked for play-through "))
+                    .append(Component.text(iterationIndex + 1)
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(" of "))
+                    .append(Component.text(gameType.getTitle())
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text("."))
+                    .color(NamedTextColor.YELLOW));
+            return;
+        }
+        undoScores(iterationScoreKeeper);
+        gameScoreKeepers.set(iterationIndex, null); // remove tracked points for this iteration
+        Component report = createScoreKeeperReport(gameType, iterationScoreKeeper);
+        sender.sendMessage(report);
+        Bukkit.getConsoleSender().sendMessage(report);
+    }
+    
+    public void addGameToVotingPool(@NotNull CommandSender sender, @NotNull GameType gameToAdd) {
+        if (state instanceof OffState) {
+            sender.sendMessage(Component.text("There isn't an event going on.")
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        if (!playedGames.contains(gameToAdd)) {
+            sender.sendMessage(Component.text("This game is already in the voting pool.")
+                    .color(NamedTextColor.YELLOW));
+            return;
+        }
+        playedGames.remove(gameToAdd);
+        sender.sendMessage(Component.text(gameToAdd.getTitle())
+                .append(Component.text(" has been added to the voting pool.")));
+    }
+    
+    public void removeGameFromVotingPool(@NotNull CommandSender sender, @NotNull GameType gameToRemove) {
+        if (state instanceof OffState) {
+            sender.sendMessage(Component.text("There isn't an event going on.")
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        playedGames.add(gameToRemove);
+        sender.sendMessage(Component.text(gameToRemove.getTitle())
+                .append(Component.text(" has been removed from the voting pool")));
+    }
+    
+    /**
+     * For use with the undo operation. Gets the number of times a game has been played this round.
+     * @param gameType the game to check for the iterations of
+     * @return the game iterations (the number of times a game has been played this event).
+     * -1 if an event isn't active, 0 if the gameType hasn't been played yet
+     */
+    public int getGameIterations(GameType gameType) {
+        if (state instanceof OffState) {
+            return -1;
+        }
+        if (!scoreKeepers.containsKey(gameType)) {
+            return 0;
+        }
+        return scoreKeepers.get(gameType).size();
+    }
+    
+    /**
+     * Removes the scores that were tracked by the given ScoreKeeper
+     * @param scoreKeeper holds the tracked scores to be removed
+     */
+    private void undoScores(ScoreKeeper scoreKeeper) {
+        Set<String> teamNames = gameManager.getTeamNames();
+        for (String teamName : teamNames) {
+            int teamScoreToSubtract = scoreKeeper.getScore(teamName);
+            int teamCurrentScore = gameManager.getScore(teamName);
+            if (teamCurrentScore - teamScoreToSubtract < 0) {
+                teamScoreToSubtract = teamCurrentScore;
+            }
+            gameManager.addScore(teamName, -teamScoreToSubtract);
+            
+            List<UUID> participantUUIDs = gameManager.getParticipantUUIDsOnTeam(teamName);
+            for (UUID participantUUID : participantUUIDs) {
+                int participantScoreToSubtract = scoreKeeper.getScore(participantUUID);
+                int participantCurrentScore = gameManager.getScore(participantUUID);
+                if (participantCurrentScore - participantScoreToSubtract < 0) {
+                    participantScoreToSubtract = participantCurrentScore;
+                }
+                gameManager.addScore(participantUUID, -participantScoreToSubtract);
+            }
+        }
+    }
+    
+    /**
+     * Creates a report describing the scores associated with the given ScoreKeeper
+     * @param gameType The gameType the ScoreKeeper is associated with
+     * @param scoreKeeper The scorekeeper describing the given scores
+     * @return A component with a report of the ScoreKeeper's scores
+     */
+    @NotNull
+    private Component createScoreKeeperReport(@NotNull GameType gameType, @NotNull ScoreKeeper scoreKeeper) {
+        Set<String> teamNames = gameManager.getTeamNames();
+        TextComponent.Builder reportBuilder = Component.text()
+                .append(Component.text("|Scores for ("))
+                .append(Component.text(gameType.getTitle())
+                        .decorate(TextDecoration.BOLD))
+                .append(Component.text("):\n"))
+                .color(NamedTextColor.YELLOW);
+        for (String teamName : teamNames) {
+            int teamScoreToSubtract = scoreKeeper.getScore(teamName);
+            NamedTextColor teamColor = gameManager.getTeamNamedTextColor(teamName);
+            Component displayName = gameManager.getFormattedTeamDisplayName(teamName);
+            reportBuilder.append(Component.text("|  - "))
+                    .append(displayName)
+                    .append(Component.text(": "))
+                    .append(Component.text(teamScoreToSubtract)
+                            .color(NamedTextColor.GOLD)
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text("\n"));
+            
+            List<UUID> participantUUIDs = gameManager.getParticipantUUIDsOnTeam(teamName);
+            for (UUID participantUUID : participantUUIDs) {
+                Player participant = Bukkit.getPlayer(participantUUID);
+                if (participant != null) {
+                    int participantScoreToSubtract = scoreKeeper.getScore(participantUUID);
+                    reportBuilder.append(Component.text("|    - "))
+                            .append(Component.text(participant.getName())
+                                    .color(teamColor))
+                            .append(Component.text(": "))
+                            .append(Component.text(participantScoreToSubtract)
+                                    .color(NamedTextColor.GOLD)
+                                    .decorate(TextDecoration.BOLD))
+                            .append(Component.text("\n"));
+                }
+            }
+        }
+        return reportBuilder.build();
     }
     
     @EventHandler
@@ -188,6 +365,14 @@ public class EventManager implements Listener {
     
     public void colossalCombatIsOver(String winningTeam) {
         state.colossalCombatIsOver(winningTeam);
+    }
+    
+    public void stopColossalCombat(@NotNull CommandSender sender) {
+        state.stopColossalCombat(sender);
+    }
+    
+    public void startColossalCombat(@NotNull CommandSender sender, @NotNull String firstTeam, @NotNull String secondTeam) {
+        state.startColossalCombat(sender, firstTeam, secondTeam);
     }
     
     public boolean eventIsActive() {
