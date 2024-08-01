@@ -102,7 +102,7 @@ public class VotingState implements EventState {
     
     @Override
     public void colossalCombatIsOver(@Nullable String winningTeam) {
-        
+        // do nothing
     }
     
     @Override
@@ -133,6 +133,7 @@ public class VotingState implements EventState {
     
     @Override
     public void startColossalCombat(@NotNull CommandSender sender, @NotNull String firstTeam, @NotNull String secondTeam) {
-        
+        sender.sendMessage(Component.text("Can't start Colossal Combat during voting")
+                .color(NamedTextColor.RED));
     }
 }

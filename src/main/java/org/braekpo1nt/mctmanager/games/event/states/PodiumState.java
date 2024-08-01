@@ -153,12 +153,12 @@ public class PodiumState implements EventState {
     
     @Override
     public void gameIsOver(@NotNull GameType finishedGameType) {
-        
+        // do nothing
     }
     
     @Override
     public void colossalCombatIsOver(@Nullable String winningTeam) {
-        
+        // do nothing
     }
     
     @Override
@@ -175,6 +175,7 @@ public class PodiumState implements EventState {
     
     @Override
     public void startColossalCombat(@NotNull CommandSender sender, @NotNull String firstTeam, @NotNull String secondTeam) {
-        
+        sender.sendMessage(Component.text("The event is over, can't start Colossal Combat")
+                .color(NamedTextColor.RED));
     }
 }
