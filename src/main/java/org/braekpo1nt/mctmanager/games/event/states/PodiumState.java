@@ -66,6 +66,12 @@ public class PodiumState implements EventState {
             sidebar.addPlayer(participant);
             context.updateTeamScores();
             sidebar.updateLine(participant.getUniqueId(), "currentGame", context.getCurrentGameLine());
+            if (context.getWinningTeam() != null) {
+                Component teamDisplayName = gameManager.getFormattedTeamDisplayName(context.getWinningTeam());
+                sidebar.updateLine("winner", Component.empty()
+                        .append(Component.text("Winner: "))
+                        .append(teamDisplayName));
+            }
         }
     }
     
@@ -90,6 +96,12 @@ public class PodiumState implements EventState {
             adminSidebar.addPlayer(admin);
             context.updateTeamScores();
             adminSidebar.updateLine(admin.getUniqueId(), "currentGame", context.getCurrentGameLine());
+            if (context.getWinningTeam() != null) {
+                Component teamDisplayName = gameManager.getFormattedTeamDisplayName(context.getWinningTeam());
+                adminSidebar.updateLine("winner", Component.empty()
+                        .append(Component.text("Winner: "))
+                        .append(teamDisplayName));
+            }
         }
     }
     
