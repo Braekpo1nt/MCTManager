@@ -59,7 +59,10 @@ public class ColossalCombatDelay extends DelayState {
         if (firstPlaces.length == 2) {
             String firstPlace = firstPlaces[0];
             String secondPlace = firstPlaces[1];
-            actuallyStartColossalCombat(firstPlace, secondPlace);
+            context.setState(new PlayingColossalCombatState(
+                    context,
+                    firstPlace,
+                    secondPlace));
             return true;
         }
         if (firstPlaces.length > 2) {
@@ -119,30 +122,10 @@ public class ColossalCombatDelay extends DelayState {
             return false;
         }
         
-        actuallyStartColossalCombat(firstPlace, secondPlace);
+        context.setState(new PlayingColossalCombatState(
+                context,
+                firstPlace,
+                secondPlace));
         return true;
     }
-    
-    /**
-     * Switch to the {@link PlayingColossalCombatState} and clear the player lists and sidebars
-     * @param firstPlace the teamId of the first place team
-     * @param secondPlace the teamId of the second place team
-     */
-    private void actuallyStartColossalCombat(String firstPlace, String secondPlace) {
-        context.getSidebar().removePlayers(context.getParticipants());
-        context.getAdminSidebar().removePlayers(context.getAdmins());
-        List<Player> participantPool = new ArrayList<>(context.getParticipants());
-        List<Player> adminPool = new ArrayList<>(context.getAdmins());
-        context.getParticipants().clear();
-        context.getAdmins().clear();
-        context.setState(new PlayingColossalCombatState(
-                context, 
-                context.getPlugin().getServer().getConsoleSender(),
-                firstPlace,
-                secondPlace, 
-                participantPool, 
-                adminPool,
-                false));
-    }
-    
 }

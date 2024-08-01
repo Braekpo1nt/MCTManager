@@ -118,6 +118,7 @@ public class PlayingGameState implements EventState {
     
     @Override
     public void startColossalCombat(@NotNull CommandSender sender, @NotNull String firstTeam, @NotNull String secondTeam) {
-        
+        sender.sendMessage(Component.text("Can't start Colossal Combat while a game is running")
+                .color(NamedTextColor.RED));
     }
 }

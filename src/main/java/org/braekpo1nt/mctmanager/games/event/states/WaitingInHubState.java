@@ -161,19 +161,9 @@ public class WaitingInHubState implements EventState {
     @Override
     public void startColossalCombat(@NotNull CommandSender sender, @NotNull String firstTeam, @NotNull String secondTeam) {
         waitingInHubTimer.cancel();
-        context.getSidebar().removePlayers(context.getParticipants());
-        context.getAdminSidebar().removePlayers(context.getAdmins());
-        List<Player> participantPool = new ArrayList<>(context.getParticipants());
-        List<Player> adminPool = new ArrayList<>(context.getAdmins());
-        context.getParticipants().clear();
-        context.getAdmins().clear();
         context.setState(new PlayingColossalCombatState(
                 context,
-                context.getPlugin().getServer().getConsoleSender(),
                 firstTeam,
-                secondTeam,
-                participantPool,
-                adminPool,
-                false));
+                secondTeam));
     }
 }

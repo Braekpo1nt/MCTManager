@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.games.event.states;
 
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.title.Title;
@@ -193,26 +194,88 @@ public class OffState implements EventState {
     
     @Override
     public void setMaxGames(@NotNull CommandSender sender, int newMaxGames) {
-        
-    }
-    
-    @Override
-    public void stopColossalCombat(@NotNull CommandSender sender) {
-        sender.sendMessage(Component.text("Colossal Combat is not running")
+        sender.sendMessage(Component.text("There is no event running")
                 .color(NamedTextColor.RED));
     }
     
     @Override
-    public void startColossalCombat(@NotNull CommandSender sender, @NotNull String firstTeam, @NotNull String secondTeam) {
-        List<Player> participantPool = new ArrayList<>(context.getGameManager().getOnlineParticipants());
-        List<Player> adminPool = new ArrayList<>(context.getGameManager().getOnlineAdmins());
-        context.setState(new PlayingColossalCombatState(
-                context,
-                sender,
-                firstTeam,
-                secondTeam,
-                participantPool,
-                adminPool,
-                true));
+    public void stopColossalCombat(@NotNull CommandSender sender) {
+        if (!context.getColossalCombatGame().isActive()) {
+            sender.sendMessage(Component.text("Colossal Combat is not running")
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        context.getColossalCombatGame().stop(null);
+    }
+    
+    @Override
+    public void startColossalCombat(@NotNull CommandSender sender, @NotNull String firstTeamId, @NotNull String secondTeamId) {
+        if (context.getGameManager().gameIsRunning()) {
+            sender.sendMessage(Component.text("Can't start Colossal Combat while a game is running")
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        if (context.getColossalCombatGame().isActive()) {
+            sender.sendMessage(Component.text("Colossal Combat is already running")
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        try {
+            context.getColossalCombatGame().loadConfig();
+        } catch (ConfigException e) {
+            Bukkit.getLogger().severe(e.getMessage());
+            e.printStackTrace();
+            sender.sendMessage(Component.text("Error loading config file. See console for details.")
+                    .color(NamedTextColor.RED));
+            context.messageAllAdmins(Component.text("Can't start ")
+                    .append(Component.text("Colossal Combat")
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(". Error loading config file. See console for details:\n"))
+                    .append(Component.text(e.getMessage()))
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        List<Player> firstPlaceParticipants = new ArrayList<>();
+        List<Player> secondPlaceParticipants = new ArrayList<>();
+        List<Player> spectators = new ArrayList<>();
+        List<Player> participantPool;
+        List<Player> adminPool;
+        participantPool = new ArrayList<>(gameManager.getOnlineParticipants());
+        adminPool = new ArrayList<>(gameManager.getOnlineAdmins());
+        for (Player participant : participantPool) {
+            String teamName = gameManager.getTeamName(participant.getUniqueId());
+            if (teamName.equals(firstTeamId)) {
+                firstPlaceParticipants.add(participant);
+            } else if (teamName.equals(secondTeamId)) {
+                secondPlaceParticipants.add(participant);
+            } else {
+                spectators.add(participant);
+            }
+        }
+        
+        if (firstPlaceParticipants.isEmpty()) {
+            sender.sendMessage(Component.empty()
+                    .append(Component.text("There are no members of the first place team online. Please use "))
+                    .append(Component.text("/mct event finalgame start <first> <second>")
+                            .clickEvent(ClickEvent.suggestCommand(String.format("/mct event finalgame start %s %s", firstTeamId, secondTeamId)))
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(" to manually start the final game."))
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        
+        if (secondPlaceParticipants.isEmpty()) {
+            sender.sendMessage(Component.empty()
+                    .append(Component.text("There are no members of the second place team online. Please use "))
+                    .append(Component.text("/mct event finalgame start <first> <second>")
+                            .clickEvent(ClickEvent.suggestCommand(String.format("/mct event finalgame start %s %s", firstTeamId, secondTeamId)))
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(" to manually start the final game."))
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        
+        gameManager.removeParticipantsFromHub(participantPool);
+        context.getColossalCombatGame().start(firstPlaceParticipants, secondPlaceParticipants, spectators, adminPool);
     }
 }

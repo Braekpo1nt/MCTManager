@@ -20,26 +20,20 @@ import java.util.List;
 
 public class PlayingColossalCombatState extends PlayingGameState {
     
-    public PlayingColossalCombatState(EventManager context, CommandSender sender, String firstTeamId, String secondTeamId, List<Player> participantPool, List<Player> adminPool, boolean returnToOffState) {
+    public PlayingColossalCombatState(EventManager context, @NotNull String firstTeamId, @NotNull String secondTeamId) {
         super(context);
-        boolean success = tryToStartColossalCombat(sender, firstTeamId, secondTeamId, participantPool, adminPool);
+        boolean success = tryToStartColossalCombat(firstTeamId, secondTeamId);
         if (!success) {
-            if (returnToOffState) {
-                context.setState(new OffState(context));
-            } else {
-                context.setState(new WaitingInHubState(context));
-            }
+            context.setState(new WaitingInHubState(context));
         }
     }
     
-    private boolean tryToStartColossalCombat(CommandSender sender, String firstTeamId, String secondTeamId, List<Player> participantPool, List<Player> adminPool) {
+    private boolean tryToStartColossalCombat(@NotNull String firstTeamId, @NotNull String secondTeamId) {
         try {
             context.getColossalCombatGame().loadConfig();
         } catch (ConfigException e) {
             Bukkit.getLogger().severe(e.getMessage());
             e.printStackTrace();
-            sender.sendMessage(Component.text("Error loading config file. See console for details.")
-                    .color(NamedTextColor.RED));
             context.messageAllAdmins(Component.text("Can't start ")
                     .append(Component.text("Colossal Combat")
                             .decorate(TextDecoration.BOLD))
@@ -48,14 +42,10 @@ public class PlayingColossalCombatState extends PlayingGameState {
                     .color(NamedTextColor.RED));
             return false;
         }
-        if (firstTeamId == null || secondTeamId == null) {
-            sender.sendMessage(Component.text("Please specify the first and second place teams.").color(NamedTextColor.RED));
-            return false;
-        }
         List<Player> firstPlaceParticipants = new ArrayList<>();
         List<Player> secondPlaceParticipants = new ArrayList<>();
         List<Player> spectators = new ArrayList<>();
-        for (Player participant : participantPool) {
+        for (Player participant : context.getParticipants()) {
             String teamName = gameManager.getTeamName(participant.getUniqueId());
             if (teamName.equals(firstTeamId)) {
                 firstPlaceParticipants.add(participant);
@@ -67,7 +57,7 @@ public class PlayingColossalCombatState extends PlayingGameState {
         }
         
         if (firstPlaceParticipants.isEmpty()) {
-            sender.sendMessage(Component.empty()
+            context.messageAllAdmins(Component.empty()
                     .append(Component.text("There are no members of the first place team online. Please use "))
                     .append(Component.text("/mct event finalgame start <first> <second>")
                             .clickEvent(ClickEvent.suggestCommand(String.format("/mct event finalgame start %s %s", firstTeamId, secondTeamId)))
@@ -78,7 +68,7 @@ public class PlayingColossalCombatState extends PlayingGameState {
         }
         
         if (secondPlaceParticipants.isEmpty()) {
-            sender.sendMessage(Component.empty()
+            context.messageAllAdmins(Component.empty()
                     .append(Component.text("There are no members of the second place team online. Please use "))
                     .append(Component.text("/mct event finalgame start <first> <second>")
                             .clickEvent(ClickEvent.suggestCommand(String.format("/mct event finalgame start %s %s", firstTeamId, secondTeamId)))
@@ -87,8 +77,12 @@ public class PlayingColossalCombatState extends PlayingGameState {
                     .color(NamedTextColor.RED));
             return false;
         }
-        gameManager.removeParticipantsFromHub(participantPool);
-        context.getColossalCombatGame().start(firstPlaceParticipants, secondPlaceParticipants, spectators, adminPool);
+        context.getSidebar().removePlayers(context.getParticipants());
+        context.getAdminSidebar().removePlayers(context.getAdmins());
+        gameManager.removeParticipantsFromHub(context.getParticipants());
+        context.getColossalCombatGame().start(firstPlaceParticipants, secondPlaceParticipants, spectators, context.getAdmins());
+        context.getParticipants().clear();
+        context.getAdmins().clear();
         return true;
     }
     
