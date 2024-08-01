@@ -68,12 +68,9 @@ public class PlayingGameState implements EventState {
     
     @Override
     public void gameIsOver(@NotNull GameType finishedGameType) {
-        context.initializeParticipantsAndAdmins();
         context.getPlayedGames().add(finishedGameType);
         context.setCurrentGameNumber(context.getCurrentGameNumber() + 1);
-        context.getSidebar().updateLine("currentGame", context.getCurrentGameLine());
-        context.getAdminSidebar().updateLine("currentGame", context.getCurrentGameLine());
-        context.setState(new BackToHubDelayState(context, finishedGameType));
+        context.setState(new BackToHubDelayState(context));
     }
     
     @Override
