@@ -1,4 +1,4 @@
-package org.braekpo1nt.mctmanager.games.game.mecha.config;
+package org.braekpo1nt.mctmanager.games.game.survivalgames.config;
 
 import lombok.Builder;
 import lombok.Data;
@@ -16,13 +16,13 @@ import java.util.Map;
 
 @Data
 @Builder
-public class MechaConfig {
+public class SurvivalGamesConfig {
     private World world;
     private @Nullable BoundingBox spectatorArea;
     private List<Vector> spawnChestCoords;
     private List<Vector> mapChestCoords;
     private LootTable spawnLootTable;
-    private Map<LootTable, Integer> weightedMechaLootTables;
+    private Map<LootTable, Integer> weightedLootTables;
     private BoundingBox removeArea;
     private List<BoundingBox> platformBarriers;
     private List<Location> platformSpawns;

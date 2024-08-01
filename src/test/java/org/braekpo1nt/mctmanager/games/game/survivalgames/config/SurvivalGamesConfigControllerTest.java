@@ -1,4 +1,4 @@
-package org.braekpo1nt.mctmanager.games.game.mecha.config;
+package org.braekpo1nt.mctmanager.games.game.survivalgames.config;
 
 import be.seeseemelk.mockbukkit.MockBukkit;
 import be.seeseemelk.mockbukkit.ServerMock;
@@ -18,18 +18,18 @@ import java.io.File;
 import java.io.InputStream;
 import java.util.logging.Level;
 
-class MechaConfigControllerTest {
-    String configFileName = "mechaConfig.json";
-    String exampleConfigFileName = "exampleMechaConfig.json";
+class SurvivalGamesConfigControllerTest {
+    String configFileName = "survivalGamesConfig.json";
+    String exampleConfigFileName = "exampleSurvivalGamesConfig.json";
     Main plugin;
-    MechaConfigController controller;
+    SurvivalGamesConfigController controller;
 
     @BeforeEach
     void setupServerAndPlugin() {
         ServerMock server = MockBukkit.mock(new MyCustomServerMock());
         server.getLogger().setLevel(Level.OFF);
         plugin = MockBukkit.load(MockMain.class);
-        controller = new MechaConfigController(plugin.getDataFolder());
+        controller = new SurvivalGamesConfigController(plugin.getDataFolder());
     }
     
     @AfterEach
@@ -54,10 +54,19 @@ class MechaConfigControllerTest {
     }
     
     @Test
-    void testBackwardsCompatibility() {
-        wellFormedJsonValidData("exampleMechaConfig_v0.1.0.json");
+    void testBackwardsCompatibility_v0_1_0() {
+        wellFormedJsonValidData("exampleMechaConfig_v0.1.0.json", "mechaConfig.json");
     }
     
+    @Test
+    void testBackwardsCompatibility_v0_1_1() {
+        wellFormedJsonValidData("exampleMechaConfig_v0.1.1.json", "mechaConfig.json");
+    }
+    
+    @Test
+    void fileDoesNotExist() {
+        Assertions.assertThrows(ConfigIOException.class, controller::getConfig);
+    }
     
     @Test
     void wellFormedJsonInvalidData() {
@@ -69,8 +78,12 @@ class MechaConfigControllerTest {
     }
     
     void wellFormedJsonValidData(String filename) {
+        wellFormedJsonValidData(filename, configFileName);
+    }
+    
+    void wellFormedJsonValidData(String filename, String configFilename) {
         InputStream inputStream = controller.getClass().getResourceAsStream(filename);
-        TestUtils.copyInputStreamToFile(inputStream, new File(plugin.getDataFolder(), configFileName));
+        TestUtils.copyInputStreamToFile(inputStream, new File(plugin.getDataFolder(), configFilename));
         Assertions.assertDoesNotThrow(controller::getConfig);
     }
     

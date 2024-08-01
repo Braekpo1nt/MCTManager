@@ -20,7 +20,7 @@ import org.braekpo1nt.mctmanager.games.game.footrace.editor.FootRaceEditor;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.GameEditor;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
-import org.braekpo1nt.mctmanager.games.game.mecha.MechaGame;
+import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesGame;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.ParkourPathwayGame;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.editor.ParkourPathwayEditor;
 import org.braekpo1nt.mctmanager.games.game.spleef.SpleefGame;
@@ -99,7 +99,7 @@ public class GameManager implements Listener {
         this.timerManager = new TimerManager(plugin);
         this.games = new HashMap<>();
         addGame(new FootRaceGame(plugin, this));
-        addGame(new MechaGame(plugin, this));
+        addGame(new SurvivalGamesGame(plugin, this));
         addGame(new SpleefGame(plugin, this));
         addGame(new ParkourPathwayGame(plugin, this));
         addGame(new CaptureTheFlagGame(plugin, this));
@@ -644,14 +644,16 @@ public class GameManager implements Listener {
         List<String> onlineTeams = getTeamNames(onlineParticipants);
         // make sure the player and team count requirements are met
         switch (gameType) {
-            case MECHA -> {
+            case SURVIVAL_GAMES -> {
                 if (onlineTeams.size() < 2) {
-                    sender.sendMessage(Component.text("MECHA doesn't end correctly unless there are 2 or more teams online. use ")
+                    sender.sendMessage(Component.empty()
+                            .append(Component.text(GameType.SURVIVAL_GAMES.getTitle()))
+                            .append(Component.text(" doesn't end correctly unless there are 2 or more teams online. use ")
                             .append(Component.text("/mct game stop")
                                     .clickEvent(ClickEvent.suggestCommand("/mct game stop"))
                                     .decorate(TextDecoration.BOLD))
                             .append(Component.text(" to stop the game."))
-                            .color(NamedTextColor.RED));
+                            .color(NamedTextColor.RED)));
                 }
             }
             case CAPTURE_THE_FLAG -> {
