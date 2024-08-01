@@ -55,13 +55,6 @@ public class VotingState implements EventState {
     @Override
     public void onParticipantQuit(Player participant) {
         voteManager.onParticipantQuit(participant);
-        // TODO: you only need to worry about the crown stuff in the podium phase
-        if (context.getWinningTeam() != null) {
-            String team = gameManager.getTeamName(participant.getUniqueId());
-            if (team.equals(context.getWinningTeam())) {
-                context.removeCrown(participant);
-            }
-        }
     }
     
     @Override

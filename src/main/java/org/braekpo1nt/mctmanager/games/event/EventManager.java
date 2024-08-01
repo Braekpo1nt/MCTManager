@@ -110,7 +110,6 @@ public class EventManager implements Listener {
      * @return a line for sidebars saying what the current game is
      */
     public String getCurrentGameLine() {
-        // TODO: make this a state-dependant method
         if (currentGameNumber <= maxGames) {
             return String.format("Game [%d/%d]", currentGameNumber, maxGames);
         }
@@ -197,7 +196,6 @@ public class EventManager implements Listener {
     }
     
     public void undoGame(@NotNull CommandSender sender, @NotNull GameType gameType, int iterationIndex) {
-        // TODO: handle when undoGame is called while colossal combat is started but with no event going on
         if (state instanceof OffState) {
             sender.sendMessage(Component.text("There isn't an event going on.")
                     .color(NamedTextColor.RED));
