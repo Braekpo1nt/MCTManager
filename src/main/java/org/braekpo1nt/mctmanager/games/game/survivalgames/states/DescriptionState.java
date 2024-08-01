@@ -1,8 +1,8 @@
-package org.braekpo1nt.mctmanager.games.game.mecha.states;
+package org.braekpo1nt.mctmanager.games.game.survivalgames.states;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import org.braekpo1nt.mctmanager.games.game.mecha.MechaGame;
+import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesGame;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.bukkit.GameMode;
@@ -13,11 +13,11 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
-public class DescriptionState implements MechaState {
+public class DescriptionState implements SurvivalGamesState {
     
-    protected final @NotNull MechaGame context;
+    protected final @NotNull SurvivalGamesGame context;
     
-    public DescriptionState(@NotNull MechaGame context) {
+    public DescriptionState(@NotNull SurvivalGamesGame context) {
         this.context = context;
         startTimer();
     }

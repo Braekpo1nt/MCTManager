@@ -1,4 +1,4 @@
-package org.braekpo1nt.mctmanager.games.game.mecha;
+package org.braekpo1nt.mctmanager.games.game.survivalgames;
 
 import lombok.Data;
 import net.kyori.adventure.audience.Audience;
@@ -11,10 +11,10 @@ import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
-import org.braekpo1nt.mctmanager.games.game.mecha.config.MechaConfig;
-import org.braekpo1nt.mctmanager.games.game.mecha.config.MechaConfigController;
-import org.braekpo1nt.mctmanager.games.game.mecha.states.DescriptionState;
-import org.braekpo1nt.mctmanager.games.game.mecha.states.MechaState;
+import org.braekpo1nt.mctmanager.games.game.survivalgames.config.SurvivalGamesConfig;
+import org.braekpo1nt.mctmanager.games.game.survivalgames.config.SurvivalGamesConfigController;
+import org.braekpo1nt.mctmanager.games.game.survivalgames.states.DescriptionState;
+import org.braekpo1nt.mctmanager.games.game.survivalgames.states.SurvivalGamesState;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
@@ -56,19 +56,19 @@ import java.util.*;
  * The context for the state pattern
  */
 @Data
-public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
+public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Headerable {
     
-    private @Nullable MechaState state;
+    private @Nullable SurvivalGamesState state;
     
     private final Main plugin;
     private final GameManager gameManager;
     private final @NotNull ManyBattleTopbar topbar;
-    private final MechaConfigController configController;
-    private final String baseTitle = ChatColor.BLUE+"MECHA";
+    private final SurvivalGamesConfigController configController;
+    private final String baseTitle = ChatColor.BLUE+"Survival Games";
     private final TimerManager timerManager;
     private Sidebar sidebar;
     private Sidebar adminSidebar;
-    private MechaConfig config;
+    private SurvivalGamesConfig config;
     public List<Player> participants;
     private List<Player> admins = new ArrayList<>();
     private WorldBorder worldBorder;
@@ -82,11 +82,11 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     private Map<UUID, Integer> deathCounts = new HashMap<>();
     private String title = baseTitle;
     
-    public MechaGame(Main plugin, GameManager gameManager) {
+    public SurvivalGamesGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
         this.timerManager = new TimerManager(plugin);
         this.gameManager = gameManager;
-        this.configController = new MechaConfigController(plugin.getDataFolder());
+        this.configController = new SurvivalGamesConfigController(plugin.getDataFolder());
         this.topbar = new ManyBattleTopbar();
     }
     
@@ -108,7 +108,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     
     @Override
     public GameType getType() {
-        return GameType.MECHA;
+        return GameType.SURVIVAL_GAMES;
     }
     
     @Override
@@ -141,7 +141,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         initializeWorldBorder();
         startAdmins(newAdmins);
         state = new DescriptionState(this);
-        Bukkit.getLogger().info("Started mecha");
+        Bukkit.getLogger().info("Started survivalgames");
     }
     
     public void initializeParticipant(Player participant) {
@@ -203,7 +203,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
         deathCounts.clear();
         gameManager.gameIsOver();
         state = null;
-        Bukkit.getLogger().info("Stopped mecha");
+        Bukkit.getLogger().info("Stopped survivalgames");
     }
     
     @Override
@@ -265,7 +265,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
     }
     
     /**
-     * Fill all chests in the mecha world, map chests and spawn chests
+     * Fill all chests in the survivalgames world, map chests and spawn chests
      */
     private void fillAllChests() {
         fillSpawnChests();
@@ -295,7 +295,7 @@ public class MechaGame implements MCTGame, Configurable, Listener, Headerable {
      * @param chest The chest to fill
      */
     private void fillMapChest(Chest chest) {
-        LootTable lootTable = MathUtils.getWeightedRandomValue(config.getWeightedMechaLootTables());
+        LootTable lootTable = MathUtils.getWeightedRandomValue(config.getWeightedLootTables());
         chest.setLootTable(lootTable);
         chest.update();
     }

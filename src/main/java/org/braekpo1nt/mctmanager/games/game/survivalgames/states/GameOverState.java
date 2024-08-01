@@ -1,8 +1,8 @@
-package org.braekpo1nt.mctmanager.games.game.mecha.states;
+package org.braekpo1nt.mctmanager.games.game.survivalgames.states;
 
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
-import org.braekpo1nt.mctmanager.games.game.mecha.MechaGame;
+import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesGame;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.bukkit.entity.Player;
@@ -12,10 +12,10 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
-public class GameOverState implements MechaState {
-    private final @NotNull MechaGame context;
+public class GameOverState implements SurvivalGamesState {
+    private final @NotNull SurvivalGamesGame context;
     
-    public GameOverState(@NotNull MechaGame context) {
+    public GameOverState(@NotNull SurvivalGamesGame context) {
         this.context = context;
         Audience.audience(context.getParticipants()).showTitle(UIUtils.gameOverTitle());
         context.getAdminSidebar().addLine("over", "");

@@ -5,7 +5,7 @@ import java.util.Map;
 
 public enum GameType {
     FOOT_RACE("Foot Race", "foot-race"),
-    MECHA("MECHA", "mecha"),
+    SURVIVAL_GAMES("Survival Games", "survival-games"),
     CAPTURE_THE_FLAG("Capture the Flag", "capture-the-flag"),
     SPLEEF("Spleef", "spleef"),
     PARKOUR_PATHWAY("Parkour Pathway", "parkour-pathway"),

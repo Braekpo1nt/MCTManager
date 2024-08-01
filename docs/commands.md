@@ -29,7 +29,7 @@ Start, stop, and vote for games.
   - `[true|false]` This is an optional argument (defaults to true). If you provide false, the teleport to the hub will be cancelled. This is a debugging feature, and players will often not be reset properly after a game ends.
 - `/mct game vote [one or more games]`
   - Initiates a vote for all participants using the provided games as the voting pool.
-  - for example: `/mct game vote spleef foot-race mecha` will show all players a voting gui with those three games, and no others.
+  - for example: `/mct game vote spleef foot-race capture-the-flag` will show all players a voting gui with those three games, and no others.
 
 ## /mct event
 

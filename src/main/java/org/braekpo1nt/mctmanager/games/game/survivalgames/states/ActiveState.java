@@ -1,12 +1,12 @@
-package org.braekpo1nt.mctmanager.games.game.mecha.states;
+package org.braekpo1nt.mctmanager.games.game.survivalgames.states;
 
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
-import org.braekpo1nt.mctmanager.games.game.mecha.MechaGame;
-import org.braekpo1nt.mctmanager.games.game.mecha.config.MechaConfig;
+import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesGame;
+import org.braekpo1nt.mctmanager.games.game.survivalgames.config.SurvivalGamesConfig;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
@@ -27,13 +27,13 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public class ActiveState implements MechaState {
+public class ActiveState implements SurvivalGamesState {
     
-    private final @NotNull MechaGame context;
+    private final @NotNull SurvivalGamesGame context;
     private final Main plugin;
     private final GameManager gameManager;
     private final TimerManager timerManager;
-    private final MechaConfig config;
+    private final SurvivalGamesConfig config;
     private final Sidebar sidebar;
     private final Sidebar adminSidebar;
     private final ManyBattleTopbar topbar;
@@ -47,7 +47,7 @@ public class ActiveState implements MechaState {
     private @Nullable Timer borderShrinking;
     private @Nullable Timer gracePeriodTimer;
     
-    public ActiveState(@NotNull MechaGame context) {
+    public ActiveState(@NotNull SurvivalGamesGame context) {
         this.context = context;
         this.plugin = context.getPlugin();
         this.gameManager = context.getGameManager();

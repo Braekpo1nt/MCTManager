@@ -1,14 +1,14 @@
-package org.braekpo1nt.mctmanager.games.game.mecha.states;
+package org.braekpo1nt.mctmanager.games.game.survivalgames.states;
 
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
-import org.braekpo1nt.mctmanager.games.game.mecha.MechaGame;
+import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesGame;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.jetbrains.annotations.NotNull;
 
 public class StartingState extends DescriptionState {
     
-    public StartingState(@NotNull MechaGame context) {
+    public StartingState(@NotNull SurvivalGamesGame context) {
         super(context);
     }
     

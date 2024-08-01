@@ -1,6 +1,7 @@
-package org.braekpo1nt.mctmanager.games.game.mecha.config;
+package org.braekpo1nt.mctmanager.games.game.survivalgames.config;
 
 import com.google.common.base.Preconditions;
+import com.google.gson.annotations.SerializedName;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import net.kyori.adventure.text.Component;
@@ -24,7 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 
 @Data
-class MechaConfigDTO implements Validatable {
+class SurvivalGamesConfigDTO implements Validatable {
     
     private String version;
     private String world;
@@ -44,7 +45,8 @@ class MechaConfigDTO implements Validatable {
     /**
      * The loot tables for the chests, with weights for the weighted random selection
      */
-    private List<WeightedNamespacedKey> weightedMechaLootTables;
+    @SerializedName(value = "weightedLootTables", alternate = {"weightedMechaLootTables"})
+    private List<WeightedNamespacedKey> weightedLootTables;
     /**
      * The coordinates of the spawn chests
      */
@@ -64,9 +66,9 @@ class MechaConfigDTO implements Validatable {
      */
     private boolean lockOtherInventories = true;
     /**
-     * If true, containers will be cleared in the {@link MechaConfigDTO#removeArea} area. 
+     * If true, containers will be cleared in the {@link SurvivalGamesConfigDTO#removeArea} area. 
      * All chunks found in that area will be searched for blocks with inventories, and those will be cleared.
-     * If false, this phase will be skipped. Useful in combination with {@link MechaConfigDTO#lockOtherInventories} 
+     * If false, this phase will be skipped. Useful in combination with {@link SurvivalGamesConfigDTO#lockOtherInventories} 
      * set to true, because players shouldn't be able to put anything in those inventories anyway. 
      * Defaults to true.
      */
@@ -101,16 +103,16 @@ class MechaConfigDTO implements Validatable {
         validator.notNull(this.spawnLootTable, "spawnLootTable");
         validator.validate(lootTableExists(this.spawnLootTable.toNamespacedKey()),
                 "spawnLootTable: Could not find spawn loot table \"%s\"", this.spawnLootTable);
-        validator.notNull(this.weightedMechaLootTables,
-                "weightedMechaLootTables");
-        validator.validate(!this.weightedMechaLootTables.isEmpty(),
-                "weightedMechaLootTables must have at least 1 entry");
-        for (int i = 0; i < this.weightedMechaLootTables.size(); i++) {
-            MechaConfigDTO.WeightedNamespacedKey weightedNamespacedKey = this.weightedMechaLootTables.get(i);
-            weightedNamespacedKey.validate(validator.path("weightedMechaLootTables[%d]", i));
+        validator.notNull(this.weightedLootTables,
+                "weightedLootTables");
+        validator.validate(!this.weightedLootTables.isEmpty(),
+                "weightedLootTables must have at least 1 entry");
+        for (int i = 0; i < this.weightedLootTables.size(); i++) {
+            SurvivalGamesConfigDTO.WeightedNamespacedKey weightedNamespacedKey = this.weightedLootTables.get(i);
+            weightedNamespacedKey.validate(validator.path("weightedLootTables[%d]", i));
             NamespacedKey namespacedKey = weightedNamespacedKey.toNamespacedKey();
             validator.validate(lootTableExists(namespacedKey),
-                    "weightedMechaLootTables[%d]: Could not find loot table \"%s\"", i, namespacedKey);
+                    "weightedLootTables[%d]: Could not find loot table \"%s\"", i, namespacedKey);
         }
         validator.notNull(this.spawnChestCoords,
                 "spawnChestCoords");
@@ -130,7 +132,7 @@ class MechaConfigDTO implements Validatable {
         }
         validator.notNull(this.platforms, "platforms");
         validator.validate(!this.platforms.isEmpty(), "platforms must have at least one element");
-        for (MechaConfigDTO.Platform platform : this.platforms) {
+        for (SurvivalGamesConfigDTO.Platform platform : this.platforms) {
             validator.notNull(platform.barrier(), "platforms.barrier");
             BoundingBox barrier = platform.barrier().toBoundingBox();
             validator.validate(barrier.getHeight() >= 3, "platforms.barrier must have a height of at least 3");
@@ -157,14 +159,14 @@ class MechaConfigDTO implements Validatable {
         validator.notNull(this.description, "description");
     }
     
-    MechaConfig toConfig() {
+    SurvivalGamesConfig toConfig() {
         World newWorld = Bukkit.getWorld(this.world);
         Preconditions.checkState(newWorld != null, "Could not find world \"%s\"", this.world);
-        HashMap<LootTable, Integer> newWeightedMechaLootTables  = new HashMap<>(this.weightedMechaLootTables.size());
-        for (MechaConfigDTO.WeightedNamespacedKey weightedNamespacedKey : this.weightedMechaLootTables) {
+        HashMap<LootTable, Integer> newWeightedLootTables  = new HashMap<>(this.weightedLootTables.size());
+        for (SurvivalGamesConfigDTO.WeightedNamespacedKey weightedNamespacedKey : this.weightedLootTables) {
             LootTable lootTable = Bukkit.getLootTable(weightedNamespacedKey.toNamespacedKey());
             int weight = weightedNamespacedKey.weight();
-            newWeightedMechaLootTables.put(lootTable, weight);
+            newWeightedLootTables.put(lootTable, weight);
         }
         
         List<BoundingBox> newPlatformBarriers = new ArrayList<>();
@@ -203,13 +205,13 @@ class MechaConfigDTO implements Validatable {
             delays[i] = borderStages.get(i).delay();
             durations[i] = borderStages.get(i).duration();
         }
-        return MechaConfig.builder()
+        return SurvivalGamesConfig.builder()
                 .world(newWorld)
                 .spectatorArea(this.spectatorArea != null ? this.spectatorArea.toBoundingBox() : null)
                 .spawnChestCoords(this.spawnChestCoords)
                 .mapChestCoords(this.mapChestCoords)
                 .spawnLootTable(Bukkit.getLootTable(this.spawnLootTable.toNamespacedKey()))
-                .weightedMechaLootTables(newWeightedMechaLootTables)
+                .weightedLootTables(newWeightedLootTables)
                 .removeArea(this.removeArea.toBoundingBox())
                 .platformBarriers(newPlatformBarriers)
                 .platformSpawns(newPlatformSpawns)

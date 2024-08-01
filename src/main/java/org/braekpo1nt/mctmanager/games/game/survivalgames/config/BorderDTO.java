@@ -1,4 +1,4 @@
-package org.braekpo1nt.mctmanager.games.game.mecha.config;
+package org.braekpo1nt.mctmanager.games.game.survivalgames.config;
 
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
