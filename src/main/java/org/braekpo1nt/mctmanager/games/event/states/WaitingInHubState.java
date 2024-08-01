@@ -5,7 +5,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
-import org.braekpo1nt.mctmanager.games.event.states.delay.ColossalCombatDelay;
+import org.braekpo1nt.mctmanager.games.event.states.delay.ToColossalCombatDelay;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
@@ -16,9 +16,6 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class WaitingInHubState implements EventState {
     
@@ -51,7 +48,7 @@ public class WaitingInHubState implements EventState {
                 .sidebarPrefix(prefix)
                 .onCompletion(() -> {
                     if (context.allGamesHaveBeenPlayed()) {
-                        context.setState(new ColossalCombatDelay(context));
+                        context.setState(new ToColossalCombatDelay(context));
                     } else {
                         context.setState(new VotingState(context));
                     }

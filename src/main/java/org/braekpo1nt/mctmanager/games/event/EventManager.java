@@ -31,6 +31,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -65,7 +66,7 @@ public class EventManager implements Listener {
     private int currentGameNumber = 0;
     private List<Player> participants = new ArrayList<>();
     private List<Player> admins = new ArrayList<>();
-    private String winningTeam;
+    private @Nullable String winningTeam;
     
     public EventManager(Main plugin, GameManager gameManager, VoteManager voteManager) {
         this.plugin = plugin;

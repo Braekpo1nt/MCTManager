@@ -14,11 +14,11 @@ import org.bukkit.entity.Player;
 
 import java.util.*;
 
-public class ColossalCombatDelay extends DelayState {
+public class ToColossalCombatDelay extends DelayState {
     
     private final GameManager gameManager;
     
-    public ColossalCombatDelay(EventManager context) {
+    public ToColossalCombatDelay(EventManager context) {
         super(context);
         this.gameManager = context.getGameManager();
         context.getTimerManager().start(Timer.builder()

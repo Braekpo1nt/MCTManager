@@ -89,11 +89,12 @@ public class PlayingColossalCombatState extends PlayingGameState {
     @Override
     public void colossalCombatIsOver(@Nullable String winningTeam) {
         if (winningTeam == null) {
-            Component message = Component.text("No winner declared.");
+            Component message = Component.text("Game stopped early. No winner declared.");
             context.messageAllAdmins(message);
             gameManager.messageOnlineParticipants(message);
             context.initializeParticipantsAndAdmins();
-            context.setState(new WaitingInHubState(context));
+            context.setWinningTeam(null);
+            context.setState(new ToPodiumDelayState(context));
             return;
         }
         NamedTextColor teamColor = gameManager.getTeamNamedTextColor(winningTeam);
@@ -114,11 +115,32 @@ public class PlayingColossalCombatState extends PlayingGameState {
                         .append(Component.text("!"))
                         .color(teamColor),
                 UIUtils.DEFAULT_TIMES));
-        context.setState(new ToPodiumDelayState(context, winningTeam));
+        context.setWinningTeam(winningTeam);
+        context.setState(new ToPodiumDelayState(context));
     }
     
     @Override
     public void startColossalCombat(@NotNull CommandSender sender, @NotNull String firstTeam, @NotNull String secondTeam) {
         sender.sendMessage(Component.text("Colossal Combat is already running").color(NamedTextColor.RED));
+    }
+    
+    @Override
+    public void onParticipantJoin(Player participant) {
+        context.getColossalCombatGame().onParticipantJoin(participant);
+    }
+    
+    @Override
+    public void onParticipantQuit(Player participant) {
+        context.getColossalCombatGame().onParticipantQuit(participant);
+    }
+    
+    @Override
+    public void onAdminJoin(Player admin) {
+        context.getColossalCombatGame().onAdminJoin(admin);
+    }
+    
+    @Override
+    public void onAdminQuit(Player admin) {
+        context.getColossalCombatGame().onAdminQuit(admin);
     }
 }
