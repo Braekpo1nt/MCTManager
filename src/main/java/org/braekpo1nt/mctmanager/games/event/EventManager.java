@@ -13,6 +13,7 @@ import org.braekpo1nt.mctmanager.games.event.config.EventConfigController;
 import org.braekpo1nt.mctmanager.games.event.states.EventState;
 import org.braekpo1nt.mctmanager.games.event.states.OffState;
 import org.braekpo1nt.mctmanager.games.event.states.PodiumState;
+import org.braekpo1nt.mctmanager.games.event.states.VotingState;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.voting.VoteManager;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
@@ -268,6 +269,11 @@ public class EventManager implements Listener {
                     .color(NamedTextColor.YELLOW));
             return;
         }
+        if (state instanceof VotingState) {
+            sender.sendMessage(Component.text("Can't modify the voting pool mid-vote.")
+                    .color(NamedTextColor.RED));
+            return;
+        }
         playedGames.remove(gameToAdd);
         sender.sendMessage(Component.text(gameToAdd.getTitle())
                 .append(Component.text(" has been added to the voting pool.")));
@@ -276,6 +282,16 @@ public class EventManager implements Listener {
     public void removeGameFromVotingPool(@NotNull CommandSender sender, @NotNull GameType gameToRemove) {
         if (state instanceof OffState) {
             sender.sendMessage(Component.text("There isn't an event going on.")
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        if (state instanceof VotingState) {
+            sender.sendMessage(Component.text("Can't modify the voting pool mid-vote.")
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        if (playedGames.contains(gameToRemove)) {
+            sender.sendMessage(Component.text("This game is not in the voting pool.")
                     .color(NamedTextColor.RED));
             return;
         }

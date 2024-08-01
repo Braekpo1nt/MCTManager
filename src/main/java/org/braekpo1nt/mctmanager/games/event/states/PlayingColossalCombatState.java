@@ -124,6 +124,11 @@ public class PlayingColossalCombatState extends PlayingGameState {
     }
     
     @Override
+    public void stopColossalCombat(@NotNull CommandSender sender) {
+        context.getColossalCombatGame().stop(null);
+    }
+    
+    @Override
     public void onParticipantJoin(Player participant) {
         context.getColossalCombatGame().onParticipantJoin(participant);
     }
