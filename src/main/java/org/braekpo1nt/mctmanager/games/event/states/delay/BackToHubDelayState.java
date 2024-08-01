@@ -10,7 +10,6 @@ public class BackToHubDelayState extends DelayState {
     public BackToHubDelayState(EventManager context) {
         super(context);
         context.initializeParticipantsAndAdmins();
-        context.setCurrentGameNumber(context.getCurrentGameNumber() + 1);
         context.getSidebar().updateLine("currentGame", context.getCurrentGameLine());
         context.getAdminSidebar().updateLine("currentGame", context.getCurrentGameLine());
         context.getTimerManager().start(Timer.builder()
