@@ -203,6 +203,15 @@ public class OffState implements EventState {
     
     @Override
     public void startColossalCombat(@NotNull CommandSender sender, @NotNull String firstTeam, @NotNull String secondTeam) {
-        
+        List<Player> participantPool = new ArrayList<>(context.getGameManager().getOnlineParticipants());
+        List<Player> adminPool = new ArrayList<>(context.getGameManager().getOnlineAdmins());
+        context.setState(new PlayingColossalCombatState(
+                context,
+                sender,
+                firstTeam,
+                secondTeam,
+                participantPool,
+                adminPool,
+                true));
     }
 }

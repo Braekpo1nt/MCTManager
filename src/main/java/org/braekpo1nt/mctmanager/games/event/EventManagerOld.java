@@ -878,7 +878,7 @@ public class EventManagerOld implements Listener {
         return true;
     }
     
-    public void startColossalCombat(CommandSender sender, String firstPlaceTeamName, String secondPlaceTeamName) {
+    public void startColossalCombat(CommandSender sender, String firstTeamId, String secondTeamId) {
         try {
             colossalCombatGame.loadConfig();
         } catch (ConfigException e) {
@@ -898,7 +898,7 @@ public class EventManagerOld implements Listener {
             sender.sendMessage(Component.text("Colossal Combat is already running").color(NamedTextColor.RED));
             return;
         }
-        if (firstPlaceTeamName == null || secondPlaceTeamName == null) {
+        if (firstTeamId == null || secondTeamId == null) {
             sender.sendMessage(Component.text("Please specify the first and second place teams.").color(NamedTextColor.RED));
             return;
         }
@@ -917,9 +917,9 @@ public class EventManagerOld implements Listener {
         }
         for (Player participant : participantPool) {
             String teamName = gameManager.getTeamName(participant.getUniqueId());
-            if (teamName.equals(firstPlaceTeamName)) {
+            if (teamName.equals(firstTeamId)) {
                 firstPlaceParticipants.add(participant);
-            } else if (teamName.equals(secondPlaceTeamName)) {
+            } else if (teamName.equals(secondTeamId)) {
                 secondPlaceParticipants.add(participant);
             } else {
                 spectators.add(participant);
@@ -930,7 +930,7 @@ public class EventManagerOld implements Listener {
             sender.sendMessage(Component.empty()
                     .append(Component.text("There are no members of the first place team online. Please use "))
                     .append(Component.text("/mct event finalgame start <first> <second>")
-                            .clickEvent(ClickEvent.suggestCommand(String.format("/mct event finalgame start %s %s", firstPlaceTeamName, secondPlaceTeamName)))
+                            .clickEvent(ClickEvent.suggestCommand(String.format("/mct event finalgame start %s %s", firstTeamId, secondTeamId)))
                             .decorate(TextDecoration.BOLD))
                     .append(Component.text(" to manually start the final game."))
                     .color(NamedTextColor.RED));
@@ -941,7 +941,7 @@ public class EventManagerOld implements Listener {
             sender.sendMessage(Component.empty()
                             .append(Component.text("There are no members of the second place team online. Please use "))
                             .append(Component.text("/mct event finalgame start <first> <second>")
-                                    .clickEvent(ClickEvent.suggestCommand(String.format("/mct event finalgame start %s %s", firstPlaceTeamName, secondPlaceTeamName)))
+                                    .clickEvent(ClickEvent.suggestCommand(String.format("/mct event finalgame start %s %s", firstTeamId, secondTeamId)))
                                     .decorate(TextDecoration.BOLD))
                             .append(Component.text(" to manually start the final game."))
                             .color(NamedTextColor.RED));

@@ -7,13 +7,12 @@ import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
 import org.braekpo1nt.mctmanager.games.event.states.PlayingColossalCombatState;
+import org.braekpo1nt.mctmanager.games.event.states.WaitingInHubState;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.bukkit.entity.Player;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class ColossalCombatDelay extends DelayState {
     
@@ -30,7 +29,8 @@ public class ColossalCombatDelay extends DelayState {
                 .onCompletion(() -> {
                     boolean startedColossalCombat = identifyWinnersAndStartColossalCombat();
                     if (!startedColossalCombat) {
-                        context.messageAllAdmins(Component.text("Unable to start Colossal Combat."));
+                        context.messageAllAdmins(Component.text("Unable to start Colossal Combat. Returning to waiting in hub state."));
+                        context.setState(new WaitingInHubState(context));
                     }
                 })
                 .build());
@@ -59,7 +59,7 @@ public class ColossalCombatDelay extends DelayState {
         if (firstPlaces.length == 2) {
             String firstPlace = firstPlaces[0];
             String secondPlace = firstPlaces[1];
-            context.setState(new PlayingColossalCombatState(context, firstPlace, secondPlace));
+            actuallyStartColossalCombat(firstPlace, secondPlace);
             return true;
         }
         if (firstPlaces.length > 2) {
@@ -119,8 +119,30 @@ public class ColossalCombatDelay extends DelayState {
             return false;
         }
         
-        context.setState(new PlayingColossalCombatState(context, firstPlace, secondPlace));
+        actuallyStartColossalCombat(firstPlace, secondPlace);
         return true;
+    }
+    
+    /**
+     * Switch to the {@link PlayingColossalCombatState} and clear the player lists and sidebars
+     * @param firstPlace the teamId of the first place team
+     * @param secondPlace the teamId of the second place team
+     */
+    private void actuallyStartColossalCombat(String firstPlace, String secondPlace) {
+        context.getSidebar().removePlayers(context.getParticipants());
+        context.getAdminSidebar().removePlayers(context.getAdmins());
+        List<Player> participantPool = new ArrayList<>(context.getParticipants());
+        List<Player> adminPool = new ArrayList<>(context.getAdmins());
+        context.getParticipants().clear();
+        context.getAdmins().clear();
+        context.setState(new PlayingColossalCombatState(
+                context, 
+                context.getPlugin().getServer().getConsoleSender(),
+                firstPlace,
+                secondPlace, 
+                participantPool, 
+                adminPool,
+                false));
     }
     
 }

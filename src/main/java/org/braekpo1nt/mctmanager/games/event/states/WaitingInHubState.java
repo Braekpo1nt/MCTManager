@@ -17,12 +17,16 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class WaitingInHubState implements EventState {
     
     private final EventManager context;
     private final GameManager gameManager;
     private final Sidebar sidebar;
     private final Sidebar adminSidebar;
+    private final Timer waitingInHubTimer;
     
     public WaitingInHubState(EventManager context) {
         this.context = context;
@@ -40,7 +44,7 @@ public class WaitingInHubState implements EventState {
         } else {
             prefix = Component.text("Vote starts in: ");
         }
-        context.getTimerManager().start(Timer.builder()
+        waitingInHubTimer = context.getTimerManager().start(Timer.builder()
                 .duration(context.getConfig().getWaitingInHubDuration())
                 .withSidebar(sidebar, "timer")
                 .withSidebar(adminSidebar, "timer")
@@ -115,17 +119,17 @@ public class WaitingInHubState implements EventState {
     
     @Override
     public void onDropItem(PlayerDropItemEvent event) {
-        
+        // do nothing
     }
     
     @Override
     public void gameIsOver(@NotNull GameType finishedGameType) {
-        
+        // do nothing
     }
     
     @Override
     public void colossalCombatIsOver(@Nullable String winningTeam) {
-        
+        // do nothing
     }
     
     @Override
@@ -150,11 +154,25 @@ public class WaitingInHubState implements EventState {
     
     @Override
     public void stopColossalCombat(@NotNull CommandSender sender) {
-        
+        // do nothing
     }
     
     @Override
     public void startColossalCombat(@NotNull CommandSender sender, @NotNull String firstTeam, @NotNull String secondTeam) {
-        
+        waitingInHubTimer.cancel();
+        context.getSidebar().removePlayers(context.getParticipants());
+        context.getAdminSidebar().removePlayers(context.getAdmins());
+        List<Player> participantPool = new ArrayList<>(context.getParticipants());
+        List<Player> adminPool = new ArrayList<>(context.getAdmins());
+        context.getParticipants().clear();
+        context.getAdmins().clear();
+        context.setState(new PlayingColossalCombatState(
+                context,
+                context.getPlugin().getServer().getConsoleSender(),
+                firstTeam,
+                secondTeam,
+                participantPool,
+                adminPool,
+                false));
     }
 }
