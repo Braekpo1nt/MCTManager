@@ -154,7 +154,8 @@ public class WaitingInHubState implements EventState {
     
     @Override
     public void stopColossalCombat(@NotNull CommandSender sender) {
-        // do nothing
+        sender.sendMessage(Component.text("Colossal Combat is not running")
+                .color(NamedTextColor.RED));
     }
     
     @Override
