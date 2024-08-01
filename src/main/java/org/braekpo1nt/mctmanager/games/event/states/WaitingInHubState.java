@@ -104,11 +104,6 @@ public class WaitingInHubState implements EventState {
     }
     
     @Override
-    public void stopEvent(@NotNull CommandSender sender) {
-        
-    }
-    
-    @Override
     public void onPlayerDamage(EntityDamageEvent event) {
         event.setCancelled(true);
     }

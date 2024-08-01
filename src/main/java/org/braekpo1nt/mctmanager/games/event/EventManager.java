@@ -24,6 +24,7 @@ import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -142,7 +143,55 @@ public class EventManager implements Listener {
     }
     
     public void stopEvent(CommandSender sender) {
-        state.stopEvent(sender);
+        if (state instanceof OffState) {
+            sender.sendMessage(Component.text("There is no event running.")
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        HandlerList.unregisterAll(this);
+        this.setState(new OffState(this));
+        Component message = Component.text("Ending event. ")
+                .append(Component.text(currentGameNumber - 1))
+                .append(Component.text("/"))
+                .append(Component.text(maxGames))
+                .append(Component.text(" games were played."));
+        sender.sendMessage(message);
+        messageAllAdmins(message);
+        Bukkit.getLogger().info(String.format("Ending event. %d/%d games were played", currentGameNumber - 1, maxGames));
+        if (colossalCombatGame.isActive()) {
+            colossalCombatGame.stop(null);
+        }
+        if (winningTeam != null) {
+            for (Player participant : participants) {
+                String team = gameManager.getTeamName(participant.getUniqueId());
+                if (team.equals(winningTeam)) {
+                    removeCrown(participant);
+                }
+            }
+        }
+        clearSidebar();
+        clearAdminSidebar();
+        participants.clear();
+        admins.clear();
+        cancelAllTasks();
+        scoreKeepers.clear();
+        currentGameNumber = 0;
+        maxGames = 6;
+        winningTeam = null;
+    }
+    
+    private void clearSidebar() {
+        sidebar.updateTitle(Sidebar.DEFAULT_TITLE);
+        sidebar.removeAllPlayers();
+        sidebar.deleteAllLines();
+        sidebar = null;
+    }
+    
+    private void clearAdminSidebar() {
+        adminSidebar.updateTitle(Sidebar.DEFAULT_TITLE);
+        adminSidebar.removeAllPlayers();
+        adminSidebar.deleteAllLines();
+        adminSidebar = null;
     }
     
     public void undoGame(@NotNull CommandSender sender, @NotNull GameType gameType, int iterationIndex) {

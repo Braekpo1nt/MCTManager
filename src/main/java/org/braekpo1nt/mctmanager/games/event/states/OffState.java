@@ -147,12 +147,6 @@ public class OffState implements EventState {
     }
     
     @Override
-    public void stopEvent(@NotNull CommandSender sender) {
-        sender.sendMessage(Component.text("There is no event running.")
-                .color(NamedTextColor.RED));
-    }
-    
-    @Override
     public void onPlayerDamage(EntityDamageEvent event) {
         // do nothing
     }

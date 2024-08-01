@@ -15,7 +15,6 @@ public interface EventState {
     void onAdminJoin(Player admin);
     void onAdminQuit(Player admin);
     void startEvent(@NotNull CommandSender sender, int numberOfGames);
-    void stopEvent(@NotNull CommandSender sender);
     void onPlayerDamage(EntityDamageEvent event);
     void onClickInventory(InventoryClickEvent event);
     void onDropItem(PlayerDropItemEvent event);

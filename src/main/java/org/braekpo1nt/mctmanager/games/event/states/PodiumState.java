@@ -48,11 +48,6 @@ public class PodiumState implements EventState {
     }
     
     @Override
-    public void stopEvent(@NotNull CommandSender sender) {
-        
-    }
-    
-    @Override
     public void onPlayerDamage(EntityDamageEvent event) {
         
     }
