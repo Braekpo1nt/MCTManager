@@ -108,7 +108,7 @@ public class OffState implements EventState {
                         .append(Component.text("Event Starting"))
                         .color(NamedTextColor.GOLD)
         ));
-        context.setState(new WaitingInHubState(context));
+        context.setState(new ReadyUpState(context));
     }
     
     private void initializeSidebar() {
