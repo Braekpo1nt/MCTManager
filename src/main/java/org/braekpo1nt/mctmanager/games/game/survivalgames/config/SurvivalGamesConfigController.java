@@ -27,7 +27,7 @@ public class SurvivalGamesConfigController extends ConfigController<SurvivalGame
      * @throws ConfigIOException if there is an IO problem getting the config
      */
     public @NotNull SurvivalGamesConfig getConfig() throws ConfigException {
-        File fileToParse = configFile;
+        File configFileToParse = configFile;
         try {
             if (!configFile.exists()) {
                 try {
@@ -35,7 +35,7 @@ public class SurvivalGamesConfigController extends ConfigController<SurvivalGame
                         throw new ConfigIOException(String.format("Could not find config file %s", configFile));
                     } else {
                         Bukkit.getLogger().info(String.format("Using legacy config file %s", legacyMechaConfigFile));
-                        fileToParse = legacyMechaConfigFile;
+                        configFileToParse = legacyMechaConfigFile;
                     }
                 } catch (SecurityException e) {
                     throw new ConfigIOException(String.format("Security exception while trying to read %s", legacyMechaConfigFile), e);
@@ -44,7 +44,7 @@ public class SurvivalGamesConfigController extends ConfigController<SurvivalGame
         } catch (SecurityException e) {
             throw new ConfigIOException(String.format("Security exception while trying to read %s", configFile), e);
         }
-        SurvivalGamesConfigDTO configDTO = loadConfigDTO(fileToParse, SurvivalGamesConfigDTO.class);
+        SurvivalGamesConfigDTO configDTO = loadConfigDTO(configFileToParse, SurvivalGamesConfigDTO.class);
         configDTO.validate(new Validator("survivalGamesConfig"));
         return configDTO.toConfig();
     }
