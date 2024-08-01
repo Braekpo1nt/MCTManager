@@ -19,11 +19,11 @@ import org.jetbrains.annotations.Nullable;
 
 public class WaitingInHubState implements EventState {
     
-    private final EventManager context;
-    private final GameManager gameManager;
-    private final Sidebar sidebar;
-    private final Sidebar adminSidebar;
-    private final Timer waitingInHubTimer;
+    protected final EventManager context;
+    protected final GameManager gameManager;
+    protected final Sidebar sidebar;
+    protected final Sidebar adminSidebar;
+    protected final Timer waitingInHubTimer;
     
     public WaitingInHubState(EventManager context) {
         this.context = context;
@@ -35,13 +35,17 @@ public class WaitingInHubState implements EventState {
         gameManager.messageOnlineParticipants(Component.text("Score multiplier: ")
                 .append(Component.text(scoreMultiplier))
                 .color(NamedTextColor.GOLD));
+        waitingInHubTimer = startTimer();
+    }
+    
+    protected Timer startTimer() {
         Component prefix;
         if (context.allGamesHaveBeenPlayed()) {
             prefix = Component.text("Final round: ");
         } else {
             prefix = Component.text("Vote starts in: ");
         }
-        waitingInHubTimer = context.getTimerManager().start(Timer.builder()
+        return context.getTimerManager().start(Timer.builder()
                 .duration(context.getConfig().getWaitingInHubDuration())
                 .withSidebar(sidebar, "timer")
                 .withSidebar(adminSidebar, "timer")
