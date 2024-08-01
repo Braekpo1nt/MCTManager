@@ -46,12 +46,7 @@ public class StartingGameDelayState extends DelayState {
                     if (!gameStarted) {
                         context.messageAllAdmins(Component.text("Unable to start the game ")
                                 .append(Component.text(gameType.getTitle()))
-                                .append(Component.text(". Returning to the hub in an effort to try again."))
-                                .color(NamedTextColor.RED));
-                        context.messageAllAdmins(Component.text("Use ")
-                                .append(Component.text("/mct event pause")
-                                        .clickEvent(ClickEvent.suggestCommand("/mct event pause"))
-                                        .decorate(TextDecoration.BOLD))
+                                .append(Component.text(". Returning to the hub to try again."))
                                 .color(NamedTextColor.RED));
                         context.initializeParticipantsAndAdmins();
                         context.setState(new WaitingInHubState(context));

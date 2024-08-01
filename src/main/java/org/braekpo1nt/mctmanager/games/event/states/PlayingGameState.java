@@ -7,7 +7,6 @@ import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
 import org.braekpo1nt.mctmanager.games.event.states.delay.BackToHubDelayState;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
-import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -74,15 +73,7 @@ public class PlayingGameState implements EventState {
         context.setCurrentGameNumber(context.getCurrentGameNumber() + 1);
         context.getSidebar().updateLine("currentGame", context.getCurrentGameLine());
         context.getAdminSidebar().updateLine("currentGame", context.getCurrentGameLine());
-        context.getTimerManager().start(Timer.builder()
-                .duration(context.getConfig().getBackToHubDuration())
-                .withSidebar(context.getSidebar(), "timer")
-                .withSidebar(context.getAdminSidebar(), "timer")
-                .sidebarPrefix(Component.text("Back to Hub: "))
-                .onCompletion(() -> {
-                    context.setState(new BackToHubDelayState(context, finishedGameType));
-                })
-                .build());
+        context.setState(new BackToHubDelayState(context, finishedGameType));
     }
     
     @Override
