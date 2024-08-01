@@ -92,7 +92,6 @@ public class PlayingColossalCombatState extends PlayingGameState {
             Component message = Component.text("Game stopped early. No winner declared.");
             context.messageAllAdmins(message);
             gameManager.messageOnlineParticipants(message);
-            context.initializeParticipantsAndAdmins();
             context.setWinningTeam(null);
             context.setState(new ToPodiumDelayState(context));
             return;
@@ -106,8 +105,8 @@ public class PlayingColossalCombatState extends PlayingGameState {
                         .append(Component.text("!")))
                 .color(teamColor)
                 .decorate(TextDecoration.BOLD);
-        Bukkit.getServer().sendMessage(message);
-        Bukkit.getServer().showTitle(Title.title(
+        context.getPlugin().getServer().sendMessage(message);
+        context.getPlugin().getServer().showTitle(Title.title(
                 formattedTeamDisplayName,
                 Component.empty()
                         .append(Component.text("wins "))
