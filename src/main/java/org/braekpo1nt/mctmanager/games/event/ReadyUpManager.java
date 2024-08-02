@@ -72,8 +72,8 @@ public class ReadyUpManager {
      * manager if they didn't already exist, and adds their team if it didn't already exist.
      * @param participantUUID a valid participant UUID. Can be offline
      */
-    public void readyUpParticipant(@NotNull UUID participantUUID, @NotNull String teamId) {
-        readyParticipant(participantUUID, teamId, true);
+    public boolean readyUpParticipant(@NotNull UUID participantUUID, @NotNull String teamId) {
+        return readyParticipant(participantUUID, teamId, true);
     }
     
     /**
@@ -81,8 +81,8 @@ public class ReadyUpManager {
      * manager if they didn't already exist, and adds their team if it didn't already exist.
      * @param participantUUID a valid participant UUID. Can be offline
      */
-    public void unReadyParticipant(@NotNull UUID participantUUID, @NotNull String teamId) {
-        readyParticipant(participantUUID, teamId, false);
+    public boolean unReadyParticipant(@NotNull UUID participantUUID, @NotNull String teamId) {
+        return readyParticipant(participantUUID, teamId, false);
     }
     
     /**
@@ -91,12 +91,13 @@ public class ReadyUpManager {
      * @param participantUUID a valid participant UUID. Can be offline
      * @param ready the ready status
      */
-    private void readyParticipant(@NotNull UUID participantUUID, @NotNull String teamId, boolean ready) {
+    private boolean readyParticipant(@NotNull UUID participantUUID, @NotNull String teamId, boolean ready) {
         TeamStatus teamStatus = teamStatuses.get(teamId);
         if (teamStatus == null) {
             teamStatus = new TeamStatus();
             teamStatuses.put(teamId, teamStatus);
         }
-        teamStatus.getStatuses().put(participantUUID, ready);
+        Boolean previous = teamStatus.getStatuses().put(participantUUID, ready);
+        return previous != null && previous;
     }
 }

@@ -2,7 +2,9 @@ package org.braekpo1nt.mctmanager.games.event.states;
 
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
 import org.braekpo1nt.mctmanager.games.event.ReadyUpManager;
@@ -31,16 +33,70 @@ public class ReadyUpState implements EventState {
         this.sidebar = context.getSidebar();
         this.adminSidebar = context.getAdminSidebar();
         gameManager.returnAllParticipantsToHub();
+        Audience.audience(context.getParticipants()).sendMessage(Component.empty()
+                .append(Component.text("Please ready up with "))
+                .append(Component.text("/readyup")
+                        .clickEvent(ClickEvent.runCommand("/readyup"))
+                        .decorate(TextDecoration.UNDERLINED))
+                .color(NamedTextColor.GREEN)
+        );
+        context.messageAllAdmins(Component.text("Ready Up has begun"));
     }
     
     public void readyUpParticipant(Player participant) {
         String teamId = gameManager.getTeamName(participant.getUniqueId());
-        readyUpManager.readyUpParticipant(participant.getUniqueId(), teamId);
+        boolean wasReady = readyUpManager.readyUpParticipant(participant.getUniqueId(), teamId);
+        long readyCount = readyUpManager.readyCount(teamId);
+        long unReadyCount = readyUpManager.unReadyCount(teamId);
+        context.messageAllAdmins(Component.empty()
+                .append(participant.displayName())
+                .append(Component.text(" is ready. ("))
+                .append(Component.text(readyCount))
+                .append(Component.text("/"))
+                .append(Component.text(unReadyCount))
+                .append(Component.text(")"))
+                .color(NamedTextColor.GREEN)
+        );
+        if (!wasReady) {
+            Component teamDisplayName = gameManager.getFormattedTeamDisplayName(teamId);
+            context.messageAllAdmins(Component.empty()
+                    .append(teamDisplayName)
+                    .append(Component.text(" is ready. "))
+                    .append(Component.text(readyCount))
+                    .append(Component.text("/"))
+                    .append(Component.text(unReadyCount))
+                    .append(Component.text(")"))
+                    .color(NamedTextColor.GREEN)
+            );
+        }
     }
     
     public void unReadyParticipant(Player participant) {
         String teamId = gameManager.getTeamName(participant.getUniqueId());
-        readyUpManager.unReadyParticipant(participant.getUniqueId(), teamId);
+        boolean wasReady = readyUpManager.unReadyParticipant(participant.getUniqueId(), teamId);
+        long readyCount = readyUpManager.readyCount(teamId);
+        long unReadyCount = readyUpManager.unReadyCount(teamId);
+        context.messageAllAdmins(Component.empty()
+                .append(participant.displayName())
+                .append(Component.text(" is not ready. ("))
+                .append(Component.text(readyCount))
+                .append(Component.text("/"))
+                .append(Component.text(unReadyCount))
+                .append(Component.text(")"))
+                .color(NamedTextColor.DARK_RED)
+        );
+        if (wasReady) {
+            Component teamDisplayName = gameManager.getFormattedTeamDisplayName(teamId);
+            context.messageAllAdmins(Component.empty()
+                    .append(teamDisplayName)
+                    .append(Component.text(" is not ready. "))
+                    .append(Component.text(readyCount))
+                    .append(Component.text("/"))
+                    .append(Component.text(unReadyCount))
+                    .append(Component.text(")"))
+                    .color(NamedTextColor.DARK_RED)
+            );
+        }
     }
     
     @Override

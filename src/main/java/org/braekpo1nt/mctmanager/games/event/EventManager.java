@@ -165,7 +165,7 @@ public class EventManager implements Listener {
                 if (team.equals(winningTeam)) {
                     removeCrown(participant);
                 }
-            }
+            }e
         }
         clearSidebar();
         clearAdminSidebar();
