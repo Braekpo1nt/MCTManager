@@ -2,33 +2,17 @@ package org.braekpo1nt.mctmanager.games.event;
 
 import com.google.common.base.Preconditions;
 import lombok.Data;
-import org.braekpo1nt.mctmanager.games.GameManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
 public class ReadyUpManager {
     
-    private final GameManager gameManager;
-    
-    private Map<String, @NotNull TeamStatus> teamStatuses = new HashMap<>();
+    private final Map<String, @NotNull TeamStatus> teamStatuses = new HashMap<>();
     
     @Data
     public static class TeamStatus {
         private final Map<UUID, @NotNull Boolean> statuses = new HashMap<>();
-    }
-    
-    public ReadyUpManager(GameManager gameManager, List<UUID> participantUUIDs) {
-        this.gameManager = gameManager;
-        List<String> teamIds = gameManager.getTeamIdsByUUID(participantUUIDs);
-        teamStatuses = new HashMap<>(teamIds.size());
-        for (String teamId : teamIds) {
-            teamStatuses.put(teamId, new TeamStatus());
-        }
-        for (UUID participantUUID : participantUUIDs) {
-            String teamId = gameManager.getTeamName(participantUUID);
-            teamStatuses.get(teamId).getStatuses().put(participantUUID, false);
-        }
     }
     
     public @NotNull TeamStatus getTeamStatus(@NotNull String teamId) {
@@ -37,8 +21,7 @@ public class ReadyUpManager {
         return teamStatus;
     }
     
-    public boolean getParticipantStatus(@NotNull UUID participantUUID) {
-        String teamId = gameManager.getTeamName(participantUUID);
+    public boolean getParticipantStatus(@NotNull UUID participantUUID, @NotNull String teamId) {
         TeamStatus teamStatus = getTeamStatus(teamId);
         Boolean status = teamStatus.getStatuses().get(participantUUID);
         Preconditions.checkArgument(status != null, "\"%s\" participant with UUID %s is not contained in this ReadyUpManager", participantUUID);
@@ -50,8 +33,8 @@ public class ReadyUpManager {
      * @return true if the participant is ready, false otherwise. 
      * Returns false for UUIDs which are not stored in this manager.
      */
-    public boolean participantIsReady(UUID participantUUID) {
-        return getParticipantStatus(participantUUID);
+    public boolean participantIsReady(@NotNull UUID participantUUID, @NotNull String teamId) {
+        return getParticipantStatus(participantUUID, teamId);
     }
     
     /**
@@ -59,7 +42,7 @@ public class ReadyUpManager {
      * @param teamId the teamId to get the ready count for
      * @return the number of participants on that team who are ready
      */
-    public long readyCount(String teamId) {
+    public long readyCount(@NotNull String teamId) {
         TeamStatus teamStatus = getTeamStatus(teamId);
         return teamStatus.getStatuses().values().stream().filter(ready -> ready).count();
     }
@@ -69,7 +52,7 @@ public class ReadyUpManager {
      * @param teamId the teamId to get the unReady count for
      * @return the number of participants on this team who are NOT ready
      */
-    public long unReadyCount(String teamId) {
+    public long unReadyCount(@NotNull String teamId) {
         TeamStatus teamStatus = getTeamStatus(teamId);
         return teamStatus.getStatuses().values().stream().filter(ready -> !ready).count();
     }
@@ -78,7 +61,7 @@ public class ReadyUpManager {
      * @param teamId the teamId to get the readiness of. Must be a valid teamId stored in this manager.
      * @return true if the team is ready (all members of the team are ready), false otherwise.
      */
-    public boolean teamIsReady(String teamId) {
+    public boolean teamIsReady(@NotNull String teamId) {
         TeamStatus teamStatus = getTeamStatus(teamId);
         Map<UUID, @NotNull Boolean> statuses = teamStatus.getStatuses();
         return statuses.values().stream().filter(ready -> ready).count() == statuses.size();
@@ -89,8 +72,8 @@ public class ReadyUpManager {
      * manager if they didn't already exist, and adds their team if it didn't already exist.
      * @param participantUUID a valid participant UUID. Can be offline
      */
-    public void readyUpParticipant(UUID participantUUID) {
-        readyParticipant(participantUUID, true);
+    public void readyUpParticipant(@NotNull UUID participantUUID, @NotNull String teamId) {
+        readyParticipant(participantUUID, teamId, true);
     }
     
     /**
@@ -98,8 +81,8 @@ public class ReadyUpManager {
      * manager if they didn't already exist, and adds their team if it didn't already exist.
      * @param participantUUID a valid participant UUID. Can be offline
      */
-    public void unReadyParticipant(UUID participantUUID) {
-        readyParticipant(participantUUID, false);
+    public void unReadyParticipant(@NotNull UUID participantUUID, @NotNull String teamId) {
+        readyParticipant(participantUUID, teamId, false);
     }
     
     /**
@@ -108,8 +91,7 @@ public class ReadyUpManager {
      * @param participantUUID a valid participant UUID. Can be offline
      * @param ready the ready status
      */
-    private void readyParticipant(UUID participantUUID, boolean ready) {
-        String teamId = gameManager.getTeamName(participantUUID);
+    private void readyParticipant(@NotNull UUID participantUUID, @NotNull String teamId, boolean ready) {
         TeamStatus teamStatus = teamStatuses.get(teamId);
         if (teamStatus == null) {
             teamStatus = new TeamStatus();

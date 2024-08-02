@@ -3,14 +3,12 @@ package org.braekpo1nt.mctmanager.games.event.states;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
 import org.braekpo1nt.mctmanager.games.event.ReadyUpManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -19,14 +17,11 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-import java.util.UUID;
-
 public class ReadyUpState implements EventState {
     
     private final EventManager context;
     private final GameManager gameManager;
-    private final ReadyUpManager readyUpManager;
+    private final ReadyUpManager readyUpManager = new ReadyUpManager();
     private final Sidebar sidebar;
     private final Sidebar adminSidebar;
     
@@ -36,16 +31,16 @@ public class ReadyUpState implements EventState {
         this.sidebar = context.getSidebar();
         this.adminSidebar = context.getAdminSidebar();
         gameManager.returnAllParticipantsToHub();
-        List<UUID> participantUUIDs = gameManager.getOfflineParticipants().stream().map(OfflinePlayer::getUniqueId).toList();
-        this.readyUpManager = new ReadyUpManager(gameManager, participantUUIDs);
     }
     
     public void readyUpParticipant(Player participant) {
-        readyUpManager.readyUpParticipant(participant.getUniqueId());
+        String teamId = gameManager.getTeamName(participant.getUniqueId());
+        readyUpManager.readyUpParticipant(participant.getUniqueId(), teamId);
     }
     
     public void unReadyParticipant(Player participant) {
-        readyUpManager.unReadyParticipant(participant.getUniqueId());
+        String teamId = gameManager.getTeamName(participant.getUniqueId());
+        readyUpManager.unReadyParticipant(participant.getUniqueId(), teamId);
     }
     
     @Override
