@@ -136,7 +136,8 @@ public class WaitingInHubState implements EventState {
     @Override
     public void setMaxGames(@NotNull CommandSender sender, int newMaxGames) {
         if (newMaxGames < context.getCurrentGameNumber() - 1) {
-            sender.sendMessage(Component.text("Can't set the max games for this event to less than ")
+            sender.sendMessage(Component.empty()
+                    .append(Component.text("Can't set the max games for this event to less than "))
                     .append(Component.text(context.getCurrentGameNumber() - 1)
                             .decorate(TextDecoration.BOLD))
                     .append(Component.text(" because "))

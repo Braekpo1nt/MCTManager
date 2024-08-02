@@ -94,20 +94,6 @@ public class OffState implements EventState {
         initializeAdminSidebar();
         context.initializeParticipantsAndAdmins();
         context.getGameManager().removeParticipantsFromHub(context.getParticipants());
-        context.messageAllAdmins(Component.text("Starting event. On game ")
-                .append(Component.text(context.getCurrentGameNumber()))
-                .append(Component.text("/"))
-                .append(Component.text(context.getMaxGames()))
-                .append(Component.text(".")));
-        Audience.audience(
-                Audience.audience(context.getAdmins()),
-                Audience.audience(context.getParticipants())
-        ).showTitle(UIUtils.defaultTitle(
-                Component.empty(),
-                Component.empty()
-                        .append(Component.text("Event Starting"))
-                        .color(NamedTextColor.GOLD)
-        ));
         context.setState(new ReadyUpState(context));
     }
     
