@@ -10,10 +10,7 @@ import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.colossalcombat.ColossalCombatGame;
 import org.braekpo1nt.mctmanager.games.event.config.EventConfig;
 import org.braekpo1nt.mctmanager.games.event.config.EventConfigController;
-import org.braekpo1nt.mctmanager.games.event.states.EventState;
-import org.braekpo1nt.mctmanager.games.event.states.OffState;
-import org.braekpo1nt.mctmanager.games.event.states.PodiumState;
-import org.braekpo1nt.mctmanager.games.event.states.VotingState;
+import org.braekpo1nt.mctmanager.games.event.states.*;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.voting.VoteManager;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
@@ -384,6 +381,17 @@ public class EventManager implements Listener {
             }
         }
         return reportBuilder.build();
+    }
+    
+    public void readyUpParticipant(@NotNull Player participant) {
+        if (state instanceof OffState) {
+            participant.sendMessage(Component.text("There is no event going on right now"));
+        }
+        if (!(state instanceof ReadyUpState readyUpState)) {
+            // do nothing
+            return;
+        }
+        readyUpState.readyUpParticipant(participant);
     }
     
     @EventHandler

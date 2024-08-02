@@ -18,6 +18,10 @@ public class ReadyUpState implements EventState {
         this.context = context;
     }
     
+    public void readyUpParticipant(Player participant) {
+        
+    }
+    
     @Override
     public void onParticipantJoin(Player participant) {
         
