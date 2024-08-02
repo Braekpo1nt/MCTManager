@@ -57,7 +57,7 @@ public class ReadyUpState implements EventState {
             context.updateTeamScores();
             sidebar.updateLine(participant.getUniqueId(), "currentGame", context.getCurrentGameLine());
         }
-        readyUpManager.unReadyParticipant(participant.getUniqueId());
+        this.unReadyParticipant(participant);
     }
     
     @Override
