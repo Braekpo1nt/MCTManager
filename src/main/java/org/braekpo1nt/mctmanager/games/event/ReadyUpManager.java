@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.event;
 
+import com.google.common.base.Preconditions;
 import lombok.Data;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.jetbrains.annotations.NotNull;
@@ -17,11 +18,8 @@ public class ReadyUpManager {
         private final Map<UUID, @NotNull Boolean> statuses = new HashMap<>();
     }
     
-    public ReadyUpManager(GameManager gameManager) {
+    public ReadyUpManager(GameManager gameManager, List<UUID> participantUUIDs) {
         this.gameManager = gameManager;
-    }
-    
-    public void start(List<UUID> participantUUIDs) {
         List<String> teamIds = gameManager.getTeamIdsByUUID(participantUUIDs);
         teamStatuses = new HashMap<>(teamIds.size());
         for (String teamId : teamIds) {
@@ -31,7 +29,20 @@ public class ReadyUpManager {
             String teamId = gameManager.getTeamName(participantUUID);
             teamStatuses.get(teamId).getStatuses().put(participantUUID, false);
         }
-        
+    }
+    
+    public @NotNull TeamStatus getTeamStatus(@NotNull String teamId) {
+        TeamStatus teamStatus = teamStatuses.get(teamId);
+        Preconditions.checkArgument(teamStatus != null, "teamId \"%s\" is not contained in this ReadyUpManager", teamId);
+        return teamStatus;
+    }
+    
+    public boolean getParticipantStatus(@NotNull UUID participantUUID) {
+        String teamId = gameManager.getTeamName(participantUUID);
+        TeamStatus teamStatus = getTeamStatus(teamId);
+        Boolean status = teamStatus.getStatuses().get(participantUUID);
+        Preconditions.checkArgument(status != null, "\"%s\" participant with UUID %s is not contained in this ReadyUpManager", participantUUID);
+        return status;
     }
     
     /**
@@ -41,50 +52,55 @@ public class ReadyUpManager {
      * Returns false for UUIDs which are not stored in this manager.
      */
     public boolean participantIsReady(UUID participantUUID) {
-        String teamId = gameManager.getTeamName(participantUUID);
-        TeamStatus teamStatus = teamStatuses.get(teamId);
-        if (teamStatus == null) {
-            return false;
-        }
-        return teamStatus.getStatuses().getOrDefault(participantUUID, false);
+        return getParticipantStatus(participantUUID);
     }
     
     /**
+     * Gets the number of ready players on this team. Adds the teamId to this manager
+     * if it's not already present. 
      * @param teamId the teamId to get the ready count for
      * @return the number of participants on that team who are ready
      */
     public long readyCount(String teamId) {
-        TeamStatus teamStatus = teamStatuses.get(teamId);
-        if (teamStatus == null) {
-            return 0;
-        }
+        TeamStatus teamStatus = getTeamStatus(teamId);
         return teamStatus.getStatuses().values().stream().filter(ready -> ready).count();
     }
     
     /**
+     * Gets the number of unReady players on this team. Adds the teamId to this manager
+     * if it's not already present. 
      * @param teamId the teamId to get the unReady count for
      * @return the number of participants on this team who are NOT ready
      */
     public long unReadyCount(String teamId) {
-        TeamStatus teamStatus = teamStatuses.get(teamId);
-        if (teamStatus == null) {
-            return 0;
-        }
+        TeamStatus teamStatus = getTeamStatus(teamId);
         return teamStatus.getStatuses().values().stream().filter(ready -> !ready).count();
     }
     
     /**
-     * @param teamId the teamId to get the readiness of
+     * @param teamId the teamId to get the readiness of. Must be a valid teamId stored in this manager.
      * @return true if the team is ready (all members of the team are ready), false otherwise.
-     * False if the team is not tracked in this manager.
      */
     public boolean teamIsReady(String teamId) {
-        TeamStatus teamStatus = teamStatuses.get(teamId);
-        if (teamStatus == null) {
-            return false;
-        }
+        TeamStatus teamStatus = getTeamStatus(teamId);
         Map<UUID, @NotNull Boolean> statuses = teamStatus.getStatuses();
         return statuses.values().stream().filter(ready -> ready).count() == statuses.size();
+    }
+    
+    /**
+     * Adds a participant (and their team if it doesn't already exist) to this manager with a
+     * default state of unReady
+     * @param participantUUID the participant to add
+     */
+    public void addParticipant(UUID participantUUID) {
+        String teamId = gameManager.getTeamName(participantUUID);
+        TeamStatus teamStatus = teamStatuses.get(teamId);
+        if (teamStatus == null) {
+            teamStatus = new TeamStatus();
+            teamStatuses.put(teamId, teamStatus);
+        }
+        Preconditions.checkArgument(!teamStatus.getStatuses().containsKey(participantUUID), "Participant with UUID \"%s\" is already contained in this ReadyUpManager", participantUUID);
+        teamStatus.getStatuses().put(participantUUID, false);
     }
     
     /**
@@ -105,11 +121,7 @@ public class ReadyUpManager {
     
     private void readyParticipant(UUID participantUUID, boolean ready) {
         String teamId = gameManager.getTeamName(participantUUID);
-        TeamStatus teamStatus = teamStatuses.get(teamId);
-        if (teamStatus == null) {
-            teamStatus = new TeamStatus();
-            teamStatuses.put(teamId, teamStatus);
-        }
+        TeamStatus teamStatus = getTeamStatus(teamId);
         teamStatus.getStatuses().put(participantUUID, ready);
     }
 }

@@ -36,9 +36,8 @@ public class ReadyUpState implements EventState {
         this.sidebar = context.getSidebar();
         this.adminSidebar = context.getAdminSidebar();
         gameManager.returnAllParticipantsToHub();
-        this.readyUpManager = new ReadyUpManager(gameManager);
         List<UUID> participantUUIDs = gameManager.getOfflineParticipants().stream().map(OfflinePlayer::getUniqueId).toList();
-        readyUpManager.start(participantUUIDs);
+        this.readyUpManager = new ReadyUpManager(gameManager, participantUUIDs);
     }
     
     public void readyUpParticipant(Player participant) {
@@ -62,7 +61,7 @@ public class ReadyUpState implements EventState {
     
     @Override
     public void onParticipantQuit(Player participant) {
-        readyUpManager.unReadyParticipant(participant.getUniqueId());
+        this.unReadyParticipant(participant);
     }
     
     @Override
