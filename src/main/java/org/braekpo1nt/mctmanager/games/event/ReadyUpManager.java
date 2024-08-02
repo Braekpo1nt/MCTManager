@@ -88,23 +88,8 @@ public class ReadyUpManager {
     }
     
     /**
-     * Adds a participant (and their team if it doesn't already exist) to this manager with a
-     * default state of unReady
-     * @param participantUUID the participant to add
-     */
-    public void addParticipant(UUID participantUUID) {
-        String teamId = gameManager.getTeamName(participantUUID);
-        TeamStatus teamStatus = teamStatuses.get(teamId);
-        if (teamStatus == null) {
-            teamStatus = new TeamStatus();
-            teamStatuses.put(teamId, teamStatus);
-        }
-        Preconditions.checkArgument(!teamStatus.getStatuses().containsKey(participantUUID), "Participant with UUID \"%s\" is already contained in this ReadyUpManager", participantUUID);
-        teamStatus.getStatuses().put(participantUUID, false);
-    }
-    
-    /**
-     * Marks the participant with the given UUID as ready
+     * Marks the participant with the given UUID as ready. Adds the given participant to this
+     * manager if they didn't already exist, and adds their team if it didn't already exist.
      * @param participantUUID a valid participant UUID
      */
     public void readyUpParticipant(UUID participantUUID) {
@@ -112,16 +97,27 @@ public class ReadyUpManager {
     }
     
     /**
-     * Marks the participant with the given UUID as not ready
+     * Marks the participant with the given UUID as not ready. Adds the given participant to this
+     * manager if they didn't already exist, and adds their team if it didn't already exist.
      * @param participantUUID a valid participant UUID
      */
     public void unReadyParticipant(UUID participantUUID) {
         readyParticipant(participantUUID, false);
     }
     
+    /**
+     * assign the given status to the given participant's UUID. Add them and/or their team if
+     * they weren't already being tracked. 
+     * @param participantUUID a valid participant UUID
+     * @param ready the ready status
+     */
     private void readyParticipant(UUID participantUUID, boolean ready) {
         String teamId = gameManager.getTeamName(participantUUID);
-        TeamStatus teamStatus = getTeamStatus(teamId);
+        TeamStatus teamStatus = teamStatuses.get(teamId);
+        if (teamStatus == null) {
+            teamStatus = new TeamStatus();
+            teamStatuses.put(teamId, teamStatus);
+        }
         teamStatus.getStatuses().put(participantUUID, ready);
     }
 }
