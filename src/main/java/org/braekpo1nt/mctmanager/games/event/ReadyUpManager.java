@@ -47,7 +47,6 @@ public class ReadyUpManager {
     
     /**
      * @param participantUUID the UUID of a valid participant to check the status of.
-     *                        Can be offline.
      * @return true if the participant is ready, false otherwise. 
      * Returns false for UUIDs which are not stored in this manager.
      */
@@ -56,8 +55,7 @@ public class ReadyUpManager {
     }
     
     /**
-     * Gets the number of ready players on this team. Adds the teamId to this manager
-     * if it's not already present. 
+     * Gets the number of ready players on this team.
      * @param teamId the teamId to get the ready count for
      * @return the number of participants on that team who are ready
      */
@@ -67,8 +65,7 @@ public class ReadyUpManager {
     }
     
     /**
-     * Gets the number of unReady players on this team. Adds the teamId to this manager
-     * if it's not already present. 
+     * Gets the number of unReady players on this team.
      * @param teamId the teamId to get the unReady count for
      * @return the number of participants on this team who are NOT ready
      */
@@ -90,7 +87,7 @@ public class ReadyUpManager {
     /**
      * Marks the participant with the given UUID as ready. Adds the given participant to this
      * manager if they didn't already exist, and adds their team if it didn't already exist.
-     * @param participantUUID a valid participant UUID
+     * @param participantUUID a valid participant UUID. Can be offline
      */
     public void readyUpParticipant(UUID participantUUID) {
         readyParticipant(participantUUID, true);
@@ -99,7 +96,7 @@ public class ReadyUpManager {
     /**
      * Marks the participant with the given UUID as not ready. Adds the given participant to this
      * manager if they didn't already exist, and adds their team if it didn't already exist.
-     * @param participantUUID a valid participant UUID
+     * @param participantUUID a valid participant UUID. Can be offline
      */
     public void unReadyParticipant(UUID participantUUID) {
         readyParticipant(participantUUID, false);
@@ -108,7 +105,7 @@ public class ReadyUpManager {
     /**
      * assign the given status to the given participant's UUID. Add them and/or their team if
      * they weren't already being tracked. 
-     * @param participantUUID a valid participant UUID
+     * @param participantUUID a valid participant UUID. Can be offline
      * @param ready the ready status
      */
     private void readyParticipant(UUID participantUUID, boolean ready) {
