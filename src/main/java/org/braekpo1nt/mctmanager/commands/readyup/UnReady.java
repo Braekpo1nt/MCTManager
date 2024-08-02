@@ -6,6 +6,7 @@ import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
@@ -26,7 +27,11 @@ public class UnReady extends MasterCommandManager {
     
     @Override
     protected @NotNull CommandResult noArgumentAction(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label) {
-        // TODO: implement unready
-        return CommandResult.success(Component.text("You are no longer ready"));
+        if (!(sender instanceof Player participant) ||
+                gameManager.isParticipant(participant.getUniqueId())) {
+            return CommandResult.failure("Only participants can run this command");
+        }
+        gameManager.getEventManager().unReadyParticipant(participant);
+        return CommandResult.success();
     }
 }

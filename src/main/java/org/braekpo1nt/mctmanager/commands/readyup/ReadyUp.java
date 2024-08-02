@@ -26,7 +26,6 @@ public class ReadyUp extends MasterCommandManager {
     
     @Override
     protected @NotNull CommandResult noArgumentAction(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label) {
-        // TODO: implement readyup
         if (!(sender instanceof Player participant) || 
                 gameManager.isParticipant(participant.getUniqueId())) {
             return CommandResult.failure("Only participants can run this command");

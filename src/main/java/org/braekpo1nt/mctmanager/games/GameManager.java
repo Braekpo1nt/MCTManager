@@ -1021,14 +1021,32 @@ public class GameManager implements Listener {
      * @return A list of all unique team names which the given participants belong to.
      */
     public List<String> getTeamNames(List<Player> participants) {
-        List<String> teamNames = new ArrayList<>();
-        for (Player player : participants) {
-            String teamName = getTeamName(player.getUniqueId());
-            if (!teamNames.contains(teamName)){
-                teamNames.add(teamName);
+        List<String> teamIds = new ArrayList<>();
+        for (Player participant : participants) {
+            String teamId = getTeamName(participant.getUniqueId());
+            if (!teamIds.contains(teamId)){
+                teamIds.add(teamId);
             }
         }
-        return teamNames;
+        return teamIds;
+    }
+    
+    /**
+     * Gets all available unique teamIds of the given UUIDs. Ignores invalid UUIDs.
+     * @param uuids the UUIDs to get the teamIds of. Each UUID doesn't strictly have to be a valid
+     *              participant UUID, and can be the UUID of an offline player. If a teamId
+     *              is not found for a given UUID, it simply will not be included.
+     * @return A list of all unique teamIds which the given participant UUIDs belong to
+     */
+    public List<String> getTeamIdsByUUID(List<UUID> uuids) {
+        List<String> teamIds = new ArrayList<>();
+        for (UUID uuid : uuids) {
+            String teamId = getTeamName(uuid);
+            if (!teamIds.contains(teamId)) {
+                teamIds.add(teamId);
+            }
+        }
+        return teamIds;
     }
     
     /**

@@ -10,6 +10,7 @@ import org.braekpo1nt.mctmanager.games.event.ReadyUpManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -17,6 +18,9 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
+import java.util.UUID;
 
 public class ReadyUpState implements EventState {
     
@@ -28,15 +32,21 @@ public class ReadyUpState implements EventState {
     
     public ReadyUpState(EventManager context) {
         this.context = context;
-        this.readyUpManager = new ReadyUpManager();
         this.gameManager = context.getGameManager();
         this.sidebar = context.getSidebar();
         this.adminSidebar = context.getAdminSidebar();
         gameManager.returnAllParticipantsToHub();
+        this.readyUpManager = new ReadyUpManager(gameManager);
+        List<UUID> participantUUIDs = gameManager.getOfflineParticipants().stream().map(OfflinePlayer::getUniqueId).toList();
+        readyUpManager.start(participantUUIDs);
     }
     
     public void readyUpParticipant(Player participant) {
-        readyUpManager.readyUpParticipant(participant);
+        readyUpManager.readyUpParticipant(participant.getUniqueId());
+    }
+    
+    public void unReadyParticipant(Player participant) {
+        readyUpManager.unReadyParticipant(participant.getUniqueId());
     }
     
     @Override
@@ -52,7 +62,7 @@ public class ReadyUpState implements EventState {
     
     @Override
     public void onParticipantQuit(Player participant) {
-        readyUpManager.unReadyParticipant(participant);
+        readyUpManager.unReadyParticipant(participant.getUniqueId());
     }
     
     @Override
