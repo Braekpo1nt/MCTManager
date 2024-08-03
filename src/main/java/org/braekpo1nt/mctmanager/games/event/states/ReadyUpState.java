@@ -42,12 +42,15 @@ public class ReadyUpState implements EventState {
         this.topbar = context.getTopbar();
         gameManager.returnAllParticipantsToHub();
         readyUpManager.clear();
+        Set<String> teamIds = gameManager.getTeamNames();
+        for (String teamId : teamIds) {
+            readyUpManager.addTeam(teamId);
+        }
         for (OfflinePlayer offlineParticipant : gameManager.getOfflineParticipants()) {
             String teamId = gameManager.getTeamName(offlineParticipant.getUniqueId());
             readyUpManager.unReadyParticipant(offlineParticipant.getUniqueId(), teamId);
         }
     
-        Set<String> teamIds = gameManager.getTeamNames();
         for (String teamId : teamIds) {
             NamedTextColor teamColor = gameManager.getTeamNamedTextColor(teamId);
             topbar.addTeam(teamId, teamColor);
@@ -115,9 +118,9 @@ public class ReadyUpState implements EventState {
                         .color(NamedTextColor.GREEN)
                 );
             }
-            topbar.setReady(participant.getUniqueId(), true);
             topbar.setReadyCount(teamId, readyCount);
         }
+        topbar.setReady(participant.getUniqueId(), true);
     }
     
     @Override
@@ -149,9 +152,9 @@ public class ReadyUpState implements EventState {
                         .color(NamedTextColor.DARK_RED)
                 );
             }
-            topbar.setReady(participant.getUniqueId(), false);
             topbar.setReadyCount(teamId, readyCount);
         }
+        topbar.setReady(participant.getUniqueId(), false);
     }
     
     @Override

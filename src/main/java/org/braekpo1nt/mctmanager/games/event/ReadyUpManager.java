@@ -48,6 +48,7 @@ public class ReadyUpManager {
     
     /**
      * @param participantUUID the UUID of a valid participant to check the status of.
+     * @param teamId must be a teamId in this manager
      * @return true if the participant is ready, false otherwise. 
      * Returns false for UUIDs which are not stored in this manager.
      */
@@ -57,7 +58,7 @@ public class ReadyUpManager {
     
     /**
      * Gets the number of ready players on this team.
-     * @param teamId the teamId to get the ready count for
+     * @param teamId the teamId to get the ready count for. Must be in this manager
      * @return the number of participants on that team who are ready
      */
     public long readyCount(@NotNull String teamId) {
@@ -92,35 +93,43 @@ public class ReadyUpManager {
      * Marks the participant with the given UUID as ready. Adds the given participant to this
      * manager if they didn't already exist, and adds their team if it didn't already exist.
      * @param participantUUID a valid participant UUID. Can be offline
+     * @param teamId a teamId in this manager
      * @return the ready status of the given participantUUID before this ready assignment
      */
     public boolean readyUpParticipant(@NotNull UUID participantUUID, @NotNull String teamId) {
-        return readyParticipant(participantUUID, teamId, true);
+        return setReadyStatus(participantUUID, teamId, true);
     }
     
     /**
-     * Marks the participant with the given UUID as not ready. Adds the given participant to this
-     * manager if they didn't already exist, and adds their team if it didn't already exist.
+     * Marks the participant with the given UUID as not ready. Add them if
+     * they weren't already being tracked. 
      * @param participantUUID a valid participant UUID. Can be offline
+     * @param teamId a teamId in this manager
      * @return the ready status of the given participantUUID before this unReady assignment
      */
     public boolean unReadyParticipant(@NotNull UUID participantUUID, @NotNull String teamId) {
-        return readyParticipant(participantUUID, teamId, false);
+        return setReadyStatus(participantUUID, teamId, false);
     }
     
     /**
-     * assign the given status to the given participant's UUID. Add them and/or their team if
+     * assign the given status to the given participant's UUID. Add them if
      * they weren't already being tracked. 
      * @param participantUUID a valid participant UUID. Can be offline
+     * @param teamId a teamId in this manager
      * @param ready the ready status
      */
-    private boolean readyParticipant(@NotNull UUID participantUUID, @NotNull String teamId, boolean ready) {
-        TeamStatus teamStatus = teamStatuses.get(teamId);
-        if (teamStatus == null) {
-            teamStatus = new TeamStatus();
-            teamStatuses.put(teamId, teamStatus);
-        }
+    private boolean setReadyStatus(@NotNull UUID participantUUID, @NotNull String teamId, boolean ready) {
+        TeamStatus teamStatus = getTeamStatus(teamId);
         Boolean previous = teamStatus.getStatuses().put(participantUUID, ready);
         return previous != null && previous;
+    }
+    
+    /**
+     * Add the given teamId to the manager. Defaults to 0 readyCount.
+     * @param teamId the teamId to add. Must not already be tracked in this manager.
+     */
+    public void addTeam(@NotNull String teamId) {
+        Preconditions.checkArgument(!teamStatuses.containsKey(teamId), "teamId \"%s\" already exists in this ReadyUpManager");
+        teamStatuses.put(teamId, new TeamStatus());
     }
 }
