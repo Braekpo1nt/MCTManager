@@ -67,6 +67,23 @@ public class ReadyUpManager {
     }
     
     /**
+     * Add the given teamId to the manager. Defaults to 0 readyCount.
+     * @param teamId the teamId to add. Must not already be tracked in this manager.
+     */
+    public void addTeam(@NotNull String teamId) {
+        Preconditions.checkArgument(!teamStatuses.containsKey(teamId), "teamId \"%s\" already exists in this ReadyUpManager");
+        teamStatuses.put(teamId, new TeamStatus());
+    }
+    
+    /**
+     * @param teamId the teamId to check
+     * @return true if the given teamId is contained in this manager, false otherwise
+     */
+    public boolean containsTeam(@NotNull String teamId) {
+        return teamStatuses.containsKey(teamId);
+    }
+    
+    /**
      * @param teamId the teamId to get the readiness of. Must be a valid teamId stored in this manager.
      * @return true if the team is ready (all members of the team are ready), false otherwise.
      */
@@ -122,14 +139,5 @@ public class ReadyUpManager {
         TeamStatus teamStatus = getTeamStatus(teamId);
         Boolean previous = teamStatus.getStatuses().put(participantUUID, ready);
         return previous != null && previous;
-    }
-    
-    /**
-     * Add the given teamId to the manager. Defaults to 0 readyCount.
-     * @param teamId the teamId to add. Must not already be tracked in this manager.
-     */
-    public void addTeam(@NotNull String teamId) {
-        Preconditions.checkArgument(!teamStatuses.containsKey(teamId), "teamId \"%s\" already exists in this ReadyUpManager");
-        teamStatuses.put(teamId, new TeamStatus());
     }
 }

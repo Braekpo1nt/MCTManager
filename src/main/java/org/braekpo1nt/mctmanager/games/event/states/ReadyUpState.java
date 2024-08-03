@@ -166,6 +166,11 @@ public class ReadyUpState implements EventState {
             context.updateTeamScores();
             sidebar.updateLine(participant.getUniqueId(), "currentGame", context.getCurrentGameLine());
         }
+        String teamId = gameManager.getTeamName(participant.getUniqueId());
+        if (!readyUpManager.containsTeam(teamId)) {
+            readyUpManager.addTeam(teamId);
+            topbar.addTeam(teamId, gameManager.getTeamNamedTextColor(teamId));
+        }
         topbar.showPlayer(participant);
         this.unReadyParticipant(participant);
     }
