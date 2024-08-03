@@ -15,7 +15,7 @@ import java.util.Map;
  * A component representing all teams readyup status
  * Can be converted to a {@link Component} for display to a user
  */
-public class ReadyUpComponent {
+public class TeamsReadyUpComponent {
     
     @Data
     private static class Team {

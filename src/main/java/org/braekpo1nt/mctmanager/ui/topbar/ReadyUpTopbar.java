@@ -3,13 +3,11 @@ package org.braekpo1nt.mctmanager.ui.topbar;
 import com.google.common.base.Preconditions;
 import lombok.Data;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.TextComponent;
-import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
-import org.braekpo1nt.mctmanager.ui.topbar.components.ReadyUpComponent;
+import org.braekpo1nt.mctmanager.ui.topbar.components.PlayerReadyUpComponent;
+import org.braekpo1nt.mctmanager.ui.topbar.components.TeamsReadyUpComponent;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.List;
@@ -31,10 +29,10 @@ public class ReadyUpTopbar implements Topbar {
     @Data
     protected static class PlayerData {
         private final @NotNull FormattedBar bossBar;
-        private @Nullable Boolean ready;
+        private final PlayerReadyUpComponent playerReadyUpComponent = new PlayerReadyUpComponent();
     }
     
-    private final ReadyUpComponent readyUpComponent = new ReadyUpComponent();
+    private final TeamsReadyUpComponent teamsReadyUpComponent = new TeamsReadyUpComponent();
     /**
      * each team's TeamData
      */
@@ -43,20 +41,6 @@ public class ReadyUpTopbar implements Topbar {
      * each player's PlayerData
      */
     private final Map<UUID, PlayerData> playerDatas = new HashMap<>();
-    private final @NotNull TextComponent readyComponent = Component.empty()
-            .append(Component.text("Ready")
-                    .color(NamedTextColor.GREEN));
-    private final @NotNull TextComponent notReadyComponent = Component.empty()
-            .append(Component.text("Not Ready")
-                    .color(NamedTextColor.RED));
-    /**
-     * The top right component for if the given player doesn't have a ready status
-     */
-    private final @NotNull Component noReadyStatus;
-    
-    public ReadyUpTopbar() {
-        this.noReadyStatus = Component.empty();
-    }
     
     private @NotNull TeamData getTeamData(@NotNull String teamId) {
         TeamData teamData = teamDatas.get(teamId);
@@ -71,11 +55,11 @@ public class ReadyUpTopbar implements Topbar {
     }
     
     /**
-     * Update every player's left {@link ReadyUpComponent}
+     * Update every player's left {@link TeamsReadyUpComponent}
      */
     private void update() {
         for (PlayerData playerData : playerDatas.values()) {
-            playerData.getBossBar().setLeft(readyUpComponent.toComponent());
+            playerData.getBossBar().setLeft(teamsReadyUpComponent.toComponent());
         }
     }
     
@@ -84,17 +68,9 @@ public class ReadyUpTopbar implements Topbar {
      * @param playerData the PlayerData to update
      */
     private void update(@NotNull PlayerData playerData) {
-        playerData.getBossBar().setLeft(readyUpComponent.toComponent());
-        Boolean ready = playerData.getReady();
-        if (ready == null) {
-            playerData.getBossBar().setRight(noReadyStatus);
-        } else {
-            if (ready) {
-                playerData.getBossBar().setRight(readyComponent);
-            } else {
-                playerData.getBossBar().setRight(notReadyComponent);
-            }
-        }
+        playerData.getBossBar().setLeft(teamsReadyUpComponent.toComponent());
+        PlayerReadyUpComponent playerReadyUpComponent = playerData.getPlayerReadyUpComponent();
+        playerData.getBossBar().setRight(playerReadyUpComponent.toComponent());
     }
     
     /**
@@ -105,7 +81,7 @@ public class ReadyUpTopbar implements Topbar {
     public void addTeam(@NotNull String teamId, @NotNull TextColor teamColor) {
         TeamData newTeamData = new TeamData();
         teamDatas.put(teamId, newTeamData);
-        readyUpComponent.addTeam(teamId, teamColor);
+        teamsReadyUpComponent.addTeam(teamId, teamColor);
         update();
     }
     
@@ -114,7 +90,7 @@ public class ReadyUpTopbar implements Topbar {
      */
     public void removeAllTeams() {
         teamDatas.clear();
-        readyUpComponent.removeAllTeams();
+        teamsReadyUpComponent.removeAllTeams();
         update();
     }
     
@@ -234,7 +210,7 @@ public class ReadyUpTopbar implements Topbar {
      */
     public void setReady(@NotNull UUID playerUUID, Boolean ready) {
         PlayerData playerData = getPlayerData(playerUUID);
-        playerData.setReady(ready);
+        playerData.getPlayerReadyUpComponent().setReady(ready);
         update(playerData);
     }
 }

@@ -11,6 +11,7 @@ import org.braekpo1nt.mctmanager.games.event.ReadyUpManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
+import org.braekpo1nt.mctmanager.ui.topbar.ReadyUpTopbar;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -29,6 +30,7 @@ public class ReadyUpState implements EventState {
     private final ReadyUpManager readyUpManager = new ReadyUpManager();
     private final Sidebar sidebar;
     private final Sidebar adminSidebar;
+    private final ReadyUpTopbar topbar = new ReadyUpTopbar();
     
     public ReadyUpState(EventManager context) {
         this.context = context;
