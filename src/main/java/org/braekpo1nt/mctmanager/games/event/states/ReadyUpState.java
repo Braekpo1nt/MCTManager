@@ -201,6 +201,8 @@ public class ReadyUpState implements EventState {
         if (numberOfGames != context.getMaxGames()) {
             this.setMaxGames(sender, numberOfGames);
         }
+        topbar.hideAllPlayers();
+        readyUpManager.clear();
         context.messageAllAdmins(Component.text("Starting event with ")
                 .append(Component.text(context.getMaxGames()))
                 .append(Component.text(" games.")));
