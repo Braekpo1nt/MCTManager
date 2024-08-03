@@ -54,7 +54,11 @@ public class ReadyUpState implements EventState {
         for (String teamId : teamIds) {
             NamedTextColor teamColor = gameManager.getTeamNamedTextColor(teamId);
             topbar.addTeam(teamId, teamColor);
-            topbar.setReadyCount(teamId, 0);
+            if (readyUpManager.teamIsReady(teamId)) {
+                topbar.setReadyCount(teamId, -1);
+            } else {
+                topbar.setReadyCount(teamId, 0);
+            }
         }
         for (Player participant : context.getParticipants()) {
             topbar.showPlayer(participant);
@@ -102,6 +106,9 @@ public class ReadyUpState implements EventState {
                         .append(Component.text(" teams ready)"))
                         .color(NamedTextColor.GREEN)
                 );
+                topbar.setReadyCount(teamId, -1);
+            } else {
+                topbar.setReadyCount(teamId, readyCount);
             }
             if (readyUpManager.allTeamsAreReady()) {
                 context.messageAllAdmins(Component.empty()
@@ -121,7 +128,6 @@ public class ReadyUpState implements EventState {
                         .color(NamedTextColor.GREEN)
                 );
             }
-            topbar.setReadyCount(teamId, readyCount);
         }
         topbar.setReady(participant.getUniqueId(), true);
     }

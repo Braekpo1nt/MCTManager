@@ -23,7 +23,14 @@ public class ReadyUpTopbar implements Topbar {
     
     @Data
     protected static class TeamData {
+        /**
+         * how many players on the team are ready
+         */
         private long readyCount;
+        /**
+         * how many players are on the team
+         */
+        private long size;   
     }
     
     @Data
@@ -94,8 +101,12 @@ public class ReadyUpTopbar implements Topbar {
         update();
     }
     
+    /**
+     * @param teamId a valid teamId in this Topbar
+     * @param readyCount the number of ready participants on this team. Negative number indicates
+     *                   the team is fully ready. 
+     */
     public void setReadyCount(@NotNull String teamId, long readyCount) {
-        Preconditions.checkArgument(readyCount >= 0, "readyCount can't be negative");
         TeamData teamData = getTeamData(teamId);
         teamData.setReadyCount(readyCount);
         teamsReadyUpComponent.setReadyCount(teamId, readyCount);

@@ -5,6 +5,7 @@ import lombok.Data;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.TextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
@@ -19,10 +20,19 @@ public class TeamsReadyUpComponent {
     
     @Data
     private static class Team {
-    
+        /**
+         * the number of team members who are ready
+         */
         private long readyCount;
         private final TextColor color;
+        @SuppressWarnings("UnnecessaryUnicodeEscape")
         public Component toComponent() {
+            if (readyCount < 0) {
+                return Component.empty()
+                        .append(Component.text("\u2713")
+                                .decorate(TextDecoration.BOLD)
+                                .color(color));
+            }
             return Component.empty()
                     .append(Component.text(readyCount)
                             .color(color));
