@@ -77,12 +77,6 @@ public class WaitingInHubState implements EventState {
         if (sidebar != null) {
             sidebar.removePlayer(participant);
         }
-        if (context.getWinningTeam() != null) {
-            String team = gameManager.getTeamName(participant.getUniqueId());
-            if (team.equals(context.getWinningTeam())) {
-                context.removeCrown(participant);
-            }
-        }
     }
     
     @Override

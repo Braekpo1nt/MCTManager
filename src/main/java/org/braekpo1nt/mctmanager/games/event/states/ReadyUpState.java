@@ -115,6 +115,8 @@ public class ReadyUpState implements EventState {
                         .color(NamedTextColor.GREEN)
                 );
             }
+            topbar.setReady(participant.getUniqueId(), true);
+            topbar.setReadyCount(teamId, readyCount);
         }
     }
     
@@ -147,6 +149,8 @@ public class ReadyUpState implements EventState {
                         .color(NamedTextColor.DARK_RED)
                 );
             }
+            topbar.setReady(participant.getUniqueId(), false);
+            topbar.setReadyCount(teamId, readyCount);
         }
     }
     
@@ -159,12 +163,18 @@ public class ReadyUpState implements EventState {
             context.updateTeamScores();
             sidebar.updateLine(participant.getUniqueId(), "currentGame", context.getCurrentGameLine());
         }
+        topbar.showPlayer(participant);
         this.unReadyParticipant(participant);
     }
     
     @Override
     public void onParticipantQuit(Player participant) {
+        context.getParticipants().remove(participant);
+        if (sidebar != null) {
+            sidebar.removePlayer(participant);
+        }
         this.unReadyParticipant(participant);
+        topbar.hidePlayer(participant.getUniqueId());
     }
     
     @Override
@@ -174,6 +184,7 @@ public class ReadyUpState implements EventState {
             context.updateTeamScores();
             adminSidebar.updateLine(admin.getUniqueId(), "currentGame", context.getCurrentGameLine());
         }
+        topbar.showPlayer(admin);
     }
     
     @Override
@@ -182,6 +193,7 @@ public class ReadyUpState implements EventState {
         if (adminSidebar != null) {
             adminSidebar.removePlayer(admin);
         }
+        topbar.hidePlayer(admin.getUniqueId());
     }
     
     @Override
