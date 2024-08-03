@@ -4,8 +4,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.braekpo1nt.mctmanager.commands.mct.MCTCommand;
 import org.braekpo1nt.mctmanager.commands.mctdebug.MCTDebugCommand;
-import org.braekpo1nt.mctmanager.commands.readyup.ReadyUp;
-import org.braekpo1nt.mctmanager.commands.readyup.UnReady;
+import org.braekpo1nt.mctmanager.commands.readyup.ReadyUpCommand;
+import org.braekpo1nt.mctmanager.commands.readyup.UnReadyCommand;
 import org.braekpo1nt.mctmanager.commands.utils.UtilsCommand;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.games.GameManager;
@@ -73,8 +73,8 @@ public class Main extends JavaPlugin {
         new MCTDebugCommand(this);
         mctCommand = new MCTCommand(this, gameManager, blockEffectsListener);
         new UtilsCommand(this);
-        new ReadyUp(this, gameManager);
-        new UnReady(this, gameManager);
+        new ReadyUpCommand(this, gameManager);
+        new UnReadyCommand(this, gameManager);
     
         alwaysGiveNightVision();
     }
