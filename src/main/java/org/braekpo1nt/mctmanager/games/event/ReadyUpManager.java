@@ -48,16 +48,6 @@ public class ReadyUpManager {
     }
     
     /**
-     * Gets the number of unReady players on this team.
-     * @param teamId the teamId to get the unReady count for
-     * @return the number of participants on this team who are NOT ready
-     */
-    public long unReadyCount(@NotNull String teamId) {
-        TeamStatus teamStatus = getTeamStatus(teamId);
-        return teamStatus.getStatuses().values().stream().filter(ready -> !ready).count();
-    }
-    
-    /**
      * @param teamId the teamId to get the readiness of. Must be a valid teamId stored in this manager.
      * @return true if the team is ready (all members of the team are ready), false otherwise.
      */

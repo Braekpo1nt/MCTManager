@@ -11,6 +11,7 @@ import org.braekpo1nt.mctmanager.games.event.ReadyUpManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -18,6 +19,8 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 public class ReadyUpState implements EventState {
     
@@ -46,15 +49,15 @@ public class ReadyUpState implements EventState {
     @Override
     public void readyUpParticipant(Player participant) {
         String teamId = gameManager.getTeamName(participant.getUniqueId());
+        List<OfflinePlayer> teamMembers = gameManager.getOfflineParticipants(teamId);
         boolean wasReady = readyUpManager.readyUpParticipant(participant.getUniqueId(), teamId);
         long readyCount = readyUpManager.readyCount(teamId);
-        long unReadyCount = readyUpManager.unReadyCount(teamId);
         context.messageAllAdmins(Component.empty()
                 .append(participant.displayName())
                 .append(Component.text(" is ready. ("))
                 .append(Component.text(readyCount))
                 .append(Component.text("/"))
-                .append(Component.text(unReadyCount))
+                .append(Component.text(teamMembers.size()))
                 .append(Component.text(")"))
                 .color(NamedTextColor.GREEN)
         );
@@ -65,7 +68,7 @@ public class ReadyUpState implements EventState {
                     .append(Component.text(" is ready. "))
                     .append(Component.text(readyCount))
                     .append(Component.text("/"))
-                    .append(Component.text(unReadyCount))
+                    .append(Component.text(teamMembers.size()))
                     .append(Component.text(")"))
                     .color(NamedTextColor.GREEN)
             );
@@ -75,15 +78,15 @@ public class ReadyUpState implements EventState {
     @Override
     public void unReadyParticipant(Player participant) {
         String teamId = gameManager.getTeamName(participant.getUniqueId());
+        List<OfflinePlayer> teamMembers = gameManager.getOfflineParticipants(teamId);
         boolean wasReady = readyUpManager.unReadyParticipant(participant.getUniqueId(), teamId);
         long readyCount = readyUpManager.readyCount(teamId);
-        long unReadyCount = readyUpManager.unReadyCount(teamId);
         context.messageAllAdmins(Component.empty()
                 .append(participant.displayName())
                 .append(Component.text(" is not ready. ("))
                 .append(Component.text(readyCount))
                 .append(Component.text("/"))
-                .append(Component.text(unReadyCount))
+                .append(Component.text(teamMembers.size()))
                 .append(Component.text(")"))
                 .color(NamedTextColor.DARK_RED)
         );
@@ -94,7 +97,7 @@ public class ReadyUpState implements EventState {
                     .append(Component.text(" is not ready. "))
                     .append(Component.text(readyCount))
                     .append(Component.text("/"))
-                    .append(Component.text(unReadyCount))
+                    .append(Component.text(teamMembers.size()))
                     .append(Component.text(")"))
                     .color(NamedTextColor.DARK_RED)
             );

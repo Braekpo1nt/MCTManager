@@ -1545,6 +1545,23 @@ public class GameManager implements Listener {
     }
     
     /**
+     * @param teamId the teamId to get the members of
+     * @return A list of all OfflinePlayers in the game state whose team is the given teamId. These players could
+     * be offline or online, have names or not.
+     */
+    public List<OfflinePlayer> getOfflineParticipants(@NotNull String teamId) {
+        List<OfflinePlayer> offlineParticipants = getOfflineParticipants();
+        List<OfflinePlayer> result = new ArrayList<>();
+        for (OfflinePlayer offlineParticipant : offlineParticipants) {
+            String offlineTeamId = getTeamName(offlineParticipant.getUniqueId());
+            if (teamId.equals(offlineTeamId)) {
+                result.add(offlineParticipant);
+            }
+        }
+        return result;
+    }
+    
+    /**
      * Adds the given score to the participant with the given UUID
      * @param participantUUID The UUID of the participant to add the score to
      * @param score The score to add. Could be positive or negative.
