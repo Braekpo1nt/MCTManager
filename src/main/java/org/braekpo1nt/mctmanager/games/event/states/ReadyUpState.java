@@ -36,6 +36,11 @@ public class ReadyUpState implements EventState {
         this.sidebar = context.getSidebar();
         this.adminSidebar = context.getAdminSidebar();
         gameManager.returnAllParticipantsToHub();
+        readyUpManager.clear();
+        for (OfflinePlayer offlineParticipant : gameManager.getOfflineParticipants()) {
+            String teamId = gameManager.getTeamName(offlineParticipant.getUniqueId());
+            readyUpManager.unReadyParticipant(offlineParticipant.getUniqueId(), teamId);
+        }
         Audience.audience(context.getParticipants()).sendMessage(Component.empty()
                 .append(Component.text("Please ready up with "))
                 .append(Component.text("/readyup")
@@ -51,27 +56,45 @@ public class ReadyUpState implements EventState {
         String teamId = gameManager.getTeamName(participant.getUniqueId());
         List<OfflinePlayer> teamMembers = gameManager.getOfflineParticipants(teamId);
         boolean wasReady = readyUpManager.readyUpParticipant(participant.getUniqueId(), teamId);
-        long readyCount = readyUpManager.readyCount(teamId);
-        context.messageAllAdmins(Component.empty()
-                .append(participant.displayName())
-                .append(Component.text(" is ready. ("))
-                .append(Component.text(readyCount))
-                .append(Component.text("/"))
-                .append(Component.text(teamMembers.size()))
-                .append(Component.text(")"))
-                .color(NamedTextColor.GREEN)
-        );
         if (!wasReady) {
-            Component teamDisplayName = gameManager.getFormattedTeamDisplayName(teamId);
+            long readyCount = readyUpManager.readyCount(teamId);
             context.messageAllAdmins(Component.empty()
-                    .append(teamDisplayName)
-                    .append(Component.text(" is ready. "))
+                    .append(participant.displayName())
+                    .append(Component.text(" is ready. ("))
                     .append(Component.text(readyCount))
                     .append(Component.text("/"))
                     .append(Component.text(teamMembers.size()))
                     .append(Component.text(")"))
                     .color(NamedTextColor.GREEN)
             );
+            int teamIdCount = gameManager.getTeamNames().size();
+            if (readyUpManager.teamIsReady(teamId)) {
+                Component teamDisplayName = gameManager.getFormattedTeamDisplayName(teamId);
+                context.messageAllAdmins(Component.empty()
+                        .append(teamDisplayName)
+                        .append(Component.text(" is ready. ("))
+                        .append(Component.text(readyUpManager.readyTeamCount()))
+                        .append(Component.text("/"))
+                        .append(Component.text(teamIdCount))
+                        .append(Component.text(" teams ready)"))
+                        .color(NamedTextColor.GREEN)
+                );
+            }
+            if (readyUpManager.allTeamsAreReady()) {
+                context.messageAllAdmins(Component.empty()
+                        .append(Component.text("All "))
+                        .append(Component.text(teamIdCount))
+                        .append(Component.text(" teams are ready. Use"))
+                        .append(Component.text()
+                                .append(Component.text("/mct event start "))
+                                .append(Component.text(context.getMaxGames()))
+                                .clickEvent(ClickEvent.suggestCommand(
+                                        String.format("/mct event start %d", context.getMaxGames())))
+                        )
+                        .append(Component.text(" to start the event"))
+                        .color(NamedTextColor.GREEN)
+                );
+            }
         }
     }
     
@@ -79,28 +102,31 @@ public class ReadyUpState implements EventState {
     public void unReadyParticipant(Player participant) {
         String teamId = gameManager.getTeamName(participant.getUniqueId());
         List<OfflinePlayer> teamMembers = gameManager.getOfflineParticipants(teamId);
+        boolean teamWasReady = readyUpManager.teamIsReady(teamId);
         boolean wasReady = readyUpManager.unReadyParticipant(participant.getUniqueId(), teamId);
         long readyCount = readyUpManager.readyCount(teamId);
-        context.messageAllAdmins(Component.empty()
-                .append(participant.displayName())
-                .append(Component.text(" is not ready. ("))
-                .append(Component.text(readyCount))
-                .append(Component.text("/"))
-                .append(Component.text(teamMembers.size()))
-                .append(Component.text(")"))
-                .color(NamedTextColor.DARK_RED)
-        );
         if (wasReady) {
-            Component teamDisplayName = gameManager.getFormattedTeamDisplayName(teamId);
             context.messageAllAdmins(Component.empty()
-                    .append(teamDisplayName)
-                    .append(Component.text(" is not ready. "))
+                    .append(participant.displayName())
+                    .append(Component.text(" is not ready. ("))
                     .append(Component.text(readyCount))
                     .append(Component.text("/"))
                     .append(Component.text(teamMembers.size()))
                     .append(Component.text(")"))
                     .color(NamedTextColor.DARK_RED)
             );
+            if (teamWasReady) {
+                Component teamDisplayName = gameManager.getFormattedTeamDisplayName(teamId);
+                context.messageAllAdmins(Component.empty()
+                        .append(teamDisplayName)
+                        .append(Component.text(" is not ready. ("))
+                        .append(Component.text(readyUpManager.readyTeamCount()))
+                        .append(Component.text("/"))
+                        .append(Component.text(gameManager.getTeamNames().size()))
+                        .append(Component.text(" teams ready)"))
+                        .color(NamedTextColor.DARK_RED)
+                );
+            }
         }
     }
     
@@ -140,12 +166,12 @@ public class ReadyUpState implements EventState {
     
     @Override
     public void startEvent(@NotNull CommandSender sender, int numberOfGames) {
-        this.setMaxGames(context.getPlugin().getServer().getConsoleSender(), numberOfGames);
-        context.messageAllAdmins(Component.text("Starting event. On game ")
-                .append(Component.text(context.getCurrentGameNumber()))
-                .append(Component.text("/"))
+        if (numberOfGames != context.getMaxGames()) {
+            this.setMaxGames(sender, numberOfGames);
+        }
+        context.messageAllAdmins(Component.text("Starting event with ")
                 .append(Component.text(context.getMaxGames()))
-                .append(Component.text(".")));
+                .append(Component.text(" games.")));
         Audience.audience(
                 Audience.audience(context.getAdmins()),
                 Audience.audience(context.getParticipants())

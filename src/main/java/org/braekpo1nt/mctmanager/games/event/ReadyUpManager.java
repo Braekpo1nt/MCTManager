@@ -12,9 +12,23 @@ public class ReadyUpManager {
     
     @Data
     public static class TeamStatus {
-        private final Map<UUID, @NotNull Boolean> statuses = new HashMap<>();
-    }
     
+        private final Map<UUID, @NotNull Boolean> statuses = new HashMap<>();
+        /**
+         * @return true if every participant is ready in this team
+         */
+        public boolean isReady() {
+            return statuses.values().stream().allMatch(ready -> ready);
+        }
+    
+        /**
+         * @return the number of ready statuses
+         */
+        public long readyCount() {
+            return statuses.values().stream().filter(ready -> ready).count();
+        }
+    
+    }
     public @NotNull TeamStatus getTeamStatus(@NotNull String teamId) {
         TeamStatus teamStatus = teamStatuses.get(teamId);
         Preconditions.checkArgument(teamStatus != null, "teamId \"%s\" is not contained in this ReadyUpManager", teamId);
@@ -26,6 +40,10 @@ public class ReadyUpManager {
         Boolean status = teamStatus.getStatuses().get(participantUUID);
         Preconditions.checkArgument(status != null, "\"%s\" participant with UUID %s is not contained in this ReadyUpManager", participantUUID);
         return status;
+    }
+    
+    public void clear() {
+        teamStatuses.clear();
     }
     
     /**
@@ -44,7 +62,7 @@ public class ReadyUpManager {
      */
     public long readyCount(@NotNull String teamId) {
         TeamStatus teamStatus = getTeamStatus(teamId);
-        return teamStatus.getStatuses().values().stream().filter(ready -> ready).count();
+        return teamStatus.readyCount();
     }
     
     /**
@@ -53,14 +71,28 @@ public class ReadyUpManager {
      */
     public boolean teamIsReady(@NotNull String teamId) {
         TeamStatus teamStatus = getTeamStatus(teamId);
-        Map<UUID, @NotNull Boolean> statuses = teamStatus.getStatuses();
-        return statuses.values().stream().filter(ready -> ready).count() == statuses.size();
+        return teamStatus.isReady();
+    }
+    
+    /**
+     * @return how many teams are ready
+     */
+    public long readyTeamCount() {
+        return teamStatuses.values().stream().filter(TeamStatus::isReady).count();
+    }
+    
+    /**
+     * @return true if all teams in this manager are ready, false otherwise
+     */
+    public boolean allTeamsAreReady() {
+        return teamStatuses.values().stream().allMatch(TeamStatus::isReady);
     }
     
     /**
      * Marks the participant with the given UUID as ready. Adds the given participant to this
      * manager if they didn't already exist, and adds their team if it didn't already exist.
      * @param participantUUID a valid participant UUID. Can be offline
+     * @return the ready status of the given participantUUID before this ready assignment
      */
     public boolean readyUpParticipant(@NotNull UUID participantUUID, @NotNull String teamId) {
         return readyParticipant(participantUUID, teamId, true);
@@ -70,6 +102,7 @@ public class ReadyUpManager {
      * Marks the participant with the given UUID as not ready. Adds the given participant to this
      * manager if they didn't already exist, and adds their team if it didn't already exist.
      * @param participantUUID a valid participant UUID. Can be offline
+     * @return the ready status of the given participantUUID before this unReady assignment
      */
     public boolean unReadyParticipant(@NotNull UUID participantUUID, @NotNull String teamId) {
         return readyParticipant(participantUUID, teamId, false);
