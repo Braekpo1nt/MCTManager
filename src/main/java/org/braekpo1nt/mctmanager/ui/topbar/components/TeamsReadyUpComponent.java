@@ -20,7 +20,7 @@ public class TeamsReadyUpComponent {
     @Data
     private static class Team {
     
-        private int readyCount;
+        private long readyCount;
         private final TextColor color;
         public Component toComponent() {
             return Component.empty()
@@ -42,7 +42,7 @@ public class TeamsReadyUpComponent {
         teams.clear();
     }
     
-    public void setReadyCount(@NotNull String teamId, int readyCount) {
+    public void setReadyCount(@NotNull String teamId, long readyCount) {
         Team team = teams.get(teamId);
         Preconditions.checkArgument(team != null, "teamId \"%s\" is not contained in this ReadyUpComponent", teamId);
         team.setReadyCount(readyCount);

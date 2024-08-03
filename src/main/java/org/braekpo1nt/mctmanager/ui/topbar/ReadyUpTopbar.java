@@ -98,6 +98,7 @@ public class ReadyUpTopbar implements Topbar {
         Preconditions.checkArgument(readyCount >= 0, "readyCount can't be negative");
         TeamData teamData = getTeamData(teamId);
         teamData.setReadyCount(readyCount);
+        teamsReadyUpComponent.setReadyCount(teamId, readyCount);
         update();
     }
     
