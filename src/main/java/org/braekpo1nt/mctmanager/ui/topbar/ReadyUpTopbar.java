@@ -3,6 +3,8 @@ package org.braekpo1nt.mctmanager.ui.topbar;
 import com.google.common.base.Preconditions;
 import lombok.Data;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import org.braekpo1nt.mctmanager.ui.topbar.components.ReadyUpComponent;
 import org.bukkit.entity.Player;
@@ -21,6 +23,13 @@ import java.util.UUID;
 // TODO: implement this
 public class ReadyUpTopbar implements Topbar {
     
+    private final @NotNull TextComponent readyComponent = Component.empty()
+            .append(Component.text("Ready")
+                    .color(NamedTextColor.GREEN));
+    private final @NotNull TextComponent notReadyComponent = Component.empty()
+            .append(Component.text("Not Ready")
+                    .color(NamedTextColor.RED));
+    
     @Data
     protected static class TeamData {
         private long readyCount;
@@ -29,6 +38,7 @@ public class ReadyUpTopbar implements Topbar {
     @Data
     protected static class PlayerData {
         private final @NotNull FormattedBar bossBar;
+        private @Nullable Boolean ready;
     }
     
     private final ReadyUpComponent readyUpComponent = new ReadyUpComponent();
@@ -40,6 +50,14 @@ public class ReadyUpTopbar implements Topbar {
      * each player's PlayerData
      */
     private final Map<UUID, PlayerData> playerDatas = new HashMap<>();
+    /**
+     * The top right component for if the given player doesn't have a ready status
+     */
+    private @NotNull Component noReadyStatus;
+    
+    public ReadyUpTopbar() {
+        this.noReadyStatus = Component.empty();
+    }
     
     private @NotNull TeamData getTeamData(@NotNull String teamId) {
         TeamData teamData = teamDatas.get(teamId);
@@ -68,6 +86,16 @@ public class ReadyUpTopbar implements Topbar {
      */
     private void update(@NotNull PlayerData playerData) {
         playerData.getBossBar().setLeft(readyUpComponent.toComponent());
+        Boolean ready = playerData.getReady();
+        if (ready == null) {
+            playerData.getBossBar().setRight(noReadyStatus);
+        } else {
+            if (ready) {
+                playerData.getBossBar().setRight(readyComponent);
+            } else {
+                playerData.getBossBar().setRight(notReadyComponent);
+            }
+        }
     }
     
     /**
@@ -197,5 +225,17 @@ public class ReadyUpTopbar implements Topbar {
     public void setRight(@NotNull UUID playerUUID, @NotNull Component right) {
         PlayerData playerData = getPlayerData(playerUUID);
         playerData.getBossBar().setRight(right);
+    }
+    
+    /**
+     * Set the player's ready status
+     * @param playerUUID the player to assign. Must exist in this Topbar
+     * @param ready true if the player is ready, false if the player is not ready,
+     *              null if the player should not display a ready status.
+     */
+    public void setReady(@NotNull UUID playerUUID, Boolean ready) {
+        PlayerData playerData = getPlayerData(playerUUID);
+        playerData.setReady(ready);
+        update(playerData);
     }
 }
