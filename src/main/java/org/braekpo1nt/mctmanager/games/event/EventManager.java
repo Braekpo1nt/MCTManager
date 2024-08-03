@@ -16,6 +16,7 @@ import org.braekpo1nt.mctmanager.games.voting.VoteManager;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
+import org.braekpo1nt.mctmanager.ui.topbar.ReadyUpTopbar;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -65,6 +66,8 @@ public class EventManager implements Listener {
     private List<Player> participants = new ArrayList<>();
     private List<Player> admins = new ArrayList<>();
     private @Nullable String winningTeam;
+    private final ReadyUpManager readyUpManager = new ReadyUpManager();
+    private final ReadyUpTopbar topbar = new ReadyUpTopbar();
     
     public EventManager(Main plugin, GameManager gameManager, VoteManager voteManager) {
         this.plugin = plugin;
@@ -169,6 +172,9 @@ public class EventManager implements Listener {
         }
         clearSidebar();
         clearAdminSidebar();
+        readyUpManager.clear();
+        topbar.hideAllPlayers();
+        topbar.removeAllTeams();
         participants.clear();
         admins.clear();
         cancelAllTasks();

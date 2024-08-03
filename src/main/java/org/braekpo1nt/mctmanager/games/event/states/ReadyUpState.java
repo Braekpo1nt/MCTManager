@@ -22,27 +22,45 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Set;
 
 public class ReadyUpState implements EventState {
     
     private final EventManager context;
     private final GameManager gameManager;
-    private final ReadyUpManager readyUpManager = new ReadyUpManager();
     private final Sidebar sidebar;
     private final Sidebar adminSidebar;
-    private final ReadyUpTopbar topbar = new ReadyUpTopbar();
+    private final ReadyUpManager readyUpManager;
+    private final ReadyUpTopbar topbar;
     
     public ReadyUpState(EventManager context) {
         this.context = context;
         this.gameManager = context.getGameManager();
         this.sidebar = context.getSidebar();
         this.adminSidebar = context.getAdminSidebar();
+        this.readyUpManager = context.getReadyUpManager();
+        this.topbar = context.getTopbar();
         gameManager.returnAllParticipantsToHub();
         readyUpManager.clear();
         for (OfflinePlayer offlineParticipant : gameManager.getOfflineParticipants()) {
             String teamId = gameManager.getTeamName(offlineParticipant.getUniqueId());
             readyUpManager.unReadyParticipant(offlineParticipant.getUniqueId(), teamId);
         }
+    
+        Set<String> teamIds = gameManager.getTeamNames();
+        for (String teamId : teamIds) {
+            NamedTextColor teamColor = gameManager.getTeamNamedTextColor(teamId);
+            topbar.addTeam(teamId, teamColor);
+            topbar.setReadyCount(teamId, 0);
+        }
+        for (Player participant : context.getParticipants()) {
+            topbar.showPlayer(participant);
+            topbar.setReady(participant.getUniqueId(), false);
+        }
+        for (Player admin : context.getAdmins()) {
+            topbar.showPlayer(admin);
+        }
+        
         Audience.audience(context.getParticipants()).sendMessage(Component.empty()
                 .append(Component.text("Please ready up with "))
                 .append(Component.text("/readyup")
