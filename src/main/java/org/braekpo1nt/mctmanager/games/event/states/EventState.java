@@ -23,4 +23,13 @@ public interface EventState {
     void setMaxGames(@NotNull CommandSender sender, int newMaxGames);
     void stopColossalCombat(@NotNull CommandSender sender);
     void startColossalCombat(@NotNull CommandSender sender, @NotNull String firstTeam, @NotNull String secondTeam);
+    default void cancelAllTasks() {
+        // do nothing
+    }
+    default void readyUpParticipant(@NotNull Player participant) {
+        // do nothing
+    }
+    default void unReadyParticipant(@NotNull Player participant) {
+        // do nothing
+    }
 }

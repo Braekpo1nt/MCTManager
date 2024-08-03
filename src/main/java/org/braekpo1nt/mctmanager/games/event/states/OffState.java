@@ -264,4 +264,14 @@ public class OffState implements EventState {
         gameManager.removeParticipantsFromHub(participantPool);
         context.getColossalCombatGame().start(firstPlaceParticipants, secondPlaceParticipants, spectators, adminPool);
     }
+    
+    @Override
+    public void readyUpParticipant(@NotNull Player participant) {
+        participant.sendMessage(Component.text("There is no event going on right now"));
+    }
+    
+    @Override
+    public void unReadyParticipant(@NotNull Player participant) {
+        participant.sendMessage(Component.text("There is no event going on right now"));
+    }
 }

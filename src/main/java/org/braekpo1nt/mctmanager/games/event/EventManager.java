@@ -165,7 +165,7 @@ public class EventManager implements Listener {
                 if (team.equals(winningTeam)) {
                     removeCrown(participant);
                 }
-            }e
+            }
         }
         clearSidebar();
         clearAdminSidebar();
@@ -384,31 +384,11 @@ public class EventManager implements Listener {
     }
     
     public void readyUpParticipant(@NotNull Player participant) {
-        if (state instanceof OffState) {
-            participant.sendMessage(Component.text("There is no event going on right now"));
-            return;
-        }
-        if (!(state instanceof ReadyUpState readyUpState)) {
-            // do nothing
-            return;
-        }
-        readyUpState.readyUpParticipant(participant);
+        state.readyUpParticipant(participant);
     }
     
     public void unReadyParticipant(@NotNull Player participant) {
-        /*
-         * this method is hyper state-specific. Don't use this as an example for how to
-         * properly implement the State design pattern
-         */
-        if (state instanceof OffState) {
-            participant.sendMessage(Component.text("There is no event going on right now"));
-            return;
-        }
-        if (!(state instanceof ReadyUpState readyUpState)) {
-            // do nothing
-            return;
-        }
-        readyUpState.unReadyParticipant(participant);
+        state.unReadyParticipant(participant);
     }
     
     @EventHandler
@@ -471,6 +451,7 @@ public class EventManager implements Listener {
     public void cancelAllTasks() {
         voteManager.cancelVote();
         timerManager.cancel();
+        state.cancelAllTasks();
     }
     
     public void giveCrown(Player participant) {

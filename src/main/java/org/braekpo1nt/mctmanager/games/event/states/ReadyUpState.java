@@ -43,6 +43,7 @@ public class ReadyUpState implements EventState {
         context.messageAllAdmins(Component.text("Ready Up has begun"));
     }
     
+    @Override
     public void readyUpParticipant(Player participant) {
         String teamId = gameManager.getTeamName(participant.getUniqueId());
         boolean wasReady = readyUpManager.readyUpParticipant(participant.getUniqueId(), teamId);
@@ -71,6 +72,7 @@ public class ReadyUpState implements EventState {
         }
     }
     
+    @Override
     public void unReadyParticipant(Player participant) {
         String teamId = gameManager.getTeamName(participant.getUniqueId());
         boolean wasReady = readyUpManager.unReadyParticipant(participant.getUniqueId(), teamId);
