@@ -140,7 +140,8 @@ public class ManyBattleTopbar implements Topbar {
     }
     
     /**
-     * Removes all the teams from this Topbar, and unlinks all players from their teamIds
+     * Removes all the teams from this Topbar, and unlinks all players from 
+     * their teamIds
      */
     public void removeAllTeams() {
         teamDatas.clear();

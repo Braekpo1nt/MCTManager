@@ -19,16 +19,16 @@ public class ReadyUpComponent {
     
     @Data
     private static class Team {
+    
         private int readyCount;
         private final TextColor color;
-        
         public Component toComponent() {
             return Component.empty()
                     .append(Component.text(readyCount)
                             .color(color));
         }
-    }
     
+    }
     /**
      * Maps each teamId to their component
      */
@@ -36,6 +36,10 @@ public class ReadyUpComponent {
     
     public void addTeam(@NotNull String teamId, @NotNull TextColor color) {
         teams.put(teamId, new Team(color));
+    }
+    
+    public void removeAllTeams() {
+        teams.clear();
     }
     
     public void setReadyCount(@NotNull String teamId, int readyCount) {
@@ -46,6 +50,7 @@ public class ReadyUpComponent {
     
     public Component toComponent() {
         TextComponent.Builder builder = Component.text();
+        builder.append(Component.text("Ready: "));
         List<String> sortedTeams = teams.keySet().stream().sorted().toList();
         for (int i = 0; i < sortedTeams.size(); i++) {
             String teamId = sortedTeams.get(i);
