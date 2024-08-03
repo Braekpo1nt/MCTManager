@@ -23,13 +23,6 @@ import java.util.UUID;
 // TODO: implement this
 public class ReadyUpTopbar implements Topbar {
     
-    private final @NotNull TextComponent readyComponent = Component.empty()
-            .append(Component.text("Ready")
-                    .color(NamedTextColor.GREEN));
-    private final @NotNull TextComponent notReadyComponent = Component.empty()
-            .append(Component.text("Not Ready")
-                    .color(NamedTextColor.RED));
-    
     @Data
     protected static class TeamData {
         private long readyCount;
@@ -50,10 +43,16 @@ public class ReadyUpTopbar implements Topbar {
      * each player's PlayerData
      */
     private final Map<UUID, PlayerData> playerDatas = new HashMap<>();
+    private final @NotNull TextComponent readyComponent = Component.empty()
+            .append(Component.text("Ready")
+                    .color(NamedTextColor.GREEN));
+    private final @NotNull TextComponent notReadyComponent = Component.empty()
+            .append(Component.text("Not Ready")
+                    .color(NamedTextColor.RED));
     /**
      * The top right component for if the given player doesn't have a ready status
      */
-    private @NotNull Component noReadyStatus;
+    private final @NotNull Component noReadyStatus;
     
     public ReadyUpTopbar() {
         this.noReadyStatus = Component.empty();
