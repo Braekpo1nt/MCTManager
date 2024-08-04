@@ -4,6 +4,7 @@ import org.braekpo1nt.mctmanager.games.GameManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class CommandUtils {
@@ -67,10 +68,6 @@ public class CommandUtils {
                 return null;
             }
         }
-    }
-    
-    public static @NotNull List<String> partialMatchParticipantsTabList(GameManager gameManager, @Nullable String partialName) {
-        return partialMatchTabList(gameManager.getAllParticipantNames(), partialName);
     }
     
     public static @NotNull List<String> partialMatchTabList(@NotNull List<@NotNull String> list, @Nullable String partial) {
