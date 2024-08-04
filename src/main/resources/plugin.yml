@@ -30,4 +30,3 @@ commands:
     description: Signal that you are not ready for the event to begin
     permission: mctmanager.unready
     permission-message: "You do not have permission to use this command"
-  

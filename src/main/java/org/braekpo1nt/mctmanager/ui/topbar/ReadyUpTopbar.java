@@ -18,20 +18,7 @@ import java.util.UUID;
  * An implementation of a Topbar specifically oriented toward teams ready-ing up 
  * (e.g. for an event)
  */
-// TODO: implement this
 public class ReadyUpTopbar implements Topbar {
-    
-    @Data
-    protected static class TeamData {
-        /**
-         * how many players on the team are ready
-         */
-        private long readyCount;
-        /**
-         * how many players are on the team
-         */
-        private long size;   
-    }
     
     @Data
     protected static class PlayerData {
@@ -41,19 +28,9 @@ public class ReadyUpTopbar implements Topbar {
     
     private final TeamsReadyUpComponent teamsReadyUpComponent = new TeamsReadyUpComponent();
     /**
-     * each team's TeamData
-     */
-    private final Map<String, TeamData> teamDatas = new HashMap<>();
-    /**
      * each player's PlayerData
      */
     private final Map<UUID, PlayerData> playerDatas = new HashMap<>();
-    
-    private @NotNull TeamData getTeamData(@NotNull String teamId) {
-        TeamData teamData = teamDatas.get(teamId);
-        Preconditions.checkArgument(teamData != null, "team with teamId \"%s\" does not exist in this ReadyUpTopbar", teamId);
-        return teamData;
-    }
     
     private @NotNull PlayerData getPlayerData(@NotNull UUID playerUUID) {
         PlayerData playerData = playerDatas.get(playerUUID);
@@ -86,8 +63,6 @@ public class ReadyUpTopbar implements Topbar {
      * @param teamColor the color of the team
      */
     public void addTeam(@NotNull String teamId, @NotNull TextColor teamColor) {
-        TeamData newTeamData = new TeamData();
-        teamDatas.put(teamId, newTeamData);
         teamsReadyUpComponent.addTeam(teamId, teamColor);
         update();
     }
@@ -96,7 +71,6 @@ public class ReadyUpTopbar implements Topbar {
      * Removes all teams from this Topbar
      */
     public void removeAllTeams() {
-        teamDatas.clear();
         teamsReadyUpComponent.removeAllTeams();
         update();
     }
@@ -107,8 +81,6 @@ public class ReadyUpTopbar implements Topbar {
      *                   the team is fully ready. 
      */
     public void setReadyCount(@NotNull String teamId, long readyCount) {
-        TeamData teamData = getTeamData(teamId);
-        teamData.setReadyCount(readyCount);
         teamsReadyUpComponent.setReadyCount(teamId, readyCount);
         update();
     }
