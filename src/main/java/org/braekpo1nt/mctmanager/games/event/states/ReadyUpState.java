@@ -2,12 +2,14 @@ package org.braekpo1nt.mctmanager.games.event.states;
 
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
+import org.braekpo1nt.mctmanager.games.event.ListType;
 import org.braekpo1nt.mctmanager.games.event.ReadyUpManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
@@ -25,6 +27,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -44,6 +47,12 @@ public class ReadyUpState implements EventState {
                     .append(Component.text("/readyup"))
                     .color(NamedTextColor.GREEN), 
             Title.Times.times(Duration.ZERO, Duration.ofMillis(2500), Duration.ZERO));
+    private static final Component READY = Component.empty()
+            .append(Component.text("ready")
+                    .color(NamedTextColor.GREEN));
+    private static final Component NOT_READY = Component.empty()
+            .append(Component.text("not")
+                    .color(NamedTextColor.DARK_RED));
     
     public ReadyUpState(EventManager context) {
         this.context = context;
@@ -263,6 +272,100 @@ public class ReadyUpState implements EventState {
                         .color(NamedTextColor.GOLD)
         ));
         context.setState(new WaitingInHubState(context));
+    }
+    
+    @Override
+    public void listReady(@NotNull CommandSender sender, ListType listType) {
+        switch (listType) {
+            case PARTICIPANTS -> sender.sendMessage(getParticipantsReady());
+            case TEAMS -> sender.sendMessage(getTeamsReady());
+        }
+    }
+    
+    private Component getParticipantsReady() {
+        TextComponent.Builder builder = Component.text()
+                .append(Component.text("Readiness:")
+                        .decorate(TextDecoration.BOLD));
+        List<OfflinePlayer> sortedOfflineParticipants = getSortedOfflineParticipants();
+        for (OfflinePlayer participant : sortedOfflineParticipants) {
+            Component displayName = gameManager.getDisplayName(participant);
+            String teamId = gameManager.getTeamName(participant.getUniqueId());
+            boolean ready = readyUpManager.participantIsReady(participant.getUniqueId(), teamId);
+            builder.append(Component.empty()
+                    .append(Component.newline())
+                    .append(displayName)
+                    .append(Component.text(": "))
+                    .append(ready ? READY : NOT_READY));
+        }
+        return builder.build();
+    }
+    
+    private Component getTeamsReady() {
+        TextComponent.Builder builder = Component.text()
+                .append(Component.text("Readiness:")
+                        .decorate(TextDecoration.BOLD));
+        List<String> sortedTeams = getSortedTeams();
+        for (String teamId : sortedTeams) {
+            Component displayName = gameManager.getFormattedTeamDisplayName(teamId);
+            boolean ready = readyUpManager.teamIsReady(teamId);
+            builder.append(Component.empty()
+                    .append(Component.newline())
+                    .append(displayName)
+                    .append(Component.text(": "))
+                    .append(ready ? READY : NOT_READY));
+        }
+        return builder.build();
+    }
+    
+    /**
+     * @return the teams sorted by readiness
+     */
+    public List<String> getSortedTeams() {
+        List<String> teamNames = new ArrayList<>(gameManager.getTeamNames());
+        teamNames.sort((t1, t2) -> {
+            int readyComparison = Boolean.compare(
+                    readyUpManager.teamIsReady(t2), 
+                    readyUpManager.teamIsReady(t1));
+            if (readyComparison != 0) {
+                return readyComparison;
+            }
+            return t1.compareToIgnoreCase(t2);
+        });
+        return teamNames;
+    }
+    
+    /**
+     * @return the players sorted by readiness
+     */
+    public List<OfflinePlayer> getSortedOfflineParticipants() {
+        List<OfflinePlayer> sortedOfflinePlayers = gameManager.getOfflineParticipants();
+        sortedOfflinePlayers.sort((p1, p2) -> {
+            String teamId1 = gameManager.getTeamName(p1.getUniqueId());
+            String teamId2 = gameManager.getTeamName(p2.getUniqueId());
+            int readyComparison = Boolean.compare(
+                    readyUpManager.participantIsReady(p2.getUniqueId(), teamId2),
+                    readyUpManager.participantIsReady(p1.getUniqueId(), teamId1));
+            if (readyComparison != 0) {
+                return readyComparison;
+            }
+            
+            String p1Name = p1.getName();
+            if (p1Name == null) {
+                p1Name = gameManager.getOfflineIGN(p1.getUniqueId());
+                if (p1Name == null) {
+                    p1Name = p1.getUniqueId().toString();
+                }
+            }
+            String p2Name = p2.getName();
+            if (p2Name == null) {
+                p2Name = gameManager.getOfflineIGN(p2.getUniqueId());
+                if (p2Name == null) {
+                    p2Name = p2.getUniqueId().toString();
+                }
+            }
+            return p1Name.compareToIgnoreCase(p2Name);
+        });
+        return sortedOfflinePlayers;
     }
     
     @Override

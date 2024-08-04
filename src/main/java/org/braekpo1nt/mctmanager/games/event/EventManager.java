@@ -397,6 +397,10 @@ public class EventManager implements Listener {
         state.unReadyParticipant(participant);
     }
     
+    public void listReady(@NotNull CommandSender sender, ListType listType) {
+        state.listReady(sender, listType);
+    }
+    
     @EventHandler
     public void onPlayerDamage(EntityDamageEvent event) {
         if (event.getCause().equals(EntityDamageEvent.DamageCause.VOID)) {

@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.event.states;
 
+import org.braekpo1nt.mctmanager.games.event.ListType;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -30,6 +31,9 @@ public interface EventState {
         // do nothing
     }
     default void unReadyParticipant(@NotNull Player participant) {
+        // do nothing
+    }
+    default void listReady(@NotNull CommandSender sender, ListType listType) {
         // do nothing
     }
 }

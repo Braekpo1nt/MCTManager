@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.games.event;
 
 import com.google.common.base.Preconditions;
 import lombok.Data;
+import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -29,16 +30,16 @@ public class ReadyUpManager {
         }
     
     }
-    public @NotNull TeamStatus getTeamStatus(@NotNull String teamId) {
+    private @NotNull TeamStatus getTeamStatus(@NotNull String teamId) {
         TeamStatus teamStatus = teamStatuses.get(teamId);
         Preconditions.checkArgument(teamStatus != null, "teamId \"%s\" is not contained in this ReadyUpManager", teamId);
         return teamStatus;
     }
     
-    public boolean getParticipantStatus(@NotNull UUID participantUUID, @NotNull String teamId) {
+    private boolean getParticipantStatus(@NotNull UUID participantUUID, @NotNull String teamId) {
         TeamStatus teamStatus = getTeamStatus(teamId);
         Boolean status = teamStatus.getStatuses().get(participantUUID);
-        Preconditions.checkArgument(status != null, "\"%s\" participant with UUID %s is not contained in this ReadyUpManager", participantUUID);
+        Preconditions.checkArgument(status != null, "participant with UUID \"%s\" & teamId \"%s\" is not contained in this ReadyUpManager", participantUUID, teamId);
         return status;
     }
     
@@ -137,6 +138,7 @@ public class ReadyUpManager {
      */
     private boolean setReadyStatus(@NotNull UUID participantUUID, @NotNull String teamId, boolean ready) {
         TeamStatus teamStatus = getTeamStatus(teamId);
+        Bukkit.getLogger().info(String.format("teamId: %s, UUID: %s - %s", teamId, participantUUID, ready));
         Boolean previous = teamStatus.getStatuses().put(participantUUID, ready);
         return previous != null && previous;
     }

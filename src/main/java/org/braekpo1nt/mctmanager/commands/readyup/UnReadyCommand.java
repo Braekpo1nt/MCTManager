@@ -22,6 +22,7 @@ public class UnReadyCommand extends MasterCommandManager {
     public UnReadyCommand(@NotNull JavaPlugin plugin, GameManager gameManager) {
         super(plugin, "unready");
         this.gameManager = gameManager;
+        onInit(plugin.getServer().getPluginManager());
     }
     
     @Override

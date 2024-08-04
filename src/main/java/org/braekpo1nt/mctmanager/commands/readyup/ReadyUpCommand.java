@@ -1,5 +1,7 @@
 package org.braekpo1nt.mctmanager.commands.readyup;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.commands.manager.MasterCommandManager;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.GameManager;
@@ -22,6 +24,8 @@ public class ReadyUpCommand extends MasterCommandManager {
     public ReadyUpCommand(@NotNull JavaPlugin plugin, GameManager gameManager) {
         super(plugin, "readyup");
         this.gameManager = gameManager;
+        addSubCommand(new ListSubCommand(gameManager, "list"));
+        onInit(plugin.getServer().getPluginManager());
     }
     
     @Override
