@@ -9,7 +9,6 @@ import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
-import org.braekpo1nt.mctmanager.games.event.ListType;
 import org.braekpo1nt.mctmanager.games.event.ReadyUpManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
@@ -27,7 +26,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -257,6 +255,7 @@ public class ReadyUpState implements EventState {
         if (numberOfGames != context.getMaxGames()) {
             this.setMaxGames(sender, numberOfGames);
         }
+        cancelAllTasks();
         topbar.hideAllPlayers();
         readyUpManager.clear();
         context.messageAllAdmins(Component.text("Starting event with ")
@@ -275,70 +274,35 @@ public class ReadyUpState implements EventState {
     }
     
     @Override
-    public void listReady(@NotNull CommandSender sender, ListType listType) {
-        switch (listType) {
-            case PARTICIPANTS -> sender.sendMessage(getParticipantsReady());
-            case TEAMS -> sender.sendMessage(getTeamsReady());
-        }
-    }
-    
-    private Component getParticipantsReady() {
+    public void listReady(@NotNull CommandSender sender, @Nullable String teamId) {
         TextComponent.Builder builder = Component.text()
                 .append(Component.text("Readiness:")
                         .decorate(TextDecoration.BOLD));
-        List<OfflinePlayer> sortedOfflineParticipants = getSortedOfflineParticipants();
+        List<OfflinePlayer> sortedOfflineParticipants = getSortedOfflineParticipants(teamId);
         for (OfflinePlayer participant : sortedOfflineParticipants) {
             Component displayName = gameManager.getDisplayName(participant);
-            String teamId = gameManager.getTeamName(participant.getUniqueId());
-            boolean ready = readyUpManager.participantIsReady(participant.getUniqueId(), teamId);
+            String participantTeamId = gameManager.getTeamName(participant.getUniqueId());
+            boolean ready = readyUpManager.participantIsReady(participant.getUniqueId(), participantTeamId);
             builder.append(Component.empty()
                     .append(Component.newline())
                     .append(displayName)
                     .append(Component.text(": "))
                     .append(ready ? READY : NOT_READY));
         }
-        return builder.build();
-    }
-    
-    private Component getTeamsReady() {
-        TextComponent.Builder builder = Component.text()
-                .append(Component.text("Readiness:")
-                        .decorate(TextDecoration.BOLD));
-        List<String> sortedTeams = getSortedTeams();
-        for (String teamId : sortedTeams) {
-            Component displayName = gameManager.getFormattedTeamDisplayName(teamId);
-            boolean ready = readyUpManager.teamIsReady(teamId);
-            builder.append(Component.empty()
-                    .append(Component.newline())
-                    .append(displayName)
-                    .append(Component.text(": "))
-                    .append(ready ? READY : NOT_READY));
-        }
-        return builder.build();
+        sender.sendMessage(builder.build());
     }
     
     /**
-     * @return the teams sorted by readiness
-     */
-    public List<String> getSortedTeams() {
-        List<String> teamNames = new ArrayList<>(gameManager.getTeamNames());
-        teamNames.sort((t1, t2) -> {
-            int readyComparison = Boolean.compare(
-                    readyUpManager.teamIsReady(t2), 
-                    readyUpManager.teamIsReady(t1));
-            if (readyComparison != 0) {
-                return readyComparison;
-            }
-            return t1.compareToIgnoreCase(t2);
-        });
-        return teamNames;
-    }
-    
-    /**
+     * @param teamId if null, all players are listed. If not null, players on the given team are listed.
      * @return the players sorted by readiness
      */
-    public List<OfflinePlayer> getSortedOfflineParticipants() {
-        List<OfflinePlayer> sortedOfflinePlayers = gameManager.getOfflineParticipants();
+    public List<OfflinePlayer> getSortedOfflineParticipants(@Nullable String teamId) {
+        List<OfflinePlayer> sortedOfflinePlayers;
+        if (teamId == null) {
+            sortedOfflinePlayers = gameManager.getOfflineParticipants();
+        } else {
+            sortedOfflinePlayers = gameManager.getOfflineParticipants(teamId);
+        }
         sortedOfflinePlayers.sort((p1, p2) -> {
             String teamId1 = gameManager.getTeamName(p1.getUniqueId());
             String teamId2 = gameManager.getTeamName(p2.getUniqueId());

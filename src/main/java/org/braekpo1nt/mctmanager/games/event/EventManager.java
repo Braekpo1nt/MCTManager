@@ -150,6 +150,7 @@ public class EventManager implements Listener {
             return;
         }
         HandlerList.unregisterAll(this);
+        cancelAllTasks();
         this.setState(new OffState(this));
         Component message = Component.text("Ending event. ")
                 .append(Component.text(currentGameNumber - 1))
@@ -172,12 +173,11 @@ public class EventManager implements Listener {
         }
         clearSidebar();
         clearAdminSidebar();
-        readyUpManager.clear();
         topbar.hideAllPlayers();
         topbar.removeAllTeams();
         participants.clear();
         admins.clear();
-        cancelAllTasks();
+        readyUpManager.clear();
         scoreKeepers.clear();
         currentGameNumber = 0;
         maxGames = 6;
@@ -397,8 +397,8 @@ public class EventManager implements Listener {
         state.unReadyParticipant(participant);
     }
     
-    public void listReady(@NotNull CommandSender sender, ListType listType) {
-        state.listReady(sender, listType);
+    public void listReady(@NotNull CommandSender sender, @Nullable String teamId) {
+        state.listReady(sender, teamId);
     }
     
     @EventHandler

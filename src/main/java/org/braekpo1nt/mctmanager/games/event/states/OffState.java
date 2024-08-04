@@ -9,7 +9,6 @@ import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
-import org.braekpo1nt.mctmanager.games.event.ListType;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
@@ -277,7 +276,7 @@ public class OffState implements EventState {
     }
     
     @Override
-    public void listReady(@NotNull CommandSender sender, ListType listType) {
+    public void listReady(@NotNull CommandSender sender, @Nullable String teamId) {
         sender.sendMessage(Component.text("There is no event going on right now"));
     }
 }
