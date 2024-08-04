@@ -5,6 +5,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
 import org.braekpo1nt.mctmanager.games.event.ReadyUpManager;
@@ -12,15 +13,18 @@ import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.topbar.ReadyUpTopbar;
+import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Set;
 
@@ -32,6 +36,14 @@ public class ReadyUpState implements EventState {
     private final Sidebar adminSidebar;
     private final ReadyUpManager readyUpManager;
     private final ReadyUpTopbar topbar;
+    
+    private final int readyUpPromptTaskId;
+    private static final Title READYUP_TITLE = Title.title(
+            Component.empty(), 
+            Component.empty()
+                    .append(Component.text("/readyup"))
+                    .color(NamedTextColor.GREEN), 
+            Title.Times.times(Duration.ZERO, Duration.ofMillis(2500), Duration.ZERO));
     
     public ReadyUpState(EventManager context) {
         this.context = context;
@@ -70,6 +82,19 @@ public class ReadyUpState implements EventState {
         
         promptToReadyUp(Audience.audience(context.getParticipants()));
         context.messageAllAdmins(Component.text("Ready Up has begun"));
+        
+        readyUpPromptTaskId = new BukkitRunnable() {
+            @Override
+            public void run() {
+                for (Player participant : context.getParticipants()) {
+                    String teamId = gameManager.getTeamName(participant.getUniqueId());
+                    boolean ready = readyUpManager.participantIsReady(participant.getUniqueId(), teamId);
+                    if (!ready) {
+                        participant.showTitle(READYUP_TITLE);
+                    }
+                }
+            }
+        }.runTaskTimer(context.getPlugin(), 0L, 2*20L).getTaskId();
     }
     
     private void promptToReadyUp(Audience audience) {
@@ -97,6 +122,7 @@ public class ReadyUpState implements EventState {
                     .append(Component.text(")"))
                     .color(NamedTextColor.GREEN)
             );
+            participant.showTitle(Title.title(Component.empty(), Component.empty()));
             int teamIdCount = gameManager.getTeamNames().size();
             if (readyUpManager.teamIsReady(teamId)) {
                 Component teamDisplayName = gameManager.getFormattedTeamDisplayName(teamId);
@@ -284,5 +310,10 @@ public class ReadyUpState implements EventState {
     public void startColossalCombat(@NotNull CommandSender sender, @NotNull String firstTeam, @NotNull String secondTeam) {
         sender.sendMessage(Component.text("Can't start Colossal Combat during Ready Up state")
                 .color(NamedTextColor.RED));
+    }
+    
+    @Override
+    public void cancelAllTasks() {
+        Bukkit.getScheduler().cancelTask(readyUpPromptTaskId);
     }
 }
