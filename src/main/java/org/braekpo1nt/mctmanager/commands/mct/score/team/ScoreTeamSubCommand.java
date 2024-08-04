@@ -91,7 +91,7 @@ public class ScoreTeamSubCommand extends TabSubCommand {
             return Collections.emptyList();
         }
         List<String> result = new ArrayList<>(Collections.singletonList("all"));
-        result.addAll(CommandUtils.partialMatchParticipantsTabList(gameManager, args[0]));
-        return result;
+        result.addAll(gameManager.getTeamNames());
+        return CommandUtils.partialMatchTabList(result, args[0]);
     }
 }

@@ -22,4 +22,11 @@ commands:
     description: Utilities useful for working with MCT
     permission: mctmanager.utils
     permission-message: "You do not have permission to use this command"
-  
+  readyup:
+    description: Signal that you are ready for the event to begin
+    permission: mctmanager.readyup
+    permission-message: "You do not have permission to use this command"
+  unready:
+    description: Signal that you are not ready for the event to begin
+    permission: mctmanager.unready
+    permission-message: "You do not have permission to use this command"

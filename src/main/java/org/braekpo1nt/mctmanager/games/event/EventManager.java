@@ -10,15 +10,13 @@ import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.colossalcombat.ColossalCombatGame;
 import org.braekpo1nt.mctmanager.games.event.config.EventConfig;
 import org.braekpo1nt.mctmanager.games.event.config.EventConfigController;
-import org.braekpo1nt.mctmanager.games.event.states.EventState;
-import org.braekpo1nt.mctmanager.games.event.states.OffState;
-import org.braekpo1nt.mctmanager.games.event.states.PodiumState;
-import org.braekpo1nt.mctmanager.games.event.states.VotingState;
+import org.braekpo1nt.mctmanager.games.event.states.*;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.voting.VoteManager;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
+import org.braekpo1nt.mctmanager.ui.topbar.ReadyUpTopbar;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -68,6 +66,8 @@ public class EventManager implements Listener {
     private List<Player> participants = new ArrayList<>();
     private List<Player> admins = new ArrayList<>();
     private @Nullable String winningTeam;
+    private final ReadyUpManager readyUpManager = new ReadyUpManager();
+    private final ReadyUpTopbar topbar = new ReadyUpTopbar();
     
     public EventManager(Main plugin, GameManager gameManager, VoteManager voteManager) {
         this.plugin = plugin;
@@ -150,6 +150,7 @@ public class EventManager implements Listener {
             return;
         }
         HandlerList.unregisterAll(this);
+        cancelAllTasks();
         this.setState(new OffState(this));
         Component message = Component.text("Ending event. ")
                 .append(Component.text(currentGameNumber - 1))
@@ -172,9 +173,11 @@ public class EventManager implements Listener {
         }
         clearSidebar();
         clearAdminSidebar();
+        topbar.hideAllPlayers();
+        topbar.removeAllTeams();
         participants.clear();
         admins.clear();
-        cancelAllTasks();
+        readyUpManager.clear();
         scoreKeepers.clear();
         currentGameNumber = 0;
         maxGames = 6;
@@ -386,6 +389,18 @@ public class EventManager implements Listener {
         return reportBuilder.build();
     }
     
+    public void readyUpParticipant(@NotNull Player participant) {
+        state.readyUpParticipant(participant);
+    }
+    
+    public void unReadyParticipant(@NotNull Player participant) {
+        state.unReadyParticipant(participant);
+    }
+    
+    public void listReady(@NotNull CommandSender sender, @Nullable String teamId) {
+        state.listReady(sender, teamId);
+    }
+    
     @EventHandler
     public void onPlayerDamage(EntityDamageEvent event) {
         if (event.getCause().equals(EntityDamageEvent.DamageCause.VOID)) {
@@ -446,6 +461,7 @@ public class EventManager implements Listener {
     public void cancelAllTasks() {
         voteManager.cancelVote();
         timerManager.cancel();
+        state.cancelAllTasks();
     }
     
     public void giveCrown(Player participant) {

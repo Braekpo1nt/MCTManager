@@ -27,7 +27,6 @@ public class EventCommand extends CommandManager {
         addSubCommand(new TabSubCommand("start") {
             @Override
             public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-                int maxGames = 6;
                 if (args.length != 1) {
                     return CommandResult.failure(getUsage().of("<numberOfGames>"));
                 }
@@ -38,7 +37,7 @@ public class EventCommand extends CommandManager {
                                     .decorate(TextDecoration.BOLD))
                             .append(Component.text(" is not an integer")));
                 }
-                maxGames = Integer.parseInt(maxGamesString);
+                int maxGames = Integer.parseInt(maxGamesString);
                 gameManager.getEventManager().startEvent(sender, maxGames);
                 return CommandResult.success();
             }

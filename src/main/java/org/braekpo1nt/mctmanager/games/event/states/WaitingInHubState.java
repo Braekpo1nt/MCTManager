@@ -77,12 +77,6 @@ public class WaitingInHubState implements EventState {
         if (sidebar != null) {
             sidebar.removePlayer(participant);
         }
-        if (context.getWinningTeam() != null) {
-            String team = gameManager.getTeamName(participant.getUniqueId());
-            if (team.equals(context.getWinningTeam())) {
-                context.removeCrown(participant);
-            }
-        }
     }
     
     @Override
@@ -136,7 +130,8 @@ public class WaitingInHubState implements EventState {
     @Override
     public void setMaxGames(@NotNull CommandSender sender, int newMaxGames) {
         if (newMaxGames < context.getCurrentGameNumber() - 1) {
-            sender.sendMessage(Component.text("Can't set the max games for this event to less than ")
+            sender.sendMessage(Component.empty()
+                    .append(Component.text("Can't set the max games for this event to less than "))
                     .append(Component.text(context.getCurrentGameNumber() - 1)
                             .decorate(TextDecoration.BOLD))
                     .append(Component.text(" because "))
