@@ -68,14 +68,17 @@ public class ReadyUpState implements EventState {
             topbar.showPlayer(admin);
         }
         
-        Audience.audience(context.getParticipants()).sendMessage(Component.empty()
+        promptToReadyUp(Audience.audience(context.getParticipants()));
+        context.messageAllAdmins(Component.text("Ready Up has begun"));
+    }
+    
+    private void promptToReadyUp(Audience audience) {
+        audience.sendMessage(Component.empty()
                 .append(Component.text("Please ready up with "))
                 .append(Component.text("/readyup")
                         .clickEvent(ClickEvent.runCommand("/readyup"))
                         .decorate(TextDecoration.UNDERLINED))
-                .color(NamedTextColor.GREEN)
-        );
-        context.messageAllAdmins(Component.text("Ready Up has begun"));
+                .color(NamedTextColor.GREEN));
     }
     
     @Override
@@ -164,6 +167,7 @@ public class ReadyUpState implements EventState {
             topbar.setReadyCount(teamId, readyCount);
         }
         topbar.setReady(participant.getUniqueId(), false);
+        promptToReadyUp(participant);
     }
     
     @Override
