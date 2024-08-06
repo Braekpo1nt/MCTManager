@@ -8,7 +8,6 @@ import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.spleef.config.SpleefConfig;
 import org.braekpo1nt.mctmanager.games.game.spleef.powerup.PowerupManager;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
-import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
@@ -201,11 +200,13 @@ public class SpleefRound implements Listener {
             participants.remove(participant);
             return;
         }
-        Component deathMessage = Component.empty()
-                .append(Component.text(participant.getName()))
-                .append(Component.text(" left early. Their life is forfeit."));
-        PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(participant, Collections.emptyList(), 0, deathMessage);
-        Bukkit.getServer().getPluginManager().callEvent(fakeDeathEvent);
+        if (spleefHasStarted) {
+            Component deathMessage = Component.empty()
+                    .append(Component.text(participant.getName()))
+                    .append(Component.text(" left early. Their life is forfeit."));
+            PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(participant, Collections.emptyList(), 0, deathMessage);
+            Bukkit.getServer().getPluginManager().callEvent(fakeDeathEvent);
+        }
         resetParticipant(participant);
         participants.remove(participant);
     }
