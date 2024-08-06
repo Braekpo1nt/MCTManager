@@ -8,6 +8,7 @@ import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
 import org.braekpo1nt.mctmanager.games.event.states.delay.ToPodiumDelayState;
+import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
@@ -20,8 +21,17 @@ import java.util.List;
 
 public class PlayingColossalCombatState extends PlayingGameState {
     
+    private final String firstTeamId;
+    private final String secondTeamId;
+    
     public PlayingColossalCombatState(EventManager context, @NotNull String firstTeamId, @NotNull String secondTeamId) {
-        super(context);
+        super(context, null);
+        this.firstTeamId = firstTeamId;
+        this.secondTeamId = secondTeamId;
+    }
+    
+    @Override
+    protected void startGame(EventManager context, GameType gameType) {
         boolean success = tryToStartColossalCombat(firstTeamId, secondTeamId);
         if (!success) {
             context.setState(new WaitingInHubState(context));

@@ -270,6 +270,7 @@ public class ReadyUpState implements EventState {
                         .append(Component.text("Event Starting"))
                         .color(NamedTextColor.GOLD)
         ));
+        gameManager.removeParticipantsFromHub(context.getParticipants());
         context.setState(new WaitingInHubState(context));
     }
     
@@ -334,6 +335,7 @@ public class ReadyUpState implements EventState {
     
     @Override
     public void onPlayerDamage(EntityDamageEvent event) {
+        Bukkit.getLogger().info("ReadyUpState");
         event.setCancelled(true);
     }
     

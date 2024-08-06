@@ -33,40 +33,8 @@ public class StartingGameDelayState extends DelayState {
                         .append(Component.text(gameType.getTitle()))
                         .append(Component.text(": ")))
                 .onCompletion(() -> {
-                    createScoreKeeperForGame(gameType);
-                    for (Player participant : context.getParticipants()) {
-                        sidebar.removePlayer(participant);
-                    }
-                    for (Player admin : context.getAdmins()) {
-                        adminSidebar.removePlayer(admin);
-                    }
-                    context.getParticipants().clear();
-                    context.getAdmins().clear();
-                    boolean gameStarted = gameManager.startGame(gameType, Bukkit.getConsoleSender());
-                    if (!gameStarted) {
-                        context.messageAllAdmins(Component.text("Unable to start the game ")
-                                .append(Component.text(gameType.getTitle()))
-                                .append(Component.text(". Returning to the hub to try again."))
-                                .color(NamedTextColor.RED));
-                        context.initializeParticipantsAndAdmins();
-                        context.setState(new WaitingInHubState(context));
-                    }
-                    context.setState(new PlayingGameState(context));
+                    context.setState(new PlayingGameState(context, gameType));
                 })
                 .build());
-    }
-    
-    /**
-     * Adds a ScoreKeeper to track the game's points. If no ScoreKeepers exist for gameType, creates a new list of iterations for the game.
-     * @param gameType the game to add a ScoreKeeper for
-     */
-    private void createScoreKeeperForGame(GameType gameType) {
-        if (!context.getScoreKeepers().containsKey(gameType)) {
-            List<ScoreKeeper> iterationScoreKeepers = new ArrayList<>(List.of(new ScoreKeeper()));
-            context.getScoreKeepers().put(gameType, iterationScoreKeepers);
-        } else {
-            List<ScoreKeeper> iterationScoreKeepers = context.getScoreKeepers().get(gameType);
-            iterationScoreKeepers.add(new ScoreKeeper());
-        }
     }
 }
