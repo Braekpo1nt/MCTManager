@@ -141,7 +141,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
         initializeWorldBorder();
         startAdmins(newAdmins);
         state = new DescriptionState(this);
-        Bukkit.getLogger().info("Started survivalgames");
+        Bukkit.getLogger().info("Started Survival Games");
     }
     
     public void initializeParticipant(Player participant) {
@@ -203,7 +203,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
         deathCounts.clear();
         gameManager.gameIsOver();
         state = null;
-        Bukkit.getLogger().info("Stopped survivalgames");
+        Bukkit.getLogger().info("Stopped Survival Games");
     }
     
     @Override

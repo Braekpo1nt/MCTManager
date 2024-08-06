@@ -100,7 +100,6 @@ public class DescriptionState implements SurvivalGamesState {
             return;
         }
         event.setCancelled(true);
-        Bukkit.getLogger().info("DescriptionState (survival games)");
     }
     
     @Override

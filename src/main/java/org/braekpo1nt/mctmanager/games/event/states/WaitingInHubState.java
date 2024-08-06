@@ -31,7 +31,6 @@ public class WaitingInHubState implements EventState {
         this.gameManager = context.getGameManager();
         this.sidebar = context.getSidebar();
         this.adminSidebar = context.getAdminSidebar();
-        Bukkit.getLogger().info("WaitingInHubState.constructor returnAllParticipantsToHub");
         gameManager.returnAllParticipantsToHub();
         double scoreMultiplier = context.matchProgressPointMultiplier();
         gameManager.messageOnlineParticipants(Component.text("Score multiplier: ")
@@ -65,7 +64,6 @@ public class WaitingInHubState implements EventState {
     @Override
     public void onParticipantJoin(Player participant) {
         gameManager.returnParticipantToHubInstantly(participant);
-        Bukkit.getLogger().info(String.format("WaitingInHubSate.onParticipantJoin %s", participant.getName()));
         context.getParticipants().add(participant);
         if (sidebar != null) {
             sidebar.addPlayer(participant);

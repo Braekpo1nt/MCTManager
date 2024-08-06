@@ -160,7 +160,6 @@ public class OffState implements EventState {
             context.messageAllAdmins(message);
             gameManager.messageOnlineParticipants(message);
             gameManager.returnAllParticipantsToHub();
-            Bukkit.getLogger().info("OffState.colossalCombatIsOver");
             return;
         }
         NamedTextColor teamColor = gameManager.getTeamNamedTextColor(winningTeam);

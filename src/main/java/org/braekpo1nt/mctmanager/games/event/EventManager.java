@@ -412,7 +412,6 @@ public class EventManager implements Listener {
         if (!participants.contains(participant)) {
             return;
         }
-        Bukkit.getLogger().info("EventManger");
         state.onPlayerDamage(event);
     }
     

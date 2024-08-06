@@ -50,7 +50,6 @@ public class VotingState implements EventState {
     @Override
     public void onParticipantJoin(Player participant) {
         gameManager.returnParticipantToHubInstantly(participant);
-        Bukkit.getLogger().info(String.format("VotingState.onParticipantJoin %s", participant.getName()));
         voteManager.onParticipantJoin(participant);
     }
     

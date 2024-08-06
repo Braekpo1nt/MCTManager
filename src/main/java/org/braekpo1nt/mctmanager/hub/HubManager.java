@@ -83,7 +83,6 @@ public class HubManager implements Listener, Configurable {
      * @param delay false will perform the teleport instantaneously, true will teleport with a delay
      */
     public void returnParticipantsToHub(List<Player> newParticipants, List<Player> newAdmins, boolean delay) {
-        Bukkit.getLogger().info("HubManager.returnParticipantsToHub. delay:" + delay);
         if (delay) {
             returnParticipantsToHub(new ArrayList<>(newParticipants), new ArrayList<>(newAdmins), config.getTpToHubDuration());
         } else {
@@ -116,7 +115,6 @@ public class HubManager implements Listener, Configurable {
         for (Player participant : newParticipants) {
             returnParticipantToHub(participant);
         }
-        Bukkit.getLogger().info(String.format("HubManager.returnParticipantsToHubInstantly: participants: %s", participants));
         for (Player admin : newAdmins) {
             returnAdminToHub(admin);
         }
@@ -185,7 +183,6 @@ public class HubManager implements Listener, Configurable {
         for (Player participant : participantsToRemove) {
             participants.remove(participant);
         }
-        Bukkit.getLogger().info(String.format("remove from hub: participants: %s, participantsToRemove: %s", participants, participantsToRemove));
     }
     
     /**
@@ -197,7 +194,6 @@ public class HubManager implements Listener, Configurable {
         for (LeaderboardManager leaderboardManager : leaderboardManagers) {
             leaderboardManager.onParticipantJoin(participant);
         }
-        Bukkit.getLogger().info(String.format("onParticipantJoin: %s, participants: %s", participant.getName(), participants));
     }
     
     public void onParticipantQuit(Player participant) {
@@ -206,7 +202,6 @@ public class HubManager implements Listener, Configurable {
             leaderboardManager.onParticipantQuit(participant);
         }
         participant.setBedSpawnLocation(config.getSpawn(), true);
-        Bukkit.getLogger().info(String.format("onParticipantQuit: %s, participants: %s", participant.getName(), participants));
     }
     
     public void onAdminJoin(Player admin) {
@@ -253,12 +248,10 @@ public class HubManager implements Listener, Configurable {
             return;
         }
         if (participants.contains(participant)) {
-            Bukkit.getLogger().info("HubManager 1");
             event.setCancelled(true);
             return;
         }
         if (headingToHub.contains(participant)) {
-            Bukkit.getLogger().info("HubManager 2");
             event.setCancelled(true);
         }
     }

@@ -308,7 +308,6 @@ public class VoteManager implements Listener {
         if (!voters.contains(voter)) {
             return;
         }
-        Bukkit.getLogger().info("VoteManager");
         event.setCancelled(true);
     }
     
