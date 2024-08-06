@@ -83,7 +83,7 @@ public class HubManager implements Listener, Configurable {
      * @param delay false will perform the teleport instantaneously, true will teleport with a delay
      */
     public void returnParticipantsToHub(List<Player> newParticipants, List<Player> newAdmins, boolean delay) {
-        Bukkit.getLogger().info("return to hub. delay:" + delay);
+        Bukkit.getLogger().info("HubManager.returnParticipantsToHub. delay:" + delay);
         if (delay) {
             returnParticipantsToHub(new ArrayList<>(newParticipants), new ArrayList<>(newAdmins), config.getTpToHubDuration());
         } else {
