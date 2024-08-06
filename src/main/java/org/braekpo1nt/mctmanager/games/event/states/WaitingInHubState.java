@@ -9,7 +9,6 @@ import org.braekpo1nt.mctmanager.games.event.states.delay.ToColossalCombatDelay;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
-import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -74,7 +73,6 @@ public class WaitingInHubState implements EventState {
     
     @Override
     public void onParticipantQuit(Player participant) {
-        
         context.getParticipants().remove(participant);
         if (sidebar != null) {
             sidebar.removePlayer(participant);
@@ -106,7 +104,6 @@ public class WaitingInHubState implements EventState {
     
     @Override
     public void onPlayerDamage(EntityDamageEvent event) {
-        Bukkit.getLogger().info("WaitingInHubState");
         event.setCancelled(true);
     }
     

@@ -13,7 +13,6 @@ import org.braekpo1nt.mctmanager.hub.leaderboard.LeaderboardManager;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
-import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;

@@ -15,7 +15,6 @@ import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.braekpo1nt.mctmanager.ui.topbar.ManyBattleTopbar;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.WorldBorder;
@@ -102,7 +101,6 @@ public class ActiveState implements SurvivalGamesState {
     }
     
     private void startBorderDelay() {
-        invulnerable = false;
         borderDelay = timerManager.start(Timer.builder()
                 .duration(config.getDelays()[borderStageIndex])
                 .withSidebar(adminSidebar, "timer")

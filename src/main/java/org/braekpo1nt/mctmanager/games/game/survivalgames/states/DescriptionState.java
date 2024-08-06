@@ -5,7 +5,6 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesGame;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
-import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
