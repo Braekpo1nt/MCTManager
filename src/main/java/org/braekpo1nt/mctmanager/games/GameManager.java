@@ -693,7 +693,6 @@ public class GameManager implements Listener {
             int maxGames = eventManager.getMaxGames();
             String baseTitle = activeGame.getBaseTitle();
             String newTitle = String.format("%s %s[%d/%d]", baseTitle, ChatColor.GRAY, currentGameNumber, maxGames);
-            Bukkit.getLogger().info(newTitle);
             activeGame.setTitle(newTitle);
         }
     }
@@ -718,7 +717,7 @@ public class GameManager implements Listener {
     
     /**
      * Meant to be called by the active game when the game is over.
-     * If an event is running, calls {@link EventManagerOld#gameIsOver(GameType)}
+     * If an event is running, calls {@link EventManager#gameIsOver(GameType)}
      */
     public void gameIsOver() {
         if (eventManager.eventIsActive()) {
