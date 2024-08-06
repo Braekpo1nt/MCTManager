@@ -31,8 +31,8 @@ public class WaitingInHubState implements EventState {
         this.gameManager = context.getGameManager();
         this.sidebar = context.getSidebar();
         this.adminSidebar = context.getAdminSidebar();
+        Bukkit.getLogger().info("WaitingInHubState.constructor returnAllParticipantsToHub");
         gameManager.returnAllParticipantsToHub();
-        Bukkit.getLogger().info("WaitingInHubState.constructor return to hub");
         double scoreMultiplier = context.matchProgressPointMultiplier();
         gameManager.messageOnlineParticipants(Component.text("Score multiplier: ")
                 .append(Component.text(scoreMultiplier))

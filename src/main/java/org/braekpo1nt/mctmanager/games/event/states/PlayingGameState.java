@@ -5,8 +5,11 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
+import org.braekpo1nt.mctmanager.games.event.ScoreKeeper;
 import org.braekpo1nt.mctmanager.games.event.states.delay.BackToHubDelayState;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
+import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
+import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -15,14 +18,55 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class PlayingGameState implements EventState {
     
     protected final EventManager context;
     protected final GameManager gameManager;
     
-    public PlayingGameState(EventManager context) {
+    public PlayingGameState(EventManager context, GameType gameType) {
         this.context = context;
         this.gameManager = context.getGameManager();
+        startGame(context, gameType);
+    }
+    
+    protected void startGame(EventManager context, GameType gameType) {
+        Sidebar sidebar = context.getSidebar();
+        Sidebar adminSidebar = context.getAdminSidebar();
+        createScoreKeeperForGame(gameType);
+        for (Player participant : context.getParticipants()) {
+            sidebar.removePlayer(participant);
+        }
+        for (Player admin : context.getAdmins()) {
+            adminSidebar.removePlayer(admin);
+        }
+        context.getParticipants().clear();
+        context.getAdmins().clear();
+        boolean gameStarted = gameManager.startGame(gameType, Bukkit.getConsoleSender());
+        if (!gameStarted) {
+            context.messageAllAdmins(Component.text("Unable to start the game ")
+                    .append(Component.text(gameType.getTitle()))
+                    .append(Component.text(". Returning to the hub to try again."))
+                    .color(NamedTextColor.RED));
+            context.initializeParticipantsAndAdmins();
+            context.setState(new WaitingInHubState(context));
+        }
+    }
+    
+    /**
+     * Adds a ScoreKeeper to track the game's points. If no ScoreKeepers exist for gameType, creates a new list of iterations for the game.
+     * @param gameType the game to add a ScoreKeeper for
+     */
+    private void createScoreKeeperForGame(GameType gameType) {
+        if (!context.getScoreKeepers().containsKey(gameType)) {
+            List<ScoreKeeper> iterationScoreKeepers = new ArrayList<>(List.of(new ScoreKeeper()));
+            context.getScoreKeepers().put(gameType, iterationScoreKeepers);
+        } else {
+            List<ScoreKeeper> iterationScoreKeepers = context.getScoreKeepers().get(gameType);
+            iterationScoreKeepers.add(new ScoreKeeper());
+        }
     }
     
     @Override
