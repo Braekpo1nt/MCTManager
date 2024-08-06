@@ -412,6 +412,7 @@ public class EventManager implements Listener {
         if (!participants.contains(participant)) {
             return;
         }
+        Bukkit.getLogger().info("EventManger");
         state.onPlayerDamage(event);
     }
     
@@ -605,6 +606,9 @@ public class EventManager implements Listener {
      * @param gameType the game that the points came from
      */
     public void trackPoints(String teamName, int points, GameType gameType) {
+        if (state instanceof OffState) {
+            return;
+        }
         List<ScoreKeeper> iterationScoreKeepers = scoreKeepers.get(gameType);
         ScoreKeeper iteration = iterationScoreKeepers.get(iterationScoreKeepers.size() - 1);
         iteration.addPoints(teamName, points);
@@ -618,6 +622,9 @@ public class EventManager implements Listener {
      * @param gameType the game that the points came from
      */
     public void trackPoints(UUID participantUUID, int points, GameType gameType) {
+        if (state instanceof OffState) {
+            return;
+        }
         List<ScoreKeeper> iterationScoreKeepers = scoreKeepers.get(gameType);
         ScoreKeeper iteration = iterationScoreKeepers.get(iterationScoreKeepers.size() - 1);
         iteration.addPoints(participantUUID, points);

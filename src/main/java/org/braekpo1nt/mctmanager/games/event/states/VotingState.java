@@ -8,6 +8,7 @@ import org.braekpo1nt.mctmanager.games.event.EventManager;
 import org.braekpo1nt.mctmanager.games.event.states.delay.StartingGameDelayState;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.voting.VoteManager;
+import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -49,6 +50,7 @@ public class VotingState implements EventState {
     @Override
     public void onParticipantJoin(Player participant) {
         gameManager.returnParticipantToHubInstantly(participant);
+        Bukkit.getLogger().info(String.format("VotingState.onParticipantJoin %s", participant.getName()));
         voteManager.onParticipantJoin(participant);
     }
     
@@ -75,6 +77,7 @@ public class VotingState implements EventState {
     
     @Override
     public void onPlayerDamage(EntityDamageEvent event) {
+        Bukkit.getLogger().info("VotingState");
         event.setCancelled(true);
     }
     

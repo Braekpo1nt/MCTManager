@@ -138,7 +138,6 @@ public class ReadyUpManager {
      */
     private boolean setReadyStatus(@NotNull UUID participantUUID, @NotNull String teamId, boolean ready) {
         TeamStatus teamStatus = getTeamStatus(teamId);
-        Bukkit.getLogger().info(String.format("teamId: %s, UUID: %s - %s", teamId, participantUUID, ready));
         Boolean previous = teamStatus.getStatuses().put(participantUUID, ready);
         return previous != null && previous;
     }
