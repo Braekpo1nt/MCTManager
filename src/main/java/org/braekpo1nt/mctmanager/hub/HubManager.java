@@ -116,6 +116,7 @@ public class HubManager implements Listener, Configurable {
         for (Player participant : newParticipants) {
             returnParticipantToHub(participant);
         }
+        Bukkit.getLogger().info(String.format("HubManager.returnParticipantsToHubInstantly: participants: %s", participants));
         for (Player admin : newAdmins) {
             returnAdminToHub(admin);
         }
@@ -135,7 +136,6 @@ public class HubManager implements Listener, Configurable {
         participant.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
-        Bukkit.getLogger().info(String.format("initializeParticipant: %s, participants: %s", participant.getName(), participants));
     }
     
     private void returnAdminToHub(Player admin) {

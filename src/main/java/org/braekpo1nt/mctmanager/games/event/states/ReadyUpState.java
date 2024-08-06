@@ -272,6 +272,7 @@ public class ReadyUpState implements EventState {
                         .append(Component.text("Event Starting"))
                         .color(NamedTextColor.GOLD)
         ));
+        gameManager.removeParticipantsFromHub(context.getParticipants());
         context.setState(new WaitingInHubState(context));
     }
     
