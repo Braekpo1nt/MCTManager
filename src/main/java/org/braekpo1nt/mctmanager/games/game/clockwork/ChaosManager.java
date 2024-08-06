@@ -197,7 +197,6 @@ public class ChaosManager implements Listener {
                 entitiesInCylinder.add(entity);
             }
         }
-        Bukkit.getLogger().info(String.format("%s entities in cylinder (%s, %s, %s)", entitiesInCylinder.size(), centerX, centerZ, radius));
-        return entitiesInCylinder;
+                return entitiesInCylinder;
     }
 }

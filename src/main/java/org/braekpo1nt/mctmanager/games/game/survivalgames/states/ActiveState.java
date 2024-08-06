@@ -271,8 +271,7 @@ public class ActiveState implements SurvivalGamesState {
             return;
         }
         if (invulnerable) {
-            Bukkit.getLogger().info("ActiveState (survival games)");
-            event.setCancelled(true);
+                        event.setCancelled(true);
         }
     }
     

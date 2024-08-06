@@ -7,7 +7,6 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.clockwork.config.ClockworkConfig;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
-import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
@@ -434,8 +433,7 @@ public class ClockworkRound implements Listener {
     
     private @NotNull List<String> getLivingTeams() {
         List<String> livingTeams = new ArrayList<>();
-        Bukkit.getLogger().info(String.format("teamsLivingMembers = %s", teamsLivingMembers.toString()));
-        for (Map.Entry<String, Integer> entry : teamsLivingMembers.entrySet()) {
+                for (Map.Entry<String, Integer> entry : teamsLivingMembers.entrySet()) {
             String team = entry.getKey();
             int livingMembers = entry.getValue();
             if (livingMembers > 0) {

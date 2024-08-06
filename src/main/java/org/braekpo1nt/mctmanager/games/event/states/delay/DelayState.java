@@ -67,8 +67,7 @@ public abstract class DelayState implements EventState {
     
     @Override
     public void onPlayerDamage(EntityDamageEvent event) {
-        Bukkit.getLogger().info("DelayState");
-        event.setCancelled(true);
+                event.setCancelled(true);
     }
     
     @Override

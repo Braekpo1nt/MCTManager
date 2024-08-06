@@ -48,8 +48,7 @@ public class PersistentDataContainerDTO implements Validatable {
             NamespacedKeyDTO keyDTO = data.getNamespacedKey();
             String value = data.getValue() == null ? "" : data.getValue();
             if (keyDTO != null) {
-                Bukkit.getLogger().info(String.format("stringData.size(): %d, value: %s, namespace: %s, key: %s", stringData.size(), value, keyDTO.getNamespace(), keyDTO.getKey()));
-                persistentDataContainer.set(keyDTO.toNamespacedKey(), PersistentDataType.STRING, value);
+                                persistentDataContainer.set(keyDTO.toNamespacedKey(), PersistentDataType.STRING, value);
             }
         }
     }

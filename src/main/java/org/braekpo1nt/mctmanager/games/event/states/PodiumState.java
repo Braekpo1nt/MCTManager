@@ -122,8 +122,7 @@ public class PodiumState implements EventState {
     
     @Override
     public void onPlayerDamage(EntityDamageEvent event) {
-        Bukkit.getLogger().info("PodiumState");
-        event.setCancelled(true);
+                event.setCancelled(true);
     }
     
     @Override

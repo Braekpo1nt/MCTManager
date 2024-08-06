@@ -70,8 +70,7 @@ public class GameOverState implements SurvivalGamesState {
             return;
         }
         event.setCancelled(true);
-        Bukkit.getLogger().info("GameOverState (survival games)");
-    }
+            }
     
     @Override
     public void onPlayerDeath(PlayerDeathEvent event) {
