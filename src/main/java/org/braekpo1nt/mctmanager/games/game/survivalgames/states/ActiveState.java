@@ -101,7 +101,6 @@ public class ActiveState implements SurvivalGamesState {
     }
     
     private void startBorderDelay() {
-        invulnerable = false;
         borderDelay = timerManager.start(Timer.builder()
                 .duration(config.getDelays()[borderStageIndex])
                 .withSidebar(adminSidebar, "timer")
