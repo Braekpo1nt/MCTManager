@@ -201,11 +201,13 @@ public class SpleefRound implements Listener {
             participants.remove(participant);
             return;
         }
-        Component deathMessage = Component.empty()
-                .append(Component.text(participant.getName()))
-                .append(Component.text(" left early. Their life is forfeit."));
-        PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(participant, Collections.emptyList(), 0, deathMessage);
-        Bukkit.getServer().getPluginManager().callEvent(fakeDeathEvent);
+        if (spleefHasStarted) {
+            Component deathMessage = Component.empty()
+                    .append(Component.text(participant.getName()))
+                    .append(Component.text(" left early. Their life is forfeit."));
+            PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(participant, Collections.emptyList(), 0, deathMessage);
+            Bukkit.getServer().getPluginManager().callEvent(fakeDeathEvent);
+        }
         resetParticipant(participant);
         participants.remove(participant);
     }

@@ -26,6 +26,7 @@ public class PlayingColossalCombatState extends PlayingGameState {
     
     public PlayingColossalCombatState(EventManager context, @NotNull String firstTeamId, @NotNull String secondTeamId) {
         super(context, null);
+        Bukkit.getLogger().info(String.format("first %s and second %s", firstTeamId, secondTeamId));
         this.firstTeamId = firstTeamId;
         this.secondTeamId = secondTeamId;
     }

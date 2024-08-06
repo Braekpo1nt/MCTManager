@@ -4,6 +4,7 @@ import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.title.Title;
@@ -110,6 +111,7 @@ public class ReadyUpState implements EventState {
                 .append(Component.text("Please ready up with "))
                 .append(Component.text("/readyup")
                         .clickEvent(ClickEvent.runCommand("/readyup"))
+                        .hoverEvent(HoverEvent.showText(Component.text("Ready Up")))
                         .decorate(TextDecoration.UNDERLINED))
                 .color(NamedTextColor.GREEN));
     }
@@ -167,6 +169,9 @@ public class ReadyUpState implements EventState {
             }
         }
         topbar.setReady(participant.getUniqueId(), true);
+        participant.sendMessage(Component.empty()
+                .append(Component.text("You are ready. Unready with "))
+                .append(Component.text("/unready")));
     }
     
     @Override

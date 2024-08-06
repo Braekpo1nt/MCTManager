@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import lombok.Data;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.jetbrains.annotations.NotNull;
@@ -60,7 +61,8 @@ public class TeamsReadyUpComponent {
     
     public Component toComponent() {
         TextComponent.Builder builder = Component.text();
-        builder.append(Component.text("Ready: "));
+        builder.append(Component.text("Teams: ")
+                .color(NamedTextColor.GRAY));
         List<String> sortedTeams = teams.keySet().stream().sorted().toList();
         for (int i = 0; i < sortedTeams.size(); i++) {
             String teamId = sortedTeams.get(i);
