@@ -21,22 +21,17 @@ import java.util.List;
 
 public class PlayingColossalCombatState extends PlayingGameState {
     
-    private final String firstTeamId;
-    private final String secondTeamId;
-    
     public PlayingColossalCombatState(EventManager context, @NotNull String firstTeamId, @NotNull String secondTeamId) {
         super(context, null);
-        Bukkit.getLogger().info(String.format("first %s and second %s", firstTeamId, secondTeamId));
-        this.firstTeamId = firstTeamId;
-        this.secondTeamId = secondTeamId;
-    }
-    
-    @Override
-    protected void startGame(EventManager context, GameType gameType) {
         boolean success = tryToStartColossalCombat(firstTeamId, secondTeamId);
         if (!success) {
             context.setState(new WaitingInHubState(context));
         }
+    }
+    
+    @Override
+    protected void startGame(EventManager context, GameType gameType) {
+        // do nothing
     }
     
     private boolean tryToStartColossalCombat(@NotNull String firstTeamId, @NotNull String secondTeamId) {
@@ -57,10 +52,10 @@ public class PlayingColossalCombatState extends PlayingGameState {
         List<Player> secondPlaceParticipants = new ArrayList<>();
         List<Player> spectators = new ArrayList<>();
         for (Player participant : context.getParticipants()) {
-            String teamName = gameManager.getTeamName(participant.getUniqueId());
-            if (teamName.equals(firstTeamId)) {
+            String teamId = gameManager.getTeamName(participant.getUniqueId());
+            if (teamId.equals(firstTeamId)) {
                 firstPlaceParticipants.add(participant);
-            } else if (teamName.equals(secondTeamId)) {
+            } else if (teamId.equals(secondTeamId)) {
                 secondPlaceParticipants.add(participant);
             } else {
                 spectators.add(participant);

@@ -61,7 +61,6 @@ public class ReadyUpState implements EventState {
         this.readyUpManager = context.getReadyUpManager();
         this.topbar = context.getTopbar();
         gameManager.returnAllParticipantsToHub();
-        Bukkit.getLogger().info("ReadyUpState.constructor return to hub");
         readyUpManager.clear();
         Set<String> teamIds = gameManager.getTeamNames();
         for (String teamId : teamIds) {
@@ -212,7 +211,6 @@ public class ReadyUpState implements EventState {
     @Override
     public void onParticipantJoin(Player participant) {
         gameManager.returnParticipantToHubInstantly(participant);
-        Bukkit.getLogger().info(String.format("ReadyUpState.onParticipantJoin %s", participant.getName()));
         context.getParticipants().add(participant);
         if (sidebar != null) {
             sidebar.addPlayer(participant);
@@ -342,7 +340,6 @@ public class ReadyUpState implements EventState {
     
     @Override
     public void onPlayerDamage(EntityDamageEvent event) {
-        Bukkit.getLogger().info("ReadyUpState");
         event.setCancelled(true);
     }
     

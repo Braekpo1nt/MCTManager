@@ -83,8 +83,7 @@ public class HubManager implements Listener, Configurable {
      * @param delay false will perform the teleport instantaneously, true will teleport with a delay
      */
     public void returnParticipantsToHub(List<Player> newParticipants, List<Player> newAdmins, boolean delay) {
-        Bukkit.getLogger().info("return to hub. delay:" + delay);
-        if (delay) {
+                if (delay) {
             returnParticipantsToHub(new ArrayList<>(newParticipants), new ArrayList<>(newAdmins), config.getTpToHubDuration());
         } else {
             returnParticipantsToHubInstantly(new ArrayList<>(newParticipants), new ArrayList<>(newAdmins));
@@ -184,8 +183,7 @@ public class HubManager implements Listener, Configurable {
         for (Player participant : participantsToRemove) {
             participants.remove(participant);
         }
-        Bukkit.getLogger().info(String.format("remove from hub: participants: %s, participantsToRemove: %s", participants, participantsToRemove));
-    }
+            }
     
     /**
      * Should be called when the participant who joined should be in the hub
@@ -196,8 +194,7 @@ public class HubManager implements Listener, Configurable {
         for (LeaderboardManager leaderboardManager : leaderboardManagers) {
             leaderboardManager.onParticipantJoin(participant);
         }
-        Bukkit.getLogger().info(String.format("onParticipantJoin: %s, participants: %s", participant.getName(), participants));
-    }
+            }
     
     public void onParticipantQuit(Player participant) {
         participants.remove(participant);
@@ -205,8 +202,7 @@ public class HubManager implements Listener, Configurable {
             leaderboardManager.onParticipantQuit(participant);
         }
         participant.setBedSpawnLocation(config.getSpawn(), true);
-        Bukkit.getLogger().info(String.format("onParticipantQuit: %s, participants: %s", participant.getName(), participants));
-    }
+            }
     
     public void onAdminJoin(Player admin) {
         initializeAdmin(admin);
@@ -252,13 +248,11 @@ public class HubManager implements Listener, Configurable {
             return;
         }
         if (participants.contains(participant)) {
-            Bukkit.getLogger().info("HubManager 1");
-            event.setCancelled(true);
+                        event.setCancelled(true);
             return;
         }
         if (headingToHub.contains(participant)) {
-            Bukkit.getLogger().info("HubManager 2");
-            event.setCancelled(true);
+                        event.setCancelled(true);
         }
     }
     
