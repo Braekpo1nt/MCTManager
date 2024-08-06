@@ -5,7 +5,6 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
 import org.braekpo1nt.mctmanager.games.event.states.EventState;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
-import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -67,7 +66,7 @@ public abstract class DelayState implements EventState {
     
     @Override
     public void onPlayerDamage(EntityDamageEvent event) {
-                event.setCancelled(true);
+        event.setCancelled(true);
     }
     
     @Override

@@ -13,7 +13,6 @@ import org.braekpo1nt.mctmanager.hub.leaderboard.LeaderboardManager;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
-import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -83,7 +82,7 @@ public class HubManager implements Listener, Configurable {
      * @param delay false will perform the teleport instantaneously, true will teleport with a delay
      */
     public void returnParticipantsToHub(List<Player> newParticipants, List<Player> newAdmins, boolean delay) {
-                if (delay) {
+        if (delay) {
             returnParticipantsToHub(new ArrayList<>(newParticipants), new ArrayList<>(newAdmins), config.getTpToHubDuration());
         } else {
             returnParticipantsToHubInstantly(new ArrayList<>(newParticipants), new ArrayList<>(newAdmins));
@@ -183,7 +182,7 @@ public class HubManager implements Listener, Configurable {
         for (Player participant : participantsToRemove) {
             participants.remove(participant);
         }
-            }
+    }
     
     /**
      * Should be called when the participant who joined should be in the hub
@@ -194,7 +193,7 @@ public class HubManager implements Listener, Configurable {
         for (LeaderboardManager leaderboardManager : leaderboardManagers) {
             leaderboardManager.onParticipantJoin(participant);
         }
-            }
+    }
     
     public void onParticipantQuit(Player participant) {
         participants.remove(participant);
@@ -202,7 +201,7 @@ public class HubManager implements Listener, Configurable {
             leaderboardManager.onParticipantQuit(participant);
         }
         participant.setBedSpawnLocation(config.getSpawn(), true);
-            }
+    }
     
     public void onAdminJoin(Player admin) {
         initializeAdmin(admin);
@@ -248,11 +247,11 @@ public class HubManager implements Listener, Configurable {
             return;
         }
         if (participants.contains(participant)) {
-                        event.setCancelled(true);
+            event.setCancelled(true);
             return;
         }
         if (headingToHub.contains(participant)) {
-                        event.setCancelled(true);
+            event.setCancelled(true);
         }
     }
     

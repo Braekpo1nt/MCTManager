@@ -433,7 +433,7 @@ public class ClockworkRound implements Listener {
     
     private @NotNull List<String> getLivingTeams() {
         List<String> livingTeams = new ArrayList<>();
-                for (Map.Entry<String, Integer> entry : teamsLivingMembers.entrySet()) {
+        for (Map.Entry<String, Integer> entry : teamsLivingMembers.entrySet()) {
             String team = entry.getKey();
             int livingMembers = entry.getValue();
             if (livingMembers > 0) {

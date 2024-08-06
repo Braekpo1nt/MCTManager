@@ -5,7 +5,6 @@ import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesGame;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
@@ -70,7 +69,7 @@ public class GameOverState implements SurvivalGamesState {
             return;
         }
         event.setCancelled(true);
-            }
+    }
     
     @Override
     public void onPlayerDeath(PlayerDeathEvent event) {

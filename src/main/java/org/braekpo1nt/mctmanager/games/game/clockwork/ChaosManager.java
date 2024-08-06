@@ -197,6 +197,6 @@ public class ChaosManager implements Listener {
                 entitiesInCylinder.add(entity);
             }
         }
-                return entitiesInCylinder;
+        return entitiesInCylinder;
     }
 }

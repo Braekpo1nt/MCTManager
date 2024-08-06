@@ -48,7 +48,7 @@ public class PersistentDataContainerDTO implements Validatable {
             NamespacedKeyDTO keyDTO = data.getNamespacedKey();
             String value = data.getValue() == null ? "" : data.getValue();
             if (keyDTO != null) {
-                                persistentDataContainer.set(keyDTO.toNamespacedKey(), PersistentDataType.STRING, value);
+                persistentDataContainer.set(keyDTO.toNamespacedKey(), PersistentDataType.STRING, value);
             }
         }
     }

@@ -308,7 +308,7 @@ public class VoteManager implements Listener {
         if (!voters.contains(voter)) {
             return;
         }
-                event.setCancelled(true);
+        event.setCancelled(true);
     }
     
     /**
