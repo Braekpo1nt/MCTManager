@@ -169,8 +169,8 @@ public class ClockworkRound implements Listener {
     
     public void stop() {
         HandlerList.unregisterAll(this);
-        chaosManager.stop();
         cancelAllTasks();
+        chaosManager.stop();
         for (Player participant : participants) {
             resetParticipant(participant);
         }
@@ -217,6 +217,7 @@ public class ClockworkRound implements Listener {
                 .withSidebar(adminSidebar, "timer")
                 .sidebarPrefix(Component.text("Clock chimes in: "))
                 .onCompletion(this::startClockChime)
+                .name("startBreatherDelay")
                 .build());
     }
     
@@ -269,6 +270,7 @@ public class ClockworkRound implements Listener {
                 .withSidebar(adminSidebar, "timer")
                 .sidebarPrefix(Component.text("Get to wedge! "))
                 .onCompletion(this::startStayOnWedgeDelay)
+                .name("startGetToWedgeDelay")
                 .build());
     }
     
@@ -288,6 +290,7 @@ public class ClockworkRound implements Listener {
                     incrementChaos();
                     startBreatherDelay();
                 })
+                .name("startStayOnWedgeDelay")
                 .build());
         killParticipantsNotOnWedge();
         mustStayOnWedge = true;
