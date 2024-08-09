@@ -24,6 +24,11 @@ public class MyPlayerMock extends PlayerMock {
     @Override
     public void lookAt(double x, double y, double z, @NotNull LookAnchor playerAnchor) {}
     
+    @Override
+    public String toString() {
+        return getName();
+    }
+    
     /**
      * Asserts that the plaintext version of the next message sent to the player is equal to the 
      * expected message regardless of formatting.
