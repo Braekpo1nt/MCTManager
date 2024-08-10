@@ -169,8 +169,8 @@ public class ClockworkRound implements Listener {
     
     public void stop() {
         HandlerList.unregisterAll(this);
-        chaosManager.stop();
         cancelAllTasks();
+        chaosManager.stop();
         for (Player participant : participants) {
             resetParticipant(participant);
         }
@@ -217,6 +217,7 @@ public class ClockworkRound implements Listener {
                 .withSidebar(adminSidebar, "timer")
                 .sidebarPrefix(Component.text("Clock chimes in: "))
                 .onCompletion(this::startClockChime)
+                .name("startBreatherDelay")
                 .build());
     }
     
@@ -269,6 +270,7 @@ public class ClockworkRound implements Listener {
                 .withSidebar(adminSidebar, "timer")
                 .sidebarPrefix(Component.text("Get to wedge! "))
                 .onCompletion(this::startStayOnWedgeDelay)
+                .name("startGetToWedgeDelay")
                 .build());
     }
     
@@ -284,10 +286,12 @@ public class ClockworkRound implements Listener {
                     if (livingTeams.size() == 1) {
                         String winningTeam = livingTeams.get(0);
                         onTeamWinsRound(winningTeam);
+                    } else {
+                        incrementChaos();
+                        startBreatherDelay();
                     }
-                    incrementChaos();
-                    startBreatherDelay();
                 })
+                .name("startStayOnWedgeDelay")
                 .build());
         killParticipantsNotOnWedge();
         mustStayOnWedge = true;
@@ -374,16 +378,19 @@ public class ClockworkRound implements Listener {
             Bukkit.getServer().sendMessage(Component.text(killed.getName())
                     .append(Component.text(" was claimed by time")));
             participantsAreAlive.put(killed.getUniqueId(), false);
+            String killedTeamId = gameManager.getTeamName(killed.getUniqueId());
             for (Player participant : participants) {
-                if (participantsAreAlive.get(participant.getUniqueId()) && !killedParticipants.contains(participant)) {
+                String teamId = gameManager.getTeamName(participant.getUniqueId());
+                if (participantsAreAlive.get(participant.getUniqueId()) 
+                        && !killedParticipants.contains(participant)
+                        && !teamId.equals(killedTeamId)) {
                     gameManager.awardPointsToParticipant(participant, config.getPlayerEliminationScore());
                 }
             }
-            String team = gameManager.getTeamName(killed.getUniqueId());
-            if (!teamsKilledMembers.containsKey(team)) {
-                teamsKilledMembers.put(team, 1);
+            if (!teamsKilledMembers.containsKey(killedTeamId)) {
+                teamsKilledMembers.put(killedTeamId, 1);
             } else {
-                teamsKilledMembers.put(team, teamsKilledMembers.get(team) + 1);
+                teamsKilledMembers.put(killedTeamId, teamsKilledMembers.get(killedTeamId) + 1);
             }
         }
         List<String> newlyKilledTeams = new ArrayList<>();

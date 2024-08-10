@@ -33,7 +33,6 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.NotNull;
@@ -126,6 +125,7 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
     
     private void initializeParticipant(Player participant) {
         participants.add(participant);
+        participant.setGameMode(GameMode.ADVENTURE);
         sidebar.addPlayer(participant);
         participant.teleport(config.getStartingLocation());
         participant.setBedSpawnLocation(config.getStartingLocation(), true);
@@ -165,14 +165,14 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
     
     @Override
     public void stop() {
-        HandlerList.unregisterAll(this);
-        cancelAllTasks();
         if (currentRoundIndex < rounds.size()) {
             ClockworkRound currentRound = rounds.get(currentRoundIndex);
             if (currentRound.isActive()) {
                 currentRound.stop();
             }
         }
+        HandlerList.unregisterAll(this);
+        cancelAllTasks();
         rounds.clear();
         descriptionShowing = false;
         gameActive = false;
@@ -217,6 +217,7 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
                     descriptionShowing = false;
                     startNextRound();
                 })
+                .name("startDescriptionPeriod")
                 .build());
     }
     

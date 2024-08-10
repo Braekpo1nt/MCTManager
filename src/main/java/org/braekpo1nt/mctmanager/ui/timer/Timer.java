@@ -154,43 +154,47 @@ public class Timer extends BukkitRunnable {
      */
     @Override
     public void run() {
-        if (paused) {
-            return;
+        try {
+            if (paused) {
+                return;
+            }
+            if (secondsLeft <= completionSeconds) {
+                onComplete();
+                return;
+            }
+            Component timeString = TimeStringUtils.getTimeComponent(secondsLeft)
+                    .color(timerColor);
+            for (Topbar topbar : topbars) {
+                topbar.setMiddle(
+                        Component.empty()
+                                .append(topbarPrefix)
+                                .append(timeString)
+                );
+            }
+            for (SidebarData sidebarData : sidebarDatas) {
+                sidebarData.getSidebar().updateLine(sidebarData.getKey(),
+                        Component.empty()
+                                .append(sidebarPrefix)
+                                .append(timeString)
+                );
+            }
+            if (titleAudience != null && secondsLeft <= titleThreshold) {
+                Title title = Title.title(
+                        Component.text("Starting in"),
+                        Component.text(secondsLeft)
+                                .color(TimeStringUtils.getColorForTime(secondsLeft)),
+                        Title.Times.times(
+                                Duration.ZERO,
+                                Duration.ofMillis(1500),
+                                Duration.ZERO
+                        )
+                );
+                titleAudience.showTitle(title);
+            }
+            secondsLeft--;
+        } catch (Exception e) {
+            throw new RuntimeException(String.format("Error running Timer \"%s\"", name), e);
         }
-        if (secondsLeft <= completionSeconds) {
-            onComplete();
-            return;
-        }
-        Component timeString = TimeStringUtils.getTimeComponent(secondsLeft)
-                .color(timerColor);
-        for (Topbar topbar : topbars) {
-            topbar.setMiddle(
-                    Component.empty()
-                            .append(topbarPrefix)
-                            .append(timeString)
-            );
-        }
-        for (SidebarData sidebarData : sidebarDatas) {
-            sidebarData.getSidebar().updateLine(sidebarData.getKey(), 
-                    Component.empty()
-                            .append(sidebarPrefix)
-                            .append(timeString)
-            );
-        }
-        if (titleAudience != null && secondsLeft <= titleThreshold) {
-            Title title = Title.title(
-                    Component.text("Starting in"), 
-                    Component.text(secondsLeft)
-                            .color(TimeStringUtils.getColorForTime(secondsLeft)), 
-                    Title.Times.times(
-                            Duration.ZERO,
-                            Duration.ofMillis(1500), 
-                            Duration.ZERO
-                    )
-            );
-            titleAudience.showTitle(title);
-        }
-        secondsLeft--;
     }
     
     /**
@@ -255,7 +259,7 @@ public class Timer extends BukkitRunnable {
             if (sidebar.containsKey(key)) {
                 sidebar.updateLine(key, Component.empty());
             } else {
-                Bukkit.getLogger().severe(String.format("Attempted to edit the line of a sidebar which does not contain the key \"%s\"", key));
+                Bukkit.getLogger().severe(String.format("Attempted to edit the line of a sidebar which does not contain the key \"%s\" in Timer with name %s", key, name));
             }
         }
         if (titleAudience != null) {
