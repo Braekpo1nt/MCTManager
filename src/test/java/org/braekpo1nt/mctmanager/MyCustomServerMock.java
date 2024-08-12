@@ -5,13 +5,10 @@ import be.seeseemelk.mockbukkit.WorldMock;
 import be.seeseemelk.mockbukkit.inventory.InventoryMock;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
-import org.braekpo1nt.inventory.MyItemFactoryMock;
 import org.braekpo1nt.mctmanager.enchantments.MyEnchantmentMock;
 import org.bukkit.*;
-import org.bukkit.enchantments.Enchantment;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.InventoryHolder;
-import org.bukkit.inventory.ItemFactory;
 import org.bukkit.loot.LootTable;
 import org.bukkit.structure.Structure;
 import org.bukkit.structure.StructureManager;
@@ -84,8 +81,6 @@ public class MyCustomServerMock extends ServerMock {
         // TODO: fix enchantment re-registering in MockBucket
     }
     
-    private final MyItemFactoryMock itemFactory = new MyItemFactoryMock();
-    
     @Override
     public World getWorld(String name) {
         initializeTestWorld();
@@ -141,10 +136,5 @@ public class MyCustomServerMock extends ServerMock {
         List<Audience> audiences = new ArrayList<>(this.getOnlinePlayers());
         audiences.add(this.getConsoleSender());
         return audiences;
-    }
-    
-    @Override
-    public @NotNull ItemFactory getItemFactory() {
-        return itemFactory;
     }
 }

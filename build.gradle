@@ -5,7 +5,7 @@ plugins {
 }
 
 group = 'org.braekpo1nt'
-version = '1.1.0'
+version = '1.2.0'
 
 repositories {
     mavenCentral()
@@ -31,11 +31,6 @@ repositories {
 }
 
 dependencies {
-    //IMPORTANT
-    //IMPORTANT
-    // When you add a dependency, make sure the shadowJar task has excluded it
-    //IMPORTANT
-    //IMPORTANT
     testImplementation 'org.junit.jupiter:junit-jupiter:5.9.2'
     testImplementation 'org.mockito:mockito-core:5.2.0'
     testImplementation 'io.papermc.paper:paper-api:1.21.1-R0.1-SNAPSHOT'
@@ -46,26 +41,8 @@ dependencies {
     compileOnly 'io.papermc.paper:paper-api:1.21.1-R0.1-SNAPSHOT'
     compileOnly 'com.github.decentsoftware-eu:decentholograms:2.8.8'
 
-//    FastBoard
-//    https://github.com/MrMicky-FR/FastBoard
-    implementation 'fr.mrmicky:fastboard:2.1.2'
-    
     implementation 'com.google.code.gson:gson:2.10.1'
 }
-
-shadowJar {
-    // exclude all dependencies except fr.mrmicky.fastboard
-    exclude 'org/junit/jupiter'
-    exclude 'org/mockito'
-    exclude 'io/papermc/paper'
-    exclude 'com/github/decentsoftware-eu'
-    exclude 'com/github/seeseemelk'
-    exclude 'org/slf4j'
-    
-    relocate 'fr.mrmicky.fastboard', 'org.braekpo1nt.mctmanager'
-}
-
-
 
 def targetJavaVersion = 21
 java {
@@ -80,6 +57,12 @@ java {
 tasks.withType(JavaCompile).configureEach {
     if (targetJavaVersion >= 10 || JavaVersion.current().isJava10Compatible()) {
         options.release = targetJavaVersion
+    }
+}
+
+tasks.jar {
+    manifest {
+        attributes["paperweight-mappings-namespace"] = "spigot"
     }
 }
 
