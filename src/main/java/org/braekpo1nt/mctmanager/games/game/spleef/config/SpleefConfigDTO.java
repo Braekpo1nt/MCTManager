@@ -195,8 +195,8 @@ record SpleefConfigDTO(
     @NotNull ItemStack getTool() {
         if (this.tool() == null) {
             ItemStack newTool = new ItemStack(Material.DIAMOND_SHOVEL);
-            newTool.addEnchantment(Enchantment.DIG_SPEED, 5);
-            newTool.addUnsafeEnchantment(Enchantment.DURABILITY, 10);
+            newTool.addEnchantment(Enchantment.EFFICIENCY, 5);
+            newTool.addUnsafeEnchantment(Enchantment.UNBREAKING, 10);
             return newTool;
         }
         return this.tool().toItemStack();

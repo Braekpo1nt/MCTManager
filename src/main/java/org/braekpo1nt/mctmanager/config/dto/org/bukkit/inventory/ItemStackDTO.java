@@ -41,7 +41,8 @@ public class ItemStackDTO implements Validatable {
      */
     public @NotNull ItemStack toItemStack() {
         Preconditions.checkArgument(type != null, "type (Material) cannot be null");
-        ItemStack stack = new ItemStack(type, amount);
+        Preconditions.checkArgument(amount > 0, "amount must be greater than 0");
+        ItemStack stack = ItemStack.of(type, amount);
         if (itemMeta != null) {
             stack.editMeta(meta -> itemMeta.toItemMeta(meta, type));
         }
@@ -54,6 +55,7 @@ public class ItemStackDTO implements Validatable {
     @Override
     public void validate(@NotNull Validator validator) {
         validator.notNull(type, "type");
+        validator.validate(amount > 0, "amount must be greater than 0");
         if (itemMeta != null) {
             itemMeta.validate(validator.path("itemMeta"));
         }

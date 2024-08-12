@@ -19,6 +19,8 @@ import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.braekpo1nt.mctmanager.utils.MaterialUtils;
 import org.bukkit.*;
 import org.bukkit.block.BlockFace;
+import org.bukkit.damage.DamageSource;
+import org.bukkit.damage.DamageType;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
@@ -325,7 +327,8 @@ public class CaptureTheFlagMatch implements Listener {
         Component deathMessage = Component.empty()
                 .append(Component.text(northParticipant.getName()))
                 .append(Component.text(" left early. Their life is forfeit."));
-        PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(northParticipant, Collections.emptyList(), 0, deathMessage);
+        PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(northParticipant, 
+                DamageSource.builder(DamageType.GENERIC).build(), Collections.emptyList(), 0, deathMessage);
         Bukkit.getServer().getPluginManager().callEvent(fakeDeathEvent);
         resetParticipant(northParticipant);
         allParticipants.remove(northParticipant);
@@ -352,7 +355,8 @@ public class CaptureTheFlagMatch implements Listener {
         Component deathMessage = Component.empty()
                 .append(Component.text(soutParticipant.getName()))
                 .append(Component.text(" left early. Their life is forfeit."));
-        PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(soutParticipant, Collections.emptyList(), 0, deathMessage);
+        PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(soutParticipant,
+                DamageSource.builder(DamageType.GENERIC).build(), Collections.emptyList(), 0, deathMessage);
         Bukkit.getServer().getPluginManager().callEvent(fakeDeathEvent);
         resetParticipant(soutParticipant);
         allParticipants.remove(soutParticipant);

@@ -38,11 +38,12 @@ dependencies {
     //IMPORTANT
     testImplementation 'org.junit.jupiter:junit-jupiter:5.9.2'
     testImplementation 'org.mockito:mockito-core:5.2.0'
-    testImplementation 'io.papermc.paper:paper-api:1.19.3-R0.1-SNAPSHOT'
-    testImplementation 'com.github.seeseemelk:MockBukkit-v1.19:2.146.1'
+    testImplementation 'io.papermc.paper:paper-api:1.21.1-R0.1-SNAPSHOT'
+//    testImplementation 'com.github.seeseemelk:MockBukkit-v1.21:3.95.1'
+    testImplementation 'com.github.MockBukkit:MockBukkit:v3.98.0'
     testImplementation 'org.slf4j:slf4j-jdk14:2.0.5'
     
-    compileOnly 'io.papermc.paper:paper-api:1.19.3-R0.1-SNAPSHOT'
+    compileOnly 'io.papermc.paper:paper-api:1.21.1-R0.1-SNAPSHOT'
     compileOnly 'com.github.decentsoftware-eu:decentholograms:2.8.8'
 
 //    FastBoard
@@ -66,7 +67,7 @@ shadowJar {
 
 
 
-def targetJavaVersion = 17
+def targetJavaVersion = 21
 java {
     def javaVersion = JavaVersion.toVersion(targetJavaVersion)
     sourceCompatibility = javaVersion

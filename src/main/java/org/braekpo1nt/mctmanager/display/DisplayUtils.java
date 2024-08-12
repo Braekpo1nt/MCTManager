@@ -49,7 +49,7 @@ public class DisplayUtils {
     
     public static void displayPoints(List<Vector> points, Player viewer, int count, float size, Color color) {
         for (Vector v : points) {
-            viewer.spawnParticle(Particle.REDSTONE, v.getX(), v.getY(), v.getZ(), count, new Particle.DustOptions(color, size));
+            viewer.spawnParticle(Particle.DUST, v.getX(), v.getY(), v.getZ(), count, new Particle.DustOptions(color, size));
         }
     }
     

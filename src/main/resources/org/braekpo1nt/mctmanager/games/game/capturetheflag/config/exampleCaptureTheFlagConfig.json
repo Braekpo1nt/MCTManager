@@ -313,7 +313,8 @@
       "menuMeta": {
         "basePotionData": {
           "type": "INSTANT_HEAL"
-        }
+        },
+        "basePotionType": "HEALING"
       },
       "inventory": {
         "contents": {
@@ -338,7 +339,8 @@
                 "type": "INSTANT_HEAL",
                 "extended": false,
                 "upgraded": false
-              }
+              },
+              "basePotionType": "HEALING"
             }
           }
         }

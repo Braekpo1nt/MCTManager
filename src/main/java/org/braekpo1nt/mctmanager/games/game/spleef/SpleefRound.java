@@ -18,6 +18,8 @@ import org.bukkit.GameMode;
 import org.bukkit.block.Block;
 import org.bukkit.block.structure.Mirror;
 import org.bukkit.block.structure.StructureRotation;
+import org.bukkit.damage.DamageSource;
+import org.bukkit.damage.DamageType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
@@ -202,7 +204,8 @@ public class SpleefRound implements Listener {
             Component deathMessage = Component.empty()
                     .append(Component.text(participant.getName()))
                     .append(Component.text(" left early. Their life is forfeit."));
-            PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(participant, Collections.emptyList(), 0, deathMessage);
+            PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(participant,
+                    DamageSource.builder(DamageType.GENERIC).build(), Collections.emptyList(), 0, deathMessage);
             Bukkit.getServer().getPluginManager().callEvent(fakeDeathEvent);
         }
         resetParticipant(participant);
