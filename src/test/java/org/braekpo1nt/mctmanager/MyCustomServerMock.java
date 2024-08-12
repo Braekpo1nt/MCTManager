@@ -5,13 +5,13 @@ import be.seeseemelk.mockbukkit.WorldMock;
 import be.seeseemelk.mockbukkit.inventory.InventoryMock;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
+import org.braekpo1nt.inventory.MyItemFactoryMock;
 import org.braekpo1nt.mctmanager.enchantments.MyEnchantmentMock;
-import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.InventoryHolder;
+import org.bukkit.inventory.ItemFactory;
 import org.bukkit.loot.LootTable;
 import org.bukkit.structure.Structure;
 import org.bukkit.structure.StructureManager;
@@ -80,14 +80,11 @@ public class MyCustomServerMock extends ServerMock {
     private static void reRegister(@NotNull String name, int maxLevel, @NotNull List<@NotNull Material> validItemTypes, @NotNull List<@NotNull String> incompatibleNames) {
         List<NamespacedKey> incompatibleKeys = incompatibleNames.stream().map(NamespacedKey::minecraft).toList();
         NamespacedKey key = NamespacedKey.minecraft(name);
-        Enchantment.registerEnchantment(new MyEnchantmentMock(key, name, maxLevel, validItemTypes, incompatibleKeys));
+//        Enchantment.registerEnchantment(new MyEnchantmentMock(key, name, maxLevel, validItemTypes, incompatibleKeys));
+        // TODO: fix enchantment re-registering in MockBucket
     }
     
-    public MyCustomServerMock() {
-        super();
-        
-    
-    }
+    private final MyItemFactoryMock itemFactory = new MyItemFactoryMock();
     
     @Override
     public World getWorld(String name) {
@@ -109,7 +106,7 @@ public class MyCustomServerMock extends ServerMock {
     
     private void initializeTestWorld() {
         if (super.getWorld("TestWorld") == null) {
-            WorldMock worldMock = new WorldMock(Material.GRASS, -64, 320, 4);
+            WorldMock worldMock = new WorldMock(Material.GRASS_BLOCK, -64, 320, 4);
             worldMock.setName("TestWorld");
             addWorld(worldMock);
         }
@@ -144,5 +141,10 @@ public class MyCustomServerMock extends ServerMock {
         List<Audience> audiences = new ArrayList<>(this.getOnlinePlayers());
         audiences.add(this.getConsoleSender());
         return audiences;
+    }
+    
+    @Override
+    public @NotNull ItemFactory getItemFactory() {
+        return itemFactory;
     }
 }
