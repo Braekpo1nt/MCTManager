@@ -3,7 +3,6 @@ package org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.meta;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
-import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.inventory.meta.ItemMeta;

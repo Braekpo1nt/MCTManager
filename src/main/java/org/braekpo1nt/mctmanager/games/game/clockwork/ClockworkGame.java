@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.games.game.clockwork;
 
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
@@ -47,8 +48,10 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
     private Sidebar adminSidebar;
     private final ClockworkConfigController configController;
     private ClockworkConfig config;
-    private final String baseTitle = ChatColor.BLUE+"Clockwork";
-    private String title = baseTitle;
+    private final Component baseTitle = Component.empty()
+            .append(Component.text("Clockwork"))
+            .color(NamedTextColor.BLUE);
+    private Component title = baseTitle;
     private List<Player> participants = new ArrayList<>();
     private List<Player> admins = new ArrayList<>();
     private List<ClockworkRound> rounds;
@@ -65,7 +68,7 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
     }
     
     @Override
-    public void setTitle(@NotNull String title) {
+    public void setTitle(@NotNull Component title) {
         this.title = title;
         if (sidebar != null) {
             sidebar.updateLine("title", title);
@@ -76,7 +79,7 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
     }
     
     @Override
-    public @NotNull String getBaseTitle() {
+    public @NotNull Component getBaseTitle() {
         return baseTitle;
     }
     

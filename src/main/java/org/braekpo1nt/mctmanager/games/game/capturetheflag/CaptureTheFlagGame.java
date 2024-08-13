@@ -54,8 +54,10 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     private CaptureTheFlagConfig config;
     private RoundManager roundManager;
     private CaptureTheFlagRound currentRound;
-    private final String baseTitle = ChatColor.BLUE+"Capture the Flag";
-    private String title = baseTitle;
+    private final Component baseTitle = Component.empty()
+            .append(Component.text("Capture the Flag"))
+            .color(NamedTextColor.BLUE);
+    private Component title = baseTitle;
     private List<Player> participants = new ArrayList<>();
     private List<Player> admins = new ArrayList<>();
     private Map<UUID, Integer> killCount = new HashMap<>();
@@ -71,7 +73,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     }
     
     @Override
-    public void setTitle(@NotNull String title) {
+    public void setTitle(@NotNull Component title) {
         this.title = title;
         if (sidebar != null) {
             sidebar.updateLine("title", title);
@@ -82,7 +84,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     }
     
     @Override
-    public @NotNull String getBaseTitle() {
+    public @NotNull Component getBaseTitle() {
         return baseTitle;
     }
     
