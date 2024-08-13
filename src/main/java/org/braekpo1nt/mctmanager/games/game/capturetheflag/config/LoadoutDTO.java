@@ -8,7 +8,6 @@ import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.meta.ItemMetaDT
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.Loadout;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -51,7 +50,6 @@ class LoadoutDTO implements Validatable {
         validator.notNull(menuItem, "menuItem");
         validator.notNull(menuLore, "lore");
         if (menuMeta != null) {
-            Bukkit.getLogger().info("validating menu meta");
             menuMeta.validate(validator.path("menuMeta"));
         }
         validator.notNull(inventory, "inventory");
