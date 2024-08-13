@@ -44,13 +44,7 @@ public class PotionMetaDTO extends ItemMetaDTOImpl {
         super.toItemMeta(meta, type);
         PotionMeta potionMeta = (PotionMeta) meta;
         if (basePotionType != null) {
-            // TODO: fix this when MockBucket implements PotionMetaMock.setBasePotionType()
-            try {
-                potionMeta.setBasePotionType(basePotionType);
-            } catch(Exception e) {
-                Bukkit.getLogger().severe("could not set the base potion type for PotionMetaDTO.java");
-                e.printStackTrace();
-            }
+            potionMeta.setBasePotionType(basePotionType);
         }
         if (customEffects != null && customEffectsOverwrite != null) {
             for (int i = 0; i < customEffects.size(); i++) {
