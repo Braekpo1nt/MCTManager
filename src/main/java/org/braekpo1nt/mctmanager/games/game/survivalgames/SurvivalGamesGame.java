@@ -64,7 +64,9 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
     private final GameManager gameManager;
     private final @NotNull ManyBattleTopbar topbar;
     private final SurvivalGamesConfigController configController;
-    private final String baseTitle = ChatColor.BLUE+"Survival Games";
+    private final Component baseTitle = Component.empty()
+            .append(Component.text("Survival Games"))
+            .color(NamedTextColor.BLUE);
     private final TimerManager timerManager;
     private Sidebar sidebar;
     private Sidebar adminSidebar;
@@ -80,7 +82,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
     private List<UUID> deadPlayers = new ArrayList<>();
     private Map<UUID, Integer> killCounts = new HashMap<>();
     private Map<UUID, Integer> deathCounts = new HashMap<>();
-    private String title = baseTitle;
+    private Component title = baseTitle;
     
     public SurvivalGamesGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
@@ -91,7 +93,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
     }
     
     @Override
-    public void setTitle(@NotNull String title) {
+    public void setTitle(@NotNull Component title) {
         this.title = title;
         if (sidebar != null) {
             sidebar.updateLine("title", title);
@@ -102,7 +104,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
     }
     
     @Override
-    public @NotNull String getBaseTitle() {
+    public @NotNull Component getBaseTitle() {
         return baseTitle;
     }
     

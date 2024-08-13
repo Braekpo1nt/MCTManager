@@ -13,8 +13,8 @@ public class ItemMetaDTODeserializer implements JsonDeserializer<ItemMetaDTO> {
     public ItemMetaDTO deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
         
         JsonObject jsonObject = json.getAsJsonObject();
-        JsonElement basePotionData = jsonObject.get("basePotionData");
-        if (basePotionData != null) {
+        JsonElement basePotionType = jsonObject.get("basePotionType");
+        if (basePotionType != null) {
             return context.deserialize(json, PotionMetaDTO.class);
         }
         return ConfigUtils.GSON.fromJson(json, ItemMetaDTOImpl.class);

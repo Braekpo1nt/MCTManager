@@ -1,10 +1,8 @@
 package org.braekpo1nt.mctmanager.commands;
 
-import org.braekpo1nt.mctmanager.games.GameManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class CommandUtils {

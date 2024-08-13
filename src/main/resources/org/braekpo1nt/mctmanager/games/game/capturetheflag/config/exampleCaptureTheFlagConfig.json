@@ -311,9 +311,7 @@
         "- 2 Healing Potions"
       ],
       "menuMeta": {
-        "basePotionData": {
-          "type": "INSTANT_HEAL"
-        }
+        "basePotionType": "HEALING"
       },
       "inventory": {
         "contents": {
@@ -334,11 +332,7 @@
             "type": "SPLASH_POTION",
             "amount": 2,
             "itemMeta": {
-              "basePotionData": {
-                "type": "INSTANT_HEAL",
-                "extended": false,
-                "upgraded": false
-              }
+              "basePotionType": "HEALING"
             }
           }
         }

@@ -18,6 +18,8 @@ import org.braekpo1nt.mctmanager.ui.topbar.ManyBattleTopbar;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.WorldBorder;
+import org.bukkit.damage.DamageSource;
+import org.bukkit.damage.DamageType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
@@ -228,7 +230,8 @@ public class ActiveState implements SurvivalGamesState {
             Component deathMessage = Component.empty()
                     .append(participant.displayName())
                     .append(Component.text(" left early. Their life is forfeit."));
-            PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(participant, drops, droppedExp, deathMessage);
+            PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(participant, 
+                    DamageSource.builder(DamageType.GENERIC).build(), drops, droppedExp, deathMessage);
             this.onPlayerDeath(fakeDeathEvent);
         }
         resetParticipant(participant);

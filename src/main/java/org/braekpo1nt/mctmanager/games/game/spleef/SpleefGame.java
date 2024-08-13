@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.games.game.spleef;
 
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
@@ -45,8 +46,10 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
     private Sidebar adminSidebar;
     private final SpleefConfigController configController;
     private SpleefConfig config;
-    private final String baseTitle = ChatColor.BLUE+"Spleef";
-    private String title = baseTitle;
+    private final Component baseTitle = Component.empty()
+            .append(Component.text("Spleef"))
+            .color(NamedTextColor.BLUE);
+    private Component title = baseTitle;
     private List<Player> participants = new ArrayList<>();
     private List<Player> admins = new ArrayList<>();
     private List<SpleefRound> rounds = new ArrayList<>();
@@ -62,12 +65,12 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
     }
     
     @Override
-    public @NotNull String getBaseTitle() {
+    public @NotNull Component getBaseTitle() {
         return baseTitle;
     }
     
     @Override
-    public void setTitle(@NotNull String title) {
+    public void setTitle(@NotNull Component title) {
         this.title = title;
         if (sidebar != null) {
             sidebar.updateLine("title", title);

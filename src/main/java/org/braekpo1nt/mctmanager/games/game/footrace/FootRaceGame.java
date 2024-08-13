@@ -61,7 +61,9 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     private final GameManager gameManager;
     private final PotionEffect SPEED = new PotionEffect(PotionEffectType.SPEED, 10000, 8, true, false, false);
     private final PotionEffect INVISIBILITY = new PotionEffect(PotionEffectType.INVISIBILITY, 10000, 1, true, false, false);
-    private final String baseTitle = ChatColor.BLUE+"Foot Race";
+    private final Component baseTitle = Component.empty()
+            .append(Component.text("Foot Race"))
+            .color(NamedTextColor.BLUE);
     private final TimerManager timerManager;
     private FootRaceConfig config;
     private Sidebar sidebar;
@@ -87,7 +89,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     private long raceStartTime;
     private int statusEffectsTaskId;
     private int standingsDisplayTaskId;
-    private String title = baseTitle;
+    private Component title = baseTitle;
     
     public FootRaceGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
@@ -107,7 +109,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     }
     
     @Override
-    public void setTitle(@NotNull String title) {
+    public void setTitle(@NotNull Component title) {
         this.title = title;
         if (sidebar != null) {
             sidebar.updateLine("title", title);
@@ -118,7 +120,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     }
     
     @Override
-    public @NotNull String getBaseTitle() {
+    public @NotNull Component getBaseTitle() {
         return baseTitle;
     }
     

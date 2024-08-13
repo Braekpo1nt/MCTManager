@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.interfaces;
 
+import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -18,6 +19,6 @@ public interface MCTGame {
     
     void onAdminJoin(Player admin);
     void onAdminQuit(Player admin);
-    @NotNull String getBaseTitle();
-    void setTitle(@NotNull String title);
+    @NotNull Component getBaseTitle();
+    void setTitle(@NotNull Component title);
 }

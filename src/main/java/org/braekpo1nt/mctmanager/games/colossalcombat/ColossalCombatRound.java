@@ -17,6 +17,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.damage.DamageSource;
+import org.bukkit.damage.DamageType;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
@@ -302,7 +304,8 @@ public class ColossalCombatRound implements Listener {
         Component deathMessage = Component.empty()
                 .append(Component.text(participant.getName()))
                 .append(Component.text(" left early. Their life is forfeit."));
-        PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(participant, Collections.emptyList(), 0, deathMessage);
+        PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(participant, 
+                DamageSource.builder(DamageType.GENERIC).build(), Collections.emptyList(), 0, deathMessage);
         onPlayerDeath(fakeDeathEvent);
     }
     

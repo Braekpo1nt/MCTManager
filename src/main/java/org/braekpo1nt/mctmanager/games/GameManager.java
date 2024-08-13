@@ -665,10 +665,7 @@ public class GameManager implements Listener {
         }
         
         if (eventManager.eventIsActive() && eventManager.shouldDisplayGameNumber()) {
-            int currentGameNumber = eventManager.getCurrentGameNumber();
-            int maxGames = eventManager.getMaxGames();
-            String baseTitle = selectedGame.getBaseTitle();
-            String newTitle = String.format("%s %s[%d/%d]", baseTitle, ChatColor.GRAY, currentGameNumber, maxGames);
+            Component newTitle = createNewTitle(selectedGame);
             selectedGame.setTitle(newTitle);
         }
         
@@ -684,15 +681,26 @@ public class GameManager implements Listener {
         return true;
     }
     
+    private @NotNull Component createNewTitle(MCTGame game) {
+        int currentGameNumber = eventManager.getCurrentGameNumber();
+        int maxGames = eventManager.getMaxGames();
+        Component baseTitle = game.getBaseTitle();
+        return Component.empty()
+                .append(baseTitle)
+                .append(Component.space())
+                .append(Component.empty()
+                        .append(Component.text(currentGameNumber))
+                        .append(Component.text("/"))
+                        .append(Component.text(maxGames))
+                        .color(NamedTextColor.GRAY));
+    }
+    
     public void updateGameTitle() {
         if (!gameIsRunning()) {
             return;
         }
         if (eventManager.eventIsActive() && eventManager.shouldDisplayGameNumber()) {
-            int currentGameNumber = eventManager.getCurrentGameNumber();
-            int maxGames = eventManager.getMaxGames();
-            String baseTitle = activeGame.getBaseTitle();
-            String newTitle = String.format("%s %s[%d/%d]", baseTitle, ChatColor.GRAY, currentGameNumber, maxGames);
+            Component newTitle = createNewTitle(activeGame);
             activeGame.setTitle(newTitle);
         }
     }
