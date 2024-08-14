@@ -140,6 +140,9 @@ public class VoteManager implements Listener {
     }
     
     public void onParticipantQuit(Player voter) {
+        if (!voting) {
+            return;
+        }
         resetParticipant(voter);
         voters.remove(voter);
         sidebar.removePlayer(voter);
