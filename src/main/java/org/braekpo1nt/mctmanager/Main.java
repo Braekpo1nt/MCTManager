@@ -11,6 +11,7 @@ import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.listeners.BlockEffectsListener;
+import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -18,8 +19,12 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
+import org.jetbrains.annotations.NotNull;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class Main extends JavaPlugin {
@@ -39,6 +44,7 @@ public class Main extends JavaPlugin {
     public final static PotionEffect NIGHT_VISION = new PotionEffect(PotionEffectType.NIGHT_VISION, 300, 3, true, false, false);
     private MCTCommand mctCommand;
     private static Logger logger;
+    private static final Map<LogType, @NotNull Boolean> logTypeActive = new HashMap<>();
     
     protected GameManager initialGameManager(Scoreboard mctScoreboard) {
         return new GameManager(this, mctScoreboard);
@@ -49,6 +55,38 @@ public class Main extends JavaPlugin {
      */
     public static Logger logger() {
         return Main.logger;
+    }
+    
+    public static void setLogTypeActive(@NotNull LogType logType, boolean active) {
+        logTypeActive.put(logType, active);
+    }
+    
+    /**
+     * Logs the message if the given {@link LogType} should be logged (as determined by {@link #logTypeActive})
+     * @param logType the {@link LogType} of the message
+     * @param message the message to log
+     * @see #setLogTypeActive(LogType, boolean)
+     */
+    public static void debugLog(@NotNull LogType logType, @NotNull String message) {
+        if (logTypeActive.get(logType)) {
+            Main.logger().info(message);
+        }
+    }
+    
+    /**
+     * Logs the message if the given {@link LogType} should be logged (as determined by {@link #logTypeActive})
+     * @param logType the {@link LogType} of the message
+     * @param message the message to log. 
+     *                Must be a valid {@link Logger#log(Level, String, Object[])} string. 
+     *                The provided args will be used as the {code Object...}
+     *                arguments of the format string.
+     * @param args the args the arguments of the {@link Logger#log(Level, String, Object[])} which 
+     *             uses the message as the pattern.
+     */
+    public static void debugLog(@NotNull LogType logType, @NotNull String message, Object... args) {
+        if (logTypeActive.get(logType)) {
+            Main.logger.log(Level.INFO, message, args);
+        }
     }
     
     @Override
