@@ -11,6 +11,7 @@ import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
+import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -336,6 +337,7 @@ public class ClockworkRound implements Listener {
             ParticipantInitializer.resetHealthAndHunger(participant);
             return;
         }
+        Main.debugLog(LogType.CANCEL_DEATH_EVENT, "ClockworkRound.onPlayerDamage() cancelled");
         event.setCancelled(true);
     }
     

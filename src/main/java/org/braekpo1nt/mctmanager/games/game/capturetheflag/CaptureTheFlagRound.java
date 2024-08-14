@@ -11,6 +11,7 @@ import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.braekpo1nt.mctmanager.ui.topbar.BattleTopbar;
+import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
@@ -319,6 +320,7 @@ public class CaptureTheFlagRound {
             return;
         }
         if (onDeckParticipants.contains(participant)) {
+            Main.debugLog(LogType.CANCEL_DEATH_EVENT, "CaptureTheFlagRound.onPlayerDamage()->onDeck cancelled");
             event.setCancelled(true);
             return;
         }
@@ -326,16 +328,19 @@ public class CaptureTheFlagRound {
             return;
         }
         if (descriptionShowing) {
+            Main.debugLog(LogType.CANCEL_DEATH_EVENT, "CaptureTheFlagRound.onPlayerDamage()->descriptionShowing cancelled");
             event.setCancelled(true);
             return;
         }
         if (!matchesStarted) {
+            Main.debugLog(LogType.CANCEL_DEATH_EVENT, "CaptureTheFlagRound.onPlayerDamage()->!matchesStarted cancelled");
             event.setCancelled(true);
             return;
         }
         String teamId = gameManager.getTeamName(participant.getUniqueId());
         CaptureTheFlagMatch match = this.getMatch(teamId);
         if (match == null || !match.isActive()) {
+            Main.debugLog(LogType.CANCEL_DEATH_EVENT, "CaptureTheFlagRound.onPlayerDamage()->matchNotActive cancelled");
             // the match is over or the player is on-deck/spectating
             event.setCancelled(true);
         } else {

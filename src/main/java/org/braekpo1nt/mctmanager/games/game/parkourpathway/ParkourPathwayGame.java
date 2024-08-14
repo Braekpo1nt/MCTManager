@@ -26,6 +26,7 @@ import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
+import org.braekpo1nt.mctmanager.utils.LogType;
 import org.braekpo1nt.mctmanager.utils.MathUtils;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -510,6 +511,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         if (!participants.contains(participant)) {
             return;
         }
+        Main.debugLog(LogType.CANCEL_DEATH_EVENT, "ParkourPathwayGame.onPlayerDamage() cancelled");
         event.setCancelled(true);
     }
     

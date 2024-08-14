@@ -13,6 +13,7 @@ import org.braekpo1nt.mctmanager.hub.leaderboard.LeaderboardManager;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
+import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -247,10 +248,12 @@ public class HubManager implements Listener, Configurable {
             return;
         }
         if (participants.contains(participant)) {
+            Main.debugLog(LogType.CANCEL_DEATH_EVENT, "HubManager.onPlayerDamage()->participant contains cancelled");
             event.setCancelled(true);
             return;
         }
         if (headingToHub.contains(participant)) {
+            Main.debugLog(LogType.CANCEL_DEATH_EVENT, "HubManager.onPlayerDamage()->headingToHub contains cancelled");
             event.setCancelled(true);
         }
     }

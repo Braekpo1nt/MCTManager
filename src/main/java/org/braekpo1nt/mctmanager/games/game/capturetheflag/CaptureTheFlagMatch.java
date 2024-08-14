@@ -16,6 +16,7 @@ import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.braekpo1nt.mctmanager.ui.topbar.BattleTopbar;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
+import org.braekpo1nt.mctmanager.utils.LogType;
 import org.braekpo1nt.mctmanager.utils.MaterialUtils;
 import org.bukkit.*;
 import org.bukkit.block.BlockFace;
@@ -386,6 +387,7 @@ public class CaptureTheFlagMatch implements Listener {
         if (participantsAreAlive.get(participant.getUniqueId())) {
             return;
         }
+        Main.debugLog(LogType.CANCEL_DEATH_EVENT, "CaptureTheFlagMatch.onPlayerDamage() cancelled");
         event.setCancelled(true);
     }
     

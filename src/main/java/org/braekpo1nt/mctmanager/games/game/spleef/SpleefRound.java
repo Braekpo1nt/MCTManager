@@ -12,6 +12,7 @@ import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
+import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
@@ -229,10 +230,12 @@ public class SpleefRound implements Listener {
         EntityDamageEvent.DamageCause cause = event.getCause();
         if (!cause.equals(EntityDamageEvent.DamageCause.LAVA)
                 && !cause.equals(EntityDamageEvent.DamageCause.FIRE)) {
+            Main.debugLog(LogType.CANCEL_DEATH_EVENT, "SpleefRound.onPlayerDamage()->not fire or lava cancelled");
             event.setCancelled(true);
             return;
         }
         if (!spleefHasStarted) {
+            Main.debugLog(LogType.CANCEL_DEATH_EVENT, "SpleefRound.onPlayerDamage()->!spleefHasStarted cancelled");
             event.setCancelled(true);
         }
     }

@@ -18,6 +18,7 @@ import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
+import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -358,6 +359,7 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
             return;
         }
         if (descriptionShowing) {
+            Main.debugLog(LogType.CANCEL_DEATH_EVENT, "ClockworkGame.onPlayerDamage()->descriptionShowing cancelled");
             event.setCancelled(true);
             return;
         }
