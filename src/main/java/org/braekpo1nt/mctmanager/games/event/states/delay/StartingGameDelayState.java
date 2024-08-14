@@ -22,7 +22,6 @@ public class StartingGameDelayState extends DelayState {
     public StartingGameDelayState(EventManager context, GameType gameType) {
         super(context);
         context.initializeParticipantsAndAdmins();
-        GameManager gameManager = context.getGameManager();
         Sidebar sidebar = context.getSidebar();
         Sidebar adminSidebar = context.getAdminSidebar();
         context.getTimerManager().start(Timer.builder()
