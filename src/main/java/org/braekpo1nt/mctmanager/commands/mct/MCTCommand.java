@@ -7,6 +7,7 @@ import org.braekpo1nt.mctmanager.commands.manager.SubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.Usage;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.commands.mct.admin.AdminCommand;
+import org.braekpo1nt.mctmanager.commands.mct.debug.DebugCommand;
 import org.braekpo1nt.mctmanager.commands.mct.edit.EditCommand;
 import org.braekpo1nt.mctmanager.commands.mct.event.EventCommand;
 import org.braekpo1nt.mctmanager.commands.mct.game.GameCommand;
@@ -51,6 +52,7 @@ public class MCTCommand extends MasterCommandManager {
         });
         addSubCommand(new ScoreCommand(gameManager, "score"));
         addSubCommand(new TimerCommand(gameManager, "timer"));
+        addSubCommand(new DebugCommand("debug"));
         onInit(plugin.getServer().getPluginManager());
     }
     

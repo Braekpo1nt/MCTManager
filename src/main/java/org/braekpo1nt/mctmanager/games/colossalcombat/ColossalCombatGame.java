@@ -18,7 +18,6 @@ import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.braekpo1nt.mctmanager.ui.topbar.BattleTopbar;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
@@ -129,7 +128,7 @@ public class ColossalCombatGame implements Listener, Configurable {
         gameActive = true;
         startDescriptionPeriod();
         displayDescription();
-        Bukkit.getLogger().info("Started Colossal Combat");
+        Main.logger().info("Started Colossal Combat");
     }
     
     private void displayDescription() {
@@ -303,7 +302,7 @@ public class ColossalCombatGame implements Listener, Configurable {
         deathCounts.clear();
         spectators.clear();
         gameManager.getEventManager().colossalCombatIsOver(winningTeam);
-        Bukkit.getLogger().info("Stopping Colossal Combat");
+        Main.logger().info("Stopping Colossal Combat");
     }
     
     private void resetParticipant(Player participant) {

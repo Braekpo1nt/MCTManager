@@ -143,7 +143,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
         initializeWorldBorder();
         startAdmins(newAdmins);
         state = new DescriptionState(this);
-        Bukkit.getLogger().info("Started Survival Games");
+        Main.logger().info("Started Survival Games");
     }
     
     public void initializeParticipant(Player participant) {
@@ -205,7 +205,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
         deathCounts.clear();
         gameManager.gameIsOver();
         state = null;
-        Bukkit.getLogger().info("Stopped Survival Games");
+        Main.logger().info("Stopped Survival Games");
     }
     
     @Override
@@ -460,7 +460,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
         if (!config.shouldClearContainers()) {
             return;
         }
-        Bukkit.getLogger().info("Clearing containers");
+        Main.logger().info("Clearing containers");
         List<Chunk> chunks = getChunksInBoundingBox(config.getWorld(), config.getRemoveArea());
         int count = 0;
         for (Chunk chunk : chunks) {
@@ -470,7 +470,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
                 ((InventoryHolder) blockState).getInventory().clear();
             }
         }
-        Bukkit.getLogger().info(String.format("%s chunks found, %s InventoryHolders", chunks.size(), count));
+        Main.logger().info(String.format("%s chunks found, %s InventoryHolders", chunks.size(), count));
     }
     
     public static List<Chunk> getChunksInBoundingBox(World world, BoundingBox boundingBox) {

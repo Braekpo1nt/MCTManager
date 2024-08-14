@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.commands.mct.team.preset.editor;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.commands.mct.team.AddSubCommand;
@@ -11,7 +12,6 @@ import org.braekpo1nt.mctmanager.games.gamestate.preset.Preset;
 import org.braekpo1nt.mctmanager.games.gamestate.preset.PresetStorageUtil;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
-import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
@@ -77,7 +77,7 @@ public class PresetAddSubCommand extends TabSubCommand {
             storageUtil.loadPreset();
             preset = storageUtil.getPreset();
         } catch (ConfigException e) {
-            Bukkit.getLogger().severe(String.format("Could not load preset. %s", e.getMessage()));
+            Main.logger().severe(String.format("Could not load preset. %s", e.getMessage()));
             e.printStackTrace();
             return CommandResult.failure(Component.empty()
                     .append(Component.text("Error occurred loading preset. See console for details: "))
@@ -121,7 +121,7 @@ public class PresetAddSubCommand extends TabSubCommand {
         try {
             storageUtil.savePreset();
         } catch (ConfigException e) {
-            Bukkit.getLogger().severe(String.format("Could not save preset. %s", e.getMessage()));
+            Main.logger().severe(String.format("Could not save preset. %s", e.getMessage()));
             e.printStackTrace();
             return CommandResult.failure(Component.empty()
                     .append(Component.text("Error occurred saving preset. See console for details: "))

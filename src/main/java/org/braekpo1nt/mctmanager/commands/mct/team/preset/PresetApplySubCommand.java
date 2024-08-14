@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.commands.mct.team.preset;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CompositeCommandResult;
@@ -92,7 +93,7 @@ public class PresetApplySubCommand extends TabSubCommand {
             storageUtil.loadPreset();
             preset = storageUtil.getPreset();
         } catch (ConfigException e) {
-            Bukkit.getLogger().severe(String.format("Could not load preset. %s", e.getMessage()));
+            Main.logger().severe(String.format("Could not load preset. %s", e.getMessage()));
             e.printStackTrace();
             return CommandResult.failure(Component.empty()
                     .append(Component.text("Error occurred loading preset. See console for details: "))

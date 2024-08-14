@@ -15,6 +15,7 @@ import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.braekpo1nt.mctmanager.ui.topbar.ManyBattleTopbar;
+import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.WorldBorder;
@@ -272,6 +273,7 @@ public class ActiveState implements SurvivalGamesState {
             return;
         }
         if (invulnerable) {
+            Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "SurvivalGames.ActiveState.onPlayerDamage()->invulnerable cancelled");
             event.setCancelled(true);
         }
     }

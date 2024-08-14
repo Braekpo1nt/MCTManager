@@ -2,9 +2,11 @@ package org.braekpo1nt.mctmanager.games.game.survivalgames.states;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.SurvivalGamesGame;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
+import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -98,6 +100,7 @@ public class DescriptionState implements SurvivalGamesState {
         if (event.getCause().equals(EntityDamageEvent.DamageCause.VOID)) {
             return;
         }
+        Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "SurvivalGames.DescriptionState.onPlayerDamage() cancelled");
         event.setCancelled(true);
     }
     

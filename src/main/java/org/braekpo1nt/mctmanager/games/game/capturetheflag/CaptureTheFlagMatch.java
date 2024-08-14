@@ -16,6 +16,7 @@ import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.braekpo1nt.mctmanager.ui.topbar.BattleTopbar;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
+import org.braekpo1nt.mctmanager.utils.LogType;
 import org.braekpo1nt.mctmanager.utils.MaterialUtils;
 import org.bukkit.*;
 import org.bukkit.block.BlockFace;
@@ -101,7 +102,7 @@ public class CaptureTheFlagMatch implements Listener {
     
     public void start(List<Player> newNorthParticipants, List<Player> newSouthParticipants) {
         if (newNorthParticipants.isEmpty() || newSouthParticipants.isEmpty()) {
-            Bukkit.getLogger().info(String.format("Skipping capture the flag match %s one of the teams is offline", matchPairing));
+            Main.logger().info(String.format("Skipping capture the flag match %s one of the teams is offline", matchPairing));
             matchIsOver();
             return;
         }
@@ -125,7 +126,7 @@ public class CaptureTheFlagMatch implements Listener {
         setupTeamOptions();
         matchActive = true;
         startClassSelectionPeriod();
-        Bukkit.getLogger().info(String.format("Starting capture the flag match %s", matchPairing));
+        Main.logger().info(String.format("Starting capture the flag match %s", matchPairing));
     }
     
     private void initializeParticipant(Player participant, boolean north) {
@@ -206,7 +207,7 @@ public class CaptureTheFlagMatch implements Listener {
         allParticipants.clear();
         northParticipants.clear();
         southParticipants.clear();
-        Bukkit.getLogger().info("Stopping capture the flag match " + matchPairing);
+        Main.logger().info("Stopping capture the flag match " + matchPairing);
     }
     
     private void resetArena() {
@@ -386,6 +387,7 @@ public class CaptureTheFlagMatch implements Listener {
         if (participantsAreAlive.get(participant.getUniqueId())) {
             return;
         }
+        Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "CaptureTheFlagMatch.onPlayerDamage() cancelled");
         event.setCancelled(true);
     }
     

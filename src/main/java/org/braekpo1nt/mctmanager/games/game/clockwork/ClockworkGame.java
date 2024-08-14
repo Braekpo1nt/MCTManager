@@ -18,8 +18,7 @@ import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
+import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -119,7 +118,7 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
         displayDescription();
         gameActive = true;
         startDescriptionPeriod();
-        Bukkit.getLogger().info("Started clockwork");
+        Main.logger().info("Started clockwork");
     }
     
     private void displayDescription() {
@@ -186,7 +185,7 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
         stopAdmins();
         participants.clear();
         gameManager.gameIsOver();
-        Bukkit.getLogger().info("Stopping Clockwork");
+        Main.logger().info("Stopping Clockwork");
     }
     
     private void resetParticipant(Player participant) {
@@ -360,6 +359,7 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
             return;
         }
         if (descriptionShowing) {
+            Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "ClockworkGame.onPlayerDamage()->descriptionShowing cancelled");
             event.setCancelled(true);
             return;
         }

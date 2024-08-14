@@ -2,7 +2,6 @@ package org.braekpo1nt.mctmanager.games.event;
 
 import com.google.common.base.Preconditions;
 import lombok.Data;
-import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;

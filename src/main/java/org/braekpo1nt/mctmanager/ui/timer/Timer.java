@@ -7,10 +7,10 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.title.Title;
+import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.topbar.Topbar;
-import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
@@ -259,7 +259,7 @@ public class Timer extends BukkitRunnable {
             if (sidebar.containsKey(key)) {
                 sidebar.updateLine(key, Component.empty());
             } else {
-                Bukkit.getLogger().severe(String.format("Attempted to edit the line of a sidebar which does not contain the key \"%s\" in Timer with name %s", key, name));
+                Main.logger().severe(String.format("Attempted to edit the line of a sidebar which does not contain the key \"%s\" in Timer with name %s", key, name));
             }
         }
         if (titleAudience != null) {

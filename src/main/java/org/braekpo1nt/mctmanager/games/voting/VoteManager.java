@@ -11,6 +11,7 @@ import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
+import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.Material;
@@ -311,6 +312,7 @@ public class VoteManager implements Listener {
         if (!voters.contains(voter)) {
             return;
         }
+        Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "VoteManager.onPlayerDamage() cancelled");
         event.setCancelled(true);
     }
     

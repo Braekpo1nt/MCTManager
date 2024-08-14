@@ -486,7 +486,7 @@ public class GameManager implements Listener {
         try {
             configurable.loadConfig();
         } catch (ConfigException e) {
-            Bukkit.getLogger().severe(e.getMessage());
+            Main.logger().severe(e.getMessage());
             e.printStackTrace();
             sender.sendMessage(Component.text("Error loading config file for ")
                     .append(Component.text(activeGame.getType().name())
@@ -627,7 +627,7 @@ public class GameManager implements Listener {
             try {
                 configurable.loadConfig();
             } catch (ConfigException e) {
-                Bukkit.getLogger().severe(e.getMessage());
+                Main.logger().severe(e.getMessage());
                 e.printStackTrace();
                 Component message = Component.text("Can't start ")
                         .append(Component.text(gameType.name())
@@ -689,9 +689,11 @@ public class GameManager implements Listener {
                 .append(baseTitle)
                 .append(Component.space())
                 .append(Component.empty()
+                        .append(Component.text("["))
                         .append(Component.text(currentGameNumber))
                         .append(Component.text("/"))
                         .append(Component.text(maxGames))
+                        .append(Component.text("]"))
                         .color(NamedTextColor.GRAY));
     }
     
@@ -791,7 +793,7 @@ public class GameManager implements Listener {
         try {
             selectedEditor.loadConfig();
         } catch (ConfigException e) {
-            Bukkit.getLogger().severe(e.getMessage());
+            Main.logger().severe(e.getMessage());
             e.printStackTrace();
             Component message = Component.text("Can't start ")
                     .append(Component.text(gameType.name())
@@ -831,7 +833,7 @@ public class GameManager implements Listener {
         try {
             activeEditor.configIsValid();
         } catch (ConfigException e) {
-            Bukkit.getLogger().severe(e.getMessage());
+            Main.logger().severe(e.getMessage());
             e.printStackTrace();
             sender.sendMessage(Component.text("Config is not valid for ")
                     .append(Component.text(activeEditor.getType().name())
@@ -859,7 +861,7 @@ public class GameManager implements Listener {
             try {
                 activeEditor.configIsValid();
             } catch (ConfigException e) {
-                Bukkit.getLogger().severe(e.getMessage());
+                Main.logger().severe(e.getMessage());
                 e.printStackTrace();
                 sender.sendMessage(Component.text("Config is not valid for ")
                         .append(Component.text(activeEditor.getType().name())
@@ -880,7 +882,7 @@ public class GameManager implements Listener {
         try {
             activeEditor.saveConfig();
         } catch (ConfigException e) {
-            Bukkit.getLogger().severe(e.getMessage());
+            Main.logger().severe(e.getMessage());
             e.printStackTrace();
             sender.sendMessage(Component.text("An error occurred while attempting to save the config for ")
                     .append(Component.text(activeEditor.getType().name())
@@ -898,7 +900,7 @@ public class GameManager implements Listener {
         try {
             activeEditor.loadConfig();
         } catch (ConfigException e) {
-            Bukkit.getLogger().severe(e.getMessage());
+            Main.logger().severe(e.getMessage());
             e.printStackTrace();
             Component message = Component.text("Can't start ")
                     .append(Component.text(activeEditor.getType().name())

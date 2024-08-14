@@ -2,10 +2,12 @@ package org.braekpo1nt.mctmanager.games.event.states;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
+import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -121,6 +123,7 @@ public class PodiumState implements EventState {
     
     @Override
     public void onPlayerDamage(EntityDamageEvent event) {
+        Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "EventManager.PodiumState.onPlayerDamage() cancelled");
         event.setCancelled(true);
     }
     

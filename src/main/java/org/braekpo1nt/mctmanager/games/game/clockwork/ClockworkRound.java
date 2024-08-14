@@ -11,6 +11,7 @@ import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
+import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -99,7 +100,7 @@ public class ClockworkRound implements Listener {
         startStatusEffectsTask();
         startBreatherDelay();
         chaosManager.start();
-        Bukkit.getLogger().info("Starting Clockwork Round " + roundNumber);
+        Main.logger().info("Starting Clockwork Round " + roundNumber);
     }
     
     private void initializeParticipant(Player participant) {
@@ -178,7 +179,7 @@ public class ClockworkRound implements Listener {
         participantsAreAlive.clear();
         teamsLivingMembers.clear();
         roundActive = false;
-        Bukkit.getLogger().info("Stopping Clockwork round " + roundNumber);
+        Main.logger().info("Stopping Clockwork round " + roundNumber);
     }
     
     private void resetParticipant(Player participant) {
@@ -336,6 +337,7 @@ public class ClockworkRound implements Listener {
             ParticipantInitializer.resetHealthAndHunger(participant);
             return;
         }
+        Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "ClockworkRound.onPlayerDamage() cancelled");
         event.setCancelled(true);
     }
     

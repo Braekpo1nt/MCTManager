@@ -2,7 +2,7 @@ package org.braekpo1nt.mctmanager.ui.sidebar;
 
 import fr.mrmicky.fastboard.adventure.FastBoard;
 import net.kyori.adventure.text.Component;
-import org.bukkit.Bukkit;
+import org.braekpo1nt.mctmanager.Main;
 import org.bukkit.entity.Player;
 
 import java.util.Arrays;
@@ -26,7 +26,7 @@ public class FastBoardWrapper {
         try {
             this.board = new FastBoard(player);
         } catch (ExceptionInInitializerError e) {
-            Bukkit.getLogger().severe(String.format("Critical error, unable to add player to FastBoardWrapper. Failing gracefully, see below for details. \n%s", e.getMessage()));
+            Main.logger().severe(String.format("Critical error, unable to add player to FastBoardWrapper. Failing gracefully, see below for details. \n%s", e.getMessage()));
             e.printStackTrace();
         }
     }

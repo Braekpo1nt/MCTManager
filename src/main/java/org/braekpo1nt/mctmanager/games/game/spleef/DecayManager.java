@@ -1,7 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.spleef;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.spleef.config.SpleefConfig;
 import org.braekpo1nt.mctmanager.ui.UIUtils;

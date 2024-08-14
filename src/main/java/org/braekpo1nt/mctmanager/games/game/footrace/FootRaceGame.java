@@ -21,6 +21,7 @@ import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
+import org.braekpo1nt.mctmanager.utils.LogType;
 import org.braekpo1nt.mctmanager.utils.MathUtils;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -150,7 +151,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         startStatusEffectsTask();
         setupTeamOptions();
         state = new DescriptionState(this);
-        Bukkit.getLogger().info("Starting Foot Race game");
+        Main.logger().info("Starting Foot Race game");
     }
     
     public void updateStandings() {
@@ -324,7 +325,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         currentCheckpoints.clear();
         standings.clear();
         gameManager.gameIsOver();
-        Bukkit.getLogger().info("Stopping Foot Race game");
+        Main.logger().info("Stopping Foot Race game");
     }
     
     private void cancelAllTasks() {
@@ -517,6 +518,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         if (!participants.contains(participant)) {
             return;
         }
+        Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "FootraceGame.onPlayerDamage() cancelled");
         event.setCancelled(true);
     }
     

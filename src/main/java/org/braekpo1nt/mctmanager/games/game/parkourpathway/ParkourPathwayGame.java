@@ -26,6 +26,7 @@ import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
+import org.braekpo1nt.mctmanager.utils.LogType;
 import org.braekpo1nt.mctmanager.utils.MathUtils;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -173,7 +174,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         displayDescription();
         gameActive = true;
         startDescriptionPeriod();
-        Bukkit.getLogger().info("Starting Parkour Pathway game");
+        Main.logger().info("Starting Parkour Pathway game");
     }
     
     private void displayDescription() {
@@ -277,7 +278,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         parkourHasStarted = false;
         gameActive = false;
         gameManager.gameIsOver();
-        Bukkit.getLogger().info("Stopping Parkour Pathway game");
+        Main.logger().info("Stopping Parkour Pathway game");
     }
     
     private void resetParticipant(Player participant) {
@@ -510,6 +511,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         if (!participants.contains(participant)) {
             return;
         }
+        Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "ParkourPathwayGame.onPlayerDamage() cancelled");
         event.setCancelled(true);
     }
     

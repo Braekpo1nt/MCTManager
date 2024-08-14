@@ -18,8 +18,6 @@ import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -118,7 +116,7 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
         displayDescription();
         gameActive = true;
         startNextRound();
-        Bukkit.getLogger().info("Started Spleef");
+        Main.logger().info("Started Spleef");
     }
     
     private void displayDescription() {
@@ -188,7 +186,7 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
         stopAdmins();
         participants.clear();
         gameManager.gameIsOver();
-        Bukkit.getLogger().info("Stopping Spleef");
+        Main.logger().info("Stopping Spleef");
     }
     
     private void resetParticipant(Player participant) {

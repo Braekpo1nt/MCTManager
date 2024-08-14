@@ -17,8 +17,6 @@ import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.topbar.BattleTopbar;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -120,7 +118,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         firstRound = true;
         List<String> teams = gameManager.getTeamNames(participants);
         roundManager.start(teams);
-        Bukkit.getLogger().info("Starting Capture the Flag");
+        Main.logger().info("Starting Capture the Flag");
     }
     
     private void displayDescription() {
@@ -183,7 +181,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         stopAdmins();
         participants.clear();
         gameManager.gameIsOver();
-        Bukkit.getLogger().info("Stopping Capture the Flag");
+        Main.logger().info("Stopping Capture the Flag");
     }
     
     private void cancelAllTasks() {

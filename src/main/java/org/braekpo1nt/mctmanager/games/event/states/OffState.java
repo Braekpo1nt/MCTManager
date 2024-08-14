@@ -6,13 +6,13 @@ import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.title.Title;
+import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.event.EventManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -71,7 +71,7 @@ public class OffState implements EventState {
         try {
             context.setConfig(context.getConfigController().getConfig());
         } catch (ConfigException e) {
-            Bukkit.getLogger().severe(e.getMessage());
+            Main.logger().severe(e.getMessage());
             e.printStackTrace();
             sender.sendMessage(Component.text("Can't start event. Error loading config file. See console for details:\n")
                     .append(Component.text(e.getMessage()))
@@ -209,7 +209,7 @@ public class OffState implements EventState {
         try {
             context.getColossalCombatGame().loadConfig();
         } catch (ConfigException e) {
-            Bukkit.getLogger().severe(e.getMessage());
+            Main.logger().severe(e.getMessage());
             e.printStackTrace();
             sender.sendMessage(Component.text("Error loading config file. See console for details.")
                     .color(NamedTextColor.RED));

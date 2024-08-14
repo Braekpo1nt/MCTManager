@@ -51,7 +51,10 @@ public class Validator {
     /**
      * 
      * @param expression the expression to evaluate. 
-     * @param invalidMessage the message to report if the expression is false. Must be a valid {@link String#format(String, Object...)} string. The provided args will be used as the {code Object...} arguments of the format string.
+     * @param invalidMessage the message to report if the expression is false. 
+     *                       Must be a valid {@link String#format(String, Object...)} string. 
+     *                       The provided args will be used as the {code Object...} 
+     *                       arguments of the format string.
      * @param args the args the arguments of the {@link String#format(String, Object...)} which uses the invalidMessage as the pattern.
      * @see Validator#validate(boolean, String) 
      */

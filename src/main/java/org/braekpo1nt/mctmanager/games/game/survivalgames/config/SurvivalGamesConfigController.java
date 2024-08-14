@@ -1,11 +1,11 @@
 package org.braekpo1nt.mctmanager.games.game.survivalgames.config;
 
+import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.ConfigController;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
-import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -34,7 +34,7 @@ public class SurvivalGamesConfigController extends ConfigController<SurvivalGame
                     if (!legacyMechaConfigFile.exists()) {
                         throw new ConfigIOException(String.format("Could not find config file %s", configFile));
                     } else {
-                        Bukkit.getLogger().info(String.format("Using legacy config file %s", legacyMechaConfigFile));
+                        Main.logger().info(String.format("Using legacy config file %s", legacyMechaConfigFile));
                         configFileToParse = legacyMechaConfigFile;
                     }
                 } catch (SecurityException e) {
