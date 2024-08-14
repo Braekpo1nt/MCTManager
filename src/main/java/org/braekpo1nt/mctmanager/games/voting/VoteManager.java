@@ -312,7 +312,7 @@ public class VoteManager implements Listener {
         if (!voters.contains(voter)) {
             return;
         }
-        Main.debugLog(LogType.CANCEL_DEATH_EVENT, "VoteManager.onPlayerDamage() cancelled");
+        Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "VoteManager.onPlayerDamage() cancelled");
         event.setCancelled(true);
     }
     

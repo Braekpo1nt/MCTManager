@@ -342,7 +342,7 @@ public class ReadyUpState implements EventState {
     
     @Override
     public void onPlayerDamage(EntityDamageEvent event) {
-        Main.debugLog(LogType.CANCEL_DEATH_EVENT, "ReadyUpState.onPlayerDamage() cancelled");
+        Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "ReadyUpState.onPlayerDamage() cancelled");
         event.setCancelled(true);
     }
     

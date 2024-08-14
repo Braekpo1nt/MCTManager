@@ -511,7 +511,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         if (!participants.contains(participant)) {
             return;
         }
-        Main.debugLog(LogType.CANCEL_DEATH_EVENT, "ParkourPathwayGame.onPlayerDamage() cancelled");
+        Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "ParkourPathwayGame.onPlayerDamage() cancelled");
         event.setCancelled(true);
     }
     

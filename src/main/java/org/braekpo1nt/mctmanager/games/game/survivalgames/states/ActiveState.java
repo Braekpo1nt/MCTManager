@@ -273,7 +273,7 @@ public class ActiveState implements SurvivalGamesState {
             return;
         }
         if (invulnerable) {
-            Main.debugLog(LogType.CANCEL_DEATH_EVENT, "SurvivalGames.ActiveState.onPlayerDamage()->invulnerable cancelled");
+            Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "SurvivalGames.ActiveState.onPlayerDamage()->invulnerable cancelled");
             event.setCancelled(true);
         }
     }

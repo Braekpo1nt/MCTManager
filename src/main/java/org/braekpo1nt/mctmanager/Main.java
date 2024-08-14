@@ -68,7 +68,7 @@ public class Main extends JavaPlugin {
      * @see #setLogTypeActive(LogType, boolean)
      */
     public static void debugLog(@NotNull LogType logType, @NotNull String message) {
-        if (logTypeActive.get(logType)) {
+        if (logTypeActive.getOrDefault(logType, false)) {
             Main.logger().info(message);
         }
     }

@@ -100,7 +100,7 @@ public class DescriptionState implements SurvivalGamesState {
         if (event.getCause().equals(EntityDamageEvent.DamageCause.VOID)) {
             return;
         }
-        Main.debugLog(LogType.CANCEL_DEATH_EVENT, "SurvivalGames.DescriptionState.onPlayerDamage() cancelled");
+        Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "SurvivalGames.DescriptionState.onPlayerDamage() cancelled");
         event.setCancelled(true);
     }
     

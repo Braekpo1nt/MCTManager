@@ -337,7 +337,7 @@ public class ClockworkRound implements Listener {
             ParticipantInitializer.resetHealthAndHunger(participant);
             return;
         }
-        Main.debugLog(LogType.CANCEL_DEATH_EVENT, "ClockworkRound.onPlayerDamage() cancelled");
+        Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "ClockworkRound.onPlayerDamage() cancelled");
         event.setCancelled(true);
     }
     

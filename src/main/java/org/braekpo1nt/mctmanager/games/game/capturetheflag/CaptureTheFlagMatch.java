@@ -387,7 +387,7 @@ public class CaptureTheFlagMatch implements Listener {
         if (participantsAreAlive.get(participant.getUniqueId())) {
             return;
         }
-        Main.debugLog(LogType.CANCEL_DEATH_EVENT, "CaptureTheFlagMatch.onPlayerDamage() cancelled");
+        Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "CaptureTheFlagMatch.onPlayerDamage() cancelled");
         event.setCancelled(true);
     }
     

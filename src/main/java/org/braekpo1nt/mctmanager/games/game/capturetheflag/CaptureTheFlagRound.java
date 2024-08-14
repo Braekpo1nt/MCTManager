@@ -320,7 +320,7 @@ public class CaptureTheFlagRound {
             return;
         }
         if (onDeckParticipants.contains(participant)) {
-            Main.debugLog(LogType.CANCEL_DEATH_EVENT, "CaptureTheFlagRound.onPlayerDamage()->onDeck cancelled");
+            Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "CaptureTheFlagRound.onPlayerDamage()->onDeck cancelled");
             event.setCancelled(true);
             return;
         }
@@ -328,19 +328,19 @@ public class CaptureTheFlagRound {
             return;
         }
         if (descriptionShowing) {
-            Main.debugLog(LogType.CANCEL_DEATH_EVENT, "CaptureTheFlagRound.onPlayerDamage()->descriptionShowing cancelled");
+            Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "CaptureTheFlagRound.onPlayerDamage()->descriptionShowing cancelled");
             event.setCancelled(true);
             return;
         }
         if (!matchesStarted) {
-            Main.debugLog(LogType.CANCEL_DEATH_EVENT, "CaptureTheFlagRound.onPlayerDamage()->!matchesStarted cancelled");
+            Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "CaptureTheFlagRound.onPlayerDamage()->!matchesStarted cancelled");
             event.setCancelled(true);
             return;
         }
         String teamId = gameManager.getTeamName(participant.getUniqueId());
         CaptureTheFlagMatch match = this.getMatch(teamId);
         if (match == null || !match.isActive()) {
-            Main.debugLog(LogType.CANCEL_DEATH_EVENT, "CaptureTheFlagRound.onPlayerDamage()->matchNotActive cancelled");
+            Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "CaptureTheFlagRound.onPlayerDamage()->matchNotActive cancelled");
             // the match is over or the player is on-deck/spectating
             event.setCancelled(true);
         } else {

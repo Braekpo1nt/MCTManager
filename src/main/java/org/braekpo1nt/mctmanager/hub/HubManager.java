@@ -248,12 +248,12 @@ public class HubManager implements Listener, Configurable {
             return;
         }
         if (participants.contains(participant)) {
-            Main.debugLog(LogType.CANCEL_DEATH_EVENT, "HubManager.onPlayerDamage()->participant contains cancelled");
+            Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "HubManager.onPlayerDamage()->participant contains cancelled");
             event.setCancelled(true);
             return;
         }
         if (headingToHub.contains(participant)) {
-            Main.debugLog(LogType.CANCEL_DEATH_EVENT, "HubManager.onPlayerDamage()->headingToHub contains cancelled");
+            Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "HubManager.onPlayerDamage()->headingToHub contains cancelled");
             event.setCancelled(true);
         }
     }

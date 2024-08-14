@@ -359,7 +359,7 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
             return;
         }
         if (descriptionShowing) {
-            Main.debugLog(LogType.CANCEL_DEATH_EVENT, "ClockworkGame.onPlayerDamage()->descriptionShowing cancelled");
+            Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "ClockworkGame.onPlayerDamage()->descriptionShowing cancelled");
             event.setCancelled(true);
             return;
         }

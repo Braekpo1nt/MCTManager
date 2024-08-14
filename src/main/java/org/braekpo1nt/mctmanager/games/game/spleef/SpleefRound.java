@@ -230,12 +230,12 @@ public class SpleefRound implements Listener {
         EntityDamageEvent.DamageCause cause = event.getCause();
         if (!cause.equals(EntityDamageEvent.DamageCause.LAVA)
                 && !cause.equals(EntityDamageEvent.DamageCause.FIRE)) {
-            Main.debugLog(LogType.CANCEL_DEATH_EVENT, "SpleefRound.onPlayerDamage()->not fire or lava cancelled");
+            Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "SpleefRound.onPlayerDamage()->not fire or lava cancelled");
             event.setCancelled(true);
             return;
         }
         if (!spleefHasStarted) {
-            Main.debugLog(LogType.CANCEL_DEATH_EVENT, "SpleefRound.onPlayerDamage()->!spleefHasStarted cancelled");
+            Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "SpleefRound.onPlayerDamage()->!spleefHasStarted cancelled");
             event.setCancelled(true);
         }
     }

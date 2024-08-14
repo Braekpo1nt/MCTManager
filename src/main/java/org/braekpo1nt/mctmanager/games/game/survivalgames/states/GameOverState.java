@@ -70,7 +70,7 @@ public class GameOverState implements SurvivalGamesState {
         if (event.getCause().equals(EntityDamageEvent.DamageCause.VOID)) {
             return;
         }
-        Main.debugLog(LogType.CANCEL_DEATH_EVENT, "SurvivalGames.GameOverState.onPlayerDamage() cancelled");
+        Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "SurvivalGames.GameOverState.onPlayerDamage() cancelled");
         event.setCancelled(true);
     }
     

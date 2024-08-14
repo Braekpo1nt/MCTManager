@@ -518,7 +518,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         if (!participants.contains(participant)) {
             return;
         }
-        Main.debugLog(LogType.CANCEL_DEATH_EVENT, "FootraceGame.onPlayerDamage() cancelled");
+        Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "FootraceGame.onPlayerDamage() cancelled");
         event.setCancelled(true);
     }
     

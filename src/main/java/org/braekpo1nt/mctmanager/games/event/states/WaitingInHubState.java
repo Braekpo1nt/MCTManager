@@ -106,7 +106,7 @@ public class WaitingInHubState implements EventState {
     
     @Override
     public void onPlayerDamage(EntityDamageEvent event) {
-        Main.debugLog(LogType.CANCEL_DEATH_EVENT, "WaitingInHubState.onPlayerDamage() cancelled");
+        Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "WaitingInHubState.onPlayerDamage() cancelled");
         event.setCancelled(true);
     }
     

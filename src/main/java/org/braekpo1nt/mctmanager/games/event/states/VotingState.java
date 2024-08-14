@@ -76,7 +76,7 @@ public class VotingState implements EventState {
     
     @Override
     public void onPlayerDamage(EntityDamageEvent event) {
-        Main.debugLog(LogType.CANCEL_DEATH_EVENT, "VotingState.onPlayerDamage() cancelled");
+        Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "VotingState.onPlayerDamage() cancelled");
         event.setCancelled(true);
     }
     
