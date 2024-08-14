@@ -31,15 +31,14 @@ public class VotingState implements EventState {
         this.voteManager = context.getVoteManager();
         List<GameType> votingPool = new ArrayList<>(List.of(GameType.values()));
         votingPool.removeAll(context.getPlayedGames());
-        for (Player participant : context.getParticipants()) {
-            context.getSidebar().removePlayer(participant);
-        }
-        for (Player admin : context.getAdmins()) {
-            context.getAdminSidebar().removePlayer(admin);
-        }
-        voteManager.startVote(context.getParticipants(), votingPool, context.getConfig().getVotingDuration(), this::startingGameDelay, context.getAdmins());
+        context.getSidebar().removeAllPlayers();
+        context.getAdminSidebar().removeAllPlayers();
+        List<Player> participantsCopy = new ArrayList<>(context.getParticipants());
+        List<Player> adminCopy = new ArrayList<>(context.getAdmins());
         context.getParticipants().clear();
         context.getAdmins().clear();
+        voteManager.startVote(participantsCopy, votingPool, context.getConfig().getVotingDuration(), 
+                this::startingGameDelay, adminCopy);
     }
     
     private void startingGameDelay(GameType gameType) {

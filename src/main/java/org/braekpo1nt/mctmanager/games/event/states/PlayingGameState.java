@@ -33,15 +33,9 @@ public class PlayingGameState implements EventState {
     }
     
     protected void startGame(EventManager context, GameType gameType) {
-        Sidebar sidebar = context.getSidebar();
-        Sidebar adminSidebar = context.getAdminSidebar();
         createScoreKeeperForGame(gameType);
-        for (Player participant : context.getParticipants()) {
-            sidebar.removePlayer(participant);
-        }
-        for (Player admin : context.getAdmins()) {
-            adminSidebar.removePlayer(admin);
-        }
+        context.getSidebar().removeAllPlayers();
+        context.getAdminSidebar().removeAllPlayers();
         context.getParticipants().clear();
         context.getAdmins().clear();
         boolean gameStarted = gameManager.startGame(gameType, Bukkit.getConsoleSender());
