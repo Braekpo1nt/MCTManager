@@ -689,9 +689,11 @@ public class GameManager implements Listener {
                 .append(baseTitle)
                 .append(Component.space())
                 .append(Component.empty()
+                        .append(Component.text("["))
                         .append(Component.text(currentGameNumber))
                         .append(Component.text("/"))
                         .append(Component.text(maxGames))
+                        .append(Component.text("]"))
                         .color(NamedTextColor.GRAY));
     }
     
