@@ -99,7 +99,7 @@ public class ClockworkRound implements Listener {
         startStatusEffectsTask();
         startBreatherDelay();
         chaosManager.start();
-        Bukkit.getLogger().info("Starting Clockwork Round " + roundNumber);
+        Main.logger().info("Starting Clockwork Round " + roundNumber);
     }
     
     private void initializeParticipant(Player participant) {
@@ -178,7 +178,7 @@ public class ClockworkRound implements Listener {
         participantsAreAlive.clear();
         teamsLivingMembers.clear();
         roundActive = false;
-        Bukkit.getLogger().info("Stopping Clockwork round " + roundNumber);
+        Main.logger().info("Stopping Clockwork round " + roundNumber);
     }
     
     private void resetParticipant(Player participant) {

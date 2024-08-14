@@ -71,7 +71,7 @@ public class OffState implements EventState {
         try {
             context.setConfig(context.getConfigController().getConfig());
         } catch (ConfigException e) {
-            Bukkit.getLogger().severe(e.getMessage());
+            Main.logger().severe(e.getMessage());
             e.printStackTrace();
             sender.sendMessage(Component.text("Can't start event. Error loading config file. See console for details:\n")
                     .append(Component.text(e.getMessage()))
@@ -209,7 +209,7 @@ public class OffState implements EventState {
         try {
             context.getColossalCombatGame().loadConfig();
         } catch (ConfigException e) {
-            Bukkit.getLogger().severe(e.getMessage());
+            Main.logger().severe(e.getMessage());
             e.printStackTrace();
             sender.sendMessage(Component.text("Error loading config file. See console for details.")
                     .color(NamedTextColor.RED));

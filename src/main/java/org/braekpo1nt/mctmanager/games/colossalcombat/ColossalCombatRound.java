@@ -108,7 +108,7 @@ public class ColossalCombatRound implements Listener {
         if (shouldStartCaptureTheFlag()) {
             startCaptureTheFlagCountdown();
         }
-        Bukkit.getLogger().info("Starting Colossal Combat round");
+        Main.logger().info("Starting Colossal Combat round");
     }
     
     private void initializeFirstPlaceParticipant(Player first) {
@@ -198,7 +198,7 @@ public class ColossalCombatRound implements Listener {
         spectators.clear();
         firstTeamName = null;
         secondTeamName = null;
-        Bukkit.getLogger().info("Stopping Colossal Combat round");
+        Main.logger().info("Stopping Colossal Combat round");
     }
     
     private void resetArena() {

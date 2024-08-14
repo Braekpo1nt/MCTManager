@@ -173,7 +173,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         displayDescription();
         gameActive = true;
         startDescriptionPeriod();
-        Bukkit.getLogger().info("Starting Parkour Pathway game");
+        Main.logger().info("Starting Parkour Pathway game");
     }
     
     private void displayDescription() {
@@ -277,7 +277,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         parkourHasStarted = false;
         gameActive = false;
         gameManager.gameIsOver();
-        Bukkit.getLogger().info("Stopping Parkour Pathway game");
+        Main.logger().info("Stopping Parkour Pathway game");
     }
     
     private void resetParticipant(Player participant) {

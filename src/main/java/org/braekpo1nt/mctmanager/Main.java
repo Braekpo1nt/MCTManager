@@ -20,6 +20,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 
 import java.util.List;
+import java.util.logging.Logger;
 
 public class Main extends JavaPlugin {
 
@@ -37,14 +38,22 @@ public class Main extends JavaPlugin {
     private boolean saveGameStateOnDisable = true;
     public final static PotionEffect NIGHT_VISION = new PotionEffect(PotionEffectType.NIGHT_VISION, 300, 3, true, false, false);
     private MCTCommand mctCommand;
+    private static Logger logger;
     
     protected GameManager initialGameManager(Scoreboard mctScoreboard) {
         return new GameManager(this, mctScoreboard);
     }
     
+    /**
+     * @return the plugin's logger
+     */
+    public static Logger logger() {
+        return Main.logger;
+    }
+    
     @Override
     public void onEnable() {
-        
+        Main.logger = this.getLogger();
         Scoreboard mctScoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
         ParticipantInitializer.setPlugin(this); //TODO: remove this in favor of death and respawn combination 
         
@@ -52,7 +61,7 @@ public class Main extends JavaPlugin {
         try {
             gameManager.loadHubConfig();
         } catch (ConfigException e) {
-            Bukkit.getLogger().severe(String.format("[MCTManager] Could not load hub config, see console for details. %s", e.getMessage()));
+            Main.logger().severe(String.format("[MCTManager] Could not load hub config, see console for details. %s", e.getMessage()));
             e.printStackTrace();
             saveGameStateOnDisable = false;
             Bukkit.getPluginManager().disablePlugin(this);
@@ -60,7 +69,7 @@ public class Main extends JavaPlugin {
         }
         boolean ableToLoadGameSate = gameManager.loadGameState();
         if (!ableToLoadGameSate) {
-            Bukkit.getLogger().severe("[MCTManager] Could not load game state from memory. Disabling plugin.");
+            Main.logger().severe("[MCTManager] Could not load game state from memory. Disabling plugin.");
             saveGameStateOnDisable = false;
             Bukkit.getPluginManager().disablePlugin(this);
             return;
@@ -84,7 +93,7 @@ public class Main extends JavaPlugin {
     }
     
     private void alwaysGiveNightVision() {
-        Bukkit.getLogger().info("[MCTManager] Night vision activated");
+        Main.logger().info("[MCTManager] Night vision activated");
         new BukkitRunnable() {
             @Override
             public void run() {
@@ -115,7 +124,7 @@ public class Main extends JavaPlugin {
             }
             gameManager.saveGameState();
         } else {
-            Bukkit.getLogger().info("[MCTManager] Skipping save game state.");
+            Main.logger().info("[MCTManager] Skipping save game state.");
         }
     }
     

@@ -120,7 +120,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         firstRound = true;
         List<String> teams = gameManager.getTeamNames(participants);
         roundManager.start(teams);
-        Bukkit.getLogger().info("Starting Capture the Flag");
+        Main.logger().info("Starting Capture the Flag");
     }
     
     private void displayDescription() {
@@ -183,7 +183,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         stopAdmins();
         participants.clear();
         gameManager.gameIsOver();
-        Bukkit.getLogger().info("Stopping Capture the Flag");
+        Main.logger().info("Stopping Capture the Flag");
     }
     
     private void cancelAllTasks() {

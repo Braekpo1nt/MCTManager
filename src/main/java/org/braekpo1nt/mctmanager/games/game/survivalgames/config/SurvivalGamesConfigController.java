@@ -34,7 +34,7 @@ public class SurvivalGamesConfigController extends ConfigController<SurvivalGame
                     if (!legacyMechaConfigFile.exists()) {
                         throw new ConfigIOException(String.format("Could not find config file %s", configFile));
                     } else {
-                        Bukkit.getLogger().info(String.format("Using legacy config file %s", legacyMechaConfigFile));
+                        Main.logger().info(String.format("Using legacy config file %s", legacyMechaConfigFile));
                         configFileToParse = legacyMechaConfigFile;
                     }
                 } catch (SecurityException e) {

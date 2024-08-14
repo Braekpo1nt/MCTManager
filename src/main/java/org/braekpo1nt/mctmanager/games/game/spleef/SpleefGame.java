@@ -118,7 +118,7 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
         displayDescription();
         gameActive = true;
         startNextRound();
-        Bukkit.getLogger().info("Started Spleef");
+        Main.logger().info("Started Spleef");
     }
     
     private void displayDescription() {
@@ -188,7 +188,7 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
         stopAdmins();
         participants.clear();
         gameManager.gameIsOver();
-        Bukkit.getLogger().info("Stopping Spleef");
+        Main.logger().info("Stopping Spleef");
     }
     
     private void resetParticipant(Player participant) {

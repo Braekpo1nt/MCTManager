@@ -119,7 +119,7 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
         displayDescription();
         gameActive = true;
         startDescriptionPeriod();
-        Bukkit.getLogger().info("Started clockwork");
+        Main.logger().info("Started clockwork");
     }
     
     private void displayDescription() {
@@ -186,7 +186,7 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
         stopAdmins();
         participants.clear();
         gameManager.gameIsOver();
-        Bukkit.getLogger().info("Stopping Clockwork");
+        Main.logger().info("Stopping Clockwork");
     }
     
     private void resetParticipant(Player participant) {

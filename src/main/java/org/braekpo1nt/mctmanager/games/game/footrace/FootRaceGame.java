@@ -150,7 +150,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         startStatusEffectsTask();
         setupTeamOptions();
         state = new DescriptionState(this);
-        Bukkit.getLogger().info("Starting Foot Race game");
+        Main.logger().info("Starting Foot Race game");
     }
     
     public void updateStandings() {
@@ -324,7 +324,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         currentCheckpoints.clear();
         standings.clear();
         gameManager.gameIsOver();
-        Bukkit.getLogger().info("Stopping Foot Race game");
+        Main.logger().info("Stopping Foot Race game");
     }
     
     private void cancelAllTasks() {

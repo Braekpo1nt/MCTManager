@@ -248,7 +248,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
             selectPuzzle(participant, 0, false);
         }
         editorStarted = true;
-        Bukkit.getLogger().info("Starting Parkour Pathway editor");
+        Main.logger().info("Starting Parkour Pathway editor");
     }
     
     public void initializeParticipant(Player participant) {
@@ -279,7 +279,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
         currentInBounds.clear();
         displays.clear();
         displayWalls = true;
-        Bukkit.getLogger().info("Stopping Parkour Pathway editor");
+        Main.logger().info("Stopping Parkour Pathway editor");
     }
     
     private void resetParticipant(Player participant) {

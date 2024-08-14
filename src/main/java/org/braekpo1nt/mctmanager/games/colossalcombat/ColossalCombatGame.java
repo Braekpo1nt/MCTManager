@@ -129,7 +129,7 @@ public class ColossalCombatGame implements Listener, Configurable {
         gameActive = true;
         startDescriptionPeriod();
         displayDescription();
-        Bukkit.getLogger().info("Started Colossal Combat");
+        Main.logger().info("Started Colossal Combat");
     }
     
     private void displayDescription() {
@@ -303,7 +303,7 @@ public class ColossalCombatGame implements Listener, Configurable {
         deathCounts.clear();
         spectators.clear();
         gameManager.getEventManager().colossalCombatIsOver(winningTeam);
-        Bukkit.getLogger().info("Stopping Colossal Combat");
+        Main.logger().info("Stopping Colossal Combat");
     }
     
     private void resetParticipant(Player participant) {

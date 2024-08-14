@@ -96,7 +96,7 @@ public class SpleefRound implements Listener {
         } else {
             startRoundStartingCountDown();
         }
-        Bukkit.getLogger().info("Starting Spleef round");
+        Main.logger().info("Starting Spleef round");
     }
     
     private void initializeParticipant(Player participant) {
@@ -152,7 +152,7 @@ public class SpleefRound implements Listener {
         clearAdminSidebar();
         participants.clear();
         participantsAlive.clear();
-        Bukkit.getLogger().info("Stopping Spleef round");
+        Main.logger().info("Stopping Spleef round");
     }
     
     public boolean isActive() {

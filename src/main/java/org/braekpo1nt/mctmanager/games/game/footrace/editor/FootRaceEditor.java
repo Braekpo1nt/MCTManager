@@ -120,7 +120,7 @@ public class FootRaceEditor implements GameEditor, Configurable, Listener {
             selectCheckpoint(newParticipant, 0, false);
         }
         editorStarted = true;
-        Bukkit.getLogger().info("Starting Foot Race editor");
+        Main.logger().info("Starting Foot Race editor");
     }
     
     private void initializeParticipant(Player participant) {
@@ -208,7 +208,7 @@ public class FootRaceEditor implements GameEditor, Configurable, Listener {
         participants.clear();
         currentCheckpoints.clear();
         displays.clear();
-        Bukkit.getLogger().info("Stopping Foot Race editor");
+        Main.logger().info("Stopping Foot Race editor");
     }
     
     private void resetParticipant(Player participant) {

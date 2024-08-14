@@ -24,7 +24,7 @@ public class HubLoadSubCommand extends SubCommand {
         try {
             gameManager.loadHubConfig();
         } catch (ConfigException e) {
-            Bukkit.getLogger().severe(String.format("Could not load hubConfig. %s", e.getMessage()));
+            Main.logger().severe(String.format("Could not load hubConfig. %s", e.getMessage()));
             e.printStackTrace();
             return CommandResult.failure(Component.empty()
                     .append(Component.text("Error occurred loading hubConfig. See console for details: "))

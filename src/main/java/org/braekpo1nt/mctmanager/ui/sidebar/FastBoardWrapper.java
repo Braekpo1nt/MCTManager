@@ -26,7 +26,7 @@ public class FastBoardWrapper {
         try {
             this.board = new FastBoard(player);
         } catch (ExceptionInInitializerError e) {
-            Bukkit.getLogger().severe(String.format("Critical error, unable to add player to FastBoardWrapper. Failing gracefully, see below for details. \n%s", e.getMessage()));
+            Main.logger().severe(String.format("Critical error, unable to add player to FastBoardWrapper. Failing gracefully, see below for details. \n%s", e.getMessage()));
             e.printStackTrace();
         }
     }

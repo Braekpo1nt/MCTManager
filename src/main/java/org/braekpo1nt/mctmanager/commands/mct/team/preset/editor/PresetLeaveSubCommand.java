@@ -48,7 +48,7 @@ public class PresetLeaveSubCommand extends TabSubCommand {
             storageUtil.loadPreset();
             preset = storageUtil.getPreset();
         } catch (ConfigException e) {
-            Bukkit.getLogger().severe(String.format("Could not load preset. %s", e.getMessage()));
+            Main.logger().severe(String.format("Could not load preset. %s", e.getMessage()));
             e.printStackTrace();
             return CommandResult.failure(Component.empty()
                     .append(Component.text("Error occurred loading preset. See console for details: "))
@@ -65,7 +65,7 @@ public class PresetLeaveSubCommand extends TabSubCommand {
         try {
             storageUtil.savePreset();
         } catch (ConfigException e) {
-            Bukkit.getLogger().severe(String.format("Could not save preset. %s", e.getMessage()));
+            Main.logger().severe(String.format("Could not save preset. %s", e.getMessage()));
             e.printStackTrace();
             return CommandResult.failure(Component.empty()
                     .append(Component.text("Error occurred saving preset. See console for details: "))

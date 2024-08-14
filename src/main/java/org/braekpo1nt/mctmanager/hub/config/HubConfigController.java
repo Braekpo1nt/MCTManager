@@ -52,7 +52,7 @@ public class HubConfigController extends ConfigController<HubConfigDTO> {
     public @NotNull HubConfigDTO loadConfigDTO(@NotNull File configFile, @NotNull Class<HubConfigDTO> configType) throws ConfigInvalidException, ConfigIOException {
         if (!configFile.exists()) {
             HubConfigDTO defaultConfigDTO = createDefaultConfig();
-            Bukkit.getLogger().warning(String.format("hubConfig.json not found, creating default: %s.", configFile));
+            Main.logger().warning(String.format("hubConfig.json not found, creating default: %s.", configFile));
             saveConfigDTO(defaultConfigDTO, configFile);
         }
         return super.loadConfigDTO(configFile, configType);

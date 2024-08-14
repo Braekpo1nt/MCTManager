@@ -159,7 +159,7 @@ public class EventManager implements Listener {
                 .append(Component.text(" games were played."));
         sender.sendMessage(message);
         messageAllAdmins(message);
-        Bukkit.getLogger().info(String.format("Ending event. %d/%d games were played", currentGameNumber - 1, maxGames));
+        Main.logger().info(String.format("Ending event. %d/%d games were played", currentGameNumber - 1, maxGames));
         if (colossalCombatGame.isActive()) {
             colossalCombatGame.stop(null);
         }

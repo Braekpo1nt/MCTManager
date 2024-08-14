@@ -38,7 +38,7 @@ public class PlayingColossalCombatState extends PlayingGameState {
         try {
             context.getColossalCombatGame().loadConfig();
         } catch (ConfigException e) {
-            Bukkit.getLogger().severe(e.getMessage());
+            Main.logger().severe(e.getMessage());
             e.printStackTrace();
             context.messageAllAdmins(Component.text("Can't start ")
                     .append(Component.text("Colossal Combat")

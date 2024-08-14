@@ -259,7 +259,7 @@ public class Timer extends BukkitRunnable {
             if (sidebar.containsKey(key)) {
                 sidebar.updateLine(key, Component.empty());
             } else {
-                Bukkit.getLogger().severe(String.format("Attempted to edit the line of a sidebar which does not contain the key \"%s\" in Timer with name %s", key, name));
+                Main.logger().severe(String.format("Attempted to edit the line of a sidebar which does not contain the key \"%s\" in Timer with name %s", key, name));
             }
         }
         if (titleAudience != null) {
