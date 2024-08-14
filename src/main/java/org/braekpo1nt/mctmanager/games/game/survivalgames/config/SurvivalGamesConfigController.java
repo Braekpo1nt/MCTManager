@@ -1,11 +1,11 @@
 package org.braekpo1nt.mctmanager.games.game.survivalgames.config;
 
+import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.ConfigController;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
-import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;

@@ -2,7 +2,7 @@ package org.braekpo1nt.mctmanager.ui.sidebar;
 
 import fr.mrmicky.fastboard.adventure.FastBoard;
 import net.kyori.adventure.text.Component;
-import org.bukkit.Bukkit;
+import org.braekpo1nt.mctmanager.Main;
 import org.bukkit.entity.Player;
 
 import java.util.Arrays;

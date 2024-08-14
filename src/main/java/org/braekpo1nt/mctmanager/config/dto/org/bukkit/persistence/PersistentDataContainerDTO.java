@@ -4,7 +4,6 @@ import lombok.Data;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.NamespacedKeyDTO;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
-import org.bukkit.Bukkit;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
