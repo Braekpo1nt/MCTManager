@@ -1,9 +1,10 @@
 package org.braekpo1nt.mctmanager.ui.topbar;
 
-import com.google.common.base.Preconditions;
 import net.kyori.adventure.text.Component;
+import org.braekpo1nt.mctmanager.Main;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.List;
@@ -23,9 +24,11 @@ public class BasicTopbar implements Topbar {
      * @return the {@link PlayerData} associated with this UUID
      * @throws IllegalArgumentException if the UUID is not contained in {@link BasicTopbar#playerDatas}
      */
-    protected @NotNull PlayerData getPlayerData(@NotNull UUID playerUUID) {
+    protected @Nullable PlayerData getPlayerData(@NotNull UUID playerUUID) {
         PlayerData playerData = playerDatas.get(playerUUID);
-        Preconditions.checkArgument(playerData != null, "player with UUID \"%s\" does not exist in this BattleTopbar", playerUUID);
+        if (playerData == null) {
+            logUIError("player with UUID \"%s\" does not exist in this BattleTopbar", playerUUID);
+        }
         return playerData;
     }
     
@@ -45,7 +48,10 @@ public class BasicTopbar implements Topbar {
     @Override
     public void hidePlayer(@NotNull UUID playerUUID) {
         PlayerData playerData = playerDatas.remove(playerUUID);
-        Preconditions.checkArgument(playerData != null, "player with UUID \"%s\" does not exist in this BattleTopbar", playerUUID);
+        if (playerData == null) {
+            logUIError("player with UUID \"%s\" does not exist in this BattleTopbar", playerUUID);
+            return;
+        }
         playerData.getBossBar().hide();
     }
     
@@ -85,6 +91,9 @@ public class BasicTopbar implements Topbar {
     @Override
     public void setLeft(@NotNull UUID playerUUID, @NotNull Component left) {
         PlayerData playerData = getPlayerData(playerUUID);
+        if (playerData == null) {
+            return;
+        }
         playerData.getBossBar().setLeft(left);
     }
     
@@ -104,6 +113,9 @@ public class BasicTopbar implements Topbar {
     @Override
     public void setMiddle(@NotNull UUID playerUUID, @NotNull Component middle) {
         PlayerData playerData = getPlayerData(playerUUID);
+        if (playerData == null) {
+            return;
+        }
         playerData.getBossBar().setMiddle(middle);
     }
     
@@ -123,7 +135,18 @@ public class BasicTopbar implements Topbar {
     @Override
     public void setRight(@NotNull UUID playerUUID, @NotNull Component right) {
         PlayerData playerData = getPlayerData(playerUUID);
+        if (playerData == null) {
+            return;
+        }
         playerData.getBossBar().setRight(right);
     }
     
+    /**
+     * Log a UI error
+     * @param reason the reason for the error (a {@link String#format(String, Object...)} template
+     * @param args optional args for the reason format string
+     */
+    private void logUIError(@NotNull String reason, Object... args) {
+        Main.logger().severe(String.format(reason, args));
+    }
 }
