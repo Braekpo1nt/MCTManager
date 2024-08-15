@@ -92,7 +92,6 @@ public class BattleTopbar implements Topbar {
     /**
      * @param teamId the teamId of the TeamData. Must be a valid key in {@link BattleTopbar#teamDatas} 
      * @return the {@link TeamData} associated with this team
-     * @throws IllegalArgumentException if the teamId is not contained in {@link BattleTopbar#teamDatas}
      */
     private @Nullable TeamData getTeamData(@NotNull String teamId) {
         TeamData teamData = teamDatas.get(teamId);
@@ -105,7 +104,6 @@ public class BattleTopbar implements Topbar {
     /**
      * @param playerUUID the UUID of the PlayerData. Must be a valid key in {@link BattleTopbar#playerDatas}
      * @return the {@link PlayerData} associated with this UUID
-     * @throws IllegalArgumentException if the UUID is not contained in {@link BattleTopbar#playerDatas}
      */
     private @Nullable PlayerData getPlayerData(@NotNull UUID playerUUID) {
         PlayerData playerData = playerDatas.get(playerUUID);

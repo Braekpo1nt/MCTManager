@@ -22,7 +22,6 @@ public class BasicTopbar implements Topbar {
     /**
      * @param playerUUID the UUID of the PlayerData. Must be a valid key in {@link BasicTopbar#playerDatas}
      * @return the {@link PlayerData} associated with this UUID
-     * @throws IllegalArgumentException if the UUID is not contained in {@link BasicTopbar#playerDatas}
      */
     protected @Nullable PlayerData getPlayerData(@NotNull UUID playerUUID) {
         PlayerData playerData = playerDatas.get(playerUUID);
