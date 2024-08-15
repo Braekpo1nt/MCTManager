@@ -541,7 +541,7 @@ public class Sidebar {
      * @param reason the reason for the error (a {@link String#format(String, Object...)} template
      * @param args optional args for the reason format string
      */
-    private void logUIError(@NotNull String reason, Object... args) {
+    protected void logUIError(@NotNull String reason, Object... args) {
         Main.logger().severe(String.format(reason, args));
     }
 }
