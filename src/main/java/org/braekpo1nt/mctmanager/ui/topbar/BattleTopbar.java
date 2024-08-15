@@ -13,6 +13,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.logging.Level;
 
 /**
  * An implementation of a Topbar specifically oriented toward pairs of teams fighting each other.
@@ -508,7 +509,8 @@ public class BattleTopbar implements Topbar {
      * @param args optional args for the reason format string
      */
     private void logUIError(@NotNull String reason, Object... args) {
-        Main.logger().severe(String.format(reason, args));
+        Main.logger().log(Level.SEVERE, "An error occurred in the BattleTopbar. Failing gracefully.",
+                new TopbarException(String.format(reason, args)));
     }
     
 }

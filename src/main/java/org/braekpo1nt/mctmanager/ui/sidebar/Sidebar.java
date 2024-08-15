@@ -543,6 +543,7 @@ public class Sidebar {
      * @param args optional args for the reason format string
      */
     protected void logUIError(@NotNull String reason, Object... args) {
-        Main.logger().log(Level.SEVERE, "An error occurred in the Sidebar", new SidebarException(String.format(reason, args)));
+        Main.logger().log(Level.SEVERE, "An error occurred in the Sidebar", 
+                new SidebarException(String.format(reason, args)));
     }
 }

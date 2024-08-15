@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.logging.Level;
 
 /**
  * Represents a custom BossBar display for one or more players. Can update the information
@@ -150,6 +151,7 @@ public class BasicTopbar implements Topbar {
      * @param args optional args for the reason format string
      */
     private void logUIError(@NotNull String reason, Object... args) {
-        Main.logger().severe(String.format(reason, args));
+        Main.logger().log(Level.SEVERE, "An error occurred in the BasicTopbar. Failing gracefully.",
+                new TopbarException(String.format(reason, args)));
     }
 }
