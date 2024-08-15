@@ -36,6 +36,10 @@ public class BasicTopbar implements Topbar {
      */
     @Override
     public void showPlayer(@NotNull Player player) {
+        if (playerDatas.containsKey(player.getUniqueId())) {
+            logUIError("player with UUID \"%s\" already exists in this BatleTopbar", player.getUniqueId());
+            return;
+        }
         FormattedBar bossBar = new FormattedBar(player);
         bossBar.show();
         playerDatas.put(player.getUniqueId(), new PlayerData(bossBar));
