@@ -1,6 +1,5 @@
 package org.braekpo1nt.mctmanager.ui.timer;
 
-import com.google.common.base.Preconditions;
 import lombok.Data;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
@@ -22,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.logging.Level;
 
 public class Timer extends BukkitRunnable {
     
@@ -47,7 +47,7 @@ public class Timer extends BukkitRunnable {
     }
     
     private int secondsLeft;
-    private int completionSeconds;
+    private final int completionSeconds;
     private boolean started = false;
     private boolean paused = false;
     /**
@@ -254,13 +254,7 @@ public class Timer extends BukkitRunnable {
             topbar.setMiddle(Component.empty());
         }
         for (SidebarData sidebarData : sidebarDatas) {
-            Sidebar sidebar = sidebarData.getSidebar();
-            String key = sidebarData.getKey();
-            if (sidebar.containsKey(key)) {
-                sidebar.updateLine(key, Component.empty());
-            } else {
-                Main.logger().severe(String.format("Attempted to edit the line of a sidebar which does not contain the key \"%s\" in Timer with name %s", key, name));
-            }
+            sidebarData.getSidebar().updateLine(sidebarData.getKey(), Component.empty());
         }
         if (titleAudience != null) {
             titleAudience.clearTitle();
@@ -410,7 +404,10 @@ public class Timer extends BukkitRunnable {
          * @return this
          */
         public Builder withSidebar(@NotNull Sidebar sidebar, @NotNull String key) {
-            Preconditions.checkArgument(sidebar.containsKey(key), "given sidebar does not contain the given key \"%s\"", key);
+            if (!sidebar.containsKey(key)) {
+                Main.logger().log(Level.SEVERE, "Error building Timer", new TimerException(String.format("given sidebar does not contain the given key \"%s\"", key)));
+                return this;
+            }
             SidebarData sidebarData = new SidebarData(sidebar, key);
             if (sidebarDatas == null) {
                 sidebarDatas = new ArrayList<>(Collections.singletonList(sidebarData));

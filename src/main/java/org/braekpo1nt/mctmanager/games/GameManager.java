@@ -56,6 +56,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -486,8 +487,7 @@ public class GameManager implements Listener {
         try {
             configurable.loadConfig();
         } catch (ConfigException e) {
-            Main.logger().severe(e.getMessage());
-            e.printStackTrace();
+            Main.logger().log(Level.SEVERE, String.format("Error loading config for game %s", activeGame.getType()), e);
             sender.sendMessage(Component.text("Error loading config file for ")
                     .append(Component.text(activeGame.getType().name())
                             .decorate(TextDecoration.BOLD))
@@ -627,8 +627,7 @@ public class GameManager implements Listener {
             try {
                 configurable.loadConfig();
             } catch (ConfigException e) {
-                Main.logger().severe(e.getMessage());
-                e.printStackTrace();
+                Main.logger().log(Level.SEVERE, String.format("Error loading config for game %s", selectedGame.getType()), e);
                 Component message = Component.text("Can't start ")
                         .append(Component.text(gameType.name())
                                 .decorate(TextDecoration.BOLD))
@@ -793,8 +792,7 @@ public class GameManager implements Listener {
         try {
             selectedEditor.loadConfig();
         } catch (ConfigException e) {
-            Main.logger().severe(e.getMessage());
-            e.printStackTrace();
+            Main.logger().log(Level.SEVERE, String.format("Error loading config for editor %s", selectedEditor), e);
             Component message = Component.text("Can't start ")
                     .append(Component.text(gameType.name())
                             .decorate(TextDecoration.BOLD))
@@ -833,8 +831,7 @@ public class GameManager implements Listener {
         try {
             activeEditor.configIsValid();
         } catch (ConfigException e) {
-            Main.logger().severe(e.getMessage());
-            e.printStackTrace();
+            Main.logger().log(Level.SEVERE, String.format("Error validating config for editor %s", activeEditor.getType()), e);
             sender.sendMessage(Component.text("Config is not valid for ")
                     .append(Component.text(activeEditor.getType().name())
                             .decorate(TextDecoration.BOLD))
@@ -861,8 +858,7 @@ public class GameManager implements Listener {
             try {
                 activeEditor.configIsValid();
             } catch (ConfigException e) {
-                Main.logger().severe(e.getMessage());
-                e.printStackTrace();
+                Main.logger().log(Level.SEVERE, String.format("Error validating config for editor %s", activeEditor.getType()), e);
                 sender.sendMessage(Component.text("Config is not valid for ")
                         .append(Component.text(activeEditor.getType().name())
                                 .decorate(TextDecoration.BOLD))
@@ -882,8 +878,7 @@ public class GameManager implements Listener {
         try {
             activeEditor.saveConfig();
         } catch (ConfigException e) {
-            Main.logger().severe(e.getMessage());
-            e.printStackTrace();
+            Main.logger().log(Level.SEVERE, String.format("Error saving config for editor %s", activeEditor.getType()), e);
             sender.sendMessage(Component.text("An error occurred while attempting to save the config for ")
                     .append(Component.text(activeEditor.getType().name())
                             .decorate(TextDecoration.BOLD))
@@ -900,8 +895,7 @@ public class GameManager implements Listener {
         try {
             activeEditor.loadConfig();
         } catch (ConfigException e) {
-            Main.logger().severe(e.getMessage());
-            e.printStackTrace();
+            Main.logger().log(Level.SEVERE, String.format("Error loading config for editor %s", activeEditor.getType()), e);
             Component message = Component.text("Can't start ")
                     .append(Component.text(activeEditor.getType().name())
                             .decorate(TextDecoration.BOLD))
