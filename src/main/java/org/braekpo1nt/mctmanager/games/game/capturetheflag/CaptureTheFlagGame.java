@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.capturetheflag;
 
+import lombok.Data;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
@@ -10,12 +11,14 @@ import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlagConfig;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlagConfigController;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.states.CaptureTheFlagState;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.states.DescriptionState;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
+import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.braekpo1nt.mctmanager.ui.topbar.BattleTopbar;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
@@ -25,6 +28,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
+@Data
 public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Headerable {
     
     public @Nullable CaptureTheFlagState state;
@@ -35,7 +39,9 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     private final Component baseTitle = Component.empty()
             .append(Component.text("Capture the Flag"))
             .color(NamedTextColor.BLUE);
+    private final TimerManager timerManager;
     private Component title = baseTitle;
+    private RoundManager roundManager;
     private Sidebar sidebar;
     private Sidebar adminSidebar;
     private CaptureTheFlagConfigController configController;
@@ -48,6 +54,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     public CaptureTheFlagGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
         this.gameManager = gameManager;
+        this.timerManager = new TimerManager(plugin);
         this.configController = new CaptureTheFlagConfigController(plugin.getDataFolder());
         this.topbar = new BattleTopbar();
         
@@ -88,7 +95,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         participants = new ArrayList<>(newParticipants.size());
         sidebar = gameManager.getSidebarFactory().createSidebar();
         adminSidebar = gameManager.getSidebarFactory().createSidebar();
-//        roundManager = new RoundManager(this, config.getArenas().size());
+        roundManager = new RoundManager(config.getArenas().size());
         killCount = new HashMap<>(newParticipants.size());
         deathCount = new HashMap<>(newParticipants.size());
         for (Player participant : newParticipants) {
@@ -96,9 +103,12 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         }
         initializeSidebar();
         startAdmins(newAdmins);
-        List<String> teams = gameManager.getTeamNames(participants);
-//        roundManager.start(teams);
+        setState(new DescriptionState(this));
         Main.logger().info("Starting Capture the Flag");
+    }
+    
+    public void startNextRound(List<String> participantTeams, List<MatchPairing> roundMatchPairings) {
+        throw new UnsupportedOperationException("Not yet implemented");
     }
     
     private void initializeParticipant(Player participant) {
@@ -150,8 +160,8 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     public void onAdminJoin(Player admin) {
         initializeAdmin(admin);
         adminSidebar.updateLine(admin.getUniqueId(), "title", title);
-//        String roundLine = String.format("Round %d/%d", roundManager.getPlayedRounds() + 1, roundManager.getMaxRounds());
-//        adminSidebar.updateLine("round", roundLine);
+        String roundLine = String.format("Round %d/%d", roundManager.getPlayedRounds() + 1, roundManager.getMaxRounds());
+        adminSidebar.updateLine("round", roundLine);
     }
     
     @Override
@@ -210,5 +220,16 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
             return;
         }
         sidebar.updateLine(participant.getUniqueId(), "personalScore", contents);
+    }
+    
+    /**
+     * Messages all the participants of the game (whether they're in a match or not)
+     * @param message The message to send
+     */
+    public void messageAllParticipants(Component message) {
+        gameManager.messageAdmins(message);
+        for (Player participant : participants) {
+            participant.sendMessage(message);
+        }
     }
 }

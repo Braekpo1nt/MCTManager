@@ -29,7 +29,7 @@ import java.util.UUID;
  * A round is made up of multiple matches. It kicks off the matches it contains, and ends
  * when all the matches are over.
  */
-public class CaptureTheFlagRound {
+public class CaptureTheFlagRoundOld {
     
     private final CaptureTheFlagGameOld captureTheFlagGame;
     private final Main plugin;
@@ -54,7 +54,7 @@ public class CaptureTheFlagRound {
     private boolean matchesStarted = false;
     private final TimerManager timerManager;
     
-    public CaptureTheFlagRound(CaptureTheFlagGameOld captureTheFlagGame, Main plugin, GameManager gameManager, CaptureTheFlagConfig config, List<MatchPairing> matchPairings, Sidebar sidebar, Sidebar adminSidebar, BattleTopbar topbar) {
+    public CaptureTheFlagRoundOld(CaptureTheFlagGameOld captureTheFlagGame, Main plugin, GameManager gameManager, CaptureTheFlagConfig config, List<MatchPairing> matchPairings, Sidebar sidebar, Sidebar adminSidebar, BattleTopbar topbar) {
         this.captureTheFlagGame = captureTheFlagGame;
         this.plugin = plugin;
         this.timerManager = new TimerManager(plugin);
@@ -221,7 +221,7 @@ public class CaptureTheFlagRound {
     
     /**
      * Tells the round that the given match is over. If all matches are over, stops the round. If not all matches are over, teleports the players who were in the passed-in match to the spawn observatory.
-     * @param match The match that is over. Must be one of the matches in {@link CaptureTheFlagRound#matches}.
+     * @param match The match that is over. Must be one of the matches in {@link CaptureTheFlagRoundOld#matches}.
      */
     public void matchIsOver(CaptureTheFlagMatch match) {
         if (allMatchesAreOver()) {
@@ -272,7 +272,7 @@ public class CaptureTheFlagRound {
     }
     
     /**
-     * An alternate version of {@link CaptureTheFlagRound#startMatchesStartingCountDown()}
+     * An alternate version of {@link CaptureTheFlagRoundOld#startMatchesStartingCountDown()}
      * reserved for the first round in a game, which uses the 
      */
     private void startDescriptionPeriod() {
@@ -446,7 +446,7 @@ public class CaptureTheFlagRound {
 
     /**
      * Gets the opposite team of the given teamName, if the teamName is contained in one of this round's
-     * {@link CaptureTheFlagRound#matches}.
+     * {@link CaptureTheFlagRoundOld#matches}.
      * @param teamName The teamName to check for
      * @return The opposite team in the {@link CaptureTheFlagMatch} which contains the given teamName. Null if
      * the given teamName is not contained in any of the matches for this round.

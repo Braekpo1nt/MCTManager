@@ -50,8 +50,8 @@ public class CaptureTheFlagGameOld implements MCTGame, Configurable, Listener, H
     private final BattleTopbar topbar;
     private CaptureTheFlagConfigController configController;
     private CaptureTheFlagConfig config;
-    private RoundManager roundManager;
-    private CaptureTheFlagRound currentRound;
+    private RoundManagerOld roundManager;
+    private CaptureTheFlagRoundOld currentRound;
     private final Component baseTitle = Component.empty()
             .append(Component.text("Capture the Flag"))
             .color(NamedTextColor.BLUE);
@@ -105,7 +105,7 @@ public class CaptureTheFlagGameOld implements MCTGame, Configurable, Listener, H
         participants = new ArrayList<>(newParticipants.size());
         sidebar = gameManager.getSidebarFactory().createSidebar();
         adminSidebar = gameManager.getSidebarFactory().createSidebar();
-        roundManager = new RoundManager(this, config.getArenas().size());
+        roundManager = new RoundManagerOld(this, config.getArenas().size());
         killCount = new HashMap<>(newParticipants.size());
         deathCount = new HashMap<>(newParticipants.size());
         for (Player participant : newParticipants) {
@@ -265,7 +265,7 @@ public class CaptureTheFlagGameOld implements MCTGame, Configurable, Listener, H
     
     public void startNextRound(List<String> participantTeams, List<MatchPairing> roundMatchPairings) {
         
-        currentRound = new CaptureTheFlagRound(this, plugin, gameManager, config, roundMatchPairings, sidebar, adminSidebar, topbar);
+        currentRound = new CaptureTheFlagRoundOld(this, plugin, gameManager, config, roundMatchPairings, sidebar, adminSidebar, topbar);
         List<Player> roundParticipants = new ArrayList<>();
         List<Player> onDeckParticipants = new ArrayList<>();
         for (Player participant : participants) {
@@ -612,7 +612,7 @@ public class CaptureTheFlagGameOld implements MCTGame, Configurable, Listener, H
         return roundManager.getMaxRounds();
     }
     
-    public CaptureTheFlagRound getCurrentRound() {
+    public CaptureTheFlagRoundOld getCurrentRound() {
         return currentRound;
     }
     

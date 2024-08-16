@@ -12,7 +12,7 @@ public class RoundManagerTest {
         final int numOfArenas;
         List<String> teams;
         CTFRound currentRound;
-        RoundManager roundManager;
+        RoundManagerOld roundManager;
         /**
          * Set in the constructor for testing purposes. The game simulation will stop after pauseRounds rounds are played, so you can check the state of the game in between rounds. If this value is -1, then all rounds will be played as calculated without restriction.
          */
@@ -43,7 +43,7 @@ public class RoundManagerTest {
             for (String team : newTeams) {
                 teams.add(team);
             }
-            roundManager = new RoundManager(this, numOfArenas);
+            roundManager = new RoundManagerOld(this, numOfArenas);
             roundManager.start(List.of(newTeams));
         }
         
@@ -108,7 +108,7 @@ public class RoundManagerTest {
     
     @Test
     void testGenerateMatchPairings() {
-        List<MatchPairing> generated = RoundManager.generateMatchPairings(List.of("a", "b", "c"), Collections.emptySet(), 4);
+        List<MatchPairing> generated = RoundManagerOld.generateMatchPairings(List.of("a", "b", "c"), Collections.emptySet(), 4);
         Assertions.assertEquals(List.of(
                 new MatchPairing("a", "b")
         ), generated);
@@ -128,34 +128,34 @@ public class RoundManagerTest {
     @Test
     void testCreateMatches_3_teams() {
         Map<String, List<String>> teamsToFight = createTeamsToFight("a", "b", "c");
-        Set<Set<String>> matches = RoundManager.createMatches(teamsToFight);
+        Set<Set<String>> matches = RoundManagerOld.createMatches(teamsToFight);
         Assertions.assertEquals(3, matches.size());
     }
     
     @Test
     void testCreateMatches_4_teams() {
         Map<String, List<String>> teamsToFight = createTeamsToFight("a", "b", "c", "d");
-        int roundsLeft = RoundManager.calculateRoundsLeft(teamsToFight, 4);
+        int roundsLeft = RoundManagerOld.calculateRoundsLeft(teamsToFight, 4);
         Assertions.assertEquals(3, roundsLeft);
     }
     
     @Test
     void testCreateMatches_7_teams() {
         Map<String, List<String>> teamsToFight = createTeamsToFight("black", "grey", "red", "yellow", "blue", "green", "pink");
-        Set<Set<String>> matches = RoundManager.createMatches(teamsToFight);
+        Set<Set<String>> matches = RoundManagerOld.createMatches(teamsToFight);
         Assertions.assertEquals(21, matches.size());
     }
     
     @Test
     void testRoundsLeft_3_teams() {
         Map<String, List<String>> teamsToFight = createTeamsToFight("a", "b", "c");
-        Assertions.assertEquals(3, RoundManager.calculateRoundsLeft(teamsToFight, 4));
+        Assertions.assertEquals(3, RoundManagerOld.calculateRoundsLeft(teamsToFight, 4));
     }
     
     @Test
     void testRoundsLeft_7_teams() {
         Map<String, List<String>> teamsToFight = createTeamsToFight("black", "grey", "red", "yellow", "blue", "green", "pink");
-        Assertions.assertEquals(11, RoundManager.calculateRoundsLeft(teamsToFight, 2));
+        Assertions.assertEquals(11, RoundManagerOld.calculateRoundsLeft(teamsToFight, 2));
     }
     
     @Test
@@ -167,13 +167,13 @@ public class RoundManagerTest {
         teamsToFight.get("red").remove("yellow");
         teamsToFight.get("yellow").remove("red");
         
-        Assertions.assertEquals(10, RoundManager.calculateRoundsLeft(teamsToFight, 2));
+        Assertions.assertEquals(10, RoundManagerOld.calculateRoundsLeft(teamsToFight, 2));
     }
     
     @Test
     void testRoundsLeft_5_teams_4_arenas() {
         Map<String, List<String>> teamsToFight = createTeamsToFight("red", "blue", "green", "purple", "black");
-        Assertions.assertEquals(6, RoundManager.calculateRoundsLeft(teamsToFight, 4));
+        Assertions.assertEquals(6, RoundManagerOld.calculateRoundsLeft(teamsToFight, 4));
     }
     
     @Test

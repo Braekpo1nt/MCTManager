@@ -1,10 +1,16 @@
 package org.braekpo1nt.mctmanager.games.game.capturetheflag;
 
 import java.util.*;
-import java.util.function.BiConsumer;
 
-public class RoundManager {
+/**
+ * - Handles the creation and progression of rounds
+ * - Keeps track of who has fought who in the matches
+ * - Minimizes consecutive rounds spent on deck for each team
+ * - dynamically handles round creation, enabling teams leaving and joining mid-game
+ */
+public class RoundManagerOld {
     
+    private final CaptureTheFlagGameOld game;
     /**
      * The teams who have to fight
      */
@@ -34,21 +40,18 @@ public class RoundManager {
     Map<String, Integer> onDeckStreak;
     List<String> lastOnDeck;
     Map<String, Integer> totalOnDeckRounds;
-    private BiConsumer<List<String>, List<MatchPairing>> onStartRound;
-    private Runnable onStop;
     // reporting
     
-    public RoundManager(int numOfArenas) {
+    public RoundManagerOld(CaptureTheFlagGameOld game, int numOfArenas) {
+        this.game = game;
         this.numOfArenas = numOfArenas;
     }
     
     /**
      * Initializes internal variables, kicks off the first round, and begins the progression of rounds.
-     * Call this before {@link RoundManager#startNextRound()}
+     * Call this before {@link RoundManagerOld#startNextRound()}
      */
-    public void start(List<String> newTeams, BiConsumer<List<String>, List<MatchPairing>> onStartRound, Runnable onStop) {
-        this.onStartRound = onStartRound;
-        this.onStop = onStop;
+    public void start(List<String> newTeams) {
         this.teams = new ArrayList<>(newTeams.size());
         roundsSpentOnDeck = new HashMap<>(newTeams.size());
         teamsToFight = new HashMap<>(newTeams.size());
@@ -87,8 +90,8 @@ public class RoundManager {
             }
         }
         for (String onDeckTeam : onDeckTeams) {
-            roundsSpentOnDeck.compute(onDeckTeam,
-                    (k, oldRoundsSpentOnDeck) ->
+            roundsSpentOnDeck.compute(onDeckTeam, 
+                    (k, oldRoundsSpentOnDeck) -> 
                             oldRoundsSpentOnDeck != null ? oldRoundsSpentOnDeck + 1 : 1);
         }
         playedMatchPairings.addAll(roundMatchPairings);
@@ -98,7 +101,7 @@ public class RoundManager {
             List<String> southTeamsToFight = teamsToFight.get(roundMP.southTeam());
             southTeamsToFight.remove(roundMP.northTeam());
         }
-        onStartRound.accept(participantTeams, roundMatchPairings);
+        game.startNextRound(participantTeams, roundMatchPairings);
     }
     
     public void onTeamQuit(String team) {
@@ -146,7 +149,7 @@ public class RoundManager {
             startNextRound();
             return;
         }
-        onStop.run();
+        game.stop();
     }
     
     /**

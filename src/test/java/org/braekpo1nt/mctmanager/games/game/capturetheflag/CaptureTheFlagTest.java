@@ -201,7 +201,7 @@ class CaptureTheFlagTest {
             CaptureTheFlagGameOld ctf = ((CaptureTheFlagGameOld) gameManager.getActiveGame());
             List<Player> participants = ctf.getParticipants();
             Assertions.assertEquals(2, participants.size());
-            CaptureTheFlagRound currentRound = ctf.getCurrentRound();
+            CaptureTheFlagRoundOld currentRound = ctf.getCurrentRound();
             Assertions.assertNotNull(currentRound);
             List<CaptureTheFlagMatch> currentMatches = currentRound.getMatches();
             Assertions.assertEquals(1, currentMatches.size());
@@ -230,7 +230,7 @@ class CaptureTheFlagTest {
             CaptureTheFlagGameOld ctf = ((CaptureTheFlagGameOld) gameManager.getActiveGame());
             List<Player> participants = ctf.getParticipants();
             Assertions.assertEquals(2, participants.size());
-            CaptureTheFlagRound currentRound = ctf.getCurrentRound();
+            CaptureTheFlagRoundOld currentRound = ctf.getCurrentRound();
             Assertions.assertNotNull(currentRound);
             List<CaptureTheFlagMatch> currentMatches = currentRound.getMatches();
             Assertions.assertEquals(1, currentMatches.size());
@@ -264,7 +264,7 @@ class CaptureTheFlagTest {
 
             CaptureTheFlagGameOld ctf = ((CaptureTheFlagGameOld) gameManager.getActiveGame());
             Assertions.assertEquals(1, ctf.getParticipants().size());
-            CaptureTheFlagRound currentRound = ctf.getCurrentRound();
+            CaptureTheFlagRoundOld currentRound = ctf.getCurrentRound();
             List<Player> participants = currentRound.getParticipants();
             Assertions.assertNotNull(participants);
             Assertions.assertEquals(1, participants.size());
@@ -297,7 +297,7 @@ class CaptureTheFlagTest {
 
             CaptureTheFlagGameOld ctf = ((CaptureTheFlagGameOld) gameManager.getActiveGame());
             Assertions.assertEquals(2, ctf.getParticipants().size());
-            CaptureTheFlagRound currentRound = ctf.getCurrentRound();
+            CaptureTheFlagRoundOld currentRound = ctf.getCurrentRound();
             Assertions.assertNotNull(currentRound);
             Assertions.assertEquals(2, currentRound.getParticipants().size());
             List<CaptureTheFlagMatch> currentMatches = currentRound.getMatches();
@@ -328,7 +328,7 @@ class CaptureTheFlagTest {
 
             CaptureTheFlagGameOld ctf = ((CaptureTheFlagGameOld) gameManager.getActiveGame());
             Assertions.assertEquals(1, ctf.getParticipants().size());
-            CaptureTheFlagRound currentRound = ctf.getCurrentRound();
+            CaptureTheFlagRoundOld currentRound = ctf.getCurrentRound();
             Assertions.assertNotNull(currentRound);
             Assertions.assertEquals(1, currentRound.getParticipants().size());
             List<CaptureTheFlagMatch> currentMatches = currentRound.getMatches();
@@ -359,7 +359,7 @@ class CaptureTheFlagTest {
             gameManager.startGame(GameType.CAPTURE_THE_FLAG, sender);
             
             CaptureTheFlagGameOld ctf = ((CaptureTheFlagGameOld) gameManager.getActiveGame());
-            CaptureTheFlagRound firstRound = ctf.getCurrentRound();
+            CaptureTheFlagRoundOld firstRound = ctf.getCurrentRound();
             Assertions.assertNotNull(firstRound);
             
             player4.disconnect();
@@ -371,7 +371,7 @@ class CaptureTheFlagTest {
             speedThroughClassSelection();
             
             Assertions.assertEquals(4, ctf.getMaxRounds());
-            CaptureTheFlagRound secondRound = ctf.getCurrentRound();
+            CaptureTheFlagRoundOld secondRound = ctf.getCurrentRound();
             Assertions.assertNotSame(firstRound, secondRound);
             Assertions.assertEquals(2, secondRound.getParticipants().size());
             Assertions.assertTrue(secondRound.getParticipants().contains(player1));
@@ -439,14 +439,14 @@ class CaptureTheFlagTest {
             
             CaptureTheFlagGameOld ctf = ((CaptureTheFlagGameOld) gameManager.getActiveGame());
             Assertions.assertEquals(1, ctf.getMaxRounds());
-            CaptureTheFlagRound currentRoundBeforeJoin = ctf.getCurrentRound();
+            CaptureTheFlagRoundOld currentRoundBeforeJoin = ctf.getCurrentRound();
             Assertions.assertNotNull(currentRoundBeforeJoin);
             Assertions.assertEquals(2, currentRoundBeforeJoin.getParticipants().size());
             
             player3.reconnect();
             
             Assertions.assertEquals(1, ctf.getMaxRounds());
-            CaptureTheFlagRound currentRoundAfterJoin = ctf.getCurrentRound();
+            CaptureTheFlagRoundOld currentRoundAfterJoin = ctf.getCurrentRound();
             Assertions.assertNotNull(currentRoundAfterJoin);
             List<Player> participantsAfterJoin = currentRoundAfterJoin.getParticipants();
             Assertions.assertEquals(3, participantsAfterJoin.size());
@@ -477,7 +477,7 @@ class CaptureTheFlagTest {
             speedThroughHalfClassSelection();
 
             CaptureTheFlagGameOld ctf = ((CaptureTheFlagGameOld) gameManager.getActiveGame());
-            CaptureTheFlagRound currentRound = ctf.getCurrentRound();
+            CaptureTheFlagRoundOld currentRound = ctf.getCurrentRound();
             Assertions.assertNotNull(currentRound);
             List<Player> onDeckParticipants = currentRound.getOnDeckParticipants();
             Assertions.assertEquals(1, onDeckParticipants.size());
@@ -485,7 +485,7 @@ class CaptureTheFlagTest {
 
             player4.reconnect();
 
-            CaptureTheFlagRound currentRoundAfterRejoin = ctf.getCurrentRound();
+            CaptureTheFlagRoundOld currentRoundAfterRejoin = ctf.getCurrentRound();
             Assertions.assertNotNull(currentRoundAfterRejoin);
             List<Player> onDeckParticipantsAfterRejoin = currentRoundAfterRejoin.getOnDeckParticipants();
             Assertions.assertEquals(2, onDeckParticipantsAfterRejoin.size());
@@ -516,13 +516,13 @@ class CaptureTheFlagTest {
 
             CaptureTheFlagGameOld ctf = ((CaptureTheFlagGameOld) gameManager.getActiveGame());
 
-            CaptureTheFlagRound currentRoundBeforeDisconnect = ctf.getCurrentRound();
+            CaptureTheFlagRoundOld currentRoundBeforeDisconnect = ctf.getCurrentRound();
             Assertions.assertNotNull(currentRoundBeforeDisconnect);
             Assertions.assertFalse(currentRoundBeforeDisconnect.isAliveInMatch(player3));
 
             player3.reconnect();
 
-            CaptureTheFlagRound currentRoundAfterReconnect = ctf.getCurrentRound();
+            CaptureTheFlagRoundOld currentRoundAfterReconnect = ctf.getCurrentRound();
             Assertions.assertNotNull(currentRoundAfterReconnect);
             Assertions.assertFalse(currentRoundAfterReconnect.isAliveInMatch(player3));
             CaptureTheFlagMatch match = currentRoundAfterReconnect.getMatches().get(0);
@@ -555,14 +555,14 @@ class CaptureTheFlagTest {
             
             CaptureTheFlagGameOld ctf = ((CaptureTheFlagGameOld) gameManager.getActiveGame());
             Assertions.assertEquals(1, ctf.getMaxRounds());
-            CaptureTheFlagRound currentRoundBeforeJoin = ctf.getCurrentRound();
+            CaptureTheFlagRoundOld currentRoundBeforeJoin = ctf.getCurrentRound();
             Assertions.assertNotNull(currentRoundBeforeJoin);
             Assertions.assertEquals(2, currentRoundBeforeJoin.getParticipants().size());
             
             player3.reconnect();
             
             Assertions.assertEquals(1, ctf.getMaxRounds());
-            CaptureTheFlagRound currentRoundAfterJoin = ctf.getCurrentRound();
+            CaptureTheFlagRoundOld currentRoundAfterJoin = ctf.getCurrentRound();
             Assertions.assertNotNull(currentRoundAfterJoin);
             Assertions.assertEquals(3, currentRoundAfterJoin.getParticipants().size());
             Assertions.assertEquals(0, currentRoundAfterJoin.getOnDeckParticipants().size());
@@ -598,7 +598,7 @@ class CaptureTheFlagTest {
             player3.reconnect();
 
             CaptureTheFlagGameOld ctf = ((CaptureTheFlagGameOld) gameManager.getActiveGame());
-            CaptureTheFlagRound currentRound = ctf.getCurrentRound();
+            CaptureTheFlagRoundOld currentRound = ctf.getCurrentRound();
             Assertions.assertNotNull(currentRound);
             List<Player> onDeckParticipants = currentRound.getOnDeckParticipants();
             Assertions.assertEquals(1, onDeckParticipants.size());
@@ -653,14 +653,14 @@ class CaptureTheFlagTest {
 
             CaptureTheFlagGameOld ctf = ((CaptureTheFlagGameOld) gameManager.getActiveGame());
 
-            CaptureTheFlagRound currentRoundBeforeDisconnect = ctf.getCurrentRound();
+            CaptureTheFlagRoundOld currentRoundBeforeDisconnect = ctf.getCurrentRound();
             Assertions.assertNotNull(currentRoundBeforeDisconnect);
             Assertions.assertTrue(currentRoundBeforeDisconnect.isAliveInMatch(player3));
 
             player3.disconnect();
             player3.reconnect();
 
-            CaptureTheFlagRound currentRoundAfterReconnect = ctf.getCurrentRound();
+            CaptureTheFlagRoundOld currentRoundAfterReconnect = ctf.getCurrentRound();
             Assertions.assertNotNull(currentRoundAfterReconnect);
             Assertions.assertFalse(currentRoundAfterReconnect.isAliveInMatch(player3));
             CaptureTheFlagMatch match = currentRoundAfterReconnect.getMatches().get(0);

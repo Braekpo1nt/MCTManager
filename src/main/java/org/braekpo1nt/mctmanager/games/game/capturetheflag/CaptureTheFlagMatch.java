@@ -43,7 +43,7 @@ import java.util.*;
 
 public class CaptureTheFlagMatch implements Listener {
     
-    private final CaptureTheFlagRound captureTheFlagRound;
+    private final CaptureTheFlagRoundOld captureTheFlagRound;
     private final Main plugin;
     private final GameManager gameManager;
     private final CaptureTheFlagConfig config;
@@ -79,7 +79,7 @@ public class CaptureTheFlagMatch implements Listener {
     private Material southBanner;
     private final TimerManager timerManager;
     
-    public CaptureTheFlagMatch(CaptureTheFlagRound captureTheFlagRound, Main plugin,
+    public CaptureTheFlagMatch(CaptureTheFlagRoundOld captureTheFlagRound, Main plugin,
                                GameManager gameManager, MatchPairing matchPairing, Arena arena,
                                CaptureTheFlagConfig config, Sidebar sidebar, Sidebar adminSidebar, BattleTopbar topbar) {
         this.captureTheFlagRound = captureTheFlagRound;
