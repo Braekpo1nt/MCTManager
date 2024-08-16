@@ -31,7 +31,7 @@ import java.util.UUID;
  */
 public class CaptureTheFlagRound {
     
-    private final CaptureTheFlagGame captureTheFlagGame;
+    private final CaptureTheFlagGameOld captureTheFlagGame;
     private final Main plugin;
     private final GameManager gameManager;
     private final CaptureTheFlagConfig config;
@@ -54,7 +54,7 @@ public class CaptureTheFlagRound {
     private boolean matchesStarted = false;
     private final TimerManager timerManager;
     
-    public CaptureTheFlagRound(CaptureTheFlagGame captureTheFlagGame, Main plugin, GameManager gameManager, CaptureTheFlagConfig config, List<MatchPairing> matchPairings, Sidebar sidebar, Sidebar adminSidebar, BattleTopbar topbar) {
+    public CaptureTheFlagRound(CaptureTheFlagGameOld captureTheFlagGame, Main plugin, GameManager gameManager, CaptureTheFlagConfig config, List<MatchPairing> matchPairings, Sidebar sidebar, Sidebar adminSidebar, BattleTopbar topbar) {
         this.captureTheFlagGame = captureTheFlagGame;
         this.plugin = plugin;
         this.timerManager = new TimerManager(plugin);

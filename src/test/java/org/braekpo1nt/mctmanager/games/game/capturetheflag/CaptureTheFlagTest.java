@@ -7,8 +7,6 @@ import org.braekpo1nt.mctmanager.*;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlagConfigController;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
-import org.braekpo1nt.mctmanager.games.gamestate.MockGameStateStorageUtil;
-import org.braekpo1nt.mctmanager.ui.sidebar.MockSidebarFactory;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.junit.jupiter.api.*;
@@ -151,7 +149,7 @@ class CaptureTheFlagTest {
             MyPlayerMock player4 = createParticipant("Player4", "purple", "Purple");
             gameManager.startGame(GameType.CAPTURE_THE_FLAG, sender);
             
-            CaptureTheFlagGame ctf = ((CaptureTheFlagGame) gameManager.getActiveGame());
+            CaptureTheFlagGameOld ctf = ((CaptureTheFlagGameOld) gameManager.getActiveGame());
             Assertions.assertEquals(3, ctf.getMaxRounds());
             
         } catch (UnimplementedOperationException ex) {
@@ -176,7 +174,7 @@ class CaptureTheFlagTest {
             MyPlayerMock player5 = createParticipant("Player5", "black", "Black");
             gameManager.startGame(GameType.CAPTURE_THE_FLAG, sender);
             
-            CaptureTheFlagGame ctf = ((CaptureTheFlagGame) gameManager.getActiveGame());
+            CaptureTheFlagGameOld ctf = ((CaptureTheFlagGameOld) gameManager.getActiveGame());
             Assertions.assertEquals(6, ctf.getMaxRounds());
             
         } catch (UnimplementedOperationException ex) {
@@ -200,7 +198,7 @@ class CaptureTheFlagTest {
             speedThroughHalfMatchesStarting();
             player3.disconnect();
             
-            CaptureTheFlagGame ctf = ((CaptureTheFlagGame) gameManager.getActiveGame());
+            CaptureTheFlagGameOld ctf = ((CaptureTheFlagGameOld) gameManager.getActiveGame());
             List<Player> participants = ctf.getParticipants();
             Assertions.assertEquals(2, participants.size());
             CaptureTheFlagRound currentRound = ctf.getCurrentRound();
@@ -229,7 +227,7 @@ class CaptureTheFlagTest {
             speedThroughHalfClassSelection();
             player3.disconnect();
 
-            CaptureTheFlagGame ctf = ((CaptureTheFlagGame) gameManager.getActiveGame());
+            CaptureTheFlagGameOld ctf = ((CaptureTheFlagGameOld) gameManager.getActiveGame());
             List<Player> participants = ctf.getParticipants();
             Assertions.assertEquals(2, participants.size());
             CaptureTheFlagRound currentRound = ctf.getCurrentRound();
@@ -264,7 +262,7 @@ class CaptureTheFlagTest {
             player2.disconnect();
             speedThroughHalfClassSelection();
 
-            CaptureTheFlagGame ctf = ((CaptureTheFlagGame) gameManager.getActiveGame());
+            CaptureTheFlagGameOld ctf = ((CaptureTheFlagGameOld) gameManager.getActiveGame());
             Assertions.assertEquals(1, ctf.getParticipants().size());
             CaptureTheFlagRound currentRound = ctf.getCurrentRound();
             List<Player> participants = currentRound.getParticipants();
@@ -297,7 +295,7 @@ class CaptureTheFlagTest {
             speedThroughClassSelection();
             player3.disconnect();
 
-            CaptureTheFlagGame ctf = ((CaptureTheFlagGame) gameManager.getActiveGame());
+            CaptureTheFlagGameOld ctf = ((CaptureTheFlagGameOld) gameManager.getActiveGame());
             Assertions.assertEquals(2, ctf.getParticipants().size());
             CaptureTheFlagRound currentRound = ctf.getCurrentRound();
             Assertions.assertNotNull(currentRound);
@@ -328,7 +326,7 @@ class CaptureTheFlagTest {
             speedThroughClassSelection();
             player2.disconnect();
 
-            CaptureTheFlagGame ctf = ((CaptureTheFlagGame) gameManager.getActiveGame());
+            CaptureTheFlagGameOld ctf = ((CaptureTheFlagGameOld) gameManager.getActiveGame());
             Assertions.assertEquals(1, ctf.getParticipants().size());
             CaptureTheFlagRound currentRound = ctf.getCurrentRound();
             Assertions.assertNotNull(currentRound);
@@ -360,7 +358,7 @@ class CaptureTheFlagTest {
             MyPlayerMock player4 = createParticipant("Player4", "purple", "Purple");
             gameManager.startGame(GameType.CAPTURE_THE_FLAG, sender);
             
-            CaptureTheFlagGame ctf = ((CaptureTheFlagGame) gameManager.getActiveGame());
+            CaptureTheFlagGameOld ctf = ((CaptureTheFlagGameOld) gameManager.getActiveGame());
             CaptureTheFlagRound firstRound = ctf.getCurrentRound();
             Assertions.assertNotNull(firstRound);
             
@@ -399,7 +397,7 @@ class CaptureTheFlagTest {
             MyPlayerMock player3 = createParticipant("Player3", "green", "Green");
             gameManager.startGame(GameType.CAPTURE_THE_FLAG, sender);
             
-            CaptureTheFlagGame ctf = ((CaptureTheFlagGame) gameManager.getActiveGame());
+            CaptureTheFlagGameOld ctf = ((CaptureTheFlagGameOld) gameManager.getActiveGame());
             speedThroughHalfMatchesStarting();
             
             player2.disconnect();
@@ -439,7 +437,7 @@ class CaptureTheFlagTest {
             
             speedThroughHalfMatchesStarting();
             
-            CaptureTheFlagGame ctf = ((CaptureTheFlagGame) gameManager.getActiveGame());
+            CaptureTheFlagGameOld ctf = ((CaptureTheFlagGameOld) gameManager.getActiveGame());
             Assertions.assertEquals(1, ctf.getMaxRounds());
             CaptureTheFlagRound currentRoundBeforeJoin = ctf.getCurrentRound();
             Assertions.assertNotNull(currentRoundBeforeJoin);
@@ -478,7 +476,7 @@ class CaptureTheFlagTest {
             speedThroughMatchesStarting();
             speedThroughHalfClassSelection();
 
-            CaptureTheFlagGame ctf = ((CaptureTheFlagGame) gameManager.getActiveGame());
+            CaptureTheFlagGameOld ctf = ((CaptureTheFlagGameOld) gameManager.getActiveGame());
             CaptureTheFlagRound currentRound = ctf.getCurrentRound();
             Assertions.assertNotNull(currentRound);
             List<Player> onDeckParticipants = currentRound.getOnDeckParticipants();
@@ -516,7 +514,7 @@ class CaptureTheFlagTest {
             speedThroughClassSelection();
             speedThroughHalfRoundTimer();
 
-            CaptureTheFlagGame ctf = ((CaptureTheFlagGame) gameManager.getActiveGame());
+            CaptureTheFlagGameOld ctf = ((CaptureTheFlagGameOld) gameManager.getActiveGame());
 
             CaptureTheFlagRound currentRoundBeforeDisconnect = ctf.getCurrentRound();
             Assertions.assertNotNull(currentRoundBeforeDisconnect);
@@ -555,7 +553,7 @@ class CaptureTheFlagTest {
             speedThroughMatchesStarting();
             speedThroughHalfClassSelection();
             
-            CaptureTheFlagGame ctf = ((CaptureTheFlagGame) gameManager.getActiveGame());
+            CaptureTheFlagGameOld ctf = ((CaptureTheFlagGameOld) gameManager.getActiveGame());
             Assertions.assertEquals(1, ctf.getMaxRounds());
             CaptureTheFlagRound currentRoundBeforeJoin = ctf.getCurrentRound();
             Assertions.assertNotNull(currentRoundBeforeJoin);
@@ -599,7 +597,7 @@ class CaptureTheFlagTest {
 
             player3.reconnect();
 
-            CaptureTheFlagGame ctf = ((CaptureTheFlagGame) gameManager.getActiveGame());
+            CaptureTheFlagGameOld ctf = ((CaptureTheFlagGameOld) gameManager.getActiveGame());
             CaptureTheFlagRound currentRound = ctf.getCurrentRound();
             Assertions.assertNotNull(currentRound);
             List<Player> onDeckParticipants = currentRound.getOnDeckParticipants();
@@ -625,7 +623,7 @@ class CaptureTheFlagTest {
             player3.disconnect();
             gameManager.startGame(GameType.CAPTURE_THE_FLAG, sender);
             
-            CaptureTheFlagGame ctf = ((CaptureTheFlagGame) gameManager.getActiveGame());
+            CaptureTheFlagGameOld ctf = ((CaptureTheFlagGameOld) gameManager.getActiveGame());
             Assertions.assertEquals(1, ctf.getMaxRounds());
             
             player3.reconnect();
@@ -653,7 +651,7 @@ class CaptureTheFlagTest {
             speedThroughClassSelection();
             speedThroughHalfRoundTimer();
 
-            CaptureTheFlagGame ctf = ((CaptureTheFlagGame) gameManager.getActiveGame());
+            CaptureTheFlagGameOld ctf = ((CaptureTheFlagGameOld) gameManager.getActiveGame());
 
             CaptureTheFlagRound currentRoundBeforeDisconnect = ctf.getCurrentRound();
             Assertions.assertNotNull(currentRoundBeforeDisconnect);

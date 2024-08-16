@@ -8,7 +8,7 @@ import java.util.function.BiPredicate;
 
 public class RoundManagerTest {
     
-    class MockCTFGame extends CaptureTheFlagGame {
+    class MockCTFGame extends CaptureTheFlagGameOld {
         final int numOfArenas;
         List<String> teams;
         CTFRound currentRound;

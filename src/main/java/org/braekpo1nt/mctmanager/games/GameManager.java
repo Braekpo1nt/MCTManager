@@ -172,9 +172,6 @@ public class GameManager implements Listener {
         }
     }
     
-    public static final List<Material> LEATHER_ARMOR = List.of(
-            Material.LEATHER_HELMET, Material.LEATHER_CHESTPLATE, Material.LEATHER_LEGGINGS, Material.LEATHER_BOOTS);
-    
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerInteract(PlayerInteractEvent event) {
         Action action = event.getAction();

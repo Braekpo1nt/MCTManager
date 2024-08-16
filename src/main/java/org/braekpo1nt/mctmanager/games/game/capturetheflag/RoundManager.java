@@ -10,7 +10,7 @@ import java.util.*;
  */
 public class RoundManager {
     
-    private final CaptureTheFlagGame game;
+    private final CaptureTheFlagGameOld game;
     /**
      * The teams who have to fight
      */
@@ -42,7 +42,7 @@ public class RoundManager {
     Map<String, Integer> totalOnDeckRounds;
     // reporting
     
-    public RoundManager(CaptureTheFlagGame game, int numOfArenas) {
+    public RoundManager(CaptureTheFlagGameOld game, int numOfArenas) {
         this.game = game;
         this.numOfArenas = numOfArenas;
     }
