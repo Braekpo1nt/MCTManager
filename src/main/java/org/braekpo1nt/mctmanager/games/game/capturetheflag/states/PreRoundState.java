@@ -13,6 +13,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
 
 import java.util.List;
 
@@ -137,6 +138,11 @@ public class PreRoundState implements CaptureTheFlagState {
     
     @Override
     public void onPlayerLoseHunger(FoodLevelChangeEvent event) {
+        
+    }
+    
+    @Override
+    public void onPlayerMove(PlayerMoveEvent event) {
         
     }
     
