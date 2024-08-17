@@ -31,6 +31,12 @@ public class PreRoundState implements CaptureTheFlagState {
         this.sidebar = context.getSidebar();
         this.adminSidebar = context.getAdminSidebar();
         this.topbar = context.getTopbar();
+        
+        List<String> teamIds = gameManager.getTeamNames(context.getParticipants());
+        context.getRoundManager().initialize(
+                teamIds, 
+                context.getConfig().getArenas().size());
+        
         context.getTimerManager().start(Timer.builder()
                 .duration(context.getConfig().getDescriptionDuration())
                 .withSidebar(adminSidebar, "timer")
