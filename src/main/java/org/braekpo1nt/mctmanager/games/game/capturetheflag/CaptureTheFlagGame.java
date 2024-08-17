@@ -107,10 +107,6 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         Main.logger().info("Starting Capture the Flag");
     }
     
-    public void startNextRound(List<String> participantTeams, List<MatchPairing> roundMatchPairings) {
-        throw new UnsupportedOperationException("Not yet implemented");
-    }
-    
     private void initializeParticipant(Player participant) {
         participants.add(participant);
         sidebar.addPlayer(participant);
@@ -148,12 +144,18 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     
     @Override
     public void onParticipantJoin(Player participant) {
-        
+        if (state == null) {
+            return;
+        }
+        state.onParticipantJoin(participant);
     }
     
     @Override
     public void onParticipantQuit(Player participant) {
-        
+        if (state == null) {
+            return;
+        }
+        state.onParticipantQuit(participant);
     }
     
     @Override
@@ -168,6 +170,26 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     public void onAdminQuit(Player admin) {
         resetAdmin(admin);
         admins.remove(admin);
+    }
+    
+    /**
+     * @param playerUUID the player to add a kill to
+     */
+    void addKill(@NotNull UUID playerUUID) {
+        int oldKillCount = killCount.get(playerUUID);
+        int newKillCount = oldKillCount + 1;
+        killCount.put(playerUUID, newKillCount);
+        topbar.setKills(playerUUID, newKillCount);
+    }
+    
+    /**
+     * @param playerUUID the player to add a death to
+     */
+    void addDeath(@NotNull UUID playerUUID) {
+        int oldDeathCount = deathCount.get(playerUUID);
+        int newDeathCount = oldDeathCount + 1;
+        deathCount.put(playerUUID, newDeathCount);
+        topbar.setDeaths(playerUUID, newDeathCount);
     }
     
     private void initializeSidebar() {

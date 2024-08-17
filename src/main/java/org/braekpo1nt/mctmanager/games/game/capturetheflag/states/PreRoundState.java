@@ -4,19 +4,17 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.CaptureTheFlagGame;
-import org.braekpo1nt.mctmanager.games.game.capturetheflag.CaptureTheFlagRoundOld;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.MatchPairing;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
+import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.ui.topbar.BattleTopbar;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class PreRoundState implements CaptureTheFlagState {
@@ -26,7 +24,6 @@ public class PreRoundState implements CaptureTheFlagState {
     private final Sidebar sidebar;
     private final Sidebar adminSidebar;
     private final BattleTopbar topbar;
-    private @Nullable CaptureTheFlagRoundOld currentRound;
     
     public PreRoundState(CaptureTheFlagGame context) {
         this.context = context;
@@ -34,46 +31,15 @@ public class PreRoundState implements CaptureTheFlagState {
         this.sidebar = context.getSidebar();
         this.adminSidebar = context.getAdminSidebar();
         this.topbar = context.getTopbar();
-        List<String> teams = gameManager.getTeamNames(context.getParticipants());
-        context.getRoundManager().start(teams, this::startNextRound, context::stop);
-    }
-    
-    public void startNextRound(List<String> participantTeams, List<MatchPairing> roundMatchPairings) {
-        
-        //TODO: null capture the flag game
-        currentRound = new CaptureTheFlagRoundOld(null, context.getPlugin(), context.getGameManager(), context.getConfig(), roundMatchPairings, context.getSidebar(), context.getAdminSidebar(), context.getTopbar());
-        List<Player> roundParticipants = new ArrayList<>();
-        List<Player> onDeckParticipants = new ArrayList<>();
-        for (Player participant : context.getParticipants()) {
-            String teamId = gameManager.getTeamName(participant.getUniqueId());
-            Component teamDisplayName = gameManager.getFormattedTeamDisplayName(teamId);
-            Component roundDisplay = Component.empty()
-                    .append(Component.text("Round "))
-                    .append(Component.text(context.getRoundManager().getPlayedRounds() + 1))
-                    .append(Component.text(":"));
-            if (participantTeams.contains(teamId)) {
-                String oppositeTeamId = currentRound.getOppositeTeam(teamId);
-                announceMatchToParticipant(participant, teamId, teamDisplayName, roundDisplay, oppositeTeamId);
-                roundParticipants.add(participant);
-            } else {
-                participant.sendMessage(Component.empty()
-                        .append(teamDisplayName)
-                        .append(Component.text(" is on-deck this round."))
-                        .color(NamedTextColor.YELLOW));
-                participant.showTitle(UIUtils.defaultTitle(
-                        roundDisplay,
-                        Component.empty()
-                                .append(teamDisplayName)
-                                .append(Component.text(" is on-deck"))
-                ));
-                onDeckParticipants.add(participant);
-            }
-        }
-        setUpTopbarForRound(roundMatchPairings);
-        currentRound.start(roundParticipants, onDeckParticipants);
-        String round = String.format("Round %d/%d", context.getRoundManager().getPlayedRounds() + 1, context.getRoundManager().getMaxRounds());
-        sidebar.updateLine("round", round);
-        adminSidebar.updateLine("round", round);
+        context.getTimerManager().start(Timer.builder()
+                .duration(context.getConfig().getDescriptionDuration())
+                .withSidebar(adminSidebar, "timer")
+                .withTopbar(topbar)
+                .sidebarPrefix(Component.text("Starting: "))
+                .onCompletion(() -> {
+                    context.setState(new RoundActiveState(context));
+                })
+                .build());
     }
     
     /**

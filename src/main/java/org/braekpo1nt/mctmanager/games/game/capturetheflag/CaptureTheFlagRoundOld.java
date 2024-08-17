@@ -12,7 +12,6 @@ import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.braekpo1nt.mctmanager.ui.topbar.BattleTopbar;
 import org.braekpo1nt.mctmanager.utils.LogType;
-import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -41,12 +40,8 @@ public class CaptureTheFlagRoundOld {
     private final List<CaptureTheFlagMatch> matches;
     private List<Player> participants = new ArrayList<>();
     private List<Player> onDeckParticipants;
-    private int matchesStartingCountDownTaskId;
-    private int onDeckClassSelectionTimerTaskId;
-    private int onDeckMatchTimerTaskId;
     private boolean roundActive = false;
     private boolean firstRound = false;
-    private int descriptionPeriodTaskId;
     private boolean descriptionShowing = false;
     /**
      * false if the countdown timer is still going and the matches haven't started yet for this round. False otherwise. 
@@ -408,10 +403,6 @@ public class CaptureTheFlagRoundOld {
     }
     
     private void cancelAllTasks() {
-        Bukkit.getScheduler().cancelTask(matchesStartingCountDownTaskId);
-        Bukkit.getScheduler().cancelTask(onDeckClassSelectionTimerTaskId);
-        Bukkit.getScheduler().cancelTask(onDeckMatchTimerTaskId);
-        Bukkit.getScheduler().cancelTask(descriptionPeriodTaskId);
         timerManager.cancel();
     }
 
