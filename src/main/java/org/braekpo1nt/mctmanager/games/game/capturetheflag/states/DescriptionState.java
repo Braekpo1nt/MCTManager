@@ -7,7 +7,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
 
 public class DescriptionState implements CaptureTheFlagState {
     
@@ -58,11 +57,6 @@ public class DescriptionState implements CaptureTheFlagState {
     
     @Override
     public void onPlayerLoseHunger(FoodLevelChangeEvent event) {
-        
-    }
-    
-    @Override
-    public void onPlayerMove(PlayerMoveEvent event) {
         
     }
     
