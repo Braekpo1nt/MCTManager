@@ -5,18 +5,20 @@ import java.util.List;
 
 public class RoundManager {
     
-    private List<MatchPairing> matchPairings;
+    /**
+     * The schedule handled by this round. Each element of the outer list
+     * is a round. 
+     */
+    private List<List<MatchPairing>> schedule;
     
-    public int getCurrentRoundNumber() {
-        return 0;
+    private int currentRoundIndex = 0;
+    
+    public int getCurrentRoundIndex() {
+        return currentRoundIndex;
     }
     
     public int getMaxRounds() {
-        return 0;
-    }
-    
-    public int getPlayedRounds() {
-        return 0;
+        return schedule.size();
     }
     
     /**
