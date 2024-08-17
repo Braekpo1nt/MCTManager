@@ -419,7 +419,7 @@ public class CaptureTheFlagMatchOld implements Listener {
     }
     
     @EventHandler
-    public void clickEvent(InventoryClickEvent event) {
+    public void onClickInventory(InventoryClickEvent event) {
         if (event.getClickedInventory() == null) {
             return;
         }
