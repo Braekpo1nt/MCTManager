@@ -41,7 +41,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-public class CaptureTheFlagMatch implements Listener {
+public class CaptureTheFlagMatchOld implements Listener {
     
     private final CaptureTheFlagRoundOld captureTheFlagRound;
     private final Main plugin;
@@ -79,9 +79,9 @@ public class CaptureTheFlagMatch implements Listener {
     private Material southBanner;
     private final TimerManager timerManager;
     
-    public CaptureTheFlagMatch(CaptureTheFlagRoundOld captureTheFlagRound, Main plugin,
-                               GameManager gameManager, MatchPairing matchPairing, Arena arena,
-                               CaptureTheFlagConfig config, Sidebar sidebar, Sidebar adminSidebar, BattleTopbar topbar) {
+    public CaptureTheFlagMatchOld(CaptureTheFlagRoundOld captureTheFlagRound, Main plugin,
+                                  GameManager gameManager, MatchPairing matchPairing, Arena arena,
+                                  CaptureTheFlagConfig config, Sidebar sidebar, Sidebar adminSidebar, BattleTopbar topbar) {
         this.captureTheFlagRound = captureTheFlagRound;
         this.plugin = plugin;
         this.timerManager = new TimerManager(plugin);
@@ -548,7 +548,7 @@ public class CaptureTheFlagMatch implements Listener {
     }
     
     /**
-     * Returns true if the south flag is dropped on the ground, and the given location's blockLocation is equal to {@link CaptureTheFlagMatch#southFlagPosition}
+     * Returns true if the south flag is dropped on the ground, and the given location's blockLocation is equal to {@link CaptureTheFlagMatchOld#southFlagPosition}
      * @param location The location to check
      * @return Whether the south flag is dropped and the location is on the south flag
      */
@@ -677,7 +677,7 @@ public class CaptureTheFlagMatch implements Listener {
     }
     
     /**
-     * Returns true if the north flag is dropped on the ground, and the given location's blockLocation is equal to {@link CaptureTheFlagMatch#northFlagPosition}
+     * Returns true if the north flag is dropped on the ground, and the given location's blockLocation is equal to {@link CaptureTheFlagMatchOld#northFlagPosition}
      * @param location The location to check
      * @return Whether the north flag is dropped and the location is on the north flag
      */
@@ -865,7 +865,7 @@ public class CaptureTheFlagMatch implements Listener {
     }
     
     /**
-     * Closes the glass barriers for the {@link CaptureTheFlagMatch#arena}
+     * Closes the glass barriers for the {@link CaptureTheFlagMatchOld#arena}
      */
     private void closeGlassBarriers() {
         Arena.BarrierSize size = arena.barrierSize();
@@ -876,7 +876,7 @@ public class CaptureTheFlagMatch implements Listener {
     }
     
     /**
-     * Opens the glass barriers for the {@link CaptureTheFlagMatch#arena}
+     * Opens the glass barriers for the {@link CaptureTheFlagMatchOld#arena}
      */
     private void openGlassBarriers() {
         Arena.BarrierSize size = arena.barrierSize();

@@ -37,7 +37,7 @@ public class CaptureTheFlagRoundOld {
     private final Sidebar sidebar;
     private final Sidebar adminSidebar;
     private final BattleTopbar topbar;
-    private final List<CaptureTheFlagMatch> matches;
+    private final List<CaptureTheFlagMatchOld> matches;
     private List<Player> participants = new ArrayList<>();
     private List<Player> onDeckParticipants;
     private boolean roundActive = false;
@@ -64,16 +64,16 @@ public class CaptureTheFlagRoundOld {
     /**
      * Creates the matches for this round from the provided matchPairings and arenas. matchPairings.size() 
      * must be less than or equal to arenas.size(), or you will get null pointer exceptions. 
-     * @param matchPairings The MatchPairings to create {@link CaptureTheFlagMatch}s from
-     * @param arenas The arenas to assign to each {@link CaptureTheFlagMatch}
+     * @param matchPairings The MatchPairings to create {@link CaptureTheFlagMatchOld}s from
+     * @param arenas The arenas to assign to each {@link CaptureTheFlagMatchOld}
      * @throws NullPointerException if matchPairings.size() is greater than arenas.size()
      */
-    public List<CaptureTheFlagMatch> createMatches(List<MatchPairing> matchPairings, List<Arena> arenas) {
-        List<CaptureTheFlagMatch> newMatches = new ArrayList<>();
+    public List<CaptureTheFlagMatchOld> createMatches(List<MatchPairing> matchPairings, List<Arena> arenas) {
+        List<CaptureTheFlagMatchOld> newMatches = new ArrayList<>();
         for (int i = 0; i < matchPairings.size(); i++) {
             MatchPairing matchPairing = matchPairings.get(i);
             Arena arena = arenas.get(i);
-            CaptureTheFlagMatch match = new CaptureTheFlagMatch(this, plugin, gameManager, 
+            CaptureTheFlagMatchOld match = new CaptureTheFlagMatchOld(this, plugin, gameManager, 
                     matchPairing, arena, config, sidebar, adminSidebar, topbar);
             newMatches.add(match);
         }
@@ -132,7 +132,7 @@ public class CaptureTheFlagRoundOld {
         cancelAllTasks();
         roundActive = false;
         descriptionShowing = false;
-        for (CaptureTheFlagMatch match : matches) {
+        for (CaptureTheFlagMatchOld match : matches) {
             if (match.isActive()) {
                 match.stop();
             }
@@ -163,7 +163,7 @@ public class CaptureTheFlagRoundOld {
     public void onParticipantJoin(Player participant) {
         String teamId = gameManager.getTeamName(participant.getUniqueId());
         Component teamDisplayName = gameManager.getFormattedTeamDisplayName(teamId);
-        CaptureTheFlagMatch match = getMatch(teamId);
+        CaptureTheFlagMatchOld match = getMatch(teamId);
         if (match == null) {
             initializeOnDeckParticipant(participant);
             participant.sendMessage(Component.empty()
@@ -194,7 +194,7 @@ public class CaptureTheFlagRoundOld {
             return;
         }
         String teamName = gameManager.getTeamName(participant.getUniqueId());
-        CaptureTheFlagMatch match = getMatch(teamName);
+        CaptureTheFlagMatchOld match = getMatch(teamName);
         if (match == null) {
             resetParticipant(participant);
             participants.remove(participant);
@@ -218,7 +218,7 @@ public class CaptureTheFlagRoundOld {
      * Tells the round that the given match is over. If all matches are over, stops the round. If not all matches are over, teleports the players who were in the passed-in match to the spawn observatory.
      * @param match The match that is over. Must be one of the matches in {@link CaptureTheFlagRoundOld#matches}.
      */
-    public void matchIsOver(CaptureTheFlagMatch match) {
+    public void matchIsOver(CaptureTheFlagMatchOld match) {
         if (allMatchesAreOver()) {
             roundIsOver();
             return;
@@ -238,7 +238,7 @@ public class CaptureTheFlagRoundOld {
      * @return True if all matches are over, false if even one match isn't over
      */
     private boolean allMatchesAreOver() {
-        for (CaptureTheFlagMatch match : matches) {
+        for (CaptureTheFlagMatchOld match : matches) {
             if (match.isActive()) {
                 return false;
             }
@@ -301,7 +301,7 @@ public class CaptureTheFlagRoundOld {
      * Starts the matches that are in this round
      */
     private void startMatches() {
-        for (CaptureTheFlagMatch match : matches) {
+        for (CaptureTheFlagMatchOld match : matches) {
             MatchPairing matchPairing = match.getMatchPairing();
             List<Player> northParticipants = getParticipantsOnTeam(matchPairing.northTeam());
             List<Player> southParticipants = getParticipantsOnTeam(matchPairing.southTeam());
@@ -333,7 +333,7 @@ public class CaptureTheFlagRoundOld {
             return;
         }
         String teamId = gameManager.getTeamName(participant.getUniqueId());
-        CaptureTheFlagMatch match = this.getMatch(teamId);
+        CaptureTheFlagMatchOld match = this.getMatch(teamId);
         if (match == null || !match.isActive()) {
             Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "CaptureTheFlagRound.onPlayerDamage()->matchNotActive cancelled");
             // the match is over or the player is on-deck/spectating
@@ -386,7 +386,7 @@ public class CaptureTheFlagRoundOld {
             event.setCancelled(true);
             return;
         }
-        for (CaptureTheFlagMatch match : matches) {
+        for (CaptureTheFlagMatchOld match : matches) {
             match.onClickInventory(participant, event);
         }
     }
@@ -425,7 +425,7 @@ public class CaptureTheFlagRoundOld {
      * @return True if the participant is alive and in a match, false otherwise
      */
     public boolean isAliveInMatch(Player participant) {
-        for (CaptureTheFlagMatch match : matches) {
+        for (CaptureTheFlagMatchOld match : matches) {
             if (match.isActive()) {
                 if (match.isAliveInMatch(participant)) {
                     return true;
@@ -439,11 +439,11 @@ public class CaptureTheFlagRoundOld {
      * Gets the opposite team of the given teamName, if the teamName is contained in one of this round's
      * {@link CaptureTheFlagRoundOld#matches}.
      * @param teamName The teamName to check for
-     * @return The opposite team in the {@link CaptureTheFlagMatch} which contains the given teamName. Null if
+     * @return The opposite team in the {@link CaptureTheFlagMatchOld} which contains the given teamName. Null if
      * the given teamName is not contained in any of the matches for this round.
      */
     public @Nullable String getOppositeTeam(@NotNull String teamName) {
-        for (CaptureTheFlagMatch match : matches) {
+        for (CaptureTheFlagMatchOld match : matches) {
             String oppositeTeam = match.getMatchPairing().oppositeTeam(teamName);
             if (oppositeTeam != null) {
                 return oppositeTeam;
@@ -457,8 +457,8 @@ public class CaptureTheFlagRoundOld {
      * @param teamName The team to find the match for. 
      * @return The match that the team is in. Null if the given team is not in a match.
      */
-    private @Nullable CaptureTheFlagMatch getMatch(@NotNull String teamName) {
-        for (CaptureTheFlagMatch match : matches) {
+    private @Nullable CaptureTheFlagMatchOld getMatch(@NotNull String teamName) {
+        for (CaptureTheFlagMatchOld match : matches) {
             if (match.getMatchPairing().containsTeam(teamName)) {
                 return match;
             }
@@ -469,7 +469,7 @@ public class CaptureTheFlagRoundOld {
     /**
      * @return a copy of this round's matches.
      */
-    public @NotNull List<CaptureTheFlagMatch> getMatches() {
+    public @NotNull List<CaptureTheFlagMatchOld> getMatches() {
         return new ArrayList<>(matches);
     }
     
@@ -493,7 +493,7 @@ public class CaptureTheFlagRoundOld {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        for (CaptureTheFlagMatch match : matches) {
+        for (CaptureTheFlagMatchOld match : matches) {
             sb.append(match);
             sb.append(",");
         }
@@ -519,7 +519,7 @@ public class CaptureTheFlagRoundOld {
      * @return true if the teamName is in one of this round's matches, false otherwise
      */
     public boolean containsTeam(String teamName) {
-        for (CaptureTheFlagMatch match : matches) {
+        for (CaptureTheFlagMatchOld match : matches) {
             if (match.getMatchPairing().containsTeam(teamName)) {
                 return true;
             }
