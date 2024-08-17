@@ -5,8 +5,8 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.CaptureTheFlagGame;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.MatchPairing;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.RoundManager;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
-import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.ui.topbar.BattleTopbar;
 import org.bukkit.entity.Player;
@@ -21,25 +21,20 @@ public class PreRoundState implements CaptureTheFlagState {
     
     private final CaptureTheFlagGame context;
     private final GameManager gameManager;
-    private final Sidebar sidebar;
-    private final Sidebar adminSidebar;
     private final BattleTopbar topbar;
+    private final RoundManager roundManager;
     
     public PreRoundState(CaptureTheFlagGame context) {
         this.context = context;
         this.gameManager = context.getGameManager();
-        this.sidebar = context.getSidebar();
-        this.adminSidebar = context.getAdminSidebar();
         this.topbar = context.getTopbar();
+        this.roundManager = context.getRoundManager();
         
-        List<String> teamIds = gameManager.getTeamNames(context.getParticipants());
-        context.getRoundManager().initialize(
-                teamIds, 
-                context.getConfig().getArenas().size());
-        
+        announceMatchToParticipants();
+        setUpTopbarForRound();
         context.getTimerManager().start(Timer.builder()
                 .duration(context.getConfig().getDescriptionDuration())
-                .withSidebar(adminSidebar, "timer")
+                .withSidebar(context.getAdminSidebar(), "timer")
                 .withTopbar(topbar)
                 .sidebarPrefix(Component.text("Starting: "))
                 .onCompletion(() -> {
@@ -48,29 +43,48 @@ public class PreRoundState implements CaptureTheFlagState {
                 .build());
     }
     
-    /**
-     * Send a message to the participant who they are fighting against in the current match
-     * @param participant the participant to send the message to
-     * @param teamId the team that the participant is on
-     */
-    private void announceMatchToParticipant(Player participant, String teamId, Component teamDisplayName, Component roundDisplay, String oppositeTeamId) {
-        Component oppositeTeamDisplayName = gameManager.getFormattedTeamDisplayName(oppositeTeamId);
-        participant.sendMessage(Component.empty()
-                .append(teamDisplayName)
-                .append(Component.text(" is competing against "))
-                .append(oppositeTeamDisplayName)
-                .append(Component.text(" this round."))
-                .color(NamedTextColor.YELLOW));
-        participant.showTitle(UIUtils.defaultTitle(
-                roundDisplay,
-                Component.empty()
+    private void announceMatchToParticipants() {
+        List<MatchPairing> currentRound = roundManager.getCurrentRound();
+        Component roundDisplay = Component.empty()
+                .append(Component.text("Round "))
+                .append(Component.text(roundManager.getCurrentRoundIndex() + 1))
+                .append(Component.text(":"));
+        for (Player participant : context.getParticipants()) {
+            String teamId = gameManager.getTeamName(participant.getUniqueId());
+            Component teamDisplayName = gameManager.getFormattedTeamDisplayName(teamId);
+            String oppositeTeamId = RoundManager.getOppositeTeam(teamId, currentRound);
+            if (oppositeTeamId != null) {
+                Component oppositeTeamDisplayName = gameManager.getFormattedTeamDisplayName(oppositeTeamId);
+                participant.sendMessage(Component.empty()
                         .append(teamDisplayName)
-                        .append(Component.text(" vs "))
+                        .append(Component.text(" is competing against "))
                         .append(oppositeTeamDisplayName)
-        ));
+                        .append(Component.text(" this round."))
+                        .color(NamedTextColor.YELLOW));
+                participant.showTitle(UIUtils.defaultTitle(
+                        roundDisplay,
+                        Component.empty()
+                                .append(teamDisplayName)
+                                .append(Component.text(" vs "))
+                                .append(oppositeTeamDisplayName)
+                ));
+            } else {
+                participant.sendMessage(Component.empty()
+                        .append(teamDisplayName)
+                        .append(Component.text(" is on-deck this round."))
+                        .color(NamedTextColor.YELLOW));
+                participant.showTitle(UIUtils.defaultTitle(
+                        roundDisplay,
+                        Component.empty()
+                                .append(teamDisplayName)
+                                .append(Component.text(" is on-deck"))
+                ));
+            }
+        }
     }
     
-    private void setUpTopbarForRound(List<MatchPairing> roundMatchPairings) {
+    private void setUpTopbarForRound() {
+        List<MatchPairing> roundMatchPairings = roundManager.getCurrentRound();
         topbar.removeAllTeamPairs();
         for (MatchPairing mp : roundMatchPairings) {
             NamedTextColor northColor = gameManager.getTeamNamedTextColor(mp.northTeam());

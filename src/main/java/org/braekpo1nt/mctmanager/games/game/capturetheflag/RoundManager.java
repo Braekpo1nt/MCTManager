@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.games.game.capturetheflag;
 
 import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -17,6 +18,34 @@ public class RoundManager {
     private List<List<MatchPairing>> schedule;
     
     private int currentRoundIndex = 0;
+    
+    /**
+     * @param teamId the teamId to check
+     * @param round the round to check
+     * @return true if the given teamId is playing in the given round, false if they are on-deck
+     */
+    public static boolean teamIsPlaying(String teamId, List<MatchPairing> round) {
+        for (MatchPairing matchPairing : round) {
+            if (matchPairing.containsTeam(teamId)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    /**
+     * @param teamId the teamId to check
+     * @param round the round to check
+     * @return the opposite teamId of the given teamId in the given round (if they are present), null if the given team is on-deck
+     */
+    public static @Nullable String getOppositeTeam(String teamId, List<MatchPairing> round) {
+        for (MatchPairing matchPairing : round) {
+            if (matchPairing.containsTeam(teamId)) {
+                return matchPairing.oppositeTeam(teamId);
+            }
+        }
+        return null;
+    }
     
     public int getCurrentRoundIndex() {
         return currentRoundIndex;
