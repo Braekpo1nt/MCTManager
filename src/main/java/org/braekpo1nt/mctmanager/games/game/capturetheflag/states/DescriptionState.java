@@ -33,7 +33,11 @@ public class DescriptionState implements CaptureTheFlagState {
     
     @Override
     public void onParticipantJoin(Player participant) {
-        
+        initializeParticipant(participant);
+    }
+    
+    public void initializeParticipant(Player participant) {
+        context.initializeParticipant(participant);
     }
     
     @Override
@@ -41,15 +45,6 @@ public class DescriptionState implements CaptureTheFlagState {
         
     }
     
-    @Override
-    public void initializeParticipant(Player participant) {
-        
-    }
-    
-    @Override
-    public void resetParticipant(Player participant) {
-        
-    }
     
     @Override
     public void onPlayerDamage(EntityDamageEvent event) {

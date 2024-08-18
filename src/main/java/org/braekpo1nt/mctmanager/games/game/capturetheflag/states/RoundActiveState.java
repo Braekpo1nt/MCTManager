@@ -152,12 +152,6 @@ public class RoundActiveState implements CaptureTheFlagState {
         context.resetParticipant(participant);
     }
     
-    @Override
-    public void initializeParticipant(Player participant) {
-        
-    }
-    
-    @Override
     public void resetParticipant(Player participant) {
         participant.getInventory().clear();
         participant.setGameMode(GameMode.ADVENTURE);

@@ -116,7 +116,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         Main.logger().info("Starting Capture the Flag");
     }
     
-    private void initializeParticipant(Player participant) {
+    public void initializeParticipant(Player participant) {
         participants.add(participant);
         sidebar.addPlayer(participant);
         topbar.showPlayer(participant);

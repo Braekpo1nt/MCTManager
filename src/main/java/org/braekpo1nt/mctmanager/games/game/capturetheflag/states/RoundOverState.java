@@ -32,16 +32,6 @@ public class RoundOverState implements CaptureTheFlagState {
     }
     
     @Override
-    public void initializeParticipant(Player participant) {
-        
-    }
-    
-    @Override
-    public void resetParticipant(Player participant) {
-        
-    }
-    
-    @Override
     public void onPlayerDamage(EntityDamageEvent event) {
         
     }

@@ -9,8 +9,6 @@ import org.bukkit.event.player.PlayerMoveEvent;
 public interface CaptureTheFlagState {
     void onParticipantJoin(Player participant);
     void onParticipantQuit(Player participant);
-    void initializeParticipant(Player participant);
-    void resetParticipant(Player participant);
     default void stop() {
         // do nothing
     }
