@@ -41,12 +41,6 @@ public class MatchOverState implements CaptureTheFlagMatchState {
         
     }
     
-    @Override
-    public void initializeParticipant(Player participant) {
-        
-    }
-    
-    @Override
     public void resetParticipant(Player participant) {
         participant.getInventory().clear();
         participant.closeInventory();

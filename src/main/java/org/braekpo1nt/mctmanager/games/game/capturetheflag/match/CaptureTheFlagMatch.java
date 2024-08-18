@@ -148,6 +148,9 @@ public class CaptureTheFlagMatch {
         if (state == null) {
             return;
         }
+        if (!allParticipants.contains(participant)) {
+            return;
+        }
         state.onParticipantJoin(participant);
     }
     
@@ -279,11 +282,21 @@ public class CaptureTheFlagMatch {
         if (state == null) {
             return;
         }
+        if (!(event.getEntity() instanceof Player participant)) {
+            return;
+        }
+        if (!allParticipants.contains(participant)) {
+            return;
+        }
         state.onPlayerDamage(event);
     }
     
     public void onPlayerLoseHunger(FoodLevelChangeEvent event) {
         if (state == null) {
+            return;
+        }
+        Player participant = (Player) event.getEntity();
+        if (!allParticipants.contains(participant)) {
             return;
         }
         state.onPlayerLoseHunger(event);
@@ -293,6 +306,10 @@ public class CaptureTheFlagMatch {
         if (state == null) {
             return;
         }
+        Player participant = event.getPlayer();
+        if (!allParticipants.contains(participant)) {
+            return;
+        }
         state.onPlayerMove(event);
     }
     
@@ -300,11 +317,19 @@ public class CaptureTheFlagMatch {
         if (state == null) {
             return;
         }
+        Player participant = (Player) event.getWhoClicked();
+        if (!allParticipants.contains(participant)) {
+            return;
+        }
         state.onClickInventory(event);
     }
     
     public void onPlayerDeath(PlayerDeathEvent event) {
         if (state == null) {
+            return;
+        }
+        Player participant = event.getPlayer();
+        if (!allParticipants.contains(participant)) {
             return;
         }
         state.onPlayerDeath(event);

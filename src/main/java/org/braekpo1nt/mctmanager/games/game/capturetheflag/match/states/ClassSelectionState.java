@@ -52,21 +52,18 @@ public class ClassSelectionState implements CaptureTheFlagMatchState {
     
     @Override
     public void onParticipantJoin(Player participant) {
-        
+        String teamId = context.getGameManager().getTeamName(participant.getUniqueId());
+        context.initializeParticipant(participant);
+        context.getTopbar().linkToTeam(participant.getUniqueId(), teamId);
+        if (context.getMatchPairing().northTeam().equals(teamId)) {
+            northClassPicker.addTeamMate(participant);
+        } else {
+            southClassPicker.addTeamMate(participant);
+        }
     }
     
     @Override
     public void onParticipantQuit(Player participant) {
-        
-    }
-    
-    @Override
-    public void initializeParticipant(Player participant) {
-        
-    }
-    
-    @Override
-    public void resetParticipant(Player participant) {
         
     }
     

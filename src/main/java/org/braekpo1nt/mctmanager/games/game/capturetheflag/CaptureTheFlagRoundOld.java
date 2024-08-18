@@ -176,6 +176,7 @@ public class CaptureTheFlagRoundOld {
         if (match.isActive()) {
             match.onParticipantJoin(participant);
         } else {
+            //TODO: handle this in new state machine
             MatchPairing matchPairing = match.getMatchPairing();
             if (matchPairing.northTeam().equals(teamId)) {
                 topbar.linkToTeam(participant.getUniqueId(), teamId);

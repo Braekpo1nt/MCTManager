@@ -112,6 +112,16 @@ public class RoundActiveState implements CaptureTheFlagState {
     
     @Override
     public void onParticipantJoin(Player participant) {
+        context.initializeParticipant(participant);
+        context.getSidebar().updateLine(participant.getUniqueId(), "title", context.getTitle());
+        Component roundLine = Component.empty()
+                .append(Component.text("Round "))
+                .append(Component.text(context.getRoundManager().getCurrentRoundIndex() + 1))
+                .append(Component.text("/"))
+                .append(Component.text(context.getRoundManager().getMaxRounds()))
+                ;
+        context.getSidebar().updateLine("round", roundLine);
+        context.getAdminSidebar().updateLine("round", roundLine);
         String teamId = gameManager.getTeamName(participant.getUniqueId());
         CaptureTheFlagMatch match = getMatch(teamId);
         if (match == null) {
