@@ -114,8 +114,6 @@ public class CaptureTheFlagMatchOld implements Listener {
         participantsAreAlive = new HashMap<>();
         placeFlags();
         closeGlassBarriers();
-        NamedTextColor northColor = gameManager.getTeamNamedTextColor(matchPairing.northTeam());
-        NamedTextColor southColor = gameManager.getTeamNamedTextColor(matchPairing.southTeam());
         for (Player northParticipant : newNorthParticipants) {
             initializeParticipant(northParticipant, true);
         }
@@ -151,7 +149,6 @@ public class CaptureTheFlagMatchOld implements Listener {
         }
         String teamId = gameManager.getTeamName(participant.getUniqueId());
         topbar.setMembers(teamId, alive, dead);
-        initializeSidebar(participant);
         allParticipants.add(participant);
         participant.getInventory().clear();
         participant.setGameMode(GameMode.ADVENTURE);
@@ -177,7 +174,6 @@ public class CaptureTheFlagMatchOld implements Listener {
         
         String teamId = gameManager.getTeamName(participant.getUniqueId());
         topbar.setMembers(teamId, alive, dead);
-        initializeSidebar(participant);
         allParticipants.add(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
         ParticipantInitializer.clearStatusEffects(participant);
@@ -203,7 +199,6 @@ public class CaptureTheFlagMatchOld implements Listener {
         for (Player participant : allParticipants) {
             resetParticipant(participant);
         }
-        clearSidebar();
         allParticipants.clear();
         northParticipants.clear();
         southParticipants.clear();
@@ -846,12 +841,6 @@ public class CaptureTheFlagMatchOld implements Listener {
     private void initializeSidebar() {
         adminSidebar.updateLine("timer", "Round: ");
         topbar.setMiddle(Component.empty());
-    }
-    
-    private void initializeSidebar(Player participant) {
-    }
-    
-    private void clearSidebar() {
     }
     
     private void placeFlags() {

@@ -30,17 +30,37 @@ public class RoundActiveState implements CaptureTheFlagState {
         this.context = context;
         this.gameManager = context.getGameManager();
         this.roundManger = context.getRoundManager();
-        Sidebar sidebar = context.getSidebar();
-        Sidebar adminSidebar = context.getAdminSidebar();
         
         List<MatchPairing> currentRound = roundManger.getCurrentRound();
-        matches = new HashMap<>();
+        matches = new HashMap<>(currentRound.size());
+        Map<MatchPairing, List<Player>> matchParticipants = new HashMap<>();
+        for (int i = 0; i < currentRound.size(); i++) {
+            MatchPairing matchPairing = currentRound.get(i);
+            CaptureTheFlagMatch match = new CaptureTheFlagMatch(
+                    context, 
+                    this::matchIsOver, 
+                    matchPairing, 
+                    context.getConfig().getArenas().get(i));
+            matches.put(matchPairing, match);
+            matchParticipants.put(matchPairing, new ArrayList<>());
+        }
+        
+        
         for (Player participant : context.getParticipants()) {
             String teamId = gameManager.getTeamName(participant.getUniqueId());
             MatchPairing matchPairing = RoundManager.getMatchPairing(teamId, currentRound);
-            // use the matchPairing as the key to a map for what match the team is in, or if they are on deck. 
+            if (matchPairing == null) {
+                onDeckParticipants.add(participant);
+            } else {
+                matchParticipants.get(matchPairing).add(participant);
+            }
         }
-        // TODO: call each match's start() method
+        
+        for (MatchPairing matchPairing : currentRound) {
+            CaptureTheFlagMatch match = matches.get(matchPairing);
+            List<Player> newParticipants = matchParticipants.get(matchPairing);
+            match.start(newParticipants);
+        }
     }
     
     /**
