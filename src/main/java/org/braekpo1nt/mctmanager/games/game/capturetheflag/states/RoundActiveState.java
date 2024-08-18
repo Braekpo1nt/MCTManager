@@ -13,7 +13,9 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class RoundActiveState implements CaptureTheFlagState {
     
@@ -21,7 +23,7 @@ public class RoundActiveState implements CaptureTheFlagState {
     private final GameManager gameManager;
     private final RoundManager roundManger;
     private final List<Player> onDeckParticipants = new ArrayList<>();
-    private final List<CaptureTheFlagMatch> matches;
+    private final Map<MatchPairing, CaptureTheFlagMatch> matches;
     private int numOfEndedMatches = 0;
     
     public RoundActiveState(CaptureTheFlagGame context) {
@@ -32,6 +34,7 @@ public class RoundActiveState implements CaptureTheFlagState {
         Sidebar adminSidebar = context.getAdminSidebar();
         
         List<MatchPairing> currentRound = roundManger.getCurrentRound();
+        matches = new HashMap<>();
         for (Player participant : context.getParticipants()) {
             String teamId = gameManager.getTeamName(participant.getUniqueId());
             MatchPairing matchPairing = RoundManager.getMatchPairing(teamId, currentRound);
