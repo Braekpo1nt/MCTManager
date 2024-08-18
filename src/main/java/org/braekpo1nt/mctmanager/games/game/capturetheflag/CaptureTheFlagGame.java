@@ -23,7 +23,12 @@ import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.braekpo1nt.mctmanager.ui.topbar.BattleTopbar;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.FoodLevelChangeEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -158,12 +163,18 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         if (state == null) {
             return;
         }
+        if (!participants.contains(participant)) {
+            return;
+        }
         state.onParticipantJoin(participant);
     }
     
     @Override
     public void onParticipantQuit(Player participant) {
         if (state == null) {
+            return;
+        }
+        if (!participants.contains(participant)) {
             return;
         }
         state.onParticipantQuit(participant);
@@ -253,6 +264,63 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
             return;
         }
         sidebar.updateLine(participant.getUniqueId(), "personalScore", contents);
+    }
+    
+    private void cancelAllTasks() {
+        if (state != null) {
+            state.cancelAllTasks();
+        }
+        timerManager.cancel();
+    }
+    
+    @EventHandler
+    public void onPlayerDamage(EntityDamageEvent event) {
+        if (state == null) {
+            return;
+        }
+        if (!(event.getEntity() instanceof Player participant)) {
+            return;
+        }
+        if (!participants.contains(participant)) {
+            return;
+        }
+        state.onPlayerDamage(event);
+    }
+    
+    @EventHandler
+    public void onPlayerLoseHunger(FoodLevelChangeEvent event) {
+        if (state == null) {
+            return;
+        }
+        Player participant = (Player) event.getEntity();
+        if (!participants.contains(participant)) {
+            return;
+        }
+        state.onPlayerLoseHunger(event);
+    }
+    
+    @EventHandler
+    public void onClickInventory(InventoryClickEvent event) {
+        if (state == null) {
+            return;
+        }
+        Player participant = (Player) event.getWhoClicked();
+        if (!participants.contains(participant)) {
+            return;
+        }
+        state.onClickInventory(event);
+    }
+    
+    @EventHandler
+    public void onPlayerMove(PlayerMoveEvent event) {
+        if (state == null) {
+            return;
+        }
+        Player participant = event.getPlayer();
+        if (!participants.contains(participant)) {
+            return;
+        }
+        state.onPlayerMove(event);
     }
     
     /**
