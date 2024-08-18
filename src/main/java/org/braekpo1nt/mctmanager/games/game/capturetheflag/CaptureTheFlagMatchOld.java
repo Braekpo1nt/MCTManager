@@ -49,7 +49,6 @@ public class CaptureTheFlagMatchOld implements Listener {
     private final CaptureTheFlagConfig config;
     private final MatchPairing matchPairing;
     private final Arena arena;
-    private final Sidebar sidebar;
     private final Sidebar adminSidebar;
     private final BattleTopbar topbar;
     private List<Player> northParticipants = new ArrayList<>();
@@ -91,7 +90,6 @@ public class CaptureTheFlagMatchOld implements Listener {
         this.arena = arena;
         this.northClassPicker = new ClassPicker(gameManager);
         this.southClassPicker = new ClassPicker(gameManager);
-        this.sidebar = sidebar;
         this.adminSidebar = adminSidebar;
         this.topbar = topbar;
     }
