@@ -4,7 +4,6 @@ import io.papermc.paper.entity.LookAnchor;
 import lombok.Data;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.TextComponent;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.*;
@@ -20,9 +19,17 @@ import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
+import org.bukkit.entity.Arrow;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
+import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.FoodLevelChangeEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
+import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -99,7 +106,7 @@ public class CaptureTheFlagMatch {
         Main.logger().info(String.format("Starting capture the flag match %s", matchPairing));
     }
     
-    private void initializeParticipant(Player participant) {
+    public void initializeParticipant(Player participant) {
         String teamId = gameManager.getTeamName(participant.getUniqueId());
         allParticipants.add(participant);
         UUID participantUniqueId = participant.getUniqueId();
@@ -135,6 +142,20 @@ public class CaptureTheFlagMatch {
         participant.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
+    }
+    
+    public void onParticipantJoin(Player participant) {
+        if (state == null) {
+            return;
+        }
+        state.onParticipantJoin(participant);
+    }
+    
+    public void onParticipantQuit(Player participant) {
+        if (state == null) {
+            return;
+        }
+        state.onParticipantQuit(participant);
     }
     
     private int countAlive(List<Player> participants) {
@@ -196,6 +217,100 @@ public class CaptureTheFlagMatch {
                 team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER);
             }
         }
+    }
+    
+    public void stop() {
+        if (state == null) {
+            return;
+        }
+        cancelAllTasks();
+        // TODO: consider making this (and other certain things) state-dependant stop behaviors
+        northClassPicker.stop(false);
+        southClassPicker.stop(false);
+        hasNorthFlag = null;
+        hasSouthFlag = null;
+        resetArena();
+        for (Player participant : allParticipants) {
+            resetParticipant(participant);
+        }
+        allParticipants.clear();
+        northParticipants.clear();
+        southParticipants.clear();
+        state = null;
+        Main.logger().info("Stopping capture the flag match " + matchPairing);
+    }
+    
+    private void resetArena() {
+        openGlassBarriers();
+        if (northFlagPosition != null) {
+            northFlagPosition.getBlock().setType(Material.AIR);
+            northFlagPosition = null;
+        }
+        if (southFlagPosition != null) {
+            southFlagPosition.getBlock().setType(Material.AIR);
+            northFlagPosition = null;
+        }
+        // remove items/arrows on the ground
+        BoundingBox removeArea = arena.boundingBox();
+        for (Arrow arrow : config.getWorld().getEntitiesByClass(Arrow.class)) {
+            if (removeArea.contains(arrow.getLocation().toVector())) {
+                arrow.remove();
+            }
+        }
+        for (Item item : config.getWorld().getEntitiesByClass(Item.class)) {
+            if (removeArea.contains(item.getLocation().toVector())) {
+                item.remove();
+            }
+        }
+    }
+    
+    private void resetParticipant(Player participant) {
+        participant.getInventory().clear();
+        participant.closeInventory();
+        ParticipantInitializer.resetHealthAndHunger(participant);
+        ParticipantInitializer.clearStatusEffects(participant);
+    }
+    
+    public void cancelAllTasks() {
+        if (state == null) {
+            return;
+        }
+        state.cancelAllTasks();
+    }
+    
+    public void onPlayerDamage(EntityDamageEvent event) {
+        if (state == null) {
+            return;
+        }
+        state.onPlayerDamage(event);
+    }
+    
+    public void onPlayerLoseHunger(FoodLevelChangeEvent event) {
+        if (state == null) {
+            return;
+        }
+        state.onPlayerLoseHunger(event);
+    }
+    
+    public void onPlayerMove(PlayerMoveEvent event) {
+        if (state == null) {
+            return;
+        }
+        state.onPlayerMove(event);
+    }
+    
+    public void onClickInventory(InventoryClickEvent event) {
+        if (state == null) {
+            return;
+        }
+        state.onClickInventory(event);
+    }
+    
+    public void onPlayerDeath(PlayerDeathEvent event) {
+        if (state == null) {
+            return;
+        }
+        state.onPlayerDeath(event);
     }
     
     public void messageAllParticipants(Component message) {

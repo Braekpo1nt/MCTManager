@@ -225,10 +225,10 @@ public class CaptureTheFlagRoundOld {
         }
         MatchPairing matchPairing = match.getMatchPairing();
         for (Player participant : participants) {
-            String team = gameManager.getTeamName(participant.getUniqueId());
-            if (matchPairing.containsTeam(team)) {
+            String teamId = gameManager.getTeamName(participant.getUniqueId());
+            if (matchPairing.containsTeam(teamId)) {
                 participant.teleport(config.getSpawnObservatory());
-                participant.setBedSpawnLocation(config.getSpawnObservatory(), true);
+                participant.setRespawnLocation(config.getSpawnObservatory(), true);
             }
         }
     }

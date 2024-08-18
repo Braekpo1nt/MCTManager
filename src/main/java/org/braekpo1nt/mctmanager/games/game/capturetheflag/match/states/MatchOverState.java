@@ -20,12 +20,15 @@ public class MatchOverState implements CaptureTheFlagMatchState {
         Audience.audience(context.getAllParticipants()).showTitle(UIUtils.matchOverTitle());
         for (Player participant : context.getAllParticipants()) {
             if (context.getParticipantsAreAlive().get(participant.getUniqueId())) {
+                participant.teleport(context.getConfig().getSpawnObservatory());
+                participant.setRespawnLocation(context.getConfig().getSpawnObservatory(), true);
                 participant.getInventory().clear();
                 participant.closeInventory();
                 ParticipantInitializer.resetHealthAndHunger(participant);
                 ParticipantInitializer.clearStatusEffects(participant);
             }
         }
+        context.getMatchIsOver().accept(context);
     }
     
     @Override
