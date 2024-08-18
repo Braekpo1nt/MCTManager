@@ -2,21 +2,26 @@ package org.braekpo1nt.mctmanager.games.game.capturetheflag.match;
 
 import io.papermc.paper.entity.LookAnchor;
 import lombok.Data;
+import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
-import org.braekpo1nt.mctmanager.games.game.capturetheflag.Arena;
-import org.braekpo1nt.mctmanager.games.game.capturetheflag.CaptureTheFlagGame;
-import org.braekpo1nt.mctmanager.games.game.capturetheflag.ClassPicker;
-import org.braekpo1nt.mctmanager.games.game.capturetheflag.MatchPairing;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.*;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlagConfig;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.states.CaptureTheFlagMatchState;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.states.ClassSelectionState;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.braekpo1nt.mctmanager.ui.topbar.BattleTopbar;
+import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
+import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.Team;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -24,6 +29,8 @@ import java.util.function.Consumer;
 @Data
 public class CaptureTheFlagMatch {
     
+    
+    private @Nullable CaptureTheFlagMatchState state;
     
     private final CaptureTheFlagGame parentContext;
     /**
@@ -79,10 +86,15 @@ public class CaptureTheFlagMatch {
     }
     
     public void start(List<Player> newParticipants) {
+        placeFlags();
+        closeGlassBarriers();
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
         }
-        throw new UnsupportedOperationException("not yet implemented");
+        initializeSidebar();
+        setupTeamOptions();
+        state = new ClassSelectionState(this);
+        Main.logger().info(String.format("Starting capture the flag match %s", matchPairing));
     }
     
     private void initializeParticipant(Player participant) {
@@ -131,6 +143,48 @@ public class CaptureTheFlagMatch {
             }
         }
         return living;
+    }
+    
+    private void initializeSidebar() {
+        adminSidebar.updateLine("timer", "Round: ");
+        topbar.setMiddle(Component.empty());
+    }
+    
+    private void placeFlags() {
+        northBanner = gameManager.getTeamBannerColor(matchPairing.northTeam());
+        northFlagPosition = arena.northFlag();
+        BlockPlacementUtils.placeFlag(northBanner, northFlagPosition, BlockFace.SOUTH);
+        
+        southBanner = gameManager.getTeamBannerColor(matchPairing.southTeam());
+        southFlagPosition = arena.southFlag();
+        BlockPlacementUtils.placeFlag(southBanner, southFlagPosition, BlockFace.NORTH);
+    }
+    
+    /**
+     * Closes the glass barriers for the {@link CaptureTheFlagMatch#arena}
+     */
+    private void closeGlassBarriers() {
+        Arena.BarrierSize size = arena.barrierSize();
+        BlockPlacementUtils.createCube(arena.northBarrier(), size.xSize(), size.ySize(), size.zSize(), Material.GLASS_PANE);
+        BlockPlacementUtils.updateDirection(arena.northBarrier(), size.xSize(), size.ySize(), size.zSize());
+        BlockPlacementUtils.createCube(arena.southBarrier(), size.xSize(), size.ySize(), size.zSize(), Material.GLASS_PANE);
+        BlockPlacementUtils.updateDirection(arena.southBarrier(), size.xSize(), size.ySize(), size.zSize());
+    }
+    
+    /**
+     * Sets up the team options for the teams in this match
+     */
+    private void setupTeamOptions() {
+        Scoreboard mctScoreboard = gameManager.getMctScoreboard();
+        for (Team team : mctScoreboard.getTeams()) {
+            if (team.getName().matches(matchPairing.northTeam()) || team.getName().matches(matchPairing.southTeam())) {
+                team.setAllowFriendlyFire(false);
+                team.setCanSeeFriendlyInvisibles(true);
+                team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.ALWAYS);
+                team.setOption(Team.Option.DEATH_MESSAGE_VISIBILITY, Team.OptionStatus.ALWAYS);
+                team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER);
+            }
+        }
     }
     
 }
