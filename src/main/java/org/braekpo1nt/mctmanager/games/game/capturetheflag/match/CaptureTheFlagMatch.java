@@ -2,7 +2,9 @@ package org.braekpo1nt.mctmanager.games.game.capturetheflag.match;
 
 import io.papermc.paper.entity.LookAnchor;
 import lombok.Data;
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.*;
@@ -172,6 +174,15 @@ public class CaptureTheFlagMatch {
     }
     
     /**
+     * Opens the glass barriers for the {@link CaptureTheFlagMatch#arena}
+     */
+    public void openGlassBarriers() {
+        Arena.BarrierSize size = arena.barrierSize();
+        BlockPlacementUtils.createCube(arena.northBarrier(), size.xSize(), size.ySize(), size.zSize(), Material.AIR);
+        BlockPlacementUtils.createCube(arena.southBarrier(), size.xSize(), size.ySize(), size.zSize(), Material.AIR);
+    }
+    
+    /**
      * Sets up the team options for the teams in this match
      */
     private void setupTeamOptions() {
@@ -187,4 +198,10 @@ public class CaptureTheFlagMatch {
         }
     }
     
+    public void messageAllParticipants(Component message) {
+        gameManager.messageAdmins(message);
+        Audience.audience(
+                allParticipants
+        ).sendMessage(message);
+    }
 }
