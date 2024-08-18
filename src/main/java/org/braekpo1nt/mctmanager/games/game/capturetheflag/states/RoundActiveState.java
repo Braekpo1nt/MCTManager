@@ -105,9 +105,9 @@ public class RoundActiveState implements CaptureTheFlagState {
     @Override
     public void onParticipantJoin(Player participant) {
         String teamId = gameManager.getTeamName(participant.getUniqueId());
-        Component teamDisplayName = gameManager.getFormattedTeamDisplayName(teamId);
         CaptureTheFlagMatch match = getMatch(teamId);
         if (match == null) {
+            Component teamDisplayName = gameManager.getFormattedTeamDisplayName(teamId);
             initializeOnDeckParticipant(participant);
             participant.sendMessage(Component.empty()
                     .append(teamDisplayName)
@@ -126,7 +126,22 @@ public class RoundActiveState implements CaptureTheFlagState {
     
     @Override
     public void onParticipantQuit(Player participant) {
-        
+        String teamId = gameManager.getTeamName(participant.getUniqueId());
+        CaptureTheFlagMatch match = getMatch(teamId);
+        if (match == null) {
+            resetOnDeckParticipant(participant);
+            onDeckParticipants.remove(participant);
+            return;
+        }
+        match.onParticipantQuit(participant);
+    }
+    
+    private void resetOnDeckParticipant(Player participant) {
+        participant.getInventory().clear();
+        participant.setGameMode(GameMode.ADVENTURE);
+        ParticipantInitializer.clearStatusEffects(participant);
+        ParticipantInitializer.resetHealthAndHunger(participant);
+        context.resetParticipant(participant);
     }
     
     @Override

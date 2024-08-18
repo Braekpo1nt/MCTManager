@@ -15,6 +15,7 @@ import org.braekpo1nt.mctmanager.games.game.capturetheflag.states.DescriptionSta
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
+import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
@@ -118,6 +119,14 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         int kills = killCount.get(participant.getUniqueId());
         int deaths = deathCount.get(participant.getUniqueId());
         topbar.setKillsAndDeaths(participant.getUniqueId(), kills, deaths);
+    }
+    
+    public void resetParticipant(Player participant) {
+        participant.getInventory().clear();
+        ParticipantInitializer.resetHealthAndHunger(participant);
+        ParticipantInitializer.clearStatusEffects(participant);
+        sidebar.removePlayer(participant.getUniqueId());
+        topbar.hidePlayer(participant.getUniqueId());
     }
     
     private void startAdmins(List<Player> newAdmins) {
