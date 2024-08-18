@@ -119,4 +119,30 @@ public class UIUtils {
                 DEFAULT_TIMES
         );
     }
+    
+    /**
+     * @return the default game over title, used everywhere
+     */
+    public static Title roundOverTitle() {
+        return Title.title(
+                Component.empty()
+                        .append(Component.text("Round Over!"))
+                        .color(NamedTextColor.RED),
+                Component.empty(),
+                DEFAULT_TIMES
+        );
+    }
+    
+    /**
+     * @return the default game over title, used everywhere
+     */
+    public static Title matchOverTitle() {
+        return Title.title(
+                Component.empty()
+                        .append(Component.text("Match Over!"))
+                        .color(NamedTextColor.RED),
+                Component.empty(),
+                DEFAULT_TIMES
+        );
+    }
 }

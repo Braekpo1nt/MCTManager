@@ -127,7 +127,7 @@ public class RoundManager {
             }
             
             // Rotate teams, keeping the first one fixed
-            rotatingTeams.add(1, rotatingTeams.remove(rotatingTeams.size() - 1));
+            rotatingTeams.add(1, rotatingTeams.removeLast());
             
             // Split matches into groups for each arena
             for (int i = 0; i < roundMatches.size(); i += numOfArenas) {
