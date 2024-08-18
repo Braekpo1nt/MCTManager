@@ -39,9 +39,17 @@ public class RoundManager {
      * @return the opposite teamId of the given teamId in the given round (if they are present), null if the given team is on-deck
      */
     public static @Nullable String getOppositeTeam(String teamId, List<MatchPairing> round) {
+        MatchPairing matchPairing = getMatchPairing(teamId, round);
+        if (matchPairing == null) {
+            return null;
+        }
+        return matchPairing.oppositeTeam(teamId);
+    }
+    
+    public static MatchPairing getMatchPairing(String teamId, List<MatchPairing> round) {
         for (MatchPairing matchPairing : round) {
             if (matchPairing.containsTeam(teamId)) {
-                return matchPairing.oppositeTeam(teamId);
+                return matchPairing;
             }
         }
         return null;

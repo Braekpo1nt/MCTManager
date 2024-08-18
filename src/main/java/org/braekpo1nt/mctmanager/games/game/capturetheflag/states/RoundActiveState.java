@@ -32,12 +32,11 @@ public class RoundActiveState implements CaptureTheFlagState {
         Sidebar adminSidebar = context.getAdminSidebar();
         
         List<MatchPairing> currentRound = roundManger.getCurrentRound();
-        matches = new ArrayList<>(currentRound.size());
-        for (int i = 0; i < currentRound.size(); i++) {
-            MatchPairing matchPairing = currentRound.get(i);
-            matches.add(new CaptureTheFlagMatch(context, this::matchIsOver, matchPairing, context.getConfig().getArenas().get(i)));
+        for (Player participant : context.getParticipants()) {
+            String teamId = gameManager.getTeamName(participant.getUniqueId());
+            MatchPairing matchPairing = RoundManager.getMatchPairing(teamId, currentRound);
+            // use the matchPairing as the key to a map for what match the team is in, or if they are on deck. 
         }
-        
         // TODO: call each match's start() method
     }
     
