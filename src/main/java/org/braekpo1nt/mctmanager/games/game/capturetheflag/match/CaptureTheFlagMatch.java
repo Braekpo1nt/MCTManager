@@ -220,13 +220,10 @@ public class CaptureTheFlagMatch {
     }
     
     public void stop() {
-        if (state == null) {
-            return;
+        if (state != null) {
+            state.stop();
         }
         cancelAllTasks();
-        // TODO: consider making this (and other certain things) state-dependant stop behaviors
-        northClassPicker.stop(false);
-        southClassPicker.stop(false);
         hasNorthFlag = null;
         hasSouthFlag = null;
         resetArena();

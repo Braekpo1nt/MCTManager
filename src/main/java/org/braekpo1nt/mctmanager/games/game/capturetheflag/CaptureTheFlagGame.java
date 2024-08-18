@@ -24,6 +24,7 @@ import org.braekpo1nt.mctmanager.ui.topbar.BattleTopbar;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
@@ -155,7 +156,20 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     
     @Override
     public void stop() {
-        
+        HandlerList.unregisterAll(this);
+        cancelAllTasks();
+        if (state != null) {
+            state.stop();
+        }
+        for (Player participant : participants) {
+            resetParticipant(participant);
+        }
+        participants.clear();
+        clearSidebar();
+        stopAdmins();
+        state = null;
+        gameManager.gameIsOver();
+        Main.logger().info("Stopping Capture the Flag");
     }
     
     @Override
@@ -192,6 +206,14 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     public void onAdminQuit(Player admin) {
         resetAdmin(admin);
         admins.remove(admin);
+    }
+    
+    private void stopAdmins() {
+        for (Player admin : admins) {
+            resetAdmin(admin);
+        }
+        clearAdminSidebar();
+        admins.clear();
     }
     
     /**

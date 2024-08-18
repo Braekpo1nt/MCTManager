@@ -12,6 +12,9 @@ public interface CaptureTheFlagMatchState {
     void onParticipantQuit(Player participant);
     void initializeParticipant(Player participant);
     void resetParticipant(Player participant);
+    default void stop() {
+        // do nothing
+    }
     
     default void cancelAllTasks() {
         // do nothing

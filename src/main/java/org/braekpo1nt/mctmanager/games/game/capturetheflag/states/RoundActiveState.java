@@ -8,7 +8,6 @@ import org.braekpo1nt.mctmanager.games.game.capturetheflag.MatchPairing;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.RoundManager;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.CaptureTheFlagMatch;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
-import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -86,20 +85,29 @@ public class RoundActiveState implements CaptureTheFlagState {
     public void matchIsOver(CaptureTheFlagMatch endedMatch) {
         numOfEndedMatches++;
         if (numOfEndedMatches >= matches.size()) {
-            allMatchesAreOver();
+            roundIsOver();
         }
     }
     
     /**
      * Called when all matches are over and the round is over
      */
-    private void allMatchesAreOver() {
+    private void roundIsOver() {
+        stop();
+        context.setState(new RoundOverState(context));
+    }
+    
+    @Override
+    public void stop() {
+        cancelAllTasks();
         for (CaptureTheFlagMatch match : matches.values()) {
             match.stop();
         }
         matches.clear();
+        for (Player participant : context.getParticipants()) {
+            resetParticipant(participant);
+        }
         onDeckParticipants.clear();
-        context.setState(new RoundOverState(context));
     }
     
     @Override
@@ -151,7 +159,10 @@ public class RoundActiveState implements CaptureTheFlagState {
     
     @Override
     public void resetParticipant(Player participant) {
-        
+        participant.getInventory().clear();
+        participant.setGameMode(GameMode.ADVENTURE);
+        ParticipantInitializer.clearStatusEffects(participant);
+        ParticipantInitializer.resetHealthAndHunger(participant);
     }
     
     @Override

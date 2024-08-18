@@ -45,6 +45,12 @@ public class ClassSelectionState implements CaptureTheFlagMatchState {
     }
     
     @Override
+    public void stop() {
+        northClassPicker.stop(false);
+        southClassPicker.stop(false);
+    }
+    
+    @Override
     public void onParticipantJoin(Player participant) {
         
     }

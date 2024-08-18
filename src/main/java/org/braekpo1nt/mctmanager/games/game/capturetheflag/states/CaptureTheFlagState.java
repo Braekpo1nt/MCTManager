@@ -11,15 +11,17 @@ public interface CaptureTheFlagState {
     void onParticipantQuit(Player participant);
     void initializeParticipant(Player participant);
     void resetParticipant(Player participant);
+    default void stop() {
+        // do nothing
+    }
     
     default void cancelAllTasks() {
         // do nothing
     }
-    
     // event handlers
     void onPlayerDamage(EntityDamageEvent event);
     void onPlayerLoseHunger(FoodLevelChangeEvent event);
     void onClickInventory(InventoryClickEvent event);
-    void onPlayerMove(PlayerMoveEvent event);
     
+    void onPlayerMove(PlayerMoveEvent event);
 }
