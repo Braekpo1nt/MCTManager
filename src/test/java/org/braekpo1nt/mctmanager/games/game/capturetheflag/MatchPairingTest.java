@@ -25,6 +25,11 @@ class MatchPairingTest {
         Assertions.assertEquals(new MatchPairing("n", "s"), southNorth);
         Assertions.assertEquals(new MatchPairing("s", "n"), southNorth);
         
+        // partial match not successful
+        Assertions.assertNotEquals(new MatchPairing("n", "b"), northSouth);
+        Assertions.assertNotEquals(new MatchPairing("s", "b"), northSouth);
+        Assertions.assertNotEquals(new MatchPairing("a", "n"), northSouth);
+        Assertions.assertNotEquals(new MatchPairing("a", "s"), northSouth);
     }
     
     @Test
