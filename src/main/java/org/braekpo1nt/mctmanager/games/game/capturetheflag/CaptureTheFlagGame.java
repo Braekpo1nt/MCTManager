@@ -30,6 +30,7 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -342,7 +343,56 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         if (!participants.contains(participant)) {
             return;
         }
+        boolean cancelled = handleSpectators(event);
+        if (cancelled) {
+            return;
+        }
         state.onPlayerMove(event);
+    }
+    
+    /**
+     * prevent spectators from leaving the spectator area
+     * @param event the move event
+     * @return true if the event was cancelled due to preventing spectator movement
+     */
+    private boolean handleSpectators(PlayerMoveEvent event) {
+        if (config.getSpectatorArea() == null){
+            return false;
+        }
+        if (!event.getPlayer().getGameMode().equals(GameMode.SPECTATOR)) {
+            return false;
+        }
+        if (!config.getSpectatorArea().contains(event.getFrom().toVector())) {
+            event.getPlayer().teleport(config.getSpawnObservatory());
+            return false;
+        }
+        if (!config.getSpectatorArea().contains(event.getTo().toVector())) {
+            event.setCancelled(true);
+            return true;
+        }
+        return false;
+    }
+    
+    @EventHandler
+    public void onPlayerTeleport(PlayerTeleportEvent event) {
+        if (state == null) {
+            return;
+        }
+        if (config.getSpectatorArea() == null){
+            return;
+        }
+        if (!participants.contains(event.getPlayer())) {
+            return;
+        }
+        if (!event.getPlayer().getGameMode().equals(GameMode.SPECTATOR)) {
+            return;
+        }
+        if (!event.getCause().equals(PlayerTeleportEvent.TeleportCause.SPECTATE)) {
+            return;
+        }
+        if (!config.getSpectatorArea().contains(event.getTo().toVector())) {
+            event.setCancelled(true);
+        }
     }
     
     /**

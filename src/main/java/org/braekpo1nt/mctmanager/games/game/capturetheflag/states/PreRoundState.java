@@ -148,7 +148,7 @@ public class PreRoundState implements CaptureTheFlagState {
     
     @Override
     public void onPlayerMove(PlayerMoveEvent event) {
-        
+        // do nothing
     }
     
     @Override

@@ -67,7 +67,7 @@ public class RoundOverState implements CaptureTheFlagState {
     
     @Override
     public void onPlayerMove(PlayerMoveEvent event) {
-        
+        // do nothing
     }
     
     @Override
