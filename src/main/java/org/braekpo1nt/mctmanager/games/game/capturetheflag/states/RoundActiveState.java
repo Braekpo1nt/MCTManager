@@ -155,13 +155,12 @@ public class RoundActiveState implements CaptureTheFlagState {
             return;
         }
         match.onParticipantQuit(participant);
+        context.resetParticipant(participant);
+        context.getParticipants().remove(participant);
     }
     
     private void resetOnDeckParticipant(Player participant) {
-        participant.getInventory().clear();
         participant.setGameMode(GameMode.ADVENTURE);
-        ParticipantInitializer.clearStatusEffects(participant);
-        ParticipantInitializer.resetHealthAndHunger(participant);
         context.resetParticipant(participant);
     }
     

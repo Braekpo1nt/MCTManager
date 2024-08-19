@@ -107,7 +107,7 @@ public class CaptureTheFlagRoundOld {
     private void initializeParticipant(Player participant) {
         participants.add(participant);
         participant.teleport(config.getSpawnObservatory());
-        participant.setBedSpawnLocation(config.getSpawnObservatory(), true);
+        participant.setRespawnLocation(config.getSpawnObservatory(), true);
         participant.getInventory().clear();
         participant.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearStatusEffects(participant);
@@ -117,7 +117,7 @@ public class CaptureTheFlagRoundOld {
     private void initializeOnDeckParticipant(Player onDeckParticipant) {
         onDeckParticipants.add(onDeckParticipant);
         onDeckParticipant.teleport(config.getSpawnObservatory());
-        onDeckParticipant.setBedSpawnLocation(config.getSpawnObservatory(), true);
+        onDeckParticipant.setRespawnLocation(config.getSpawnObservatory(), true);
         onDeckParticipant.getInventory().clear();
         onDeckParticipant.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearStatusEffects(onDeckParticipant);

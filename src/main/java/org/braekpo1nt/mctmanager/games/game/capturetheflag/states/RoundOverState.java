@@ -51,7 +51,8 @@ public class RoundOverState implements CaptureTheFlagState {
     
     @Override
     public void onParticipantQuit(Player participant) {
-        
+        context.resetParticipant(participant);
+        context.getParticipants().remove(participant);
     }
     
     @Override

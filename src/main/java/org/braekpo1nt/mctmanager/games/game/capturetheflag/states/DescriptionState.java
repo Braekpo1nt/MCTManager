@@ -37,7 +37,7 @@ public class DescriptionState implements CaptureTheFlagState {
         initializeParticipant(participant);
     }
     
-    public void initializeParticipant(Player participant) {
+    private void initializeParticipant(Player participant) {
         context.initializeParticipant(participant);
         participant.setGameMode(GameMode.ADVENTURE);
         participant.teleport(context.getConfig().getSpawnObservatory());
@@ -46,7 +46,8 @@ public class DescriptionState implements CaptureTheFlagState {
     
     @Override
     public void onParticipantQuit(Player participant) {
-        
+        context.resetParticipant(participant);
+        context.getParticipants().remove(participant);
     }
     
     
@@ -57,16 +58,16 @@ public class DescriptionState implements CaptureTheFlagState {
     
     @Override
     public void onPlayerLoseHunger(FoodLevelChangeEvent event) {
-        
+        event.setCancelled(true);
     }
     
     @Override
     public void onPlayerMove(PlayerMoveEvent event) {
-        
+        // do nothing
     }
     
     @Override
     public void onClickInventory(InventoryClickEvent event) {
-        
+        event.setCancelled(true);
     }
 }
