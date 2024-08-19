@@ -57,12 +57,12 @@ public class RoundOverState implements CaptureTheFlagState {
     
     @Override
     public void onPlayerDamage(EntityDamageEvent event) {
-        
+        event.setCancelled(true);
     }
     
     @Override
     public void onPlayerLoseHunger(FoodLevelChangeEvent event) {
-        
+        event.setCancelled(true);
     }
     
     @Override
@@ -72,6 +72,6 @@ public class RoundOverState implements CaptureTheFlagState {
     
     @Override
     public void onClickInventory(InventoryClickEvent event) {
-        
+        event.setCancelled(true);
     }
 }

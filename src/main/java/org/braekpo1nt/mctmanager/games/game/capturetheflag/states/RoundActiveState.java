@@ -2,12 +2,14 @@ package org.braekpo1nt.mctmanager.games.game.capturetheflag.states;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.CaptureTheFlagGame;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.MatchPairing;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.RoundManager;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.CaptureTheFlagMatch;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
+import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -173,12 +175,31 @@ public class RoundActiveState implements CaptureTheFlagState {
     
     @Override
     public void onPlayerDamage(EntityDamageEvent event) {
-        
+        if (!(event.getEntity() instanceof Player participant)) {
+            return;
+        }
+        String teamId = gameManager.getTeamName(participant.getUniqueId());
+        CaptureTheFlagMatch match = getMatch(teamId);
+        if (match == null) {
+            Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "CTF.RoundActiveState.onPlayerDamage() -> isOnDeck cancelled");
+            event.setCancelled(true);
+        } else {
+            match.onPlayerDamage(event);
+        }
     }
     
     @Override
     public void onPlayerLoseHunger(FoodLevelChangeEvent event) {
-        
+        if (!(event.getEntity() instanceof Player participant)) {
+            return;
+        }
+        String teamId = gameManager.getTeamName(participant.getUniqueId());
+        CaptureTheFlagMatch match = getMatch(teamId);
+        if (match == null) {
+            event.setCancelled(true);
+        } else {
+            match.onPlayerLoseHunger(event);
+        }
     }
     
     @Override

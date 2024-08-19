@@ -30,6 +30,7 @@ public class ClassSelectionState implements CaptureTheFlagMatchState {
                 context.getPlugin(), 
                 context.getSouthParticipants(), 
                 context.getConfig().getLoadouts());
+        // TODO: move timers to global RoundActiveState so that on-deck players have the same timer
         context.getTimerManager().start(Timer.builder()
                 .duration(context.getConfig().getClassSelectionDuration())
                 .withSidebar(context.getAdminSidebar(), "timer")

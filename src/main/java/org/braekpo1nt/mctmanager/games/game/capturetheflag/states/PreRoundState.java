@@ -138,7 +138,7 @@ public class PreRoundState implements CaptureTheFlagState {
     
     @Override
     public void onPlayerDamage(EntityDamageEvent event) {
-        
+        event.setCancelled(true);
     }
     
     @Override
