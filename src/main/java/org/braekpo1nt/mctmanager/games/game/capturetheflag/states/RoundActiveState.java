@@ -131,9 +131,12 @@ public class RoundActiveState implements CaptureTheFlagState {
                     .append(teamDisplayName)
                     .append(Component.text(" is on-deck this round."))
                     .color(NamedTextColor.YELLOW));
-            return;
+        } else {
+            participant.setGameMode(GameMode.ADVENTURE);
+            participant.teleport(context.getConfig().getSpawnObservatory());
+            participant.setRespawnLocation(context.getConfig().getSpawnObservatory(), true);
+            match.onParticipantJoin(participant);
         }
-        match.onParticipantJoin(participant);
     }
     
     public @Nullable CaptureTheFlagMatch getMatch(String teamId) {

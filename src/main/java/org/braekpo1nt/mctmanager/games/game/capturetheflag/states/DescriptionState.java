@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.game.capturetheflag.states;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.CaptureTheFlagGame;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
+import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
@@ -38,6 +39,9 @@ public class DescriptionState implements CaptureTheFlagState {
     
     public void initializeParticipant(Player participant) {
         context.initializeParticipant(participant);
+        participant.setGameMode(GameMode.ADVENTURE);
+        participant.teleport(context.getConfig().getSpawnObservatory());
+        participant.setRespawnLocation(context.getConfig().getSpawnObservatory(), true);
     }
     
     @Override

@@ -1,6 +1,8 @@
 package org.braekpo1nt.mctmanager.games.game.footrace.config;
 
 import com.google.common.base.Preconditions;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.LocationDTO;
@@ -70,17 +72,28 @@ record FootRaceConfigDTO(
         validator.notNull(this.scores().placementPoints(), "placementPoints");
         validator.validate(this.scores().placementPoints().length >= 1, "placementPoints must have at least one entry");
         validator.notNull(this.durations(), "durations");
-        validator.validate(this.durations().startRace() >= 0, "durations.startRace (%s) can't be negative", this.durations().startRace());
-        validator.validate(this.durations().raceEndCountdown() >= 0, "durations.raceEndCountdown (%s) can't be negative", this.durations().raceEndCountdown());
+        validator.validate(this.durations().getStartRace() >= 0, "durations.startRace (%s) can't be negative", this.durations().getStartRace());
+        validator.validate(this.durations().getRaceEndCountdown() >= 0, "durations.raceEndCountdown (%s) can't be negative", this.durations().getRaceEndCountdown());
         validator.notNull(this.description(), "description");
     }
     
     record Scores(int completeLap, int[] placementPoints, int detriment) {
         
     }
-    record Durations(int startRace, int raceEndCountdown, int description, int end) {
-        
+    
+    @Data
+    @AllArgsConstructor
+    static class Durations {
+        private int startRace;
+        private int raceEndCountdown;
+        private int description;
+        /**
+         * The time (in seconds) that the game remains in the "Game Over" stage until 
+         * returning to hub. Defaults to 10. 
+         */
+        private int gameOver = 10;
     }
+    
     FootRaceConfig toConfig() {
         World newWorld = Bukkit.getWorld(this.world);
         Preconditions.checkState(newWorld != null, "Could not find world \"%s\"", this.world);
@@ -95,7 +108,7 @@ record FootRaceConfigDTO(
                 .startRaceDuration(this.durations.startRace)
                 .raceEndCountdownDuration(this.durations.raceEndCountdown)
                 .descriptionDuration(this.durations.description)
-                .endDuration(this.durations.end)
+                .gameOverDuration(this.durations.gameOver)
                 .preventInteractions(this.preventInteractions != null ? this.preventInteractions : Collections.emptyList())
                 .spectatorArea(this.spectatorArea != null ? this.spectatorArea.toBoundingBox() : null)
                 .description(this.description);
@@ -131,7 +144,7 @@ record FootRaceConfigDTO(
                         config.getStartRaceDuration(),
                         config.getRaceEndCountdownDuration(),
                         config.getDescriptionDuration(),
-                        config.getEndDuration()
+                        config.getGameOverDuration()
                 ),
                 config.getDescription()
         );

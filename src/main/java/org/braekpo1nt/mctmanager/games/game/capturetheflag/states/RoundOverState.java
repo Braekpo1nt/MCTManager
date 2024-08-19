@@ -1,6 +1,9 @@
 package org.braekpo1nt.mctmanager.games.game.capturetheflag.states;
 
+import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.CaptureTheFlagGame;
+import org.braekpo1nt.mctmanager.ui.timer.Timer;
+import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
@@ -13,17 +16,37 @@ public class RoundOverState implements CaptureTheFlagState {
     
     public RoundOverState(CaptureTheFlagGame context) {
         this.context = context;
-        if (context.getRoundManager().hasNextRound()) {
-            context.getRoundManager().nextRound();
-            context.setState(new PreRoundState(context));
-        } else {
-            // TODO: game over state
-        }
+        context.getTimerManager().start(Timer.builder()
+                .duration(context.getConfig().getRoundOverDuration())
+                .withTopbar(context.getTopbar())
+                .withSidebar(context.getAdminSidebar(), "timer")
+                .sidebarPrefix(Component.text("Round Over: "))
+                .onCompletion(() -> {
+                    if (context.getRoundManager().hasNextRound()) {
+                        context.getRoundManager().nextRound();
+                        context.setState(new PreRoundState(context));
+                    } else {
+                        context.setState(new GameOverState(context));
+                    }
+                })
+                .build());
     }
     
     @Override
     public void onParticipantJoin(Player participant) {
-        
+        context.initializeParticipant(participant);
+        context.getSidebar().updateLine(participant.getUniqueId(), "title", context.getTitle());
+        Component roundLine = Component.empty()
+                .append(Component.text("Round "))
+                .append(Component.text(context.getRoundManager().getCurrentRoundIndex() + 1))
+                .append(Component.text("/"))
+                .append(Component.text(context.getRoundManager().getMaxRounds()))
+                ;
+        context.getSidebar().updateLine("round", roundLine);
+        context.getAdminSidebar().updateLine("round", roundLine);
+        participant.setGameMode(GameMode.ADVENTURE);
+        participant.teleport(context.getConfig().getSpawnObservatory());
+        participant.setRespawnLocation(context.getConfig().getSpawnObservatory(), true);
     }
     
     @Override

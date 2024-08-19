@@ -9,6 +9,7 @@ import org.braekpo1nt.mctmanager.games.game.capturetheflag.RoundManager;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.ui.topbar.BattleTopbar;
+import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
@@ -124,6 +125,9 @@ public class PreRoundState implements CaptureTheFlagState {
                 ;
         context.getSidebar().updateLine("round", roundLine);
         context.getAdminSidebar().updateLine("round", roundLine);
+        participant.setGameMode(GameMode.ADVENTURE);
+        participant.teleport(context.getConfig().getSpawnObservatory());
+        participant.setRespawnLocation(context.getConfig().getSpawnObservatory(), true);
     }
     
     @Override
