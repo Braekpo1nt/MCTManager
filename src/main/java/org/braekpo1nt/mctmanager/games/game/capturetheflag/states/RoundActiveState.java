@@ -204,7 +204,12 @@ public class RoundActiveState implements CaptureTheFlagState {
     
     @Override
     public void onPlayerMove(PlayerMoveEvent event) {
-        
+        Player participant = event.getPlayer();
+        String teamId = gameManager.getTeamName(participant.getUniqueId());
+        CaptureTheFlagMatch match = getMatch(teamId);
+        if (match != null) {
+            match.onPlayerMove(event);
+        }
     }
     
     @Override

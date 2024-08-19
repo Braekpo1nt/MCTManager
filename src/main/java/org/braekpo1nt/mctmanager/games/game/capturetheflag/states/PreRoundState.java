@@ -143,7 +143,7 @@ public class PreRoundState implements CaptureTheFlagState {
     
     @Override
     public void onPlayerLoseHunger(FoodLevelChangeEvent event) {
-        
+        event.setCancelled(true);
     }
     
     @Override
@@ -153,6 +153,6 @@ public class PreRoundState implements CaptureTheFlagState {
     
     @Override
     public void onClickInventory(InventoryClickEvent event) {
-        
+        event.setCancelled(true);
     }
 }
