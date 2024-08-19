@@ -10,6 +10,8 @@ import org.bukkit.event.player.PlayerMoveEvent;
 public interface CaptureTheFlagMatchState {
     void onParticipantJoin(Player participant);
     void onParticipantQuit(Player participant);
+    void nextState();
+    
     default void stop() {
         // do nothing
     }
@@ -17,7 +19,6 @@ public interface CaptureTheFlagMatchState {
     default void cancelAllTasks() {
         // do nothing
     }
-    
     // event handlers
     void onPlayerDamage(EntityDamageEvent event);
     void onPlayerLoseHunger(FoodLevelChangeEvent event);

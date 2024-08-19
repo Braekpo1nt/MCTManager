@@ -4,6 +4,7 @@ import net.kyori.adventure.audience.Audience;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.CaptureTheFlagMatch;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
+import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
@@ -38,7 +39,15 @@ public class MatchOverState implements CaptureTheFlagMatchState {
     
     @Override
     public void onParticipantQuit(Player participant) {
-        
+        context.resetParticipant(participant);
+        participant.setGameMode(GameMode.ADVENTURE);
+        String teamId = context.getGameManager().getTeamName(participant.getUniqueId());
+        if (context.getMatchPairing().northTeam().equals(teamId)) {
+            context.getNorthParticipants().remove(participant);
+        } else if (context.getMatchPairing().southTeam().equals(teamId)) {
+            context.getSouthParticipants().remove(participant);
+        }
+        context.getAllParticipants().remove(participant);
     }
     
     public void resetParticipant(Player participant) {
@@ -60,7 +69,7 @@ public class MatchOverState implements CaptureTheFlagMatchState {
     
     @Override
     public void onPlayerMove(PlayerMoveEvent event) {
-        
+        // do nothing
     }
     
     @Override
@@ -70,6 +79,11 @@ public class MatchOverState implements CaptureTheFlagMatchState {
     
     @Override
     public void onPlayerDeath(PlayerDeathEvent event) {
-        
+        // do nothing
+    }
+    
+    @Override
+    public void nextState() {
+        // do nothing
     }
 }

@@ -94,6 +94,13 @@ public class CaptureTheFlagMatch {
         this.timerManager = parentContext.getTimerManager();
     }
     
+    public void nextState() {
+        if (state == null) {
+            return;
+        }
+        state.nextState();
+    }
+    
     public void start(List<Player> newParticipants) {
         placeFlags();
         closeGlassBarriers();
@@ -264,7 +271,7 @@ public class CaptureTheFlagMatch {
         }
     }
     
-    private void resetParticipant(Player participant) {
+    public void resetParticipant(Player participant) {
         participant.getInventory().clear();
         participant.closeInventory();
         ParticipantInitializer.resetHealthAndHunger(participant);

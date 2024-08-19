@@ -829,7 +829,7 @@ public class CaptureTheFlagMatchOld implements Listener {
                 .duration(config.getRoundTimerDuration())
                 .withSidebar(adminSidebar, "timer")
                 .withTopbar(topbar)
-                .sidebarPrefix(Component.text("Starting: "))
+                .sidebarPrefix(Component.text("Round: "))
                 .onCompletion(() -> {
                     onBothTeamsLose(Component.text("Time ran out."));
                 })

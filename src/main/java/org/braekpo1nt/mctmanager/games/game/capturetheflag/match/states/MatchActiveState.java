@@ -2,7 +2,6 @@ package org.braekpo1nt.mctmanager.games.game.capturetheflag.match.states;
 
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.CaptureTheFlagMatch;
-import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
@@ -21,15 +20,11 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
         }
         context.messageAllParticipants(Component.text("Begin!"));
         context.openGlassBarriers();
-        context.getTimerManager().start(Timer.builder()
-                .duration(context.getConfig().getRoundTimerDuration())
-                .withSidebar(context.getAdminSidebar(), "timer")
-                .withTopbar(context.getTopbar())
-                .sidebarPrefix(Component.text("Starting: "))
-                .onCompletion(() -> {
-                    onBothTeamsLose(Component.text("Time ran out."));
-                })
-                .build());
+    }
+    
+    @Override
+    public void nextState() {
+        onBothTeamsLose(Component.text("Time ran out."));
     }
     
     private void onBothTeamsLose(Component reason) {

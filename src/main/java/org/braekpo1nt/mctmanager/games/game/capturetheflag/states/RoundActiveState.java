@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.capturetheflag.states;
 
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
@@ -9,6 +10,7 @@ import org.braekpo1nt.mctmanager.games.game.capturetheflag.MatchPairing;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.RoundManager;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.CaptureTheFlagMatch;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
+import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
@@ -67,6 +69,35 @@ public class RoundActiveState implements CaptureTheFlagState {
             List<Player> newParticipants = matchParticipants.get(matchPairing);
             match.start(newParticipants);
         }
+        
+        context.getTimerManager().start(Timer.builder()
+                .duration(context.getConfig().getClassSelectionDuration())
+                .withSidebar(context.getAdminSidebar(), "timer")
+                .withTopbar(context.getTopbar())
+                .topbarPrefix(Component.text("Class selection: "))
+                .sidebarPrefix(Component.text("Class selection: "))
+                .titleAudience(Audience.audience(context.getParticipants()))
+                .onCompletion(() -> {
+                    for (CaptureTheFlagMatch match : matches.values()) {
+                        match.nextState();
+                    }
+                    startRoundTimer();
+                })
+                .build());
+    }
+    
+    private void startRoundTimer() {
+        context.getTimerManager().start(Timer.builder()
+                .duration(context.getConfig().getRoundTimerDuration())
+                .withSidebar(context.getAdminSidebar(), "timer")
+                .withTopbar(context.getTopbar())
+                .sidebarPrefix(Component.text("Round: "))
+                .onCompletion(() -> {
+                    for (CaptureTheFlagMatch match : matches.values()) {
+                        match.nextState();
+                    }
+                })
+                .build());
     }
     
     private void initializeOnDeckParticipant(Player participant) {
