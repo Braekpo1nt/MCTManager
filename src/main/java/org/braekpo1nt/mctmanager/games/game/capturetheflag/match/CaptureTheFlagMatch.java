@@ -91,7 +91,7 @@ public class CaptureTheFlagMatch {
         this.northClassPicker = new ClassPicker(gameManager);
         this.southClassPicker = new ClassPicker(gameManager);
         this.adminSidebar = parentContext.getAdminSidebar();
-        this.timerManager = parentContext.getTimerManager();
+        this.timerManager = parentContext.getTimerManager().createManager();
     }
     
     public void nextState() {
@@ -282,10 +282,7 @@ public class CaptureTheFlagMatch {
     }
     
     public void cancelAllTasks() {
-        if (state == null) {
-            return;
-        }
-        state.cancelAllTasks();
+        timerManager.cancel();
     }
     
     public void onPlayerDamage(EntityDamageEvent event) {
