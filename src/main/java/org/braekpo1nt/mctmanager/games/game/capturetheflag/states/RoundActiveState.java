@@ -16,6 +16,7 @@ import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.jetbrains.annotations.Nullable;
@@ -245,6 +246,21 @@ public class RoundActiveState implements CaptureTheFlagState {
     
     @Override
     public void onClickInventory(InventoryClickEvent event) {
-        
+        Player participant = ((Player) event.getWhoClicked());
+        String teamId = gameManager.getTeamName(participant.getUniqueId());
+        CaptureTheFlagMatch match = getMatch(teamId);
+        if (match != null) {
+            match.onClickInventory(event);
+        }
+    }
+    
+    @Override
+    public void onPlayerDeath(PlayerDeathEvent event) {
+        Player participant = event.getPlayer();
+        String teamId = gameManager.getTeamName(participant.getUniqueId());
+        CaptureTheFlagMatch match = getMatch(teamId);
+        if (match != null) {
+            match.onPlayerDeath(event);
+        }
     }
 }

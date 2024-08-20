@@ -28,7 +28,9 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.jetbrains.annotations.NotNull;
@@ -100,6 +102,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     @Override
     public void start(List<Player> newParticipants, List<Player> newAdmins) {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
+        gameManager.getTimerManager().register(timerManager);
         participants = new ArrayList<>(newParticipants.size());
         sidebar = gameManager.getSidebarFactory().createSidebar();
         adminSidebar = gameManager.getSidebarFactory().createSidebar();
@@ -296,6 +299,14 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     }
     
     @EventHandler
+    public void onPlayerDeath(PlayerDeathEvent event) {
+        if (state == null) {
+            return;
+        }
+        state.onPlayerDeath(event);
+    }
+    
+    @EventHandler
     public void onPlayerDamage(EntityDamageEvent event) {
         if (state == null) {
             return;
@@ -331,6 +342,21 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
             return;
         }
         state.onClickInventory(event);
+    }
+    
+    /**
+     * Stop players from dropping items
+     */
+    @EventHandler
+    public void onDropItem(PlayerDropItemEvent event) {
+        if (state == null) {
+            return;
+        }
+        Player participant = event.getPlayer();
+        if (!participants.contains(participant)) {
+            return;
+        }
+        event.setCancelled(true);
     }
     
     @EventHandler

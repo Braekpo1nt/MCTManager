@@ -39,7 +39,6 @@ import java.util.function.Consumer;
 @Data
 public class CaptureTheFlagMatch {
     
-    
     private @Nullable CaptureTheFlagMatchState state;
     
     private final CaptureTheFlagGame parentContext;
