@@ -313,8 +313,7 @@ public class ClassPicker implements Listener {
     /**
      * @deprecated because the state machine handles whether this is active or not
      */
-    @Deprecated
-    public boolean isActive() {
+    private boolean isActive() {
         return classPickingActive;
     }
     

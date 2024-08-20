@@ -62,8 +62,10 @@ public class ClassSelectionState implements CaptureTheFlagMatchState {
         String teamId = context.getGameManager().getTeamName(participant.getUniqueId());
         if (context.getMatchPairing().northTeam().equals(teamId)) {
             context.getNorthParticipants().remove(participant);
+            context.getNorthClassPicker().removeTeamMate(participant);
         } else {
             context.getSouthParticipants().remove(participant);
+            context.getSouthClassPicker().removeTeamMate(participant);
         }
         context.getAllParticipants().remove(participant);
     }
