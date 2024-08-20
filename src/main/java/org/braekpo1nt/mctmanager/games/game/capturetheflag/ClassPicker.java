@@ -108,7 +108,7 @@ public class ClassPicker implements Listener {
     
     @EventHandler
     public void onClickInventory(InventoryClickEvent event) {
-        if (!isActive()) {
+        if (!classPickingActive) {
             return;
         }
         if (event.getClickedInventory() == null) {
@@ -163,7 +163,7 @@ public class ClassPicker implements Listener {
     
     @EventHandler
     public void onCloseMenu(InventoryCloseEvent event) {
-        if (!isActive()) {
+        if (!classPickingActive) {
             return;
         }
         if (!event.getView().title().equals(TITLE)) {
@@ -182,7 +182,7 @@ public class ClassPicker implements Listener {
     
     @EventHandler
     public void interactWithNetherStar(PlayerInteractEvent event) {
-        if (!isActive()) {
+        if (!classPickingActive) {
             return;
         }
         Player teamMate = event.getPlayer();
@@ -308,13 +308,6 @@ public class ClassPicker implements Listener {
     
     private int getSlotIndex(int line, int column) {
         return (line - 1) * 9 + (column - 1);
-    }
-    
-    /**
-     * @deprecated because the state machine handles whether this is active or not
-     */
-    private boolean isActive() {
-        return classPickingActive;
     }
     
     // Test methods
