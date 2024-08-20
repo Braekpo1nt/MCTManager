@@ -220,7 +220,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     /**
      * @param playerUUID the player to add a kill to
      */
-    void addKill(@NotNull UUID playerUUID) {
+    public void addKill(@NotNull UUID playerUUID) {
         int oldKillCount = killCount.get(playerUUID);
         int newKillCount = oldKillCount + 1;
         killCount.put(playerUUID, newKillCount);
@@ -230,7 +230,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     /**
      * @param playerUUID the player to add a death to
      */
-    void addDeath(@NotNull UUID playerUUID) {
+    public void addDeath(@NotNull UUID playerUUID) {
         int oldDeathCount = deathCount.get(playerUUID);
         int newDeathCount = oldDeathCount + 1;
         deathCount.put(playerUUID, newDeathCount);

@@ -88,6 +88,6 @@ public class ClassSelectionState implements CaptureTheFlagMatchState {
     
     @Override
     public void onPlayerDeath(PlayerDeathEvent event) {
-        
+        // do nothing
     }
 }

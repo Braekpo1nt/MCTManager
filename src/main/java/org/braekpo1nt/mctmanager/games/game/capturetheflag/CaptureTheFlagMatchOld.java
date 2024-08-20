@@ -580,7 +580,7 @@ public class CaptureTheFlagMatchOld implements Listener {
         hasSouthFlag = northParticipant;
     }
     
-    private synchronized void dropSouthFlag(Player northParticipant) {
+    private void dropSouthFlag(Player northParticipant) {
         messageSouthParticipants(Component.empty()
                 .append(Component.text("Your flag was dropped"))
                 .color(NamedTextColor.GREEN));
@@ -709,7 +709,7 @@ public class CaptureTheFlagMatchOld implements Listener {
         hasNorthFlag = southParticipant;
     }
     
-    private synchronized void dropNorthFlag(Player southParticipant) {
+    private void dropNorthFlag(Player southParticipant) {
         messageNorthParticipants(Component.empty()
                 .append(Component.text("Your flag was dropped"))
                 .color(NamedTextColor.GREEN));

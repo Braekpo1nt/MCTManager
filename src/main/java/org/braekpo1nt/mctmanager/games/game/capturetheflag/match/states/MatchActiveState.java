@@ -8,8 +8,10 @@ import org.braekpo1nt.mctmanager.games.game.capturetheflag.Arena;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.MatchPairing;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.CaptureTheFlagMatch;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
+import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
@@ -23,8 +25,10 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 
 public class MatchActiveState implements CaptureTheFlagMatchState {
@@ -74,6 +78,15 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
                 .color(NamedTextColor.YELLOW));
         gameManager.awardPointsToTeam(winningTeam, context.getConfig().getWinScore());
         context.setState(new MatchOverState(context));
+    }
+    
+    private void onParticipantGetKill(@NotNull Player killer, @NotNull Player killed) {
+        if (!context.getAllParticipants().contains(killer)) {
+            return;
+        }
+        context.getParentContext().addKill(killer.getUniqueId());
+        UIUtils.showKillTitle(killer, killed);
+        gameManager.awardPointsToParticipant(killer, context.getConfig().getKillScore());
     }
     
     @Override
@@ -156,7 +169,123 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
     
     @Override
     public void onPlayerDeath(PlayerDeathEvent event) {
+        Player killed = event.getPlayer();
+        if (!context.getAllParticipants().contains(killed)) {
+            return;
+        }
+        killed.getInventory().clear();
+        event.setCancelled(true);
+        if (event.getDeathSound() != null && event.getDeathSoundCategory() != null) {
+            killed.getWorld().playSound(killed.getLocation(), event.getDeathSound(), event.getDeathSoundCategory(), event.getDeathSoundVolume(), event.getDeathSoundPitch());
+        }
+        Component deathMessage = event.deathMessage();
+        if (deathMessage != null) {
+            Bukkit.getServer().sendMessage(deathMessage);
+        }
+        onParticipantDeath(killed);
+        if (killed.getKiller() != null) {
+            onParticipantGetKill(killed.getKiller(), killed);
+        }
+        if (allParticipantsAreDead()) {
+            onBothTeamsLose(Component.text("Both teams are dead."));
+        }
+    }
+    
+    /**
+     * Checks if all participants are dead.
+     * @return True if all participants are dead, false otherwise
+     */
+    private boolean allParticipantsAreDead() {
+        return !context.getParticipantsAreAlive().containsValue(true);
+    }
+    
+    private void onParticipantDeath(Player killed) {
+        context.getParticipantsAreAlive().put(killed.getUniqueId(), false);
+        int alive = 0;
+        int dead = 0;
+        if (context.getNorthParticipants().contains(killed)) {
+            if (hasSouthFlag(killed)) {
+                dropSouthFlag(killed);
+            }
+            alive = countAlive(context.getNorthParticipants());
+            dead = context.getNorthParticipants().size() - alive;
+        } else if (context.getSouthParticipants().contains(killed)) {
+            if (hasNorthFlag(killed)){
+                dropNorthFlag(killed);
+            }
+            alive = countAlive(context.getSouthParticipants());
+            dead = context.getSouthParticipants().size() - alive;
+        }
         
+        ParticipantInitializer.resetHealthAndHunger(killed);
+        ParticipantInitializer.clearStatusEffects(killed);
+        killed.teleport(context.getConfig().getSpawnObservatory());
+        killed.setRespawnLocation(context.getConfig().getSpawnObservatory(), true);
+        killed.lookAt(arena.northFlag().getX(), arena.northFlag().getY(), arena.northFlag().getZ(), LookAnchor.EYES);
+        
+        String teamId = gameManager.getTeamName(killed.getUniqueId());
+        context.getTopbar().setMembers(teamId, alive, dead);
+        context.getParentContext().addDeath(killed.getUniqueId());
+    }
+    
+    private int countAlive(List<Player> participants) {
+        int living = 0;
+        for (Player participant : participants) {
+            if (context.getParticipantsAreAlive().get(participant.getUniqueId())) {
+                living++;
+            }
+        }
+        return living;
+    }
+    
+    private void dropSouthFlag(Player northParticipant) {
+        context.messageSouthParticipants(Component.empty()
+                .append(Component.text("Your flag was dropped"))
+                .color(NamedTextColor.GREEN));
+        context.titleSouthParticipants(UIUtils.defaultTitle(
+                Component.empty(),
+                Component.empty()
+                        .append(Component.text("flag dropped"))
+                        .color(NamedTextColor.GREEN)
+        ));
+        context.messageNorthParticipants(Component.empty()
+                .append(Component.text("You dropped the flag"))
+                .color(NamedTextColor.DARK_RED));
+        context.titleNorthParticipants(UIUtils.defaultTitle(
+                Component.empty(),
+                Component.empty()
+                        .append(Component.text("flag dropped"))
+                        .color(NamedTextColor.DARK_RED)
+        ));
+        northParticipant.getEquipment().setHelmet(null);
+        context.setSouthFlagPosition(BlockPlacementUtils.getBlockDropLocation(northParticipant.getLocation()));
+        BlockPlacementUtils.placeFlag(context.getSouthBanner(), context.getSouthFlagPosition(), northParticipant.getFacing());
+        context.setHasSouthFlag(null);
+    }
+    
+    private void dropNorthFlag(Player southParticipant) {
+        context.messageNorthParticipants(Component.empty()
+                .append(Component.text("Your flag was dropped"))
+                .color(NamedTextColor.GREEN));
+        context.titleNorthParticipants(UIUtils.defaultTitle(
+                Component.empty(),
+                Component.empty()
+                        .append(Component.text("flag dropped"))
+                        .color(NamedTextColor.GREEN)
+        ));
+        context.messageSouthParticipants(Component.empty()
+                .append(Component.text("You dropped the flag"))
+                .color(NamedTextColor.DARK_RED));
+        context.titleSouthParticipants(UIUtils.defaultTitle(
+                Component.empty(),
+                Component.empty()
+                        .append(Component.text("flag dropped"))
+                        .color(NamedTextColor.DARK_RED)
+        ));
+        southParticipant.getEquipment().setHelmet(null);
+        context.setNorthFlagPosition(BlockPlacementUtils.getBlockDropLocation(southParticipant.getLocation()));
+        BlockPlacementUtils.placeFlag(context.getNorthBanner(), context.getNorthFlagPosition(), southParticipant.getFacing());
+        context.setHasNorthFlag(null);
     }
     
     @Override
