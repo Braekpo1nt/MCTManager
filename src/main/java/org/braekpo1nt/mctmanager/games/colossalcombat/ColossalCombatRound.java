@@ -13,6 +13,7 @@ import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.braekpo1nt.mctmanager.ui.topbar.BattleTopbar;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
+import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -332,6 +333,7 @@ public class ColossalCombatRound implements Listener {
         if (!firstPlaceParticipants.contains(killed) && !secondPlaceParticipants.contains(killed)) {
             return;
         }
+        Main.debugLog(LogType.CANCEL_PLAYER_DEATH_EVENT, "ColossalCombatRound.onPlayerDeath() cancelled");
         event.setCancelled(true);
         if (event.getDeathSound() != null && event.getDeathSoundCategory() != null) {
             killed.getWorld().playSound(killed.getLocation(), event.getDeathSound(), event.getDeathSoundCategory(), event.getDeathSoundVolume(), event.getDeathSoundPitch());

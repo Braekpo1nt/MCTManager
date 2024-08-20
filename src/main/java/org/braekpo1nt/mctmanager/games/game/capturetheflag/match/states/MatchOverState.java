@@ -2,9 +2,11 @@ package org.braekpo1nt.mctmanager.games.game.capturetheflag.match.states;
 
 import io.papermc.paper.entity.LookAnchor;
 import net.kyori.adventure.audience.Audience;
+import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.CaptureTheFlagMatch;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
+import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -66,6 +68,7 @@ public class MatchOverState implements CaptureTheFlagMatchState {
     
     @Override
     public void onPlayerDamage(EntityDamageEvent event) {
+        Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "CaptureTheFlagMatch.MatchOverState.onPlayerDamage() cancelled");
         event.setCancelled(true);
     }
     

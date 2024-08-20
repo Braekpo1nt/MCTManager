@@ -76,6 +76,7 @@ public class GameOverState implements SurvivalGamesState {
     
     @Override
     public void onPlayerDeath(PlayerDeathEvent event) {
+        Main.debugLog(LogType.CANCEL_PLAYER_DEATH_EVENT, "SurvivalGamesGame.GameOverState.onPlayerDeath() cancelled");
         event.setCancelled(true);
     }
 }

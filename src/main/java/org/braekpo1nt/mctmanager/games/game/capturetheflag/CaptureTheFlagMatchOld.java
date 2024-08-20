@@ -393,6 +393,7 @@ public class CaptureTheFlagMatchOld implements Listener {
             return;
         }
         killed.getInventory().clear();
+        Main.debugLog(LogType.CANCEL_PLAYER_DEATH_EVENT, "CaptureTheFlagMatchOld.onPlayerDeath() cancelled");
         event.setCancelled(true);
         if (event.getDeathSound() != null && event.getDeathSoundCategory() != null) {
             killed.getWorld().playSound(killed.getLocation(), event.getDeathSound(), event.getDeathSoundCategory(), event.getDeathSoundVolume(), event.getDeathSoundPitch());

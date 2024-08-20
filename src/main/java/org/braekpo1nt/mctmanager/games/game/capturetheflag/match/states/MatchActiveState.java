@@ -183,6 +183,7 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
             return;
         }
         killed.getInventory().clear();
+        Main.debugLog(LogType.CANCEL_PLAYER_DEATH_EVENT, "CaptureTheFlagMatch.MatchActiveState.onPlayerDeath() cancelled");
         event.setCancelled(true);
         if (event.getDeathSound() != null && event.getDeathSoundCategory() != null) {
             killed.getWorld().playSound(killed.getLocation(), event.getDeathSound(), event.getDeathSoundCategory(), event.getDeathSoundVolume(), event.getDeathSoundPitch());

@@ -1,7 +1,9 @@
 package org.braekpo1nt.mctmanager.games.game.capturetheflag.match.states;
 
+import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.ClassPicker;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.CaptureTheFlagMatch;
+import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
@@ -68,6 +70,7 @@ public class ClassSelectionState implements CaptureTheFlagMatchState {
     
     @Override
     public void onPlayerDamage(EntityDamageEvent event) {
+        Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "CaptureTheFlagMatch.ClassSelectionState.onPlayerDamage() cancelled");
         event.setCancelled(true);
     }
     

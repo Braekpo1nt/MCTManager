@@ -106,6 +106,7 @@ public class DescriptionState implements SurvivalGamesState {
     
     @Override
     public void onPlayerDeath(PlayerDeathEvent event) {
+        Main.debugLog(LogType.CANCEL_PLAYER_DEATH_EVENT, "SurvivalGamesGame.DescriptionState.onPlayerDeath() cancelled");
         event.setCancelled(true);
     }
 }

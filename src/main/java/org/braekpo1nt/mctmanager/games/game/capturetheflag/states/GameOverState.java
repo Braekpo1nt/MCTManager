@@ -2,9 +2,11 @@ package org.braekpo1nt.mctmanager.games.game.capturetheflag.states;
 
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
+import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.CaptureTheFlagGame;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
+import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
@@ -45,6 +47,7 @@ public class GameOverState implements CaptureTheFlagState {
     
     @Override
     public void onPlayerDamage(EntityDamageEvent event) {
+        Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "CaptureTheFlagGame.GameOverState.onPlayerDamage() cancelled");
         event.setCancelled(true);
     }
     
