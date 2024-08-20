@@ -14,9 +14,6 @@ public interface CaptureTheFlagState {
         // do nothing
     }
     
-    default void cancelAllTasks() {
-        // do nothing
-    }
     // event handlers
     void onPlayerDamage(EntityDamageEvent event);
     void onPlayerLoseHunger(FoodLevelChangeEvent event);

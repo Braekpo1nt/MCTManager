@@ -144,6 +144,10 @@ public class RoundActiveState implements CaptureTheFlagState {
         onDeckParticipants.clear();
     }
     
+    private void cancelAllTasks() {
+        context.getTimerManager().cancel();
+    }
+    
     @Override
     public void onParticipantJoin(Player participant) {
         context.initializeParticipant(participant);

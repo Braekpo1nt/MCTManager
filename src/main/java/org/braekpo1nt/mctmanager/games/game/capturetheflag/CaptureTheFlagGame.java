@@ -296,9 +296,6 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     }
     
     private void cancelAllTasks() {
-        if (state != null) {
-            state.cancelAllTasks();
-        }
         timerManager.cancel();
     }
     

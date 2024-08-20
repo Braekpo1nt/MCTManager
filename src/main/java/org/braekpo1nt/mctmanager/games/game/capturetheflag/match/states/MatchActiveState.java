@@ -64,8 +64,7 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
         context.setState(new MatchOverState(context));
     }
     
-    private void onParticipantWin(Player participant) {
-        String winningTeam = gameManager.getTeamName(participant.getUniqueId());
+    private void onTeamWin(String winningTeam) {
         String losingTeam = matchPairing.northTeam();
         if (winningTeam.equals(matchPairing.northTeam())) {
             losingTeam = matchPairing.southTeam();
@@ -375,7 +374,8 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
     private void deliverSouthFlag(Player northParticipant) {
         BlockPlacementUtils.placeFlag(context.getSouthBanner(), arena.northFlag(), BlockFace.NORTH);
         northParticipant.getInventory().remove(context.getSouthBanner());
-        onParticipantWin(northParticipant);
+        String winningTeam = gameManager.getTeamName(northParticipant.getUniqueId());
+        onTeamWin(winningTeam);
     }
     
     private boolean hasSouthFlag(Player northParticipant) {
@@ -484,7 +484,8 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
     private void deliverNorthFlag(Player southParticipant) {
         BlockPlacementUtils.placeFlag(context.getNorthBanner(), arena.southFlag(), BlockFace.SOUTH);
         southParticipant.getInventory().remove(context.getNorthBanner());
-        onParticipantWin(southParticipant);
+        String winningTeam = gameManager.getTeamName(southParticipant.getUniqueId());
+        onTeamWin(winningTeam);
     }
     
     private boolean canRecoverSouthFlag(Location location) {
