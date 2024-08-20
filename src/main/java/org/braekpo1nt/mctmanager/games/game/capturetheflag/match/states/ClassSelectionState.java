@@ -68,7 +68,7 @@ public class ClassSelectionState implements CaptureTheFlagMatchState {
     
     @Override
     public void onPlayerDamage(EntityDamageEvent event) {
-        
+        event.setCancelled(true);
     }
     
     @Override

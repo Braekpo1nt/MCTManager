@@ -98,7 +98,7 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
     
     @Override
     public void onPlayerDamage(EntityDamageEvent event) {
-        
+        // do nothing
     }
     
     @Override
