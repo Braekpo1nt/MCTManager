@@ -3,13 +3,18 @@ package org.braekpo1nt.mctmanager.games.game.capturetheflag.match.states;
 import io.papermc.paper.entity.LookAnchor;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.CaptureTheFlagMatch;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.damage.DamageSource;
+import org.bukkit.damage.DamageType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+
+import java.util.Collections;
 
 public class MatchActiveState implements CaptureTheFlagMatchState {
     
@@ -55,7 +60,40 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
     
     @Override
     public void onParticipantQuit(Player participant) {
-        
+        String teamId = context.getGameManager().getTeamName(participant.getUniqueId());
+        if (context.getMatchPairing().northTeam().equals(teamId)) {
+            onNorthParticipantQuit(participant);
+        } else {
+            onSouthParticipantQuit(participant);
+        }
+    }
+    
+    private void onNorthParticipantQuit(Player participant) {
+        if (context.getParticipantsAreAlive().get(participant.getUniqueId())) {
+            Component deathMessage = Component.empty()
+                    .append(participant.displayName())
+                    .append(Component.text(" left early. Their life is forfeit."));
+            PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(participant,
+                    DamageSource.builder(DamageType.GENERIC).build(), Collections.emptyList(), 0, deathMessage);
+            this.onPlayerDeath(fakeDeathEvent);
+        }
+        context.resetParticipant(participant);
+        context.getNorthParticipants().remove(participant);
+        context.getAllParticipants().remove(participant);
+    }
+    
+    private void onSouthParticipantQuit(Player participant) {
+        if (context.getParticipantsAreAlive().get(participant.getUniqueId())) {
+            Component deathMessage = Component.empty()
+                    .append(participant.displayName())
+                    .append(Component.text(" left early. Their life is forfeit."));
+            PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(participant,
+                    DamageSource.builder(DamageType.GENERIC).build(), Collections.emptyList(), 0, deathMessage);
+            this.onPlayerDeath(fakeDeathEvent);
+        }
+        context.resetParticipant(participant);
+        context.getSouthParticipants().remove(participant);
+        context.getAllParticipants().remove(participant);
     }
     
     @Override

@@ -64,13 +64,6 @@ public class MatchOverState implements CaptureTheFlagMatchState {
         context.getAllParticipants().remove(participant);
     }
     
-    public void resetParticipant(Player participant) {
-        participant.getInventory().clear();
-        participant.closeInventory();
-        ParticipantInitializer.resetHealthAndHunger(participant);
-        ParticipantInitializer.clearStatusEffects(participant);
-    }
-    
     @Override
     public void onPlayerDamage(EntityDamageEvent event) {
         event.setCancelled(true);
