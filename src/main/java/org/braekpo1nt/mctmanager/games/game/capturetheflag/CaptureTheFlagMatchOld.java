@@ -523,18 +523,18 @@ public class CaptureTheFlagMatchOld implements Listener {
         }
     }
     
-    private void onNorthParticipantMove(Player northParticipant) {
-        Location location = northParticipant.getLocation();
+    private void onNorthParticipantMove(Player participant) {
+        Location location = participant.getLocation();
         if (canPickUpSouthFlag(location)) {
-            pickUpSouthFlag(northParticipant);
+            pickUpSouthFlag(participant);
             return;
         }
-        if (canDeliverSouthFlag(northParticipant)) {
-            deliverSouthFlag(northParticipant);
+        if (canDeliverSouthFlag(participant)) {
+            deliverSouthFlag(participant);
             return;
         }
         if (canRecoverNorthFlag(location)) {
-            recoverNorthFlag(northParticipant);
+            recoverNorthFlag(participant);
             return;
         }
     }

@@ -78,7 +78,7 @@ public class ClassSelectionState implements CaptureTheFlagMatchState {
     
     @Override
     public void onPlayerMove(PlayerMoveEvent event) {
-        
+        // do nothing
     }
     
     @Override

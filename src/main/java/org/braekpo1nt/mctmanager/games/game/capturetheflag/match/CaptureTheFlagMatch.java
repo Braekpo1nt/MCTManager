@@ -4,6 +4,7 @@ import io.papermc.paper.entity.LookAnchor;
 import lombok.Data;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.*;
@@ -351,4 +352,21 @@ public class CaptureTheFlagMatch {
                 allParticipants
         ).sendMessage(message);
     }
+    
+    public void messageNorthParticipants(Component message) {
+        Audience.audience(northParticipants).sendMessage(message);
+    }
+    
+    public void titleNorthParticipants(Title title) {
+        Audience.audience(northParticipants).showTitle(title);
+    }
+    
+    public void messageSouthParticipants(Component message) {
+        Audience.audience(southParticipants).sendMessage(message);
+    }
+    
+    public void titleSouthParticipants(Title title) {
+        Audience.audience(southParticipants).showTitle(title);
+    }
+    
 }
