@@ -142,6 +142,16 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
     }
     
     @Override
+    public void onClickInventory(InventoryClickEvent event) {
+        
+    }
+    
+    @Override
+    public void onPlayerDeath(PlayerDeathEvent event) {
+        
+    }
+    
+    @Override
     public void onPlayerMove(PlayerMoveEvent event) {
         Player participant = event.getPlayer();
         if (!context.getParticipantsAreAlive().get(participant.getUniqueId())) {
@@ -150,10 +160,11 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
         if (context.getNorthParticipants().contains(participant)) {
             onNorthParticipantMove(participant);
         } else {
-//            onSouthParticipantMove(participant);
+            onSouthParticipantMove(participant);
         }
     }
     
+    // North participant move start
     private void onNorthParticipantMove(Player participant) {
         Location location = participant.getLocation();
         if (canPickUpSouthFlag(location)) {
@@ -165,8 +176,7 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
             return;
         }
         if (canRecoverNorthFlag(location)) {
-            recoverNorthFlag(participant);
-            return;
+            recoverNorthFlag();
         }
     }
     
@@ -233,19 +243,7 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
         return !alreadyRecovered && canPickUpNorthFlag(location);
     }
     
-    /**
-     * Returns true if the north flag is dropped on the ground, and the given location's blockLocation is equal to {@link CaptureTheFlagMatch#getNorthFlagPosition()}
-     * @param location The location to check
-     * @return Whether the north flag is dropped and the location is on the north flag
-     */
-    private boolean canPickUpNorthFlag(Location location) {
-        if (context.getNorthFlagPosition() == null) {
-            return false;
-        }
-        return context.getNorthFlagPosition().getBlockX() == location.getBlockX() && context.getNorthFlagPosition().getBlockY() == location.getBlockY() && context.getNorthFlagPosition().getBlockZ() == location.getBlockZ();
-    }
-    
-    private void recoverNorthFlag(Player northParticipant) {
+    private void recoverNorthFlag() {
         context.messageNorthParticipants(Component.empty()
                 .append(Component.text("Your flag was recovered"))
                 .color(NamedTextColor.GREEN));
@@ -269,13 +267,111 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
         BlockPlacementUtils.placeFlag(context.getNorthBanner(), context.getNorthFlagPosition(), BlockFace.SOUTH);
     }
     
-    @Override
-    public void onClickInventory(InventoryClickEvent event) {
-        
+    // North participant move end
+    // South participant move start
+    
+    private void onSouthParticipantMove(Player southParticipant) {
+        Location location = southParticipant.getLocation();
+        if (canPickUpNorthFlag(location)) {
+            pickUpNorthFlag(southParticipant);
+            return;
+        }
+        if (canDeliverNorthFlag(southParticipant)) {
+            deliverNorthFlag(southParticipant);
+            return;
+        }
+        if (canRecoverSouthFlag(location)) {
+            recoverSouthFlag();
+        }
     }
     
-    @Override
-    public void onPlayerDeath(PlayerDeathEvent event) {
-        
+    /**
+     * Returns true if the north flag is dropped on the ground, and the given location's blockLocation is equal to {@link CaptureTheFlagMatch#getNorthFlagPosition()}
+     * @param location The location to check
+     * @return Whether the north flag is dropped and the location is on the north flag
+     */
+    private boolean canPickUpNorthFlag(Location location) {
+        if (context.getNorthFlagPosition() == null) {
+            return false;
+        }
+        return context.getNorthFlagPosition().getBlockX() == location.getBlockX() && context.getNorthFlagPosition().getBlockY() == location.getBlockY() && context.getNorthFlagPosition().getBlockZ() == location.getBlockZ();
     }
+    
+    private synchronized void pickUpNorthFlag(Player southParticipant) {
+        context.messageNorthParticipants(Component.empty()
+                .append(Component.text("Your flag was captured!"))
+                .color(NamedTextColor.DARK_RED));
+        context.titleNorthParticipants(UIUtils.defaultTitle(
+                Component.empty(),
+                Component.empty()
+                        .append(Component.text("flag captured"))
+                        .color(NamedTextColor.DARK_RED)
+        ));
+        context.messageSouthParticipants(Component.empty()
+                .append(Component.text("You captured the flag!"))
+                .color(NamedTextColor.GREEN));
+        context.titleSouthParticipants(UIUtils.defaultTitle(
+                Component.empty(),
+                Component.empty()
+                        .append(Component.text("flag captured"))
+                        .color(NamedTextColor.GREEN)
+        ));
+        southParticipant.getEquipment().setHelmet(new ItemStack(context.getNorthBanner()));
+        context.getNorthFlagPosition().getBlock().setType(Material.AIR);
+        context.setNorthFlagPosition(null);
+        context.setHasNorthFlag(southParticipant);
+    }
+    
+    private boolean canDeliverNorthFlag(Player southParticipant) {
+        if (!hasNorthFlag(southParticipant)) {
+            return false;
+        }
+        Location location = southParticipant.getLocation();
+        return arena.southFlag().getBlockX() == location.getBlockX() && arena.southFlag().getBlockY() == location.getBlockY() && arena.southFlag().getBlockZ() == location.getBlockZ();
+    }
+    
+    private boolean hasNorthFlag(Player southParticipant) {
+        return Objects.equals(context.getHasNorthFlag(), southParticipant);
+    }
+    
+    private void deliverNorthFlag(Player southParticipant) {
+        BlockPlacementUtils.placeFlag(context.getNorthBanner(), arena.southFlag(), BlockFace.SOUTH);
+        southParticipant.getInventory().remove(context.getNorthBanner());
+        onParticipantWin(southParticipant);
+    }
+    
+    private boolean canRecoverSouthFlag(Location location) {
+        if (context.getSouthFlagPosition() == null) {
+            return false;
+        }
+        boolean alreadyRecovered = context.getSouthFlagPosition().getBlockX() == arena.southFlag().getBlockX() && context.getSouthFlagPosition().getBlockY() == arena.southFlag().getBlockY() && context.getSouthFlagPosition().getBlockZ() == arena.southFlag().getBlockZ();
+        return !alreadyRecovered && canPickUpSouthFlag(location);
+    }
+    
+    private void recoverSouthFlag() {
+        context.messageSouthParticipants(Component.empty()
+                .append(Component.text("Your flag was recovered"))
+                .color(NamedTextColor.GREEN));
+        context.titleSouthParticipants(UIUtils.defaultTitle(
+                Component.empty(),
+                Component.empty()
+                        .append(Component.text("flag recovered"))
+                        .color(NamedTextColor.GREEN)
+        ));
+        context.messageNorthParticipants(Component.empty()
+                .append(Component.text("Opponents' flag was recovered"))
+                .color(NamedTextColor.DARK_RED));
+        context.titleNorthParticipants(UIUtils.defaultTitle(
+                Component.empty(),
+                Component.empty()
+                        .append(Component.text("flag recovered"))
+                        .color(NamedTextColor.DARK_RED)
+        ));
+        context.getSouthFlagPosition().getBlock().setType(Material.AIR);
+        context.setSouthFlagPosition(arena.southFlag());
+        BlockPlacementUtils.placeFlag(context.getSouthBanner(), context.getSouthFlagPosition(), BlockFace.NORTH);
+    }
+    
+    // South participant move end
+    
 }
