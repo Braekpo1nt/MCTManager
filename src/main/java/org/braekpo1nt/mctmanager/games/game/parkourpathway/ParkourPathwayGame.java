@@ -17,6 +17,7 @@ import org.braekpo1nt.mctmanager.games.game.parkourpathway.config.ParkourPathway
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.config.ParkourPathwayConfigController;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.puzzle.CheckPoint;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.puzzle.Puzzle;
+import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
@@ -502,7 +503,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         if (!gameActive) {
             return;
         }
-        if (event.getCause().equals(EntityDamageEvent.DamageCause.VOID)) {
+        if (GameManagerUtils.EXCLUDED_CAUSES.contains(event.getCause())) {
             return;
         }
         if (!(event.getEntity() instanceof Player participant)) {

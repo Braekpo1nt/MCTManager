@@ -14,6 +14,7 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
@@ -27,6 +28,14 @@ import java.util.*;
 public class GameManagerUtils {
     
     public static final String TEAM_NAME_REGEX = "[-+\\._A-Za-z0-9]+";
+    
+    public final static List<EntityDamageEvent.DamageCause> EXCLUDED_CAUSES;
+    static {
+        EXCLUDED_CAUSES = List.of(
+                EntityDamageEvent.DamageCause.VOID,
+                EntityDamageEvent.DamageCause.KILL
+        );
+    }
     
     /**
      * A list of all the {@link InventoryAction}s which constitute

@@ -269,7 +269,7 @@ public class ActiveState implements SurvivalGamesState {
     
     @Override
     public void onPlayerDamage(EntityDamageEvent event) {
-        if (event.getCause().equals(EntityDamageEvent.DamageCause.VOID)) {
+        if (GameManagerUtils.EXCLUDED_CAUSES.contains(event.getCause())) {
             return;
         }
         if (invulnerable) {
