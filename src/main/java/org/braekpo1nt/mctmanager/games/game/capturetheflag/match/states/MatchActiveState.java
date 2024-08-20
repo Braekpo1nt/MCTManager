@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.game.capturetheflag.match.states;
 import io.papermc.paper.entity.LookAnchor;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.Arena;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.MatchPairing;
@@ -11,6 +12,7 @@ import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
+import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -146,7 +148,14 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
     
     @Override
     public void onPlayerDamage(EntityDamageEvent event) {
-        // do nothing
+        if (!(event.getEntity() instanceof Player participant)) {
+            return;
+        }
+        if (context.getParticipantsAreAlive().get(participant.getUniqueId())) {
+            return;
+        }
+        Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "CaptureTheFlagMatch.MatchActiveState.onPlayerDamage() cancelled");
+        event.setCancelled(true);
     }
     
     @Override

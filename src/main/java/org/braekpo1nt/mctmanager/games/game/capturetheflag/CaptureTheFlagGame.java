@@ -314,6 +314,9 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         if (state == null) {
             return;
         }
+        if (event.getCause().equals(EntityDamageEvent.DamageCause.VOID)) {
+            return;
+        }
         if (!(event.getEntity() instanceof Player participant)) {
             return;
         }
