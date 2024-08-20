@@ -1,7 +1,9 @@
 package org.braekpo1nt.mctmanager.games.game.capturetheflag.match.states;
 
+import io.papermc.paper.entity.LookAnchor;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.CaptureTheFlagMatch;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
@@ -36,7 +38,19 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
     
     @Override
     public void onParticipantJoin(Player participant) {
-        
+        context.initializeParticipant(participant);
+        String teamId = context.getGameManager().getTeamName(participant.getUniqueId());
+        context.getTopbar().linkToTeam(participant.getUniqueId(), teamId);
+        context.getParticipantsAreAlive().put(participant.getUniqueId(), false);
+        participant.teleport(context.getConfig().getSpawnObservatory());
+        participant.setRespawnLocation(context.getConfig().getSpawnObservatory(), true);
+        Location lookLocation;
+        if (context.getMatchPairing().northTeam().equals(teamId)) {
+            lookLocation = context.getArena().northFlag();
+        } else {
+            lookLocation = context.getArena().southFlag();
+        }
+        participant.lookAt(lookLocation.getX(), lookLocation.getY(), lookLocation.getZ(), LookAnchor.EYES);
     }
     
     @Override

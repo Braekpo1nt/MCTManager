@@ -176,7 +176,7 @@ public class CaptureTheFlagMatchOld implements Listener {
         ParticipantInitializer.resetHealthAndHunger(participant);
         ParticipantInitializer.clearStatusEffects(participant);
         participant.teleport(config.getSpawnObservatory());
-        participant.setBedSpawnLocation(config.getSpawnObservatory(), true);
+        participant.setRespawnLocation(config.getSpawnObservatory(), true);
         participant.lookAt(lookLocation.getX(), lookLocation.getY(), lookLocation.getZ(), LookAnchor.EYES);
     }
     
@@ -239,13 +239,12 @@ public class CaptureTheFlagMatchOld implements Listener {
             return;
         }
         String teamId = gameManager.getTeamName(participant.getUniqueId());
+        topbar.linkToTeam(participant.getUniqueId(), teamId);
         if (matchPairing.northTeam().equals(teamId)) {
-            topbar.linkToTeam(participant.getUniqueId(), teamId);
             onNorthParticipantJoin(participant);
             return;
         }
         if (matchPairing.southTeam().equals(teamId)) {
-            topbar.linkToTeam(participant.getUniqueId(), teamId);
             onSouthParticipantJoin(participant);
             return;
         }

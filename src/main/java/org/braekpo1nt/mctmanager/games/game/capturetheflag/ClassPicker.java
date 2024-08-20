@@ -310,6 +310,10 @@ public class ClassPicker implements Listener {
         return (line - 1) * 9 + (column - 1);
     }
     
+    /**
+     * @deprecated because the state machine handles whether this is active or not
+     */
+    @Deprecated
     public boolean isActive() {
         return classPickingActive;
     }

@@ -118,8 +118,8 @@ public class CaptureTheFlagMatch {
         allParticipants.add(participant);
         UUID participantUniqueId = participant.getUniqueId();
         participantsAreAlive.put(participantUniqueId, true);
-        int alive = 0;
-        int dead = 0;
+        int alive;
+        int dead;
         if (matchPairing.northTeam().equals(teamId)) {
             northParticipants.add(participant);
             participant.teleport(arena.northSpawn());
