@@ -83,7 +83,7 @@ public class ClassSelectionState implements CaptureTheFlagMatchState {
     
     @Override
     public void onClickInventory(InventoryClickEvent event) {
-        
+        // do nothing
     }
     
     @Override
