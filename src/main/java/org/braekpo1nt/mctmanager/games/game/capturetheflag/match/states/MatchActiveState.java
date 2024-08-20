@@ -103,7 +103,7 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
     
     @Override
     public void onPlayerLoseHunger(FoodLevelChangeEvent event) {
-        
+        // do nothing
     }
     
     @Override

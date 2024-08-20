@@ -73,7 +73,7 @@ public class ClassSelectionState implements CaptureTheFlagMatchState {
     
     @Override
     public void onPlayerLoseHunger(FoodLevelChangeEvent event) {
-        
+        event.setCancelled(true);
     }
     
     @Override
