@@ -56,7 +56,7 @@ public class ClassSelectionState implements CaptureTheFlagMatchState {
     
     @Override
     public void onParticipantQuit(Player participant) {
-        
+        context.resetParticipant(participant);
     }
     
     @Override

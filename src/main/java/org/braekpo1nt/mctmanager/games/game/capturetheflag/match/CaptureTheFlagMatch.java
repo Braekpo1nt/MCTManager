@@ -165,6 +165,9 @@ public class CaptureTheFlagMatch {
         if (state == null) {
             return;
         }
+        if (!allParticipants.contains(participant)) {
+            return;
+        }
         state.onParticipantQuit(participant);
     }
     
