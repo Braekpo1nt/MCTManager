@@ -126,6 +126,9 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         topbar.showPlayer(participant);
         killCount.putIfAbsent(participant.getUniqueId(), 0);
         deathCount.putIfAbsent(participant.getUniqueId(), 0);
+        participant.setGameMode(GameMode.ADVENTURE);
+        participant.teleport(config.getSpawnObservatory());
+        participant.setRespawnLocation(config.getSpawnObservatory());
         int kills = killCount.get(participant.getUniqueId());
         int deaths = deathCount.get(participant.getUniqueId());
         topbar.setKillsAndDeaths(participant.getUniqueId(), kills, deaths);
