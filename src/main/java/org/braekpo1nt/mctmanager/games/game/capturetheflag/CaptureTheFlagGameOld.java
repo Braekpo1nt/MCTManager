@@ -503,7 +503,6 @@ public class CaptureTheFlagGameOld implements MCTGame, Configurable, Listener, H
     }
     
     private void clearAdminSidebar() {
-        plugin.getLogger().info("delete all lines");
         adminSidebar.deleteAllLines();
         adminSidebar = null;
     }

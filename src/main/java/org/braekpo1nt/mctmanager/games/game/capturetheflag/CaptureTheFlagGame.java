@@ -262,7 +262,6 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     }
     
     private void clearAdminSidebar() {
-        plugin.getLogger().info("delete all lines");
         adminSidebar.deleteAllLines();
         adminSidebar = null;
     }

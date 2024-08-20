@@ -23,9 +23,10 @@ public class DescriptionState implements CaptureTheFlagState {
         context.messageAllParticipants(context.getConfig().getDescription());
         context.getTimerManager().start(Timer.builder()
                 .duration(context.getConfig().getDescriptionDuration())
-                .withSidebar(context.getSidebar(), "timer")
+                .withTopbar(context.getTopbar())
                 .withSidebar(context.getAdminSidebar(), "timer")
                 .sidebarPrefix(Component.text("Starting soon: "))
+                .topbarPrefix(Component.text("Starting soon: "))
                 .onCompletion(() -> {
                     context.setState(new PreRoundState(context));
                 })
