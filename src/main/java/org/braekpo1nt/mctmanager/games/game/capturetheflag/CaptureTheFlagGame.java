@@ -185,9 +185,6 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         if (state == null) {
             return;
         }
-        if (!participants.contains(participant)) {
-            return;
-        }
         state.onParticipantJoin(participant);
     }
     
@@ -319,6 +316,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
             return;
         }
         if (!participants.contains(participant)) {
+            Main.logger().info(String.format("%s is damaged, not a participant", participant.getName()));
             return;
         }
         state.onPlayerDamage(event);

@@ -41,6 +41,7 @@ public class MatchOverState implements CaptureTheFlagMatchState {
         context.initializeParticipant(participant);
         String teamId = context.getGameManager().getTeamName(participant.getUniqueId());
         context.getTopbar().linkToTeam(participant.getUniqueId(), teamId);
+        Main.logger().info(String.format("Putting %s alive=false", participant.getName()));
         context.getParticipantsAreAlive().put(participant.getUniqueId(), false);
         participant.teleport(context.getConfig().getSpawnObservatory());
         participant.setRespawnLocation(context.getConfig().getSpawnObservatory(), true);

@@ -95,6 +95,7 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
         context.initializeParticipant(participant);
         String teamId = context.getGameManager().getTeamName(participant.getUniqueId());
         context.getTopbar().linkToTeam(participant.getUniqueId(), teamId);
+        Main.logger().info(String.format("Putting %s alive=false", participant.getName()));
         context.getParticipantsAreAlive().put(participant.getUniqueId(), false);
         participant.teleport(context.getConfig().getSpawnObservatory());
         participant.setRespawnLocation(context.getConfig().getSpawnObservatory(), true);
@@ -110,39 +111,21 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
     @Override
     public void onParticipantQuit(Player participant) {
         String teamId = context.getGameManager().getTeamName(participant.getUniqueId());
+        if (context.getParticipantsAreAlive().get(participant.getUniqueId())) {
+            Component deathMessage = Component.empty()
+                    .append(participant.displayName())
+                    .append(Component.text(" left early. Their life is forfeit."));
+            PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(participant,
+                    DamageSource.builder(DamageType.GENERIC).build(), Collections.emptyList(), 0, deathMessage);
+            this.onPlayerDeath(fakeDeathEvent);
+        }
+        context.resetParticipant(participant);
+        context.getAllParticipants().remove(participant);
         if (matchPairing.northTeam().equals(teamId)) {
-            onNorthParticipantQuit(participant);
+            context.getNorthParticipants().remove(participant);
         } else {
-            onSouthParticipantQuit(participant);
+            context.getSouthParticipants().remove(participant);
         }
-    }
-    
-    private void onNorthParticipantQuit(Player participant) {
-        if (context.getParticipantsAreAlive().get(participant.getUniqueId())) {
-            Component deathMessage = Component.empty()
-                    .append(participant.displayName())
-                    .append(Component.text(" left early. Their life is forfeit."));
-            PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(participant,
-                    DamageSource.builder(DamageType.GENERIC).build(), Collections.emptyList(), 0, deathMessage);
-            this.onPlayerDeath(fakeDeathEvent);
-        }
-        context.resetParticipant(participant);
-        context.getNorthParticipants().remove(participant);
-        context.getAllParticipants().remove(participant);
-    }
-    
-    private void onSouthParticipantQuit(Player participant) {
-        if (context.getParticipantsAreAlive().get(participant.getUniqueId())) {
-            Component deathMessage = Component.empty()
-                    .append(participant.displayName())
-                    .append(Component.text(" left early. Their life is forfeit."));
-            PlayerDeathEvent fakeDeathEvent = new PlayerDeathEvent(participant,
-                    DamageSource.builder(DamageType.GENERIC).build(), Collections.emptyList(), 0, deathMessage);
-            this.onPlayerDeath(fakeDeathEvent);
-        }
-        context.resetParticipant(participant);
-        context.getSouthParticipants().remove(participant);
-        context.getAllParticipants().remove(participant);
     }
     
     @Override
@@ -151,6 +134,7 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
             return;
         }
         if (context.getParticipantsAreAlive().get(participant.getUniqueId())) {
+            Main.logger().info(String.format("%s is alive", participant.getName()));
             return;
         }
         Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "CaptureTheFlagMatch.MatchActiveState.onPlayerDamage() cancelled");
@@ -209,6 +193,7 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
     }
     
     private void onParticipantDeath(Player killed) {
+        Main.logger().info(String.format("Putting %s alive=false", killed.getName()));
         context.getParticipantsAreAlive().put(killed.getUniqueId(), false);
         int alive = 0;
         int dead = 0;
