@@ -3,9 +3,12 @@ package org.braekpo1nt.mctmanager.hub.leaderboard;
 import eu.decentsoftware.holograms.api.DHAPI;
 import eu.decentsoftware.holograms.api.holograms.Hologram;
 import lombok.Data;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
@@ -111,7 +114,7 @@ public class LeaderboardManager {
                 }
             }
             String teamId = gameManager.getTeamName(uuid);
-            ChatColor teamColor = gameManager.getTeamChatColor(teamId);
+            NamedTextColor teamColor = gameManager.getTeamColor(teamId);
             int score = gameManager.getScore(uuid);
             standings.add(new Standing(uuid, placement, teamColor, name, score));
         }
@@ -142,20 +145,33 @@ public class LeaderboardManager {
     static class Standing {
         private final @NotNull UUID uuid;
         private final int placement;
-        private final ChatColor teamColor;
+        private final NamedTextColor teamColor;
         private final @NotNull String ign;
         private final int score;
         
         public String toBoldLine() {
-            return "" + ChatColor.GOLD + ChatColor.BOLD + placement + ". "
-                    + teamColor + ChatColor.BOLD + ign
-                    + ChatColor.WHITE + " - " + ChatColor.GOLD + ChatColor.BOLD + score;
+            return LegacyComponentSerializer.legacyAmpersand().serialize(Component.empty()
+                    .append(Component.text(placement))
+                    .append(Component.text(". "))
+                    .append(Component.text(ign)
+                            .color(teamColor))
+                    .append(Component.text(" - "))
+                    .append(Component.text(score))
+                    .color(NamedTextColor.GOLD)
+                    .decorate(TextDecoration.BOLD)
+            );
         }
         
         public String toLine() {
-            return "" + ChatColor.GOLD + placement + ". "
-                    + teamColor + ign
-                    + ChatColor.WHITE + " - " + ChatColor.GOLD + score;
+            return LegacyComponentSerializer.legacyAmpersand().serialize(Component.empty()
+                    .append(Component.text(placement))
+                    .append(Component.text(". "))
+                    .append(Component.text(ign)
+                            .color(teamColor))
+                    .append(Component.text(" - "))
+                    .append(Component.text(score))
+                    .color(NamedTextColor.GOLD)
+            );
         }
     }
 }

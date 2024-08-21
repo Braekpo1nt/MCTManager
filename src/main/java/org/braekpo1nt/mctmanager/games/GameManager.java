@@ -1866,15 +1866,4 @@ public class GameManager implements Listener {
         }
         hubManager.updateLeaderboards();
     }
-    
-    /**
-     * @param teamId the teamId to get the {@link ChatColor} for
-     * @return the {@link ChatColor} associated with the given teamId
-     * @deprecated in favor of {@link #getTeamColor(String)} because {@link ChatColor} is deprecated.
-     * As soon as DecentHolograms implements adventure components overloads, this will be removed. 
-     */
-    @Deprecated
-    public ChatColor getTeamChatColor(String teamId) {
-        return null;
-    }
 }
