@@ -169,7 +169,7 @@ public class OffState implements EventState {
             gameManager.returnAllParticipantsToHub();
             return;
         }
-        NamedTextColor teamColor = gameManager.getTeamNamedTextColor(winningTeam);
+        NamedTextColor teamColor = gameManager.getTeamColor(winningTeam);
         Component formattedTeamDisplayName = gameManager.getFormattedTeamDisplayName(winningTeam);
         Component message = Component.empty()
                 .append(formattedTeamDisplayName)

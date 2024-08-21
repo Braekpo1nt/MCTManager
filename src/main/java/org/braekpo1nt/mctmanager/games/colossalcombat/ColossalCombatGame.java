@@ -231,8 +231,8 @@ public class ColossalCombatGame implements Listener, Configurable {
     
     private void setUpTopbarForRound() {
         topbar.removeAllTeamPairs();
-        NamedTextColor firstColor = gameManager.getTeamNamedTextColor(firstTeamName);
-        NamedTextColor secondColor = gameManager.getTeamNamedTextColor(secondTeamName);
+        NamedTextColor firstColor = gameManager.getTeamColor(firstTeamName);
+        NamedTextColor secondColor = gameManager.getTeamColor(secondTeamName);
         topbar.addTeam(firstTeamName, firstColor);
         topbar.addTeam(secondTeamName, secondColor);
         topbar.linkTeamPair(firstTeamName, secondTeamName);

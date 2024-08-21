@@ -197,7 +197,7 @@ public class ActiveState implements SurvivalGamesState {
             context.getDeadPlayers().remove(participant.getUniqueId());
             String teamId = context.getGameManager().getTeamName(participant.getUniqueId());
             if (!context.getLivingMembers().containsKey(teamId)) {
-                NamedTextColor color = context.getGameManager().getTeamNamedTextColor(teamId);
+                NamedTextColor color = context.getGameManager().getTeamColor(teamId);
                 context.getTopbar().addTeam(teamId, color);
             }
             initializeParticipant(participant);

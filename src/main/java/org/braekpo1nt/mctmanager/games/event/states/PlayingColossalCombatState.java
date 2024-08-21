@@ -102,7 +102,7 @@ public class PlayingColossalCombatState extends PlayingGameState {
             context.setState(new ToPodiumDelayState(context));
             return;
         }
-        NamedTextColor teamColor = gameManager.getTeamNamedTextColor(winningTeam);
+        NamedTextColor teamColor = gameManager.getTeamColor(winningTeam);
         Component formattedTeamDisplayName = gameManager.getFormattedTeamDisplayName(winningTeam);
         Component message = Component.empty()
                 .append(formattedTeamDisplayName)

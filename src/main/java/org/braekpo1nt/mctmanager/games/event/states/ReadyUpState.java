@@ -74,7 +74,7 @@ public class ReadyUpState implements EventState {
         }
     
         for (String teamId : teamIds) {
-            NamedTextColor teamColor = gameManager.getTeamNamedTextColor(teamId);
+            NamedTextColor teamColor = gameManager.getTeamColor(teamId);
             topbar.addTeam(teamId, teamColor);
             if (readyUpManager.teamIsReady(teamId)) {
                 topbar.setReadyCount(teamId, -1);
@@ -222,7 +222,7 @@ public class ReadyUpState implements EventState {
         String teamId = gameManager.getTeamName(participant.getUniqueId());
         if (!readyUpManager.containsTeam(teamId)) {
             readyUpManager.addTeam(teamId);
-            topbar.addTeam(teamId, gameManager.getTeamNamedTextColor(teamId));
+            topbar.addTeam(teamId, gameManager.getTeamColor(teamId));
         }
         topbar.showPlayer(participant);
         this.unReadyParticipant(participant);

@@ -403,11 +403,12 @@ public class GameStateStorageUtil {
     
     /**
      * Gets the color string of the given team
-     * @param teamName The team to get the color string of
+     * @param teamId The teamId to get the color string of
      * @return The color string of the given team
+     * @throws NullPointerException if the given teamId is not a valid team
      */
-    public String getTeamColorString(@NotNull String teamName) {
-        return gameState.getTeam(teamName).getColor();
+    public String getTeamColorString(@NotNull String teamId) {
+        return gameState.getTeam(teamId).getColor();
     }
     
     /**

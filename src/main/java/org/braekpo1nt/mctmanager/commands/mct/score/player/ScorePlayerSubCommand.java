@@ -67,7 +67,7 @@ public class ScorePlayerSubCommand extends TabSubCommand {
             displayName = player.displayName();
         } else {
             String team = gameManager.getTeamName(uuid);
-            NamedTextColor teamColor = gameManager.getTeamNamedTextColor(team);
+            NamedTextColor teamColor = gameManager.getTeamColor(team);
             displayName = Component.text(playerName).color(teamColor);
         }
         return CommandResult.success(Component.empty()

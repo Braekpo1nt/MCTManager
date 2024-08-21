@@ -363,7 +363,7 @@ public class EventManager implements Listener {
                 .color(NamedTextColor.YELLOW);
         for (String teamName : teamNames) {
             int teamScoreToSubtract = scoreKeeper.getScore(teamName);
-            NamedTextColor teamColor = gameManager.getTeamNamedTextColor(teamName);
+            NamedTextColor teamColor = gameManager.getTeamColor(teamName);
             Component displayName = gameManager.getFormattedTeamDisplayName(teamName);
             reportBuilder.append(Component.text("|  - "))
                     .append(displayName)

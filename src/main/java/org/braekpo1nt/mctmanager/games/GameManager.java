@@ -1112,7 +1112,7 @@ public class GameManager implements Listener {
         }
         addNewPlayer(sender, playerUniqueId, teamName);
         hubManager.updateLeaderboards();
-        NamedTextColor teamNamedTextColor = getTeamNamedTextColor(teamName);
+        NamedTextColor teamNamedTextColor = getTeamColor(teamName);
         Component displayName = Component.text(participant.getName(), teamNamedTextColor);
         participant.displayName(displayName);
         participant.playerListName(displayName);
@@ -1169,7 +1169,7 @@ public class GameManager implements Listener {
         addNewOfflineIGN(sender, ign, offlineUniqueId, teamId);
         hubManager.updateLeaderboards();
         Component teamDisplayName = getFormattedTeamDisplayName(teamId);
-        NamedTextColor teamNamedTextColor = getTeamNamedTextColor(teamId);
+        NamedTextColor teamNamedTextColor = getTeamColor(teamId);
         TextComponent displayName = Component.text(ign)
                 .color(teamNamedTextColor)
                 .decorate(TextDecoration.BOLD);
@@ -1417,13 +1417,6 @@ public class GameManager implements Listener {
         return gameStateStorageUtil.getTeamColor(playerUniqueId);
     }
     
-    public @NotNull NamedTextColor getTeamNamedTextColor(@Nullable String teamName) {
-        if (teamName == null) {
-            return NamedTextColor.WHITE;
-        }
-        return gameStateStorageUtil.getTeamNamedTextColor(teamName);
-    }
-    
     /**
      * Gets the team's display name as a Component with the team's text color
      * and in bold
@@ -1471,7 +1464,7 @@ public class GameManager implements Listener {
      */
     public Component getDisplayName(@NotNull UUID participantUUID, @NotNull String name) {
         String teamName = getTeamName(participantUUID);
-        NamedTextColor teamNamedTextColor = getTeamNamedTextColor(teamName);
+        NamedTextColor teamNamedTextColor = getTeamColor(teamName);
         return Component.text(name, teamNamedTextColor);
     }
     
@@ -1777,7 +1770,7 @@ public class GameManager implements Listener {
         return ColorMap.getStainedGlassColor(colorString);
     }
     
-    public NamedTextColor getTeamColor(@NotNull String teamName) {
+    public @NotNull NamedTextColor getTeamColor(@NotNull String teamName) {
         String colorString = gameStateStorageUtil.getTeamColorString(teamName);
         return ColorMap.getNamedTextColor(colorString);
     }

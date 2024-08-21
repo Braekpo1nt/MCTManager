@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.utils;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Color;
 import org.bukkit.Material;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -121,7 +122,7 @@ public class ColorMap {
         BANNER_TYPE_MAP.put("yellow", Material.YELLOW_BANNER);
     }
     
-    public static NamedTextColor getNamedTextColor(String colorString) {
+    public static @NotNull NamedTextColor getNamedTextColor(String colorString) {
         return NAMED_TEXT_COLOR_MAP.getOrDefault(colorString.toLowerCase(), NamedTextColor.WHITE);
     }
     
