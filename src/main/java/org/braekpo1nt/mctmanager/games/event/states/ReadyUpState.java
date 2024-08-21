@@ -64,12 +64,12 @@ public class ReadyUpState implements EventState {
         this.topbar = context.getTopbar();
         gameManager.returnAllParticipantsToHub();
         readyUpManager.clear();
-        Set<String> teamIds = gameManager.getTeamNames();
+        Set<String> teamIds = gameManager.getTeamIds();
         for (String teamId : teamIds) {
             readyUpManager.addTeam(teamId);
         }
         for (OfflinePlayer offlineParticipant : gameManager.getOfflineParticipants()) {
-            String teamId = gameManager.getTeamName(offlineParticipant.getUniqueId());
+            String teamId = gameManager.getTeamId(offlineParticipant.getUniqueId());
             readyUpManager.unReadyParticipant(offlineParticipant.getUniqueId(), teamId);
         }
     
@@ -97,7 +97,7 @@ public class ReadyUpState implements EventState {
             @Override
             public void run() {
                 for (Player participant : context.getParticipants()) {
-                    String teamId = gameManager.getTeamName(participant.getUniqueId());
+                    String teamId = gameManager.getTeamId(participant.getUniqueId());
                     boolean ready = readyUpManager.participantIsReady(participant.getUniqueId(), teamId);
                     if (!ready) {
                         participant.showTitle(READYUP_TITLE);
@@ -119,7 +119,7 @@ public class ReadyUpState implements EventState {
     
     @Override
     public void readyUpParticipant(Player participant) {
-        String teamId = gameManager.getTeamName(participant.getUniqueId());
+        String teamId = gameManager.getTeamId(participant.getUniqueId());
         List<OfflinePlayer> teamMembers = gameManager.getOfflineParticipants(teamId);
         boolean wasReady = readyUpManager.readyUpParticipant(participant.getUniqueId(), teamId);
         if (!wasReady) {
@@ -134,7 +134,7 @@ public class ReadyUpState implements EventState {
                     .color(NamedTextColor.GREEN)
             );
             participant.showTitle(Title.title(Component.empty(), Component.empty()));
-            int teamIdCount = gameManager.getTeamNames().size();
+            int teamIdCount = gameManager.getTeamIds().size();
             if (readyUpManager.teamIsReady(teamId)) {
                 Component teamDisplayName = gameManager.getFormattedTeamDisplayName(teamId);
                 context.messageAllAdmins(Component.empty()
@@ -177,7 +177,7 @@ public class ReadyUpState implements EventState {
     
     @Override
     public void unReadyParticipant(Player participant) {
-        String teamId = gameManager.getTeamName(participant.getUniqueId());
+        String teamId = gameManager.getTeamId(participant.getUniqueId());
         List<OfflinePlayer> teamMembers = gameManager.getOfflineParticipants(teamId);
         boolean teamWasReady = readyUpManager.teamIsReady(teamId);
         boolean wasReady = readyUpManager.unReadyParticipant(participant.getUniqueId(), teamId);
@@ -199,7 +199,7 @@ public class ReadyUpState implements EventState {
                         .append(Component.text(" is not ready. ("))
                         .append(Component.text(readyUpManager.readyTeamCount()))
                         .append(Component.text("/"))
-                        .append(Component.text(gameManager.getTeamNames().size()))
+                        .append(Component.text(gameManager.getTeamIds().size()))
                         .append(Component.text(" teams ready)"))
                         .color(NamedTextColor.DARK_RED)
                 );
@@ -219,7 +219,7 @@ public class ReadyUpState implements EventState {
             context.updateTeamScores();
             sidebar.updateLine(participant.getUniqueId(), "currentGame", context.getCurrentGameLine());
         }
-        String teamId = gameManager.getTeamName(participant.getUniqueId());
+        String teamId = gameManager.getTeamId(participant.getUniqueId());
         if (!readyUpManager.containsTeam(teamId)) {
             readyUpManager.addTeam(teamId);
             topbar.addTeam(teamId, gameManager.getTeamColor(teamId));
@@ -289,7 +289,7 @@ public class ReadyUpState implements EventState {
         List<OfflinePlayer> sortedOfflineParticipants = getSortedOfflineParticipants(teamId);
         for (OfflinePlayer participant : sortedOfflineParticipants) {
             Component displayName = gameManager.getDisplayName(participant);
-            String participantTeamId = gameManager.getTeamName(participant.getUniqueId());
+            String participantTeamId = gameManager.getTeamId(participant.getUniqueId());
             boolean ready = readyUpManager.participantIsReady(participant.getUniqueId(), participantTeamId);
             builder.append(Component.empty()
                     .append(Component.newline())
@@ -312,8 +312,8 @@ public class ReadyUpState implements EventState {
             sortedOfflinePlayers = gameManager.getOfflineParticipants(teamId);
         }
         sortedOfflinePlayers.sort((p1, p2) -> {
-            String teamId1 = gameManager.getTeamName(p1.getUniqueId());
-            String teamId2 = gameManager.getTeamName(p2.getUniqueId());
+            String teamId1 = gameManager.getTeamId(p1.getUniqueId());
+            String teamId2 = gameManager.getTeamId(p2.getUniqueId());
             int readyComparison = Boolean.compare(
                     readyUpManager.participantIsReady(p2.getUniqueId(), teamId2),
                     readyUpManager.participantIsReady(p1.getUniqueId(), teamId1));

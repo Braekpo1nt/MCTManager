@@ -44,7 +44,7 @@ public class PodiumState implements EventState {
         adminSidebar.updateLine("currentGame", context.getCurrentGameLine());
         gameManager.returnAllParticipantsToPodium(context.getWinningTeam());
         for (Player participant : context.getParticipants()) {
-            String team = gameManager.getTeamName(participant.getUniqueId());
+            String team = gameManager.getTeamId(participant.getUniqueId());
             if (team.equals(context.getWinningTeam())) {
                 context.giveCrown(participant);
             }
@@ -54,7 +54,7 @@ public class PodiumState implements EventState {
     @Override
     public void onParticipantJoin(Player participant) {
         if (context.getWinningTeam() != null) {
-            String team = gameManager.getTeamName(participant.getUniqueId());
+            String team = gameManager.getTeamId(participant.getUniqueId());
             boolean winner = team.equals(context.getWinningTeam());
             gameManager.returnParticipantToPodium(participant, winner);
             if (winner) {
@@ -84,7 +84,7 @@ public class PodiumState implements EventState {
             sidebar.removePlayer(participant);
         }
         if (context.getWinningTeam() != null) {
-            String team = gameManager.getTeamName(participant.getUniqueId());
+            String team = gameManager.getTeamId(participant.getUniqueId());
             if (team.equals(context.getWinningTeam())) {
                 context.removeCrown(participant);
             }
@@ -140,7 +140,7 @@ public class PodiumState implements EventState {
             return;
         }
         Player participant = ((Player) event.getWhoClicked());
-        String team = gameManager.getTeamName(participant.getUniqueId());
+        String team = gameManager.getTeamId(participant.getUniqueId());
         if (!team.equals(context.getWinningTeam())) {
             return;
         }
@@ -156,7 +156,7 @@ public class PodiumState implements EventState {
         if (context.getWinningTeam() == null) {
             return;
         }
-        String team = gameManager.getTeamName(participant.getUniqueId());
+        String team = gameManager.getTeamId(participant.getUniqueId());
         if (!team.equals(context.getWinningTeam())) {
             return;
         }

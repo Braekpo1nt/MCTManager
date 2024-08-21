@@ -105,7 +105,7 @@ public class PresetApplySubCommand extends TabSubCommand {
         if (override) {
             // remove all existing teams and leave all existing players
             int oldParticipantCount = gameManager.getOfflineParticipants().size();
-            Set<String> teamIds = gameManager.getTeamNames();
+            Set<String> teamIds = gameManager.getTeamIds();
             int oldTeamCount = teamIds.size();
             for (String teamId : teamIds) {
                 CommandResult commandResult = GameManagerUtils.removeTeam(sender, gameManager, teamId);

@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.gamestate;
 
+import com.google.gson.annotations.SerializedName;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -19,5 +20,6 @@ public class OfflineMCTPlayer {
      * the in-game-name of the participant
      */
     private String ign;
-    private String teamName;
+    @SerializedName(value = "teamId", alternate = {"teamName"})
+    private String teamId;
 }

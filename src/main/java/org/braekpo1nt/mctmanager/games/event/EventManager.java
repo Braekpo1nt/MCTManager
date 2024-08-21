@@ -168,7 +168,7 @@ public class EventManager implements Listener {
         }
         if (winningTeam != null) {
             for (Player participant : participants) {
-                String team = gameManager.getTeamName(participant.getUniqueId());
+                String team = gameManager.getTeamId(participant.getUniqueId());
                 if (team.equals(winningTeam)) {
                     removeCrown(participant);
                 }
@@ -325,16 +325,16 @@ public class EventManager implements Listener {
      * @param scoreKeeper holds the tracked scores to be removed
      */
     private void undoScores(ScoreKeeper scoreKeeper) {
-        Set<String> teamNames = gameManager.getTeamNames();
-        for (String teamName : teamNames) {
-            int teamScoreToSubtract = scoreKeeper.getScore(teamName);
-            int teamCurrentScore = gameManager.getScore(teamName);
+        Set<String> teamIds = gameManager.getTeamIds();
+        for (String teamId : teamIds) {
+            int teamScoreToSubtract = scoreKeeper.getScore(teamId);
+            int teamCurrentScore = gameManager.getScore(teamId);
             if (teamCurrentScore - teamScoreToSubtract < 0) {
                 teamScoreToSubtract = teamCurrentScore;
             }
-            gameManager.addScore(teamName, -teamScoreToSubtract);
+            gameManager.addScore(teamId, -teamScoreToSubtract);
             
-            List<UUID> participantUUIDs = gameManager.getParticipantUUIDsOnTeam(teamName);
+            List<UUID> participantUUIDs = gameManager.getParticipantUUIDsOnTeam(teamId);
             for (UUID participantUUID : participantUUIDs) {
                 int participantScoreToSubtract = scoreKeeper.getScore(participantUUID);
                 int participantCurrentScore = gameManager.getScore(participantUUID);
@@ -354,17 +354,17 @@ public class EventManager implements Listener {
      */
     @NotNull
     private Component createScoreKeeperReport(@NotNull GameType gameType, @NotNull ScoreKeeper scoreKeeper) {
-        Set<String> teamNames = gameManager.getTeamNames();
+        Set<String> teamIds = gameManager.getTeamIds();
         TextComponent.Builder reportBuilder = Component.text()
                 .append(Component.text("|Scores for ("))
                 .append(Component.text(gameType.getTitle())
                         .decorate(TextDecoration.BOLD))
                 .append(Component.text("):\n"))
                 .color(NamedTextColor.YELLOW);
-        for (String teamName : teamNames) {
-            int teamScoreToSubtract = scoreKeeper.getScore(teamName);
-            NamedTextColor teamColor = gameManager.getTeamColor(teamName);
-            Component displayName = gameManager.getFormattedTeamDisplayName(teamName);
+        for (String teamId : teamIds) {
+            int teamScoreToSubtract = scoreKeeper.getScore(teamId);
+            NamedTextColor teamColor = gameManager.getTeamColor(teamId);
+            Component displayName = gameManager.getFormattedTeamDisplayName(teamId);
             reportBuilder.append(Component.text("|  - "))
                     .append(displayName)
                     .append(Component.text(": "))
@@ -373,7 +373,7 @@ public class EventManager implements Listener {
                             .decorate(TextDecoration.BOLD))
                     .append(Component.text("\n"));
             
-            List<UUID> participantUUIDs = gameManager.getParticipantUUIDsOnTeam(teamName);
+            List<UUID> participantUUIDs = gameManager.getParticipantUUIDsOnTeam(teamId);
             for (UUID participantUUID : participantUUIDs) {
                 Player participant = Bukkit.getPlayer(participantUUID);
                 if (participant != null) {
@@ -538,7 +538,7 @@ public class EventManager implements Listener {
         if (sidebar == null) {
             return;
         }
-        List<String> sortedTeamIds = sortTeamNames(gameManager.getTeamNames());
+        List<String> sortedTeamIds = sortTeamIds(gameManager.getTeamIds());
         if (numberOfTeams != sortedTeamIds.size()) {
             reorderTeamLines(sortedTeamIds);
             return;
@@ -562,15 +562,15 @@ public class EventManager implements Listener {
         adminSidebar.updateLines(teamLines);
     }
     
-    public List<String> sortTeamNames(Set<String> teamNames) {
-        List<String> sortedTeamNames = new ArrayList<>(teamNames);
-        sortedTeamNames.sort(Comparator.comparing(gameManager::getScore, Comparator.reverseOrder()));
-        sortedTeamNames.sort(Comparator
-                .comparing(teamName -> gameManager.getScore((String) teamName))
+    public List<String> sortTeamIds(Set<String> teamIds) {
+        List<String> sortedTeamIds = new ArrayList<>(teamIds);
+        sortedTeamIds.sort(Comparator.comparing(gameManager::getScore, Comparator.reverseOrder()));
+        sortedTeamIds.sort(Comparator
+                .comparing(teamId -> gameManager.getScore((String) teamId))
                 .reversed()
-                .thenComparing(teamName -> ((String) teamName))
+                .thenComparing(teamId -> ((String) teamId))
         );
-        return sortedTeamNames;
+        return sortedTeamIds;
     }
     
     private void reorderTeamLines(List<String> sortedTeamIds) {
@@ -611,17 +611,17 @@ public class EventManager implements Listener {
     /**
      * Track the points earned for the given team in the given game. 
      * If the event is not active, nothing happens.
-     * @param teamName The team to track points for
+     * @param teamId The team to track points for
      * @param points the points to add
      * @param gameType the game that the points came from
      */
-    public void trackPoints(String teamName, int points, GameType gameType) {
+    public void trackPoints(String teamId, int points, GameType gameType) {
         if (state instanceof OffState) {
             return;
         }
         List<ScoreKeeper> iterationScoreKeepers = scoreKeepers.get(gameType);
         ScoreKeeper iteration = iterationScoreKeepers.getLast();
-        iteration.addPoints(teamName, points);
+        iteration.addPoints(teamId, points);
     }
     
     /**

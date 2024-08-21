@@ -3,7 +3,6 @@ package org.braekpo1nt.mctmanager.commands.readyup;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.CommandUtils;
-import org.braekpo1nt.mctmanager.commands.manager.SubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.GameManager;
@@ -50,6 +49,6 @@ public class ListSubCommand extends TabSubCommand {
         if (args.length != 1) {
             return Collections.emptyList();
         }
-        return CommandUtils.partialMatchTabList(new ArrayList<>(gameManager.getTeamNames()), args[0]);
+        return CommandUtils.partialMatchTabList(new ArrayList<>(gameManager.getTeamIds()), args[0]);
     }
 }

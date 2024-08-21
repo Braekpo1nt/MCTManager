@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.gamestate;
 
+import com.google.gson.annotations.SerializedName;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -17,13 +18,14 @@ import java.util.UUID;
 class MCTPlayerDTO implements Validatable {
     private UUID uniqueId;
     private int score;
-    private String teamName;
+    @SerializedName(value = "teamId", alternate = {"teamName"})
+    private String teamId;
     
     @Override
     public void validate(@NotNull Validator validator) {
         validator.notNull(uniqueId, "uniqueId");
         validator.validate(score >= 0, "score can't be negative");
-        validator.notNull(teamName, "teamName");
+        validator.notNull(teamId, "teamId");
     }
     
     public static Map<UUID, MCTPlayerDTO> fromMCTPlayers(Map<UUID, MCTPlayer> players) {
@@ -38,14 +40,14 @@ class MCTPlayerDTO implements Validatable {
         return new MCTPlayerDTO(
                 mctPlayer.getUniqueId(),
                 mctPlayer.getScore(),
-                mctPlayer.getTeamName());
+                mctPlayer.getTeamId());
     }
     
     MCTPlayer toMCTPlayer() {
         return MCTPlayer.builder()
                 .uniqueId(this.uniqueId)
                 .score(this.score)
-                .teamName(this.teamName)
+                .teamId(this.teamId)
                 .build();
     }
     

@@ -39,7 +39,7 @@ public class MatchOverState implements CaptureTheFlagMatchState {
     @Override
     public void onParticipantJoin(Player participant) {
         context.initializeParticipant(participant);
-        String teamId = context.getGameManager().getTeamName(participant.getUniqueId());
+        String teamId = context.getGameManager().getTeamId(participant.getUniqueId());
         context.getTopbar().linkToTeam(participant.getUniqueId(), teamId);
         context.getParticipantsAreAlive().put(participant.getUniqueId(), false);
         participant.teleport(context.getConfig().getSpawnObservatory());
@@ -57,7 +57,7 @@ public class MatchOverState implements CaptureTheFlagMatchState {
     public void onParticipantQuit(Player participant) {
         context.resetParticipant(participant);
         participant.setGameMode(GameMode.ADVENTURE);
-        String teamId = context.getGameManager().getTeamName(participant.getUniqueId());
+        String teamId = context.getGameManager().getTeamId(participant.getUniqueId());
         if (context.getMatchPairing().northTeam().equals(teamId)) {
             context.getNorthParticipants().remove(participant);
         } else if (context.getMatchPairing().southTeam().equals(teamId)) {

@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.gamestate;
 
+import com.google.gson.annotations.SerializedName;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -27,16 +28,17 @@ class OfflineMCTPlayerDTO implements Validatable {
      */
     private String ign;
     private @Nullable UUID offlineUniqueId;
-    private String teamName;
+    @SerializedName(value = "teamId", alternate = {"teamName"})
+    private String teamId;
     
     @Override
     public void validate(@NotNull Validator validator) {
         validator.notNull(ign, "ign");
-        validator.notNull(teamName, "teamName");
+        validator.notNull(teamId, "teamId");
     }
     
     OfflineMCTPlayer toOfflineMCTPlayer() {
-        return new OfflineMCTPlayer(offlineUniqueId, ign, teamName);
+        return new OfflineMCTPlayer(offlineUniqueId, ign, teamId);
     }
     
     static Map<String, OfflineMCTPlayer> toOfflineMCTPlayers(List<OfflineMCTPlayerDTO> offlineMCTPlayers) {
@@ -44,7 +46,7 @@ class OfflineMCTPlayerDTO implements Validatable {
     }
     
     static OfflineMCTPlayerDTO fromOfflineMCTPlayer(OfflineMCTPlayer offlineMCTPlayer) {
-        return new OfflineMCTPlayerDTO(offlineMCTPlayer.getIgn(), offlineMCTPlayer.getOfflineUniqueId(), offlineMCTPlayer.getTeamName());
+        return new OfflineMCTPlayerDTO(offlineMCTPlayer.getIgn(), offlineMCTPlayer.getOfflineUniqueId(), offlineMCTPlayer.getTeamId());
     }
     
     static List<OfflineMCTPlayerDTO> fromOfflineMCTPlayers(Map<String, OfflineMCTPlayer> offlineMCTPlayers) {

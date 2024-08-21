@@ -31,41 +31,41 @@ public class GameState {
     
     /**
      * Checks if the team with the given team name exists in the game state.
-     * @param teamName The name of the team to search for
+     * @param teamId The name of the team to search for
      * @return True if the team exists in the game state, false if not
      */
-    public boolean containsTeam(String teamName) {
-        return teams.containsKey(teamName);
+    public boolean containsTeam(String teamId) {
+        return teams.containsKey(teamId);
     }
     
     /**
      * Add a new team to the game state
-     * @param teamName The internal name of the team
+     * @param teamId The internal name of the team
      * @param teamDisplayName The display name of the team
      * @param color The color of the team
      */
-    public void addTeam(String teamName, String teamDisplayName, String color) {
-        MCTTeam newTeam = new MCTTeam(teamName, teamDisplayName, 0, color);
-        teams.put(teamName, newTeam);
+    public void addTeam(String teamId, String teamDisplayName, String color) {
+        MCTTeam newTeam = new MCTTeam(teamId, teamDisplayName, 0, color);
+        teams.put(teamId, newTeam);
     }
     
     
     /**
      * Removes the team with the given name from the game states, if it exists.
      * If the team does not exist, nothing happens.
-     * @param teamName The internal name of the team to remove
+     * @param teamId The internal name of the team to remove
      */
-    public void removeTeam(String teamName) {
-        teams.remove(teamName);
+    public void removeTeam(String teamId) {
+        teams.remove(teamId);
     }
     
     /**
      * Adds the given player to the game state, joined to the given team
      * @param playerUniqueId the UUID of the player
-     * @param teamName the teamId to join it to
+     * @param teamId the teamId to join it to
      */
-    public void addPlayer(UUID playerUniqueId, String teamName) {
-        MCTPlayer newPlayer = new MCTPlayer(playerUniqueId, 0, teamName);
+    public void addPlayer(UUID playerUniqueId, String teamId) {
+        MCTPlayer newPlayer = new MCTPlayer(playerUniqueId, 0, teamId);
         players.put(playerUniqueId, newPlayer);
     }
     
@@ -73,10 +73,10 @@ public class GameState {
      * Adds the given offline player to the game state, joined to the given team
      * @param ign the participant's in-game-name
      * @param offlineUniqueId can be null, but represents the offlineUniqueId of the participant
-     * @param teamName the teamId of the team this participant belongs to
+     * @param teamId the teamId of the team this participant belongs to
      */
-    public void addOfflinePlayer(@NotNull String ign, @Nullable UUID offlineUniqueId, @NotNull String teamName) {
-        OfflineMCTPlayer newPlayer = new OfflineMCTPlayer(offlineUniqueId, ign, teamName);
+    public void addOfflinePlayer(@NotNull String ign, @Nullable UUID offlineUniqueId, @NotNull String teamId) {
+        OfflineMCTPlayer newPlayer = new OfflineMCTPlayer(offlineUniqueId, ign, teamId);
         offlinePlayers.put(ign, newPlayer);
     }
     
@@ -140,8 +140,8 @@ public class GameState {
         offlinePlayers.remove(ign);
     }
     
-    public MCTTeam getTeam(String teamName) {
-        return teams.get(teamName);
+    public MCTTeam getTeam(String teamId) {
+        return teams.get(teamId);
     }
     
     /**

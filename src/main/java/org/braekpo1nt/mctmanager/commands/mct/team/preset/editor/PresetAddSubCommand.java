@@ -100,7 +100,7 @@ public class PresetAddSubCommand extends TabSubCommand {
                     .append(Component.text(" because that is reserved for the admin team.")));
         }
         
-        if (!GameManagerUtils.validTeamName(teamId)) {
+        if (!GameManagerUtils.validTeamId(teamId)) {
             return CommandResult.failure(Component.text("Provide a valid team name\n")
                     .append(Component.text(
                             "Allowed characters: -, +, ., _, A-Z, a-z, and 0-9")));

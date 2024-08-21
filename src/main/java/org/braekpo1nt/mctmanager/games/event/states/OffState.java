@@ -97,7 +97,7 @@ public class OffState implements EventState {
     }
     
     private void initializeSidebar() {
-        List<String> sortedTeamIds = context.sortTeamNames(gameManager.getTeamNames());
+        List<String> sortedTeamIds = context.sortTeamIds(gameManager.getTeamIds());
         context.setNumberOfTeams(sortedTeamIds.size());
         KeyLine[] teamLines = new KeyLine[context.getNumberOfTeams()];
         for (int i = 0; i < context.getNumberOfTeams(); i++) {
@@ -120,7 +120,7 @@ public class OffState implements EventState {
     }
     
     private void initializeAdminSidebar() {
-        List<String> sortedTeamIds = context.sortTeamNames(gameManager.getTeamNames());
+        List<String> sortedTeamIds = context.sortTeamIds(gameManager.getTeamIds());
         context.setNumberOfTeams(sortedTeamIds.size());
         KeyLine[] teamLines = new KeyLine[context.getNumberOfTeams()];
         for (int i = 0; i < context.getNumberOfTeams(); i++) {
@@ -235,10 +235,10 @@ public class OffState implements EventState {
         participantPool = new ArrayList<>(gameManager.getOnlineParticipants());
         adminPool = new ArrayList<>(gameManager.getOnlineAdmins());
         for (Player participant : participantPool) {
-            String teamName = gameManager.getTeamName(participant.getUniqueId());
-            if (teamName.equals(firstTeamId)) {
+            String teamId = gameManager.getTeamId(participant.getUniqueId());
+            if (teamId.equals(firstTeamId)) {
                 firstPlaceParticipants.add(participant);
-            } else if (teamName.equals(secondTeamId)) {
+            } else if (teamId.equals(secondTeamId)) {
                 secondPlaceParticipants.add(participant);
             } else {
                 spectators.add(participant);

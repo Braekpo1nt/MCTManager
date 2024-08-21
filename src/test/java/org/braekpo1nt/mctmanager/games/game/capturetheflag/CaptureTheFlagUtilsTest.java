@@ -15,8 +15,8 @@ class CaptureTheFlagUtilsTest {
     @Test
     @DisplayName("A list of 7 team names returns the right match pairings")
     void largeListTest() {
-        List<String> teamNames = Arrays.asList("A", "B", "C", "D", "E", "F", "G");
-        List<MatchPairing> actualMatchPairings = CaptureTheFlagUtils.generateMatchPairings(teamNames);
+        List<String> teamIds = Arrays.asList("A", "B", "C", "D", "E", "F", "G");
+        List<MatchPairing> actualMatchPairings = CaptureTheFlagUtils.generateMatchPairings(teamIds);
         
         List<MatchPairing> expectedMatchPairings = Arrays.asList(
                 new MatchPairing("A", "B"),
@@ -46,9 +46,9 @@ class CaptureTheFlagUtilsTest {
     
     @Test
     @DisplayName("2 team names generate one match pairing")
-    void twoTeamNames() {
-        List<String> teamNames = Arrays.asList("North", "South");
-        List<MatchPairing> matchPairings = CaptureTheFlagUtils.generateMatchPairings(teamNames);
+    void twoTeamIds() {
+        List<String> teamIds = Arrays.asList("North", "South");
+        List<MatchPairing> matchPairings = CaptureTheFlagUtils.generateMatchPairings(teamIds);
         Assertions.assertEquals(1, matchPairings.size());
         Assertions.assertEquals("North", matchPairings.get(0).northTeam());
         Assertions.assertEquals("South", matchPairings.get(0).southTeam());
@@ -56,9 +56,9 @@ class CaptureTheFlagUtilsTest {
     
     @Test
     @DisplayName("3 team names generates 3 match pairings, in the right order")
-    void threeTeamNames() {
-        List<String> teamNames = Arrays.asList("One", "Two", "Three");
-        List<MatchPairing> matchPairings = CaptureTheFlagUtils.generateMatchPairings(teamNames);
+    void threeTeamIds() {
+        List<String> teamIds = Arrays.asList("One", "Two", "Three");
+        List<MatchPairing> matchPairings = CaptureTheFlagUtils.generateMatchPairings(teamIds);
         Assertions.assertEquals(3, matchPairings.size());
         Assertions.assertEquals("One", matchPairings.get(0).northTeam());
         Assertions.assertEquals("Two", matchPairings.get(0).southTeam());
@@ -89,7 +89,6 @@ class CaptureTheFlagUtilsTest {
     @Test
     @DisplayName("The same team isn't in two different matches within the same round")
     void duplicateTeamInRound() {
-        List<String> teamNames = Arrays.asList("A", "B", "C");
         List<MatchPairing> matchPairings = Arrays.asList(
                 new MatchPairing("A", "B"),
                 new MatchPairing("A", "C"),
@@ -109,8 +108,8 @@ class CaptureTheFlagUtilsTest {
     @Test
     @DisplayName("1 match pairing makes 1 round with 1 match")
     void singleMatchPairing() {
-        List<String> teamNames = Arrays.asList("A", "B");
-        List<MatchPairing> matchPairings = CaptureTheFlagUtils.generateMatchPairings(teamNames);
+        List<String> teamIds = Arrays.asList("A", "B");
+        List<MatchPairing> matchPairings = CaptureTheFlagUtils.generateMatchPairings(teamIds);
         List<List<MatchPairing>> roundMatchPairingLists = CaptureTheFlagUtils.generateRoundMatchPairings(matchPairings, NUMBER_OF_ARENAS);
         Assertions.assertEquals(1, roundMatchPairingLists.size());
         Assertions.assertEquals(1, roundMatchPairingLists.get(0).size());
@@ -119,8 +118,8 @@ class CaptureTheFlagUtilsTest {
     @Test
     @DisplayName("3 teams and their match pairings makes 3 match pairing lists")
     void threeTeamsTest() {
-        List<String> teamNames = Arrays.asList("A", "B", "C");
-        List<MatchPairing> matchPairings = CaptureTheFlagUtils.generateMatchPairings(teamNames);
+        List<String> teamIds = Arrays.asList("A", "B", "C");
+        List<MatchPairing> matchPairings = CaptureTheFlagUtils.generateMatchPairings(teamIds);
         List<List<MatchPairing>> roundLists = CaptureTheFlagUtils.generateRoundMatchPairings(matchPairings, NUMBER_OF_ARENAS);
         
         Assertions.assertEquals(3, roundLists.size());
@@ -138,8 +137,8 @@ class CaptureTheFlagUtilsTest {
     @Test
     @DisplayName("3 teams and their match pairings makes 3 match pairing lists")
     void fourTeamsTest() {
-        List<String> teamNames = Arrays.asList("A", "B", "C", "D");
-        List<MatchPairing> matchPairings = CaptureTheFlagUtils.generateMatchPairings(teamNames);
+        List<String> teamIds = Arrays.asList("A", "B", "C", "D");
+        List<MatchPairing> matchPairings = CaptureTheFlagUtils.generateMatchPairings(teamIds);
         List<List<MatchPairing>> roundLists = CaptureTheFlagUtils.generateRoundMatchPairings(matchPairings, NUMBER_OF_ARENAS);
         
         Assertions.assertEquals(3, roundLists.size());
@@ -161,8 +160,8 @@ class CaptureTheFlagUtilsTest {
     @Test
     @DisplayName("5 teams generates 7 matches")
     void fiveTeamsTest() {
-        List<String> teamNames = Arrays.asList("A", "B", "C", "D", "E");
-        List<MatchPairing> matchPairings = CaptureTheFlagUtils.generateMatchPairings(teamNames);
+        List<String> teamIds = Arrays.asList("A", "B", "C", "D", "E");
+        List<MatchPairing> matchPairings = CaptureTheFlagUtils.generateMatchPairings(teamIds);
         List<List<MatchPairing>> roundLists = CaptureTheFlagUtils.generateRoundMatchPairings(matchPairings, NUMBER_OF_ARENAS);
         
         Assertions.assertEquals(7, roundLists.size());

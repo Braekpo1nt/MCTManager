@@ -83,13 +83,13 @@ When an event is over (either by naturally ending, or stopping manually) the poi
 - `/mct team list [true|false]`
   - Displays the list of the teams, the team scores, the players on those teams, and the player scores.
   - `[true|false]` whether or not to display the teams to all participants. Defaults to false. If you specify true, it will display the team list to all participants.
-- `/mct team score <add|subtract|set> <player|team> <playerName|teamName> <value>`
+- `/mct team score <add|subtract|set> <player|team> <playerName|teamId> <value>`
   - `<add|subtract|set>`
     - `add` add the `value`
     - `subtract` subtract the `value`
     - `set` set the score to the `value`
   - `<player|team>` specify player or team
-  - `<playerName|teamName>` If you specified `player` above, enter the `playerName` of the player whose score you want to modify. If you specified `team` above, enter the `teamName` of the team whose score you want to modify.
+  - `<playerName|teamId>` If you specified `player` above, enter the `playerName` of the player whose score you want to modify. If you specified `team` above, enter the `teamId` of the team whose score you want to modify.
   - `<value>` the value you want to `add`/`subtract`/`set`.
     - Must be an integer.
     - Can be negative for `add`/`subtract`

@@ -53,7 +53,7 @@ public class PreRoundState implements CaptureTheFlagState {
                 .append(Component.text(roundManager.getCurrentRoundIndex() + 1))
                 .append(Component.text(":"));
         for (Player participant : context.getParticipants()) {
-            String teamId = gameManager.getTeamName(participant.getUniqueId());
+            String teamId = gameManager.getTeamId(participant.getUniqueId());
             Component teamDisplayName = gameManager.getFormattedTeamDisplayName(teamId);
             String oppositeTeamId = RoundManager.getOppositeTeam(teamId, currentRound);
             if (oppositeTeamId != null) {
@@ -98,7 +98,7 @@ public class PreRoundState implements CaptureTheFlagState {
             int northAlive = 0;
             int southAlive = 0;
             for (Player participant : context.getParticipants()) {
-                String teamId = gameManager.getTeamName(participant.getUniqueId());
+                String teamId = gameManager.getTeamId(participant.getUniqueId());
                 if (mp.northTeam().equals(teamId)) {
                     topbar.linkToTeam(participant.getUniqueId(), teamId);
                     northAlive++;

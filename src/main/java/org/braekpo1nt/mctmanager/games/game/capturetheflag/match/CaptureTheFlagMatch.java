@@ -111,7 +111,7 @@ public class CaptureTheFlagMatch {
     }
     
     public void initializeParticipant(Player participant) {
-        String teamId = gameManager.getTeamName(participant.getUniqueId());
+        String teamId = gameManager.getTeamId(participant.getUniqueId());
         allParticipants.add(participant);
         UUID participantUniqueId = participant.getUniqueId();
         participantsAreAlive.put(participantUniqueId, true);

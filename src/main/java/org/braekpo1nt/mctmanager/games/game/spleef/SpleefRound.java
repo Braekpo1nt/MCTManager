@@ -269,7 +269,7 @@ public class SpleefRound implements Listener {
         String onlyTeam = null;
         for (Player participant : participants) {
             if (participantsAlive.get(participant.getUniqueId())) {
-                String livingTeam = gameManager.getTeamName(participant.getUniqueId());
+                String livingTeam = gameManager.getTeamId(participant.getUniqueId());
                 if (onlyTeam == null) {
                     onlyTeam = livingTeam;
                 } else if (!onlyTeam.equals(livingTeam)) {
@@ -312,12 +312,12 @@ public class SpleefRound implements Listener {
         killed.getInventory().clear();
         participantsAlive.put(killed.getUniqueId(), false);
         powerupManager.removeParticipant(killed);
-        String killedTeam = gameManager.getTeamName(killed.getUniqueId());
+        String killedTeam = gameManager.getTeamId(killed.getUniqueId());
         int aliveCount = participants.size();
         for (Player participant : participants) {
             if (participantsAlive.get(participant.getUniqueId())) {
-                String teamName = gameManager.getTeamName(participant.getUniqueId());
-                if (!teamName.equals(killedTeam)) {
+                String teamId = gameManager.getTeamId(participant.getUniqueId());
+                if (!teamId.equals(killedTeam)) {
                     gameManager.awardPointsToParticipant(participant, config.getSurviveScore());
                 }
             } else {
