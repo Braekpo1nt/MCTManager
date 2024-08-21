@@ -59,7 +59,7 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
     
     private void onBothTeamsLose(Component reason) {
         context.messageAllParticipants(Component.empty()
-                .append(Component.text("Game over. "))
+                .append(Component.text("Match over. "))
                 .append(reason));
         context.setState(new MatchOverState(context));
     }
