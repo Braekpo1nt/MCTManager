@@ -107,7 +107,7 @@ public class ClockworkRound implements Listener {
     private void initializeParticipant(Player participant) {
         participants.add(participant);
         participantsAreAlive.put(participant.getUniqueId(), true);
-        String team = gameManager.getTeamName(participant.getUniqueId());
+        String team = gameManager.getTeamId(participant.getUniqueId());
         if (teamsLivingMembers.containsKey(team)) {
             int livingMembers = teamsLivingMembers.get(team);
             teamsLivingMembers.put(team, livingMembers + 1);
@@ -140,7 +140,7 @@ public class ClockworkRound implements Listener {
     private void joinParticipantMidRound(Player participant) {
         participants.add(participant);
         participantsAreAlive.put(participant.getUniqueId(), false);
-        String team = gameManager.getTeamName(participant.getUniqueId());
+        String team = gameManager.getTeamId(participant.getUniqueId());
         if (!teamsLivingMembers.containsKey(team)) {
             teamsLivingMembers.put(team, 0);
         }
@@ -382,9 +382,9 @@ public class ClockworkRound implements Listener {
                     .append(killed.displayName())
                     .append(Component.text(" was claimed by time")));
             participantsAreAlive.put(killed.getUniqueId(), false);
-            String killedTeamId = gameManager.getTeamName(killed.getUniqueId());
+            String killedTeamId = gameManager.getTeamId(killed.getUniqueId());
             for (Player participant : participants) {
-                String teamId = gameManager.getTeamName(participant.getUniqueId());
+                String teamId = gameManager.getTeamId(participant.getUniqueId());
                 if (participantsAreAlive.get(participant.getUniqueId()) 
                         && !killedParticipants.contains(participant)
                         && !teamId.equals(killedTeamId)) {
@@ -413,11 +413,11 @@ public class ClockworkRound implements Listener {
         if (newlyKilledTeams.isEmpty()) {
             return;
         }
-        List<String> allTeams = gameManager.getTeamNames(participants);
+        List<String> allTeams = gameManager.getTeamIds(participants);
         for (String newlyKilledTeam : newlyKilledTeams) {
             Component teamDisplayName = gameManager.getFormattedTeamDisplayName(newlyKilledTeam);
             for (Player participant : participants) {
-                String team = gameManager.getTeamName(participant.getUniqueId());
+                String team = gameManager.getTeamId(participant.getUniqueId());
                 if (team.equals(newlyKilledTeam)) {
                     participant.sendMessage(Component.empty()
                             .append(teamDisplayName)
@@ -464,7 +464,7 @@ public class ClockworkRound implements Listener {
         gameManager.awardPointsToTeam(winningTeam, config.getWinRoundScore());
         Component teamDisplayName = gameManager.getFormattedTeamDisplayName(winningTeam);
         for (Player participant : participants) {
-            String team = gameManager.getTeamName(participant.getUniqueId());
+            String team = gameManager.getTeamId(participant.getUniqueId());
             if (team.equals(winningTeam)) {
                 participant.sendMessage(Component.empty()
                         .append(teamDisplayName)

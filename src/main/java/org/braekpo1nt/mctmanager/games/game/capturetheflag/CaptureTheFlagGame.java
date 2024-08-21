@@ -115,7 +115,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         }
         initializeSidebar();
         startAdmins(newAdmins);
-        List<String> teamIds = gameManager.getTeamNames(newParticipants);
+        List<String> teamIds = gameManager.getTeamIds(newParticipants);
         roundManager.initialize(teamIds, config.getArenas().size());
         setState(new DescriptionState(this));
         Main.logger().info("Starting Capture the Flag");

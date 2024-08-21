@@ -43,7 +43,7 @@ public class GameOverState implements SurvivalGamesState {
     public void onParticipantQuit(Player participant) {
         context.getParticipants().remove(participant);
         UUID participantUUID = participant.getUniqueId();
-        String teamId = context.getGameManager().getTeamName(participantUUID);
+        String teamId = context.getGameManager().getTeamId(participantUUID);
         Integer oldLivingMembers = context.getLivingMembers().get(teamId);
         if (oldLivingMembers != null) {
             context.getLivingMembers().put(teamId, Math.max(0, oldLivingMembers - 1));

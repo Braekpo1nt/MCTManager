@@ -41,7 +41,7 @@ public class DescriptionState implements SurvivalGamesState {
     @Override
     public void onParticipantJoin(Player participant) {
         context.getDeadPlayers().remove(participant.getUniqueId());
-        String teamId = context.getGameManager().getTeamName(participant.getUniqueId());
+        String teamId = context.getGameManager().getTeamId(participant.getUniqueId());
         if (!context.getLivingMembers().containsKey(teamId)) {
             NamedTextColor color = context.getGameManager().getTeamColor(teamId);
             context.getTopbar().addTeam(teamId, color);
@@ -55,7 +55,7 @@ public class DescriptionState implements SurvivalGamesState {
     public void onParticipantQuit(Player participant) {
         context.getParticipants().remove(participant);
         UUID participantUUID = participant.getUniqueId();
-        String teamId = context.getGameManager().getTeamName(participantUUID);
+        String teamId = context.getGameManager().getTeamId(participantUUID);
         Integer oldLivingMembers = context.getLivingMembers().get(teamId);
         if (oldLivingMembers != null) {
             context.getLivingMembers().put(teamId, Math.max(0, oldLivingMembers - 1));
@@ -72,7 +72,7 @@ public class DescriptionState implements SurvivalGamesState {
     public void initializeParticipant(Player participant) {
         context.getParticipants().add(participant);
         context.getLivingPlayers().add(participant.getUniqueId());
-        String teamId = context.getGameManager().getTeamName(participant.getUniqueId());
+        String teamId = context.getGameManager().getTeamId(participant.getUniqueId());
         context.getLivingMembers().putIfAbsent(teamId, 0);
         int oldAliveCount = context.getLivingMembers().get(teamId);
         context.getLivingMembers().put(teamId, oldAliveCount + 1);

@@ -29,10 +29,10 @@ public class ScoreAddTeamSubCommand extends TabSubCommand {
         if (args.length < 2) {
             return CommandResult.failure(getUsage().of("<teamId>").of("<score>"));
         }
-        String teamName = args[0];
-        if (!gameManager.hasTeam(teamName)) {
+        String teamId = args[0];
+        if (!gameManager.hasTeam(teamId)) {
             return CommandResult.failure(Component.empty()
-                    .append(Component.text(teamName)
+                    .append(Component.text(teamId)
                             .decorate(TextDecoration.BOLD))
                     .append(Component.text(" is not a team")));
         }
@@ -46,15 +46,15 @@ public class ScoreAddTeamSubCommand extends TabSubCommand {
         int score = Integer.parseInt(scoreString);
         if (invert) {
             score = -score;
-            int currentScore = gameManager.getScore(teamName);
+            int currentScore = gameManager.getScore(teamId);
             if (currentScore + score < 0) {
                 score = -currentScore;
             }
         }
-        gameManager.addScore(teamName, score);
-        int newScore = gameManager.getScore(teamName);
+        gameManager.addScore(teamId, score);
+        int newScore = gameManager.getScore(teamId);
         return CommandResult.success(Component.empty()
-                .append(gameManager.getFormattedTeamDisplayName(teamName))
+                .append(gameManager.getFormattedTeamDisplayName(teamId))
                 .append(Component.text(" score is now "))
                 .append(Component.text(newScore)));
     }
@@ -62,7 +62,7 @@ public class ScoreAddTeamSubCommand extends TabSubCommand {
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length == 1) {
-            return gameManager.getTeamNames().stream().toList();
+            return gameManager.getTeamIds().stream().toList();
         }
         return Collections.emptyList();
     }

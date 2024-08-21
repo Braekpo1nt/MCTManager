@@ -33,8 +33,8 @@ public class PresetRemoveSubCommand extends TabSubCommand {
         if (args.length != 1) {
             return CommandResult.failure(getUsage().of("<team>"));
         }
-        String removeTeamName = args[0];
-        return removeTeam(removeTeamName);
+        String removeTeamId = args[0];
+        return removeTeam(removeTeamId);
     }
     
     private @NotNull CommandResult removeTeam(@NotNull String teamId) {

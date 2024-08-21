@@ -25,7 +25,7 @@ class MCTTeamDTO implements Validatable {
     @Override
     public void validate(@NotNull Validator validator) {
         validator.notNull(name, "name");
-        validator.validate(GameManagerUtils.validTeamName(name), "name must be a valid teamName matching the regex \"%s\"", GameManagerUtils.TEAM_NAME_REGEX);
+        validator.validate(GameManagerUtils.validTeamId(name), "name must be a valid teamId matching the regex \"%s\"", GameManagerUtils.TEAM_NAME_REGEX);
         validator.validate(!name.equals(GameManager.ADMIN_TEAM), "name can't be \"%s\"", GameManager.ADMIN_TEAM);
         validator.notNull(displayName, "displayName");
         validator.validate(!displayName.isEmpty(), "displayName can't be blank");

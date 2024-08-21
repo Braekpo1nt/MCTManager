@@ -46,8 +46,8 @@ public class GameManagerUtils {
     
     /**
      * returns a list that contains the first place, or first place ties.
-     * @param teamScores a map pairing teamNames with scores
-     * @return An array with the teamName who has the highest score. If there is a tie, returns all tied teamNames. If teamScores is empty, returns empty list.
+     * @param teamScores a map pairing teamIds with scores
+     * @return An array with the teamId who has the highest score. If there is a tie, returns all tied teamIds. If teamScores is empty, returns empty list.
      */
     public static @NotNull String[] calculateFirstPlace(@NotNull Map<String, Integer> teamScores) {
         if (teamScores.isEmpty()) {
@@ -65,22 +65,22 @@ public class GameManagerUtils {
         
         while (iterator.hasNext()) {
             Map.Entry<String, Integer> teamScore = iterator.next();
-            String teamName = teamScore.getKey();
+            String teamId = teamScore.getKey();
             int score = teamScore.getValue();
             if (score > firstPlaceScore) {
                 firstPlaces.clear();
-                firstPlaces.add(teamName);
+                firstPlaces.add(teamId);
                 firstPlaceScore = score;
             } else if (score == firstPlaceScore) {
-                firstPlaces.add(teamName);
+                firstPlaces.add(teamId);
             }
         }
         
         return firstPlaces.toArray(new String[0]);
     }
     
-    public static boolean validTeamName(String teamName) {
-        return teamName.matches(TEAM_NAME_REGEX);
+    public static boolean validTeamId(String teamId) {
+        return teamId.matches(TEAM_NAME_REGEX);
     }
     
     /**
@@ -104,7 +104,7 @@ public class GameManagerUtils {
                                     .color(NamedTextColor.GOLD))
                     .append(Component.text(":\n")));
             for (OfflinePlayer offlinePlayer : offlinePlayers) {
-                String playerTeam = gameManager.getTeamName(offlinePlayer.getUniqueId());
+                String playerTeam = gameManager.getTeamId(offlinePlayer.getUniqueId());
                 int playerScore = gameManager.getScore(offlinePlayer.getUniqueId());
                 String name = offlinePlayer.getName();
                 if (name == null) {
@@ -175,15 +175,15 @@ public class GameManagerUtils {
      * @return a sorted list of team names. Sorted first by score from greatest to least, then alphabetically (A to Z).
      */
     public static List<String> getSortedTeams(GameManager gameManager) {
-        List<String> teamNames = new ArrayList<>(gameManager.getTeamNames());
-        teamNames.sort((t1, t2) -> {
+        List<String> teamIds = new ArrayList<>(gameManager.getTeamIds());
+        teamIds.sort((t1, t2) -> {
             int scoreComparison = gameManager.getScore(t2) - gameManager.getScore(t1);
             if (scoreComparison != 0) {
                 return scoreComparison;
             }
             return t1.compareToIgnoreCase(t2);
         });
-        return teamNames;
+        return teamIds;
     }
     
     /**
@@ -212,7 +212,7 @@ public class GameManagerUtils {
                             .decorate(TextDecoration.BOLD))
                     .append(Component.text(" because that is reserved for the admin team.")));
         }
-        if (!GameManagerUtils.validTeamName(teamId)) {
+        if (!GameManagerUtils.validTeamId(teamId)) {
             return CommandResult.failure(Component.text("Provide a valid team name\n")
                     .append(Component.text(
                             "Allowed characters: -, +, ., _, A-Z, a-z, and 0-9")));
@@ -274,8 +274,8 @@ public class GameManagerUtils {
         Component teamDisplayName = gameManager.getFormattedTeamDisplayName(teamId);
         if (playerToJoin == null) {
             if (gameManager.isOfflineIGN(ign)) {
-                String oldTeamName = gameManager.getOfflineIGNTeamName(ign);
-                if (oldTeamName != null && oldTeamName.equals(teamId)) {
+                String oldTeamId = gameManager.getOfflineIGNTeamId(ign);
+                if (oldTeamId != null && oldTeamId.equals(teamId)) {
                     NamedTextColor teamColor = gameManager.getTeamColor(teamId);
                     return CommandResult.success(Component.empty()
                             .append(Component.text(ign)
@@ -289,8 +289,8 @@ public class GameManagerUtils {
             return CommandResult.success();
         }
         if (gameManager.isParticipant(playerToJoin.getUniqueId())) {
-            String oldTeamName = gameManager.getTeamName(playerToJoin.getUniqueId());
-            if (oldTeamName.equals(teamId)) {
+            String oldTeamId = gameManager.getTeamId(playerToJoin.getUniqueId());
+            if (oldTeamId.equals(teamId)) {
                 return CommandResult.success(Component.empty()
                         .append(playerToJoin.displayName())
                         .append(Component.text(" is already on team "))

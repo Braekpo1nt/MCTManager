@@ -156,7 +156,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         // debug
         currentPuzzleCheckpoints = new HashMap<>(newParticipants.size());
         finishedParticipants = new ArrayList<>();
-        List<String> teams = gameManager.getTeamNames(newParticipants);
+        List<String> teams = gameManager.getTeamIds(newParticipants);
         teamSpawns = getTeamSpawns(teams);
         closeTeamSpawns();
         closeGlassBarrier();
@@ -197,7 +197,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         if (teamSpawns == null) {
             participant.teleport(config.getStartingLocation());
         } else {
-            String team = gameManager.getTeamName(participant.getUniqueId());
+            String team = gameManager.getTeamId(participant.getUniqueId());
             teamSpawns.get(team).teleport(participant);
         }
         participant.setBedSpawnLocation(config.getStartingLocation(), true);
@@ -337,7 +337,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
             if (teamSpawns == null) {
                 participant.teleport(config.getStartingLocation());
             } else {
-                String team = gameManager.getTeamName(participant.getUniqueId());
+                String team = gameManager.getTeamId(participant.getUniqueId());
                 TeamSpawn teamSpawn = teamSpawns.get(team);
                 if (teamSpawn == null) {
                     reSetUpTeamSpawns();
@@ -353,14 +353,14 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
      * meant to be called when a new team joins the game while the team spawns countdown is still going on
      */
     private void reSetUpTeamSpawns() {
-        List<String> teams = gameManager.getTeamNames(participants);
+        List<String> teams = gameManager.getTeamIds(participants);
         teamSpawns = getTeamSpawns(teams);
         if (teamSpawns == null) {
             return;
         }
         closeTeamSpawns();
         for (Player participant : participants) {
-            String team = gameManager.getTeamName(participant.getUniqueId());
+            String team = gameManager.getTeamId(participant.getUniqueId());
             TeamSpawn teamSpawn = teamSpawns.get(team);
             teamSpawn.teleport(participant);
         }

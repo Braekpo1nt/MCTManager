@@ -52,7 +52,7 @@ public class PlayingColossalCombatState extends PlayingGameState {
         List<Player> secondPlaceParticipants = new ArrayList<>();
         List<Player> spectators = new ArrayList<>();
         for (Player participant : context.getParticipants()) {
-            String teamId = gameManager.getTeamName(participant.getUniqueId());
+            String teamId = gameManager.getTeamId(participant.getUniqueId());
             if (teamId.equals(firstTeamId)) {
                 firstPlaceParticipants.add(participant);
             } else if (teamId.equals(secondTeamId)) {

@@ -113,7 +113,7 @@ public class LeaderboardManager {
                     name = uuid.toString();
                 }
             }
-            String teamId = gameManager.getTeamName(uuid);
+            String teamId = gameManager.getTeamId(uuid);
             NamedTextColor teamColor = gameManager.getTeamColor(teamId);
             int score = gameManager.getScore(uuid);
             standings.add(new Standing(uuid, placement, teamColor, name, score));

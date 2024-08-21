@@ -195,7 +195,7 @@ public class ActiveState implements SurvivalGamesState {
             rejoinParticipant(participant);
         } else {
             context.getDeadPlayers().remove(participant.getUniqueId());
-            String teamId = context.getGameManager().getTeamName(participant.getUniqueId());
+            String teamId = context.getGameManager().getTeamId(participant.getUniqueId());
             if (!context.getLivingMembers().containsKey(teamId)) {
                 NamedTextColor color = context.getGameManager().getTeamColor(teamId);
                 context.getTopbar().addTeam(teamId, color);
@@ -208,7 +208,7 @@ public class ActiveState implements SurvivalGamesState {
     }
     
     private boolean participantShouldRejoin(Player participant) {
-        String teamId = gameManager.getTeamName(participant.getUniqueId());
+        String teamId = gameManager.getTeamId(participant.getUniqueId());
         return context.getLivingMembers().containsKey(teamId) && 
                 context.getDeadPlayers().contains(participant.getUniqueId());
     }
@@ -219,7 +219,7 @@ public class ActiveState implements SurvivalGamesState {
         sidebar.addPlayer(participant);
         topbar.showPlayer(participant);
         context.initializeKillCount(participant);
-        String teamId = gameManager.getTeamName(participant.getUniqueId());
+        String teamId = gameManager.getTeamId(participant.getUniqueId());
         topbar.linkToTeam(participant.getUniqueId(), teamId);
     }
     
@@ -245,7 +245,7 @@ public class ActiveState implements SurvivalGamesState {
     public void initializeParticipant(Player participant) {
         context.getParticipants().add(participant);
         context.getLivingPlayers().add(participant.getUniqueId());
-        String teamId = context.getGameManager().getTeamName(participant.getUniqueId());
+        String teamId = context.getGameManager().getTeamId(participant.getUniqueId());
         context.getLivingMembers().putIfAbsent(teamId, 0);
         int oldAliveCount = context.getLivingMembers().get(teamId);
         context.getLivingMembers().put(teamId, oldAliveCount + 1);
@@ -342,7 +342,7 @@ public class ActiveState implements SurvivalGamesState {
     private void onParticipantDeath(Player killed) {
         UUID killedUUID = killed.getUniqueId();
         switchPlayerFromLivingToDead(killedUUID);
-        String teamId = gameManager.getTeamName(killedUUID);
+        String teamId = gameManager.getTeamId(killedUUID);
         int oldLivingMembers = context.getLivingMembers().get(teamId);
         context.getLivingMembers().put(teamId, oldLivingMembers - 1);
         addDeath(killedUUID);

@@ -93,7 +93,7 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
     @Override
     public void onParticipantJoin(Player participant) {
         context.initializeParticipant(participant);
-        String teamId = context.getGameManager().getTeamName(participant.getUniqueId());
+        String teamId = context.getGameManager().getTeamId(participant.getUniqueId());
         context.getTopbar().linkToTeam(participant.getUniqueId(), teamId);
         context.getParticipantsAreAlive().put(participant.getUniqueId(), false);
         participant.teleport(context.getConfig().getSpawnObservatory());
@@ -109,7 +109,7 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
     
     @Override
     public void onParticipantQuit(Player participant) {
-        String teamId = context.getGameManager().getTeamName(participant.getUniqueId());
+        String teamId = context.getGameManager().getTeamId(participant.getUniqueId());
         if (context.getParticipantsAreAlive().get(participant.getUniqueId())) {
             Component deathMessage = Component.empty()
                     .append(participant.displayName())
@@ -214,7 +214,7 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
         killed.setRespawnLocation(context.getConfig().getSpawnObservatory(), true);
         killed.lookAt(arena.northFlag().getX(), arena.northFlag().getY(), arena.northFlag().getZ(), LookAnchor.EYES);
         
-        String teamId = gameManager.getTeamName(killed.getUniqueId());
+        String teamId = gameManager.getTeamId(killed.getUniqueId());
         context.getTopbar().setMembers(teamId, alive, dead);
         context.getParentContext().addDeath(killed.getUniqueId());
     }
@@ -356,7 +356,7 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
     private void deliverSouthFlag(Player northParticipant) {
         BlockPlacementUtils.placeFlag(context.getSouthBanner(), arena.northFlag(), BlockFace.NORTH);
         northParticipant.getInventory().remove(context.getSouthBanner());
-        String winningTeam = gameManager.getTeamName(northParticipant.getUniqueId());
+        String winningTeam = gameManager.getTeamId(northParticipant.getUniqueId());
         onTeamWin(winningTeam);
     }
     
@@ -466,7 +466,7 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
     private void deliverNorthFlag(Player southParticipant) {
         BlockPlacementUtils.placeFlag(context.getNorthBanner(), arena.southFlag(), BlockFace.SOUTH);
         southParticipant.getInventory().remove(context.getNorthBanner());
-        String winningTeam = gameManager.getTeamName(southParticipant.getUniqueId());
+        String winningTeam = gameManager.getTeamId(southParticipant.getUniqueId());
         onTeamWin(winningTeam);
     }
     

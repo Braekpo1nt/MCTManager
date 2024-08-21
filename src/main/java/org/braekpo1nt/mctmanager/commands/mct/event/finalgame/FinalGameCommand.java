@@ -10,7 +10,6 @@ import org.braekpo1nt.mctmanager.games.GameManager;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
@@ -49,9 +48,9 @@ public class FinalGameCommand extends CommandManager {
             @Override
             public @NotNull List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
                 if (args.length == 1) {
-                    return gameManager.getTeamNames().stream().sorted().toList();
+                    return gameManager.getTeamIds().stream().sorted().toList();
                 } else if (args.length == 2) {
-                    return gameManager.getTeamNames().stream().filter(t -> !t.equals(args[0])).sorted().toList();
+                    return gameManager.getTeamIds().stream().filter(t -> !t.equals(args[0])).sorted().toList();
                 }
                 return Collections.emptyList();
             }

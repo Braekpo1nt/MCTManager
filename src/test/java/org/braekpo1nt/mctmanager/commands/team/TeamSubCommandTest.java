@@ -50,25 +50,25 @@ class TeamSubCommandTest {
     @Test
     @DisplayName("`/mct team add ...` adds a new team")
     void addTeamTest() {
-        String teamName = "red";
+        String teamId = "red";
         String teamDisplayName = "Red Team";
         String teamColor = "red";
-        plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"team", "add", teamName, String.format("\"%s\"", teamDisplayName), teamColor});
+        plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"team", "add", teamId, String.format("\"%s\"", teamDisplayName), teamColor});
         Assertions.assertTrue(gameManager.hasTeam("red"));
     }
     
     @Test
     @DisplayName("`/mct team join ...` adds a player")
     void addPlayerTest() {
-        String teamName = "red";
+        String teamId = "red";
         String teamDisplayName = "Red Team";
         String teamColor = "red";
-        plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"team", "add", teamName, String.format("\"%s\"", teamDisplayName), teamColor});
+        plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"team", "add", teamId, String.format("\"%s\"", teamDisplayName), teamColor});
         Assertions.assertTrue(gameManager.hasTeam("red"));
         String name = "Player1";
         MyPlayerMock player = new MyPlayerMock(server, name, UUID.nameUUIDFromBytes(name.getBytes(StandardCharsets.UTF_8)));
         server.addPlayer(player);
-        plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"team", "join", teamName, name});
+        plugin.getMctCommand().onCommand(sender, command, "mct", new String[]{"team", "join", teamId, name});
         Assertions.assertTrue(gameManager.isParticipant(player.getUniqueId()));
     }
     

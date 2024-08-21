@@ -40,7 +40,7 @@ public class AddSubCommand extends TabSubCommand {
                                 .decorate(TextDecoration.BOLD))
                         .append(Component.text(" \"<displayName>\" <color>"))));
         }
-        String teamName = args[0];
+        String teamId = args[0];
         
         if (displayNameIndexesAreInvalid(displayNameStart, displayNameEnd)) {
             return CommandResult.failure("Display name must be surrounded by quotation marks")
@@ -57,7 +57,7 @@ public class AddSubCommand extends TabSubCommand {
                     .and(CommandResult.failure(getUsage().of("<team>").of("\"<displayName>\"").of("<color>", TextDecoration.BOLD)));
         }
         String colorString = args[displayNameEnd + 1];
-        return GameManagerUtils.addTeam(gameManager, teamName, teamDisplayName, colorString);
+        return GameManagerUtils.addTeam(gameManager, teamId, teamDisplayName, colorString);
     }
     
     public static boolean displayNameIndexesAreInvalid(int displayNameStart, int displayNameEnd) {

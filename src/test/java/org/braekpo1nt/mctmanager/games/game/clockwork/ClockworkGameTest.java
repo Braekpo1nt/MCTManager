@@ -56,9 +56,9 @@ public class ClockworkGameTest {
         return player;
     }
     
-    void addTeam(String teamName, String teamDisplayName, String teamColor) {
-        gameManager.addTeam(teamName, teamDisplayName, teamColor);
-        Assertions.assertTrue(gameManager.hasTeam(teamName));
+    void addTeam(String teamId, String teamDisplayName, String teamColor) {
+        gameManager.addTeam(teamId, teamDisplayName, teamColor);
+        Assertions.assertTrue(gameManager.hasTeam(teamId));
     }
     
     @Test

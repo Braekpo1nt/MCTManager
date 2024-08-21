@@ -1,7 +1,6 @@
 package org.braekpo1nt.mctmanager.games.gamestate;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
@@ -36,7 +35,7 @@ class GameStateDTO implements Validatable {
             MCTPlayerDTO mctPlayer = entry.getValue();
             validator.validate(mctPlayer != null, "players can't contain null values");
             mctPlayer.validate(validator.path("players[%s]", entry.getKey()));
-            validator.validate(teams.containsKey(mctPlayer.getTeamName()), "players[%s].teamName could not be found in teams");
+            validator.validate(teams.containsKey(mctPlayer.getTeamId()), "players[%s].teamId could not be found in teams");
             UUID uuid = mctPlayer.getUniqueId();
             validator.validate(entry.getKey().equals(uuid), "players[%s].uniqueId must match it's key. Instead it was \"%s\"", entry.getKey(), uuid);
             validator.validate(!uniqueUUIDs.contains(uuid), "players[%s].uniqueId is a duplicate of \"%s\"", entry.getKey(), uuid);
