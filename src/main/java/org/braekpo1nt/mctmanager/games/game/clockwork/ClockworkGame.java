@@ -131,7 +131,7 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
         participant.setGameMode(GameMode.ADVENTURE);
         sidebar.addPlayer(participant);
         participant.teleport(config.getStartingLocation());
-        participant.setBedSpawnLocation(config.getStartingLocation(), true);
+        participant.setRespawnLocation(config.getStartingLocation(), true);
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
     }

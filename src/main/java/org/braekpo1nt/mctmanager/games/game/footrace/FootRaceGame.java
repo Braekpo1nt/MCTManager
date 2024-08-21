@@ -292,7 +292,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         standings.add(participant);
         sidebar.addPlayer(participant);
         participant.teleport(config.getStartingLocation());
-        participant.setBedSpawnLocation(config.getStartingLocation(), true);
+        participant.setRespawnLocation(config.getStartingLocation(), true);
         participant.getInventory().clear();
         giveBoots(participant);
         participant.setGameMode(GameMode.ADVENTURE);
