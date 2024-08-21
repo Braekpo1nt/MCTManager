@@ -95,7 +95,6 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
         context.initializeParticipant(participant);
         String teamId = context.getGameManager().getTeamName(participant.getUniqueId());
         context.getTopbar().linkToTeam(participant.getUniqueId(), teamId);
-        Main.logger().info(String.format("Putting %s alive=false", participant.getName()));
         context.getParticipantsAreAlive().put(participant.getUniqueId(), false);
         participant.teleport(context.getConfig().getSpawnObservatory());
         participant.setRespawnLocation(context.getConfig().getSpawnObservatory(), true);
@@ -134,7 +133,6 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
             return;
         }
         if (context.getParticipantsAreAlive().get(participant.getUniqueId())) {
-            Main.logger().info(String.format("%s is alive", participant.getName()));
             return;
         }
         Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "CaptureTheFlagMatch.MatchActiveState.onPlayerDamage() cancelled");
@@ -193,7 +191,6 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
     }
     
     private void onParticipantDeath(Player killed) {
-        Main.logger().info(String.format("Putting %s alive=false", killed.getName()));
         context.getParticipantsAreAlive().put(killed.getUniqueId(), false);
         int alive = 0;
         int dead = 0;

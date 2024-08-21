@@ -316,7 +316,6 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
             return;
         }
         if (!participants.contains(participant)) {
-            Main.logger().info(String.format("%s is damaged, not a participant", participant.getName()));
             return;
         }
         state.onPlayerDamage(event);
