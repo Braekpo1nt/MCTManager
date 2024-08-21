@@ -13,7 +13,6 @@ import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.states.CaptureT
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.states.ClassSelectionState;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
-import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.braekpo1nt.mctmanager.ui.topbar.BattleTopbar;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.bukkit.GameMode;
@@ -53,7 +52,6 @@ public class CaptureTheFlagMatch {
     private final CaptureTheFlagConfig config;
     private final BattleTopbar topbar;
     private final Sidebar adminSidebar;
-    private final TimerManager timerManager;
     private final ClassPicker northClassPicker;
     private final ClassPicker southClassPicker;
     private final List<Player> northParticipants = new ArrayList<>();
@@ -91,7 +89,6 @@ public class CaptureTheFlagMatch {
         this.northClassPicker = new ClassPicker(gameManager);
         this.southClassPicker = new ClassPicker(gameManager);
         this.adminSidebar = parentContext.getAdminSidebar();
-        this.timerManager = parentContext.getTimerManager().createManager();
     }
     
     public void nextState() {
@@ -236,7 +233,6 @@ public class CaptureTheFlagMatch {
         if (state != null) {
             state.stop();
         }
-        cancelAllTasks();
         hasNorthFlag = null;
         hasSouthFlag = null;
         resetArena();
@@ -279,10 +275,6 @@ public class CaptureTheFlagMatch {
         participant.closeInventory();
         ParticipantInitializer.resetHealthAndHunger(participant);
         ParticipantInitializer.clearStatusEffects(participant);
-    }
-    
-    public void cancelAllTasks() {
-        timerManager.cancel();
     }
     
     public void onPlayerDamage(EntityDamageEvent event) {

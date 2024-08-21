@@ -33,7 +33,9 @@ public class RoundActiveState implements CaptureTheFlagState {
     private final RoundManager roundManger;
     private final List<Player> onDeckParticipants = new ArrayList<>();
     private final Map<MatchPairing, CaptureTheFlagMatch> matches;
+    private final Timer classSelectionTimer;
     private int numOfEndedMatches = 0;
+    private Timer roundTimer;
     
     public RoundActiveState(CaptureTheFlagGame context) {
         this.context = context;
@@ -71,7 +73,7 @@ public class RoundActiveState implements CaptureTheFlagState {
             match.start(newParticipants);
         }
         
-        context.getTimerManager().start(Timer.builder()
+        classSelectionTimer = context.getTimerManager().start(Timer.builder()
                 .duration(context.getConfig().getClassSelectionDuration())
                 .withSidebar(context.getAdminSidebar(), "timer")
                 .withTopbar(context.getTopbar())
@@ -88,7 +90,7 @@ public class RoundActiveState implements CaptureTheFlagState {
     }
     
     private void startRoundTimer() {
-        context.getTimerManager().start(Timer.builder()
+        roundTimer = context.getTimerManager().start(Timer.builder()
                 .duration(context.getConfig().getRoundTimerDuration())
                 .withSidebar(context.getAdminSidebar(), "timer")
                 .withTopbar(context.getTopbar())
@@ -133,6 +135,7 @@ public class RoundActiveState implements CaptureTheFlagState {
     
     @Override
     public void stop() {
+        cancelAllTasks();
         for (CaptureTheFlagMatch match : matches.values()) {
             match.stop();
         }
@@ -141,6 +144,11 @@ public class RoundActiveState implements CaptureTheFlagState {
             resetParticipant(participant);
         }
         onDeckParticipants.clear();
+    }
+    
+    private void cancelAllTasks() {
+        classSelectionTimer.cancel();
+        roundTimer.cancel();
     }
     
     @Override
