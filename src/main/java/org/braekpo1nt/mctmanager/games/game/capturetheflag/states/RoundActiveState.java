@@ -147,8 +147,12 @@ public class RoundActiveState implements CaptureTheFlagState {
     }
     
     private void cancelAllTasks() {
-        classSelectionTimer.cancel();
-        roundTimer.cancel();
+        if (classSelectionTimer != null) {
+            classSelectionTimer.cancel();
+        }
+        if (roundTimer != null) {
+            roundTimer.cancel();
+        }
     }
     
     @Override
