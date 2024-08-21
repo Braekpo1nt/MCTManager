@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.games.game.capturetheflag.config;
 
 
 import com.google.common.base.Preconditions;
+import lombok.Data;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.util.BoundingBoxDTO;
@@ -43,9 +44,11 @@ record CaptureTheFlagConfigDTO(
         }
         validator.notNull(this.scores, "scores");
         validator.notNull(this.durations, "durations");
-        validator.validate(this.durations.matchesStarting() >= 0, "durations.matchesStarting (%s) can't be negative", this.durations.matchesStarting());
-        validator.validate(this.durations.classSelection() >= 0, "durations.classSelection (%s) can't be negative", this.durations.classSelection());
-        validator.validate(this.durations.roundTimer() >= 0, "durations.roundTimer (%s) can't be negative", this.durations.roundTimer());
+        validator.validate(this.durations.getMatchesStarting() >= 0, "durations.matchesStarting (%s) can't be negative", this.durations.getMatchesStarting());
+        validator.validate(this.durations.getClassSelection() >= 0, "durations.classSelection (%s) can't be negative", this.durations.getClassSelection());
+        validator.validate(this.durations.getRoundTimer() >= 0, "durations.roundTimer (%s) can't be negative", this.durations.getRoundTimer());
+        validator.validate(this.durations.getRoundOver() >= 0, "durations.roundOver (%s) can't be negative", this.durations.getRoundOver());
+        validator.validate(this.durations.getGameOver() >= 0, "durations.gameOver (%s) can't be negative", this.durations.getGameOver());
         validator.notNull(this.loadouts, "loadouts");
         validator.validate(this.loadouts.size() >= 4, "loadouts must contain at least 4 entries");
         Set<Material> uniqueMenuItems = new HashSet<>();
@@ -74,6 +77,8 @@ record CaptureTheFlagConfigDTO(
                 .winScore(this.scores.win)
                 .killScore(this.scores.kill)
                 .descriptionDuration(this.durations.description)
+                .roundOverDuration(this.durations.roundOver)
+                .gameOverDuration(this.durations.gameOver)
                 .preventInteractions(this.preventInteractions != null ? this.preventInteractions : Collections.emptyList())
                 .spectatorArea(this.spectatorArea != null ? this.spectatorArea.toBoundingBox() : null)
                 .description(this.description)
@@ -88,13 +93,29 @@ record CaptureTheFlagConfigDTO(
     record Scores(int kill, int win) {
     }
     
-    /**
-     * Holds durations for the game
-     * @param matchesStarting the duration (in seconds) for the "matches starting" period (i.e. waiting in the lobby for the match to start)
-     * @param classSelection the duration (in seconds) of the class selection period
-     * @param roundTimer the duration (in seconds) of each round
-     */
-    record Durations(int matchesStarting, int classSelection, int roundTimer, int description) {
+    @Data
+    static class Durations{
+        /**
+         * the duration (in seconds) for the "matches starting" period (i.e. waiting in the lobby for the match to start)
+         */
+        private int matchesStarting;
+        /**
+         * the duration (in seconds) of the class selection period
+         */
+        private int classSelection;
+        /**
+         * the duration (in seconds) of each round
+         */
+        private int roundTimer;
+        private int description;
+        /**
+         * the number of seconds between rounds. Defaults to 10. 
+         */
+        private int roundOver = 10;
+        /**
+         * The number of seconds after the game ends. Defaults to 10. 
+         */
+        private int gameOver = 10;
     }
     
 }

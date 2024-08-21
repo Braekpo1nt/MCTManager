@@ -12,6 +12,7 @@ import org.braekpo1nt.mctmanager.games.event.config.EventConfig;
 import org.braekpo1nt.mctmanager.games.event.config.EventConfigController;
 import org.braekpo1nt.mctmanager.games.event.states.*;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
+import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.voting.VoteManager;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
@@ -403,7 +404,7 @@ public class EventManager implements Listener {
     
     @EventHandler
     public void onPlayerDamage(EntityDamageEvent event) {
-        if (event.getCause().equals(EntityDamageEvent.DamageCause.VOID)) {
+        if (GameManagerUtils.EXCLUDED_CAUSES.contains(event.getCause())) {
             return;
         }
         if (!(event.getEntity() instanceof Player participant)) {

@@ -1,305 +1,142 @@
 package org.braekpo1nt.mctmanager.games.game.capturetheflag;
 
-import java.util.*;
+import com.google.common.base.Preconditions;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-/**
- * - Handles the creation and progression of rounds
- * - Keeps track of who has fought who in the matches
- * - Minimizes consecutive rounds spent on deck for each team
- * - dynamically handles round creation, enabling teams leaving and joining mid-game
- */
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 public class RoundManager {
     
-    private final CaptureTheFlagGame game;
     /**
-     * The teams who have to fight
+     * The schedule handled by this round. Each element of the outer list
+     * is a round. 
      */
-    private List<String> teams = new ArrayList<>();
-    /**
-     * The number of rounds that have been played already in this game
-     */
-    private int playedRounds = 0;
-    /**
-     * The total number of rounds a team has spent on-deck for this game
-     */
-    private Map<String, Integer> roundsSpentOnDeck = new HashMap<>();
-    /**
-     * The MatchPairings that have been played in this game already. 
-     * Keeps track of MatchPairings with teams that have left in case they come back.
-     */
-    private Set<MatchPairing> playedMatchPairings = new HashSet<>();
-    /**
-     * A list of teams that each team has yet to fight. 
-     * Keeps track of teams that have left in case they come back. 
-     */
-    private Map<String, List<String>> teamsToFight = new HashMap<>();
-    private final int numOfArenas;
+    private List<List<MatchPairing>> schedule;
     
-    // reporting
-    Map<String, Integer> longestOnDeckStreak;
-    Map<String, Integer> onDeckStreak;
-    List<String> lastOnDeck;
-    Map<String, Integer> totalOnDeckRounds;
-    // reporting
-    
-    public RoundManager(CaptureTheFlagGame game, int numOfArenas) {
-        this.game = game;
-        this.numOfArenas = numOfArenas;
-    }
+    private int currentRoundIndex = 0;
     
     /**
-     * Initializes internal variables, kicks off the first round, and begins the progression of rounds.
-     * Call this before {@link RoundManager#startNextRound()}
+     * @param teamId the teamId to check
+     * @param round the round to check
+     * @return true if the given teamId is playing in the given round, false if they are on-deck
      */
-    public void start(List<String> newTeams) {
-        this.teams = new ArrayList<>(newTeams.size());
-        roundsSpentOnDeck = new HashMap<>(newTeams.size());
-        teamsToFight = new HashMap<>(newTeams.size());
-        playedMatchPairings = new HashSet<>();
-        // reporting
-        longestOnDeckStreak = new HashMap<>();
-        onDeckStreak = new HashMap<>();
-        lastOnDeck = new ArrayList<>();
-        totalOnDeckRounds = new HashMap<>();
-        // reporting
-        for (String team : newTeams) {
-            teams.add(team);
-            roundsSpentOnDeck.put(team, 0);
-            List<String> enemyTeams = new ArrayList<>(newTeams);
-            enemyTeams.remove(team);
-            teamsToFight.put(team, enemyTeams);
-            // reporting
-            longestOnDeckStreak.put(team, 0);
-            onDeckStreak.put(team, 0);
-            totalOnDeckRounds.put(team, 0);
-            // reporting
-        }
-        startNextRound();
-    }
-    
-    /**
-     * Call this after {@link RoundManager#start(List)}.
-     */
-    private void startNextRound() {
-        List<MatchPairing> roundMatchPairings = generateNextRoundMatchPairings();
-        List<String> participantTeams = getTeamsFromMatchPairings(roundMatchPairings);
-        List<String> onDeckTeams = new ArrayList<>(teams.size() - participantTeams.size());
-        for (String team : teams) {
-            if (!participantTeams.contains(team)) {
-                onDeckTeams.add(team);
-            }
-        }
-        for (String onDeckTeam : onDeckTeams) {
-            roundsSpentOnDeck.compute(onDeckTeam, 
-                    (k, oldRoundsSpentOnDeck) -> 
-                            oldRoundsSpentOnDeck != null ? oldRoundsSpentOnDeck + 1 : 1);
-        }
-        playedMatchPairings.addAll(roundMatchPairings);
-        for (MatchPairing roundMP : roundMatchPairings) {
-            List<String> northTeamsToFight = teamsToFight.get(roundMP.northTeam());
-            northTeamsToFight.remove(roundMP.southTeam());
-            List<String> southTeamsToFight = teamsToFight.get(roundMP.southTeam());
-            southTeamsToFight.remove(roundMP.northTeam());
-        }
-        game.startNextRound(participantTeams, roundMatchPairings);
-    }
-    
-    public void onTeamQuit(String team) {
-        teams.remove(team);
-    }
-    
-    public void onTeamJoin(String team) {
-        if (teamExistsInGame(team)) {
-            return;
-        }
-        if (teamShouldRejoin(team)) {
-            onTeamRejoin(team);
-            return;
-        }
-        teams.add(team);
-        int maxRoundsOnDeck = roundsSpentOnDeck.values().stream().mapToInt(Integer::intValue).max().orElse(0);
-        roundsSpentOnDeck.put(team, maxRoundsOnDeck); // give them the same sorting priority as the player who has spent the longest time on-deck, to help prevent a string of matches with just "<new team> vs <a single team at a time>"
-        List<String> opposingTeams = new ArrayList<>(teamsToFight.keySet());
-        teamsToFight.put(team, opposingTeams);
-        for (String opposingTeam : opposingTeams) {
-            List<String> value = teamsToFight.get(opposingTeam);
-            value.add(team);
-        }
-    }
-    
-    public boolean teamExistsInGame(String team) {
-        return teams.contains(team);
-    }
-    
-    /**
-     * @param team the team
-     * @return true if the team was in the game then left previously and should thus rejoin
-     */
-    private boolean teamShouldRejoin(String team) {
-        return teamsToFight.containsKey(team);
-    }
-    
-    private void onTeamRejoin(String team) {
-        teams.add(team);
-    }
-    
-    public void roundIsOver() {
-        playedRounds++;
-        if (thereAreRoundsLeft()) {
-            startNextRound();
-            return;
-        }
-        game.stop();
-    }
-    
-    /**
-     * @return true if 
-     */
-    private boolean thereAreRoundsLeft() {
-        for (String team : teams) {
-            List<String> toFight = teamsToFight.get(team);
-            if (!toFight.isEmpty()) {
-                for (String enemyTeam : toFight) {
-                    // if the enemy team is online and in the game
-                    if (teams.contains(enemyTeam)) {
-                        return true;
-                    }
-                }
+    public static boolean teamIsPlaying(String teamId, List<MatchPairing> round) {
+        for (MatchPairing matchPairing : round) {
+            if (matchPairing.containsTeam(teamId)) {
+                return true;
             }
         }
         return false;
     }
     
     /**
-     * @param matchPairings the matchPairings to extract the teams from
-     * @return a list of unique teams from the given matchPairings
+     * @param teamId the teamId to check
+     * @param round the round to check
+     * @return the opposite teamId of the given teamId in the given round (if they are present), null if the given team is on-deck
      */
-    private List<String> getTeamsFromMatchPairings(List<MatchPairing> matchPairings) {
-        Set<String> teams = new HashSet<>(matchPairings.size()*2);
-        for (MatchPairing matchPairing : matchPairings) {
-            teams.add(matchPairing.northTeam());
-            teams.add(matchPairing.southTeam());
+    public static @Nullable String getOppositeTeam(String teamId, List<MatchPairing> round) {
+        MatchPairing matchPairing = getMatchPairing(teamId, round);
+        if (matchPairing == null) {
+            return null;
         }
-        return teams.stream().toList();
+        return matchPairing.oppositeTeam(teamId);
     }
     
-    /**
-     * Generates the MatchPairings for the next round, prioritizing players who have the most teams to fight, with the most rounds spent on-deck as a tie-breaker. This ensures that teams will not spend more consecutive rounds on-deck than they have to. 
-     * @return the MatchPairings for the next round
-     */
-    private List<MatchPairing> generateNextRoundMatchPairings() {
-        List<String> sortedTeams = teams.stream().sorted(Comparator.<String, Integer>
-                        comparing(team -> teamsToFight.get(team).size(), Comparator.reverseOrder())
-                .thenComparing(roundsSpentOnDeck::get, Comparator.reverseOrder())
-        ).toList();
-        return generateMatchPairings(sortedTeams, playedMatchPairings, numOfArenas);
-    }
-    
-    /**
-     * Generates anywhere from zero to numOfArenas MatchPairings using the given teams. It is assumed that teams are sorted by highest-priority-first. 
-     * <p>
-     * It will ensure that no MatchPairings will be generated that are in the set of playedMatchPairings.
-     * @return zero to numOfArenas MatchPairings for the given teams, assuming the provided playedMatchPairings.
-     */
-    protected static List<MatchPairing> generateMatchPairings(
-            List<String> sortedTeams, Set<MatchPairing> playedMatchPairings, int numOfArenas) {
-        List<MatchPairing> result = new ArrayList<>();
-        Set<String> teamsUsed = new HashSet<>();
-        
-        for (int i = 0; i < sortedTeams.size() - 1 && result.size() < numOfArenas; i++) {
-            String team1 = sortedTeams.get(i);
-            if (!teamsUsed.contains(team1)) {
-                for (int j = i + 1; j < sortedTeams.size(); j++) {
-                    String team2 = sortedTeams.get(j);
-                    if (!teamsUsed.contains(team2)) {
-                        MatchPairing newPairing = new MatchPairing(team1, team2);
-                        
-                        // Check if the new pairing is not equivalent to any in playedMatchPairings
-                        boolean isUnique = true;
-                        for (MatchPairing playedPairing : playedMatchPairings) {
-                            if (newPairing.isEquivalent(playedPairing)) {
-                                isUnique = false;
-                                break;
-                            }
-                        }
-                        
-                        if (isUnique) {
-                            result.add(newPairing);
-                            teamsUsed.add(team1);
-                            teamsUsed.add(team2);
-                            break;  // Exit the inner loop after a successful pairing
-                        }
-                    }
-                }
+    public static MatchPairing getMatchPairing(String teamId, List<MatchPairing> round) {
+        for (MatchPairing matchPairing : round) {
+            if (matchPairing.containsTeam(teamId)) {
+                return matchPairing;
             }
         }
-        
-        return result;
+        return null;
     }
     
-    /**
-     * @return The number of rounds that have been played already in this game
-     */
-    public int getPlayedRounds() {
-        return playedRounds;
+    public int getCurrentRoundIndex() {
+        return currentRoundIndex;
     }
     
-    /**
-     * @return the maximum number of rounds played
-     */
     public int getMaxRounds() {
-        return getPlayedRounds() + calculateRoundsLeft(teamsToFight, numOfArenas) + 1;
+        return schedule.size();
     }
     
-    public static int calculateRoundsLeft(Map<String, List<String>> teamsToFight, int numOfArenas) {
-        Set<Set<String>> matches = createMatches(teamsToFight);
-        int roundsLeft = 0;
-        while (!matches.isEmpty()) {
-            Iterator<Set<String>> iterator = matches.iterator();
-            Set<String> roundTeams = new HashSet<>();
-            while (iterator.hasNext() && roundTeams.size() < numOfArenas*2) {
-                Set<String> matchPair = iterator.next();
-                if (roundTeamsContainsNoTeamsFromPair(roundTeams, matchPair)) {
-                    roundTeams.addAll(matchPair);
-                    iterator.remove();
-                }
-            }
-            roundsLeft++;
-        }
-        return roundsLeft;
-    }
-    
-    private static boolean roundTeamsContainsNoTeamsFromPair(Set<String> roundTeams, Set<String> pair) {
-        for (String team : pair) {
-            if (roundTeams.contains(team)) {
-                return false;
-            }
-        }
-        return true;
-    }
-    
-    public static Set<Set<String>> createMatches(Map<String, List<String>> teamsToFight) {
-        Set<Set<String>> pairs = new HashSet<>();
+    /**
+     * Initialize the RoundManager to handle rounds for a game
+     * @param teamIds the teamIds of the teams in the round (must have at least 2 entries)
+     * @param numOfArenas the number of arenas (must be greater than 0)
+     */
+    public void initialize(@NotNull List<@NotNull String> teamIds, int numOfArenas) {
+        Preconditions.checkArgument(teamIds.size() >= 2, "There must be at least two teamIds (got %s)", teamIds.size());
+        Preconditions.checkArgument(numOfArenas > 0, "there must be at least 1 arena");
+        Set<String> uniqueTeams = new HashSet<>(teamIds);
+        Preconditions.checkArgument(uniqueTeams.size() == teamIds.size(), "Duplicate teamId found in teamIds %s", teamIds.toString());
+        this.schedule = generateSchedule(teamIds, numOfArenas);
+        currentRoundIndex = 0;
         
-        for (Map.Entry<String, List<String>> entry : teamsToFight.entrySet()) {
-            String team = entry.getKey();
-            List<String> opponents = entry.getValue();
+    }
+    
+    /**
+     * If this returns true, you can safely run {@link #nextRound()} to cycle to the next round, then {@link #getCurrentRound()} to get the list of match pairings for the round you just iterated to.
+     * @return true if there is at least one un-played round next, false if there are no more rounds
+     */
+    public boolean hasNextRound() {
+        return currentRoundIndex + 1 < schedule.size();
+    }
+    
+    /**
+     * Cycle to the next round. Don't run this without first checking {@link #hasNextRound()}. After iterating the round, you can get the new list of MatchPairings from {@link #getCurrentRound()}. 
+     */
+    public void nextRound() {
+        currentRoundIndex++;
+    }
+    
+    /**
+     * @return the list of {@link MatchPairing}s for the current round.
+     * @throws ArrayIndexOutOfBoundsException if you ran {@link #nextRound()} after {@link #hasNextRound()} returned false. 
+     */
+    public List<MatchPairing> getCurrentRound() {
+        return schedule.get(currentRoundIndex);
+    }
+    
+    
+    /**
+     * Generates a schedule for the teams to face off. This was generated by ChatGPT then modified slightly to
+     * fit the application. 
+     * @param teamIds the teamIds to generate the schedule for
+     * @param numOfArenas the number of arenas (each arena fits 2 teams)
+     * @return A list where each entry is the {@code numOfArenas} {@link MatchPairing}s for each round. The size
+     * of the returned list will be the number of rounds. 
+     */
+    public static List<List<MatchPairing>> generateSchedule(List<String> teamIds, int numOfArenas) {
+        int t = teamIds.size();
+        List<List<MatchPairing>> schedule = new ArrayList<>();
+        int rounds = (t % 2 == 0) ? t - 1 : t;
+        
+        // Clone the teams list so as not to modify the original
+        List<String> rotatingTeams = new ArrayList<>(teamIds);
+        
+        for (int round = 0; round < rounds; round++) {
+            List<MatchPairing> roundMatches = new ArrayList<>();
             
-            for (String opponent : opponents) {
-                Set<String> pair = Set.of(team, opponent);
-                pairs.add(pair);
+            for (int i = 0; i < t / 2; i++) {
+                MatchPairing match = new MatchPairing(rotatingTeams.get(i), rotatingTeams.get(t - 1 - i));
+                roundMatches.add(match);
+            }
+            
+            // Rotate teams, keeping the first one fixed
+            rotatingTeams.add(1, rotatingTeams.removeLast());
+            
+            // Split matches into groups for each arena
+            for (int i = 0; i < roundMatches.size(); i += numOfArenas) {
+                int end = Math.min(i + numOfArenas, roundMatches.size());
+                schedule.add(new ArrayList<>(roundMatches.subList(i, end)));
             }
         }
         
-        return pairs;
+        return schedule;
     }
     
-    //testing
-    Set<MatchPairing> getPlayedMatchPairings() {
-        return playedMatchPairings;
-    }
-    
-    Map<String, Integer> getRoundsSpentOnDeck() {
-        return roundsSpentOnDeck;
-    }
 }

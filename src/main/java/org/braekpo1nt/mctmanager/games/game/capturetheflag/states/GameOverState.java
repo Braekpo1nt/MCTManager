@@ -1,18 +1,23 @@
-package org.braekpo1nt.mctmanager.games.game.footrace.states;
+package org.braekpo1nt.mctmanager.games.game.capturetheflag.states;
 
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
-import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceGame;
+import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.CaptureTheFlagGame;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
+import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.entity.Player;
+import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.FoodLevelChangeEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.jetbrains.annotations.NotNull;
 
-public class GameOverState implements FootRaceState {
+public class GameOverState implements CaptureTheFlagState {
+    private final @NotNull CaptureTheFlagGame context;
     
-    private final @NotNull FootRaceGame context;
-    
-    public GameOverState(@NotNull FootRaceGame context) {
+    public GameOverState(@NotNull CaptureTheFlagGame context) {
         this.context = context;
         Audience.audience(context.getParticipants()).showTitle(UIUtils.gameOverTitle());
         context.getSidebar().addLine("over", Component.empty());
@@ -36,22 +41,28 @@ public class GameOverState implements FootRaceState {
     
     @Override
     public void onParticipantQuit(Player participant) {
-        resetParticipant(participant);
+        context.resetParticipant(participant);
         context.getParticipants().remove(participant);
     }
     
     @Override
-    public void initializeParticipant(Player participant) {
-        context.initializeParticipant(participant);
+    public void onPlayerDamage(EntityDamageEvent event) {
+        Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "CaptureTheFlagGame.GameOverState.onPlayerDamage() cancelled");
+        event.setCancelled(true);
     }
     
     @Override
-    public void resetParticipant(Player participant) {
-        context.resetParticipant(participant);
+    public void onPlayerLoseHunger(FoodLevelChangeEvent event) {
+        event.setCancelled(true);
     }
     
     @Override
-    public void onParticipantMove(Player participant) {
+    public void onClickInventory(InventoryClickEvent event) {
+        event.setCancelled(true);
+    }
+    
+    @Override
+    public void onPlayerMove(PlayerMoveEvent event) {
         // do nothing
     }
 }

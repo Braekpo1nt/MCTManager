@@ -303,7 +303,7 @@ public class VoteManager implements Listener {
         if (!voting) {
             return;
         }
-        if (event.getCause().equals(EntityDamageEvent.DamageCause.VOID)) {
+        if (GameManagerUtils.EXCLUDED_CAUSES.contains(event.getCause())) {
             return;
         }
         if (!(event.getEntity() instanceof Player voter)) {

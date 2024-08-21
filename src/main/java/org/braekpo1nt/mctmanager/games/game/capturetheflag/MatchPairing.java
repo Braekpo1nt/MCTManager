@@ -3,6 +3,9 @@ package org.braekpo1nt.mctmanager.games.game.capturetheflag;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
+import java.util.Set;
+
 /**
  * A class representing two teams that will fight each other in a match
  * @param northTeam
@@ -25,6 +28,19 @@ public record MatchPairing(@NotNull String northTeam, @NotNull String southTeam)
             return this.southTeam.equals((other.northTeam));
         }
         return false;
+    }
+    
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        MatchPairing other = (MatchPairing) o;
+        return this.isEquivalent(other);
+    }
+    
+    @Override
+    public int hashCode() {
+        return Objects.hash(Set.of(northTeam, southTeam));
     }
     
     /**

@@ -15,6 +15,7 @@ import org.braekpo1nt.mctmanager.games.game.footrace.states.DescriptionState;
 import org.braekpo1nt.mctmanager.games.game.footrace.states.FootRaceState;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
+import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
@@ -509,7 +510,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     
     @EventHandler
     public void onPlayerDamage(EntityDamageEvent event) {
-        if (event.getCause().equals(EntityDamageEvent.DamageCause.VOID)) {
+        if (GameManagerUtils.EXCLUDED_CAUSES.contains(event.getCause())) {
             return;
         }
         if (!(event.getEntity() instanceof Player participant)) {

@@ -28,6 +28,8 @@ public class CaptureTheFlagConfig {
     private int winScore;
     private int killScore;
     private int descriptionDuration;
+    private int roundOverDuration;
+    private int gameOverDuration;
     private List<Material> preventInteractions;
     private @Nullable BoundingBox spectatorArea;
     private Component description;

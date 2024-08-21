@@ -269,7 +269,7 @@ public class ActiveState implements SurvivalGamesState {
     
     @Override
     public void onPlayerDamage(EntityDamageEvent event) {
-        if (event.getCause().equals(EntityDamageEvent.DamageCause.VOID)) {
+        if (GameManagerUtils.EXCLUDED_CAUSES.contains(event.getCause())) {
             return;
         }
         if (invulnerable) {
@@ -286,6 +286,7 @@ public class ActiveState implements SurvivalGamesState {
         }
         killed.setGameMode(GameMode.SPECTATOR);
         dropInventory(killed, event.getDrops());
+        Main.debugLog(LogType.CANCEL_PLAYER_DEATH_EVENT, "SurvivalGamesGame.ActiveState.onPlayerDeath() cancelled");
         event.setCancelled(true);
         if (event.getDeathSound() != null && event.getDeathSoundCategory() != null) {
             killed.getWorld().playSound(killed.getLocation(), event.getDeathSound(), event.getDeathSoundCategory(), event.getDeathSoundVolume(), event.getDeathSoundPitch());

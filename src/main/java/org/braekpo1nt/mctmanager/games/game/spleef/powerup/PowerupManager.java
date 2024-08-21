@@ -74,7 +74,7 @@ public class PowerupManager implements Listener {
     
         ItemStack shieldItem = new ItemStack(Material.LAPIS_LAZULI);
         shieldItem.editMeta(meta -> {
-            meta.displayName(Component.text("Shield"));
+            meta.displayName(Component.text("Swap Shield"));
             meta.lore(List.of(
                     Component.text("- Activates automatically"),
                     Component.text("- Single use")

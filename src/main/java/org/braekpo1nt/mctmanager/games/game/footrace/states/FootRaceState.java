@@ -7,5 +7,6 @@ public interface FootRaceState {
     void onParticipantQuit(Player participant);
     void initializeParticipant(Player participant);
     void resetParticipant(Player participant);
+    // listener handlers
     void onParticipantMove(Player participant);
 }

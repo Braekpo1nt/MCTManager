@@ -36,6 +36,7 @@ public class DescriptionState implements FootRaceState {
         context.getSidebar().updateLine(participant.getUniqueId(), "lap", String.format("Lap: %d/%d", currentLap, FootRaceGame.MAX_LAPS));
         context.updateStandings();
         context.displayStandings();
+        participant.sendMessage(context.getConfig().getDescription());
     }
     
     @Override

@@ -6,6 +6,7 @@ import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
+import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.hub.config.HubConfig;
 import org.braekpo1nt.mctmanager.hub.config.HubConfigController;
@@ -241,7 +242,7 @@ public class HubManager implements Listener, Configurable {
     
     @EventHandler
     public void onPlayerDamage(EntityDamageEvent event) {
-        if (event.getCause().equals(EntityDamageEvent.DamageCause.VOID)) {
+        if (GameManagerUtils.EXCLUDED_CAUSES.contains(event.getCause())) {
             return;
         }
         if (!(event.getEntity() instanceof Player participant)) {
