@@ -353,7 +353,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
             String team = gameManager.getTeamId(participant.getUniqueId());
             Location spawn = teamSpawnLocations.get(team);
             participant.teleport(spawn);
-            participant.setBedSpawnLocation(spawn, true);
+            participant.setRespawnLocation(spawn, true);
         }
     }
     

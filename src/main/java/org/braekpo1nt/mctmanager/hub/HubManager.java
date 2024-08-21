@@ -125,7 +125,7 @@ public class HubManager implements Listener, Configurable {
     private void returnParticipantToHub(Player participant) {
         participant.sendMessage(Component.text("Returning to hub"));
         participant.teleport(config.getSpawn());
-        participant.setBedSpawnLocation(config.getSpawn(), true);
+        participant.setRespawnLocation(config.getSpawn(), true);
         initializeParticipant(participant);
     }
     
@@ -167,7 +167,7 @@ public class HubManager implements Listener, Configurable {
         } else {
             participant.teleport(config.getPodiumObservation());
         }
-        participant.setBedSpawnLocation(config.getSpawn(), true);
+        participant.setRespawnLocation(config.getSpawn(), true);
         initializeParticipant(participant);
     }
     
@@ -202,7 +202,7 @@ public class HubManager implements Listener, Configurable {
         for (LeaderboardManager leaderboardManager : leaderboardManagers) {
             leaderboardManager.onParticipantQuit(participant);
         }
-        participant.setBedSpawnLocation(config.getSpawn(), true);
+        participant.setRespawnLocation(config.getSpawn(), true);
     }
     
     public void onAdminJoin(Player admin) {
