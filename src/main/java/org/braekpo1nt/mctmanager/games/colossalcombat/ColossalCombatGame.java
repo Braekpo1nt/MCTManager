@@ -18,7 +18,6 @@ import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.braekpo1nt.mctmanager.ui.topbar.BattleTopbar;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
-import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -50,7 +49,7 @@ public class ColossalCombatGame implements Listener, Configurable {
     private final @NotNull BattleTopbar topbar;
     private final ColossalCombatConfigController configController;
     private ColossalCombatConfig config;
-    private final String title = ChatColor.BLUE+"Colossal Combat";
+    private final Component title = Component.text("Colossal Combat").color(NamedTextColor.BLUE);
     private List<Player> firstPlaceParticipants = new ArrayList<>();
     private List<Player> secondPlaceParticipants = new ArrayList<>();
     private List<Player> spectators = new ArrayList<>();
@@ -93,8 +92,8 @@ public class ColossalCombatGame implements Listener, Configurable {
      * @param newAdmins The admins
      */
     public void start(List<Player> newFirstPlaceParticipants, List<Player> newSecondPlaceParticipants, List<Player> newSpectators, List<Player> newAdmins) {
-        firstTeamName = gameManager.getTeamName(newFirstPlaceParticipants.get(0).getUniqueId());
-        secondTeamName = gameManager.getTeamName(newSecondPlaceParticipants.get(0).getUniqueId());
+        firstTeamName = gameManager.getTeamName(newFirstPlaceParticipants.getFirst().getUniqueId());
+        secondTeamName = gameManager.getTeamName(newSecondPlaceParticipants.getFirst().getUniqueId());
         firstPlaceRoundWins = 0;
         secondPlaceRoundWins = 0;
         closeGates();
@@ -232,8 +231,8 @@ public class ColossalCombatGame implements Listener, Configurable {
     
     private void setUpTopbarForRound() {
         topbar.removeAllTeamPairs();
-        NamedTextColor firstColor = gameManager.getTeamNamedTextColor(firstTeamName);
-        NamedTextColor secondColor = gameManager.getTeamNamedTextColor(secondTeamName);
+        NamedTextColor firstColor = gameManager.getTeamColor(firstTeamName);
+        NamedTextColor secondColor = gameManager.getTeamColor(secondTeamName);
         topbar.addTeam(firstTeamName, firstColor);
         topbar.addTeam(secondTeamName, secondColor);
         topbar.linkTeamPair(firstTeamName, secondTeamName);
@@ -540,27 +539,39 @@ public class ColossalCombatGame implements Listener, Configurable {
     }
     
     private void updateRoundWinSidebar() {
-        ChatColor firstChatColor = gameManager.getTeamChatColor(firstTeamName);
-        String firstDisplayName = ChatColor.BOLD + "" +  firstChatColor + gameManager.getTeamDisplayName(firstTeamName);
-        ChatColor secondChatColor = gameManager.getTeamChatColor(secondTeamName);
-        String secondDisplayName = ChatColor.BOLD + "" +  secondChatColor + gameManager.getTeamDisplayName(secondTeamName);
-        sidebar.updateLine("firstWinCount", String.format("%s: %s/%s", firstDisplayName, firstPlaceRoundWins, config.getRequiredWins()));
-        sidebar.updateLine("secondWinCount", String.format("%s: %s/%s", secondDisplayName, secondPlaceRoundWins, config.getRequiredWins()));
-        adminSidebar.updateLine("firstWinCount", String.format("%s: %s/%s", firstDisplayName, firstPlaceRoundWins, config.getRequiredWins()));
-        adminSidebar.updateLine("secondWinCount", String.format("%s: %s/%s", secondDisplayName, secondPlaceRoundWins, config.getRequiredWins()));
+        Component firstDisplayName = gameManager.getFormattedTeamDisplayName(firstTeamName);
+        Component secondDisplayName = gameManager.getFormattedTeamDisplayName(secondTeamName);
+        sidebar.updateLine("firstWinCount", toWinCountComponent(firstDisplayName, firstPlaceRoundWins));
+        sidebar.updateLine("secondWinCount", toWinCountComponent(secondDisplayName, secondPlaceRoundWins));
+        adminSidebar.updateLine("firstWinCount", toWinCountComponent(firstDisplayName, firstPlaceRoundWins));
+        adminSidebar.updateLine("secondWinCount", toWinCountComponent(secondDisplayName, secondPlaceRoundWins));
+    }
+    
+    private Component toWinCountComponent(Component teamDisplayName, int roundWins) {
+        return Component.empty()
+                .append(teamDisplayName)
+                .append(Component.text(": "))
+                .append(Component.text(roundWins))
+                .append(Component.text("/"))
+                .append(Component.text(config.getRequiredWins()))
+                ;
     }
     
     private void initializeAdminSidebar() {
-        ChatColor firstChatColor = gameManager.getTeamChatColor(firstTeamName);
-        String firstDisplayName = ChatColor.BOLD + "" +  firstChatColor + gameManager.getTeamDisplayName(firstTeamName);
-        ChatColor secondChatColor = gameManager.getTeamChatColor(secondTeamName);
-        String secondDisplayName = ChatColor.BOLD + "" +  secondChatColor + gameManager.getTeamDisplayName(secondTeamName);
+        Component firstDisplayName = gameManager.getFormattedTeamDisplayName(firstTeamName);
+        Component secondDisplayName = gameManager.getFormattedTeamDisplayName(secondTeamName);
         adminSidebar.addLines(
                 new KeyLine("title", title),
-                new KeyLine("firstWinCount", String.format("%s: 0/%s", firstDisplayName, config.getRequiredWins())),
-                new KeyLine("secondWinCount", String.format("%s: 0/%s", secondDisplayName, config.getRequiredWins())),
-                new KeyLine("round", "Round: 1"),
-                new KeyLine("timer", "")
+                new KeyLine("firstWinCount", Component.empty()
+                        .append(firstDisplayName)
+                        .append(Component.text(": 0/"))
+                        .append(Component.text(config.getRequiredWins()))),
+                new KeyLine("secondWinCount", Component.empty()
+                        .append(secondDisplayName)
+                        .append(Component.text(": 0/"))
+                        .append(Component.text(config.getRequiredWins()))),
+                new KeyLine("round", Component.text("Round: 1")),
+                new KeyLine("timer", Component.empty())
         );
     }
     
@@ -570,15 +581,19 @@ public class ColossalCombatGame implements Listener, Configurable {
     }
     
     private void initializeSidebar() {
-        ChatColor firstChatColor = gameManager.getTeamChatColor(firstTeamName);
-        String firstDisplayName = ChatColor.BOLD + "" +  firstChatColor + gameManager.getTeamDisplayName(firstTeamName);
-        ChatColor secondChatColor = gameManager.getTeamChatColor(secondTeamName);
-        String secondDisplayName = ChatColor.BOLD + "" +  secondChatColor + gameManager.getTeamDisplayName(secondTeamName);
+        Component firstDisplayName = gameManager.getFormattedTeamDisplayName(firstTeamName);
+        Component secondDisplayName = gameManager.getFormattedTeamDisplayName(secondTeamName);
         sidebar.addLines(
                 new KeyLine("title", title),
-                new KeyLine("firstWinCount", String.format("%s: 0/%s", firstDisplayName, config.getRequiredWins())),
-                new KeyLine("secondWinCount", String.format("%s: 0/%s", secondDisplayName, config.getRequiredWins())),
-                new KeyLine("round", "Round: 1")
+                new KeyLine("firstWinCount", Component.empty()
+                        .append(firstDisplayName)
+                        .append(Component.text(": 0/"))
+                        .append(Component.text(config.getRequiredWins()))),
+                new KeyLine("secondWinCount", Component.empty()
+                        .append(secondDisplayName)
+                        .append(Component.text(": 0/"))
+                        .append(Component.text(config.getRequiredWins()))),
+                new KeyLine("round", Component.text("Round: 1"))
         );
         topbar.setMiddle(Component.empty());
     }

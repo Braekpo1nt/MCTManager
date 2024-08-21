@@ -16,7 +16,6 @@ import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.braekpo1nt.mctmanager.ui.topbar.ManyBattleTopbar;
 import org.braekpo1nt.mctmanager.utils.LogType;
-import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.WorldBorder;
 import org.bukkit.damage.DamageSource;
@@ -156,11 +155,14 @@ public class ActiveState implements SurvivalGamesState {
     }
     
     private void startSuddenDeath() {
-        String message = String.format("%sSudden death", ChatColor.RED);
-        topbar.setMiddle(Component.text("Sudden death")
-                .color(NamedTextColor.RED));
+        Component message = Component.empty()
+                        .append(Component.text("Sudden Death")
+                                .color(NamedTextColor.RED));
+        topbar.setMiddle(message);
         adminSidebar.updateLine("timer", message);
-        context.messageAllParticipants(Component.text("Sudden death!"));
+        context.messageAllParticipants(Component.empty()
+                .append(Component.text("Sudden death!")
+                    .color(NamedTextColor.RED)));
     }
     
     /**
@@ -195,12 +197,12 @@ public class ActiveState implements SurvivalGamesState {
             context.getDeadPlayers().remove(participant.getUniqueId());
             String teamId = context.getGameManager().getTeamName(participant.getUniqueId());
             if (!context.getLivingMembers().containsKey(teamId)) {
-                NamedTextColor color = context.getGameManager().getTeamNamedTextColor(teamId);
+                NamedTextColor color = context.getGameManager().getTeamColor(teamId);
                 context.getTopbar().addTeam(teamId, color);
             }
             initializeParticipant(participant);
-            participant.teleport(config.getPlatformSpawns().get(0));
-            participant.setBedSpawnLocation(config.getPlatformSpawns().get(0), true);
+            participant.teleport(config.getPlatformSpawns().getFirst());
+            participant.setRespawnLocation(config.getPlatformSpawns().getFirst(), true);
         }
         sidebar.updateLine(participant.getUniqueId(), "title", context.getTitle());
     }
@@ -381,7 +383,7 @@ public class ActiveState implements SurvivalGamesState {
                         .append(displayName)
                         .append(Component.text(" got second place!")));
                 gameManager.awardPointsToTeam(deadTeam, config.getSecondPlaceScore());
-                onTeamWin(livingTeams.get(0));
+                onTeamWin(livingTeams.getFirst());
             }
             case 0 -> {
                 // this is a provision for when there is only 1 team at the beginning, for testing purposes

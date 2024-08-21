@@ -174,7 +174,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
     
     private void setUpTopbarTeams(List<String> newTeamIds) {
         for (String teamId : newTeamIds) {
-            NamedTextColor color = gameManager.getTeamNamedTextColor(teamId);
+            NamedTextColor color = gameManager.getTeamColor(teamId);
             topbar.addTeam(teamId, color);
         }
     }
@@ -760,7 +760,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
     }
     
     @Override
-    public void updateTeamScore(Player participant, String contents) {
+    public void updateTeamScore(Player participant, Component contents) {
         if (sidebar == null) {
             return;
         }
@@ -771,7 +771,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
     }
     
     @Override
-    public void updatePersonalScore(Player participant, String contents) {
+    public void updatePersonalScore(Player participant, Component contents) {
         if (sidebar == null) {
             return;
         }

@@ -141,7 +141,6 @@ public class CaptureTheFlagMatch {
             dead = southParticipants.size() - alive;
         }
         topbar.setMembers(teamId, alive, dead);
-        allParticipants.add(participant);
         participant.getInventory().clear();
         participant.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearStatusEffects(participant);

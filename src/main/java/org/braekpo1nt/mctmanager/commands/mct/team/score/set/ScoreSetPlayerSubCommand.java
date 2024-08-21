@@ -41,7 +41,7 @@ public class ScoreSetPlayerSubCommand extends TabSubCommand {
                         .append(Component.text(" is not a participant")));
             } else {
                 String teamName = gameManager.getOfflineIGNTeamName(playerName);
-                NamedTextColor teamColor = gameManager.getTeamNamedTextColor(teamName);
+                NamedTextColor teamColor = gameManager.getTeamColor(teamName);
                 return CommandResult.failure(Component.empty()
                         .append(Component.text("Can't change the score of "))
                         .append(Component.text(playerName)

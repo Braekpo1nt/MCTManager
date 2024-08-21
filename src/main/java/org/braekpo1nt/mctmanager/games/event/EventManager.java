@@ -19,7 +19,6 @@ import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.braekpo1nt.mctmanager.ui.topbar.ReadyUpTopbar;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -102,8 +101,11 @@ public class EventManager implements Listener {
     public void updatePersonalScores() {
         for (Player participant : participants) {
             int score = gameManager.getScore(participant.getUniqueId());
-            String contents = String.format("%sPersonal: %s", ChatColor.GOLD, score);
-            updatePersonalScore(participant, contents);
+            updatePersonalScore(participant, Component.empty()
+                    .append(Component.text("Personal: "))
+                    .append(Component.text(score))
+                    .color(NamedTextColor.GOLD)
+            );
         }
     }
     
@@ -361,7 +363,7 @@ public class EventManager implements Listener {
                 .color(NamedTextColor.YELLOW);
         for (String teamName : teamNames) {
             int teamScoreToSubtract = scoreKeeper.getScore(teamName);
-            NamedTextColor teamColor = gameManager.getTeamNamedTextColor(teamName);
+            NamedTextColor teamColor = gameManager.getTeamColor(teamName);
             Component displayName = gameManager.getFormattedTeamDisplayName(teamName);
             reportBuilder.append(Component.text("|  - "))
                     .append(displayName)
@@ -536,18 +538,22 @@ public class EventManager implements Listener {
         if (sidebar == null) {
             return;
         }
-        List<String> sortedTeamNames = sortTeamNames(gameManager.getTeamNames());
-        if (numberOfTeams != sortedTeamNames.size()) {
-            reorderTeamLines(sortedTeamNames);
+        List<String> sortedTeamIds = sortTeamNames(gameManager.getTeamNames());
+        if (numberOfTeams != sortedTeamIds.size()) {
+            reorderTeamLines(sortedTeamIds);
             return;
         }
         KeyLine[] teamLines = new KeyLine[numberOfTeams];
         for (int i = 0; i < numberOfTeams; i++) {
-            String teamName = sortedTeamNames.get(i);
-            String teamDisplayName = gameManager.getTeamDisplayName(teamName);
-            ChatColor teamChatColor = gameManager.getTeamChatColor(teamName);
-            int teamScore = gameManager.getScore(teamName);
-            teamLines[i] = new KeyLine("team"+i, String.format("%s%s: %s%s", teamChatColor, teamDisplayName, ChatColor.GOLD, teamScore));
+            String teamId = sortedTeamIds.get(i);
+            Component teamDisplayName = gameManager.getFormattedTeamDisplayName(teamId);
+            int teamScore = gameManager.getScore(teamId);
+            teamLines[i] = new KeyLine("team"+i, Component.empty()
+                    .append(teamDisplayName)
+                    .append(Component.text(": "))
+                    .append(Component.text(teamScore)
+                            .color(NamedTextColor.GOLD))
+            );
         }
         sidebar.updateLines(teamLines);
         if (adminSidebar == null) {
@@ -567,7 +573,7 @@ public class EventManager implements Listener {
         return sortedTeamNames;
     }
     
-    private void reorderTeamLines(List<String> sortedTeamNames) {
+    private void reorderTeamLines(List<String> sortedTeamIds) {
         String[] teamKeys = new String[numberOfTeams];
         for (int i = 0; i < numberOfTeams; i++) {
             teamKeys[i] = "team"+i;
@@ -575,20 +581,24 @@ public class EventManager implements Listener {
         sidebar.deleteLines(teamKeys);
         adminSidebar.deleteLines(teamKeys);
         
-        numberOfTeams = sortedTeamNames.size();
+        numberOfTeams = sortedTeamIds.size();
         KeyLine[] teamLines = new KeyLine[numberOfTeams];
         for (int i = 0; i < numberOfTeams; i++) {
-            String teamName = sortedTeamNames.get(i);
-            String teamDisplayName = gameManager.getTeamDisplayName(teamName);
-            ChatColor teamChatColor = gameManager.getTeamChatColor(teamName);
-            int teamScore = gameManager.getScore(teamName);
-            teamLines[i] = new KeyLine("team"+i, String.format("%s%s: %s%s", teamChatColor, teamDisplayName, ChatColor.GOLD, teamScore));
+            String teamId = sortedTeamIds.get(i);
+            Component teamDisplayName = gameManager.getFormattedTeamDisplayName(teamId);
+            int teamScore = gameManager.getScore(teamId);
+            teamLines[i] = new KeyLine("team"+i, Component.empty()
+                    .append(teamDisplayName)
+                    .append(Component.text(": "))
+                    .append(Component.text(teamScore)
+                            .color(NamedTextColor.GOLD))
+            );
         }
         sidebar.addLines(0, teamLines);
         adminSidebar.addLines(0, teamLines);
     }
     
-    public void updatePersonalScore(Player participant, String contents) {
+    public void updatePersonalScore(Player participant, Component contents) {
         if (sidebar == null) {
             return;
         }
@@ -610,7 +620,7 @@ public class EventManager implements Listener {
             return;
         }
         List<ScoreKeeper> iterationScoreKeepers = scoreKeepers.get(gameType);
-        ScoreKeeper iteration = iterationScoreKeepers.get(iterationScoreKeepers.size() - 1);
+        ScoreKeeper iteration = iterationScoreKeepers.getLast();
         iteration.addPoints(teamName, points);
     }
     
@@ -626,7 +636,7 @@ public class EventManager implements Listener {
             return;
         }
         List<ScoreKeeper> iterationScoreKeepers = scoreKeepers.get(gameType);
-        ScoreKeeper iteration = iterationScoreKeepers.get(iterationScoreKeepers.size() - 1);
+        ScoreKeeper iteration = iterationScoreKeepers.getLast();
         iteration.addPoints(participantUUID, points);
     }
     

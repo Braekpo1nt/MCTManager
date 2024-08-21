@@ -410,7 +410,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     }
     
     @Override
-    public void updateTeamScore(Player participant, String contents) {
+    public void updateTeamScore(Player participant, Component contents) {
         if (sidebar == null) {
             return;
         }
@@ -421,7 +421,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     }
     
     @Override
-    public void updatePersonalScore(Player participant, String contents) {
+    public void updatePersonalScore(Player participant, Component contents) {
         if (sidebar == null) {
             return;
         }

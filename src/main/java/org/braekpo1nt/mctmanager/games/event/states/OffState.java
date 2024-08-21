@@ -13,7 +13,6 @@ import org.braekpo1nt.mctmanager.games.event.EventManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
-import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -24,6 +23,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 
 public class OffState implements EventState {
     
@@ -71,8 +71,7 @@ public class OffState implements EventState {
         try {
             context.setConfig(context.getConfigController().getConfig());
         } catch (ConfigException e) {
-            Main.logger().severe(e.getMessage());
-            e.printStackTrace();
+            Main.logger().log(Level.SEVERE, e.getMessage(), e);
             sender.sendMessage(Component.text("Can't start event. Error loading config file. See console for details:\n")
                     .append(Component.text(e.getMessage()))
                     .color(NamedTextColor.RED));
@@ -98,15 +97,19 @@ public class OffState implements EventState {
     }
     
     private void initializeSidebar() {
-        List<String> sortedTeamNames = context.sortTeamNames(gameManager.getTeamNames());
-        context.setNumberOfTeams(sortedTeamNames.size());
+        List<String> sortedTeamIds = context.sortTeamNames(gameManager.getTeamNames());
+        context.setNumberOfTeams(sortedTeamIds.size());
         KeyLine[] teamLines = new KeyLine[context.getNumberOfTeams()];
         for (int i = 0; i < context.getNumberOfTeams(); i++) {
-            String teamName = sortedTeamNames.get(i);
-            String teamDisplayName = gameManager.getTeamDisplayName(teamName);
-            ChatColor teamChatColor = gameManager.getTeamChatColor(teamName);
-            int teamScore = gameManager.getScore(teamName);
-            teamLines[i] = new KeyLine("team"+i, String.format("%s%s: %s", teamChatColor, teamDisplayName, teamScore));
+            String teamId = sortedTeamIds.get(i);
+            Component teamDisplayName = gameManager.getFormattedTeamDisplayName(teamId);
+            int teamScore = gameManager.getScore(teamId);
+            teamLines[i] = new KeyLine("team"+i, Component.empty()
+                    .append(teamDisplayName)
+                    .append(Component.text(": "))
+                    .append(Component.text(teamScore)
+                            .color(NamedTextColor.GOLD))
+            );
         }
         context.getSidebar().addLine("currentGame", context.getCurrentGameLine());
         context.getSidebar().addLines(teamLines);
@@ -117,15 +120,19 @@ public class OffState implements EventState {
     }
     
     private void initializeAdminSidebar() {
-        List<String> sortedTeamNames = context.sortTeamNames(gameManager.getTeamNames());
-        context.setNumberOfTeams(sortedTeamNames.size());
+        List<String> sortedTeamIds = context.sortTeamNames(gameManager.getTeamNames());
+        context.setNumberOfTeams(sortedTeamIds.size());
         KeyLine[] teamLines = new KeyLine[context.getNumberOfTeams()];
         for (int i = 0; i < context.getNumberOfTeams(); i++) {
-            String teamName = sortedTeamNames.get(i);
-            String teamDisplayName = gameManager.getTeamDisplayName(teamName);
-            ChatColor teamChatColor = gameManager.getTeamChatColor(teamName);
-            int teamScore = gameManager.getScore(teamName);
-            teamLines[i] = new KeyLine("team"+i, String.format("%s%s: %s", teamChatColor, teamDisplayName, teamScore));
+            String teamId = sortedTeamIds.get(i);
+            Component teamDisplayName = gameManager.getFormattedTeamDisplayName(teamId);
+            int teamScore = gameManager.getScore(teamId);
+            teamLines[i] = new KeyLine("team"+i, Component.empty()
+                    .append(teamDisplayName)
+                    .append(Component.text(": "))
+                    .append(Component.text(teamScore)
+                            .color(NamedTextColor.GOLD))
+            );
         }
         context.getAdminSidebar().addLine("currentGame", context.getCurrentGameLine());
         context.getAdminSidebar().addLines(teamLines);
@@ -162,7 +169,7 @@ public class OffState implements EventState {
             gameManager.returnAllParticipantsToHub();
             return;
         }
-        NamedTextColor teamColor = gameManager.getTeamNamedTextColor(winningTeam);
+        NamedTextColor teamColor = gameManager.getTeamColor(winningTeam);
         Component formattedTeamDisplayName = gameManager.getFormattedTeamDisplayName(winningTeam);
         Component message = Component.empty()
                 .append(formattedTeamDisplayName)
@@ -209,8 +216,7 @@ public class OffState implements EventState {
         try {
             context.getColossalCombatGame().loadConfig();
         } catch (ConfigException e) {
-            Main.logger().severe(e.getMessage());
-            e.printStackTrace();
+            Main.logger().log(Level.SEVERE, e.getMessage(), e);
             sender.sendMessage(Component.text("Error loading config file. See console for details.")
                     .color(NamedTextColor.RED));
             context.messageAllAdmins(Component.text("Can't start ")

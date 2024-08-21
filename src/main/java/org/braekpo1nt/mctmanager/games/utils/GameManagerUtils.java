@@ -95,7 +95,7 @@ public class GameManagerUtils {
         
         for (String team : sortedTeams) {
             int teamScore = gameManager.getScore(team);
-            NamedTextColor teamNamedTextColor = gameManager.getTeamNamedTextColor(team);
+            NamedTextColor teamNamedTextColor = gameManager.getTeamColor(team);
             messageBuilder.append(Component.empty()
                             .append(gameManager.getFormattedTeamDisplayName(team))
                             .append(Component.text(" - "))
@@ -276,7 +276,7 @@ public class GameManagerUtils {
             if (gameManager.isOfflineIGN(ign)) {
                 String oldTeamName = gameManager.getOfflineIGNTeamName(ign);
                 if (oldTeamName != null && oldTeamName.equals(teamId)) {
-                    NamedTextColor teamColor = gameManager.getTeamNamedTextColor(teamId);
+                    NamedTextColor teamColor = gameManager.getTeamColor(teamId);
                     return CommandResult.success(Component.empty()
                             .append(Component.text(ign)
                                     .color(teamColor))

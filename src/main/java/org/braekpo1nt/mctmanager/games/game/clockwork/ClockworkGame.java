@@ -447,7 +447,7 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
     }
     
     @Override
-    public void updateTeamScore(Player participant, String contents) {
+    public void updateTeamScore(Player participant, Component contents) {
         if (sidebar == null) {
             return;
         }
@@ -458,7 +458,7 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
     }
     
     @Override
-    public void updatePersonalScore(Player participant, String contents) {
+    public void updatePersonalScore(Player participant, Component contents) {
         if (sidebar == null) {
             return;
         }
