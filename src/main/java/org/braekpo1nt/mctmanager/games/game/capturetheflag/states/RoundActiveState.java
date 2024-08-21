@@ -133,7 +133,6 @@ public class RoundActiveState implements CaptureTheFlagState {
     
     @Override
     public void stop() {
-        cancelAllTasks();
         for (CaptureTheFlagMatch match : matches.values()) {
             match.stop();
         }
@@ -142,10 +141,6 @@ public class RoundActiveState implements CaptureTheFlagState {
             resetParticipant(participant);
         }
         onDeckParticipants.clear();
-    }
-    
-    private void cancelAllTasks() {
-        context.getTimerManager().cancel();
     }
     
     @Override
