@@ -1777,9 +1777,9 @@ public class GameManager implements Listener {
         return ColorMap.getStainedGlassColor(colorString);
     }
     
-    public ChatColor getTeamChatColor(@NotNull String teamName) {
+    public NamedTextColor getTeamColor(@NotNull String teamName) {
         String colorString = gameStateStorageUtil.getTeamColorString(teamName);
-        return ColorMap.getChatColor(colorString);
+        return ColorMap.getNamedTextColor(colorString);
     }
     
     public Material getTeamBannerColor(@NotNull String teamName) {
@@ -1833,13 +1833,17 @@ public class GameManager implements Listener {
         this.sidebarFactory = sidebarFactory;
     }
     
-    private void updateTeamScore(String team) {
-        String displayName = getTeamDisplayName(team);
-        ChatColor teamChatColor = getTeamChatColor(team);
-        int teamScore = getScore(team);
+    private void updateTeamScore(String teamId) {
+        Component teamDisplayName = getFormattedTeamDisplayName(teamId);
+        int teamScore = getScore(teamId);
         if (activeGame != null && activeGame instanceof Headerable headerable) {
-            for (Player participant : getOnlinePlayersOnTeam(team)) {
-                headerable.updateTeamScore(participant, String.format("%s%s: %s%s", teamChatColor, displayName, ChatColor.GOLD, teamScore));
+            for (Player participant : getOnlinePlayersOnTeam(teamId)) {
+                headerable.updateTeamScore(participant, Component.empty()
+                        .append(teamDisplayName)
+                        .append(Component.text(": "))
+                        .append(Component.text(teamScore)
+                                .color(NamedTextColor.GOLD))
+                );
             }
         }
         if (eventManager.eventIsActive()) {
@@ -1850,7 +1854,10 @@ public class GameManager implements Listener {
     
     private void updatePersonalScore(Player participant) {
         int score = getScore(participant.getUniqueId());
-        String contents = String.format("%sPersonal: %s", ChatColor.GOLD, score);
+        Component contents = Component.empty()
+                .append(Component.text("Personal: "))
+                .append(Component.text(score))
+                .color(NamedTextColor.GOLD);
         if (activeGame != null && activeGame instanceof Headerable headerable) {
             headerable.updatePersonalScore(participant, contents);
         }
@@ -1858,5 +1865,16 @@ public class GameManager implements Listener {
             eventManager.updatePersonalScore(participant, contents);
         }
         hubManager.updateLeaderboards();
+    }
+    
+    /**
+     * @param teamId the teamId to get the {@link ChatColor} for
+     * @return the {@link ChatColor} associated with the given teamId
+     * @deprecated in favor of {@link #getTeamColor(String)} because {@link ChatColor} is deprecated.
+     * As soon as DecentHolograms implements adventure components overloads, this will be removed. 
+     */
+    @Deprecated
+    public ChatColor getTeamChatColor(String teamId) {
+        return null;
     }
 }

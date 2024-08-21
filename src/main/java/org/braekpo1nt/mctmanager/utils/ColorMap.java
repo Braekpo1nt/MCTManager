@@ -42,6 +42,10 @@ public class ColorMap {
         }
     }
     
+    /**
+     * @deprecated in favor of {@link #NAMED_TEXT_COLOR_MAP} because {@link ChatColor} is deprecated in favor of {@link NamedTextColor}
+     */
+    @Deprecated
     private static final Map<String, ChatColor> CHAT_COLOR_MAP = new HashMap<>();
     
     static {
@@ -166,6 +170,12 @@ public class ColorMap {
                 .toList();
     }
     
+    /**
+     * @param colorString a string representing the color
+     * @return the {@link ChatColor} associated with the given colorString ({@link ChatColor#WHITE} if the colorString is not valid)
+     * @deprecated in favor of {@link #getNamedTextColor(String)} because {@link ChatColor} is deprecated. As soon as DecentHolograms implements adventure Components this will be removed
+     */
+    @Deprecated
     public static ChatColor getChatColor(String colorString) {
         return CHAT_COLOR_MAP.getOrDefault(colorString.toLowerCase(), ChatColor.WHITE);
     }

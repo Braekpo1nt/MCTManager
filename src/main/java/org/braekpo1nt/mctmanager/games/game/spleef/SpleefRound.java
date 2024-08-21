@@ -15,7 +15,6 @@ import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.block.Block;
 import org.bukkit.block.structure.Mirror;
@@ -113,7 +112,6 @@ public class SpleefRound implements Listener {
     }
     
     private void rejoinParticipant(Player participant) {
-        participant.sendMessage(ChatColor.YELLOW + "You have rejoined Spleef");
         participants.add(participant);
         participant.setGameMode(GameMode.SPECTATOR);
     }
@@ -423,7 +421,7 @@ public class SpleefRound implements Listener {
             return;
         }
         if (!config.getSafetyArea().contains(event.getFrom().toVector())) {
-            participant.teleport(config.getStartingLocations().get(0));
+            participant.teleport(config.getStartingLocations().getFirst());
             return;
         }
         if (!config.getSafetyArea().contains(event.getTo().toVector())) {
@@ -461,7 +459,7 @@ public class SpleefRound implements Listener {
     private void teleportParticipantToRandomStartingPosition(Player participant) {
         int index = random.nextInt(config.getStartingLocations().size());
         participant.teleport(config.getStartingLocations().get(index));
-        participant.setBedSpawnLocation(config.getStartingLocations().get(index), true);
+        participant.setRespawnLocation(config.getStartingLocations().get(index), true);
     }
     
     private void cancelAllTasks() {
