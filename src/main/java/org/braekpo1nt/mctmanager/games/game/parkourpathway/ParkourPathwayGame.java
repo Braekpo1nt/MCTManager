@@ -726,6 +726,9 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
             
         }
         if (allPlayersHaveFinished()) {
+            for (Player p : participants) {
+                p.setGameMode(GameMode.SPECTATOR);
+            }
             stop();
             return;
         }
@@ -865,6 +868,9 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
                     messageAllParticipants(Component.text("No one has reached a new checkpoint in the last ")
                             .append(TimeStringUtils.getTimeComponent(config.getMercyRuleDuration()))
                             .append(Component.text(". Stopping early")));
+                    for (Player participant : participants) {
+                        participant.setGameMode(GameMode.SPECTATOR);
+                    }
                     stop();
                 })
                 .build().start(plugin);
@@ -900,7 +906,12 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
                 .withSidebar(sidebar, "timer")
                 .withSidebar(adminSidebar, "timer")
                 .timerColor(NamedTextColor.RED)
-                .onCompletion(this::stop)
+                .onCompletion(() -> {
+                    for (Player participant : participants) {
+                        participant.setGameMode(GameMode.SPECTATOR);
+                    }
+                    stop();
+                })
                 .build());
     }
     
