@@ -70,16 +70,17 @@ public class MCTDebugCommand implements TabExecutor, Listener {
                     .append(Component.newline())
                     .append(Component.text("   "))
                     .append(getParticipantNamesLine())
-            ;
+                    .append(Component.text("   "))
+                    ;
         }
         
         private Component getParticipantNamesLine() {
             List<Integer> nameLengths = participants.stream().map(participant -> participant.getName().length()).toList();
-            int maxNameLength = calculateMaxNameLength(nameLengths, 45);
+            List<Integer> trimLengths = getTrimLengths(nameLengths, 40 - (nameLengths.size() - 1));
             TextComponent.Builder builder = Component.text();
             for (int i = 0; i < participants.size(); i++) {
                 Participant participant = participants.get(i);
-                builder.append(participant.toTabListEntry(color, maxNameLength));
+                builder.append(participant.toTabListEntry(color, trimLengths.get(i)));
                 if (i < participants.size() - 1) {
                     builder.append(Component.space());
                 }
@@ -87,40 +88,28 @@ public class MCTDebugCommand implements TabExecutor, Listener {
             return builder.build();
         }
         
-        public static int calculateMaxNameLength(List<Integer> nameLengths, int maxLineLength) {
-            // Calculate the total initial length with spaces between names
-            int totalLength = nameLengths.stream().mapToInt(Integer::intValue).sum() + (nameLengths.size() - 1);
-            
-            if (totalLength <= maxLineLength) {
-                // If total length is already within the limit, no trimming is needed
-                return Collections.max(nameLengths);
+        public static @NotNull List<Integer> getTrimLengths(@NotNull List<Integer> nameLengths, int maxLineLength) {
+            List<Integer> trimmedLengths = new ArrayList<>(nameLengths);
+            if (trimmedLengths.isEmpty()) {
+                return trimmedLengths;
             }
-            
-            List<Integer> lengths = new ArrayList<>(nameLengths);
-            // Sort the lengths in descending order
-            lengths.sort(Collections.reverseOrder());
-            
-            // Iteratively reduce the length of the longest names
-            int index = 0;
-            while (totalLength > maxLineLength && index < lengths.size()) {
-                int maxLength = lengths.get(index);
-                
-                for (int i = 0; i < lengths.size(); i++) {
-                    if (lengths.get(i) == maxLength) {
-                        lengths.set(i, lengths.get(i) - 1);
-                        totalLength--;
-                        
-                        if (totalLength <= maxLineLength) {
-                            break;
-                        }
+            int totalLength = trimmedLengths.stream().mapToInt(Integer::intValue).sum();
+            int numOfNames = trimmedLengths.size();
+            while (totalLength > maxLineLength) {
+                int maxIndex = 0;
+                int maxValue = trimmedLengths.getFirst();
+                for (int i = 1; i < numOfNames; i++) {
+                    int value = trimmedLengths.get(i);
+                    if (value > maxValue) {
+                        maxValue = value;
+                        maxIndex = i;
                     }
                 }
+                trimmedLengths.set(maxIndex, maxValue - 1);
+                totalLength--;
             }
-            
-            // The maximum length that any name can have after trimming
-            return Collections.min(lengths);
+            return trimmedLengths;
         }
-        
     }
     
     private static final List<Team> allTeams;
@@ -138,24 +127,24 @@ public class MCTDebugCommand implements TabExecutor, Listener {
                         2112
                 ),
                 new Team(
-                        NamedTextColor.DARK_PURPLE,
-                        "Purple Pandas",
+                        NamedTextColor.DARK_AQUA,
+                        "Teal Turkeys",
                         List.of(
-                                new Participant("SolidarityGaming1111111111111111",false),
-                                new Participant("InTheLittleWood",false),
-                                new Participant("FireBreathMan",false),
-                                new Participant("Smajor1",false)
+                                new Participant("SolidarityGaming",true),
+                                new Participant("cubfan13",true),
+                                new Participant("jojosolo",false),
+                                new Participant("smajor199",true)
                         ),
                         1299
                 ),
                 new Team(
-                        NamedTextColor.BLUE,
-                        "Blue Bats",
+                        NamedTextColor.GOLD,
+                        "Giner Breadmen",
                         List.of(
-                                new Participant("ShubbleYT",false),
-                                new Participant("Krtzy",false),
-                                new Participant("falsesymmetry",false),
-                                new Participant("fruitberries",false)
+                                new Participant("GoodTimesWithScar",true),
+                                new Participant("FireBreathMan",true),
+                                new Participant("Owengejuice",true),
+                                new Participant("bekyamon",true)
                         ),
                         1177
                 )
