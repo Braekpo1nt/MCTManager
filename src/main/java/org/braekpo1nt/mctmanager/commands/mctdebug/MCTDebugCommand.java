@@ -15,6 +15,7 @@ import org.bukkit.event.Listener;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -33,42 +34,93 @@ public class MCTDebugCommand implements TabExecutor, Listener {
     @Data
     @AllArgsConstructor
     public static class Participant {
-        private @NotNull Component name;
-        private boolean alive;
-        public Component toTabListEntry(TextColor color) {
-            if (alive) {
-                return name.color(color);
+        private final @NotNull String name;
+        private final boolean alive;
+        
+        public Component toTabListEntry(TextColor color, int maxLength) {
+            String resultName;
+            if (name.length() > maxLength) {
+                resultName = name.substring(0, maxLength);
+            } else {
+                resultName = name;
             }
-            return name.color(NamedTextColor.DARK_GRAY);
+            if (alive) {
+                return Component.text(resultName).color(color);
+            }
+            return Component.text(resultName).color(NamedTextColor.DARK_GRAY);
         }
     }
     
     @Data
     @AllArgsConstructor
     public static class Team {
-        private @NotNull TextColor color;
-        private @NotNull Component name;
-        private @NotNull List<Participant> participants;
-        private int score;
+        private final @NotNull TextColor color;
+        private final @NotNull String name;
+        private final @NotNull List<Participant> participants;
+        private final int score;
         
         public Component toTabListLine(int index) {
-            TextComponent.Builder builder = Component.text();
-            builder
+            return Component.empty()
                     .append(Component.text(index))
                     .append(Component.text(". "))
-                    .append(name.color(color))
+                    .append(Component.text(name)
+                            .color(color))
                     .append(Component.text("                          "))
                     .append(Component.text(score))
                     .append(Component.newline())
                     .append(Component.text("   "))
+                    .append(getParticipantNamesLine())
             ;
-            
-            for (Participant participant : participants) {
-                builder.append(participant.toTabListEntry(color));
-                builder.append(Component.text("  "));
-            }
-            return builder.asComponent();
         }
+        
+        private Component getParticipantNamesLine() {
+            List<Integer> nameLengths = participants.stream().map(participant -> participant.getName().length()).toList();
+            int maxNameLength = calculateMaxNameLength(nameLengths, 45);
+            TextComponent.Builder builder = Component.text();
+            for (int i = 0; i < participants.size(); i++) {
+                Participant participant = participants.get(i);
+                builder.append(participant.toTabListEntry(color, maxNameLength));
+                if (i < participants.size() - 1) {
+                    builder.append(Component.space());
+                }
+            }
+            return builder.build();
+        }
+        
+        public static int calculateMaxNameLength(List<Integer> nameLengths, int maxLineLength) {
+            // Calculate the total initial length with spaces between names
+            int totalLength = nameLengths.stream().mapToInt(Integer::intValue).sum() + (nameLengths.size() - 1);
+            
+            if (totalLength <= maxLineLength) {
+                // If total length is already within the limit, no trimming is needed
+                return Collections.max(nameLengths);
+            }
+            
+            List<Integer> lengths = new ArrayList<>(nameLengths);
+            // Sort the lengths in descending order
+            lengths.sort(Collections.reverseOrder());
+            
+            // Iteratively reduce the length of the longest names
+            int index = 0;
+            while (totalLength > maxLineLength && index < lengths.size()) {
+                int maxLength = lengths.get(index);
+                
+                for (int i = 0; i < lengths.size(); i++) {
+                    if (lengths.get(i) == maxLength) {
+                        lengths.set(i, lengths.get(i) - 1);
+                        totalLength--;
+                        
+                        if (totalLength <= maxLineLength) {
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            // The maximum length that any name can have after trimming
+            return Collections.min(lengths);
+        }
+        
     }
     
     private static final List<Team> allTeams;
@@ -76,34 +128,34 @@ public class MCTDebugCommand implements TabExecutor, Listener {
         allTeams = List.of(
                 new Team(
                         NamedTextColor.YELLOW,
-                        Component.text("Yellow Yaks"),
+                        "Yellow Yaks",
                         List.of(
-                                new Participant(Component.text("Purpled"),true),
-                                new Participant(Component.text("Antfrost"),true),
-                                new Participant(Component.text("vGumiho"),false),
-                                new Participant(Component.text("RedVelvetCake"),true)
+                                new Participant("Purpled",true),
+                                new Participant("Antfrost",true),
+                                new Participant("vGumiho",false),
+                                new Participant("RedVelvetCake",true)
                         ),
                         2112
                 ),
                 new Team(
                         NamedTextColor.DARK_PURPLE,
-                        Component.text("Purple Pandas"),
+                        "Purple Pandas",
                         List.of(
-                                new Participant(Component.text("SolidarityGaming"),false),
-                                new Participant(Component.text("InTheLittleWood"),false),
-                                new Participant(Component.text("FireBreathMan"),false),
-                                new Participant(Component.text("Smajor1"),false)
+                                new Participant("SolidarityGaming1111111111111111",false),
+                                new Participant("InTheLittleWood",false),
+                                new Participant("FireBreathMan",false),
+                                new Participant("Smajor1",false)
                         ),
                         1299
                 ),
                 new Team(
                         NamedTextColor.BLUE,
-                        Component.text("Blue Bats"),
+                        "Blue Bats",
                         List.of(
-                                new Participant(Component.text("ShubbleYT"),false),
-                                new Participant(Component.text("Krtzy"),false),
-                                new Participant(Component.text("falsesymmetry"),false),
-                                new Participant(Component.text("fruitberries"),false)
+                                new Participant("ShubbleYT",false),
+                                new Participant("Krtzy",false),
+                                new Participant("falsesymmetry",false),
+                                new Participant("fruitberries",false)
                         ),
                         1177
                 )
