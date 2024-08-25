@@ -22,7 +22,7 @@ public class MatchOverState implements CaptureTheFlagMatchState {
     
     public MatchOverState(CaptureTheFlagMatch context) {
         this.context = context;
-        Audience.audience(context.getAllParticipants()).showTitle(UIUtils.matchOverTitle());
+//        Audience.audience(context.getAllParticipants()).showTitle(UIUtils.matchOverTitle());
         for (Player participant : context.getAllParticipants()) {
             if (context.getParticipantsAreAlive().get(participant.getUniqueId())) {
                 participant.teleport(context.getConfig().getSpawnObservatory());
