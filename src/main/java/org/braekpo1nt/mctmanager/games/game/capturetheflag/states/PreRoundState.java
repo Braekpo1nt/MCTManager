@@ -33,6 +33,14 @@ public class PreRoundState implements CaptureTheFlagState {
         this.topbar = context.getTopbar();
         this.roundManager = context.getRoundManager();
         
+        Component roundLine = Component.empty()
+                .append(Component.text("Round "))
+                .append(Component.text(roundManager.getCurrentRoundIndex() + 1))
+                .append(Component.text("/"))
+                .append(Component.text(roundManager.getMaxRounds()))
+                ;
+        context.getSidebar().updateLine("round", roundLine);
+        context.getAdminSidebar().updateLine("round", roundLine);
         announceMatchToParticipants();
         setUpTopbarForRound();
         context.getTimerManager().start(Timer.builder()

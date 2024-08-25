@@ -168,6 +168,9 @@ public class RoundActiveState implements CaptureTheFlagState {
         context.getSidebar().updateLine("round", roundLine);
         context.getAdminSidebar().updateLine("round", roundLine);
         String teamId = gameManager.getTeamId(participant.getUniqueId());
+        participant.setGameMode(GameMode.ADVENTURE);
+        participant.teleport(context.getConfig().getSpawnObservatory());
+        participant.setRespawnLocation(context.getConfig().getSpawnObservatory(), true);
         CaptureTheFlagMatch match = getMatch(teamId);
         if (match == null) {
             Component teamDisplayName = gameManager.getFormattedTeamDisplayName(teamId);
@@ -177,9 +180,6 @@ public class RoundActiveState implements CaptureTheFlagState {
                     .append(Component.text(" is on-deck this round."))
                     .color(NamedTextColor.YELLOW));
         } else {
-            participant.setGameMode(GameMode.ADVENTURE);
-            participant.teleport(context.getConfig().getSpawnObservatory());
-            participant.setRespawnLocation(context.getConfig().getSpawnObservatory(), true);
             match.onParticipantJoin(participant);
         }
     }
@@ -195,18 +195,13 @@ public class RoundActiveState implements CaptureTheFlagState {
         String teamId = gameManager.getTeamId(participant.getUniqueId());
         CaptureTheFlagMatch match = getMatch(teamId);
         if (match == null) {
-            resetOnDeckParticipant(participant);
+            participant.setGameMode(GameMode.ADVENTURE);
             onDeckParticipants.remove(participant);
-            return;
+        } else {
+            match.onParticipantQuit(participant);
         }
-        match.onParticipantQuit(participant);
         context.resetParticipant(participant);
         context.getParticipants().remove(participant);
-    }
-    
-    private void resetOnDeckParticipant(Player participant) {
-        participant.setGameMode(GameMode.ADVENTURE);
-        context.resetParticipant(participant);
     }
     
     public void resetParticipant(Player participant) {

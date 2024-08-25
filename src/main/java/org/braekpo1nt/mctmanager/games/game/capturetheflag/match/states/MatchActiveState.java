@@ -1,8 +1,10 @@
 package org.braekpo1nt.mctmanager.games.game.capturetheflag.match.states;
 
 import io.papermc.paper.entity.LookAnchor;
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.Arena;
@@ -61,6 +63,15 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
         context.messageAllParticipants(Component.empty()
                 .append(Component.text("Match over. "))
                 .append(reason));
+        Audience.audience(context.getAllParticipants()).showTitle(
+                Title.title(
+                    Component.empty()
+                            .append(Component.text("Match Over!"))
+                            .color(NamedTextColor.RED),
+                    reason, 
+                    UIUtils.DEFAULT_TIMES
+                )
+        );
         context.setState(new MatchOverState(context));
     }
     
@@ -78,7 +89,39 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
                 .append(Component.text("'s flag!"))
                 .color(NamedTextColor.YELLOW));
         gameManager.awardPointsToTeam(winningTeam, context.getConfig().getWinScore());
+        showWinLoseTitles(winningTeam);
         context.setState(new MatchOverState(context));
+    }
+    
+    private void showWinLoseTitles(String winningTeam) {
+        for (Player participant : context.getAllParticipants()) {
+            String teamId = gameManager.getTeamId(participant.getUniqueId());
+            if (winningTeam.equals(teamId)) {
+                participant.showTitle(
+                    Title.title(
+                        Component.empty()
+                                .append(Component.text("Match Over!"))
+                                .color(NamedTextColor.RED),
+                        Component.empty()
+                                .append(Component.text("You won!"))
+                                .color(NamedTextColor.GREEN),
+                        UIUtils.DEFAULT_TIMES
+                    )
+                );
+            } else {
+                participant.showTitle(
+                        Title.title(
+                                Component.empty()
+                                        .append(Component.text("Match Over!"))
+                                        .color(NamedTextColor.RED),
+                                Component.empty()
+                                        .append(Component.text("You lost"))
+                                        .color(NamedTextColor.RED),
+                                UIUtils.DEFAULT_TIMES
+                        )
+                );
+            }
+        }
     }
     
     private void onParticipantGetKill(@NotNull Player killer, @NotNull Player killed) {
@@ -92,10 +135,10 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
     
     @Override
     public void onParticipantJoin(Player participant) {
+        context.getParticipantsAreAlive().put(participant.getUniqueId(), false);
         context.initializeParticipant(participant);
         String teamId = context.getGameManager().getTeamId(participant.getUniqueId());
         context.getTopbar().linkToTeam(participant.getUniqueId(), teamId);
-        context.getParticipantsAreAlive().put(participant.getUniqueId(), false);
         participant.teleport(context.getConfig().getSpawnObservatory());
         participant.setRespawnLocation(context.getConfig().getSpawnObservatory(), true);
         Location lookLocation;

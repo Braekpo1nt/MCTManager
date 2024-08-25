@@ -9,6 +9,7 @@ import org.braekpo1nt.mctmanager.config.dto.org.bukkit.LocationDTO;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -17,13 +18,14 @@ import java.util.Collections;
 import java.util.List;
 
 record HubConfigDTO(
-        String version, 
-        String world, 
-        LocationDTO spawn, 
-        LocationDTO podium, 
+        String version,
+        String world,
+        LocationDTO spawn,
+        LocationDTO podium,
         LocationDTO podiumObservation,
         List<LeaderboardDTO> leaderboards,
-        double yLimit, 
+        List<Material> preventInteractions,
+        double yLimit,
         Durations durations) implements Validatable {
     
     @Override
@@ -56,6 +58,7 @@ record HubConfigDTO(
                 .leaderboards(LeaderboardDTO.toLeaderboards(this.leaderboards, newWorld))
                 .yLimit(this.yLimit)
                 .tpToHubDuration(this.durations.tpToHub)
+                .preventInteractions(this.preventInteractions != null ? this.preventInteractions : Collections.emptyList())
                 .build();
     }
     
