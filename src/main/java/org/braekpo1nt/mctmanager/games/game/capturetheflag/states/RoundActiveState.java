@@ -195,18 +195,13 @@ public class RoundActiveState implements CaptureTheFlagState {
         String teamId = gameManager.getTeamId(participant.getUniqueId());
         CaptureTheFlagMatch match = getMatch(teamId);
         if (match == null) {
-            resetOnDeckParticipant(participant);
+            participant.setGameMode(GameMode.ADVENTURE);
             onDeckParticipants.remove(participant);
-            return;
+        } else {
+            match.onParticipantQuit(participant);
         }
-        match.onParticipantQuit(participant);
         context.resetParticipant(participant);
         context.getParticipants().remove(participant);
-    }
-    
-    private void resetOnDeckParticipant(Player participant) {
-        participant.setGameMode(GameMode.ADVENTURE);
-        context.resetParticipant(participant);
     }
     
     public void resetParticipant(Player participant) {
