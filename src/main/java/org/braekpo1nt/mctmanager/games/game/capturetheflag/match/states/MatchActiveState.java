@@ -92,10 +92,10 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
     
     @Override
     public void onParticipantJoin(Player participant) {
+        context.getParticipantsAreAlive().put(participant.getUniqueId(), false);
         context.initializeParticipant(participant);
         String teamId = context.getGameManager().getTeamId(participant.getUniqueId());
         context.getTopbar().linkToTeam(participant.getUniqueId(), teamId);
-        context.getParticipantsAreAlive().put(participant.getUniqueId(), false);
         participant.teleport(context.getConfig().getSpawnObservatory());
         participant.setRespawnLocation(context.getConfig().getSpawnObservatory(), true);
         Location lookLocation;

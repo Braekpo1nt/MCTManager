@@ -114,7 +114,7 @@ public class CaptureTheFlagMatch {
         String teamId = gameManager.getTeamId(participant.getUniqueId());
         allParticipants.add(participant);
         UUID participantUniqueId = participant.getUniqueId();
-        participantsAreAlive.put(participantUniqueId, true);
+        participantsAreAlive.putIfAbsent(participantUniqueId, true);
         int alive;
         int dead;
         if (matchPairing.northTeam().equals(teamId)) {
