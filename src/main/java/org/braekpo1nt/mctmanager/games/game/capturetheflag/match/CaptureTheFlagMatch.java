@@ -164,7 +164,7 @@ public class CaptureTheFlagMatch {
         state.onParticipantQuit(participant);
     }
     
-    private int countAlive(List<Player> participants) {
+    public int countAlive(List<Player> participants) {
         int living = 0;
         for (Player participant : participants) {
             if (participantsAreAlive.get(participant.getUniqueId())) {
