@@ -85,9 +85,9 @@ public class RoundManagerTest {
         List<List<MatchPairing>> schedule = RoundManager.generateSchedule(teams, arenas);
         
         // Validate that all teams play exactly once against each other
-        int expectedMatches = teams.size() * (teams.size() - 1) / 2;
-        int actualMatches = schedule.stream().mapToInt(List::size).sum();
-        Assertions.assertEquals(expectedMatches, actualMatches, "Each team should play every other team exactly once.");
+        List<MatchPairing> matchPairings = schedule.stream().flatMap(List::stream).toList();
+        Set<MatchPairing> uniqueMatchPairings = new HashSet<>(matchPairings);
+        Assertions.assertEquals(uniqueMatchPairings.size(), matchPairings.size(), "Each team should play every other team exactly once");
         
         // Validate the number of rounds
         int expectedRounds = teams.size() - 1;
@@ -106,9 +106,9 @@ public class RoundManagerTest {
         List<List<MatchPairing>> schedule = RoundManager.generateSchedule(oddTeams, arenas);
         
         // Validate that all teams play exactly once against each other
-        int expectedMatches = oddTeams.size() * (oddTeams.size() - 1) / 2;
-        int actualMatches = schedule.stream().mapToInt(List::size).sum();
-        Assertions.assertEquals(expectedMatches, actualMatches, "Each team should play every other team exactly once.");
+        List<MatchPairing> matchPairings = schedule.stream().flatMap(List::stream).toList();
+        Set<MatchPairing> uniqueMatchPairings = new HashSet<>(matchPairings);
+        Assertions.assertEquals(uniqueMatchPairings.size(), matchPairings.size(), "Each team should play every other team exactly once");
         
         // Validate the number of rounds
         int expectedRounds = oddTeams.size();
@@ -126,12 +126,12 @@ public class RoundManagerTest {
         List<List<MatchPairing>> schedule = RoundManager.generateSchedule(teams, arenas);
         
         // Validate that all teams play exactly once against each other
-        int expectedMatches = teams.size() * (teams.size() - 1) / 2;
-        int actualMatches = schedule.stream().mapToInt(List::size).sum();
-        Assertions.assertEquals(expectedMatches, actualMatches, "Each team should play every other team exactly once.");
+        List<MatchPairing> matchPairings = schedule.stream().flatMap(List::stream).toList();
+        Set<MatchPairing> uniqueMatchPairings = new HashSet<>(matchPairings);
+        Assertions.assertEquals(uniqueMatchPairings.size(), matchPairings.size(), "Each team should play every other team exactly once");
         
         // Validate the number of rounds
-        int expectedRounds = expectedMatches;
+        int expectedRounds = teams.size() * (teams.size() - 1) / 2;
         Assertions.assertEquals(expectedRounds, schedule.size(), "There should be as many rounds as total matches when only one arena is available.");
     }
     
@@ -143,9 +143,9 @@ public class RoundManagerTest {
         
         // Validate that there is exactly one match
         Assertions.assertEquals(1, schedule.size(), "There should be exactly one round with two teams.");
-        Assertions.assertEquals(1, schedule.get(0).size(), "There should be exactly one match in the round.");
-        Assertions.assertEquals("Team A", schedule.get(0).get(0).northTeam(), "First team should be Team A.");
-        Assertions.assertEquals("Team B", schedule.get(0).get(0).southTeam(), "Second team should be Team B.");
+        Assertions.assertEquals(1, schedule.getFirst().size(), "There should be exactly one match in the round.");
+        Assertions.assertEquals("Team A", schedule.getFirst().getFirst().northTeam(), "First team should be Team A.");
+        Assertions.assertEquals("Team B", schedule.getFirst().getFirst().southTeam(), "Second team should be Team B.");
     }
     
     @Test
