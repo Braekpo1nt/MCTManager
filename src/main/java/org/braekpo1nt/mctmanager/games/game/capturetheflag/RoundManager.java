@@ -13,13 +13,13 @@ public class RoundManager {
      * The schedule handled by this round. Each element of the outer list
      * is a round. 
      */
-    private List<List<MatchPairing>> schedule = new ArrayList<>();
+    private @NotNull List<List<MatchPairing>> schedule;
     /**
      * the played {@link MatchPairing}s this game. Useful for when new teams join, we can re-generate matches
      * and remove already played ones. In the future, also could be useful for tracking wins, but would
      * need to be a map, and would need to be tracked by round. 
      */
-    private final List<MatchPairing> played = new ArrayList<>();
+    private final List<MatchPairing> played;
     /**
      * How many rounds have been played. Useful for outputting the current round to the players. 
      * equivalent to currentRoundIndex, unless a new team joins mid-game then they get out of sync
@@ -31,13 +31,13 @@ public class RoundManager {
      * The index of the current round
      */
     private int currentRoundIndex = 0;
-    private @NotNull List<MatchPairing> currentRound = Collections.emptyList();
+    private @NotNull List<MatchPairing> currentRound;
     
     /**
      * Used only for checking if a given teamId is contained in this {@link RoundManager} or not
      * @see #containsTeamId(String) 
      */
-    private @NotNull Set<String> teamIds = Collections.emptySet();
+    private @NotNull Set<String> teamIds;
     
     /**
      * @param teamId the teamId to check
@@ -72,13 +72,17 @@ public class RoundManager {
         this.teamIds = new HashSet<>(teamIds);
         Preconditions.checkArgument(this.teamIds.size() == teamIds.size(), "Duplicate teamId found in teamIds %s", teamIds.toString());
         this.schedule = generateSchedule(teamIds, numOfArenas);
-        if (schedule.isEmpty()) {
-            Main.logger().severe(String.format("Generated rounds were empty, teamIds: %s, numOfArenas: %d", teamIds, numOfArenas));
-            currentRound = Collections.emptyList();
-            return;
-        }
+        Preconditions.checkArgument(!schedule.isEmpty(), "Generated rounds were empty, teamIds: %s, numOfArenas: %s", teamIds, numOfArenas);
         currentRound = this.schedule.getFirst();
-        played.addAll(currentRound);
+        played = new ArrayList<>(currentRound);
+        int i = 1;
+        for (List<MatchPairing> round : schedule) {
+            Main.logger().info(String.format("Round %d:", i));
+            for (MatchPairing matchPairing : round) {
+                Main.logger().info(String.format("--%s", matchPairing));
+            }
+            i++;
+        }
     }
     
     /**
@@ -93,12 +97,8 @@ public class RoundManager {
         this.teamIds = new HashSet<>(teamIds);
         Preconditions.checkArgument(this.teamIds.size() == teamIds.size(), "Duplicate teamId found in teamIds %s", teamIds.toString());
         this.schedule = generateSchedule(teamIds, numOfArenas, played);
-        schedule.addFirst(currentRound);
-        currentRoundIndex = 0;
-        if (schedule.isEmpty()) {
-            Main.logger().severe(String.format("Generated rounds were empty, teamIds: %s, numOfArenas: %d", teamIds, numOfArenas));
-            currentRound = Collections.emptyList();
-        }
+        currentRoundIndex = -1;
+        Preconditions.checkArgument(!schedule.isEmpty(), "Generated rounds were empty, teamIds: %s, numOfArenas: %s", teamIds, numOfArenas);
     }
     
     /**

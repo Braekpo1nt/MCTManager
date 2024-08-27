@@ -159,6 +159,11 @@ public class RoundActiveState implements CaptureTheFlagState {
     public void onParticipantJoin(Player participant) {
         context.initializeParticipant(participant);
         context.getSidebar().updateLine(participant.getUniqueId(), "title", context.getTitle());
+        String teamId = context.getGameManager().getTeamId(participant.getUniqueId());
+        if (!context.getRoundManager().containsTeamId(teamId)) {
+            List<String> teamIds = context.getGameManager().getTeamIds(context.getParticipants());
+            context.getRoundManager().regenerateRounds(teamIds, context.getConfig().getArenas().size());
+        }
         Component roundLine = Component.empty()
                 .append(Component.text("Round "))
                 .append(Component.text(context.getRoundManager().getPlayedRounds() + 1))
@@ -167,7 +172,6 @@ public class RoundActiveState implements CaptureTheFlagState {
                 ;
         context.getSidebar().updateLine("round", roundLine);
         context.getAdminSidebar().updateLine("round", roundLine);
-        String teamId = gameManager.getTeamId(participant.getUniqueId());
         participant.setGameMode(GameMode.ADVENTURE);
         participant.teleport(context.getConfig().getSpawnObservatory());
         participant.setRespawnLocation(context.getConfig().getSpawnObservatory(), true);

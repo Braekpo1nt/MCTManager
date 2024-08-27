@@ -125,8 +125,12 @@ public class PreRoundState implements CaptureTheFlagState {
     @Override
     public void onParticipantJoin(Player participant) {
         context.initializeParticipant(participant);
-        // TODO implement how roundManager handles new teams joining
         context.getSidebar().updateLine(participant.getUniqueId(), "title", context.getTitle());
+        String teamId = context.getGameManager().getTeamId(participant.getUniqueId());
+        if (!context.getRoundManager().containsTeamId(teamId)) {
+            List<String> teamIds = context.getGameManager().getTeamIds(context.getParticipants());
+            context.getRoundManager().regenerateRounds(teamIds, context.getConfig().getArenas().size());
+        }
         Component roundLine = Component.empty()
                 .append(Component.text("Round "))
                 .append(Component.text(roundManager.getPlayedRounds() + 1))

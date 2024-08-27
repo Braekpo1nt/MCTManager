@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.capturetheflag;
 
+import org.braekpo1nt.mctmanager.Main;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -224,6 +225,37 @@ public class RoundManagerTest {
                 new MatchPairing("Team D", "Team E")
         ), roundManager.getCurrentRound());
         Assertions.assertEquals(4, roundManager.getPlayedRounds() + 1);
+    }
+    
+    @Test
+    void testThreeTeams() {
+//        List<String> teams2 = List.of("red", "blue");
+//        List<String> teams3 = List.of("red", "blue", "orange");
+        List<String> teams2 = List.of("A", "B", "C", "D", "E", "F", "G");
+        List<String> teams3 = List.of("A", "B", "C", "D", "E", "F", "G", "H");
+        List<List<MatchPairing>> schedule1 = RoundManager.generateSchedule(teams2, 4);
+        System.out.println("schedule1:");
+        printSchedule(schedule1);
+        
+        List<List<MatchPairing>> schedule2 = RoundManager.generateSchedule(teams3, 4);
+        System.out.println("schedule2:");
+        printSchedule(schedule2);
+        
+        List<List<MatchPairing>> schedule3 = RoundManager.generateSchedule(teams3, 4, List.of(new MatchPairing("red", "blue")));
+        System.out.println("schedule3:");
+        printSchedule(schedule3);
+        
+    }
+    
+    static void printSchedule(List<List<MatchPairing>> schedule) {
+        int i = 1;
+        for (List<MatchPairing> round : schedule) {
+            System.out.println(String.format("Round %d:", i));
+            for (MatchPairing matchPairing : round) {
+                System.out.println(String.format("--%s", matchPairing));
+            }
+            i++;
+        }
     }
     
 }

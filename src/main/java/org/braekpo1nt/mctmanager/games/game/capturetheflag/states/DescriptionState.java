@@ -12,6 +12,8 @@ import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 
+import java.util.List;
+
 public class DescriptionState implements CaptureTheFlagState {
     
     private final CaptureTheFlagGame context;
@@ -38,6 +40,11 @@ public class DescriptionState implements CaptureTheFlagState {
     @Override
     public void onParticipantJoin(Player participant) {
         initializeParticipant(participant);
+        String teamId = context.getGameManager().getTeamId(participant.getUniqueId());
+        if (!context.getRoundManager().containsTeamId(teamId)) {
+            List<String> teamIds = context.getGameManager().getTeamIds(context.getParticipants());
+            context.getRoundManager().regenerateRounds(teamIds, context.getConfig().getArenas().size());
+        }
     }
     
     private void initializeParticipant(Player participant) {
