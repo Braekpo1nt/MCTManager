@@ -1,6 +1,5 @@
 package org.braekpo1nt.mctmanager.games.game.capturetheflag;
 
-import org.braekpo1nt.mctmanager.Main;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -172,9 +171,9 @@ public class RoundManagerTest {
         RoundManager roundManager = new RoundManager(teams7, arenas);
         
         Assertions.assertEquals(List.of(
-                new MatchPairing("Team B", "Team G"),
-                new MatchPairing("Team C", "Team F"),
-                new MatchPairing("Team D", "Team E")
+                new MatchPairing("Team A", "Team G"),
+                new MatchPairing("Team B", "Team E"),
+                new MatchPairing("Team C", "Team D")
         ), roundManager.getCurrentRound());
         
         // Now we add a new team, "Team H" and regenerate the rounds
@@ -182,15 +181,18 @@ public class RoundManagerTest {
         roundManager.regenerateRounds(teams8, arenas);
         // Assert that the current round hasn't changed
         Assertions.assertEquals(List.of(
-                new MatchPairing("Team B", "Team G"),
-                new MatchPairing("Team C", "Team F"),
-                new MatchPairing("Team D", "Team E")
+                new MatchPairing("Team A", "Team G"),
+                new MatchPairing("Team B", "Team E"),
+                new MatchPairing("Team C", "Team D")
         ), roundManager.getCurrentRound());
         
         // Now we cycle to the next round
         roundManager.nextRound();
         Assertions.assertEquals(List.of(
-                new MatchPairing("Team A", "Team H")
+                new MatchPairing("Team A", "Team H"),
+                new MatchPairing("Team B", "Team G"),
+                new MatchPairing("Team C", "Team F"),
+                new MatchPairing("Team D", "Team E")
         ), roundManager.getCurrentRound());
         Assertions.assertEquals(2, roundManager.getPlayedRounds() + 1);
     }
@@ -211,14 +213,17 @@ public class RoundManagerTest {
         roundManager.regenerateRounds(teams8, arenas);
         // Assert that the current round hasn't changed
         Assertions.assertEquals(List.of(
-                new MatchPairing("Team A", "Team F"),
-                new MatchPairing("Team E", "Team G"),
-                new MatchPairing("Team B", "Team C")
+                new MatchPairing("Team A", "Team E"),
+                new MatchPairing("Team D", "Team F"),
+                new MatchPairing("Team C", "Team G")
         ), roundManager.getCurrentRound());
         
         roundManager.nextRound();
         Assertions.assertEquals(List.of(
-                new MatchPairing("Team A", "Team H")
+                new MatchPairing("Team A", "Team H"),
+                new MatchPairing("Team B", "Team G"),
+                new MatchPairing("Team C", "Team F"),
+                new MatchPairing("Team D", "Team E")
         ), roundManager.getCurrentRound());
         Assertions.assertEquals(4, roundManager.getPlayedRounds() + 1);
     }

@@ -184,7 +184,7 @@ public class RoundManager {
         
         // If odd number of teams, add a bye
         if (numOfTeams % 2 != 0) {
-            rotatingTeams.add(BYE);
+            rotatingTeams.add(1, BYE);
             numOfTeams++;
         }
         
