@@ -61,6 +61,16 @@ public class RoundManager {
         return null;
     }
     
+    private static void logSchedule(List<List<MatchPairing>> schedule) {
+        for (int i = 0; i < schedule.size(); i++) {
+            List<MatchPairing> round = schedule.get(i);
+            Main.logger().info(String.format("Round %d:", i));
+            for (MatchPairing matchPairing : round) {
+                Main.logger().info(String.format("- %s", matchPairing));
+            }
+        }
+    }
+    
     /**
      * Initialize the RoundManager to handle rounds for a game
      * @param teamIds the teamIds of the teams in the round (must have at least 2 entries)
@@ -75,14 +85,7 @@ public class RoundManager {
         Preconditions.checkArgument(!schedule.isEmpty(), "Generated rounds were empty, teamIds: %s, numOfArenas: %s", teamIds, numOfArenas);
         currentRound = this.schedule.getFirst();
         played = new ArrayList<>(currentRound);
-        int i = 1;
-        for (List<MatchPairing> round : schedule) {
-            Main.logger().info(String.format("Round %d:", i));
-            for (MatchPairing matchPairing : round) {
-                Main.logger().info(String.format("--%s", matchPairing));
-            }
-            i++;
-        }
+        logSchedule(schedule);
     }
     
     /**
@@ -98,15 +101,7 @@ public class RoundManager {
         Preconditions.checkArgument(this.teamIds.size() == teamIds.size(), "Duplicate teamId found in teamIds %s", teamIds.toString());
         this.schedule = generateSchedule(teamIds, numOfArenas, played);
         currentRoundIndex = -1;
-        Preconditions.checkArgument(!schedule.isEmpty(), "Generated rounds were empty, teamIds: %s, numOfArenas: %s", teamIds, numOfArenas);
-        int i = 1;
-        for (List<MatchPairing> round : schedule) {
-            Main.logger().info(String.format("Round %d:", i));
-            for (MatchPairing matchPairing : round) {
-                Main.logger().info(String.format("--%s", matchPairing));
-            }
-            i++;
-        }
+        logSchedule(schedule);
     }
     
     /**
