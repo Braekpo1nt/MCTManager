@@ -165,11 +165,9 @@ public class RoundManagerTest {
     @Test
     void testNewTeamJoiningDuringRound1() {
         List<String> teams7 = List.of("Team A", "Team B", "Team C", "Team D", "Team E", "Team F", "Team G");
-        RoundManager roundManager = new RoundManager();
         int arenas = 4;
+        RoundManager roundManager = new RoundManager(teams7, arenas);
         
-        // Initalize the round manager as normal with the 7 teams
-        roundManager.initialize(teams7, arenas);
         Assertions.assertEquals(List.of(
                 new MatchPairing("Team A", "Team G"),
                 new MatchPairing("Team B", "Team F"),
@@ -200,11 +198,9 @@ public class RoundManagerTest {
     @Test
     void testNewTeamJoiningDuringRound3() {
         List<String> teams7 = List.of("Team A", "Team B", "Team C", "Team D", "Team E", "Team F", "Team G");
-        RoundManager roundManager = new RoundManager();
         int arenas = 4;
+        RoundManager roundManager = new RoundManager(teams7, arenas);
         
-        // Initalize the round manager as normal with the 7 teams
-        roundManager.initialize(teams7, arenas);
         roundManager.nextRound();
         roundManager.nextRound();
         Assertions.assertEquals(3, roundManager.getPlayedRounds() + 1);

@@ -34,6 +34,12 @@ public class RoundManager {
     private @NotNull List<MatchPairing> currentRound = Collections.emptyList();
     
     /**
+     * Used only for checking if a given teamId is contained in this {@link RoundManager} or not
+     * @see #containsTeamId(String) 
+     */
+    private @NotNull Set<String> teamIds = Collections.emptySet();
+    
+    /**
      * @param teamId the teamId to check
      * @param round the round to check
      * @return the opposite teamId of the given teamId in the given round (if they are present), null if the given team is on-deck
@@ -56,29 +62,15 @@ public class RoundManager {
     }
     
     /**
-     * @return the number of rounds that have been played. Starts at 0. 
-     */
-    public int getPlayedRounds() {
-        return playedRounds;
-    }
-    
-    /**
-     * @return the total number of rounds that will be played during the game
-     */
-    public int getMaxRounds() {
-        return playedRounds + schedule.size();
-    }
-    
-    /**
      * Initialize the RoundManager to handle rounds for a game
      * @param teamIds the teamIds of the teams in the round (must have at least 2 entries)
      * @param numOfArenas the number of arenas (must be greater than 0)
      */
-    public void initialize(@NotNull List<@NotNull String> teamIds, int numOfArenas) {
+    public RoundManager(@NotNull List<@NotNull String> teamIds, int numOfArenas) {
         Preconditions.checkArgument(teamIds.size() >= 2, "There must be at least two teamIds (got %s)", teamIds.size());
         Preconditions.checkArgument(numOfArenas > 0, "there must be at least 1 arena");
-        Set<String> uniqueTeams = new HashSet<>(teamIds);
-        Preconditions.checkArgument(uniqueTeams.size() == teamIds.size(), "Duplicate teamId found in teamIds %s", teamIds.toString());
+        this.teamIds = new HashSet<>(teamIds);
+        Preconditions.checkArgument(this.teamIds.size() == teamIds.size(), "Duplicate teamId found in teamIds %s", teamIds.toString());
         this.schedule = generateSchedule(teamIds, numOfArenas);
         if (schedule.isEmpty()) {
             Main.logger().severe(String.format("Generated rounds were empty, teamIds: %s, numOfArenas: %d", teamIds, numOfArenas));
@@ -98,8 +90,8 @@ public class RoundManager {
     public void regenerateRounds(@NotNull List<@NotNull String> teamIds, int numOfArenas) {
         Preconditions.checkArgument(teamIds.size() >= 2, "There must be at least two teamIds (got %s)", teamIds.size());
         Preconditions.checkArgument(numOfArenas > 0, "there must be at least 1 arena");
-        Set<String> uniqueTeams = new HashSet<>(teamIds);
-        Preconditions.checkArgument(uniqueTeams.size() == teamIds.size(), "Duplicate teamId found in teamIds %s", teamIds.toString());
+        this.teamIds = new HashSet<>(teamIds);
+        Preconditions.checkArgument(this.teamIds.size() == teamIds.size(), "Duplicate teamId found in teamIds %s", teamIds.toString());
         this.schedule = generateSchedule(teamIds, numOfArenas, played);
         schedule.addFirst(currentRound);
         currentRoundIndex = 0;
@@ -107,6 +99,28 @@ public class RoundManager {
             Main.logger().severe(String.format("Generated rounds were empty, teamIds: %s, numOfArenas: %d", teamIds, numOfArenas));
             currentRound = Collections.emptyList();
         }
+    }
+    
+    /**
+     * @return the number of rounds that have been played. Starts at 0. 
+     */
+    public int getPlayedRounds() {
+        return playedRounds;
+    }
+    
+    /**
+     * @return the total number of rounds that will be played during the game
+     */
+    public int getMaxRounds() {
+        return playedRounds + schedule.size();
+    }
+    
+    /**
+     * @param teamId the teamId to check for
+     * @return true if the given teamId is contained in this {@link RoundManager}, false otherwise
+     */
+    public boolean containsTeamId(String teamId) {
+        return teamIds.contains(teamId);
     }
     
     /**
@@ -180,5 +194,4 @@ public class RoundManager {
         
         return schedule;
     }
-    
 }

@@ -110,7 +110,8 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         participants = new ArrayList<>(newParticipants.size());
         sidebar = gameManager.getSidebarFactory().createSidebar();
         adminSidebar = gameManager.getSidebarFactory().createSidebar();
-        roundManager = new RoundManager();
+        List<String> teamIds = gameManager.getTeamIds(newParticipants);
+        roundManager = new RoundManager(teamIds, config.getArenas().size());
         killCount = new HashMap<>(newParticipants.size());
         deathCount = new HashMap<>(newParticipants.size());
         for (Player participant : newParticipants) {
@@ -118,8 +119,6 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         }
         initializeSidebar();
         startAdmins(newAdmins);
-        List<String> teamIds = gameManager.getTeamIds(newParticipants);
-        roundManager.initialize(teamIds, config.getArenas().size());
         setState(new DescriptionState(this));
         Main.logger().info("Starting Capture the Flag");
     }
