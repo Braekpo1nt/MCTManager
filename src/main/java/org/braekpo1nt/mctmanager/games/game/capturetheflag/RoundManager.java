@@ -158,7 +158,33 @@ public class RoundManager {
     }
     
     public static List<List<MatchPairing>> generateSchedule(@NotNull List<String> teamIds, int numOfArenas) {
-        return generateSchedule(teamIds, numOfArenas, Collections.emptyList());
+        int numOfTeams = teamIds.size();
+        List<List<MatchPairing>> schedule = new ArrayList<>();
+        int numOfRounds = (numOfTeams % 2 == 0) ? numOfTeams - 1 : numOfTeams;
+        
+        // Clone the teams list so as not to modify the original
+        List<String> rotatingTeams = new ArrayList<>(teamIds);
+        
+        for (int round = 0; round < numOfRounds; round++) {
+            List<MatchPairing> roundMatches = new ArrayList<>();
+            
+            for (int i = 0; i < numOfTeams / 2; i++) {
+                int index = numOfTeams - 1 - i;
+                MatchPairing match = new MatchPairing(rotatingTeams.get(i), rotatingTeams.get(index));
+                roundMatches.add(match);
+            }
+            
+            // Rotate teams, keeping the first one fixed
+            rotatingTeams.add(1, rotatingTeams.removeLast());
+            
+            // Split matches into groups for each arena
+            for (int i = 0; i < roundMatches.size(); i += numOfArenas) {
+                int end = Math.min(i + numOfArenas, roundMatches.size());
+                schedule.add(new ArrayList<>(roundMatches.subList(i, end)));
+            }
+        }
+        
+        return schedule;
     }
     
     /**

@@ -83,6 +83,7 @@ public class RoundManagerTest {
     void testGenerateScheduleWithEvenTeams() {
         int arenas = 4;
         List<List<MatchPairing>> schedule = RoundManager.generateSchedule(teams, arenas);
+        printSchedule(schedule);
         
         // Validate that all teams play exactly once against each other
         List<MatchPairing> matchPairings = schedule.stream().flatMap(List::stream).toList();
@@ -104,6 +105,7 @@ public class RoundManagerTest {
         List<String> oddTeams = List.of("Team A", "Team B", "Team C", "Team D", "Team E", "Team F", "Team G");
         int arenas = 4;
         List<List<MatchPairing>> schedule = RoundManager.generateSchedule(oddTeams, arenas);
+        printSchedule(schedule);
         
         // Validate that all teams play exactly once against each other
         List<MatchPairing> matchPairings = schedule.stream().flatMap(List::stream).toList();
@@ -249,10 +251,16 @@ public class RoundManagerTest {
     
     static void printSchedule(List<List<MatchPairing>> schedule) {
         int i = 1;
+        Set<MatchPairing> uniques = new HashSet<>();
         for (List<MatchPairing> round : schedule) {
-            System.out.println(String.format("Round %d:", i));
+            System.out.printf("- Round %d:%n", i);
             for (MatchPairing matchPairing : round) {
-                System.out.println(String.format("--%s", matchPairing));
+                if (uniques.contains(matchPairing)) {
+                    System.out.printf("  - %s (duplicate)%n", matchPairing);
+                } else {
+                    System.out.printf("  - %s%n", matchPairing);
+                    uniques.add(matchPairing);
+                }
             }
             i++;
         }
