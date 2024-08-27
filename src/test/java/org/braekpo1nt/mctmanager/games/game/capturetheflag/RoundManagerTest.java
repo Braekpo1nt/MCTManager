@@ -162,4 +162,72 @@ public class RoundManagerTest {
         }
     }
     
+    @Test
+    void testNewTeamJoiningDuringRound1() {
+        List<String> teams7 = List.of("Team A", "Team B", "Team C", "Team D", "Team E", "Team F", "Team G");
+        RoundManager roundManager = new RoundManager();
+        int arenas = 4;
+        
+        // Initalize the round manager as normal with the 7 teams
+        roundManager.initialize(teams7, arenas);
+        Assertions.assertEquals(List.of(
+                new MatchPairing("Team A", "Team G"),
+                new MatchPairing("Team B", "Team F"),
+                new MatchPairing("Team C", "Team E")
+        ), roundManager.getCurrentRound());
+        
+        // Now we add a new team, "Team H" and regenerate the rounds
+        List<String> teams8 = List.of("Team A", "Team B", "Team C", "Team D", "Team E", "Team F", "Team G", "Team H");
+        roundManager.regenerateRounds(teams8, arenas);
+        // Assert that the current round hasn't changed
+        Assertions.assertEquals(List.of(
+                new MatchPairing("Team A", "Team G"),
+                new MatchPairing("Team B", "Team F"),
+                new MatchPairing("Team C", "Team E")
+        ), roundManager.getCurrentRound());
+        
+        // Now we cycle to the next round
+        roundManager.nextRound();
+        Assertions.assertEquals(List.of(
+                new MatchPairing("Team A", "Team H"),
+                new MatchPairing("Team B", "Team G"),
+                new MatchPairing("Team C", "Team F"),
+                new MatchPairing("Team D", "Team E")
+        ), roundManager.getCurrentRound());
+        Assertions.assertEquals(2, roundManager.getPlayedRounds() + 1);
+    }
+    
+    @Test
+    void testNewTeamJoiningDuringRound3() {
+        List<String> teams7 = List.of("Team A", "Team B", "Team C", "Team D", "Team E", "Team F", "Team G");
+        RoundManager roundManager = new RoundManager();
+        int arenas = 4;
+        
+        // Initalize the round manager as normal with the 7 teams
+        roundManager.initialize(teams7, arenas);
+        roundManager.nextRound();
+        roundManager.nextRound();
+        Assertions.assertEquals(3, roundManager.getPlayedRounds() + 1);
+        // now we're in round 3
+        
+        // Now we add a new team, "Team H" and regenerate the rounds
+        List<String> teams8 = List.of("Team A", "Team B", "Team C", "Team D", "Team E", "Team F", "Team G", "Team H");
+        roundManager.regenerateRounds(teams8, arenas);
+        // Assert that the current round hasn't changed
+        Assertions.assertEquals(List.of(
+                new MatchPairing("Team A", "Team E"),
+                new MatchPairing("Team F", "Team D"),
+                new MatchPairing("Team G", "Team C")
+        ), roundManager.getCurrentRound());
+        
+        roundManager.nextRound();
+        Assertions.assertEquals(List.of(
+                new MatchPairing("Team A", "Team H"),
+                new MatchPairing("Team B", "Team G"),
+                new MatchPairing("Team C", "Team F"),
+                new MatchPairing("Team D", "Team E")
+        ), roundManager.getCurrentRound());
+        Assertions.assertEquals(4, roundManager.getPlayedRounds() + 1);
+    }
+    
 }

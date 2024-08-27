@@ -35,7 +35,7 @@ public class PreRoundState implements CaptureTheFlagState {
         
         Component roundLine = Component.empty()
                 .append(Component.text("Round "))
-                .append(Component.text(roundManager.getCurrentRoundIndex() + 1))
+                .append(Component.text(roundManager.getPlayedRounds() + 1))
                 .append(Component.text("/"))
                 .append(Component.text(roundManager.getMaxRounds()))
                 ;
@@ -58,7 +58,7 @@ public class PreRoundState implements CaptureTheFlagState {
         List<MatchPairing> currentRound = roundManager.getCurrentRound();
         Component roundDisplay = Component.empty()
                 .append(Component.text("Round "))
-                .append(Component.text(roundManager.getCurrentRoundIndex() + 1))
+                .append(Component.text(roundManager.getPlayedRounds() + 1))
                 .append(Component.text(":"));
         for (Player participant : context.getParticipants()) {
             String teamId = gameManager.getTeamId(participant.getUniqueId());
@@ -129,7 +129,7 @@ public class PreRoundState implements CaptureTheFlagState {
         context.getSidebar().updateLine(participant.getUniqueId(), "title", context.getTitle());
         Component roundLine = Component.empty()
                 .append(Component.text("Round "))
-                .append(Component.text(roundManager.getCurrentRoundIndex() + 1))
+                .append(Component.text(roundManager.getPlayedRounds() + 1))
                 .append(Component.text("/"))
                 .append(Component.text(roundManager.getMaxRounds()))
                 ;

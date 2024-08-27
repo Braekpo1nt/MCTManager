@@ -43,7 +43,7 @@ public class RoundOverState implements CaptureTheFlagState {
         context.getSidebar().updateLine(participant.getUniqueId(), "title", context.getTitle());
         Component roundLine = Component.empty()
                 .append(Component.text("Round "))
-                .append(Component.text(context.getRoundManager().getCurrentRoundIndex() + 1))
+                .append(Component.text(context.getRoundManager().getPlayedRounds() + 1))
                 .append(Component.text("/"))
                 .append(Component.text(context.getRoundManager().getMaxRounds()))
                 ;

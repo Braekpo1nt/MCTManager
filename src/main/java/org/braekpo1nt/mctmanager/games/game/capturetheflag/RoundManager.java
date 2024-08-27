@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.games.game.capturetheflag;
 
 import com.google.common.base.Preconditions;
+import org.braekpo1nt.mctmanager.Main;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -18,23 +19,19 @@ public class RoundManager {
      * and remove already played ones. In the future, also could be useful for tracking wins, but would
      * need to be a map, and would need to be tracked by round. 
      */
-    private List<MatchPairing> played = new ArrayList<>();
-    
-    private int currentRoundIndex = 0;
+    private final List<MatchPairing> played = new ArrayList<>();
+    /**
+     * How many rounds have been played. Useful for outputting the current round to the players. 
+     * equivalent to currentRoundIndex, unless a new team joins mid-game then they get out of sync
+     * and this is more accurate for user output
+     */
+    private int playedRounds = 0;
     
     /**
-     * @param teamId the teamId to check
-     * @param round the round to check
-     * @return true if the given teamId is playing in the given round, false if they are on-deck
+     * The index of the current round
      */
-    public static boolean teamIsPlaying(String teamId, List<MatchPairing> round) {
-        for (MatchPairing matchPairing : round) {
-            if (matchPairing.containsTeam(teamId)) {
-                return true;
-            }
-        }
-        return false;
-    }
+    private int currentRoundIndex = 0;
+    private @NotNull List<MatchPairing> currentRound = Collections.emptyList();
     
     /**
      * @param teamId the teamId to check
@@ -58,12 +55,18 @@ public class RoundManager {
         return null;
     }
     
-    public int getCurrentRoundIndex() {
-        return currentRoundIndex;
+    /**
+     * @return the number of rounds that have been played. Starts at 0. 
+     */
+    public int getPlayedRounds() {
+        return playedRounds;
     }
     
+    /**
+     * @return the total number of rounds that will be played during the game
+     */
     public int getMaxRounds() {
-        return schedule.size();
+        return playedRounds + schedule.size();
     }
     
     /**
@@ -77,7 +80,33 @@ public class RoundManager {
         Set<String> uniqueTeams = new HashSet<>(teamIds);
         Preconditions.checkArgument(uniqueTeams.size() == teamIds.size(), "Duplicate teamId found in teamIds %s", teamIds.toString());
         this.schedule = generateSchedule(teamIds, numOfArenas);
+        if (schedule.isEmpty()) {
+            Main.logger().severe(String.format("Generated rounds were empty, teamIds: %s, numOfArenas: %d", teamIds, numOfArenas));
+            currentRound = Collections.emptyList();
+            return;
+        }
+        currentRound = this.schedule.getFirst();
+        played.addAll(currentRound);
+    }
+    
+    /**
+     * Regenerates the rounds using the given set of teams. Previously played matches will not be re-added.
+     * Handy for when a new team joins mid-game and needs to be mixed into the rounds. 
+     * @param teamIds the teamIds of the teams in the round (must have at least 2 entries)
+     * @param numOfArenas the number of arenas (must be greater than 0)
+     */
+    public void regenerateRounds(@NotNull List<@NotNull String> teamIds, int numOfArenas) {
+        Preconditions.checkArgument(teamIds.size() >= 2, "There must be at least two teamIds (got %s)", teamIds.size());
+        Preconditions.checkArgument(numOfArenas > 0, "there must be at least 1 arena");
+        Set<String> uniqueTeams = new HashSet<>(teamIds);
+        Preconditions.checkArgument(uniqueTeams.size() == teamIds.size(), "Duplicate teamId found in teamIds %s", teamIds.toString());
+        this.schedule = generateSchedule(teamIds, numOfArenas, played);
+        schedule.addFirst(currentRound);
         currentRoundIndex = 0;
+        if (schedule.isEmpty()) {
+            Main.logger().severe(String.format("Generated rounds were empty, teamIds: %s, numOfArenas: %d", teamIds, numOfArenas));
+            currentRound = Collections.emptyList();
+        }
     }
     
     /**
@@ -93,14 +122,17 @@ public class RoundManager {
      */
     public void nextRound() {
         currentRoundIndex++;
+        playedRounds++;
+        currentRound = schedule.get(currentRoundIndex);
+        played.addAll(currentRound);
     }
     
     /**
      * @return the list of {@link MatchPairing}s for the current round.
      * @throws ArrayIndexOutOfBoundsException if you ran {@link #nextRound()} after {@link #hasNextRound()} returned false. 
      */
-    public List<MatchPairing> getCurrentRound() {
-        return schedule.get(currentRoundIndex);
+    public @NotNull List<MatchPairing> getCurrentRound() {
+        return currentRound;
     }
     
     public static List<List<MatchPairing>> generateSchedule(@NotNull List<String> teamIds, int numOfArenas) {
