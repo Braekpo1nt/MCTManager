@@ -228,20 +228,6 @@ public class RoundManagerTest {
         Assertions.assertEquals(4, roundManager.getPlayedRounds() + 1);
     }
     
-    @Test
-    void testThreeTeams() {
-        List<String> teams2 = List.of("red", "blue");
-        List<String> teams3 = List.of("red", "blue", "orange");
-        List<List<MatchPairing>> schedule1 = RoundManager.generateSchedule(teams2, 4);
-        System.out.println("schedule1:");
-        printSchedule(schedule1);
-        
-        List<List<MatchPairing>> schedule2 = RoundManager.generateSchedule(teams3, 4, List.of(new MatchPairing("red", "blue")));
-        System.out.println("schedule2:");
-        printSchedule(schedule2);
-        
-    }
-    
     static void printSchedule(List<List<MatchPairing>> schedule) {
         int i = 1;
         Set<MatchPairing> uniques = new HashSet<>();

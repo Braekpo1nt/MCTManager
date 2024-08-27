@@ -170,18 +170,17 @@ public class RoundManager {
     public static List<List<MatchPairing>> generateSchedule(@NotNull List<String> teamIds, 
                                                             int numOfArenas, 
                                                             @NotNull List<MatchPairing> exclude) {
-        int numOfTeams = teamIds.size();
+        List<String> rotatingTeams = new ArrayList<>(teamIds);
+        if (teamIds.size() % 2 != 0) {
+            rotatingTeams.add(1, BYE);
+        }
+        int numOfTeams = rotatingTeams.size();
         List<List<MatchPairing>> schedule = new ArrayList<>();
         int numOfRounds = (numOfTeams % 2 == 0) ? numOfTeams - 1 : numOfTeams;
         
         // Clone the teams list so as not to modify the original
-        List<String> rotatingTeams = new ArrayList<>(teamIds);
         
         // If odd number of teams, add a bye
-        if (numOfTeams % 2 != 0) {
-            rotatingTeams.add(1, BYE);
-            numOfTeams++;
-        }
         
         for (int round = 0; round < numOfRounds; round++) {
             List<MatchPairing> roundMatches = new ArrayList<>();
