@@ -75,14 +75,6 @@ public class RoundManager {
         Preconditions.checkArgument(!schedule.isEmpty(), "Generated rounds were empty, teamIds: %s, numOfArenas: %s", teamIds, numOfArenas);
         currentRound = this.schedule.getFirst();
         played = new ArrayList<>(currentRound);
-        int i = 1;
-        for (List<MatchPairing> round : schedule) {
-            Main.logger().info(String.format("Round %d:", i));
-            for (MatchPairing matchPairing : round) {
-                Main.logger().info(String.format("--%s", matchPairing));
-            }
-            i++;
-        }
     }
     
     /**
