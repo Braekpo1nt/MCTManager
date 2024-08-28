@@ -61,6 +61,10 @@ public record MatchPairing(@NotNull String northTeam, @NotNull String southTeam)
     
     @Override
     public String toString() {
-        return String.format("{%s vs %s}", northTeam, southTeam);
+        if (northTeam.compareTo(southTeam) < 0) {
+            return String.format("{%s vs %s}", northTeam, southTeam);
+        } else {
+            return String.format("{%s vs %s}", southTeam, northTeam);
+        }
     }
 }

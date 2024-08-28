@@ -10,6 +10,7 @@ import org.braekpo1nt.mctmanager.games.game.capturetheflag.MatchPairing;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.RoundManager;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.CaptureTheFlagMatch;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
+import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.GameMode;
@@ -31,7 +32,6 @@ public class RoundActiveState implements CaptureTheFlagState {
     private final CaptureTheFlagGame context;
     private final GameManager gameManager;
     private final RoundManager roundManger;
-    private final List<Player> onDeckParticipants = new ArrayList<>();
     private final Map<MatchPairing, CaptureTheFlagMatch> matches;
     private final Timer classSelectionTimer;
     private int numOfEndedMatches = 0;
@@ -104,7 +104,6 @@ public class RoundActiveState implements CaptureTheFlagState {
     }
     
     private void initializeOnDeckParticipant(Player participant) {
-        onDeckParticipants.add(participant);
         participant.teleport(context.getConfig().getSpawnObservatory());
         participant.setRespawnLocation(context.getConfig().getSpawnObservatory(), true);
         participant.getInventory().clear();
@@ -115,10 +114,8 @@ public class RoundActiveState implements CaptureTheFlagState {
     
     /**
      * Called by each match when it ends, so that we know each one has ended
-     * @param endedMatch the match that ended
      */
-    //TODO: remove this parameter if not used
-    public void matchIsOver(CaptureTheFlagMatch endedMatch) {
+    public void matchIsOver() {
         numOfEndedMatches++;
         if (numOfEndedMatches >= matches.size()) {
             roundIsOver();
@@ -130,7 +127,11 @@ public class RoundActiveState implements CaptureTheFlagState {
      */
     private void roundIsOver() {
         stop();
-        context.setState(new RoundOverState(context));
+        if (context.getRoundManager().hasNextRound()) {
+            context.setState(new RoundOverState(context));
+        } else {
+            context.setState(new GameOverState(context));
+        }
     }
     
     @Override
@@ -143,7 +144,6 @@ public class RoundActiveState implements CaptureTheFlagState {
         for (Player participant : context.getParticipants()) {
             resetParticipant(participant);
         }
-        onDeckParticipants.clear();
     }
     
     private void cancelAllTasks() {
@@ -158,16 +158,22 @@ public class RoundActiveState implements CaptureTheFlagState {
     @Override
     public void onParticipantJoin(Player participant) {
         context.initializeParticipant(participant);
-        context.getSidebar().updateLine(participant.getUniqueId(), "title", context.getTitle());
+        String teamId = context.getGameManager().getTeamId(participant.getUniqueId());
+        if (!context.getRoundManager().containsTeamId(teamId)) {
+            List<String> teamIds = context.getGameManager().getTeamIds(context.getParticipants());
+            context.getRoundManager().regenerateRounds(teamIds, context.getConfig().getArenas().size());
+        }
         Component roundLine = Component.empty()
                 .append(Component.text("Round "))
-                .append(Component.text(context.getRoundManager().getCurrentRoundIndex() + 1))
+                .append(Component.text(context.getRoundManager().getPlayedRounds() + 1))
                 .append(Component.text("/"))
                 .append(Component.text(context.getRoundManager().getMaxRounds()))
                 ;
         context.getSidebar().updateLine("round", roundLine);
         context.getAdminSidebar().updateLine("round", roundLine);
-        String teamId = gameManager.getTeamId(participant.getUniqueId());
+        participant.setGameMode(GameMode.ADVENTURE);
+        participant.teleport(context.getConfig().getSpawnObservatory());
+        participant.setRespawnLocation(context.getConfig().getSpawnObservatory(), true);
         CaptureTheFlagMatch match = getMatch(teamId);
         if (match == null) {
             Component teamDisplayName = gameManager.getFormattedTeamDisplayName(teamId);
@@ -176,10 +182,16 @@ public class RoundActiveState implements CaptureTheFlagState {
                     .append(teamDisplayName)
                     .append(Component.text(" is on-deck this round."))
                     .color(NamedTextColor.YELLOW));
+            Component roundDisplay = Component.empty()
+                    .append(Component.text("Round "))
+                    .append(Component.text(context.getRoundManager().getPlayedRounds() + 1))
+                    .append(Component.text(":"));
+            participant.showTitle(UIUtils.defaultTitle(
+                    roundDisplay,
+                    Component.empty()
+                            .append(teamDisplayName)
+                            .append(Component.text(" is on-deck"))));
         } else {
-            participant.setGameMode(GameMode.ADVENTURE);
-            participant.teleport(context.getConfig().getSpawnObservatory());
-            participant.setRespawnLocation(context.getConfig().getSpawnObservatory(), true);
             match.onParticipantJoin(participant);
         }
     }
@@ -195,18 +207,12 @@ public class RoundActiveState implements CaptureTheFlagState {
         String teamId = gameManager.getTeamId(participant.getUniqueId());
         CaptureTheFlagMatch match = getMatch(teamId);
         if (match == null) {
-            resetOnDeckParticipant(participant);
-            onDeckParticipants.remove(participant);
-            return;
+            participant.setGameMode(GameMode.ADVENTURE);
+        } else {
+            match.onParticipantQuit(participant);
         }
-        match.onParticipantQuit(participant);
         context.resetParticipant(participant);
         context.getParticipants().remove(participant);
-    }
-    
-    private void resetOnDeckParticipant(Player participant) {
-        participant.setGameMode(GameMode.ADVENTURE);
-        context.resetParticipant(participant);
     }
     
     public void resetParticipant(Player participant) {

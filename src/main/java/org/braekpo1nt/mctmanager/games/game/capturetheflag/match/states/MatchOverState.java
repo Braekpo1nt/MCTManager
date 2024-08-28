@@ -22,7 +22,6 @@ public class MatchOverState implements CaptureTheFlagMatchState {
     
     public MatchOverState(CaptureTheFlagMatch context) {
         this.context = context;
-        Audience.audience(context.getAllParticipants()).showTitle(UIUtils.matchOverTitle());
         for (Player participant : context.getAllParticipants()) {
             if (context.getParticipantsAreAlive().get(participant.getUniqueId())) {
                 participant.teleport(context.getConfig().getSpawnObservatory());
@@ -33,15 +32,16 @@ public class MatchOverState implements CaptureTheFlagMatchState {
                 ParticipantInitializer.clearStatusEffects(participant);
             }
         }
-        context.getMatchIsOver().accept(context);
+        context.getMatchIsOver().run();
     }
     
     @Override
     public void onParticipantJoin(Player participant) {
+        context.getParticipantsAreAlive().put(participant.getUniqueId(), false);
         context.initializeParticipant(participant);
+        participant.setGameMode(GameMode.ADVENTURE);
         String teamId = context.getGameManager().getTeamId(participant.getUniqueId());
         context.getTopbar().linkToTeam(participant.getUniqueId(), teamId);
-        context.getParticipantsAreAlive().put(participant.getUniqueId(), false);
         participant.teleport(context.getConfig().getSpawnObservatory());
         participant.setRespawnLocation(context.getConfig().getSpawnObservatory(), true);
         Location lookLocation;

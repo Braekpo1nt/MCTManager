@@ -44,7 +44,7 @@ public class CaptureTheFlagMatch {
     /**
      * To be called when this match is over
      */
-    private final Consumer<CaptureTheFlagMatch> matchIsOver;
+    private final Runnable matchIsOver;
     private final MatchPairing matchPairing;
     private final Arena arena;
     private final Main plugin;
@@ -77,7 +77,7 @@ public class CaptureTheFlagMatch {
     private Material northBanner;
     private Material southBanner;
     
-    public CaptureTheFlagMatch(CaptureTheFlagGame parentContext, Consumer<CaptureTheFlagMatch> matchIsOver, MatchPairing matchPairing, Arena arena) {
+    public CaptureTheFlagMatch(CaptureTheFlagGame parentContext, Runnable matchIsOver, MatchPairing matchPairing, Arena arena) {
         this.parentContext = parentContext;
         this.matchIsOver = matchIsOver;
         this.matchPairing = matchPairing;
@@ -114,7 +114,7 @@ public class CaptureTheFlagMatch {
         String teamId = gameManager.getTeamId(participant.getUniqueId());
         allParticipants.add(participant);
         UUID participantUniqueId = participant.getUniqueId();
-        participantsAreAlive.put(participantUniqueId, true);
+        participantsAreAlive.putIfAbsent(participantUniqueId, true);
         int alive;
         int dead;
         if (matchPairing.northTeam().equals(teamId)) {
@@ -164,7 +164,7 @@ public class CaptureTheFlagMatch {
         state.onParticipantQuit(participant);
     }
     
-    private int countAlive(List<Player> participants) {
+    public int countAlive(List<Player> participants) {
         int living = 0;
         for (Player participant : participants) {
             if (participantsAreAlive.get(participant.getUniqueId())) {

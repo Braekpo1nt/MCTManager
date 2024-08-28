@@ -23,6 +23,8 @@ import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.braekpo1nt.mctmanager.ui.topbar.BattleTopbar;
 import org.bukkit.GameMode;
+import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
@@ -32,6 +34,7 @@ import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.jetbrains.annotations.NotNull;
@@ -107,7 +110,8 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         participants = new ArrayList<>(newParticipants.size());
         sidebar = gameManager.getSidebarFactory().createSidebar();
         adminSidebar = gameManager.getSidebarFactory().createSidebar();
-        roundManager = new RoundManager();
+        List<String> teamIds = gameManager.getTeamIds(newParticipants);
+        roundManager = new RoundManager(teamIds, config.getArenas().size());
         killCount = new HashMap<>(newParticipants.size());
         deathCount = new HashMap<>(newParticipants.size());
         for (Player participant : newParticipants) {
@@ -115,8 +119,6 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         }
         initializeSidebar();
         startAdmins(newAdmins);
-        List<String> teamIds = gameManager.getTeamIds(newParticipants);
-        roundManager.initialize(teamIds, config.getArenas().size());
         setState(new DescriptionState(this));
         Main.logger().info("Starting Capture the Flag");
     }
@@ -187,6 +189,9 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
             return;
         }
         state.onParticipantJoin(participant);
+        if (sidebar != null) {
+            sidebar.updateLine(participant.getUniqueId(), "title", title);
+        }
     }
     
     @Override
@@ -204,7 +209,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     public void onAdminJoin(Player admin) {
         initializeAdmin(admin);
         adminSidebar.updateLine(admin.getUniqueId(), "title", title);
-        String roundLine = String.format("Round %d/%d", roundManager.getCurrentRoundIndex() + 1, roundManager.getMaxRounds());
+        String roundLine = String.format("Round %d/%d", roundManager.getPlayedRounds() + 1, roundManager.getMaxRounds());
         adminSidebar.updateLine("round", roundLine);
     }
     
@@ -356,6 +361,22 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         }
         Player participant = event.getPlayer();
         if (!participants.contains(participant)) {
+            return;
+        }
+        event.setCancelled(true);
+    }
+    
+    @EventHandler
+    public void onPlayerInteract(PlayerInteractEvent event) {
+        Block clickedBlock = event.getClickedBlock();
+        if (clickedBlock == null) {
+            return;
+        }
+        if (!participants.contains(event.getPlayer())) {
+            return;
+        }
+        Material blockType = clickedBlock.getType();
+        if (!config.getPreventInteractions().contains(blockType)) {
             return;
         }
         event.setCancelled(true);

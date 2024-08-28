@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -22,6 +23,7 @@ public class HubConfig {
     private List<Leaderboard> leaderboards;
     private double yLimit;
     private int tpToHubDuration;
+    private List<Material> preventInteractions;
     
     @Data
     @AllArgsConstructor
