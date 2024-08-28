@@ -88,8 +88,7 @@ public class PreRoundState implements CaptureTheFlagState {
                         roundDisplay,
                         Component.empty()
                                 .append(teamDisplayName)
-                                .append(Component.text(" is on-deck"))
-                ));
+                                .append(Component.text(" is on-deck"))));
             }
         }
     }
@@ -125,7 +124,6 @@ public class PreRoundState implements CaptureTheFlagState {
     @Override
     public void onParticipantJoin(Player participant) {
         context.initializeParticipant(participant);
-        context.getSidebar().updateLine(participant.getUniqueId(), "title", context.getTitle());
         String teamId = context.getGameManager().getTeamId(participant.getUniqueId());
         if (!context.getRoundManager().containsTeamId(teamId)) {
             List<String> teamIds = context.getGameManager().getTeamIds(context.getParticipants());

@@ -42,7 +42,6 @@ public class RoundOverState implements CaptureTheFlagState {
     @Override
     public void onParticipantJoin(Player participant) {
         context.initializeParticipant(participant);
-        context.getSidebar().updateLine(participant.getUniqueId(), "title", context.getTitle());
         String teamId = context.getGameManager().getTeamId(participant.getUniqueId());
         if (!context.getRoundManager().containsTeamId(teamId)) {
             List<String> teamIds = context.getGameManager().getTeamIds(context.getParticipants());
