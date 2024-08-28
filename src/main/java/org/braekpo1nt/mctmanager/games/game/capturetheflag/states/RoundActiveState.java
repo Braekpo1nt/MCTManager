@@ -127,7 +127,11 @@ public class RoundActiveState implements CaptureTheFlagState {
      */
     private void roundIsOver() {
         stop();
-        context.setState(new RoundOverState(context));
+        if (context.getRoundManager().hasNextRound()) {
+            context.setState(new RoundOverState(context));
+        } else {
+            context.setState(new GameOverState(context));
+        }
     }
     
     @Override
