@@ -29,12 +29,8 @@ public class RoundOverState implements CaptureTheFlagState {
                 .withSidebar(context.getAdminSidebar(), "timer")
                 .sidebarPrefix(Component.text("Round Over: "))
                 .onCompletion(() -> {
-                    if (context.getRoundManager().hasNextRound()) {
-                        context.getRoundManager().nextRound();
-                        context.setState(new PreRoundState(context));
-                    } else {
-                        context.setState(new GameOverState(context));
-                    }
+                    context.getRoundManager().nextRound();
+                    context.setState(new PreRoundState(context));
                 })
                 .build());
     }
