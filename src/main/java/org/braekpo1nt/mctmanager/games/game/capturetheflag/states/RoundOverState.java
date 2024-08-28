@@ -14,6 +14,8 @@ import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 
+import java.util.List;
+
 public class RoundOverState implements CaptureTheFlagState {
     
     private final CaptureTheFlagGame context;
@@ -40,10 +42,14 @@ public class RoundOverState implements CaptureTheFlagState {
     @Override
     public void onParticipantJoin(Player participant) {
         context.initializeParticipant(participant);
-        context.getSidebar().updateLine(participant.getUniqueId(), "title", context.getTitle());
+        String teamId = context.getGameManager().getTeamId(participant.getUniqueId());
+        if (!context.getRoundManager().containsTeamId(teamId)) {
+            List<String> teamIds = context.getGameManager().getTeamIds(context.getParticipants());
+            context.getRoundManager().regenerateRounds(teamIds, context.getConfig().getArenas().size());
+        }
         Component roundLine = Component.empty()
                 .append(Component.text("Round "))
-                .append(Component.text(context.getRoundManager().getCurrentRoundIndex() + 1))
+                .append(Component.text(context.getRoundManager().getPlayedRounds() + 1))
                 .append(Component.text("/"))
                 .append(Component.text(context.getRoundManager().getMaxRounds()))
                 ;

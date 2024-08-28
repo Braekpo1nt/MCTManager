@@ -32,7 +32,7 @@ public class MatchOverState implements CaptureTheFlagMatchState {
                 ParticipantInitializer.clearStatusEffects(participant);
             }
         }
-        context.getMatchIsOver().accept(context);
+        context.getMatchIsOver().run();
     }
     
     @Override

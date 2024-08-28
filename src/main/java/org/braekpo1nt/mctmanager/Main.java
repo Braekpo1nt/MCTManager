@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import lombok.extern.java.Log;
 import org.braekpo1nt.mctmanager.commands.mct.MCTCommand;
 import org.braekpo1nt.mctmanager.commands.mctdebug.MCTDebugCommand;
 import org.braekpo1nt.mctmanager.commands.readyup.ReadyUpCommand;
@@ -27,6 +28,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+@Log
 public class Main extends JavaPlugin {
 
     public static final List<String> VALID_CONFIG_VERSIONS = List.of("0.1.0", "0.1.1", "0.1.2");
@@ -43,7 +45,11 @@ public class Main extends JavaPlugin {
     private boolean saveGameStateOnDisable = true;
     public final static PotionEffect NIGHT_VISION = new PotionEffect(PotionEffectType.NIGHT_VISION, 300, 3, true, false, false);
     private MCTCommand mctCommand;
-    private static Logger logger;
+    /**
+     * This should be the application-wide logger used to print logs to the console or standard out. 
+     * Initialized to Lombok log value so that tests don't trigger NullPointerExceptions
+     */
+    private static Logger logger = log;
     private static final Map<LogType, @NotNull Boolean> logTypeActive = new HashMap<>();
     
     protected GameManager initialGameManager(Scoreboard mctScoreboard) {
