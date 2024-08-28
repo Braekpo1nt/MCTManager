@@ -41,7 +41,9 @@ public class PreRoundState implements CaptureTheFlagState {
                 ;
         context.getSidebar().updateLine("round", roundLine);
         context.getAdminSidebar().updateLine("round", roundLine);
-        announceMatchToParticipants();
+        for (Player participant : context.getParticipants()) {
+            announceMatchToParticipant(participant);
+        }
         setUpTopbarForRound();
         context.getTimerManager().start(Timer.builder()
                 .duration(context.getConfig().getDescriptionDuration())
@@ -54,42 +56,40 @@ public class PreRoundState implements CaptureTheFlagState {
                 .build());
     }
     
-    private void announceMatchToParticipants() {
+    private void announceMatchToParticipant(Player participant) {
+        String teamId = gameManager.getTeamId(participant.getUniqueId());
+        Component teamDisplayName = gameManager.getFormattedTeamDisplayName(teamId);
         List<MatchPairing> currentRound = roundManager.getCurrentRound();
+        String oppositeTeamId = RoundManager.getOppositeTeam(teamId, currentRound);
         Component roundDisplay = Component.empty()
                 .append(Component.text("Round "))
                 .append(Component.text(roundManager.getPlayedRounds() + 1))
                 .append(Component.text(":"));
-        for (Player participant : context.getParticipants()) {
-            String teamId = gameManager.getTeamId(participant.getUniqueId());
-            Component teamDisplayName = gameManager.getFormattedTeamDisplayName(teamId);
-            String oppositeTeamId = RoundManager.getOppositeTeam(teamId, currentRound);
-            if (oppositeTeamId != null) {
-                Component oppositeTeamDisplayName = gameManager.getFormattedTeamDisplayName(oppositeTeamId);
-                participant.sendMessage(Component.empty()
-                        .append(teamDisplayName)
-                        .append(Component.text(" is competing against "))
-                        .append(oppositeTeamDisplayName)
-                        .append(Component.text(" this round."))
-                        .color(NamedTextColor.YELLOW));
-                participant.showTitle(UIUtils.defaultTitle(
-                        roundDisplay,
-                        Component.empty()
-                                .append(teamDisplayName)
-                                .append(Component.text(" vs "))
-                                .append(oppositeTeamDisplayName)
-                ));
-            } else {
-                participant.sendMessage(Component.empty()
-                        .append(teamDisplayName)
-                        .append(Component.text(" is on-deck this round."))
-                        .color(NamedTextColor.YELLOW));
-                participant.showTitle(UIUtils.defaultTitle(
-                        roundDisplay,
-                        Component.empty()
-                                .append(teamDisplayName)
-                                .append(Component.text(" is on-deck"))));
-            }
+        if (oppositeTeamId != null) {
+            Component oppositeTeamDisplayName = gameManager.getFormattedTeamDisplayName(oppositeTeamId);
+            participant.sendMessage(Component.empty()
+                    .append(teamDisplayName)
+                    .append(Component.text(" is competing against "))
+                    .append(oppositeTeamDisplayName)
+                    .append(Component.text(" this round."))
+                    .color(NamedTextColor.YELLOW));
+            participant.showTitle(UIUtils.defaultTitle(
+                    roundDisplay,
+                    Component.empty()
+                            .append(teamDisplayName)
+                            .append(Component.text(" vs "))
+                            .append(oppositeTeamDisplayName)
+            ));
+        } else {
+            participant.sendMessage(Component.empty()
+                    .append(teamDisplayName)
+                    .append(Component.text(" is on-deck this round."))
+                    .color(NamedTextColor.YELLOW));
+            participant.showTitle(UIUtils.defaultTitle(
+                    roundDisplay,
+                    Component.empty()
+                            .append(teamDisplayName)
+                            .append(Component.text(" is on-deck"))));
         }
     }
     
@@ -140,6 +140,7 @@ public class PreRoundState implements CaptureTheFlagState {
         participant.setGameMode(GameMode.ADVENTURE);
         participant.teleport(context.getConfig().getSpawnObservatory());
         participant.setRespawnLocation(context.getConfig().getSpawnObservatory(), true);
+        announceMatchToParticipant(participant);
     }
     
     @Override
