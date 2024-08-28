@@ -41,7 +41,7 @@ public class RoundManagerTest {
     }
     
     @Test
-    void testExclude() {
+    void testExcludeOneRound() {
         int arenas = 4;
         
         // what the first round would have been if Team H hadn't joined yet
@@ -82,10 +82,73 @@ public class RoundManagerTest {
     }
     
     @Test
+    void testExcludeThreeRounds() {
+        int arenas = 4;
+        
+        // what the first 3 rounds would have been if Team H hadn't joined yet
+        List<MatchPairing> exclude = List.of(
+                new MatchPairing("Team A", "Team B"),
+                new MatchPairing("Team C", "Team D"),
+                new MatchPairing("Team E", "Team F"),
+                new MatchPairing("Team A", "Team C"),
+                new MatchPairing("Team B", "Team D"),
+                new MatchPairing("Team E", "Team G"),
+                new MatchPairing("Team A", "Team D"),
+                new MatchPairing("Team B", "Team C"),
+                new MatchPairing("Team F", "Team G")
+        );
+        
+        // create a schedule that simulates what should be generated after Team H joins after the first round
+        List<List<MatchPairing>> schedulePostJoin = RoundManager.generateSchedule(teams, arenas, exclude);
+        List<List<MatchPairing>> fullSchedule = new ArrayList<>(schedulePostJoin.size() + 1);
+        // round 1
+        fullSchedule.add(List.of(
+                new MatchPairing("Team A", "Team B"),
+                new MatchPairing("Team C", "Team D"),
+                new MatchPairing("Team E", "Team F")
+        ));
+        // round 2
+        fullSchedule.add(List.of(
+                new MatchPairing("Team A", "Team C"),
+                new MatchPairing("Team B", "Team D"),
+                new MatchPairing("Team E", "Team G")
+        ));
+        // round 3
+        fullSchedule.add(List.of(
+                new MatchPairing("Team A", "Team D"),
+                new MatchPairing("Team B", "Team C"),
+                new MatchPairing("Team F", "Team G")
+        ));
+        fullSchedule.addAll(schedulePostJoin);
+        
+        int expectedPostJoinMatches = (teams.size() * (teams.size() - 1) / 2) - exclude.size();
+        int actualPostJoinMatches = schedulePostJoin.stream().mapToInt(List::size).sum();
+        Assertions.assertEquals(expectedPostJoinMatches, actualPostJoinMatches, "Each team should play every other team exactly once, minus the exclude.");
+        
+        // Validate that all teams play exactly once against each other
+        int expectedMatches = teams.size() * (teams.size() - 1) / 2;
+        int actualMatches = fullSchedule.stream().mapToInt(List::size).sum();
+        Assertions.assertEquals(expectedMatches, actualMatches, "Each team should play every other team exactly once.");
+        
+        // Validate that no team is scheduled more than once in the same round
+        for (List<MatchPairing> round : fullSchedule) {
+            Set<String> teamsInRound = new HashSet<>();
+            for (MatchPairing match : round) {
+                Assertions.assertTrue(teamsInRound.add(match.northTeam()), "Team " + match.northTeam() + " is double-booked in the round.");
+                Assertions.assertTrue(teamsInRound.add(match.southTeam()), "Team " + match.southTeam() + " is double-booked in the round.");
+            }
+        }
+        
+        // Validate that no MatchPairing is a duplicate
+        List<MatchPairing> flagMatchPairings = fullSchedule.stream().flatMap(List::stream).toList();
+        Set<MatchPairing> matchPairingSet = new HashSet<>(flagMatchPairings);
+        Assertions.assertEquals(flagMatchPairings.size(), matchPairingSet.size());
+    }
+    
+    @Test
     void testGenerateScheduleWithEvenTeams() {
         int arenas = 4;
         List<List<MatchPairing>> schedule = RoundManager.generateSchedule(teams, arenas);
-        printSchedule(schedule);
         
         // Validate that all teams play exactly once against each other
         List<MatchPairing> matchPairings = schedule.stream().flatMap(List::stream).toList();
@@ -107,7 +170,6 @@ public class RoundManagerTest {
         List<String> oddTeams = List.of("Team A", "Team B", "Team C", "Team D", "Team E", "Team F", "Team G");
         int arenas = 4;
         List<List<MatchPairing>> schedule = RoundManager.generateSchedule(oddTeams, arenas);
-        printSchedule(schedule);
         
         // Validate that all teams play exactly once against each other
         List<MatchPairing> matchPairings = schedule.stream().flatMap(List::stream).toList();
@@ -156,7 +218,6 @@ public class RoundManagerTest {
     void testNoDoubleBookingInRounds() {
         int arenas = 4;
         List<List<MatchPairing>> schedule = RoundManager.generateSchedule(teams, arenas);
-        printSchedule(schedule);
         
         // Validate that no team is scheduled more than once in the same round
         for (List<MatchPairing> round : schedule) {
@@ -231,22 +292,4 @@ public class RoundManagerTest {
         ), roundManager.getCurrentRound());
         Assertions.assertEquals(4, roundManager.getPlayedRounds() + 1);
     }
-    
-    static void printSchedule(List<List<MatchPairing>> schedule) {
-        int i = 1;
-        Set<MatchPairing> uniques = new HashSet<>();
-        for (List<MatchPairing> round : schedule) {
-            System.out.printf("- Round %d:%n", i);
-            for (MatchPairing matchPairing : round) {
-                if (uniques.contains(matchPairing)) {
-                    System.out.printf("  - %s (duplicate)%n", matchPairing);
-                } else {
-                    System.out.printf("  - %s%n", matchPairing);
-                    uniques.add(matchPairing);
-                }
-            }
-            i++;
-        }
-    }
-    
 }
