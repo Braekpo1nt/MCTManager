@@ -26,6 +26,7 @@ public class RoundManager {
      * and this is more accurate for user output
      */
     private int playedRounds = 0;
+    private int maxRounds;
     
     /**
      * The index of the current round
@@ -37,7 +38,7 @@ public class RoundManager {
      * Used only for checking if a given teamId is contained in this {@link RoundManager} or not
      * @see #containsTeamId(String) 
      */
-    private @NotNull Set<String> teamIds;
+    private final @NotNull Set<String> containedTeamIds;
     
     /**
      * @param teamId the teamId to check
@@ -79,12 +80,14 @@ public class RoundManager {
     public RoundManager(@NotNull List<@NotNull String> teamIds, int numOfArenas) {
         Preconditions.checkArgument(teamIds.size() >= 2, "There must be at least two teamIds (got %s)", teamIds.size());
         Preconditions.checkArgument(numOfArenas > 0, "there must be at least 1 arena");
-        this.teamIds = new HashSet<>(teamIds);
-        Preconditions.checkArgument(this.teamIds.size() == teamIds.size(), "Duplicate teamId found in teamIds %s", teamIds.toString());
+        this.containedTeamIds = new HashSet<>(teamIds);
+        Preconditions.checkArgument(this.containedTeamIds.size() == teamIds.size(), "Duplicate teamId found in teamIds %s", teamIds.toString());
         this.schedule = generateSchedule(teamIds, numOfArenas);
         Preconditions.checkArgument(!schedule.isEmpty(), "Generated rounds were empty, teamIds: %s, numOfArenas: %s", teamIds, numOfArenas);
         currentRound = this.schedule.getFirst();
         played = new ArrayList<>(currentRound);
+        playedRounds = 0;
+        maxRounds = schedule.size();
         logSchedule(schedule);
     }
     
@@ -97,10 +100,11 @@ public class RoundManager {
     public void regenerateRounds(@NotNull List<@NotNull String> teamIds, int numOfArenas) {
         Preconditions.checkArgument(teamIds.size() >= 2, "There must be at least two teamIds (got %s)", teamIds.size());
         Preconditions.checkArgument(numOfArenas > 0, "there must be at least 1 arena");
-        this.teamIds = new HashSet<>(teamIds);
-        Preconditions.checkArgument(this.teamIds.size() == teamIds.size(), "Duplicate teamId found in teamIds %s", teamIds.toString());
+        this.containedTeamIds.addAll(teamIds);
+        Preconditions.checkArgument(this.containedTeamIds.size() == teamIds.size(), "Duplicate teamId found in teamIds %s", teamIds.toString());
         this.schedule = generateSchedule(teamIds, numOfArenas, played);
         currentRoundIndex = -1;
+        maxRounds = playedRounds + schedule.size() + 1;
         logSchedule(schedule);
     }
     
@@ -115,7 +119,7 @@ public class RoundManager {
      * @return the total number of rounds that will be played during the game
      */
     public int getMaxRounds() {
-        return playedRounds + schedule.size();
+        return maxRounds;
     }
     
     /**
@@ -123,7 +127,7 @@ public class RoundManager {
      * @return true if the given teamId is contained in this {@link RoundManager}, false otherwise
      */
     public boolean containsTeamId(String teamId) {
-        return teamIds.contains(teamId);
+        return containedTeamIds.contains(teamId);
     }
     
     /**
@@ -151,8 +155,6 @@ public class RoundManager {
     public @NotNull List<MatchPairing> getCurrentRound() {
         return currentRound;
     }
-    
-    private static final String BYE = "%%BYE%%";
     
     public static List<List<MatchPairing>> generateSchedule(@NotNull List<String> teamIds, int numOfArenas) {
         return generateSchedule(teamIds, numOfArenas, Collections.emptyList());
