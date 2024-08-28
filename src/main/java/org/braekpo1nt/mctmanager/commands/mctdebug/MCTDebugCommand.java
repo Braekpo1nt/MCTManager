@@ -59,24 +59,30 @@ public class MCTDebugCommand implements TabExecutor, Listener {
         private final @NotNull List<Participant> participants;
         private final int score;
         
-        public Component toTabListLine(int index) {
+        public Component toTabListLine(int index, int chars, int pChars) {
+            int paddingLength = Math.max(chars - (4 + name.length() + Integer.toString(score).length()), 0);
             return Component.empty()
-                    .append(Component.text(index))
-                    .append(Component.text(". "))
-                    .append(Component.text(name)
+                    .append(Component.empty()
+                        .append(Component.text(String.format("%2d", index)))
+                        .append(Component.text(". "))
+                        .append(Component.text(name)
                             .color(color))
-                    .append(Component.text("                          "))
-                    .append(Component.text(score))
+                        .append(Component.text(" ".repeat(paddingLength)))
+                        .append(Component.text(score))
+                    )
+                    
                     .append(Component.newline())
-                    .append(Component.text("   "))
-                    .append(getParticipantNamesLine())
-                    .append(Component.text("   "))
+                    
+                    .append(Component.empty()
+                        .append(Component.text("     "))
+                        .append(getParticipantNamesLine(pChars))
+                    )
                     ;
         }
         
-        private Component getParticipantNamesLine() {
+        private Component getParticipantNamesLine(int chars) {
             List<Integer> nameLengths = participants.stream().map(participant -> participant.getName().length()).toList();
-            List<Integer> trimLengths = getTrimLengths(nameLengths, 40 - (nameLengths.size() - 1));
+            List<Integer> trimLengths = getTrimLengths(nameLengths, chars - (nameLengths.size() - 1));
             TextComponent.Builder builder = Component.text();
             for (int i = 0; i < participants.size(); i++) {
                 Participant participant = participants.get(i);
@@ -85,6 +91,9 @@ public class MCTDebugCommand implements TabExecutor, Listener {
                     builder.append(Component.space());
                 }
             }
+            int totalLength = trimLengths.stream().mapToInt(Integer::intValue).sum() + nameLengths.size() - 1;
+            int paddingLength = chars - totalLength;
+            builder.append(Component.text(" ".repeat(paddingLength)));
             return builder.build();
         }
         
@@ -151,13 +160,20 @@ public class MCTDebugCommand implements TabExecutor, Listener {
         );
     }
     
-    public static Component toTabList(List<Team> teams) {
+    /**
+     * 
+     * @param teams
+     * @param chars 55
+     * @param pChars 43
+     * @return
+     */
+    public static Component toTabList(List<Team> teams, int chars, int pChars) {
         TextComponent.Builder builder = Component.text();
         builder.append(Component.newline());
         for (int i = 0; i < teams.size(); i++) {
             Team team = teams.get(i);
             builder
-                    .append(team.toTabListLine(i))
+                    .append(team.toTabListLine(i, chars, pChars))
                     .append(Component.newline())
                     .append(Component.newline())
             ;
@@ -174,15 +190,18 @@ public class MCTDebugCommand implements TabExecutor, Listener {
             return true;
         }
         
-        if (args.length != 0) {
+        if (args.length != 2) {
             sender.sendMessage(Component.text("Usage: /mctdebug <arg> [options]")
                     .color(NamedTextColor.RED));
             return true;
         }
         
+        int chars = Integer.parseInt(args[0]);
+        int pChars = Integer.parseInt(args[1]);
+        
         TextComponent.Builder builder = Component.text();
         builder
-                .append(toTabList(allTeams))
+                .append(toTabList(allTeams, chars, pChars))
         ;
         player.sendPlayerListHeader(
                 builder.asComponent()
