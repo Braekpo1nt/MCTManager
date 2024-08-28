@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.capturetheflag;
 
+import org.braekpo1nt.mctmanager.Main;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -8,6 +9,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
 
 public class RoundManagerTest {
     
@@ -16,6 +18,7 @@ public class RoundManagerTest {
     @BeforeEach
     void setUp() {
         teams = List.of("Team A", "Team B", "Team C", "Team D", "Team E", "Team F", "Team G", "Team H");
+        Main.logger().setLevel(Level.OFF);
     }
     
     @Test
@@ -43,9 +46,9 @@ public class RoundManagerTest {
         
         // what the first round would have been if Team H hadn't joined yet
         List<MatchPairing> exclude = List.of(
-                new MatchPairing("Team A", "Team G"),
-                new MatchPairing("Team B", "Team F"),
-                new MatchPairing("Team C", "Team E")
+                new MatchPairing("Team A", "Team B"),
+                new MatchPairing("Team C", "Team D"),
+                new MatchPairing("Team E", "Team F")
         );
         
         // create a schedule that simulates what should be generated after Team H joins after the first round
@@ -153,6 +156,7 @@ public class RoundManagerTest {
     void testNoDoubleBookingInRounds() {
         int arenas = 4;
         List<List<MatchPairing>> schedule = RoundManager.generateSchedule(teams, arenas);
+        printSchedule(schedule);
         
         // Validate that no team is scheduled more than once in the same round
         for (List<MatchPairing> round : schedule) {
@@ -171,9 +175,9 @@ public class RoundManagerTest {
         RoundManager roundManager = new RoundManager(teams7, arenas);
         
         Assertions.assertEquals(List.of(
-                new MatchPairing("Team A", "Team G"),
-                new MatchPairing("Team B", "Team E"),
-                new MatchPairing("Team C", "Team D")
+                new MatchPairing("Team A", "Team B"),
+                new MatchPairing("Team C", "Team D"),
+                new MatchPairing("Team E", "Team F")
         ), roundManager.getCurrentRound());
         
         // Now we add a new team, "Team H" and regenerate the rounds
@@ -181,18 +185,18 @@ public class RoundManagerTest {
         roundManager.regenerateRounds(teams8, arenas);
         // Assert that the current round hasn't changed
         Assertions.assertEquals(List.of(
-                new MatchPairing("Team A", "Team G"),
-                new MatchPairing("Team B", "Team E"),
-                new MatchPairing("Team C", "Team D")
+                new MatchPairing("Team A", "Team B"),
+                new MatchPairing("Team C", "Team D"),
+                new MatchPairing("Team E", "Team F")
         ), roundManager.getCurrentRound());
         
         // Now we cycle to the next round
         roundManager.nextRound();
         Assertions.assertEquals(List.of(
-                new MatchPairing("Team A", "Team H"),
-                new MatchPairing("Team B", "Team G"),
-                new MatchPairing("Team C", "Team F"),
-                new MatchPairing("Team D", "Team E")
+                new MatchPairing("Team A", "Team C"),
+                new MatchPairing("Team B", "Team D"),
+                new MatchPairing("Team E", "Team G"),
+                new MatchPairing("Team F", "Team H")
         ), roundManager.getCurrentRound());
         Assertions.assertEquals(2, roundManager.getPlayedRounds() + 1);
     }
@@ -213,17 +217,17 @@ public class RoundManagerTest {
         roundManager.regenerateRounds(teams8, arenas);
         // Assert that the current round hasn't changed
         Assertions.assertEquals(List.of(
-                new MatchPairing("Team A", "Team E"),
-                new MatchPairing("Team D", "Team F"),
-                new MatchPairing("Team C", "Team G")
+                new MatchPairing("Team A", "Team D"),
+                new MatchPairing("Team B", "Team C"),
+                new MatchPairing("Team F", "Team G")
         ), roundManager.getCurrentRound());
         
         roundManager.nextRound();
         Assertions.assertEquals(List.of(
-                new MatchPairing("Team A", "Team H"),
-                new MatchPairing("Team B", "Team G"),
-                new MatchPairing("Team C", "Team F"),
-                new MatchPairing("Team D", "Team E")
+                new MatchPairing("Team A", "Team E"),
+                new MatchPairing("Team B", "Team F"),
+                new MatchPairing("Team C", "Team G"),
+                new MatchPairing("Team D", "Team H")
         ), roundManager.getCurrentRound());
         Assertions.assertEquals(4, roundManager.getPlayedRounds() + 1);
     }

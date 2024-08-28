@@ -170,41 +170,56 @@ public class RoundManager {
     public static List<List<MatchPairing>> generateSchedule(@NotNull List<String> teamIds, 
                                                             int numOfArenas, 
                                                             @NotNull List<MatchPairing> exclude) {
-        List<String> rotatingTeams = new ArrayList<>(teamIds);
-        if (teamIds.size() % 2 != 0) {
-            rotatingTeams.add(1, BYE);
-        }
-        int numOfTeams = rotatingTeams.size();
+        List<MatchPairing> matchPairings = generateAllMatchPairings(teamIds, exclude);
+        
         List<List<MatchPairing>> schedule = new ArrayList<>();
-        int numOfRounds = (numOfTeams % 2 == 0) ? numOfTeams - 1 : numOfTeams;
         
-        // Clone the teams list so as not to modify the original
-        
-        // If odd number of teams, add a bye
-        
-        for (int round = 0; round < numOfRounds; round++) {
+        // Step 2: Loop while there are pairs left to schedule
+        while (!matchPairings.isEmpty()) {
             List<MatchPairing> roundMatches = new ArrayList<>();
+            Set<String> usedTeams = new HashSet<>();
             
-            for (int i = 0; i < numOfTeams / 2; i++) {
-                String team1 = rotatingTeams.get(i);
-                String team2 = rotatingTeams.get(numOfTeams - 1 - i);
+            // Step 3: Fill up the round with matches, ensuring no team plays twice
+            for (int i = 0; i < matchPairings.size(); i++) {
+                MatchPairing pair = matchPairings.get(i);
+                String team1 = pair.northTeam();
+                String team2 = pair.southTeam();
                 
-                MatchPairing matchPairing = new MatchPairing(team1, team2);
-                if (!exclude.contains(matchPairing) && !team1.equals(BYE) && !team2.equals(BYE)) {
-                    roundMatches.add(matchPairing);
+                if (!usedTeams.contains(team1) && !usedTeams.contains(team2)) {
+                    roundMatches.add(pair);
+                    usedTeams.add(team1);
+                    usedTeams.add(team2);
+                    matchPairings.remove(i);
+                    i--; // Adjust index after removal
+                    
+                    if (roundMatches.size() == numOfArenas) {
+                        break;
+                    }
                 }
             }
             
-            // Rotate teams, keeping the first one fixed
-            rotatingTeams.add(1, rotatingTeams.removeLast());
-            
-            // Split matches into groups for each arena
-            for (int i = 0; i < roundMatches.size(); i += numOfArenas) {
-                int end = Math.min(i + numOfArenas, roundMatches.size());
-                schedule.add(new ArrayList<>(roundMatches.subList(i, end)));
-            }
+            schedule.add(roundMatches);
         }
         
         return schedule;
+    }
+    
+    private static @NotNull List<MatchPairing> generateAllMatchPairings(@NotNull List<String> teamIds, @NotNull List<MatchPairing> exclude) {
+        List<MatchPairing> matchPairings = new ArrayList<>();
+        
+        // Step 1: Generate all unique team pairs
+        for (int i = 0; i < teamIds.size(); i++) {
+            for (int j = i + 1; j < teamIds.size(); j++) {
+                String team1 = teamIds.get(i);
+                String team2 = teamIds.get(j);
+                
+                // Check if the pair is in the exclude list
+                MatchPairing matchPairing = new MatchPairing(team1, team2);
+                if (!exclude.contains(matchPairing)) {
+                    matchPairings.add(matchPairing);
+                }
+            }
+        }
+        return matchPairings;
     }
 }
