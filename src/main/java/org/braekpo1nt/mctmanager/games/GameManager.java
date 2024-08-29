@@ -955,6 +955,7 @@ public class GameManager implements Listener {
             return;
         }
         leavePlayersOnTeam(sender, teamId);
+        tabList.removeTeam(teamId);
         try {
             Component formattedTeamDisplayName = getFormattedTeamDisplayName(teamId);
             gameStateStorageUtil.removeTeam(teamId);
@@ -1007,6 +1008,7 @@ public class GameManager implements Listener {
         newTeam.displayName(Component.text(teamDisplayName));
         NamedTextColor color = ColorMap.getNamedTextColor(colorString);
         newTeam.color(color);
+        tabList.addTeam(teamId, teamDisplayName, color);
         updateTeamScore(teamId);
     }
     
@@ -1290,6 +1292,7 @@ public class GameManager implements Listener {
                     .color(NamedTextColor.RED));
         }
         hubManager.updateLeaderboards();
+        tabList.leaveParticipant(playerUniqueId);
         sender.sendMessage(Component.text("Removed ")
                 .append(Component.text(playerName)
                         .decorate(TextDecoration.BOLD))
@@ -1847,6 +1850,7 @@ public class GameManager implements Listener {
             eventManager.updateTeamScores();
         }
         hubManager.updateLeaderboards();
+        tabList.setScore(teamId, teamScore);
     }
     
     private void updatePersonalScore(Player participant) {
