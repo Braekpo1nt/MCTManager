@@ -188,6 +188,9 @@ public class TabList {
             return team1.getName().compareTo(team2.getName());
         }).toList();
         TextComponent.Builder builder = Component.text();
+        builder.append(Component.text("-".repeat(TEAM_LINE_CHARACTERS))
+                .color(NamedTextColor.RED))
+                .append(Component.newline());
         builder.append(Component.newline());
         for (int i = 0; i < sortedTeamDatas.size(); i++) {
             TeamData team = sortedTeamDatas.get(i);
@@ -197,6 +200,8 @@ public class TabList {
                     .append(Component.newline())
             ;
         }
+        builder.append(Component.text("-".repeat(TEAM_LINE_CHARACTERS))
+                .color(NamedTextColor.RED));
         return builder.asComponent();
     }
     
