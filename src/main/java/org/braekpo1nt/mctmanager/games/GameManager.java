@@ -409,7 +409,7 @@ public class GameManager implements Listener {
         participant.setScoreboard(mctScoreboard);
         participant.addPotionEffect(Main.NIGHT_VISION);
         String teamId = getTeamId(participant.getUniqueId());
-        Component displayName = getDisplayName(participant);
+        Component displayName = getParticipantDisplayName(participant);
         participant.displayName(displayName);
         participant.playerListName(displayName);
         hubManager.onParticipantJoin(participant);
@@ -516,6 +516,32 @@ public class GameManager implements Listener {
         }
         onlineParticipants.clear();
         onlineAdmins.clear();
+        // TabList start
+        tabList.clear();
+        for (String teamId : gameStateStorageUtil.getTeamIds()) {
+            String teamDisplayName = gameStateStorageUtil.getTeamDisplayName(teamId);
+            NamedTextColor teamColor = gameStateStorageUtil.getTeamColor(teamId);
+            int teamScore = gameStateStorageUtil.getTeamScore(teamId);
+            tabList.addTeam(teamId, teamDisplayName, teamColor);
+            tabList.setScore(teamId, teamScore);
+        }
+        for (UUID uuid : gameStateStorageUtil.getPlayerUniqueIds()) {
+            OfflinePlayer offlinePlayer = Bukkit.getServer().getOfflinePlayer(uuid);
+            String name = getParticipantName(offlinePlayer);
+            String teamId = gameStateStorageUtil.getPlayerTeamId(uuid);
+            if (teamId != null) { // this will not be null, formality
+                tabList.joinParticipant(uuid, name, teamId);
+            }
+        }
+        for (UUID uuid : gameStateStorageUtil.getOfflinePlayerUniqueIds()) {
+            OfflinePlayer offlinePlayer = Bukkit.getServer().getOfflinePlayer(uuid);
+            String name = getParticipantName(offlinePlayer);
+            String teamId = gameStateStorageUtil.getPlayerTeamId(uuid);
+            if (teamId != null) { // this will not be null, formality
+                tabList.joinParticipant(uuid, name, teamId);
+            }
+        }
+        // TabList stop
         for (Player player : Bukkit.getOnlinePlayers()) {
             if (gameStateStorageUtil.isAdmin(player.getUniqueId())) {
                 onAdminJoin(player);
@@ -1440,8 +1466,8 @@ public class GameManager implements Listener {
      * @param participant must be a valid participant in the GameState
      * @return the display name of the given participant
      */
-    public Component getDisplayName(@NotNull Player participant) {
-        return getDisplayName(participant.getUniqueId(), participant.getName());
+    public Component getParticipantDisplayName(@NotNull Player participant) {
+        return getParticipantDisplayName(participant.getUniqueId(), participant.getName());
     }
     
     /**
@@ -1450,17 +1476,29 @@ public class GameManager implements Listener {
      *                           UUID will be used as the name.
      * @return the displayName of the participant represented by the given offline participant
      */
-    public Component getDisplayName(@NotNull OfflinePlayer offlineParticipant) {
+    public Component getParticipantDisplayName(@NotNull OfflinePlayer offlineParticipant) {
+        String name = getParticipantName(offlineParticipant);
+        UUID uuid = offlineParticipant.getUniqueId();
+        return getParticipantDisplayName(uuid, name);
+    }
+    
+    /**
+     * @param offlineParticipant the OfflinePlayer with the UUID of a valid participant.
+     *                           If the OfflinePlayer's name is null, then the
+     *                           UUID will be used as the name. 
+     * @return the name of the participant represented by the given offline participant
+     */
+    public String getParticipantName(@NotNull OfflinePlayer offlineParticipant) {
         String name = offlineParticipant.getName();
         UUID uuid = offlineParticipant.getUniqueId();
         if (name == null) {
             String ign = gameStateStorageUtil.getOfflineIGN(uuid);
             if (ign != null) {
-                return getDisplayName(uuid, ign);
+                return ign;
             }
-            return getDisplayName(uuid, uuid.toString());
+            return uuid.toString();
         }
-        return getDisplayName(uuid, name);
+        return name;
     }
     
     /**
@@ -1469,7 +1507,7 @@ public class GameManager implements Listener {
      * @param name the name of the player
      * @return the display name of the given participant's UUID
      */
-    public Component getDisplayName(@NotNull UUID participantUUID, @NotNull String name) {
+    public Component getParticipantDisplayName(@NotNull UUID participantUUID, @NotNull String name) {
         String teamId = getTeamId(participantUUID);
         NamedTextColor teamNamedTextColor = getTeamColor(teamId);
         return Component.text(name, teamNamedTextColor);

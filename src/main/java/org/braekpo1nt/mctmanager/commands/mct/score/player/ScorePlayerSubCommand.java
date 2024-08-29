@@ -86,7 +86,7 @@ public class ScorePlayerSubCommand extends TabSubCommand {
                         .decorate(TextDecoration.BOLD));
         List<OfflinePlayer> sortedOfflinePlayers = GameManagerUtils.getSortedOfflineParticipants(gameManager);
         for (OfflinePlayer participant : sortedOfflinePlayers) {
-            Component displayName = gameManager.getDisplayName(participant);
+            Component displayName = gameManager.getParticipantDisplayName(participant);
             int score = gameManager.getScore(participant.getUniqueId());
             builder.append(Component.empty()
                     .append(Component.newline())

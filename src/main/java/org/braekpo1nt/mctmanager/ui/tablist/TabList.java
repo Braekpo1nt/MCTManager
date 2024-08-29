@@ -71,7 +71,8 @@ public class TabList {
                             .append(Component.text(name)
                                     .color(color))
                             .append(Component.text(" ".repeat(paddingLength)))
-                            .append(Component.text(score))
+                            .append(Component.text(score)
+                                    .color(NamedTextColor.GOLD))
                     )
                     
                     .append(Component.newline())
@@ -324,6 +325,20 @@ public class TabList {
             return;
         }
         playerData.getPlayer().sendPlayerListHeader(Component.empty());
+    }
+    
+    /**
+     * Clears the TabList. <br>
+     * Remove all teams, remove all participants, remove all viewing players, clear all viewing players'
+     * tab headers. 
+     */
+    public void clear() {
+        teamDatas.clear();
+        participantDatas.clear();
+        for (PlayerData playerData : playerDatas.values()) {
+            playerData.getPlayer().sendPlayerListHeader(Component.empty());
+        }
+        playerDatas.clear();
     }
     
     /**

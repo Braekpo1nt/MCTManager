@@ -288,7 +288,7 @@ public class ReadyUpState implements EventState {
                         .decorate(TextDecoration.BOLD));
         List<OfflinePlayer> sortedOfflineParticipants = getSortedOfflineParticipants(teamId);
         for (OfflinePlayer participant : sortedOfflineParticipants) {
-            Component displayName = gameManager.getDisplayName(participant);
+            Component displayName = gameManager.getParticipantDisplayName(participant);
             String participantTeamId = gameManager.getTeamId(participant.getUniqueId());
             boolean ready = readyUpManager.participantIsReady(participant.getUniqueId(), participantTeamId);
             builder.append(Component.empty()
