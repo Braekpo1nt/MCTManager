@@ -331,6 +331,7 @@ public class GameManager implements Listener {
             voteManager.onAdminQuit(admin);
         }
         hubManager.onAdminQuit(admin);
+        tabList.hidePlayer(admin.getUniqueId());
         Component displayName = Component.text(admin.getName(), NamedTextColor.WHITE);
         admin.displayName(displayName);
         admin.playerListName(displayName);
@@ -391,6 +392,7 @@ public class GameManager implements Listener {
         admin.displayName(displayName);
         admin.playerListName(displayName);
         hubManager.onAdminJoin(admin);
+        tabList.showPlayer(admin);
         if (gameIsRunning()) {
             activeGame.onAdminJoin(admin);
         } else if (eventManager.eventIsActive() || eventManager.colossalCombatIsActive()) {
@@ -1336,6 +1338,7 @@ public class GameManager implements Listener {
      */
     public void leaveOfflineIGN(CommandSender sender, @NotNull String ign) {
         String teamId = gameStateStorageUtil.getOfflineIGNTeamId(ign);
+        UUID uuid = gameStateStorageUtil.getOfflineIGNUniqueId(ign);
         Component teamDisplayName;
         if (teamId != null) {
             teamDisplayName = getFormattedTeamDisplayName(teamId);
@@ -1350,6 +1353,9 @@ public class GameManager implements Listener {
                     .color(NamedTextColor.RED));
         }
         hubManager.updateLeaderboards();
+        if (uuid != null) { // should always be non-null, formality
+            tabList.leaveParticipant(uuid);
+        }
         TextComponent displayName = Component.text(ign)
                 .decorate(TextDecoration.BOLD);
         sender.sendMessage(Component.text("Removed ")

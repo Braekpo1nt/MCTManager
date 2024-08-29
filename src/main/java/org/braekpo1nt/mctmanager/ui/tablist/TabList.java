@@ -17,9 +17,8 @@ import java.util.logging.Level;
 
 public class TabList {
     
-    private static final int TEAM_LINE_CHARACTERS = 55;
-//    private static final int PARTICIPANT_LINE_CHARACTERS = 43;
-    private static final int PARTICIPANT_LINE_CHARACTERS = 55;
+    private static final int TEAM_LINE_CHARACTERS = 45;
+    private static final int PARTICIPANT_LINE_CHARACTERS = 45;
     
     /**
      * Represents a player who is viewing this TabList
@@ -184,7 +183,7 @@ public class TabList {
     private Component toTabList() {
         List<TeamData> sortedTeamDatas = teamDatas.values().stream().sorted((team1, team2) -> {
             if (team1.getScore() != team2.getScore()) {
-                return Integer.compare(team1.getScore(), team2.getScore());
+                return Integer.compare(team2.getScore(), team1.getScore());
             }
             return team1.getName().compareTo(team2.getName());
         }).toList();
