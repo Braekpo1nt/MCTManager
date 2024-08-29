@@ -59,7 +59,7 @@ public class TabList {
         private final @NotNull TextColor color;
         private final @NotNull String name;
         private final @NotNull List<ParticipantData> participants;
-        private final int score;
+        private int score;
         
         public Component toTabListLine(int index) {
             int paddingLength = Math.max(TEAM_LINE_CHARACTERS 
@@ -230,6 +230,20 @@ public class TabList {
             logUIError("Team with teamId \"%s\" does not exist in this TabList", teamId);
             return;
         }
+        update();
+    }
+    
+    /**
+     * Set the score of the given team
+     * @param teamId the teamId to update the score of. Must be a valid teamId in this TabList.
+     * @param score the score to update to.
+     */
+    public void setScore(@NotNull String teamId, int score) {
+        TeamData teamData = getTeamData(teamId);
+        if (teamData == null) {
+            return;
+        }
+        teamData.setScore(score);
         update();
     }
     
