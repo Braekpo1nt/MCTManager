@@ -27,6 +27,11 @@ public class TabList {
     @AllArgsConstructor
     public static class PlayerData {
         private final @NotNull Player player;
+        /**
+         * True if the TabList should be visible to this player
+         * False if the player should not see the TabList
+         */
+        private boolean visible;
     }
     
     /**
@@ -221,8 +226,12 @@ public class TabList {
      * @param playerData the playerData to update the view of
      */
     private void update(PlayerData playerData) {
-        Component tabList = toTabList();
-        playerData.getPlayer().sendPlayerListHeader(tabList);
+        if (playerData.isVisible()) {
+            Component tabList = toTabList();
+            playerData.getPlayer().sendPlayerListHeader(tabList);
+        } else {
+            playerData.getPlayer().sendPlayerListHeader(Component.empty());
+        }
     }
     
     public void addTeam(@NotNull String teamId, @NotNull String displayName, @NotNull TextColor color) {
@@ -313,13 +322,31 @@ public class TabList {
         update();
     }
     
+    /**
+     * Show the given player this TabList
+     * @param player the player to view the TabList. Must not already be a viewer.
+     */
     public void showPlayer(@NotNull Player player) {
         if (playerDatas.containsKey(player.getUniqueId())) {
             logUIError("Player with UUID \"%s\" and name \"%s\" is already contained in this TabList", player.getUniqueId(), player.getName());
             return;
         }
-        PlayerData playerData = new PlayerData(player);
+        PlayerData playerData = new PlayerData(player, true);
         playerDatas.put(player.getUniqueId(), playerData);
+        update(playerData);
+    }
+    
+    /**
+     * Players are able to optionally see the TabList content (say, if they want to see the online players list instead, they can hide it). This is not the same as using {@link #showPlayer(Player)} and {@link #hidePlayer(UUID)}, which involves adding/removing players as viewers of this TabList. This merely toggles the content's visibility of players who are viewers of this TabList. 
+     * @param uuid the UUID of the player to set the visibility of. Must be the UUID of a player viewing this TabList
+     * @param visible true if the player should see the content, false otherwise. 
+     */
+    public void setVisibility(@NotNull UUID uuid, boolean visible) {
+        PlayerData playerData = getPlayerData(uuid);
+        if (playerData == null) {
+            return;
+        }
+        playerData.setVisible(visible);
         update(playerData);
     }
     

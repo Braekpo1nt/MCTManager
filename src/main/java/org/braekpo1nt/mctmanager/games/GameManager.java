@@ -1877,6 +1877,16 @@ public class GameManager implements Listener {
         this.sidebarFactory = sidebarFactory;
     }
     
+    /**
+     * Sets the visibility of the main TabList to the given value for the given player. 
+     * This is used to allow players to see the player list as default. 
+     * @param uuid the UUID of the player who is currently viewing the TabList to set the visibility of
+     * @param visible true if the player should see the TabList content, false otherwise.
+     */
+    public void setTabListVisibility(@NotNull UUID uuid, boolean visible) {
+        tabList.setVisibility(uuid, visible);
+    }
+    
     private void updateTeamScore(String teamId) {
         Component teamDisplayName = getFormattedTeamDisplayName(teamId);
         int teamScore = getScore(teamId);
