@@ -33,7 +33,7 @@ public class MCTDebugCommand implements TabExecutor, Listener {
     
     @Data
     @AllArgsConstructor
-    public static class Participant {
+    public static class PlayerData {
         private final @NotNull String name;
         private final boolean alive;
         
@@ -53,10 +53,10 @@ public class MCTDebugCommand implements TabExecutor, Listener {
     
     @Data
     @AllArgsConstructor
-    public static class Team {
+    public static class TeamData {
         private final @NotNull TextColor color;
         private final @NotNull String name;
-        private final @NotNull List<Participant> participants;
+        private final @NotNull List<PlayerData> participants;
         private final int score;
         
         public Component toTabListLine(int index, int chars, int pChars) {
@@ -80,19 +80,19 @@ public class MCTDebugCommand implements TabExecutor, Listener {
                     ;
         }
         
-        private Component getParticipantNamesLine(int chars) {
+        private Component getParticipantNamesLine(int pChars) {
             List<Integer> nameLengths = participants.stream().map(participant -> participant.getName().length()).toList();
-            List<Integer> trimLengths = getTrimLengths(nameLengths, chars - (nameLengths.size() - 1));
+            List<Integer> trimLengths = getTrimLengths(nameLengths, pChars - (nameLengths.size() - 1));
             TextComponent.Builder builder = Component.text();
             for (int i = 0; i < participants.size(); i++) {
-                Participant participant = participants.get(i);
+                PlayerData participant = participants.get(i);
                 builder.append(participant.toTabListEntry(color, trimLengths.get(i)));
                 if (i < participants.size() - 1) {
                     builder.append(Component.space());
                 }
             }
             int totalLength = trimLengths.stream().mapToInt(Integer::intValue).sum() + nameLengths.size() - 1;
-            int paddingLength = chars - totalLength;
+            int paddingLength = pChars - totalLength;
             builder.append(Component.text(" ".repeat(paddingLength)));
             return builder.build();
         }
@@ -121,39 +121,39 @@ public class MCTDebugCommand implements TabExecutor, Listener {
         }
     }
     
-    private static final List<Team> allTeams;
+    private static final List<TeamData> allTeams;
     static {
         allTeams = List.of(
-                new Team(
+                new TeamData(
                         NamedTextColor.YELLOW,
                         "Yellow Yaks",
                         List.of(
-                                new Participant("Purpled",true),
-                                new Participant("Antfrost",true),
-                                new Participant("vGumiho",false),
-                                new Participant("RedVelvetCake",true)
+                                new PlayerData("Purpled",true),
+                                new PlayerData("Antfrost",true),
+                                new PlayerData("vGumiho",false),
+                                new PlayerData("RedVelvetCake",true)
                         ),
                         2112
                 ),
-                new Team(
+                new TeamData(
                         NamedTextColor.DARK_AQUA,
                         "Teal Turkeys",
                         List.of(
-                                new Participant("SolidarityGaming",true),
-                                new Participant("cubfan13",true),
-                                new Participant("jojosolo",false),
-                                new Participant("smajor199",true)
+                                new PlayerData("SolidarityGaming",true),
+                                new PlayerData("cubfan13",true),
+                                new PlayerData("jojosolo",false),
+                                new PlayerData("smajor199",true)
                         ),
                         1299
                 ),
-                new Team(
+                new TeamData(
                         NamedTextColor.GOLD,
                         "Giner Breadmen",
                         List.of(
-                                new Participant("GoodTimesWithScar",true),
-                                new Participant("FireBreathMan",true),
-                                new Participant("Owengejuice",true),
-                                new Participant("bekyamon",true)
+                                new PlayerData("GoodTimesWithScar",true),
+                                new PlayerData("FireBreathMan",true),
+                                new PlayerData("Owengejuice",true),
+                                new PlayerData("bekyamon",true)
                         ),
                         1177
                 )
@@ -162,16 +162,14 @@ public class MCTDebugCommand implements TabExecutor, Listener {
     
     /**
      * 
-     * @param teams
      * @param chars 55
      * @param pChars 43
-     * @return
      */
-    public static Component toTabList(List<Team> teams, int chars, int pChars) {
+    public static Component toTabList(List<TeamData> teams, int chars, int pChars) {
         TextComponent.Builder builder = Component.text();
         builder.append(Component.newline());
         for (int i = 0; i < teams.size(); i++) {
-            Team team = teams.get(i);
+            TeamData team = teams.get(i);
             builder
                     .append(team.toTabListLine(i, chars, pChars))
                     .append(Component.newline())
