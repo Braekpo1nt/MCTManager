@@ -231,7 +231,8 @@ public class GameStateStorageUtil {
     
     /**
      * @param ign the in-game-name of a participant who has never logged in before
-     * @return the teamId of the OfflineParticipant with the given ign. Null if the ign doesn't exist in the GameState
+     * @return the teamId of the OfflineParticipant with the given IGN. 
+     * Null if the IGN doesn't exist in the GameState
      */
     public @Nullable String getOfflineIGNTeamId(@NotNull String ign) {
         OfflineMCTPlayer offlineMCTPlayer = gameState.getOfflinePlayer(ign);
@@ -239,6 +240,19 @@ public class GameStateStorageUtil {
             return null;
         }
         return offlineMCTPlayer.getTeamId();
+    }
+    
+    /**
+     * @param ign the in-game-name of a participant who has never logged in before
+     * @return the saved IGN of the OfflineParticipant with the given IGN. 
+     * Null if the IGN doesn't exist in the GameState
+     */
+    public @Nullable UUID getOfflineIGNUniqueId(@NotNull String ign) {
+        OfflineMCTPlayer offlineMCTPlayer = gameState.getOfflinePlayer(ign);
+        if (offlineMCTPlayer == null) {
+            return null;
+        }
+        return offlineMCTPlayer.getOfflineUniqueId();
     }
     
     /**
