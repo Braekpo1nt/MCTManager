@@ -18,7 +18,8 @@ import java.util.logging.Level;
 public class TabList {
     
     private static final int TEAM_LINE_CHARACTERS = 55;
-    private static final int PARTICIPANT_LINE_CHARACTERS = 43;
+//    private static final int PARTICIPANT_LINE_CHARACTERS = 43;
+    private static final int PARTICIPANT_LINE_CHARACTERS = 55;
     
     /**
      * Represents a player who is viewing this TabList
@@ -181,13 +182,18 @@ public class TabList {
      * @return a playerListHeader Component representing the team data contained in this object
      */
     private Component toTabList() {
-        List<TeamData> sortedTeamDatas = teamDatas.values().stream().sorted(Comparator.comparingInt(TeamData::getScore)).toList();
+        List<TeamData> sortedTeamDatas = teamDatas.values().stream().sorted((team1, team2) -> {
+            if (team1.getScore() != team2.getScore()) {
+                return Integer.compare(team1.getScore(), team2.getScore());
+            }
+            return team1.getName().compareTo(team2.getName());
+        }).toList();
         TextComponent.Builder builder = Component.text();
         builder.append(Component.newline());
         for (int i = 0; i < sortedTeamDatas.size(); i++) {
             TeamData team = sortedTeamDatas.get(i);
             builder
-                    .append(team.toTabListLine(i))
+                    .append(team.toTabListLine(i + 1))
                     .append(Component.newline())
                     .append(Component.newline())
             ;
