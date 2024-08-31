@@ -1,14 +1,18 @@
 package org.braekpo1nt.mctmanager.commands.mctdebug;
 
+import com.sk89q.worldedit.EditSession;
+import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.bukkit.BukkitAdapter;
 import com.sk89q.worldedit.extent.clipboard.BlockArrayClipboard;
-import com.sk89q.worldedit.extent.clipboard.io.BuiltInClipboardFormat;
-import com.sk89q.worldedit.extent.clipboard.io.ClipboardWriter;
+import com.sk89q.worldedit.extent.clipboard.Clipboard;
+import com.sk89q.worldedit.extent.clipboard.io.*;
 import com.sk89q.worldedit.function.operation.ForwardExtentCopy;
+import com.sk89q.worldedit.function.operation.Operation;
 import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.regions.CuboidRegion;
+import com.sk89q.worldedit.session.ClipboardHolder;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -23,10 +27,7 @@ import org.bukkit.event.Listener;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -94,15 +95,21 @@ public class MCTDebugCommand implements TabExecutor, Listener {
                     Operations.complete(forwardExtentCopy);
                 } catch (WorldEditException e) {
                     Main.logger().log(Level.SEVERE, "exception while trying to copy region", e);
-                    sender.sendMessage(Component.text("An error occurred while trying to copy, please see console for details"));
+                    sender.sendMessage(Component.text("An error occurred while trying to save, please see console for details"));
                     return true;
                 }
                 // world edit save schematic
                 File file = new File(plugin.getDataFolder(), fileName);
                 try (ClipboardWriter writer = BuiltInClipboardFormat.SPONGE_V3_SCHEMATIC.getWriter(new FileOutputStream(file))) {
                     writer.write(clipboard);
+                } catch (FileNotFoundException e) {
+                    Main.logger().log(Level.SEVERE, "Could not find file " + file, e);
+                    sender.sendMessage(Component.text("An error occurred while trying to save, please see console for details"));
+                    return true;
                 } catch (IOException e) {
-                    Main.logger().log(Level.SEVERE, "Exception while performing operation", e);
+                    Main.logger().log(Level.SEVERE, "Exception while writing to file " + file, e);
+                    sender.sendMessage(Component.text("An error occurred while trying to save, please see console for details"));
+                    return true;
                 }
             }
             case "load" -> {
@@ -113,19 +120,48 @@ public class MCTDebugCommand implements TabExecutor, Listener {
                 String fileName = args[1];
                 for (int i = 2; i < 5; i++) {
                     String coordinate = args[i];
-                    if (!CommandUtils.isDouble(coordinate)) {
+                    if (!CommandUtils.isInteger(coordinate)) {
                         sender.sendMessage(Component.empty()
                                 .append(Component.text(coordinate)
                                         .decorate(TextDecoration.BOLD))
-                                .append(Component.text(" is not a number")));
+                                .append(Component.text(" is not an integer")));
                         return true;
                     }
                 }
-                double x = Double.parseDouble(args[2]);
-                double y = Double.parseDouble(args[3]);
-                double z = Double.parseDouble(args[4]);
+                int x = Integer.parseInt(args[2]);
+                int y = Integer.parseInt(args[3]);
+                int z = Integer.parseInt(args[4]);
                 // world edit load schematic
-                
+                File file = new File(plugin.getDataFolder(), fileName);
+                Clipboard clipboard;
+                ClipboardFormat format = ClipboardFormats.findByFile(file);
+                if (format == null) {
+                    Main.logger().severe("Could not find file " + file);
+                    sender.sendMessage(Component.text("An error occurred while trying to load, please see console for details"));
+                    return true;
+                }
+                try (ClipboardReader reader = format.getReader(new FileInputStream(file))) {
+                    clipboard = reader.read();
+                } catch (FileNotFoundException e) {
+                    Main.logger().log(Level.SEVERE, "Could not find file " + file, e);
+                    sender.sendMessage(Component.text("An error occurred while trying to load, please see console for details"));
+                    return true;
+                } catch (IOException e) {
+                    Main.logger().log(Level.SEVERE, "Exception while reading from file " + file, e);
+                    sender.sendMessage(Component.text("An error occurred while trying to load, please see console for details"));
+                    return true;
+                }
+                try (EditSession editSession = WorldEdit.getInstance().newEditSession(BukkitAdapter.adapt(player.getWorld()))) {
+                    Operation operation = new ClipboardHolder(clipboard)
+                            .createPaste(editSession)
+                            .to(BlockVector3.at(x, y, z))
+                            .build();
+                    Operations.complete(operation);
+                } catch (WorldEditException e) {
+                    Main.logger().log(Level.SEVERE, "Exception while pasting", e);
+                    sender.sendMessage(Component.text("An error occurred while trying to load, please see console for details"));
+                    return true;
+                }
             }
             default -> {
                 sender.sendMessage("Unknown argument " + args[0]);
