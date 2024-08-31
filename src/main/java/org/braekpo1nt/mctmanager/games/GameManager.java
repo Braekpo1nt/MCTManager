@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games;
 
+import com.destroystokyo.paper.event.player.PlayerArmorChangeEvent;
 import com.google.common.base.Preconditions;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
@@ -34,17 +35,14 @@ import org.braekpo1nt.mctmanager.ui.tablist.TabList;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.bukkit.*;
-import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockDispenseArmorEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.inventory.*;
-import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.EquipmentSlot;
@@ -174,30 +172,76 @@ public class GameManager implements Listener {
         }
     }
     
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onPlayerInteract(PlayerInteractEvent event) {
-        Action action = event.getAction();
-        if (event.useItemInHand().equals(Event.Result.DENY) 
-                || (!action.equals(Action.RIGHT_CLICK_AIR) && !action.equals(Action.RIGHT_CLICK_BLOCK))) {
+    @EventHandler
+    public void onPlayerChangeArmor(PlayerArmorChangeEvent event) {
+        Player participant = event.getPlayer();
+        if (!isParticipant(participant.getUniqueId())) {
             return;
         }
-        Block clickedBlock = event.getClickedBlock();
-        if (clickedBlock != null && clickedBlock.getType().isInteractable()) {
+        ItemStack newItem = event.getNewItem();
+        if (isLeatherArmor(newItem)) {
+            colorLeatherArmor(newItem, participant.getUniqueId());
+            participant.getEquipment().setItem(toEquipmentSlot(event.getSlotType()), newItem);
+        }
+        ItemStack oldItem = event.getOldItem();
+        if (isLeatherArmor(oldItem)) {
+            GameManagerUtils.deColorLeatherArmor(oldItem);
+            ItemStack cursor = participant.getOpenInventory().getCursor();
+            ItemStack mainHand = participant.getInventory().getItemInMainHand();
+            ItemStack offHand = participant.getInventory().getItemInOffHand();
+            if (isLeatherArmor(cursor)) {
+                GameManagerUtils.deColorLeatherArmor(cursor);
+            }
+            if (isLeatherArmor(mainHand)) {
+                GameManagerUtils.deColorLeatherArmor(mainHand);
+            }
+            if (isLeatherArmor(offHand)) {
+                GameManagerUtils.deColorLeatherArmor(offHand);
+            }
+            GameManagerUtils.deColorLeatherArmor(Arrays.asList(participant.getInventory().getStorageContents()));
+        }
+    }
+    
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onPlayerDropItem(PlayerDropItemEvent event) {
+        if (event.isCancelled()) {
             return;
         }
         Player participant = event.getPlayer();
         if (!isParticipant(participant.getUniqueId())) {
             return;
         }
-        ItemStack item = event.getItem();
-        if (!isLeatherArmor(item)) {
+        ItemStack itemStack = event.getItemDrop().getItemStack();
+        if (!isLeatherArmor(itemStack)) {
             return;
         }
-        EquipmentSlot slot = item.getType().getEquipmentSlot();
-        Material typeInDestinationSlot = participant.getEquipment().getItem(slot).getType();
-        if (typeInDestinationSlot.equals(Material.AIR)) {
-            colorLeatherArmor(item, participant.getUniqueId());
+        GameManagerUtils.deColorLeatherArmor(itemStack);
+    }
+    
+    public EquipmentSlot toEquipmentSlot(@NotNull PlayerArmorChangeEvent.SlotType slotType) {
+        switch (slotType) {
+            case HEAD -> {
+                return EquipmentSlot.HEAD;
+            }
+            case CHEST -> {
+                return EquipmentSlot.CHEST;
+            }
+            case LEGS -> {
+                return EquipmentSlot.LEGS;
+            }
+            case FEET -> {
+                return EquipmentSlot.FEET;
+            }
+            default -> {
+                // won't return null if slotType is not null
+                return null;
+            }
         }
+    }
+    
+    @EventHandler
+    public void onBlockDispenseItem(BlockDispenseArmorEvent event) {
+        Main.logger().info(String.format("Entity name: %s, item: %s, equipment slot: %s", event.getTargetEntity().getName(), event.getItem(), event.getItem().getType().getEquipmentSlot()));
     }
     
     /**
@@ -210,96 +254,6 @@ public class GameManager implements Listener {
             return false;
         }
         return item.getItemMeta() instanceof LeatherArmorMeta;
-    }
-    
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onPlayerClickInventory(InventoryClickEvent event) {
-        if (event.isCancelled() || event.getResult().equals(Event.Result.DENY)) {
-            return;
-        }
-        if (!(event.getWhoClicked() instanceof Player participant)) {
-            return;
-        }
-        if (!isParticipant(participant.getUniqueId())) {
-            return;
-        }
-        ItemStack currentItem = event.getCurrentItem(); // current item in clicked slot
-        ItemStack cursorItem = event.getCursor();
-        InventoryType.SlotType clickedSlot = event.getSlotType();
-        if (isLeatherArmor(currentItem)) {
-            if (event.getAction().equals(InventoryAction.MOVE_TO_OTHER_INVENTORY)) {
-                if (!event.getInventory().getType().equals(InventoryType.CRAFTING) 
-                        || event.getClickedInventory() == null 
-                        || !event.getClickedInventory().getType().equals(InventoryType.PLAYER)) {
-                    return;
-                }
-                if (!clickedSlot.equals(InventoryType.SlotType.ARMOR)) {
-                    EquipmentSlot destSlot = currentItem.getType().getEquipmentSlot();
-                    Material destSlotMaterial = participant.getEquipment().getItem(destSlot).getType();
-                    if (destSlotMaterial.equals(Material.AIR)) {
-                        // shift click leather armor from non-armor slot to empty armor slot
-                        colorLeatherArmor(currentItem, participant.getUniqueId());
-                    }
-                } else {
-                    if (hasOpenSlot(participant.getInventory().getStorageContents())) {
-                        GameManagerUtils.deColorLeatherArmor(currentItem);
-                    }
-                }
-            } else {
-                if (clickedSlot.equals(InventoryType.SlotType.ARMOR)) {
-                    GameManagerUtils.deColorLeatherArmor(currentItem);
-                }
-            }
-        }
-        if (isLeatherArmor(cursorItem)) {
-            if (event.getAction().equals(InventoryAction.COLLECT_TO_CURSOR)) {
-                return;
-            }
-            EquipmentSlot destSlot = cursorItem.getType().getEquipmentSlot();
-            int destSlotNum = toArmorSlotNumber(destSlot);
-            if (event.getSlot() == destSlotNum) {
-                // use mouse to place leather armor in armor slot (either empty or replacing another armor)
-                colorLeatherArmor(cursorItem, participant.getUniqueId());
-            }
-        }
-    }
-    
-    /**
-     * @param contents the contents to check if it has an open slot or not
-     * @return true if even one of the given entries is null or of Material type AIR
-     */
-    private boolean hasOpenSlot(ItemStack[] contents) {
-        for (ItemStack itemStack : contents) {
-            if (itemStack == null || itemStack.getType().equals(Material.AIR)) {
-                return true;
-            }
-        }
-        return false;
-    }
-    
-    /**
-     * Get the player's inventory slot number for the given EquipmentSlot. This only works for player inventories, nothing else. 
-     * @param slot the equipment slot to get the slot number for
-     * @return [39, 38, 37, 36] for [HEAD, CHEST, LEGS, FEET], respectively. -1 for anything else. 
-     */
-    private int toArmorSlotNumber(EquipmentSlot slot) {
-        switch (slot) {
-            case HEAD -> {
-                return 39;
-            }
-            case CHEST -> {
-                return 38;
-            }
-            case LEGS -> {
-                return 37;
-            }
-            case FEET -> {
-                return 36;
-            }
-            default -> {
-                return -1;
-            }
-        }
     }
     
     private void colorLeatherArmor(@NotNull ItemStack leatherArmor, @NotNull UUID participantUUID) {
