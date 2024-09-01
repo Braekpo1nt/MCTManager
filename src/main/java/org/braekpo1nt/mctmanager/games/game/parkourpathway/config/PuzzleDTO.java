@@ -5,7 +5,6 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.LocationDTO;
-import org.braekpo1nt.mctmanager.config.dto.org.bukkit.util.BoundingBoxDTO;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.puzzle.CheckPoint;
@@ -31,7 +30,7 @@ class PuzzleDTO implements Validatable {
      * - all detectionAreas must be in at least one inBound box <br>
      * - all detection areas of the puzzle after this must also be in at least one inBound box (otherwise players will be teleported to the respawn point before they reach the next puzzle's checkpoint). <br>
      */
-    private final List<BoundingBoxDTO> inBounds;
+    private final List<BoundingBox> inBounds;
     /**
      * the list of checkpoints that players must reach to begin this puzzle. They contain the respawn point for if they go out of bounds, and the detectionArea which they must be inside to leave their previous puzzle and begin this one.
      */
@@ -48,7 +47,7 @@ class PuzzleDTO implements Validatable {
         validator.notNull(this.getInBounds(), "inBounds");
         validator.validate(!this.getInBounds().isEmpty(), "inBounds can't be empty");
         validator.validate(!this.inBounds.contains(null), "inBounds can't contain null");
-        List<BoundingBox> inBounds = this.inBounds.stream().map(BoundingBoxDTO::toBoundingBox).toList();
+        List<BoundingBox> inBounds = this.inBounds.stream().map(BoundingBox::toBoundingBox).toList();
         for (int i = 0; i < inBounds.size(); i++) {
             BoundingBox inBound = inBounds.get(i);
             validator.validate(inBound.getVolume() >= 1, "inBounds[%d]'s volume (%s) can't be less than 1 (%s)", i, inBound.getVolume(), inBound);
@@ -65,13 +64,13 @@ class PuzzleDTO implements Validatable {
             CheckPointDTO checkPoint = this.checkPoints.get(i);
             validator.validate(checkPoint != null, "checkPoints can't have null elements");
             checkPoint.validate(validator.path("checkPoints[%d]", i));
-            BoundingBox detectionArea = checkPoint.getDetectionArea().toBoundingBox();
+            BoundingBox detectionArea = checkPoint.getDetectionArea();
             validator.validate(this.isInBounds(detectionArea), "checkPoints[%d].inBounds must contain all checkPoints[%d].detectionAreas", i, i);
             Vector respawn = checkPoint.getRespawn().toVector();
             validator.validate(detectionArea.contains(respawn), "checkPoints[%s].detectionArea must contain checkPoints[%s].respawn", i, i);
             for (int j = 0; j < i; j++) {
                 PuzzleDTO.CheckPointDTO earlierCheckpoint = this.getCheckPoints().get(j);
-                BoundingBox earlierDetectionArea = earlierCheckpoint.getDetectionArea().toBoundingBox();
+                BoundingBox earlierDetectionArea = earlierCheckpoint.getDetectionArea();
                 validator.validate(!earlierDetectionArea.overlaps(detectionArea), "checkPoints[%s].detectionArea (%s) and checkPoints[%s].detectionArea (%s) can't overlap", i-1, earlierDetectionArea, i, detectionArea);
             }
         }
@@ -96,7 +95,7 @@ class PuzzleDTO implements Validatable {
     }
     
     static @NotNull PuzzleDTO fromPuzzle(Puzzle puzzle) {
-        return new PuzzleDTO(BoundingBoxDTO.from(puzzle.inBounds()), CheckPointDTO.from(puzzle.checkPoints()));
+        return new PuzzleDTO(BoundingBox.from(puzzle.inBounds()), CheckPointDTO.from(puzzle.checkPoints()));
     }
     
     /**
@@ -121,8 +120,8 @@ class PuzzleDTO implements Validatable {
      * @return true if the given box is contained in at least one of this PuzzleDTO's inBounds boxes, false otherwise
      */
     boolean isInBounds(BoundingBox box) {
-        for (BoundingBoxDTO inBound : inBounds) {
-            if (inBound.toBoundingBox().contains(box)) {
+        for (BoundingBox inBound : inBounds) {
+            if (inBound.contains(box)) {
                 return true;
             }
         }
@@ -134,8 +133,8 @@ class PuzzleDTO implements Validatable {
      * @return true if the given vector is contained in at least one of this PuzzleDTO's inBounds boxes, false otherwise
      */
     boolean isInBounds(Vector v) {
-        for (BoundingBoxDTO inBound : inBounds) {
-            if (inBound.toBoundingBox().contains(v)) {
+        for (BoundingBox inBound : inBounds) {
+            if (inBound.contains(v)) {
                 return true;
             }
         }
@@ -148,18 +147,18 @@ class PuzzleDTO implements Validatable {
         /**
          * if a player reaches this area, they are considered to be in this puzzle (i.e. they completed the previous puzzle). This must contain the respawn location.
          */
-        private BoundingBoxDTO detectionArea;
+        private BoundingBox detectionArea;
         /**
          * the location at which a player should respawn if they go out of bounds of their current puzzle. Must be inside the detectionArea.
          */
         private LocationDTO respawn;
         
         CheckPoint toCheckPoint(World world) {
-            return new CheckPoint(detectionArea.toBoundingBox(), respawn.toLocation(world));
+            return new CheckPoint(detectionArea, respawn.toLocation(world));
         }
         
         static CheckPointDTO from(CheckPoint checkPoint) {
-            return new CheckPointDTO(BoundingBoxDTO.from(checkPoint.detectionArea()), LocationDTO.from(checkPoint.respawn()));
+            return new CheckPointDTO(BoundingBox.from(checkPoint.detectionArea()), LocationDTO.from(checkPoint.respawn()));
         }
         
         static List<CheckPointDTO> from(List<CheckPoint> checkPoints) {
@@ -168,7 +167,7 @@ class PuzzleDTO implements Validatable {
     
         @Override
         public void validate(@NotNull Validator validator) {
-            BoundingBox detectionArea = this.getDetectionArea().toBoundingBox();
+            BoundingBox detectionArea = this.getDetectionArea();
             validator.validate(detectionArea.getVolume() >= 1, "detectionArea's volume (%s) can't be less than 1 (%s)", detectionArea.getVolume(), detectionArea);
             Vector respawn = this.getRespawn().toVector();
             validator.validate(detectionArea.contains(respawn), "detectionArea (%s) must contain respawn (%s)", detectionArea, respawn);
@@ -177,7 +176,7 @@ class PuzzleDTO implements Validatable {
     
     Puzzle toPuzzle(World world) {
         return new Puzzle(
-                inBounds.stream().map(BoundingBoxDTO::toBoundingBox).toList(),
+                inBounds.stream().map(BoundingBox::toBoundingBox).toList(),
                 checkPoints.stream().map(checkPointDTO -> checkPointDTO.toCheckPoint(world)).toList()
         );
     }

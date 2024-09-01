@@ -4,7 +4,6 @@ import com.google.common.base.Preconditions;
 import lombok.*;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.config.dto.org.bukkit.util.BoundingBoxDTO;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.TeamSpawn;
@@ -30,7 +29,7 @@ class ParkourPathwayConfigDTO implements Validatable {
     /**
      * the larger glass barrier meant to close off all participants from the puzzles until it is time to race. If null, no glass barrier will be created.
      */
-    private @Nullable BoundingBoxDTO glassBarrier;
+    private @Nullable BoundingBox glassBarrier;
     /**
      * The chat message sent to all participants when the glass barrier opens. Null means no message will be sent.
      */
@@ -45,7 +44,7 @@ class ParkourPathwayConfigDTO implements Validatable {
     private @Nullable Component teamSpawnsOpenMessage;
     /** the list of puzzles for this parkour game */
     private List<PuzzleDTO> puzzles;
-    private @Nullable BoundingBoxDTO spectatorArea;
+    private @Nullable BoundingBox spectatorArea;
     private @Nullable List<Material> preventInteractions;
     private Scores scores;
     private Durations durations;
@@ -57,7 +56,7 @@ class ParkourPathwayConfigDTO implements Validatable {
         validator.validate(Main.VALID_CONFIG_VERSIONS.contains(this.getVersion()), "invalid config version (%s)", this.getVersion());
         validator.notNull(Bukkit.getWorld(this.getWorld()), "Could not find world \"%s\"", this.getWorld());
         if (spectatorArea != null) {
-            BoundingBox spectatorArea = this.spectatorArea.toBoundingBox();
+            BoundingBox spectatorArea = this.spectatorArea;
             validator.validate(spectatorArea.getVolume() >= 1.0, "spectatorArea (%s) volume (%s) must be at least 1.0", spectatorArea, spectatorArea.getVolume());
         }
         validator.notNull(this.getScores(), "scores");
@@ -90,7 +89,7 @@ class ParkourPathwayConfigDTO implements Validatable {
                 PuzzleDTO previousPuzzle = puzzles.get(i - 1);
                 for (int j = 0 ; j < puzzle.getCheckPoints().size(); j++) {
                     PuzzleDTO.CheckPointDTO checkPoint = puzzle.getCheckPoints().get(j);
-                    validator.validate(previousPuzzle.isInBounds(checkPoint.getDetectionArea().toBoundingBox()), "at least one entry in puzzles[%s].inBounds must contain puzzles[%s].checkPoints[%s].detectionArea", i - 1, i, j);
+                    validator.validate(previousPuzzle.isInBounds(checkPoint.getDetectionArea()), "at least one entry in puzzles[%s].inBounds must contain puzzles[%s].checkPoints[%s].detectionArea", i - 1, i, j);
                 }
             }
         }
@@ -106,7 +105,7 @@ class ParkourPathwayConfigDTO implements Validatable {
             TeamSpawnDTO teamSpawnDTO = teamSpawns.get(i);
             validator.notNull(teamSpawnDTO, "teamSpawns[%s]", i);
             teamSpawnDTO.validate(validator.path("teamSpawns[%d]", i));
-            validator.validate(firstPuzzle.isInBounds(teamSpawnDTO.getBarrierArea().toBoundingBox()), "teamSpawns[%d].barrierArea must be contained in at least one of the inBounds boxes of puzzles[0]", i);
+            validator.validate(firstPuzzle.isInBounds(teamSpawnDTO.getBarrierArea()), "teamSpawns[%d].barrierArea must be contained in at least one of the inBounds boxes of puzzles[0]", i);
             validator.validate(firstPuzzle.isInBounds(teamSpawnDTO.getSpawn().toVector()), "teamSpawns[%d].spawn must be contained in at least one of the inBounds boxes of puzzles[0]", i);
         }
     }
@@ -116,7 +115,7 @@ class ParkourPathwayConfigDTO implements Validatable {
         Preconditions.checkArgument(newWorld != null, "Could not find world \"%s\"", this.getWorld());
         BoundingBox newGlassBarrier = null;
         if (this.getGlassBarrier() != null) {
-            newGlassBarrier = this.getGlassBarrier().toBoundingBox();
+            newGlassBarrier = this.getGlassBarrier();
         }
         List<TeamSpawn> newTeamSpawns = null;
         if (this.getTeamSpawns() != null) {
@@ -128,7 +127,7 @@ class ParkourPathwayConfigDTO implements Validatable {
         return ParkourPathwayConfig.builder()
                 .world(newWorld)
                 .startingLocation(newStartingLocation)
-                .spectatorArea(this.spectatorArea != null ? this.spectatorArea.toBoundingBox() : null)
+                .spectatorArea(this.spectatorArea)
                 .teamSpawns(newTeamSpawns)
                 .puzzles(newPuzzles)
                 .glassBarrier(newGlassBarrier)
@@ -151,12 +150,12 @@ class ParkourPathwayConfigDTO implements Validatable {
         return ParkourPathwayConfigDTO.builder()
                 .version(Main.VALID_CONFIG_VERSIONS.get(Main.VALID_CONFIG_VERSIONS.size() - 1))
                 .world(config.getWorld().getName())
-                .glassBarrier(config.getGlassBarrier() != null ? BoundingBoxDTO.from(config.getGlassBarrier()) : null)
+                .glassBarrier(config.getGlassBarrier() != null ? BoundingBox.from(config.getGlassBarrier()) : null)
                 .glassBarrierOpenMessage(config.getGlassBarrierOpenMessage())
                 .teamSpawns(config.getTeamSpawns() != null ? TeamSpawnDTO.fromTeamSpawns(config.getTeamSpawns()) : null)
                 .teamSpawnsOpenMessage(config.getTeamSpawnsOpenMessage())
                 .puzzles(PuzzleDTO.fromPuzzles(config.getPuzzles()))
-                .spectatorArea(config.getSpectatorArea() != null ? BoundingBoxDTO.from(config.getSpectatorArea()) : null)
+                .spectatorArea(config.getSpectatorArea() != null ? BoundingBox.from(config.getSpectatorArea()) : null)
                 .scores(new Scores(config.getCheckpointScore(), config.getWinScore()))
                 .preventInteractions(config.getPreventInteractions())
                 .durations(new Durations(config.getTeamSpawnsDuration(), config.getStartingDuration(), config.getTimeLimitDuration(), config.getMercyRuleDuration(), config.getMercyRuleAlertDuration(), config.getDescriptionDuration()))
