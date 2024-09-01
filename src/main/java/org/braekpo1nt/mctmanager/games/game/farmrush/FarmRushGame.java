@@ -45,7 +45,7 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
     
     @Override
     public GameType getType() {
-        return null;
+        return GameType.FARM_RUSH;
     }
     
     @Override

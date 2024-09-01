@@ -9,7 +9,8 @@ public enum GameType {
     CAPTURE_THE_FLAG("Capture the Flag", "capture-the-flag"),
     SPLEEF("Spleef", "spleef"),
     PARKOUR_PATHWAY("Parkour Pathway", "parkour-pathway"),
-    CLOCKWORK("Clockwork", "clockwork");
+    CLOCKWORK("Clockwork", "clockwork"),
+    FARM_RUSH("Farm Rush", "farm-rush");
     
     GameType(String title, String id) {
         this.title = title;
