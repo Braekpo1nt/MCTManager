@@ -44,10 +44,9 @@ class PuzzleDTO implements Validatable {
     }
     
     private void validateInBounds(@NotNull Validator validator) {
-        validator.notNull(this.getInBounds(), "inBounds");
-        validator.validate(!this.getInBounds().isEmpty(), "inBounds can't be empty");
+        validator.notNull(this.inBounds, "inBounds");
+        validator.validate(!this.inBounds.isEmpty(), "inBounds can't be empty");
         validator.validate(!this.inBounds.contains(null), "inBounds can't contain null");
-        List<BoundingBox> inBounds = this.inBounds.stream().map(BoundingBox::toBoundingBox).toList();
         for (int i = 0; i < inBounds.size(); i++) {
             BoundingBox inBound = inBounds.get(i);
             validator.validate(inBound.getVolume() >= 1, "inBounds[%d]'s volume (%s) can't be less than 1 (%s)", i, inBound.getVolume(), inBound);
@@ -95,7 +94,7 @@ class PuzzleDTO implements Validatable {
     }
     
     static @NotNull PuzzleDTO fromPuzzle(Puzzle puzzle) {
-        return new PuzzleDTO(BoundingBox.from(puzzle.inBounds()), CheckPointDTO.from(puzzle.checkPoints()));
+        return new PuzzleDTO(puzzle.inBounds(), CheckPointDTO.from(puzzle.checkPoints()));
     }
     
     /**
@@ -158,7 +157,7 @@ class PuzzleDTO implements Validatable {
         }
         
         static CheckPointDTO from(CheckPoint checkPoint) {
-            return new CheckPointDTO(BoundingBox.from(checkPoint.detectionArea()), LocationDTO.from(checkPoint.respawn()));
+            return new CheckPointDTO(checkPoint.detectionArea(), LocationDTO.from(checkPoint.respawn()));
         }
         
         static List<CheckPointDTO> from(List<CheckPoint> checkPoints) {
@@ -176,7 +175,7 @@ class PuzzleDTO implements Validatable {
     
     Puzzle toPuzzle(World world) {
         return new Puzzle(
-                inBounds.stream().map(BoundingBox::toBoundingBox).toList(),
+                new ArrayList<>(inBounds),
                 checkPoints.stream().map(checkPointDTO -> checkPointDTO.toCheckPoint(world)).toList()
         );
     }

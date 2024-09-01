@@ -39,7 +39,7 @@ class TeamSpawnDTO implements Validatable {
     }
     
     @NotNull static TeamSpawnDTO fromTeamSpawn(TeamSpawn teamSpawn) {
-        return new TeamSpawnDTO(BoundingBox.from(teamSpawn.getBarrierArea()), LocationDTO.from(teamSpawn.getSpawnLocation()));
+        return new TeamSpawnDTO(teamSpawn.getBarrierArea(), LocationDTO.from(teamSpawn.getSpawnLocation()));
     }
     
     public static List<TeamSpawnDTO> fromTeamSpawns(List<TeamSpawn> teamSpawns) {
