@@ -6,7 +6,6 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.ItemStackDTO;
-import org.braekpo1nt.mctmanager.config.dto.org.bukkit.util.BoundingBoxDTO;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.LocationDTO;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.PlayerInventoryDTO;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
@@ -45,7 +44,7 @@ import java.util.List;
 record ColossalCombatConfigDTO(
         String version, 
         String world, 
-        @Nullable BoundingBoxDTO spectatorArea, 
+        @Nullable BoundingBox spectatorArea, 
         LocationDTO firstPlaceSpawn, 
         LocationDTO secondPlaceSpawn, 
         LocationDTO spectatorSpawn, 
@@ -54,9 +53,9 @@ record ColossalCombatConfigDTO(
         @Nullable PlayerInventoryDTO loadout, 
         Gate firstPlaceGate, 
         Gate secondPlaceGate, 
-        BoundingBoxDTO removeArea, 
-        BoundingBoxDTO firstPlaceSupport, 
-        BoundingBoxDTO secondPlaceSupport, 
+        BoundingBox removeArea, 
+        BoundingBox firstPlaceSupport, 
+        BoundingBox secondPlaceSupport, 
         CaptureTheFlag captureTheFlag,
         @Nullable List<Material> preventInteractions,
         Durations durations, 
@@ -69,7 +68,7 @@ record ColossalCombatConfigDTO(
         validator.notNull(Bukkit.getWorld(this.world), "Could not find world \"%s\"", this.world);
         
         if (spectatorArea != null) {
-            BoundingBox spectatorArea = this.spectatorArea.toBoundingBox();
+            BoundingBox spectatorArea = this.spectatorArea;
             validator.validate(spectatorArea.getVolume() >= 1.0, "spectatorArea (%s) volume (%s) must be at least 1.0", spectatorArea, spectatorArea.getVolume());
         }
     
@@ -91,25 +90,22 @@ record ColossalCombatConfigDTO(
         validator.notNull(this.firstPlaceGate.placeArea(), "firstPlaceGate.placeArea");
         validator.notNull(this.firstPlaceGate.stone(), "firstPlaceGate.stone");
         validator.notNull(this.firstPlaceGate.antiSuffocationArea(), "firstPlaceGate.antiSuffocationArea");
-        validator.validate(this.firstPlaceGate.antiSuffocationArea().toBoundingBox().getVolume() != 0.0, "firstPlaceGate.antiSuffocationArea volume can't be 0.0");
+        validator.validate(this.firstPlaceGate.antiSuffocationArea().getVolume() != 0.0, "firstPlaceGate.antiSuffocationArea volume can't be 0.0");
     
         validator.notNull(this.secondPlaceGate, "secondPlaceGate");
         validator.notNull(this.secondPlaceGate.clearArea(), "secondPlaceGate.clearArea");
         validator.notNull(this.secondPlaceGate.placeArea(), "secondPlaceGate.placeArea");
         validator.notNull(this.secondPlaceGate.stone(), "secondPlaceGate.stone");
         validator.notNull(this.secondPlaceGate.antiSuffocationArea(), "secondPlaceGate.antiSuffocationArea");
-        validator.validate(this.secondPlaceGate.antiSuffocationArea().toBoundingBox().getVolume() != 0.0, "secondPlaceGate.antiSuffocationArea volume can't be 0.0");
+        validator.validate(this.secondPlaceGate.antiSuffocationArea().getVolume() != 0.0, "secondPlaceGate.antiSuffocationArea volume can't be 0.0");
     
         validator.notNull(this.removeArea, "removeArea");
-        BoundingBox removeArea = this.removeArea.toBoundingBox();
-        validator.validate(removeArea.getVolume() >= 2.0, "boundingBox (%s) volume (%s) must be at least 2.0", removeArea, removeArea.getVolume());
+        validator.validate(this.removeArea.getVolume() >= 2.0, "boundingBox (%s) volume (%s) must be at least 2.0", removeArea, removeArea.getVolume());
     
         validator.notNull(this.firstPlaceSupport, "firstPlaceSupport");
-        BoundingBox firstPlaceSupport = this.firstPlaceSupport.toBoundingBox();
-        validator.validate(firstPlaceSupport.getVolume() > 0, "firstPlaceSupport volume (%s) must be greater than 0", firstPlaceSupport.getVolume());
+        validator.validate(this.firstPlaceSupport.getVolume() > 0, "firstPlaceSupport volume (%s) must be greater than 0", firstPlaceSupport.getVolume());
         validator.notNull(this.secondPlaceSupport, "secondPlaceSupport");
-        BoundingBox secondPlaceSupport = this.secondPlaceSupport.toBoundingBox();
-        validator.validate(secondPlaceSupport.getVolume() > 0, "secondPlaceSupport volume (%s) must be greater than 0", secondPlaceSupport.getVolume());
+        validator.validate(this.secondPlaceSupport.getVolume() > 0, "secondPlaceSupport volume (%s) must be greater than 0", secondPlaceSupport.getVolume());
         validator.validate(!firstPlaceSupport.overlaps(secondPlaceSupport), "firstPlaceSupport and secondPlaceSupport can't overlap");
         
         if (captureTheFlag != null) {
@@ -142,20 +138,20 @@ record ColossalCombatConfigDTO(
                 .firstPlaceSpawn(this.firstPlaceSpawn.toLocation(newWorld))
                 .secondPlaceSpawn(this.secondPlaceSpawn.toLocation(newWorld))
                 .spectatorSpawn(this.spectatorSpawn.toLocation(newWorld))
-                .spectatorArea(this.spectatorArea != null ? this.spectatorArea.toBoundingBox() : null)
+                .spectatorArea(this.spectatorArea)
                 .requiredWins(this.requiredWins)
                 .loadout(this.loadout != null ? this.loadout.toInventoryContents() : getDefaultLoadout())
-                .firstPlaceClearArea(this.firstPlaceGate.clearArea.toBoundingBox())
-                .firstPlacePlaceArea(this.firstPlaceGate.placeArea.toBoundingBox())
-                .firstPlaceStone(this.firstPlaceGate.stone.toBoundingBox())
-                .firstPlaceAntiSuffocationArea(this.firstPlaceGate.antiSuffocationArea.toBoundingBox())
-                .secondPlaceClearArea(this.secondPlaceGate.clearArea.toBoundingBox())
-                .secondPlacePlaceArea(this.secondPlaceGate.placeArea.toBoundingBox())
-                .secondPlaceStone(this.secondPlaceGate.stone.toBoundingBox())
-                .secondPlaceAntiSuffocationArea(this.secondPlaceGate.antiSuffocationArea.toBoundingBox())
-                .removeArea(this.removeArea.toBoundingBox())
-                .firstPlaceSupport(this.firstPlaceSupport.toBoundingBox())
-                .secondPlaceSupport(this.secondPlaceSupport.toBoundingBox())
+                .firstPlaceClearArea(this.firstPlaceGate.clearArea)
+                .firstPlacePlaceArea(this.firstPlaceGate.placeArea)
+                .firstPlaceStone(this.firstPlaceGate.stone)
+                .firstPlaceAntiSuffocationArea(this.firstPlaceGate.antiSuffocationArea)
+                .secondPlaceClearArea(this.secondPlaceGate.clearArea)
+                .secondPlacePlaceArea(this.secondPlaceGate.placeArea)
+                .secondPlaceStone(this.secondPlaceGate.stone)
+                .secondPlaceAntiSuffocationArea(this.secondPlaceGate.antiSuffocationArea)
+                .removeArea(this.removeArea)
+                .firstPlaceSupport(this.firstPlaceSupport)
+                .secondPlaceSupport(this.secondPlaceSupport)
                 .antiSuffocationDuration(this.durations.antiSuffocation)
                 .roundStartingDuration(this.durations.roundStarting)
                 .descriptionDuration(this.durations.description)
@@ -167,8 +163,8 @@ record ColossalCombatConfigDTO(
         
         if (captureTheFlag != null) {
             builder.shouldStartCaptureTheFlag(true)
-                    .firstPlaceFlagGoal(this.captureTheFlag.firstPlaceGoal.toBoundingBox())
-                    .secondPlaceFlagGoal(this.captureTheFlag.secondPlaceGoal.toBoundingBox())
+                    .firstPlaceFlagGoal(this.captureTheFlag.firstPlaceGoal)
+                    .secondPlaceFlagGoal(this.captureTheFlag.secondPlaceGoal)
                     .flagMaterial(this.captureTheFlag.flagMaterial)
                     .initialFlagDirection(this.captureTheFlag.flagDirection)
                     .flagLocation(this.captureTheFlag.flagLocation.toLocation(newWorld))
@@ -176,8 +172,8 @@ record ColossalCombatConfigDTO(
                     .captureTheFlagMaximumPlayers(this.captureTheFlag.maxPlayers)
                     .captureTheFlagDuration(this.captureTheFlag.countdown)
                     .replaceBlock(this.captureTheFlag.replaceBlock)
-                    .firstPlaceFlagReplaceArea(this.captureTheFlag.firstPlaceReplaceArea.toBoundingBox())
-                    .secondPlaceFlagReplaceArea(this.captureTheFlag.secondPlaceReplaceArea.toBoundingBox());
+                    .firstPlaceFlagReplaceArea(this.captureTheFlag.firstPlaceReplaceArea)
+                    .secondPlaceFlagReplaceArea(this.captureTheFlag.secondPlaceReplaceArea);
         } else {
             builder.shouldStartCaptureTheFlag(false);
         }
@@ -229,8 +225,8 @@ record ColossalCombatConfigDTO(
          * Defaults to 60.
          */
         private int countdown = 60;
-        private BoundingBoxDTO firstPlaceGoal;
-        private BoundingBoxDTO secondPlaceGoal;
+        private BoundingBox firstPlaceGoal;
+        private BoundingBox secondPlaceGoal;
         /**
          * the block to replace with concrete of the team's color. Defaults to null. If null, no blocks will be replaced.
          */
@@ -238,11 +234,11 @@ record ColossalCombatConfigDTO(
         /**
          * The area to replace with the concrete of the team's color. At the start of the game, the {@link CaptureTheFlag#replaceBlock} material will be replaced with the concrete of the team's color, and at the end of the game it will be returned to what it was before.
          */
-        private BoundingBoxDTO firstPlaceReplaceArea;
+        private BoundingBox firstPlaceReplaceArea;
         /**
          * The same as {@link CaptureTheFlag#firstPlaceReplaceArea}, but for the second place team.
          */
-        private BoundingBoxDTO secondPlaceReplaceArea;
+        private BoundingBox secondPlaceReplaceArea;
         
         @Override
         public void validate(@NotNull Validator validator) {
@@ -251,15 +247,15 @@ record ColossalCombatConfigDTO(
             validator.notNull(flagLocation, "flagLocation");
             validator.notNull(flagSpawnMessage, "flagSpawnMessage");
             validator.notNull(firstPlaceGoal, "firstPlaceGoal");
-            validator.validate(firstPlaceGoal.toBoundingBox().getVolume() >= 1, "firstPlaceGoal must have a volume of at least 1");
+            validator.validate(firstPlaceGoal.getVolume() >= 1, "firstPlaceGoal must have a volume of at least 1");
             validator.notNull(secondPlaceGoal, "secondPlaceGoal");
-            validator.validate(secondPlaceGoal.toBoundingBox().getVolume() >= 1, "secondPlaceGoal must have a volume of at least 1");
+            validator.validate(secondPlaceGoal.getVolume() >= 1, "secondPlaceGoal must have a volume of at least 1");
             validator.notNull(firstPlaceReplaceArea, "firstPlaceReplaceArea");
             validator.notNull(secondPlaceReplaceArea, "secondPlaceReplaceArea");
         }
     }
     
-    record Gate(BoundingBoxDTO clearArea, BoundingBoxDTO placeArea, BoundingBoxDTO stone, BoundingBoxDTO antiSuffocationArea) {
+    record Gate(BoundingBox clearArea, BoundingBox placeArea, BoundingBox stone, BoundingBox antiSuffocationArea) {
     }
     
     /**

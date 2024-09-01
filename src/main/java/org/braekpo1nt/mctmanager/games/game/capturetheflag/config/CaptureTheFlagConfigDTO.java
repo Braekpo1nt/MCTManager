@@ -5,7 +5,6 @@ import com.google.common.base.Preconditions;
 import lombok.Data;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.config.dto.org.bukkit.util.BoundingBoxDTO;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.bukkit.Bukkit;
@@ -24,7 +23,7 @@ record CaptureTheFlagConfigDTO(
         Vector spawnObservatory, 
         List<ArenaDTO> arenas, 
         Map<String, LoadoutDTO> loadouts, 
-        @Nullable BoundingBoxDTO spectatorArea,
+        @Nullable BoundingBox spectatorArea,
         @Nullable List<Material> preventInteractions,
         Scores scores, 
         Durations durations, 
@@ -39,7 +38,7 @@ record CaptureTheFlagConfigDTO(
         validator.validate(!this.arenas.isEmpty(), "arenas: there must be at least 1 arena");
         validator.validateList(this.arenas, "arenas");
         if (spectatorArea != null) {
-            BoundingBox spectatorArea = this.spectatorArea.toBoundingBox();
+            BoundingBox spectatorArea = this.spectatorArea;
             validator.validate(spectatorArea.getVolume() >= 1.0, "spectatorArea (%s) volume (%s) must be at least 1.0", spectatorArea, spectatorArea.getVolume());
         }
         validator.notNull(this.scores, "scores");
@@ -80,7 +79,7 @@ record CaptureTheFlagConfigDTO(
                 .roundOverDuration(this.durations.roundOver)
                 .gameOverDuration(this.durations.gameOver)
                 .preventInteractions(this.preventInteractions != null ? this.preventInteractions : Collections.emptyList())
-                .spectatorArea(this.spectatorArea != null ? this.spectatorArea.toBoundingBox() : null)
+                .spectatorArea(this.spectatorArea)
                 .description(this.description)
                 .build();
     }

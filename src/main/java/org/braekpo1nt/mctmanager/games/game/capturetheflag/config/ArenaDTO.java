@@ -1,6 +1,5 @@
 package org.braekpo1nt.mctmanager.games.game.capturetheflag.config;
 
-import org.braekpo1nt.mctmanager.config.dto.org.bukkit.util.BoundingBoxDTO;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.Arena;
@@ -19,7 +18,7 @@ record ArenaDTO(
         Vector northBarrier,
         Vector southBarrier, 
         Arena.BarrierSize barrierSize, 
-        BoundingBoxDTO boundingBox) implements Validatable {
+        BoundingBox boundingBox) implements Validatable {
     
     static Arena toArena(ArenaDTO arenaDTO, World arenaWorld) {
         return new Arena(
@@ -30,7 +29,7 @@ record ArenaDTO(
                 arenaDTO.northBarrier().toLocation(arenaWorld),
                 arenaDTO.southBarrier().toLocation(arenaWorld),
                 arenaDTO.barrierSize(),
-                arenaDTO.boundingBox().toBoundingBox()
+                arenaDTO.boundingBox()
         );
     }
     
@@ -52,7 +51,7 @@ record ArenaDTO(
                 && this.barrierSize.ySize() >= 1
                 && this.barrierSize.zSize() >= 1, "barrierSize can't have a dimension less than 1 (%s)", this.barrierSize);
         validator.notNull(this.boundingBox, "boundingBox");
-        BoundingBox arenaBoundingBox = this.boundingBox.toBoundingBox();
+        BoundingBox arenaBoundingBox = this.boundingBox;
         validator.validate(arenaBoundingBox.getVolume() >= 2.0, "boundingBox (%s) volume (%s) must be at least 2.0", arenaBoundingBox, arenaBoundingBox.getVolume());
         validator.validate(arenaBoundingBox.contains(this.northFlag), "boundingBox (%s) must contain northFlag (%s)", arenaBoundingBox, this.northFlag);
         validator.validate(arenaBoundingBox.contains(this.southFlag), "boundingBox (%s) must contain southFlag (%s)", arenaBoundingBox, this.southFlag);

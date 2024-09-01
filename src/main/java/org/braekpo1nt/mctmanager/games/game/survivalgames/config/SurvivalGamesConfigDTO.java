@@ -8,7 +8,6 @@ import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.dto.YawPitch;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.NamespacedKeyDTO;
-import org.braekpo1nt.mctmanager.config.dto.org.bukkit.util.BoundingBoxDTO;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.braekpo1nt.mctmanager.utils.EntityUtils;
@@ -29,11 +28,11 @@ class SurvivalGamesConfigDTO implements Validatable {
     
     private String version;
     private String world;
-    private @Nullable BoundingBoxDTO spectatorArea;
+    private @Nullable BoundingBox spectatorArea;
     /**
      * The area to empty containers and remove floor items
      */
-    private BoundingBoxDTO removeArea;
+    private BoundingBox removeArea;
     /**
      * the information about the world border
      */
@@ -91,13 +90,12 @@ class SurvivalGamesConfigDTO implements Validatable {
         validator.notNull(Bukkit.getWorld(this.world),
                 "Could not find world \"%s\"", this.world);
         if (spectatorArea != null) {
-            BoundingBox spectatorArea = this.spectatorArea.toBoundingBox();
             validator.validate(spectatorArea.getVolume() >= 1.0, "spectatorArea (%s) volume (%s) must be at least 1.0", spectatorArea, spectatorArea.getVolume());
         }
         validator.notNull(this.removeArea,
                 "removeArea");
-        validator.validate(this.removeArea.toBoundingBox().getVolume() >= 1.0,
-                "removeArea (%s) volume (%s) can't be less than 1.0", this.removeArea.toBoundingBox(), this.removeArea.toBoundingBox().getVolume());
+        validator.validate(this.removeArea.getVolume() >= 1.0,
+                "removeArea (%s) volume (%s) can't be less than 1.0", this.removeArea, this.removeArea.getVolume());
         validator.notNull(this.border, "border");
         this.border.validate(validator.path("border"));
         validator.notNull(this.spawnLootTable, "spawnLootTable");
@@ -119,30 +117,30 @@ class SurvivalGamesConfigDTO implements Validatable {
         validator.validate(!this.spawnChestCoords.contains(null),
                 "spawnChestCoords can't contain a null position");
         for (Vector pos : this.spawnChestCoords) {
-            validator.validate(this.removeArea.toBoundingBox().contains(pos),
-                    "spawnChestCoord (%s) is not inside removeArea (%s)", pos, this.removeArea.toBoundingBox());
+            validator.validate(this.removeArea.contains(pos),
+                    "spawnChestCoord (%s) is not inside removeArea (%s)", pos, this.removeArea);
         }
         validator.notNull(this.mapChestCoords,
                 "mapChestCoords");
         validator.validate(!this.mapChestCoords.contains(null),
                 "mapChestCoords can't contain a null position");
         for (Vector pos : this.mapChestCoords) {
-            validator.validate(this.removeArea.toBoundingBox().contains(pos),
-                    "mapChestCoord (%s) is not inside removeArea (%s)", pos, this.removeArea.toBoundingBox());
+            validator.validate(this.removeArea.contains(pos),
+                    "mapChestCoord (%s) is not inside removeArea (%s)", pos, this.removeArea);
         }
         validator.notNull(this.platforms, "platforms");
         validator.validate(!this.platforms.isEmpty(), "platforms must have at least one element");
         for (SurvivalGamesConfigDTO.Platform platform : this.platforms) {
             validator.notNull(platform.barrier(), "platforms.barrier");
-            BoundingBox barrier = platform.barrier().toBoundingBox();
+            BoundingBox barrier = platform.barrier();
             validator.validate(barrier.getHeight() >= 3, "platforms.barrier must have a height of at least 3");
             validator.validate(barrier.getWidthX() >= 2, "platforms.barrier must have an x width of at least 2");
             validator.validate(barrier.getWidthZ() >= 2, "platforms.barrier must have an z width of at least 2");
         }
         for (int i = 0; i < this.platforms.size()-1; i++) {
-            BoundingBox boxA = this.platforms.get(i).barrier().toBoundingBox();
+            BoundingBox boxA = this.platforms.get(i).barrier();
             for (int j = i+1; j < this.platforms.size(); j++) {
-                BoundingBox boxB = this.platforms.get(j).barrier().toBoundingBox();
+                BoundingBox boxB = this.platforms.get(j).barrier();
                 validator.validate(!boxA.contains(boxB), "barrier \"%s\" overlaps barrier \"%s\"", boxA, boxB);
             }
         }
@@ -172,7 +170,7 @@ class SurvivalGamesConfigDTO implements Validatable {
         List<BoundingBox> newPlatformBarriers = new ArrayList<>();
         List<Location> newPlatformSpawns = new ArrayList<>();
         for (Platform platform : this.platforms) {
-            BoundingBox barrierArea = platform.barrier().toBoundingBox();
+            BoundingBox barrierArea = platform.barrier();
             newPlatformBarriers.add(barrierArea);
             double spawnX = barrierArea.getCenterX() + 0.5;
             double spawnY = barrierArea.getMin().getBlockY() + 1;
@@ -207,12 +205,12 @@ class SurvivalGamesConfigDTO implements Validatable {
         }
         return SurvivalGamesConfig.builder()
                 .world(newWorld)
-                .spectatorArea(this.spectatorArea != null ? this.spectatorArea.toBoundingBox() : null)
+                .spectatorArea(this.spectatorArea)
                 .spawnChestCoords(this.spawnChestCoords)
                 .mapChestCoords(this.mapChestCoords)
                 .spawnLootTable(Bukkit.getLootTable(this.spawnLootTable.toNamespacedKey()))
                 .weightedLootTables(newWeightedLootTables)
-                .removeArea(this.removeArea.toBoundingBox())
+                .removeArea(this.removeArea)
                 .platformBarriers(newPlatformBarriers)
                 .platformSpawns(newPlatformSpawns)
                 .adminSpawn(newAdminSpawn)
@@ -268,7 +266,7 @@ class SurvivalGamesConfigDTO implements Validatable {
      * @param barrier the BoundingBox of the spawn platform. A hollow box of Barrier blocks will be formed, with the bottom layer of blocks made of Concrete which matches the color of the appropriate team. Players will be spawned in the center of the box, standing on the Concrete blocks.
      * @param facingDirection if this is not null, the players will be looking this direction when they spawn in at the start of the game (this overrides platformCenter). If this is null, then the players will be looking in the direction of platformCenter. If platformCenter is also null, the players will be looking at yaw=0,pitch=0.
      */
-    record Platform(BoundingBoxDTO barrier, YawPitch facingDirection) {
+    record Platform(BoundingBox barrier, YawPitch facingDirection) {
     }
     
     record Scores(int kill, int surviveTeam, int firstPlace, int secondPlace, int thirdPlace) {
