@@ -58,7 +58,7 @@ public class EnchantmentDTO implements Validatable {
     public void validate(@NotNull Validator validator) {
         validator.notNull(namespacedKey, "namespacedKey");
         namespacedKey.validate(validator.path("namespacedKey"));
-        Enchantment trueEnchantment = Enchantment.getByKey(namespacedKey.toNamespacedKey());
+        Enchantment trueEnchantment = RegistryAccess.registryAccess().getRegistry(RegistryKey.ENCHANTMENT).get(namespacedKey.toNamespacedKey());
         validator.validate(trueEnchantment != null, "namespacedKey: could not find enchantment for key \"%s\"" + namespacedKey.toNamespacedKey());
     }
     
