@@ -7,7 +7,9 @@ import org.braekpo1nt.mctmanager.config.dto.net.kyori.adventure.text.ComponentAd
 import org.braekpo1nt.mctmanager.config.dto.org.braekpo1nt.mctmanager.geometry.GeometryDeserializer;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.meta.ItemMetaDTO;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.meta.ItemMetaDTODeserializer;
+import org.braekpo1nt.mctmanager.config.dto.org.bukkit.util.BoundingBoxDeserializer;
 import org.braekpo1nt.mctmanager.geometry.Geometry;
+import org.bukkit.util.BoundingBox;
 
 public class ConfigUtils {
     
@@ -15,6 +17,7 @@ public class ConfigUtils {
             .registerTypeAdapter(ItemMetaDTO.class, new ItemMetaDTODeserializer())
             .registerTypeAdapter(Component.class, new ComponentAdapter())
             .registerTypeAdapter(Geometry.class, new GeometryDeserializer())
+            .registerTypeAdapter(BoundingBox.class, new BoundingBoxDeserializer())
             ;
     
     public static final Gson GSON = GSON_BUILDER
