@@ -2,7 +2,13 @@ package org.braekpo1nt.mctmanager.games.game.farmrush;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.audience.MessageType;
+import net.kyori.adventure.bossbar.BossBar;
+import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
@@ -10,20 +16,24 @@ import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.farmrush.config.FarmRushConfig;
 import org.braekpo1nt.mctmanager.games.game.farmrush.config.FarmRushConfigController;
+import org.braekpo1nt.mctmanager.games.game.farmrush.states.DescriptionState;
 import org.braekpo1nt.mctmanager.games.game.farmrush.states.FarmRushState;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
 import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
+import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
+import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
+import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
+import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-import java.util.UUID;
 
 @Data
 public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener {
@@ -31,9 +41,16 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
     private final Main plugin;
     private final GameManager gameManager;
     private final TimerManager timerManager;
+    private final Component baseTitle = Component.empty()
+            .append(Component.text("Farm Rush"))
+            .color(NamedTextColor.BLUE);
+    private Component title = baseTitle;
     private @Nullable FarmRushState state;
     private FarmRushConfig config;
     private final FarmRushConfigController configController;
+    private final List<Player> admins = new ArrayList<>();
+    private Sidebar sidebar;
+    private Sidebar adminSidebar;
     private final Map<UUID, Participant> participants = new HashMap<>();
     
     @Data
@@ -66,12 +83,69 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
     
     @Override
     public void start(List<Player> newParticipants, List<Player> newAdmins) {
-        
+        sidebar = gameManager.getSidebarFactory().createSidebar();
+        adminSidebar = gameManager.getSidebarFactory().createSidebar();
+        plugin.getServer().getPluginManager().registerEvents(this, plugin);
+        gameManager.getTimerManager().register(timerManager);
+        List<String> teamIds = gameManager.getTeamIds(newParticipants);
+        // TODO: perform WorldEdit creation of team areas
+        for (Player participant : newParticipants) {
+            initializeParticipant(participant);
+        }
+        startAdmins(newAdmins);
+        initializeSidebar();
+        setupTeamOptions();
+        state = new DescriptionState(this);
+        Main.logger().info("Starting Farm Rush game");
+    }
+    
+    private void initializeParticipant(Player participant) {
+        String teamId = gameManager.getTeamId(participant.getUniqueId());
+        participants.put(participant.getUniqueId(), new Participant(participant, teamId));
+    }
+    
+    private void startAdmins(List<Player> newAdmins) {
+        for (Player admin : newAdmins) {
+            initializeAdmin(admin);
+        }
+        initializeAdminSidebar();
+    }
+    
+    private void initializeAdmin(Player admin) {
+        admins.add(admin);
+        adminSidebar.addPlayer(admin);
+        admin.setGameMode(GameMode.SPECTATOR);
+        admin.teleport(config.getAdminLocation());
+    }
+    
+    private void initializeAdminSidebar() {
+        adminSidebar.addLines(
+                new KeyLine("title", title)
+        );
+    }
+    
+    private void clearAdminSidebar() {
+        adminSidebar.deleteAllLines();
+        adminSidebar = null;
     }
     
     @Override
     public void stop() {
         participants.clear();
+        stopAdmins();
+        cancelAllTasks();
+    }
+    
+    private void stopAdmins() {
+        for (Player admin : admins) {
+            resetAdmin(admin);
+        }
+        clearAdminSidebar();
+        admins.clear();
+    }
+    
+    private void cancelAllTasks() {
+        timerManager.cancel();
     }
     
     @Override
@@ -86,31 +160,81 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
     
     @Override
     public void onAdminJoin(Player admin) {
-        
+        initializeAdmin(admin);
+        adminSidebar.updateLine(admin.getUniqueId(), "title", title);
     }
     
     @Override
     public void onAdminQuit(Player admin) {
-        
+        resetAdmin(admin);
+        admins.remove(admin);
+    }
+    
+    private void resetAdmin(Player admin) {
+        adminSidebar.removePlayer(admin);
     }
     
     @Override
     public @NotNull Component getBaseTitle() {
-        return null;
+        return baseTitle;
     }
     
     @Override
     public void setTitle(@NotNull Component title) {
-        
+        this.title = title;
     }
     
     @Override
     public void updatePersonalScore(Player participant, Component contents) {
-        
+        if (sidebar == null) {
+            return;
+        }
+        if (!participants.containsKey(participant.getUniqueId())) {
+            return;
+        }
+        sidebar.updateLine(participant.getUniqueId(), "personalScore", contents);
     }
     
     @Override
     public void updateTeamScore(Player participant, Component contents) {
-        
+        if (sidebar == null) {
+            return;
+        }
+        if (!participants.containsKey(participant.getUniqueId())) {
+            return;
+        }
+        sidebar.updateLine(participant.getUniqueId(), "personalTeam", contents);
+    }
+    
+    private void initializeSidebar() {
+        sidebar.addLines(
+                new KeyLine("personalTeam", ""),
+                new KeyLine("personalScore", ""),
+                new KeyLine("title", title)
+        );
+    }
+    
+    private void clearSidebar() {
+        sidebar.deleteAllLines();
+        sidebar = null;
+    }
+    
+    private void setupTeamOptions() {
+        Scoreboard mctScoreboard = gameManager.getMctScoreboard();
+        for (Team team : mctScoreboard.getTeams()) {
+            team.setAllowFriendlyFire(false);
+            team.setCanSeeFriendlyInvisibles(true);
+            team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.ALWAYS);
+            team.setOption(Team.Option.DEATH_MESSAGE_VISIBILITY, Team.OptionStatus.ALWAYS);
+            team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.ALWAYS);
+        }
+    }
+    
+    public void messageAllParticipants(Component message) {
+        Audience.audience(admins
+        ).sendMessage(message);
+        for (Participant participant : participants.values()) {
+            participant.getPlayer().sendMessage(message);
+        }
     }
 }
