@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.game.farmrush.states;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushGame;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 public class DescriptionState implements FarmRushState {
@@ -25,5 +26,15 @@ public class DescriptionState implements FarmRushState {
 //                    context.setState(new StartingState(context));
                 })
                 .build());
+    }
+    
+    @Override
+    public void onParticipantJoin(Player participant) {
+        
+    }
+    
+    @Override
+    public void onParticipantQuit(Player participant) {
+        
     }
 }
