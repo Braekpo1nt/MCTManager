@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.games.game.farmrush;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
@@ -19,7 +20,10 @@ import org.bukkit.event.Listener;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 @Data
 public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener {
@@ -30,6 +34,18 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
     private @Nullable FarmRushState state;
     private FarmRushConfig config;
     private final FarmRushConfigController configController;
+    private final Map<UUID, Participant> participants = new HashMap<>();
+    
+    @Data
+    @EqualsAndHashCode(onlyExplicitlyIncluded = true)
+    public static class Participant {
+        /**
+         * The player object that this participant represents
+         */
+        @EqualsAndHashCode.Include
+        private final @NotNull Player player;
+        private final @NotNull String teamId;
+    }
     
     public FarmRushGame(Main plugin, GameManager gameManager) {
         this.plugin = plugin;
@@ -55,7 +71,7 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
     
     @Override
     public void stop() {
-        
+        participants.clear();
     }
     
     @Override

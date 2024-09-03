@@ -39,13 +39,13 @@ class TimerManagerTest {
             TestUtils.copyInputStreamToFile(inputStream, new File(plugin.getDataFolder(), "footRaceConfig.json"));
         } catch (UnimplementedOperationException ex) {
             System.out.println("UnimplementedOperationException while setting up " + this.getClass() + ". MockBukkit must not support the functionality/operation you are trying to test. Check the stack trace below for the exact method that threw the exception. Message from exception:" + ex.getMessage());
-            ex.printStackTrace();
+            Main.logger().log(Level.SEVERE, "error occurred in MockBukkit", ex);
             System.exit(1);
         }
     }
     
     @AfterEach
-    void teardown() {
+    void tearDown() {
         MockBukkit.unmock();
     }
     
