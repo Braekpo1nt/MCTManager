@@ -12,6 +12,7 @@ import org.bukkit.util.Vector;
 public class Arena {
     private BoundingBox bounds;
     private BoundingBox barn;
+    private BoundingBox barnDoor;
     private Location spawn;
     private Location starterChest;
     private Location delivery;
@@ -40,6 +41,13 @@ public class Arena {
                         barn.getMaxX() + offset.getX(),
                         barn.getMaxY() + offset.getY(),
                         barn.getMaxZ() + offset.getZ()))
+                .barnDoor(new BoundingBox(
+                        barnDoor.getMinX() + offset.getX(),
+                        barnDoor.getMinY() + offset.getY(),
+                        barnDoor.getMinZ() + offset.getZ(),
+                        barnDoor.getMaxX() + offset.getX(),
+                        barnDoor.getMaxY() + offset.getY(),
+                        barnDoor.getMaxZ() + offset.getZ()))
                 .spawn(spawn.add(offset))
                 .starterChest(starterChest.add(offset))
                 .delivery(delivery.add(offset))

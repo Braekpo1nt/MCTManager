@@ -28,7 +28,6 @@ import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.scoreboard.Scoreboard;
-import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -52,6 +51,7 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
     private Sidebar sidebar;
     private Sidebar adminSidebar;
     private final Map<UUID, Participant> participants = new HashMap<>();
+    private final Map<String, Team> teams = new HashMap<>();
     
     @Data
     @EqualsAndHashCode(onlyExplicitlyIncluded = true)
@@ -62,6 +62,15 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
         @EqualsAndHashCode.Include
         private final @NotNull Player player;
         private final @NotNull String teamId;
+    }
+    
+    @Data
+    @EqualsAndHashCode(onlyExplicitlyIncluded = true)
+    public static class Team {
+        @EqualsAndHashCode.Include
+        private final @NotNull String teamId;
+        private final @NotNull List<UUID> members;
+        private final Arena arena;
     }
     
     public FarmRushGame(Main plugin, GameManager gameManager) {
@@ -221,12 +230,12 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
     
     private void setupTeamOptions() {
         Scoreboard mctScoreboard = gameManager.getMctScoreboard();
-        for (Team team : mctScoreboard.getTeams()) {
+        for (org.bukkit.scoreboard.Team team : mctScoreboard.getTeams()) {
             team.setAllowFriendlyFire(false);
             team.setCanSeeFriendlyInvisibles(true);
-            team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.ALWAYS);
-            team.setOption(Team.Option.DEATH_MESSAGE_VISIBILITY, Team.OptionStatus.ALWAYS);
-            team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.ALWAYS);
+            team.setOption(org.bukkit.scoreboard.Team.Option.NAME_TAG_VISIBILITY, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
+            team.setOption(org.bukkit.scoreboard.Team.Option.DEATH_MESSAGE_VISIBILITY, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
+            team.setOption(org.bukkit.scoreboard.Team.Option.COLLISION_RULE, org.bukkit.scoreboard.Team.OptionStatus.ALWAYS);
         }
     }
     
