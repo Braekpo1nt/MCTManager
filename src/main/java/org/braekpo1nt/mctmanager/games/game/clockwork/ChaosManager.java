@@ -138,7 +138,8 @@ public class ChaosManager implements Listener {
         for (int i = 0; i < numOfFallingBlocks; i++) {
             Location spawnLocation = randomLocationInCylinder();
             if (spawnLocation.getBlock().getType().equals(Material.AIR)) {
-                FallingBlock fallingBlock = config.getWorld().spawnFallingBlock(spawnLocation, random.nextBoolean() ? sandBlockData : anvilBlockData);
+                FallingBlock fallingBlock = config.getWorld().spawn(spawnLocation, FallingBlock.class);
+                fallingBlock.setBlockData(random.nextBoolean() ? sandBlockData : anvilBlockData);
                 fallingBlock.setDropItem(false);
             }
         }
