@@ -257,7 +257,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
         currentCheckPoints.put(participant.getUniqueId(), 0);
         displays.put(participant.getUniqueId(), new Display(plugin));
         sidebar.addPlayer(participant);
-        participant.getInventory().clear();
+        ParticipantInitializer.clearInventory(participant);
         participant.teleport(config.getStartingLocation());
         ParticipantInitializer.resetHealthAndHunger(participant);
         ParticipantInitializer.clearStatusEffects(participant);
@@ -284,7 +284,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
     private void resetParticipant(Player participant) {
         ParticipantInitializer.resetHealthAndHunger(participant);
         ParticipantInitializer.clearStatusEffects(participant);
-        participant.getInventory().clear();
+        ParticipantInitializer.clearInventory(participant);
         Display display = displays.get(participant.getUniqueId());
         sidebar.removePlayer(participant);
         if (display != null) {

@@ -26,7 +26,7 @@ public class MatchOverState implements CaptureTheFlagMatchState {
             if (context.getParticipantsAreAlive().get(participant.getUniqueId())) {
                 participant.teleport(context.getConfig().getSpawnObservatory());
                 participant.setRespawnLocation(context.getConfig().getSpawnObservatory(), true);
-                participant.getInventory().clear();
+                ParticipantInitializer.clearInventory(participant);
                 participant.closeInventory();
                 ParticipantInitializer.resetHealthAndHunger(participant);
                 ParticipantInitializer.clearStatusEffects(participant);

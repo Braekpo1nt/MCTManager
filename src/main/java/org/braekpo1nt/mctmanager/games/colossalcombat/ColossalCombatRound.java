@@ -223,7 +223,7 @@ public class ColossalCombatRound implements Listener {
     }
     
     private void resetParticipant(Player participant) {
-        participant.getInventory().clear();
+        ParticipantInitializer.clearInventory(participant);
     }
     
     public void onParticipantJoin(Player participant) {

@@ -105,7 +105,7 @@ public class SpleefRound implements Listener {
         participants.add(participant);
         participantsAlive.put(participantUniqueId, true);
         teleportParticipantToRandomStartingPosition(participant);
-        participant.getInventory().clear();
+        ParticipantInitializer.clearInventory(participant);
         participant.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
@@ -117,7 +117,7 @@ public class SpleefRound implements Listener {
     }
     
     private void resetParticipant(Player participant) {
-        participant.getInventory().clear();
+        ParticipantInitializer.clearInventory(participant);
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
     }

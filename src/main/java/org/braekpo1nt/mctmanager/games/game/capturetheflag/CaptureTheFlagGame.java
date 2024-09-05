@@ -132,14 +132,14 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         participant.setGameMode(GameMode.ADVENTURE);
         participant.teleport(config.getSpawnObservatory());
         participant.setRespawnLocation(config.getSpawnObservatory());
-        participant.getInventory().clear();
+        ParticipantInitializer.clearInventory(participant);
         int kills = killCount.get(participant.getUniqueId());
         int deaths = deathCount.get(participant.getUniqueId());
         topbar.setKillsAndDeaths(participant.getUniqueId(), kills, deaths);
     }
     
     public void resetParticipant(Player participant) {
-        participant.getInventory().clear();
+        ParticipantInitializer.clearInventory(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
         ParticipantInitializer.clearStatusEffects(participant);
         sidebar.removePlayer(participant.getUniqueId());

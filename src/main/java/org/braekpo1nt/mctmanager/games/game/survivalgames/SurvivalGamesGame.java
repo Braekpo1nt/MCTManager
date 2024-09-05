@@ -159,13 +159,13 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
         updateAliveCount(teamId);
         initializeKillCount(participant);
         participant.setGameMode(GameMode.ADVENTURE);
-        participant.getInventory().clear();
+        ParticipantInitializer.clearInventory(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
         ParticipantInitializer.clearStatusEffects(participant);
     }
     
     public void resetParticipant(Player participant) {
-        participant.getInventory().clear();
+        ParticipantInitializer.clearInventory(participant);
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
         sidebar.removePlayer(participant.getUniqueId());
