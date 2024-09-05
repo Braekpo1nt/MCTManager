@@ -134,7 +134,7 @@ public class HubManager implements Listener, Configurable {
     
     private void initializeParticipant(Player participant) {
         participants.add(participant);
-        participant.getInventory().clear();
+        ParticipantInitializer.clearInventory(participant);
         participant.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);

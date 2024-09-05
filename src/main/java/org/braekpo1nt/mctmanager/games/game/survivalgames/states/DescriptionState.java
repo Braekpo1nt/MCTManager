@@ -82,14 +82,14 @@ public class DescriptionState implements SurvivalGamesState {
         context.updateAliveCount(teamId);
         context.initializeKillCount(participant);
         participant.setGameMode(GameMode.ADVENTURE);
-        participant.getInventory().clear();
+        ParticipantInitializer.clearInventory(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
         ParticipantInitializer.clearStatusEffects(participant);
     }
     
     @Override
     public void resetParticipant(Player participant) {
-        participant.getInventory().clear();
+        ParticipantInitializer.clearInventory(participant);
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
         context.getSidebar().removePlayer(participant.getUniqueId());
