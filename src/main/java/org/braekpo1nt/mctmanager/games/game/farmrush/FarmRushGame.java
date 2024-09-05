@@ -24,13 +24,21 @@ import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
+import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.bukkit.GameMode;
+import org.bukkit.Material;
+import org.bukkit.block.Block;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.Directional;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.util.BoundingBox;
+import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.util.*;
 import java.util.List;
 
@@ -69,7 +77,7 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
     public static class Team {
         @EqualsAndHashCode.Include
         private final @NotNull String teamId;
-        private final @NotNull List<UUID> members;
+        private final @NotNull List<UUID> members = new ArrayList<>();
         private final Arena arena;
     }
     
@@ -97,7 +105,13 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         gameManager.getTimerManager().register(timerManager);
         List<String> teamIds = gameManager.getTeamIds(newParticipants);
-        // TODO: perform WorldEdit creation of team areas
+        List<Arena> arenas = createArenas(teamIds);
+        for (int i = 0; i < teamIds.size(); i++) {
+            String teamId = teamIds.get(i);
+            Arena arena = arenas.get(i);
+            teams.put(teamId, new Team(teamId, arena));
+        }
+        placeArenas(arenas);
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
         }
@@ -106,6 +120,44 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
         setupTeamOptions();
         state = new DescriptionState(this);
         Main.logger().info("Starting Farm Rush game");
+    }
+    
+    /**
+     * Actually place the schematic file of the arenas and add any necessary additions,
+     * such as the barrel for delivery
+     * @param arenas the arenas to place copies of the schematic file on
+     */
+    private void placeArenas(@NotNull List<Arena> arenas) {
+        File schematicFile = new File(plugin.getDataFolder(), config.getArenaFileName());
+        List<Vector> origins = arenas.stream().map(arena -> arena.getBounds().getMin()).toList();
+        BlockPlacementUtils.placeSchematic(config.getWorld(), origins, schematicFile);
+        for (Arena arena : arenas) {
+            Block block = arena.getDelivery().getBlock();
+            block.setType(Material.BARREL);
+            Directional directional = (Directional) block.getBlockData();
+            directional.setFacing(arena.getDeliveryBlockFace());
+            block.setBlockData(directional);
+        }
+    }
+    
+    /**
+     * Fill the space that the arenas were placed with air
+     * @param arenas the arenas to remove
+     */
+    private void removeArenas(@NotNull List<Arena> arenas) {
+        List<BoundingBox> boxes = arenas.stream().map(Arena::getBounds).toList();
+        BlockPlacementUtils.fillWithAir(config.getWorld(), boxes);
+    }
+    
+    private @NotNull List<Arena> createArenas(List<String> teamIds) {
+        List<Arena> arenas = new ArrayList<>(teamIds.size());
+        Arena firstArena = config.getFirstArena();
+        Vector offset = new Vector(firstArena.getBounds().getWidthX(), 0, 0);
+        for (int i = 0; i < teamIds.size(); i++) {
+            arenas.add(firstArena);
+            firstArena = firstArena.offset(offset);
+        }
+        return arenas;
     }
     
     private void initializeParticipant(Player participant) {
@@ -143,6 +195,7 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
         participants.clear();
         stopAdmins();
         cancelAllTasks();
+        removeArenas(teams.values().stream().map(Team::getArena).toList());
     }
     
     private void stopAdmins() {

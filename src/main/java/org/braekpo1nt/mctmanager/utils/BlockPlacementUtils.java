@@ -1,17 +1,42 @@
 package org.braekpo1nt.mctmanager.utils;
 
+import com.sk89q.worldedit.EditSession;
+import com.sk89q.worldedit.MaxChangedBlocksException;
+import com.sk89q.worldedit.WorldEdit;
+import com.sk89q.worldedit.WorldEditException;
+import com.sk89q.worldedit.bukkit.BukkitAdapter;
+import com.sk89q.worldedit.extent.clipboard.Clipboard;
+import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormat;
+import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormats;
+import com.sk89q.worldedit.extent.clipboard.io.ClipboardReader;
+import com.sk89q.worldedit.function.operation.Operation;
+import com.sk89q.worldedit.function.operation.Operations;
+import com.sk89q.worldedit.math.BlockVector3;
+import com.sk89q.worldedit.regions.CuboidRegion;
+import com.sk89q.worldedit.session.ClipboardHolder;
+import com.sk89q.worldedit.world.block.BlockTypes;
+import net.kyori.adventure.text.Component;
+import org.braekpo1nt.mctmanager.Main;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.MultipleFacing;
 import org.bukkit.block.data.Rotatable;
 import org.bukkit.util.BoundingBox;
+import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.logging.Level;
 
 public class BlockPlacementUtils {
     /**
@@ -285,4 +310,103 @@ public class BlockPlacementUtils {
             flagBlock.setBlockData(flagData);
         }
     }
+    
+    /**
+     * Places the given schematic file in the given world at all the given origins. If there are n origins, n copies of the schematic will be placed, each with their origin at the given values.<br>
+     * Use this in favor of {@link #placeSchematic(World, int, int, int, File)} multiple times
+     * in a row because this optimizes the multiple placement. 
+     * @param world the world to place in
+     * @param origins the list of origins. Each schematic copy placed will use one of these as their origin, using their integer block values. 
+     * @param file the .schem schematic file to use
+     */
+    public static void placeSchematic(World world, @NotNull List<Vector> origins, File file) {
+        Clipboard clipboard;
+        ClipboardFormat format = ClipboardFormats.findByFile(file);
+        if (format == null) {
+            Main.logger().severe("Could not find file " + file);
+            return;
+        }
+        try (ClipboardReader reader = format.getReader(new FileInputStream(file))) {
+            clipboard = reader.read();
+        } catch (FileNotFoundException e) {
+            Main.logger().log(Level.SEVERE, "Could not find file " + file, e);
+            return;
+        } catch (IOException e) {
+            Main.logger().log(Level.SEVERE, "Exception while reading from file " + file, e);
+            return;
+        }
+        try (EditSession editSession = WorldEdit.getInstance().newEditSession(BukkitAdapter.adapt(world))) {
+            for (Vector origin : origins) {
+                Operation operation = new ClipboardHolder(clipboard)
+                        .createPaste(editSession)
+                        .ignoreAirBlocks(false)
+                        .copyBiomes(true)
+                        .copyEntities(true)
+                        .to(BlockVector3.at(origin.getBlockX(), origin.getBlockY(), origin.getBlockZ()))
+                        .build();
+                Operations.complete(operation);
+            }
+        } catch (WorldEditException e) {
+            Main.logger().log(Level.SEVERE, "Exception while pasting", e);
+        }
+    }
+    
+    /**
+     * Places the given schematic file in the given world at the given origin
+     * @param world the world to place in
+     * @param x the origin x
+     * @param y the origin y
+     * @param z the origin z
+     * @param file the .schem schematic file to use
+     */
+    public static void placeSchematic(World world, int x, int y, int z, File file) {
+        Clipboard clipboard;
+        ClipboardFormat format = ClipboardFormats.findByFile(file);
+        if (format == null) {
+            Main.logger().severe("Could not find file " + file);
+            return;
+        }
+        try (ClipboardReader reader = format.getReader(new FileInputStream(file))) {
+            clipboard = reader.read();
+        } catch (FileNotFoundException e) {
+            Main.logger().log(Level.SEVERE, "Could not find file " + file, e);
+            return;
+        } catch (IOException e) {
+            Main.logger().log(Level.SEVERE, "Exception while reading from file " + file, e);
+            return;
+        }
+        try (EditSession editSession = WorldEdit.getInstance().newEditSession(BukkitAdapter.adapt(world))) {
+            Operation operation = new ClipboardHolder(clipboard)
+                    .createPaste(editSession)
+                    .ignoreAirBlocks(false)
+                    .copyBiomes(true)
+                    .copyEntities(true)
+                    .to(BlockVector3.at(x, y, z))
+                    .build();
+            Operations.complete(operation);
+        } catch (WorldEditException e) {
+            Main.logger().log(Level.SEVERE, "Exception while pasting", e);
+        }
+    }
+    
+    public static void fillWithAir(World world, List<BoundingBox> boxes) {
+        // Create an edit session for the WorldEdit world
+        try (EditSession editSession = WorldEdit.getInstance().newEditSession(BukkitAdapter.adapt(world))) {
+            
+            for (BoundingBox box : boxes) {
+                BlockVector3 min = BlockVector3.at(box.getMinX(), box.getMinY(), box.getMinZ());
+                BlockVector3 max = BlockVector3.at(box.getMaxX(), box.getMaxY(), box.getMaxZ());
+                CuboidRegion region = new CuboidRegion(min, max);
+                
+                // Fill the region with air blocks
+                editSession.setBlocks(region, Objects.requireNonNull(BlockTypes.AIR).getDefaultState());
+            }
+            
+            // Flush the edit session to apply changes
+            editSession.commit();
+        } catch (MaxChangedBlocksException e) {
+            Main.logger().log(Level.SEVERE, "error occurred filling with air blocks", e);
+        }
+    }
+    
 }
