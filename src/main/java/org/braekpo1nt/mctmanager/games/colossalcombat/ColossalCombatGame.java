@@ -171,7 +171,7 @@ public class ColossalCombatGame implements Listener, Configurable {
      */
     private void initializeParticipant(Player participant) {
         participant.setGameMode(GameMode.ADVENTURE);
-        participant.getInventory().clear();
+        ParticipantInitializer.clearInventory(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
         ParticipantInitializer.clearStatusEffects(participant);
         sidebar.addPlayer(participant);
@@ -305,7 +305,7 @@ public class ColossalCombatGame implements Listener, Configurable {
     }
     
     private void resetParticipant(Player participant) {
-        participant.getInventory().clear();
+        ParticipantInitializer.clearInventory(participant);
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
         sidebar.removePlayer(participant.getUniqueId());

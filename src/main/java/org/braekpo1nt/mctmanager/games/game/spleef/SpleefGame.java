@@ -190,7 +190,7 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
     }
     
     private void resetParticipant(Player participant) {
-        participant.getInventory().clear();
+        ParticipantInitializer.clearInventory(participant);
         sidebar.removePlayer(participant.getUniqueId());
     }
     

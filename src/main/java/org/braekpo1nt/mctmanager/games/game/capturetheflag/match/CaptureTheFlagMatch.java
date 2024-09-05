@@ -141,7 +141,7 @@ public class CaptureTheFlagMatch {
             dead = southParticipants.size() - alive;
         }
         topbar.setMembers(teamId, alive, dead);
-        participant.getInventory().clear();
+        ParticipantInitializer.clearInventory(participant);
         participant.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
@@ -267,7 +267,7 @@ public class CaptureTheFlagMatch {
     }
     
     public void resetParticipant(Player participant) {
-        participant.getInventory().clear();
+        ParticipantInitializer.clearInventory(participant);
         participant.closeInventory();
         ParticipantInitializer.resetHealthAndHunger(participant);
         ParticipantInitializer.clearStatusEffects(participant);

@@ -293,7 +293,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         sidebar.addPlayer(participant);
         participant.teleport(config.getStartingLocation());
         participant.setRespawnLocation(config.getStartingLocation(), true);
-        participant.getInventory().clear();
+        ParticipantInitializer.clearInventory(participant);
         giveBoots(participant);
         participant.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearStatusEffects(participant);
@@ -337,7 +337,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     }
     
     public void resetParticipant(Player participant) {
-        participant.getInventory().clear();
+        ParticipantInitializer.clearInventory(participant);
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
         sidebar.removePlayer(participant);
