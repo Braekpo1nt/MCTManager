@@ -20,6 +20,7 @@ import org.braekpo1nt.mctmanager.games.game.farmrush.states.DescriptionState;
 import org.braekpo1nt.mctmanager.games.game.farmrush.states.FarmRushState;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
+import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
@@ -160,9 +161,19 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
         return arenas;
     }
     
-    private void initializeParticipant(Player participant) {
-        String teamId = gameManager.getTeamId(participant.getUniqueId());
-        participants.put(participant.getUniqueId(), new Participant(participant, teamId));
+    private void initializeParticipant(Player player) {
+        String teamId = gameManager.getTeamId(player.getUniqueId());
+        Participant participant = new Participant(player, teamId);
+        participants.put(player.getUniqueId(), participant);
+        Team team = teams.get(teamId);
+        team.getMembers().add(player.getUniqueId());
+        player.setGameMode(GameMode.ADVENTURE);
+        player.teleport(team.getArena().getSpawn());
+        player.setRespawnLocation(team.getArena().getSpawn());
+        sidebar.addPlayer(player);
+        ParticipantInitializer.clearInventory(player);
+        ParticipantInitializer.clearStatusEffects(player);
+        ParticipantInitializer.resetHealthAndHunger(player);
     }
     
     private void startAdmins(List<Player> newAdmins) {
