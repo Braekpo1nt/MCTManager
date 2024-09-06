@@ -28,8 +28,10 @@ import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Directional;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
@@ -292,6 +294,18 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
     @Override
     public void setTitle(@NotNull Component title) {
         this.title = title;
+    }
+    
+    @EventHandler
+    public void onPlayerTeleport(PlayerTeleportEvent event) {
+        Participant participant = participants.get(event.getPlayer().getUniqueId());
+        if (participant == null) {
+            return;
+        }
+        BoundingBox bounds = teams.get(participant.getTeamId()).getArena().getBounds();
+        if (!bounds.contains(event.getTo().toVector())) {
+            event.setCancelled(true);
+        }
     }
     
     @Override

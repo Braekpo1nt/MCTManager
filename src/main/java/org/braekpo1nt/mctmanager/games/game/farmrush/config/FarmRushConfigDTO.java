@@ -9,7 +9,6 @@ import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.World;
-import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -23,7 +22,6 @@ public class FarmRushConfigDTO implements Validatable {
     private String version;
     private String world;
     private LocationDTO adminLocation;
-    private @Nullable BoundingBox spectatorArea;
     /**
      * the file location of the arena, relative to the MCTManager plugin's data folder 
      * ({@code <server>/plugins/MCTManager/}). Example: {@code "farmRushArena.schem"}.
