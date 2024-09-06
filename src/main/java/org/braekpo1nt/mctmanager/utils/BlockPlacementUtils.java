@@ -389,13 +389,24 @@ public class BlockPlacementUtils {
         }
     }
     
+    /**
+     * Uses WorldEdit to fill the given list of BoundingBoxes with air. Uses the block-location of each vector.
+     * @param world the world
+     * @param boxes the list of boxes
+     */
     public static void fillWithAir(World world, List<BoundingBox> boxes) {
         // Create an edit session for the WorldEdit world
         try (EditSession editSession = WorldEdit.getInstance().newEditSession(BukkitAdapter.adapt(world))) {
             
             for (BoundingBox box : boxes) {
-                BlockVector3 min = BlockVector3.at(box.getMinX(), box.getMinY(), box.getMinZ());
-                BlockVector3 max = BlockVector3.at(box.getMaxX(), box.getMaxY(), box.getMaxZ());
+                BlockVector3 min = BlockVector3.at(
+                        box.getMin().getBlockX(), 
+                        box.getMin().getBlockY(), 
+                        box.getMin().getBlockZ());
+                BlockVector3 max = BlockVector3.at(
+                        box.getMax().getBlockX(),
+                        box.getMax().getBlockY(),
+                        box.getMax().getBlockZ());
                 CuboidRegion region = new CuboidRegion(min, max);
                 
                 // Fill the region with air blocks

@@ -164,7 +164,7 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
     private @NotNull List<Arena> createArenas(List<String> teamIds) {
         List<Arena> arenas = new ArrayList<>(teamIds.size());
         Arena arena = config.getFirstArena();
-        Vector offset = new Vector(arena.getBounds().getWidthX(), 0, 0);
+        Vector offset = new Vector(arena.getBounds().getWidthX() + 1, 0, 0);
         for (int i = 0; i < teamIds.size(); i++) {
             Main.logger().info(String.format("%s: %s", teamIds.get(i), arena));
             arenas.add(arena);
