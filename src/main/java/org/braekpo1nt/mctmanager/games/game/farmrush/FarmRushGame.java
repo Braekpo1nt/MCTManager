@@ -31,6 +31,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.util.BoundingBox;
@@ -304,6 +305,22 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
         }
         BoundingBox bounds = teams.get(participant.getTeamId()).getArena().getBounds();
         if (!bounds.contains(event.getTo().toVector())) {
+            event.setCancelled(true);
+        }
+    }
+    
+    @EventHandler
+    public void onPlayerMove(PlayerMoveEvent event) {
+        Participant participant = participants.get(event.getPlayer().getUniqueId());
+        if (participant == null) {
+            return;
+        }
+        Arena arena = teams.get(participant.getTeamId()).getArena();
+        if (!arena.getBounds().contains(event.getFrom().toVector())) {
+            participant.getPlayer().teleport(arena.getSpawn());
+            return;
+        }
+        if (!arena.getBounds().contains(event.getTo().toVector())) {
             event.setCancelled(true);
         }
     }
