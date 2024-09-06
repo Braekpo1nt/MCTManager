@@ -6,6 +6,7 @@ import org.bukkit.Location;
 import org.bukkit.block.BlockFace;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
 
 @Data
 @Builder
@@ -15,8 +16,9 @@ public class Arena {
     private BoundingBox barnDoor;
     private Location spawn;
     private Location starterChest;
+    private @NotNull BlockFace starterChestBlockFace;
     private Location delivery;
-    private BlockFace deliveryBlockFace;
+    private @NotNull BlockFace deliveryBlockFace;
     
     /**
      * Create a new {@link Arena} from this arena using the given offset, where

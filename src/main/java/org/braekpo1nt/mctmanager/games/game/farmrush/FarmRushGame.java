@@ -3,12 +3,8 @@ package org.braekpo1nt.mctmanager.games.game.farmrush;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import net.kyori.adventure.audience.Audience;
-import net.kyori.adventure.audience.MessageType;
-import net.kyori.adventure.bossbar.BossBar;
-import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
@@ -129,15 +125,21 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
      * @param arenas the arenas to place copies of the schematic file on
      */
     private void placeArenas(@NotNull List<Arena> arenas) {
-        File schematicFile = new File(plugin.getDataFolder(), config.getArenaFileName());
+        File schematicFile = new File(plugin.getDataFolder(), config.getArenaFile());
         List<Vector> origins = arenas.stream().map(arena -> arena.getBounds().getMin()).toList();
         BlockPlacementUtils.placeSchematic(config.getWorld(), origins, schematicFile);
         for (Arena arena : arenas) {
-            Block block = arena.getDelivery().getBlock();
-            block.setType(Material.BARREL);
-            Directional directional = (Directional) block.getBlockData();
-            directional.setFacing(arena.getDeliveryBlockFace());
-            block.setBlockData(directional);
+            Block delivery = arena.getDelivery().getBlock();
+            delivery.setType(Material.BARREL);
+            Directional deliveryDirectional = (Directional) delivery.getBlockData();
+            deliveryDirectional.setFacing(arena.getDeliveryBlockFace());
+            delivery.setBlockData(deliveryDirectional);
+            
+            Block starterChest = arena.getStarterChest().getBlock();
+            starterChest.setType(Material.CHEST);
+            Directional starterChestDirectional = (Directional) starterChest.getBlockData();
+            starterChestDirectional.setFacing(arena.getStarterChestBlockFace());
+            starterChest.setBlockData(starterChestDirectional);
         }
     }
     

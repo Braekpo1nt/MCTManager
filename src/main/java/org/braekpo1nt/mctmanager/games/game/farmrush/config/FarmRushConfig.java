@@ -18,5 +18,8 @@ public class FarmRushConfig {
      * The first arena placement
      */
     private Arena firstArena;
-    private String arenaFileName;
+    /**
+     * The file location of the arena, relative to the Plugin's data folder
+     */
+    private String arenaFile;
 }
