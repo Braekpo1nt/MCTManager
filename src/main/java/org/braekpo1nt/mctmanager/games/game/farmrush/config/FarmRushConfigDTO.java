@@ -42,6 +42,18 @@ public class FarmRushConfigDTO implements Validatable {
     private ArenaDTO arena;
     private @Nullable List<Material> preventInteractions;
     private Component description;
+    private Durations durations;
+    
+    @Data
+    static class Durations {
+        private int description = 10;
+        private int starting = 10;
+        /**
+         * how long the players have to farm rush, in seconds
+         */
+        private int gameDuration = 180;
+        private int gameOver = 10;
+    }
     
     @Override
     public void validate(@NotNull Validator validator) {
@@ -59,6 +71,10 @@ public class FarmRushConfigDTO implements Validatable {
                 .arenaFile(this.arenaFile)
                 .firstArena(this.arena.toArena(newWorld).offset(firstArenaOrigin != null ? firstArenaOrigin : new Vector(0, 0, 0)))
                 .preventInteractions(this.preventInteractions != null ? this.preventInteractions : Collections.emptyList())
+                .descriptionDuration(this.durations.description)
+                .startingDuration(this.durations.starting)
+                .gameDuration(this.durations.gameDuration)
+                .gameOverDuration(this.durations.gameOver)
                 .build();
     }
 }

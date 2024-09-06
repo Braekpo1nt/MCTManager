@@ -181,7 +181,7 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
         participants.put(player.getUniqueId(), participant);
         Team team = teams.get(teamId);
         team.getMembers().add(player.getUniqueId());
-        player.setGameMode(GameMode.SPECTATOR);
+        player.setGameMode(GameMode.ADVENTURE);
         player.teleport(team.getArena().getSpawn());
         player.setRespawnLocation(team.getArena().getSpawn());
         sidebar.addPlayer(player);
@@ -237,6 +237,7 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
         ParticipantInitializer.clearStatusEffects(participant.getPlayer());
         ParticipantInitializer.resetHealthAndHunger(participant.getPlayer());
         sidebar.removePlayer(participant.getPlayer());
+        participant.getPlayer().setGameMode(GameMode.SPECTATOR);
     }
     
     private void stopAdmins() {
@@ -253,12 +254,18 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
     
     @Override
     public void onParticipantJoin(Player participant) {
-        
+        if (state == null) {
+            return;
+        }
+        state.onParticipantJoin(participant);
     }
     
     @Override
     public void onParticipantQuit(Player participant) {
-        
+        if (state == null) {
+            return;
+        }
+        state.onParticipantQuit(participant);
     }
     
     @Override

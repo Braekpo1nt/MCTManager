@@ -18,6 +18,9 @@ public class FarmRushConfig {
     private Location adminLocation;
     private Component description;
     private int descriptionDuration;
+    private int startingDuration;
+    private int gameDuration;
+    private int gameOverDuration;
     /**
      * The first arena placement
      */
