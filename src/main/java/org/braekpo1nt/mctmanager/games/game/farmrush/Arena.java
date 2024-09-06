@@ -37,23 +37,40 @@ public class Arena {
                         bounds.getMaxY() + offset.getY(), 
                         bounds.getMaxZ() + offset.getZ()))
                 .barn(new BoundingBox(
-                        barn.getMinX() + offset.getX(),
-                        barn.getMinY() + offset.getY(),
-                        barn.getMinZ() + offset.getZ(),
-                        barn.getMaxX() + offset.getX(),
-                        barn.getMaxY() + offset.getY(),
+                        barn.getMinX() + offset.getX(), 
+                        barn.getMinY() + offset.getY(), 
+                        barn.getMinZ() + offset.getZ(), 
+                        barn.getMaxX() + offset.getX(), 
+                        barn.getMaxY() + offset.getY(), 
                         barn.getMaxZ() + offset.getZ()))
                 .barnDoor(new BoundingBox(
-                        barnDoor.getMinX() + offset.getX(),
-                        barnDoor.getMinY() + offset.getY(),
-                        barnDoor.getMinZ() + offset.getZ(),
-                        barnDoor.getMaxX() + offset.getX(),
-                        barnDoor.getMaxY() + offset.getY(),
+                        barnDoor.getMinX() + offset.getX(), 
+                        barnDoor.getMinY() + offset.getY(), 
+                        barnDoor.getMinZ() + offset.getZ(), 
+                        barnDoor.getMaxX() + offset.getX(), 
+                        barnDoor.getMaxY() + offset.getY(), 
                         barnDoor.getMaxZ() + offset.getZ()))
-                .spawn(spawn.add(offset))
-                .starterChest(starterChest.add(offset))
+                .spawn(new Location(
+                        spawn.getWorld(),
+                        spawn.getX() + offset.getX(),
+                        spawn.getY() + offset.getY(),
+                        spawn.getZ() + offset.getZ(),
+                        spawn.getYaw(),
+                        spawn.getPitch()
+                ))
+                .starterChest(new Location(
+                        starterChest.getWorld(),
+                        starterChest.getX() + offset.getX(),
+                        starterChest.getY() + offset.getY(),
+                        starterChest.getZ() + offset.getZ()
+                ))
                 .starterChestBlockFace(starterChestBlockFace)
-                .delivery(delivery.add(offset))
+                .delivery(new Location(
+                        delivery.getWorld(),
+                        delivery.getX() + offset.getX(),
+                        delivery.getY() + offset.getY(),
+                        delivery.getZ() + offset.getZ()
+                ))
                 .deliveryBlockFace(deliveryBlockFace)
                 .build();
     }
