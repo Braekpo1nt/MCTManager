@@ -1,0 +1,66 @@
+{
+  "version": "0.1.2",
+  "world": "TestWorld",
+  "adminLocation": {
+    "x": 0,
+    "y": 110,
+    "z": -110
+  },
+  "spectatorArea": {
+    "minX": 2393,
+    "minY": 60,
+    "minZ": 246,
+    "maxX": 2614,
+    "maxY": 113,
+    "maxZ": 439
+  },
+  "arenaFile": "farmRushArena.schem",
+  "firstArenaOrigin": {
+    "x": 0,
+    "y": 15,
+    "z": -110
+  },
+  "arena": {
+    "size": {
+      "sizeX": 45,
+      "sizeY": 194,
+      "sizeZ": 45
+    },
+    "barnDoor": {
+      "minX": 10,
+      "minY": 136,
+      "minZ": 41,
+      "maxX": 10,
+      "maxY": 139,
+      "maxZ": 43
+    },
+    "barn": {
+      "minX": 1,
+      "minY": 136,
+      "minZ": 32,
+      "maxX": 11,
+      "maxY": 147,
+      "maxZ": 46
+    },
+    "spawn": {
+      "x": 5.5,
+      "y": 136,
+      "z": 39.5,
+      "yaw": -90,
+      "pitch": 0
+    },
+    "starterChest": {
+      "x": 9,
+      "y": 136,
+      "z": 39
+    },
+    "starterChestBlockFace": "NORTH",
+    "delivery": {
+      "x": 9,
+      "y": 136,
+      "z": 40
+    },
+    "deliveryBlockFace": "NORTH"
+  },
+  "description": "Farm Rush description"
+}

@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.games.game.farmrush.config;
 
 import lombok.Data;
+import org.braekpo1nt.mctmanager.config.dto.org.bukkit.LocationDTO;
 import org.braekpo1nt.mctmanager.games.game.farmrush.Arena;
 import org.bukkit.World;
 import org.bukkit.block.BlockFace;
@@ -29,7 +30,7 @@ class ArenaDTO {
     /**
      * where the players spawn.
      */
-    private Vector spawn;
+    private LocationDTO spawn;
     /**
      * the location of the starter chest, to be filled with starter items.
      */
