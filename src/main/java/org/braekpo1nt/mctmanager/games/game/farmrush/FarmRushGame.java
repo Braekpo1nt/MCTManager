@@ -28,10 +28,12 @@ import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Directional;
 import org.bukkit.entity.Player;
+import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
+import org.checkerframework.checker.units.qual.K;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -67,6 +69,13 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
         @EqualsAndHashCode.Include
         private final @NotNull Player player;
         private final @NotNull String teamId;
+        
+        /**
+         * @return the UUID of the player this Participant represents
+         */
+        public UUID getUniqueId() {
+            return player.getUniqueId();
+        }
     }
     
     @Data
@@ -154,11 +163,14 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
     
     private @NotNull List<Arena> createArenas(List<String> teamIds) {
         List<Arena> arenas = new ArrayList<>(teamIds.size());
-        Arena firstArena = config.getFirstArena();
-        Vector offset = new Vector(firstArena.getBounds().getWidthX(), 0, 0);
+        Arena arena = config.getFirstArena();
+        Vector offset = new Vector(arena.getBounds().getWidthX(), 0, 0);
         for (int i = 0; i < teamIds.size(); i++) {
-            arenas.add(firstArena);
-            firstArena = firstArena.offset(offset);
+            Main.logger().info(String.format("%s: %s", teamIds.get(i), arena));
+            arenas.add(arena);
+            if (i < teamIds.size() - 1) {
+                arena = arena.offset(offset);
+            }
         }
         return arenas;
     }
@@ -169,7 +181,7 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
         participants.put(player.getUniqueId(), participant);
         Team team = teams.get(teamId);
         team.getMembers().add(player.getUniqueId());
-        player.setGameMode(GameMode.ADVENTURE);
+        player.setGameMode(GameMode.SPECTATOR);
         player.teleport(team.getArena().getSpawn());
         player.setRespawnLocation(team.getArena().getSpawn());
         sidebar.addPlayer(player);
@@ -194,7 +206,8 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
     
     private void initializeAdminSidebar() {
         adminSidebar.addLines(
-                new KeyLine("title", title)
+                new KeyLine("title", title),
+                new KeyLine("timer", Component.empty())
         );
     }
     
@@ -205,10 +218,25 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
     
     @Override
     public void stop() {
-        participants.clear();
+        HandlerList.unregisterAll(this);
         stopAdmins();
         cancelAllTasks();
+        for (Participant participant : participants.values()) {
+            resetParticipant(participant);
+        }
+        clearSidebar();
         removeArenas(teams.values().stream().map(Team::getArena).toList());
+        teams.clear();
+        participants.clear();
+        gameManager.gameIsOver();
+        Main.logger().info("Stopping Farm Rush game");
+    }
+    
+    public void resetParticipant(Participant participant) {
+        ParticipantInitializer.clearInventory(participant.getPlayer());
+        ParticipantInitializer.clearStatusEffects(participant.getPlayer());
+        ParticipantInitializer.resetHealthAndHunger(participant.getPlayer());
+        sidebar.removePlayer(participant.getPlayer());
     }
     
     private void stopAdmins() {
@@ -285,7 +313,8 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
         sidebar.addLines(
                 new KeyLine("personalTeam", ""),
                 new KeyLine("personalScore", ""),
-                new KeyLine("title", title)
+                new KeyLine("title", title),
+                new KeyLine("timer", Component.empty())
         );
     }
     

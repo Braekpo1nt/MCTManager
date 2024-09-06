@@ -16,6 +16,7 @@ import org.braekpo1nt.mctmanager.games.event.EventManager;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.CaptureTheFlagGame;
 import org.braekpo1nt.mctmanager.games.game.clockwork.ClockworkGame;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
+import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushGame;
 import org.braekpo1nt.mctmanager.games.game.footrace.FootRaceGame;
 import org.braekpo1nt.mctmanager.games.game.footrace.editor.FootRaceEditor;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
@@ -105,6 +106,7 @@ public class GameManager implements Listener {
         addGame(new ParkourPathwayGame(plugin, this));
         addGame(new CaptureTheFlagGame(plugin, this));
         addGame(new ClockworkGame(plugin, this));
+        addGame(new FarmRushGame(plugin, this));
         this.editors = new HashMap<>();
         addEditor(new ParkourPathwayEditor(plugin, this));
         addEditor(new FootRaceEditor(plugin, this));

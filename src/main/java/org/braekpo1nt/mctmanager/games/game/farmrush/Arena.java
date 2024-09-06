@@ -52,6 +52,7 @@ public class Arena {
                         barnDoor.getMaxZ() + offset.getZ()))
                 .spawn(spawn.add(offset))
                 .starterChest(starterChest.add(offset))
+                .starterChestBlockFace(starterChestBlockFace)
                 .delivery(delivery.add(offset))
                 .deliveryBlockFace(deliveryBlockFace)
                 .build();

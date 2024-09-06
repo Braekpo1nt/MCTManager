@@ -112,6 +112,7 @@ public class MCTDebugCommand implements TabExecutor, Listener {
                     sender.sendMessage(Component.text("An error occurred while trying to save, please see console for details"));
                     return true;
                 }
+                sender.sendMessage("Success");
             }
             case "load" -> {
                 if (args.length != 5) {
@@ -163,6 +164,7 @@ public class MCTDebugCommand implements TabExecutor, Listener {
                     sender.sendMessage(Component.text("An error occurred while trying to load, please see console for details"));
                     return true;
                 }
+                sender.sendMessage("Success");
             }
             default -> {
                 sender.sendMessage("Unknown argument " + args[0]);
