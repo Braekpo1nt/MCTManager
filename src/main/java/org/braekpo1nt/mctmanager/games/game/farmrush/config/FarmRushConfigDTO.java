@@ -64,7 +64,6 @@ public class FarmRushConfigDTO implements Validatable {
         return FarmRushConfig.builder()
                 .world(newWorld)
                 .adminLocation(this.adminLocation.toLocation(newWorld))
-                .descriptionDuration(10)
                 .description(this.description)
                 .arenaFile(this.arenaFile)
                 .firstArena(this.arena.toArena(newWorld).offset(firstArenaOrigin != null ? firstArenaOrigin : new Vector(0, 0, 0)))

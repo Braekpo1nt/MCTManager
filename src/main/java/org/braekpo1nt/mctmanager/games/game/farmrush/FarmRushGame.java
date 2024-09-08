@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.farmrush;
 
+import com.destroystokyo.paper.event.block.BlockDestroyEvent;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import net.kyori.adventure.audience.Audience;
@@ -25,18 +26,21 @@ import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
-import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Directional;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockBurnEvent;
+import org.bukkit.event.block.BlockExplodeEvent;
+import org.bukkit.event.block.BlockPistonEvent;
+import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
-import org.checkerframework.checker.units.qual.K;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -169,7 +173,6 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
         Arena arena = config.getFirstArena();
         Vector offset = new Vector(arena.getBounds().getWidthX() + 1, 0, 0);
         for (int i = 0; i < teamIds.size(); i++) {
-            Main.logger().info(String.format("%s: %s", teamIds.get(i), arena));
             arenas.add(arena);
             if (i < teamIds.size() - 1) {
                 arena = arena.offset(offset);
@@ -323,6 +326,31 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
         if (!arena.getBounds().contains(event.getTo().toVector())) {
             event.setCancelled(true);
         }
+    }
+    
+    @EventHandler
+    public void onPlayerBreakBlock(BlockBreakEvent event) {
+        Main.logger().info("BlockBreakEvent");
+        Participant participant = participants.get(event.getPlayer().getUniqueId());
+        if (participant == null) {
+            return;
+        }
+    }
+    @EventHandler
+    public void blockDestroyEvent(BlockDestroyEvent event) {
+        Main.logger().info("BlockDestroyEvent");
+    }
+    @EventHandler
+    public void blockExplodeEvent(BlockExplodeEvent event) {
+        Main.logger().info("BlockExplodeEvent");
+    }
+    @EventHandler
+    public void blockBurnEvent(BlockBurnEvent event) {
+        Main.logger().info("BlockBurnEvent");
+    }
+    @EventHandler
+    public void entityExplodeEvent(EntityExplodeEvent event) {
+        Main.logger().info(String.format("EntityExplodeEvent: %s", event.blockList()));
     }
     
     @Override
