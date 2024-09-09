@@ -24,18 +24,21 @@ import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.bukkit.GameMode;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Directional;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Cancellable;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockBurnEvent;
 import org.bukkit.event.block.BlockExplodeEvent;
-import org.bukkit.event.block.BlockPistonEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.scoreboard.Scoreboard;
@@ -194,6 +197,7 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
         ParticipantInitializer.clearInventory(player);
         ParticipantInitializer.clearStatusEffects(player);
         ParticipantInitializer.resetHealthAndHunger(player);
+//        player.getInventory().setContents(config.getLoadout());
     }
     
     private void startAdmins(List<Player> newAdmins) {
@@ -330,27 +334,64 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
     
     @EventHandler
     public void onPlayerBreakBlock(BlockBreakEvent event) {
-        Main.logger().info("BlockBreakEvent");
         Participant participant = participants.get(event.getPlayer().getUniqueId());
         if (participant == null) {
             return;
         }
+        Location delivery = teams.get(participant.getTeamId()).getArena().getDelivery();
+        if (!event.getBlock().getLocation().equals(delivery)) {
+            return;
+        }
+        event.setCancelled(true);
     }
     @EventHandler
     public void blockDestroyEvent(BlockDestroyEvent event) {
-        Main.logger().info("BlockDestroyEvent");
+        onBlockDestroy(event.getBlock(), event);
     }
     @EventHandler
     public void blockExplodeEvent(BlockExplodeEvent event) {
-        Main.logger().info("BlockExplodeEvent");
+        onBlockDestroy(event.getBlock(), event);
     }
     @EventHandler
     public void blockBurnEvent(BlockBurnEvent event) {
-        Main.logger().info("BlockBurnEvent");
+        onBlockDestroy(event.getBlock(), event);
     }
     @EventHandler
     public void entityExplodeEvent(EntityExplodeEvent event) {
-        Main.logger().info(String.format("EntityExplodeEvent: %s", event.blockList()));
+        event.blockList().removeIf(block -> {
+            for (Team team : teams.values()) {
+                Location delivery = team.getArena().getDelivery();
+                if (block.getLocation().equals(delivery)) {
+                    return true;
+                }
+            }
+            return false;
+        });
+    }
+    public void onBlockDestroy(Block block, Cancellable event) {
+        for (Team team : teams.values()) {
+            Location delivery = team.getArena().getDelivery();
+            if (block.getLocation().equals(delivery)) {
+                event.setCancelled(true);
+                return;
+            }
+        }
+    }
+    
+    @EventHandler
+    public void onPlayerInteract(PlayerInteractEvent event) {
+        Block clickedBlock = event.getClickedBlock();
+        if (clickedBlock == null) {
+            return;
+        }
+        if (!participants.containsKey(event.getPlayer().getUniqueId())) {
+            return;
+        }
+        Material blockType = clickedBlock.getType();
+        if (!config.getPreventInteractions().contains(blockType)) {
+            return;
+        }
+        event.setCancelled(true);
     }
     
     @Override
