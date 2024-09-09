@@ -24,6 +24,7 @@ public class FarmRushConfig {
     private int gameDuration;
     private int gameOverDuration;
     private @Nullable ItemStack[] loadout;
+    private @Nullable ItemStack[] starterChestContents;
     /**
      * The first arena placement
      */

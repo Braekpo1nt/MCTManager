@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import lombok.Data;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.LocationDTO;
+import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.ChestInventoryDTO;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.PlayerInventoryDTO;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
@@ -35,6 +36,10 @@ public class FarmRushConfigDTO implements Validatable {
      * Defaults to {@code (0, 0, 0)}
      */
     private @Nullable Vector firstArenaOrigin;
+    /**
+     * The items in the starter chest. Can contain no more than 27 entries. 
+     */
+    private @Nullable ChestInventoryDTO starterChestContents;
     /**
      * The details of the arena. When generating arenas for the game, the first one placed down will have its origin at {@link #firstArenaOrigin}, and successive ones will be placed on a grid according to the defined size. Please ensure that the {@link ArenaDTO#getSize()} attribute is the correct dimensions of the {@link #arenaFile} schematic file's dimensions. 
      */
@@ -73,6 +78,7 @@ public class FarmRushConfigDTO implements Validatable {
                 .arenaFile(this.arenaFile)
                 .firstArena(this.arena.toArena(newWorld).offset(firstArenaOrigin != null ? firstArenaOrigin : new Vector(0, 0, 0)))
                 .loadout(this.loadout != null ? this.loadout.toInventoryContents() : null)
+                .starterChestContents(this.starterChestContents != null ? this.starterChestContents.toInventoryContents() : null)
                 .preventInteractions(this.preventInteractions != null ? this.preventInteractions : Collections.emptyList())
                 .descriptionDuration(this.durations.description)
                 .startingDuration(this.durations.starting)
