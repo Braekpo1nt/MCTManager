@@ -197,7 +197,7 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
         ParticipantInitializer.clearInventory(player);
         ParticipantInitializer.clearStatusEffects(player);
         ParticipantInitializer.resetHealthAndHunger(player);
-//        player.getInventory().setContents(config.getLoadout());
+        player.getInventory().setContents(config.getLoadout());
     }
     
     private void startAdmins(List<Player> newAdmins) {

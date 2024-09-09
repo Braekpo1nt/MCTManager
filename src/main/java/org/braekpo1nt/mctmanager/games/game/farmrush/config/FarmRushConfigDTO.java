@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import lombok.Data;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.LocationDTO;
+import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.PlayerInventoryDTO;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.bukkit.Bukkit;
@@ -39,6 +40,10 @@ public class FarmRushConfigDTO implements Validatable {
      */
     private ArenaDTO arena;
     private @Nullable List<Material> preventInteractions;
+    /**
+     * each participant's starting inventory. 
+     */
+    private @Nullable PlayerInventoryDTO loadout;
     private Component description;
     private Durations durations;
     
@@ -67,6 +72,7 @@ public class FarmRushConfigDTO implements Validatable {
                 .description(this.description)
                 .arenaFile(this.arenaFile)
                 .firstArena(this.arena.toArena(newWorld).offset(firstArenaOrigin != null ? firstArenaOrigin : new Vector(0, 0, 0)))
+                .loadout(this.loadout != null ? this.loadout.toInventoryContents() : null)
                 .preventInteractions(this.preventInteractions != null ? this.preventInteractions : Collections.emptyList())
                 .descriptionDuration(this.durations.description)
                 .startingDuration(this.durations.starting)

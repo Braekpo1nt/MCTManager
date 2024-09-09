@@ -7,7 +7,9 @@ import org.braekpo1nt.mctmanager.games.game.farmrush.Arena;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -21,6 +23,7 @@ public class FarmRushConfig {
     private int startingDuration;
     private int gameDuration;
     private int gameOverDuration;
+    private @Nullable ItemStack[] loadout;
     /**
      * The first arena placement
      */
