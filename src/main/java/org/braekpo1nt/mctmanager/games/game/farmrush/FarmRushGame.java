@@ -28,6 +28,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
+import org.bukkit.block.Container;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Directional;
 import org.bukkit.entity.Player;
@@ -158,9 +159,9 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
             Block starterChest = arena.getStarterChest().getBlock();
             starterChest.setType(Material.CHEST);
             BlockData starterChestBlockData = starterChest.getBlockData();
-            ((Chest) starterChestBlockData).getInventory().setContents(config.getStarterChestContents());
             ((Directional) starterChestBlockData).setFacing(arena.getStarterChestBlockFace());
             starterChest.setBlockData(starterChestBlockData);
+            ((Chest) starterChest.getState()).getBlockInventory().setContents(config.getStarterChestContents());
         }
     }
     
