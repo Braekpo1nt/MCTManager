@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.games.game.farmrush;
 
 import com.destroystokyo.paper.event.block.BlockDestroyEvent;
+import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import net.kyori.adventure.audience.Audience;
@@ -39,8 +40,10 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockBurnEvent;
 import org.bukkit.event.block.BlockExplodeEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.util.BoundingBox;
@@ -193,13 +196,13 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
         Team team = teams.get(teamId);
         team.getMembers().add(player.getUniqueId());
         player.setGameMode(GameMode.ADVENTURE);
-        player.teleport(team.getArena().getSpawn());
-        player.setRespawnLocation(team.getArena().getSpawn(), true);
         sidebar.addPlayer(player);
         ParticipantInitializer.clearInventory(player);
         ParticipantInitializer.clearStatusEffects(player);
         ParticipantInitializer.resetHealthAndHunger(player);
         player.getInventory().setContents(config.getLoadout());
+        player.teleport(team.getArena().getSpawn());
+        player.setRespawnLocation(team.getArena().getSpawn(), true);
     }
     
     private void startAdmins(List<Player> newAdmins) {
@@ -304,6 +307,16 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
     @Override
     public void setTitle(@NotNull Component title) {
         this.title = title;
+    }
+    
+    @EventHandler
+    public void postRespawn(PlayerPostRespawnEvent event) {
+        Participant participant = participants.get(event.getPlayer().getUniqueId());
+        if (participant == null) {
+            return;
+        }
+        Location spawn = teams.get(participant.getTeamId()).getArena().getSpawn();
+        event.getPlayer().teleport(spawn);
     }
     
     @EventHandler
