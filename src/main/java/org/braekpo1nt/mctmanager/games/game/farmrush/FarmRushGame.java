@@ -28,7 +28,6 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
-import org.bukkit.block.Container;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Directional;
 import org.bukkit.entity.Player;
@@ -195,7 +194,7 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
         team.getMembers().add(player.getUniqueId());
         player.setGameMode(GameMode.ADVENTURE);
         player.teleport(team.getArena().getSpawn());
-        player.setRespawnLocation(team.getArena().getSpawn());
+        player.setRespawnLocation(team.getArena().getSpawn(), true);
         sidebar.addPlayer(player);
         ParticipantInitializer.clearInventory(player);
         ParticipantInitializer.clearStatusEffects(player);
