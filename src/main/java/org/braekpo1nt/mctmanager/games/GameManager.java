@@ -35,14 +35,17 @@ import org.braekpo1nt.mctmanager.ui.tablist.TabList;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.bukkit.*;
+import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockDispenseArmorEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.EquipmentSlot;
@@ -242,6 +245,23 @@ public class GameManager implements Listener {
     @EventHandler
     public void onBlockDispenseItem(BlockDispenseArmorEvent event) {
         Main.logger().info(String.format("Entity name: %s, item: %s, equipment slot: %s", event.getTargetEntity().getName(), event.getItem(), event.getItem().getType().getEquipmentSlot()));
+        // TODO: handle block dispensing items
+    }
+    
+    @EventHandler
+    public void onParticipantInteract(PlayerInteractEvent event) {
+        Player participant = event.getPlayer();
+        if (!onlineParticipants.contains(participant)) {
+            return;
+        }
+        if (!event.getAction().equals(Action.RIGHT_CLICK_BLOCK)) {
+            return;
+        }
+        Block clickedBlock = event.getClickedBlock();
+        if (clickedBlock == null || !GameManagerUtils.SIGNS.contains(clickedBlock.getType())) {
+            return;
+        }
+        event.setCancelled(true);
     }
     
     /**

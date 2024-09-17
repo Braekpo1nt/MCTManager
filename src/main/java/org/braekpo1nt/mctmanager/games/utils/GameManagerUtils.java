@@ -9,10 +9,7 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.utils.ColorMap;
-import org.bukkit.Bukkit;
-import org.bukkit.Color;
-import org.bukkit.NamespacedKey;
-import org.bukkit.OfflinePlayer;
+import org.bukkit.*;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -30,13 +27,29 @@ public class GameManagerUtils {
     
     public static final String TEAM_NAME_REGEX = "[-+\\._A-Za-z0-9]+";
     
-    public final static List<EntityDamageEvent.DamageCause> EXCLUDED_CAUSES;
-    static {
-        EXCLUDED_CAUSES = List.of(
-                EntityDamageEvent.DamageCause.VOID,
-                EntityDamageEvent.DamageCause.KILL
-        );
-    }
+    public final static List<EntityDamageEvent.DamageCause> EXCLUDED_CAUSES = List.of(
+            EntityDamageEvent.DamageCause.VOID,
+            EntityDamageEvent.DamageCause.KILL
+    );
+    
+    public static final List<Material> SIGNS = List.of(
+            Material.OAK_SIGN,
+            Material.SPRUCE_SIGN,
+            Material.BIRCH_SIGN,
+            Material.JUNGLE_SIGN,
+            Material.ACACIA_SIGN,
+            Material.DARK_OAK_SIGN,
+            Material.CRIMSON_SIGN,
+            Material.WARPED_SIGN,
+            Material.OAK_WALL_SIGN,
+            Material.SPRUCE_WALL_SIGN,
+            Material.BIRCH_WALL_SIGN,
+            Material.JUNGLE_WALL_SIGN,
+            Material.ACACIA_WALL_SIGN,
+            Material.DARK_OAK_WALL_SIGN,
+            Material.CRIMSON_WALL_SIGN,
+            Material.WARPED_WALL_SIGN
+    );
     
     /**
      * A list of all the {@link InventoryAction}s which constitute
