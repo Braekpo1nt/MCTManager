@@ -32,7 +32,9 @@ import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class HubManager implements Listener, Configurable {
     
@@ -43,12 +45,12 @@ public class HubManager implements Listener, Configurable {
     /**
      * Contains a list of the players who are about to be sent to the hub and can see the countdown
      */
-    private final List<Player> headingToHub = new ArrayList<>();
+    private final Set<Player> headingToHub = new HashSet<>();
     private boolean boundaryEnabled = true;
     /**
      * A list of the participants who are in the hub
      */
-    private final List<Player> participants = new ArrayList<>();
+    private final Set<Player> participants = new HashSet<>();
     private final TimerManager timerManager;
     
     public HubManager(Main plugin, GameManager gameManager) {
@@ -108,7 +110,7 @@ public class HubManager implements Listener, Configurable {
                 .onCompletion(() -> {
                     sidebar.deleteAllLines();
                     sidebar.removeAllPlayers();
-                    returnParticipantsToHubInstantly(headingToHub, adminsHeadingToHub);
+                    returnParticipantsToHubInstantly(new ArrayList<>(headingToHub), adminsHeadingToHub);
                     headingToHub.clear();
                     adminsHeadingToHub.clear();
                 })
@@ -213,7 +215,7 @@ public class HubManager implements Listener, Configurable {
     }
     
     public void onAdminQuit(Player admin) {
-        
+        // do nothing
     }
     
     public void updateLeaderboards() {
