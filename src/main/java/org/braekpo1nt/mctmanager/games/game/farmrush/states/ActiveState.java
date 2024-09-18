@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.games.game.farmrush.states;
 
 import net.kyori.adventure.text.Component;
+import org.braekpo1nt.mctmanager.commands.dynamic.top.TopCommand;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushGame;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
@@ -36,6 +37,7 @@ public class ActiveState implements FarmRushState {
                 .withSidebar(context.getAdminSidebar(), "timer")
                 .onCompletion(() -> context.setState(new GameOverState(context)))
                 .build());
+        TopCommand.setEnabled(true);
     }
     
     @Override

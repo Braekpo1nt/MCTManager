@@ -9,6 +9,7 @@ import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.commands.dynamic.top.TopCommand;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
 import org.braekpo1nt.mctmanager.games.GameManager;
@@ -262,6 +263,7 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
         removeArenas(teams.values().stream().map(Team::getArena).toList());
         teams.clear();
         participants.clear();
+        TopCommand.setEnabled(false);
         gameManager.gameIsOver();
         Main.logger().info("Stopping Farm Rush game");
     }

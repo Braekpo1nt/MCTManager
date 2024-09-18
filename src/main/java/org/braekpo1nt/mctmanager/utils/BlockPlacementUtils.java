@@ -15,19 +15,18 @@ import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.regions.CuboidRegion;
 import com.sk89q.worldedit.session.ClipboardHolder;
 import com.sk89q.worldedit.world.block.BlockTypes;
-import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.MultipleFacing;
 import org.bukkit.block.data.Rotatable;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -250,7 +249,7 @@ public class BlockPlacementUtils {
      * @return the location below the given location that is a solid block. If there are no solid blocks, returns the given location. 
      */
     public static Location getSolidBlockBelow(@NotNull Location location) {
-        Location nonAirLocation = location.subtract(0, 1, 0);
+        Location nonAirLocation = location.clone().subtract(0, 1, 0);
         int minHeight = location.getWorld().getMinHeight();
         while (nonAirLocation.getBlockY() > minHeight) {
             Block block = nonAirLocation.getBlock();
@@ -268,7 +267,7 @@ public class BlockPlacementUtils {
      * @return the location above the given location that is not a solid block. If there is no non-solid blocks, returns the given location. 
      */
     public static Location getNonSolidBlockAbove(@NotNull Location location) {
-        Location airLocation = location.add(0, 1, 0);
+        Location airLocation = location.clone().add(0, 1, 0);
         int maxHeight = location.getWorld().getMaxHeight();
         while (airLocation.getBlockY() < maxHeight) {
             Block block = airLocation.getBlock();
@@ -278,6 +277,24 @@ public class BlockPlacementUtils {
             airLocation = airLocation.add(0, 1, 0);
         }
         return location;
+    }
+    
+    /**
+     * @param location the location to check above.
+     * @return the highest solid block directly above the given location. Null if it's all air. Does not check below the given location.
+     */
+    public static @Nullable Location getTopBlock(@NotNull Location location) {
+        int maxHeight = location.getWorld().getMaxHeight();
+        int minHeight = Math.max(location.getWorld().getMinHeight(), location.getBlockY());
+        Location highestSolidLoc = new Location(location.getWorld(), location.getBlockX(), maxHeight, location.getBlockZ());
+        for (double y = maxHeight; y > minHeight; y--) {
+            Block block = highestSolidLoc.getBlock();
+            if (block.isSolid()) {
+                return highestSolidLoc;
+            }
+            highestSolidLoc.subtract(0, 1, 0);
+        }
+        return null;
     }
     
     /**
