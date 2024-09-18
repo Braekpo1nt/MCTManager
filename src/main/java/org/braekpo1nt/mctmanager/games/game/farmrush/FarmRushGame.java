@@ -92,6 +92,11 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
         @EqualsAndHashCode.Include
         private final @NotNull Player player;
         private final @NotNull String teamId;
+        private boolean alive = true;
+        
+        public boolean isAlive() {
+            return alive;
+        }
         
         /**
          * @return the UUID of the player this Participant represents
@@ -506,6 +511,18 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
             }
             meta.getPersistentDataContainer().set(HAS_SCORE_LORE, PersistentDataType.BOOLEAN, true);
         });
+    }
+    
+    @EventHandler
+    public void onCloseInventory(InventoryCloseEvent event) {
+        if (state == null) {
+            return;
+        }
+        Participant participant = participants.get(event.getPlayer().getUniqueId());
+        if (participant == null) {
+            return;
+        }
+        state.onCloseInventory(event, participant);
     }
     
     /**

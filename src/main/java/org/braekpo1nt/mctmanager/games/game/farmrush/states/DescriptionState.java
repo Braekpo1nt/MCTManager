@@ -22,9 +22,7 @@ public class DescriptionState implements FarmRushState {
                 .withSidebar(context.getSidebar(), "timer")
                 .withSidebar(context.getAdminSidebar(), "timer")
                 .sidebarPrefix(Component.text("Starting soon: "))
-                .onCompletion(() -> {
-//                    context.setState(new StartingState(context));
-                })
+                .onCompletion(() -> context.setState(new StartingState(context)))
                 .build());
     }
     
@@ -34,7 +32,7 @@ public class DescriptionState implements FarmRushState {
     }
     
     @Override
-    public void onParticipantQuit(Player participant) {
+    public void onParticipantQuit(FarmRushGame.Participant participant) {
         
     }
 }
