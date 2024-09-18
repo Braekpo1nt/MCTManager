@@ -50,7 +50,7 @@ public class ActiveState implements FarmRushState {
     
     @Override
     public void onParticipantDamage(EntityDamageEvent event) {
-        
+        // do nothing
     }
     
     @Override
