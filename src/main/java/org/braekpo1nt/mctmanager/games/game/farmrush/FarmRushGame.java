@@ -26,7 +26,6 @@ import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
-import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -103,11 +102,6 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
         @EqualsAndHashCode.Include
         private final @NotNull Player player;
         private final @NotNull String teamId;
-        private boolean alive = true;
-        
-        public boolean isAlive() {
-            return alive;
-        }
         
         /**
          * @return the UUID of the player this Participant represents

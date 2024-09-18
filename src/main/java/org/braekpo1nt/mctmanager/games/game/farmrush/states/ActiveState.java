@@ -110,17 +110,20 @@ public class ActiveState implements FarmRushState {
         for (UUID uuid : team.getMembers()) {
             context.getParticipants().get(uuid).getPlayer().sendMessage(message);
         }
-        gameManager.awardPointsToTeam(team.getTeamId(), totalScore);
+        if (totalScore > 0) {
+            gameManager.awardPointsToTeam(team.getTeamId(), totalScore);
+        }
     }
     
+    /**
+     * @param viewers the viewers of the inventory in question
+     * @return the number of viewers of the inventory who are participants
+     */
     private int countParticipantViewers(List<HumanEntity> viewers) {
         int count = 0;
         for (HumanEntity viewer : viewers) {
-            FarmRushGame.Participant participant = context.getParticipants().get(viewer.getUniqueId());
-            if (participant != null) {
-                if (participant.isAlive()) {
-                    count++;
-                }
+            if (context.getParticipants().containsKey(viewer.getUniqueId())) {
+                count++;
             }
         }
         return count;
