@@ -13,8 +13,14 @@ import org.jetbrains.annotations.NotNull;
 public class TopCommand implements CommandExecutor {
     private final GameManager gameManager;
     
+    // TODO: Change how this is enabled to be less global and more game-specific
     private static boolean enabled = false;
     
+    /**
+     * Admins can use the command by default.
+     * @param enabled true allows all participants to use the command, regardless of what game they are in.
+     *                False prevents all participants from using the command.
+     */
     public static void setEnabled(boolean enabled) {
         TopCommand.enabled = enabled;
     }
