@@ -12,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Map;
 
 @Data
 @Builder
@@ -34,4 +35,8 @@ public class FarmRushConfig {
      */
     private String arenaFile;
     private @NotNull List<Material> preventInteractions;
+    /**
+     * The score values that materials are sold for
+     */
+    private @NotNull Map<Material, Integer> materialScores;
 }

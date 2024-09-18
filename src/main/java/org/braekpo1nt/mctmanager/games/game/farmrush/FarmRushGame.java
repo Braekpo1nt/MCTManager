@@ -1,7 +1,9 @@
 package org.braekpo1nt.mctmanager.games.game.farmrush;
 
 import com.destroystokyo.paper.event.block.BlockDestroyEvent;
+import com.destroystokyo.paper.event.inventory.PrepareResultEvent;
 import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
+import io.papermc.paper.event.player.PlayerStonecutterRecipeSelectEvent;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import net.kyori.adventure.audience.Audience;
@@ -27,10 +29,12 @@ import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Directional;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.EventHandler;
@@ -40,11 +44,13 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockBurnEvent;
 import org.bukkit.event.block.BlockExplodeEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
-import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.entity.ItemSpawnEvent;
+import org.bukkit.event.inventory.*;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
@@ -58,6 +64,10 @@ import java.util.List;
 @Data
 public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener {
     
+    public static final NamespacedKey HAS_SCORE_LORE = NamespacedKey.minecraft("hasscorelore");
+    
+    private @Nullable FarmRushState state;
+    
     private final Main plugin;
     private final GameManager gameManager;
     private final TimerManager timerManager;
@@ -65,7 +75,6 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
             .append(Component.text("Farm Rush"))
             .color(NamedTextColor.BLUE);
     private Component title = baseTitle;
-    private @Nullable FarmRushState state;
     private FarmRushConfig config;
     private final FarmRushConfigController configController;
     private final List<Player> admins = new ArrayList<>();
@@ -407,6 +416,115 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
             return;
         }
         event.setCancelled(true);
+    }
+    
+    @EventHandler
+    public void onItemSpawn(ItemSpawnEvent event) {
+        Item itemEntity = event.getEntity();
+        ItemStack item = itemEntity.getItemStack();
+        addScoreLore(item);
+    }
+    
+    @EventHandler
+    public void onClickInventory(InventoryClickEvent event) {
+        addScoreLore(event.getCurrentItem());
+    }
+    
+    @EventHandler
+    public void onBrew(BrewEvent event) {
+        for (ItemStack item : event.getResults()) {
+            addScoreLore(item);
+        }
+    }
+    @EventHandler
+    public void onCraft(PrepareItemCraftEvent event) {
+        ItemStack[] contents = event.getInventory().getContents();
+        if (contents.length == 0) {
+            return;
+        }
+        ItemStack result = contents[0];
+        //slot 0 has result, might be null or AIR
+        //1-4 are crafting area for player inventory
+        //1-9 for crafting table
+        addScoreLore(result);
+    }
+    @EventHandler
+    public void onPrepareResult(PrepareResultEvent event) {
+        addScoreLore(event.getResult());
+    }
+    
+    private static final List<InventoryType> STORAGE_TYPES = List.of(
+            InventoryType.CHEST,
+            InventoryType.DISPENSER,
+            InventoryType.DROPPER,
+            InventoryType.HOPPER,
+            InventoryType.BARREL,
+            InventoryType.SHULKER_BOX,
+            InventoryType.ENDER_CHEST
+    );
+    
+    @EventHandler
+    public void onOpenInventory(InventoryOpenEvent event) {
+        if (!STORAGE_TYPES.contains(event.getInventory().getType())) {
+            return;
+        }
+        for (ItemStack item : event.getInventory().getContents()) {
+            addScoreLore(item);
+        }
+    }
+    
+    /**
+     * If the given item has a score associated with its Material type in the config,
+     * this method adds a line to the item's lore showing how many points it's worth.<br>
+     * 
+     * This is an idempotent operation, meaning running it on the same item twice will
+     * result in only 1 score line being added to the lore. It marks items that have been
+     * modified with a persistent data container boolean using {@link #HAS_SCORE_LORE}
+     * as the namespaced key.
+     * 
+     * @param item the item to add the score to, if it exists
+     */
+    private void addScoreLore(@Nullable ItemStack item) {
+        if (item == null || item.getType().equals(Material.AIR)) {
+            return;
+        }
+        Component scoreLore = getScoreLore(item.getType());
+        if (scoreLore == null) {
+            return;
+        }
+        item.editMeta(meta -> {
+            if (meta.getPersistentDataContainer().has(HAS_SCORE_LORE, PersistentDataType.BOOLEAN)) {
+                return;
+            }
+            List<Component> originalLore = meta.lore();
+            if (originalLore == null) {
+                meta.lore(Collections.singletonList(scoreLore));
+            } else {
+                List<Component> newLore = new ArrayList<>(originalLore);
+                newLore.add(scoreLore);
+                meta.lore(newLore);
+            }
+            meta.getPersistentDataContainer().set(HAS_SCORE_LORE, PersistentDataType.BOOLEAN, true);
+        });
+    }
+    
+    /**
+     * @param type the type to get the score lore of
+     * @return the lore line describing how many points the given item type is worth.
+     * null if the given type is not listed in the config.
+     */
+    private @Nullable Component getScoreLore(@Nullable Material type) {
+        if (type == null) {
+            return null;
+        }
+        Integer score = config.getMaterialScores().get(type);
+        if (score == null) {
+            return null;
+        }
+        return Component.empty()
+                .append(Component.text("Price: "))
+                .append(Component.text(score))
+                .color(NamedTextColor.GOLD);
     }
     
     @Override
