@@ -3,7 +3,6 @@ package org.braekpo1nt.mctmanager.games.game.farmrush;
 import com.destroystokyo.paper.event.block.BlockDestroyEvent;
 import com.destroystokyo.paper.event.inventory.PrepareResultEvent;
 import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
-import io.papermc.paper.event.player.PlayerStonecutterRecipeSelectEvent;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import net.kyori.adventure.audience.Audience;
@@ -20,12 +19,14 @@ import org.braekpo1nt.mctmanager.games.game.farmrush.states.DescriptionState;
 import org.braekpo1nt.mctmanager.games.game.farmrush.states.FarmRushState;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
+import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
+import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -43,6 +44,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockBurnEvent;
 import org.bukkit.event.block.BlockExplodeEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.ItemSpawnEvent;
 import org.bukkit.event.inventory.*;
@@ -65,6 +67,15 @@ import java.util.List;
 public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener {
     
     public static final NamespacedKey HAS_SCORE_LORE = NamespacedKey.minecraft("hasscorelore");
+    private static final List<InventoryType> STORAGE_TYPES = List.of(
+            InventoryType.CHEST,
+            InventoryType.DISPENSER,
+            InventoryType.DROPPER,
+            InventoryType.HOPPER,
+            InventoryType.BARREL,
+            InventoryType.SHULKER_BOX,
+            InventoryType.ENDER_CHEST
+    );
     
     private @Nullable FarmRushState state;
     
@@ -462,16 +473,6 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
         addScoreLore(event.getResult());
     }
     
-    private static final List<InventoryType> STORAGE_TYPES = List.of(
-            InventoryType.CHEST,
-            InventoryType.DISPENSER,
-            InventoryType.DROPPER,
-            InventoryType.HOPPER,
-            InventoryType.BARREL,
-            InventoryType.SHULKER_BOX,
-            InventoryType.ENDER_CHEST
-    );
-    
     @EventHandler
     public void onOpenInventory(InventoryOpenEvent event) {
         if (!STORAGE_TYPES.contains(event.getInventory().getType())) {
@@ -527,6 +528,24 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
             return;
         }
         state.onCloseInventory(event, participant);
+    }
+    
+    @EventHandler
+    public void onPlayerDamage(EntityDamageEvent event) {
+        if (state == null) {
+            return;
+        }
+        if (GameManagerUtils.EXCLUDED_CAUSES.contains(event.getCause())) {
+            return;
+        }
+        if (!(event.getEntity() instanceof Player player)) {
+            return;
+        }
+        Participant participant = participants.get(player.getUniqueId());
+        if (participant == null) {
+            return;
+        }
+        state.onParticipantDamage(event);
     }
     
     /**
