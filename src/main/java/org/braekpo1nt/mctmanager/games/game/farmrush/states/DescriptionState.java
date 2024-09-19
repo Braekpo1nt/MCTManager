@@ -1,9 +1,11 @@
 package org.braekpo1nt.mctmanager.games.game.farmrush.states;
 
 import net.kyori.adventure.text.Component;
+import org.braekpo1nt.mctmanager.games.game.farmrush.Arena;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushGame;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.bukkit.entity.Player;
+import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
 public class DescriptionState implements FarmRushState {
@@ -27,12 +29,18 @@ public class DescriptionState implements FarmRushState {
     }
     
     @Override
-    public void onParticipantJoin(Player participant) {
-        
+    public void onParticipantJoin(Player player) {
+        String teamId = context.getGameManager().getTeamId(player.getUniqueId());
+        if (!context.getTeams().containsKey(teamId)) {
+            context.onNewTeamJoin(teamId);
+        }
+        context.initializeParticipant(player);
     }
     
     @Override
     public void onParticipantQuit(FarmRushGame.Participant participant) {
-        
+        context.resetParticipant(participant);
+        context.getParticipants().remove(participant.getUniqueId());
+        context.getTeams().get(participant.getTeamId()).getMembers().remove(participant.getUniqueId());
     }
 }

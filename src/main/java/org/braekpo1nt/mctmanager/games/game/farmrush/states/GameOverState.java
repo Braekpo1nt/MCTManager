@@ -40,5 +40,6 @@ public class GameOverState implements FarmRushState {
     public void onParticipantQuit(FarmRushGame.Participant participant) {
         context.resetParticipant(participant);
         context.getParticipants().remove(participant.getUniqueId());
+        context.getTeams().get(participant.getTeamId()).getMembers().remove(participant.getUniqueId());
     }
 }

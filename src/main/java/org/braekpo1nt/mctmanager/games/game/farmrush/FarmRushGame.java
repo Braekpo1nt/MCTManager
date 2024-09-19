@@ -91,6 +91,11 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
     private final List<Player> admins = new ArrayList<>();
     private Sidebar sidebar;
     private Sidebar adminSidebar;
+    /**
+     * This list is maintained separately from the teams list, to maintain
+     * placement order when new teams join the game.
+     */
+    private @NotNull List<Arena> arenas = new ArrayList<>();
     private final Map<UUID, Participant> participants = new HashMap<>();
     private final Map<String, Team> teams = new HashMap<>();
     
@@ -145,7 +150,7 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         gameManager.getTimerManager().register(timerManager);
         List<String> teamIds = gameManager.getTeamIds(newParticipants);
-        List<Arena> arenas = createArenas(teamIds);
+        arenas = createArenas(teamIds);
         for (int i = 0; i < teamIds.size(); i++) {
             String teamId = teamIds.get(i);
             Arena arena = arenas.get(i);
@@ -209,7 +214,25 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
         return arenas;
     }
     
-    private void initializeParticipant(Player player) {
+    /**
+     * Meant to be called by {@link FarmRushState#onParticipantJoin(Player)}, not externally called
+     * Call to create a new {@link Team}, and a new {@link Arena} for that team.
+     * @param teamId the team who joined
+     */
+    public void onNewTeamJoin(String teamId) {
+        Arena arena;
+        if (arenas.isEmpty()) {
+            arena = config.getFirstArena();
+        } else {
+            Vector offset = new Vector(config.getFirstArena().getBounds().getWidthX() + 1, 0, 0);
+            arena = arenas.getLast().offset(offset);
+        }
+        arenas.add(arena);
+        teams.put(teamId, new Team(teamId, arena));
+        placeArenas(Collections.singletonList(arena));
+    }
+    
+    public void initializeParticipant(Player player) {
         String teamId = gameManager.getTeamId(player.getUniqueId());
         Participant participant = new Participant(player, teamId);
         participants.put(player.getUniqueId(), participant);
@@ -263,6 +286,7 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
         removeArenas(teams.values().stream().map(Team::getArena).toList());
         teams.clear();
         participants.clear();
+        arenas.clear();
         TopCommand.setEnabled(false);
         gameManager.gameIsOver();
         Main.logger().info("Stopping Farm Rush game");
