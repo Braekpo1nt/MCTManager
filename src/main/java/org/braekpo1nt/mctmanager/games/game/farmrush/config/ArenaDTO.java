@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.game.farmrush.config;
 import lombok.Data;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.LocationDTO;
 import org.braekpo1nt.mctmanager.games.game.farmrush.Arena;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.BlockFace;
 import org.bukkit.util.BoundingBox;
@@ -57,6 +58,7 @@ class ArenaDTO {
     
     public Arena toArena(World world) {
         return Arena.builder()
+                .world(world)
                 .bounds(new BoundingBox(0, 0, 0, size.getSizeX(), size.getSizeY(), size.getSizeZ()))
                 .barn(this.barn)
                 .barnDoor(this.barnDoor)

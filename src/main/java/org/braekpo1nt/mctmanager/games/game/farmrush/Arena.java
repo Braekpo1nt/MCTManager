@@ -2,7 +2,10 @@ package org.braekpo1nt.mctmanager.games.game.farmrush;
 
 import lombok.Builder;
 import lombok.Data;
+import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.BlockFace;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
@@ -11,13 +14,14 @@ import org.jetbrains.annotations.NotNull;
 @Data
 @Builder
 public class Arena {
-    private BoundingBox bounds;
-    private BoundingBox barn;
-    private BoundingBox barnDoor;
-    private Location spawn;
-    private Location starterChest;
+    private @NotNull World world;
+    private @NotNull BoundingBox bounds;
+    private @NotNull BoundingBox barn;
+    private @NotNull BoundingBox barnDoor;
+    private @NotNull Location spawn;
+    private @NotNull Location starterChest;
     private @NotNull BlockFace starterChestBlockFace;
-    private Location delivery;
+    private @NotNull Location delivery;
     private @NotNull BlockFace deliveryBlockFace;
     
     /**
@@ -29,6 +33,7 @@ public class Arena {
      */
     public Arena offset(Vector offset) {
         return Arena.builder()
+                .world(world)
                 .bounds(new BoundingBox(
                         bounds.getMinX() + offset.getX(), 
                         bounds.getMinY() + offset.getY(), 
@@ -73,5 +78,19 @@ public class Arena {
                 ))
                 .deliveryBlockFace(deliveryBlockFace)
                 .build();
+    }
+    
+    /**
+     * closes the barn door for this {@link Arena}. Replaces {@link Material#AIR} with the assigned barnDoorMaterial in the {@link #barnDoor} box.
+     */
+    public void closeBarnDoor() {
+        BlockPlacementUtils.createCubeReplace(world, barnDoor, Material.AIR, Material.GLASS);
+    }
+    
+    /**
+     * opens the barn door for this {@link Arena}. Replaces barnDoorMaterial with {@link Material#AIR} in the {@link #barnDoor} box.
+     */
+    public void openBarnDoor() {
+        BlockPlacementUtils.createCubeReplace(world, barnDoor, Material.GLASS, Material.AIR);
     }
 }

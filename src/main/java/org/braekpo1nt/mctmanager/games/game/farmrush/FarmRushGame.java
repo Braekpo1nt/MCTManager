@@ -157,7 +157,6 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
             teams.put(teamId, new Team(teamId, arena));
         }
         placeArenas(arenas);
-        closeGlassBarriers();
         for (Player participant : newParticipants) {
             initializeParticipant(participant);
         }
@@ -190,6 +189,8 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
             ((Directional) starterChestBlockData).setFacing(arena.getStarterChestBlockFace());
             starterChest.setBlockData(starterChestBlockData);
             ((Chest) starterChest.getState()).getBlockInventory().setContents(config.getStarterChestContents());
+            
+            arena.closeBarnDoor();
         }
     }
     
@@ -216,49 +217,6 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
     }
     
     /**
-     * closes the glass barriers for the teams, replacing them with stained-glass
-     */
-    public void closeGlassBarriers() {
-        for (Team team : teams.values()) {
-            closeGlassBarrier(
-                    team.getArena().getBarnDoor(), 
-                    gameManager.getTeamStainedGlassColor(team.getTeamId())
-            );
-        }
-    }
-    
-    /**
-     * closes a specific glass barrier
-     * @param barrier the barrier to close
-     * @param stainedGlass the type of stained-glass the barrier is made of
-     */
-    private void closeGlassBarrier(BoundingBox barrier, Material stainedGlass) {
-        BlockPlacementUtils.createCubeReplace(config.getWorld(), barrier, Material.AIR, stainedGlass);
-        BlockPlacementUtils.updateDirection(config.getWorld(), barrier);
-    }
-    
-    /**
-     * opens the glass barriers for the teams, replacing them with air
-     */
-    public void openGlassBarriers() {
-        for (Team team : teams.values()) {
-            openGlassBarrier(
-                    team.getArena().getBarnDoor(),
-                    gameManager.getTeamStainedGlassColor(team.getTeamId())
-            );
-        }
-    }
-    
-    /**
-     * opens a specific glass barrier
-     * @param barrier the barrier to open
-     * @param stainedGlass the type of stained-glass the barrier is made of
-     */
-    public void openGlassBarrier(BoundingBox barrier, Material stainedGlass) {
-        BlockPlacementUtils.createCubeReplace(config.getWorld(), barrier, stainedGlass, Material.AIR);
-    }
-    
-    /**
      * Meant to be called by {@link FarmRushState#onParticipantJoin(Player)}, not externally called
      * Call to create a new {@link Team}, and a new {@link Arena} for that team.
      * @param teamId the team who joined
@@ -275,10 +233,6 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
         Team team = new Team(teamId, arena);
         teams.put(teamId, team);
         placeArenas(Collections.singletonList(arena));
-        closeGlassBarrier(
-                team.getArena().getBarnDoor(), 
-                gameManager.getTeamStainedGlassColor(teamId)
-        );
     }
     
     public void initializeParticipant(Player player) {

@@ -38,7 +38,9 @@ public class ActiveState implements FarmRushState {
                 .onCompletion(() -> context.setState(new GameOverState(context)))
                 .build());
         TopCommand.setEnabled(true);
-        context.openGlassBarriers();
+        for (FarmRushGame.Team team : context.getTeams().values()) {
+            team.getArena().openBarnDoor();
+        }
     }
     
     @Override
@@ -47,10 +49,7 @@ public class ActiveState implements FarmRushState {
         boolean brandNewTeam = !context.getTeams().containsKey(teamId);
         if (brandNewTeam) {
             context.onNewTeamJoin(teamId);
-            context.openGlassBarrier(
-                    context.getTeams().get(teamId).getArena().getBarnDoor(), 
-                    gameManager.getTeamStainedGlassColor(teamId)
-            );
+            context.getTeams().get(teamId).getArena().openBarnDoor();
         }
         context.initializeParticipant(player);
         player.setGameMode(GameMode.SURVIVAL);
