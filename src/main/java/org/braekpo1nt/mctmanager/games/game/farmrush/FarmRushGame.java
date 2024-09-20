@@ -397,6 +397,9 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
         if (!arena.getBounds().contains(event.getTo().toVector())) {
             event.setCancelled(true);
         }
+        if (state != null) {
+            state.onPlayerMove(event, participant);
+        }
     }
     
     @EventHandler

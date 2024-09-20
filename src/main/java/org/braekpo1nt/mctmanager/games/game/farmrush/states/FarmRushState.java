@@ -6,6 +6,7 @@ import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
 
 public interface FarmRushState {
     
@@ -18,6 +19,10 @@ public interface FarmRushState {
     
     
     default void onCloseInventory(InventoryCloseEvent event, FarmRushGame.Participant participant) {
+        // do nothing
+    }
+    
+    default void onPlayerMove(PlayerMoveEvent event, FarmRushGame.Participant participant) {
         // do nothing
     }
 }
