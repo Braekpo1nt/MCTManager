@@ -35,6 +35,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Directional;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
@@ -196,10 +197,20 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
     
     /**
      * Fill the space that the arenas were placed with air
+     * and removes all leftover items and non-player entities
      * @param arenas the arenas to remove
      */
     private void removeArenas(@NotNull List<Arena> arenas) {
         List<BoundingBox> boxes = arenas.stream().map(Arena::getBounds).toList();
+        for (Entity entity : config.getWorld().getEntities()) {
+            if (!(entity instanceof Player)) {
+                for (BoundingBox box : boxes) {
+                    if (box.contains(entity.getLocation().toVector())) {
+                        entity.remove();
+                    }
+                }
+            }
+        }
         BlockPlacementUtils.fillWithAir(config.getWorld(), boxes);
     }
     
