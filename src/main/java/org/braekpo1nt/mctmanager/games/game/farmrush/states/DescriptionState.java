@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.games.game.farmrush.states;
 
 import net.kyori.adventure.text.Component;
+import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.farmrush.Arena;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushGame;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
@@ -31,10 +32,13 @@ public class DescriptionState implements FarmRushState {
     @Override
     public void onParticipantJoin(Player player) {
         String teamId = context.getGameManager().getTeamId(player.getUniqueId());
-        if (!context.getTeams().containsKey(teamId)) {
+        boolean brandNewTeam = !context.getTeams().containsKey(teamId);
+        if (brandNewTeam) {
             context.onNewTeamJoin(teamId);
         }
         context.initializeParticipant(player);
+        context.getSidebar().updateLine(player.getUniqueId(), "title", context.getTitle());
+        player.sendMessage(context.getConfig().getDescription());
     }
     
     @Override
