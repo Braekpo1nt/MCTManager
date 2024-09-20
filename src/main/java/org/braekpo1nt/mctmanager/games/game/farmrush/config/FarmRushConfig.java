@@ -4,6 +4,7 @@ import lombok.Builder;
 import lombok.Data;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.games.game.farmrush.Arena;
+import org.braekpo1nt.mctmanager.games.game.farmrush.ItemSale;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -38,5 +39,5 @@ public class FarmRushConfig {
     /**
      * The score values that materials are sold for
      */
-    private @NotNull Map<Material, Integer> materialScores;
+    private @NotNull Map<Material, ItemSale> materialScores;
 }

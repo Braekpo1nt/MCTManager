@@ -4,9 +4,11 @@ import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.commands.dynamic.top.TopCommand;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushGame;
+import org.braekpo1nt.mctmanager.games.game.farmrush.ItemSale;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.block.Barrel;
 import org.bukkit.block.Block;
 import org.bukkit.entity.HumanEntity;
@@ -93,31 +95,39 @@ public class ActiveState implements FarmRushState {
         }
         List<ItemStack> items = Arrays.stream(inventory.getContents()).filter(Objects::nonNull).toList();
         sellItems(items, team);
-        inventory.clear();
+        inventory.removeItem();
     }
     
     /**
      * Sell the given items, award the appropriate points
-     * @param items the items to sell. Should not be null, should not contain null items. 
+     * @param itemsToSell the items to sell. Should not be null, should not contain null items. 
      * @param team the team who is being awarded the points and selling the items.
+     * @return the items that were sold
      */
-    private void sellItems(@NotNull List<@NotNull ItemStack> items, FarmRushGame.Team team) {
-        if (items.isEmpty()) {
-            return;
+    private List<ItemStack> sellItems(@NotNull List<@NotNull ItemStack> itemsToSell, FarmRushGame.Team team) {
+        if (itemsToSell.isEmpty()) {
+            return Collections.emptyList();
         }
-        int totalScore = 0;
+        
         int totalAmount = 0;
-        for (ItemStack item : items) {
-            Integer materialScore = context.getConfig().getMaterialScores().get(item.getType());
-            int amount = item.getAmount();
-            totalAmount += amount;
-            if (materialScore != null) {
-                totalScore += materialScore * amount;
+        int totalScore = 0;
+        List<ItemStack> soldItems = new ArrayList<>();
+        
+        for (ItemStack bundle : itemsToSell) {
+            Material material = bundle.getType();
+            int amount = bundle.getAmount();
+            
+            ItemSale sellInfo = context.getConfig().getMaterialScores().get(material);
+            if (sellInfo != null) {
+                int requiredAmount = sellInfo.getRequiredAmount();
+                int pricePerRequiredAmount = sellInfo.getScore();
+                
+                // Calculate how many full bundles can be sold
+                int bundlesSold = amount / requiredAmount;
+                
             }
         }
-        if (totalAmount == 0) {
-            return;
-        }
+        
         Component message = Component.empty()
                 .append(Component.text("Sold "))
                 .append(Component.text(totalAmount))
@@ -128,6 +138,7 @@ public class ActiveState implements FarmRushState {
         if (totalScore > 0) {
             gameManager.awardPointsToTeam(team.getTeamId(), totalScore);
         }
+        return soldItems;
     }
     
     /**
