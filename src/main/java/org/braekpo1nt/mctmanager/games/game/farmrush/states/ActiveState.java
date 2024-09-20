@@ -41,13 +41,22 @@ public class ActiveState implements FarmRushState {
     }
     
     @Override
-    public void onParticipantJoin(Player participant) {
-        
+    public void onParticipantJoin(Player player) {
+        String teamId = context.getGameManager().getTeamId(player.getUniqueId());
+        boolean brandNewTeam = !context.getTeams().containsKey(teamId);
+        if (brandNewTeam) {
+            context.onNewTeamJoin(teamId);
+        }
+        context.initializeParticipant(player);
+        player.setGameMode(GameMode.SURVIVAL);
+        context.getSidebar().updateLine(player.getUniqueId(), "title", context.getTitle());
     }
     
     @Override
     public void onParticipantQuit(FarmRushGame.Participant participant) {
-        
+        context.resetParticipant(participant);
+        context.getParticipants().remove(participant.getUniqueId());
+        context.getTeams().get(participant.getTeamId()).getMembers().remove(participant.getUniqueId());
     }
     
     @Override
