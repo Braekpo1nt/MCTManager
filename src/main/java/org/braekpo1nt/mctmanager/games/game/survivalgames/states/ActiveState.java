@@ -283,16 +283,16 @@ public class ActiveState implements SurvivalGamesState {
     @Override
     public void onPlayerDeath(PlayerDeathEvent event) {
         Player killed = event.getPlayer();
-        if (!context.getParticipants().contains(killed)) {
-            return;
-        }
         killed.setGameMode(GameMode.SPECTATOR);
-        dropInventory(killed, event.getDrops());
+        plugin.getServer().getScheduler().runTaskLater(plugin, () -> dropInventory(killed, event.getDrops()), 2L);
         Main.debugLog(LogType.CANCEL_PLAYER_DEATH_EVENT, "SurvivalGamesGame.ActiveState.onPlayerDeath() cancelled");
         event.setCancelled(true);
-        if (event.getDeathSound() != null && event.getDeathSoundCategory() != null) {
-            killed.getWorld().playSound(killed.getLocation(), event.getDeathSound(), event.getDeathSoundCategory(), event.getDeathSoundVolume(), event.getDeathSoundPitch());
-        }
+        // TODO: playSound causing lag spike
+//        plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+//            if (event.getDeathSound() != null && event.getDeathSoundCategory() != null) {
+//                killed.getWorld().playSound(killed.getLocation(), event.getDeathSound(), event.getDeathSoundCategory(), event.getDeathSoundVolume(), event.getDeathSoundPitch());
+//            }
+//        }, 2L);
         Component deathMessage = event.deathMessage();
         if (deathMessage != null) {
             plugin.getServer().sendMessage(deathMessage);
@@ -307,7 +307,6 @@ public class ActiveState implements SurvivalGamesState {
         for (ItemStack item : drops) {
             config.getWorld().dropItemNaturally(killed.getLocation(), item);
         }
-        killed.getInventory().clear();
     }
     
     private void onParticipantGetKill(@NotNull Player killer, @NotNull Player killed) {
@@ -341,6 +340,7 @@ public class ActiveState implements SurvivalGamesState {
     
     private void onParticipantDeath(Player killed) {
         UUID killedUUID = killed.getUniqueId();
+        killed.getInventory().clear();
         switchPlayerFromLivingToDead(killedUUID);
         String teamId = gameManager.getTeamId(killedUUID);
         int oldLivingMembers = context.getLivingMembers().get(teamId);
@@ -368,9 +368,11 @@ public class ActiveState implements SurvivalGamesState {
                 .append(Component.text(" has been eliminated.")));
         Component displayName = gameManager.getFormattedTeamDisplayName(deadTeam);
         List<String> livingTeams = getLivingTeamIds();
-        for (String teamId : livingTeams) {
-            gameManager.awardPointsToTeam(teamId, config.getSurviveTeamScore());
-        }
+        plugin.getServer().getScheduler().runTaskLater(plugin, () ->{
+            for (String teamId : livingTeams) {
+                gameManager.awardPointsToTeam(teamId, config.getSurviveTeamScore());
+            }
+        }, 10L);
         switch (livingTeams.size()) {
             case 2 -> {
                 plugin.getServer().sendMessage(Component.empty()
