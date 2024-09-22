@@ -284,15 +284,12 @@ public class ActiveState implements SurvivalGamesState {
     public void onPlayerDeath(PlayerDeathEvent event) {
         Player killed = event.getPlayer();
         killed.setGameMode(GameMode.SPECTATOR);
-        plugin.getServer().getScheduler().runTaskLater(plugin, () -> dropInventory(killed, event.getDrops()), 2L);
+        dropInventory(killed, event.getDrops());
         Main.debugLog(LogType.CANCEL_PLAYER_DEATH_EVENT, "SurvivalGamesGame.ActiveState.onPlayerDeath() cancelled");
         event.setCancelled(true);
-        // TODO: playSound causing lag spike
-//        plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
-//            if (event.getDeathSound() != null && event.getDeathSoundCategory() != null) {
-//                killed.getWorld().playSound(killed.getLocation(), event.getDeathSound(), event.getDeathSoundCategory(), event.getDeathSoundVolume(), event.getDeathSoundPitch());
-//            }
-//        }, 2L);
+        if (event.getDeathSound() != null && event.getDeathSoundCategory() != null) {
+            killed.getWorld().playSound(killed.getLocation(), event.getDeathSound(), event.getDeathSoundCategory(), event.getDeathSoundVolume(), event.getDeathSoundPitch());
+        }
         Component deathMessage = event.deathMessage();
         if (deathMessage != null) {
             plugin.getServer().sendMessage(deathMessage);
@@ -368,11 +365,9 @@ public class ActiveState implements SurvivalGamesState {
                 .append(Component.text(" has been eliminated.")));
         Component displayName = gameManager.getFormattedTeamDisplayName(deadTeam);
         List<String> livingTeams = getLivingTeamIds();
-        plugin.getServer().getScheduler().runTaskLater(plugin, () ->{
-            for (String teamId : livingTeams) {
-                gameManager.awardPointsToTeam(teamId, config.getSurviveTeamScore());
-            }
-        }, 10L);
+        for (String teamId : livingTeams) {
+            gameManager.awardPointsToTeam(teamId, config.getSurviveTeamScore());
+        }
         switch (livingTeams.size()) {
             case 2 -> {
                 plugin.getServer().sendMessage(Component.empty()
