@@ -305,31 +305,6 @@ public class SpleefRound implements Listener {
         }
     }
     
-//    private void onParticipantDeath(Player killed) {
-//        ParticipantInitializer.clearStatusEffects(killed);
-//        ParticipantInitializer.resetHealthAndHunger(killed);
-//        killed.getInventory().clear();
-//        participantsAlive.put(killed.getUniqueId(), false);
-//        powerupManager.removeParticipant(killed);
-//        String killedTeam = gameManager.getTeamId(killed.getUniqueId());
-//        int aliveCount = participants.size();
-//        for (Player participant : participants) {
-//            if (participantsAlive.get(participant.getUniqueId())) {
-//                String teamId = gameManager.getTeamId(participant.getUniqueId());
-//                if (!teamId.equals(killedTeam)) {
-//                    gameManager.awardPointsToParticipant(participant, config.getSurviveScore());
-//                }
-//            } else {
-//                aliveCount--;
-//            }
-//        }
-//        String alive = String.format("Alive: %s", aliveCount);
-//        sidebar.updateLine("alive", alive);
-//        adminSidebar.updateLine("alive", alive);
-//        decayManager.setAliveCount(aliveCount);
-//        decayManager.setAlivePercent(aliveCount / (double) participants.size());
-//    }
-    
     private void onParticipantDeath(Player killed) {
         ParticipantInitializer.clearStatusEffects(killed);
         ParticipantInitializer.resetHealthAndHunger(killed);
@@ -337,22 +312,18 @@ public class SpleefRound implements Listener {
         participantsAlive.put(killed.getUniqueId(), false);
         powerupManager.removeParticipant(killed);
         String killedTeam = gameManager.getTeamId(killed.getUniqueId());
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-            for (Player participant : participants) {
-                if (participantsAlive.get(participant.getUniqueId())) {
-                    String teamId = gameManager.getTeamId(participant.getUniqueId());
-                    if (!teamId.equals(killedTeam)) {
-                        plugin.getServer().getScheduler().runTask(plugin, () -> {
-                            gameManager.awardPointsToParticipant(participant, config.getSurviveScore());
-                        });
-                    }
+        int aliveCount = participants.size();
+        for (Player participant : participants) {
+            if (participantsAlive.get(participant.getUniqueId())) {
+                String teamId = gameManager.getTeamId(participant.getUniqueId());
+                if (!teamId.equals(killedTeam)) {
+                    gameManager.awardPointsToParticipant(participant, config.getSurviveScore());
                 }
+            } else {
+                aliveCount--;
             }
-        });
-        long aliveCount = participantsAlive.values().stream().filter(Boolean::booleanValue).count();
-        Component alive = Component.empty()
-                .append(Component.text("Alive: "))
-                .append(Component.text(aliveCount));
+        }
+        String alive = String.format("Alive: %s", aliveCount);
         sidebar.updateLine("alive", alive);
         adminSidebar.updateLine("alive", alive);
         decayManager.setAliveCount(aliveCount);
