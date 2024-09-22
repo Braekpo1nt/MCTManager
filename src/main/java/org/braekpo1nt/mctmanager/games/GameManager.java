@@ -661,7 +661,7 @@ public class GameManager implements Listener {
                 }
             }
             case CAPTURE_THE_FLAG -> {
-                if (onlineTeams.size() < 2 || 8 < onlineTeams.size()) {
+                if (onlineTeams.size() < 2) {
                     sender.sendMessage(Component.text("Capture the Flag needs at least 2 and at most 8 teams online to play.").color(NamedTextColor.RED));
                     return false;
                 }
