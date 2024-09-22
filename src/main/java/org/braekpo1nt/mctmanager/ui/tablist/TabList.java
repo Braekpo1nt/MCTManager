@@ -9,6 +9,7 @@ import net.kyori.adventure.text.format.TextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.ui.topbar.TopbarException;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitScheduler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -146,6 +147,12 @@ public class TabList {
     private final Map<UUID, ParticipantData> participantDatas = new HashMap<>();
     private final Map<UUID, PlayerData> playerDatas = new HashMap<>();
     
+    private final Main plugin;
+    
+    public TabList(@NotNull Main plugin) {
+        this.plugin = plugin;
+    }
+    
     /**
      * @param teamId the teamId of the TeamData. Must be a valid key in {@link #teamDatas}
      * @return the {@link TabList.TeamData} associated with this team
@@ -214,10 +221,14 @@ public class TabList {
      * Updates all views to reflect the current state of the data.
      */
     private void update() {
-        Component tabList = toTabList();
-        for (PlayerData playerData : playerDatas.values()) {
-            playerData.getPlayer().sendPlayerListHeader(tabList);
-        }
+        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+            Component tabList = toTabList();
+            plugin.getServer().getScheduler().runTask(plugin, () -> {
+                for (PlayerData playerData : playerDatas.values()) {
+                    playerData.getPlayer().sendPlayerListHeader(tabList);
+                }
+            });
+        });
     }
     
     /**
@@ -227,8 +238,12 @@ public class TabList {
      */
     private void update(PlayerData playerData) {
         if (playerData.isVisible()) {
-            Component tabList = toTabList();
-            playerData.getPlayer().sendPlayerListHeader(tabList);
+            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+                Component tabList = toTabList();
+                plugin.getServer().getScheduler().runTask(plugin, () -> {
+                    playerData.getPlayer().sendPlayerListHeader(tabList);
+                });
+            });
         } else {
             playerData.getPlayer().sendPlayerListHeader(Component.empty());
         }

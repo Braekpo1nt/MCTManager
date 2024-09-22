@@ -93,7 +93,7 @@ public class GameManager implements Listener {
      */
     private final List<Player> onlineParticipants = new ArrayList<>();
     private final List<Player> onlineAdmins = new ArrayList<>();
-    private final TabList tabList = new TabList();
+    private final TabList tabList;
     
     public GameManager(Main plugin, Scoreboard mctScoreboard) {
         this.plugin = plugin;
@@ -113,6 +113,7 @@ public class GameManager implements Listener {
         this.editors = new HashMap<>();
         addEditor(new ParkourPathwayEditor(plugin, this));
         addEditor(new FootRaceEditor(plugin, this));
+        this.tabList = new TabList(plugin);
         this.sidebarFactory = new SidebarFactory();
         this.hubManager = initializeHubManager(plugin, this);
         this.eventManager = new EventManager(plugin, this, voteManager);
