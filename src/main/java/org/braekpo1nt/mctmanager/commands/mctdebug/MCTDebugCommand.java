@@ -18,20 +18,28 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.CommandUtils;
-import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
+import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushGame;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.block.Barrel;
+import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.util.BoundingBox;
+import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.inventory.BlockInventoryHolder;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.logging.Level;
 
 /**
@@ -63,114 +71,114 @@ public class MCTDebugCommand implements TabExecutor, Listener {
             return true;
         }
         
-        switch (args[0]) {
-            case "save" -> {
-                if (args.length != 8) {
-                    sender.sendMessage(Component.text("Usage: /mctdebug save <file> <x1> <y1> <z1> <x2> <y2> <z2>"));
-                    return true;
-                }
-                String fileName = args[1];
-                for (int i = 2; i < 8; i++) {
-                    String coordinate = args[i];
-                    if (!CommandUtils.isInteger(coordinate)) {
-                        sender.sendMessage(Component.empty()
-                                .append(Component.text(coordinate)
-                                        .decorate(TextDecoration.BOLD))
-                                .append(Component.text(" is not an integer")));
-                        return true;
-                    }
-                }
-                int x1 = Integer.parseInt(args[2]);
-                int y1 = Integer.parseInt(args[3]);
-                int z1 = Integer.parseInt(args[4]);
-                int x2 = Integer.parseInt(args[5]);
-                int y2 = Integer.parseInt(args[6]);
-                int z2 = Integer.parseInt(args[7]);
-                // copy specified region
-                CuboidRegion region = new CuboidRegion(new BlockVector3(x1, y1, z1), new BlockVector3(x2, y2, z2));
-                BlockArrayClipboard clipboard = new BlockArrayClipboard(region);
-                ForwardExtentCopy forwardExtentCopy = new ForwardExtentCopy(
-                        BukkitAdapter.adapt(player.getWorld()), region, clipboard, region.getMinimumPoint()
-                );
-                try {
-                    Operations.complete(forwardExtentCopy);
-                } catch (WorldEditException e) {
-                    Main.logger().log(Level.SEVERE, "exception while trying to copy region", e);
-                    sender.sendMessage(Component.text("An error occurred while trying to save, please see console for details"));
-                    return true;
-                }
-                // world edit save schematic
-                File file = new File(plugin.getDataFolder(), fileName);
-                try (ClipboardWriter writer = BuiltInClipboardFormat.SPONGE_V3_SCHEMATIC.getWriter(new FileOutputStream(file))) {
-                    writer.write(clipboard);
-                } catch (FileNotFoundException e) {
-                    Main.logger().log(Level.SEVERE, "Could not find file " + file, e);
-                    sender.sendMessage(Component.text("An error occurred while trying to save, please see console for details"));
-                    return true;
-                } catch (IOException e) {
-                    Main.logger().log(Level.SEVERE, "Exception while writing to file " + file, e);
-                    sender.sendMessage(Component.text("An error occurred while trying to save, please see console for details"));
-                    return true;
-                }
-                sender.sendMessage("Success");
-            }
-            case "load" -> {
-                if (args.length != 5) {
-                    sender.sendMessage(Component.text("Usage: /mctdebug load <file> <x> <y> <z>"));
-                    return true;
-                }
-                String fileName = args[1];
-                for (int i = 2; i < 5; i++) {
-                    String coordinate = args[i];
-                    if (!CommandUtils.isInteger(coordinate)) {
-                        sender.sendMessage(Component.empty()
-                                .append(Component.text(coordinate)
-                                        .decorate(TextDecoration.BOLD))
-                                .append(Component.text(" is not an integer")));
-                        return true;
-                    }
-                }
-                int x = Integer.parseInt(args[2]);
-                int y = Integer.parseInt(args[3]);
-                int z = Integer.parseInt(args[4]);
-                // world edit load schematic
-                File file = new File(plugin.getDataFolder(), fileName);
-                Clipboard clipboard;
-                ClipboardFormat format = ClipboardFormats.findByFile(file);
-                if (format == null) {
-                    Main.logger().severe("Could not find file " + file);
-                    sender.sendMessage(Component.text("An error occurred while trying to load, please see console for details"));
-                    return true;
-                }
-                try (ClipboardReader reader = format.getReader(new FileInputStream(file))) {
-                    clipboard = reader.read();
-                } catch (FileNotFoundException e) {
-                    Main.logger().log(Level.SEVERE, "Could not find file " + file, e);
-                    sender.sendMessage(Component.text("An error occurred while trying to load, please see console for details"));
-                    return true;
-                } catch (IOException e) {
-                    Main.logger().log(Level.SEVERE, "Exception while reading from file " + file, e);
-                    sender.sendMessage(Component.text("An error occurred while trying to load, please see console for details"));
-                    return true;
-                }
-                try (EditSession editSession = WorldEdit.getInstance().newEditSession(BukkitAdapter.adapt(player.getWorld()))) {
-                    Operation operation = new ClipboardHolder(clipboard)
-                            .createPaste(editSession)
-                            .to(BlockVector3.at(x, y, z))
-                            .build();
-                    Operations.complete(operation);
-                } catch (WorldEditException e) {
-                    Main.logger().log(Level.SEVERE, "Exception while pasting", e);
-                    sender.sendMessage(Component.text("An error occurred while trying to load, please see console for details"));
-                    return true;
-                }
-                sender.sendMessage("Success");
-            }
-            default -> {
-                sender.sendMessage("Unknown argument " + args[0]);
-                return true;
-            }
-        }
+//        switch (args[0]) {
+//            case "save" -> {
+//                if (args.length != 8) {
+//                    sender.sendMessage(Component.text("Usage: /mctdebug save <file> <x1> <y1> <z1> <x2> <y2> <z2>"));
+//                    return true;
+//                }
+//                String fileName = args[1];
+//                for (int i = 2; i < 8; i++) {
+//                    String coordinate = args[i];
+//                    if (!CommandUtils.isInteger(coordinate)) {
+//                        sender.sendMessage(Component.empty()
+//                                .append(Component.text(coordinate)
+//                                        .decorate(TextDecoration.BOLD))
+//                                .append(Component.text(" is not an integer")));
+//                        return true;
+//                    }
+//                }
+//                int x1 = Integer.parseInt(args[2]);
+//                int y1 = Integer.parseInt(args[3]);
+//                int z1 = Integer.parseInt(args[4]);
+//                int x2 = Integer.parseInt(args[5]);
+//                int y2 = Integer.parseInt(args[6]);
+//                int z2 = Integer.parseInt(args[7]);
+//                // copy specified region
+//                CuboidRegion region = new CuboidRegion(new BlockVector3(x1, y1, z1), new BlockVector3(x2, y2, z2));
+//                BlockArrayClipboard clipboard = new BlockArrayClipboard(region);
+//                ForwardExtentCopy forwardExtentCopy = new ForwardExtentCopy(
+//                        BukkitAdapter.adapt(player.getWorld()), region, clipboard, region.getMinimumPoint()
+//                );
+//                try {
+//                    Operations.complete(forwardExtentCopy);
+//                } catch (WorldEditException e) {
+//                    Main.logger().log(Level.SEVERE, "exception while trying to copy region", e);
+//                    sender.sendMessage(Component.text("An error occurred while trying to save, please see console for details"));
+//                    return true;
+//                }
+//                // world edit save schematic
+//                File file = new File(plugin.getDataFolder(), fileName);
+//                try (ClipboardWriter writer = BuiltInClipboardFormat.SPONGE_V3_SCHEMATIC.getWriter(new FileOutputStream(file))) {
+//                    writer.write(clipboard);
+//                } catch (FileNotFoundException e) {
+//                    Main.logger().log(Level.SEVERE, "Could not find file " + file, e);
+//                    sender.sendMessage(Component.text("An error occurred while trying to save, please see console for details"));
+//                    return true;
+//                } catch (IOException e) {
+//                    Main.logger().log(Level.SEVERE, "Exception while writing to file " + file, e);
+//                    sender.sendMessage(Component.text("An error occurred while trying to save, please see console for details"));
+//                    return true;
+//                }
+//                sender.sendMessage("Success");
+//            }
+//            case "load" -> {
+//                if (args.length != 5) {
+//                    sender.sendMessage(Component.text("Usage: /mctdebug load <file> <x> <y> <z>"));
+//                    return true;
+//                }
+//                String fileName = args[1];
+//                for (int i = 2; i < 5; i++) {
+//                    String coordinate = args[i];
+//                    if (!CommandUtils.isInteger(coordinate)) {
+//                        sender.sendMessage(Component.empty()
+//                                .append(Component.text(coordinate)
+//                                        .decorate(TextDecoration.BOLD))
+//                                .append(Component.text(" is not an integer")));
+//                        return true;
+//                    }
+//                }
+//                int x = Integer.parseInt(args[2]);
+//                int y = Integer.parseInt(args[3]);
+//                int z = Integer.parseInt(args[4]);
+//                // world edit load schematic
+//                File file = new File(plugin.getDataFolder(), fileName);
+//                Clipboard clipboard;
+//                ClipboardFormat format = ClipboardFormats.findByFile(file);
+//                if (format == null) {
+//                    Main.logger().severe("Could not find file " + file);
+//                    sender.sendMessage(Component.text("An error occurred while trying to load, please see console for details"));
+//                    return true;
+//                }
+//                try (ClipboardReader reader = format.getReader(new FileInputStream(file))) {
+//                    clipboard = reader.read();
+//                } catch (FileNotFoundException e) {
+//                    Main.logger().log(Level.SEVERE, "Could not find file " + file, e);
+//                    sender.sendMessage(Component.text("An error occurred while trying to load, please see console for details"));
+//                    return true;
+//                } catch (IOException e) {
+//                    Main.logger().log(Level.SEVERE, "Exception while reading from file " + file, e);
+//                    sender.sendMessage(Component.text("An error occurred while trying to load, please see console for details"));
+//                    return true;
+//                }
+//                try (EditSession editSession = WorldEdit.getInstance().newEditSession(BukkitAdapter.adapt(player.getWorld()))) {
+//                    Operation operation = new ClipboardHolder(clipboard)
+//                            .createPaste(editSession)
+//                            .to(BlockVector3.at(x, y, z))
+//                            .build();
+//                    Operations.complete(operation);
+//                } catch (WorldEditException e) {
+//                    Main.logger().log(Level.SEVERE, "Exception while pasting", e);
+//                    sender.sendMessage(Component.text("An error occurred while trying to load, please see console for details"));
+//                    return true;
+//                }
+//                sender.sendMessage("Success");
+//            }
+//            default -> {
+//                sender.sendMessage("Unknown argument " + args[0]);
+//                return true;
+//            }
+//        }
         
         return true;
     }
