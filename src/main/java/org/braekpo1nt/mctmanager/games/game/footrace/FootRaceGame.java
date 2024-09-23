@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.footrace;
 
+import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
 import lombok.Data;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;

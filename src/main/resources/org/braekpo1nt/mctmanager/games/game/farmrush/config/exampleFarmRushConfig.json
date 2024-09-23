@@ -1,0 +1,128 @@
+{
+  "version": "0.1.2",
+  "world": "TestWorld",
+  "adminLocation": {
+    "x": 0,
+    "y": 110,
+    "z": 0
+  },
+  "arenaFile": "farmRushArena.schem",
+  "firstArenaOrigin": {
+    "x": 0,
+    "y": 0,
+    "z": 0
+  },
+  "loadout": {
+    "contents": {
+      "0": {
+        "type": "STONE_PICKAXE"
+      },
+      "1": {
+        "type": "STONE_AXE"
+      },
+      "2": {
+        "type": "STONE_SHOVEL"
+      },
+      "3": {
+        "type": "STONE_HOE"
+      }
+    }
+  },
+  "starterChestContents": {
+    "contents": {
+      "0": {
+        "type": "WHEAT_SEEDS",
+        "amount": 5
+      },
+      "1": {
+        "type": "WATER_BUCKET"
+      },
+      "2": {
+        "type": "WATER_BUCKET"
+      },
+      "3": {
+        "type": "COW_SPAWN_EGG",
+        "amount": "2"
+      }
+    }
+  },
+  "materialScores": {
+    "IRON_INGOT": {
+      "requiredAmount": 1,
+      "score": 20
+    },
+    "DIAMOND": {
+      "requiredAmount": 1,
+      "score": 50
+    },
+    "GRANITE": {
+      "requiredAmount": 5,
+      "score": 1
+    },
+    "RAW_IRON": {
+      "requiredAmount": 1,
+      "score": 10
+    },
+    "COAL": {
+      "requiredAmount": 1,
+      "score": 5
+    },
+    "WHEAT": {
+      "requiredAmount": 1,
+      "score": 2
+    },
+    "MUTTON": {
+      "requiredAmount": 1,
+      "score": 5
+    }
+  },
+  "arena": {
+    "size": {
+      "sizeX": 47,
+      "sizeY": 177,
+      "sizeZ": 48
+    },
+    "barnDoor": {
+      "minX": 10,
+      "minY": 136,
+      "minZ": 41,
+      "maxX": 10,
+      "maxY": 139,
+      "maxZ": 43
+    },
+    "barn": {
+      "minX": 1,
+      "minY": 136,
+      "minZ": 32,
+      "maxX": 11,
+      "maxY": 147,
+      "maxZ": 46
+    },
+    "spawn": {
+      "x": 5.5,
+      "y": 136,
+      "z": 39.5,
+      "yaw": -90,
+      "pitch": 0
+    },
+    "starterChest": {
+      "x": 9,
+      "y": 136,
+      "z": 39
+    },
+    "starterChestBlockFace": "WEST",
+    "delivery": {
+      "x": 9,
+      "y": 136,
+      "z": 40
+    },
+    "deliveryBlockFace": "UP"
+  },
+  "durations": {
+    "description": 10,
+    "starting": 10,
+    "gameDuration": 600,
+    "gameOver": 10
+  },
+  "description": "Farm Rush description"
+}

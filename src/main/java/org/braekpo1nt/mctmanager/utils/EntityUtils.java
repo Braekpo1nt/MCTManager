@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.utils;
 import org.braekpo1nt.mctmanager.config.dto.YawPitch;
 import org.bukkit.Location;
 import org.bukkit.block.BlockFace;
+import org.bukkit.entity.Entity;
 import org.bukkit.util.Vector;
 
 public final class EntityUtils {
@@ -69,6 +70,21 @@ public final class EntityUtils {
                 return BlockFace.SOUTH;
             }
         }
+    }
+    
+    /**
+     * If there is at least one solid block above the given entity's position,
+     * teleports the entity to the position one block above the highest solid block.
+     * @param entity the entity to teleport.
+     */
+    public static void top(Entity entity) {
+        Location topBlock = BlockPlacementUtils.getTopBlock(entity.getLocation());
+        if (topBlock == null) {
+            return;
+        }
+        Location topLoc = topBlock.add(0, 1, 0);
+        entity.teleport(topLoc);
+        entity.sendMessage("Teleported to top");
     }
     
     private EntityUtils() {

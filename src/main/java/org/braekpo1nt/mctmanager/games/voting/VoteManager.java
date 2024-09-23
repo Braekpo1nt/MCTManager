@@ -235,6 +235,9 @@ public class VoteManager implements Listener {
             case CLOCK -> {
                 votedForType = GameType.CLOCKWORK;
             }
+            case STONE_HOE -> {
+                votedForType = GameType.FARM_RUSH;
+            }
             default -> {
                 return;
             }
@@ -571,6 +574,14 @@ public class VoteManager implements Listener {
         ));
         spleef.setItemMeta(spleefMeta);
         
+        ItemStack farmRush = new ItemStack(Material.STONE_HOE);
+        ItemMeta farmRushMeta = spleef.getItemMeta();
+        farmRushMeta.displayName(Component.text("Farm Rush"));
+        farmRushMeta.lore(List.of(
+                Component.text("A farming game")
+        ));
+        spleef.setItemMeta(spleefMeta);
+        
         Inventory newGui = Bukkit.createInventory(null, 9, TITLE);
         Map<GameType, ItemStack> votingItems = new HashMap<>();
         votingItems.put(GameType.FOOT_RACE, footRace);
@@ -579,6 +590,7 @@ public class VoteManager implements Listener {
         votingItems.put(GameType.SPLEEF, spleef);
         votingItems.put(GameType.PARKOUR_PATHWAY, parkourPathway);
         votingItems.put(GameType.CLOCKWORK, clockwork);
+        votingItems.put(GameType.FARM_RUSH, farmRush);
         
         for (GameType mctGame : votingPool) {
             newGui.addItem(votingItems.get(mctGame));

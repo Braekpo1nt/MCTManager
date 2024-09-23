@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import lombok.extern.java.Log;
+import org.braekpo1nt.mctmanager.commands.dynamic.top.TopCommand;
 import org.braekpo1nt.mctmanager.commands.mct.MCTCommand;
 import org.braekpo1nt.mctmanager.commands.mctdebug.MCTDebugCommand;
 import org.braekpo1nt.mctmanager.commands.readyup.ReadyUpCommand;
@@ -128,6 +129,7 @@ public class Main extends JavaPlugin {
         new UtilsCommand(this);
         new ReadyUpCommand(this, gameManager);
         new UnReadyCommand(this, gameManager);
+        new TopCommand(this, gameManager);
     
         alwaysGiveNightVision();
     }
