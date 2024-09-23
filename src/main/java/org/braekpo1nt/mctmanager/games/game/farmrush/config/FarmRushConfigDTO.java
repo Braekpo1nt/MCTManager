@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.Map;
 
 @Data
-public class FarmRushConfigDTO implements Validatable {
+class FarmRushConfigDTO implements Validatable {
     
     private String version;
     private String world;
@@ -58,7 +58,7 @@ public class FarmRushConfigDTO implements Validatable {
     private @Nullable PlayerInventoryDTO loadout;
     private Component description;
     private Durations durations;
-    private @Nullable Map<Material, ItemSale> materialScores;
+    private @Nullable Map<Material, ItemSaleDTO> materialScores;
     
     @Data
     static class Durations {
@@ -81,17 +81,18 @@ public class FarmRushConfigDTO implements Validatable {
         Preconditions.checkState(newWorld != null, "Could not find world \"%s\"", this.world);
         ItemStack[] newStarterChestContents = null;
         ItemStack[] newLoadout = null;
-        if (materialScores != null) {
+        Map<Material, ItemSale> newMaterialScores = ItemSaleDTO.toItemSales(materialScores);
+        if (newMaterialScores != null) {
             if (this.starterChestContents != null) {
                 newStarterChestContents = this.starterChestContents.toInventoryContents();
                 for (ItemStack item : newStarterChestContents) {
-                    addScoreLore(item, materialScores);
+                    addScoreLore(item, newMaterialScores);
                 }
             }
             if (this.loadout != null) {
                 newLoadout = this.loadout.toInventoryContents();
                 for (ItemStack item : newLoadout) {
-                    addScoreLore(item, materialScores);
+                    addScoreLore(item, newMaterialScores);
                 }
             }
         }
@@ -108,7 +109,7 @@ public class FarmRushConfigDTO implements Validatable {
                 .startingDuration(this.durations.starting)
                 .gameDuration(this.durations.gameDuration)
                 .gameOverDuration(this.durations.gameOver)
-                .materialScores(this.materialScores != null ? this.materialScores : Collections.emptyMap())
+                .materialScores(newMaterialScores != null ? newMaterialScores : Collections.emptyMap())
                 .build();
     }
     
