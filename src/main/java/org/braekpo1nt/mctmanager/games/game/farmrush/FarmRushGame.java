@@ -189,7 +189,9 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
             BlockData starterChestBlockData = starterChest.getBlockData();
             ((Directional) starterChestBlockData).setFacing(arena.getStarterChestBlockFace());
             starterChest.setBlockData(starterChestBlockData);
-            ((Chest) starterChest.getState()).getBlockInventory().setContents(config.getStarterChestContents());
+            Chest starterChestState = (Chest) starterChest.getState();
+            starterChestState.getBlockInventory().setContents(config.getStarterChestContents());
+            starterChestState.getBlockInventory().addItem(config.getMaterialBook());
             
             arena.closeBarnDoor();
         }
