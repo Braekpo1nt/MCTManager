@@ -258,6 +258,7 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
         ParticipantInitializer.clearStatusEffects(player);
         ParticipantInitializer.resetHealthAndHunger(player);
         player.getInventory().setContents(config.getLoadout());
+        player.getInventory().addItem(config.getMaterialBook());
         player.teleport(team.getArena().getSpawn());
         player.setRespawnLocation(team.getArena().getSpawn(), true);
     }

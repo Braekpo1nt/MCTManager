@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.games.game.farmrush.config;
 import com.google.common.base.Preconditions;
 import lombok.Data;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.LocationDTO;
@@ -16,6 +17,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
@@ -132,7 +134,92 @@ class FarmRushConfigDTO implements Validatable {
                 .gameDuration(this.durations.gameDuration)
                 .gameOverDuration(this.durations.gameOver)
                 .materialScores(this.materialScores != null ? this.materialScores : Collections.emptyMap())
+                .materialBook(createMaterialBook())
                 .build();
+    }
+    
+    private ItemStack createMaterialBook() {
+        ItemStack materialBook = new ItemStack(Material.WRITTEN_BOOK);
+        BookMeta.BookMetaBuilder builder = ((BookMeta) materialBook.getItemMeta()).toBuilder();
+        BookMeta bookMeta = builder
+                .title(Component.text("Item Values"))
+                .author(Component.text("Farm Rush"))
+                .pages(createPages())
+                .build();
+        materialBook.setItemMeta(bookMeta);
+        return materialBook;
+    }
+    
+    private List<Component> createPages() {
+        List<TextComponent> lines = createLines();
+        if (lines.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<Component> pages = new ArrayList<>(lines.size()/15);
+        for (int i = 0; i < lines.size(); i += 10) {
+            TextComponent.Builder builder = Component.text();
+            int end = Math.min(lines.size(), i + 10);
+            
+            for (int j = i; j < end; j++) {
+                builder.append(lines.get(j));
+                // Add a newline if it's not the last element
+                if (j < end - 1) {
+                    builder.append(Component.newline());
+                }
+                Main.logger().info(String.format("%d;%d", i, j));
+            }
+            pages.add(builder.build());
+        }
+        
+        return pages;
+    }
+    
+    private @NotNull List<TextComponent> createLines() {
+        if (materialScores == null) {
+            return Collections.emptyList();
+        }
+        List<TextComponent> lines = new ArrayList<>();
+        List<Map.Entry<Material, ItemSale>> entryList = materialScores.entrySet().stream().sorted((entry1, entry2) -> {
+            int score1 = entry1.getValue().getScore();
+            int score2 = entry2.getValue().getScore();
+            if (score1 != score2) {
+                return Integer.compare(score2, score1);
+            }
+            int requiredAmount1 = entry1.getValue().getRequiredAmount();
+            int requiredAmount2 = entry2.getValue().getRequiredAmount();
+            if (requiredAmount1 != requiredAmount2) {
+                return Integer.compare(requiredAmount1, requiredAmount2);
+            }
+            return entry1.getKey().compareTo(entry2.getKey());
+        }).toList();
+        
+        for (Map.Entry<Material, ItemSale> entry : entryList) {
+            Material material = entry.getKey();
+            ItemSale itemSale = entry.getValue();
+            Component itemName = Component.translatable(material.translationKey());
+            TextComponent.Builder line = Component.text();
+            if (itemSale.getRequiredAmount() > 1) {
+                line
+                        .append(Component.text(itemSale.getRequiredAmount()))
+                        .append(Component.space());
+            }
+            line
+                    .append(itemName)
+                    .append(Component.text(": "))
+                    .append(Component.text(itemSale.getScore())
+                            .color(NamedTextColor.GOLD));
+            lines.add(line.build());
+        }
+        return lines;
+    }
+    
+    private static int calculateLineLength(Material material, ItemSale itemSale) {
+        String scoreStr = "" + itemSale.getScore();
+        if (itemSale.getRequiredAmount() > 1) {
+            String requiredAmountStr = "" + itemSale.getRequiredAmount();
+            return requiredAmountStr.length() + material.name().length() + scoreStr.length() + 2;
+        }
+        return material.name().length() + scoreStr.length() + 2;
     }
     
     /**
