@@ -5,6 +5,7 @@ import lombok.Data;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.LocationDTO;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.ChestInventoryDTO;
@@ -161,12 +162,14 @@ class FarmRushConfigDTO implements Validatable {
             int end = Math.min(lines.size(), i + 10);
             
             for (int j = i; j < end; j++) {
-                builder.append(lines.get(j));
-                // Add a newline if it's not the last element
+                TextComponent line = lines.get(j);
+                double length = PlainTextComponentSerializer.plainText().serialize(line).length();
+                int numberOfExtraLines = (int) Math.ceil(length / 21.0) - 1;
+                j += numberOfExtraLines;
+                builder.append(line);
                 if (j < end - 1) {
                     builder.append(Component.newline());
                 }
-                Main.logger().info(String.format("%d;%d", i, j));
             }
             pages.add(builder.build());
         }
@@ -211,15 +214,6 @@ class FarmRushConfigDTO implements Validatable {
             lines.add(line.build());
         }
         return lines;
-    }
-    
-    private static int calculateLineLength(Material material, ItemSale itemSale) {
-        String scoreStr = "" + itemSale.getScore();
-        if (itemSale.getRequiredAmount() > 1) {
-            String requiredAmountStr = "" + itemSale.getRequiredAmount();
-            return requiredAmountStr.length() + material.name().length() + scoreStr.length() + 2;
-        }
-        return material.name().length() + scoreStr.length() + 2;
     }
     
     /**
