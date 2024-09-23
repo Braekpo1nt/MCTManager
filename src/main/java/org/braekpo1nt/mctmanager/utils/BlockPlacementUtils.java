@@ -422,7 +422,7 @@ public class BlockPlacementUtils {
                         box.getMin().getBlockZ());
                 BlockVector3 max = BlockVector3.at(
                         box.getMax().getBlockX(),
-                        box.getMax().getBlockY(),
+                        box.getMax().getBlockY() + 1,
                         box.getMax().getBlockZ());
                 CuboidRegion region = new CuboidRegion(min, max);
                 
