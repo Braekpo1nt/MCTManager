@@ -1,7 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.farmrush.states;
 
 import net.kyori.adventure.text.Component;
-import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.dynamic.top.TopCommand;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushGame;
@@ -20,7 +19,6 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -170,7 +168,6 @@ public class ActiveState implements FarmRushState {
                 gameManager.awardPointsToTeam(team.getTeamId(), totalScore);
             }
         }
-        Main.logger().info(String.format("soldItems: %s", soldItems));
         return soldItems;
     }
     
