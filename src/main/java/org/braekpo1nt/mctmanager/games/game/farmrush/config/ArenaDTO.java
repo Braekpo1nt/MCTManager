@@ -15,6 +15,7 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * All coordinate locations will be assuming an origin of {@code (0, 0, 0)}.
+ * All locations and bounding boxes must be within the bounding box formed by the (0, 0, 0) and the size.
  */
 @Data
 class ArenaDTO implements Validatable {
@@ -24,7 +25,7 @@ class ArenaDTO implements Validatable {
     private Size size;
     /**
      * the dimensions of the barn area. Used for keeping players in that area under
-     * certain circumstances. 
+     * certain circumstances. Must have a volume of at least 1.0.
      */
     private BoundingBox barn;
     /**
@@ -54,7 +55,23 @@ class ArenaDTO implements Validatable {
     
     @Override
     public void validate(@NotNull Validator validator) {
-        throw new UnsupportedOperationException("not yet implemented");
+        validator.notNull(size, "size");
+        validator.notNull(barn, "barn");
+        validator.validate(barn.getVolume() >= 1, "barn must have a volume of at least 1.0");
+        validator.notNull(barnDoor, "barnDoor");
+        validator.notNull(spawn, "spawn");
+        validator.notNull(starterChest, "starterChest");
+        validator.notNull(delivery, "delivery");
+        
+        // make sure everything is contained within the bounding box formed by the origin and the size
+        BoundingBox arenaBounds = new BoundingBox(
+                0, 0, 0, 
+                size.getSizeX(), size.getSizeY(), size.getSizeZ());
+        validator.validate(arenaBounds.contains(barn), "barn must be within the size");
+        validator.validate(arenaBounds.contains(barnDoor), "barnDoor must be within the size");
+        validator.validate(arenaBounds.contains(spawn.toVector()), "spawn must be within the size");
+        validator.validate(arenaBounds.contains(starterChest), "starterChest must be within the size");
+        validator.validate(arenaBounds.contains(delivery), "delivery must be within the size");
     }
     
     @Data
