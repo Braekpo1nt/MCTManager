@@ -2,19 +2,22 @@ package org.braekpo1nt.mctmanager.games.game.farmrush.config;
 
 import lombok.Data;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.LocationDTO;
+import org.braekpo1nt.mctmanager.config.validation.Validatable;
+import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.braekpo1nt.mctmanager.games.game.farmrush.Arena;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.BlockFace;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * All coordinate locations will be assuming an origin of {@code (0, 0, 0)}.
  */
 @Data
-class ArenaDTO {
+class ArenaDTO implements Validatable {
     /**
      * the dimensions (or size) of the arena. Assuming {@code (0, 0, 0)} is the origin.
      */
@@ -48,6 +51,11 @@ class ArenaDTO {
      * The direction that the starter chest should face. Defaults to {@link BlockFace#NORTH}
      */
     private @Nullable BlockFace deliveryBlockFace;
+    
+    @Override
+    public void validate(@NotNull Validator validator) {
+        throw new UnsupportedOperationException("not yet implemented");
+    }
     
     @Data
     static class Size {

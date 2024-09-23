@@ -5,6 +5,7 @@ import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
 import java.util.List;
 import java.util.Map;
 
@@ -84,6 +85,19 @@ public class Validator {
     public void notNull(Object object, String subPath, Object... args) {
         if (object == null) {
             throw new ConfigInvalidException(this.path + "." + String.format(subPath, args) + " can't be null");
+        }
+    }
+    
+    /**
+     * Convenience method to validate that a file specified by a string exists
+     * @param filePath the file path to check for
+     * @param subPath the subPath, usually the name of the variable holding the filePath
+     * @param args any args to be used as the {@link String#format(String, Object...)} arguments for the subPath string
+     */
+    public void fileExists(@NotNull String filePath, String subPath, Object... args) {
+        File file = new File(filePath);
+        if (!file.exists()) {
+            throw new ConfigInvalidException(this.path + "." + String.format(subPath, args) + " specifies a file that does not exist: " + filePath);
         }
     }
     

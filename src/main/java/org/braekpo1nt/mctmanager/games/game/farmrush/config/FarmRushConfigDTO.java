@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import lombok.Data;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.LocationDTO;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.ChestInventoryDTO;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.PlayerInventoryDTO;
@@ -16,6 +17,7 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -56,9 +58,9 @@ class FarmRushConfigDTO implements Validatable {
      * each participant's starting inventory. 
      */
     private @Nullable PlayerInventoryDTO loadout;
-    private Component description;
-    private Durations durations;
     private @Nullable Map<Material, ItemSale> materialScores;
+    private Durations durations;
+    private Component description;
     
     @Data
     static class Durations {
@@ -73,7 +75,29 @@ class FarmRushConfigDTO implements Validatable {
     
     @Override
     public void validate(@NotNull Validator validator) {
-        // TODO: implement this
+        validator.notNull(this.getVersion(), "version");
+        validator.validate(Main.VALID_CONFIG_VERSIONS.contains(this.getVersion()), "invalid config version (%s)", this.getVersion());
+        validator.notNull(Bukkit.getWorld(this.getWorld()), "Could not find world \"%s\"", this.getWorld());
+        validator.notNull(adminLocation, "adminLocation");
+        validator.notNull(arenaFile, "arenaFile");
+        validator.fileExists(arenaFile, "arenaFile");
+        validator.notNull(firstArenaOrigin, "firstArenaOrigin");
+        validator.notNull(starterChestContents, "starterChestContents");
+        starterChestContents.validate(validator.path("starterChestContents"));
+        validator.notNull(arena, "arena");
+        arena.validate(validator.path("arena"));
+        if (loadout != null) {
+            loadout.validate(validator.path("loadout"));
+        }
+        if (materialScores != null) {
+            validator.validateMap(materialScores, "materialScores");
+        }
+        validator.notNull(this.getDurations(), "durations");
+        validator.validate(this.getDurations().getDescription() >= 0, "durations.description (%s) can't be negative", this.getDurations().getDescription());
+        validator.validate(this.getDurations().getStarting() >= 0, "durations.starting (%s) can't be negative", this.getDurations().getStarting());
+        validator.validate(this.getDurations().getGameDuration() >= 0, "durations.gameDuration (%s) can't be negative", this.getDurations().getGameDuration());
+        validator.validate(this.getDurations().getGameOver() >= 0, "durations.gameOver (%s) can't be negative", this.getDurations().getGameOver());
+        validator.notNull(this.getDescription(), "description");
     }
     
     public FarmRushConfig toConfig() {
