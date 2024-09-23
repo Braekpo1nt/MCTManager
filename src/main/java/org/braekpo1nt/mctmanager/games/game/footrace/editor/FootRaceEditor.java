@@ -325,7 +325,7 @@ public class FootRaceEditor implements GameEditor, Configurable, Listener {
                 selectCheckpoint(participant, newCheckpointIndex, false);
             }
             case RIGHT_CLICK_AIR, RIGHT_CLICK_BLOCK -> {
-                if (config.getCheckpoints().size() == 3) {
+                if (config.getCheckpoints().size() <= 3) {
                     participant.sendMessage(Component.text("There must be at least 3 checkpoints")
                             .color(NamedTextColor.RED));
                     return;

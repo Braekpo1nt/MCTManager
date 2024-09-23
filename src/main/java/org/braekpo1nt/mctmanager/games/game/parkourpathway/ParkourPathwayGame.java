@@ -286,6 +286,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         ParticipantInitializer.clearInventory(participant);
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
+        participant.setGameMode(GameMode.SPECTATOR);
         sidebar.removePlayer(participant);
         // debug
         if (DEBUG) {

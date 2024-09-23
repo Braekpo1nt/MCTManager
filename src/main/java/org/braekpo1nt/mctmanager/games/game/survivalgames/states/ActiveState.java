@@ -283,9 +283,6 @@ public class ActiveState implements SurvivalGamesState {
     @Override
     public void onPlayerDeath(PlayerDeathEvent event) {
         Player killed = event.getPlayer();
-        if (!context.getParticipants().contains(killed)) {
-            return;
-        }
         killed.setGameMode(GameMode.SPECTATOR);
         dropInventory(killed, event.getDrops());
         Main.debugLog(LogType.CANCEL_PLAYER_DEATH_EVENT, "SurvivalGamesGame.ActiveState.onPlayerDeath() cancelled");
@@ -307,7 +304,6 @@ public class ActiveState implements SurvivalGamesState {
         for (ItemStack item : drops) {
             config.getWorld().dropItemNaturally(killed.getLocation(), item);
         }
-        killed.getInventory().clear();
     }
     
     private void onParticipantGetKill(@NotNull Player killer, @NotNull Player killed) {
@@ -341,6 +337,7 @@ public class ActiveState implements SurvivalGamesState {
     
     private void onParticipantDeath(Player killed) {
         UUID killedUUID = killed.getUniqueId();
+        killed.getInventory().clear();
         switchPlayerFromLivingToDead(killedUUID);
         String teamId = gameManager.getTeamId(killedUUID);
         int oldLivingMembers = context.getLivingMembers().get(teamId);

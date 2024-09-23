@@ -70,7 +70,8 @@ public class GameManager implements Listener {
     
     private final Logger LOGGER;
     public static final String ADMIN_TEAM = "_Admins";
-    public static final NamedTextColor ADMIN_COLOR = NamedTextColor.DARK_RED; 
+    public static final NamedTextColor ADMIN_COLOR = NamedTextColor.DARK_RED;
+    private final Main plugin;
     private MCTGame activeGame = null;
     private GameEditor activeEditor = null;
     private final Map<GameType, MCTGame> games;
@@ -93,9 +94,10 @@ public class GameManager implements Listener {
      */
     private final List<Player> onlineParticipants = new ArrayList<>();
     private final List<Player> onlineAdmins = new ArrayList<>();
-    private final TabList tabList = new TabList();
+    private final TabList tabList;
     
     public GameManager(Main plugin, Scoreboard mctScoreboard) {
+        this.plugin = plugin;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         this.LOGGER = plugin.getLogger();
         this.mctScoreboard = mctScoreboard;
@@ -113,6 +115,7 @@ public class GameManager implements Listener {
         this.editors = new HashMap<>();
         addEditor(new ParkourPathwayEditor(plugin, this));
         addEditor(new FootRaceEditor(plugin, this));
+        this.tabList = new TabList(plugin);
         this.sidebarFactory = new SidebarFactory();
         this.hubManager = initializeHubManager(plugin, this);
         this.eventManager = new EventManager(plugin, this, voteManager);
@@ -661,7 +664,7 @@ public class GameManager implements Listener {
                 }
             }
             case CAPTURE_THE_FLAG -> {
-                if (onlineTeams.size() < 2 || 8 < onlineTeams.size()) {
+                if (onlineTeams.size() < 2) {
                     sender.sendMessage(Component.text("Capture the Flag needs at least 2 and at most 8 teams online to play.").color(NamedTextColor.RED));
                     return false;
                 }
@@ -1588,11 +1591,15 @@ public class GameManager implements Listener {
      */
     public void addScore(UUID participantUUID, int score) {
         try {
-            gameStateStorageUtil.addScore(participantUUID, score);
-            Player participant = Bukkit.getPlayer(participantUUID);
-            if (participant != null && onlineParticipants.contains(participant)) {
-                updatePersonalScore(participant);
-            }
+            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+                gameStateStorageUtil.addScore(participantUUID, score);
+                plugin.getServer().getScheduler().runTask(plugin, () -> {
+                    Player participant = Bukkit.getPlayer(participantUUID);
+                    if (participant != null && onlineParticipants.contains(participant)) {
+                        updatePersonalScore(participant);
+                    }
+                });
+            });
         } catch (ConfigIOException e) {
             reportGameStateException("adding score to player", e);
         }
@@ -1605,8 +1612,12 @@ public class GameManager implements Listener {
      */
     public void addScore(String teamId, int score) {
         try {
-            gameStateStorageUtil.addScore(teamId, score);
-            updateTeamScore(teamId);
+            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+                gameStateStorageUtil.addScore(teamId, score);
+                plugin.getServer().getScheduler().runTask(plugin, () -> {
+                    updateTeamScore(teamId);
+                });
+            });
         } catch (ConfigIOException e) {
             reportGameStateException("adding score to team", e);
         }

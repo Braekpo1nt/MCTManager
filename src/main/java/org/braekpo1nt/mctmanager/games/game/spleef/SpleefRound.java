@@ -249,12 +249,11 @@ public class SpleefRound implements Listener {
             return;
         }
         killed.setGameMode(GameMode.SPECTATOR);
-        killed.getInventory().clear();
         Main.debugLog(LogType.CANCEL_PLAYER_DEATH_EVENT, "SpleefRound.onPlayerDeath() cancelled");
         event.setCancelled(true);
         Component deathMessage = event.deathMessage();
         if (deathMessage != null) {
-            Bukkit.getServer().sendMessage(deathMessage);
+            plugin.getServer().sendMessage(deathMessage);
         }
         onParticipantDeath(killed);
         if (lessThanTwoPlayersAlive() || exactlyOneTeamIsAlive()) {
