@@ -58,7 +58,7 @@ class FarmRushConfigDTO implements Validatable {
     private @Nullable PlayerInventoryDTO loadout;
     private Component description;
     private Durations durations;
-    private @Nullable Map<Material, ItemSaleDTO> materialScores;
+    private @Nullable Map<Material, ItemSale> materialScores;
     
     @Data
     static class Durations {
@@ -81,18 +81,17 @@ class FarmRushConfigDTO implements Validatable {
         Preconditions.checkState(newWorld != null, "Could not find world \"%s\"", this.world);
         ItemStack[] newStarterChestContents = null;
         ItemStack[] newLoadout = null;
-        Map<Material, ItemSale> newMaterialScores = ItemSaleDTO.toItemSales(materialScores);
-        if (newMaterialScores != null) {
+        if (materialScores != null) {
             if (this.starterChestContents != null) {
                 newStarterChestContents = this.starterChestContents.toInventoryContents();
                 for (ItemStack item : newStarterChestContents) {
-                    addScoreLore(item, newMaterialScores);
+                    addScoreLore(item, materialScores);
                 }
             }
             if (this.loadout != null) {
                 newLoadout = this.loadout.toInventoryContents();
                 for (ItemStack item : newLoadout) {
-                    addScoreLore(item, newMaterialScores);
+                    addScoreLore(item, materialScores);
                 }
             }
         }
@@ -109,7 +108,7 @@ class FarmRushConfigDTO implements Validatable {
                 .startingDuration(this.durations.starting)
                 .gameDuration(this.durations.gameDuration)
                 .gameOverDuration(this.durations.gameOver)
-                .materialScores(newMaterialScores != null ? newMaterialScores : Collections.emptyMap())
+                .materialScores(this.materialScores != null ? this.materialScores : Collections.emptyMap())
                 .build();
     }
     
