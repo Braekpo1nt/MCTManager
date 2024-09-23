@@ -10,6 +10,7 @@ import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.PlayerInventory
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushGame;
+import org.braekpo1nt.mctmanager.games.game.farmrush.ItemSale;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -57,7 +58,7 @@ public class FarmRushConfigDTO implements Validatable {
     private @Nullable PlayerInventoryDTO loadout;
     private Component description;
     private Durations durations;
-    private @Nullable Map<Material, Integer> materialScores;
+    private @Nullable Map<Material, ItemSale> materialScores;
     
     @Data
     static class Durations {
@@ -122,7 +123,7 @@ public class FarmRushConfigDTO implements Validatable {
      *
      * @param item the item to add the score to, if it exists
      */
-    private static void addScoreLore(@Nullable ItemStack item, @NotNull Map<Material, Integer> materialScores) {
+    private static void addScoreLore(@Nullable ItemStack item, @NotNull Map<Material, ItemSale> materialScores) {
         if (item == null || item.getType().equals(Material.AIR)) {
             return;
         }
@@ -151,17 +152,17 @@ public class FarmRushConfigDTO implements Validatable {
      * @return the lore line describing how many points the given item type is worth.
      * null if the given type is not listed in the config.
      */
-    private static @Nullable Component getScoreLore(@Nullable Material type, Map<Material, Integer> materialScores) {
+    private static @Nullable Component getScoreLore(@Nullable Material type, Map<Material, ItemSale> materialScores) {
         if (type == null) {
             return null;
         }
-        Integer score = materialScores.get(type);
+        ItemSale score = materialScores.get(type);
         if (score == null) {
             return null;
         }
         return Component.empty()
                 .append(Component.text("Price: "))
-                .append(Component.text(score))
+                .append(Component.text(score.getScore()))
                 .color(NamedTextColor.GOLD);
     }
 }

@@ -92,42 +92,6 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
         this.topbar = new ManyBattleTopbar();
     }
     
-    public static List<Bundle> sellItems(List<Bundle> itemsToSell, Map<String, Sell> sells) {
-        int totalSalePrice = 0;
-        List<Bundle> soldItems = new ArrayList<>();
-        
-        for (Bundle bundle : itemsToSell) {
-            String material = bundle.material();
-            int amount = bundle.amount();
-            
-            // Check if the material is sellable
-            if (sells.containsKey(material)) {
-                Sell sellInfo = sells.get(material);
-                int requiredAmount = sellInfo.requiredAmount();
-                int pricePerRequiredAmount = sellInfo.price();
-                
-                // Calculate how many full bundles can be sold
-                int bundlesSold = amount / requiredAmount;
-                int salePrice = bundlesSold * pricePerRequiredAmount;
-                
-                // Add to the total sale price
-                totalSalePrice += salePrice;
-                
-                // Add the sold bundle to the result
-                if (bundlesSold > 0) {
-                    soldItems.add(new Bundle(material, bundlesSold * requiredAmount));
-                }
-            }
-        }
-        
-        // Print the total sale price
-        System.out.println("Total Sale Price: " + totalSalePrice);
-        
-        // Return the list of sold items
-        return soldItems;
-    }
-    
-    
     @Override
     public void setTitle(@NotNull Component title) {
         this.title = title;

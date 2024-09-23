@@ -594,13 +594,13 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
         if (type == null) {
             return null;
         }
-        Integer score = config.getMaterialScores().get(type);
-        if (score == null) {
+        ItemSale itemSale = config.getMaterialScores().get(type);
+        if (itemSale == null) {
             return null;
         }
         return Component.empty()
                 .append(Component.text("Price: "))
-                .append(Component.text(score))
+                .append(Component.text(itemSale.getScore()))
                 .color(NamedTextColor.GOLD);
     }
     

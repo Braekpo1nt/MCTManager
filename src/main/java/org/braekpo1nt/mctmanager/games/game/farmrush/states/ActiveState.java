@@ -94,8 +94,8 @@ public class ActiveState implements FarmRushState {
             return;
         }
         List<ItemStack> items = Arrays.stream(inventory.getContents()).filter(Objects::nonNull).toList();
-        sellItems(items, team);
-        inventory.removeItem();
+        List<ItemStack> soldItems = sellItems(items, team);
+        inventory.removeItem(soldItems.toArray(new ItemStack[0]));
     }
     
     /**
@@ -124,7 +124,15 @@ public class ActiveState implements FarmRushState {
                 
                 // Calculate how many full bundles can be sold
                 int bundlesSold = amount / requiredAmount;
+                int salePrice = bundlesSold * pricePerRequiredAmount;
                 
+                totalScore += salePrice;
+                totalAmount += bundlesSold;
+                
+                if (bundlesSold > 0) {
+                    // track how many of these were sold
+                    soldItems.add(new ItemStack(material, bundlesSold));
+                }
             }
         }
         
