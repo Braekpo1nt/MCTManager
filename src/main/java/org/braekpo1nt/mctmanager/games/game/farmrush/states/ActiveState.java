@@ -126,38 +126,42 @@ public class ActiveState implements FarmRushState {
             return Collections.emptyMap();
         }
         
-//        Map<Material, Integer> itemTotals = new HashMap<>();
-        
-        int totalAmount = 0;
-        int totalScore = 0;
-        Map<Material, Integer> soldItems = new HashMap<>(itemsToSell.size());
+        Map<Material, Integer> materialTotals = new HashMap<>();
         for (ItemStack itemStack : itemsToSell) {
             Material material = itemStack.getType();
-            int amount = itemStack.getAmount();
-            
-            ItemSale sellInfo = context.getConfig().getMaterialScores().get(material);
-            if (sellInfo != null) {
-                int requiredAmount = sellInfo.getRequiredAmount();
-                int pricePerRequiredAmount = sellInfo.getScore();
-                
-                // a bundle is a multiple of the required amount for the material
-                int bundlesSold = amount / requiredAmount;
-                int salePrice = bundlesSold * pricePerRequiredAmount;
-                
-                totalScore += salePrice;
-                totalAmount += bundlesSold*requiredAmount;
-                
-                if (bundlesSold > 0) {
-                    Integer oldAmount = soldItems.getOrDefault(material, 0);
-                    soldItems.put(material, oldAmount+(bundlesSold*requiredAmount));
-                }
+            if (context.getConfig().getMaterialScores().containsKey(material)) {
+                int oldAmount = materialTotals.getOrDefault(material, 0);
+                materialTotals.put(material, oldAmount+itemStack.getAmount());
             }
         }
         
-        if (totalAmount > 0) {
+        int totalAmountSold = 0;
+        int totalScore = 0;
+        Map<Material, Integer> soldItems = new HashMap<>(materialTotals.size());
+        for (Map.Entry<Material, Integer> entry : materialTotals.entrySet()) {
+            Material material = entry.getKey();
+            int amount = entry.getValue();
+            
+            ItemSale itemSale = context.getConfig().getMaterialScores().get(material);
+            int requiredAmount = itemSale.getRequiredAmount();
+            int pricePerRequiredAmount = itemSale.getScore();
+            
+            // a bundle is a multiple of the required amount for the material
+            int bundlesSold = amount / requiredAmount;
+            int salePrice = bundlesSold * pricePerRequiredAmount;
+            int amountSold = bundlesSold * requiredAmount;
+            if (amountSold > 0) {
+                soldItems.put(material, amountSold);
+            }
+            
+            totalAmountSold += amountSold;
+            totalScore += salePrice;
+        }
+        
+        if (totalAmountSold > 0) {
             Component message = Component.empty()
                     .append(Component.text("Sold "))
-                    .append(Component.text(totalAmount))
+                    .append(Component.text(totalAmountSold))
                     .append(Component.text(" items"));
             for (UUID uuid : team.getMembers()) {
                 context.getParticipants().get(uuid).getPlayer().sendMessage(message);
