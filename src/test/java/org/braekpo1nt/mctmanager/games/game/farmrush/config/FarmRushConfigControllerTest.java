@@ -50,7 +50,12 @@ public class FarmRushConfigControllerTest {
     
     @Test
     void wellFormedJsonValidData() {
-        wellFormedJsonValidData(exampleConfigFileName);
+        // TODO: change the exclusion of the materialsBook when MockBukkit implements BookMeta.toBuilder()
+        InputStream inputStream = controller.getClass().getResourceAsStream(exampleConfigFileName);
+        JsonObject json = TestUtils.inputStreamToJson(inputStream);
+        json.addProperty("doNotGiveBookDebug", true);
+        TestUtils.saveJsonToFile(json, new File(plugin.getDataFolder(), configFileName));
+        Assertions.assertDoesNotThrow(controller::getConfig);
     }
     
     @Test

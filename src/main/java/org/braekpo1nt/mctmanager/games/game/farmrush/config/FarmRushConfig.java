@@ -9,6 +9,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.BookMeta;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,4 +41,7 @@ public class FarmRushConfig {
      * The score values that materials are sold for
      */
     private @NotNull Map<Material, ItemSale> materialScores;
+    
+    private @Nullable ItemStack materialBook;
+    
 }
