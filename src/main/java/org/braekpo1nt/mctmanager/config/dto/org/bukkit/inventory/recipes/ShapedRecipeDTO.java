@@ -19,13 +19,13 @@ public class ShapedRecipeDTO extends RecipeDTO {
     
     @Override
     public Recipe toRecipe() {
-        ShapedRecipe shapedRecipe = new ShapedRecipe(namespacedKey.toNamespacedKey(), result.toItemStack());
-        shapedRecipe.shape(pattern.toArray(new String[0]));
+        ShapedRecipe recipe = new ShapedRecipe(namespacedKey.toNamespacedKey(), result.toItemStack());
+        recipe.shape(pattern.toArray(new String[0]));
         for (Map.Entry<Character, ItemStackDTO> entry : key.entrySet()) {
             char keyChar = entry.getKey();
             ItemStack item = entry.getValue().toItemStack();
-            shapedRecipe.setIngredient(keyChar, item);
+            recipe.setIngredient(keyChar, item);
         }
-        return shapedRecipe;
+        return recipe;
     }
 }
