@@ -3,18 +3,22 @@ package org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.recipes;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.ItemStackDTO;
+import org.bukkit.inventory.CampfireRecipe;
 import org.bukkit.inventory.Recipe;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class CampfireRecipeDTO extends RecipeDTO {
-    
-    private ItemStackDTO ingredient;
+public class CampfireRecipeDTO extends FurnaceRecipeDTO {
     
     @Override
     public Recipe toRecipe() {
-        return null;
+        return new CampfireRecipe(
+                namespacedKey.toNamespacedKey(),
+                result.toItemStack(),
+                ingredient,
+                experience,
+                cookingtime
+        );
     }
     
 }
