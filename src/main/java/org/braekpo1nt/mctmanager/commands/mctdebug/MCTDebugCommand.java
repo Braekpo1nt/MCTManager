@@ -13,16 +13,20 @@ import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.regions.CuboidRegion;
 import com.sk89q.worldedit.session.ClipboardHolder;
+import io.papermc.paper.event.world.WorldGameRuleChangeEvent;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.CommandUtils;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushGame;
+import org.bukkit.GameRule;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.Barrel;
 import org.bukkit.block.Block;
+import org.bukkit.block.data.Ageable;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
@@ -30,11 +34,13 @@ import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockGrowEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.BlockInventoryHolder;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -50,10 +56,77 @@ public class MCTDebugCommand implements TabExecutor, Listener {
     
     private final Main plugin;
     
+    private final World world;
+    private final Random random = new Random();
+    private final List<Block> hyperGrowBlocks;
+    private final double numOfBlocks;
+    
+    private double chancePerGameTick;
+    private double factor = 1.0;
+    
     public MCTDebugCommand(Main plugin) {
         Objects.requireNonNull(plugin.getCommand("mctdebug")).setExecutor(this);
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         this.plugin = plugin;
+        
+        this.world = Objects.requireNonNull(plugin.getServer().getWorld("FT"));
+        double height = world.getMaxHeight() - world.getMinHeight();
+        numOfBlocks = 16*16*height;
+        double randomTickSpeed = Objects.requireNonNull(world.getGameRuleValue(GameRule.RANDOM_TICK_SPEED));
+        updateChancePerGameTick(randomTickSpeed);
+        
+        hyperGrowBlocks = List.of(
+                world.getBlockAt(-7, -60, 157),
+                world.getBlockAt(-8, -60, 157),
+                world.getBlockAt(-9, -60, 157),
+                
+                world.getBlockAt(-7, -60, 156),
+                world.getBlockAt(-9, -60, 156),
+                
+                world.getBlockAt(-7, -60, 155),
+                world.getBlockAt(-8, -60, 155),
+                world.getBlockAt(-9, -60, 155)
+                );
+        
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                for (Block hyperGrowBlock : hyperGrowBlocks) {
+                    if (random.nextDouble() <= chancePerGameTick) {
+                        hyperGrowBlock.randomTick();
+                    }
+                }
+            }
+        }.runTaskTimer(plugin, 0L, 1L);
+    }
+    
+    private void updateChancePerGameTick(double randomTickSpeed) {
+        chancePerGameTick = factor * randomTickSpeed / numOfBlocks;
+        Main.logger().info(String.format("randomTickSpeed=%s, numOfBlocks=%s, chancePerGameTick=%s", randomTickSpeed, numOfBlocks, chancePerGameTick));
+    }
+    
+    @EventHandler
+    public void onGameRuleChange(WorldGameRuleChangeEvent event) {
+        if (!event.getGameRule().equals(GameRule.RANDOM_TICK_SPEED)) {
+            return;
+        }
+        int newRandomTickSpeed = Integer.parseInt(event.getValue());
+        updateChancePerGameTick(newRandomTickSpeed);
+    }
+    
+    @EventHandler
+    public void growEvent(BlockGrowEvent event) {
+        Block block = event.getBlock();
+        if (!(block.getBlockData() instanceof Ageable ageable)) {
+            return;
+        }
+        Location l = block.getLocation();
+        int indexOf = hyperGrowBlocks.indexOf(block);
+        if (indexOf >= 0) {
+            Main.logger().info(String.format("Hyper grow %d: (%d, %d, %d), %d/%d", indexOf, l.getBlockX(), l.getBlockY(), l.getBlockZ(), ageable.getAge(), ageable.getMaximumAge()));
+        } else {
+            Main.logger().info(String.format("(%d, %d, %d), %d/%d", l.getBlockX(), l.getBlockY(), l.getBlockZ(), ageable.getAge(), ageable.getMaximumAge()));
+        }
     }
     
     @Override
@@ -71,6 +144,9 @@ public class MCTDebugCommand implements TabExecutor, Listener {
             return true;
         }
         
+        factor = Double.parseDouble(args[0]);
+        double randomTickSpeed = Objects.requireNonNull(world.getGameRuleValue(GameRule.RANDOM_TICK_SPEED));
+        updateChancePerGameTick(randomTickSpeed);
 //        switch (args[0]) {
 //            case "save" -> {
 //                if (args.length != 8) {
