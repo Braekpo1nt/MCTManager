@@ -8,6 +8,8 @@ import org.braekpo1nt.mctmanager.config.dto.org.braekpo1nt.mctmanager.geometry.G
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.MaterialDeserializer;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.meta.ItemMetaDTO;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.meta.ItemMetaDTODeserializer;
+import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.recipes.RecipeDTO;
+import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.recipes.RecipeDTODeserializer;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.util.BoundingBoxDeserializer;
 import org.braekpo1nt.mctmanager.geometry.Geometry;
 import org.bukkit.Material;
@@ -21,6 +23,7 @@ public class ConfigUtils {
             .registerTypeAdapter(Geometry.class, new GeometryDeserializer())
             .registerTypeAdapter(BoundingBox.class, new BoundingBoxDeserializer())
             .registerTypeAdapter(Material.class, new MaterialDeserializer())
+            .registerTypeAdapter(RecipeDTO.class, new RecipeDTODeserializer())
             ;
     
     public static final Gson GSON = GSON_BUILDER
