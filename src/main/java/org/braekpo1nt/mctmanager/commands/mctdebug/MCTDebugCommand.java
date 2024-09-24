@@ -4,9 +4,7 @@ import io.papermc.paper.event.world.WorldGameRuleChangeEvent;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
-import org.bukkit.GameRule;
-import org.bukkit.Location;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.Ageable;
 import org.bukkit.command.Command;
@@ -16,6 +14,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockGrowEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.Recipe;
+import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -67,10 +68,20 @@ public class MCTDebugCommand implements TabExecutor, Listener {
                 for (Block hyperGrowBlock : hyperGrowBlocks) {
                     if (random.nextDouble() <= chancePerGameTick) {
                         hyperGrowBlock.randomTick();
+                        hyperGrowBlock.randomTick();
                     }
                 }
             }
         }.runTaskTimer(plugin, 0L, 1L);
+        
+        ItemStack result = new ItemStack(Material.GRASS_BLOCK);
+        NamespacedKey key = new NamespacedKey(plugin, "grass_from_dirt");
+        ShapedRecipe shapedRecipe = new ShapedRecipe(key, result);
+        shapedRecipe.shape("DD");
+        shapedRecipe.setIngredient('D', Material.DIRT);
+        plugin.getServer().addRecipe(shapedRecipe);
+        plugin.getServer().removeRecipe(key);
+        
     }
     
     private void updateChancePerGameTick(double randomTickSpeed) {
