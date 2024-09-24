@@ -191,7 +191,9 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
             starterChest.setBlockData(starterChestBlockData);
             Chest starterChestState = (Chest) starterChest.getState();
             starterChestState.getBlockInventory().setContents(config.getStarterChestContents());
-            starterChestState.getBlockInventory().addItem(config.getMaterialBook());
+            if (config.getMaterialBook() != null) {
+                starterChestState.getBlockInventory().addItem(config.getMaterialBook());
+            }
             
             arena.closeBarnDoor();
         }
@@ -260,7 +262,9 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
         ParticipantInitializer.clearStatusEffects(player);
         ParticipantInitializer.resetHealthAndHunger(player);
         player.getInventory().setContents(config.getLoadout());
-        player.getInventory().addItem(config.getMaterialBook());
+        if (config.getMaterialBook() != null) {
+            player.getInventory().addItem(config.getMaterialBook());
+        }
         player.teleport(team.getArena().getSpawn());
         player.setRespawnLocation(team.getArena().getSpawn(), true);
     }

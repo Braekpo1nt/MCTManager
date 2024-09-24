@@ -42,6 +42,6 @@ public class FarmRushConfig {
      */
     private @NotNull Map<Material, ItemSale> materialScores;
     
-    private ItemStack materialBook;
+    private @Nullable ItemStack materialBook;
     
 }

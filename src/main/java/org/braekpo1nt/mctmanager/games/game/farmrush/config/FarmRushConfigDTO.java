@@ -64,6 +64,11 @@ class FarmRushConfigDTO implements Validatable {
     private @Nullable Map<Material, ItemSale> materialScores;
     private Durations durations;
     private Component description;
+    /**
+     * TODO: remove this and associated functionality when MockBukkit implements {@link BookMeta#toBuilder()}
+     * This allows tests to not provide the book. Not to be used by the real game.
+     */
+    private boolean doNotGiveBookDebug = false;
     
     @Data
     static class Durations {
@@ -140,6 +145,9 @@ class FarmRushConfigDTO implements Validatable {
     }
     
     private ItemStack createMaterialBook() {
+        if (doNotGiveBookDebug) {
+            return null;
+        }
         ItemStack materialBook = new ItemStack(Material.WRITTEN_BOOK);
         BookMeta.BookMetaBuilder builder = ((BookMeta) materialBook.getItemMeta()).toBuilder();
         BookMeta bookMeta = builder
