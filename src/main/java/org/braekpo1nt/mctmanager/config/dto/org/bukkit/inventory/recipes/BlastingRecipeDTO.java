@@ -14,7 +14,7 @@ public class BlastingRecipeDTO extends FurnaceRecipeDTO {
         BlastingRecipe recipe = new BlastingRecipe(
                 namespacedKey.toNamespacedKey(),
                 result.toItemStack(),
-                ingredient.getItem(),
+                ingredient.toRecipeChoice(),
                 experience,
                 cookingtime
         );

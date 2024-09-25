@@ -1,6 +1,5 @@
 package org.braekpo1nt.mctmanager.config;
 
-import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.kyori.adventure.text.Component;
@@ -20,8 +19,6 @@ import org.bukkit.Material;
 import org.bukkit.inventory.recipe.CookingBookCategory;
 import org.bukkit.util.BoundingBox;
 
-import java.util.List;
-
 public class ConfigUtils {
     
     private static final GsonBuilder GSON_BUILDER = new GsonBuilder()
@@ -33,7 +30,7 @@ public class ConfigUtils {
             .registerTypeAdapter(CookingBookCategory.class, new CookingBookCategoryDeserializer())
             .registerTypeAdapter(RecipeDTO.class, new RecipeDTODeserializer())
             .registerTypeAdapter(SmithingRecipeDTO.class, new SmithingRecipeDTODeserializer())
-            .registerTypeAdapter(new TypeToken<List<RecipeMaterial>>(){}.getType(), new RecipeMaterialDeserializer())
+            .registerTypeAdapter(RecipeChoiceDTO.class, new RecipeMaterialDeserializer())
             ;
     
     public static final Gson GSON = GSON_BUILDER

@@ -14,7 +14,7 @@ public class SmokingRecipeDTO extends FurnaceRecipeDTO {
         SmokingRecipe recipe = new SmokingRecipe(
                 namespacedKey.toNamespacedKey(),
                 result.toItemStack(),
-                ingredient.getItem(),
+                ingredient.toRecipeChoice(),
                 experience,
                 cookingtime
         );

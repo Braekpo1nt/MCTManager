@@ -2,7 +2,6 @@ package org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.recipes;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.bukkit.Material;
 import org.bukkit.inventory.FurnaceRecipe;
 import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.recipe.CookingBookCategory;
@@ -12,7 +11,7 @@ import org.jetbrains.annotations.Nullable;
 @EqualsAndHashCode(callSuper = true)
 public class FurnaceRecipeDTO extends RecipeDTO {
     
-    protected RecipeMaterial ingredient;
+    protected RecipeChoiceDTO ingredient;
     protected float experience;
     protected int cookingtime;
     protected @Nullable CookingBookCategory category;
@@ -22,7 +21,7 @@ public class FurnaceRecipeDTO extends RecipeDTO {
         FurnaceRecipe recipe = new FurnaceRecipe(
                 namespacedKey.toNamespacedKey(),
                 result.toItemStack(),
-                ingredient.getItem(),
+                ingredient.toRecipeChoice(),
                 experience,
                 cookingtime
         );

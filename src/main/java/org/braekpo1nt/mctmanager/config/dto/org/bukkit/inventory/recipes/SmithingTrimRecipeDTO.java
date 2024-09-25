@@ -10,9 +10,9 @@ public class SmithingTrimRecipeDTO extends SmithingRecipeDTO {
     public Recipe toRecipe() {
         return new SmithingTrimRecipe(
                 namespacedKey.toNamespacedKey(),
-                new RecipeChoice.MaterialChoice(template.getItem()),
-                new RecipeChoice.MaterialChoice(base.getItem()),
-                new RecipeChoice.MaterialChoice(addition.getItem()),
+                template.toRecipeChoice(),
+                base.toRecipeChoice(),
+                addition.toRecipeChoice(),
                 copyDataComponents
         );
     }

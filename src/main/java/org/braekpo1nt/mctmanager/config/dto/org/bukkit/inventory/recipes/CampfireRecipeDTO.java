@@ -15,7 +15,7 @@ public class CampfireRecipeDTO extends FurnaceRecipeDTO {
         CampfireRecipe recipe = new CampfireRecipe(
                 namespacedKey.toNamespacedKey(),
                 result.toItemStack(),
-                ingredient.getItem(),
+                ingredient.toRecipeChoice(),
                 experience,
                 cookingtime
         );

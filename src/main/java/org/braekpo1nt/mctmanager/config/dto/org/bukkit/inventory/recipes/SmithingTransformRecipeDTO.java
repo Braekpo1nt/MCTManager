@@ -11,9 +11,9 @@ public class SmithingTransformRecipeDTO extends SmithingRecipeDTO {
         return new SmithingTransformRecipe(
                 namespacedKey.toNamespacedKey(),
                 result.toItemStack(),
-                new RecipeChoice.MaterialChoice(template.getItem()),
-                new RecipeChoice.MaterialChoice(base.getItem()),
-                new RecipeChoice.MaterialChoice(addition.getItem()),
+                template.toRecipeChoice(),
+                base.toRecipeChoice(),
+                addition.toRecipeChoice(),
                 copyDataComponents
         );
     }
