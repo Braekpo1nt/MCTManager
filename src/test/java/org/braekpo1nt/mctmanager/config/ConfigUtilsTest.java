@@ -37,10 +37,11 @@ class ConfigUtilsTest {
 }
                 """, RecipeDTO.class);
         List<RecipeChoiceDTO> expected = List.of(
-                new RecipeChoiceDTO.MaterialChoiceDTO(Material.STONE),
-                new RecipeChoiceDTO.MultipleMaterialChoiceDTO(Collections.singletonList(new RecipeChoiceDTO.MaterialChoiceDTO(Material.CUT_RED_SANDSTONE)))
+                new RecipeChoiceDTO.Single(Material.STONE),
+                new RecipeChoiceDTO.Multiple(Collections.singletonList(new RecipeChoiceDTO.Single(Material.CUT_RED_SANDSTONE)))
         );
         Assertions.assertEquals(expected, ((ShapelessRecipeDTO) actual).getIngredients());
+        Assertions.assertInstanceOf(ShapelessRecipeDTO.class, actual);
     }
     
 }

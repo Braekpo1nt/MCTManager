@@ -1,6 +1,5 @@
 package org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.recipes.typeadapters;
 
-import com.google.common.reflect.TypeToken;
 import com.google.gson.*;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.recipes.RecipeChoiceDTO;
 
@@ -16,11 +15,11 @@ public class RecipeMaterialDeserializer implements JsonDeserializer<RecipeChoice
     public RecipeChoiceDTO deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
         
         if (json.isJsonObject()) {
-            return context.deserialize(json, RecipeChoiceDTO.MaterialChoiceDTO.class);
+            return context.deserialize(json, RecipeChoiceDTO.Single.class);
         } else if (json.isJsonArray()) {
             JsonObject multiple = new JsonObject();
             multiple.add("items", json);
-            return context.deserialize(multiple, RecipeChoiceDTO.MultipleMaterialChoiceDTO.class);
+            return context.deserialize(multiple, RecipeChoiceDTO.Multiple.class);
         }
         
         return null;

@@ -11,23 +11,29 @@ import java.util.List;
 public interface RecipeChoiceDTO {
     RecipeChoice toRecipeChoice();
     
+    /**
+     * Represents multiple choices of item 
+     */
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
-    class MultipleMaterialChoiceDTO implements RecipeChoiceDTO {
+    class Multiple implements RecipeChoiceDTO {
         
-        private List<RecipeChoiceDTO.MaterialChoiceDTO> items;
+        private List<Single> items;
         
         @Override
         public RecipeChoice toRecipeChoice() {
-            return new RecipeChoice.MaterialChoice(items.stream().map(RecipeChoiceDTO.MaterialChoiceDTO::getItem).toList());
+            return new RecipeChoice.MaterialChoice(items.stream().map(Single::getItem).toList());
         }
     }
     
+    /**
+     * Represents a single choice of item
+     */
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
-    class MaterialChoiceDTO implements RecipeChoiceDTO {
+    class Single implements RecipeChoiceDTO {
         
         private Material item;
         
