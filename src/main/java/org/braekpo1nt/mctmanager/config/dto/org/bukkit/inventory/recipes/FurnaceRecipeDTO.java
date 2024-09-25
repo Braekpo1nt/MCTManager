@@ -5,6 +5,8 @@ import lombok.EqualsAndHashCode;
 import org.bukkit.Material;
 import org.bukkit.inventory.FurnaceRecipe;
 import org.bukkit.inventory.Recipe;
+import org.bukkit.inventory.recipe.CookingBookCategory;
+import org.jetbrains.annotations.Nullable;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -13,6 +15,7 @@ public class FurnaceRecipeDTO extends RecipeDTO {
     protected RecipeMaterial ingredient;
     protected float experience;
     protected int cookingtime;
+    protected @Nullable CookingBookCategory category;
     
     @Override
     public Recipe toRecipe() {
@@ -25,6 +28,9 @@ public class FurnaceRecipeDTO extends RecipeDTO {
         );
         if (group != null) {
             recipe.setGroup(group);
+        }
+        if (category != null) {
+            recipe.setCategory(category);
         }
         return recipe;
     }

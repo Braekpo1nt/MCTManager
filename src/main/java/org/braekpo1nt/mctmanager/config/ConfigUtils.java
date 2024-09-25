@@ -8,13 +8,11 @@ import org.braekpo1nt.mctmanager.config.dto.org.braekpo1nt.mctmanager.geometry.G
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.MaterialDeserializer;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.meta.ItemMetaDTO;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.meta.ItemMetaDTODeserializer;
-import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.recipes.RecipeDTO;
-import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.recipes.RecipeDTODeserializer;
-import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.recipes.SmithingRecipeDTO;
-import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.recipes.SmithingRecipeDTODeserializer;
+import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.recipes.*;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.util.BoundingBoxDeserializer;
 import org.braekpo1nt.mctmanager.geometry.Geometry;
 import org.bukkit.Material;
+import org.bukkit.inventory.recipe.CookingBookCategory;
 import org.bukkit.util.BoundingBox;
 
 public class ConfigUtils {
@@ -25,6 +23,7 @@ public class ConfigUtils {
             .registerTypeAdapter(Geometry.class, new GeometryDeserializer())
             .registerTypeAdapter(BoundingBox.class, new BoundingBoxDeserializer())
             .registerTypeAdapter(Material.class, new MaterialDeserializer())
+            .registerTypeAdapter(CookingBookCategory.class, new CookingBookCategoryDeserializer())
             .registerTypeAdapter(RecipeDTO.class, new RecipeDTODeserializer())
             .registerTypeAdapter(SmithingRecipeDTO.class, new SmithingRecipeDTODeserializer())
             ;

@@ -21,6 +21,9 @@ public class SmokingRecipeDTO extends FurnaceRecipeDTO {
         if (group != null) {
             recipe.setGroup(group);
         }
+        if (category != null) {
+            recipe.setCategory(category);
+        }
         return recipe;
     }
     

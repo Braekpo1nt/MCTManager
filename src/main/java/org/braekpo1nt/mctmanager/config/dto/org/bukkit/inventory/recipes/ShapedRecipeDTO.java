@@ -5,6 +5,8 @@ import lombok.EqualsAndHashCode;
 import org.bukkit.Material;
 import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.ShapedRecipe;
+import org.bukkit.inventory.recipe.CraftingBookCategory;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Map;
@@ -15,6 +17,7 @@ public class ShapedRecipeDTO extends RecipeDTO {
     
     protected List<String> pattern;
     protected Map<Character, RecipeMaterial> key;
+    protected @Nullable CraftingBookCategory category;
     
     @Override
     public Recipe toRecipe() {
@@ -27,6 +30,9 @@ public class ShapedRecipeDTO extends RecipeDTO {
         }
         if (group != null) {
             recipe.setGroup(group);
+        }
+        if (category != null) {
+            recipe.setCategory(category);
         }
         return recipe;
     }
