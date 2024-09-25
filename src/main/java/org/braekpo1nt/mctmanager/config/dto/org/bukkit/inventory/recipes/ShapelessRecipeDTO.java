@@ -13,14 +13,18 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 public class ShapelessRecipeDTO extends RecipeDTO {
     
-    protected List<RecipeMaterial> ingredients;
+    protected List<List<RecipeMaterial>> ingredients;
     protected @Nullable CraftingBookCategory category;
     
     @Override
     public Recipe toRecipe() {
         ShapelessRecipe recipe = new ShapelessRecipe(namespacedKey.toNamespacedKey(), result.toItemStack());
-        for (RecipeMaterial ingredient : ingredients) {
-            recipe.addIngredient(ingredient.getItem());
+        for (List<RecipeMaterial> ingredientChoices : ingredients) {
+            if (ingredientChoices.size() == 1) {
+                recipe.addIngredient(ingredientChoices.getFirst().getItem());
+            } else {
+                recipe.addIngredient(RecipeMaterial.toRecipeChoice(ingredientChoices));
+            }
         }
         if (group != null) {
             recipe.setGroup(group);

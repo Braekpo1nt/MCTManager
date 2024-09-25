@@ -1,6 +1,7 @@
-package org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.recipes;
+package org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.recipes.typeadapters;
 
 import com.google.gson.*;
+import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.recipes.*;
 
 import java.lang.reflect.Type;
 

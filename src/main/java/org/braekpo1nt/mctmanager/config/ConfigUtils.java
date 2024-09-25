@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.config;
 
+import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.kyori.adventure.text.Component;
@@ -9,11 +10,17 @@ import org.braekpo1nt.mctmanager.config.dto.org.bukkit.MaterialDeserializer;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.meta.ItemMetaDTO;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.meta.ItemMetaDTODeserializer;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.recipes.*;
+import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.recipes.typeadapters.CookingBookCategoryDeserializer;
+import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.recipes.typeadapters.RecipeDTODeserializer;
+import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.recipes.typeadapters.RecipeMaterialDeserializer;
+import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.recipes.typeadapters.SmithingRecipeDTODeserializer;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.util.BoundingBoxDeserializer;
 import org.braekpo1nt.mctmanager.geometry.Geometry;
 import org.bukkit.Material;
 import org.bukkit.inventory.recipe.CookingBookCategory;
 import org.bukkit.util.BoundingBox;
+
+import java.util.List;
 
 public class ConfigUtils {
     
@@ -26,6 +33,7 @@ public class ConfigUtils {
             .registerTypeAdapter(CookingBookCategory.class, new CookingBookCategoryDeserializer())
             .registerTypeAdapter(RecipeDTO.class, new RecipeDTODeserializer())
             .registerTypeAdapter(SmithingRecipeDTO.class, new SmithingRecipeDTODeserializer())
+            .registerTypeAdapter(new TypeToken<List<RecipeMaterial>>(){}.getType(), new RecipeMaterialDeserializer())
             ;
     
     public static final Gson GSON = GSON_BUILDER

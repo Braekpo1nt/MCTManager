@@ -97,6 +97,7 @@ public class ItemMetaDTOImpl implements ItemMetaDTO, Validatable {
      * to this ItemMetaDTO's attributes
      */
     public ItemMeta toItemMeta(ItemMeta meta, Material type) {
+        // TODO: Implement "components" category from Recipe json. misode.github.io/recipe/
         if (displayName != null) {
             meta.displayName(displayName);
         }
