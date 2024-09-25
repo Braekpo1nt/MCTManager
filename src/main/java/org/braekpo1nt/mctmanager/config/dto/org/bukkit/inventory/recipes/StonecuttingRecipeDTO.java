@@ -15,7 +15,11 @@ public class StonecuttingRecipeDTO extends RecipeDTO {
     
     @Override
     public Recipe toRecipe() {
-        return new StonecuttingRecipe(namespacedKey.toNamespacedKey(), result.toItemStack(), ingredient);
+        StonecuttingRecipe recipe = new StonecuttingRecipe(namespacedKey.toNamespacedKey(), result.toItemStack(), ingredient);
+        if (group != null) {
+            recipe.setGroup(group);
+        }
+        return recipe;
     }
     
 }

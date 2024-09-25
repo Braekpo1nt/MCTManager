@@ -10,19 +10,23 @@ import org.bukkit.inventory.Recipe;
 @EqualsAndHashCode(callSuper = true)
 public class FurnaceRecipeDTO extends RecipeDTO {
     
-    protected Material ingredient;
+    protected RecipeMaterial ingredient;
     protected float experience;
     protected int cookingtime;
     
     @Override
     public Recipe toRecipe() {
-        return new FurnaceRecipe(
-                namespacedKey.toNamespacedKey(), 
-                result.toItemStack(), 
-                ingredient, 
-                experience, 
+        FurnaceRecipe recipe = new FurnaceRecipe(
+                namespacedKey.toNamespacedKey(),
+                result.toItemStack(),
+                ingredient.getItem(),
+                experience,
                 cookingtime
         );
+        if (group != null) {
+            recipe.setGroup(group);
+        }
+        return recipe;
     }
     
 }

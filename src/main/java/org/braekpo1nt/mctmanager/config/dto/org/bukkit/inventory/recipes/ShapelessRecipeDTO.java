@@ -12,13 +12,16 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 public class ShapelessRecipeDTO extends RecipeDTO {
     
-    private List<Material> ingredients;
+    private List<RecipeMaterial> ingredients;
     
     @Override
     public Recipe toRecipe() {
         ShapelessRecipe recipe = new ShapelessRecipe(namespacedKey.toNamespacedKey(), result.toItemStack());
-        for (Material ingredient : ingredients) {
-            recipe.addIngredient(ingredient);
+        for (RecipeMaterial ingredient : ingredients) {
+            recipe.addIngredient(ingredient.getItem());
+        }
+        if (group != null) {
+            recipe.setGroup(group);
         }
         return recipe;
     }

@@ -11,13 +11,17 @@ public class BlastingRecipeDTO extends FurnaceRecipeDTO {
     
     @Override
     public Recipe toRecipe() {
-        return new BlastingRecipe(
+        BlastingRecipe recipe = new BlastingRecipe(
                 namespacedKey.toNamespacedKey(),
                 result.toItemStack(),
-                ingredient,
+                ingredient.getItem(),
                 experience,
                 cookingtime
         );
+        if (group != null) {
+            recipe.setGroup(group);
+        }
+        return recipe;
     }
     
 }

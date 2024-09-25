@@ -12,13 +12,17 @@ public class CampfireRecipeDTO extends FurnaceRecipeDTO {
     
     @Override
     public Recipe toRecipe() {
-        return new CampfireRecipe(
+        CampfireRecipe recipe = new CampfireRecipe(
                 namespacedKey.toNamespacedKey(),
                 result.toItemStack(),
-                ingredient,
+                ingredient.getItem(),
                 experience,
                 cookingtime
         );
+        if (group != null) {
+            recipe.setGroup(group);
+        }
+        return recipe;
     }
     
 }

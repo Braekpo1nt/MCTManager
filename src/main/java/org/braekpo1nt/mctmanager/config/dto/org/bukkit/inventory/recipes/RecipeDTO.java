@@ -4,14 +4,16 @@ import lombok.Data;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.NamespacedKeyDTO;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.ItemStackDTO;
 import org.bukkit.inventory.Recipe;
+import org.jetbrains.annotations.Nullable;
 
 @Data
 public abstract class RecipeDTO {
     
+    protected NamespacedKeyDTO namespacedKey;
     protected String type;
     protected ItemStackDTO result;
-    protected NamespacedKeyDTO namespacedKey;
+    protected @Nullable String group;
     
-    abstract Recipe toRecipe();
+    public abstract Recipe toRecipe();
     
 }

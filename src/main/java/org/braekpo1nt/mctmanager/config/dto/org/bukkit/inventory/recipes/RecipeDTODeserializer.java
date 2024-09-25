@@ -36,8 +36,11 @@ public class RecipeDTODeserializer implements JsonDeserializer<RecipeDTO> {
             case "minecraft:stonecutting" -> {
                 return context.deserialize(json, StonecuttingRecipeDTO.class);
             }
+            case "minecraft:smithing_transform" -> {
+                return context.deserialize(json, SmithingTransformRecipeDTO.class);
+            }
             case "minecraft:smithing_trim" -> {
-                return context.deserialize(json, SmithingRecipeDTO.class);
+                return context.deserialize(json, SmithingTrimRecipeDTO.class);
             }
         }
         return null;
