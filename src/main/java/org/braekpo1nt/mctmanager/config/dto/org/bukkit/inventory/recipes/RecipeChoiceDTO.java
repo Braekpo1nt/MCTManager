@@ -47,10 +47,10 @@ public interface RecipeChoiceDTO {
         private @Nullable Material item;
         private @Nullable NamespacedKey tag;
         
+        /**
+         * @return a combined list of the item (if it exists) and the materials in the tag (if it exists)
+         */
         public List<Material> toMaterialList() {
-            if (item == null && tag == null) {
-                return Collections.emptyList();
-            }
             Set<Material> items = new HashSet<>();
             if (tag != null) {
                 Tag<Material> materialTag = ConfigUtils.toTag(tag);
@@ -61,7 +61,7 @@ public interface RecipeChoiceDTO {
             if (item != null) {
                 items.add(item);
             }
-            return new ArrayList<>(items);
+            return items.isEmpty() ? Collections.emptyList() : new ArrayList<>(items);
         }
         
         @Override
