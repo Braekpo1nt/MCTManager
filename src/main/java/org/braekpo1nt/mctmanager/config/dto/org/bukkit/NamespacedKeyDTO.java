@@ -1,7 +1,9 @@
 package org.braekpo1nt.mctmanager.config.dto.org.bukkit;
 
 import com.google.common.base.Preconditions;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.bukkit.NamespacedKey;
@@ -9,16 +11,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class NamespacedKeyDTO implements Validatable {
     private @Nullable String namespace;
     private @Nullable String key;
     
-    public @Nullable String namespace() {
-        return namespace;
-    }
-    
-    public @Nullable String key() {
-        return key;
+    public static NamespacedKeyDTO fromNamespacedKey(NamespacedKey namespacedKey) {
+        return new NamespacedKeyDTO(namespacedKey.getNamespace(), namespacedKey.getKey());
     }
     
     /**

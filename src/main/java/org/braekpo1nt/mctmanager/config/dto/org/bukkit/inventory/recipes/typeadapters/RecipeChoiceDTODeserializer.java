@@ -10,7 +10,7 @@ import java.util.List;
  * Allows {@link List< RecipeChoiceDTO >} to be interpreted as a singleton list if it is just a single
  * {@link RecipeChoiceDTO} object, and a list otherwise.
  */
-public class RecipeMaterialDeserializer implements JsonDeserializer<RecipeChoiceDTO> {
+public class RecipeChoiceDTODeserializer implements JsonDeserializer<RecipeChoiceDTO> {
     @Override
     public RecipeChoiceDTO deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
         

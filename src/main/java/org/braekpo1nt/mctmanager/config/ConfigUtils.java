@@ -6,18 +6,24 @@ import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.config.dto.net.kyori.adventure.text.ComponentAdapter;
 import org.braekpo1nt.mctmanager.config.dto.org.braekpo1nt.mctmanager.geometry.GeometryDeserializer;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.MaterialDeserializer;
+import org.braekpo1nt.mctmanager.config.dto.org.bukkit.NamespacedKeyDTO;
+import org.braekpo1nt.mctmanager.config.dto.org.bukkit.NamespacedKeyDTODeserializer;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.meta.ItemMetaDTO;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.meta.ItemMetaDTODeserializer;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.recipes.*;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.recipes.typeadapters.CookingBookCategoryDeserializer;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.recipes.typeadapters.RecipeDTODeserializer;
-import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.recipes.typeadapters.RecipeMaterialDeserializer;
+import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.recipes.typeadapters.RecipeChoiceDTODeserializer;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.recipes.typeadapters.SmithingRecipeDTODeserializer;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.util.BoundingBoxDeserializer;
 import org.braekpo1nt.mctmanager.geometry.Geometry;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.Tag;
 import org.bukkit.inventory.recipe.CookingBookCategory;
 import org.bukkit.util.BoundingBox;
+import org.jetbrains.annotations.Nullable;
 
 public class ConfigUtils {
     
@@ -30,7 +36,9 @@ public class ConfigUtils {
             .registerTypeAdapter(CookingBookCategory.class, new CookingBookCategoryDeserializer())
             .registerTypeAdapter(RecipeDTO.class, new RecipeDTODeserializer())
             .registerTypeAdapter(SmithingRecipeDTO.class, new SmithingRecipeDTODeserializer())
-            .registerTypeAdapter(RecipeChoiceDTO.class, new RecipeMaterialDeserializer())
+            .registerTypeAdapter(RecipeChoiceDTO.class, new RecipeChoiceDTODeserializer())
+            .registerTypeAdapter(NamespacedKeyDTO.class, new NamespacedKeyDTODeserializer())
+//            .registerTypeAdapter(MaterialTagDTO.class, new TagDeserializer())
             ;
     
     public static final Gson GSON = GSON_BUILDER
@@ -42,5 +50,13 @@ public class ConfigUtils {
     
     private ConfigUtils() {
         // do not instantiate
+    }
+    
+    public static @Nullable Tag<Material> toTag(NamespacedKey namespacedKey) {
+        Tag<Material> blockTag = Bukkit.getTag(Tag.REGISTRY_BLOCKS, namespacedKey, Material.class);
+        if (blockTag != null) {
+            return blockTag;
+        }
+        return Bukkit.getTag(Tag.REGISTRY_ITEMS, namespacedKey, Material.class);
     }
 }

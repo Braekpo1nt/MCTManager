@@ -3,10 +3,14 @@ package org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.recipes;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.braekpo1nt.mctmanager.config.ConfigUtils;
+import org.braekpo1nt.mctmanager.config.dto.org.bukkit.NamespacedKeyDTO;
 import org.bukkit.Material;
+import org.bukkit.Tag;
 import org.bukkit.inventory.RecipeChoice;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
+import java.util.*;
 
 public interface RecipeChoiceDTO {
     RecipeChoice toRecipeChoice();
@@ -23,23 +27,50 @@ public interface RecipeChoiceDTO {
         
         @Override
         public RecipeChoice toRecipeChoice() {
-            return new RecipeChoice.MaterialChoice(items.stream().map(Single::getItem).toList());
+            List<Material> materialList = items.stream().flatMap(single -> single.toMaterialList().stream()).toList();
+            if (materialList.isEmpty()) {
+                return RecipeChoice.empty();
+            }
+            return new RecipeChoice.MaterialChoice(materialList);
         }
     }
     
     /**
-     * Represents a single choice of item
+     * Represents a single choice of item or tag.
+     * If an item and a tag are provided, all 
      */
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
     class Single implements RecipeChoiceDTO {
         
-        private Material item;
+        private @Nullable Material item;
+        private @Nullable NamespacedKeyDTO tag;
+        
+        public List<Material> toMaterialList() {
+            if (item == null && tag == null) {
+                return Collections.emptyList();
+            }
+            Set<Material> items = new HashSet<>();
+            if (tag != null) {
+                Tag<Material> materialTag = ConfigUtils.toTag(tag.toNamespacedKey());
+                if (materialTag != null) {
+                    items.addAll(materialTag.getValues());
+                }
+            }
+            if (item != null) {
+                items.add(item);
+            }
+            return new ArrayList<>(items);
+        }
         
         @Override
         public RecipeChoice toRecipeChoice() {
-            return new RecipeChoice.MaterialChoice(item);
+            List<Material> materialList = this.toMaterialList();
+            if (materialList.isEmpty()) {
+                return RecipeChoice.empty();
+            }
+            return new RecipeChoice.MaterialChoice(materialList);
         }
     }
     
