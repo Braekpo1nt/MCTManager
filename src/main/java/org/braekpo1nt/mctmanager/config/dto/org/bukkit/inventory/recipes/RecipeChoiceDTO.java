@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import org.braekpo1nt.mctmanager.config.ConfigUtils;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.NamespacedKeyDTO;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.Tag;
 import org.bukkit.inventory.RecipeChoice;
 import org.jetbrains.annotations.Nullable;
@@ -45,7 +46,7 @@ public interface RecipeChoiceDTO {
     class Single implements RecipeChoiceDTO {
         
         private @Nullable Material item;
-        private @Nullable NamespacedKeyDTO tag;
+        private @Nullable NamespacedKey tag;
         
         public List<Material> toMaterialList() {
             if (item == null && tag == null) {
@@ -53,7 +54,7 @@ public interface RecipeChoiceDTO {
             }
             Set<Material> items = new HashSet<>();
             if (tag != null) {
-                Tag<Material> materialTag = ConfigUtils.toTag(tag.toNamespacedKey());
+                Tag<Material> materialTag = ConfigUtils.toTag(tag);
                 if (materialTag != null) {
                     items.addAll(materialTag.getValues());
                 }

@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.braekpo1nt.mctmanager.config.ConfigUtils;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.bukkit.NamespacedKey;
@@ -16,10 +17,6 @@ import org.jetbrains.annotations.Nullable;
 public class NamespacedKeyDTO implements Validatable {
     private @Nullable String namespace;
     private @Nullable String key;
-    
-    public static NamespacedKeyDTO fromNamespacedKey(NamespacedKey namespacedKey) {
-        return new NamespacedKeyDTO(namespacedKey.getNamespace(), namespacedKey.getKey());
-    }
     
     /**
      * @return the NamespacedKey represented by this DTO. If namespace is null, the default "minecraft" will be used.
@@ -36,9 +33,9 @@ public class NamespacedKeyDTO implements Validatable {
     @Override
     public void validate(@NotNull Validator validator) {
         validator.notNull(key, "key");
-        validator.validate(key.matches("[a-z0-9/._-]*"), "key must be [a-z0-9/._-]");
+        validator.validate(ConfigUtils.isValidKey(key), "key must be [a-z0-9/._-]: %s", key);
         if (namespace != null) {
-            validator.validate(namespace.matches("[a-z0-9/._-]*"), "namespace must be [a-z0-9/._-]");
+            validator.validate(ConfigUtils.isValidNamespace(namespace), "namespace must be [a-z0-9._-]: %s", namespace);
         }
     }
     

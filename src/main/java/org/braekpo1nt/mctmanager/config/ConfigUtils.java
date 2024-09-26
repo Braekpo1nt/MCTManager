@@ -8,6 +8,7 @@ import org.braekpo1nt.mctmanager.config.dto.org.braekpo1nt.mctmanager.geometry.G
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.MaterialDeserializer;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.NamespacedKeyDTO;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.NamespacedKeyDTODeserializer;
+import org.braekpo1nt.mctmanager.config.dto.org.bukkit.NamespacedKeyDeserializer;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.meta.ItemMetaDTO;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.meta.ItemMetaDTODeserializer;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.recipes.*;
@@ -38,6 +39,7 @@ public class ConfigUtils {
             .registerTypeAdapter(SmithingRecipeDTO.class, new SmithingRecipeDTODeserializer())
             .registerTypeAdapter(RecipeChoiceDTO.class, new RecipeChoiceDTODeserializer())
             .registerTypeAdapter(NamespacedKeyDTO.class, new NamespacedKeyDTODeserializer())
+            .registerTypeAdapter(NamespacedKey.class, new NamespacedKeyDeserializer())
 //            .registerTypeAdapter(MaterialTagDTO.class, new TagDeserializer())
             ;
     
@@ -58,5 +60,43 @@ public class ConfigUtils {
             return blockTag;
         }
         return Bukkit.getTag(Tag.REGISTRY_ITEMS, namespacedKey, Material.class);
+    }
+    
+    public static boolean isValidKey(String key) {
+        int len = key.length();
+        if (len == 0) {
+            return false;
+        }
+        
+        for (int i = 0; i < len; i++) {
+            if (!isValidKeyChar(key.charAt(i))) {
+                return false;
+            }
+        }
+        
+        return true;
+    }
+    
+    private static boolean isValidKeyChar(char c) {
+        return isValidNamespaceChar(c) || c == '/';
+    }
+    
+    public static boolean isValidNamespace(String namespace) {
+        int len = namespace.length();
+        if (len == 0) {
+            return false;
+        }
+        
+        for (int i = 0; i < len; i++) {
+            if (!isValidNamespaceChar(namespace.charAt(i))) {
+                return false;
+            }
+        }
+        
+        return true;
+    }
+    
+    private static boolean isValidNamespaceChar(char c) {
+        return (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '.' || c == '_' || c == '-';
     }
 }
