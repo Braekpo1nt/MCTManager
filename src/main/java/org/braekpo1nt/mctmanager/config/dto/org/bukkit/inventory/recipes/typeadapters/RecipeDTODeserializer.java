@@ -9,8 +9,11 @@ public class RecipeDTODeserializer implements JsonDeserializer<RecipeDTO> {
     
     @Override
     public RecipeDTO deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-        JsonObject jsonObject = json.getAsJsonObject();
-        JsonElement typeElement = jsonObject.get("type");
+        JsonObject recipeDTOJsonObject = json.getAsJsonObject();
+        if (recipeDTOJsonObject.get("namespacedKey") == null) {
+            throw new JsonParseException("namespacedKey can't be null");
+        }
+        JsonElement typeElement = recipeDTOJsonObject.get("type");
         if (typeElement == null) {
             return null;
         }

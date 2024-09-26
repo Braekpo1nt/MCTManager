@@ -46,14 +46,28 @@ class ConfigUtilsTest {
     }
     
     @Test
+    void missingNamespacedKey() {
+        Assertions.assertThrows(JsonParseException.class, () -> ConfigUtils.GSON.fromJson("""
+{
+    "type": "minecraft:crafting_shapeless",
+    "ingredients": [
+        {
+            "item": "minecraft:stone"
+        }
+    ],
+    "result": {
+        "id": "minecraft:stone"
+    }
+}
+                """, RecipeDTO.class));
+    }
+    
+    @Test
     void shapeless() {
         RecipeDTO actual = ConfigUtils.GSON.fromJson("""
 {
     "type": "minecraft:crafting_shapeless",
-    "namespacedKey": {
-        "namespace": "mct",
-        "key": "example"
-    },
+    "namespacedKey": "mct:example",
     "ingredients": [
         {
             "item": "minecraft:stone"
@@ -82,10 +96,7 @@ class ConfigUtilsTest {
         RecipeDTO actual = ConfigUtils.GSON.fromJson("""
 {
     "type": "minecraft:crafting_shapeless",
-    "namespacedKey": {
-        "namespace": "mct",
-        "key": "example"
-    },
+    "namespacedKey": "mct:example",
     "ingredients": [
         {
             "item": "minecraft:stone",

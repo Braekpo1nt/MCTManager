@@ -7,7 +7,7 @@ import java.lang.reflect.Type;
 import java.util.List;
 
 /**
- * Allows {@link List< RecipeChoiceDTO >} to be interpreted as a singleton list if it is just a single
+ * Allows {@link List<RecipeChoiceDTO>} to be interpreted as a singleton list if it is just a single
  * {@link RecipeChoiceDTO} object, and a list otherwise.
  */
 public class RecipeChoiceDTODeserializer implements JsonDeserializer<RecipeChoiceDTO> {
