@@ -10,6 +10,7 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.LocationDTO;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.ChestInventoryDTO;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.PlayerInventoryDTO;
+import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.recipes.RecipeDTO;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushGame;
@@ -20,7 +21,6 @@ import org.bukkit.World;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.persistence.PersistentDataType;
-import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -65,6 +65,10 @@ class FarmRushConfigDTO implements Validatable {
     private Durations durations;
     private Component description;
     /**
+     * Recipes to enable at the start of the game, and disable at the end of the game
+     */
+    private @Nullable List<RecipeDTO> recipes;
+    /**
      * TODO: remove this and associated functionality when MockBukkit implements {@link BookMeta#toBuilder()}
      * This allows tests to not provide the book. Not to be used by the real game.
      */
@@ -105,6 +109,9 @@ class FarmRushConfigDTO implements Validatable {
         validator.validate(this.getDurations().getGameDuration() >= 0, "durations.gameDuration (%s) can't be negative", this.getDurations().getGameDuration());
         validator.validate(this.getDurations().getGameOver() >= 0, "durations.gameOver (%s) can't be negative", this.getDurations().getGameOver());
         validator.notNull(this.getDescription(), "description");
+        if (recipes != null) {
+            validator.validate(!recipes.contains(null), "recipes can't contain null elements");
+        }
     }
     
     public FarmRushConfig toConfig() {
@@ -141,6 +148,8 @@ class FarmRushConfigDTO implements Validatable {
                 .gameOverDuration(this.durations.gameOver)
                 .materialScores(this.materialScores != null ? this.materialScores : Collections.emptyMap())
                 .materialBook(createMaterialBook())
+                .recipes(this.recipes != null ? RecipeDTO.toRecipes(this.recipes) : Collections.emptyList())
+                .recipeKeys(this.recipes != null ? RecipeDTO.toNamespacedKeys(this.recipes) : Collections.emptyList())
                 .build();
     }
     

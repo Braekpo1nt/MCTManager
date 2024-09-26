@@ -53,6 +53,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.Recipe;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.util.BoundingBox;
@@ -152,6 +153,7 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
         gameManager.getTimerManager().register(timerManager);
         List<String> teamIds = gameManager.getTeamIds(newParticipants);
         arenas = createArenas(teamIds);
+        addRecipes();
         for (int i = 0; i < teamIds.size(); i++) {
             String teamId = teamIds.get(i);
             Arena arena = arenas.get(i);
@@ -300,6 +302,7 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
         HandlerList.unregisterAll(this);
         stopAdmins();
         cancelAllTasks();
+        removeRecipes();
         for (Participant participant : participants.values()) {
             resetParticipant(participant);
         }
@@ -609,6 +612,26 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
                 .append(Component.text("Price: "))
                 .append(Component.text(itemSale.getScore()))
                 .color(NamedTextColor.GOLD);
+    }
+    
+    /**
+     * Add the configured recipes to the server
+     */
+    private void addRecipes() {
+        for (Recipe recipe : config.getRecipes()) {
+            plugin.getServer().addRecipe(recipe);
+        }
+        plugin.getServer().updateRecipes();
+    }
+    
+    /**
+     * Remove the configured recipes from the server
+     */
+    private void removeRecipes() {
+        for (NamespacedKey recipeKey : config.getRecipeKeys()) {
+            plugin.getServer().removeRecipe(recipeKey);
+        }
+        plugin.getServer().updateRecipes();
     }
     
     @Override

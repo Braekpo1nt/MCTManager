@@ -7,8 +7,10 @@ import org.braekpo1nt.mctmanager.games.game.farmrush.Arena;
 import org.braekpo1nt.mctmanager.games.game.farmrush.ItemSale;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.meta.BookMeta;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -28,6 +30,15 @@ public class FarmRushConfig {
     private int gameOverDuration;
     private @Nullable ItemStack[] loadout;
     private @Nullable ItemStack[] starterChestContents;
+    /**
+     * Recipes to enable at the start of the game, and disable at the end of the game
+     */
+    private @NotNull List<Recipe> recipes;
+    /**
+     * The NamespacedKeys of the {@link #recipes}. Allows you to remove them at the
+     * end of the game.
+     */
+    private @NotNull List<NamespacedKey> recipeKeys;
     /**
      * The first arena placement
      */
