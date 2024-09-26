@@ -42,7 +42,12 @@ public class MCTDebugCommand implements TabExecutor, Listener {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         this.plugin = plugin;
         
-        this.world = Objects.requireNonNull(plugin.getServer().getWorld("FT"));
+        this.world = plugin.getServer().getWorld("FT");
+        if (this.world == null) {
+            hyperGrowBlocks = null;
+            numOfBlocks = 0;
+            return;
+        }
         double height = world.getMaxHeight() - world.getMinHeight();
         numOfBlocks = 16*16*height;
         double randomTickSpeed = Objects.requireNonNull(world.getGameRuleValue(GameRule.RANDOM_TICK_SPEED));
