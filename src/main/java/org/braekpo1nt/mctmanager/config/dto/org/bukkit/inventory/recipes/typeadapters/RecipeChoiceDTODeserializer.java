@@ -21,7 +21,6 @@ public class RecipeChoiceDTODeserializer implements JsonDeserializer<RecipeChoic
             multiple.add("items", json);
             return context.deserialize(multiple, RecipeChoiceDTO.Multiple.class);
         }
-        
         return null;
     }
 }

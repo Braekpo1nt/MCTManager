@@ -12,7 +12,7 @@ public class SmokingRecipeDTO extends FurnaceRecipeDTO {
     @Override
     public Recipe toRecipe() {
         SmokingRecipe recipe = new SmokingRecipe(
-                namespacedKey.toNamespacedKey(),
+                namespacedKey,
                 result.toItemStack(),
                 ingredient.toRecipeChoice(),
                 experience,

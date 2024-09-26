@@ -12,7 +12,7 @@ public class BlastingRecipeDTO extends FurnaceRecipeDTO {
     @Override
     public Recipe toRecipe() {
         BlastingRecipe recipe = new BlastingRecipe(
-                namespacedKey.toNamespacedKey(),
+                namespacedKey,
                 result.toItemStack(),
                 ingredient.toRecipeChoice(),
                 experience,

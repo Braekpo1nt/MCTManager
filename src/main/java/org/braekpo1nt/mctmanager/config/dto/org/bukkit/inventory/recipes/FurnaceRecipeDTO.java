@@ -19,7 +19,7 @@ public class FurnaceRecipeDTO extends RecipeDTO {
     @Override
     public Recipe toRecipe() {
         FurnaceRecipe recipe = new FurnaceRecipe(
-                namespacedKey.toNamespacedKey(),
+                namespacedKey,
                 result.toItemStack(),
                 ingredient.toRecipeChoice(),
                 experience,

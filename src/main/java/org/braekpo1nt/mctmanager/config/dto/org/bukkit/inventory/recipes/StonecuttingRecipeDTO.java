@@ -2,7 +2,6 @@ package org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.recipes;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.ItemStackDTO;
 import org.bukkit.Material;
 import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.StonecuttingRecipe;
@@ -15,7 +14,7 @@ public class StonecuttingRecipeDTO extends RecipeDTO {
     
     @Override
     public Recipe toRecipe() {
-        StonecuttingRecipe recipe = new StonecuttingRecipe(namespacedKey.toNamespacedKey(), result.toItemStack(), ingredient);
+        StonecuttingRecipe recipe = new StonecuttingRecipe(namespacedKey, result.toItemStack(), ingredient);
         if (group != null) {
             recipe.setGroup(group);
         }

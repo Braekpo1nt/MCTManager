@@ -18,7 +18,7 @@ public class ShapelessRecipeDTO extends RecipeDTO {
     
     @Override
     public Recipe toRecipe() {
-        ShapelessRecipe recipe = new ShapelessRecipe(namespacedKey.toNamespacedKey(), result.toItemStack());
+        ShapelessRecipe recipe = new ShapelessRecipe(namespacedKey, result.toItemStack());
         for (RecipeChoiceDTO recipeChoiceDTO : ingredients) {
             recipe.addIngredient(recipeChoiceDTO.toRecipeChoice());
         }

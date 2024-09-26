@@ -13,7 +13,7 @@ public class CampfireRecipeDTO extends FurnaceRecipeDTO {
     @Override
     public Recipe toRecipe() {
         CampfireRecipe recipe = new CampfireRecipe(
-                namespacedKey.toNamespacedKey(),
+                namespacedKey,
                 result.toItemStack(),
                 ingredient.toRecipeChoice(),
                 experience,
