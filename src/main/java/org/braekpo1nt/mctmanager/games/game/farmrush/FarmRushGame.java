@@ -46,6 +46,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockBurnEvent;
 import org.bukkit.event.block.BlockExplodeEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.ItemSpawnEvent;
@@ -598,6 +599,18 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
             return;
         }
         state.onParticipantDamage(event);
+    }
+    
+    @EventHandler
+    public void onPlaceBlock(BlockPlaceEvent event) {
+        if (state == null) {
+            return;
+        }
+        Participant participant = participants.get(event.getPlayer().getUniqueId());
+        if (participant == null) {
+            return;
+        }
+        state.onPlaceBlock(event, participant);
     }
     
     /**

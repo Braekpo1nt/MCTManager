@@ -2,7 +2,6 @@ package org.braekpo1nt.mctmanager.games.game.farmrush.powerups.specs;
 
 import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.Powerup;
 import org.bukkit.Location;
-import org.bukkit.World;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 

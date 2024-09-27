@@ -13,6 +13,7 @@ import org.bukkit.block.Barrel;
 import org.bukkit.block.Block;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryType;
@@ -170,6 +171,11 @@ public class ActiveState implements FarmRushState {
             }
         }
         return soldItems;
+    }
+    
+    @Override
+    public void onPlaceBlock(BlockPlaceEvent event, FarmRushGame.Participant participant) {
+        context.getPowerupManager().onPlaceBlock(event, participant);
     }
     
     /**
