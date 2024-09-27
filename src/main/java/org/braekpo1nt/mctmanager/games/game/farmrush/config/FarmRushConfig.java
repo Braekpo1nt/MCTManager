@@ -57,6 +57,9 @@ public class FarmRushConfig {
     
     private @Nullable ItemStack materialBook;
     
+    /**
+     * Holds data for assignment to the powerups
+     */
     @Data
     @AllArgsConstructor
     public static class PowerupData {

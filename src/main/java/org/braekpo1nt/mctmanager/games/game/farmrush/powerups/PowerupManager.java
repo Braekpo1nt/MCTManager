@@ -12,16 +12,14 @@ import java.util.Map;
 
 public class PowerupManager {
     
-    public static final String POWERUP_METADATA_KEY = "powerup";
-    public static final String CROP_GROWER_METADATA_VALUE = "crop_grower";
-    
     public static final Map<Powerup.Type, Powerup> typeToPowerup;
     static {
         ItemStack cropGrowerItem = new ItemStack(Material.BEACON);
         cropGrowerItem.editMeta(meta -> {
             meta.displayName(Component.text("Crop Grower"));
             meta.lore(List.of(
-                    Component.text("Place this near crops to make them grow faster")
+                    Component.text("Place this near crops"),
+                    Component.text("to make them grow faster")
             ));
         });
         CropGrower cropGrower = new CropGrower(cropGrowerItem, Powerup.Type.CROP_GROWER);
@@ -44,6 +42,10 @@ public class PowerupManager {
     
     public void stop() {
         // TODO: must be idempotent
+        for (FarmRushConfig.PowerupData powerupData : context.getConfig().getPowerupData()) {
+            context.getPlugin().getServer().removeRecipe(powerupData.getRecipeKey());
+        }
+        context.getPlugin().getServer().updateRecipes();
         Main.logger().info("Farm Rush Powerups stopped");
     }
     
@@ -51,7 +53,6 @@ public class PowerupManager {
         for (FarmRushConfig.PowerupData powerupData : context.getConfig().getPowerupData()) {
             Powerup powerup = typeToPowerup.get(powerupData.getType());
             powerup.setRadius(powerupData.getRadius());
-            powerup.setRecipeKey(powerupData.getRecipeKey());
             context.getPlugin().getServer().addRecipe(powerupData.getRecipe());
         }
         context.getPlugin().getServer().updateRecipes();

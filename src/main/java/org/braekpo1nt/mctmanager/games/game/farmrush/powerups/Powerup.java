@@ -20,6 +20,4 @@ public interface Powerup {
      */
     double getRadius();
     void setRadius(double radius);
-    NamespacedKey getRecipeKey();
-    void setRecipeKey(NamespacedKey key);
 }
