@@ -5,7 +5,11 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushGame;
 import org.braekpo1nt.mctmanager.games.game.farmrush.config.FarmRushConfig;
 import org.bukkit.Material;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Map;
@@ -56,6 +60,34 @@ public class PowerupManager {
             context.getPlugin().getServer().addRecipe(powerupData.getRecipe());
         }
         context.getPlugin().getServer().updateRecipes();
+    }
+    
+    /**
+     * Checks against all {@link Powerup#getItem()} to retrieve the powerup associated
+     * with the given item. 
+     * @param item the item that might be associated with a {@link Powerup}
+     * @return the {@link Powerup} associated with the item, if there is one
+     */
+    private @Nullable Powerup itemToPowerup(@NotNull ItemStack item) {
+        ItemMeta itemMeta = item.getItemMeta();
+        if (itemMeta == null) {
+            return null;
+        }
+        for (Powerup powerup : typeToPowerup.values()) {
+            if (powerup.getItem().getItemMeta().equals(itemMeta)) {
+                return powerup;
+            }
+        }
+        return null;
+    }
+    
+    /**
+     * Called when a participant places a block
+     * @param event the event
+     * @param participant the participant who placed the block
+     */
+    public void onPlaceBlock(BlockPlaceEvent event, FarmRushGame.Participant participant) {
+        
     }
     
 }
