@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.games.game.farmrush.powerups;
 
 import net.kyori.adventure.text.Component;
+import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushGame;
 import org.braekpo1nt.mctmanager.games.game.farmrush.config.FarmRushConfig;
 import org.bukkit.Material;
@@ -30,18 +31,30 @@ public class PowerupManager {
         );
     }
     
-    private final FarmRushConfig config;
+    private final FarmRushGame context;
     
     public PowerupManager(FarmRushGame context) {
-        this.config = context.getConfig();
+        this.context = context;
+    }
+    
+    public void start() {
         setUpPowerups();
+        Main.logger().info("Farm Rush Powerups started");
+    }
+    
+    public void stop() {
+        // TODO: must be idempotent
+        Main.logger().info("Farm Rush Powerups stopped");
     }
     
     private void setUpPowerups() {
-        for (FarmRushConfig.PowerupData powerupData : config.getPowerupData()) {
+        for (FarmRushConfig.PowerupData powerupData : context.getConfig().getPowerupData()) {
             Powerup powerup = typeToPowerup.get(powerupData.getType());
             powerup.setRadius(powerupData.getRadius());
+            powerup.setRecipeKey(powerupData.getRecipeKey());
+            context.getPlugin().getServer().addRecipe(powerupData.getRecipe());
         }
+        context.getPlugin().getServer().updateRecipes();
     }
     
 }

@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.games.game.farmrush.powerups;
 
 import lombok.Data;
+import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
@@ -18,4 +19,5 @@ public class CropGrower implements Powerup {
      * How far the effects reach
      */
     private double radius;
+    private NamespacedKey recipeKey;
 }

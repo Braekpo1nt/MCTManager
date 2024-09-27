@@ -16,6 +16,7 @@ import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.farmrush.config.FarmRushConfig;
 import org.braekpo1nt.mctmanager.games.game.farmrush.config.FarmRushConfigController;
+import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.PowerupManager;
 import org.braekpo1nt.mctmanager.games.game.farmrush.states.DescriptionState;
 import org.braekpo1nt.mctmanager.games.game.farmrush.states.FarmRushState;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
@@ -88,6 +89,7 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
     private final Component baseTitle = Component.empty()
             .append(Component.text("Farm Rush"))
             .color(NamedTextColor.BLUE);
+    private final PowerupManager powerupManager = new PowerupManager(this);
     private Component title = baseTitle;
     private FarmRushConfig config;
     private final FarmRushConfigController configController;
@@ -315,6 +317,7 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
         arenas.clear();
         TopCommand.setEnabled(false);
         gameManager.gameIsOver();
+        powerupManager.stop();
         Main.logger().info("Stopping Farm Rush game");
     }
     

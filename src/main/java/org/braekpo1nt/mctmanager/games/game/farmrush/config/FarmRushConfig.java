@@ -60,8 +60,9 @@ public class FarmRushConfig {
     @Data
     @AllArgsConstructor
     public static class PowerupData {
-        private final Powerup.Type type;
-        private final Recipe recipe;
+        private final @NotNull Powerup.Type type;
+        private final @NotNull Recipe recipe;
+        private final @NotNull NamespacedKey recipeKey;
         private final double radius;
     }
     

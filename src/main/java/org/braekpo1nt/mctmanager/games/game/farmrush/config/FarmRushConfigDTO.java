@@ -97,7 +97,7 @@ class FarmRushConfigDTO implements Validatable {
         public FarmRushConfig.PowerupData toPowerupData() {
             ItemStack result = PowerupManager.typeToPowerup.get(type).getItem();
             result.editMeta(meta -> meta.setCustomModelData(customModelData));
-            return new FarmRushConfig.PowerupData(type, recipe.toRecipe(result), radius);
+            return new FarmRushConfig.PowerupData(type, recipe.toRecipe(result), recipe.getNamespacedKey(), radius);
         }
     }
     

@@ -118,6 +118,31 @@
     },
     "deliveryBlockFace": "UP"
   },
+  "powerups": [
+    {
+      "type": "CROP_GROWER",
+      "radius": 4.0,
+      "customModelData": 1,
+      "recipe": {
+        "namespacedKey": "mct:crop_grower",
+        "type": "minecraft:crafting_shaped",
+        "category": "blocks",
+        "pattern": [
+          "#D#",
+          "###",
+          "# #"
+        ],
+        "key": {
+          "#": {
+            "item": "minecraft:iron_ingot"
+          },
+          "D": {
+            "item": "minecraft:hay_block"
+          }
+        }
+      }
+    }
+  ],
   "durations": {
     "description": 10,
     "starting": 10,

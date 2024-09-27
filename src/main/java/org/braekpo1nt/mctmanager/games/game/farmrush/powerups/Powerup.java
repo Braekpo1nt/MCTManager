@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.farmrush.powerups;
 
+import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
@@ -19,4 +20,6 @@ public interface Powerup {
      */
     double getRadius();
     void setRadius(double radius);
+    NamespacedKey getRecipeKey();
+    void setRecipeKey(NamespacedKey key);
 }

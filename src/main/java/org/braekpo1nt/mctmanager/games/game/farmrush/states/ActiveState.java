@@ -43,6 +43,7 @@ public class ActiveState implements FarmRushState {
         for (FarmRushGame.Team team : context.getTeams().values()) {
             team.getArena().openBarnDoor();
         }
+        context.getPowerupManager().start();
     }
     
     @Override
