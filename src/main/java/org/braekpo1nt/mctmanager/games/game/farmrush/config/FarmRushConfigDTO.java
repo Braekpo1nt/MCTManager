@@ -15,6 +15,8 @@ import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushGame;
 import org.braekpo1nt.mctmanager.games.game.farmrush.ItemSale;
+import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.Powerup;
+import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.PowerupManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -25,10 +27,7 @@ import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Data
 class FarmRushConfigDTO implements Validatable {
@@ -73,6 +72,34 @@ class FarmRushConfigDTO implements Validatable {
      * This allows tests to not provide the book. Not to be used by the real game.
      */
     private boolean doNotGiveBookDebug = false;
+    /**
+     * Details about the powerups
+     */
+    private @Nullable List<PowerupDataDTO> powerups;
+    
+    @Data
+    static class PowerupDataDTO {
+        private Powerup.Type type;
+        /**
+         * The recipe used to craft this powerup. Can't be null. If the result is specified
+         * in the config, it will be overwritten by the internal powerup. 
+         */
+        private RecipeDTO recipe;
+        /**
+         * the radius of the effect range.
+         */
+        private double radius;
+        /**
+         * the custom model data to apply to the item. Defaults to 0.
+         */
+        private int customModelData = 0;
+        
+        public FarmRushConfig.PowerupData toPowerupData() {
+            ItemStack result = PowerupManager.typeToPowerup.get(type).getItem();
+            result.editMeta(meta -> meta.setCustomModelData(customModelData));
+            return new FarmRushConfig.PowerupData(type, recipe.toRecipe(result), radius);
+        }
+    }
     
     @Data
     static class Durations {
@@ -110,7 +137,7 @@ class FarmRushConfigDTO implements Validatable {
         validator.validate(this.getDurations().getGameOver() >= 0, "durations.gameOver (%s) can't be negative", this.getDurations().getGameOver());
         validator.notNull(this.getDescription(), "description");
         if (recipes != null) {
-            validator.validate(!recipes.contains(null), "recipes can't contain null elements");
+            validator.validateList(recipes, "recipes");
         }
     }
     
@@ -133,6 +160,15 @@ class FarmRushConfigDTO implements Validatable {
                 }
             }
         }
+        List<FarmRushConfig.PowerupData> newPowerupData;
+        if (this.powerups == null) {
+            newPowerupData = Collections.emptyList();
+        } else {
+            newPowerupData = new ArrayList<>(this.powerups.size());
+            for (PowerupDataDTO powerupDataDTO : this.powerups) {
+                newPowerupData.add(powerupDataDTO.toPowerupData());
+            }
+        }
         return FarmRushConfig.builder()
                 .world(newWorld)
                 .adminLocation(this.adminLocation.toLocation(newWorld))
@@ -150,6 +186,7 @@ class FarmRushConfigDTO implements Validatable {
                 .materialBook(createMaterialBook())
                 .recipes(this.recipes != null ? RecipeDTO.toRecipes(this.recipes) : Collections.emptyList())
                 .recipeKeys(this.recipes != null ? RecipeDTO.toNamespacedKeys(this.recipes) : Collections.emptyList())
+                .powerupData(newPowerupData)
                 .build();
     }
     

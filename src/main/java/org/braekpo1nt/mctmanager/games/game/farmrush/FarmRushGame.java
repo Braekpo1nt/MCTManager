@@ -68,6 +68,7 @@ import java.util.List;
 @Data
 public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener {
     
+    @SuppressWarnings("SpellCheckingInspection")
     public static final NamespacedKey HAS_SCORE_LORE = NamespacedKey.minecraft("hasscorelore");
     private static final List<InventoryType> STORAGE_TYPES = List.of(
             InventoryType.CHEST,
@@ -126,6 +127,7 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
         private final @NotNull String teamId;
         private final @NotNull List<UUID> members = new ArrayList<>();
         private final Arena arena;
+        private final List<Location> cropGrowers = new ArrayList<>();
     }
     
     public FarmRushGame(Main plugin, GameManager gameManager) {
