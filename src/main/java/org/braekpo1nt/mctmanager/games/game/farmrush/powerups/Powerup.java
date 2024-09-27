@@ -1,23 +1,36 @@
 package org.braekpo1nt.mctmanager.games.game.farmrush.powerups;
 
-import org.bukkit.NamespacedKey;
-import org.bukkit.inventory.ItemStack;
-import org.jetbrains.annotations.NotNull;
+import lombok.Data;
+import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.specs.PowerupSpec;
+import org.bukkit.Location;
+import org.bukkit.World;
 
-public interface Powerup {
-    enum Type {
+/**
+ * One of these is instantiated for each powerup
+ * in the world. It is unique to its position and
+ * features, stores and modifies world data,
+ * and is kept track of in the {@link PowerupManager}.
+ * You create these using {@link PowerupSpec}.
+ */
+@Data
+public abstract class Powerup {
+    public enum Type {
         CROP_GROWER,
 //        ANIMAL_GROWTH,
     }
     
+    
+    
     /**
-     * the item used to place the powerup
+     * the world the powerup is in
      */
-    @NotNull ItemStack getItem();
-    @NotNull Type getType();
+    protected final World world;
     /**
-     * How far the effects reach
+     * The location of the powerup in the world
      */
-    double getRadius();
-    void setRadius(double radius);
+    protected final Location location;
+    protected final double radius;
+    
+    public abstract void performAction();
+    
 }

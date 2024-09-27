@@ -4,6 +4,8 @@ import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushGame;
 import org.braekpo1nt.mctmanager.games.game.farmrush.config.FarmRushConfig;
+import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.specs.CropGrowerSpec;
+import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.specs.PowerupSpec;
 import org.bukkit.Material;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.inventory.ItemStack;
@@ -16,7 +18,7 @@ import java.util.Map;
 
 public class PowerupManager {
     
-    public static final Map<Powerup.Type, Powerup> typeToPowerup;
+    public static final Map<Powerup.Type, PowerupSpec> typeToPowerupSpec;
     static {
         ItemStack cropGrowerItem = new ItemStack(Material.BEACON);
         cropGrowerItem.editMeta(meta -> {
@@ -26,9 +28,9 @@ public class PowerupManager {
                     Component.text("to make them grow faster")
             ));
         });
-        CropGrower cropGrower = new CropGrower(cropGrowerItem, Powerup.Type.CROP_GROWER);
+        CropGrowerSpec cropGrower = new CropGrowerSpec(cropGrowerItem, Powerup.Type.CROP_GROWER);
         
-        typeToPowerup = Map.of(
+        typeToPowerupSpec = Map.of(
                 Powerup.Type.CROP_GROWER, cropGrower
         );
     }
@@ -46,7 +48,7 @@ public class PowerupManager {
     
     public void stop() {
         // TODO: must be idempotent
-        for (FarmRushConfig.PowerupData powerupData : context.getConfig().getPowerupData()) {
+        for (FarmRushConfig.PowerupData powerupData : context.getConfig().getPowerupSpecData()) {
             context.getPlugin().getServer().removeRecipe(powerupData.getRecipeKey());
         }
         context.getPlugin().getServer().updateRecipes();
@@ -54,8 +56,8 @@ public class PowerupManager {
     }
     
     private void setUpPowerups() {
-        for (FarmRushConfig.PowerupData powerupData : context.getConfig().getPowerupData()) {
-            Powerup powerup = typeToPowerup.get(powerupData.getType());
+        for (FarmRushConfig.PowerupData powerupData : context.getConfig().getPowerupSpecData()) {
+            PowerupSpec powerup = typeToPowerupSpec.get(powerupData.getType());
             powerup.setRadius(powerupData.getRadius());
             context.getPlugin().getServer().addRecipe(powerupData.getRecipe());
         }
@@ -63,19 +65,19 @@ public class PowerupManager {
     }
     
     /**
-     * Checks against all {@link Powerup#getItem()} to retrieve the powerup associated
+     * Checks against all {@link PowerupSpec#getItem()} to retrieve the powerup associated
      * with the given item. 
-     * @param item the item that might be associated with a {@link Powerup}
-     * @return the {@link Powerup} associated with the item, if there is one
+     * @param item the item that might be associated with a {@link PowerupSpec}
+     * @return the {@link PowerupSpec} associated with the item, if there is one
      */
-    private @Nullable Powerup itemToPowerup(@NotNull ItemStack item) {
+    private @Nullable PowerupSpec itemToPowerup(@NotNull ItemStack item) {
         ItemMeta itemMeta = item.getItemMeta();
         if (itemMeta == null) {
             return null;
         }
-        for (Powerup powerup : typeToPowerup.values()) {
-            if (powerup.getItem().getItemMeta().equals(itemMeta)) {
-                return powerup;
+        for (PowerupSpec powerupSpec : typeToPowerupSpec.values()) {
+            if (powerupSpec.getItem().getItemMeta().equals(itemMeta)) {
+                return powerupSpec;
             }
         }
         return null;

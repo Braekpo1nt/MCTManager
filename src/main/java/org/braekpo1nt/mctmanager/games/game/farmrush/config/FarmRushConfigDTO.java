@@ -95,7 +95,7 @@ class FarmRushConfigDTO implements Validatable {
         private int customModelData = 0;
         
         public FarmRushConfig.PowerupData toPowerupData() {
-            ItemStack result = PowerupManager.typeToPowerup.get(type).getItem();
+            ItemStack result = PowerupManager.typeToPowerupSpec.get(type).getItem();
             result.editMeta(meta -> meta.setCustomModelData(customModelData));
             return new FarmRushConfig.PowerupData(type, recipe.toRecipe(result), recipe.getNamespacedKey(), radius);
         }
@@ -186,7 +186,7 @@ class FarmRushConfigDTO implements Validatable {
                 .materialBook(createMaterialBook())
                 .recipes(this.recipes != null ? RecipeDTO.toRecipes(this.recipes) : Collections.emptyList())
                 .recipeKeys(this.recipes != null ? RecipeDTO.toNamespacedKeys(this.recipes) : Collections.emptyList())
-                .powerupData(newPowerupData)
+                .powerupSpecData(newPowerupData)
                 .build();
     }
     

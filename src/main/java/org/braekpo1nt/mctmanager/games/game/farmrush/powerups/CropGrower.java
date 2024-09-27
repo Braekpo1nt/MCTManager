@@ -1,23 +1,35 @@
 package org.braekpo1nt.mctmanager.games.game.farmrush.powerups;
 
-import lombok.Data;
-import org.bukkit.NamespacedKey;
-import org.bukkit.inventory.ItemStack;
-import org.jetbrains.annotations.NotNull;
+import lombok.EqualsAndHashCode;
+import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
+import org.bukkit.Location;
+import org.bukkit.Tag;
+import org.jetbrains.annotations.Nullable;
 
-/**
- * Changes the speed of crop growth in a range
- */
-@Data
-public class CropGrower implements Powerup {
+import java.util.List;
+
+
+@EqualsAndHashCode(callSuper = true)
+public class CropGrower extends Powerup {
     /**
-     * the item used to place the powerup
+     * a list of the crops in the area of effect
      */
-    private final @NotNull ItemStack item;
-    private final @NotNull Powerup.Type type;
-    /**
-     * How far the effects reach
-     */
-    private double radius;
-    private NamespacedKey recipeKey;
+    private @Nullable List<Location> crops;
+    
+    public CropGrower(Location location, double radius) {
+        super(location.getWorld(), location, radius);
+    }
+    
+    @Override
+    public void performAction() {
+        detectCrops();
+        // randomly grow crops
+    }
+    
+    private void detectCrops() {
+        this.crops = BlockPlacementUtils.getBlocksInRadius(location, radius, Tag.CROPS);
+        Main.logger().info(String.format("Discovered %d crops", crops.size()));
+    }
 }
+
