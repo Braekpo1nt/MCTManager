@@ -3,6 +3,7 @@ package org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.recipes;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.bukkit.inventory.BlastingRecipe;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
 
 @Data
@@ -10,10 +11,10 @@ import org.bukkit.inventory.Recipe;
 public class BlastingRecipeDTO extends FurnaceRecipeDTO {
     
     @Override
-    public Recipe toRecipe() {
+    public Recipe toRecipe(ItemStack result) {
         BlastingRecipe recipe = new BlastingRecipe(
                 namespacedKey,
-                result.toItemStack(),
+                result,
                 ingredient.toRecipeChoice(),
                 experience,
                 cookingtime
