@@ -438,8 +438,8 @@ public class BlockPlacementUtils {
         }
     }
     
-    public static List<Location> getBlocksInRadius(Location center, double radius, Tag<Material> type) {
-        List<Location> matchingLocations = new ArrayList<>();
+    public static List<Block> getBlocksInRadius(Location center, double radius, Tag<Material> type) {
+        List<Block> matchingBlocks = new ArrayList<>();
         World world = center.getWorld();
         
         int minX = (int) (center.getBlockX() - radius);
@@ -458,14 +458,14 @@ public class BlockPlacementUtils {
                     if (center.distanceSquared(loc) <= radiusSquared) {
                         Block block = world.getBlockAt(loc);
                         if (type.isTagged(block.getType())) {
-                            matchingLocations.add(loc);
+                            matchingBlocks.add(block);
                         }
                     }
                 }
             }
         }
         
-        return matchingLocations;
+        return matchingBlocks;
     }
     
 }
