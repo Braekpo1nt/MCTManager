@@ -49,10 +49,9 @@ class CropGrowerSpecDTO implements Validatable {
                 .recipe(recipe.toRecipe(powerupItem))
                 .recipeKey(recipe.getNamespacedKey())
                 .radius(radius)
-                .count(seconds)
-                .probability(growthChance)
+                .interval(seconds)
+                .growthChance(growthChance)
                 .build();
-//        (type, recipe.toRecipe(result), recipe.getNamespacedKey(), radius);
     }
     
     @Override

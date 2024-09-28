@@ -27,11 +27,11 @@ public class CropGrowerSpec implements PowerupSpec {
      */
     private double radius;
     private NamespacedKey recipeKey;
-    private int count;
-    private double probability;
+    private int interval;
+    private double growthChance;
     
     @Override
     public Powerup createPowerup(Location location) {
-        return new CropGrower(location, radius, count, probability);
+        return new CropGrower(location, radius, interval, growthChance);
     }
 }
