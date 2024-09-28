@@ -3,14 +3,11 @@ package org.braekpo1nt.mctmanager.games.game.farmrush.powerups;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushGame;
-import org.braekpo1nt.mctmanager.games.game.farmrush.config.FarmRushConfig;
-import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.specs.CropGrowerSpec;
 import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.specs.PowerupSpec;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
@@ -23,7 +20,8 @@ import java.util.Map;
 
 public class PowerupManager {
     
-    public static final Map<Powerup.Type, PowerupSpec> typeToPowerupSpec;
+    public static final Map<Powerup.Type, ItemStack> typeToItem;
+    public static final Map<ItemStack, Powerup.Type> itemToType;
     static {
         ItemStack cropGrowerItem = new ItemStack(Material.BEACON);
         cropGrowerItem.editMeta(meta -> {
@@ -33,10 +31,12 @@ public class PowerupManager {
                     Component.text("to make them grow faster")
             ));
         });
-        CropGrowerSpec cropGrowerSpec = new CropGrowerSpec(cropGrowerItem, Powerup.Type.CROP_GROWER);
         
-        typeToPowerupSpec = Map.of(
-                Powerup.Type.CROP_GROWER, cropGrowerSpec
+        typeToItem = Map.of(
+                Powerup.Type.CROP_GROWER, cropGrowerItem
+        );
+        itemToType = Map.of(
+                cropGrowerItem, Powerup.Type.CROP_GROWER
         );
     }
     
@@ -52,7 +52,7 @@ public class PowerupManager {
     }
     
     public void start() {
-        setUpPowerups();
+        addPowerupRecipes();
         Main.logger().info("Farm Rush Powerups started");
         
         powerupActionTask = new BukkitRunnable() {
@@ -71,19 +71,21 @@ public class PowerupManager {
             powerupActionTask.cancel();
             powerupActionTask = null;
         }
-        for (FarmRushConfig.PowerupData powerupData : context.getConfig().getPowerupSpecData()) {
-            context.getPlugin().getServer().removeRecipe(powerupData.getRecipeKey());
-        }
-        context.getPlugin().getServer().updateRecipes();
+        removePowerupRecipes();
         powerups.clear();
         Main.logger().info("Farm Rush Powerups stopped");
     }
     
-    private void setUpPowerups() {
-        for (FarmRushConfig.PowerupData powerupData : context.getConfig().getPowerupSpecData()) {
-            PowerupSpec powerup = typeToPowerupSpec.get(powerupData.getType());
-            powerup.setRadius(powerupData.getRadius());
-            context.getPlugin().getServer().addRecipe(powerupData.getRecipe());
+    private void removePowerupRecipes() {
+        if (context.getConfig().getCropGrowerSpec() != null) {
+            context.getPlugin().getServer().removeRecipe(context.getConfig().getCropGrowerSpec().getRecipeKey());
+        }
+        context.getPlugin().getServer().updateRecipes();
+    }
+    
+    private void addPowerupRecipes() {
+        if (context.getConfig().getCropGrowerSpec() != null) {
+            context.getPlugin().getServer().addRecipe(context.getConfig().getCropGrowerSpec().getRecipe());
         }
         context.getPlugin().getServer().updateRecipes();
     }
@@ -95,24 +97,25 @@ public class PowerupManager {
      * @return the {@link PowerupSpec} associated with the item, if there is one
      */
     private @Nullable PowerupSpec itemToPowerupSpec(@NotNull ItemStack item) {
-        ItemMeta itemMeta = item.getItemMeta();
-        if (itemMeta == null) {
+        Powerup.Type type = itemToType.get(item);
+        if (type == null) {
             return null;
         }
-        for (PowerupSpec powerupSpec : typeToPowerupSpec.values()) {
-            if (powerupSpec.getItem().getItemMeta().equals(itemMeta)) {
-                return powerupSpec;
+        switch (type) {
+            case CROP_GROWER -> {
+                return context.getConfig().getCropGrowerSpec();
+            }
+            default -> {
+                return null;
             }
         }
-        return null;
     }
     
     /**
      * Called when a participant places a block
      * @param event the event
-     * @param participant the participant who placed the block
      */
-    public void onPlaceBlock(BlockPlaceEvent event, FarmRushGame.Participant participant) {
+    public void onPlaceBlock(BlockPlaceEvent event) {
         PowerupSpec powerupSpec = itemToPowerupSpec(event.getItemInHand());
         if (powerupSpec == null) {
             return;

@@ -1,7 +1,6 @@
 package org.braekpo1nt.mctmanager.games.game.farmrush.powerups;
 
 import lombok.EqualsAndHashCode;
-import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.bukkit.Location;
 import org.bukkit.Tag;
@@ -18,9 +17,19 @@ public class CropGrower extends Powerup {
      * a list of the crops in the area of effect
      */
     private @Nullable List<Block> crops;
+    /**
+     * how many cycles before running a probability check
+     */
+    private final int count;
+    /**
+     * the probability per second of a crop increasing in age per cycle
+     */
+    private final double probability;
     
-    public CropGrower(Location location, double radius) {
+    public CropGrower(Location location, double radius, int count, double probability) {
         super(location.getWorld(), location, radius);
+        this.count = count;
+        this.probability = probability;
     }
     
     @Override

@@ -15,8 +15,7 @@ import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushGame;
 import org.braekpo1nt.mctmanager.games.game.farmrush.ItemSale;
-import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.Powerup;
-import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.PowerupManager;
+import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.specs.CropGrowerSpec;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -75,29 +74,17 @@ class FarmRushConfigDTO implements Validatable {
     /**
      * Details about the powerups
      */
-    private @Nullable List<PowerupDataDTO> powerups;
+    private @Nullable PowerupData powerups;
     
     @Data
-    static class PowerupDataDTO {
-        private Powerup.Type type;
-        /**
-         * The recipe used to craft this powerup. Can't be null. If the result is specified
-         * in the config, it will be overwritten by the internal powerup. 
-         */
-        private RecipeDTO recipe;
-        /**
-         * the radius of the effect range.
-         */
-        private double radius;
-        /**
-         * the custom model data to apply to the item. Defaults to 0.
-         */
-        private int customModelData = 0;
+    static class PowerupData implements Validatable {
+        private CropGrowerSpecDTO cropGrower;
         
-        public FarmRushConfig.PowerupData toPowerupData() {
-            ItemStack result = PowerupManager.typeToPowerupSpec.get(type).getItem();
-            result.editMeta(meta -> meta.setCustomModelData(customModelData));
-            return new FarmRushConfig.PowerupData(type, recipe.toRecipe(result), recipe.getNamespacedKey(), radius);
+        @Override
+        public void validate(@NotNull Validator validator) {
+            if (cropGrower != null) {
+                cropGrower.validate(validator.path("cropGrower"));
+            }
         }
     }
     
@@ -160,14 +147,11 @@ class FarmRushConfigDTO implements Validatable {
                 }
             }
         }
-        List<FarmRushConfig.PowerupData> newPowerupData;
-        if (this.powerups == null) {
-            newPowerupData = Collections.emptyList();
+        CropGrowerSpec newCropGrowerSpec;
+        if (powerups != null) {
+            newCropGrowerSpec = powerups.getCropGrower().toSpec();
         } else {
-            newPowerupData = new ArrayList<>(this.powerups.size());
-            for (PowerupDataDTO powerupDataDTO : this.powerups) {
-                newPowerupData.add(powerupDataDTO.toPowerupData());
-            }
+            newCropGrowerSpec = null;
         }
         return FarmRushConfig.builder()
                 .world(newWorld)
@@ -186,7 +170,7 @@ class FarmRushConfigDTO implements Validatable {
                 .materialBook(createMaterialBook())
                 .recipes(this.recipes != null ? RecipeDTO.toRecipes(this.recipes) : Collections.emptyList())
                 .recipeKeys(this.recipes != null ? RecipeDTO.toNamespacedKeys(this.recipes) : Collections.emptyList())
-                .powerupSpecData(newPowerupData)
+                .cropGrowerSpec(newCropGrowerSpec)
                 .build();
     }
     

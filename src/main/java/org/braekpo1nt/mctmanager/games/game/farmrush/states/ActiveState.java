@@ -175,7 +175,7 @@ public class ActiveState implements FarmRushState {
     
     @Override
     public void onPlaceBlock(BlockPlaceEvent event, FarmRushGame.Participant participant) {
-        context.getPowerupManager().onPlaceBlock(event, participant);
+        context.getPowerupManager().onPlaceBlock(event);
     }
     
     /**

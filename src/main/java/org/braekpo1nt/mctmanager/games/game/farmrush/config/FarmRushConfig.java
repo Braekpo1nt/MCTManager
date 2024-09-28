@@ -7,6 +7,7 @@ import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.games.game.farmrush.Arena;
 import org.braekpo1nt.mctmanager.games.game.farmrush.ItemSale;
 import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.Powerup;
+import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.specs.CropGrowerSpec;
 import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.specs.PowerupSpec;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -57,23 +58,6 @@ public class FarmRushConfig {
     
     private @Nullable ItemStack materialBook;
     
-    /**
-     * Holds data for assignment to the 
-     * {@link PowerupSpec}
-     */
-    @Data
-    @AllArgsConstructor
-    public static class PowerupData {
-        private final @NotNull Powerup.Type type;
-        private final @NotNull Recipe recipe;
-        private final @NotNull NamespacedKey recipeKey;
-        private final double radius;
-    }
-    
-    /**
-     * The data for each {@link PowerupSpec}. 
-     * Not guaranteed to contain an entry for each {@link Powerup.Type}
-     */
-    private @NotNull List<PowerupData> powerupSpecData;
+    private @Nullable CropGrowerSpec cropGrowerSpec;
     
 }

@@ -118,11 +118,12 @@
     },
     "deliveryBlockFace": "UP"
   },
-  "powerups": [
-    {
-      "type": "CROP_GROWER",
+  "powerups": {
+    "cropGrower": {
       "radius": 4.0,
       "customModelData": 1,
+      "seconds": 5,
+      "growthChance": 0.5,
       "recipe": {
         "namespacedKey": "mct:crop_grower",
         "type": "minecraft:crafting_shaped",
@@ -142,7 +143,7 @@
         }
       }
     }
-  ],
+  },
   "durations": {
     "description": 10,
     "starting": 10,
