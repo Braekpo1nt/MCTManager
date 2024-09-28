@@ -110,12 +110,10 @@ public class PowerupManager {
      * @param event the event
      */
     public void onPlaceBlock(BlockPlaceEvent event) {
-        Main.logger().info("PowerupManager.onPlaceBlock");
         PowerupSpec powerupSpec = itemToPowerupSpec(event.getItemInHand());
         if (powerupSpec == null) {
             return;
         }
-        Main.logger().info(String.format("placed powerup %s", powerupSpec.getType()));
         Location location = event.getBlockPlaced().getLocation();
         Powerup powerup = powerupSpec.createPowerup(location);
         powerups.put(location.toVector(), powerup);
