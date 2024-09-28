@@ -41,6 +41,11 @@ public class CropGrower extends Powerup {
     }
     
     @Override
+    public Type getType() {
+        return Type.CROP_GROWER;
+    }
+    
+    @Override
     public void performAction() {
         if (count > 0) {
             count--;

@@ -436,22 +436,26 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
             return;
         }
         Location delivery = teams.get(participant.getTeamId()).getArena().getDelivery();
-        if (!event.getBlock().getLocation().equals(delivery)) {
+        Block block = event.getBlock();
+        if (block.getLocation().equals(delivery)) {
+            event.setCancelled(true);
             return;
         }
-        event.setCancelled(true);
-    }
-    @EventHandler
-    public void blockDestroyEvent(BlockDestroyEvent event) {
-        onBlockDestroy(event.getBlock(), event);
+        powerupManager.onBlockBreak(block, event);
     }
     @EventHandler
     public void blockExplodeEvent(BlockExplodeEvent event) {
-        onBlockDestroy(event.getBlock(), event);
-    }
-    @EventHandler
-    public void blockBurnEvent(BlockBurnEvent event) {
-        onBlockDestroy(event.getBlock(), event);
+        event.blockList().removeIf(block -> {
+            for (Team team : teams.values()) {
+                Location delivery = team.getArena().getDelivery();
+                if (block.getLocation().equals(delivery)) {
+                    return true;
+                }
+            }
+            return false;
+        });
+        List<Block> powerupBlocks = powerupManager.onBlocksBreak(event.blockList());
+        event.blockList().removeAll(powerupBlocks);
     }
     @EventHandler
     public void entityExplodeEvent(EntityExplodeEvent event) {
@@ -464,8 +468,21 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
             }
             return false;
         });
+        List<Block> powerupBlocks = powerupManager.onBlocksBreak(event.blockList());
+        event.blockList().removeAll(powerupBlocks);
+    }
+    @EventHandler
+    public void blockDestroyEvent(BlockDestroyEvent event) {
+        onBlockDestroy(event.getBlock(), event);
+    }
+    @EventHandler
+    public void blockBurnEvent(BlockBurnEvent event) {
+        onBlockDestroy(event.getBlock(), event);
     }
     public void onBlockDestroy(Block block, Cancellable event) {
+        if (state == null) {
+            return;
+        }
         for (Team team : teams.values()) {
             Location delivery = team.getArena().getDelivery();
             if (block.getLocation().equals(delivery)) {
@@ -473,6 +490,7 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
                 return;
             }
         }
+        powerupManager.onBlockBreak(block, event);
     }
     
     @EventHandler

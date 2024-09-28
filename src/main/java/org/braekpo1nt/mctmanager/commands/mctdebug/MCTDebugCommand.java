@@ -66,17 +66,17 @@ public class MCTDebugCommand implements TabExecutor, Listener {
                 world.getBlockAt(-9, -60, 155)
                 );
         
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                for (Block hyperGrowBlock : hyperGrowBlocks) {
-                    if (random.nextDouble() <= chancePerGameTick) {
-                        hyperGrowBlock.randomTick();
-                        hyperGrowBlock.randomTick();
-                    }
-                }
-            }
-        }.runTaskTimer(plugin, 0L, 1L);
+//        new BukkitRunnable() {
+//            @Override
+//            public void run() {
+//                for (Block hyperGrowBlock : hyperGrowBlocks) {
+//                    if (random.nextDouble() <= chancePerGameTick) {
+//                        hyperGrowBlock.randomTick();
+//                        hyperGrowBlock.randomTick();
+//                    }
+//                }
+//            }
+//        }.runTaskTimer(plugin, 0L, 1L);
         
         ItemStack result = new ItemStack(Material.GRASS_BLOCK);
         NamespacedKey key = new NamespacedKey(plugin, "grass_from_dirt");
@@ -93,29 +93,29 @@ public class MCTDebugCommand implements TabExecutor, Listener {
         Main.logger().info(String.format("randomTickSpeed=%s, numOfBlocks=%s, chancePerGameTick=%s", randomTickSpeed, numOfBlocks, chancePerGameTick));
     }
     
-    @EventHandler
-    public void onGameRuleChange(WorldGameRuleChangeEvent event) {
-        if (!event.getGameRule().equals(GameRule.RANDOM_TICK_SPEED)) {
-            return;
-        }
-        int newRandomTickSpeed = Integer.parseInt(event.getValue());
-        updateChancePerGameTick(newRandomTickSpeed);
-    }
-    
-    @EventHandler
-    public void growEvent(BlockGrowEvent event) {
-        Block block = event.getBlock();
-        if (!(block.getBlockData() instanceof Ageable ageable)) {
-            return;
-        }
-        Location l = block.getLocation();
-        int indexOf = hyperGrowBlocks.indexOf(block);
-        if (indexOf >= 0) {
-            Main.logger().info(String.format("Hyper grow %d: (%d, %d, %d), %d/%d", indexOf, l.getBlockX(), l.getBlockY(), l.getBlockZ(), ageable.getAge(), ageable.getMaximumAge()));
-        } else {
-            Main.logger().info(String.format("(%d, %d, %d), %d/%d", l.getBlockX(), l.getBlockY(), l.getBlockZ(), ageable.getAge(), ageable.getMaximumAge()));
-        }
-    }
+//    @EventHandler
+//    public void onGameRuleChange(WorldGameRuleChangeEvent event) {
+//        if (!event.getGameRule().equals(GameRule.RANDOM_TICK_SPEED)) {
+//            return;
+//        }
+//        int newRandomTickSpeed = Integer.parseInt(event.getValue());
+//        updateChancePerGameTick(newRandomTickSpeed);
+//    }
+//    
+//    @EventHandler
+//    public void growEvent(BlockGrowEvent event) {
+//        Block block = event.getBlock();
+//        if (!(block.getBlockData() instanceof Ageable ageable)) {
+//            return;
+//        }
+//        Location l = block.getLocation();
+//        int indexOf = hyperGrowBlocks.indexOf(block);
+//        if (indexOf >= 0) {
+//            Main.logger().info(String.format("Hyper grow %d: (%d, %d, %d), %d/%d", indexOf, l.getBlockX(), l.getBlockY(), l.getBlockZ(), ageable.getAge(), ageable.getMaximumAge()));
+//        } else {
+//            Main.logger().info(String.format("(%d, %d, %d), %d/%d", l.getBlockX(), l.getBlockY(), l.getBlockZ(), ageable.getAge(), ageable.getMaximumAge()));
+//        }
+//    }
     
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {

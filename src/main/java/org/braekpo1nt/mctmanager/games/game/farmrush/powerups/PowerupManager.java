@@ -6,22 +6,23 @@ import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushGame;
 import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.specs.PowerupSpec;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.block.Block;
+import org.bukkit.event.Cancellable;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class PowerupManager {
     
     public static final Map<Powerup.Type, ItemStack> typeToItem;
-    public static final Map<ItemStack, Powerup.Type> itemToType;
+    
     static {
         ItemStack cropGrowerItem = new ItemStack(Material.BEACON);
         cropGrowerItem.editMeta(meta -> {
@@ -34,9 +35,6 @@ public class PowerupManager {
         
         typeToItem = Map.of(
                 Powerup.Type.CROP_GROWER, cropGrowerItem
-        );
-        itemToType = Map.of(
-                cropGrowerItem, Powerup.Type.CROP_GROWER
         );
     }
     
@@ -97,18 +95,14 @@ public class PowerupManager {
      * @return the {@link PowerupSpec} associated with the item, if there is one
      */
     private @Nullable PowerupSpec itemToPowerupSpec(@NotNull ItemStack item) {
-        Powerup.Type type = itemToType.get(item);
-        if (type == null) {
+        ItemMeta itemMeta = item.getItemMeta();
+        if (itemMeta == null) {
             return null;
         }
-        switch (type) {
-            case CROP_GROWER -> {
-                return context.getConfig().getCropGrowerSpec();
-            }
-            default -> {
-                return null;
-            }
+        if (typeToItem.get(Powerup.Type.CROP_GROWER).getItemMeta().equals(itemMeta)) {
+            return context.getConfig().getCropGrowerSpec();
         }
+        return null;
     }
     
     /**
@@ -116,6 +110,7 @@ public class PowerupManager {
      * @param event the event
      */
     public void onPlaceBlock(BlockPlaceEvent event) {
+        Main.logger().info("PowerupManager.onPlaceBlock");
         PowerupSpec powerupSpec = itemToPowerupSpec(event.getItemInHand());
         if (powerupSpec == null) {
             return;
@@ -126,4 +121,39 @@ public class PowerupManager {
         powerups.put(location.toVector(), powerup);
     }
     
+    public void onBlockBreak(Block block, Cancellable event) {
+        Location location = block.getLocation();
+        Powerup powerup = powerups.remove(location.toVector());
+        if (powerup == null) {
+            return;
+        }
+        event.setCancelled(true);
+        ItemStack powerupItem = typeToItem.get(powerup.getType());
+        location.getWorld().dropItemNaturally(location.add(new Vector(0.5, 0.5, 0.5)), powerupItem);
+        block.setType(Material.AIR);
+    }
+    
+    /**
+     * Goes through the list to check if any of them are powerup blocks. If found,
+     * a powerup block is replaced with air and the appropriate item is dropped.
+     * 
+     * @param blocks the blocks that are broken
+     * @return the blocks from the list that were powerup blocks. Use this list to remove
+     * these from the event, so they don't drop their natural item.
+     */
+    public List<Block> onBlocksBreak(List<Block> blocks) {
+        List<Block> blocksToRemove = new ArrayList<>();
+        for (Block block : blocks) {
+            Location location = block.getLocation();
+            Powerup powerup = powerups.remove(location.toVector());
+            if (powerup == null) {
+                return Collections.emptyList();
+            }
+            blocksToRemove.add(block);
+            ItemStack powerupItem = typeToItem.get(powerup.getType());
+            location.getWorld().dropItemNaturally(location.add(new Vector(0.5, 0.5, 0.5)), powerupItem);
+            block.setType(Material.AIR);
+        }
+        return blocksToRemove;
+    }
 }
