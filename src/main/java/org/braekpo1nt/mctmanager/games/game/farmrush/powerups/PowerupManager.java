@@ -144,13 +144,12 @@ public class PowerupManager {
         for (Block block : blocks) {
             Location location = block.getLocation();
             Powerup powerup = powerups.remove(location.toVector());
-            if (powerup == null) {
-                return Collections.emptyList();
+            if (powerup != null) {
+                blocksToRemove.add(block);
+                ItemStack powerupItem = typeToItem.get(powerup.getType());
+                location.getWorld().dropItemNaturally(location.add(new Vector(0.5, 0.5, 0.5)), powerupItem);
+                block.setType(Material.AIR);
             }
-            blocksToRemove.add(block);
-            ItemStack powerupItem = typeToItem.get(powerup.getType());
-            location.getWorld().dropItemNaturally(location.add(new Vector(0.5, 0.5, 0.5)), powerupItem);
-            block.setType(Material.AIR);
         }
         return blocksToRemove;
     }
