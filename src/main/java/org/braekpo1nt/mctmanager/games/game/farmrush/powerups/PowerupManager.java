@@ -26,7 +26,7 @@ public class PowerupManager {
     public static final Map<Powerup.Type, ItemStack> typeToItem;
     
     static {
-        ItemStack cropGrowerItem = new ItemStack(Material.BEACON);
+        ItemStack cropGrowerItem = new ItemStack(Material.FURNACE);
         cropGrowerItem.editMeta(meta -> {
             meta.displayName(Component.text("Crop Grower"));
             meta.lore(List.of(
@@ -35,8 +35,19 @@ public class PowerupManager {
             ));
         });
         
+        ItemStack animalGrowerItem = new ItemStack(Material.FURNACE);
+        animalGrowerItem.editMeta(meta -> {
+            meta.displayName(Component.text("Animal Grower"));
+            meta.lore(List.of(
+                    Component.text("Place this near animals"),
+                    Component.text("to make them grow up"),
+                    Component.text("and breed faster")
+            ));
+        });
+        
         typeToItem = Map.of(
-                Powerup.Type.CROP_GROWER, cropGrowerItem
+                Powerup.Type.CROP_GROWER, cropGrowerItem,
+                Powerup.Type.ANIMAL_GROWER, animalGrowerItem
         );
     }
     
@@ -133,6 +144,7 @@ public class PowerupManager {
         Location location = event.getBlockPlaced().getLocation();
         Powerup powerup = powerupSpec.createPowerup(location);
         powerups.put(location.toVector(), powerup);
+        Main.logger().info((String.format("Placed %s", powerupSpec.getType())));
     }
     
     public void onBlockBreak(Block block, Cancellable event) {

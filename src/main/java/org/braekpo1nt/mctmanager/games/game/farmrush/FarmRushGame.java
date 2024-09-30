@@ -54,6 +54,7 @@ import org.bukkit.event.inventory.*;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
 import org.bukkit.persistence.PersistentDataType;
@@ -197,9 +198,16 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
             ((Directional) starterChestBlockData).setFacing(arena.getStarterChestBlockFace());
             starterChest.setBlockData(starterChestBlockData);
             Chest starterChestState = (Chest) starterChest.getState();
-            starterChestState.getBlockInventory().setContents(config.getStarterChestContents());
+            Inventory starterChestInventory = starterChestState.getBlockInventory();
+            starterChestInventory.setContents(config.getStarterChestContents());
             if (config.getMaterialBook() != null) {
-                starterChestState.getBlockInventory().addItem(config.getMaterialBook());
+                starterChestInventory.addItem(config.getMaterialBook());
+            }
+            if (config.getCropGrowerSpec() != null) {
+                starterChestInventory.addItem(config.getCropGrowerSpec().getItem());
+            }
+            if (config.getAnimalGrowerSpec() != null) {
+                starterChestInventory.addItem(config.getAnimalGrowerSpec().getItem());
             }
             
             arena.closeBarnDoor();

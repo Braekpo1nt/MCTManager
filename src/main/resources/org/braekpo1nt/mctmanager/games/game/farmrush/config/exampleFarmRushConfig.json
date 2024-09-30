@@ -142,6 +142,31 @@
           }
         }
       }
+    },
+    "animalGrower": {
+      "customModelData": 2,
+      "seconds": 5,
+      "radius": 4,
+      "ageMultiplier": 0.1,
+      "breedMultiplier": 0.1,
+      "recipe": {
+        "namespacedKey": "mct:animal_grower",
+        "type": "minecraft:crafting_shaped",
+        "category": "blocks",
+        "pattern": [
+          "#D#",
+          "###",
+          "# #"
+        ],
+        "key": {
+          "#": {
+            "item": "minecraft:iron_ingot"
+          },
+          "D": {
+            "item": "minecraft:leather"
+          }
+        }
+      }
     }
   },
   "durations": {
