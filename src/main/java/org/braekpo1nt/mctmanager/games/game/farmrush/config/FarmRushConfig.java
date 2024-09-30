@@ -7,6 +7,7 @@ import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.games.game.farmrush.Arena;
 import org.braekpo1nt.mctmanager.games.game.farmrush.ItemSale;
 import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.Powerup;
+import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.specs.AnimalGrowerSpec;
 import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.specs.CropGrowerSpec;
 import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.specs.PowerupSpec;
 import org.bukkit.Location;
@@ -59,5 +60,7 @@ public class FarmRushConfig {
     private @Nullable ItemStack materialBook;
     
     private @Nullable CropGrowerSpec cropGrowerSpec;
+    
+    private @Nullable AnimalGrowerSpec animalGrowerSpec;
     
 }

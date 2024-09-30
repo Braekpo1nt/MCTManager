@@ -15,6 +15,7 @@ import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushGame;
 import org.braekpo1nt.mctmanager.games.game.farmrush.ItemSale;
+import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.specs.AnimalGrowerSpec;
 import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.specs.CropGrowerSpec;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -80,10 +81,15 @@ class FarmRushConfigDTO implements Validatable {
     static class PowerupData implements Validatable {
         private CropGrowerSpecDTO cropGrower;
         
+        private AnimalGrowerSpecDTO animalGrower;
+        
         @Override
         public void validate(@NotNull Validator validator) {
             if (cropGrower != null) {
                 cropGrower.validate(validator.path("cropGrower"));
+            }
+            if (animalGrower != null) {
+                animalGrower.validate(validator.path("animalGrower"));
             }
         }
     }
@@ -126,6 +132,9 @@ class FarmRushConfigDTO implements Validatable {
         if (recipes != null) {
             validator.validateList(recipes, "recipes");
         }
+        if (powerups != null) {
+            powerups.validate(validator.path("powerups"));
+        }
     }
     
     public FarmRushConfig toConfig() {
@@ -148,10 +157,13 @@ class FarmRushConfigDTO implements Validatable {
             }
         }
         CropGrowerSpec newCropGrowerSpec;
+        AnimalGrowerSpec newAnimalGrowerSpec;
         if (powerups != null) {
             newCropGrowerSpec = powerups.getCropGrower().toSpec();
+            newAnimalGrowerSpec = powerups.getAnimalGrower().toSpec();
         } else {
             newCropGrowerSpec = null;
+            newAnimalGrowerSpec = null;
         }
         return FarmRushConfig.builder()
                 .world(newWorld)
@@ -171,6 +183,7 @@ class FarmRushConfigDTO implements Validatable {
                 .recipes(this.recipes != null ? RecipeDTO.toRecipes(this.recipes) : Collections.emptyList())
                 .recipeKeys(this.recipes != null ? RecipeDTO.toNamespacedKeys(this.recipes) : Collections.emptyList())
                 .cropGrowerSpec(newCropGrowerSpec)
+                .animalGrowerSpec(newAnimalGrowerSpec)
                 .build();
     }
     

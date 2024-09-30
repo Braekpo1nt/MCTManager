@@ -16,10 +16,8 @@ import org.bukkit.World;
 public abstract class Powerup {
     public enum Type {
         CROP_GROWER,
-//        ANIMAL_GROWTH,
+        ANIMAL_GROWER,
     }
-    
-    
     
     /**
      * the world the powerup is in

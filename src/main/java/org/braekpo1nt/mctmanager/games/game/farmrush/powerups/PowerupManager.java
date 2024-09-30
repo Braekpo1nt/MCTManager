@@ -3,6 +3,8 @@ package org.braekpo1nt.mctmanager.games.game.farmrush.powerups;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushGame;
+import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.specs.AnimalGrowerSpec;
+import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.specs.CropGrowerSpec;
 import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.specs.PowerupSpec;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -78,12 +80,18 @@ public class PowerupManager {
         if (context.getConfig().getCropGrowerSpec() != null) {
             context.getPlugin().getServer().removeRecipe(context.getConfig().getCropGrowerSpec().getRecipeKey());
         }
+        if (context.getConfig().getAnimalGrowerSpec() != null) {
+            context.getPlugin().getServer().removeRecipe(context.getConfig().getAnimalGrowerSpec().getRecipeKey());
+        }
         context.getPlugin().getServer().updateRecipes();
     }
     
     private void addPowerupRecipes() {
         if (context.getConfig().getCropGrowerSpec() != null) {
             context.getPlugin().getServer().addRecipe(context.getConfig().getCropGrowerSpec().getRecipe());
+        }
+        if (context.getConfig().getAnimalGrowerSpec() != null) {
+            context.getPlugin().getServer().addRecipe(context.getConfig().getAnimalGrowerSpec().getRecipe());
         }
         context.getPlugin().getServer().updateRecipes();
     }
@@ -99,9 +107,17 @@ public class PowerupManager {
         if (itemMeta == null) {
             return null;
         }
-        if (typeToItem.get(Powerup.Type.CROP_GROWER).getItemMeta().equals(itemMeta)) {
-            return context.getConfig().getCropGrowerSpec();
+        
+        CropGrowerSpec cropGrowerSpec = context.getConfig().getCropGrowerSpec();
+        if (cropGrowerSpec != null && cropGrowerSpec.getItem().getItemMeta().equals(itemMeta)) {
+            return cropGrowerSpec;
         }
+        
+        AnimalGrowerSpec animalGrowerSpec = context.getConfig().getAnimalGrowerSpec();
+        if (animalGrowerSpec != null && animalGrowerSpec.getItem().getItemMeta().equals(itemMeta)) {
+            return animalGrowerSpec;
+        }
+        
         return null;
     }
     

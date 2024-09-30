@@ -16,22 +16,20 @@ import org.jetbrains.annotations.NotNull;
 @Data
 @Builder
 public class CropGrowerSpec implements PowerupSpec {
+    private final @NotNull Powerup.Type type = Powerup.Type.CROP_GROWER;
     /**
      * the item used to place the powerup
      */
     private final @NotNull ItemStack item;
-    private final @NotNull Powerup.Type type;
     private final @NotNull Recipe recipe;
-    /**
-     * How far the effects reach
-     */
     private double radius;
     private NamespacedKey recipeKey;
-    private int interval;
+    
+    private int seconds;
     private double growthChance;
     
     @Override
     public Powerup createPowerup(Location location) {
-        return new CropGrower(location, radius, interval, growthChance);
+        return new CropGrower(location, radius, seconds, growthChance);
     }
 }

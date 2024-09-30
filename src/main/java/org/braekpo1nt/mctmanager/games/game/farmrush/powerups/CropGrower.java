@@ -21,11 +21,11 @@ public class CropGrower extends Powerup {
      */
     private @Nullable List<Block> crops;
     /**
-     * how many cycles before running a probability check
+     * how many seconds before running a probability check
      */
-    private final int interval;
+    private final int seconds;
     /**
-     * the probability per second of a crop increasing in age per cycle
+     * the probability per {@link #performAction()} of a crop increasing in age
      */
     private final double growthChance;
     /**
@@ -33,10 +33,10 @@ public class CropGrower extends Powerup {
      */
     private int count;
     
-    public CropGrower(Location location, double radius, int interval, double growthChance) {
+    public CropGrower(Location location, double radius, int seconds, double growthChance) {
         super(location.getWorld(), location, radius);
-        this.interval = interval;
-        this.count = interval;
+        this.seconds = seconds;
+        this.count = seconds;
         this.growthChance = growthChance;
     }
     
@@ -51,7 +51,7 @@ public class CropGrower extends Powerup {
             count--;
             return;
         }
-        count = interval;
+        count = seconds;
         detectCrops();
         if (crops == null) {
             return;

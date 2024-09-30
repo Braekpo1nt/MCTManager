@@ -6,13 +6,14 @@ import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.Powerup;
 import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.PowerupManager;
-import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.specs.CropGrowerSpec;
+import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.specs.AnimalGrowerSpec;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 @Data
-class CropGrowerSpecDTO implements Validatable {
-    private final Powerup.Type type = Powerup.Type.CROP_GROWER;
+public class AnimalGrowerSpecDTO implements Validatable {
+    
+    private final Powerup.Type type = Powerup.Type.ANIMAL_GROWER;
     /**
      * The recipe used to craft this powerup. Can't be null. If the result is specified
      * in the config, it will be overwritten by the internal powerup.
@@ -27,29 +28,31 @@ class CropGrowerSpecDTO implements Validatable {
      */
     private int customModelData = 0;
     /**
-     * How many seconds pass between probability checks
-     * If this is {@code x}, then each block will have a {@link #growthChance}
-     * chance to grow to the next cycle every {@code x} seconds.
-     * Defaults to 0, can't be negative.
+     * How many seconds pass between checks for new entities in the radius
      */
     private int seconds = 0;
     /**
-     * the chance per probability check for a crop to grow to the next age.
-     * A probability check happens every {@link #seconds} seconds
-     * Defaults to 1.0, must be between 0.0 and 1.0 inclusive.
+     * a growable mob's age is multiplied by this factor. To grow faster,
+     * make it a number less than 1. E.g. a mob takes 20 ticks to grow, and
+     * ageFactor is .75, it will take 15 ticks to grow when within the
+     * {@link #radius}
      */
-    private double growthChance = 1.0;
+    private double ageMultiplier;
+    /**
+     * Works the same as {@link #ageMultiplier}, but for the breeding cooldown
+     */
+    private double breedMultiplier;
     
-    public CropGrowerSpec toSpec() {
+    public AnimalGrowerSpec toSpec() {
         ItemStack powerupItem = PowerupManager.typeToItem.get(type);
         powerupItem.editMeta(meta -> meta.setCustomModelData(customModelData));
-        return CropGrowerSpec.builder()
+        return AnimalGrowerSpec.builder()
                 .item(powerupItem)
                 .recipe(recipe.toRecipe(powerupItem))
                 .recipeKey(recipe.getNamespacedKey())
-                .radius(radius)
                 .seconds(seconds)
-                .growthChance(growthChance)
+                .ageMultiplier(ageMultiplier)
+                .breedMultiplier(breedMultiplier)
                 .build();
     }
     
@@ -58,6 +61,7 @@ class CropGrowerSpecDTO implements Validatable {
         validator.notNull(recipe, "recipe");
         validator.validate(radius >= 0.0, "radius can't be negative");
         validator.validate(seconds >= 0, "seconds can't be negative");
-        validator.validate(0 <= growthChance && growthChance <= 1.0, "growthChance must be between 0.0 and 1.0 inclusive");
+        validator.validate(ageMultiplier >= 0.0, "ageMultiplier can't be negative");
+        validator.validate(breedMultiplier >= 0.0, "breedMultiplier can't be negative");
     }
 }
