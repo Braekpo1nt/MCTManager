@@ -79,9 +79,9 @@ class FarmRushConfigDTO implements Validatable {
     
     @Data
     static class PowerupData implements Validatable {
-        private CropGrowerSpecDTO cropGrower;
+        private @Nullable CropGrowerSpecDTO cropGrower;
         
-        private AnimalGrowerSpecDTO animalGrower;
+        private @Nullable AnimalGrowerSpecDTO animalGrower;
         
         @Override
         public void validate(@NotNull Validator validator) {
@@ -156,14 +156,15 @@ class FarmRushConfigDTO implements Validatable {
                 }
             }
         }
-        CropGrowerSpec newCropGrowerSpec;
-        AnimalGrowerSpec newAnimalGrowerSpec;
+        CropGrowerSpec newCropGrowerSpec = null;
+        AnimalGrowerSpec newAnimalGrowerSpec = null;
         if (powerups != null) {
-            newCropGrowerSpec = powerups.getCropGrower().toSpec();
-            newAnimalGrowerSpec = powerups.getAnimalGrower().toSpec();
-        } else {
-            newCropGrowerSpec = null;
-            newAnimalGrowerSpec = null;
+            if (powerups.getCropGrower() != null) {
+                newCropGrowerSpec = powerups.getCropGrower().toSpec();
+            }
+            if (powerups.getAnimalGrower() != null) {
+                newAnimalGrowerSpec = powerups.getAnimalGrower().toSpec();
+            }
         }
         return FarmRushConfig.builder()
                 .world(newWorld)
