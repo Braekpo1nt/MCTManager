@@ -45,7 +45,7 @@ public class AnimalGrower extends Powerup {
         }
         count = interval;
         
-        Collection<Animals> animalsInRange = world.getNearbyEntitiesByType(Animals.class, location, radius);
+        Collection<Animals> animalsInRange = world.getNearbyEntitiesByType(Animals.class, location, radius, animal -> animal.getAge() != 0);
         // cows that have just walked into the radius should have their age multiplied, and breed time reduced
         // cows that are already in the radius before this scan should be unchanged
         // cows that have just walked out of the radius should have their age un-multiplied
@@ -54,7 +54,9 @@ public class AnimalGrower extends Powerup {
         // to speed up breed cooldown, take the positive age and make it closer to 0 (i.e. smaller)
         List<Animals> existingAnimals = affectedEntities.values().stream().toList();
         for (Animals animal : existingAnimals) {
-            if (!animalsInRange.contains(animal)) {
+            if (animal.getAge() == 0) {
+                affectedEntities.remove(animal.getUniqueId());
+            } else if (!animalsInRange.contains(animal)) {
                 // this animal is no longer in range
                 affectedEntities.remove(animal.getUniqueId());
                 deBuffAnimal(animal);
@@ -62,43 +64,37 @@ public class AnimalGrower extends Powerup {
         }
         
         for (Animals animal : animalsInRange) {
-            buffAnimal(animal);
-            affectedEntities.put(animal.getUniqueId(), animal);
+            if (!affectedEntities.containsKey(animal.getUniqueId())) {
+                buffAnimal(animal);
+                affectedEntities.put(animal.getUniqueId(), animal);
+            }
         }
         
     }
     
     private void buffAnimal(Animals animal) {
         int oldAge = animal.getAge();
-        if (oldAge == 0) {
-            return;
-        }
         if (animal.isAdult()) {
             // make adults breed faster
             animal.setAge((int) (oldAge * breedMultiplier));
             Main.logger().info(String.format("Breed faster: %d->%d", oldAge, (int) (oldAge * breedMultiplier)));
         } else {
-            if (!affectedEntities.containsKey(animal.getUniqueId())) {
-                // make babies grow up faster
-                animal.setAge((int) (oldAge * ageMultiplier));
-                Main.logger().info(String.format("Age faster: %d->%d", oldAge, (int) (oldAge * ageMultiplier)));
-            }
+            // make babies grow up faster
+            animal.setAge((int) (oldAge * ageMultiplier));
+            Main.logger().info(String.format("Age faster: %d->%d", oldAge, (int) (oldAge * ageMultiplier)));
         }
     }
     
     private void deBuffAnimal(Animals animal) {
         int oldAge = animal.getAge();
-        if (oldAge == 0) {
-            return;
-        }
         if (animal.isAdult()) {
             // make adults breed normally
             animal.setAge((int) (oldAge / breedMultiplier));
-            Main.logger().info(String.format("Breed slower: %d->%d", oldAge, (int) (oldAge * breedMultiplier)));
+            Main.logger().info(String.format("Breed slower: %d->%d", oldAge, (int) (oldAge / breedMultiplier)));
         } else {
             // make babies age normally
             animal.setAge((int) (oldAge / ageMultiplier));
-            Main.logger().info(String.format("Age slower: %d->%d", oldAge, (int) (oldAge * ageMultiplier)));
+            Main.logger().info(String.format("Age slower: %d->%d", oldAge, (int) (oldAge / ageMultiplier)));
         }
     }
     
