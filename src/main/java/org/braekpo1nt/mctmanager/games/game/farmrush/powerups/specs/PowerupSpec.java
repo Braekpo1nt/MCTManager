@@ -1,18 +1,14 @@
 package org.braekpo1nt.mctmanager.games.game.farmrush.powerups.specs;
 
-import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.Powerup;
-import org.bukkit.Location;
+import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.PowerupType;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public interface PowerupSpec {
     
-    /**
-     * the item used to place the powerup
-     */
-    @NotNull ItemStack getItem();
     @NotNull
-    Powerup.Type getType();
+    PowerupType getType();
     /**
      * How far the effects reach
      */
@@ -20,7 +16,8 @@ public interface PowerupSpec {
     void setRadius(double radius);
     
     /**
-     * @return a powerup using this as its spec
+     * @param itemStack the item to check
+     * @return true if this item matches this {@link PowerupSpec}'s item
      */
-    Powerup createPowerup(Location location);
+    boolean isItem(@Nullable ItemStack itemStack);
 }

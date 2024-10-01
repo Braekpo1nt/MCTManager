@@ -3,12 +3,22 @@ package org.braekpo1nt.mctmanager.games.game.farmrush.powerups;
 
 import org.braekpo1nt.mctmanager.Main;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.entity.Animals;
 
 import java.util.*;
 
-public class AnimalGrower extends Powerup {
+public class AnimalGrower {
     
+    /**
+     * the world the powerup is in
+     */
+    protected final World world;
+    /**
+     * The location of the powerup in the world
+     */
+    protected final Location location;
+    protected final double radius;
     private final Map<UUID, Animals> affectedEntities = new HashMap<>();
     /**
      * how many cycles before running a probability check
@@ -31,13 +41,14 @@ public class AnimalGrower extends Powerup {
     private int count;
     
     public AnimalGrower(Location location, double radius, int interval, double ageMultiplier, double breedMultiplier) {
-        super(location.getWorld(), location, radius);
+        this.world = location.getWorld();
+        this.location = location; 
+        this.radius = radius;
         this.interval = interval;
         this.ageMultiplier = ageMultiplier;
         this.breedMultiplier = breedMultiplier;
     }
     
-    @Override
     public void performAction() {
         if (count > 0) {
             count--;
@@ -98,8 +109,7 @@ public class AnimalGrower extends Powerup {
         }
     }
     
-    @Override
-    public Type getType() {
-        return Type.ANIMAL_GROWER;
+    public PowerupType getType() {
+        return PowerupType.ANIMAL_GROWER;
     }
 }

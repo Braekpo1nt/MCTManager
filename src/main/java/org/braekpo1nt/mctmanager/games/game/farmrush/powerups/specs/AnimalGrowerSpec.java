@@ -3,12 +3,15 @@ package org.braekpo1nt.mctmanager.games.game.farmrush.powerups.specs;
 import lombok.Builder;
 import lombok.Data;
 import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.AnimalGrower;
-import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.Powerup;
+import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.PowerupManager;
+import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.PowerupType;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Makes animals in its radius grow and breed faster
@@ -16,9 +19,8 @@ import org.jetbrains.annotations.NotNull;
 @Data
 @Builder
 public class AnimalGrowerSpec implements PowerupSpec {
-    private final @NotNull Powerup.Type type = Powerup.Type.ANIMAL_GROWER;
+    private final @NotNull PowerupType type = PowerupType.ANIMAL_GROWER;
     
-    private final @NotNull ItemStack item;
     private final @NotNull Recipe recipe;
     private double radius;
     private NamespacedKey recipeKey;
@@ -39,8 +41,19 @@ public class AnimalGrowerSpec implements PowerupSpec {
      */
     private double breedMultiplier;
     
-    @Override
-    public Powerup createPowerup(Location location) {
+    public AnimalGrower createPowerup(Location location) {
         return new AnimalGrower(location, radius, seconds, ageMultiplier, breedMultiplier);
+    }
+    
+    @Override
+    public boolean isItem(@Nullable ItemStack itemStack) {
+        if (itemStack == null) {
+            return false;
+        }
+        ItemMeta itemMeta = itemStack.getItemMeta();
+        if (itemMeta == null) {
+            return false;
+        }
+        return PowerupManager.animalGrowerItem.getItemMeta().equals(itemMeta);
     }
 }

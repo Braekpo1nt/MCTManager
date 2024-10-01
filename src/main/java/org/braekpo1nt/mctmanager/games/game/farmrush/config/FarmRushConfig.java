@@ -1,15 +1,12 @@
 package org.braekpo1nt.mctmanager.games.game.farmrush.config;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.games.game.farmrush.Arena;
 import org.braekpo1nt.mctmanager.games.game.farmrush.ItemSale;
-import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.Powerup;
 import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.specs.AnimalGrowerSpec;
 import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.specs.CropGrowerSpec;
-import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.specs.PowerupSpec;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;

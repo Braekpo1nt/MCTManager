@@ -4,15 +4,15 @@ import lombok.Data;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.recipes.RecipeDTO;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
-import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.Powerup;
 import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.PowerupManager;
+import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.PowerupType;
 import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.specs.CropGrowerSpec;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 @Data
 class CropGrowerSpecDTO implements Validatable {
-    private final Powerup.Type type = Powerup.Type.CROP_GROWER;
+    private final PowerupType type = PowerupType.CROP_GROWER;
     /**
      * The recipe used to craft this powerup. Can't be null. If the result is specified
      * in the config, it will be overwritten by the internal powerup.
@@ -41,10 +41,9 @@ class CropGrowerSpecDTO implements Validatable {
     private double growthChance = 1.0;
     
     public CropGrowerSpec toSpec() {
-        ItemStack powerupItem = PowerupManager.typeToItem.get(type);
+        ItemStack powerupItem = PowerupManager.cropGrowerItem;
         powerupItem.editMeta(meta -> meta.setCustomModelData(customModelData));
         return CropGrowerSpec.builder()
-                .item(powerupItem)
                 .recipe(recipe.toRecipe(powerupItem))
                 .recipeKey(recipe.getNamespacedKey())
                 .radius(radius)

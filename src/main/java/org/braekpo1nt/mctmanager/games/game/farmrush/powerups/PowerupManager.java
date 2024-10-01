@@ -5,28 +5,26 @@ import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushGame;
 import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.specs.AnimalGrowerSpec;
 import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.specs.CropGrowerSpec;
-import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.specs.PowerupSpec;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
 public class PowerupManager {
     
-    public static final Map<Powerup.Type, ItemStack> typeToItem;
+    public static final ItemStack cropGrowerItem;
+    public static final ItemStack animalGrowerItem;
     
     static {
-        ItemStack cropGrowerItem = new ItemStack(Material.FURNACE);
+        cropGrowerItem = new ItemStack(Material.FURNACE);
         cropGrowerItem.editMeta(meta -> {
             meta.displayName(Component.text("Crop Grower"));
             meta.lore(List.of(
@@ -35,7 +33,7 @@ public class PowerupManager {
             ));
         });
         
-        ItemStack animalGrowerItem = new ItemStack(Material.FURNACE);
+        animalGrowerItem = new ItemStack(Material.FURNACE);
         animalGrowerItem.editMeta(meta -> {
             meta.displayName(Component.text("Animal Grower"));
             meta.lore(List.of(
@@ -45,17 +43,17 @@ public class PowerupManager {
             ));
         });
         
-        typeToItem = Map.of(
-                Powerup.Type.CROP_GROWER, cropGrowerItem,
-                Powerup.Type.ANIMAL_GROWER, animalGrowerItem
-        );
     }
     
     private final FarmRushGame context;
     /**
-     * the physically placed powerups in the world
+     * the physically placed crop growers in the world
      */
-    private final Map<Vector, Powerup> powerups = new HashMap<>();
+    private final Map<Vector, CropGrower> cropGrowers = new HashMap<>();
+    /**
+     * the physically placed animalGrowers in the world
+     */
+    private final Map<Vector, AnimalGrower> animalGrowers = new HashMap<>();
     private BukkitTask powerupActionTask;
     
     public PowerupManager(FarmRushGame context) {
@@ -69,8 +67,11 @@ public class PowerupManager {
         powerupActionTask = new BukkitRunnable() {
             @Override
             public void run() {
-                for (Powerup powerup : powerups.values()) {
-                    powerup.performAction();
+                for (CropGrower cropGrower : cropGrowers.values()) {
+                    cropGrower.performAction();
+                }
+                for (AnimalGrower animalGrower : animalGrowers.values()) {
+                    animalGrower.performAction();
                 }
             }
         }.runTaskTimer(context.getPlugin(), 0L, 20L);
@@ -83,86 +84,72 @@ public class PowerupManager {
             powerupActionTask = null;
         }
         removePowerupRecipes();
-        powerups.clear();
+        cropGrowers.clear();
         Main.logger().info("Farm Rush Powerups stopped");
     }
     
     private void removePowerupRecipes() {
-        if (context.getConfig().getCropGrowerSpec() != null) {
-            context.getPlugin().getServer().removeRecipe(context.getConfig().getCropGrowerSpec().getRecipeKey());
+        CropGrowerSpec cropGrowerSpec = context.getConfig().getCropGrowerSpec();
+        if (cropGrowerSpec != null) {
+            context.getPlugin().getServer().removeRecipe(cropGrowerSpec.getRecipeKey());
         }
-        if (context.getConfig().getAnimalGrowerSpec() != null) {
-            context.getPlugin().getServer().removeRecipe(context.getConfig().getAnimalGrowerSpec().getRecipeKey());
+        AnimalGrowerSpec animalGrowerSpec = context.getConfig().getAnimalGrowerSpec();
+        if (animalGrowerSpec != null) {
+            context.getPlugin().getServer().removeRecipe(animalGrowerSpec.getRecipeKey());
         }
         context.getPlugin().getServer().updateRecipes();
     }
     
     private void addPowerupRecipes() {
-        if (context.getConfig().getCropGrowerSpec() != null) {
-            context.getPlugin().getServer().addRecipe(context.getConfig().getCropGrowerSpec().getRecipe());
+        CropGrowerSpec cropGrowerSpec = context.getConfig().getCropGrowerSpec();
+        if (cropGrowerSpec != null) {
+            context.getPlugin().getServer().addRecipe(cropGrowerSpec.getRecipe());
         }
-        if (context.getConfig().getAnimalGrowerSpec() != null) {
-            context.getPlugin().getServer().addRecipe(context.getConfig().getAnimalGrowerSpec().getRecipe());
+        AnimalGrowerSpec animalGrowerSpec = context.getConfig().getAnimalGrowerSpec();
+        if (animalGrowerSpec != null) {
+            context.getPlugin().getServer().addRecipe(animalGrowerSpec.getRecipe());
         }
         context.getPlugin().getServer().updateRecipes();
-    }
-    
-    /**
-     * Checks against all {@link PowerupSpec#getItem()} to retrieve the powerup associated
-     * with the given item. 
-     * @param item the item that might be associated with a {@link PowerupSpec}
-     * @return the {@link PowerupSpec} associated with the item, if there is one
-     */
-    private @Nullable PowerupSpec itemToPowerupSpec(@NotNull ItemStack item) {
-        ItemMeta itemMeta = item.getItemMeta();
-        if (itemMeta == null) {
-            return null;
-        }
-        
-        CropGrowerSpec cropGrowerSpec = context.getConfig().getCropGrowerSpec();
-        if (cropGrowerSpec != null && cropGrowerSpec.getItem().getItemMeta().equals(itemMeta)) {
-            return cropGrowerSpec;
-        }
-        
-        AnimalGrowerSpec animalGrowerSpec = context.getConfig().getAnimalGrowerSpec();
-        if (animalGrowerSpec != null && animalGrowerSpec.getItem().getItemMeta().equals(itemMeta)) {
-            return animalGrowerSpec;
-        }
-        
-        return null;
     }
     
     /**
      * Called when a participant places a block
      * @param event the event
      */
-    public void onPlaceBlock(BlockPlaceEvent event) {
-        PowerupSpec powerupSpec = itemToPowerupSpec(event.getItemInHand());
-        if (powerupSpec == null) {
-            return;
-        }
+    public void onPlaceBlock(@NotNull BlockPlaceEvent event) {
+        ItemStack item = event.getItemInHand();
         Location location = event.getBlockPlaced().getLocation();
-        Powerup powerup = powerupSpec.createPowerup(location);
-        powerups.put(location.toVector(), powerup);
-        Main.logger().info((String.format("Placed %s", powerupSpec.getType())));
+        if (context.getConfig().getCropGrowerSpec() != null) {
+            if (context.getConfig().getCropGrowerSpec().isItem(item)) {
+                CropGrower cropGrower = context.getConfig().getCropGrowerSpec().createPowerup(location);
+                cropGrowers.put(location.toVector(), cropGrower);
+                Main.logger().info("Placed Crop Grower");
+            }
+        }
+        if (context.getConfig().getAnimalGrowerSpec() != null) {
+            if (context.getConfig().getAnimalGrowerSpec().isItem(item)) {
+                AnimalGrower animalGrower = context.getConfig().getAnimalGrowerSpec().createPowerup(location);
+                animalGrowers.put(location.toVector(), animalGrower);
+                Main.logger().info("Placed Animal Grower");
+            }
+        }
     }
     
     public void onBlockBreak(Block block, Cancellable event) {
-        Location location = block.getLocation();
-        Powerup powerup = powerups.remove(location.toVector());
-        if (powerup == null) {
+        if (onBreakCropGrower(block)) {
+            event.setCancelled(true);
             return;
         }
-        event.setCancelled(true);
-        ItemStack powerupItem = typeToItem.get(powerup.getType());
-        location.getWorld().dropItemNaturally(location.add(new Vector(0.5, 0.5, 0.5)), powerupItem);
-        block.setType(Material.AIR);
+        if (onBreakAnimalGrower(block)) {
+            event.setCancelled(true);
+            return;
+        }
     }
     
     /**
      * Goes through the list to check if any of them are powerup blocks. If found,
      * a powerup block is replaced with air and the appropriate item is dropped.
-     * 
+     *
      * @param blocks the blocks that are broken
      * @return the blocks from the list that were powerup blocks. Use this list to remove
      * these from the event, so they don't drop their natural item.
@@ -170,15 +157,41 @@ public class PowerupManager {
     public List<Block> onBlocksBreak(List<Block> blocks) {
         List<Block> blocksToRemove = new ArrayList<>();
         for (Block block : blocks) {
-            Location location = block.getLocation();
-            Powerup powerup = powerups.remove(location.toVector());
-            if (powerup != null) {
+            if (onBreakCropGrower(block)) {
                 blocksToRemove.add(block);
-                ItemStack powerupItem = typeToItem.get(powerup.getType());
-                location.getWorld().dropItemNaturally(location.add(new Vector(0.5, 0.5, 0.5)), powerupItem);
-                block.setType(Material.AIR);
+            }
+            if (onBreakAnimalGrower(block)) {
+                blocksToRemove.add(block);
             }
         }
         return blocksToRemove;
+    }
+    
+    private boolean onBreakCropGrower(Block block) {
+        Location location = block.getLocation();
+        CropGrower cropGrower = cropGrowers.remove(location.toVector());
+        if (cropGrower != null) {
+            return false;
+        }
+        if (context.getConfig().getCropGrowerSpec() == null) {
+            return false;
+        }
+        location.getWorld().dropItemNaturally(location.add(new Vector(0.5, 0.5, 0.5)), cropGrowerItem);
+        block.setType(Material.AIR);
+        return true;
+    }
+    
+    private boolean onBreakAnimalGrower(Block block) {
+        Location location = block.getLocation();
+        AnimalGrower animalGrower = animalGrowers.remove(location.toVector());
+        if (animalGrower != null) {
+            return false;
+        }
+        if (context.getConfig().getAnimalGrowerSpec() == null) {
+            return false;
+        }
+        location.getWorld().dropItemNaturally(location.add(new Vector(0.5, 0.5, 0.5)), animalGrowerItem);
+        block.setType(Material.AIR);
+        return true;
     }
 }

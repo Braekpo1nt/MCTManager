@@ -4,8 +4,8 @@ import lombok.Data;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.recipes.RecipeDTO;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
-import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.Powerup;
 import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.PowerupManager;
+import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.PowerupType;
 import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.specs.AnimalGrowerSpec;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
 @Data
 public class AnimalGrowerSpecDTO implements Validatable {
     
-    private final Powerup.Type type = Powerup.Type.ANIMAL_GROWER;
+    private final PowerupType type = PowerupType.ANIMAL_GROWER;
     /**
      * The recipe used to craft this powerup. Can't be null. If the result is specified
      * in the config, it will be overwritten by the internal powerup.
@@ -44,10 +44,9 @@ public class AnimalGrowerSpecDTO implements Validatable {
     private double breedMultiplier;
     
     public AnimalGrowerSpec toSpec() {
-        ItemStack powerupItem = PowerupManager.typeToItem.get(type);
+        ItemStack powerupItem = PowerupManager.cropGrowerItem;
         powerupItem.editMeta(meta -> meta.setCustomModelData(customModelData));
         return AnimalGrowerSpec.builder()
-                .item(powerupItem)
                 .recipe(recipe.toRecipe(powerupItem))
                 .recipeKey(recipe.getNamespacedKey())
                 .seconds(seconds)
