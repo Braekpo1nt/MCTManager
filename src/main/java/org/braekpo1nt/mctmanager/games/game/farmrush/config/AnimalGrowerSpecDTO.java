@@ -44,7 +44,7 @@ public class AnimalGrowerSpecDTO implements Validatable {
     private double breedMultiplier;
     
     public AnimalGrowerSpec toSpec() {
-        ItemStack powerupItem = PowerupManager.cropGrowerItem;
+        ItemStack powerupItem = PowerupManager.animalGrowerItem;
         powerupItem.editMeta(meta -> meta.setCustomModelData(customModelData));
         return AnimalGrowerSpec.builder()
                 .recipe(recipe.toRecipe(powerupItem))
