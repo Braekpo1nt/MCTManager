@@ -168,12 +168,12 @@ public class PowerupManager {
     }
     
     private boolean onBreakCropGrower(Block block) {
-        Location location = block.getLocation();
-        CropGrower cropGrower = cropGrowers.remove(location.toVector());
-        if (cropGrower != null) {
+        if (context.getConfig().getCropGrowerSpec() == null) {
             return false;
         }
-        if (context.getConfig().getCropGrowerSpec() == null) {
+        Location location = block.getLocation();
+        CropGrower cropGrower = cropGrowers.remove(location.toVector());
+        if (cropGrower == null) {
             return false;
         }
         location.getWorld().dropItemNaturally(location.add(new Vector(0.5, 0.5, 0.5)), cropGrowerItem);
@@ -182,12 +182,12 @@ public class PowerupManager {
     }
     
     private boolean onBreakAnimalGrower(Block block) {
-        Location location = block.getLocation();
-        AnimalGrower animalGrower = animalGrowers.remove(location.toVector());
-        if (animalGrower != null) {
+        if (context.getConfig().getAnimalGrowerSpec() == null) {
             return false;
         }
-        if (context.getConfig().getAnimalGrowerSpec() == null) {
+        Location location = block.getLocation();
+        AnimalGrower animalGrower = animalGrowers.remove(location.toVector());
+        if (animalGrower == null) {
             return false;
         }
         location.getWorld().dropItemNaturally(location.add(new Vector(0.5, 0.5, 0.5)), animalGrowerItem);
