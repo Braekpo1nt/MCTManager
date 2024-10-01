@@ -33,7 +33,7 @@ public class PowerupManager {
             ));
         });
         
-        animalGrowerItem = new ItemStack(Material.FURNACE);
+        animalGrowerItem = new ItemStack(Material.BLAST_FURNACE);
         animalGrowerItem.editMeta(meta -> {
             meta.displayName(Component.text("Animal Grower"));
             meta.lore(List.of(

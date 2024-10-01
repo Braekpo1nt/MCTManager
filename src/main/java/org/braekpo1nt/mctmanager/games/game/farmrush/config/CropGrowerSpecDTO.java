@@ -41,10 +41,10 @@ class CropGrowerSpecDTO implements Validatable {
     private double growthChance = 1.0;
     
     public CropGrowerSpec toSpec() {
-        ItemStack powerupItem = PowerupManager.cropGrowerItem;
-        powerupItem.editMeta(meta -> meta.setCustomModelData(customModelData));
+        ItemStack cropGrowerItem = PowerupManager.cropGrowerItem;
+        cropGrowerItem.editMeta(meta -> meta.setCustomModelData(customModelData));
         return CropGrowerSpec.builder()
-                .recipe(recipe.toRecipe(powerupItem))
+                .recipe(recipe.toRecipe(cropGrowerItem))
                 .recipeKey(recipe.getNamespacedKey())
                 .radius(radius)
                 .seconds(seconds)
