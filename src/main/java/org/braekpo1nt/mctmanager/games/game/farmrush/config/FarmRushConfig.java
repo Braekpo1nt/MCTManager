@@ -60,8 +60,8 @@ public class FarmRushConfig {
     
     private @Nullable ItemStack materialBook;
     
-    private @Nullable CropGrowerSpec cropGrowerSpec;
+    private @NotNull CropGrowerSpec cropGrowerSpec;
     
-    private @Nullable AnimalGrowerSpec animalGrowerSpec;
+    private @NotNull AnimalGrowerSpec animalGrowerSpec;
     
 }

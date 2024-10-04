@@ -90,26 +90,14 @@ public class PowerupManager {
     }
     
     private void removePowerupRecipes() {
-        CropGrowerSpec cropGrowerSpec = context.getConfig().getCropGrowerSpec();
-        if (cropGrowerSpec != null) {
-            context.getPlugin().getServer().removeRecipe(cropGrowerSpec.getRecipeKey());
-        }
-        AnimalGrowerSpec animalGrowerSpec = context.getConfig().getAnimalGrowerSpec();
-        if (animalGrowerSpec != null) {
-            context.getPlugin().getServer().removeRecipe(animalGrowerSpec.getRecipeKey());
-        }
+        context.getPlugin().getServer().removeRecipe(context.getConfig().getCropGrowerSpec().getRecipeKey());
+        context.getPlugin().getServer().removeRecipe(context.getConfig().getAnimalGrowerSpec().getRecipeKey());
         context.getPlugin().getServer().updateRecipes();
     }
     
     private void addPowerupRecipes() {
-        CropGrowerSpec cropGrowerSpec = context.getConfig().getCropGrowerSpec();
-        if (cropGrowerSpec != null) {
-            context.getPlugin().getServer().addRecipe(cropGrowerSpec.getRecipe());
-        }
-        AnimalGrowerSpec animalGrowerSpec = context.getConfig().getAnimalGrowerSpec();
-        if (animalGrowerSpec != null) {
-            context.getPlugin().getServer().addRecipe(animalGrowerSpec.getRecipe());
-        }
+        context.getPlugin().getServer().addRecipe(context.getConfig().getCropGrowerSpec().getRecipe());
+        context.getPlugin().getServer().addRecipe(context.getConfig().getAnimalGrowerSpec().getRecipe());
         context.getPlugin().getServer().updateRecipes();
     }
     
@@ -120,19 +108,15 @@ public class PowerupManager {
     public void onPlaceBlock(@NotNull BlockPlaceEvent event) {
         ItemStack item = event.getItemInHand();
         Location location = event.getBlockPlaced().getLocation();
-        if (context.getConfig().getCropGrowerSpec() != null) {
-            if (context.getConfig().getCropGrowerSpec().isItem(item)) {
-                CropGrower cropGrower = context.getConfig().getCropGrowerSpec().createPowerup(location);
-                cropGrowers.put(location.toVector(), cropGrower);
-                Main.logger().info("Placed Crop Grower");
-            }
+        if (context.getConfig().getCropGrowerSpec().isItem(item)) {
+            CropGrower cropGrower = context.getConfig().getCropGrowerSpec().createPowerup(location);
+            cropGrowers.put(location.toVector(), cropGrower);
+            Main.logger().info("Placed Crop Grower");
         }
-        if (context.getConfig().getAnimalGrowerSpec() != null) {
-            if (context.getConfig().getAnimalGrowerSpec().isItem(item)) {
-                AnimalGrower animalGrower = context.getConfig().getAnimalGrowerSpec().createPowerup(location);
-                animalGrowers.put(location.toVector(), animalGrower);
-                Main.logger().info("Placed Animal Grower");
-            }
+        if (context.getConfig().getAnimalGrowerSpec().isItem(item)) {
+            AnimalGrower animalGrower = context.getConfig().getAnimalGrowerSpec().createPowerup(location);
+            animalGrowers.put(location.toVector(), animalGrower);
+            Main.logger().info("Placed Animal Grower");
         }
     }
     
@@ -169,9 +153,6 @@ public class PowerupManager {
     }
     
     private boolean onBreakCropGrower(Block block) {
-        if (context.getConfig().getCropGrowerSpec() == null) {
-            return false;
-        }
         Location location = block.getLocation();
         CropGrower cropGrower = cropGrowers.remove(location.toVector());
         if (cropGrower == null) {
@@ -183,9 +164,6 @@ public class PowerupManager {
     }
     
     private boolean onBreakAnimalGrower(Block block) {
-        if (context.getConfig().getAnimalGrowerSpec() == null) {
-            return false;
-        }
         Location location = block.getLocation();
         AnimalGrower animalGrower = animalGrowers.remove(location.toVector());
         if (animalGrower == null) {

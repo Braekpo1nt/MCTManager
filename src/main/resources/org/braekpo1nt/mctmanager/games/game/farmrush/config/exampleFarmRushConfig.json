@@ -119,6 +119,7 @@
     "deliveryBlockFace": "UP"
   },
   "powerups": {
+    "ticksPerCycle": 20,
     "cropGrower": {
       "radius": 4.0,
       "customModelData": 1,

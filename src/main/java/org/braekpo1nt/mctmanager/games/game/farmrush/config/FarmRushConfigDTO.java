@@ -75,7 +75,7 @@ class FarmRushConfigDTO implements Validatable {
     /**
      * Details about the powerups
      */
-    private @Nullable PowerupData powerups;
+    private @NotNull PowerupData powerups;
     
     @Data
     static class PowerupData implements Validatable {
@@ -84,19 +84,17 @@ class FarmRushConfigDTO implements Validatable {
          */
         private long ticksPerCycle = 20L;
         
-        private @Nullable CropGrowerSpecDTO cropGrower;
+        private @NotNull CropGrowerSpecDTO cropGrower;
         
-        private @Nullable AnimalGrowerSpecDTO animalGrower;
+        private @NotNull AnimalGrowerSpecDTO animalGrower;
         
         @Override
         public void validate(@NotNull Validator validator) {
             validator.validate(ticksPerCycle >= 1, "ticksPerCycle must be greater than or equal to 1 tick");
-            if (cropGrower != null) {
-                cropGrower.validate(validator.path("cropGrower"));
-            }
-            if (animalGrower != null) {
-                animalGrower.validate(validator.path("animalGrower"));
-            }
+            validator.notNull(cropGrower, "cropGrower");
+            cropGrower.validate(validator.path("cropGrower"));
+            validator.notNull(animalGrower, "animalGrower");
+            animalGrower.validate(validator.path("animalGrower"));
         }
     }
     
@@ -138,9 +136,8 @@ class FarmRushConfigDTO implements Validatable {
         if (recipes != null) {
             validator.validateList(recipes, "recipes");
         }
-        if (powerups != null) {
-            powerups.validate(validator.path("powerups"));
-        }
+        validator.notNull(powerups, "powerups");
+        powerups.validate(validator.path("powerups"));
     }
     
     public FarmRushConfig toConfig() {
@@ -162,16 +159,6 @@ class FarmRushConfigDTO implements Validatable {
                 }
             }
         }
-        CropGrowerSpec newCropGrowerSpec = null;
-        AnimalGrowerSpec newAnimalGrowerSpec = null;
-        if (powerups != null) {
-            if (powerups.getCropGrower() != null) {
-                newCropGrowerSpec = powerups.getCropGrower().toSpec();
-            }
-            if (powerups.getAnimalGrower() != null) {
-                newAnimalGrowerSpec = powerups.getAnimalGrower().toSpec();
-            }
-        }
         return FarmRushConfig.builder()
                 .world(newWorld)
                 .adminLocation(this.adminLocation.toLocation(newWorld))
@@ -189,9 +176,9 @@ class FarmRushConfigDTO implements Validatable {
                 .materialBook(createMaterialBook())
                 .recipes(this.recipes != null ? RecipeDTO.toRecipes(this.recipes) : Collections.emptyList())
                 .recipeKeys(this.recipes != null ? RecipeDTO.toNamespacedKeys(this.recipes) : Collections.emptyList())
-                .cropGrowerSpec(newCropGrowerSpec)
-                .animalGrowerSpec(newAnimalGrowerSpec)
-                .ticksPerCycle(this.powerups != null ? this.powerups.getTicksPerCycle() : 20L)
+                .cropGrowerSpec(this.powerups.getCropGrower().toSpec())
+                .animalGrowerSpec(this.powerups.getAnimalGrower().toSpec())
+                .ticksPerCycle(this.powerups.getTicksPerCycle())
                 .build();
     }
     
