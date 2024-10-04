@@ -49,7 +49,7 @@ public class AnimalGrowerSpecDTO implements Validatable {
         return AnimalGrowerSpec.builder()
                 .recipe(recipe.toRecipe(animalGrowerItem))
                 .recipeKey(recipe.getNamespacedKey())
-                .seconds(seconds)
+                .scanCycles(seconds)
                 .radius(radius)
                 .ageMultiplier(ageMultiplier)
                 .breedMultiplier(breedMultiplier)

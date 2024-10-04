@@ -122,7 +122,7 @@
     "cropGrower": {
       "radius": 4.0,
       "customModelData": 1,
-      "seconds": 5,
+      "growCycles": 5,
       "growthChance": 0.5,
       "recipe": {
         "namespacedKey": "mct:crop_grower",
@@ -145,7 +145,7 @@
     },
     "animalGrower": {
       "customModelData": 2,
-      "seconds": 5,
+      "scanCycles": 5,
       "radius": 4,
       "ageMultiplier": 0.1,
       "breedMultiplier": 0.1,

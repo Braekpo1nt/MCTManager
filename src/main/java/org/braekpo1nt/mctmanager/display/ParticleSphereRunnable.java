@@ -12,17 +12,19 @@ public class ParticleSphereRunnable extends BukkitRunnable {
     private final Location center;
     private final double radius;
     private final int particlesPerSpawn;
+    private final int count;
     private final long duration;
     private final Random random = new Random();
     
     private long timeElapsed = 0;
     
     // Constructor for the ParticleSphereRunnable
-    public ParticleSphereRunnable(Location center, double radius, int particlesPerSpawn, long duration) {
+    public ParticleSphereRunnable(Location center, double radius, int particlesPerSpawn, long duration, int count) {
         this.center = center;
         this.radius = radius;
         this.particlesPerSpawn = particlesPerSpawn;
         this.duration = duration;
+        this.count = count;
     }
     
     @Override
@@ -50,7 +52,7 @@ public class ParticleSphereRunnable extends BukkitRunnable {
                 Location particleLocation = center.clone().add(xOffset, yOffset, zOffset);
                 
                 // Spawn the particle
-                world.spawnParticle(Particle.HAPPY_VILLAGER, particleLocation, 0, 0, 0, 0, 0);
+                world.spawnParticle(Particle.HAPPY_VILLAGER, particleLocation.getX(), particleLocation.getY(), particleLocation.getZ(), count);
             }
         }
     }

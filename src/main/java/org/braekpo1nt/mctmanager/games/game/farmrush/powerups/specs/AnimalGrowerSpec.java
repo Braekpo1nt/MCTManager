@@ -26,9 +26,11 @@ public class AnimalGrowerSpec implements PowerupSpec {
     private NamespacedKey recipeKey;
     
     /**
-     * how many seconds between scans
+     * how many cycles between scans for animals
+     * Defaults to 5
      */
-    private int seconds;
+    @Builder.Default
+    private int scanCycles = 5;
     /**
      * a growable mob's age is multiplied by this factor. To grow faster,
      * make it a number less than 1. E.g. a mob takes 20 ticks to grow, and
@@ -42,7 +44,7 @@ public class AnimalGrowerSpec implements PowerupSpec {
     private double breedMultiplier;
     
     public AnimalGrower createPowerup(Location location) {
-        return new AnimalGrower(location, radius, seconds, ageMultiplier, breedMultiplier);
+        return new AnimalGrower(location, radius, scanCycles, ageMultiplier, breedMultiplier);
     }
     
     @Override

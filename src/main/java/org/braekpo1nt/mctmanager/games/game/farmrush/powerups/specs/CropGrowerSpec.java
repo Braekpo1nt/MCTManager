@@ -24,11 +24,17 @@ public class CropGrowerSpec implements PowerupSpec {
     private double radius;
     private NamespacedKey recipeKey;
     
-    private int seconds;
+    /**
+     * how many cycles between each grow attempt. Each cycle runs a probability check
+     * on the crops in its radius to see if it should grow.
+     * Defaults to 5.
+     */
+    @Builder.Default
+    private int growCycles = 5;
     private double growthChance;
     
     public CropGrower createPowerup(Location location) {
-        return new CropGrower(location, radius, seconds, growthChance);
+        return new CropGrower(location, radius, growCycles, growthChance);
     }
     
     @Override

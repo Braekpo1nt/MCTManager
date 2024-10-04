@@ -63,7 +63,6 @@ public class PowerupManager {
     
     public void start() {
         addPowerupRecipes();
-        Main.logger().info("Farm Rush Powerups started");
         
         powerupActionTask = new BukkitRunnable() {
             @Override
@@ -76,6 +75,7 @@ public class PowerupManager {
                 }
             }
         }.runTaskTimer(context.getPlugin(), 0L, context.getConfig().getTicksPerCycle());
+        Main.logger().info("Farm Rush Powerups started");
     }
     
     public void stop() {
