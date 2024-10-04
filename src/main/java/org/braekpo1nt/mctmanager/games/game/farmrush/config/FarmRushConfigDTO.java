@@ -79,12 +79,18 @@ class FarmRushConfigDTO implements Validatable {
     
     @Data
     static class PowerupData implements Validatable {
+        /**
+         * How many ticks between each powerup cycle
+         */
+        private long ticksPerCycle = 20L;
+        
         private @Nullable CropGrowerSpecDTO cropGrower;
         
         private @Nullable AnimalGrowerSpecDTO animalGrower;
         
         @Override
         public void validate(@NotNull Validator validator) {
+            validator.validate(ticksPerCycle >= 1, "ticksPerCycle must be greater than or equal to 1 tick");
             if (cropGrower != null) {
                 cropGrower.validate(validator.path("cropGrower"));
             }

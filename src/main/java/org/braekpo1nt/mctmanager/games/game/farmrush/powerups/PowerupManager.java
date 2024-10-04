@@ -75,7 +75,7 @@ public class PowerupManager {
                     animalGrower.performAction();
                 }
             }
-        }.runTaskTimer(context.getPlugin(), 0L, 20L);
+        }.runTaskTimer(context.getPlugin(), 0L, context.getConfig().getTicksPerCycle());
     }
     
     public void stop() {
