@@ -10,6 +10,7 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
@@ -193,5 +194,20 @@ public class PowerupManager {
         location.getWorld().dropItemNaturally(location.add(new Vector(0.5, 0.5, 0.5)), animalGrowerItem);
         block.setType(Material.AIR);
         return true;
+    }
+    
+    public void onPlayerInteract(PlayerInteractEvent event) {
+        Block clickedBlock = event.getClickedBlock();
+        if (clickedBlock == null) {
+            return;
+        }
+        if (!event.getAction().isRightClick()) {
+            return;
+        }
+        Vector location = clickedBlock.getLocation().toVector();
+        if (cropGrowers.containsKey(location)
+            || animalGrowers.containsKey(location)) {
+            event.setCancelled(true);
+        }
     }
 }

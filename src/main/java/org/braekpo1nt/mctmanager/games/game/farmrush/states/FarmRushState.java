@@ -7,6 +7,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 
 public interface FarmRushState {
@@ -28,6 +29,10 @@ public interface FarmRushState {
     }
     
     default void onPlaceBlock(BlockPlaceEvent event, FarmRushGame.Participant participant) {
+        // do nothing
+    }
+    
+    default void onPlayerInteract(PlayerInteractEvent event) {
         // do nothing
     }
 }

@@ -17,6 +17,7 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -176,6 +177,11 @@ public class ActiveState implements FarmRushState {
     @Override
     public void onPlaceBlock(BlockPlaceEvent event, FarmRushGame.Participant participant) {
         context.getPowerupManager().onPlaceBlock(event);
+    }
+    
+    @Override
+    public void onPlayerInteract(PlayerInteractEvent event) {
+        context.getPowerupManager().onPlayerInteract(event);
     }
     
     /**
