@@ -191,6 +191,7 @@ class FarmRushConfigDTO implements Validatable {
                 .recipeKeys(this.recipes != null ? RecipeDTO.toNamespacedKeys(this.recipes) : Collections.emptyList())
                 .cropGrowerSpec(newCropGrowerSpec)
                 .animalGrowerSpec(newAnimalGrowerSpec)
+                .ticksPerCycle(this.powerups != null ? this.powerups.getTicksPerCycle() : 20L)
                 .build();
     }
     
