@@ -6,7 +6,7 @@ import org.bukkit.Tag;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.Ageable;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Random;
@@ -25,13 +25,10 @@ public class CropGrower {
     protected final Location location;
     protected final double radius;
     /**
-     * a list of the crops in the area of effect
+     * how many cycles between each attempt to grow crops. 
+     * Each cycle runs a probability check on each crop in the effective range. 
      */
-    private @Nullable List<Block> crops;
-    /**
-     * how many seconds before running a probability check
-     */
-    private final int seconds;
+    private final int growCycles;
     /**
      * the probability per {@link #performAction()} of a crop increasing in age
      */
@@ -41,12 +38,19 @@ public class CropGrower {
      */
     private int count;
     
-    public CropGrower(Location location, double radius, int seconds, double growthChance) {
+    /**
+     * 
+     * @param location the location of the crop grower
+     * @param radius the radius of effect
+     * @param growCycles how many cycles between each probability check
+     * @param growthChance the chance per cycle of a crop growing to the next level
+     */
+    public CropGrower(Location location, double radius, int growCycles, double growthChance) {
         this.world = location.getWorld();
         this.location = location;
         this.radius = radius;
-        this.seconds = seconds;
-        this.count = seconds;
+        this.growCycles = growCycles;
+        this.count = growCycles;
         this.growthChance = growthChance;
     }
     
@@ -59,11 +63,8 @@ public class CropGrower {
             count--;
             return;
         }
-        count = seconds;
-        detectCrops();
-        if (crops == null) {
-            return;
-        }
+        count = growCycles;
+        List<Block> crops = detectCrops();
         for (Block crop : crops) {
             if (crop.getBlockData() instanceof Ageable ageable) {
                 if (ageable.getAge() < ageable.getMaximumAge()) {
@@ -76,8 +77,8 @@ public class CropGrower {
         }
     }
     
-    private void detectCrops() {
-        this.crops = BlockPlacementUtils.getBlocksInRadius(location, radius, Tag.CROPS);
+    private @NotNull List<Block> detectCrops() {
+        return BlockPlacementUtils.getBlocksInRadius(location, radius, Tag.CROPS);
     }
 }
 
