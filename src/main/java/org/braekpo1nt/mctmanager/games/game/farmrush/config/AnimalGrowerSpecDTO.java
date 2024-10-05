@@ -30,7 +30,7 @@ public class AnimalGrowerSpecDTO implements Validatable {
     /**
      * How many seconds pass between checks for new entities in the radius
      */
-    private int seconds = 0;
+    private int scanCycles = 0;
     /**
      * a growable mob's age is multiplied by this factor. To grow faster,
      * make it a number less than 1. E.g. a mob takes 20 ticks to grow, and
@@ -49,7 +49,7 @@ public class AnimalGrowerSpecDTO implements Validatable {
         return AnimalGrowerSpec.builder()
                 .recipe(recipe.toRecipe(animalGrowerItem))
                 .recipeKey(recipe.getNamespacedKey())
-                .scanCycles(seconds)
+                .scanCycles(scanCycles)
                 .radius(radius)
                 .ageMultiplier(ageMultiplier)
                 .breedMultiplier(breedMultiplier)
@@ -60,7 +60,7 @@ public class AnimalGrowerSpecDTO implements Validatable {
     public void validate(@NotNull Validator validator) {
         validator.notNull(recipe, "recipe");
         validator.validate(radius >= 0.0, "radius can't be negative");
-        validator.validate(seconds >= 0, "seconds can't be negative");
+        validator.validate(scanCycles >= 0, "seconds can't be negative");
         validator.validate(ageMultiplier >= 0.0, "ageMultiplier can't be negative");
         validator.validate(breedMultiplier >= 0.0, "breedMultiplier can't be negative");
     }
