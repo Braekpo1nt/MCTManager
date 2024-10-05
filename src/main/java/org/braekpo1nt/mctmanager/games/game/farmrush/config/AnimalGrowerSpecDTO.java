@@ -11,7 +11,7 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 @Data
-public class AnimalGrowerSpecDTO implements Validatable {
+class AnimalGrowerSpecDTO implements Validatable {
     
     private final PowerupType type = PowerupType.ANIMAL_GROWER;
     /**

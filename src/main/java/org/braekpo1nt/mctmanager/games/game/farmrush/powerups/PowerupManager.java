@@ -3,8 +3,6 @@ package org.braekpo1nt.mctmanager.games.game.farmrush.powerups;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushGame;
-import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.specs.AnimalGrowerSpec;
-import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.specs.CropGrowerSpec;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
