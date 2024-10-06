@@ -29,10 +29,6 @@ public class FarmRushConfig {
     private int startingDuration;
     private int gameDuration;
     private int gameOverDuration;
-    /**
-     * how many ticks between powerup cycles
-     */
-    private long ticksPerCycle;
     private @Nullable ItemStack[] loadout;
     private @Nullable ItemStack[] starterChestContents;
     /**

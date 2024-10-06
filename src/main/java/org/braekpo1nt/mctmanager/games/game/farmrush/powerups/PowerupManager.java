@@ -14,6 +14,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -53,7 +54,8 @@ public class PowerupManager {
      * the physically placed animalGrowers in the world
      */
     private final Map<Vector, AnimalGrower> animalGrowers = new HashMap<>();
-    private BukkitTask powerupActionTask;
+    private @Nullable BukkitTask cropGrowerTask;
+    private @Nullable BukkitTask animalGrowerTask;
     
     public PowerupManager(FarmRushGame context) {
         this.context = context;
@@ -62,25 +64,34 @@ public class PowerupManager {
     public void start() {
         addPowerupRecipes();
         
-        powerupActionTask = new BukkitRunnable() {
+        cropGrowerTask = new BukkitRunnable() {
             @Override
             public void run() {
                 for (CropGrower cropGrower : cropGrowers.values()) {
-                    cropGrower.performAction();
-                }
-                for (AnimalGrower animalGrower : animalGrowers.values()) {
-                    animalGrower.performAction();
+                    cropGrower.growAttempt();
                 }
             }
-        }.runTaskTimer(context.getPlugin(), 0L, context.getConfig().getTicksPerCycle());
+        }.runTaskTimer(context.getPlugin(), 0L, context.getConfig().getCropGrowerSpec().getTicksPerCycle());
+        animalGrowerTask = new BukkitRunnable() {
+            @Override
+            public void run() {
+                for (AnimalGrower animalGrower : animalGrowers.values()) {
+                    animalGrower.updateAnimals();
+                }
+            }
+        }.runTaskTimer(context.getPlugin(), 0L, context.getConfig().getAnimalGrowerSpec().getTicksPerCycle());
         Main.logger().info("Farm Rush Powerups started");
     }
     
     public void stop() {
         // TODO: must be idempotent
-        if (powerupActionTask != null) {
-            powerupActionTask.cancel();
-            powerupActionTask = null;
+        if (cropGrowerTask != null) {
+            cropGrowerTask.cancel();
+            cropGrowerTask = null;
+        }
+        if (animalGrowerTask != null) {
+            animalGrowerTask.cancel();
+            animalGrowerTask = null;
         }
         removePowerupRecipes();
         cropGrowers.clear();

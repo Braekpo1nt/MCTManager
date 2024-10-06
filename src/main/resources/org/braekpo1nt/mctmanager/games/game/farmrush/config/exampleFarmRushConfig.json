@@ -119,8 +119,8 @@
     "deliveryBlockFace": "UP"
   },
   "powerups": {
-    "ticksPerCycle": 20,
     "cropGrower": {
+      "ticksPerCycle": 100,
       "radius": 4.0,
       "customModelData": 1,
       "growCycles": 5,
@@ -145,6 +145,7 @@
       }
     },
     "animalGrower": {
+      "ticksPerCycle": 100,
       "customModelData": 2,
       "scanCycles": 5,
       "radius": 4,

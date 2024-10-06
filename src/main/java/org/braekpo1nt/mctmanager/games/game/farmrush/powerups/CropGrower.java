@@ -25,32 +25,20 @@ public class CropGrower {
     protected final Location location;
     protected final double radius;
     /**
-     * how many cycles between each attempt to grow crops. 
-     * Each cycle runs a probability check on each crop in the effective range. 
-     */
-    private final int growCycles;
-    /**
-     * the probability per {@link #performAction()} of a crop increasing in age
+     * the probability per {@link #growAttempt()} of a crop increasing in age
      */
     private final double growthChance;
-    /**
-     * number of {@link #performAction()} cycles before running a probability check
-     */
-    private int count;
     
     /**
      * 
      * @param location the location of the crop grower
      * @param radius the radius of effect
-     * @param growCycles how many cycles between each probability check
      * @param growthChance the chance per cycle of a crop growing to the next level
      */
-    public CropGrower(Location location, double radius, int growCycles, double growthChance) {
+    public CropGrower(Location location, double radius, double growthChance) {
         this.world = location.getWorld();
         this.location = location;
         this.radius = radius;
-        this.growCycles = growCycles;
-        this.count = growCycles;
         this.growthChance = growthChance;
     }
     
@@ -58,12 +46,7 @@ public class CropGrower {
         return PowerupType.CROP_GROWER;
     }
     
-    public void performAction() {
-        if (count > 0) {
-            count--;
-            return;
-        }
-        count = growCycles;
+    public void growAttempt() {
         List<Block> crops = detectCrops();
         for (Block crop : crops) {
             if (crop.getBlockData() instanceof Ageable ageable) {

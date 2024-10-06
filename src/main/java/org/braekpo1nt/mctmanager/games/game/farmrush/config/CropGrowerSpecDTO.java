@@ -27,15 +27,15 @@ class CropGrowerSpecDTO implements Validatable {
      */
     private int customModelData = 0;
     /**
-     * How many seconds pass between probability checks
+     * How many ticks pass between probability checks
      * If this is {@code x}, then each block will have a {@link #growthChance}
      * chance to grow to the next cycle every {@code x} seconds.
-     * Defaults to 0, can't be negative.
+     * Defaults to 20, can't be negative.
      */
-    private int growCycles = 0;
+    private long ticksPerCycle = 20;
     /**
      * the chance per probability check for a crop to grow to the next age.
-     * A probability check happens every {@link #growCycles} seconds
+     * A probability check happens every {@link #ticksPerCycle} seconds
      * Defaults to 1.0, must be between 0.0 and 1.0 inclusive.
      */
     private double growthChance = 1.0;
@@ -47,7 +47,7 @@ class CropGrowerSpecDTO implements Validatable {
                 .recipe(recipe.toRecipe(cropGrowerItem))
                 .recipeKey(recipe.getNamespacedKey())
                 .radius(radius)
-                .growCycles(growCycles)
+                .ticksPerCycle(ticksPerCycle)
                 .growthChance(growthChance)
                 .build();
     }
@@ -56,7 +56,7 @@ class CropGrowerSpecDTO implements Validatable {
     public void validate(@NotNull Validator validator) {
         validator.notNull(recipe, "recipe");
         validator.validate(radius >= 0.0, "radius can't be negative");
-        validator.validate(growCycles >= 0, "seconds can't be negative");
+        validator.validate(ticksPerCycle >= 0, "ticksPerCycle can't be negative");
         validator.validate(0 <= growthChance && growthChance <= 1.0, "growthChance must be between 0.0 and 1.0 inclusive");
     }
 }
