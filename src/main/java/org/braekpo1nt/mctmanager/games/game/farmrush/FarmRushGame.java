@@ -506,11 +506,21 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
             return;
         }
         Material blockType = clickedBlock.getType();
-        if (config.getPreventInteractions().contains(blockType)) {
-            event.setCancelled(true);
+        if (!config.getPreventInteractions().contains(blockType)) {
             return;
         }
-        state.onPlayerInteract(event);
+        event.setCancelled(true);
+    }
+    
+    @EventHandler
+    public void onPlayerOpenInventory(InventoryOpenEvent event) {
+        if (state == null) {
+            return;
+        }
+        if (!participants.containsKey(event.getPlayer().getUniqueId())) {
+            return;
+        }
+        state.onPlayerOpenInventory(event);
     }
     
     @EventHandler

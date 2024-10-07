@@ -10,7 +10,10 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.BlockInventoryHolder;
+import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
@@ -222,17 +225,17 @@ public class PowerupManager {
         return true;
     }
     
-    public void onPlayerInteract(PlayerInteractEvent event) {
-        Block clickedBlock = event.getClickedBlock();
-        if (clickedBlock == null) {
+    public void onPlayerOpenInventory(InventoryOpenEvent event) {
+        InventoryHolder holder = event.getInventory().getHolder();
+        if (holder == null) {
             return;
         }
-        if (!event.getAction().isRightClick()) {
+        if (!(holder instanceof BlockInventoryHolder blockInventoryHolder)) {
             return;
         }
-        Vector location = clickedBlock.getLocation().toVector();
-        if (cropGrowers.containsKey(location)
-            || animalGrowers.containsKey(location)) {
+        Vector vector = blockInventoryHolder.getBlock().getLocation().toVector();
+        if (cropGrowers.containsKey(vector)
+        || animalGrowers.containsKey(vector)) {
             event.setCancelled(true);
         }
     }

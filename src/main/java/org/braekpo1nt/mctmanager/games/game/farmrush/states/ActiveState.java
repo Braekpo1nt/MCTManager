@@ -16,8 +16,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.inventory.InventoryType;
-import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -180,8 +180,8 @@ public class ActiveState implements FarmRushState {
     }
     
     @Override
-    public void onPlayerInteract(PlayerInteractEvent event) {
-        context.getPowerupManager().onPlayerInteract(event);
+    public void onPlayerOpenInventory(InventoryOpenEvent event) {
+        context.getPowerupManager().onPlayerOpenInventory(event);
     }
     
     /**

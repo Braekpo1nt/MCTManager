@@ -7,7 +7,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 
 public interface FarmRushState {
@@ -32,7 +32,7 @@ public interface FarmRushState {
         // do nothing
     }
     
-    default void onPlayerInteract(PlayerInteractEvent event) {
+    default void onPlayerOpenInventory(InventoryOpenEvent event) {
         // do nothing
     }
 }
