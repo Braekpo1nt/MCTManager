@@ -7,6 +7,7 @@ import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.PowerupManager;
 import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.PowerupType;
 import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.specs.CropGrowerSpec;
+import org.bukkit.Particle;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
@@ -40,6 +41,29 @@ class CropGrowerSpecDTO implements Validatable {
      */
     private double growthChance = 1.0;
     
+    // Particles start
+    /**
+     * How many ticks pass between each particle spawn cycle.
+     * Defaults to 20
+     */
+    private long ticksPerParticleCycle = 20L;
+    /**
+     * which particle spawns (defaults to {@link Particle#HAPPY_VILLAGER})
+     */
+    private Particle particle = Particle.HAPPY_VILLAGER;
+    /**
+     * how many groups of particles are spawned per spawn cycle
+     * Defaults to 1.
+     */
+    private int numberOfParticles = 1;
+    /**
+     * the standard "number of particles" number for spawning a single particle,
+     * the same as you would expect from the default minecraft command.
+     * Defaults to 1.
+     */
+    private int particleCount = 1;
+    // Particles end
+    
     public CropGrowerSpec toSpec() {
         ItemStack cropGrowerItem = PowerupManager.cropGrowerItem;
         cropGrowerItem.editMeta(meta -> meta.setCustomModelData(customModelData));
@@ -49,6 +73,12 @@ class CropGrowerSpecDTO implements Validatable {
                 .radius(radius)
                 .ticksPerCycle(ticksPerCycle)
                 .growthChance(growthChance)
+                // Particles start
+                .ticksPerParticleCycle(ticksPerParticleCycle)
+                .particle(particle)
+                .numberOfParticles(numberOfParticles)
+                .particleCount(particleCount)
+                // Particles end
                 .build();
     }
     
@@ -56,7 +86,14 @@ class CropGrowerSpecDTO implements Validatable {
     public void validate(@NotNull Validator validator) {
         validator.notNull(recipe, "recipe");
         validator.validate(radius >= 0.0, "radius can't be negative");
-        validator.validate(ticksPerCycle >= 0, "ticksPerCycle can't be negative");
+        validator.validate(ticksPerCycle >= 1, "ticksPerCycle must be at least 1");
         validator.validate(0 <= growthChance && growthChance <= 1.0, "growthChance must be between 0.0 and 1.0 inclusive");
+        
+        // Particles start
+        validator.validate(ticksPerParticleCycle >= 1L, "ticksPerParticleCycle must be at least 1");
+        validator.notNull(particle, "particle");
+        validator.validate(numberOfParticles >= 1, "numberOfParticles must be at least 1");
+        validator.validate(particleCount >= 1, "particleCount must be at least 1");
+        // Particles end
     }
 }

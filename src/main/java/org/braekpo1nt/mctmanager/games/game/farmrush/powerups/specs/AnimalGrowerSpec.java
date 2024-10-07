@@ -7,6 +7,7 @@ import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.PowerupManager;
 import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.PowerupType;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
+import org.bukkit.Particle;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -41,6 +42,26 @@ public class AnimalGrowerSpec implements PowerupSpec {
      * Works the same as {@link #ageMultiplier}, but for the breeding cooldown
      */
     private double breedMultiplier;
+    
+    // Particles start
+    /**
+     * How many ticks pass between each particle spawn cycle.
+     */
+    private long ticksPerParticleCycle;
+    /**
+     * which particle spawns
+     */
+    private Particle particle;
+    /**
+     * how many groups of particles are spawned per spawn cycle
+     */
+    private int numberOfParticles;
+    /**
+     * the standard "number of particles" number for spawning a single particle,
+     * the same as you would expect from the default minecraft command
+     */
+    private int particleCount;
+    // Particles end
     
     public AnimalGrower createPowerup(Location location) {
         return new AnimalGrower(location, radius, ageMultiplier, breedMultiplier);

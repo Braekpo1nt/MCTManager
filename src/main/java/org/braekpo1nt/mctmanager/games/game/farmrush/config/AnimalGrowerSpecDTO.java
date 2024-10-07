@@ -7,6 +7,7 @@ import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.PowerupManager;
 import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.PowerupType;
 import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.specs.AnimalGrowerSpec;
+import org.bukkit.Particle;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
@@ -43,6 +44,29 @@ class AnimalGrowerSpecDTO implements Validatable {
      */
     private double breedMultiplier;
     
+    // Particles start
+    /**
+     * How many ticks pass between each particle spawn cycle.
+     * Defaults to 20
+     */
+    private long ticksPerParticleCycle = 20L;
+    /**
+     * which particle spawns (defaults to {@link Particle#HAPPY_VILLAGER})
+     */
+    private Particle particle = Particle.HAPPY_VILLAGER;
+    /**
+     * how many groups of particles are spawned per spawn cycle
+     * Defaults to 1.
+     */
+    private int numberOfParticles = 1;
+    /**
+     * the standard "number of particles" number for spawning a single particle,
+     * the same as you would expect from the default minecraft command.
+     * Defaults to 1.
+     */
+    private int particleCount = 1;
+    // Particles end
+    
     public AnimalGrowerSpec toSpec() {
         ItemStack animalGrowerItem = PowerupManager.animalGrowerItem;
         animalGrowerItem.editMeta(meta -> meta.setCustomModelData(customModelData));
@@ -53,6 +77,12 @@ class AnimalGrowerSpecDTO implements Validatable {
                 .radius(radius)
                 .ageMultiplier(ageMultiplier)
                 .breedMultiplier(breedMultiplier)
+                // Particles start
+                .ticksPerParticleCycle(ticksPerParticleCycle)
+                .particle(particle)
+                .numberOfParticles(numberOfParticles)
+                .particleCount(particleCount)
+                // Particles end
                 .build();
     }
     
@@ -63,5 +93,12 @@ class AnimalGrowerSpecDTO implements Validatable {
         validator.validate(ticksPerCycle >= 0, "ticksPerCycle can't be negative");
         validator.validate(ageMultiplier >= 0.0, "ageMultiplier can't be negative");
         validator.validate(breedMultiplier >= 0.0, "breedMultiplier can't be negative");
+        
+        // Particles start
+        validator.validate(ticksPerParticleCycle >= 1L, "ticksPerParticleCycle must be at least 1");
+        validator.notNull(particle, "particle");
+        validator.validate(numberOfParticles >= 1, "numberOfParticles must be at least 1");
+        validator.validate(particleCount >= 1, "particleCount must be at least 1");
+        // Particles end
     }
 }

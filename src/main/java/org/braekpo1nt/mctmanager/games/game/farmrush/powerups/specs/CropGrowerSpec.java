@@ -7,6 +7,7 @@ import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.PowerupManager;
 import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.PowerupType;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
+import org.bukkit.Particle;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -32,6 +33,26 @@ public class CropGrowerSpec implements PowerupSpec {
     @Builder.Default
     private long ticksPerCycle = 20L;
     private double growthChance;
+    
+    // Particles start
+    /**
+     * How many ticks pass between each particle spawn cycle.
+     */
+    private long ticksPerParticleCycle;
+    /**
+     * which particle spawns
+     */
+    private Particle particle;
+    /**
+     * how many groups of particles are spawned per spawn cycle
+     */
+    private int numberOfParticles;
+    /**
+     * the standard "number of particles" number for spawning a single particle,
+     * the same as you would expect from the default minecraft command
+     */
+    private int particleCount;
+    // Particles end
     
     public CropGrower createPowerup(Location location) {
         return new CropGrower(location, radius, growthChance);

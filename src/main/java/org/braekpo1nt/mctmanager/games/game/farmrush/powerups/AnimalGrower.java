@@ -2,13 +2,16 @@ package org.braekpo1nt.mctmanager.games.game.farmrush.powerups;
 
 
 import org.bukkit.Location;
+import org.bukkit.Particle;
 import org.bukkit.World;
 import org.bukkit.entity.Animals;
+import org.bukkit.util.Vector;
 
 import java.util.*;
 
 public class AnimalGrower {
     
+    protected static final Random random = new Random();
     /**
      * the world the powerup is in
      */
@@ -69,6 +72,23 @@ public class AnimalGrower {
             }
         }
         
+    }
+    
+    /**
+     * Spawns random particles in the radius of the animal grower
+     * @param numOfParticles the number of times to spawn a particle group
+     * @param particle the particle type to spawn
+     * @param count the number of units in each particle group
+     */
+    public void displayRadius(int numOfParticles, Particle particle, int count) {
+        for (int i = 0; i < numOfParticles; i++) {
+            // Generate random coordinates within a sphere (location + offset)
+            double xOffset = location.x() + (random.nextDouble() * 2 - 1) * radius;
+            double yOffset = location.y() + (random.nextDouble() * 2 - 1) * radius;
+            double zOffset = location.z() + (random.nextDouble() * 2 - 1) * radius;
+            
+            world.spawnParticle(particle, xOffset, yOffset, zOffset, count);
+        }
     }
     
     private void buffAnimal(Animals animal) {

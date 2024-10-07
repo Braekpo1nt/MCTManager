@@ -3,6 +3,8 @@ package org.braekpo1nt.mctmanager.games.game.farmrush.powerups;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushGame;
+import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.specs.AnimalGrowerSpec;
+import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.specs.CropGrowerSpec;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -55,7 +57,9 @@ public class PowerupManager {
      */
     private final Map<Vector, AnimalGrower> animalGrowers = new HashMap<>();
     private @Nullable BukkitTask cropGrowerTask;
+    private @Nullable BukkitTask cropGrowerParticleTask;
     private @Nullable BukkitTask animalGrowerTask;
+    private @Nullable BukkitTask animalGrowerParticleTask;
     
     public PowerupManager(FarmRushGame context) {
         this.context = context;
@@ -64,6 +68,8 @@ public class PowerupManager {
     public void start() {
         addPowerupRecipes();
         
+        CropGrowerSpec cropGrowerSpec = context.getConfig().getCropGrowerSpec();
+        AnimalGrowerSpec animalGrowerSpec = context.getConfig().getAnimalGrowerSpec();
         cropGrowerTask = new BukkitRunnable() {
             @Override
             public void run() {
@@ -71,7 +77,7 @@ public class PowerupManager {
                     cropGrower.growAttempt();
                 }
             }
-        }.runTaskTimer(context.getPlugin(), 0L, context.getConfig().getCropGrowerSpec().getTicksPerCycle());
+        }.runTaskTimer(context.getPlugin(), 0L, cropGrowerSpec.getTicksPerCycle());
         animalGrowerTask = new BukkitRunnable() {
             @Override
             public void run() {
@@ -79,7 +85,32 @@ public class PowerupManager {
                     animalGrower.updateAnimals();
                 }
             }
-        }.runTaskTimer(context.getPlugin(), 0L, context.getConfig().getAnimalGrowerSpec().getTicksPerCycle());
+        }.runTaskTimer(context.getPlugin(), 0L, animalGrowerSpec.getTicksPerCycle());
+        
+        cropGrowerParticleTask = new BukkitRunnable() {
+            @Override
+            public void run() {
+                for (CropGrower cropGrower : cropGrowers.values()) {
+                    cropGrower.displayRadius(
+                            cropGrowerSpec.getNumberOfParticles(),
+                            cropGrowerSpec.getParticle(),
+                            cropGrowerSpec.getParticleCount()
+                    );
+                }
+            }
+        }.runTaskTimer(context.getPlugin(), 0L, cropGrowerSpec.getTicksPerParticleCycle());
+        animalGrowerParticleTask = new BukkitRunnable() {
+            @Override
+            public void run() {
+                for (AnimalGrower animalGrower : animalGrowers.values()) {
+                    animalGrower.displayRadius(
+                        animalGrowerSpec.getNumberOfParticles(),
+                        animalGrowerSpec.getParticle(),
+                        animalGrowerSpec.getParticleCount()
+                    );
+                }
+            }
+        }.runTaskTimer(context.getPlugin(), 0L, animalGrowerSpec.getTicksPerParticleCycle());
         Main.logger().info("Farm Rush Powerups started");
     }
     
@@ -92,6 +123,14 @@ public class PowerupManager {
         if (animalGrowerTask != null) {
             animalGrowerTask.cancel();
             animalGrowerTask = null;
+        }
+        if (cropGrowerParticleTask != null) {
+            cropGrowerParticleTask.cancel();
+            cropGrowerParticleTask = null;
+        }
+        if (animalGrowerParticleTask != null) {
+            animalGrowerParticleTask.cancel();
+            animalGrowerParticleTask = null;
         }
         removePowerupRecipes();
         cropGrowers.clear();
