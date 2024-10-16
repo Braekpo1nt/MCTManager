@@ -3,16 +3,21 @@ package org.braekpo1nt.mctmanager.commands.mctdebug;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.display.ParticleSphereRunnable;
-import org.bukkit.Location;
+import org.braekpo1nt.mctmanager.ui.maps.CustomMapRenderer;
+import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.MapMeta;
+import org.bukkit.map.MapView;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.util.*;
 
 /**
@@ -38,20 +43,32 @@ public class MCTDebugCommand implements TabExecutor, Listener {
             return true;
         }
         
-        if (args.length != 4) {
+        if (args.length != 1) {
             sender.sendMessage(Component.text("Usage: /mctdebug <arg> [options]")
                     .color(NamedTextColor.RED));
             return true;
         }
         
-        int particlesPerSpawn = Integer.parseInt(args[0]);
-        int duration = Integer.parseInt(args[1]); // how much time this runs for
-        long period = Long.parseLong(args[2]);
-        int count = Integer.parseInt(args[3]); // how much time this runs for
+        String filePath = args[0];
         
         
-        // Parameters: center location, radius of the sphere, particles per spawn, duration (in ticks)
-        new ParticleSphereRunnable(player.getLocation(), 5.0, particlesPerSpawn, duration, count).runTaskTimer(plugin, 0L, period);
+        ItemStack mapItem = new ItemStack(Material.FILLED_MAP);
+        MapMeta mapMeta = (MapMeta) mapItem.getItemMeta();
+        
+        MapView mapView = Bukkit.createMap(player.getWorld());
+        // add a renderer
+        CustomMapRenderer mapRenderer = CustomMapRenderer.fromFile(new File(filePath));
+        if (mapRenderer == null) {
+            sender.sendMessage(Component.text("Unable to create map image. Check the url.").color(NamedTextColor.RED));
+            return true;
+        }
+        mapView.getRenderers().clear();
+        mapView.addRenderer(mapRenderer);
+        
+        mapMeta.setMapView(mapView);
+        mapItem.setItemMeta(mapMeta);
+        
+        player.getInventory().addItem(mapItem);
         
         return true;
     }
