@@ -5,10 +5,19 @@ import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.kyori.adventure.title.Title;
+import org.braekpo1nt.mctmanager.io.IOUtils;
+import org.braekpo1nt.mctmanager.ui.maps.CustomMapRenderer;
 import org.bukkit.entity.Player;
+import org.bukkit.map.MapCanvas;
+import org.bukkit.map.MapRenderer;
+import org.bukkit.map.MapView;
 import org.jetbrains.annotations.NotNull;
 
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.time.Duration;
+import java.util.Map;
 
 public class UIUtils {
     private static final Component KILL_PREFIX = Component.empty()
@@ -144,5 +153,26 @@ public class UIUtils {
                 Component.empty(),
                 DEFAULT_TIMES
         );
+    }
+    
+    /**
+     * Create a MapRenderer from the given file, if it exists. 
+     * 
+     * @param imageFile the File containing the image
+     * @return The MapRenderer with the given image, resized to 127x127
+     * @throws IOException if the file does not exist, or there is a problem turning it into a
+     * {@link MapRenderer}.
+     */
+    public static @NotNull MapRenderer fromFile(@NotNull File imageFile) throws IOException {
+        BufferedImage image = IOUtils.toBufferedImage(imageFile);
+        if (image == null) {
+            return new MapRenderer() {
+                @Override
+                public void render(@NotNull MapView map, @NotNull MapCanvas canvas, @NotNull Player player) {
+                    // do nothing
+                }
+            };
+        }
+        return CustomMapRenderer.resized(image);
     }
 }
