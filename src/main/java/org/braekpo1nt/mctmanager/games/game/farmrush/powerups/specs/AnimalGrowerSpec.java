@@ -42,6 +42,10 @@ public class AnimalGrowerSpec implements PowerupSpec {
      * Works the same as {@link #ageMultiplier}, but for the breeding cooldown
      */
     private double breedMultiplier;
+    /**
+     * An image showing the player the recipe for this powerup
+     */
+    private @Nullable ItemStack recipeMap;
     
     // Particles start
     /**

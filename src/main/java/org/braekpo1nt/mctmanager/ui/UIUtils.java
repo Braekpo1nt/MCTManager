@@ -6,9 +6,14 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.io.IOUtils;
-import org.braekpo1nt.mctmanager.ui.maps.CustomMapRenderer;
+import org.braekpo1nt.mctmanager.ui.maps.ImageMapRenderer;
+import org.bukkit.Bukkit;
+import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
-import org.bukkit.map.MapCanvas;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.MapMeta;
+import org.bukkit.map.MapPalette;
 import org.bukkit.map.MapRenderer;
 import org.bukkit.map.MapView;
 import org.jetbrains.annotations.NotNull;
@@ -17,7 +22,6 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.time.Duration;
-import java.util.Map;
 
 public class UIUtils {
     private static final Component KILL_PREFIX = Component.empty()
@@ -163,16 +167,23 @@ public class UIUtils {
      * @throws IOException if the file does not exist, or there is a problem turning it into a
      * {@link MapRenderer}.
      */
-    public static @NotNull MapRenderer fromFile(@NotNull File imageFile) throws IOException {
+    public static @NotNull MapRenderer createMapRenderer(@NotNull File imageFile) throws IOException {
         BufferedImage image = IOUtils.toBufferedImage(imageFile);
-        if (image == null) {
-            return new MapRenderer() {
-                @Override
-                public void render(@NotNull MapView map, @NotNull MapCanvas canvas, @NotNull Player player) {
-                    // do nothing
-                }
-            };
-        }
-        return CustomMapRenderer.resized(image);
+        BufferedImage resizedImage = MapPalette.resizeImage(image);
+        return new ImageMapRenderer(resizedImage);
+    }
+    
+    public static ItemStack createMapItem(@NotNull World world, @NotNull File imageFile) throws IOException {
+        MapRenderer mapRenderer = createMapRenderer(imageFile);
+        ItemStack mapItem = new ItemStack(Material.FILLED_MAP);
+        MapMeta mapMeta = (MapMeta) mapItem.getItemMeta();
+        
+        MapView mapView = Bukkit.createMap(world);
+        mapView.getRenderers().clear();
+        mapView.addRenderer(mapRenderer);
+        
+        mapMeta.setMapView(mapView);
+        mapItem.setItemMeta(mapMeta);
+        return mapItem;
     }
 }

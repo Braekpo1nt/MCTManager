@@ -10,6 +10,9 @@ import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.specs.CropGrowerSp
 import org.bukkit.Particle;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.io.File;
 
 @Data
 class CropGrowerSpecDTO implements Validatable {
@@ -40,6 +43,10 @@ class CropGrowerSpecDTO implements Validatable {
      * Defaults to 1.0, must be between 0.0 and 1.0 inclusive.
      */
     private double growthChance = 1.0;
+    /**
+     * An image showing the player the recipe for this powerup
+     */
+    private @Nullable String recipeImage;
     
     // Particles start
     /**
@@ -88,6 +95,11 @@ class CropGrowerSpecDTO implements Validatable {
         validator.validate(radius >= 0.0, "radius can't be negative");
         validator.validate(ticksPerCycle >= 1, "ticksPerCycle must be at least 1");
         validator.validate(0 <= growthChance && growthChance <= 1.0, "growthChance must be between 0.0 and 1.0 inclusive");
+        if (recipeImage != null) {
+            File recipeImageFile = new File(recipeImage);
+            validator.validate(recipeImageFile.exists(), "recipeImage file could not be found");
+            validator.validate(recipeImageFile.canRead(), "recipeImage file could not be read");
+        }
         
         // Particles start
         validator.validate(ticksPerParticleCycle >= 1L, "ticksPerParticleCycle must be at least 1");

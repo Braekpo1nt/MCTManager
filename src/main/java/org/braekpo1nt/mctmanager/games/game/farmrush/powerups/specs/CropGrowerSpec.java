@@ -33,6 +33,10 @@ public class CropGrowerSpec implements PowerupSpec {
     @Builder.Default
     private long ticksPerCycle = 20L;
     private double growthChance;
+    /**
+     * An image showing the player the recipe for this powerup
+     */
+    private @Nullable ItemStack recipeMap;
     
     // Particles start
     /**

@@ -3,21 +3,18 @@ package org.braekpo1nt.mctmanager.commands.mctdebug;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.ui.maps.CustomMapRenderer;
-import org.bukkit.Bukkit;
-import org.bukkit.Material;
+import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.MapMeta;
-import org.bukkit.map.MapView;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -52,21 +49,13 @@ public class MCTDebugCommand implements TabExecutor, Listener {
         String filePath = args[0];
         
         
-        ItemStack mapItem = new ItemStack(Material.FILLED_MAP);
-        MapMeta mapMeta = (MapMeta) mapItem.getItemMeta();
-        
-        MapView mapView = Bukkit.createMap(player.getWorld());
-        // add a renderer
-        CustomMapRenderer mapRenderer = CustomMapRenderer.fromFile(new File(filePath));
-        if (mapRenderer == null) {
-            sender.sendMessage(Component.text("Unable to create map image. Check the url.").color(NamedTextColor.RED));
+        ItemStack mapItem;
+        try {
+            mapItem = UIUtils.createMapItem(player.getWorld(), new File(filePath));
+        } catch (IOException e) {
+            sender.sendMessage("Could not create map");
             return true;
         }
-        mapView.getRenderers().clear();
-        mapView.addRenderer(mapRenderer);
-        
-        mapMeta.setMapView(mapView);
-        mapItem.setItemMeta(mapMeta);
         
         player.getInventory().addItem(mapItem);
         

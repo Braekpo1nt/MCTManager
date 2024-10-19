@@ -10,6 +10,9 @@ import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.specs.AnimalGrower
 import org.bukkit.Particle;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.io.File;
 
 @Data
 class AnimalGrowerSpecDTO implements Validatable {
@@ -43,6 +46,10 @@ class AnimalGrowerSpecDTO implements Validatable {
      * Works the same as {@link #ageMultiplier}, but for the breeding cooldown
      */
     private double breedMultiplier;
+    /**
+     * An image showing the player the recipe for this powerup
+     */
+    private @Nullable String recipeImage;
     
     // Particles start
     /**
@@ -70,6 +77,7 @@ class AnimalGrowerSpecDTO implements Validatable {
     public AnimalGrowerSpec toSpec() {
         ItemStack animalGrowerItem = PowerupManager.animalGrowerItem;
         animalGrowerItem.editMeta(meta -> meta.setCustomModelData(customModelData));
+        
         return AnimalGrowerSpec.builder()
                 .recipe(recipe.toRecipe(animalGrowerItem))
                 .recipeKey(recipe.getNamespacedKey())
@@ -93,6 +101,11 @@ class AnimalGrowerSpecDTO implements Validatable {
         validator.validate(ticksPerCycle >= 0, "ticksPerCycle can't be negative");
         validator.validate(ageMultiplier >= 0.0, "ageMultiplier can't be negative");
         validator.validate(breedMultiplier >= 0.0, "breedMultiplier can't be negative");
+        if (recipeImage != null) {
+            File recipeImageFile = new File(recipeImage);
+            validator.validate(recipeImageFile.exists(), "recipeImage file could not be found");
+            validator.validate(recipeImageFile.canRead(), "recipeImage file could not be read");
+        }
         
         // Particles start
         validator.validate(ticksPerParticleCycle >= 1L, "ticksPerParticleCycle must be at least 1");
