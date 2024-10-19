@@ -15,8 +15,6 @@ import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushGame;
 import org.braekpo1nt.mctmanager.games.game.farmrush.ItemSale;
-import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.specs.AnimalGrowerSpec;
-import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.specs.CropGrowerSpec;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -171,8 +169,8 @@ class FarmRushConfigDTO implements Validatable {
                 .materialBook(createMaterialBook())
                 .recipes(this.recipes != null ? RecipeDTO.toRecipes(this.recipes) : Collections.emptyList())
                 .recipeKeys(this.recipes != null ? RecipeDTO.toNamespacedKeys(this.recipes) : Collections.emptyList())
-                .cropGrowerSpec(this.powerups.getCropGrower().toSpec())
-                .animalGrowerSpec(this.powerups.getAnimalGrower().toSpec())
+                .cropGrowerSpec(this.powerups.getCropGrower().toSpec(newWorld))
+                .animalGrowerSpec(this.powerups.getAnimalGrower().toSpec(newWorld))
                 .build();
     }
     

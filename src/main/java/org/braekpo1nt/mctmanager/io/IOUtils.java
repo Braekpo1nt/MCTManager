@@ -28,7 +28,11 @@ public class IOUtils {
         }
         
         try {
-            return ImageIO.read(imageFile);
+            BufferedImage image = ImageIO.read(imageFile);
+            if (image == null) {
+                throw new IOException(String.format("File is not an image: %s", imageFile.getAbsolutePath()));
+            }
+            return image;
         } catch (IOException e) {
             throw new IOException(String.format("Unable to draw image file at path: %s ", imageFile.getAbsolutePath()));
         }

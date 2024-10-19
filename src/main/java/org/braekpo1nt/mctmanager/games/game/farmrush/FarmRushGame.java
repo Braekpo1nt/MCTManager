@@ -203,6 +203,14 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
             if (config.getMaterialBook() != null) {
                 starterChestInventory.addItem(config.getMaterialBook());
             }
+            ItemStack cropGrowerRecipeMap = config.getCropGrowerSpec().getRecipeMap();
+            if (cropGrowerRecipeMap != null) {
+                starterChestInventory.addItem(cropGrowerRecipeMap);
+            }
+            ItemStack animalGrowerRecipeMap = config.getAnimalGrowerSpec().getRecipeMap();
+            if (animalGrowerRecipeMap != null) {
+                starterChestInventory.addItem(animalGrowerRecipeMap);
+            }
             starterChestInventory.addItem(PowerupManager.cropGrowerItem);
             starterChestInventory.addItem(PowerupManager.animalGrowerItem);
             arena.closeBarnDoor();

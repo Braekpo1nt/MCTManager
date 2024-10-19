@@ -1,18 +1,23 @@
 package org.braekpo1nt.mctmanager.games.game.farmrush.config;
 
 import lombok.Data;
+import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.recipes.RecipeDTO;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.PowerupManager;
 import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.PowerupType;
 import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.specs.AnimalGrowerSpec;
+import org.braekpo1nt.mctmanager.io.IOUtils;
+import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.bukkit.Particle;
+import org.bukkit.World;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.io.IOException;
 
 @Data
 class AnimalGrowerSpecDTO implements Validatable {
@@ -74,10 +79,23 @@ class AnimalGrowerSpecDTO implements Validatable {
     private int particleCount = 1;
     // Particles end
     
-    public AnimalGrowerSpec toSpec() {
+    /**
+     * @param world trivial world used for creating a map. If null, no map item is created
+     * @return the specified spec
+     */
+    public AnimalGrowerSpec toSpec(World world) {
         ItemStack animalGrowerItem = PowerupManager.animalGrowerItem;
         animalGrowerItem.editMeta(meta -> meta.setCustomModelData(customModelData));
-        
+        ItemStack newRecipeMap = null;
+        if (recipeImage != null && world != null) {
+            try {
+                newRecipeMap = UIUtils.createMapItem(world, new File(recipeImage));
+                newRecipeMap.editMeta(meta -> {
+                   meta.displayName(Component.text("Animal Grower Recipe")); 
+                });
+            } catch (IOException ignored) {
+            }
+        }
         return AnimalGrowerSpec.builder()
                 .recipe(recipe.toRecipe(animalGrowerItem))
                 .recipeKey(recipe.getNamespacedKey())
@@ -85,6 +103,7 @@ class AnimalGrowerSpecDTO implements Validatable {
                 .radius(radius)
                 .ageMultiplier(ageMultiplier)
                 .breedMultiplier(breedMultiplier)
+                .recipeMap(newRecipeMap)
                 // Particles start
                 .ticksPerParticleCycle(ticksPerParticleCycle)
                 .particle(particle)
@@ -103,8 +122,12 @@ class AnimalGrowerSpecDTO implements Validatable {
         validator.validate(breedMultiplier >= 0.0, "breedMultiplier can't be negative");
         if (recipeImage != null) {
             File recipeImageFile = new File(recipeImage);
-            validator.validate(recipeImageFile.exists(), "recipeImage file could not be found");
-            validator.validate(recipeImageFile.canRead(), "recipeImage file could not be read");
+            validator.fileExists(recipeImage, "recipeImage");
+            try {
+                IOUtils.toBufferedImage(recipeImageFile);
+            } catch (IOException e) {
+                validator.invalid("recipeImage could not be read as an image.");
+            }
         }
         
         // Particles start

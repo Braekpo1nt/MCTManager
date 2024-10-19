@@ -52,8 +52,8 @@ public class MCTDebugCommand implements TabExecutor, Listener {
         ItemStack mapItem;
         try {
             mapItem = UIUtils.createMapItem(player.getWorld(), new File(filePath));
-        } catch (IOException e) {
-            sender.sendMessage("Could not create map");
+        } catch (IOException | IndexOutOfBoundsException e) {
+            sender.sendMessage("Could not create map" + e.getMessage());
             return true;
         }
         

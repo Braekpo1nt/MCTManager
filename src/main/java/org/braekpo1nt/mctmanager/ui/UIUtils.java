@@ -173,6 +173,13 @@ public class UIUtils {
         return new ImageMapRenderer(resizedImage);
     }
     
+    /**
+     * Create a map item with the given image file resized to fit the map
+     * @param world this needs a world to be associated with it to create the {@link MapView}. This just has to be any non-null world object. 
+     * @param imageFile the file to display on the map (will be resized to 127x127)
+     * @return an ItemStack of the map item
+     * @throws IOException if the image file doesn't exist or can't be read/parsed.
+     */
     public static ItemStack createMapItem(@NotNull World world, @NotNull File imageFile) throws IOException {
         MapRenderer mapRenderer = createMapRenderer(imageFile);
         ItemStack mapItem = new ItemStack(Material.FILLED_MAP);

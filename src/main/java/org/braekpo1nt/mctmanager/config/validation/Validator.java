@@ -90,6 +90,7 @@ public class Validator {
     
     /**
      * Convenience method to validate that a file specified by a string exists
+     * and can be read
      * @param filePath the file path to check for
      * @param subPath the subPath, usually the name of the variable holding the filePath
      * @param args any args to be used as the {@link String#format(String, Object...)} arguments for the subPath string
@@ -98,6 +99,9 @@ public class Validator {
         File file = new File(filePath);
         if (!file.exists()) {
             throw new ConfigInvalidException(this.path + "." + String.format(subPath, args) + " specifies a file that does not exist: " + filePath);
+        }
+        if (!file.canRead()) {
+            throw new ConfigInvalidException(this.path + "." + String.format(subPath, args) + " specifies a file that cannot be read: " + filePath);
         }
     }
     
@@ -178,5 +182,15 @@ public class Validator {
             return new Validator(String.format(subPath, args));
         }
         return new Validator(this.path + "." + String.format(subPath, args));
+    }
+    
+    /**
+     * Used when a direct invalid exception is needed, such as in a catch clause.
+     * @param subPath the subPath, usually the name of the variable holding the filePath
+     * @param args any args to be used as the {@link String#format(String, Object...)} arguments for the subPath string
+     * @throws ConfigInvalidException always
+     */
+    public void invalid(String subPath, Object... args) {
+        throw new ConfigInvalidException(this.path + "." + String.format(subPath, args));
     }
 }
