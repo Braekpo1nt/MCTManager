@@ -40,24 +40,11 @@ public class MCTDebugCommand implements TabExecutor, Listener {
             return true;
         }
         
-        if (args.length != 1) {
+        if (args.length != 0) {
             sender.sendMessage(Component.text("Usage: /mctdebug <arg> [options]")
                     .color(NamedTextColor.RED));
             return true;
         }
-        
-        String filePath = args[0];
-        
-        
-        ItemStack mapItem;
-        try {
-            mapItem = UIUtils.createMapItem(player.getWorld(), new File(filePath));
-        } catch (IOException | IndexOutOfBoundsException e) {
-            sender.sendMessage("Could not create map" + e.getMessage());
-            return true;
-        }
-        
-        player.getInventory().addItem(mapItem);
         
         return true;
     }
