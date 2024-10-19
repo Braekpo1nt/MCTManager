@@ -5,9 +5,22 @@ import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.kyori.adventure.title.Title;
+import org.braekpo1nt.mctmanager.io.IOUtils;
+import org.braekpo1nt.mctmanager.ui.maps.ImageMapRenderer;
+import org.bukkit.Bukkit;
+import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.MapMeta;
+import org.bukkit.map.MapPalette;
+import org.bukkit.map.MapRenderer;
+import org.bukkit.map.MapView;
 import org.jetbrains.annotations.NotNull;
 
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.time.Duration;
 
 public class UIUtils {
@@ -144,5 +157,40 @@ public class UIUtils {
                 Component.empty(),
                 DEFAULT_TIMES
         );
+    }
+    
+    /**
+     * Create a MapRenderer from the given file, if it exists. 
+     * 
+     * @param imageFile the File containing the image
+     * @return The MapRenderer with the given image, resized to 127x127
+     * @throws IOException if the file does not exist, or there is a problem turning it into a
+     * {@link MapRenderer}.
+     */
+    public static @NotNull MapRenderer createMapRenderer(@NotNull File imageFile) throws IOException {
+        BufferedImage image = IOUtils.toBufferedImage(imageFile);
+        BufferedImage resizedImage = MapPalette.resizeImage(image);
+        return new ImageMapRenderer(resizedImage);
+    }
+    
+    /**
+     * Create a map item with the given image file resized to fit the map
+     * @param world this needs a world to be associated with it to create the {@link MapView}. This just has to be any non-null world object. 
+     * @param imageFile the file to display on the map (will be resized to 127x127)
+     * @return an ItemStack of the map item
+     * @throws IOException if the image file doesn't exist or can't be read/parsed.
+     */
+    public static ItemStack createMapItem(@NotNull World world, @NotNull File imageFile) throws IOException {
+        MapRenderer mapRenderer = createMapRenderer(imageFile);
+        ItemStack mapItem = new ItemStack(Material.FILLED_MAP);
+        MapMeta mapMeta = (MapMeta) mapItem.getItemMeta();
+        
+        MapView mapView = Bukkit.createMap(world);
+        mapView.getRenderers().clear();
+        mapView.addRenderer(mapRenderer);
+        
+        mapMeta.setMapView(mapView);
+        mapItem.setItemMeta(mapMeta);
+        return mapItem;
     }
 }

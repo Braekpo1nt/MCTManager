@@ -13,8 +13,10 @@ import org.bukkit.block.Barrel;
 import org.bukkit.block.Block;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -43,6 +45,7 @@ public class ActiveState implements FarmRushState {
         for (FarmRushGame.Team team : context.getTeams().values()) {
             team.getArena().openBarnDoor();
         }
+        context.getPowerupManager().start();
     }
     
     @Override
@@ -169,6 +172,16 @@ public class ActiveState implements FarmRushState {
             }
         }
         return soldItems;
+    }
+    
+    @Override
+    public void onPlaceBlock(BlockPlaceEvent event, FarmRushGame.Participant participant) {
+        context.getPowerupManager().onPlaceBlock(event);
+    }
+    
+    @Override
+    public void onPlayerOpenInventory(InventoryOpenEvent event) {
+        context.getPowerupManager().onPlayerOpenInventory(event);
     }
     
     /**

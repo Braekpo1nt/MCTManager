@@ -5,13 +5,14 @@ import lombok.Data;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.games.game.farmrush.Arena;
 import org.braekpo1nt.mctmanager.games.game.farmrush.ItemSale;
+import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.specs.AnimalGrowerSpec;
+import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.specs.CropGrowerSpec;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
-import org.bukkit.inventory.meta.BookMeta;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -54,5 +55,9 @@ public class FarmRushConfig {
     private @NotNull Map<Material, ItemSale> materialScores;
     
     private @Nullable ItemStack materialBook;
+    
+    private @NotNull CropGrowerSpec cropGrowerSpec;
+    
+    private @NotNull AnimalGrowerSpec animalGrowerSpec;
     
 }

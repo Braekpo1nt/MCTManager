@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.recipes;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.ShapelessRecipe;
 import org.bukkit.inventory.recipe.CraftingBookCategory;
@@ -17,8 +18,8 @@ public class ShapelessRecipeDTO extends RecipeDTO {
     protected @Nullable CraftingBookCategory category;
     
     @Override
-    public Recipe toRecipe() {
-        ShapelessRecipe recipe = new ShapelessRecipe(namespacedKey, result.toItemStack());
+    public Recipe toRecipe(ItemStack result) {
+        ShapelessRecipe recipe = new ShapelessRecipe(namespacedKey, result);
         for (RecipeChoiceDTO recipeChoiceDTO : ingredients) {
             recipe.addIngredient(recipeChoiceDTO.toRecipeChoice());
         }

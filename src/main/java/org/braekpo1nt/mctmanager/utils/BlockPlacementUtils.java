@@ -18,6 +18,7 @@ import com.sk89q.worldedit.world.block.BlockTypes;
 import org.braekpo1nt.mctmanager.Main;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Tag;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -435,6 +436,36 @@ public class BlockPlacementUtils {
         } catch (MaxChangedBlocksException e) {
             Main.logger().log(Level.SEVERE, "error occurred filling with air blocks", e);
         }
+    }
+    
+    public static List<Block> getBlocksInRadius(Location center, double radius, Tag<Material> type) {
+        List<Block> matchingBlocks = new ArrayList<>();
+        World world = center.getWorld();
+        
+        int minX = (int) (center.getBlockX() - radius);
+        int maxX = (int) (center.getBlockX() + radius);
+        int minY = (int) (Math.max(world.getMinHeight(), center.getBlockY() - radius));
+        int maxY = (int) (Math.min(world.getMaxHeight(), center.getBlockY() + radius));
+        int minZ = (int) (center.getBlockZ() - radius);
+        int maxZ = (int) (center.getBlockZ() + radius);
+        
+        double radiusSquared = radius * radius;
+        
+        for (int x = minX; x <= maxX; x++) {
+            for (int y = minY; y <= maxY; y++) {
+                for (int z = minZ; z <= maxZ; z++) {
+                    Location loc = new Location(world, x, y, z);
+                    if (center.distanceSquared(loc) <= radiusSquared) {
+                        Block block = world.getBlockAt(loc);
+                        if (type.isTagged(block.getType())) {
+                            matchingBlocks.add(block);
+                        }
+                    }
+                }
+            }
+        }
+        
+        return matchingBlocks;
     }
     
 }

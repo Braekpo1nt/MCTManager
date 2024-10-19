@@ -25,10 +25,7 @@ import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Data
 class FarmRushConfigDTO implements Validatable {
@@ -73,6 +70,26 @@ class FarmRushConfigDTO implements Validatable {
      * This allows tests to not provide the book. Not to be used by the real game.
      */
     private boolean doNotGiveBookDebug = false;
+    /**
+     * Details about the powerups
+     */
+    private @NotNull PowerupData powerups;
+    
+    @Data
+    static class PowerupData implements Validatable {
+        
+        private @NotNull CropGrowerSpecDTO cropGrower;
+        
+        private @NotNull AnimalGrowerSpecDTO animalGrower;
+        
+        @Override
+        public void validate(@NotNull Validator validator) {
+            validator.notNull(cropGrower, "cropGrower");
+            cropGrower.validate(validator.path("cropGrower"));
+            validator.notNull(animalGrower, "animalGrower");
+            animalGrower.validate(validator.path("animalGrower"));
+        }
+    }
     
     @Data
     static class Durations {
@@ -110,8 +127,10 @@ class FarmRushConfigDTO implements Validatable {
         validator.validate(this.getDurations().getGameOver() >= 0, "durations.gameOver (%s) can't be negative", this.getDurations().getGameOver());
         validator.notNull(this.getDescription(), "description");
         if (recipes != null) {
-            validator.validate(!recipes.contains(null), "recipes can't contain null elements");
+            validator.validateList(recipes, "recipes");
         }
+        validator.notNull(powerups, "powerups");
+        powerups.validate(validator.path("powerups"));
     }
     
     public FarmRushConfig toConfig() {
@@ -150,6 +169,8 @@ class FarmRushConfigDTO implements Validatable {
                 .materialBook(createMaterialBook())
                 .recipes(this.recipes != null ? RecipeDTO.toRecipes(this.recipes) : Collections.emptyList())
                 .recipeKeys(this.recipes != null ? RecipeDTO.toNamespacedKeys(this.recipes) : Collections.emptyList())
+                .cropGrowerSpec(this.powerups.getCropGrower().toSpec(newWorld))
+                .animalGrowerSpec(this.powerups.getAnimalGrower().toSpec(newWorld))
                 .build();
     }
     

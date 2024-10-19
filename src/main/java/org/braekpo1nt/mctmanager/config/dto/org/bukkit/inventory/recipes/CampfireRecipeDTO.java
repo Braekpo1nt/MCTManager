@@ -4,6 +4,7 @@ package org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.recipes;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.bukkit.inventory.CampfireRecipe;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
 
 @Data
@@ -11,10 +12,10 @@ import org.bukkit.inventory.Recipe;
 public class CampfireRecipeDTO extends FurnaceRecipeDTO {
     
     @Override
-    public Recipe toRecipe() {
+    public Recipe toRecipe(ItemStack result) {
         CampfireRecipe recipe = new CampfireRecipe(
                 namespacedKey,
-                result.toItemStack(),
+                result,
                 ingredient.toRecipeChoice(),
                 experience,
                 cookingtime

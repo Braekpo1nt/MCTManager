@@ -16,6 +16,7 @@ import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.farmrush.config.FarmRushConfig;
 import org.braekpo1nt.mctmanager.games.game.farmrush.config.FarmRushConfigController;
+import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.PowerupManager;
 import org.braekpo1nt.mctmanager.games.game.farmrush.states.DescriptionState;
 import org.braekpo1nt.mctmanager.games.game.farmrush.states.FarmRushState;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
@@ -45,6 +46,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockBurnEvent;
 import org.bukkit.event.block.BlockExplodeEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.ItemSpawnEvent;
@@ -52,6 +54,7 @@ import org.bukkit.event.inventory.*;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
 import org.bukkit.persistence.PersistentDataType;
@@ -68,6 +71,7 @@ import java.util.List;
 @Data
 public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener {
     
+    @SuppressWarnings("SpellCheckingInspection")
     public static final NamespacedKey HAS_SCORE_LORE = NamespacedKey.minecraft("hasscorelore");
     private static final List<InventoryType> STORAGE_TYPES = List.of(
             InventoryType.CHEST,
@@ -87,6 +91,7 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
     private final Component baseTitle = Component.empty()
             .append(Component.text("Farm Rush"))
             .color(NamedTextColor.BLUE);
+    private final PowerupManager powerupManager = new PowerupManager(this);
     private Component title = baseTitle;
     private FarmRushConfig config;
     private final FarmRushConfigController configController;
@@ -126,6 +131,7 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
         private final @NotNull String teamId;
         private final @NotNull List<UUID> members = new ArrayList<>();
         private final Arena arena;
+        private final List<Location> cropGrowers = new ArrayList<>();
     }
     
     public FarmRushGame(Main plugin, GameManager gameManager) {
@@ -192,11 +198,21 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
             ((Directional) starterChestBlockData).setFacing(arena.getStarterChestBlockFace());
             starterChest.setBlockData(starterChestBlockData);
             Chest starterChestState = (Chest) starterChest.getState();
-            starterChestState.getBlockInventory().setContents(config.getStarterChestContents());
+            Inventory starterChestInventory = starterChestState.getBlockInventory();
+            starterChestInventory.setContents(config.getStarterChestContents());
             if (config.getMaterialBook() != null) {
-                starterChestState.getBlockInventory().addItem(config.getMaterialBook());
+                starterChestInventory.addItem(config.getMaterialBook());
             }
-            
+            ItemStack cropGrowerRecipeMap = config.getCropGrowerSpec().getRecipeMap();
+            if (cropGrowerRecipeMap != null) {
+                starterChestInventory.addItem(cropGrowerRecipeMap);
+            }
+            ItemStack animalGrowerRecipeMap = config.getAnimalGrowerSpec().getRecipeMap();
+            if (animalGrowerRecipeMap != null) {
+                starterChestInventory.addItem(animalGrowerRecipeMap);
+            }
+            starterChestInventory.addItem(PowerupManager.cropGrowerItem);
+            starterChestInventory.addItem(PowerupManager.animalGrowerItem);
             arena.closeBarnDoor();
         }
     }
@@ -313,6 +329,7 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
         arenas.clear();
         TopCommand.setEnabled(false);
         gameManager.gameIsOver();
+        powerupManager.stop();
         Main.logger().info("Stopping Farm Rush game");
     }
     
@@ -430,22 +447,26 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
             return;
         }
         Location delivery = teams.get(participant.getTeamId()).getArena().getDelivery();
-        if (!event.getBlock().getLocation().equals(delivery)) {
+        Block block = event.getBlock();
+        if (block.getLocation().equals(delivery)) {
+            event.setCancelled(true);
             return;
         }
-        event.setCancelled(true);
-    }
-    @EventHandler
-    public void blockDestroyEvent(BlockDestroyEvent event) {
-        onBlockDestroy(event.getBlock(), event);
+        powerupManager.onBlockBreak(block, event);
     }
     @EventHandler
     public void blockExplodeEvent(BlockExplodeEvent event) {
-        onBlockDestroy(event.getBlock(), event);
-    }
-    @EventHandler
-    public void blockBurnEvent(BlockBurnEvent event) {
-        onBlockDestroy(event.getBlock(), event);
+        event.blockList().removeIf(block -> {
+            for (Team team : teams.values()) {
+                Location delivery = team.getArena().getDelivery();
+                if (block.getLocation().equals(delivery)) {
+                    return true;
+                }
+            }
+            return false;
+        });
+        List<Block> powerupBlocks = powerupManager.onBlocksBreak(event.blockList());
+        event.blockList().removeAll(powerupBlocks);
     }
     @EventHandler
     public void entityExplodeEvent(EntityExplodeEvent event) {
@@ -458,8 +479,21 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
             }
             return false;
         });
+        List<Block> powerupBlocks = powerupManager.onBlocksBreak(event.blockList());
+        event.blockList().removeAll(powerupBlocks);
+    }
+    @EventHandler
+    public void blockDestroyEvent(BlockDestroyEvent event) {
+        onBlockDestroy(event.getBlock(), event);
+    }
+    @EventHandler
+    public void blockBurnEvent(BlockBurnEvent event) {
+        onBlockDestroy(event.getBlock(), event);
     }
     public void onBlockDestroy(Block block, Cancellable event) {
+        if (state == null) {
+            return;
+        }
         for (Team team : teams.values()) {
             Location delivery = team.getArena().getDelivery();
             if (block.getLocation().equals(delivery)) {
@@ -467,6 +501,7 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
                 return;
             }
         }
+        powerupManager.onBlockBreak(block, event);
     }
     
     @EventHandler
@@ -483,6 +518,17 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
             return;
         }
         event.setCancelled(true);
+    }
+    
+    @EventHandler
+    public void onPlayerOpenInventory(InventoryOpenEvent event) {
+        if (state == null) {
+            return;
+        }
+        if (!participants.containsKey(event.getPlayer().getUniqueId())) {
+            return;
+        }
+        state.onPlayerOpenInventory(event);
     }
     
     @EventHandler
@@ -593,6 +639,18 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
             return;
         }
         state.onParticipantDamage(event);
+    }
+    
+    @EventHandler
+    public void onPlaceBlock(BlockPlaceEvent event) {
+        if (state == null) {
+            return;
+        }
+        Participant participant = participants.get(event.getPlayer().getUniqueId());
+        if (participant == null) {
+            return;
+        }
+        state.onPlaceBlock(event, participant);
     }
     
     /**
