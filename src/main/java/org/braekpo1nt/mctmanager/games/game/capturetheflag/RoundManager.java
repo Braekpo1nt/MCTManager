@@ -217,7 +217,9 @@ public class RoundManager {
                     
                     // check if either team is already playing in the current round
                     if (!teamsInRound.contains(home) && !teamsInRound.contains(away)) {
-                        currentRound.add(match);
+                        if (!BYE.equals(home) && !BYE.equals(away)) {
+                            currentRound.add(match);
+                        }
                         teamsInRound.add(home);
                         teamsInRound.add(away);
                         iterator.remove();

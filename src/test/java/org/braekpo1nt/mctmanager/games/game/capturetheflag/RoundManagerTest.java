@@ -330,7 +330,7 @@ public class RoundManagerTest {
         List<List<MatchPairing>> schedule = RoundManager.generateSchedule(teams, 4, exclude);
         Assertions.assertEquals(List.of(
                 new MatchPairing("G", "A"),
-                new MatchPairing(RoundManager.BYE, "F"),
+//                new MatchPairing(RoundManager.BYE, "F"),
                 new MatchPairing("E", "B"),
                 new MatchPairing("D", "C")
         ), schedule.getFirst());
@@ -342,7 +342,7 @@ public class RoundManagerTest {
         int arenas = 4;
         RoundManager roundManager = new RoundManager(teams7, arenas);
         List<MatchPairing> expectedRoundOneMatches = List.of(
-                new MatchPairing("A", RoundManager.BYE),
+//                new MatchPairing("A", RoundManager.BYE),
                 new MatchPairing("B", "G"),
                 new MatchPairing("C", "F"),
                 new MatchPairing("D", "E")
@@ -374,7 +374,7 @@ public class RoundManagerTest {
         RoundManager roundManager = new RoundManager(teams7, arenas);
         // now we're in round 1
         Assertions.assertEquals(List.of(
-                new MatchPairing("A", RoundManager.BYE),
+//                new MatchPairing("A", RoundManager.BYE),
                 new MatchPairing("B", "G"),
                 new MatchPairing("C", "F"),
                 new MatchPairing("D", "E")
@@ -384,7 +384,7 @@ public class RoundManagerTest {
         // now we're in round 2
         Assertions.assertEquals(List.of(
                 new MatchPairing("G", "A"),
-                new MatchPairing("F", RoundManager.BYE),
+//                new MatchPairing("F", RoundManager.BYE),
                 new MatchPairing("E", "B"),
                 new MatchPairing("D", "C")
         ), roundManager.getCurrentRound());
@@ -395,7 +395,7 @@ public class RoundManagerTest {
         Assertions.assertEquals(List.of(
                 new MatchPairing("A", "F"),
                 new MatchPairing("G", "E"),
-                new MatchPairing(RoundManager.BYE, "D"),
+//                new MatchPairing(RoundManager.BYE, "D"),
                 new MatchPairing("B", "C")
         ), roundManager.getCurrentRound());
         
@@ -406,7 +406,7 @@ public class RoundManagerTest {
         Assertions.assertEquals(List.of(
                 new MatchPairing("A", "F"),
                 new MatchPairing("G", "E"),
-                new MatchPairing(RoundManager.BYE, "D"),
+//                new MatchPairing(RoundManager.BYE, "D"),
                 new MatchPairing("B", "C")
         ), roundManager.getCurrentRound());
         
