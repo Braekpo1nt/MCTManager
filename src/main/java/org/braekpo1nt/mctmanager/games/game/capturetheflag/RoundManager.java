@@ -11,6 +11,10 @@ import java.util.stream.Collectors;
 public class RoundManager {
     
     /**
+     * Used as a stand-in team for odd numbers of teams
+     */
+    public static final String BYE = "%BYE%";
+    /**
      * The schedule handled by this round. Each element of the outer list
      * is a round. 
      */
@@ -158,53 +162,14 @@ public class RoundManager {
     }
     
     public static List<List<MatchPairing>> generateSchedule(@NotNull List<String> teamIds, int numOfArenas) {
-        return generateSchedule(teamIds, numOfArenas, Collections.emptyList());
+        List<MatchPairing> allMatches = generateRoundRobin(teamIds);
+        return distributeMatches(allMatches, numOfArenas);
     }
     
-    
-    /**
-     * Generates a schedule for the teams to face off.
-     * 
-     * @param teamIds the teamIds to generate the schedule for
-     * @param numOfArenas the number of arenas (each arena fits 2 teams)
-     * @return A list where each entry is the {@code numOfArenas} {@link MatchPairing}s for each round. The size
-     * of the returned list will be the number of rounds. 
-     */
-    public static List<List<MatchPairing>> generateSchedule(@NotNull List<String> teamIds, 
-                                                            int numOfArenas, 
-                                                            @NotNull List<MatchPairing> exclude) {
-        List<MatchPairing> matchPairings = generateAllMatchPairings(teamIds, exclude);
-        
-        List<List<MatchPairing>> schedule = new ArrayList<>();
-        
-        // Step 2: Loop while there are pairs left to schedule
-        while (!matchPairings.isEmpty()) {
-            List<MatchPairing> roundMatches = new ArrayList<>();
-            Set<String> usedTeams = new HashSet<>();
-            
-            // Step 3: Fill up the round with matches, ensuring no team plays twice
-            for (int i = 0; i < matchPairings.size(); i++) {
-                MatchPairing pair = matchPairings.get(i);
-                String team1 = pair.northTeam();
-                String team2 = pair.southTeam();
-                
-                if (!usedTeams.contains(team1) && !usedTeams.contains(team2)) {
-                    roundMatches.add(pair);
-                    usedTeams.add(team1);
-                    usedTeams.add(team2);
-                    matchPairings.remove(i);
-                    i--; // Adjust index after removal
-                    
-                    if (roundMatches.size() == numOfArenas) {
-                        break;
-                    }
-                }
-            }
-            
-            schedule.add(roundMatches);
-        }
-        
-        return schedule;
+    public static List<List<MatchPairing>> generateSchedule(@NotNull List<String> teamIds, int numOfArenas, List<MatchPairing> exclude) {
+        List<MatchPairing> allMatches = generateRoundRobin(teamIds);
+        allMatches.removeAll(exclude);
+        return distributeMatches(allMatches, numOfArenas);
     }
     
     /**
@@ -214,7 +179,7 @@ public class RoundManager {
     public static @NotNull List<MatchPairing> generateRoundRobin(@NotNull List<String> teamIds) {
         List<String> teams = teamIds.stream().sorted().collect(Collectors.toCollection(ArrayList::new));
         if (teamIds.size() % 2 != 0) {
-            teams.add("%BYE%");
+            teams.add(BYE);
         }
         
         int numTeams = teams.size();
@@ -266,30 +231,4 @@ public class RoundManager {
         return rounds;
     }
     
-    /**
-     * Generating all the {@link MatchPairing}s from the given teamIds, excluding the ones from the given list.
-     * @param teamIds the teams to generate all {@link MatchPairing} combos from
-     * @param exclude the {@link MatchPairing}s to exclude from the returned list
-     * @return all combos of the given teamIds in {@link MatchPairing}s, excluding the {@link MatchPairing}s contained 
-     * in the exclude list.
-     */
-    private static @NotNull List<MatchPairing> generateAllMatchPairings(@NotNull List<String> teamIds, @NotNull List<MatchPairing> exclude) {
-        List<MatchPairing> matchPairings = new ArrayList<>();
-        List<String> sortedTeamIds = teamIds.stream().sorted().toList();
-        
-        // Step 1: Generate all unique team pairs
-        for (int i = 0; i < sortedTeamIds.size(); i++) {
-            for (int j = i + 1; j < sortedTeamIds.size(); j++) {
-                String northTeamId = sortedTeamIds.get(i);
-                String southTeamId = sortedTeamIds.get(j);
-                
-                // Check if the pair is in the exclude list
-                MatchPairing matchPairing = new MatchPairing(northTeamId, southTeamId);
-                if (!exclude.contains(matchPairing)) {
-                    matchPairings.add(matchPairing);
-                }
-            }
-        }
-        return matchPairings;
-    }
 }
