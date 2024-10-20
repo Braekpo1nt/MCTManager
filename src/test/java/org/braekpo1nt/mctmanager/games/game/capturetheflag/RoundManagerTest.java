@@ -22,6 +22,14 @@ public class RoundManagerTest {
     }
     
     @Test
+    void roundRobin() {
+        List<MatchPairing> allMatches = RoundManager.generateRoundRobin(teams);
+        Assertions.assertEquals(28, allMatches.size());
+        List<List<MatchPairing>> schedule = RoundManager.distributeMatches(allMatches, 5);
+        Assertions.assertEquals(7, schedule.size());
+    }
+    
+    @Test
     void testLargeTeamCount() {
         List<String> largeTeams = List.of(
                 "A", "B", "C", "D", "E", "F", "G", "H",  

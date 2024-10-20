@@ -6,6 +6,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class RoundManager {
     
@@ -204,6 +205,65 @@ public class RoundManager {
         }
         
         return schedule;
+    }
+    
+    /**
+     * @param teamIds the teams to generate the round-robin for
+     * @return all possible round-robin match-ups
+     */
+    public static @NotNull List<MatchPairing> generateRoundRobin(@NotNull List<String> teamIds) {
+        List<String> teams = teamIds.stream().sorted().collect(Collectors.toCollection(ArrayList::new));
+        if (teamIds.size() % 2 != 0) {
+            teams.add("%BYE%");
+        }
+        
+        int numTeams = teams.size();
+        int numRounds = numTeams - 1;
+        int halfSize = numTeams / 2;
+        List<MatchPairing> allMatches = new ArrayList<>();
+        
+        for (int roundNum = 0; roundNum < numRounds; roundNum++) {
+            for (int i = 0; i < halfSize; i++) {
+                String home = teams.get(i);
+                String away = teams.get(numTeams - 1 - i);
+                allMatches.add(new MatchPairing(home, away));
+            }
+            // rotate teams
+            String last = teams.removeLast();
+            teams.add(1, last);
+        }
+        return allMatches;
+    }
+    
+    public static List<List<MatchPairing>> distributeMatches(List<MatchPairing> allMatches, int maxMatchesPerRound) {
+        List<List<MatchPairing>> rounds = new ArrayList<>();
+        List<MatchPairing> matches = new ArrayList<>(allMatches);
+        
+        while (!matches.isEmpty()) {
+            List<MatchPairing> currentRound = new ArrayList<>();
+            Set<String> teamsInRound = new HashSet<>();
+            
+            for (int i = 0; i < maxMatchesPerRound; i++) {
+                Iterator<MatchPairing> iterator = matches.iterator();
+                while (iterator.hasNext()) {
+                    MatchPairing match = iterator.next();
+                    String home = match.northTeam();
+                    String away = match.southTeam();
+                    
+                    // check if either team is already playing in the current round
+                    if (!teamsInRound.contains(home) && !teamsInRound.contains(away)) {
+                        currentRound.add(match);
+                        teamsInRound.add(home);
+                        teamsInRound.add(away);
+                        iterator.remove();
+                        break; // move to the next match
+                    }
+                }
+            }
+            
+            rounds.add(currentRound);
+        }
+        return rounds;
     }
     
     /**
