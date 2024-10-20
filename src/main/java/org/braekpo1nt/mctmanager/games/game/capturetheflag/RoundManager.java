@@ -85,10 +85,13 @@ public class RoundManager {
     public RoundManager(@NotNull List<@NotNull String> teamIds, int numOfArenas) {
         Preconditions.checkArgument(teamIds.size() >= 2, "There must be at least two teamIds (got %s)", teamIds.size());
         Preconditions.checkArgument(numOfArenas > 0, "there must be at least 1 arena");
-        this.containedTeamIds = new HashSet<>(teamIds);
-        Preconditions.checkArgument(this.containedTeamIds.size() == teamIds.size(), "Duplicate teamId found in teamIds %s", teamIds.toString());
+        Set<String> uniqueTeamIds = new HashSet<>(teamIds);
+        Preconditions.checkArgument(uniqueTeamIds.size() == teamIds.size(), "Duplicate teamId found in teamIds %s", teamIds.toString());
+        this.containedTeamIds = uniqueTeamIds;
         this.schedule = generateSchedule(teamIds, numOfArenas);
-        Preconditions.checkArgument(!schedule.isEmpty(), "Generated rounds were empty, teamIds: %s, numOfArenas: %s", teamIds, numOfArenas);
+        if (schedule.isEmpty()) {
+            Main.logger().info(String.format("Generated rounds were empty, teamIds: %s, numOfArenas: %s", teamIds, numOfArenas));
+        }
         currentRound = this.schedule.getFirst();
         played = new ArrayList<>(currentRound);
         playedRounds = 0;
@@ -105,8 +108,12 @@ public class RoundManager {
     public void regenerateRounds(@NotNull List<@NotNull String> teamIds, int numOfArenas) {
         Preconditions.checkArgument(teamIds.size() >= 2, "There must be at least two teamIds (got %s)", teamIds.size());
         Preconditions.checkArgument(numOfArenas > 0, "there must be at least 1 arena");
-        this.containedTeamIds.addAll(teamIds);
-        Preconditions.checkArgument(this.containedTeamIds.size() == teamIds.size(), "Duplicate teamId found in teamIds %s", teamIds.toString());
+        Set<String> uniqueTeamIds = new HashSet<>(teamIds);
+        if (uniqueTeamIds.size() != teamIds.size()) {
+            Main.logger().severe(String.format("Duplicate teamId found in teamIds %s", teamIds.toString()));
+        }
+        this.containedTeamIds.clear();
+        this.containedTeamIds.addAll(uniqueTeamIds);
         this.schedule = generateSchedule(teamIds, numOfArenas, played);
         currentRoundIndex = -1;
         maxRounds = playedRounds + schedule.size() + 1;

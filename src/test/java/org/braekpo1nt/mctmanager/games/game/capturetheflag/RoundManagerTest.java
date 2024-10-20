@@ -451,4 +451,48 @@ public class RoundManagerTest {
         
         Assertions.assertFalse(roundManager.hasNextRound(), "round manager should not have more rounds");
     }
+    
+    @Test
+    void test3Teams1OnDeckTeamQuits() {
+        int arenas = 5;
+        RoundManager roundManager = new RoundManager(List.of("A", "B", "C"), arenas);
+        // now we're in round 1
+        Assertions.assertEquals(List.of(
+                new MatchPairing("B", "C")
+        ), roundManager.getCurrentRound());
+        
+        // Now team "A" quits
+        roundManager.regenerateRounds(List.of("B", "C"), arenas);
+        // Assert that the current round hasn't changed
+        Assertions.assertEquals(List.of(
+                new MatchPairing("B", "C")
+        ), roundManager.getCurrentRound());
+        
+        Assertions.assertFalse(roundManager.hasNextRound(), "there shouldn't be any more rounds");
+    }
+    
+    @Test
+    void test3Teams1ParticipantTeamQuits() {
+        int arenas = 5;
+        RoundManager roundManager = new RoundManager(List.of("A", "B", "C"), arenas);
+        // now we're in round 1
+        Assertions.assertEquals(List.of(
+                new MatchPairing("B", "C")
+        ), roundManager.getCurrentRound());
+        
+        // Now team "B" quits
+        roundManager.regenerateRounds(List.of("A", "C"), arenas);
+        // Assert that the current round hasn't changed
+        Assertions.assertEquals(List.of(
+                new MatchPairing("B", "C")
+        ), roundManager.getCurrentRound());
+        
+        roundManager.nextRound();
+        // now we're in round 2
+        Assertions.assertEquals(List.of(
+                new MatchPairing("A", "C")
+        ), roundManager.getCurrentRound());
+        
+        Assertions.assertFalse(roundManager.hasNextRound(), "there shouldn't be any more rounds");
+    }
 }
