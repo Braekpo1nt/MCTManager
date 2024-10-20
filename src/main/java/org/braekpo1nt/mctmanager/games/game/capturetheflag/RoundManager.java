@@ -173,8 +173,10 @@ public class RoundManager {
     }
     
     /**
-     * @param teamIds the teams to generate the round-robin for
-     * @return all possible round-robin match-ups
+     * @param teamIds the teams to generate the round-robin bracket for
+     * @return all possible round-robin match-ups. If the number of teamIds is odd, this will include
+     * a some {@link MatchPairing}s where one of the teams is {@link #BYE}. This is intended, so
+     * that when you generate the schedule, no one team waits too many rounds in a row on-deck.
      */
     public static @NotNull List<MatchPairing> generateRoundRobin(@NotNull List<String> teamIds) {
         List<String> teams = teamIds.stream().sorted().collect(Collectors.toCollection(ArrayList::new));
@@ -200,7 +202,17 @@ public class RoundManager {
         return allMatches;
     }
     
-    public static List<List<MatchPairing>> distributeMatches(List<MatchPairing> allMatches, int maxMatchesPerRound) {
+    /**
+     * This takes the raw generation of {@link MatchPairing}s and returns a schedule. Note that you should
+     * include the pairs with {@link #BYE} as one of the teams, to make sure no individual team is
+     * on-deck for too many rounds in a row. 
+     * @param allMatches a list of all possible {@link MatchPairing}s to generate a schedule for. 
+     *                   Must include {@link #BYE} pairs to keep fair distribution 
+     *                   (i.e., this prevents a team being on deck for 4 rounds in a row)
+     * @param numOfArenas the maximum pairs per round, as determined by the number of arenas available
+     * @return a list of rounds, represented as lists of {@link MatchPairing} for the bracket. Will not include {@link MatchPairing}s which contain {@link #BYE}, as they are considered on-deck.
+     */
+    public static List<List<MatchPairing>> distributeMatches(List<MatchPairing> allMatches, int numOfArenas) {
         List<List<MatchPairing>> rounds = new ArrayList<>();
         List<MatchPairing> matches = new ArrayList<>(allMatches);
         
@@ -208,7 +220,7 @@ public class RoundManager {
             List<MatchPairing> currentRound = new ArrayList<>();
             Set<String> teamsInRound = new HashSet<>();
             
-            for (int i = 0; i < maxMatchesPerRound; i++) {
+            for (int i = 0; i < numOfArenas; i++) {
                 Iterator<MatchPairing> iterator = matches.iterator();
                 while (iterator.hasNext()) {
                     MatchPairing match = iterator.next();
