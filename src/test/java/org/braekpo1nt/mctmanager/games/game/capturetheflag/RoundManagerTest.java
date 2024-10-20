@@ -32,12 +32,49 @@ public class RoundManagerTest {
                 new MatchPairing("C", "N"),
                 new MatchPairing("D", "M")
         );
-        int numOfArenas = 4;
-        List<List<MatchPairing>> schedule = RoundManager.generateSchedule(largeTeams, numOfArenas, exclude);
         
+        List<List<MatchPairing>> fourArenasScheduleExclude = RoundManager.generateSchedule(largeTeams, 4, exclude);
         int expectedMatches = (largeTeams.size() * (largeTeams.size() - 1) / 2) - exclude.size();
+        int actualMatches =  fourArenasScheduleExclude.stream().mapToInt(List::size).sum();
+        Assertions.assertEquals(expectedMatches, actualMatches);
+        Assertions.assertEquals(29, fourArenasScheduleExclude.size());
+        
+        List<List<MatchPairing>> fiveArenasSchedule = RoundManager.generateSchedule(largeTeams, 5);
+        expectedMatches = (largeTeams.size() * (largeTeams.size() - 1) / 2);
+        actualMatches =  fiveArenasSchedule.stream().mapToInt(List::size).sum();
+        Assertions.assertEquals(expectedMatches, actualMatches);
+        Assertions.assertEquals(24, fiveArenasSchedule.size());
+        
+    }
+    
+    @Test
+    void tenTeamsFiveArenas() {
+        List<String> tenTeams = List.of(
+                "The Councel", 
+                "Aquaholics", 
+                "Red Rangers", 
+                "Purple Paladins", 
+                "Blue Bedtimers", 
+                "Lime Cacti", 
+                "Green Spartans", 
+                "Orange Oni's", 
+                "Pink Penguins", 
+                "Just the Builders");
+        
+        List<List<MatchPairing>> schedule = RoundManager.generateSchedule(tenTeams, 5);
+        int expectedMatches = 45;
         int actualMatches =  schedule.stream().mapToInt(List::size).sum();
         Assertions.assertEquals(expectedMatches, actualMatches);
+        Assertions.assertEquals(9, schedule.size());
+        Assertions.assertEquals(5, schedule.get(0).size());
+        Assertions.assertEquals(5, schedule.get(1).size());
+        Assertions.assertEquals(5, schedule.get(2).size());
+        Assertions.assertEquals(5, schedule.get(3).size());
+        Assertions.assertEquals(5, schedule.get(4).size());
+        Assertions.assertEquals(5, schedule.get(5).size());
+        Assertions.assertEquals(5, schedule.get(6).size());
+        Assertions.assertEquals(5, schedule.get(7).size());
+        Assertions.assertEquals(5, schedule.get(8).size());
     }
     
     @Test
