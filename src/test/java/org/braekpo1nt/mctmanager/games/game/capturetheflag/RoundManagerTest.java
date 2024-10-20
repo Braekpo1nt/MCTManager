@@ -419,4 +419,36 @@ public class RoundManagerTest {
         ), roundManager.getCurrentRound());
         Assertions.assertEquals(4, roundManager.getPlayedRounds() + 1);
     }
+    
+    @Test
+    void test2Teams1Joining() {
+        int arenas = 5;
+        RoundManager roundManager = new RoundManager(List.of("A", "B"), arenas);
+        // now we're in round 1
+        Assertions.assertEquals(List.of(
+                new MatchPairing("A", "B")
+        ), roundManager.getCurrentRound());
+        
+        // Now we add a new team, "C" and regenerate the rounds
+        roundManager.regenerateRounds(List.of("A", "B", "C"), arenas);
+        // Assert that the current round hasn't changed
+        Assertions.assertEquals(List.of(
+                new MatchPairing("A", "B")
+        ), roundManager.getCurrentRound());
+        
+        roundManager.nextRound();
+        // now we're in round 2
+        Assertions.assertEquals(List.of(
+                new MatchPairing("B", "C")
+        ), roundManager.getCurrentRound());
+        Assertions.assertEquals(2, roundManager.getPlayedRounds() + 1);
+        
+        roundManager.nextRound();
+        // now we're in round 3
+        Assertions.assertEquals(List.of(
+                new MatchPairing("C", "A")
+        ), roundManager.getCurrentRound());
+        
+        Assertions.assertFalse(roundManager.hasNextRound(), "round manager should not have more rounds");
+    }
 }

@@ -240,7 +240,9 @@ public class RoundManager {
                 }
             }
             
-            rounds.add(currentRound);
+            if (!currentRound.isEmpty()) {
+                rounds.add(currentRound);
+            }
         }
         return rounds;
     }
