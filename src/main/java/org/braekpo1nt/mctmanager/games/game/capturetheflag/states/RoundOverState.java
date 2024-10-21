@@ -23,6 +23,7 @@ public class RoundOverState implements CaptureTheFlagState {
     public RoundOverState(CaptureTheFlagGame context) {
         this.context = context;
         Audience.audience(context.getParticipants()).showTitle(UIUtils.roundOverTitle());
+        Main.logger().info("Starting RoundOverState timer");
         context.getTimerManager().start(Timer.builder()
                 .duration(context.getConfig().getRoundOverDuration())
                 .withTopbar(context.getTopbar())
@@ -43,14 +44,7 @@ public class RoundOverState implements CaptureTheFlagState {
             List<String> teamIds = context.getGameManager().getTeamIds(context.getParticipants());
             context.getRoundManager().regenerateRounds(teamIds, context.getConfig().getArenas().size());
         }
-        Component roundLine = Component.empty()
-                .append(Component.text("Round "))
-                .append(Component.text(context.getRoundManager().getPlayedRounds() + 1))
-                .append(Component.text("/"))
-                .append(Component.text(context.getRoundManager().getMaxRounds()))
-                ;
-        context.getSidebar().updateLine("round", roundLine);
-        context.getAdminSidebar().updateLine("round", roundLine);
+        context.updateRoundLine();
         participant.setGameMode(GameMode.ADVENTURE);
         participant.teleport(context.getConfig().getSpawnObservatory());
         participant.setRespawnLocation(context.getConfig().getSpawnObservatory(), true);
@@ -60,6 +54,12 @@ public class RoundOverState implements CaptureTheFlagState {
     public void onParticipantQuit(Player participant) {
         context.resetParticipant(participant);
         context.getParticipants().remove(participant);
+        String quitTeamId = context.getGameManager().getTeamId(participant.getUniqueId());
+        List<String> teamIds = context.getGameManager().getTeamIds(context.getParticipants());
+        if (!teamIds.contains(quitTeamId)) {
+            context.getRoundManager().regenerateRounds(teamIds, context.getConfig().getArenas().size());
+            context.updateRoundLine();
+        }
     }
     
     @Override

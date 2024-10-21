@@ -52,6 +52,19 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
         }
         context.messageAllParticipants(Component.text("Begin!"));
         context.openGlassBarriers();
+        if (context.getNorthParticipants().isEmpty()) {
+            onTeamForfeit(matchPairing.northTeam());
+        } else if (context.getSouthParticipants().isEmpty()) {
+            onTeamForfeit(matchPairing.southTeam());
+        }
+    }
+    
+    private void onTeamForfeit(String forfeit) {
+        Component displayName = gameManager.getFormattedTeamDisplayName(forfeit);
+        context.messageAllParticipants(Component.empty()
+                .append(displayName)
+                .append(Component.text(" is absent, match cancelled.")));
+        context.setState(new MatchOverState(context));
     }
     
     @Override
