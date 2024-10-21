@@ -33,20 +33,13 @@ public class PreRoundState implements CaptureTheFlagState {
         this.topbar = context.getTopbar();
         this.roundManager = context.getRoundManager();
         
-        Component roundLine = Component.empty()
-                .append(Component.text("Round "))
-                .append(Component.text(roundManager.getPlayedRounds() + 1))
-                .append(Component.text("/"))
-                .append(Component.text(roundManager.getMaxRounds()))
-                ;
-        context.getSidebar().updateLine("round", roundLine);
-        context.getAdminSidebar().updateLine("round", roundLine);
+        context.updateRoundLine();
         for (Player participant : context.getParticipants()) {
             announceMatchToParticipant(participant);
         }
         setUpTopbarForRound();
         context.getTimerManager().start(Timer.builder()
-                .duration(context.getConfig().getDescriptionDuration())
+                .duration(context.getConfig().getMatchesStartingDuration())
                 .withSidebar(context.getAdminSidebar(), "timer")
                 .withTopbar(topbar)
                 .sidebarPrefix(Component.text("Starting: "))
@@ -129,14 +122,7 @@ public class PreRoundState implements CaptureTheFlagState {
             List<String> teamIds = context.getGameManager().getTeamIds(context.getParticipants());
             context.getRoundManager().regenerateRounds(teamIds, context.getConfig().getArenas().size());
         }
-        Component roundLine = Component.empty()
-                .append(Component.text("Round "))
-                .append(Component.text(roundManager.getPlayedRounds() + 1))
-                .append(Component.text("/"))
-                .append(Component.text(roundManager.getMaxRounds()))
-                ;
-        context.getSidebar().updateLine("round", roundLine);
-        context.getAdminSidebar().updateLine("round", roundLine);
+        context.updateRoundLine();
         participant.setGameMode(GameMode.ADVENTURE);
         participant.teleport(context.getConfig().getSpawnObservatory());
         participant.setRespawnLocation(context.getConfig().getSpawnObservatory(), true);
@@ -147,6 +133,12 @@ public class PreRoundState implements CaptureTheFlagState {
     public void onParticipantQuit(Player participant) {
         context.resetParticipant(participant);
         context.getParticipants().remove(participant);
+        String quitTeamId = context.getGameManager().getTeamId(participant.getUniqueId());
+        List<String> teamIds = context.getGameManager().getTeamIds(context.getParticipants());
+        if (!teamIds.contains(quitTeamId)) {
+            context.getRoundManager().regenerateRounds(teamIds, context.getConfig().getArenas().size());
+            context.updateRoundLine();
+        }
     }
     
     @Override

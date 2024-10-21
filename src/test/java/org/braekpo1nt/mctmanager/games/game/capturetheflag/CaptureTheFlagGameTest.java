@@ -88,4 +88,18 @@ public class CaptureTheFlagGameTest {
 //        gameManager.getTimerManager().skip();
         gameManager.manuallyStopGame(false);
     }
+    
+    @Test
+    void testTimers() {
+        addTeam("yellow", "The Councel", "yellow");
+        addTeam("aqua", "Aquaholics", "aqua");
+        addTeam("red", "Red Rangers", "red");
+        createParticipant("Player1", "yellow");
+        createParticipant("Player2", "aqua");
+        createParticipant("Player3", "red");
+        gameManager.startGame(GameType.CAPTURE_THE_FLAG, sender);
+//        gameManager.getTimerManager().skip();
+//        gameManager.getTimerManager().skip();
+        gameManager.manuallyStopGame(false);
+    }
 }

@@ -1,6 +1,5 @@
 package org.braekpo1nt.mctmanager.games.game.capturetheflag;
 
-import com.google.common.base.Preconditions;
 import org.braekpo1nt.mctmanager.Main;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -79,15 +78,11 @@ public class RoundManager {
     
     /**
      * Initialize the RoundManager to handle rounds for a game
-     * @param teamIds the teamIds of the teams in the round (must have at least 2 entries)
-     * @param numOfArenas the number of arenas (must be greater than 0)
+     * @param teamIds the teamIds of the teams in the round
+     * @param numOfArenas the number of arenas
      */
     public RoundManager(@NotNull List<@NotNull String> teamIds, int numOfArenas) {
-        Preconditions.checkArgument(teamIds.size() >= 2, "There must be at least two teamIds (got %s)", teamIds.size());
-        Preconditions.checkArgument(numOfArenas > 0, "there must be at least 1 arena");
-        Set<String> uniqueTeamIds = new HashSet<>(teamIds);
-        Preconditions.checkArgument(uniqueTeamIds.size() == teamIds.size(), "Duplicate teamId found in teamIds %s", teamIds.toString());
-        this.containedTeamIds = uniqueTeamIds;
+        this.containedTeamIds = new HashSet<>(teamIds);
         this.schedule = generateSchedule(teamIds, numOfArenas);
         if (schedule.isEmpty()) {
             Main.logger().info(String.format("Generated rounds were empty, teamIds: %s, numOfArenas: %s", teamIds, numOfArenas));
@@ -102,19 +97,20 @@ public class RoundManager {
     /**
      * Regenerates the rounds using the given set of teams. Previously played matches will not be re-added.
      * Handy for when a new team joins mid-game and needs to be mixed into the rounds. 
-     * @param teamIds the teamIds of the teams in the round (must have at least 2 entries)
+     * @param teamIds the teamIds of the teams in the round
      * @param numOfArenas the number of arenas (must be greater than 0)
      */
     public void regenerateRounds(@NotNull List<@NotNull String> teamIds, int numOfArenas) {
-        Preconditions.checkArgument(teamIds.size() >= 2, "There must be at least two teamIds (got %s)", teamIds.size());
-        Preconditions.checkArgument(numOfArenas > 0, "there must be at least 1 arena");
         Set<String> uniqueTeamIds = new HashSet<>(teamIds);
         if (uniqueTeamIds.size() != teamIds.size()) {
-            Main.logger().severe(String.format("Duplicate teamId found in teamIds %s", teamIds.toString()));
+            Main.logger().severe(String.format("Duplicate teamId found in teamIds %s", teamIds));
         }
         this.containedTeamIds.clear();
         this.containedTeamIds.addAll(uniqueTeamIds);
         this.schedule = generateSchedule(teamIds, numOfArenas, played);
+        if (schedule.isEmpty()) {
+            Main.logger().info(String.format("Generated rounds were empty, teamIds: %s, numOfArenas: %s", teamIds, numOfArenas));
+        }
         currentRoundIndex = -1;
         maxRounds = playedRounds + schedule.size() + 1;
         logSchedule(schedule);
@@ -216,12 +212,15 @@ public class RoundManager {
      * @param allMatches a list of all possible {@link MatchPairing}s to generate a schedule for. 
      *                   Must include {@link #BYE} pairs to keep fair distribution 
      *                   (i.e., this prevents a team being on deck for 4 rounds in a row)
-     * @param numOfArenas the maximum pairs per round, as determined by the number of arenas available
+     * @param numOfArenas the maximum pairs per round, as determined by the number of arenas available. If this is less than 1, an empty list will be returned.
      * @return a list of rounds, represented as lists of {@link MatchPairing} for the bracket. Will not include {@link MatchPairing}s which contain {@link #BYE}, as they are considered on-deck.
      */
     public static List<List<MatchPairing>> distributeMatches(List<MatchPairing> allMatches, int numOfArenas) {
         List<List<MatchPairing>> rounds = new ArrayList<>();
         List<MatchPairing> matches = new ArrayList<>(allMatches);
+        if (numOfArenas < 1) {
+            return Collections.emptyList();
+        }
         
         while (!matches.isEmpty()) {
             List<MatchPairing> currentRound = new ArrayList<>();

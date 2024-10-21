@@ -45,14 +45,7 @@ public class DescriptionState implements CaptureTheFlagState {
             List<String> teamIds = context.getGameManager().getTeamIds(context.getParticipants());
             context.getRoundManager().regenerateRounds(teamIds, context.getConfig().getArenas().size());
         }
-        Component roundLine = Component.empty()
-                .append(Component.text("Round "))
-                .append(Component.text(context.getRoundManager().getPlayedRounds() + 1))
-                .append(Component.text("/"))
-                .append(Component.text(context.getRoundManager().getMaxRounds()))
-                ;
-        context.getSidebar().updateLine("round", roundLine);
-        context.getAdminSidebar().updateLine("round", roundLine);
+        context.updateRoundLine();
     }
     
     private void initializeParticipant(Player participant) {
@@ -66,6 +59,12 @@ public class DescriptionState implements CaptureTheFlagState {
     public void onParticipantQuit(Player participant) {
         context.resetParticipant(participant);
         context.getParticipants().remove(participant);
+        String quitTeamId = context.getGameManager().getTeamId(participant.getUniqueId());
+        List<String> teamIds = context.getGameManager().getTeamIds(context.getParticipants());
+        if (!teamIds.contains(quitTeamId)) {
+            context.getRoundManager().regenerateRounds(teamIds, context.getConfig().getArenas().size());
+            context.updateRoundLine();
+        }
     }
     
     

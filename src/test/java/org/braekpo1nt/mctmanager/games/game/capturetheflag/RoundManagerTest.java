@@ -19,6 +19,29 @@ public class RoundManagerTest {
     }
     
     @Test
+    void only1Team() {
+        List<MatchPairing> allMatches = RoundManager.generateRoundRobin(List.of("A"));
+        Assertions.assertEquals(1, allMatches.size());
+        List<List<MatchPairing>> schedule = RoundManager.distributeMatches(allMatches, 5);
+        Assertions.assertTrue(schedule.isEmpty());
+    }
+    
+    @Test
+    void noTeams() {
+        List<MatchPairing> allMatches = RoundManager.generateRoundRobin(Collections.emptyList());
+        Assertions.assertTrue(allMatches.isEmpty());
+        List<List<MatchPairing>> schedule = RoundManager.distributeMatches(allMatches, 5);
+        Assertions.assertTrue(schedule.isEmpty());
+    }
+    
+    @Test
+    void noArenas() {
+        List<MatchPairing> allMatches = RoundManager.generateRoundRobin(teams);
+        List<List<MatchPairing>> schedule = RoundManager.distributeMatches(allMatches, 0);
+        Assertions.assertTrue(schedule.isEmpty());
+    }
+    
+    @Test
     void roundRobin8Teams5Arenas() {
         List<MatchPairing> allMatches = RoundManager.generateRoundRobin(teams);
         Assertions.assertEquals(28, allMatches.size());

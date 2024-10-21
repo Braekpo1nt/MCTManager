@@ -118,6 +118,7 @@ public class RoundActiveState implements CaptureTheFlagState {
     public void matchIsOver() {
         numOfEndedMatches++;
         if (numOfEndedMatches >= matches.size()) {
+            Main.logger().info(String.format("%d/%d matches are complete, ending round", numOfEndedMatches, matches.size()));
             roundIsOver();
         }
     }
@@ -151,6 +152,7 @@ public class RoundActiveState implements CaptureTheFlagState {
             classSelectionTimer.cancel();
         }
         if (roundTimer != null) {
+            Main.logger().info("roundTimer is cancelled");
             roundTimer.cancel();
         }
     }
@@ -163,14 +165,7 @@ public class RoundActiveState implements CaptureTheFlagState {
             List<String> teamIds = context.getGameManager().getTeamIds(context.getParticipants());
             context.getRoundManager().regenerateRounds(teamIds, context.getConfig().getArenas().size());
         }
-        Component roundLine = Component.empty()
-                .append(Component.text("Round "))
-                .append(Component.text(context.getRoundManager().getPlayedRounds() + 1))
-                .append(Component.text("/"))
-                .append(Component.text(context.getRoundManager().getMaxRounds()))
-                ;
-        context.getSidebar().updateLine("round", roundLine);
-        context.getAdminSidebar().updateLine("round", roundLine);
+        context.updateRoundLine();
         participant.setGameMode(GameMode.ADVENTURE);
         participant.teleport(context.getConfig().getSpawnObservatory());
         participant.setRespawnLocation(context.getConfig().getSpawnObservatory(), true);
@@ -213,6 +208,12 @@ public class RoundActiveState implements CaptureTheFlagState {
         }
         context.resetParticipant(participant);
         context.getParticipants().remove(participant);
+        String quitTeamId = context.getGameManager().getTeamId(participant.getUniqueId());
+        List<String> teamIds = context.getGameManager().getTeamIds(context.getParticipants());
+        if (!teamIds.contains(quitTeamId)) {
+            context.getRoundManager().regenerateRounds(teamIds, context.getConfig().getArenas().size());
+            context.updateRoundLine();
+        }
     }
     
     public void resetParticipant(Player participant) {
