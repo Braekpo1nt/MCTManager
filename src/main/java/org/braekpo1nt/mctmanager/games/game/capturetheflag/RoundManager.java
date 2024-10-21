@@ -69,7 +69,7 @@ public class RoundManager {
     private static void logSchedule(List<List<MatchPairing>> schedule) {
         for (int i = 0; i < schedule.size(); i++) {
             List<MatchPairing> round = schedule.get(i);
-            Main.logger().info(String.format("Round %d:", i));
+            Main.logger().info(String.format("Round %d:", i+1));
             for (MatchPairing matchPairing : round) {
                 Main.logger().info(String.format("- %s", matchPairing));
             }
