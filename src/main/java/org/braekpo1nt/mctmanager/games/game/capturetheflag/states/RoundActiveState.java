@@ -81,10 +81,10 @@ public class RoundActiveState implements CaptureTheFlagState {
                 .sidebarPrefix(Component.text("Class selection: "))
                 .titleAudience(Audience.audience(context.getParticipants()))
                 .onCompletion(() -> {
+                    startRoundTimer();
                     for (CaptureTheFlagMatch match : matches.values()) {
                         match.nextState();
                     }
-                    startRoundTimer();
                 })
                 .build());
     }
@@ -118,7 +118,6 @@ public class RoundActiveState implements CaptureTheFlagState {
     public void matchIsOver() {
         numOfEndedMatches++;
         if (numOfEndedMatches >= matches.size()) {
-            Main.logger().info(String.format("%d/%d matches are complete, ending round", numOfEndedMatches, matches.size()));
             roundIsOver();
         }
     }
@@ -152,7 +151,6 @@ public class RoundActiveState implements CaptureTheFlagState {
             classSelectionTimer.cancel();
         }
         if (roundTimer != null) {
-            Main.logger().info("roundTimer is cancelled");
             roundTimer.cancel();
         }
     }

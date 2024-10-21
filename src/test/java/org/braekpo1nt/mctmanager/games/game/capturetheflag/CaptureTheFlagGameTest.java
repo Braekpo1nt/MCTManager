@@ -6,8 +6,18 @@ import be.seeseemelk.mockbukkit.UnimplementedOperationException;
 import org.braekpo1nt.mctmanager.*;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.config.CaptureTheFlagConfigController;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.CaptureTheFlagMatch;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.states.ClassSelectionState;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.states.MatchActiveState;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.states.MatchOverState;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.states.GameOverState;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.states.PreRoundState;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.states.RoundActiveState;
+import org.braekpo1nt.mctmanager.games.game.capturetheflag.states.RoundOverState;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -56,50 +66,39 @@ public class CaptureTheFlagGameTest {
         return player;
     }
     
+    void removeParticipant(OfflinePlayer player, @NotNull String playerName) {
+        gameManager.leavePlayer(sender, player, playerName);
+    }
+    
     void addTeam(String teamId, String teamDisplayName, String teamColor) {
         gameManager.addTeam(teamId, teamDisplayName, teamColor);
         Assertions.assertTrue(gameManager.hasTeam(teamId));
     }
     
     @Test
-    void testStartGame() {
-        addTeam("yellow", "The Councel", "yellow");
+    void playerLeavingStillEndsGame() {
         addTeam("aqua", "Aquaholics", "aqua");
         addTeam("red", "Red Rangers", "red");
-        addTeam("purple", "Purple Paladins", "dark_purple");
-        addTeam("blue", "Blue Bedtimers", "blue");
-        addTeam("lime", "Lime Cacti", "green");
-        addTeam("green", "Green Spartans", "dark_green");
-        addTeam("orange", "Orange Oni's", "gold");
-        addTeam("pink", "Pink Penguins", "magenta");
-        addTeam("cyan", "Just the Builders", "cyan");
-        createParticipant("Player1", "yellow");
-        createParticipant("Player2", "aqua");
-        createParticipant("Player3", "red");
-        createParticipant("Player4", "purple");
-        createParticipant("Player5", "blue");
-        createParticipant("Player6", "lime");
-        createParticipant("Player7", "green");
-        createParticipant("Player8", "orange");
-        createParticipant("Player9", "pink");
-        createParticipant("Player10", "cyan");
-        gameManager.startGame(GameType.CAPTURE_THE_FLAG, sender);
-//        gameManager.getTimerManager().skip();
-//        gameManager.getTimerManager().skip();
-        gameManager.manuallyStopGame(false);
-    }
-    
-    @Test
-    void testTimers() {
         addTeam("yellow", "The Councel", "yellow");
-        addTeam("aqua", "Aquaholics", "aqua");
-        addTeam("red", "Red Rangers", "red");
-        createParticipant("Player1", "yellow");
-        createParticipant("Player2", "aqua");
-        createParticipant("Player3", "red");
+        createParticipant("Player1", "aqua");
+        createParticipant("Player2", "red");
+        MyPlayerMock player3 = createParticipant("Player3", "yellow");
         gameManager.startGame(GameType.CAPTURE_THE_FLAG, sender);
-//        gameManager.getTimerManager().skip();
-//        gameManager.getTimerManager().skip();
+        CaptureTheFlagGame game = (CaptureTheFlagGame) gameManager.getActiveGame();
+        
+        gameManager.getTimerManager().skip();
+        Assertions.assertInstanceOf(PreRoundState.class, game.getState(), "we should be in the PreRoundState");
+        removeParticipant(player3, "Player3");
+        
+        gameManager.getTimerManager().skip();
+        Assertions.assertInstanceOf(RoundActiveState.class, game.getState());
+        CaptureTheFlagMatch match = ((RoundActiveState) game.getState()).getMatch("red");
+        Assertions.assertNotNull(match, "there should be an active match");
+        Assertions.assertInstanceOf(ClassSelectionState.class, match.getState());
+        
+        gameManager.getTimerManager().skip(); // should realize that Player3 isn't online, and end the match, which ends the round
+        Assertions.assertInstanceOf(RoundOverState.class, game.getState());
+        
         gameManager.manuallyStopGame(false);
     }
 }
