@@ -119,6 +119,7 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         }
         initializeSidebar();
         startAdmins(newAdmins);
+        updateRoundLine();
         setState(new DescriptionState(this));
         Main.logger().info("Starting Capture the Flag");
     }
@@ -209,7 +210,12 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     public void onAdminJoin(Player admin) {
         initializeAdmin(admin);
         adminSidebar.updateLine(admin.getUniqueId(), "title", title);
-        String roundLine = String.format("Round %d/%d", roundManager.getPlayedRounds() + 1, roundManager.getMaxRounds());
+        Component roundLine = Component.empty()
+                .append(Component.text("Round "))
+                .append(Component.text(roundManager.getPlayedRounds() + 1))
+                .append(Component.text("/"))
+                .append(Component.text(roundManager.getMaxRounds()))
+                ;
         adminSidebar.updateLine("round", roundLine);
     }
     
@@ -254,6 +260,17 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
                 new KeyLine("title", title),
                 new KeyLine("round", "")
         );
+    }
+    
+    public void updateRoundLine() {
+        Component roundLine = Component.empty()
+                .append(Component.text("Round "))
+                .append(Component.text(roundManager.getPlayedRounds() + 1))
+                .append(Component.text("/"))
+                .append(Component.text(roundManager.getMaxRounds()))
+                ;
+        sidebar.updateLine("round", roundLine);
+        adminSidebar.updateLine("round", roundLine);
     }
     
     private void clearSidebar() {
