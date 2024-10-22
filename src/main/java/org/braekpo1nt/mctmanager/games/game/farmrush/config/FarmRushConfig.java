@@ -53,6 +53,19 @@ public class FarmRushConfig {
      * The score values that materials are sold for
      */
     private @NotNull Map<Material, ItemSale> materialScores;
+    /**
+     * The maximum number of points a team can acquire before the game is over. 
+     * If a team reaches this number, the game will end. If this is less than 1, 
+     * then no maximum score is set and the game will end after the time runs out.
+     * Defaults to -1.
+     */
+    private int maxScore;
+    /**
+     * If {@link #maxScore} is 1 or more (meaning a max score is assigned) 
+     * then the team who reaches the {@link #maxScore} first will receive this bonus. 
+     * Can't be negative. Defaults to 0. 
+     */
+    private int winnerBonus;
     
     private @Nullable ItemStack materialBook;
     
