@@ -190,89 +190,12 @@ class FarmRushConfigDTO implements Validatable {
                 .materialScores(this.scores.materialScores)
                 .maxScore(this.scores.maxScore)
                 .winnerBonus(this.scores.winnerBonus)
-                .materialBook(createMaterialBook())
+                .doNotGiveBookDebug(this.doNotGiveBookDebug)
                 .recipes(this.recipes != null ? RecipeDTO.toRecipes(this.recipes) : Collections.emptyList())
                 .recipeKeys(this.recipes != null ? RecipeDTO.toNamespacedKeys(this.recipes) : Collections.emptyList())
                 .cropGrowerSpec(this.powerups.getCropGrower().toSpec(newWorld))
                 .animalGrowerSpec(this.powerups.getAnimalGrower().toSpec(newWorld))
                 .build();
-    }
-    
-    private ItemStack createMaterialBook() {
-        if (doNotGiveBookDebug) {
-            return null;
-        }
-        ItemStack materialBook = new ItemStack(Material.WRITTEN_BOOK);
-        BookMeta.BookMetaBuilder builder = ((BookMeta) materialBook.getItemMeta()).toBuilder();
-        BookMeta bookMeta = builder
-                .title(Component.text("Item Values"))
-                .author(Component.text("Farm Rush"))
-                .pages(createPages())
-                .build();
-        materialBook.setItemMeta(bookMeta);
-        return materialBook;
-    }
-    
-    private List<Component> createPages() {
-        List<TextComponent> lines = createLines();
-        if (lines.isEmpty()) {
-            return Collections.emptyList();
-        }
-        List<Component> pages = new ArrayList<>(lines.size()/15);
-        for (int i = 0; i < lines.size(); i += 10) {
-            TextComponent.Builder builder = Component.text();
-            int end = Math.min(lines.size(), i + 10);
-            
-            for (int j = i; j < end; j++) {
-                TextComponent line = lines.get(j);
-                double length = PlainTextComponentSerializer.plainText().serialize(line).length();
-                int numberOfExtraLines = (int) Math.ceil(length / 21.0) - 1;
-                j += numberOfExtraLines;
-                builder.append(line);
-                if (j < end - 1) {
-                    builder.append(Component.newline());
-                }
-            }
-            pages.add(builder.build());
-        }
-        
-        return pages;
-    }
-    
-    private @NotNull List<TextComponent> createLines() {
-        List<TextComponent> lines = new ArrayList<>();
-        List<Map.Entry<Material, ItemSale>> entryList = this.scores.getMaterialScores().entrySet().stream().sorted((entry1, entry2) -> {
-            int score1 = entry1.getValue().getScore();
-            int score2 = entry2.getValue().getScore();
-            if (score1 != score2) {
-                return Integer.compare(score2, score1);
-            }
-            int requiredAmount1 = entry1.getValue().getRequiredAmount();
-            int requiredAmount2 = entry2.getValue().getRequiredAmount();
-            if (requiredAmount1 != requiredAmount2) {
-                return Integer.compare(requiredAmount1, requiredAmount2);
-            }
-            return entry1.getKey().compareTo(entry2.getKey());
-        }).toList();
-        
-        for (Map.Entry<Material, ItemSale> entry : entryList) {
-            Material material = entry.getKey();
-            ItemSale itemSale = entry.getValue();
-            Component itemName = Component.translatable(material.translationKey());
-            TextComponent.Builder line = Component.text();
-            if (itemSale.getRequiredAmount() > 1) {
-                line
-                        .append(Component.text(itemSale.getRequiredAmount()))
-                        .append(Component.space());
-            }
-            line
-                    .append(itemName)
-                    .append(Component.text(": "))
-                    .append(Component.text(itemSale.getScore())
-                            .color(NamedTextColor.GOLD));
-            lines.add(line.build());
-        }
-        return lines;
     }
     
     /**

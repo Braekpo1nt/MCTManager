@@ -123,7 +123,7 @@ public class ActiveState implements FarmRushState {
     }
     
     private boolean teamReachedMaxScore(FarmRushGame.Team team) {
-        return team.getTotalScore() >= context.getConfig().getMaxScore() * gameManager.matchProgressPointMultiplier();
+        return team.getTotalScore() >= (int) (context.getConfig().getMaxScore() * gameManager.matchProgressPointMultiplier());
     }
     
     private void onTeamReachMaxScore(FarmRushGame.Team winingTeam) {
@@ -132,7 +132,7 @@ public class ActiveState implements FarmRushState {
         context.messageAllParticipants(Component.empty()
                 .append(winingTeam.getDisplayName())
                 .append(Component.text(" reached "))
-                .append(Component.text(context.getConfig().getMaxScore() * gameManager.matchProgressPointMultiplier())
+                .append(Component.text((int) (context.getConfig().getMaxScore() * gameManager.matchProgressPointMultiplier()))
                         .color(NamedTextColor.GOLD)
                         .decorate(TextDecoration.BOLD))
                 .append(Component.text(" points first! The game is over."))
@@ -193,7 +193,7 @@ public class ActiveState implements FarmRushState {
             }
             if (totalScore > 0) {
                 gameManager.awardPointsToTeam(team.getTeamId(), totalScore);
-                team.setTotalScore(team.getTotalScore() + totalScore);
+                team.setTotalScore(team.getTotalScore() + (int) (totalScore * gameManager.matchProgressPointMultiplier()));
             }
         }
         return soldItems;

@@ -26,7 +26,7 @@ public class DescriptionState implements FarmRushState {
         if (context.getConfig().shouldEnforceMaxScore()) {
             context.messageAllParticipants(Component.empty()
                     .append(Component.text("The first team to reach "))
-                    .append(Component.text(context.getConfig().getMaxScore() * context.getGameManager().matchProgressPointMultiplier())
+                    .append(Component.text((int) (context.getConfig().getMaxScore() * context.getGameManager().matchProgressPointMultiplier()))
                             .color(NamedTextColor.GOLD)
                             .decorate(TextDecoration.BOLD))
                     .append(Component.text(" points wins!"))

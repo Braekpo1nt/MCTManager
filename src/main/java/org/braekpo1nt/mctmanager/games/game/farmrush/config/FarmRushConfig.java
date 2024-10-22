@@ -13,6 +13,7 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
+import org.bukkit.inventory.meta.BookMeta;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -67,7 +68,11 @@ public class FarmRushConfig {
      */
     private int winnerBonus;
     
-    private @Nullable ItemStack materialBook;
+    /**
+     * TODO: remove this and associated functionality when MockBukkit implements {@link BookMeta#toBuilder()}
+     * This allows tests to not provide the book. Not to be used by the real game.
+     */
+    private boolean doNotGiveBookDebug;
     
     private @NotNull CropGrowerSpec cropGrowerSpec;
     
