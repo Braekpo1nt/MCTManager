@@ -1,6 +1,8 @@
 package org.braekpo1nt.mctmanager.games.game.farmrush.states;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.commands.dynamic.top.TopCommand;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushGame;
@@ -28,6 +30,7 @@ public class ActiveState implements FarmRushState {
     
     protected final @NotNull FarmRushGame context;
     private final GameManager gameManager;
+    private final Timer gameTimer;
     
     public ActiveState(@NotNull FarmRushGame context) {
         this.context = context;
@@ -35,7 +38,7 @@ public class ActiveState implements FarmRushState {
         for (FarmRushGame.Participant participant : context.getParticipants().values()) {
             participant.getPlayer().setGameMode(GameMode.SURVIVAL);
         }
-        context.getTimerManager().start(Timer.builder()
+        gameTimer = context.getTimerManager().start(Timer.builder()
                 .duration(context.getConfig().getGameDuration())
                 .withSidebar(context.getSidebar(), "timer")
                 .withSidebar(context.getAdminSidebar(), "timer")
@@ -114,6 +117,27 @@ public class ActiveState implements FarmRushState {
             }
         }
         inventory.setContents(contents);
+        if (context.getConfig().shouldEnforceMaxScore() && teamReachedMaxScore(team)) {
+            onTeamReachMaxScore(team);
+        }
+    }
+    
+    private boolean teamReachedMaxScore(FarmRushGame.Team team) {
+        return team.getTotalScore() >= context.getConfig().getMaxScore() * gameManager.matchProgressPointMultiplier();
+    }
+    
+    private void onTeamReachMaxScore(FarmRushGame.Team winingTeam) {
+        gameTimer.cancel();
+        gameManager.awardPointsToTeam(winingTeam.getTeamId(), context.getConfig().getWinnerBonus());
+        context.messageAllParticipants(Component.empty()
+                .append(winingTeam.getDisplayName())
+                .append(Component.text(" reached "))
+                .append(Component.text(context.getConfig().getMaxScore() * gameManager.matchProgressPointMultiplier())
+                        .color(NamedTextColor.GOLD)
+                        .decorate(TextDecoration.BOLD))
+                .append(Component.text(" points first! The game is over."))
+        );
+        context.setState(new GameOverState(context));
     }
     
     /**
@@ -169,6 +193,7 @@ public class ActiveState implements FarmRushState {
             }
             if (totalScore > 0) {
                 gameManager.awardPointsToTeam(team.getTeamId(), totalScore);
+                team.setTotalScore(team.getTotalScore() + totalScore);
             }
         }
         return soldItems;

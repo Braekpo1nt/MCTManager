@@ -129,9 +129,16 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
     public static class Team {
         @EqualsAndHashCode.Include
         private final @NotNull String teamId;
+        private final @NotNull Component displayName;
         private final @NotNull List<UUID> members = new ArrayList<>();
         private final Arena arena;
         private final List<Location> cropGrowers = new ArrayList<>();
+        /**
+         * keeps track of the total score accrued during this game. Used
+         * for checking if the players have surpassed the configured maxScore
+         * ({@link FarmRushConfig#getMaxScore()})
+         */
+        private int totalScore = 0;
     }
     
     public FarmRushGame(Main plugin, GameManager gameManager) {
@@ -163,7 +170,7 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
         for (int i = 0; i < teamIds.size(); i++) {
             String teamId = teamIds.get(i);
             Arena arena = arenas.get(i);
-            teams.put(teamId, new Team(teamId, arena));
+            teams.put(teamId, new Team(teamId, gameManager.getFormattedTeamDisplayName(teamId), arena));
         }
         placeArenas(arenas);
         for (Player participant : newParticipants) {
@@ -263,7 +270,7 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
             arena = arenas.getLast().offset(offset);
         }
         arenas.add(arena);
-        Team team = new Team(teamId, arena);
+        Team team = new Team(teamId, gameManager.getFormattedTeamDisplayName(teamId), arena);
         teams.put(teamId, team);
         placeArenas(Collections.singletonList(arena));
     }

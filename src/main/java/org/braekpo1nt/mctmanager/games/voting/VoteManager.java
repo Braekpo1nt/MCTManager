@@ -580,7 +580,7 @@ public class VoteManager implements Listener {
         farmRushMeta.lore(List.of(
                 Component.text("A farming game")
         ));
-        spleef.setItemMeta(spleefMeta);
+        farmRush.setItemMeta(farmRushMeta);
         
         Inventory newGui = Bukkit.createInventory(null, 9, TITLE);
         Map<GameType, ItemStack> votingItems = new HashMap<>();

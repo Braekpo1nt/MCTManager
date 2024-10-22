@@ -73,4 +73,8 @@ public class FarmRushConfig {
     
     private @NotNull AnimalGrowerSpec animalGrowerSpec;
     
+    public boolean shouldEnforceMaxScore() {
+        return maxScore >= 1;
+    }
+    
 }

@@ -1,6 +1,8 @@
 package org.braekpo1nt.mctmanager.games.game.farmrush.states;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.farmrush.Arena;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushGame;
@@ -21,6 +23,15 @@ public class DescriptionState implements FarmRushState {
     
     protected void startTimer() {
         context.messageAllParticipants(context.getConfig().getDescription());
+        if (context.getConfig().shouldEnforceMaxScore()) {
+            context.messageAllParticipants(Component.empty()
+                    .append(Component.text("The first team to reach "))
+                    .append(Component.text(context.getConfig().getMaxScore() * context.getGameManager().matchProgressPointMultiplier())
+                            .color(NamedTextColor.GOLD)
+                            .decorate(TextDecoration.BOLD))
+                    .append(Component.text(" points wins!"))
+            );
+        }
         context.getTimerManager().start(Timer.builder()
                 .duration(context.getConfig().getDescriptionDuration())
                 .withSidebar(context.getSidebar(), "timer")
