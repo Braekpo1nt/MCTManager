@@ -102,6 +102,7 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
                 .append(Component.text("'s flag!"))
                 .color(NamedTextColor.YELLOW));
         gameManager.awardPointsToTeam(winningTeam, context.getConfig().getWinScore());
+        
         showWinLoseTitles(winningTeam);
         context.setState(new MatchOverState(context));
     }

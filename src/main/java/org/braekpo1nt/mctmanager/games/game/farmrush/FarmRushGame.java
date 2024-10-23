@@ -7,7 +7,9 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.dynamic.top.TopCommand;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
@@ -57,6 +59,7 @@ import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
+import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.util.BoundingBox;
@@ -105,6 +108,7 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
     private @NotNull List<Arena> arenas = new ArrayList<>();
     private final Map<UUID, Participant> participants = new HashMap<>();
     private final Map<String, Team> teams = new HashMap<>();
+    private @Nullable ItemStack materialBook;
     
     @Data
     @EqualsAndHashCode(onlyExplicitlyIncluded = true)
@@ -129,9 +133,16 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
     public static class Team {
         @EqualsAndHashCode.Include
         private final @NotNull String teamId;
+        private final @NotNull Component displayName;
         private final @NotNull List<UUID> members = new ArrayList<>();
         private final Arena arena;
         private final List<Location> cropGrowers = new ArrayList<>();
+        /**
+         * keeps track of the total score accrued during this game. Used
+         * for checking if the players have surpassed the configured maxScore
+         * ({@link FarmRushConfig#getMaxScore()})
+         */
+        private int totalScore = 0;
     }
     
     public FarmRushGame(Main plugin, GameManager gameManager) {
@@ -159,11 +170,12 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
         gameManager.getTimerManager().register(timerManager);
         List<String> teamIds = gameManager.getTeamIds(newParticipants);
         arenas = createArenas(teamIds);
+        materialBook = createMaterialBook();
         addRecipes();
         for (int i = 0; i < teamIds.size(); i++) {
             String teamId = teamIds.get(i);
             Arena arena = arenas.get(i);
-            teams.put(teamId, new Team(teamId, arena));
+            teams.put(teamId, new Team(teamId, gameManager.getFormattedTeamDisplayName(teamId), arena));
         }
         placeArenas(arenas);
         for (Player participant : newParticipants) {
@@ -174,6 +186,83 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
         setupTeamOptions();
         state = new DescriptionState(this);
         Main.logger().info("Starting Farm Rush game");
+    }
+    
+    private @Nullable ItemStack createMaterialBook() {
+        if (config.isDoNotGiveBookDebug()) {
+            return null;
+        }
+        ItemStack materialBook = new ItemStack(Material.WRITTEN_BOOK);
+        BookMeta.BookMetaBuilder builder = ((BookMeta) materialBook.getItemMeta()).toBuilder();
+        BookMeta bookMeta = builder
+                .title(Component.text("Item Values"))
+                .author(Component.text("Farm Rush"))
+                .pages(createPages())
+                .build();
+        materialBook.setItemMeta(bookMeta);
+        return materialBook;
+    }
+    
+    private List<Component> createPages() {
+        List<TextComponent> lines = createLines();
+        if (lines.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<Component> pages = new ArrayList<>(lines.size()/15);
+        for (int i = 0; i < lines.size(); i += 10) {
+            TextComponent.Builder builder = Component.text();
+            int end = Math.min(lines.size(), i + 10);
+            
+            for (int j = i; j < end; j++) {
+                TextComponent line = lines.get(j);
+                double length = PlainTextComponentSerializer.plainText().serialize(line).length();
+                int numberOfExtraLines = (int) Math.ceil(length / 21.0) - 1;
+                j += numberOfExtraLines;
+                builder.append(line);
+                if (j < end - 1) {
+                    builder.append(Component.newline());
+                }
+            }
+            pages.add(builder.build());
+        }
+        
+        return pages;
+    }
+    
+    private @NotNull List<TextComponent> createLines() {
+        List<TextComponent> lines = new ArrayList<>();
+        List<Map.Entry<Material, ItemSale>> entryList = config.getMaterialScores().entrySet().stream().sorted((entry1, entry2) -> {
+            int score1 = entry1.getValue().getScore();
+            int score2 = entry2.getValue().getScore();
+            if (score1 != score2) {
+                return Integer.compare(score2, score1);
+            }
+            int requiredAmount1 = entry1.getValue().getRequiredAmount();
+            int requiredAmount2 = entry2.getValue().getRequiredAmount();
+            if (requiredAmount1 != requiredAmount2) {
+                return Integer.compare(requiredAmount1, requiredAmount2);
+            }
+            return entry1.getKey().compareTo(entry2.getKey());
+        }).toList();
+        
+        for (Map.Entry<Material, ItemSale> entry : entryList) {
+            Material material = entry.getKey();
+            ItemSale itemSale = entry.getValue();
+            Component itemName = Component.translatable(material.translationKey());
+            TextComponent.Builder line = Component.text();
+            if (itemSale.getRequiredAmount() > 1) {
+                line
+                        .append(Component.text(itemSale.getRequiredAmount()))
+                        .append(Component.space());
+            }
+            line
+                    .append(itemName)
+                    .append(Component.text(": "))
+                    .append(Component.text((int) (itemSale.getScore() * gameManager.matchProgressPointMultiplier()))
+                            .color(NamedTextColor.GOLD));
+            lines.add(line.build());
+        }
+        return lines;
     }
     
     /**
@@ -200,8 +289,8 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
             Chest starterChestState = (Chest) starterChest.getState();
             Inventory starterChestInventory = starterChestState.getBlockInventory();
             starterChestInventory.setContents(config.getStarterChestContents());
-            if (config.getMaterialBook() != null) {
-                starterChestInventory.addItem(config.getMaterialBook());
+            if (materialBook != null) {
+                starterChestInventory.addItem(materialBook);
             }
             ItemStack cropGrowerRecipeMap = config.getCropGrowerSpec().getRecipeMap();
             if (cropGrowerRecipeMap != null) {
@@ -263,7 +352,7 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
             arena = arenas.getLast().offset(offset);
         }
         arenas.add(arena);
-        Team team = new Team(teamId, arena);
+        Team team = new Team(teamId, gameManager.getFormattedTeamDisplayName(teamId), arena);
         teams.put(teamId, team);
         placeArenas(Collections.singletonList(arena));
     }
@@ -280,8 +369,8 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
         ParticipantInitializer.clearStatusEffects(player);
         ParticipantInitializer.resetHealthAndHunger(player);
         player.getInventory().setContents(config.getLoadout());
-        if (config.getMaterialBook() != null) {
-            player.getInventory().addItem(config.getMaterialBook());
+        if (materialBook != null) {
+            player.getInventory().addItem(materialBook);
         }
         player.teleport(team.getArena().getSpawn());
         player.setRespawnLocation(team.getArena().getSpawn(), true);
@@ -668,7 +757,7 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
         }
         return Component.empty()
                 .append(Component.text("Price: "))
-                .append(Component.text(itemSale.getScore()))
+                .append(Component.text((int) (itemSale.getScore() * gameManager.matchProgressPointMultiplier())))
                 .color(NamedTextColor.GOLD);
     }
     

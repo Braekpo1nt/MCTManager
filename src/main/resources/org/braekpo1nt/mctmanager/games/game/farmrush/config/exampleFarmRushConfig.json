@@ -2,9 +2,9 @@
   "version": "0.1.2",
   "world": "TestWorld",
   "adminLocation": {
-    "x": 0,
+    "x": -1,
     "y": 110,
-    "z": 0
+    "z": -1
   },
   "arenaFile": "farmRushArena.schem",
   "firstArenaOrigin": {
@@ -25,6 +25,10 @@
       },
       "3": {
         "type": "STONE_HOE"
+      },
+      "4": {
+        "type": "minecraft:dirt",
+        "amount": 3
       }
     }
   },
@@ -32,7 +36,7 @@
     "contents": {
       "0": {
         "type": "WHEAT_SEEDS",
-        "amount": 5
+        "amount": 32
       },
       "1": {
         "type": "WATER_BUCKET"
@@ -42,82 +46,78 @@
       },
       "3": {
         "type": "COW_SPAWN_EGG",
-        "amount": "2"
+        "amount": "4"
+      },
+      "4": {
+        "type": "minecraft:crafting_table"
       }
-    }
-  },
-  "materialScores": {
-    "IRON_INGOT": {
-      "requiredAmount": 1,
-      "score": 20
-    },
-    "DIAMOND": {
-      "requiredAmount": 1,
-      "score": 50
-    },
-    "GRANITE": {
-      "requiredAmount": 5,
-      "score": 1
-    },
-    "RAW_IRON": {
-      "requiredAmount": 1,
-      "score": 10
-    },
-    "COAL": {
-      "requiredAmount": 1,
-      "score": 5
-    },
-    "WHEAT": {
-      "requiredAmount": 1,
-      "score": 2
-    },
-    "MUTTON": {
-      "requiredAmount": 1,
-      "score": 5
     }
   },
   "arena": {
     "size": {
       "sizeX": 47,
-      "sizeY": 177,
-      "sizeZ": 48
+      "sizeY": 179,
+      "sizeZ": 47
     },
     "barnDoor": {
       "minX": 10,
-      "minY": 136,
+      "minY": 137,
       "minZ": 41,
       "maxX": 10,
-      "maxY": 139,
+      "maxY": 140,
       "maxZ": 43
     },
     "barn": {
       "minX": 1,
-      "minY": 136,
+      "minY": 135,
       "minZ": 32,
       "maxX": 11,
-      "maxY": 147,
+      "maxY": 146,
       "maxZ": 46
     },
     "spawn": {
-      "x": 5.5,
-      "y": 136,
-      "z": 39.5,
+      "x": 5,
+      "y": 137,
+      "z": 42,
       "yaw": -90,
       "pitch": 0
     },
     "starterChest": {
       "x": 9,
-      "y": 136,
-      "z": 39
+      "y": 137,
+      "z": 38
     },
     "starterChestBlockFace": "WEST",
     "delivery": {
       "x": 9,
-      "y": 136,
-      "z": 40
+      "y": 137,
+      "z": 39
     },
     "deliveryBlockFace": "UP"
   },
+  "recipes": [
+    {
+      "namespacedKey": "mct:metal_armor_stand",
+      "category": "blocks",
+      "type": "minecraft:crafting_shaped",
+      "pattern": [
+        "# #",
+        " # ",
+        "# #"
+      ],
+      "key": {
+        "#": {
+          "item": "minecraft:iron_ingot"
+        }
+      },
+      "result": {
+        "id": "minecraft:armor_stand",
+        "itemMeta": {
+          "displayName": "Metal Armor Stand"
+        }
+      }
+    }
+  ],
   "powerups": {
     "cropGrower": {
       "ticksPerCycle": 100,
@@ -176,6 +176,52 @@
     "starting": 10,
     "gameDuration": 600,
     "gameOver": 10
+  },
+  "scores": {
+    "maxScore": 3000,
+    "winnerBonus": 500,
+    "materialScores": {
+      "IRON_INGOT": {
+        "requiredAmount": 3,
+        "score": 4
+      },
+      "RAW_IRON": {
+        "requiredAmount": 2,
+        "score": 2
+      },
+      "DIAMOND": {
+        "requiredAmount": 1,
+        "score": 6
+      },
+      "OBSIDIAN": {
+        "requiredAmount": 3,
+        "score": 4
+      },
+      "GRANITE": {
+        "requiredAmount": 16,
+        "score": 1
+      },
+      "WHEAT": {
+        "requiredAmount": 20,
+        "score": 1
+      },
+      "RAW_BEEF": {
+        "requiredAmount": 8,
+        "score": 1
+      },
+      "COOKED_BEEF": {
+        "requiredAmount": 4,
+        "score": 1
+      },
+      "LEATHER": {
+        "requiredAmount": 10,
+        "score": 1
+      },
+      "BONE": {
+        "requiredAmount": 6,
+        "score": 1
+      }
+    }
   },
   "description": "Farm Rush description"
 }

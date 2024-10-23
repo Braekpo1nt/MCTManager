@@ -58,7 +58,7 @@ class FarmRushConfigDTO implements Validatable {
      * each participant's starting inventory. 
      */
     private @Nullable PlayerInventoryDTO loadout;
-    private @Nullable Map<Material, ItemSale> materialScores;
+    private Scores scores;
     private Durations durations;
     private Component description;
     /**
@@ -102,6 +102,31 @@ class FarmRushConfigDTO implements Validatable {
         private int gameOver = 10;
     }
     
+    @Data
+    static class Scores implements Validatable {
+        /**
+         * The maximum number of points a team can acquire before the game is over. 
+         * If a team reaches this number, the game will end. If this is less than 1, 
+         * then no maximum score is set and the game will end after the time runs out.
+         * Defaults to -1.
+         */
+        private int maxScore = -1;
+        /**
+         * If {@link #maxScore} is 1 or more (meaning a max score is assigned) 
+         * then the team who reaches the {@link #maxScore} first will receive this bonus. 
+         * Can't be negative. Defaults to 0. 
+         */
+        private int winnerBonus = 0;
+        private Map<Material, ItemSale> materialScores;
+        
+        @Override
+        public void validate(@NotNull Validator validator) {
+            validator.notNull(materialScores, "materialScores");
+            validator.validateMap(materialScores, "materialScores");
+            validator.validate(winnerBonus >= 0, "winnerBonus can't be negative");
+        }
+    }
+    
     @Override
     public void validate(@NotNull Validator validator) {
         validator.notNull(this.getVersion(), "version");
@@ -117,9 +142,8 @@ class FarmRushConfigDTO implements Validatable {
         if (loadout != null) {
             loadout.validate(validator.path("loadout"));
         }
-        if (materialScores != null) {
-            validator.validateMap(materialScores, "materialScores");
-        }
+        validator.notNull(scores, "scores");
+        scores.validate(validator.path("scores"));
         validator.notNull(this.getDurations(), "durations");
         validator.validate(this.getDurations().getDescription() >= 0, "durations.description (%s) can't be negative", this.getDurations().getDescription());
         validator.validate(this.getDurations().getStarting() >= 0, "durations.starting (%s) can't be negative", this.getDurations().getStarting());
@@ -138,18 +162,16 @@ class FarmRushConfigDTO implements Validatable {
         Preconditions.checkState(newWorld != null, "Could not find world \"%s\"", this.world);
         ItemStack[] newStarterChestContents = null;
         ItemStack[] newLoadout = null;
-        if (materialScores != null) {
-            if (this.starterChestContents != null) {
-                newStarterChestContents = this.starterChestContents.toInventoryContents();
-                for (ItemStack item : newStarterChestContents) {
-                    addScoreLore(item, materialScores);
-                }
+        if (this.starterChestContents != null) {
+            newStarterChestContents = this.starterChestContents.toInventoryContents();
+            for (ItemStack item : newStarterChestContents) {
+                addScoreLore(item, scores.getMaterialScores());
             }
-            if (this.loadout != null) {
-                newLoadout = this.loadout.toInventoryContents();
-                for (ItemStack item : newLoadout) {
-                    addScoreLore(item, materialScores);
-                }
+        }
+        if (this.loadout != null) {
+            newLoadout = this.loadout.toInventoryContents();
+            for (ItemStack item : newLoadout) {
+                addScoreLore(item, scores.getMaterialScores());
             }
         }
         return FarmRushConfig.builder()
@@ -165,93 +187,15 @@ class FarmRushConfigDTO implements Validatable {
                 .startingDuration(this.durations.starting)
                 .gameDuration(this.durations.gameDuration)
                 .gameOverDuration(this.durations.gameOver)
-                .materialScores(this.materialScores != null ? this.materialScores : Collections.emptyMap())
-                .materialBook(createMaterialBook())
+                .materialScores(this.scores.materialScores)
+                .maxScore(this.scores.maxScore)
+                .winnerBonus(this.scores.winnerBonus)
+                .doNotGiveBookDebug(this.doNotGiveBookDebug)
                 .recipes(this.recipes != null ? RecipeDTO.toRecipes(this.recipes) : Collections.emptyList())
                 .recipeKeys(this.recipes != null ? RecipeDTO.toNamespacedKeys(this.recipes) : Collections.emptyList())
                 .cropGrowerSpec(this.powerups.getCropGrower().toSpec(newWorld))
                 .animalGrowerSpec(this.powerups.getAnimalGrower().toSpec(newWorld))
                 .build();
-    }
-    
-    private ItemStack createMaterialBook() {
-        if (doNotGiveBookDebug) {
-            return null;
-        }
-        ItemStack materialBook = new ItemStack(Material.WRITTEN_BOOK);
-        BookMeta.BookMetaBuilder builder = ((BookMeta) materialBook.getItemMeta()).toBuilder();
-        BookMeta bookMeta = builder
-                .title(Component.text("Item Values"))
-                .author(Component.text("Farm Rush"))
-                .pages(createPages())
-                .build();
-        materialBook.setItemMeta(bookMeta);
-        return materialBook;
-    }
-    
-    private List<Component> createPages() {
-        List<TextComponent> lines = createLines();
-        if (lines.isEmpty()) {
-            return Collections.emptyList();
-        }
-        List<Component> pages = new ArrayList<>(lines.size()/15);
-        for (int i = 0; i < lines.size(); i += 10) {
-            TextComponent.Builder builder = Component.text();
-            int end = Math.min(lines.size(), i + 10);
-            
-            for (int j = i; j < end; j++) {
-                TextComponent line = lines.get(j);
-                double length = PlainTextComponentSerializer.plainText().serialize(line).length();
-                int numberOfExtraLines = (int) Math.ceil(length / 21.0) - 1;
-                j += numberOfExtraLines;
-                builder.append(line);
-                if (j < end - 1) {
-                    builder.append(Component.newline());
-                }
-            }
-            pages.add(builder.build());
-        }
-        
-        return pages;
-    }
-    
-    private @NotNull List<TextComponent> createLines() {
-        if (materialScores == null) {
-            return Collections.emptyList();
-        }
-        List<TextComponent> lines = new ArrayList<>();
-        List<Map.Entry<Material, ItemSale>> entryList = materialScores.entrySet().stream().sorted((entry1, entry2) -> {
-            int score1 = entry1.getValue().getScore();
-            int score2 = entry2.getValue().getScore();
-            if (score1 != score2) {
-                return Integer.compare(score2, score1);
-            }
-            int requiredAmount1 = entry1.getValue().getRequiredAmount();
-            int requiredAmount2 = entry2.getValue().getRequiredAmount();
-            if (requiredAmount1 != requiredAmount2) {
-                return Integer.compare(requiredAmount1, requiredAmount2);
-            }
-            return entry1.getKey().compareTo(entry2.getKey());
-        }).toList();
-        
-        for (Map.Entry<Material, ItemSale> entry : entryList) {
-            Material material = entry.getKey();
-            ItemSale itemSale = entry.getValue();
-            Component itemName = Component.translatable(material.translationKey());
-            TextComponent.Builder line = Component.text();
-            if (itemSale.getRequiredAmount() > 1) {
-                line
-                        .append(Component.text(itemSale.getRequiredAmount()))
-                        .append(Component.space());
-            }
-            line
-                    .append(itemName)
-                    .append(Component.text(": "))
-                    .append(Component.text(itemSale.getScore())
-                            .color(NamedTextColor.GOLD));
-            lines.add(line.build());
-        }
-        return lines;
     }
     
     /**
