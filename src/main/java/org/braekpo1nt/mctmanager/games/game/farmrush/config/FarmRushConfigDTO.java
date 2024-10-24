@@ -3,9 +3,7 @@ package org.braekpo1nt.mctmanager.games.game.farmrush.config;
 import com.google.common.base.Preconditions;
 import lombok.Data;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.LocationDTO;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.ChestInventoryDTO;
@@ -49,6 +47,29 @@ class FarmRushConfigDTO implements Validatable {
      * The items in the starter chest. Can contain no more than 27 entries. 
      */
     private @Nullable ChestInventoryDTO starterChestContents;
+    /**
+     * Whether to clear the arenas at the end of the game. If set to false,
+     * then arenas will still be present at the end of the game.
+     * Items will not be removed, mobs will not be killed. 
+     * This does not prevent those arenas from being overwritten when a new
+     * game starts. See {@link #buildArenas} for that feature.
+     * Defaults to true.
+     */
+    private @Nullable Boolean clearArenas;
+    /**
+     * Whether to use WorldEdit to build the arenas (from the schematic file)
+     * at the start of the game. 
+     * Defaults to true.
+     * If set to false, this will assume that arenas
+     * are build to the required specification to match what would have been
+     * placed there on their own.
+     * Note that, if false, the starter chest, delivery box, and glass barrier
+     * will still be placed. 
+     * Note that, if false, if there are 3 physical arenas in the pre-built 
+     * world, and 4 teams join, the 4th team will be spawned in the void 
+     * and fall to their deaths. 
+     */
+    private @Nullable Boolean buildArenas;
     /**
      * The details of the arena. When generating arenas for the game, the first one placed down will have its origin at {@link #firstArenaOrigin}, and successive ones will be placed on a grid according to the defined size. Please ensure that the {@link ArenaDTO#getSize()} attribute is the correct dimensions of the {@link #arenaFile} schematic file's dimensions. 
      */
@@ -179,6 +200,8 @@ class FarmRushConfigDTO implements Validatable {
                 .adminLocation(this.adminLocation.toLocation(newWorld))
                 .description(this.description)
                 .arenaFile(this.arenaFile)
+                .clearArenas(this.clearArenas == null || this.clearArenas)
+                .buildArenas(this.buildArenas == null || this.buildArenas)
                 .firstArena(this.arena.toArena(newWorld).offset(firstArenaOrigin != null ? firstArenaOrigin : new Vector(0, 0, 0)))
                 .starterChestContents(newStarterChestContents)
                 .loadout(newLoadout)

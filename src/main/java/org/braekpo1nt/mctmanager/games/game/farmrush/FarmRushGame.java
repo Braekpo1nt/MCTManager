@@ -271,9 +271,11 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
      * @param arenas the arenas to place copies of the schematic file on
      */
     private void placeArenas(@NotNull List<Arena> arenas) {
-        File schematicFile = new File(plugin.getDataFolder(), config.getArenaFile());
-        List<Vector> origins = arenas.stream().map(arena -> arena.getBounds().getMin()).toList();
-        BlockPlacementUtils.placeSchematic(config.getWorld(), origins, schematicFile);
+        if (config.shouldBuildArenas()) {
+            File schematicFile = new File(plugin.getDataFolder(), config.getArenaFile());
+            List<Vector> origins = arenas.stream().map(arena -> arena.getBounds().getMin()).toList();
+            BlockPlacementUtils.placeSchematic(config.getWorld(), origins, schematicFile);
+        }
         for (Arena arena : arenas) {
             Block delivery = arena.getDelivery().getBlock();
             delivery.setType(Material.BARREL);
@@ -312,17 +314,19 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
      * @param arenas the arenas to remove
      */
     private void removeArenas(@NotNull List<Arena> arenas) {
-        List<BoundingBox> boxes = arenas.stream().map(Arena::getBounds).toList();
-        for (Entity entity : config.getWorld().getEntities()) {
-            if (!(entity instanceof Player)) {
-                for (BoundingBox box : boxes) {
-                    if (box.contains(entity.getLocation().toVector())) {
-                        entity.remove();
+        if (config.shouldClearArenas()) {
+            List<BoundingBox> boxes = arenas.stream().map(Arena::getBounds).toList();
+            for (Entity entity : config.getWorld().getEntities()) {
+                if (!(entity instanceof Player)) {
+                    for (BoundingBox box : boxes) {
+                        if (box.contains(entity.getLocation().toVector())) {
+                            entity.remove();
+                        }
                     }
                 }
             }
+            BlockPlacementUtils.fillWithAir(config.getWorld(), boxes);
         }
-        BlockPlacementUtils.fillWithAir(config.getWorld(), boxes);
     }
     
     private @NotNull List<Arena> createArenas(List<String> teamIds) {
