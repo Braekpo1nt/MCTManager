@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.games;
 
 import com.destroystokyo.paper.event.player.PlayerArmorChangeEvent;
 import com.google.common.base.Preconditions;
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.event.ClickEvent;
@@ -1420,14 +1421,12 @@ public class GameManager implements Listener {
         
         Component displayName = getFormattedTeamDisplayName(teamId);
         List<Player> playersOnTeam = getOnlinePlayersOnTeam(teamId);
-        for (Player playerOnTeam : playersOnTeam) {
-            playerOnTeam.sendMessage(Component.text("+")
+        Audience.audience(playersOnTeam).sendMessage(Component.text("+")
                     .append(Component.text(multipliedPoints))
                     .append(Component.text(" points for "))
                     .append(displayName)
                     .decorate(TextDecoration.BOLD)
                     .color(NamedTextColor.GOLD));
-        }
         updateTeamScore(teamId);
     }
     
@@ -1913,6 +1912,9 @@ public class GameManager implements Listener {
      * @return the event manager's point multiplier, if there is a match going on. 1.0 otherwise.
      */
     public double matchProgressPointMultiplier() {
+        if (eventManager.eventIsActive()) {
+            return 1.0;
+        }
         return eventManager.matchProgressPointMultiplier();
     }
 }

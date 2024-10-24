@@ -41,6 +41,8 @@ public class FarmRushConfig {
      * end of the game.
      */
     private @NotNull List<NamespacedKey> recipeKeys;
+    private boolean clearArenas;
+    private boolean buildArenas;
     /**
      * The first arena placement
      */
@@ -80,6 +82,14 @@ public class FarmRushConfig {
     
     public boolean shouldEnforceMaxScore() {
         return maxScore >= 1;
+    }
+    
+    public boolean shouldClearArenas() {
+        return clearArenas;
+    }
+    
+    public boolean shouldBuildArenas() {
+        return buildArenas;
     }
     
 }
