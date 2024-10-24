@@ -112,14 +112,19 @@ public class EventManager implements Listener {
     /**
      * @return a line for sidebars saying what the current game is
      */
-    public String getCurrentGameLine() {
+    public Component getCurrentGameLine() {
         if (currentGameNumber <= maxGames) {
-            return String.format("Game [%d/%d]", currentGameNumber, maxGames);
+            return Component.empty()
+                    .append(Component.text("Game ["))
+                    .append(Component.text(currentGameNumber))
+                    .append(Component.text("/"))
+                    .append(Component.text(maxGames))
+                    .append(Component.text("]"));
         }
         if (state instanceof PodiumState) {
-            return "Thanks for playing!";
+            return Component.text("Thanks for playing!");
         }
-        return "Final Round";
+        return Component.text("Final Round");
     }
     
     public boolean colossalCombatIsActive() {
@@ -142,8 +147,8 @@ public class EventManager implements Listener {
         state.onAdminQuit(admin);
     }
     
-    public void startEvent(CommandSender sender, int numberOfGames) {
-        state.startEvent(sender, numberOfGames);
+    public void startEvent(CommandSender sender, int numberOfGames, int currentGameNumber) {
+        state.startEvent(sender, numberOfGames, currentGameNumber);
     }
     
     public void stopEvent(CommandSender sender) {

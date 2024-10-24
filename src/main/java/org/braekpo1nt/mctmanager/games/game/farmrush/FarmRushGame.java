@@ -35,6 +35,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockState;
 import org.bukkit.block.Chest;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Directional;
@@ -56,6 +57,7 @@ import org.bukkit.event.inventory.*;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.event.world.PortalCreateEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
@@ -490,6 +492,18 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
     @Override
     public void setTitle(@NotNull Component title) {
         this.title = title;
+    }
+    
+    @EventHandler
+    public void onPortalCreate(PortalCreateEvent event) {
+        List<BlockState> blocks = event.getBlocks();
+        if (blocks.isEmpty()) {
+            return;
+        }
+        if (!blocks.getFirst().getWorld().equals(config.getWorld())) {
+            return;
+        }
+        event.setCancelled(true);
     }
     
     @EventHandler
