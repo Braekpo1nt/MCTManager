@@ -27,8 +27,8 @@ public class EventCommand extends CommandManager {
         addSubCommand(new TabSubCommand("start") {
             @Override
             public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-                if (args.length != 1) {
-                    return CommandResult.failure(getUsage().of("<numberOfGames>"));
+                if (args.length < 1 || 2 < args.length) {
+                    return CommandResult.failure(getUsage().of("<numberOfGames>").of("[currentGameNumber]"));
                 }
                 String maxGamesString = args[0];
                 if (!CommandUtils.isInteger(maxGamesString)) {
@@ -38,7 +38,25 @@ public class EventCommand extends CommandManager {
                             .append(Component.text(" is not an integer")));
                 }
                 int maxGames = Integer.parseInt(maxGamesString);
-                gameManager.getEventManager().startEvent(sender, maxGames, 1);
+                
+                int currentGameNumber;
+                if (args.length == 2) {
+                    String currentGameNumberString = args[1];
+                    if (!CommandUtils.isInteger(currentGameNumberString)) {
+                        return CommandResult.failure(Component.empty()
+                                .append(Component.text(currentGameNumberString)
+                                        .decorate(TextDecoration.BOLD))
+                                .append(Component.text(" is not an integer")));
+                    }
+                    currentGameNumber = Integer.parseInt(currentGameNumberString);
+                    if (currentGameNumber < 1) {
+                        return CommandResult.failure(Component.text("Current game number must be at least 1"));
+                    }
+                } else {
+                    currentGameNumber = 1;
+                }
+                
+                gameManager.getEventManager().startEvent(sender, maxGames, currentGameNumber);
                 return CommandResult.success();
             }
             
