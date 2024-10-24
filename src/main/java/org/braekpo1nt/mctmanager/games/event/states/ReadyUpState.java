@@ -259,8 +259,8 @@ public class ReadyUpState implements EventState {
     
     @Override
     public void startEvent(@NotNull CommandSender sender, int numberOfGames, int currentGameNumber) {
-        context.setCurrentGameNumber(currentGameNumber);
-        if (numberOfGames != context.getMaxGames()) {
+        if (numberOfGames != context.getMaxGames() || currentGameNumber != context.getCurrentGameNumber()) {
+            context.setCurrentGameNumber(currentGameNumber);
             this.setMaxGames(sender, numberOfGames);
         }
         cancelAllTasks();
@@ -370,8 +370,9 @@ public class ReadyUpState implements EventState {
     @Override
     public void setMaxGames(@NotNull CommandSender sender, int newMaxGames) {
         context.setMaxGames(newMaxGames);
-        context.getSidebar().updateLine("currentGame", context.getCurrentGameLine());
-        context.getAdminSidebar().updateLine("currentGame", context.getCurrentGameLine());
+        Component currentGameLine = context.getCurrentGameLine();
+        context.getSidebar().updateLine("currentGame", currentGameLine);
+        context.getAdminSidebar().updateLine("currentGame", currentGameLine);
         gameManager.updateGameTitle();
         sender.sendMessage(Component.text("Max games has been set to ")
                 .append(Component.text(newMaxGames)));
