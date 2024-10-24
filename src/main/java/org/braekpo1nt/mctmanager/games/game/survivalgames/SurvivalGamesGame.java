@@ -239,6 +239,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
     private void initializeAdmin(Player admin) {
         admins.add(admin);
         adminSidebar.addPlayer(admin);
+        topbar.showPlayer(admin);
         admin.setGameMode(GameMode.SPECTATOR);
         admin.teleport(config.getAdminSpawn());
     }
@@ -251,6 +252,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
     
     private void resetAdmin(Player admin) {
         adminSidebar.removePlayer(admin);
+        topbar.hidePlayer(admin.getUniqueId());
     }
     
     private void stopAdmins() {

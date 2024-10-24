@@ -158,12 +158,14 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
     private void initializeAdmin(Player admin) {
         admins.add(admin);
         adminSidebar.addPlayer(admin);
+        topbar.showPlayer(admin);
         admin.setGameMode(GameMode.SPECTATOR);
         admin.teleport(config.getSpawnObservatory());
     }
     
     private void resetAdmin(Player admin) {
         adminSidebar.removePlayer(admin);
+        topbar.hidePlayer(admin.getUniqueId());
     }
     
     @Override

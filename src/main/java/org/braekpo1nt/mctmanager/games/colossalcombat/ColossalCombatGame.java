@@ -203,6 +203,7 @@ public class ColossalCombatGame implements Listener, Configurable {
     private void initializeAdmin(Player admin) {
         admins.add(admin);
         adminSidebar.addPlayer(admin);
+        topbar.showPlayer(admin);
         admin.setGameMode(GameMode.SPECTATOR);
         admin.teleport(config.getSpectatorSpawn());
     }
@@ -322,6 +323,7 @@ public class ColossalCombatGame implements Listener, Configurable {
     
     private void resetAdmin(Player admin) {
         adminSidebar.removePlayer(admin);
+        topbar.hidePlayer(admin.getUniqueId());
     }
     
     private void cancelAllTasks() {
