@@ -61,7 +61,7 @@ public abstract class DelayState implements EventState {
     }
     
     @Override
-    public void startEvent(@NotNull CommandSender sender, int numberOfGames) {
+    public void startEvent(@NotNull CommandSender sender, int numberOfGames, int currentGameNumber) {
         sender.sendMessage(Component.text("An event is already running.")
                 .color(NamedTextColor.RED));
     }

@@ -56,7 +56,7 @@ public class OffState implements EventState {
     }
     
     @Override
-    public void startEvent(@NotNull CommandSender sender, int numberOfGames) {
+    public void startEvent(@NotNull CommandSender sender, int numberOfGames, int currentGameNumber) {
         if (context.getGameManager().gameIsRunning()) {
             sender.sendMessage(Component.text("Can't start an event while a game is running.")
                     .color(NamedTextColor.RED));
@@ -82,7 +82,7 @@ public class OffState implements EventState {
         context.getGameManager().getTimerManager().register(context.getTimerManager());
         context.setWinningTeam(null);
         context.setMaxGames(numberOfGames);
-        context.setCurrentGameNumber(1);
+        context.setCurrentGameNumber(currentGameNumber);
         context.getPlayedGames().clear();
         context.getScoreKeepers().clear();
         context.setParticipants(new ArrayList<>());

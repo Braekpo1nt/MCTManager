@@ -258,7 +258,8 @@ public class ReadyUpState implements EventState {
     }
     
     @Override
-    public void startEvent(@NotNull CommandSender sender, int numberOfGames) {
+    public void startEvent(@NotNull CommandSender sender, int numberOfGames, int currentGameNumber) {
+        context.setCurrentGameNumber(currentGameNumber);
         if (numberOfGames != context.getMaxGames()) {
             this.setMaxGames(sender, numberOfGames);
         }

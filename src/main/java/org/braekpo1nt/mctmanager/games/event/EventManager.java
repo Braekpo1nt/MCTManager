@@ -142,8 +142,8 @@ public class EventManager implements Listener {
         state.onAdminQuit(admin);
     }
     
-    public void startEvent(CommandSender sender, int numberOfGames) {
-        state.startEvent(sender, numberOfGames);
+    public void startEvent(CommandSender sender, int numberOfGames, int currentGameNumber) {
+        state.startEvent(sender, numberOfGames, currentGameNumber);
     }
     
     public void stopEvent(CommandSender sender) {

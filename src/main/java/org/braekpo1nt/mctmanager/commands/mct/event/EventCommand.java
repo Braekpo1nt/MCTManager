@@ -38,7 +38,7 @@ public class EventCommand extends CommandManager {
                             .append(Component.text(" is not an integer")));
                 }
                 int maxGames = Integer.parseInt(maxGamesString);
-                gameManager.getEventManager().startEvent(sender, maxGames);
+                gameManager.getEventManager().startEvent(sender, maxGames, 1);
                 return CommandResult.success();
             }
             
