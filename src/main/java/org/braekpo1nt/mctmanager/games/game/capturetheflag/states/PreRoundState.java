@@ -110,8 +110,6 @@ public class PreRoundState implements CaptureTheFlagState {
             topbar.setMembers(mp.northTeam(), northAlive, 0);
             topbar.setMembers(mp.southTeam(), southAlive, 0);
         }
-        topbar.setNoTeamLeft(Component.text("On Deck")
-                .color(NamedTextColor.GRAY));
     }
     
     @Override

@@ -179,8 +179,8 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
             resetParticipant(participant);
         }
         participants.clear();
-        clearSidebar();
         stopAdmins();
+        clearSidebar();
         state = null;
         gameManager.gameIsOver();
         Main.logger().info("Stopping Capture the Flag");

@@ -6,6 +6,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.ui.topbar.components.KillDeathComponent;
+import org.braekpo1nt.mctmanager.ui.topbar.components.ManyVersusComponent;
 import org.braekpo1nt.mctmanager.ui.topbar.components.TeamComponent;
 import org.braekpo1nt.mctmanager.ui.topbar.components.VersusComponent;
 import org.bukkit.entity.Player;
@@ -18,7 +19,7 @@ import java.util.logging.Level;
 /**
  * An implementation of a Topbar specifically oriented toward pairs of teams fighting each other.
  * You can add pairs of fighting teams, and add members to them. Then you can add viewers of
- * the Topbar, and each viewer is associated with one of the teams.
+ * the Topbar, and each viewer can be associated with one of the teams or just an observer.
  */
 public class BattleTopbar implements Topbar {
     
@@ -59,35 +60,10 @@ public class BattleTopbar implements Topbar {
      * Each player's PlayerData
      */
     private final Map<UUID, PlayerData> playerDatas = new HashMap<>();
-    /**
-     * the component to use as the default left section of the BossBar display
-     * if the viewing player is not linked to a team. 
-     * @see BattleTopbar#linkToTeam(UUID, String) 
-     * @see BattleTopbar#unlinkFromTeam(UUID) 
-     */
-    protected @NotNull Component noTeamLeft;
+    private final ManyVersusComponent allBattles;
     
     public BattleTopbar() {
-        this.noTeamLeft = Component.empty();
-    }
-    
-    /**
-     * @param noTeamLeft the component to use as the default left section of the 
-     *                   BossBar display if the viewing player is not linked to a team.
-     */
-    public BattleTopbar(@NotNull Component noTeamLeft) {
-        this.noTeamLeft = noTeamLeft;
-    }
-    
-    /**
-     * @param noTeamLeft the component to use as the default left section of the 
-     *                   BossBar display if the viewing player is not linked to a team.
-     */
-    public void setNoTeamLeft(@NotNull Component noTeamLeft) {
-        this.noTeamLeft = noTeamLeft;
-        for (PlayerData playerData : playerDatas.values()) {
-            update(playerData);
-        }
+        this.allBattles = new ManyVersusComponent();
     }
     
     /**
@@ -156,6 +132,8 @@ public class BattleTopbar implements Topbar {
                 new TeamComponent(teamDataA.getTeamColor())
         );
         
+        allBattles.addTeamPair(teamIdA, teamDataA.getTeamColor(), teamIdB, teamDataB.getTeamColor());
+        
         update(teamDataA);
         update(teamDataB);
     }
@@ -201,6 +179,8 @@ public class BattleTopbar implements Topbar {
         teamDataB.setEnemyTeam(null);
         teamDataB.getVersusComponent().setRight(null);
         
+        allBattles.removeTeamPair(teamIdA, teamIdB);
+        
         update(teamDataA);
         update(teamDataB);
     }
@@ -211,6 +191,7 @@ public class BattleTopbar implements Topbar {
      */
     public void removeAllTeamPairs() {
         teamDatas.clear();
+        allBattles.clear();
         for (PlayerData playerData : playerDatas.values()) {
             playerData.setTeamId(null);
             update(playerData);
@@ -228,6 +209,11 @@ public class BattleTopbar implements Topbar {
                 playerData.getBossBar().setLeft(teamData.getVersusComponent().toComponent());
             }
         }
+        for (PlayerData playerData : playerDatas.values()) {
+            if (playerData.getTeamId() == null) {
+                update(playerData);
+            }
+        }
     }
     
     /**
@@ -238,7 +224,7 @@ public class BattleTopbar implements Topbar {
      */
     private void update(@NotNull PlayerData playerData) {
         if (playerData.getTeamId() == null) {
-            playerData.getBossBar().setLeft(noTeamLeft);
+            playerData.getBossBar().setLeft(allBattles.toComponent());
             return;
         }
         TeamData teamData = getTeamData(playerData.getTeamId());
@@ -268,6 +254,9 @@ public class BattleTopbar implements Topbar {
             return;
         }
         teamData.getVersusComponent().getLeft().setMembers(living, dead);
+        
+        allBattles.setAliveCount(teamId, living);
+        
         update(teamData);
         if (teamData.getEnemyTeam() != null) {
             TeamData enemyTeamData = getTeamData(teamData.getEnemyTeam());

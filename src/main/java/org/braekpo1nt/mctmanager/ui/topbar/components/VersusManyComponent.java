@@ -5,7 +5,8 @@ import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Represents one team battling many other teams
+ * Represents one team battling many other teams.
+ * Not to be confused with {@link ManyVersusComponent}
  */
 @Data
 public class VersusManyComponent {
