@@ -5,6 +5,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.ui.topbar.components.KillDeathComponent;
+import org.braekpo1nt.mctmanager.ui.topbar.components.ManyTeamsComponent;
 import org.braekpo1nt.mctmanager.ui.topbar.components.TeamComponent;
 import org.braekpo1nt.mctmanager.ui.topbar.components.VersusManyComponent;
 import org.bukkit.entity.Player;
@@ -47,28 +48,6 @@ public class ManyBattleTopbar implements Topbar {
      * each player's PlayerData
      */
     private final Map<UUID, PlayerData> playerDatas = new HashMap<>();
-    /**
-     * the component to use as the default left section of the BossBar display
-     * if the viewing player is not linked to a team. 
-     * @see BattleTopbar#linkToTeam(UUID, String)
-     * @see BattleTopbar#unlinkFromTeam(UUID)
-     */
-    protected @NotNull Component noTeamLeft;
-    
-    public ManyBattleTopbar() {
-        this.noTeamLeft = Component.empty();
-    }
-    
-    /**
-     * @param noTeamLeft the component to use as the default left section of the 
-     *                   BossBar display if the viewing player is not linked to a team.
-     */
-    public void setNoTeamLeft(@NotNull Component noTeamLeft) {
-        this.noTeamLeft = noTeamLeft;
-        for (PlayerData playerData : playerDatas.values()) {
-            update(playerData);
-        }
-    }
     
     /**
      * @param teamId the teamId of the TeamData. Must be a valid key in {@link ManyBattleTopbar#teamDatas}
@@ -99,13 +78,8 @@ public class ManyBattleTopbar implements Topbar {
      * Updates all views to reflect the new number of living members on the specific team.
      */
     private void update() {
-        for (TeamData teamData : teamDatas.values()) {
-            for (UUID member : teamData.getViewingMembers()) {
-                PlayerData playerData = getPlayerData(member);
-                if (playerData != null) {
-                    playerData.getBossBar().setLeft(teamData.getVersusManyComponent().toComponent());
-                }
-            }
+        for (PlayerData playerData : playerDatas.values()) {
+            update(playerData);
         }
     }
     
@@ -117,7 +91,12 @@ public class ManyBattleTopbar implements Topbar {
      */
     private void update(@NotNull PlayerData playerData) {
         if (playerData.getTeamId() == null) {
-            playerData.getBossBar().setLeft(noTeamLeft);
+            ManyTeamsComponent allTeams = new ManyTeamsComponent();
+            for (Map.Entry<String, TeamData> entry : teamDatas.entrySet()) {
+                allTeams.addTeam(entry.getKey(), entry.getValue().getColor());
+                allTeams.setAliveCount(entry.getKey(), entry.getValue().getAliveCount());
+            }
+            playerData.getBossBar().setLeft(allTeams.toComponent());
             return;
         }
         TeamData teamData = getTeamData(playerData.getTeamId());
