@@ -22,6 +22,10 @@ import java.util.logging.Level;
  */
 public class ManyBattleTopbar implements Topbar {
     
+    public ManyBattleTopbar() {
+        allTeams = new ManyTeamsComponent();
+    }
+    
     @Data
     protected static class TeamData {
         private final VersusManyComponent versusManyComponent;
@@ -48,6 +52,12 @@ public class ManyBattleTopbar implements Topbar {
      * each player's PlayerData
      */
     private final Map<UUID, PlayerData> playerDatas = new HashMap<>();
+    /**
+     * A component with all the teams and their status. Used for displaying to players
+     * who are not a member of a team, and thus should see a summary of all teams
+     * (such as admins and spectators). 
+     */
+    private final ManyTeamsComponent allTeams;
     
     /**
      * @param teamId the teamId of the TeamData. Must be a valid key in {@link ManyBattleTopbar#teamDatas}
@@ -91,11 +101,6 @@ public class ManyBattleTopbar implements Topbar {
      */
     private void update(@NotNull PlayerData playerData) {
         if (playerData.getTeamId() == null) {
-            ManyTeamsComponent allTeams = new ManyTeamsComponent();
-            for (Map.Entry<String, TeamData> entry : teamDatas.entrySet()) {
-                allTeams.addTeam(entry.getKey(), entry.getValue().getColor());
-                allTeams.setAliveCount(entry.getKey(), entry.getValue().getAliveCount());
-            }
             playerData.getBossBar().setLeft(allTeams.toComponent());
             return;
         }
@@ -122,6 +127,7 @@ public class ManyBattleTopbar implements Topbar {
                 newTeamData.getVersusManyComponent().getOpponents().setAliveCount(opponentTeamId, teamData.getAliveCount());
             }
         }
+        allTeams.addTeam(teamId, teamColor);
         update();
     }
     
@@ -161,6 +167,7 @@ public class ManyBattleTopbar implements Topbar {
                         .getOpponents().setAliveCount(teamId, living);
             }
         }
+        allTeams.setAliveCount(teamId, living);
         update();
     }
     
