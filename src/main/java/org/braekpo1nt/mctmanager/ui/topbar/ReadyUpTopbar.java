@@ -3,7 +3,6 @@ package org.braekpo1nt.mctmanager.ui.topbar;
 import lombok.Data;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
-import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.topbar.components.PlayerReadyUpComponent;
 import org.braekpo1nt.mctmanager.ui.topbar.components.TeamsReadyUpComponent;
@@ -15,7 +14,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.logging.Level;
 
 /**
  * An implementation of a Topbar specifically oriented toward teams ready-ing up 

@@ -4,7 +4,6 @@ package org.braekpo1nt.mctmanager.ui.topbar;
 import lombok.Data;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
-import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.topbar.components.KillDeathComponent;
 import org.braekpo1nt.mctmanager.ui.topbar.components.ManyVersusComponent;
@@ -15,7 +14,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.logging.Level;
 
 /**
  * An implementation of a Topbar specifically oriented toward pairs of teams fighting each other.

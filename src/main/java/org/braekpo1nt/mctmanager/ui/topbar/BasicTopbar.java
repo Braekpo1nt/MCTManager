@@ -1,7 +1,6 @@
 package org.braekpo1nt.mctmanager.ui.topbar;
 
 import net.kyori.adventure.text.Component;
-import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -11,7 +10,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.logging.Level;
 
 /**
  * Represents a custom BossBar display for one or more players. Can update the information
