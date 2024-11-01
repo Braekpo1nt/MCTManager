@@ -1,12 +1,12 @@
 package org.braekpo1nt.mctmanager.ui.topbar.components;
 
-import com.google.common.base.Preconditions;
 import lombok.Data;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
@@ -55,7 +55,10 @@ public class TeamsReadyUpComponent {
     
     public void setReadyCount(@NotNull String teamId, long readyCount) {
         Team team = teams.get(teamId);
-        Preconditions.checkArgument(team != null, "teamId \"%s\" is not contained in this ReadyUpComponent", teamId);
+        if (team == null) {
+            UIUtils.logUIError("teamId \"%s\" is not contained in this ReadyUpComponent", teamId);
+            return;
+        }
         team.setReadyCount(readyCount);
     }
     
