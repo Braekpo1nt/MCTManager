@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.ui.topbar;
 
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -27,7 +28,7 @@ public class BasicTopbar implements Topbar {
     protected @Nullable PlayerData getPlayerData(@NotNull UUID playerUUID) {
         PlayerData playerData = playerDatas.get(playerUUID);
         if (playerData == null) {
-            logUIError("player with UUID \"%s\" does not exist in this BattleTopbar", playerUUID);
+            UIUtils.logUIError("player with UUID \"%s\" does not exist in this BattleTopbar", playerUUID);
         }
         return playerData;
     }
@@ -38,7 +39,7 @@ public class BasicTopbar implements Topbar {
     @Override
     public void showPlayer(@NotNull Player player) {
         if (playerDatas.containsKey(player.getUniqueId())) {
-            logUIError("player with UUID \"%s\" already exists in this BatleTopbar", player.getUniqueId());
+            UIUtils.logUIError("player with UUID \"%s\" already exists in this BatleTopbar", player.getUniqueId());
             return;
         }
         FormattedBar bossBar = new FormattedBar(player);
@@ -53,7 +54,7 @@ public class BasicTopbar implements Topbar {
     public void hidePlayer(@NotNull UUID playerUUID) {
         PlayerData playerData = playerDatas.remove(playerUUID);
         if (playerData == null) {
-            logUIError("player with UUID \"%s\" does not exist in this BattleTopbar", playerUUID);
+            UIUtils.logUIError("player with UUID \"%s\" does not exist in this BattleTopbar", playerUUID);
             return;
         }
         playerData.getBossBar().hide();
@@ -143,15 +144,5 @@ public class BasicTopbar implements Topbar {
             return;
         }
         playerData.getBossBar().setRight(right);
-    }
-    
-    /**
-     * Log a UI error
-     * @param reason the reason for the error (a {@link String#format(String, Object...)} template
-     * @param args optional args for the reason format string
-     */
-    private void logUIError(@NotNull String reason, Object... args) {
-        Main.logger().log(Level.SEVERE, "An error occurred in the BasicTopbar. Failing gracefully.",
-                new TopbarException(String.format(reason, args)));
     }
 }

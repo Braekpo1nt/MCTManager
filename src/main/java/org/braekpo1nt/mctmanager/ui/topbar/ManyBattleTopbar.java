@@ -4,6 +4,7 @@ import lombok.Data;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.topbar.components.KillDeathComponent;
 import org.braekpo1nt.mctmanager.ui.topbar.components.ManyTeamsComponent;
 import org.braekpo1nt.mctmanager.ui.topbar.components.TeamComponent;
@@ -66,7 +67,7 @@ public class ManyBattleTopbar implements Topbar {
     private @Nullable TeamData getTeamData(@NotNull String teamId) {
         TeamData teamData = teamDatas.get(teamId);
         if (teamData == null) {
-            logUIError("team %s does not exist in this BattleTopbar", teamId);
+            UIUtils.logUIError("team %s does not exist in this BattleTopbar", teamId);
         }
         return teamData;
     }
@@ -78,7 +79,7 @@ public class ManyBattleTopbar implements Topbar {
     private @Nullable PlayerData getPlayerData(@NotNull UUID playerUUID) {
         PlayerData playerData = playerDatas.get(playerUUID);
         if (playerData == null) {
-            logUIError("player with UUID \"%s\" does not exist in this BattleTopbar", playerUUID);
+            UIUtils.logUIError("player with UUID \"%s\" does not exist in this BattleTopbar", playerUUID);
         }
         return playerData;
     }
@@ -151,7 +152,7 @@ public class ManyBattleTopbar implements Topbar {
      */
     public void setMembers(@NotNull String teamId, int living, int dead) {
         if (living < 0) {
-            logUIError("living can't be negative");
+            UIUtils.logUIError("living can't be negative");
             return;
         }
         TeamData teamData = getTeamData(teamId);
@@ -188,7 +189,7 @@ public class ManyBattleTopbar implements Topbar {
             return;
         }
         if (playerData.getTeamId() != null) {
-            logUIError("player with UUID \"%s\" is already linked to a team in this bar: \"%s\"", playerUUID, playerData.getTeamId());
+            UIUtils.logUIError("player with UUID \"%s\" is already linked to a team in this bar: \"%s\"", playerUUID, playerData.getTeamId());
             return;
         }
         
@@ -209,7 +210,7 @@ public class ManyBattleTopbar implements Topbar {
             return;
         }
         if (playerData.getTeamId() == null) {
-            logUIError("player with UUID \"%s\" is not linked to any team", playerUUID);
+            UIUtils.logUIError("player with UUID \"%s\" is not linked to any team", playerUUID);
             return;
         }
         String teamId = playerData.getTeamId();
@@ -232,7 +233,7 @@ public class ManyBattleTopbar implements Topbar {
      */
     public void showPlayer(@NotNull Player player) {
         if (playerDatas.containsKey(player.getUniqueId())) {
-            logUIError("player with UUID \"%s\" already exists in this ManyBattleTopbar", player.getUniqueId());
+            UIUtils.logUIError("player with UUID \"%s\" already exists in this ManyBattleTopbar", player.getUniqueId());
             return;
         }
         FormattedBar bossBar = new FormattedBar(player);
@@ -249,7 +250,7 @@ public class ManyBattleTopbar implements Topbar {
     public void hidePlayer(@NotNull UUID playerUUID) {
         PlayerData playerData = playerDatas.remove(playerUUID);
         if (playerData == null) {
-            logUIError("player with UUID \"%s\" does not exist in this BattleTopbar", playerUUID);
+            UIUtils.logUIError("player with UUID \"%s\" does not exist in this BattleTopbar", playerUUID);
             return;
         }
         if (playerData.getTeamId() != null) {
@@ -394,16 +395,4 @@ public class ManyBattleTopbar implements Topbar {
         playerData.getKillDeathComponent().setDeaths(deaths);
         playerData.getBossBar().setRight(playerData.getKillDeathComponent().toComponent());
     }
-    
-    /**
-     * Log a UI error
-     * @param reason the reason for the error (a {@link String#format(String, Object...)} template
-     * @param args optional args for the reason format string
-     */
-    private void logUIError(@NotNull String reason, Object... args) {
-        Main.logger().log(Level.SEVERE, 
-                "An error occurred in the ManyBattleTopbar. Failing gracefully.",
-                new TopbarException(String.format(reason, args)));
-    }
-    
 }

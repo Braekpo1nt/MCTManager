@@ -8,6 +8,7 @@ import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.topbar.TopbarException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -123,7 +124,7 @@ public class ManyVersusComponent {
     public void setAliveCount(@NotNull String teamId, int aliveCount) {
         Team team = teams.get(teamId);
         if (team == null) {
-            logUIError("teamId \"%s\" is not contained in this ManyVersusComponent", teamId);
+            UIUtils.logUIError("teamId \"%s\" is not contained in this ManyVersusComponent", teamId);
             return;
         }
         team.setAliveCount(aliveCount);
@@ -140,15 +141,4 @@ public class ManyVersusComponent {
         }
         return builder.build();
     }
-    
-    /**
-     * Log a UI error
-     * @param reason the reason for the error (a {@link String#format(String, Object...)} template
-     * @param args optional args for the reason format string
-     */
-    private void logUIError(@NotNull String reason, Object... args) {
-        Main.logger().log(Level.SEVERE, "An error occurred in the ManyVersusComponent. Failing gracefully.",
-                new TopbarException(String.format(reason, args)));
-    }
-    
 }

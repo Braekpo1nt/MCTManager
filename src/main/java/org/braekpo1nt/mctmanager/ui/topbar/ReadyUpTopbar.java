@@ -4,6 +4,7 @@ import lombok.Data;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.topbar.components.PlayerReadyUpComponent;
 import org.braekpo1nt.mctmanager.ui.topbar.components.TeamsReadyUpComponent;
 import org.bukkit.entity.Player;
@@ -37,7 +38,7 @@ public class ReadyUpTopbar implements Topbar {
     private @Nullable PlayerData getPlayerData(@NotNull UUID playerUUID) {
         PlayerData playerData = playerDatas.get(playerUUID);
         if (playerData == null) {
-            logUIError("player with UUID \"%s\" does not exist in this ReadyUpTopbar", playerUUID);
+            UIUtils.logUIError("player with UUID \"%s\" does not exist in this ReadyUpTopbar", playerUUID);
         }
         return playerData;
     }
@@ -95,7 +96,7 @@ public class ReadyUpTopbar implements Topbar {
     @Override
     public void showPlayer(@NotNull Player player) {
         if (playerDatas.containsKey(player.getUniqueId())) {
-            logUIError("player with UUID \"%s\" already exists in this ManyBattleTopbar", player.getUniqueId());
+            UIUtils.logUIError("player with UUID \"%s\" already exists in this ManyBattleTopbar", player.getUniqueId());
             return;
         }
         FormattedBar bossBar = new FormattedBar(player);
@@ -112,7 +113,7 @@ public class ReadyUpTopbar implements Topbar {
     public void hidePlayer(@NotNull UUID playerUUID) {
         PlayerData playerData = playerDatas.remove(playerUUID);
         if (playerData == null) {
-            logUIError("player with UUID \"%s\" does not exist in this BattleTopbar", playerUUID);
+            UIUtils.logUIError("player with UUID \"%s\" does not exist in this BattleTopbar", playerUUID);
             return;
         }
         playerData.getBossBar().hide();
@@ -218,15 +219,5 @@ public class ReadyUpTopbar implements Topbar {
         }
         playerData.getPlayerReadyUpComponent().setReady(ready);
         update(playerData);
-    }
-    
-    /**
-     * Log a UI error
-     * @param reason the reason for the error (a {@link String#format(String, Object...)} template
-     * @param args optional args for the reason format string
-     */
-    private void logUIError(@NotNull String reason, Object... args) {
-        Main.logger().log(Level.SEVERE, "An error occurred in the ReadyUpTopbar. Failing gracefully.",
-                new TopbarException(String.format(reason, args)));
     }
 }
