@@ -75,21 +75,11 @@ public class ActiveState implements SurvivalGamesState {
                 Component.empty(),
                 gracePeriodStarted
         ));
-        Component initialTimer = Component.empty()
-                .append(Component.text("Grace period: "))
-                .append(gracePeriodDuration);
-        sidebar.addLine("grace", initialTimer);
-        adminSidebar.addLine("grace", initialTimer);
         gracePeriodTimer = timerManager.start(Timer.builder()
                 .duration(config.getGracePeriodDuration())
-                .withSidebar(sidebar, "grace")
-                .withSidebar(adminSidebar, "grace")
-                .sidebarPrefix(Component.text("Grace Period: "))
                 .withTopbar(topbar)
                 .topbarPrefix(Component.text("Grace Period: "))
                 .onCompletion(() -> {
-                    sidebar.deleteLine("grace");
-                    adminSidebar.deleteLine("grace");
                     gracePeriod = false;
                     Component gracePeriodEnded = Component.empty()
                             .append(Component.text("Grace period ended"))
