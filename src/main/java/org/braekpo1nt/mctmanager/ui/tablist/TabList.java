@@ -290,11 +290,8 @@ public class TabList {
      * @param uuid the participant's uuid
      * @param name the participant's name
      * @param teamId the team to join the participant to
+     * @param grey whether the participant's name should be grey, or the color of their team
      */
-    public void joinParticipant(@NotNull UUID uuid, @NotNull String name, @NotNull String teamId) {
-        joinParticipant(uuid, name, teamId, false);
-    }
-    
     public void joinParticipant(@NotNull UUID uuid, @NotNull String name, @NotNull String teamId, boolean grey) {
         ParticipantData existingParticipantData = participantDatas.get(uuid);
         if (existingParticipantData != null) {
