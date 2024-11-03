@@ -5,8 +5,10 @@ import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.kyori.adventure.title.Title;
+import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.io.IOUtils;
 import org.braekpo1nt.mctmanager.ui.maps.ImageMapRenderer;
+import org.braekpo1nt.mctmanager.ui.topbar.TopbarException;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -22,6 +24,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.time.Duration;
+import java.util.logging.Level;
 
 public class UIUtils {
     private static final Component KILL_PREFIX = Component.empty()
@@ -192,5 +195,17 @@ public class UIUtils {
         mapMeta.setMapView(mapView);
         mapItem.setItemMeta(mapMeta);
         return mapItem;
+    }
+    
+    /**
+     * Log a UI error. This will print the full stack trace and the given reason to
+     * the console, no need to specify the specific location in your error message.
+     * 
+     * @param reason the reason for the error (a {@link String#format(String, Object...)} template
+     * @param args optional args for the reason format string
+     */
+    public static void logUIError(@NotNull String reason, Object... args) {
+        Main.logger().log(Level.SEVERE, "A UI error occurred. Failing gracefully.",
+                new TopbarException(String.format(reason, args)));
     }
 }

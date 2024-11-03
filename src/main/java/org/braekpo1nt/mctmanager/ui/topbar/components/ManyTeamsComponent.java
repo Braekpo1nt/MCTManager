@@ -1,11 +1,11 @@
 package org.braekpo1nt.mctmanager.ui.topbar.components;
 
-import com.google.common.base.Preconditions;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.TextColor;
+import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
@@ -48,7 +48,10 @@ public class ManyTeamsComponent {
     
     public void setAliveCount(@NotNull String teamId, int aliveCount) {
         Team team = teams.get(teamId);
-        Preconditions.checkArgument(team != null, "teamId \"%s\" is not contained in this ManyTeamsComponent", teamId);
+        if (team == null) {
+            UIUtils.logUIError("teamId \"%s\" is not contained in this ManyTeamsComponent", teamId);
+            return;
+        }
         team.setAliveCount(aliveCount);
     }
     
@@ -63,7 +66,6 @@ public class ManyTeamsComponent {
                 builder.append(Component.space());
             }
         }
-        return builder.asComponent();
+        return builder.build();
     }
-    
 }
