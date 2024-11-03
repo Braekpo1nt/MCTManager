@@ -9,7 +9,6 @@ import net.kyori.adventure.text.format.TextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.ui.topbar.TopbarException;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitScheduler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,7 +42,7 @@ public class TabList {
     public static class ParticipantData {
         private final @NotNull String name;
         private final @NotNull String teamId;
-        private boolean alive;
+        private boolean grey;
         
         public Component toTabListEntry(TextColor color, int maxLength) {
             String resultName;
@@ -52,7 +51,7 @@ public class TabList {
             } else {
                 resultName = name;
             }
-            if (alive) {
+            if (!grey) {
                 return Component.text(resultName).color(color);
             }
             return Component.text(resultName).color(NamedTextColor.DARK_GRAY);
@@ -293,6 +292,10 @@ public class TabList {
      * @param teamId the team to join the participant to
      */
     public void joinParticipant(@NotNull UUID uuid, @NotNull String name, @NotNull String teamId) {
+        joinParticipant(uuid, name, teamId, false);
+    }
+    
+    public void joinParticipant(@NotNull UUID uuid, @NotNull String name, @NotNull String teamId, boolean grey) {
         ParticipantData existingParticipantData = participantDatas.get(uuid);
         if (existingParticipantData != null) {
             logUIError("Participant with UUID \"%s\" and name \"%s\" is already contained in this TabList, joined to team with id \"%s\"", uuid, existingParticipantData.getName(), existingParticipantData.getTeamId());
@@ -302,7 +305,7 @@ public class TabList {
         if (teamData == null) {
             return;
         }
-        ParticipantData newParticipantData = new ParticipantData(name, teamId, true);
+        ParticipantData newParticipantData = new ParticipantData(name, teamId, grey);
         teamData.getParticipants().add(newParticipantData);
         participantDatas.put(uuid, newParticipantData);
         update();
@@ -326,14 +329,14 @@ public class TabList {
     /**
      * Set the alive status of the {@link TabList.ParticipantData} associated with the given UUID
      * @param uuid the UUID of the {@link TabList.ParticipantData}
-     * @param alive the alive status
+     * @param grey true makes the player name grey, false makes it their team color
      */
-    public void setParticipantAlive(@NotNull UUID uuid, boolean alive) {
+    public void setParticipantGrey(@NotNull UUID uuid, boolean grey) {
         ParticipantData participantData = getParticipantData(uuid);
         if (participantData == null) {
             return;
         }
-        participantData.setAlive(alive);
+        participantData.setGrey(grey);
         update();
     }
     
