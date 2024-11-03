@@ -44,7 +44,7 @@ public class ActiveState implements SurvivalGamesState {
      * the index of the border stage
      */
     private int borderStageIndex = 0;
-    private boolean invulnerable = false;
+    private boolean gracePeriod = false;
     private @Nullable Timer borderDelay;
     private @Nullable Timer borderShrinking;
     private @Nullable Timer gracePeriodTimer;
@@ -60,11 +60,11 @@ public class ActiveState implements SurvivalGamesState {
         this.topbar = context.getTopbar();
         this.worldBorder = context.getWorldBorder();
         context.removePlatforms();
-        startInvulnerableTimer();
+        startGracePeriodTimer();
     }
     
-    private void startInvulnerableTimer() {
-        invulnerable = true;
+    private void startGracePeriodTimer() {
+        gracePeriod = true;
         Component gracePeriodDuration = TimeStringUtils.getTimeComponent(config.getGracePeriodDuration());
         Component gracePeriodStarted = Component.empty()
                 .append(gracePeriodDuration)
@@ -85,10 +85,12 @@ public class ActiveState implements SurvivalGamesState {
                 .withSidebar(sidebar, "grace")
                 .withSidebar(adminSidebar, "grace")
                 .sidebarPrefix(Component.text("Grace Period: "))
+                .withTopbar(topbar)
+                .topbarPrefix(Component.text("Grace Period: "))
                 .onCompletion(() -> {
                     sidebar.deleteLine("grace");
                     adminSidebar.deleteLine("grace");
-                    invulnerable = false;
+                    gracePeriod = false;
                     Component gracePeriodEnded = Component.empty()
                             .append(Component.text("Grace period ended"))
                             .color(NamedTextColor.RED);
@@ -274,7 +276,7 @@ public class ActiveState implements SurvivalGamesState {
         if (GameManagerUtils.EXCLUDED_CAUSES.contains(event.getCause())) {
             return;
         }
-        if (invulnerable) {
+        if (gracePeriod) {
             Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "SurvivalGames.ActiveState.onPlayerDamage()->invulnerable cancelled");
             event.setCancelled(true);
         }
