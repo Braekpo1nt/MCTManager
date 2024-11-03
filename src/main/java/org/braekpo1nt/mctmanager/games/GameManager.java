@@ -340,6 +340,7 @@ public class GameManager implements Listener {
         participant.playerListName(displayName);
         GameManagerUtils.deColorLeatherArmor(participant);
         tabList.hidePlayer(participant.getUniqueId());
+        tabList.setParticipantGrey(participant.getUniqueId(), true);
     }
     
     @EventHandler
@@ -406,6 +407,7 @@ public class GameManager implements Listener {
         }
         GameManagerUtils.colorLeatherArmor(this, participant);
         tabList.showPlayer(participant);
+        tabList.setParticipantGrey(participant.getUniqueId(), false);
         updateTeamScore(teamId);
         updatePersonalScore(participant);
     }
@@ -511,8 +513,9 @@ public class GameManager implements Listener {
             OfflinePlayer offlinePlayer = Bukkit.getServer().getOfflinePlayer(uuid);
             String name = getParticipantName(offlinePlayer);
             String teamId = gameStateStorageUtil.getPlayerTeamId(uuid);
+            boolean grey = !offlinePlayer.isOnline();
             if (teamId != null) { // this will not be null, formality
-                tabList.joinParticipant(uuid, name, teamId);
+                tabList.joinParticipant(uuid, name, teamId, grey);
             }
         }
         for (UUID uuid : gameStateStorageUtil.getOfflinePlayerUniqueIds()) {
@@ -520,7 +523,7 @@ public class GameManager implements Listener {
             String name = getParticipantName(offlinePlayer);
             String teamId = gameStateStorageUtil.getPlayerTeamId(uuid);
             if (teamId != null) { // this will not be null, formality
-                tabList.joinParticipant(uuid, name, teamId);
+                tabList.joinParticipant(uuid, name, teamId, true);
             }
         }
         // TabList stop
@@ -1126,7 +1129,7 @@ public class GameManager implements Listener {
         }
         addNewPlayer(sender, playerUniqueId, teamId);
         hubManager.updateLeaderboards();
-        tabList.joinParticipant(participant.getUniqueId(), participant.getName(), teamId);
+        tabList.joinParticipant(participant.getUniqueId(), participant.getName(), teamId, false);
         NamedTextColor teamIddTextColor = getTeamColor(teamId);
         Component displayName = Component.text(participant.getName(), teamIddTextColor);
         participant.displayName(displayName);
@@ -1181,7 +1184,7 @@ public class GameManager implements Listener {
         }
         addNewOfflineIGN(sender, ign, offlineUniqueId, teamId);
         hubManager.updateLeaderboards();
-        tabList.joinParticipant(offlineUniqueId, ign, teamId);
+        tabList.joinParticipant(offlineUniqueId, ign, teamId, true);
         Component teamDisplayName = getFormattedTeamDisplayName(teamId);
         NamedTextColor teamIddTextColor = getTeamColor(teamId);
         TextComponent displayName = Component.text(ign)
