@@ -446,9 +446,6 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
     }
     
     private void cancelAllTasks() {
-        if (state != null) {
-            state.cancelAllTasks();
-        }
         timerManager.cancel();
     }
     

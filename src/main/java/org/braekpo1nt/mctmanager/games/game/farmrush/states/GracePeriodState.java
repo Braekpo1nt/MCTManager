@@ -15,11 +15,9 @@ import org.jetbrains.annotations.NotNull;
  */
 public class GracePeriodState extends GameplayState {
     
-    private final Timer gracePeriodTimer;
-    
     public GracePeriodState(@NotNull FarmRushGame context) {
         super(context);
-        gracePeriodTimer = context.getTimerManager().start(Timer.builder()
+        context.getTimerManager().start(Timer.builder()
                 .duration(context.getConfig().getGracePeriodDuration())
                 .withSidebar(context.getSidebar(), "timer")
                 .withSidebar(context.getAdminSidebar(), "timer")
@@ -33,10 +31,5 @@ public class GracePeriodState extends GameplayState {
     @Override
     public void onCloseInventory(InventoryCloseEvent event, FarmRushGame.Participant participant) {
         sellItemsOnCloseInventory(event, participant);
-    }
-    
-    @Override
-    public void cancelAllTasks() {
-        gracePeriodTimer.cancel();
     }
 }

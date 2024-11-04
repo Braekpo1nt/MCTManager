@@ -4,7 +4,6 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
-import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.commands.dynamic.top.TopCommand;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushGame;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
@@ -74,7 +73,7 @@ public class ActiveState extends GameplayState {
     }
     
     private void onTeamReachMaxScore(FarmRushGame.Team winingTeam) {
-        cancelAllTasks();
+        gameTimer.cancel();
         gameManager.awardPointsToTeam(winingTeam.getTeamId(), context.getConfig().getWinnerBonus());
         context.messageAllParticipants(Component.empty()
                 .append(winingTeam.getDisplayName())
@@ -125,10 +124,4 @@ public class ActiveState extends GameplayState {
                 .append(Component.text(" points"))
         );
     }
-    
-    @Override
-    public void cancelAllTasks() {
-        gameTimer.cancel();
-    }
-    
 }
