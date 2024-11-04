@@ -18,6 +18,9 @@ public interface FarmRushState {
         Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "FarmRushGame.FarmRushState.onPlayerDamage()");
         event.setCancelled(true);
     }
+    default void cancelAllTasks() {
+        // do nothing
+    }
     
     
     default void onCloseInventory(InventoryCloseEvent event, FarmRushGame.Participant participant) {

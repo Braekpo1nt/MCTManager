@@ -10,6 +10,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.dynamic.top.TopCommand;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
@@ -445,6 +446,9 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
     }
     
     private void cancelAllTasks() {
+        if (state != null) {
+            state.cancelAllTasks();
+        }
         timerManager.cancel();
     }
     
@@ -851,6 +855,14 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
         ).sendMessage(message);
         for (Participant participant : participants.values()) {
             participant.getPlayer().sendMessage(message);
+        }
+    }
+    
+    public void titleAllParticipants(Title title) {
+        Audience.audience(admins
+        ).showTitle(title);
+        for (Participant participant : participants.values()) {
+            participant.getPlayer().showTitle(title);
         }
     }
 }

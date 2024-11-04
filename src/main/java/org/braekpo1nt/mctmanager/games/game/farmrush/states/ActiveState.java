@@ -3,10 +3,13 @@ package org.braekpo1nt.mctmanager.games.game.farmrush.states;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.commands.dynamic.top.TopCommand;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushGame;
 import org.braekpo1nt.mctmanager.games.game.farmrush.ItemSale;
+import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
+import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -23,6 +26,7 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -31,6 +35,7 @@ public class ActiveState implements FarmRushState {
     protected final @NotNull FarmRushGame context;
     private final GameManager gameManager;
     private final Timer gameTimer;
+    private @Nullable Timer gracePeriodTimer;
     
     public ActiveState(@NotNull FarmRushGame context) {
         this.context = context;
@@ -42,13 +47,36 @@ public class ActiveState implements FarmRushState {
                 .duration(context.getConfig().getGameDuration())
                 .withSidebar(context.getSidebar(), "timer")
                 .withSidebar(context.getAdminSidebar(), "timer")
-                .onCompletion(() -> context.setState(new GameOverState(context)))
+                .completionSeconds(context.getConfig().getGracePeriodDuration())
+                .onCompletion(() -> {
+                    Component timeLeft = TimeStringUtils.getTimeComponent(context.getConfig().getGracePeriodDuration());
+                    Component warning = Component.empty()
+                            .append(timeLeft)
+                            .append(Component.text(" left!"))
+                            .color(NamedTextColor.RED);
+                    Title warningTitle = UIUtils.defaultTitle(Component.empty(), warning);
+                    context.messageAllParticipants(warning);
+                    context.titleAllParticipants(warningTitle);
+                    startGracePeriod();
+                })
                 .build());
+        
         TopCommand.setEnabled(true);
         for (FarmRushGame.Team team : context.getTeams().values()) {
             team.getArena().openBarnDoor();
         }
         context.getPowerupManager().start();
+    }
+    
+    
+    private void startGracePeriod() {
+        gracePeriodTimer = context.getTimerManager().start(Timer.builder()
+                .duration(context.getConfig().getGameDuration())
+                .withSidebar(context.getSidebar(), "timer")
+                .withSidebar(context.getAdminSidebar(), "timer")
+                .timerColor(NamedTextColor.RED)
+                .onCompletion(() -> context.setState(new GameOverState(context)))
+                .build());
     }
     
     @Override
@@ -126,6 +154,15 @@ public class ActiveState implements FarmRushState {
         return team.getTotalScore() >= (int) (context.getConfig().getMaxScore() * gameManager.matchProgressPointMultiplier());
     }
     
+    @Override
+    public void cancelAllTasks() {
+        gameTimer.cancel();
+        if (gracePeriodTimer != null) {
+            gracePeriodTimer.cancel();
+            gracePeriodTimer = null;
+        }
+    }
+    
     private void onTeamReachMaxScore(FarmRushGame.Team winingTeam) {
         gameTimer.cancel();
         gameManager.awardPointsToTeam(winingTeam.getTeamId(), context.getConfig().getWinnerBonus());
@@ -135,9 +172,28 @@ public class ActiveState implements FarmRushState {
                 .append(Component.text((int) (context.getConfig().getMaxScore() * gameManager.matchProgressPointMultiplier()))
                         .color(NamedTextColor.GOLD)
                         .decorate(TextDecoration.BOLD))
-                .append(Component.text(" points first! The game is over."))
+                .append(Component.text(" points first!"))
         );
-        context.setState(new GameOverState(context));
+        Component timeLeft = TimeStringUtils.getTimeComponent(
+                gracePeriodTimer == null ? 
+                        context.getConfig().getGracePeriodDuration() :
+                        gracePeriodTimer.getSecondsLeft());
+        Component warning = Component.empty()
+                .append(timeLeft)
+                .append(Component.text(" left!"))
+                .color(NamedTextColor.RED);
+        Title warningTitle = UIUtils.defaultTitle(Component.empty(), warning);
+        context.messageAllParticipants(warning);
+        context.titleAllParticipants(warningTitle);
+        context.titleAllParticipants(UIUtils.defaultTitle(
+                Component.empty()
+                        .append(winingTeam.getDisplayName())
+                        .append(Component.text("wins!")),
+                Component.empty()
+        ));
+        if (gracePeriodTimer == null) {
+            startGracePeriod();
+        }
     }
     
     /**
