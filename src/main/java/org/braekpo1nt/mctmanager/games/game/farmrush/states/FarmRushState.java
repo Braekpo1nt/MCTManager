@@ -19,7 +19,6 @@ public interface FarmRushState {
         event.setCancelled(true);
     }
     
-    
     default void onCloseInventory(InventoryCloseEvent event, FarmRushGame.Participant participant) {
         // do nothing
     }

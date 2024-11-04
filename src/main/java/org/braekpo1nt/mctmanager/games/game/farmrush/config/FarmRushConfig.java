@@ -30,6 +30,11 @@ public class FarmRushConfig {
     private int startingDuration;
     private int gameDuration;
     private int gameOverDuration;
+    /**
+     * how much time should be left when one team reaches the {@link #maxScore}
+     * before the game ends.
+     */
+    private int gracePeriodDuration;
     private @Nullable ItemStack[] loadout;
     private @Nullable ItemStack[] starterChestContents;
     /**
@@ -64,6 +69,12 @@ public class FarmRushConfig {
      */
     private int maxScore;
     /**
+     * the percentage of the {@link #maxScore} that a team can reach before 
+     * the other teams are alerted that they are x% of the way there.
+     * If this is negative, don't warn.
+     */
+    private double warningThreshold;
+    /**
      * If {@link #maxScore} is 1 or more (meaning a max score is assigned) 
      * then the team who reaches the {@link #maxScore} first will receive this bonus. 
      * Can't be negative. Defaults to 0. 
@@ -82,6 +93,10 @@ public class FarmRushConfig {
     
     public boolean shouldEnforceMaxScore() {
         return maxScore >= 1;
+    }
+    
+    public boolean shouldWarnAtThreshold() {
+        return warningThreshold >= 0;
     }
     
     public boolean shouldClearArenas() {
