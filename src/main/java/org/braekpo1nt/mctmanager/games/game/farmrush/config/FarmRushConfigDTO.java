@@ -150,6 +150,12 @@ class FarmRushConfigDTO implements Validatable {
          */
         private int maxScore = -1;
         /**
+         * the percentage of the {@link #maxScore} that each team can reach before the
+         * other teams are warned. If this is negative, no warning will be given.
+         * Can't be above 1.0
+         */
+        private double warningThreshold = -1;
+        /**
          * If {@link #maxScore} is 1 or more (meaning a max score is assigned) 
          * then the team who reaches the {@link #maxScore} first will receive this bonus. 
          * Can't be negative. Defaults to 0. 
@@ -162,6 +168,7 @@ class FarmRushConfigDTO implements Validatable {
             validator.notNull(materialScores, "materialScores");
             validator.validateMap(materialScores, "materialScores");
             validator.validate(winnerBonus >= 0, "winnerBonus can't be negative");
+            validator.validate(warningThreshold < 1, "warningThreshold must be below 1.0");
         }
     }
     
@@ -232,6 +239,7 @@ class FarmRushConfigDTO implements Validatable {
                 .gracePeriodDuration(this.durations.gracePeriod)
                 .materialScores(this.scores.materialScores)
                 .maxScore(this.scores.maxScore)
+                .warningThreshold(this.scores.warningThreshold)
                 .winnerBonus(this.scores.winnerBonus)
                 .doNotGiveBookDebug(this.doNotGiveBookDebug)
                 .recipes(this.recipes != null ? RecipeDTO.toRecipes(this.recipes) : Collections.emptyList())

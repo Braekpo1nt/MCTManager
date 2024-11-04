@@ -58,17 +58,19 @@ public class ActiveState extends GameplayState {
     public void onCloseInventory(InventoryCloseEvent event, FarmRushGame.Participant participant) {
         sellItemsOnCloseInventory(event, participant);
         FarmRushGame.Team team = context.getTeams().get(participant.getTeamId());
-        checkForWin(team);
-    }
-    
-    protected void checkForWin(FarmRushGame.Team team) {
         if (context.getConfig().shouldEnforceMaxScore() && teamReachedMaxScore(team)) {
             onTeamReachMaxScore(team);
+            return;
+        }
+        if (context.getConfig().shouldEnforceMaxScore() && 
+                context.getConfig().shouldWarnAtThreshold() && 
+                teamReachedWarningThreshold(team)) {
+            onTeamReachWarningThreshold(team);
         }
     }
     
     private boolean teamReachedMaxScore(FarmRushGame.Team team) {
-        return team.getTotalScore() >= (int) (context.getConfig().getMaxScore() * gameManager.matchProgressPointMultiplier());
+        return team.getTotalScore() >= getTrueMaxScore();
     }
     
     private void onTeamReachMaxScore(FarmRushGame.Team winingTeam) {
@@ -77,7 +79,7 @@ public class ActiveState extends GameplayState {
         context.messageAllParticipants(Component.empty()
                 .append(winingTeam.getDisplayName())
                 .append(Component.text(" reached "))
-                .append(Component.text((int) (context.getConfig().getMaxScore() * gameManager.matchProgressPointMultiplier()))
+                .append(Component.text(getTrueMaxScore())
                         .color(NamedTextColor.GOLD)
                         .decorate(TextDecoration.BOLD))
                 .append(Component.text(" points first! "))
@@ -93,6 +95,35 @@ public class ActiveState extends GameplayState {
                         .append(Component.text(" left!"))
                         .color(NamedTextColor.RED)));
         context.setState(new GracePeriodState(context));
+    }
+    
+    /**
+     * @return the multiplied max score
+     */
+    private int getTrueMaxScore() {
+        return (int) (context.getConfig().getMaxScore() * gameManager.matchProgressPointMultiplier());
+    }
+    
+    private boolean teamReachedWarningThreshold(FarmRushGame.Team team) {
+        return team.getTotalScore() >=
+                (int) (context.getConfig().getWarningThreshold() *
+                        context.getConfig().getMaxScore() *
+                        gameManager.matchProgressPointMultiplier());
+    }
+    
+    private void onTeamReachWarningThreshold(FarmRushGame.Team team) {
+        context.messageAllParticipants(Component.empty()
+                .append(team.getDisplayName())
+                .append(Component.text(" has "))
+                .append(Component.text(team.getTotalScore())
+                        .color(NamedTextColor.GOLD)
+                        .decorate(TextDecoration.BOLD))
+                .append(Component.text("/"))
+                .append(Component.text(getTrueMaxScore())
+                        .color(NamedTextColor.GOLD)
+                        .decorate(TextDecoration.BOLD))
+                .append(Component.text(" points"))
+        );
     }
     
     @Override

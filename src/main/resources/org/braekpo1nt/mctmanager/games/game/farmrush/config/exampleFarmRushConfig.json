@@ -180,6 +180,7 @@
   },
   "scores": {
     "maxScore": 3000,
+    "warningThreshold": -1,
     "winnerBonus": 500,
     "materialScores": {
       "IRON_INGOT": {
