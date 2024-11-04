@@ -26,24 +26,35 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
 public class ActiveState implements FarmRushState {
     
     protected final @NotNull FarmRushGame context;
-    private final GameManager gameManager;
-    private final Timer gameTimer;
-    private @Nullable Timer gracePeriodTimer;
+    protected final GameManager gameManager;
+    protected final Timer timer;
     
     public ActiveState(@NotNull FarmRushGame context) {
         this.context = context;
         this.gameManager = context.getGameManager();
+        timer = getTimer();
+        init();
+    }
+    
+    protected void init() {
         for (FarmRushGame.Participant participant : context.getParticipants().values()) {
             participant.getPlayer().setGameMode(GameMode.SURVIVAL);
         }
-        gameTimer = context.getTimerManager().start(Timer.builder()
+        TopCommand.setEnabled(true);
+        for (FarmRushGame.Team team : context.getTeams().values()) {
+            team.getArena().openBarnDoor();
+        }
+        context.getPowerupManager().start();
+    }
+    
+    protected Timer getTimer() {
+        return context.getTimerManager().start(Timer.builder()
                 .duration(context.getConfig().getGameDuration())
                 .withSidebar(context.getSidebar(), "timer")
                 .withSidebar(context.getAdminSidebar(), "timer")
@@ -57,25 +68,8 @@ public class ActiveState implements FarmRushState {
                     Title warningTitle = UIUtils.defaultTitle(Component.empty(), warning);
                     context.messageAllParticipants(warning);
                     context.titleAllParticipants(warningTitle);
-                    startGracePeriod();
+                    context.setState(new GracePeriodState(context));
                 })
-                .build());
-        
-        TopCommand.setEnabled(true);
-        for (FarmRushGame.Team team : context.getTeams().values()) {
-            team.getArena().openBarnDoor();
-        }
-        context.getPowerupManager().start();
-    }
-    
-    
-    private void startGracePeriod() {
-        gracePeriodTimer = context.getTimerManager().start(Timer.builder()
-                .duration(context.getConfig().getGameDuration())
-                .withSidebar(context.getSidebar(), "timer")
-                .withSidebar(context.getAdminSidebar(), "timer")
-                .timerColor(NamedTextColor.RED)
-                .onCompletion(() -> context.setState(new GameOverState(context)))
                 .build());
     }
     
@@ -145,6 +139,10 @@ public class ActiveState implements FarmRushState {
             }
         }
         inventory.setContents(contents);
+        checkForWin(team);
+    }
+    
+    protected void checkForWin(FarmRushGame.Team team) {
         if (context.getConfig().shouldEnforceMaxScore() && teamReachedMaxScore(team)) {
             onTeamReachMaxScore(team);
         }
@@ -156,15 +154,11 @@ public class ActiveState implements FarmRushState {
     
     @Override
     public void cancelAllTasks() {
-        gameTimer.cancel();
-        if (gracePeriodTimer != null) {
-            gracePeriodTimer.cancel();
-            gracePeriodTimer = null;
-        }
+        timer.cancel();
     }
     
     private void onTeamReachMaxScore(FarmRushGame.Team winingTeam) {
-        gameTimer.cancel();
+        cancelAllTasks();
         gameManager.awardPointsToTeam(winingTeam.getTeamId(), context.getConfig().getWinnerBonus());
         context.messageAllParticipants(Component.empty()
                 .append(winingTeam.getDisplayName())
@@ -174,10 +168,7 @@ public class ActiveState implements FarmRushState {
                         .decorate(TextDecoration.BOLD))
                 .append(Component.text(" points first!"))
         );
-        Component timeLeft = TimeStringUtils.getTimeComponent(
-                gracePeriodTimer == null ? 
-                        context.getConfig().getGracePeriodDuration() :
-                        gracePeriodTimer.getSecondsLeft());
+        Component timeLeft = TimeStringUtils.getTimeComponent(context.getConfig().getGracePeriodDuration());
         Component warning = Component.empty()
                 .append(timeLeft)
                 .append(Component.text(" left!"))
@@ -191,9 +182,7 @@ public class ActiveState implements FarmRushState {
                         .append(Component.text("wins!")),
                 Component.empty()
         ));
-        if (gracePeriodTimer == null) {
-            startGracePeriod();
-        }
+        context.setState(new GracePeriodState(context));
     }
     
     /**
