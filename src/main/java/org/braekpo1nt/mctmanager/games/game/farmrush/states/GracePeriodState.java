@@ -1,33 +1,42 @@
 package org.braekpo1nt.mctmanager.games.game.farmrush.states;
 
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushGame;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.jetbrains.annotations.NotNull;
 
-public class GracePeriodState extends ActiveState {
+/**
+ * After the timer has reached the grace period limit, or at least one
+ * team has reached the score limit
+ * This is different from {@link ActiveState} because it's not checking for
+ * a team winning, and has a red countdown timer.
+ */
+public class GracePeriodState extends GameplayState {
+    
+    private final Timer gracePeriodTimer;
+    
     public GracePeriodState(@NotNull FarmRushGame context) {
         super(context);
-    }
-    
-    @Override
-    protected void init() {
-        // do nothing
-    }
-    
-    @Override
-    protected Timer getTimer() {
-        return context.getTimerManager().start(Timer.builder()
-                .duration(context.getConfig().getGameDuration())
+        gracePeriodTimer = context.getTimerManager().start(Timer.builder()
+                .duration(context.getConfig().getGracePeriodDuration())
                 .withSidebar(context.getSidebar(), "timer")
                 .withSidebar(context.getAdminSidebar(), "timer")
+                .sidebarPrefix(Component.text("Ending: ")
+                        .color(NamedTextColor.RED))
                 .timerColor(NamedTextColor.RED)
                 .onCompletion(() -> context.setState(new GameOverState(context)))
                 .build());
     }
     
     @Override
-    protected void checkForWin(FarmRushGame.Team team) {
-        // do nothing
+    public void onCloseInventory(InventoryCloseEvent event, FarmRushGame.Participant participant) {
+        sellItemsOnCloseInventory(event, participant);
+    }
+    
+    @Override
+    public void cancelAllTasks() {
+        gracePeriodTimer.cancel();
     }
 }
