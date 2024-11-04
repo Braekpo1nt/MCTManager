@@ -134,8 +134,9 @@ class FarmRushConfigDTO implements Validatable {
             validator.validate(description >= 0, "description can't be negative");
             validator.validate(starting >= 0, "starting can't be negative");
             validator.validate(gameDuration >= 0, "gameDuration can't be negative");
-            validator.validate(gameOver >= 0, "gameOver can't be negative");
             validator.validate(gracePeriod >= 0, "gracePeriod can't be negative");
+            validator.validate(gameDuration >= gracePeriod, "gracePeriod can't be greater than gameDuration");
+            validator.validate(gameOver >= 0, "gameOver can't be negative");
         }
     }
     
