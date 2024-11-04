@@ -113,7 +113,7 @@ class FarmRushConfigDTO implements Validatable {
     }
     
     @Data
-    static class Durations {
+    static class Durations implements Validatable {
         private int description = 10;
         private int starting = 10;
         /**
@@ -121,6 +121,22 @@ class FarmRushConfigDTO implements Validatable {
          */
         private int gameDuration = 180;
         private int gameOver = 10;
+        /**
+         * the grace period that gets kicked off when one team reaches the {@link Scores#maxScore}
+         * Players will be alerted that a team reached the max score, then this grace period
+         * will begin with a red timer. Note that if the time left in the game is less
+         * than the grace period, only the message will be sent and the timer will not be extended.
+         */
+        private int gracePeriod = 0;
+        
+        @Override
+        public void validate(@NotNull Validator validator) {
+            validator.validate(description >= 0, "description can't be negative");
+            validator.validate(starting >= 0, "starting can't be negative");
+            validator.validate(gameDuration >= 0, "gameDuration can't be negative");
+            validator.validate(gameOver >= 0, "gameOver can't be negative");
+            validator.validate(gracePeriod >= 0, "gracePeriod can't be negative");
+        }
     }
     
     @Data
@@ -163,6 +179,8 @@ class FarmRushConfigDTO implements Validatable {
         if (loadout != null) {
             loadout.validate(validator.path("loadout"));
         }
+        validator.notNull(durations, "durations");
+        durations.validate(validator.path("durations"));
         validator.notNull(scores, "scores");
         scores.validate(validator.path("scores"));
         validator.notNull(this.getDurations(), "durations");
@@ -210,6 +228,7 @@ class FarmRushConfigDTO implements Validatable {
                 .startingDuration(this.durations.starting)
                 .gameDuration(this.durations.gameDuration)
                 .gameOverDuration(this.durations.gameOver)
+                .gracePeriodDuration(this.durations.gracePeriod)
                 .materialScores(this.scores.materialScores)
                 .maxScore(this.scores.maxScore)
                 .winnerBonus(this.scores.winnerBonus)

@@ -175,7 +175,8 @@
     "description": 10,
     "starting": 10,
     "gameDuration": 600,
-    "gameOver": 10
+    "gameOver": 10,
+    "gracePeriod": 30
   },
   "scores": {
     "maxScore": 3000,

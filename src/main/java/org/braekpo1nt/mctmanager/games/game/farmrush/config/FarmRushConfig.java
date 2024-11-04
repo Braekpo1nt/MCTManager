@@ -30,6 +30,11 @@ public class FarmRushConfig {
     private int startingDuration;
     private int gameDuration;
     private int gameOverDuration;
+    /**
+     * how much time should be left when one team reaches the {@link #maxScore}
+     * before the game ends.
+     */
+    private int gracePeriodDuration;
     private @Nullable ItemStack[] loadout;
     private @Nullable ItemStack[] starterChestContents;
     /**
