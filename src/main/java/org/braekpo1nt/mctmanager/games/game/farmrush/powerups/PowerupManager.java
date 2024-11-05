@@ -11,7 +11,6 @@ import org.bukkit.block.Block;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.BlockInventoryHolder;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
@@ -34,7 +33,8 @@ public class PowerupManager {
             meta.displayName(Component.text("Crop Grower"));
             meta.lore(List.of(
                     Component.text("Place this near crops"),
-                    Component.text("to make them grow faster")
+                    Component.text("to make them grow faster"),
+                    Component.text("(more growers = faster crops)")
             ));
         });
         
@@ -42,9 +42,9 @@ public class PowerupManager {
         animalGrowerItem.editMeta(meta -> {
             meta.displayName(Component.text("Animal Grower"));
             meta.lore(List.of(
-                    Component.text("Place this near animals"),
-                    Component.text("to make them grow up"),
-                    Component.text("and breed faster")
+                    Component.text("Place this near animals to make"),
+                    Component.text("them grow/breed faster"),
+                    Component.text("(more growers = faster breeding/growing)")
             ));
         });
         
