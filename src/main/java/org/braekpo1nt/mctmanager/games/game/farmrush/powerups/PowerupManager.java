@@ -1,6 +1,5 @@
 package org.braekpo1nt.mctmanager.games.game.farmrush.powerups;
 
-import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushGame;
 import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.specs.AnimalGrowerSpec;
@@ -23,32 +22,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 public class PowerupManager {
-    
-    public static final ItemStack cropGrowerItem;
-    public static final ItemStack animalGrowerItem;
-    
-    static {
-        cropGrowerItem = new ItemStack(Material.FURNACE);
-        cropGrowerItem.editMeta(meta -> {
-            meta.displayName(Component.text("Crop Grower"));
-            meta.lore(List.of(
-                    Component.text("Place this near crops"),
-                    Component.text("to make them grow faster"),
-                    Component.text("(more growers = faster crops)")
-            ));
-        });
-        
-        animalGrowerItem = new ItemStack(Material.BLAST_FURNACE);
-        animalGrowerItem.editMeta(meta -> {
-            meta.displayName(Component.text("Animal Grower"));
-            meta.lore(List.of(
-                    Component.text("Place this near animals to make"),
-                    Component.text("them grow/breed faster"),
-                    Component.text("(more growers = faster breeding/growing)")
-            ));
-        });
-        
-    }
     
     private final FarmRushGame context;
     /**
@@ -209,7 +182,8 @@ public class PowerupManager {
         if (cropGrower == null) {
             return false;
         }
-        location.getWorld().dropItemNaturally(location.add(new Vector(0.5, 0.5, 0.5)), cropGrowerItem);
+        location.getWorld().dropItemNaturally(location.add(new Vector(0.5, 0.5, 0.5)), 
+                context.getConfig().getCropGrowerSpec().getCropGrowerItem());
         block.setType(Material.AIR);
         return true;
     }
@@ -220,7 +194,8 @@ public class PowerupManager {
         if (animalGrower == null) {
             return false;
         }
-        location.getWorld().dropItemNaturally(location.add(new Vector(0.5, 0.5, 0.5)), animalGrowerItem);
+        location.getWorld().dropItemNaturally(location.add(new Vector(0.5, 0.5, 0.5)), 
+                context.getConfig().getAnimalGrowerSpec().getAnimalGrowerItem());
         block.setType(Material.AIR);
         return true;
     }

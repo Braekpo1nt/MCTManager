@@ -10,6 +10,7 @@ import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.PowerupType;
 import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.specs.CropGrowerSpec;
 import org.braekpo1nt.mctmanager.io.IOUtils;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
+import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.World;
 import org.bukkit.inventory.ItemStack;
@@ -18,6 +19,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 @Data
 class CropGrowerSpecDTO implements Validatable {
@@ -27,6 +29,18 @@ class CropGrowerSpecDTO implements Validatable {
      * in the config, it will be overwritten by the internal powerup.
      */
     private RecipeDTO recipe;
+    /**
+     * The lore of the item
+     */
+    private @Nullable List<Component> lore;
+    /**
+     * the display name of the item
+     */
+    private @Nullable Component displayName;
+    /**
+     * the type of the item, must be a block
+     */
+    private @Nullable Material blockType;
     /**
      * the radius of the effect range.
      */
@@ -82,7 +96,11 @@ class CropGrowerSpecDTO implements Validatable {
      */
     public CropGrowerSpec toSpec(World world) {
         ItemStack cropGrowerItem = PowerupManager.cropGrowerItem;
-        cropGrowerItem.editMeta(meta -> meta.setCustomModelData(customModelData));
+        cropGrowerItem.editMeta(meta -> {
+            meta.displayName(displayName == null ? defaultDisplayName() : displayName);
+            meta.lore(lore == null ? defaultLore() : lore);
+            meta.setCustomModelData(customModelData);
+        });
         ItemStack newRecipeMap = null;
         if (recipeImage != null && world != null) {
             try {
@@ -94,6 +112,7 @@ class CropGrowerSpecDTO implements Validatable {
             }
         }
         return CropGrowerSpec.builder()
+                .cropGrowerItem(cropGrowerItem)
                 .recipe(recipe.toRecipe(cropGrowerItem))
                 .recipeKey(recipe.getNamespacedKey())
                 .radius(radius)
@@ -107,6 +126,23 @@ class CropGrowerSpecDTO implements Validatable {
                 .particleCount(particleCount)
                 // Particles end
                 .build();
+    }
+    
+    /**
+     * @return the default lore if no lore is specified
+     */
+    private Component defaultDisplayName() {
+        return Component.text("Crop Grower");
+    }
+    
+    /**
+     * @return the default lore if no lore is specified
+     */
+    private List<Component> defaultLore() {
+        return List.of(
+                Component.text("Place this near crops"),
+                Component.text("to make them grow faster"),
+                Component.text("(more growers = faster crops)"));
     }
     
     @Override
@@ -123,6 +159,12 @@ class CropGrowerSpecDTO implements Validatable {
             } catch (IOException e) {
                 validator.invalid("recipeImage could not be read as an image.");
             }
+        }
+        if (lore != null) {
+            validator.validate(!lore.contains(null), "lore can't contain null entries");
+        }
+        if (blockType != null) {
+            validator.validate(blockType.isBlock(), "blockType must be a block");
         }
         
         // Particles start
