@@ -95,7 +95,7 @@ class CropGrowerSpecDTO implements Validatable {
      * @return the specified spec
      */
     public CropGrowerSpec toSpec(World world) {
-        ItemStack cropGrowerItem = PowerupManager.cropGrowerItem;
+        ItemStack cropGrowerItem = new ItemStack(blockType == null ? Material.FURNACE : blockType);
         cropGrowerItem.editMeta(meta -> {
             meta.displayName(displayName == null ? defaultDisplayName() : displayName);
             meta.lore(lore == null ? defaultLore() : lore);
