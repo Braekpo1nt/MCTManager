@@ -565,6 +565,9 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
             event.setCancelled(true);
             return;
         }
+        if (event.getPlayer().getGameMode().equals(GameMode.CREATIVE)) {
+            return;
+        }
         powerupManager.onBlockBreak(block, event);
     }
     @EventHandler

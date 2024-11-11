@@ -176,6 +176,11 @@ public class PowerupManager {
         return blocksToRemove;
     }
     
+    /**
+     * @param block the block to remove, if it is a crop grower
+     * @return true if the given block is a cropGrower and was removed, false
+     * otherwise
+     */
     private boolean onBreakCropGrower(Block block) {
         Location location = block.getLocation();
         CropGrower cropGrower = cropGrowers.remove(location.toVector());
