@@ -160,8 +160,8 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         teamSpawns = getTeamSpawns(teams);
         closeTeamSpawns();
         closeGlassBarrier();
-        sidebar = gameManager.getSidebarFactory().createSidebar();
-        adminSidebar = gameManager.getSidebarFactory().createSidebar();
+        sidebar = gameManager.createSidebar();
+        adminSidebar = gameManager.createSidebar();
         parkourHasStarted = false;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         gameManager.getTimerManager().register(timerManager);

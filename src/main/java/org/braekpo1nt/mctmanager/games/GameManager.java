@@ -32,6 +32,7 @@ import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.voting.VoteManager;
 import org.braekpo1nt.mctmanager.hub.HubManager;
 import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
+import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.sidebar.SidebarFactory;
 import org.braekpo1nt.mctmanager.ui.tablist.TabList;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
@@ -438,8 +439,12 @@ public class GameManager implements Listener {
         return mctScoreboard;
     }
     
-    public SidebarFactory getSidebarFactory() {
-        return sidebarFactory;
+    public Sidebar createSidebar() {
+        if (eventManager.eventIsActive()) {
+            return sidebarFactory.createSidebar(eventManager.getTitle());
+        } else {
+            return sidebarFactory.createSidebar();
+        }
     }
     
     /**

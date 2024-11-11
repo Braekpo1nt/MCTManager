@@ -86,9 +86,9 @@ public class OffState implements EventState {
         context.getPlayedGames().clear();
         context.getScoreKeepers().clear();
         context.setParticipants(new ArrayList<>());
-        context.setSidebar(context.getGameManager().getSidebarFactory().createSidebar());
+        context.setSidebar(context.getGameManager().createSidebar());
         context.setAdmins(new ArrayList<>());
-        context.setAdminSidebar(context.getGameManager().getSidebarFactory().createSidebar());
+        context.setAdminSidebar(context.getGameManager().createSidebar());
         initializeSidebar();
         initializeAdminSidebar();
         context.initializeParticipantsAndAdmins();

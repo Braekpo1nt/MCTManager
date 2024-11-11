@@ -127,8 +127,8 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
         killCounts = new HashMap<>(newParticipants.size());
         deathCounts = new HashMap<>(newParticipants.size());
         worldBorder = config.getWorld().getWorldBorder();
-        sidebar = gameManager.getSidebarFactory().createSidebar();
-        adminSidebar = gameManager.getSidebarFactory().createSidebar();
+        sidebar = gameManager.createSidebar();
+        adminSidebar = gameManager.createSidebar();
         List<String> teams = gameManager.getTeamIds(newParticipants);
         setUpTopbarTeams(teams);
         plugin.getServer().getPluginManager().registerEvents(this, plugin);

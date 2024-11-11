@@ -236,7 +236,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
         currentCheckPoints = new HashMap<>(newParticipants.size());
         puzzles = config.getPuzzles();
         displays = new HashMap<>(newParticipants.size());
-        sidebar = gameManager.getSidebarFactory().createSidebar();
+        sidebar = gameManager.createSidebar();
         displayWalls = true;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         for (Player participant : newParticipants) {

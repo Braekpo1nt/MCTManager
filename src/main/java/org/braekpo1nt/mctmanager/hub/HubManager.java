@@ -99,7 +99,7 @@ public class HubManager implements Listener, Configurable {
     private void returnParticipantsToHub(List<Player> newParticipants, List<Player> newAdmins, int duration) {
         headingToHub.addAll(newParticipants);
         final List<Player> adminsHeadingToHub = new ArrayList<>(newAdmins);
-        final Sidebar sidebar = gameManager.getSidebarFactory().createSidebar();
+        final Sidebar sidebar = gameManager.createSidebar();
         sidebar.addPlayers(newParticipants);
         sidebar.addPlayers(newAdmins);
         sidebar.addLine("backToHub", String.format("Back to Hub: %s", duration));

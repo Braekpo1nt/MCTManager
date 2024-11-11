@@ -167,8 +167,8 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
     
     @Override
     public void start(List<Player> newParticipants, List<Player> newAdmins) {
-        sidebar = gameManager.getSidebarFactory().createSidebar();
-        adminSidebar = gameManager.getSidebarFactory().createSidebar();
+        sidebar = gameManager.createSidebar();
+        adminSidebar = gameManager.createSidebar();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         gameManager.getTimerManager().register(timerManager);
         List<String> teamIds = gameManager.getTeamIds(newParticipants);

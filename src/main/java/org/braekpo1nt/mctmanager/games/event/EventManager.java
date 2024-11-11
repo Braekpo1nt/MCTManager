@@ -472,6 +472,18 @@ public class EventManager implements Listener {
         state.cancelAllTasks();
     }
     
+    /**
+     * @return the event title from the config if the event is active,
+     * or the {@link Sidebar#DEFAULT_TITLE} if not
+     */
+    public @NotNull Component getTitle() {
+        if (eventIsActive()) {
+            return config.getTitle();
+        } else {
+            return Sidebar.DEFAULT_TITLE;
+        }
+    }
+    
     public void giveCrown(Player participant) {
         participant.getInventory().setHelmet(crown);
     }
