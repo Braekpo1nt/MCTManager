@@ -79,8 +79,8 @@ public class VoteManager implements Listener {
         votes.clear();
         voters.clear();
         this.votingPool = votingPool;
-        sidebar = gameManager.getSidebarFactory().createSidebar();
-        adminSidebar = gameManager.getSidebarFactory().createSidebar();
+        sidebar = gameManager.createSidebar();
+        adminSidebar = gameManager.createSidebar();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         gameManager.getTimerManager().register(timerManager);
         for (Player participant : newParticipants) {

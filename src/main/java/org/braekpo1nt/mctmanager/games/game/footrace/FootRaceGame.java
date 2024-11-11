@@ -136,8 +136,8 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
         finishedParticipants = new ArrayList<>(newParticipants.size());
         standings = new ArrayList<>(newParticipants.size());
         admins = new ArrayList<>(newAdmins.size());
-        sidebar = gameManager.getSidebarFactory().createSidebar();
-        adminSidebar = gameManager.getSidebarFactory().createSidebar();
+        sidebar = gameManager.createSidebar();
+        adminSidebar = gameManager.createSidebar();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         gameManager.getTimerManager().register(timerManager);
         closeGlassBarrier();

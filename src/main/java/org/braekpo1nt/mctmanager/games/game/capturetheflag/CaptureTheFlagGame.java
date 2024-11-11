@@ -108,8 +108,8 @@ public class CaptureTheFlagGame implements MCTGame, Configurable, Listener, Head
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         gameManager.getTimerManager().register(timerManager);
         participants = new ArrayList<>(newParticipants.size());
-        sidebar = gameManager.getSidebarFactory().createSidebar();
-        adminSidebar = gameManager.getSidebarFactory().createSidebar();
+        sidebar = gameManager.createSidebar();
+        adminSidebar = gameManager.createSidebar();
         List<String> teamIds = gameManager.getTeamIds(newParticipants);
         roundManager = new RoundManager(teamIds, config.getArenas().size());
         killCount = new HashMap<>(newParticipants.size());

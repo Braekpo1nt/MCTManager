@@ -109,7 +109,7 @@ public class FootRaceEditor implements GameEditor, Configurable, Listener {
         participants = new ArrayList<>(newParticipants.size());
         currentCheckpoints = new HashMap<>(newParticipants.size());
         displays = new HashMap<>(newParticipants.size());
-        sidebar = gameManager.getSidebarFactory().createSidebar();
+        sidebar = gameManager.createSidebar();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         for (Player newParticipant : newParticipants) {
             initializeParticipant(newParticipant);

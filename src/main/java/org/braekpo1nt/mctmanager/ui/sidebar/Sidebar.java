@@ -21,6 +21,10 @@ public class Sidebar {
     Sidebar() {
     }
     
+    Sidebar(@NotNull Component title) {
+        this.title = title;
+    }
+    
     /**
      * Maps keys to their index, or their line number (starts at 0). 
      */
@@ -38,17 +42,13 @@ public class Sidebar {
      */
     protected final Map<UUID, FastBoardWrapper> boards = new HashMap<>();
     public static final Component DEFAULT_TITLE = Component.empty()
-            .append(Component.text("MCT")
+            .append(Component.text("CT")
                     .color(NamedTextColor.DARK_RED)
                     .decorate(TextDecoration.BOLD));
     /**
      * The title to be used at the top of the FastBoard
      */
     protected Component title = DEFAULT_TITLE;
-    
-    public synchronized void updateTitle(String title) {
-        updateTitle(Component.text(title));
-    }
     
     public synchronized void updateTitle(@NotNull Component title) {
         this.title = title;
