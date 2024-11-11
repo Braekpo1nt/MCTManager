@@ -439,6 +439,9 @@ public class GameManager implements Listener {
         return mctScoreboard;
     }
     
+    /**
+     * @return a new sidebar. Adjusts the title based on whether an event is running. 
+     */
     public Sidebar createSidebar() {
         if (eventManager.eventIsActive()) {
             return sidebarFactory.createSidebar(eventManager.getTitle());
