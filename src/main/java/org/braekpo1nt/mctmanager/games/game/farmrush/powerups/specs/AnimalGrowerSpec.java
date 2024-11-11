@@ -3,7 +3,6 @@ package org.braekpo1nt.mctmanager.games.game.farmrush.powerups.specs;
 import lombok.Builder;
 import lombok.Data;
 import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.AnimalGrower;
-import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.PowerupManager;
 import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.PowerupType;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
@@ -20,8 +19,9 @@ import org.jetbrains.annotations.Nullable;
 @Data
 @Builder
 public class AnimalGrowerSpec implements PowerupSpec {
-    private final @NotNull PowerupType type = PowerupType.ANIMAL_GROWER;
+    private final PowerupType type = PowerupType.ANIMAL_GROWER;
     
+    private final @NotNull ItemStack animalGrowerItem;
     private final @NotNull Recipe recipe;
     private double radius;
     private NamespacedKey recipeKey;
@@ -80,6 +80,6 @@ public class AnimalGrowerSpec implements PowerupSpec {
         if (itemMeta == null) {
             return false;
         }
-        return PowerupManager.animalGrowerItem.getItemMeta().equals(itemMeta);
+        return animalGrowerItem.getItemMeta().equals(itemMeta);
     }
 }

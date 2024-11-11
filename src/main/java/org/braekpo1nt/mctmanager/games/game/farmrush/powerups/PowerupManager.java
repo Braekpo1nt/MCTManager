@@ -1,6 +1,5 @@
 package org.braekpo1nt.mctmanager.games.game.farmrush.powerups;
 
-import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.farmrush.FarmRushGame;
 import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.specs.AnimalGrowerSpec;
@@ -11,7 +10,6 @@ import org.bukkit.block.Block;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.BlockInventoryHolder;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
@@ -24,31 +22,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 public class PowerupManager {
-    
-    public static final ItemStack cropGrowerItem;
-    public static final ItemStack animalGrowerItem;
-    
-    static {
-        cropGrowerItem = new ItemStack(Material.FURNACE);
-        cropGrowerItem.editMeta(meta -> {
-            meta.displayName(Component.text("Crop Grower"));
-            meta.lore(List.of(
-                    Component.text("Place this near crops"),
-                    Component.text("to make them grow faster")
-            ));
-        });
-        
-        animalGrowerItem = new ItemStack(Material.BLAST_FURNACE);
-        animalGrowerItem.editMeta(meta -> {
-            meta.displayName(Component.text("Animal Grower"));
-            meta.lore(List.of(
-                    Component.text("Place this near animals"),
-                    Component.text("to make them grow up"),
-                    Component.text("and breed faster")
-            ));
-        });
-        
-    }
     
     private final FarmRushGame context;
     /**
@@ -203,13 +176,19 @@ public class PowerupManager {
         return blocksToRemove;
     }
     
+    /**
+     * @param block the block to remove, if it is a crop grower
+     * @return true if the given block is a cropGrower and was removed, false
+     * otherwise
+     */
     private boolean onBreakCropGrower(Block block) {
         Location location = block.getLocation();
         CropGrower cropGrower = cropGrowers.remove(location.toVector());
         if (cropGrower == null) {
             return false;
         }
-        location.getWorld().dropItemNaturally(location.add(new Vector(0.5, 0.5, 0.5)), cropGrowerItem);
+        location.getWorld().dropItemNaturally(location.add(new Vector(0.5, 0.5, 0.5)), 
+                context.getConfig().getCropGrowerSpec().getCropGrowerItem());
         block.setType(Material.AIR);
         return true;
     }
@@ -220,7 +199,8 @@ public class PowerupManager {
         if (animalGrower == null) {
             return false;
         }
-        location.getWorld().dropItemNaturally(location.add(new Vector(0.5, 0.5, 0.5)), animalGrowerItem);
+        location.getWorld().dropItemNaturally(location.add(new Vector(0.5, 0.5, 0.5)), 
+                context.getConfig().getAnimalGrowerSpec().getAnimalGrowerItem());
         block.setType(Material.AIR);
         return true;
     }

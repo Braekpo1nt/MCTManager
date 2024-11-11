@@ -200,14 +200,14 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
         BookMeta bookMeta = builder
                 .title(Component.text("Item Values"))
                 .author(Component.text("Farm Rush"))
-                .pages(createPages())
+                .pages(createPages(config.getMaterialScores(), gameManager.matchProgressPointMultiplier()))
                 .build();
         materialBook.setItemMeta(bookMeta);
         return materialBook;
     }
     
-    private List<Component> createPages() {
-        List<TextComponent> lines = createLines();
+    public static List<Component> createPages(Map<Material, ItemSale> materialScores, double multiplier) {
+        List<TextComponent> lines = createLines(materialScores, multiplier);
         if (lines.isEmpty()) {
             return Collections.emptyList();
         }
@@ -226,15 +226,20 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
                     builder.append(Component.newline());
                 }
             }
+            if (i+10 < lines.size()) {
+                builder
+                        .append(Component.newline())
+                        .append(Component.text("..."));
+            }
             pages.add(builder.build());
         }
         
         return pages;
     }
     
-    private @NotNull List<TextComponent> createLines() {
+    public static @NotNull List<TextComponent> createLines(Map<Material, ItemSale> materialScores, double multiplier) {
         List<TextComponent> lines = new ArrayList<>();
-        List<Map.Entry<Material, ItemSale>> entryList = config.getMaterialScores().entrySet().stream().sorted((entry1, entry2) -> {
+        List<Map.Entry<Material, ItemSale>> entryList = materialScores.entrySet().stream().sorted((entry1, entry2) -> {
             int score1 = entry1.getValue().getScore();
             int score2 = entry2.getValue().getScore();
             if (score1 != score2) {
@@ -261,7 +266,7 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
             line
                     .append(itemName)
                     .append(Component.text(": "))
-                    .append(Component.text((int) (itemSale.getScore() * gameManager.matchProgressPointMultiplier()))
+                    .append(Component.text((int) (itemSale.getScore() * multiplier))
                             .color(NamedTextColor.GOLD));
             lines.add(line.build());
         }
@@ -305,8 +310,8 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
             if (animalGrowerRecipeMap != null) {
                 starterChestInventory.addItem(animalGrowerRecipeMap);
             }
-            starterChestInventory.addItem(PowerupManager.cropGrowerItem);
-            starterChestInventory.addItem(PowerupManager.animalGrowerItem);
+            starterChestInventory.addItem(config.getCropGrowerSpec().getCropGrowerItem());
+            starterChestInventory.addItem(config.getAnimalGrowerSpec().getAnimalGrowerItem());
             arena.closeBarnDoor();
         }
     }
@@ -558,6 +563,9 @@ public class FarmRushGame implements MCTGame, Configurable, Headerable, Listener
         Block block = event.getBlock();
         if (block.getLocation().equals(delivery)) {
             event.setCancelled(true);
+            return;
+        }
+        if (event.getPlayer().getGameMode().equals(GameMode.CREATIVE)) {
             return;
         }
         powerupManager.onBlockBreak(block, event);

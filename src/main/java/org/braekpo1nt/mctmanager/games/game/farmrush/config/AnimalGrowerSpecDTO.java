@@ -5,11 +5,11 @@ import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.recipes.RecipeDTO;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
-import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.PowerupManager;
 import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.PowerupType;
 import org.braekpo1nt.mctmanager.games.game.farmrush.powerups.specs.AnimalGrowerSpec;
 import org.braekpo1nt.mctmanager.io.IOUtils;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
+import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.World;
 import org.bukkit.inventory.ItemStack;
@@ -18,6 +18,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 @Data
 class AnimalGrowerSpecDTO implements Validatable {
@@ -28,6 +29,18 @@ class AnimalGrowerSpecDTO implements Validatable {
      * in the config, it will be overwritten by the internal powerup.
      */
     private RecipeDTO recipe;
+    /**
+     * The lore of the item
+     */
+    private @Nullable List<Component> lore;
+    /**
+     * the display name of the item
+     */
+    private @Nullable Component displayName;
+    /**
+     * the type of the item, must be a block
+     */
+    private @Nullable Material blockType;
     /**
      * the radius of the effect range.
      */
@@ -84,8 +97,12 @@ class AnimalGrowerSpecDTO implements Validatable {
      * @return the specified spec
      */
     public AnimalGrowerSpec toSpec(World world) {
-        ItemStack animalGrowerItem = PowerupManager.animalGrowerItem;
-        animalGrowerItem.editMeta(meta -> meta.setCustomModelData(customModelData));
+        ItemStack animalGrowerItem = new ItemStack(blockType == null ? Material.FURNACE : blockType);
+        animalGrowerItem.editMeta(meta -> {
+            meta.displayName(displayName == null ? defaultDisplayName() : displayName);
+            meta.lore(lore == null ? defaultLore() : lore);
+            meta.setCustomModelData(customModelData);
+        });
         ItemStack newRecipeMap = null;
         if (recipeImage != null && world != null) {
             try {
@@ -97,6 +114,7 @@ class AnimalGrowerSpecDTO implements Validatable {
             }
         }
         return AnimalGrowerSpec.builder()
+                .animalGrowerItem(animalGrowerItem)
                 .recipe(recipe.toRecipe(animalGrowerItem))
                 .recipeKey(recipe.getNamespacedKey())
                 .ticksPerCycle(ticksPerCycle)
@@ -111,6 +129,23 @@ class AnimalGrowerSpecDTO implements Validatable {
                 .particleCount(particleCount)
                 // Particles end
                 .build();
+    }
+    
+    /**
+     * @return the default lore if no lore is specified
+     */
+    private Component defaultDisplayName() {
+        return Component.text("Animal Grower");
+    }
+    
+    /**
+     * @return the default lore if no lore is specified
+     */
+    private List<Component> defaultLore() {
+        return List.of(
+                Component.text("Place this near animals to make"),
+                Component.text("them grow/breed faster"),
+                Component.text("(more growers = faster breeding/growing)"));
     }
     
     @Override
@@ -128,6 +163,12 @@ class AnimalGrowerSpecDTO implements Validatable {
             } catch (IOException e) {
                 validator.invalid("recipeImage could not be read as an image.");
             }
+        }
+        if (lore != null) {
+            validator.validate(!lore.contains(null), "lore can't contain null entries");
+        }
+        if (blockType != null) {
+            validator.validate(blockType.isBlock(), "blockType must be a block");
         }
         
         // Particles start

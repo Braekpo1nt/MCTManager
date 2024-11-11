@@ -20,7 +20,9 @@ import org.jetbrains.annotations.Nullable;
 @Data
 @Builder
 public class CropGrowerSpec implements PowerupSpec {
-    private final @NotNull PowerupType type = PowerupType.CROP_GROWER;
+    private final PowerupType type = PowerupType.CROP_GROWER;
+    
+    private final @NotNull ItemStack cropGrowerItem;
     private final @NotNull Recipe recipe;
     private double radius;
     private NamespacedKey recipeKey;
@@ -71,6 +73,6 @@ public class CropGrowerSpec implements PowerupSpec {
         if (itemMeta == null) {
             return false;
         }
-        return PowerupManager.cropGrowerItem.getItemMeta().equals(itemMeta);
+        return cropGrowerItem.getItemMeta().equals(itemMeta);
     }
 }
