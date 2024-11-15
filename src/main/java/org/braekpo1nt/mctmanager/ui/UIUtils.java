@@ -8,7 +8,7 @@ import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.io.IOUtils;
 import org.braekpo1nt.mctmanager.ui.maps.ImageMapRenderer;
-import org.braekpo1nt.mctmanager.ui.topbar.TopbarException;
+import org.braekpo1nt.mctmanager.ui.topbar.UIException;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -256,6 +256,6 @@ public class UIUtils {
      */
     public static void logUIError(@NotNull String reason, Object... args) {
         Main.logger().log(Level.SEVERE, "A UI error occurred. Failing gracefully.",
-                new TopbarException(String.format(reason, args)));
+                new UIException(String.format(reason, args)));
     }
 }
