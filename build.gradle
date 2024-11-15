@@ -32,6 +32,14 @@ repositories {
         name = "WorldEdit"
         url = "https://maven.enginehub.org/repo/"
     }
+    maven {
+        name = "PacketEvents1"
+        url = uri("https://repo.codemc.io/repository/maven-releases/")
+    }
+    maven {
+        name = "PacketEvents2"
+        url = uri("https://repo.codemc.io/repository/maven-snapshots/")
+    }
 }
 
 dependencies {
@@ -43,6 +51,7 @@ dependencies {
     
     compileOnly 'io.papermc.paper:paper-api:1.21.1-R0.1-SNAPSHOT'
     compileOnly 'com.github.decentsoftware-eu:decentholograms:2.8.11'
+    compileOnly 'com.github.retrooper:packetevents-spigot:2.6.0'
 
     implementation 'com.google.code.gson:gson:2.10.1'
     implementation 'com.sk89q.worldedit:worldedit-bukkit:7.3.6'

@@ -24,6 +24,7 @@ As of release `v0.3.0-alpha`, this plugin expects the following data packs in th
 ## Plugins
 Required plugins. Read this or you will get errors. 
 
+- Various UI features, including friendly glowing and hearts under name tags, depends on [PacketEvents](https://github.com/retrooper/packetevents) API. This is a hard dependency at the time of writing. Make sure the Bukkit/Spigot/Paper edition of the PacketEvents plugin is added to your server (whatever version of Minecraft you're running should have a matching version).
 - This plugin softdepends on [LuckPerms](https://www.spigotmc.org/resources/luckperms.28140/) or any permissions manager (only tested with LuckPerms)
 - If you use [Multiverse-Core v4.3.1](https://github.com/Multiverse/Multiverse-Core/releases/tag/v4.3.1) in your server, You will need to give all players the `mv.bypass.gamemode.*`, as this is the only way to avoid Multiverse-Core forcing gamemodes on your players during your games. 
   - If you don't give this permission to all participants, they will be able to respawn by disconnecting and reconnecting, and will often be in the wrong game mode when being teleported to different worlds. 
