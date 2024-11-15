@@ -16,6 +16,7 @@ import org.braekpo1nt.mctmanager.games.game.survivalgames.config.SurvivalGamesCo
 import org.braekpo1nt.mctmanager.games.game.survivalgames.states.DescriptionState;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.states.SurvivalGamesState;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
+import org.braekpo1nt.mctmanager.ui.glow.GlowManager;
 import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
@@ -68,6 +69,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
             .append(Component.text("Survival Games"))
             .color(NamedTextColor.BLUE);
     private final TimerManager timerManager;
+    private final GlowManager glowManager;
     private Sidebar sidebar;
     private Sidebar adminSidebar;
     private SurvivalGamesConfig config;
@@ -90,6 +92,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
         this.gameManager = gameManager;
         this.configController = new SurvivalGamesConfigController(plugin.getDataFolder());
         this.topbar = new ManyBattleTopbar();
+        this.glowManager = new GlowManager(plugin);
     }
     
     @Override
@@ -132,6 +135,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
         List<String> teams = gameManager.getTeamIds(newParticipants);
         setUpTopbarTeams(teams);
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
+        glowManager.start();
         gameManager.getTimerManager().register(timerManager);
         fillAllChests();
         for (Player participant : newParticipants) {
@@ -156,6 +160,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
         sidebar.addPlayer(participant);
         topbar.showPlayer(participant);
         topbar.linkToTeam(participant.getUniqueId(), teamId);
+        glowManager.addPlayer(participant);
         updateAliveCount(teamId);
         initializeKillCount(participant);
         participant.setGameMode(GameMode.ADVENTURE);
@@ -170,6 +175,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
         ParticipantInitializer.resetHealthAndHunger(participant);
         sidebar.removePlayer(participant.getUniqueId());
         topbar.hidePlayer(participant.getUniqueId());
+        glowManager.removePlayer(participant);
     }
     
     private void setUpTopbarTeams(List<String> newTeamIds) {
@@ -197,6 +203,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
             }
         }
         clearSidebar();
+        glowManager.stop();
         participants.clear();
         livingPlayers.clear();
         deadPlayers.clear();
@@ -240,6 +247,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
         admins.add(admin);
         adminSidebar.addPlayer(admin);
         topbar.showPlayer(admin);
+        glowManager.addPlayer(admin);
         admin.setGameMode(GameMode.SPECTATOR);
         admin.teleport(config.getAdminSpawn());
     }
