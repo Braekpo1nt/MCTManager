@@ -16,17 +16,14 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
 import java.util.*;
-import java.util.logging.Logger;
 
 public class GlowManager extends SimplePacketListenerAbstract {
     
-    private final Logger logger;
     private final Plugin plugin;
     
     public GlowManager(Plugin plugin) {
         super(PacketListenerPriority.NORMAL);
         this.plugin = plugin;
-        this.logger = plugin.getLogger();
     }
     
     @RequiredArgsConstructor
@@ -360,11 +357,6 @@ public class GlowManager extends SimplePacketListenerAbstract {
             EntityData baseEntityData = entityMetadata.stream().filter(entityData -> entityData.getIndex() == 0 && entityData.getType() == EntityDataTypes.BYTE).findFirst().orElse(null);
             if (baseEntityData == null) {
                 if (viewerPlayerData.requiresInitialUpdate(targetUUID)) {
-                    // The cheaper option of just modifying this packet, might cause inconsistencies (i.e. someone on fire would appear as not)
-//                    event.markForReEncode(true);
-//                    entityMetadata.add(new EntityData(0, EntityDataTypes.BYTE, (byte) 0x40));
-//                    viewerPlayerData.initialUpdate(targetUUID);
-                    
                     viewerPlayerData.initialUpdate(targetUUID);
                     PlayerData targetPlayerData = playerDatas.get(targetUUID);
                     if (targetPlayerData == null) {
@@ -385,7 +377,6 @@ public class GlowManager extends SimplePacketListenerAbstract {
             byte flags = (byte) baseEntityData.getValue();
             flags |= (byte) 0x40;
             baseEntityData.setValue(flags);
-            logger.info("glowing packet modified");
         }
     }
 }
