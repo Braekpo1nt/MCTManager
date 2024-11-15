@@ -81,6 +81,11 @@ class SurvivalGamesConfigDTO implements Validatable {
     private Scores scores;
     private Durations durations;
     private Component description;
+    /**
+     * Whether the glowing effect should be applied or not.
+     * Defaults to true.
+     */
+    private boolean shouldGlow = true;
     
     @Override
     public void validate(@NotNull Validator validator) {
@@ -187,7 +192,7 @@ class SurvivalGamesConfigDTO implements Validatable {
             }
             newPlatformSpawns.add(new Location(newWorld, spawnX, spawnY, spawnZ, spawnYaw, spawnPitch));
         }
-        Location newAdminSpawn = newPlatformBarriers.get(0).getCenter().toLocation(newWorld);
+        Location newAdminSpawn = newPlatformBarriers.getFirst().getCenter().toLocation(newWorld);
         if (this.platformCenter != null) {
             YawPitch direction = EntityUtils.getPlayerLookAtYawPitch(newAdminSpawn.toVector(), this.platformCenter);
             newAdminSpawn.setYaw(direction.yaw());
@@ -232,6 +237,7 @@ class SurvivalGamesConfigDTO implements Validatable {
                 .worldBorderDamageBuffer(this.border.damageBuffer())
                 .worldBorderWarningDistance(this.border.warningDistance())
                 .worldBorderWarningTime(this.border.warningTime())
+                .shouldGlow(this.shouldGlow)
                 .sizes(sizes)
                 .delays(delays)
                 .durations(durations)
