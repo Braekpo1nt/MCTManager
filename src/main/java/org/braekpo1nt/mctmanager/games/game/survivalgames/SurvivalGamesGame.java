@@ -261,6 +261,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
     private void resetAdmin(Player admin) {
         adminSidebar.removePlayer(admin);
         topbar.hidePlayer(admin.getUniqueId());
+        glowManager.removePlayer(admin);
     }
     
     private void stopAdmins() {
