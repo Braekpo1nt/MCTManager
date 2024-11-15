@@ -86,6 +86,7 @@ public class DescriptionState implements SurvivalGamesState {
         ParticipantInitializer.clearInventory(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
         ParticipantInitializer.clearStatusEffects(participant);
+        context.getGlowManager().addPlayer(participant);
     }
     
     @Override
@@ -95,6 +96,7 @@ public class DescriptionState implements SurvivalGamesState {
         ParticipantInitializer.resetHealthAndHunger(participant);
         context.getSidebar().removePlayer(participant.getUniqueId());
         context.getTopbar().hidePlayer(participant.getUniqueId());
+        context.getGlowManager().removePlayer(participant);
     }
     
     @Override

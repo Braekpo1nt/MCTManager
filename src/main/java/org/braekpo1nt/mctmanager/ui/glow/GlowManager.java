@@ -221,6 +221,17 @@ public class GlowManager extends SimplePacketListenerAbstract {
     
     /**
      * Show the viewer the target's glowing effect
+     * @param viewer the viewer (the player who should see the target glowing)
+     *               Must be a player contained in this manager
+     * @param target the target (the player who should glow). 
+     *               Must be a player contained in this manager.
+     */
+    public void showGlowing(Player viewer, Player target) {
+        showGlowing(viewer.getUniqueId(), target.getUniqueId());
+    }
+    
+    /**
+     * Show the viewer the target's glowing effect
      * @param viewerUUID the UUID of the viewer. 
      *               Must be a player contained in this manager
      * @param targetUUID the UUID of the target (the player who should glow). 

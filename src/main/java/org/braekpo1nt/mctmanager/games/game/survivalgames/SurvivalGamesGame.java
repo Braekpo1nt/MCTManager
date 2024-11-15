@@ -156,7 +156,18 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
      */
     private void initializeGlowManager() {
         for (Player participant : participants) {
-            initializeGlowing(participant);
+            for (Player target : participants) {
+                if (!participant.equals(target)) {
+                    String teamId = gameManager.getTeamId(participant.getUniqueId());
+                    String targetTeamId = gameManager.getTeamId(target.getUniqueId());
+                    if (teamId.equals(targetTeamId)) {
+                        glowManager.showGlowing(participant, target);
+                    }
+                }
+            }
+            for (Player admin : admins) {
+                glowManager.showGlowing(admin, participant);
+            }
         }
     }
     
@@ -167,17 +178,17 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
      */
     public void initializeGlowing(Player participant) {
         String teamId = gameManager.getTeamId(participant.getUniqueId());
-        for (Player teammate : participants) {
-            if (!participant.equals(teammate)) {
-                String teammateTeamId = gameManager.getTeamId(teammate.getUniqueId());
-                if (teamId.equals(teammateTeamId)) {
-                    glowManager.showGlowing(participant.getUniqueId(), teammate.getUniqueId());
-                    glowManager.showGlowing(teammate.getUniqueId(), participant.getUniqueId());
+        for (Player other : participants) {
+            if (!other.equals(participant)) {
+                String otherTeamId = gameManager.getTeamId(other.getUniqueId());
+                if (teamId.equals(otherTeamId)) {
+                    glowManager.showGlowing(participant, other);
+                    glowManager.showGlowing(other, participant);
                 }
             }
         }
         for (Player admin : admins) {
-            glowManager.showGlowing(admin.getUniqueId(), participant.getUniqueId());
+            glowManager.showGlowing(admin, participant);
         }
     }
     

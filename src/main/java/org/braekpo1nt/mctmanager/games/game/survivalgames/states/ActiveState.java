@@ -261,6 +261,7 @@ public class ActiveState implements SurvivalGamesState {
         ParticipantInitializer.resetHealthAndHunger(participant);
         context.getSidebar().removePlayer(participant.getUniqueId());
         context.getTopbar().hidePlayer(participant.getUniqueId());
+        context.getGlowManager().removePlayer(participant);
     }
     
     @Override
