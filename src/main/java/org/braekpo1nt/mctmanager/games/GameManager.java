@@ -1135,9 +1135,9 @@ public class GameManager implements Listener {
             }
             leavePlayer(sender, participant, participant.getName());
         }
+        tabList.joinParticipant(participant.getUniqueId(), participant.getName(), teamId, false);
         addNewPlayer(sender, playerUniqueId, teamId);
         hubManager.updateLeaderboards();
-        tabList.joinParticipant(participant.getUniqueId(), participant.getName(), teamId, false);
         NamedTextColor teamIddTextColor = getTeamColor(teamId);
         Component displayName = Component.text(participant.getName(), teamIddTextColor);
         participant.displayName(displayName);
@@ -1506,10 +1506,6 @@ public class GameManager implements Listener {
         String teamId = getTeamId(participantUUID);
         NamedTextColor teamNamedTextColor = getTeamColor(teamId);
         return Component.text(name, teamNamedTextColor);
-    }
-    
-    public String getTeamDisplayName(String teamId) {
-        return gameStateStorageUtil.getTeamDisplayName(teamId);
     }
     
     /**
