@@ -197,6 +197,7 @@ public class ActiveState implements SurvivalGamesState {
             participant.setRespawnLocation(config.getPlatformSpawns().getFirst(), true);
         }
         sidebar.updateLine(participant.getUniqueId(), "title", context.getTitle());
+        context.initializeGlowing(participant);
     }
     
     private boolean participantShouldRejoin(Player participant) {
@@ -213,6 +214,7 @@ public class ActiveState implements SurvivalGamesState {
         context.initializeKillCount(participant);
         String teamId = gameManager.getTeamId(participant.getUniqueId());
         topbar.linkToTeam(participant.getUniqueId(), teamId);
+        context.getGlowManager().addPlayer(participant);
     }
     
     @Override

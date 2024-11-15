@@ -163,12 +163,15 @@ public class GlowManager extends SimplePacketListenerAbstract {
     private final Map<Integer, UUID> mapper = new HashMap<>();
     private final Map<UUID, PlayerData> playerDatas = new HashMap<>();
     
-    public void start() {
+    public void registerListeners() {
         PacketEvents.getAPI().getEventManager().registerListener(this);
     }
     
-    public void stop() {
+    public void unregisterListeners() {
         PacketEvents.getAPI().getEventManager().unregisterListener(this);
+    }
+    
+    public void clear() {
         for (PlayerData playerData : playerDatas.values()) {
             Player target = playerData.getPlayer();
             List<EntityData> entityMetadata = getEntityMetadata(target, false);

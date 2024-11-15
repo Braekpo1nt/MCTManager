@@ -36,7 +36,7 @@ public class GameOverState implements SurvivalGamesState {
     
     @Override
     public void onParticipantJoin(Player participant) {
-        // do nothing
+        context.initializeGlowing(participant);
     }
     
     @Override

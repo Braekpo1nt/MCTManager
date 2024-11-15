@@ -49,6 +49,7 @@ public class DescriptionState implements SurvivalGamesState {
         initializeParticipant(participant);
         context.createPlatformsAndTeleportTeams();
         context.getSidebar().updateLine(participant.getUniqueId(), "title", context.getTitle());
+        context.initializeGlowing(participant);
     }
     
     @Override
