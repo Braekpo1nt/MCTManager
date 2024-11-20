@@ -81,11 +81,6 @@ class SurvivalGamesConfigDTO implements Validatable {
     private Scores scores;
     private Durations durations;
     private Component description;
-    /**
-     * Whether the glowing effect should be applied or not.
-     * Defaults to true.
-     */
-    private boolean shouldGlow = true;
     
     @Override
     public void validate(@NotNull Validator validator) {
@@ -237,7 +232,6 @@ class SurvivalGamesConfigDTO implements Validatable {
                 .worldBorderDamageBuffer(this.border.damageBuffer())
                 .worldBorderWarningDistance(this.border.warningDistance())
                 .worldBorderWarningTime(this.border.warningTime())
-                .shouldGlow(this.shouldGlow)
                 .sizes(sizes)
                 .delays(delays)
                 .durations(durations)

@@ -51,14 +51,6 @@ public class SurvivalGamesConfig {
     private List<Material> preventInteractions;
     private int descriptionDuration;
     private Component description;
-    private boolean shouldGlow;
-    
-    /**
-     * @return true if the glowing effect should be applied
-     */
-    public boolean shouldGlow() {
-        return shouldGlow;
-    }
     
     /**
      * @return true if the other inventories should be locked, false otherwise

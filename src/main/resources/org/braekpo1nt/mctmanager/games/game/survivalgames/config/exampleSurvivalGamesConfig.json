@@ -35,7 +35,6 @@
       }
     ]
   },
-  "shouldGlow": true,
   "spawnLootTable": {
     "namespace": "mctdatapack",
     "key": "survivalgames/spawn-chest"
