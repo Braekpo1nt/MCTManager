@@ -7,7 +7,7 @@ import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.ui.topbar.TopbarException;
+import org.braekpo1nt.mctmanager.ui.UIException;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -401,7 +401,7 @@ public class TabList {
     private void logUIError(@NotNull String reason, Object... args) {
         Main.logger().log(Level.SEVERE,
                 "An error occurred in the ManyBattleTopbar. Failing gracefully.",
-                new TopbarException(String.format(reason, args)));
+                new UIException(String.format(reason, args)));
     }
     
 }

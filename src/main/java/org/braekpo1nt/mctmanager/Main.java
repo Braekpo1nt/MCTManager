@@ -1,7 +1,9 @@
 package org.braekpo1nt.mctmanager;
 
+import com.github.retrooper.packetevents.PacketEvents;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
 import lombok.extern.java.Log;
 import org.braekpo1nt.mctmanager.commands.dynamic.top.TopCommand;
 import org.braekpo1nt.mctmanager.commands.mct.MCTCommand;
@@ -97,10 +99,18 @@ public class Main extends JavaPlugin {
     }
     
     @Override
+    public void onLoad() {
+        PacketEvents.setAPI(SpigotPacketEventsBuilder.build(this));
+        PacketEvents.getAPI().load();
+    }
+    
+    @Override
     public void onEnable() {
         Main.logger = this.getLogger();
         Scoreboard mctScoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
         ParticipantInitializer.setPlugin(this); //TODO: remove this in favor of death and respawn combination 
+        
+        PacketEvents.getAPI().init();
         
         gameManager = initialGameManager(mctScoreboard);
         try {
@@ -153,6 +163,7 @@ public class Main extends JavaPlugin {
     @Override
     public void onDisable() {
         ParticipantInitializer.setPlugin(null); //TODO: remove this in favor of death and respawn combination 
+        PacketEvents.getAPI().terminate();
         if (saveGameStateOnDisable && gameManager != null) {
             gameManager.cancelVote();
             gameManager.tearDown();

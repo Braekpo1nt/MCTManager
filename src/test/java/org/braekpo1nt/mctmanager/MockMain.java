@@ -1,12 +1,20 @@
 package org.braekpo1nt.mctmanager;
 
+import com.github.retrooper.packetevents.PacketEvents;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.MockGameManager;
 import org.braekpo1nt.mctmanager.games.gamestate.MockGameStateStorageUtil;
+import org.braekpo1nt.mctmanager.packetevents.PacketEventsAPIMock;
 import org.braekpo1nt.mctmanager.ui.sidebar.MockSidebarFactory;
 import org.bukkit.scoreboard.Scoreboard;
 
 public class MockMain extends Main {
+    
+    @Override
+    public void onLoad() {
+        PacketEvents.setAPI(new PacketEventsAPIMock(this));
+        PacketEvents.getAPI().load();
+    }
     
     @Override
     protected GameManager initialGameManager(Scoreboard mctScoreboard) {
@@ -17,4 +25,5 @@ public class MockMain extends Main {
         gameManager.setSidebarFactory(mockSidebarFactory);
         return gameManager;
     }
+    
 }

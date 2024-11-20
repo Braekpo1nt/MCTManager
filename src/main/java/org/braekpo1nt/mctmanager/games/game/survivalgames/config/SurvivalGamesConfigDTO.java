@@ -187,7 +187,7 @@ class SurvivalGamesConfigDTO implements Validatable {
             }
             newPlatformSpawns.add(new Location(newWorld, spawnX, spawnY, spawnZ, spawnYaw, spawnPitch));
         }
-        Location newAdminSpawn = newPlatformBarriers.get(0).getCenter().toLocation(newWorld);
+        Location newAdminSpawn = newPlatformBarriers.getFirst().getCenter().toLocation(newWorld);
         if (this.platformCenter != null) {
             YawPitch direction = EntityUtils.getPlayerLookAtYawPitch(newAdminSpawn.toVector(), this.platformCenter);
             newAdminSpawn.setYaw(direction.yaw());

@@ -5,6 +5,7 @@ description: The plugin that manages MCT
 author: Braekpo1nt
 api-version: 1.19
 
+depend: [packetevents]
 softdepend: [LuckPerms, DecentHolograms, Multiverse-Core]
 
 commands:

@@ -16,6 +16,7 @@ import org.braekpo1nt.mctmanager.games.game.survivalgames.config.SurvivalGamesCo
 import org.braekpo1nt.mctmanager.games.game.survivalgames.states.DescriptionState;
 import org.braekpo1nt.mctmanager.games.game.survivalgames.states.SurvivalGamesState;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
+import org.braekpo1nt.mctmanager.ui.glow.GlowManager;
 import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
@@ -68,6 +69,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
             .append(Component.text("Survival Games"))
             .color(NamedTextColor.BLUE);
     private final TimerManager timerManager;
+    private final GlowManager glowManager;
     private Sidebar sidebar;
     private Sidebar adminSidebar;
     private SurvivalGamesConfig config;
@@ -90,6 +92,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
         this.gameManager = gameManager;
         this.configController = new SurvivalGamesConfigController(plugin.getDataFolder());
         this.topbar = new ManyBattleTopbar();
+        this.glowManager = new GlowManager(plugin);
     }
     
     @Override
@@ -132,6 +135,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
         List<String> teams = gameManager.getTeamIds(newParticipants);
         setUpTopbarTeams(teams);
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
+        glowManager.registerListeners();
         gameManager.getTimerManager().register(timerManager);
         fillAllChests();
         for (Player participant : newParticipants) {
@@ -140,10 +144,52 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
         createPlatformsAndTeleportTeams();
         initializeSidebar();
         setUpTeamOptions();
-        initializeWorldBorder();
         startAdmins(newAdmins);
+        initializeGlowManager();
+        initializeWorldBorder();
         state = new DescriptionState(this);
         Main.logger().info("Started Survival Games");
+    }
+    
+    /**
+     * Set up all the appropriate glowing effects for the start of the game
+     */
+    private void initializeGlowManager() {
+        for (Player participant : participants) {
+            for (Player target : participants) {
+                if (!participant.equals(target)) {
+                    String teamId = gameManager.getTeamId(participant.getUniqueId());
+                    String targetTeamId = gameManager.getTeamId(target.getUniqueId());
+                    if (teamId.equals(targetTeamId)) {
+                        glowManager.showGlowing(participant, target);
+                    }
+                }
+            }
+            for (Player admin : admins) {
+                glowManager.showGlowing(admin, participant);
+            }
+        }
+    }
+    
+    /**
+     * Make the participant glow to their teammates, and their teammates glow to them
+     * (but don't glow to themselves). Also makes the participant glow to the admins.
+     * @param participant the participant to show their teammates to
+     */
+    public void initializeGlowing(Player participant) {
+        String teamId = gameManager.getTeamId(participant.getUniqueId());
+        for (Player other : participants) {
+            if (!other.equals(participant)) {
+                String otherTeamId = gameManager.getTeamId(other.getUniqueId());
+                if (teamId.equals(otherTeamId)) {
+                    glowManager.showGlowing(participant, other);
+                    glowManager.showGlowing(other, participant);
+                }
+            }
+        }
+        for (Player admin : admins) {
+            glowManager.showGlowing(admin, participant);
+        }
     }
     
     public void initializeParticipant(Player participant) {
@@ -156,6 +202,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
         sidebar.addPlayer(participant);
         topbar.showPlayer(participant);
         topbar.linkToTeam(participant.getUniqueId(), teamId);
+        glowManager.addPlayer(participant);
         updateAliveCount(teamId);
         initializeKillCount(participant);
         participant.setGameMode(GameMode.ADVENTURE);
@@ -170,6 +217,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
         ParticipantInitializer.resetHealthAndHunger(participant);
         sidebar.removePlayer(participant.getUniqueId());
         topbar.hidePlayer(participant.getUniqueId());
+        glowManager.removePlayer(participant);
     }
     
     private void setUpTopbarTeams(List<String> newTeamIds) {
@@ -182,6 +230,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
     @Override
     public void stop() {
         HandlerList.unregisterAll(this);
+        glowManager.unregisterListeners();
         cancelAllTasks();
         clearFloorItems();
         clearAllChests();
@@ -197,6 +246,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
             }
         }
         clearSidebar();
+        glowManager.clear();
         participants.clear();
         livingPlayers.clear();
         deadPlayers.clear();
@@ -234,12 +284,16 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
     public void onAdminJoin(Player admin) {
         initializeAdmin(admin);
         adminSidebar.updateLine(admin.getUniqueId(), "title", title);
+        for (Player participant : participants) {
+            glowManager.showGlowing(admin.getUniqueId(), participant.getUniqueId());
+        }
     }
     
     private void initializeAdmin(Player admin) {
         admins.add(admin);
         adminSidebar.addPlayer(admin);
         topbar.showPlayer(admin);
+        glowManager.addPlayer(admin);
         admin.setGameMode(GameMode.SPECTATOR);
         admin.teleport(config.getAdminSpawn());
     }
@@ -253,6 +307,7 @@ public class SurvivalGamesGame implements MCTGame, Configurable, Listener, Heade
     private void resetAdmin(Player admin) {
         adminSidebar.removePlayer(admin);
         topbar.hidePlayer(admin.getUniqueId());
+        glowManager.removePlayer(admin);
     }
     
     private void stopAdmins() {
