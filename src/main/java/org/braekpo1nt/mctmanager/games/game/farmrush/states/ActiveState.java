@@ -55,15 +55,19 @@ public class ActiveState extends GameplayState {
     
     @Override
     public void onCloseInventory(InventoryCloseEvent event, FarmRushGame.Participant participant) {
-        sellItemsOnCloseInventory(event, participant);
         FarmRushGame.Team team = context.getTeams().get(participant.getTeamId());
+        int oldScore = team.getTotalScore();
+        sellItemsOnCloseInventory(event, participant);
         if (context.getConfig().shouldEnforceMaxScore() && teamReachedMaxScore(team)) {
             onTeamReachMaxScore(team);
             return;
         }
+        int warningThreshold = calculateWarningThreshold();
+        boolean teamWasNotAboveThreshold = oldScore < warningThreshold;
+        boolean teamIsNowAboveThreshold = team.getTotalScore() >= warningThreshold;
         if (context.getConfig().shouldEnforceMaxScore() && 
                 context.getConfig().shouldWarnAtThreshold() && 
-                teamReachedWarningThreshold(team)) {
+                teamWasNotAboveThreshold && teamIsNowAboveThreshold) {
             onTeamReachWarningThreshold(team);
         }
     }
@@ -103,11 +107,13 @@ public class ActiveState extends GameplayState {
         return (int) (context.getConfig().getMaxScore() * gameManager.matchProgressPointMultiplier());
     }
     
-    private boolean teamReachedWarningThreshold(FarmRushGame.Team team) {
-        return team.getTotalScore() >=
-                (int) (context.getConfig().getWarningThreshold() *
-                        context.getConfig().getMaxScore() *
-                        gameManager.matchProgressPointMultiplier());
+    /**
+     * @return the score that players should be warned about when a team passes, accounting for matchProgressMultiplier
+     */
+    private int calculateWarningThreshold() {
+        return (int) (context.getConfig().getWarningThreshold() *
+                context.getConfig().getMaxScore() *
+                gameManager.matchProgressPointMultiplier());
     }
     
     private void onTeamReachWarningThreshold(FarmRushGame.Team team) {
