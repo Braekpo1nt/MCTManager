@@ -1919,7 +1919,7 @@ public class GameManager implements Listener {
      * @return the event manager's point multiplier, if there is a match going on. 1.0 otherwise.
      */
     public double matchProgressPointMultiplier() {
-        if (eventManager.eventIsActive()) {
+        if (!eventManager.eventIsActive()) {
             return 1.0;
         }
         return eventManager.matchProgressPointMultiplier();
