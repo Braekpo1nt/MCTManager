@@ -1,6 +1,7 @@
 {
   "version": "0.1.2",
   "world": "TestWorld",
+  "laps": 3,
   "startingLocation": {
     "x": 2400,
     "y": 76,

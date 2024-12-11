@@ -57,7 +57,6 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
     
     private @Nullable FootRaceState state;
     
-    public static final int MAX_LAPS = 3;
     public static final long COOL_DOWN_TIME = 3000L;
     private final FootRaceConfigController configController;
     private final Main plugin;
@@ -443,7 +442,7 @@ public class FootRaceGame implements Listener, MCTGame, Configurable, Headerable
                 new KeyLine("personalScore", ""),
                 new KeyLine("title", title),
                 new KeyLine("elapsedTime", "00:00:000"),
-                new KeyLine("lap", String.format("Lap: %d/%d", 1, MAX_LAPS)),
+                new KeyLine("lap", String.format("Lap: %d/%d", 1, config.getLaps())),
                 new KeyLine("timer", Component.empty()),
                 new KeyLine("standing1", Component.empty()),
                 new KeyLine("standing2", Component.empty()),
