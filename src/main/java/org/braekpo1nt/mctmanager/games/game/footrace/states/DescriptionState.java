@@ -33,7 +33,11 @@ public class DescriptionState implements FootRaceState {
         initializeParticipant(participant);
         context.getSidebar().updateLine(participant.getUniqueId(), "title", context.getTitle());
         Integer currentLap = context.getLaps().get(participant.getUniqueId());
-        context.getSidebar().updateLine(participant.getUniqueId(), "lap", String.format("Lap: %d/%d", currentLap, context.getConfig().getLaps()));
+        context.getSidebar().updateLine(participant.getUniqueId(), "lap", Component.empty()
+                .append(Component.text("Lap: "))
+                .append(Component.text(currentLap))
+                .append(Component.text("/"))
+                .append(Component.text(context.getConfig().getLaps())));
         context.updateStandings();
         context.displayStandings();
         participant.sendMessage(context.getConfig().getDescription());
