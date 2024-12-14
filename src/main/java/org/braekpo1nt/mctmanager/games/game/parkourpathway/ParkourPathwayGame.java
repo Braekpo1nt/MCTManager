@@ -35,6 +35,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -658,18 +659,35 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         if (!gameActive) {
             return;
         }
-        Block clickedBlock = event.getClickedBlock();
-        if (clickedBlock == null) {
+        Player participant = event.getPlayer();
+        if (!participants.contains(participant)) {
             return;
         }
-        if (!participants.contains(event.getPlayer())) {
-            return;
+        Action action = event.getAction();
+        if (action.equals(Action.RIGHT_CLICK_BLOCK)) {
+            Block clickedBlock = event.getClickedBlock();
+            if (clickedBlock == null) {
+                return;
+            }
+            Material blockType = clickedBlock.getType();
+            if (!config.getPreventInteractions().contains(blockType)) {
+                return;
+            }
+            event.setCancelled(true);
+        } else if (action.equals(Action.RIGHT_CLICK_AIR)) {
+            ItemStack item = event.getItem();
+            if (item == null) {
+                return;
+            }
+            if (item.getItemMeta().equals(config.getSkipItem().getItemMeta())) {
+                performCheckpointSkip(participant);
+                return;
+            }
         }
-        Material blockType = clickedBlock.getType();
-        if (!config.getPreventInteractions().contains(blockType)) {
-            return;
-        }
-        event.setCancelled(true);
+    }
+    
+    private void performCheckpointSkip(Player participant) {
+        // TODO: implement this
     }
     
     @EventHandler
