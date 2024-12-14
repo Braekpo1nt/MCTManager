@@ -177,7 +177,7 @@ class ParkourPathwayConfigDTO implements Validatable {
                 .description(this.description);
         
         if (this.skips != null && this.skips.getNumOfSkips() > 0) {
-            ItemStack skipItem = new ItemStack(this.skips.getItem(), this.skips.getNumOfSkips());
+            ItemStack skipItem = new ItemStack(this.skips.getItem());
             skipItem.editMeta(meta -> {
                 meta.displayName(this.skips.getItemName());
                 meta.lore(this.skips.getItemLore());

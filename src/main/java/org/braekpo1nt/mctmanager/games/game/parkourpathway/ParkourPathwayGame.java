@@ -427,6 +427,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
      * The countdown which takes place while the participants are waiting for the big glass barrier to drop
      */
     private void startStartGameCountDown() {
+        giveSkipItem();
         timerManager.start(Timer.builder()
                 .duration(config.getStartingDuration())
                 .withSidebar(sidebar, "timer")
@@ -442,6 +443,18 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
                     restartMercyRuleCountdown();
                 })
                 .build());
+    }
+    
+    /**
+     * gives all players the appropriate number of skip items
+     */
+    private void giveSkipItem() {
+        if (config.getNumOfSkips() <= 0) {
+            return;
+        }
+        for (Player participant : participants) {
+            participant.getInventory().setItem(8, config.getSkipItem().asQuantity(config.getNumOfSkips()));
+        }
     }
     
     private void closeGlassBarrier() {
