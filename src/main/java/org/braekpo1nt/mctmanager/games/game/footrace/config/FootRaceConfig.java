@@ -16,6 +16,10 @@ import java.util.List;
 public class FootRaceConfig {
     private World world;
     private Location startingLocation;
+    /**
+     * the number of laps in the race
+     */
+    private int laps;
     private @Nullable BoundingBox finishLine;
     private BoundingBox glassBarrier;
     private int completeLapScore;

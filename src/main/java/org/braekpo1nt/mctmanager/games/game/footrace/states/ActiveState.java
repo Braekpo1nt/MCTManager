@@ -85,10 +85,10 @@ public class ActiveState implements FootRaceState {
         sidebar.updateLine(participant.getUniqueId(), "title", context.getTitle());
         
         Integer currentLap = context.getLaps().get(participant.getUniqueId());
-        if (currentLap > FootRaceGame.MAX_LAPS) {
+        if (currentLap > context.getConfig().getLaps()) {
             showRaceCompleteFastBoard(participant.getUniqueId());
         } else {
-            sidebar.updateLine(participant.getUniqueId(), "lap", String.format("Lap: %d/%d", currentLap, FootRaceGame.MAX_LAPS));
+            sidebar.updateLine(participant.getUniqueId(), "lap", String.format("Lap: %d/%d", currentLap, context.getConfig().getLaps()));
         }
         context.updateStandings();
         context.displayStandings();
@@ -193,11 +193,11 @@ public class ActiveState implements FootRaceState {
         int currentLap = context.getLaps().get(uuid);
         int newLap = currentLap + 1;
         context.getLaps().put(uuid, newLap);
-        if (currentLap < FootRaceGame.MAX_LAPS) {
+        if (currentLap < context.getConfig().getLaps()) {
             sidebar.updateLine(
                     uuid,
                     "lap",
-                    String.format("Lap: %d/%d", context.getLaps().get(uuid), FootRaceGame.MAX_LAPS)
+                    String.format("Lap: %d/%d", context.getLaps().get(uuid), context.getConfig().getLaps())
             );
             participant.showTitle(UIUtils.defaultTitle(
                     Component.empty(),
@@ -217,7 +217,7 @@ public class ActiveState implements FootRaceState {
             gameManager.awardPointsToParticipant(participant, config.getCompleteLapScore());
             return;
         }
-        if (currentLap == FootRaceGame.MAX_LAPS) {
+        if (currentLap == context.getConfig().getLaps()) {
             onPlayerFinishedRace(participant);
         }
     }

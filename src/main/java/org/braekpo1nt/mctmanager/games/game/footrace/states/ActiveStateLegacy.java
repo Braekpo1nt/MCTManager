@@ -85,10 +85,10 @@ public class ActiveStateLegacy implements FootRaceState {
         sidebar.updateLine(participant.getUniqueId(), "title", context.getTitle());
         
         Integer currentLap = context.getLaps().get(participant.getUniqueId());
-        if (currentLap > FootRaceGame.MAX_LAPS) {
+        if (currentLap > context.getConfig().getLaps()) {
             showRaceCompleteFastBoard(participant.getUniqueId());
         } else {
-            sidebar.updateLine(participant.getUniqueId(), "lap", String.format("Lap: %d/%d", currentLap, FootRaceGame.MAX_LAPS));
+            sidebar.updateLine(participant.getUniqueId(), "lap", String.format("Lap: %d/%d", currentLap, context.getConfig().getLaps()));
         }
     }
     
@@ -164,14 +164,14 @@ public class ActiveStateLegacy implements FootRaceState {
             context.getLapCooldowns().put(uuid, currentTime);
             
             int currentLap = context.getLaps().get(uuid);
-            if (currentLap < FootRaceGame.MAX_LAPS) {
+            if (currentLap < context.getConfig().getLaps()) {
                 long elapsedTime = currentTime - context.getRaceStartTime();
                 int newLap = currentLap + 1;
                 context.getLaps().put(uuid, newLap);
                 sidebar.updateLine(
                         uuid,
                         "lap",
-                        String.format("Lap: %d/%d", context.getLaps().get(uuid), FootRaceGame.MAX_LAPS)
+                        String.format("Lap: %d/%d", context.getLaps().get(uuid), context.getConfig().getLaps())
                 );
                 participant.showTitle(UIUtils.defaultTitle(
                         Component.empty(),
@@ -189,7 +189,7 @@ public class ActiveStateLegacy implements FootRaceState {
                 gameManager.awardPointsToParticipant(participant, config.getCompleteLapScore());
                 return;
             }
-            if (currentLap == FootRaceGame.MAX_LAPS) {
+            if (currentLap == context.getConfig().getLaps()) {
                 context.getLaps().put(uuid, currentLap + 1);
                 onPlayerFinishedRace(participant);
             }

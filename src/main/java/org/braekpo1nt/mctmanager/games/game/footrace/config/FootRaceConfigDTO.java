@@ -22,6 +22,7 @@ import java.util.List;
 record FootRaceConfigDTO(
         String version, 
         String world, 
+        int laps, // must be at least 1 lap. for backwards compatibility, excluding this or putting a number less than 1 results in 1 lap in-game, rather than a validation error
         LocationDTO startingLocation, 
         @Nullable BoundingBox finishLine,
         @Nullable List<BoundingBox> checkpoints,
@@ -97,6 +98,7 @@ record FootRaceConfigDTO(
         FootRaceConfig.FootRaceConfigBuilder builder = FootRaceConfig.builder()
                 .world(newWorld)
                 .startingLocation(this.startingLocation.toLocation(newWorld))
+                .laps(Math.max(this.laps, 1))
                 .glassBarrier(this.glassBarrier)
                 .completeLapScore(this.scores.completeLap)
                 .placementPoints(this.scores.placementPoints)
@@ -125,6 +127,7 @@ record FootRaceConfigDTO(
         return new FootRaceConfigDTO(
                 Main.VALID_CONFIG_VERSIONS.getLast(),
                 config.getWorld().getName(),
+                config.getLaps(),
                 LocationDTO.from(config.getStartingLocation()),
                 config.getFinishLine(),
                 config.getCheckpoints(),
