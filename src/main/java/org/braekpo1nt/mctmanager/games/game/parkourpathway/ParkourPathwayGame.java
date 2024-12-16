@@ -32,6 +32,7 @@ import org.braekpo1nt.mctmanager.utils.MathUtils;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
@@ -428,7 +429,6 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
      * The countdown which takes place while the participants are waiting for the big glass barrier to drop
      */
     private void startStartGameCountDown() {
-        giveSkipItem();
         timerManager.start(Timer.builder()
                 .duration(config.getStartingDuration())
                 .withSidebar(sidebar, "timer")
@@ -665,29 +665,32 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         }
         Action action = event.getAction();
         if (action.equals(Action.RIGHT_CLICK_BLOCK)) {
-            Block clickedBlock = event.getClickedBlock();
-            if (clickedBlock == null) {
-                return;
-            }
-            Material blockType = clickedBlock.getType();
-            if (!config.getPreventInteractions().contains(blockType)) {
-                return;
-            }
-            event.setCancelled(true);
-        } else if (action.equals(Action.RIGHT_CLICK_AIR)) {
-            ItemStack item = event.getItem();
-            if (item == null) {
-                return;
-            }
-            if (item.getItemMeta().equals(config.getSkipItem().getItemMeta())) {
-                performCheckpointSkip(participant);
-                return;
-            }
+            preventBlockInteractions(event);
         }
+        ItemStack item = event.getItem();
+        if (item == null) {
+            return;
+        }
+        if (item.getItemMeta().equals(config.getSkipItem().getItemMeta())) {
+            performCheckpointSkip(participant);
+        }
+    }
+    
+    private void preventBlockInteractions(PlayerInteractEvent event) {
+        Block clickedBlock = event.getClickedBlock();
+        if (clickedBlock == null) {
+            return;
+        }
+        Material blockType = clickedBlock.getType();
+        if (!config.getPreventInteractions().contains(blockType)) {
+            return;
+        }
+        event.setUseInteractedBlock(Event.Result.DENY);
     }
     
     private void performCheckpointSkip(Player participant) {
         // TODO: implement this
+        Main.logger().info("use checkpoint skip");
     }
     
     @EventHandler
@@ -913,6 +916,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
      */
     private void startParkourPathwayTimer() {
         parkourHasStarted = true;
+        giveSkipItem();
         timerManager.start(Timer.builder()
                 .duration(config.getTimeLimitDuration())
                 .completionSeconds(config.getMercyRuleAlertDuration())
