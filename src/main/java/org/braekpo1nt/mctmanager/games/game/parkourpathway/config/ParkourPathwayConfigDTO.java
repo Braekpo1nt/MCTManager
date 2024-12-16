@@ -65,6 +65,8 @@ class ParkourPathwayConfigDTO implements Validatable {
         private @Nullable Component itemName;
         /** the lore of the skip item. Defaults to "Right click to skip the current puzzle" */
         private @Nullable List<Component> itemLore;
+        /** the number of points to award for unused skips */
+        private int unusedSkipScore;
         
         public @NotNull Material getItem() {
             return (item != null) ? item : Material.LAPIS_LAZULI;
@@ -184,10 +186,12 @@ class ParkourPathwayConfigDTO implements Validatable {
             });
             builder
                     .numOfSkips(this.skips.getNumOfSkips())
+                    .unusedSkipScore(this.skips.getUnusedSkipScore())
                     .skipItem(skipItem);
         } else {
             builder
                     .numOfSkips(0)
+                    .unusedSkipScore(0)
                     .skipItem(new ItemStack(Material.LAPIS_LAZULI));
         }
         

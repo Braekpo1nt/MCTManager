@@ -36,6 +36,8 @@ public class ParkourPathwayConfig {
     private int numOfSkips;
     /** the item that players interact with to use their skips */
     private ItemStack skipItem;
+    /** the number of points to award for unused skips */
+    private int unusedSkipScore;
     private List<Material> preventInteractions;
     private int descriptionDuration;
     private Component description;

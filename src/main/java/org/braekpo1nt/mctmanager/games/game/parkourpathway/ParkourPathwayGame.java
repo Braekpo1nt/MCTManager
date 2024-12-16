@@ -619,6 +619,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         Puzzle currentPuzzle = config.getPuzzle(currentPuzzleIndex);
         if (!currentPuzzle.isInBounds(participant.getLocation().toVector())) {
             onParticipantOutOfBounds(participant, currentPuzzle);
+            return;
         }
         Puzzle nextPuzzle = config.getPuzzle(nextPuzzleIndex);
         int nextPuzzleCheckPointIndex = participantReachedCheckPoint(participant.getLocation().toVector(), nextPuzzle);
@@ -689,8 +690,55 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
     }
     
     private void performCheckpointSkip(Player participant) {
-        // TODO: implement this
-        Main.logger().info("use checkpoint skip");
+        UUID uuid = participant.getUniqueId();
+        if (finishedParticipants.contains(uuid)) {
+            return;
+        }
+        int currentPuzzleIndex = currentPuzzles.get(uuid);
+        int nextPuzzleIndex = currentPuzzleIndex + 1;
+        if (nextPuzzleIndex >= config.getPuzzlesSize()) {
+            // should not occur because of above check
+            return;
+        }
+        participant.getInventory().removeItemAnySlot(config.getSkipItem());
+        onParticipantSkippedToCheckpoint(participant, nextPuzzleIndex);
+    }
+    
+    private void onParticipantSkippedToCheckpoint(Player participant, int puzzleIndex) {
+        UUID uuid = participant.getUniqueId();
+        currentPuzzles.put(uuid, puzzleIndex);
+        currentPuzzleCheckpoints.put(uuid, 0);
+        updateCheckpointSidebar(participant);
+        Puzzle newPuzzle = config.getPuzzle(puzzleIndex);
+        participant.teleport(newPuzzle.checkPoints().getFirst().respawn());
+        if (puzzleIndex >= config.getPuzzlesSize()-1) {
+            onParticipantFinish(participant, false);
+        } else {
+            Component checkpointNum = Component.empty()
+                    .append(Component.text(puzzleIndex))
+                    .append(Component.text("/"))
+                    .append(Component.text(config.getPuzzlesSize()-1));
+            messageAllParticipants(Component.empty()
+                    .append(participant.displayName())
+                    .append(Component.text(" skipped to checkpoint "))
+                    .append(checkpointNum));
+            participant.showTitle(UIUtils.defaultTitle(
+                    Component.empty(),
+                    Component.empty()
+                            .append(Component.text("Checkpoint "))
+                            .append(checkpointNum)
+                            .color(NamedTextColor.YELLOW)
+            ));
+        }
+        if (allParticipantsHaveFinished()) {
+            for (Player p : participants) {
+                awardPointsForUnusedSkips(p);
+                p.setGameMode(GameMode.SPECTATOR);
+            }
+            stop();
+            return;
+        }
+        restartMercyRuleCountdown();
     }
     
     @EventHandler
@@ -728,14 +776,14 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         currentPuzzleCheckpoints.put(uuid, puzzleCheckPointIndex);
         updateCheckpointSidebar(participant);
         if (puzzleIndex >= config.getPuzzlesSize()-1) {
-            onParticipantFinish(participant);
+            onParticipantFinish(participant, true);
         } else {
             Component checkpointNum = Component.empty()
                     .append(Component.text(puzzleIndex))
                     .append(Component.text("/"))
                     .append(Component.text(config.getPuzzlesSize()-1));
             messageAllParticipants(Component.empty()
-                    .append(Component.text(participant.getName()))
+                    .append(participant.displayName())
                     .append(Component.text(" reached checkpoint "))
                     .append(checkpointNum));
             participant.showTitle(UIUtils.defaultTitle(
@@ -760,8 +808,9 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
             // debug
             
         }
-        if (allPlayersHaveFinished()) {
+        if (allParticipantsHaveFinished()) {
             for (Player p : participants) {
+                awardPointsForUnusedSkips(p);
                 p.setGameMode(GameMode.SPECTATOR);
             }
             stop();
@@ -786,7 +835,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         return -1;
     }
     
-    private void onParticipantFinish(Player participant) {
+    private void onParticipantFinish(Player participant, boolean awardPoints) {
         participant.showTitle(UIUtils.defaultTitle(
                 Component.empty()
                         .append(Component.text("You finished!"))
@@ -800,13 +849,41 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
                 .append(Component.text(" finished!"))
                 .color(NamedTextColor.GREEN)
         );
-        int points = calculatePointsForWin(config.getWinScore());
-        gameManager.awardPointsToParticipant(participant, points);
+        if (awardPoints) {
+            int points = calculatePointsForWin(config.getWinScore());
+            gameManager.awardPointsToParticipant(participant, points);
+        }
+        awardPointsForUnusedSkips(participant);
         participant.setGameMode(GameMode.SPECTATOR);
         finishedParticipants.add(participant.getUniqueId());
     }
     
-    private boolean allPlayersHaveFinished() {
+    /**
+     * Checks how many skips the player has, and awards them points for any remaining
+     * skips. If unused skips are configured to be worthless, skips this action. 
+     */
+    private void awardPointsForUnusedSkips(Player participant) {
+        if (config.getUnusedSkipScore() <= 0.0) {
+            return;
+        }
+        int unusedSkips = Arrays.stream(participant.getInventory().getContents()).filter(itemStack -> {
+            if (itemStack == null) {
+                return false;
+            }
+            return itemStack.getItemMeta().equals(config.getSkipItem().getItemMeta());
+        }).mapToInt(ItemStack::getAmount).sum();
+        if (unusedSkips > 0) {
+            participant.sendMessage(Component.empty()
+                    .append(Component.text(unusedSkips))
+                    .append(Component.text(" unused skips"))
+                    .color(NamedTextColor.GREEN));
+            gameManager.awardPointsToParticipant(participant, 
+                    unusedSkips * config.getUnusedSkipScore());
+        }
+        ParticipantInitializer.clearInventory(participant);
+    }
+    
+    private boolean allParticipantsHaveFinished() {
         for (Player participant : participants) {
             int currentPuzzleIndex = currentPuzzles.get(participant.getUniqueId());
             if (currentPuzzleIndex < config.getPuzzlesSize() - 1) {
@@ -904,6 +981,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
                             .append(TimeStringUtils.getTimeComponent(config.getMercyRuleDuration()))
                             .append(Component.text(". Stopping early")));
                     for (Player participant : participants) {
+                        awardPointsForUnusedSkips(participant);
                         participant.setGameMode(GameMode.SPECTATOR);
                     }
                     stop();
@@ -944,6 +1022,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
                 .timerColor(NamedTextColor.RED)
                 .onCompletion(() -> {
                     for (Player participant : participants) {
+                        awardPointsForUnusedSkips(participant);
                         participant.setGameMode(GameMode.SPECTATOR);
                     }
                     stop();
