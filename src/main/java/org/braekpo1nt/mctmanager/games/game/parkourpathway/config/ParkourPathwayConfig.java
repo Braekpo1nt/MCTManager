@@ -38,6 +38,14 @@ public class ParkourPathwayConfig {
     private ItemStack skipItem;
     /** the number of points to award for unused skips */
     private int unusedSkipScore;
+    /**
+     * The puzzle after which no skips are allowed, and players
+     * will be given points for their remaining unused skips.
+     * Values less than zero will allow skips to be used the entire
+     * game. Values greater than the number of puzzles will essentially
+     * do the same. 
+     */
+    private int maxSkipPuzzle;
     private List<Material> preventInteractions;
     private int descriptionDuration;
     private Component description;

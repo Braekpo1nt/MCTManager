@@ -1,14 +1,11 @@
 package org.braekpo1nt.mctmanager.games.game.parkourpathway;
 
-import com.google.common.base.Preconditions;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
-import org.braekpo1nt.mctmanager.display.Display;
-import org.braekpo1nt.mctmanager.display.geometry.GeometryUtils;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
@@ -98,7 +95,6 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
      * The index of the checkpoint that a player is associated with for their current puzzle (since there can be multiple)
      */
     private Map<UUID, Integer> currentPuzzleCheckpoints;
-    private Map<UUID, Display> displays;
     private boolean descriptionShowing = false;
     private final TimerManager timerManager;
     
@@ -133,9 +129,6 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
     @Override
     public void loadConfig() throws ConfigIOException, ConfigInvalidException {
         this.config = configController.getConfig();
-        if (!gameActive) {
-            return;
-        }
     }
     
     @Override
@@ -575,7 +568,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         Puzzle nextPuzzle = config.getPuzzle(nextPuzzleIndex);
         int nextPuzzleCheckPointIndex = participantReachedCheckPoint(participant.getLocation().toVector(), nextPuzzle);
         if (nextPuzzleCheckPointIndex >= 0) {
-            onParticipantReachCheckPoint(participant, nextPuzzleIndex, nextPuzzleCheckPointIndex);
+            onParticipantReachCheckpoint(participant, nextPuzzleIndex, nextPuzzleCheckPointIndex);
             return;
         }
         int parallelCheckPointIndex = participantReachedCheckPoint(participant.getLocation().toVector(), currentPuzzle);
@@ -680,6 +673,15 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
                             .append(checkpointNum)
                             .color(NamedTextColor.YELLOW)
             ));
+            
+            if (config.getMaxSkipPuzzle() > 0) {
+                if (puzzleIndex == config.getMaxSkipPuzzle()) {
+                    participant.sendMessage(Component.empty()
+                            .append(Component.text("Skips are not allowed after checkpoint "))
+                            .append(Component.text(config.getMaxSkipPuzzle())));
+                    awardPointsForUnusedSkips(participant);
+                }
+            }
         }
         if (allParticipantsHaveFinished()) {
             for (Player p : participants) {
@@ -720,8 +722,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         participant.teleport(respawn);
     }
     
-    
-    private void onParticipantReachCheckPoint(Player participant, int puzzleIndex, int puzzleCheckPointIndex) {
+    private void onParticipantReachCheckpoint(Player participant, int puzzleIndex, int puzzleCheckPointIndex) {
         UUID uuid = participant.getUniqueId();
         currentPuzzles.put(uuid, puzzleIndex);
         currentPuzzleCheckpoints.put(uuid, puzzleCheckPointIndex);
@@ -747,6 +748,15 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
             int playersCheckpoint = currentPuzzles.get(uuid);
             int points = calculatePointsForPuzzle(playersCheckpoint, config.getCheckpointScore());
             gameManager.awardPointsToParticipant(participant, points);
+            
+            if (config.getMaxSkipPuzzle() > 0) {
+                if (puzzleIndex == config.getMaxSkipPuzzle()) {
+                    participant.sendMessage(Component.empty()
+                            .append(Component.text("Skips are not allowed after checkpoint "))
+                            .append(Component.text(config.getMaxSkipPuzzle())));
+                    awardPointsForUnusedSkips(participant);
+                }
+            }
         }
         if (allParticipantsHaveFinished()) {
             for (Player p : participants) {
@@ -800,7 +810,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
     
     /**
      * Checks how many skips the player has, and awards them points for any remaining
-     * skips. If unused skips are configured to be worthless, skips this action. 
+     * skips. Removes them from their inventory as well.
      */
     private void awardPointsForUnusedSkips(Player participant) {
         if (config.getUnusedSkipScore() <= 0.0) {

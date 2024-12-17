@@ -56,6 +56,7 @@ class ParkourPathwayConfigDTO implements Validatable {
     private Component description;
     
     @Data
+    @AllArgsConstructor
     static class Skips {
         /** the number of skips each player gets. 0 or negative means no skips. */
         private int numOfSkips;
@@ -67,6 +68,14 @@ class ParkourPathwayConfigDTO implements Validatable {
         private @Nullable List<Component> itemLore;
         /** the number of points to award for unused skips */
         private int unusedSkipScore;
+        /**
+         * The puzzle after which no skips are allowed, and players
+         * will be given points for their remaining unused skips.
+         * Values less than zero will allow skips to be used the entire
+         * game. Values greater than the number of puzzles will essentially
+         * do the same. 
+         */
+        private int maxSkipPuzzle;
         
         public @NotNull Material getItem() {
             return (item != null) ? item : Material.LAPIS_LAZULI;
@@ -187,11 +196,13 @@ class ParkourPathwayConfigDTO implements Validatable {
             builder
                     .numOfSkips(this.skips.getNumOfSkips())
                     .unusedSkipScore(this.skips.getUnusedSkipScore())
+                    .maxSkipPuzzle(this.skips.getMaxSkipPuzzle())
                     .skipItem(skipItem);
         } else {
             builder
                     .numOfSkips(0)
                     .unusedSkipScore(0)
+                    .maxSkipPuzzle(0)
                     .skipItem(new ItemStack(Material.LAPIS_LAZULI));
         }
         
@@ -210,7 +221,18 @@ class ParkourPathwayConfigDTO implements Validatable {
                 .spectatorArea(config.getSpectatorArea())
                 .scores(new Scores(config.getCheckpointScore(), config.getWinScore()))
                 .preventInteractions(config.getPreventInteractions())
-                .durations(new Durations(config.getTeamSpawnsDuration(), config.getStartingDuration(), config.getTimeLimitDuration(), config.getMercyRuleDuration(), config.getMercyRuleAlertDuration(), config.getDescriptionDuration()))
+                .skips(new Skips(config.getNumOfSkips(), 
+                        config.getSkipItem().getType(), 
+                        config.getSkipItem().getItemMeta().displayName(), 
+                        config.getSkipItem().getItemMeta().lore(), 
+                        config.getUnusedSkipScore(), 
+                        config.getMaxSkipPuzzle()))
+                .durations(new Durations(config.getTeamSpawnsDuration(), 
+                        config.getStartingDuration(), 
+                        config.getTimeLimitDuration(), 
+                        config.getMercyRuleDuration(), 
+                        config.getMercyRuleAlertDuration(), 
+                        config.getDescriptionDuration()))
                 .description(config.getDescription())
                 .build();
     }
