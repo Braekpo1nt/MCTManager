@@ -22,7 +22,7 @@ public class TabListCommand extends CommandManager {
                     return CommandResult.failure("This command can only be run by a player");
                 }
                 if (!gameManager.isParticipant(player.getUniqueId()) 
-                        && gameManager.isAdmin(player.getUniqueId())) {
+                        && !gameManager.isAdmin(player.getUniqueId())) {
                     return CommandResult.failure("This command can only be run by a participant or an admin");
                 }
                 gameManager.setTabListVisibility(player.getUniqueId(), true);
@@ -36,7 +36,7 @@ public class TabListCommand extends CommandManager {
                     return CommandResult.failure("This command can only be run by a player");
                 }
                 if (!gameManager.isParticipant(player.getUniqueId())
-                        && gameManager.isAdmin(player.getUniqueId())) {
+                        && !gameManager.isAdmin(player.getUniqueId())) {
                     return CommandResult.failure("This command can only be run by a participant or an admin");
                 }
                 gameManager.setTabListVisibility(player.getUniqueId(), false);
