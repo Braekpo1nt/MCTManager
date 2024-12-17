@@ -49,6 +49,18 @@
       60
     ]
   },
+  "skips": {
+    "numOfSkips": 2,
+    "unusedSkipScore": 30,
+    "maxSkipPuzzle": 35,
+    "item": "LAPIS_LAZULI",
+    "itemName": "Skip Puzzle",
+    "itemLore": [
+      "Right click to skip",
+      "the current puzzle",
+      "(use before level 35)"
+    ]
+  },
   "durations": {
     "teamSpawn": 10,
     "starting": 10,
