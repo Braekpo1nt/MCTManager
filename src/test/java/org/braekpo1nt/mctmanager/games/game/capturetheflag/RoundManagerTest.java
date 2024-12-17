@@ -1,336 +1,521 @@
 package org.braekpo1nt.mctmanager.games.game.capturetheflag;
 
+import org.braekpo1nt.mctmanager.Main;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.*;
-import java.util.function.BiPredicate;
+import java.util.logging.Level;
 
 public class RoundManagerTest {
     
-    class MockCTFGame extends CaptureTheFlagGame {
-        final int numOfArenas;
-        List<String> teams;
-        CTFRound currentRound;
-        RoundManager roundManager;
-        /**
-         * Set in the constructor for testing purposes. The game simulation will stop after pauseRounds rounds are played, so you can check the state of the game in between rounds. If this value is -1, then all rounds will be played as calculated without restriction.
-         */
-        int pauseRounds;
-        boolean isPaused = false;
-        
-        /**
-         * @param numOfArenas the number of arenas there are
-         */
-        MockCTFGame(int numOfArenas) {
-            super();
-            this.numOfArenas = numOfArenas;
-        }
-        
-        @Override
-        public void stop() {
-            this.isPaused = false;
-        }
-        
-        public void start(String... newTeams) {
-            this.isPaused = false;
-            start(-1, newTeams);
-        }
-        
-        public void start(int pauseAfterRounds, String... newTeams) {
-            this.pauseRounds = pauseAfterRounds;
-            teams = new ArrayList<>(newTeams.length);
-            for (String team : newTeams) {
-                teams.add(team);
-            }
-            roundManager = new RoundManager(this, numOfArenas);
-            roundManager.start(List.of(newTeams));
-        }
-        
-        public void onTeamJoin(String team) {
-            roundManager.onTeamJoin(team);
-        }
-        
-        public void onTeamQuit(String team) {
-            roundManager.onTeamQuit(team);
-        }
-        
-        public int getPlayedRounds() {
-            if (isPaused) {
-                return roundManager.getPlayedRounds() + 1;
-            }
-            return roundManager.getPlayedRounds();
-        }
-        
-        public void resume(int pauseAfterRounds) {
-            this.pauseRounds = pauseAfterRounds;
-            this.isPaused = false;
-            roundManager.roundIsOver();
-        }
-        
-        @Override
-        public void roundIsOver() {
-            if (pauseRounds >= 0) {
-                int playedRounds = roundManager.getPlayedRounds() + 1;
-                if (playedRounds >= pauseRounds) {
-                    this.isPaused = true;
-                    return;
-                }
-            }
-            roundManager.roundIsOver();
-        }
-        
-        @Override
-        public void startNextRound(List<String> participantTeams, List<MatchPairing> roundMatchPairings) {
-            currentRound = new CTFRound(this);
-            List<String> onDeckTeams = new ArrayList<>(teams);
-            onDeckTeams.removeAll(participantTeams);
-            currentRound.start(participantTeams, roundMatchPairings, onDeckTeams);
-        }
+    private List<String> teams;
+    
+    @BeforeEach
+    void setUp() {
+        teams = List.of("A", "B", "C", "D", "E", "F", "G", "H");
+        Main.logger().setLevel(Level.OFF);
     }
     
-    class CTFRound {
-        final MockCTFGame ctfGame;
-        List<String> teams;
-        CTFRound(MockCTFGame ctfGame) {
-            this.ctfGame = ctfGame;
+    @Test
+    void only1Team() {
+        List<MatchPairing> allMatches = RoundManager.generateRoundRobin(List.of("A"));
+        Assertions.assertEquals(1, allMatches.size());
+        List<List<MatchPairing>> schedule = RoundManager.distributeMatches(allMatches, 5);
+        Assertions.assertTrue(schedule.isEmpty());
+    }
+    
+    @Test
+    void noTeams() {
+        List<MatchPairing> allMatches = RoundManager.generateRoundRobin(Collections.emptyList());
+        Assertions.assertTrue(allMatches.isEmpty());
+        List<List<MatchPairing>> schedule = RoundManager.distributeMatches(allMatches, 5);
+        Assertions.assertTrue(schedule.isEmpty());
+    }
+    
+    @Test
+    void noArenas() {
+        List<MatchPairing> allMatches = RoundManager.generateRoundRobin(teams);
+        List<List<MatchPairing>> schedule = RoundManager.distributeMatches(allMatches, 0);
+        Assertions.assertTrue(schedule.isEmpty());
+    }
+    
+    @Test
+    void roundRobin8Teams5Arenas() {
+        List<MatchPairing> allMatches = RoundManager.generateRoundRobin(teams);
+        Assertions.assertEquals(28, allMatches.size());
+        List<List<MatchPairing>> schedule = RoundManager.distributeMatches(allMatches, 5);
+        Assertions.assertEquals(7, schedule.size());
+    }
+    
+    @Test
+    void roundRobin8Teams4Arenas() {
+        List<MatchPairing> allMatches = RoundManager.generateRoundRobin(teams);
+        Assertions.assertEquals(28, allMatches.size());
+        List<List<MatchPairing>> schedule = RoundManager.distributeMatches(allMatches, 4);
+        Assertions.assertEquals(7, schedule.size());
+    }
+    
+    @Test
+    void roundRobin7Teams5Arenas() {
+        List<MatchPairing> allMatches = RoundManager.generateRoundRobin(List.of("A", "B", "C", "D", "E", "F", "G"));
+        Assertions.assertEquals(28, allMatches.size());
+        List<List<MatchPairing>> schedule5 = RoundManager.distributeMatches(allMatches, 5);
+        Assertions.assertEquals(7, schedule5.size());
+    }
+    
+    @Test
+    void roundRobin7Teams4Arenas() {
+        List<MatchPairing> allMatches = RoundManager.generateRoundRobin(List.of("A", "B", "C", "D", "E", "F", "G"));
+        Assertions.assertEquals(28, allMatches.size());
+        List<List<MatchPairing>> schedule5 = RoundManager.distributeMatches(allMatches, 4);
+        Assertions.assertEquals(7, schedule5.size());
+    }
+    
+    @Test
+    void test16Teams5Arenas() {
+        List<String> largeTeams = List.of(
+                "A", "B", "C", "D", "E", "F", "G", "H",  
+                         "I", "J", "K", "L", "M", "N", "O", "P");
+        
+        List<List<MatchPairing>> fiveArenasSchedule = RoundManager.distributeMatches(RoundManager.generateRoundRobin(largeTeams), 5);
+        int expectedMatches = (largeTeams.size() * (largeTeams.size() - 1) / 2);
+        int actualMatches =  fiveArenasSchedule.stream().mapToInt(List::size).sum();
+        Assertions.assertEquals(expectedMatches, actualMatches);
+        Assertions.assertEquals(24, fiveArenasSchedule.size());
+        
+    }
+    
+    @Test
+    void test16Teams4Arenas() {
+        List<String> largeTeams = List.of(
+                "A", "B", "C", "D", "E", "F", "G", "H",
+                "I", "J", "K", "L", "M", "N", "O", "P");
+        
+        List<List<MatchPairing>> fiveArenasSchedule = RoundManager.distributeMatches(RoundManager.generateRoundRobin(largeTeams), 4);
+        int expectedMatches = (largeTeams.size() * (largeTeams.size() - 1) / 2);
+        int actualMatches =  fiveArenasSchedule.stream().mapToInt(List::size).sum();
+        Assertions.assertEquals(expectedMatches, actualMatches);
+        Assertions.assertEquals(30, fiveArenasSchedule.size());
+        
+    }
+    
+    @Test
+    void test16Teams4ArenasExcludeFirst() {
+        List<String> largeTeams = List.of(
+                "A", "B", "C", "D", "E", "F", "G", "H",
+                "I", "J", "K", "L", "M", "N", "O", "P");
+        List<MatchPairing> exclude = List.of(
+                new MatchPairing("A", "P"),
+                new MatchPairing("B", "O"),
+                new MatchPairing("C", "N"),
+                new MatchPairing("D", "M")
+        );
+        
+        List<List<MatchPairing>> fourArenasScheduleExclude = RoundManager.generateSchedule(largeTeams, 4, exclude);
+        int expectedMatches = (largeTeams.size() * (largeTeams.size() - 1) / 2) - exclude.size();
+        int actualMatches =  fourArenasScheduleExclude.stream().mapToInt(List::size).sum();
+        Assertions.assertEquals(expectedMatches, actualMatches);
+        Assertions.assertEquals(29, fourArenasScheduleExclude.size());
+        
+        
+    }
+    
+    @Test
+    void tenTeamsFiveArenas() {
+        List<String> tenTeams = List.of(
+                "The Councel", 
+                "Aquaholics", 
+                "Red Rangers", 
+                "Purple Paladins", 
+                "Blue Bedtimers", 
+                "Lime Cacti", 
+                "Green Spartans", 
+                "Orange Oni's", 
+                "Pink Penguins", 
+                "Just the Builders");
+        
+        List<List<MatchPairing>> schedule = RoundManager.distributeMatches(RoundManager.generateRoundRobin(tenTeams), 5);
+        int expectedMatches = 45;
+        int actualMatches =  schedule.stream().mapToInt(List::size).sum();
+        Assertions.assertEquals(expectedMatches, actualMatches);
+        Assertions.assertEquals(9, schedule.size());
+        Assertions.assertEquals(5, schedule.get(0).size());
+        Assertions.assertEquals(5, schedule.get(1).size());
+        Assertions.assertEquals(5, schedule.get(2).size());
+        Assertions.assertEquals(5, schedule.get(3).size());
+        Assertions.assertEquals(5, schedule.get(4).size());
+        Assertions.assertEquals(5, schedule.get(5).size());
+        Assertions.assertEquals(5, schedule.get(6).size());
+        Assertions.assertEquals(5, schedule.get(7).size());
+        Assertions.assertEquals(5, schedule.get(8).size());
+    }
+    
+    @Test
+    void testExcludeOneRound() {
+        int arenas = 4;
+        
+        // what the first round would have been if Team H hadn't joined yet
+        List<MatchPairing> exclude = List.of(
+                new MatchPairing("A", "B"),
+                new MatchPairing("C", "D"),
+                new MatchPairing("E", "F")
+        );
+        
+        // create a schedule that simulates what should be generated after Team H joins after the first round
+        List<List<MatchPairing>> schedulePostJoin = RoundManager.generateSchedule(teams, arenas, exclude);
+        List<List<MatchPairing>> fullSchedule = new ArrayList<>(schedulePostJoin.size() + 1);
+        fullSchedule.add(exclude);
+        fullSchedule.addAll(schedulePostJoin);
+        
+        int expectedPostJoinMatches = (teams.size() * (teams.size() - 1) / 2) - exclude.size();
+        int actualPostJoinMatches = schedulePostJoin.stream().mapToInt(List::size).sum();
+        Assertions.assertEquals(expectedPostJoinMatches, actualPostJoinMatches, "Each team should play every other team exactly once, minus the exclude.");
+        
+        // Validate that all teams play exactly once against each other
+        int expectedMatches = teams.size() * (teams.size() - 1) / 2;
+        int actualMatches = fullSchedule.stream().mapToInt(List::size).sum();
+        Assertions.assertEquals(expectedMatches, actualMatches, "Each team should play every other team exactly once.");
+        
+        // Validate that no team is scheduled more than once in the same round
+        for (List<MatchPairing> round : fullSchedule) {
+            Set<String> teamsInRound = new HashSet<>();
+            for (MatchPairing match : round) {
+                Assertions.assertTrue(teamsInRound.add(match.northTeam()), "" + match.northTeam() + " is double-booked in the round.");
+                Assertions.assertTrue(teamsInRound.add(match.southTeam()), "" + match.southTeam() + " is double-booked in the round.");
+            }
         }
         
-        public void start(List<String> newTeams, List<MatchPairing> matchPairings, List<String> onDeckTeams) {
-            teams = new ArrayList<>(newTeams);
-            stop();
+        // Validate that no MatchPairing is a duplicate
+        List<MatchPairing> flagMatchPairings = fullSchedule.stream().flatMap(List::stream).toList();
+        Set<MatchPairing> matchPairingSet = new HashSet<>(flagMatchPairings);
+        Assertions.assertEquals(flagMatchPairings.size(), matchPairingSet.size());
+    }
+    
+    @Test
+    void testExcludeThreeRounds() {
+        int arenas = 4;
+        
+        // what the first 3 rounds would have been if Team H hadn't joined yet
+        List<MatchPairing> exclude = List.of(
+                new MatchPairing("A", "B"),
+                new MatchPairing("C", "D"),
+                new MatchPairing("E", "F"),
+                new MatchPairing("A", "C"),
+                new MatchPairing("B", "D"),
+                new MatchPairing("E", "G"),
+                new MatchPairing("A", "D"),
+                new MatchPairing("B", "C"),
+                new MatchPairing("F", "G")
+        );
+        
+        // create a schedule that simulates what should be generated after Team H joins after the first round
+        List<List<MatchPairing>> schedulePostJoin = RoundManager.generateSchedule(teams, arenas, exclude);
+        List<List<MatchPairing>> fullSchedule = new ArrayList<>(schedulePostJoin.size() + 1);
+        // round 1
+        fullSchedule.add(List.of(
+                new MatchPairing("A", "B"),
+                new MatchPairing("C", "D"),
+                new MatchPairing("E", "F")
+        ));
+        // round 2
+        fullSchedule.add(List.of(
+                new MatchPairing("A", "C"),
+                new MatchPairing("B", "D"),
+                new MatchPairing("E", "G")
+        ));
+        // round 3
+        fullSchedule.add(List.of(
+                new MatchPairing("A", "D"),
+                new MatchPairing("B", "C"),
+                new MatchPairing("F", "G")
+        ));
+        fullSchedule.addAll(schedulePostJoin);
+        
+        int expectedPostJoinMatches = (teams.size() * (teams.size() - 1) / 2) - exclude.size();
+        int actualPostJoinMatches = schedulePostJoin.stream().mapToInt(List::size).sum();
+        Assertions.assertEquals(expectedPostJoinMatches, actualPostJoinMatches, "Each team should play every other team exactly once, minus the exclude.");
+        
+        // Validate that all teams play exactly once against each other
+        int expectedMatches = teams.size() * (teams.size() - 1) / 2;
+        int actualMatches = fullSchedule.stream().mapToInt(List::size).sum();
+        Assertions.assertEquals(expectedMatches, actualMatches, "Each team should play every other team exactly once.");
+        
+        // Validate that no team is scheduled more than once in the same round
+        for (List<MatchPairing> round : fullSchedule) {
+            Set<String> teamsInRound = new HashSet<>();
+            for (MatchPairing match : round) {
+                Assertions.assertTrue(teamsInRound.add(match.northTeam()), "" + match.northTeam() + " is double-booked in the round.");
+                Assertions.assertTrue(teamsInRound.add(match.southTeam()), "" + match.southTeam() + " is double-booked in the round.");
+            }
         }
         
-        public void stop() {
-            ctfGame.roundIsOver();
+        // Validate that no MatchPairing is a duplicate
+        List<MatchPairing> flagMatchPairings = fullSchedule.stream().flatMap(List::stream).toList();
+        Set<MatchPairing> matchPairingSet = new HashSet<>(flagMatchPairings);
+        Assertions.assertEquals(flagMatchPairings.size(), matchPairingSet.size());
+    }
+    
+    @Test
+    void testGenerateScheduleWithEvenTeams() {
+        int arenas = 4;
+        List<List<MatchPairing>> schedule = RoundManager.generateSchedule(teams, arenas);
+        
+        // Validate that all teams play exactly once against each other
+        List<MatchPairing> matchPairings = schedule.stream().flatMap(List::stream).toList();
+        Set<MatchPairing> uniqueMatchPairings = new HashSet<>(matchPairings);
+        Assertions.assertEquals(uniqueMatchPairings.size(), matchPairings.size(), "Each team should play every other team exactly once");
+        
+        // Validate the number of rounds
+        int expectedRounds = teams.size() - 1;
+        Assertions.assertEquals(expectedRounds, schedule.size(), "There should be the correct number of rounds.");
+        
+        // Validate the number of arenas used
+        for (List<MatchPairing> round : schedule) {
+            Assertions.assertTrue(round.size() <= arenas, "No round should exceed the number of available arenas.");
         }
     }
     
     @Test
-    void testGenerateMatchPairings() {
-        List<MatchPairing> generated = RoundManager.generateMatchPairings(List.of("a", "b", "c"), Collections.emptySet(), 4);
+    void testGenerateScheduleWithOddNumberOfTeams() {
+        List<String> oddTeams = List.of("A", "B", "C", "D", "E", "F", "G");
+        int arenas = 4;
+        List<List<MatchPairing>> schedule = RoundManager.generateSchedule(oddTeams, arenas);
+        
+        // Validate that all teams play exactly once against each other
+        List<MatchPairing> matchPairings = schedule.stream().flatMap(List::stream).toList();
+        Set<MatchPairing> uniqueMatchPairings = new HashSet<>(matchPairings);
+        Assertions.assertEquals(uniqueMatchPairings.size(), matchPairings.size(), "Each team should play every other team exactly once");
+        
+        // Validate the number of rounds
+        int expectedRounds = oddTeams.size();
+        Assertions.assertEquals(expectedRounds, schedule.size(), "There should be the correct number of rounds.");
+        
+        // Validate the number of arenas used
+        for (List<MatchPairing> round : schedule) {
+            Assertions.assertTrue(round.size() <= arenas, "No round should exceed the number of available arenas.");
+        }
+    }
+    
+    @Test
+    void testGenerateScheduleWithOneArena() {
+        int arenas = 1;
+        List<List<MatchPairing>> schedule = RoundManager.generateSchedule(teams, arenas);
+        
+        // Validate that all teams play exactly once against each other
+        List<MatchPairing> matchPairings = schedule.stream().flatMap(List::stream).toList();
+        Set<MatchPairing> uniqueMatchPairings = new HashSet<>(matchPairings);
+        Assertions.assertEquals(uniqueMatchPairings.size(), matchPairings.size(), "Each team should play every other team exactly once");
+        
+        // Validate the number of rounds
+        int expectedRounds = teams.size() * (teams.size() - 1) / 2;
+        Assertions.assertEquals(expectedRounds, schedule.size(), "There should be as many rounds as total matches when only one arena is available.");
+    }
+    
+    @Test
+    void testGenerateScheduleWithMinTeams() {
+        List<String> minTeams = List.of("A", "B");
+        int arenas = 1;
+        List<List<MatchPairing>> schedule = RoundManager.generateSchedule(minTeams, arenas);
+        
+        // Validate that there is exactly one match
+        Assertions.assertEquals(1, schedule.size(), "There should be exactly one round with two teams.");
+        Assertions.assertEquals(1, schedule.getFirst().size(), "There should be exactly one match in the round.");
+        Assertions.assertEquals("A", schedule.getFirst().getFirst().northTeam(), "First team should be Team A.");
+        Assertions.assertEquals("B", schedule.getFirst().getFirst().southTeam(), "Second team should be Team B.");
+    }
+    
+    @Test
+    void testNoDoubleBookingInRounds() {
+        int arenas = 4;
+        List<List<MatchPairing>> schedule = RoundManager.generateSchedule(teams, arenas);
+        
+        // Validate that no team is scheduled more than once in the same round
+        for (List<MatchPairing> round : schedule) {
+            Set<String> teamsInRound = new HashSet<>();
+            for (MatchPairing match : round) {
+                Assertions.assertTrue(teamsInRound.add(match.northTeam()), "" + match.northTeam() + " is double-booked in the round.");
+                Assertions.assertTrue(teamsInRound.add(match.southTeam()), "" + match.southTeam() + " is double-booked in the round.");
+            }
+        }
+    }
+    
+    @Test
+    void testExclude() {
+        List<String> teams = List.of("A", "B", "C", "D", "E", "F", "G");
+        List<MatchPairing> exclude = List.of(
+                new MatchPairing(RoundManager.BYE, "A"),
+                new MatchPairing("B", "G"),
+                new MatchPairing("C", "F"),
+                new MatchPairing("D", "E")
+        );
+        List<List<MatchPairing>> schedule = RoundManager.generateSchedule(teams, 4, exclude);
         Assertions.assertEquals(List.of(
-                new MatchPairing("a", "b")
-        ), generated);
-    }
-    
-    Map<String, List<String>> createTeamsToFight(String... teams) {
-        Map<String, List<String>> teamsToFight = new HashMap<>();
-        List<String> teamsAsList = List.of(teams);
-        for (String team : teams) {
-            List<String> enemyTeams = new ArrayList<>(teamsAsList);
-            enemyTeams.remove(team);
-            teamsToFight.put(team, enemyTeams);
-        }
-        return teamsToFight;
+                new MatchPairing("G", "A"),
+//                new MatchPairing(RoundManager.BYE, "F"),
+                new MatchPairing("E", "B"),
+                new MatchPairing("D", "C")
+        ), schedule.getFirst());
     }
     
     @Test
-    void testCreateMatches_3_teams() {
-        Map<String, List<String>> teamsToFight = createTeamsToFight("a", "b", "c");
-        Set<Set<String>> matches = RoundManager.createMatches(teamsToFight);
-        Assertions.assertEquals(3, matches.size());
-    }
-    
-    @Test
-    void testCreateMatches_4_teams() {
-        Map<String, List<String>> teamsToFight = createTeamsToFight("a", "b", "c", "d");
-        int roundsLeft = RoundManager.calculateRoundsLeft(teamsToFight, 4);
-        Assertions.assertEquals(3, roundsLeft);
-    }
-    
-    @Test
-    void testCreateMatches_7_teams() {
-        Map<String, List<String>> teamsToFight = createTeamsToFight("black", "grey", "red", "yellow", "blue", "green", "pink");
-        Set<Set<String>> matches = RoundManager.createMatches(teamsToFight);
-        Assertions.assertEquals(21, matches.size());
-    }
-    
-    @Test
-    void testRoundsLeft_3_teams() {
-        Map<String, List<String>> teamsToFight = createTeamsToFight("a", "b", "c");
-        Assertions.assertEquals(3, RoundManager.calculateRoundsLeft(teamsToFight, 4));
-    }
-    
-    @Test
-    void testRoundsLeft_7_teams() {
-        Map<String, List<String>> teamsToFight = createTeamsToFight("black", "grey", "red", "yellow", "blue", "green", "pink");
-        Assertions.assertEquals(11, RoundManager.calculateRoundsLeft(teamsToFight, 2));
-    }
-    
-    @Test
-    void testRoundsLeft_7_teams_roundsPlayed() {
-        Map<String, List<String>> teamsToFight = createTeamsToFight("black", "grey", "red", "yellow", "blue", "green", "pink");
-        // a round was played in two arenas between 4 different teams
-        teamsToFight.get("black").remove("grey");
-        teamsToFight.get("grey").remove("black");
-        teamsToFight.get("red").remove("yellow");
-        teamsToFight.get("yellow").remove("red");
-        
-        Assertions.assertEquals(10, RoundManager.calculateRoundsLeft(teamsToFight, 2));
-    }
-    
-    @Test
-    void testRoundsLeft_5_teams_4_arenas() {
-        Map<String, List<String>> teamsToFight = createTeamsToFight("red", "blue", "green", "purple", "black");
-        Assertions.assertEquals(6, RoundManager.calculateRoundsLeft(teamsToFight, 4));
-    }
-    
-    @Test
-    void teams_3_rounds_1() {
-        MockCTFGame ctf = new MockCTFGame(4);
-        ctf.start(1, "a", "b", "c");
-        
-        Assertions.assertEquals(1, ctf.getPlayedRounds());
-        Assertions.assertEquals(Set.of(
-                new MatchPairing("a", "b")
-        ), ctf.roundManager.getPlayedMatchPairings());
-        Assertions.assertEquals(Map.of(
-                "a", 0,
-                "b", 0,
-                "c", 1
-                ), ctf.roundManager.getRoundsSpentOnDeck());
-    }
-    
-    @Test
-    void teams_3_rounds_all() {
-        MockCTFGame ctf = new MockCTFGame(4);
-        ctf.start("a", "b", "c");
-        
-        Assertions.assertEquals(3, ctf.getPlayedRounds());
-        assertSetsAreEqual(
-                Set.of(
-                    new MatchPairing("a", "b"),
-                    new MatchPairing("a", "c"),
-                    new MatchPairing("b", "c")
-                ), 
-                ctf.roundManager.getPlayedMatchPairings(), 
-                this::matchPairingEquivalent
+    void testNewTeamJoiningDuringRound1() {
+        List<String> teams7 = List.of("A", "B", "C", "D", "E", "F", "G");
+        int arenas = 4;
+        RoundManager roundManager = new RoundManager(teams7, arenas);
+        List<MatchPairing> expectedRoundOneMatches = List.of(
+//                new MatchPairing("A", RoundManager.BYE),
+                new MatchPairing("B", "G"),
+                new MatchPairing("C", "F"),
+                new MatchPairing("D", "E")
         );
-        Assertions.assertEquals(Map.of(
-                "a", 1,
-                "b", 1,
-                "c", 1
-        ), ctf.roundManager.getRoundsSpentOnDeck());
-    }
-    
-    @Test
-    void teams_7_arenas_2() {
-        MockCTFGame ctf = new MockCTFGame(2);
-        ctf.start("black", "grey", "red", "yellow", "blue", "green", "pink");
-//        System.out.printf("Longest On-Deck Streak: %s%n", ctf.roundManager.longestOnDeckStreak);
-//        System.out.printf("Total on-deck rounds: %s%n", ctf.roundManager.totalOnDeckRounds);
-        Assertions.assertEquals(11, ctf.getPlayedRounds());
-    }
-    
-    @Test
-    void pause_resume() {
-        MockCTFGame ctf = new MockCTFGame(2);
-        ctf.start(6, "black", "grey", "red", "yellow", "blue", "green", "pink");
-        Assertions.assertEquals(6, ctf.getPlayedRounds());
-        ctf.resume(8);
-        Assertions.assertEquals(8, ctf.getPlayedRounds());
-        ctf.resume(-1);
-        Assertions.assertEquals(11, ctf.getPlayedRounds());
-    }
-    
-    @Test
-    void teams_7_join() {
-        MockCTFGame ctf = new MockCTFGame(2);
-        ctf.start(6, "black", "grey", "red", "yellow", "blue", "green", "pink");
-        ctf.onTeamJoin("orange");
-        ctf.resume(-1);
-        Set<MatchPairing> expectedPlayedMatchPairings = createAllMatchPairings("black", "grey", "red", "yellow", "blue", "green", "pink", "orange");
-    
-        Assertions.assertEquals(14, ctf.getPlayedRounds());
-        assertSetsAreEqual(expectedPlayedMatchPairings, ctf.roundManager.getPlayedMatchPairings(), this::matchPairingEquivalent);
-    }
-    
-    @Test
-    void teams_7_leave_join() {
-        MockCTFGame ctf = new MockCTFGame(2);
-        String[] teams = {"black", "grey", "red", "yellow", "blue", "green", "pink"};
-        ctf.start(3, teams);
-        ctf.onTeamQuit("black");
-        ctf.resume(5);
-        ctf.onTeamJoin("black");
-        ctf.resume(-1);
-        Set<MatchPairing> expectedPlayedMatchPairings = createAllMatchPairings(teams);
-    
-        Assertions.assertEquals(11, ctf.getPlayedRounds());
-        assertSetsAreEqual(expectedPlayedMatchPairings, ctf.roundManager.getPlayedMatchPairings(), this::matchPairingEquivalent);
-    }
-    
-    @Test
-    void teams_7_leave_join_late() {
-        MockCTFGame ctf = new MockCTFGame(2);
-        String[] teams = {"black", "grey", "red", "yellow", "blue", "green", "pink"};
-        ctf.start(3, teams);
-        ctf.onTeamQuit("black");
-        ctf.resume(5);
-        ctf.onTeamJoin("black");
-        ctf.resume(-1);
-        Set<MatchPairing> expectedPlayedMatchPairings = createAllMatchPairings(teams);
         
-        Assertions.assertEquals(11, ctf.getPlayedRounds());
-        assertSetsAreEqual(expectedPlayedMatchPairings, ctf.roundManager.getPlayedMatchPairings(), this::matchPairingEquivalent);
+        Assertions.assertEquals(expectedRoundOneMatches, roundManager.getCurrentRound());
+        
+        // Now we add a new team, "H" and regenerate the rounds
+        List<String> teams8 = List.of("A", "B", "C", "D", "E", "F", "G", "H");
+        roundManager.regenerateRounds(teams8, arenas);
+        // Assert that the current round hasn't changed
+        Assertions.assertEquals(expectedRoundOneMatches, roundManager.getCurrentRound());
+        
+        // Now we cycle to the next round
+        roundManager.nextRound();
+        Assertions.assertEquals(List.of(
+                new MatchPairing("A", "H"),
+                new MatchPairing("E", "B"),
+                new MatchPairing("D", "C"),
+                new MatchPairing("G", "F")
+        ), roundManager.getCurrentRound());
+        Assertions.assertEquals(2, roundManager.getPlayedRounds() + 1);
     }
     
     @Test
-    void testCompareSets() {
-        assertSetsAreEqual(
-                Set.of(
-                        new MatchPairing("a", "b"),
-                        new MatchPairing("a", "c"),
-                        new MatchPairing("b", "c")
-                ),
-                Set.of(
-                        new MatchPairing("a", "c"),
-                        new MatchPairing("a", "b"),
-                        new MatchPairing("c", "b")
-                ),
-                this::matchPairingEquivalent
-        );
-    }
-    
-    boolean matchPairingEquivalent(MatchPairing a, MatchPairing b) {
-        return a.isEquivalent(b);
-    }
-    
-    <T> void assertSetsAreEqual(Set<T> set1, Set<T> set2, BiPredicate<T, T> equalityFunction) {
-        if (set1.size() != set2.size()) {
-            Assertions.fail(String.format("Expected: %s but was: %s", set1, set2));
-            return;
-        }
+    void testNewTeamJoiningDuringRound3() {
+        List<String> teams7 = List.of("A", "B", "C", "D", "E", "F", "G");
+        int arenas = 4;
+        RoundManager roundManager = new RoundManager(teams7, arenas);
+        // now we're in round 1
+        Assertions.assertEquals(List.of(
+//                new MatchPairing("A", RoundManager.BYE),
+                new MatchPairing("B", "G"),
+                new MatchPairing("C", "F"),
+                new MatchPairing("D", "E")
+        ), roundManager.getCurrentRound());
         
-        for (T item1 : set1) {
-            boolean found = false;
-            
-            for (T item2 : set2) {
-                if (equalityFunction.test(item1, item2)) {
-                    found = true;
-                    break;
-                }
-            }
-            
-            if (!found) {
-                Assertions.fail(String.format("Expected: %s but was: %s", set1, set2));
-                return;
-            }
-        }
+        roundManager.nextRound();
+        // now we're in round 2
+        Assertions.assertEquals(List.of(
+                new MatchPairing("G", "A"),
+//                new MatchPairing("F", RoundManager.BYE),
+                new MatchPairing("E", "B"),
+                new MatchPairing("D", "C")
+        ), roundManager.getCurrentRound());
         
-        Assertions.assertTrue(true);
+        roundManager.nextRound();
+        // now we're in round 3
+        Assertions.assertEquals(3, roundManager.getPlayedRounds() + 1);
+        Assertions.assertEquals(List.of(
+                new MatchPairing("A", "F"),
+                new MatchPairing("G", "E"),
+//                new MatchPairing(RoundManager.BYE, "D"),
+                new MatchPairing("B", "C")
+        ), roundManager.getCurrentRound());
+        
+        // Now we add a new team, "H" and regenerate the rounds
+        List<String> teams8 = List.of("A", "B", "C", "D", "E", "F", "G", "H");
+        roundManager.regenerateRounds(teams8, arenas);
+        // Assert that the current round hasn't changed
+        Assertions.assertEquals(List.of(
+                new MatchPairing("A", "F"),
+                new MatchPairing("G", "E"),
+//                new MatchPairing(RoundManager.BYE, "D"),
+                new MatchPairing("B", "C")
+        ), roundManager.getCurrentRound());
+        
+        roundManager.nextRound();
+        // now we're in round 4
+        Assertions.assertEquals(List.of(
+                new MatchPairing("A", "H"),
+                new MatchPairing("D", "F"),
+                new MatchPairing("C", "G")
+        ), roundManager.getCurrentRound());
+        Assertions.assertEquals(4, roundManager.getPlayedRounds() + 1);
     }
     
-    Set<MatchPairing> createAllMatchPairings(String... teams) {
-        Set<MatchPairing> matchPairings = new HashSet<>();
-        for (int i = 0; i < teams.length; i++) {
-            String team1 = teams[i];
-            for (int j = i+1; j < teams.length; j++) {
-                String team2 = teams[j];
-                matchPairings.add(new MatchPairing(team1, team2));
-            }
-        }
-        return matchPairings;
+    @Test
+    void test2Teams1Joining() {
+        int arenas = 5;
+        RoundManager roundManager = new RoundManager(List.of("A", "B"), arenas);
+        // now we're in round 1
+        Assertions.assertEquals(List.of(
+                new MatchPairing("A", "B")
+        ), roundManager.getCurrentRound());
+        
+        // Now we add a new team, "C" and regenerate the rounds
+        roundManager.regenerateRounds(List.of("A", "B", "C"), arenas);
+        // Assert that the current round hasn't changed
+        Assertions.assertEquals(List.of(
+                new MatchPairing("A", "B")
+        ), roundManager.getCurrentRound());
+        
+        roundManager.nextRound();
+        // now we're in round 2
+        Assertions.assertEquals(List.of(
+                new MatchPairing("B", "C")
+        ), roundManager.getCurrentRound());
+        Assertions.assertEquals(2, roundManager.getPlayedRounds() + 1);
+        
+        roundManager.nextRound();
+        // now we're in round 3
+        Assertions.assertEquals(List.of(
+                new MatchPairing("C", "A")
+        ), roundManager.getCurrentRound());
+        
+        Assertions.assertFalse(roundManager.hasNextRound(), "round manager should not have more rounds");
+    }
+    
+    @Test
+    void test3Teams1OnDeckTeamQuits() {
+        int arenas = 5;
+        RoundManager roundManager = new RoundManager(List.of("A", "B", "C"), arenas);
+        // now we're in round 1
+        Assertions.assertEquals(List.of(
+                new MatchPairing("B", "C")
+        ), roundManager.getCurrentRound());
+        
+        // Now team "A" quits
+        roundManager.regenerateRounds(List.of("B", "C"), arenas);
+        // Assert that the current round hasn't changed
+        Assertions.assertEquals(List.of(
+                new MatchPairing("B", "C")
+        ), roundManager.getCurrentRound());
+        
+        Assertions.assertFalse(roundManager.hasNextRound(), "there shouldn't be any more rounds");
+    }
+    
+    @Test
+    void test3Teams1ParticipantTeamQuits() {
+        int arenas = 5;
+        RoundManager roundManager = new RoundManager(List.of("A", "B", "C"), arenas);
+        // now we're in round 1
+        Assertions.assertEquals(List.of(
+                new MatchPairing("B", "C")
+        ), roundManager.getCurrentRound());
+        
+        // Now team "B" quits
+        roundManager.regenerateRounds(List.of("A", "C"), arenas);
+        // Assert that the current round hasn't changed
+        Assertions.assertEquals(List.of(
+                new MatchPairing("B", "C")
+        ), roundManager.getCurrentRound());
+        
+        roundManager.nextRound();
+        // now we're in round 2
+        Assertions.assertEquals(List.of(
+                new MatchPairing("A", "C")
+        ), roundManager.getCurrentRound());
+        
+        Assertions.assertFalse(roundManager.hasNextRound(), "there shouldn't be any more rounds");
     }
 }

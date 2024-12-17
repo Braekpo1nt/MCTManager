@@ -41,6 +41,25 @@ public class TimeStringUtils {
                 .append(Component.text(String.format("%02d", seconds)));
     }
     
+    /**
+     * Returns the given milliseconds as a string representing time in the format
+     * MM:ss:mmm (or minutes:seconds:milliseconds)
+     * @param timeMillis The time in milliseconds
+     * @return Time string MM:ss:mmm
+     */
+    public static Component getTimeComponentMillis(long timeMillis) {
+        Duration duration = Duration.ofMillis(timeMillis);
+        long minutes = duration.toMinutes();
+        long seconds = duration.minusMinutes(minutes).getSeconds();
+        long millis = duration.minusMinutes(minutes).minusSeconds(seconds).toMillis();
+        return Component.empty()
+                .append(Component.text(minutes))
+                .append(Component.text(":"))
+                .append(Component.text(String.format("%02d", seconds)))
+                .append(Component.text(":"))
+                .append(Component.text(String.format("%03d", millis)));
+    }
+    
     public static TextColor getColorForTime(int seconds) {
         switch (seconds) {
             case 3 -> {

@@ -1,13 +1,14 @@
 package org.braekpo1nt.mctmanager.ui.topbar.components;
 
-import com.google.common.base.Preconditions;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -54,8 +55,14 @@ public class TeamComponent {
      * @return a list containing `living` trues, and `dead` falses, in that order
      */
     private @NotNull List<@NotNull Boolean> createAlive(int living, int dead) {
-        Preconditions.checkArgument(living >= 0, "living can't be negative");
-        Preconditions.checkArgument(dead >= 0, "dead can't be negative");
+        if (living < 0) {
+            UIUtils.logUIError("living can't be negative");
+            return Collections.emptyList();
+        }
+        if (dead < 0) {
+            UIUtils.logUIError("dead can't be negative");
+            return Collections.emptyList();
+        }
         List<Boolean> newAlive = new ArrayList<>(living + dead);
         for (int i = 0; i < living; i++) {
             newAlive.add(true);

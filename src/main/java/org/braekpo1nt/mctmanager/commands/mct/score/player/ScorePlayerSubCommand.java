@@ -66,8 +66,8 @@ public class ScorePlayerSubCommand extends TabSubCommand {
         if (player != null) {
             displayName = player.displayName();
         } else {
-            String team = gameManager.getTeamName(uuid);
-            NamedTextColor teamColor = gameManager.getTeamNamedTextColor(team);
+            String team = gameManager.getTeamId(uuid);
+            NamedTextColor teamColor = gameManager.getTeamColor(team);
             displayName = Component.text(playerName).color(teamColor);
         }
         return CommandResult.success(Component.empty()
@@ -86,7 +86,7 @@ public class ScorePlayerSubCommand extends TabSubCommand {
                         .decorate(TextDecoration.BOLD));
         List<OfflinePlayer> sortedOfflinePlayers = GameManagerUtils.getSortedOfflineParticipants(gameManager);
         for (OfflinePlayer participant : sortedOfflinePlayers) {
-            Component displayName = gameManager.getDisplayName(participant);
+            Component displayName = gameManager.getParticipantDisplayName(participant);
             int score = gameManager.getScore(participant.getUniqueId());
             builder.append(Component.empty()
                     .append(Component.newline())
@@ -105,7 +105,7 @@ public class ScorePlayerSubCommand extends TabSubCommand {
             return Collections.emptyList();
         }
         List<String> result = new ArrayList<>(Collections.singletonList("all"));
-        result.addAll(CommandUtils.partialMatchParticipantsTabList(gameManager, args[0]));
-        return result;
+        result.addAll(gameManager.getAllParticipantNames());
+        return CommandUtils.partialMatchTabList(result, args[0]);
     }
 }

@@ -5,7 +5,6 @@ import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.ItemStackDTO;
-import org.braekpo1nt.mctmanager.config.dto.org.bukkit.util.BoundingBoxDTO;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
@@ -47,7 +46,7 @@ record SpleefConfigDTO(
         String version, 
         String world, 
         List<Vector> startingLocations,
-        @Nullable BoundingBoxDTO spectatorArea, 
+        @Nullable BoundingBox spectatorArea, 
         @Nullable Material stencilBlock, 
         @Nullable Material layerBlock, 
         @Nullable Material decayBlock, 
@@ -71,7 +70,6 @@ record SpleefConfigDTO(
         validator.validate(!this.startingLocations.isEmpty(), "startingLocations must have at least one entry");
         validator.validate(!this.startingLocations.contains(null), "startingLocations can't contain any null elements");
         if (spectatorArea != null) {
-            BoundingBox spectatorArea = this.spectatorArea.toBoundingBox();
             validator.validate(spectatorArea.getVolume() >= 1.0, "spectatorArea (%s) volume (%s) must be at least 1.0", spectatorArea, spectatorArea.getVolume());
         }
         validator.validate(this.layers != null, "layers can't be null");
@@ -123,7 +121,7 @@ record SpleefConfigDTO(
             newStructures.add(structure);
             newStructureOrigins.add(layer.structureOrigin().toLocation(newWorld));
             Preconditions.checkArgument(layer.decayArea() != null, "decayArea can't be null");
-            newDecayLayers.add(layer.decayArea().toBoundingBox());
+            newDecayLayers.add(layer.decayArea());
         }
         
         return SpleefConfig.builder()
@@ -151,7 +149,7 @@ record SpleefConfigDTO(
                 .descriptionDuration(this.durations.description)
                 .preventInteractions(this.preventInteractions != null ? this.preventInteractions : Collections.emptyList())
                 .safetyArea(this.safetyArea)
-                .spectatorArea(this.spectatorArea != null ? this.spectatorArea.toBoundingBox() : null)
+                .spectatorArea(this.spectatorArea)
                 .description(this.description)
                 .build();
     }
@@ -195,8 +193,8 @@ record SpleefConfigDTO(
     @NotNull ItemStack getTool() {
         if (this.tool() == null) {
             ItemStack newTool = new ItemStack(Material.DIAMOND_SHOVEL);
-            newTool.addEnchantment(Enchantment.DIG_SPEED, 5);
-            newTool.addUnsafeEnchantment(Enchantment.DURABILITY, 10);
+            newTool.addEnchantment(Enchantment.EFFICIENCY, 5);
+            newTool.addUnsafeEnchantment(Enchantment.UNBREAKING, 10);
             return newTool;
         }
         return this.tool().toItemStack();

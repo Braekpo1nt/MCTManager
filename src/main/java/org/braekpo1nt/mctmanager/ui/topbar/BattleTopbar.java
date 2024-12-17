@@ -1,11 +1,12 @@
 package org.braekpo1nt.mctmanager.ui.topbar;
 
 
-import com.google.common.base.Preconditions;
 import lombok.Data;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
+import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.topbar.components.KillDeathComponent;
+import org.braekpo1nt.mctmanager.ui.topbar.components.ManyVersusComponent;
 import org.braekpo1nt.mctmanager.ui.topbar.components.TeamComponent;
 import org.braekpo1nt.mctmanager.ui.topbar.components.VersusComponent;
 import org.bukkit.entity.Player;
@@ -17,7 +18,7 @@ import java.util.*;
 /**
  * An implementation of a Topbar specifically oriented toward pairs of teams fighting each other.
  * You can add pairs of fighting teams, and add members to them. Then you can add viewers of
- * the Topbar, and each viewer is associated with one of the teams.
+ * the Topbar, and each viewer can be associated with one of the teams or just an observer.
  */
 public class BattleTopbar implements Topbar {
     
@@ -58,56 +59,33 @@ public class BattleTopbar implements Topbar {
      * Each player's PlayerData
      */
     private final Map<UUID, PlayerData> playerDatas = new HashMap<>();
-    /**
-     * the component to use as the default left section of the BossBar display
-     * if the viewing player is not linked to a team. 
-     * @see BattleTopbar#linkToTeam(UUID, String) 
-     * @see BattleTopbar#unlinkFromTeam(UUID) 
-     */
-    protected @NotNull Component noTeamLeft;
+    private final ManyVersusComponent allBattles;
     
     public BattleTopbar() {
-        this.noTeamLeft = Component.empty();
-    }
-    
-    /**
-     * @param noTeamLeft the component to use as the default left section of the 
-     *                   BossBar display if the viewing player is not linked to a team.
-     */
-    public BattleTopbar(@NotNull Component noTeamLeft) {
-        this.noTeamLeft = noTeamLeft;
-    }
-    
-    /**
-     * @param noTeamLeft the component to use as the default left section of the 
-     *                   BossBar display if the viewing player is not linked to a team.
-     */
-    public void setNoTeamLeft(@NotNull Component noTeamLeft) {
-        this.noTeamLeft = noTeamLeft;
-        for (PlayerData playerData : playerDatas.values()) {
-            update(playerData);
-        }
+        this.allBattles = new ManyVersusComponent();
     }
     
     /**
      * @param teamId the teamId of the TeamData. Must be a valid key in {@link BattleTopbar#teamDatas} 
      * @return the {@link TeamData} associated with this team
-     * @throws IllegalArgumentException if the teamId is not contained in {@link BattleTopbar#teamDatas}
      */
-    private @NotNull TeamData getTeamData(@NotNull String teamId) {
+    private @Nullable TeamData getTeamData(@NotNull String teamId) {
         TeamData teamData = teamDatas.get(teamId);
-        Preconditions.checkArgument(teamData != null, "team %s does not exist in this BattleTopbar", teamId);
+        if (teamData == null) {
+            UIUtils.logUIError("team %s does not exist in this BattleTopbar", teamId);
+        }
         return teamData;
     }
     
     /**
      * @param playerUUID the UUID of the PlayerData. Must be a valid key in {@link BattleTopbar#playerDatas}
      * @return the {@link PlayerData} associated with this UUID
-     * @throws IllegalArgumentException if the UUID is not contained in {@link BattleTopbar#playerDatas}
      */
-    private @NotNull PlayerData getPlayerData(@NotNull UUID playerUUID) {
+    private @Nullable PlayerData getPlayerData(@NotNull UUID playerUUID) {
         PlayerData playerData = playerDatas.get(playerUUID);
-        Preconditions.checkArgument(playerData != null, "player with UUID \"%s\" does not exist in this BattleTopbar", playerUUID);
+        if (playerData == null) {
+            UIUtils.logUIError("player with UUID \"%s\" does not exist in this BattleTopbar", playerUUID);
+        }
         return playerData;
     }
     
@@ -130,9 +108,18 @@ public class BattleTopbar implements Topbar {
      * @see BattleTopbar#addTeam(String, TextColor)
      */
     public void linkTeamPair(@NotNull String teamIdA, @NotNull String teamIdB) {
-        Preconditions.checkArgument(!teamIdA.equals(teamIdB), "teamIdA can't be equal to teamIdB");
+        if (teamIdA.equals(teamIdB)) {
+            UIUtils.logUIError("teamIdA can't be equal to teamIdB (%s)", teamIdA);
+            return;
+        }
         TeamData teamDataA = getTeamData(teamIdA);
+        if (teamDataA == null) {
+            return;
+        }
         TeamData teamDataB = getTeamData(teamIdB);
+        if (teamDataB == null) {
+            return;
+        }
         
         teamDataA.setEnemyTeam(teamIdB);
         teamDataA.getVersusComponent().setRight(
@@ -143,6 +130,8 @@ public class BattleTopbar implements Topbar {
         teamDataB.getVersusComponent().setRight(
                 new TeamComponent(teamDataA.getTeamColor())
         );
+        
+        allBattles.addTeamPair(teamIdA, teamDataA.getTeamColor(), teamIdB, teamDataB.getTeamColor());
         
         update(teamDataA);
         update(teamDataB);
@@ -155,18 +144,41 @@ public class BattleTopbar implements Topbar {
      * @param teamIdB a valid teamId in this Topbar, which is linked to teamIdA
      */
     public void unlinkTeamPair(@NotNull String teamIdA, @NotNull String teamIdB) {
-        Preconditions.checkArgument(!teamIdA.equals(teamIdB), "teamIdA can't be equal to teamIdB");
+        if (teamIdA.equals(teamIdB)) {
+            UIUtils.logUIError("teamIdA can't be equal to teamIdB (%s)", teamIdA);
+            return;
+        }
         TeamData teamDataA = getTeamData(teamIdA);
+        if (teamDataA == null) {
+            return;
+        }
         TeamData teamDataB = getTeamData(teamIdB);
-        Preconditions.checkArgument(teamDataA.getEnemyTeam() != null, "%s is not linked to any team", teamIdA);
-        Preconditions.checkArgument(teamDataA.getEnemyTeam().equals(teamIdB), "%s is not linked to %s", teamDataA, teamDataB);
-        Preconditions.checkArgument(teamDataB.getEnemyTeam() != null, "%s is not linked to any team", teamIdB);
-        Preconditions.checkArgument(teamDataB.getEnemyTeam().equals(teamIdA), "%s is not linked to %s", teamDataB, teamDataA);
+        if (teamDataB == null) {
+            return;
+        }
+        if (teamDataA.getEnemyTeam() == null) {
+            UIUtils.logUIError("%s is not linked to any team", teamIdA);
+            return;
+        }
+        if (!teamDataA.getEnemyTeam().equals(teamIdB)) {
+            UIUtils.logUIError("%s is not linked to %s", teamDataA, teamDataB);
+            return;
+        }
+        if (teamDataB.getEnemyTeam() == null) {
+            UIUtils.logUIError("%s is not linked to any team", teamIdB);
+            return;
+        }
+        if (!teamDataB.getEnemyTeam().equals(teamIdA)) {
+            UIUtils.logUIError("%s is not linked to %s", teamDataB, teamDataA);
+            return;
+        }
         
         teamDataA.setEnemyTeam(null);
         teamDataA.getVersusComponent().setRight(null);
         teamDataB.setEnemyTeam(null);
         teamDataB.getVersusComponent().setRight(null);
+        
+        allBattles.removeTeamPair(teamIdA, teamIdB);
         
         update(teamDataA);
         update(teamDataB);
@@ -178,6 +190,7 @@ public class BattleTopbar implements Topbar {
      */
     public void removeAllTeamPairs() {
         teamDatas.clear();
+        allBattles.clear();
         for (PlayerData playerData : playerDatas.values()) {
             playerData.setTeamId(null);
             update(playerData);
@@ -191,7 +204,14 @@ public class BattleTopbar implements Topbar {
     private void update(@NotNull TeamData teamData) {
         for (UUID member : teamData.getViewingMembers()) {
             PlayerData playerData = getPlayerData(member);
-            playerData.getBossBar().setLeft(teamData.getVersusComponent().toComponent());
+            if (playerData != null) {
+                playerData.getBossBar().setLeft(teamData.getVersusComponent().toComponent());
+            }
+        }
+        for (PlayerData playerData : playerDatas.values()) {
+            if (playerData.getTeamId() == null) {
+                update(playerData);
+            }
         }
     }
     
@@ -203,10 +223,13 @@ public class BattleTopbar implements Topbar {
      */
     private void update(@NotNull PlayerData playerData) {
         if (playerData.getTeamId() == null) {
-            playerData.getBossBar().setLeft(noTeamLeft);
+            playerData.getBossBar().setLeft(allBattles.toComponent());
             return;
         }
         TeamData teamData = getTeamData(playerData.getTeamId());
+        if (teamData == null) {
+            return;
+        }
         playerData.getBossBar().setLeft(teamData.getVersusComponent().toComponent());
     }
     
@@ -217,14 +240,26 @@ public class BattleTopbar implements Topbar {
      * @param dead the number of dead players on the team
      */
     public void setMembers(@NotNull String teamId, int living, int dead) {
-        Preconditions.checkArgument(living >= 0, "living can't be negative");
-        Preconditions.checkArgument(dead >= 0, "dead can't be negative");
+        if (living < 0) {
+            UIUtils.logUIError("living can't be negative");
+            return;
+        }
+        if (dead < 0) {
+            UIUtils.logUIError("dead can't be negative");
+            return;
+        }
         TeamData teamData = getTeamData(teamId);
+        if (teamData == null) {
+            return;
+        }
         teamData.getVersusComponent().getLeft().setMembers(living, dead);
+        
+        allBattles.setAliveCount(teamId, living);
+        
         update(teamData);
         if (teamData.getEnemyTeam() != null) {
             TeamData enemyTeamData = getTeamData(teamData.getEnemyTeam());
-            if (enemyTeamData.getVersusComponent().getRight() != null) {
+            if (enemyTeamData != null && enemyTeamData.getVersusComponent().getRight() != null) {
                 enemyTeamData.getVersusComponent().getRight().setMembers(living, dead);
                 update(enemyTeamData);
             }
@@ -238,7 +273,10 @@ public class BattleTopbar implements Topbar {
      * @param player the player to show this Topbar to
      */
     public void showPlayer(@NotNull Player player) {
-        Preconditions.checkArgument(!playerDatas.containsKey(player.getUniqueId()), "player with UUID \"%s\" already exists in this BattleTopbar", player.getUniqueId());
+        if (playerDatas.containsKey(player.getUniqueId())) {
+            UIUtils.logUIError("player with UUID \"%s\" already exists in this BattleTopbar", player.getUniqueId());
+            return;
+        }
         
         FormattedBar bossBar = new FormattedBar(player);
         bossBar.show();
@@ -256,8 +294,18 @@ public class BattleTopbar implements Topbar {
      */
     public void linkToTeam(@NotNull UUID playerUUID, @NotNull String teamId) {
         TeamData teamData = getTeamData(teamId);
+        if (teamData == null) {
+            return;
+        }
         PlayerData playerData = getPlayerData(playerUUID);
-        Preconditions.checkArgument(playerData.getTeamId() == null, "player with UUID \"%s\" is already linked to a team in this bar: \"%s\"", playerUUID, playerData.getTeamId());
+        if (playerData == null) {
+            return;
+        }
+        if (playerData.getTeamId() != null) {
+            UIUtils.logUIError("player with UUID \"%s\" is already linked to a team in this bar: \"%s\"", 
+                    playerUUID, playerData.getTeamId());
+            return;
+        }
         
         teamData.getViewingMembers().add(playerUUID);
         playerData.setTeamId(teamId);
@@ -272,9 +320,18 @@ public class BattleTopbar implements Topbar {
      */
     public void unlinkFromTeam(@NotNull UUID playerUUID) {
         PlayerData playerData = getPlayerData(playerUUID);
-        Preconditions.checkArgument(playerData.getTeamId() != null, "player with UUID \"%s\" is not linked to any team", playerUUID);
+        if (playerData == null) {
+            return;
+        }
+        if (playerData.getTeamId() == null) {
+            UIUtils.logUIError("player with UUID \"%s\" is not linked to any team", playerUUID);
+            return;
+        }
         String teamId = playerData.getTeamId();
         TeamData teamData = getTeamData(teamId);
+        if (teamData == null) {
+            return;
+        }
         
         teamData.getViewingMembers().remove(playerUUID);
         playerData.setTeamId(teamId);
@@ -288,10 +345,15 @@ public class BattleTopbar implements Topbar {
      */
     public void hidePlayer(@NotNull UUID playerUUID) {
         PlayerData playerData = playerDatas.remove(playerUUID);
-        Preconditions.checkArgument(playerData != null, "player with UUID \"%s\" does not exist in this BattleTopbar", playerUUID);
+        if (playerData == null) {
+            UIUtils.logUIError("player with UUID \"%s\" does not exist in this BattleTopbar", playerUUID);
+            return;
+        }
         if (playerData.getTeamId() != null) {
             TeamData teamData = getTeamData(playerData.getTeamId());
-            teamData.getViewingMembers().remove(playerUUID);
+            if (teamData != null) {
+                teamData.getViewingMembers().remove(playerUUID);
+            }
         }
         playerData.getBossBar().hide();
     }
@@ -329,6 +391,9 @@ public class BattleTopbar implements Topbar {
     @Override
     public void setLeft(@NotNull UUID playerUUID, @NotNull Component left) {
         PlayerData playerData = getPlayerData(playerUUID);
+        if (playerData == null) {
+            return;
+        }
         playerData.getBossBar().setLeft(left);
     }
     
@@ -348,6 +413,9 @@ public class BattleTopbar implements Topbar {
     @Override
     public void setMiddle(@NotNull UUID playerUUID, @NotNull Component middle) {
         PlayerData playerData = getPlayerData(playerUUID);
+        if (playerData == null) {
+            return;
+        }
         playerData.getBossBar().setMiddle(middle);
     }
     
@@ -367,6 +435,9 @@ public class BattleTopbar implements Topbar {
     @Override
     public void setRight(@NotNull UUID playerUUID, @NotNull Component right) {
         PlayerData playerData = getPlayerData(playerUUID);
+        if (playerData == null) {
+            return;
+        }
         playerData.getBossBar().setRight(right);
     }
     
@@ -376,6 +447,9 @@ public class BattleTopbar implements Topbar {
      */
     public void setKills(@NotNull UUID playerUUID, int kills) {
         PlayerData playerData = getPlayerData(playerUUID);
+        if (playerData == null) {
+            return;
+        }
         if (playerData.getKillDeathComponent() == null) {
             playerData.setKillDeathComponent(new KillDeathComponent());
         }
@@ -389,6 +463,9 @@ public class BattleTopbar implements Topbar {
      */
     public void setDeaths(@NotNull UUID playerUUID, int deaths) {
         PlayerData playerData = getPlayerData(playerUUID);
+        if (playerData == null) {
+            return;
+        }
         if (playerData.getKillDeathComponent() == null) {
             playerData.setKillDeathComponent(new KillDeathComponent());
         }
@@ -403,6 +480,9 @@ public class BattleTopbar implements Topbar {
      */
     public void setKillsAndDeaths(@NotNull UUID playerUUID, int kills, int deaths) {
         PlayerData playerData = getPlayerData(playerUUID);
+        if (playerData == null) {
+            return;
+        }
         if (playerData.getKillDeathComponent() == null) {
             playerData.setKillDeathComponent(new KillDeathComponent());
         }
@@ -410,5 +490,4 @@ public class BattleTopbar implements Topbar {
         playerData.getKillDeathComponent().setDeaths(deaths);
         playerData.getBossBar().setRight(playerData.getKillDeathComponent().toComponent());
     }
-    
 }

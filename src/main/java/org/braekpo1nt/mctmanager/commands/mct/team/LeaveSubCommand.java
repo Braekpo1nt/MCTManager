@@ -51,6 +51,6 @@ public class LeaveSubCommand extends TabSubCommand {
         if (args.length != 1) {
             return Collections.emptyList();
         }
-        return CommandUtils.partialMatchParticipantsTabList(gameManager, args[0]);
+        return CommandUtils.partialMatchTabList(gameManager.getAllParticipantNames(), args[0]);
     }
 }

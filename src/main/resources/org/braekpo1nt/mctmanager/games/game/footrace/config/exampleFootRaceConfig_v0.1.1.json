@@ -1,0 +1,63 @@
+{
+  "version": "0.1.1",
+  "world": "TestWorld",
+  "startingLocation": {
+    "x": 2400,
+    "y": 76,
+    "z": 312,
+    "yaw": -180,
+    "pitch": 0
+  },
+  "finishLine": {
+    "minX": 2396,
+    "minY": 80,
+    "minZ": 295,
+    "maxX": 2404,
+    "maxY": 79,
+    "maxZ": 308
+  },
+  "spectatorArea": {
+    "minX": 2393,
+    "minY": 60,
+    "minZ": 246,
+    "maxX": 2614,
+    "maxY": 113,
+    "maxZ": 439
+  },
+  "glassBarrier": {
+    "minX": 2397,
+    "minY": 76,
+    "minZ": 317,
+    "maxX": 2403,
+    "maxY": 80,
+    "maxZ": 317
+  },
+  "preventInteractions": [
+    "OAK_TRAPDOOR",
+    "SPRUCE_TRAPDOOR",
+    "BIRCH_TRAPDOOR",
+    "JUNGLE_TRAPDOOR",
+    "ACACIA_TRAPDOOR",
+    "DARK_OAK_TRAPDOOR",
+    "CRIMSON_TRAPDOOR",
+    "WARPED_TRAPDOOR"
+  ],
+  "scores": {
+    "completeLap": 5,
+    "placementPoints": [
+      350,
+      275,
+      200,
+      170,
+      150
+    ],
+    "detriment": 10
+  },
+  "durations": {
+    "startRace": 10,
+    "raceEndCountdown": 60,
+    "description": 10,
+    "end": 10
+  },
+  "description": ["",{"text":"-----------------------","bold":true,"color":"gray"},{"text":"\n"},{"text":"How To Play","bold":true,"color":"yellow"},{"text":" Foot Race","bold":true,"color":"yellow"},{"text":"\n"},{"text":"Circle the map a total of 3 times!\nWatch out for soul sand and warped stem!\nMake sure you stay up front, because the lead earns more points than everyone else!","color":"#FFFFDF"},{"text":"\n"},{"text":"-----------------------","bold":true,"color":"gray"}]
+}

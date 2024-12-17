@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.config;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonIOException;
+import com.google.gson.JsonParseException;
 import com.google.gson.JsonSyntaxException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
@@ -47,7 +48,7 @@ public abstract class ConfigController<T> {
             return configDTO;
         } catch (IOException | JsonIOException e) {
             throw new ConfigIOException(String.format("Error while reading %s", configFile), e);
-        } catch (JsonSyntaxException e) {
+        } catch (JsonParseException e) {
             throw new ConfigInvalidException(String.format("Error parsing %s", configFile), e);
         }
     }

@@ -2,39 +2,39 @@
   "version": "0.1.0",
   "world": "TestWorld",
   "spawnObservatory": {
-    "x": 0,
+    "x": 106,
     "y": 0,
     "z": -1000
   },
   "arenas": [
     {
       "northSpawn": {
-        "x": -15,
+        "x": 121,
         "y": -16,
         "z": -1043
       },
       "southSpawn": {
-        "x": -15,
+        "x": 121,
         "y": -16,
         "z": -1003
       },
       "northFlag": {
-        "x": -6,
-        "y": -13,
+        "x": 112,
+        "y": -16,
         "z": -1040
       },
       "southFlag": {
-        "x": -24,
-        "y": -13,
+        "x": 130,
+        "y": -16,
         "z": -1006
       },
       "northBarrier": {
-        "x": -17,
+        "x": 119,
         "y": -16,
         "z": -1042
       },
       "southBarrier": {
-        "x": -17,
+        "x": 119,
         "y": -16,
         "z": -1004
       },
@@ -44,42 +44,42 @@
         "zSize": 1
       },
       "boundingBox": {
-        "minX": -26,
+        "minX": 132,
         "minY": -17,
         "minZ": -1001,
-        "maxX": -4,
+        "maxX": 110,
         "maxY": 4,
         "maxZ": -1045
       }
     },
     {
       "northSpawn": {
-        "x": 15,
+        "x": 91,
         "y": -16,
         "z": -1043
       },
       "southSpawn": {
-        "x": 15,
+        "x": 91,
         "y": -16,
         "z": -1003
       },
       "northFlag": {
-        "x": 24,
-        "y": -13,
+        "x": 82,
+        "y": -16,
         "z": -1040
       },
       "southFlag": {
-        "x": 6,
-        "y": -13,
+        "x": 100,
+        "y": -16,
         "z": -1006
       },
       "northBarrier": {
-        "x": 13,
+        "x": 89,
         "y": -16,
         "z": -1042
       },
       "southBarrier": {
-        "x": 13,
+        "x": 89,
         "y": -16,
         "z": -1004
       },
@@ -89,42 +89,42 @@
         "zSize": 1
       },
       "boundingBox": {
-        "minX": 4,
+        "minX": 102,
         "minY": 4,
         "minZ": -1045,
-        "maxX": 26,
+        "maxX": 80,
         "maxY": -17,
         "maxZ": -1001
       }
     },
     {
       "northSpawn": {
-        "x": -15,
+        "x": 91,
         "y": -16,
         "z": -997
       },
       "southSpawn": {
-        "x": -15,
+        "x": 91,
         "y": -16,
         "z": -957
       },
       "northFlag": {
-        "x": -6,
-        "y": -13,
+        "x": 82,
+        "y": -16,
         "z": -994
       },
       "southFlag": {
-        "x": -24,
-        "y": -13,
+        "x": 100,
+        "y": -16,
         "z": -960
       },
       "northBarrier": {
-        "x": -17,
+        "x": 89,
         "y": -16,
         "z": -996
       },
       "southBarrier": {
-        "x": -17,
+        "x": 89,
         "y": -16,
         "z": -958
       },
@@ -134,42 +134,42 @@
         "zSize": 1
       },
       "boundingBox": {
-        "minX": -4,
+        "minX": 102,
         "minY": -17,
         "minZ": -999,
-        "maxX": -26,
+        "maxX": 80,
         "maxY": 4,
         "maxZ": -955
       }
     },
     {
       "northSpawn": {
-        "x": 15,
+        "x": 121,
         "y": -16,
         "z": -997
       },
       "southSpawn": {
-        "x": 15,
+        "x": 121,
         "y": -16,
         "z": -957
       },
       "northFlag": {
-        "x": 24,
-        "y": -13,
+        "x": 112,
+        "y": -16,
         "z": -994
       },
       "southFlag": {
-        "x": 6,
-        "y": -13,
+        "x": 130,
+        "y": -16,
         "z": -960
       },
       "northBarrier": {
-        "x": 13,
+        "x": 119,
         "y": -16,
         "z": -996
       },
       "southBarrier": {
-        "x": 13,
+        "x": 119,
         "y": -16,
         "z": -958
       },
@@ -179,36 +179,93 @@
         "zSize": 1
       },
       "boundingBox": {
-        "minX": 4,
+        "minX": 132,
         "minY": 4,
         "minZ": -955,
-        "maxX": 26,
+        "maxX": 110,
         "maxY": -17,
         "maxZ": -999
+      }
+    },
+    {"northSpawn": {
+      "x": 126,
+      "y": -16,
+      "z": -943
+    },
+      "southSpawn": {
+        "x": 86,
+        "y": -16,
+        "z": -943
+      },
+      "northFlag": {
+        "x": 123,
+        "y": -16,
+        "z": -952
+      },
+      "southFlag": {
+        "x": 89,
+        "y": -16,
+        "z": -934
+      },
+      "northBarrier": {
+        "x": 125,
+        "y": -16,
+        "z": -945
+      },
+      "southBarrier": {
+        "x": 87,
+        "y": -16,
+        "z": -945
+      },
+      "barrierSize": {
+        "xSize": 1,
+        "ySize": 4,
+        "zSize": 5
+      },
+      "boundingBox": {
+        "minX": 84,
+        "minY": -17,
+        "minZ": -954,
+        "maxX": 128,
+        "maxY": -4,
+        "maxZ": -932
       }
     }
   ],
   "loadouts": {
-    "KNIGHT": {
-      "menuItem": "STONE_SWORD",
-      "name": "Knight",
+    "PALADIN": {
+      "menuItem": "WOODEN_SWORD",
+      "name": "Paladin",
       "menuLore": [
-        "- Stone Sword",
-        "- Chest Plate",
-        "- Boots"
+        {"text":"- Wood Sword"},
+        {"text":"- Full Leather Armor"},
+        {"text":"- Health Potion"}
       ],
       "inventory": {
         "contents": {
           "36": {
             "type": "LEATHER_BOOTS"
           },
+          "37":{
+            "type": "LEATHER_LEGGINGS"
+          },
+          "39":{
+            "type": "LEATHER_HELMET"
+          },
           "38": {
             "type": "LEATHER_CHESTPLATE"
           },
           "0": {
-            "type": "STONE_SWORD"
+            "type": "WOODEN_SWORD"
           },
-          "1": {
+          "1":{
+            "type": "SPLASH_POTION",
+            "amount": 1,
+            "itemMeta": {
+              "basePotionType": "HEALING"
+            }
+          },
+          "2": {
             "type": "COOKED_BEEF",
             "amount": 2
           }
@@ -251,69 +308,75 @@
       "menuItem": "IRON_SWORD",
       "name": "Assassin",
       "menuLore": [
-        {
-          "text": "- Iron Sword"
-        },
-        {
-          "text": "- Leather Leggings"
-        }
+        {"text":"- Iron Sword"},
+        {"text":"- Leather Leggings"}
       ],
       "inventory": {
         "contents": {
           "0": {
             "type": "IRON_SWORD",
             "itemMeta": {
-              "displayName": {"text": "Assassin's Knife"}
+              "displayName": "Assassin's Knife"
             }
           },
           "1": {
             "type": "COOKED_BEEF",
             "amount": 2
+          },
+          "37": {
+            "type": "LEATHER_LEGGINGS"
           }
         }
       }
     },
-    "TANK": {
-      "menuItem": "LEATHER_CHESTPLATE",
-      "name": "Tank",
+    "ARBALIST": {
+      "menuItem": "CROSSBOW",
+      "name": "Arbalist",
       "menuLore": [
-        "- Full Leather Armor",
-        "- Chainmail Leggings",
-        "- Iron Hoe"
+        {"text":"- Crossbow"},
+        {"text":"- Slowness Arrow"},
+        {"text":"- 8 Arrows"},
+        {"text":"- Wooden Sword"},
+        {"text":"- Leggings"}
       ],
       "inventory": {
         "contents": {
-          "36": {
-            "type": "LEATHER_BOOTS"
-          },
           "37": {
-            "type": "CHAINMAIL_LEGGINGS"
+            "type": "LEATHER_LEGGINGS"
           },
-          "38": {
-            "type": "LEATHER_CHESTPLATE"
+          "0": {
+            "type": "WOODEN_SWORD"
           },
-          "1": {
+          "4": {
             "type": "COOKED_BEEF",
             "amount": 2
           },
-          "0": {
-            "type": "IRON_HOE"
+          "1":{
+            "type": "CROSSBOW"
+          },
+          "2":{
+            "type": "ARROW",
+            "amount": 8
+          },
+          "3":{
+            "type": "TIPPED_ARROW",
+            "itemMeta": {
+              "basePotionType": "SLOWNESS"
+            }
           }
         }
       }
     },
-    "HEALER":{
-      "name": "Healer",
+    "POTIONEER":{
+      "name": "Potioneer",
       "menuItem": "SPLASH_POTION",
       "menuLore": [
-        "- Some Leather Armor",
-        "- Wooden Sword",
-        "- 2 Healing Potions"
+        {"text":"- Some Leather Armor"},
+        {"text":"- Wooden Sword"},
+        {"text":"- 2 Healing Potions"}
       ],
       "menuMeta": {
-        "basePotionData": {
-          "type": "INSTANT_HEAL"
-        }
+        "basePotionType": "HEALING"
       },
       "inventory": {
         "contents": {
@@ -334,12 +397,37 @@
             "type": "SPLASH_POTION",
             "amount": 2,
             "itemMeta": {
-              "basePotionData": {
-                "type": "INSTANT_HEAL",
-                "extended": false,
-                "upgraded": false
-              }
+              "basePotionType": "HEALING"
             }
+          },
+          "2":{
+            "type": "SPLASH_POTION",
+            "amount": 1,
+            "itemMeta": {
+              "basePotionType": "HARMING"
+            }
+          }
+        }
+      }
+    },
+    "BERSERKER":{
+      "name": "Berserker",
+      "menuItem": "STONE_AXE",
+      "menuLore": [
+        {"text":"- Leather Boots"},
+        {"text":"- Stone Axe"}
+      ],
+      "inventory": {
+        "contents": {
+          "36": {
+            "type": "LEATHER_BOOTS"
+          },
+          "1": {
+            "type": "COOKED_BEEF",
+            "amount": 2
+          },
+          "0": {
+            "type": "STONE_AXE"
           }
         }
       }
@@ -354,24 +442,55 @@
     "maxZ": -958
   },
   "preventInteractions": [
+    "IRON_TRAPDOOR",
     "OAK_TRAPDOOR",
     "SPRUCE_TRAPDOOR",
     "BIRCH_TRAPDOOR",
     "JUNGLE_TRAPDOOR",
     "ACACIA_TRAPDOOR",
+    "CHERRY_TRAPDOOR",
     "DARK_OAK_TRAPDOOR",
+    "MANGROVE_TRAPDOOR",
+    "BAMBOO_TRAPDOOR",
     "CRIMSON_TRAPDOOR",
-    "WARPED_TRAPDOOR"
+    "WARPED_TRAPDOOR",
+    "COPPER_TRAPDOOR",
+    "EXPOSED_COPPER_TRAPDOOR",
+    "WEATHERED_COPPER_TRAPDOOR",
+    "OXIDIZED_COPPER_TRAPDOOR",
+    "WAXED_COPPER_TRAPDOOR",
+    "WAXED_EXPOSED_COPPER_TRAPDOOR",
+    "WAXED_WEATHERED_COPPER_TRAPDOOR",
+    "WAXED_OXIDIZED_COPPER_TRAPDOOR",
+    "LEGACY_IRON_TRAPDOOR",
+    "STONE_BUTTON",
+    "POLISHED_BLACKSTONE_BUTTON",
+    "OAK_BUTTON",
+    "SPRUCE_BUTTON",
+    "BIRCH_BUTTON",
+    "JUNGLE_BUTTON",
+    "ACACIA_BUTTON",
+    "CHERRY_BUTTON",
+    "DARK_OAK_BUTTON",
+    "MANGROVE_BUTTON",
+    "BAMBOO_BUTTON",
+    "CRIMSON_BUTTON",
+    "WARPED_BUTTON",
+    "LEGACY_STONE_BUTTON",
+    "LEGACY_WOOD_BUTTON",
+    "LEVER",
+    "LEGACY_LEVER",
+    "SWEET_BERRY_BUSH"
   ],
   "scores": {
-    "kill": 20,
+    "kill": 50,
     "win": 100
   },
   "durations": {
     "matchesStarting": 10,
     "classSelection": 20,
     "roundTimer": 180,
-    "description": 10
+    "description": 15
   },
-  "description": ["",{"text":"How To Play","bold":true,"color":"yellow"},{"text":" Capture The Flag","bold":true,"color":"yellow"},{"text":"\n"},{"text":"Two teams will be placed in a court, first one to collect the banner on the opposite side and deliver it to their own banner wins!\nAfter all teams have played each other, the game ends (So get them points!)\nIn Capture the Flag their are 4 classes. Assassin, Knight, Tank, and Archer. Only one of each class may be selected on a team.\n-The Assassin has an iron sword, but no armor.\n-The Knight has leather boots and a chestplate, as well as a stone sword.\n-The Tank has leather pants, boots, and tunic, but no weapons.\n-The Archer has a wood sword, leather boots and tunic, a bow, and 16 arrows.","color":"#FFFFDF"}]
+  "description": ["",{"text":"How To Play","bold":true,"color":"yellow"},{"text":" Capture The Flag","bold":true,"color":"yellow"},{"text":"\n"},{"text":"Two teams will be placed in a court, first one to collect the banner on the opposite side and deliver it to their own banner wins!\nAfter all teams have played each other, the game ends (So get them points!)\nIn Capture the Flag there are multiple classes. Only one of each class may be selected on a team.\nA breif description can by found by hovering over the class' item.","color":"#FFFFDF"}]
 }

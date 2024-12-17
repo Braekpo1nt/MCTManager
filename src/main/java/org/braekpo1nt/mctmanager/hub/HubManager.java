@@ -6,6 +6,7 @@ import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
+import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.hub.config.HubConfig;
 import org.braekpo1nt.mctmanager.hub.config.HubConfigController;
@@ -13,8 +14,11 @@ import org.braekpo1nt.mctmanager.hub.leaderboard.LeaderboardManager;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
+import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -22,12 +26,15 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class HubManager implements Listener, Configurable {
     
@@ -38,12 +45,12 @@ public class HubManager implements Listener, Configurable {
     /**
      * Contains a list of the players who are about to be sent to the hub and can see the countdown
      */
-    private final List<Player> headingToHub = new ArrayList<>();
+    private final Set<Player> headingToHub = new HashSet<>();
     private boolean boundaryEnabled = true;
     /**
      * A list of the participants who are in the hub
      */
-    private final List<Player> participants = new ArrayList<>();
+    private final Set<Player> participants = new HashSet<>();
     private final TimerManager timerManager;
     
     public HubManager(Main plugin, GameManager gameManager) {
@@ -92,7 +99,7 @@ public class HubManager implements Listener, Configurable {
     private void returnParticipantsToHub(List<Player> newParticipants, List<Player> newAdmins, int duration) {
         headingToHub.addAll(newParticipants);
         final List<Player> adminsHeadingToHub = new ArrayList<>(newAdmins);
-        final Sidebar sidebar = gameManager.getSidebarFactory().createSidebar();
+        final Sidebar sidebar = gameManager.createSidebar();
         sidebar.addPlayers(newParticipants);
         sidebar.addPlayers(newAdmins);
         sidebar.addLine("backToHub", String.format("Back to Hub: %s", duration));
@@ -103,7 +110,7 @@ public class HubManager implements Listener, Configurable {
                 .onCompletion(() -> {
                     sidebar.deleteAllLines();
                     sidebar.removeAllPlayers();
-                    returnParticipantsToHubInstantly(headingToHub, adminsHeadingToHub);
+                    returnParticipantsToHubInstantly(new ArrayList<>(headingToHub), adminsHeadingToHub);
                     headingToHub.clear();
                     adminsHeadingToHub.clear();
                 })
@@ -123,13 +130,13 @@ public class HubManager implements Listener, Configurable {
     private void returnParticipantToHub(Player participant) {
         participant.sendMessage(Component.text("Returning to hub"));
         participant.teleport(config.getSpawn());
-        participant.setBedSpawnLocation(config.getSpawn(), true);
+        participant.setRespawnLocation(config.getSpawn(), true);
         initializeParticipant(participant);
     }
     
     private void initializeParticipant(Player participant) {
         participants.add(participant);
-        participant.getInventory().clear();
+        ParticipantInitializer.clearInventory(participant);
         participant.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
@@ -165,7 +172,7 @@ public class HubManager implements Listener, Configurable {
         } else {
             participant.teleport(config.getPodiumObservation());
         }
-        participant.setBedSpawnLocation(config.getSpawn(), true);
+        participant.setRespawnLocation(config.getSpawn(), true);
         initializeParticipant(participant);
     }
     
@@ -200,7 +207,7 @@ public class HubManager implements Listener, Configurable {
         for (LeaderboardManager leaderboardManager : leaderboardManagers) {
             leaderboardManager.onParticipantQuit(participant);
         }
-        participant.setBedSpawnLocation(config.getSpawn(), true);
+        participant.setRespawnLocation(config.getSpawn(), true);
     }
     
     public void onAdminJoin(Player admin) {
@@ -208,7 +215,7 @@ public class HubManager implements Listener, Configurable {
     }
     
     public void onAdminQuit(Player admin) {
-        
+        // do nothing
     }
     
     public void updateLeaderboards() {
@@ -240,19 +247,38 @@ public class HubManager implements Listener, Configurable {
     
     @EventHandler
     public void onPlayerDamage(EntityDamageEvent event) {
-        if (event.getCause().equals(EntityDamageEvent.DamageCause.VOID)) {
+        if (GameManagerUtils.EXCLUDED_CAUSES.contains(event.getCause())) {
             return;
         }
         if (!(event.getEntity() instanceof Player participant)) {
             return;
         }
         if (participants.contains(participant)) {
+            Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "HubManager.onPlayerDamage()->participant contains cancelled");
             event.setCancelled(true);
             return;
         }
         if (headingToHub.contains(participant)) {
+            Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "HubManager.onPlayerDamage()->headingToHub contains cancelled");
             event.setCancelled(true);
         }
+    }
+    
+    @EventHandler
+    public void onPlayerInteract(PlayerInteractEvent event) {
+        Block clickedBlock = event.getClickedBlock();
+        if (clickedBlock == null) {
+            return;
+        }
+        Player participant = event.getPlayer();
+        if (!participants.contains(participant) && !headingToHub.contains(participant)) {
+            return;
+        }
+        Material blockType = clickedBlock.getType();
+        if (!config.getPreventInteractions().contains(blockType)) {
+            return;
+        }
+        event.setCancelled(true);
     }
     
     @EventHandler

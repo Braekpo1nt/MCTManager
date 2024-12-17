@@ -46,7 +46,7 @@ public class FormattedBar {
     
     
     public FormattedBar(Player viewer) {
-        this.bossBar = BossBar.bossBar(Component.empty(), 1f, BossBar.Color.WHITE, BossBar.Overlay.PROGRESS);
+        this.bossBar = BossBar.bossBar(Component.empty(), 0f, BossBar.Color.WHITE, BossBar.Overlay.PROGRESS);
         this.viewer = viewer;
         this.left = Component.empty();
         this.middle = Component.empty();

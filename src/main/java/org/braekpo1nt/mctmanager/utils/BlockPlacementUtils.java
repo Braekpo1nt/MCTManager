@@ -1,17 +1,42 @@
 package org.braekpo1nt.mctmanager.utils;
 
+import com.sk89q.worldedit.EditSession;
+import com.sk89q.worldedit.MaxChangedBlocksException;
+import com.sk89q.worldedit.WorldEdit;
+import com.sk89q.worldedit.WorldEditException;
+import com.sk89q.worldedit.bukkit.BukkitAdapter;
+import com.sk89q.worldedit.extent.clipboard.Clipboard;
+import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormat;
+import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormats;
+import com.sk89q.worldedit.extent.clipboard.io.ClipboardReader;
+import com.sk89q.worldedit.function.operation.Operation;
+import com.sk89q.worldedit.function.operation.Operations;
+import com.sk89q.worldedit.math.BlockVector3;
+import com.sk89q.worldedit.regions.CuboidRegion;
+import com.sk89q.worldedit.session.ClipboardHolder;
+import com.sk89q.worldedit.world.block.BlockTypes;
+import org.braekpo1nt.mctmanager.Main;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Tag;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.MultipleFacing;
 import org.bukkit.block.data.Rotatable;
 import org.bukkit.util.BoundingBox;
+import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.logging.Level;
 
 public class BlockPlacementUtils {
     /**
@@ -225,7 +250,7 @@ public class BlockPlacementUtils {
      * @return the location below the given location that is a solid block. If there are no solid blocks, returns the given location. 
      */
     public static Location getSolidBlockBelow(@NotNull Location location) {
-        Location nonAirLocation = location.subtract(0, 1, 0);
+        Location nonAirLocation = location.clone().subtract(0, 1, 0);
         int minHeight = location.getWorld().getMinHeight();
         while (nonAirLocation.getBlockY() > minHeight) {
             Block block = nonAirLocation.getBlock();
@@ -243,7 +268,7 @@ public class BlockPlacementUtils {
      * @return the location above the given location that is not a solid block. If there is no non-solid blocks, returns the given location. 
      */
     public static Location getNonSolidBlockAbove(@NotNull Location location) {
-        Location airLocation = location.add(0, 1, 0);
+        Location airLocation = location.clone().add(0, 1, 0);
         int maxHeight = location.getWorld().getMaxHeight();
         while (airLocation.getBlockY() < maxHeight) {
             Block block = airLocation.getBlock();
@@ -253,6 +278,24 @@ public class BlockPlacementUtils {
             airLocation = airLocation.add(0, 1, 0);
         }
         return location;
+    }
+    
+    /**
+     * @param location the location to check above.
+     * @return the highest solid block directly above the given location. Null if it's all air. Does not check below the given location.
+     */
+    public static @Nullable Location getTopBlock(@NotNull Location location) {
+        int maxHeight = location.getWorld().getMaxHeight();
+        int minHeight = Math.max(location.getWorld().getMinHeight(), location.getBlockY());
+        Location highestSolidLoc = new Location(location.getWorld(), location.getBlockX(), maxHeight, location.getBlockZ());
+        for (double y = maxHeight; y > minHeight; y--) {
+            Block block = highestSolidLoc.getBlock();
+            if (block.isSolid()) {
+                return highestSolidLoc;
+            }
+            highestSolidLoc.subtract(0, 1, 0);
+        }
+        return null;
     }
     
     /**
@@ -285,4 +328,144 @@ public class BlockPlacementUtils {
             flagBlock.setBlockData(flagData);
         }
     }
+    
+    /**
+     * Places the given schematic file in the given world at all the given origins. If there are n origins, n copies of the schematic will be placed, each with their origin at the given values.<br>
+     * Use this in favor of {@link #placeSchematic(World, int, int, int, File)} multiple times
+     * in a row because this optimizes the multiple placement. 
+     * @param world the world to place in
+     * @param origins the list of origins. Each schematic copy placed will use one of these as their origin, using their integer block values. 
+     * @param file the .schem schematic file to use
+     */
+    public static void placeSchematic(World world, @NotNull List<Vector> origins, File file) {
+        Clipboard clipboard;
+        ClipboardFormat format = ClipboardFormats.findByFile(file);
+        if (format == null) {
+            Main.logger().severe("Could not find file " + file);
+            return;
+        }
+        try (ClipboardReader reader = format.getReader(new FileInputStream(file))) {
+            clipboard = reader.read();
+        } catch (FileNotFoundException e) {
+            Main.logger().log(Level.SEVERE, "Could not find file " + file, e);
+            return;
+        } catch (IOException e) {
+            Main.logger().log(Level.SEVERE, "Exception while reading from file " + file, e);
+            return;
+        }
+        try (EditSession editSession = WorldEdit.getInstance().newEditSession(BukkitAdapter.adapt(world))) {
+            for (Vector origin : origins) {
+                Operation operation = new ClipboardHolder(clipboard)
+                        .createPaste(editSession)
+                        .ignoreAirBlocks(false)
+                        .copyBiomes(true)
+                        .copyEntities(true)
+                        .to(BlockVector3.at(origin.getBlockX(), origin.getBlockY(), origin.getBlockZ()))
+                        .build();
+                Operations.complete(operation);
+            }
+        } catch (WorldEditException e) {
+            Main.logger().log(Level.SEVERE, "Exception while pasting", e);
+        }
+    }
+    
+    /**
+     * Places the given schematic file in the given world at the given origin
+     * @param world the world to place in
+     * @param x the origin x
+     * @param y the origin y
+     * @param z the origin z
+     * @param file the .schem schematic file to use
+     */
+    public static void placeSchematic(World world, int x, int y, int z, File file) {
+        Clipboard clipboard;
+        ClipboardFormat format = ClipboardFormats.findByFile(file);
+        if (format == null) {
+            Main.logger().severe("Could not find file " + file);
+            return;
+        }
+        try (ClipboardReader reader = format.getReader(new FileInputStream(file))) {
+            clipboard = reader.read();
+        } catch (FileNotFoundException e) {
+            Main.logger().log(Level.SEVERE, "Could not find file " + file, e);
+            return;
+        } catch (IOException e) {
+            Main.logger().log(Level.SEVERE, "Exception while reading from file " + file, e);
+            return;
+        }
+        try (EditSession editSession = WorldEdit.getInstance().newEditSession(BukkitAdapter.adapt(world))) {
+            Operation operation = new ClipboardHolder(clipboard)
+                    .createPaste(editSession)
+                    .ignoreAirBlocks(false)
+                    .copyBiomes(true)
+                    .copyEntities(true)
+                    .to(BlockVector3.at(x, y, z))
+                    .build();
+            Operations.complete(operation);
+        } catch (WorldEditException e) {
+            Main.logger().log(Level.SEVERE, "Exception while pasting", e);
+        }
+    }
+    
+    /**
+     * Uses WorldEdit to fill the given list of BoundingBoxes with air. Uses the block-location of each vector.
+     * @param world the world
+     * @param boxes the list of boxes
+     */
+    public static void fillWithAir(World world, List<BoundingBox> boxes) {
+        // Create an edit session for the WorldEdit world
+        try (EditSession editSession = WorldEdit.getInstance().newEditSession(BukkitAdapter.adapt(world))) {
+            
+            for (BoundingBox box : boxes) {
+                BlockVector3 min = BlockVector3.at(
+                        box.getMin().getBlockX(), 
+                        box.getMin().getBlockY(), 
+                        box.getMin().getBlockZ());
+                BlockVector3 max = BlockVector3.at(
+                        box.getMax().getBlockX(),
+                        box.getMax().getBlockY() + 1,
+                        box.getMax().getBlockZ());
+                CuboidRegion region = new CuboidRegion(min, max);
+                
+                // Fill the region with air blocks
+                editSession.setBlocks(region, Objects.requireNonNull(BlockTypes.AIR).getDefaultState());
+            }
+            
+            // Flush the edit session to apply changes
+            editSession.commit();
+        } catch (MaxChangedBlocksException e) {
+            Main.logger().log(Level.SEVERE, "error occurred filling with air blocks", e);
+        }
+    }
+    
+    public static List<Block> getBlocksInRadius(Location center, double radius, Tag<Material> type) {
+        List<Block> matchingBlocks = new ArrayList<>();
+        World world = center.getWorld();
+        
+        int minX = (int) (center.getBlockX() - radius);
+        int maxX = (int) (center.getBlockX() + radius);
+        int minY = (int) (Math.max(world.getMinHeight(), center.getBlockY() - radius));
+        int maxY = (int) (Math.min(world.getMaxHeight(), center.getBlockY() + radius));
+        int minZ = (int) (center.getBlockZ() - radius);
+        int maxZ = (int) (center.getBlockZ() + radius);
+        
+        double radiusSquared = radius * radius;
+        
+        for (int x = minX; x <= maxX; x++) {
+            for (int y = minY; y <= maxY; y++) {
+                for (int z = minZ; z <= maxZ; z++) {
+                    Location loc = new Location(world, x, y, z);
+                    if (center.distanceSquared(loc) <= radiusSquared) {
+                        Block block = world.getBlockAt(loc);
+                        if (type.isTagged(block.getType())) {
+                            matchingBlocks.add(block);
+                        }
+                    }
+                }
+            }
+        }
+        
+        return matchingBlocks;
+    }
+    
 }

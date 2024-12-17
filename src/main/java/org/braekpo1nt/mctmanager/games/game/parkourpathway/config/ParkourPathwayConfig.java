@@ -8,6 +8,7 @@ import org.braekpo1nt.mctmanager.games.game.parkourpathway.puzzle.Puzzle;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.Nullable;
 
@@ -29,8 +30,22 @@ public class ParkourPathwayConfig {
     private int teamSpawnsDuration;
     private int mercyRuleDuration;
     private int mercyRuleAlertDuration;
-    public int[] checkpointScore;
-    public int[] winScore;
+    private int[] checkpointScore;
+    private int[] winScore;
+    /** the number of skips each player gets. 0 or negative means no skips. */
+    private int numOfSkips;
+    /** the item that players interact with to use their skips */
+    private ItemStack skipItem;
+    /** the number of points to award for unused skips */
+    private int unusedSkipScore;
+    /**
+     * The puzzle after which no skips are allowed, and players
+     * will be given points for their remaining unused skips.
+     * Values less than zero will allow skips to be used the entire
+     * game. Values greater than the number of puzzles will essentially
+     * do the same. 
+     */
+    private int maxSkipPuzzle;
     private List<Material> preventInteractions;
     private int descriptionDuration;
     private Component description;

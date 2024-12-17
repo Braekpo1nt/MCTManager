@@ -7,11 +7,13 @@ import org.braekpo1nt.mctmanager.commands.manager.SubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.Usage;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.commands.mct.admin.AdminCommand;
+import org.braekpo1nt.mctmanager.commands.mct.debug.DebugCommand;
 import org.braekpo1nt.mctmanager.commands.mct.edit.EditCommand;
 import org.braekpo1nt.mctmanager.commands.mct.event.EventCommand;
 import org.braekpo1nt.mctmanager.commands.mct.game.GameCommand;
 import org.braekpo1nt.mctmanager.commands.mct.hub.HubCommand;
 import org.braekpo1nt.mctmanager.commands.mct.score.ScoreCommand;
+import org.braekpo1nt.mctmanager.commands.mct.tablist.TabListCommand;
 import org.braekpo1nt.mctmanager.commands.mct.team.TeamCommand;
 import org.braekpo1nt.mctmanager.commands.mct.timer.TimerCommand;
 import org.braekpo1nt.mctmanager.games.GameManager;
@@ -51,6 +53,8 @@ public class MCTCommand extends MasterCommandManager {
         });
         addSubCommand(new ScoreCommand(gameManager, "score"));
         addSubCommand(new TimerCommand(gameManager, "timer"));
+        addSubCommand(new TabListCommand(gameManager, "tablist"));
+        addSubCommand(new DebugCommand("debug"));
         onInit(plugin.getServer().getPluginManager());
     }
     

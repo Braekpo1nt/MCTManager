@@ -1,6 +1,5 @@
 package org.braekpo1nt.mctmanager.commands;
 
-import org.braekpo1nt.mctmanager.games.GameManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -67,10 +66,6 @@ public class CommandUtils {
                 return null;
             }
         }
-    }
-    
-    public static @NotNull List<String> partialMatchParticipantsTabList(GameManager gameManager, @Nullable String partialName) {
-        return partialMatchTabList(gameManager.getAllParticipantNames(), partialName);
     }
     
     public static @NotNull List<String> partialMatchTabList(@NotNull List<@NotNull String> list, @Nullable String partial) {

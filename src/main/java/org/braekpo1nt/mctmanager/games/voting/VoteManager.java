@@ -11,6 +11,7 @@ import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
+import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.Material;
@@ -78,8 +79,8 @@ public class VoteManager implements Listener {
         votes.clear();
         voters.clear();
         this.votingPool = votingPool;
-        sidebar = gameManager.getSidebarFactory().createSidebar();
-        adminSidebar = gameManager.getSidebarFactory().createSidebar();
+        sidebar = gameManager.createSidebar();
+        adminSidebar = gameManager.createSidebar();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         gameManager.getTimerManager().register(timerManager);
         for (Player participant : newParticipants) {
@@ -140,6 +141,9 @@ public class VoteManager implements Listener {
     }
     
     public void onParticipantQuit(Player voter) {
+        if (!voting) {
+            return;
+        }
         resetParticipant(voter);
         voters.remove(voter);
         sidebar.removePlayer(voter);
@@ -211,41 +215,38 @@ public class VoteManager implements Listener {
             return;
         }
         Material clickedItem = event.getCurrentItem().getType();
+        GameType votedForType;
         switch (clickedItem) {
             case FEATHER -> {
-                votes.put(participant.getUniqueId(), GameType.FOOT_RACE);
-                participant.sendMessage(Component.text("Voted for Foot Race")
-                        .color(NamedTextColor.GREEN));
+                votedForType = GameType.FOOT_RACE;
             }
             case IRON_SWORD -> {
-                votes.put(participant.getUniqueId(), GameType.MECHA);
-                participant.sendMessage(Component.text("Voted for MECHA")
-                        .color(NamedTextColor.GREEN));
+                votedForType = GameType.SURVIVAL_GAMES;
             }
             case GRAY_BANNER -> {
-                votes.put(participant.getUniqueId(), GameType.CAPTURE_THE_FLAG);
-                participant.sendMessage(Component.text("Voted for Capture the Flag")
-                        .color(NamedTextColor.GREEN));
+                votedForType = GameType.CAPTURE_THE_FLAG;
             }
             case DIAMOND_SHOVEL -> {
-                votes.put(participant.getUniqueId(), GameType.SPLEEF);
-                participant.sendMessage(Component.text("Voted for Spleef")
-                        .color(NamedTextColor.GREEN));
+                votedForType = GameType.SPLEEF;
             }
             case LEATHER_BOOTS -> {
-                votes.put(participant.getUniqueId(), GameType.PARKOUR_PATHWAY);
-                participant.sendMessage(Component.text("Voted for Parkour Pathway")
-                        .color(NamedTextColor.GREEN));
+                votedForType = GameType.PARKOUR_PATHWAY;
             }
             case CLOCK -> {
-                votes.put(participant.getUniqueId(), GameType.CLOCKWORK);
-                participant.sendMessage(Component.text("Voted for Clockwork")
-                        .color(NamedTextColor.GREEN));
+                votedForType = GameType.CLOCKWORK;
+            }
+            case STONE_HOE -> {
+                votedForType = GameType.FARM_RUSH;
             }
             default -> {
                 return;
             }
         }
+        votes.put(participant.getUniqueId(), votedForType);
+        participant.sendMessage(Component.empty()
+                .append(Component.text("Voted for "))
+                .append(Component.text(votedForType.getTitle()))
+                .color(NamedTextColor.GREEN));
         participant.closeInventory();
     }
     
@@ -305,7 +306,7 @@ public class VoteManager implements Listener {
         if (!voting) {
             return;
         }
-        if (event.getCause().equals(EntityDamageEvent.DamageCause.VOID)) {
+        if (GameManagerUtils.EXCLUDED_CAUSES.contains(event.getCause())) {
             return;
         }
         if (!(event.getEntity() instanceof Player voter)) {
@@ -314,6 +315,7 @@ public class VoteManager implements Listener {
         if (!voters.contains(voter)) {
             return;
         }
+        Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "VoteManager.onPlayerDamage() cancelled");
         event.setCancelled(true);
     }
     
@@ -530,13 +532,13 @@ public class VoteManager implements Listener {
         ));
         footRace.setItemMeta(footRaceMeta);
 
-        ItemStack mecha = new ItemStack(Material.IRON_SWORD);
-        ItemMeta mechaMeta = mecha.getItemMeta();
-        mechaMeta.displayName(Component.text("MECHA"));
-        mechaMeta.lore(List.of(
+        ItemStack survivalGames = new ItemStack(Material.IRON_SWORD);
+        ItemMeta survivalGamesMeta = survivalGames.getItemMeta();
+        survivalGamesMeta.displayName(Component.text("Survival Games"));
+        survivalGamesMeta.lore(List.of(
                 Component.text("A fighting game")
         ));
-        mecha.setItemMeta(mechaMeta);
+        survivalGames.setItemMeta(survivalGamesMeta);
 
         ItemStack captureTheFlag = new ItemStack(Material.GRAY_BANNER);
         ItemMeta captureTheFlagMeta = captureTheFlag.getItemMeta();
@@ -572,14 +574,23 @@ public class VoteManager implements Listener {
         ));
         spleef.setItemMeta(spleefMeta);
         
+        ItemStack farmRush = new ItemStack(Material.STONE_HOE);
+        ItemMeta farmRushMeta = spleef.getItemMeta();
+        farmRushMeta.displayName(Component.text("Farm Rush"));
+        farmRushMeta.lore(List.of(
+                Component.text("A farming game")
+        ));
+        farmRush.setItemMeta(farmRushMeta);
+        
         Inventory newGui = Bukkit.createInventory(null, 9, TITLE);
         Map<GameType, ItemStack> votingItems = new HashMap<>();
         votingItems.put(GameType.FOOT_RACE, footRace);
-        votingItems.put(GameType.MECHA, mecha);
+        votingItems.put(GameType.SURVIVAL_GAMES, survivalGames);
         votingItems.put(GameType.CAPTURE_THE_FLAG, captureTheFlag);
         votingItems.put(GameType.SPLEEF, spleef);
         votingItems.put(GameType.PARKOUR_PATHWAY, parkourPathway);
         votingItems.put(GameType.CLOCKWORK, clockwork);
+        votingItems.put(GameType.FARM_RUSH, farmRush);
         
         for (GameType mctGame : votingPool) {
             newGui.addItem(votingItems.get(mctGame));

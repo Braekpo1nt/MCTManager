@@ -1,9 +1,9 @@
 package org.braekpo1nt.mctmanager.utils;
 
 import net.kyori.adventure.text.format.NamedTextColor;
-import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.Material;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -40,27 +40,6 @@ public class ColorMap {
             Color bukkitColor = Color.fromBGR(namedTextColor.blue(), namedTextColor.green(), namedTextColor.red());
             COLOR_MAP.put(entry.getKey(), bukkitColor);
         }
-    }
-    
-    private static final Map<String, ChatColor> CHAT_COLOR_MAP = new HashMap<>();
-    
-    static {
-        CHAT_COLOR_MAP.put("aqua", ChatColor.AQUA);
-        CHAT_COLOR_MAP.put("black", ChatColor.BLACK);
-        CHAT_COLOR_MAP.put("blue", ChatColor.BLUE);
-        CHAT_COLOR_MAP.put("dark_aqua", ChatColor.DARK_AQUA);
-        CHAT_COLOR_MAP.put("dark_blue", ChatColor.DARK_BLUE);
-        CHAT_COLOR_MAP.put("dark_gray", ChatColor.DARK_GRAY);
-        CHAT_COLOR_MAP.put("dark_green", ChatColor.DARK_GREEN);
-        CHAT_COLOR_MAP.put("dark_purple", ChatColor.DARK_PURPLE);
-        CHAT_COLOR_MAP.put("dark_red", ChatColor.DARK_RED);
-        CHAT_COLOR_MAP.put("gold", ChatColor.GOLD);
-        CHAT_COLOR_MAP.put("gray", ChatColor.GRAY);
-        CHAT_COLOR_MAP.put("green", ChatColor.GREEN);
-        CHAT_COLOR_MAP.put("light_purple", ChatColor.LIGHT_PURPLE);
-        CHAT_COLOR_MAP.put("red", ChatColor.RED);
-        CHAT_COLOR_MAP.put("white", ChatColor.WHITE);
-        CHAT_COLOR_MAP.put("yellow", ChatColor.YELLOW);
     }
     
     private static final Map<String, Material> POWDER_TYPE_MAP = new HashMap<>();
@@ -143,7 +122,7 @@ public class ColorMap {
         BANNER_TYPE_MAP.put("yellow", Material.YELLOW_BANNER);
     }
     
-    public static NamedTextColor getNamedTextColor(String colorString) {
+    public static @NotNull NamedTextColor getNamedTextColor(String colorString) {
         return NAMED_TEXT_COLOR_MAP.getOrDefault(colorString.toLowerCase(), NamedTextColor.WHITE);
     }
     
@@ -164,10 +143,6 @@ public class ColorMap {
                 .filter(color -> color.startsWith(colorString))
                 .sorted()
                 .toList();
-    }
-    
-    public static ChatColor getChatColor(String colorString) {
-        return CHAT_COLOR_MAP.getOrDefault(colorString.toLowerCase(), ChatColor.WHITE);
     }
     
     public static List<Material> getAllConcretePowderColors() {

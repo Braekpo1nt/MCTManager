@@ -1,6 +1,5 @@
 package org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.meta;
 
-import com.destroystokyo.paper.Namespaced;
 import lombok.Data;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.persistence.PersistentDataContainerDTO;
@@ -31,8 +30,6 @@ public class ItemMetaDTOImpl implements ItemMetaDTO, Validatable {
     protected @Nullable Set<ItemFlag> itemFlags;
     protected boolean unbreakable;
     protected @Nullable Map<Attribute, List<AttributeModifier>> attributeModifiers;
-    protected @Nullable Set<Namespaced> destroyableKeys;
-    protected @Nullable Set<Namespaced> placeableKeys;
     protected @Nullable Integer customModelData;
     protected @Nullable PersistentDataContainerDTO persistentDataContainer;
     
@@ -100,6 +97,7 @@ public class ItemMetaDTOImpl implements ItemMetaDTO, Validatable {
      * to this ItemMetaDTO's attributes
      */
     public ItemMeta toItemMeta(ItemMeta meta, Material type) {
+        // TODO: Implement "components" category from Recipe json. misode.github.io/recipe/
         if (displayName != null) {
             meta.displayName(displayName);
         }
@@ -122,12 +120,6 @@ public class ItemMetaDTOImpl implements ItemMetaDTO, Validatable {
         }
         if (customModelData != null) {
             meta.setCustomModelData(customModelData);
-        }
-        if (destroyableKeys != null) {
-            meta.setDestroyableKeys(destroyableKeys);
-        }
-        if (placeableKeys != null) {
-            meta.setPlaceableKeys(placeableKeys);
         }
         return meta;
     }

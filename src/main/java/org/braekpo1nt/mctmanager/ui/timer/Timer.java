@@ -1,16 +1,15 @@
 package org.braekpo1nt.mctmanager.ui.timer;
 
-import com.google.common.base.Preconditions;
 import lombok.Data;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.title.Title;
+import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.topbar.Topbar;
-import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
@@ -22,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.logging.Level;
 
 public class Timer extends BukkitRunnable {
     
@@ -47,7 +47,7 @@ public class Timer extends BukkitRunnable {
     }
     
     private int secondsLeft;
-    private int completionSeconds;
+    private final int completionSeconds;
     private boolean started = false;
     private boolean paused = false;
     /**
@@ -154,43 +154,47 @@ public class Timer extends BukkitRunnable {
      */
     @Override
     public void run() {
-        if (paused) {
-            return;
+        try {
+            if (paused) {
+                return;
+            }
+            if (secondsLeft <= completionSeconds) {
+                onComplete();
+                return;
+            }
+            Component timeString = TimeStringUtils.getTimeComponent(secondsLeft)
+                    .color(timerColor);
+            for (Topbar topbar : topbars) {
+                topbar.setMiddle(
+                        Component.empty()
+                                .append(topbarPrefix)
+                                .append(timeString)
+                );
+            }
+            for (SidebarData sidebarData : sidebarDatas) {
+                sidebarData.getSidebar().updateLine(sidebarData.getKey(),
+                        Component.empty()
+                                .append(sidebarPrefix)
+                                .append(timeString)
+                );
+            }
+            if (titleAudience != null && secondsLeft <= titleThreshold) {
+                Title title = Title.title(
+                        Component.text("Starting in"),
+                        Component.text(secondsLeft)
+                                .color(TimeStringUtils.getColorForTime(secondsLeft)),
+                        Title.Times.times(
+                                Duration.ZERO,
+                                Duration.ofMillis(1500),
+                                Duration.ZERO
+                        )
+                );
+                titleAudience.showTitle(title);
+            }
+            secondsLeft--;
+        } catch (Exception e) {
+            throw new RuntimeException(String.format("Error running Timer \"%s\"", name), e);
         }
-        if (secondsLeft <= completionSeconds) {
-            onComplete();
-            return;
-        }
-        Component timeString = TimeStringUtils.getTimeComponent(secondsLeft)
-                .color(timerColor);
-        for (Topbar topbar : topbars) {
-            topbar.setMiddle(
-                    Component.empty()
-                            .append(topbarPrefix)
-                            .append(timeString)
-            );
-        }
-        for (SidebarData sidebarData : sidebarDatas) {
-            sidebarData.getSidebar().updateLine(sidebarData.getKey(), 
-                    Component.empty()
-                            .append(sidebarPrefix)
-                            .append(timeString)
-            );
-        }
-        if (titleAudience != null && secondsLeft <= titleThreshold) {
-            Title title = Title.title(
-                    Component.text("Starting in"), 
-                    Component.text(secondsLeft)
-                            .color(TimeStringUtils.getColorForTime(secondsLeft)), 
-                    Title.Times.times(
-                            Duration.ZERO,
-                            Duration.ofMillis(1500), 
-                            Duration.ZERO
-                    )
-            );
-            titleAudience.showTitle(title);
-        }
-        secondsLeft--;
     }
     
     /**
@@ -250,13 +254,7 @@ public class Timer extends BukkitRunnable {
             topbar.setMiddle(Component.empty());
         }
         for (SidebarData sidebarData : sidebarDatas) {
-            Sidebar sidebar = sidebarData.getSidebar();
-            String key = sidebarData.getKey();
-            if (sidebar.containsKey(key)) {
-                sidebar.updateLine(key, Component.empty());
-            } else {
-                Bukkit.getLogger().severe(String.format("Attempted to edit the line of a sidebar which does not contain the key \"%s\"", key));
-            }
+            sidebarData.getSidebar().updateLine(sidebarData.getKey(), Component.empty());
         }
         if (titleAudience != null) {
             titleAudience.clearTitle();
@@ -406,7 +404,10 @@ public class Timer extends BukkitRunnable {
          * @return this
          */
         public Builder withSidebar(@NotNull Sidebar sidebar, @NotNull String key) {
-            Preconditions.checkArgument(sidebar.containsKey(key), "given sidebar does not contain the given key \"%s\"", key);
+            if (!sidebar.containsKey(key)) {
+                Main.logger().log(Level.SEVERE, "Error building Timer", new TimerException(String.format("given sidebar does not contain the given key \"%s\"", key)));
+                return this;
+            }
             SidebarData sidebarData = new SidebarData(sidebar, key);
             if (sidebarDatas == null) {
                 sidebarDatas = new ArrayList<>(Collections.singletonList(sidebarData));

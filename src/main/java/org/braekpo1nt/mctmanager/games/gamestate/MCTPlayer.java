@@ -1,5 +1,6 @@
 package org.braekpo1nt.mctmanager.games.gamestate;
 
+import com.google.gson.annotations.SerializedName;
 import lombok.Builder;
 import lombok.Data;
 
@@ -10,5 +11,6 @@ import java.util.UUID;
 public class MCTPlayer {
     private UUID uniqueId;
     private int score;
-    private String teamName;
+    @SerializedName(value = "teamId", alternate = {"teamId"})
+    private String teamId;
 }

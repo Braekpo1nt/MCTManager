@@ -1,5 +1,7 @@
 package org.braekpo1nt.mctmanager.config.dto.org.bukkit.enchantments;
 
+import io.papermc.paper.registry.RegistryAccess;
+import io.papermc.paper.registry.RegistryKey;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -34,7 +36,7 @@ public class EnchantmentDTO implements Validatable {
         if (namespacedKey == null) {
             throw new IllegalStateException("namespaceKey is null");
         }
-        return Enchantment.getByKey(namespacedKey.toNamespacedKey());
+        return RegistryAccess.registryAccess().getRegistry(RegistryKey.ENCHANTMENT).get(namespacedKey.toNamespacedKey());
     }
     
     /**
@@ -56,7 +58,7 @@ public class EnchantmentDTO implements Validatable {
     public void validate(@NotNull Validator validator) {
         validator.notNull(namespacedKey, "namespacedKey");
         namespacedKey.validate(validator.path("namespacedKey"));
-        Enchantment trueEnchantment = Enchantment.getByKey(namespacedKey.toNamespacedKey());
+        Enchantment trueEnchantment = RegistryAccess.registryAccess().getRegistry(RegistryKey.ENCHANTMENT).get(namespacedKey.toNamespacedKey());
         validator.validate(trueEnchantment != null, "namespacedKey: could not find enchantment for key \"%s\"" + namespacedKey.toNamespacedKey());
     }
     

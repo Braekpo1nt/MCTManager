@@ -5,7 +5,6 @@ import com.google.common.base.Preconditions;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.dto.net.kyori.adventure.sound.SoundDTO;
-import org.braekpo1nt.mctmanager.config.dto.org.bukkit.util.BoundingBoxDTO;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.braekpo1nt.mctmanager.games.game.clockwork.Chaos;
@@ -27,7 +26,7 @@ record ClockworkConfigDTO(
         String version, 
         String world, 
         Vector startingLocation,
-        @Nullable BoundingBoxDTO spectatorArea, 
+        @Nullable BoundingBox spectatorArea, 
         Chaos chaos, 
         List<WedgeDTO> wedges, 
         int rounds, 
@@ -48,8 +47,7 @@ record ClockworkConfigDTO(
         validator.notNull(Bukkit.getWorld(this.world), "Could not find world \"%s\"", this.world);
         validator.notNull(this.startingLocation, "startingLocation");
         if (spectatorArea != null) {
-            BoundingBox spectatorArea = this.spectatorArea.toBoundingBox();
-            validator.validate(spectatorArea.getVolume() >= 1.0, "spectatorArea (%s) volume (%s) must be at least 1.0", spectatorArea, spectatorArea.getVolume());
+            validator.validate(this.spectatorArea.getVolume() >= 1.0, "spectatorArea (%s) volume (%s) must be at least 1.0", spectatorArea, spectatorArea.getVolume());
         }
         this.chaos.validate(validator.path("chaos"));
         validator.notNull(this.wedges, "wedges");
@@ -57,7 +55,7 @@ record ClockworkConfigDTO(
         for (ClockworkConfigDTO.WedgeDTO wedgeDTO : this.wedges) {
             validator.notNull(wedgeDTO, "wedge");
             validator.notNull(wedgeDTO.detectionArea(), "wedge.detectionArea");
-            validator.validate(wedgeDTO.detectionArea().toBoundingBox().getVolume() >= 1.0, "wedge.detectionArea (%s) volume (%s) must be at least 1.0", wedgeDTO.detectionArea(), wedgeDTO.detectionArea().toBoundingBox().getVolume());
+            validator.validate(wedgeDTO.detectionArea().getVolume() >= 1.0, "wedge.detectionArea (%s) volume (%s) must be at least 1.0", wedgeDTO.detectionArea(), wedgeDTO.detectionArea().getVolume());
         }
         validator.validate(this.rounds >= 1, "rounds must be at least 1");
         validator.notNull(this.clockChime, "clockChime");
@@ -79,7 +77,7 @@ record ClockworkConfigDTO(
         Preconditions.checkState(newWorld != null, "Could not find world \"%s\"", this.world);
         List<Wedge> newWedges = new ArrayList<>(this.wedges.size());
         for (ClockworkConfigDTO.WedgeDTO wedgeDTO : this.wedges) {
-            newWedges.add(new Wedge(wedgeDTO.detectionArea().toBoundingBox()));
+            newWedges.add(new Wedge(wedgeDTO.detectionArea()));
         }
         return ClockworkConfig.builder()
                 .world(newWorld)
@@ -101,13 +99,13 @@ record ClockworkConfigDTO(
                 .wedges(newWedges)
                 .preventInteractions(this.preventInteractions != null ? this.preventInteractions : Collections.emptyList())
                 .descriptionDuration(this.durations.description)
-                .spectatorArea(this.spectatorArea != null ? this.spectatorArea.toBoundingBox() : null)
+                .spectatorArea(this.spectatorArea)
                 .getToWedgeMessage(getToWedgeMessage)
                 .description(this.description)
                 .build();
     }
     
-    record WedgeDTO(BoundingBoxDTO detectionArea) {
+    record WedgeDTO(BoundingBox detectionArea) {
     }
     
     record Scores(int playerElimination, int teamElimination, int winRound) {

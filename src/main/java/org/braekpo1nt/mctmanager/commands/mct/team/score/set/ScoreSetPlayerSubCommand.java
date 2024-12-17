@@ -40,8 +40,8 @@ public class ScoreSetPlayerSubCommand extends TabSubCommand {
                                 .decorate(TextDecoration.BOLD))
                         .append(Component.text(" is not a participant")));
             } else {
-                String teamName = gameManager.getOfflineIGNTeamName(playerName);
-                NamedTextColor teamColor = gameManager.getTeamNamedTextColor(teamName);
+                String teamId = gameManager.getOfflineIGNTeamId(playerName);
+                NamedTextColor teamColor = gameManager.getTeamColor(teamId);
                 return CommandResult.failure(Component.empty()
                         .append(Component.text("Can't change the score of "))
                         .append(Component.text(playerName)
@@ -72,7 +72,7 @@ public class ScoreSetPlayerSubCommand extends TabSubCommand {
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length == 1) {
-            return CommandUtils.partialMatchParticipantsTabList(gameManager, args[0]);
+            return CommandUtils.partialMatchTabList(gameManager.getAllParticipantNames(), args[0]);
         }
         return Collections.emptyList();
     }

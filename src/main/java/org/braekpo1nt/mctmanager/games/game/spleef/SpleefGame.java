@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.games.game.spleef;
 
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
@@ -17,8 +18,6 @@ import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -45,8 +44,10 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
     private Sidebar adminSidebar;
     private final SpleefConfigController configController;
     private SpleefConfig config;
-    private final String baseTitle = ChatColor.BLUE+"Spleef";
-    private String title = baseTitle;
+    private final Component baseTitle = Component.empty()
+            .append(Component.text("Spleef"))
+            .color(NamedTextColor.BLUE);
+    private Component title = baseTitle;
     private List<Player> participants = new ArrayList<>();
     private List<Player> admins = new ArrayList<>();
     private List<SpleefRound> rounds = new ArrayList<>();
@@ -62,12 +63,12 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
     }
     
     @Override
-    public @NotNull String getBaseTitle() {
+    public @NotNull Component getBaseTitle() {
         return baseTitle;
     }
     
     @Override
-    public void setTitle(@NotNull String title) {
+    public void setTitle(@NotNull Component title) {
         this.title = title;
         if (sidebar != null) {
             sidebar.updateLine("title", title);
@@ -95,8 +96,8 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
     @Override
     public void start(List<Player> newParticipants, List<Player> newAdmins) {
         participants = new ArrayList<>(newParticipants.size());
-        sidebar = gameManager.getSidebarFactory().createSidebar();
-        adminSidebar = gameManager.getSidebarFactory().createSidebar();
+        sidebar = gameManager.createSidebar();
+        adminSidebar = gameManager.createSidebar();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         gameManager.getTimerManager().register(timerManager);
         for (Player participant : newParticipants) {
@@ -115,7 +116,7 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
         displayDescription();
         gameActive = true;
         startNextRound();
-        Bukkit.getLogger().info("Started Spleef");
+        Main.logger().info("Started Spleef");
     }
     
     private void displayDescription() {
@@ -133,7 +134,7 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
     private void teleportParticipantToRandomStartingPosition(Player participant) {
         int index = random.nextInt(config.getStartingLocations().size());
         participant.teleport(config.getStartingLocations().get(index));
-        participant.setBedSpawnLocation(config.getStartingLocations().get(index), true);
+        participant.setRespawnLocation(config.getStartingLocations().get(index), true);
     }
     
     private void startAdmins(List<Player> newAdmins) {
@@ -185,11 +186,11 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
         stopAdmins();
         participants.clear();
         gameManager.gameIsOver();
-        Bukkit.getLogger().info("Stopping Spleef");
+        Main.logger().info("Stopping Spleef");
     }
     
     private void resetParticipant(Player participant) {
-        participant.getInventory().clear();
+        ParticipantInitializer.clearInventory(participant);
         sidebar.removePlayer(participant.getUniqueId());
     }
     
@@ -382,7 +383,7 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
     }
     
     @Override
-    public void updateTeamScore(Player participant, String contents) {
+    public void updateTeamScore(Player participant, Component contents) {
         if (sidebar == null) {
             return;
         }
@@ -393,7 +394,7 @@ public class SpleefGame implements Listener, MCTGame, Configurable, Headerable {
     }
     
     @Override
-    public void updatePersonalScore(Player participant, String contents) {
+    public void updatePersonalScore(Player participant, Component contents) {
         if (sidebar == null) {
             return;
         }

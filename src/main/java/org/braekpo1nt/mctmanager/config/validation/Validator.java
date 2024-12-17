@@ -5,6 +5,7 @@ import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
 import java.util.List;
 import java.util.Map;
 
@@ -51,7 +52,10 @@ public class Validator {
     /**
      * 
      * @param expression the expression to evaluate. 
-     * @param invalidMessage the message to report if the expression is false. Must be a valid {@link String#format(String, Object...)} string. The provided args will be used as the {code Object...} arguments of the format string.
+     * @param invalidMessage the message to report if the expression is false. 
+     *                       Must be a valid {@link String#format(String, Object...)} string. 
+     *                       The provided args will be used as the {code Object...} 
+     *                       arguments of the format string.
      * @param args the args the arguments of the {@link String#format(String, Object...)} which uses the invalidMessage as the pattern.
      * @see Validator#validate(boolean, String) 
      */
@@ -81,6 +85,23 @@ public class Validator {
     public void notNull(Object object, String subPath, Object... args) {
         if (object == null) {
             throw new ConfigInvalidException(this.path + "." + String.format(subPath, args) + " can't be null");
+        }
+    }
+    
+    /**
+     * Convenience method to validate that a file specified by a string exists
+     * and can be read
+     * @param filePath the file path to check for
+     * @param subPath the subPath, usually the name of the variable holding the filePath
+     * @param args any args to be used as the {@link String#format(String, Object...)} arguments for the subPath string
+     */
+    public void fileExists(@NotNull String filePath, String subPath, Object... args) {
+        File file = new File(filePath);
+        if (!file.exists()) {
+            throw new ConfigInvalidException(this.path + "." + String.format(subPath, args) + " specifies a file that does not exist: " + filePath);
+        }
+        if (!file.canRead()) {
+            throw new ConfigInvalidException(this.path + "." + String.format(subPath, args) + " specifies a file that cannot be read: " + filePath);
         }
     }
     
@@ -161,5 +182,15 @@ public class Validator {
             return new Validator(String.format(subPath, args));
         }
         return new Validator(this.path + "." + String.format(subPath, args));
+    }
+    
+    /**
+     * Used when a direct invalid exception is needed, such as in a catch clause.
+     * @param subPath the subPath, usually the name of the variable holding the filePath
+     * @param args any args to be used as the {@link String#format(String, Object...)} arguments for the subPath string
+     * @throws ConfigInvalidException always
+     */
+    public void invalid(String subPath, Object... args) {
+        throw new ConfigInvalidException(this.path + "." + String.format(subPath, args));
     }
 }

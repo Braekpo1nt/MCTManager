@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.games.game.clockwork;
 
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigIOException;
 import org.braekpo1nt.mctmanager.config.exceptions.ConfigInvalidException;
@@ -11,15 +12,14 @@ import org.braekpo1nt.mctmanager.games.game.clockwork.config.ClockworkConfigCont
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.game.interfaces.Configurable;
 import org.braekpo1nt.mctmanager.games.game.interfaces.MCTGame;
+import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
-import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
+import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -34,7 +34,6 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.NotNull;
@@ -49,8 +48,10 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
     private Sidebar adminSidebar;
     private final ClockworkConfigController configController;
     private ClockworkConfig config;
-    private final String baseTitle = ChatColor.BLUE+"Clockwork";
-    private String title = baseTitle;
+    private final Component baseTitle = Component.empty()
+            .append(Component.text("Clockwork"))
+            .color(NamedTextColor.BLUE);
+    private Component title = baseTitle;
     private List<Player> participants = new ArrayList<>();
     private List<Player> admins = new ArrayList<>();
     private List<ClockworkRound> rounds;
@@ -67,7 +68,7 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
     }
     
     @Override
-    public void setTitle(@NotNull String title) {
+    public void setTitle(@NotNull Component title) {
         this.title = title;
         if (sidebar != null) {
             sidebar.updateLine("title", title);
@@ -78,7 +79,7 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
     }
     
     @Override
-    public @NotNull String getBaseTitle() {
+    public @NotNull Component getBaseTitle() {
         return baseTitle;
     }
     
@@ -100,8 +101,8 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
     @Override
     public void start(List<Player> newParticipants, List<Player> newAdmins) {
         participants = new ArrayList<>(newParticipants.size());
-        sidebar = gameManager.getSidebarFactory().createSidebar();
-        adminSidebar = gameManager.getSidebarFactory().createSidebar();
+        sidebar = gameManager.createSidebar();
+        adminSidebar = gameManager.createSidebar();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         gameManager.getTimerManager().register(timerManager);
         for (Player participant : newParticipants) {
@@ -118,7 +119,7 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
         displayDescription();
         gameActive = true;
         startDescriptionPeriod();
-        Bukkit.getLogger().info("Started clockwork");
+        Main.logger().info("Started clockwork");
     }
     
     private void displayDescription() {
@@ -127,9 +128,11 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
     
     private void initializeParticipant(Player participant) {
         participants.add(participant);
+        participant.setGameMode(GameMode.ADVENTURE);
         sidebar.addPlayer(participant);
         participant.teleport(config.getStartingLocation());
-        participant.setBedSpawnLocation(config.getStartingLocation(), true);
+        participant.setRespawnLocation(config.getStartingLocation(), true);
+        ParticipantInitializer.clearInventory(participant);
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
     }
@@ -166,14 +169,14 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
     
     @Override
     public void stop() {
-        HandlerList.unregisterAll(this);
-        cancelAllTasks();
         if (currentRoundIndex < rounds.size()) {
             ClockworkRound currentRound = rounds.get(currentRoundIndex);
             if (currentRound.isActive()) {
                 currentRound.stop();
             }
         }
+        HandlerList.unregisterAll(this);
+        cancelAllTasks();
         rounds.clear();
         descriptionShowing = false;
         gameActive = false;
@@ -184,11 +187,11 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
         stopAdmins();
         participants.clear();
         gameManager.gameIsOver();
-        Bukkit.getLogger().info("Stopping Clockwork");
+        Main.logger().info("Stopping Clockwork");
     }
     
     private void resetParticipant(Player participant) {
-        participant.getInventory().clear();
+        ParticipantInitializer.clearInventory(participant);
         sidebar.removePlayer(participant.getUniqueId());
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
@@ -218,6 +221,7 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
                     descriptionShowing = false;
                     startNextRound();
                 })
+                .name("startDescriptionPeriod")
                 .build());
     }
     
@@ -347,7 +351,7 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
         if (!gameActive) {
             return;
         }
-        if (event.getCause().equals(EntityDamageEvent.DamageCause.VOID)) {
+        if (GameManagerUtils.EXCLUDED_CAUSES.contains(event.getCause())) {
             return;
         }
         if (!(event.getEntity() instanceof Player participant)) {
@@ -357,6 +361,7 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
             return;
         }
         if (descriptionShowing) {
+            Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "ClockworkGame.onPlayerDamage()->descriptionShowing cancelled");
             event.setCancelled(true);
             return;
         }
@@ -443,7 +448,7 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
     }
     
     @Override
-    public void updateTeamScore(Player participant, String contents) {
+    public void updateTeamScore(Player participant, Component contents) {
         if (sidebar == null) {
             return;
         }
@@ -454,7 +459,7 @@ public class ClockworkGame implements Listener, MCTGame, Configurable, Headerabl
     }
     
     @Override
-    public void updatePersonalScore(Player participant, String contents) {
+    public void updatePersonalScore(Player participant, Component contents) {
         if (sidebar == null) {
             return;
         }

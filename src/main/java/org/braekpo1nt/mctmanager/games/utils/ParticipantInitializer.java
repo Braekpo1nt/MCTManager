@@ -2,10 +2,15 @@ package org.braekpo1nt.mctmanager.games.utils;
 
 import org.braekpo1nt.mctmanager.Main;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.InventoryView;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+
+import java.util.Objects;
 
 public class ParticipantInitializer {
     
@@ -43,8 +48,13 @@ public class ParticipantInitializer {
     }
     
     public static void resetHealthAndHunger(Player participant) {
-        participant.setHealth(participant.getAttribute(Attribute.GENERIC_MAX_HEALTH).getDefaultValue());
+        participant.setHealth(Objects.requireNonNull(participant.getAttribute(Attribute.GENERIC_MAX_HEALTH)).getDefaultValue());
         participant.setFoodLevel(20);
         participant.setSaturation(5);
+    }
+    
+    public static void clearInventory(Player participant) {
+        participant.getInventory().clear();
+        participant.getOpenInventory().setCursor(new ItemStack(Material.AIR));
     }
 }

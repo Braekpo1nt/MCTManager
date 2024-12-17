@@ -1,14 +1,14 @@
 package org.braekpo1nt.mctmanager.ui.sidebar;
 
-import com.google.common.base.Preconditions;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
-import org.bukkit.ChatColor;
+import org.braekpo1nt.mctmanager.Main;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.logging.Level;
 
 /**
  * Note that a sidebar can only have 15 lines
@@ -19,6 +19,10 @@ public class Sidebar {
      * Sidebar should not be instantiated outside the {@link SidebarFactory}. This prevents it from happening outside this package.
      */
     Sidebar() {
+    }
+    
+    Sidebar(@NotNull Component title) {
+        this.title = title;
     }
     
     /**
@@ -38,17 +42,13 @@ public class Sidebar {
      */
     protected final Map<UUID, FastBoardWrapper> boards = new HashMap<>();
     public static final Component DEFAULT_TITLE = Component.empty()
-            .append(Component.text("MCT")
+            .append(Component.text("CT")
                     .color(NamedTextColor.DARK_RED)
                     .decorate(TextDecoration.BOLD));
     /**
      * The title to be used at the top of the FastBoard
      */
     protected Component title = DEFAULT_TITLE;
-    
-    public synchronized void updateTitle(String title) {
-        updateTitle(Component.text(title));
-    }
     
     public synchronized void updateTitle(@NotNull Component title) {
         this.title = title;
@@ -68,7 +68,10 @@ public class Sidebar {
      * @param player the player to add to this manager and give a FastBoard
      */
     public synchronized void addPlayer(@NotNull Player player) {
-        Preconditions.checkArgument(!boardsLines.containsKey(player.getUniqueId()), "player with UUID \"%s\" already has a board in this manager", player.getUniqueId());
+        if (boardsLines.containsKey(player.getUniqueId())) {
+            logUIError("player with UUID \"%s\" already has a board in this manager", player.getUniqueId());
+            return;
+        }
         FastBoardWrapper newBoard = new FastBoardWrapper();
         newBoard.setPlayer(player);
         newBoard.updateTitle(this.title);
@@ -112,7 +115,10 @@ public class Sidebar {
      * @throws IllegalArgumentException if the playerUUID doesn't exist in this manager
      */
     public synchronized void removePlayer(@NotNull UUID playerUUID) {
-        Preconditions.checkArgument(boardsLines.containsKey(playerUUID), "player with UUID \"%s\" does not have a board in this manager", playerUUID);
+        if (!boardsLines.containsKey(playerUUID)) {
+            logUIError("player with UUID \"%s\" does not have a board in this manager", playerUUID);
+            return;
+        }
         boardsLines.remove(playerUUID);
         FastBoardWrapper board = boards.remove(playerUUID);
         if (board != null && !board.isDeleted()) {
@@ -143,7 +149,10 @@ public class Sidebar {
      * @param contents the contents of the line
      */
     public synchronized void addLine(@NotNull String key, @NotNull Component contents) {
-        Preconditions.checkArgument(!keyToIndex.containsKey(key), "attempted to add a line with an existing key (%s)", key);
+        if (keyToIndex.containsKey(key)) {
+            logUIError("attempted to add a line with an existing key (%s)", key);
+            return;
+        }
         int index = size;
         size++;
         keyToIndex.put(key, index);
@@ -172,9 +181,18 @@ public class Sidebar {
      * @throws IllegalArgumentException if the key exists, or the index is out of range ({@code index < 0 || index > size()})
      */
     public synchronized void addLine(@NotNull String key, int index, @NotNull Component contents) {
-        Preconditions.checkArgument(!keyToIndex.containsKey(key), "can't add a line with an existing key (%s)", key);
-        Preconditions.checkArgument(index >= 0, "index (%s) can't be negative", index);
-        Preconditions.checkArgument(index <= size, "index (%s) can't be greater than the size (%s) of the Sidebar", index, size);
+        if (keyToIndex.containsKey(key)) {
+            logUIError("can't add a line with an existing key (%s)", key);
+            return;
+        }
+        if (index < 0) {
+            logUIError("index (%s) can't be negative", index);
+            return;
+        }
+        if (index > size) {
+            logUIError("index (%s) can't be greater than the size (%s) of the Sidebar", index, size);
+            return;
+        }
         size++;
         for (String existingKey : keyToIndex.keySet()) {
             int oldIndex = keyToIndex.get(existingKey);
@@ -200,15 +218,21 @@ public class Sidebar {
         List<String> keys = new ArrayList<>(keyLines.length);
         List<Component> lineContents = new ArrayList<>(keyLines.length);
         for (KeyLine keyLine : keyLines) {
-            Preconditions.checkArgument(!keys.contains(keyLine.getKey()), "duplicate key found in keyLines (%s)", keyLine.getKey());
-            Preconditions.checkArgument(!keyToIndex.containsKey(keyLine.getKey()), "can't add a line with an existing key (%s)", keyLine.getKey());
-            keys.add(keyLine.getKey());
-            lineContents.add(keyLine.getContents());
+            if (!keys.contains(keyLine.getKey())) {
+                if (!keyToIndex.containsKey(keyLine.getKey())) {
+                    keys.add(keyLine.getKey());
+                    lineContents.add(keyLine.getContents());
+                } else {
+                    logUIError("can't add a line with an existing key (%s)", keyLine.getKey());
+                }
+            } else {
+                logUIError("duplicate key found in keyLines (%s)", keyLine.getKey());
+            }
         }
-        for (KeyLine keyLine : keyLines) {
+        for (String key : keys) {
             int index = size;
             size++;
-            keyToIndex.put(keyLine.getKey(), index);
+            keyToIndex.put(key, index);
         }
         for (Map.Entry<UUID, List<Component>> entry : boardsLines.entrySet()) {
             UUID playerUUID = entry.getKey();
@@ -225,15 +249,27 @@ public class Sidebar {
      * @param keyLines the KeyLine pairs
      */
     public synchronized void addLines(int index, @NotNull KeyLine @NotNull... keyLines) {
-        Preconditions.checkArgument(index >= 0, "index (%s) can't be negative", index);
-        Preconditions.checkArgument(index <= size, "index (%s) can't be greater than the size (%s) of the Sidebar", index, size);
+        if (index < 0) {
+            logUIError("index (%s) can't be negative", index);
+            return;
+        }
+        if (index > size) {
+            logUIError("index (%s) can't be greater than the size (%s) of the Sidebar", index, size);
+            return;
+        }
         List<String> keys = new ArrayList<>(keyLines.length);
         List<Component> lineContents = new ArrayList<>(keyLines.length);
         for (KeyLine keyLine : keyLines) {
-            Preconditions.checkArgument(!keys.contains(keyLine.getKey()), "duplicate key found in keyLines (%s)", keyLine.getKey());
-            Preconditions.checkArgument(!keyToIndex.containsKey(keyLine.getKey()), "can't add a line with an existing key (%s)", keyLine.getKey());
-            keys.add(keyLine.getKey());
-            lineContents.add(keyLine.getContents());
+            if (!keys.contains(keyLine.getKey())) {
+                if (!keyToIndex.containsKey(keyLine.getKey())) {
+                    keys.add(keyLine.getKey());
+                    lineContents.add(keyLine.getContents());
+                } else {
+                    logUIError("can't add a line with an existing key (%s)", keyLine.getKey());
+                }
+            } else {
+                logUIError("duplicate key found in keyLines (%s)", keyLine.getKey());
+            }
         }
         int indexShift = keyLines.length;
         for (String existingKey : keyToIndex.keySet()) {
@@ -262,7 +298,10 @@ public class Sidebar {
      * @param key the key for the line (must exist)
      */
     public synchronized void deleteLine(@NotNull String key) {
-        Preconditions.checkArgument(keyToIndex.containsKey(key), "can't delete line with nonexistent key (%s)", key);
+        if (!keyToIndex.containsKey(key)) {
+            logUIError("can't delete line with nonexistent key (%s)", key);
+            return;
+        }
         int removeIndex = keyToIndex.remove(key);
         size--;
         for (String existingKey : keyToIndex.keySet()) {
@@ -287,9 +326,15 @@ public class Sidebar {
     public synchronized void deleteLines(@NotNull String... keys) {
         List<String> keysToDelete = new ArrayList<>(keys.length);
         for (String key : keys) {
-            Preconditions.checkArgument(keyToIndex.containsKey(key), "can't delete line with nonexistent key (%s)", key);
-            Preconditions.checkArgument(!keysToDelete.contains(key), "duplicate key (%S) found in keys", key);
-            keysToDelete.add(key);
+            if (keyToIndex.containsKey(key)) {
+                if (!keysToDelete.contains(key)) {
+                    keysToDelete.add(key);
+                } else {
+                    logUIError("duplicate key (%S) found in keys", key);
+                }
+            } else {
+                logUIError("can't delete line with nonexistent key (%s)", key);
+            }
         }
         List<Integer> removeIndexes = new ArrayList<>(keys.length);
         for (String key : keys) {
@@ -371,7 +416,10 @@ public class Sidebar {
      * @param contents the contents of the line
      */
     public synchronized void updateLine(@NotNull String key, @NotNull Component contents) {
-        Preconditions.checkArgument(keyToIndex.containsKey(key), "can't update a line with nonexistent key (%s)", key);
+        if (!keyToIndex.containsKey(key)) {
+            logUIError("can't update a line with nonexistent key (%s)", key);
+            return;
+        }
         int index = keyToIndex.get(key);
         for (Map.Entry<UUID, List<Component>> entry : boardsLines.entrySet()) {
             UUID playerUUID = entry.getKey();
@@ -384,22 +432,39 @@ public class Sidebar {
     
     /**
      * Updates the line associated with the KeyLine pair for all FastBoards
-     * @param keyLines the KeyLine pair (all keys must exist)
+     * @param keyLines the KeyLine pairs (all keys must exist)
      */
-    public synchronized  void updateLines(@NotNull KeyLine @NotNull... keyLines) {
+    public synchronized void updateLines(@NotNull List<@NotNull KeyLine> keyLines) {
+        Set<KeyLine> validKeyLines = new HashSet<>(keyLines.size());
         for (KeyLine keyLine : keyLines) {
-            Preconditions.checkArgument(keyToIndex.containsKey(keyLine.getKey()), "can't update a line with nonexistent key (%s)", keyLine.getKey());
+            if (!validKeyLines.contains(keyLine)) {
+                if (keyToIndex.containsKey(keyLine.getKey())) {
+                    validKeyLines.add(keyLine);
+                } else {
+                    logUIError("can't update a line with nonexistent key (%s)", keyLine.getKey());
+                }
+            } else {
+                logUIError("duplicate key found in keyLines (%s)", keyLine.getKey());
+            }
         }
         for (Map.Entry<UUID, List<Component>> entry : boardsLines.entrySet()) {
             UUID playerUUID = entry.getKey();
             List<Component> lines = entry.getValue();
             FastBoardWrapper board = boards.get(playerUUID);
-            for (KeyLine keyLine : keyLines) {
+            for (KeyLine keyLine : validKeyLines) {
                 int index = keyToIndex.get(keyLine.getKey());
                 lines.set(index, keyLine.getContents());
                 board.updateLine(index, keyLine.getContents());
             }
         }
+    }
+    
+    /**
+     * Updates the line associated with the KeyLine pair for all FastBoards
+     * @param keyLines the KeyLine pairs (all keys must exist)
+     */
+    public synchronized void updateLines(@NotNull KeyLine @NotNull... keyLines) {
+        updateLines(Arrays.asList(keyLines));
     }
     
     /**
@@ -417,8 +482,14 @@ public class Sidebar {
      * @param contents the contents of the line
      */
     public synchronized void updateLine(@NotNull UUID playerUUID, @NotNull String key, @NotNull Component contents) {
-        Preconditions.checkArgument(keyToIndex.containsKey(key), "can't update a line with nonexistent key (%s)", key);
-        Preconditions.checkArgument(boardsLines.containsKey(playerUUID), "player with UUID \"%s\" does not have a board in this manager", playerUUID);
+        if (!keyToIndex.containsKey(key)) {
+            logUIError("can't update a line with nonexistent key (%s)", key);
+            return;
+        }
+        if (!boardsLines.containsKey(playerUUID)) {
+            logUIError("player with UUID \"%s\" does not have a board in this manager", playerUUID);
+            return;
+        }
         int index = keyToIndex.get(key);
         List<Component> lines = boardsLines.get(playerUUID);
         lines.set(index, contents);
@@ -431,9 +502,22 @@ public class Sidebar {
      * @param playerUUID THe player UUID to update the lines for (must have a FastBoard)
      * @param keyLines the KeyLine pairs to update (each key must exist)
      */
-    public synchronized void updateLines(@NotNull UUID playerUUID, @NotNull KeyLine @NotNull... keyLines) {
+    public synchronized void updateLines(@NotNull UUID playerUUID, @NotNull List<KeyLine> keyLines) {
+        if (!boardsLines.containsKey(playerUUID)) {
+            logUIError("player with UUID \"%s\" does not have a board in this manager", playerUUID);
+            return;
+        }
+        Set<KeyLine> validKeyLines = new HashSet<>(keyLines.size());
         for (KeyLine keyLine : keyLines) {
-            Preconditions.checkArgument(keyToIndex.containsKey(keyLine.getKey()), "can't update a line with nonexistent key (%s)", keyLine.getKey());
+            if (!validKeyLines.contains(keyLine)) {
+                if (keyToIndex.containsKey(keyLine.getKey())) {
+                    validKeyLines.add(keyLine);
+                } else {
+                    logUIError("can't update a line with nonexistent key (%s)", keyLine.getKey());
+                }
+            } else {
+                logUIError("duplicate key found in keyLines (%s)", keyLine.getKey());
+            }
         }
         List<Component> lines = boardsLines.get(playerUUID);
         FastBoardWrapper board = boards.get(playerUUID);
@@ -442,5 +526,24 @@ public class Sidebar {
             lines.set(index, keyLine.getContents());
             board.updateLine(index, keyLine.getContents());
         }
+    }
+    
+    /**
+     * Updates the lines associated with the KeyLine pairs for the given player's FastBoard.
+     * @param playerUUID THe player UUID to update the lines for (must have a FastBoard)
+     * @param keyLines the KeyLine pairs to update (each key must exist)
+     */
+    public synchronized void updateLines(@NotNull UUID playerUUID, @NotNull KeyLine @NotNull... keyLines) {
+        updateLines(playerUUID, Arrays.asList(keyLines));
+    }
+    
+    /**
+     * Log a UI error
+     * @param reason the reason for the error (a {@link String#format(String, Object...)} template
+     * @param args optional args for the reason format string
+     */
+    protected void logUIError(@NotNull String reason, Object... args) {
+        Main.logger().log(Level.SEVERE, "An error occurred in the Sidebar", 
+                new SidebarException(String.format(reason, args)));
     }
 }

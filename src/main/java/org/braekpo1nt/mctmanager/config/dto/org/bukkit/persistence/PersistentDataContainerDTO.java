@@ -4,7 +4,6 @@ import lombok.Data;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.NamespacedKeyDTO;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
-import org.bukkit.Bukkit;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
@@ -48,7 +47,6 @@ public class PersistentDataContainerDTO implements Validatable {
             NamespacedKeyDTO keyDTO = data.getNamespacedKey();
             String value = data.getValue() == null ? "" : data.getValue();
             if (keyDTO != null) {
-                Bukkit.getLogger().info(String.format("stringData.size(): %d, value: %s, namespace: %s, key: %s", stringData.size(), value, keyDTO.getNamespace(), keyDTO.getKey()));
                 persistentDataContainer.set(keyDTO.toNamespacedKey(), PersistentDataType.STRING, value);
             }
         }

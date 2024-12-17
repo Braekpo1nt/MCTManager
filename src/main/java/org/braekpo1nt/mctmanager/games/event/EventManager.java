@@ -1,28 +1,24 @@
 package org.braekpo1nt.mctmanager.games.event;
 
-import net.kyori.adventure.audience.Audience;
+import lombok.Data;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
-import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
-import net.kyori.adventure.title.Title;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.config.exceptions.ConfigException;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.colossalcombat.ColossalCombatGame;
 import org.braekpo1nt.mctmanager.games.event.config.EventConfig;
 import org.braekpo1nt.mctmanager.games.event.config.EventConfigController;
+import org.braekpo1nt.mctmanager.games.event.states.*;
 import org.braekpo1nt.mctmanager.games.game.enums.GameType;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.voting.VoteManager;
-import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
-import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
+import org.braekpo1nt.mctmanager.ui.topbar.ReadyUpTopbar;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -38,20 +34,15 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
+@Data
 public class EventManager implements Listener {
+    private @NotNull EventState state;
     
     private final Main plugin;
     private final GameManager gameManager;
-    private Sidebar sidebar;
-    private Sidebar adminSidebar;
-    private int numberOfTeams = 0;
     private final VoteManager voteManager;
     private final ColossalCombatGame colossalCombatGame;
     private final EventConfigController configController;
-    private EventConfig config;
-    private EventState currentState;
-    private int maxGames = 6;
-    private int currentGameNumber = 0;
     private final List<GameType> playedGames = new ArrayList<>();
     /**
      * contains the ScoreKeepers for the games played during the event. Cleared on start and end of event. 
@@ -64,12 +55,19 @@ public class EventManager implements Listener {
      * Otherwise, it contains the scores tracked for the given iteration. 
      */
     private final Map<GameType, List<ScoreKeeper>> scoreKeepers = new HashMap<>();
+    private final ItemStack crown = new ItemStack(Material.CARVED_PUMPKIN);
+    private final TimerManager timerManager;
+    private Sidebar sidebar;
+    private Sidebar adminSidebar;
+    private int numberOfTeams = 0;
+    private EventConfig config;
+    private int maxGames = 6;
+    private int currentGameNumber = 0;
     private List<Player> participants = new ArrayList<>();
     private List<Player> admins = new ArrayList<>();
-    private final ItemStack crown = new ItemStack(Material.CARVED_PUMPKIN);
-    private String winningTeam;
-    // Task IDs
-    private final TimerManager timerManager;
+    private @Nullable String winningTeam;
+    private final ReadyUpManager readyUpManager = new ReadyUpManager();
+    private final ReadyUpTopbar topbar = new ReadyUpTopbar();
     
     public EventManager(Main plugin, GameManager gameManager, VoteManager voteManager) {
         this.plugin = plugin;
@@ -79,92 +77,13 @@ public class EventManager implements Listener {
         this.configController = new EventConfigController(plugin.getDataFolder());
         this.colossalCombatGame = new ColossalCombatGame(plugin, gameManager);
         this.crown.editMeta(meta -> meta.setCustomModelData(1));
-    }
-        
-    /**
-     * The nth multiplier is used on the nth game in the event. If there are x multipliers, and we're on game z where z is greater than x, the xth multiplier is used.
-     * @return a multiplier for the score based on the progression in the match.
-     */
-    public double matchProgressPointMultiplier() {
-        if (currentGameNumber <= 0) {
-            return 1;
-        }
-        double[] multipliers = config.getMultipliers();
-        if (currentGameNumber > multipliers.length) {
-            return multipliers[multipliers.length - 1];
-        }
-        return multipliers[currentGameNumber - 1];
-    }
-    
-    /**
-     * Start a new event with the given number of games
-     * @param sender the place to send errors and confirmations to
-     * @param numberOfGames the number of games to be played in this event
-     */
-    public void startEvent(CommandSender sender, int numberOfGames) {
-        if (currentState != null) {
-            sender.sendMessage(Component.text("An event is already running.")
-                    .color(NamedTextColor.RED));
-            return;
-        }
-        if (gameManager.gameIsRunning()) {
-            sender.sendMessage(Component.text("Can't start an event while a game is running.")
-                    .color(NamedTextColor.RED));
-            return;
-        }
-        if (gameManager.editorIsRunning()) {
-            sender.sendMessage(Component.text("Can't start an event while an editor is running.")
-                    .color(NamedTextColor.RED));
-            return;
-        }
-        
-        try {
-            this.config = configController.getConfig();
-        } catch (ConfigException e) {
-            Bukkit.getLogger().severe(e.getMessage());
-            e.printStackTrace();
-            sender.sendMessage(Component.text("Can't start event. Error loading config file. See console for details:\n")
-                    .append(Component.text(e.getMessage()))
-                    .color(NamedTextColor.RED));
-            return;
-        }
-        
-        plugin.getServer().getPluginManager().registerEvents(this, plugin);
-        gameManager.getTimerManager().register(timerManager);
-        winningTeam = null;
-        maxGames = numberOfGames;
-        currentGameNumber = 1;
-        playedGames.clear();
-        scoreKeepers.clear();
-        participants = new ArrayList<>();
-        sidebar = gameManager.getSidebarFactory().createSidebar();
-        admins = new ArrayList<>();
-        adminSidebar = gameManager.getSidebarFactory().createSidebar();
-        initializeSidebar();
-        initializeAdminSidebar();
-        initializeParticipantsAndAdmins();
-        gameManager.removeParticipantsFromHub(participants);
-        messageAllAdmins(Component.text("Starting event. On game ")
-                .append(Component.text(currentGameNumber))
-                .append(Component.text("/"))
-                .append(Component.text(maxGames))
-                .append(Component.text(".")));
-        Audience.audience(
-                Audience.audience(admins),
-                Audience.audience(participants)
-        ).showTitle(UIUtils.defaultTitle(
-                Component.empty(),
-                Component.empty()
-                        .append(Component.text("Event Starting"))
-                        .color(NamedTextColor.GOLD)
-        ));
-        startWaitingInHub();
+        this.state = new OffState(this);
     }
     
     /**
      * Add the participants back to the {@link EventManager#participants} list and the {@link EventManager#sidebar}, add the admins back to the {@link EventManager#admins} list and the {@link EventManager#adminSidebar}, and update the scores on all sidebars.
      */
-    private void initializeParticipantsAndAdmins() {
+    public void initializeParticipantsAndAdmins() {
         for (Player participant : gameManager.getOnlineParticipants()) {
             participants.add(participant);
             sidebar.addPlayer(participant);
@@ -179,14 +98,68 @@ public class EventManager implements Listener {
         adminSidebar.updateLine("currentGame", getCurrentGameLine());
     }
     
+    public void updatePersonalScores() {
+        for (Player participant : participants) {
+            int score = gameManager.getScore(participant.getUniqueId());
+            updatePersonalScore(participant, Component.empty()
+                    .append(Component.text("Personal: "))
+                    .append(Component.text(score))
+                    .color(NamedTextColor.GOLD)
+            );
+        }
+    }
+    
+    /**
+     * @return a line for sidebars saying what the current game is
+     */
+    public Component getCurrentGameLine() {
+        if (currentGameNumber <= maxGames) {
+            return Component.empty()
+                    .append(Component.text("Game ["))
+                    .append(Component.text(currentGameNumber))
+                    .append(Component.text("/"))
+                    .append(Component.text(maxGames))
+                    .append(Component.text("]"));
+        }
+        if (state instanceof PodiumState) {
+            return Component.text("Thanks for playing!");
+        }
+        return Component.text("Final Round");
+    }
+    
+    public boolean colossalCombatIsActive() {
+        return colossalCombatGame.isActive();
+    }
+    
+    public void onParticipantJoin(Player participant) {
+        state.onParticipantJoin(participant);
+    }
+    
+    public void onParticipantQuit(Player participant) {
+        state.onParticipantQuit(participant);
+    }
+    
+    public void onAdminJoin(Player admin) {
+        state.onAdminJoin(admin);
+    }
+    
+    public void onAdminQuit(Player admin) {
+        state.onAdminQuit(admin);
+    }
+    
+    public void startEvent(CommandSender sender, int numberOfGames, int currentGameNumber) {
+        state.startEvent(sender, numberOfGames, currentGameNumber);
+    }
+    
     public void stopEvent(CommandSender sender) {
-        if (currentState == null) {
+        if (state instanceof OffState) {
             sender.sendMessage(Component.text("There is no event running.")
                     .color(NamedTextColor.RED));
             return;
         }
         HandlerList.unregisterAll(this);
-        currentState = null;
+        cancelAllTasks();
+        this.setState(new OffState(this));
         Component message = Component.text("Ending event. ")
                 .append(Component.text(currentGameNumber - 1))
                 .append(Component.text("/"))
@@ -194,13 +167,13 @@ public class EventManager implements Listener {
                 .append(Component.text(" games were played."));
         sender.sendMessage(message);
         messageAllAdmins(message);
-        Bukkit.getLogger().info(String.format("Ending event. %d/%d games were played", currentGameNumber - 1, maxGames));
+        Main.logger().info(String.format("Ending event. %d/%d games were played", currentGameNumber - 1, maxGames));
         if (colossalCombatGame.isActive()) {
             colossalCombatGame.stop(null);
         }
         if (winningTeam != null) {
             for (Player participant : participants) {
-                String team = gameManager.getTeamName(participant.getUniqueId());
+                String team = gameManager.getTeamId(participant.getUniqueId());
                 if (team.equals(winningTeam)) {
                     removeCrown(participant);
                 }
@@ -208,23 +181,33 @@ public class EventManager implements Listener {
         }
         clearSidebar();
         clearAdminSidebar();
+        topbar.hideAllPlayers();
+        topbar.removeAllTeams();
         participants.clear();
         admins.clear();
-        cancelAllTasks();
+        readyUpManager.clear();
         scoreKeepers.clear();
         currentGameNumber = 0;
         maxGames = 6;
         winningTeam = null;
     }
     
-    /**
-     * 
-     * @param sender the sender
-     * @param gameType the GameType to undo
-     * @param iterationIndex the index of the iteration of the game to undo (0 or more). if gameType has been played n times, and you want to undo the ith play-through, [1, i]&[i, n], pass in iteration=i-1
-     */
+    private void clearSidebar() {
+        sidebar.updateTitle(Sidebar.DEFAULT_TITLE);
+        sidebar.removeAllPlayers();
+        sidebar.deleteAllLines();
+        sidebar = null;
+    }
+    
+    private void clearAdminSidebar() {
+        adminSidebar.updateTitle(Sidebar.DEFAULT_TITLE);
+        adminSidebar.removeAllPlayers();
+        adminSidebar.deleteAllLines();
+        adminSidebar = null;
+    }
+    
     public void undoGame(@NotNull CommandSender sender, @NotNull GameType gameType, int iterationIndex) {
-        if (currentState == null) {
+        if (state instanceof OffState) {
             sender.sendMessage(Component.text("There isn't an event going on.")
                     .color(NamedTextColor.RED));
             return;
@@ -284,6 +267,48 @@ public class EventManager implements Listener {
         Bukkit.getConsoleSender().sendMessage(report);
     }
     
+    public void addGameToVotingPool(@NotNull CommandSender sender, @NotNull GameType gameToAdd) {
+        if (state instanceof OffState) {
+            sender.sendMessage(Component.text("There isn't an event going on.")
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        if (!playedGames.contains(gameToAdd)) {
+            sender.sendMessage(Component.text("This game is already in the voting pool.")
+                    .color(NamedTextColor.YELLOW));
+            return;
+        }
+        if (state instanceof VotingState) {
+            sender.sendMessage(Component.text("Can't modify the voting pool mid-vote.")
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        playedGames.remove(gameToAdd);
+        sender.sendMessage(Component.text(gameToAdd.getTitle())
+                .append(Component.text(" has been added to the voting pool.")));
+    }
+    
+    public void removeGameFromVotingPool(@NotNull CommandSender sender, @NotNull GameType gameToRemove) {
+        if (state instanceof OffState) {
+            sender.sendMessage(Component.text("There isn't an event going on.")
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        if (state instanceof VotingState) {
+            sender.sendMessage(Component.text("Can't modify the voting pool mid-vote.")
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        if (playedGames.contains(gameToRemove)) {
+            sender.sendMessage(Component.text("This game is not in the voting pool.")
+                    .color(NamedTextColor.RED));
+            return;
+        }
+        playedGames.add(gameToRemove);
+        sender.sendMessage(Component.text(gameToRemove.getTitle())
+                .append(Component.text(" has been removed from the voting pool")));
+    }
+    
     /**
      * For use with the undo operation. Gets the number of times a game has been played this round.
      * @param gameType the game to check for the iterations of
@@ -291,7 +316,7 @@ public class EventManager implements Listener {
      * -1 if an event isn't active, 0 if the gameType hasn't been played yet
      */
     public int getGameIterations(GameType gameType) {
-        if (currentState == null) {
+        if (state instanceof OffState) {
             return -1;
         }
         if (!scoreKeepers.containsKey(gameType)) {
@@ -305,16 +330,16 @@ public class EventManager implements Listener {
      * @param scoreKeeper holds the tracked scores to be removed
      */
     private void undoScores(ScoreKeeper scoreKeeper) {
-        Set<String> teamNames = gameManager.getTeamNames();
-        for (String teamName : teamNames) {
-            int teamScoreToSubtract = scoreKeeper.getScore(teamName);
-            int teamCurrentScore = gameManager.getScore(teamName);
+        Set<String> teamIds = gameManager.getTeamIds();
+        for (String teamId : teamIds) {
+            int teamScoreToSubtract = scoreKeeper.getScore(teamId);
+            int teamCurrentScore = gameManager.getScore(teamId);
             if (teamCurrentScore - teamScoreToSubtract < 0) {
                 teamScoreToSubtract = teamCurrentScore;
             }
-            gameManager.addScore(teamName, -teamScoreToSubtract);
-        
-            List<UUID> participantUUIDs = gameManager.getParticipantUUIDsOnTeam(teamName);
+            gameManager.addScore(teamId, -teamScoreToSubtract);
+            
+            List<UUID> participantUUIDs = gameManager.getParticipantUUIDsOnTeam(teamId);
             for (UUID participantUUID : participantUUIDs) {
                 int participantScoreToSubtract = scoreKeeper.getScore(participantUUID);
                 int participantCurrentScore = gameManager.getScore(participantUUID);
@@ -334,17 +359,17 @@ public class EventManager implements Listener {
      */
     @NotNull
     private Component createScoreKeeperReport(@NotNull GameType gameType, @NotNull ScoreKeeper scoreKeeper) {
-        Set<String> teamNames = gameManager.getTeamNames();
+        Set<String> teamIds = gameManager.getTeamIds();
         TextComponent.Builder reportBuilder = Component.text()
                 .append(Component.text("|Scores for ("))
                 .append(Component.text(gameType.getTitle())
                         .decorate(TextDecoration.BOLD))
                 .append(Component.text("):\n"))
                 .color(NamedTextColor.YELLOW);
-        for (String teamName : teamNames) {
-            int teamScoreToSubtract = scoreKeeper.getScore(teamName);
-            NamedTextColor teamColor = gameManager.getTeamNamedTextColor(teamName);
-            Component displayName = gameManager.getFormattedTeamDisplayName(teamName);
+        for (String teamId : teamIds) {
+            int teamScoreToSubtract = scoreKeeper.getScore(teamId);
+            NamedTextColor teamColor = gameManager.getTeamColor(teamId);
+            Component displayName = gameManager.getFormattedTeamDisplayName(teamId);
             reportBuilder.append(Component.text("|  - "))
                     .append(displayName)
                     .append(Component.text(": "))
@@ -352,8 +377,8 @@ public class EventManager implements Listener {
                             .color(NamedTextColor.GOLD)
                             .decorate(TextDecoration.BOLD))
                     .append(Component.text("\n"));
-        
-            List<UUID> participantUUIDs = gameManager.getParticipantUUIDsOnTeam(teamName);
+            
+            List<UUID> participantUUIDs = gameManager.getParticipantUUIDsOnTeam(teamId);
             for (UUID participantUUID : participantUUIDs) {
                 Player participant = Bukkit.getPlayer(participantUUID);
                 if (participant != null) {
@@ -372,666 +397,21 @@ public class EventManager implements Listener {
         return reportBuilder.build();
     }
     
-    /**
-     * Set the max games for the event. Can't set the max games to be lower than the current number of played games.
-     * @param sender the sender
-     * @param newMaxGames the new number of max games. If this is lower than the number of games already played, nothing will happen and the sender will get an error message.
-     */
-    public void setMaxGames(@NotNull CommandSender sender, int newMaxGames) {
-        if (currentState == null) {
-            sender.sendMessage(Component.text("There isn't an event going on.")
-                    .color(NamedTextColor.RED));
-            return;
-        }
-        if (newMaxGames == maxGames) {
-            sender.sendMessage(Component.text("Max games is already ")
-                    .append(Component.text(newMaxGames))
-                    .append(Component.text(". No change was made.")));
-            return;
-        }
-        if (newMaxGames < 0) {
-            sender.sendMessage(Component.text("Can't set the max games to less than 0.")
-                    .color(NamedTextColor.RED));
-            return;
-        }
-        if (colossalCombatIsActive()) {
-            sender.sendMessage(Component.text("Can't change the max games during the final game.")
-                    .color(NamedTextColor.RED));
-            return;
-        }
-        switch (currentState) {
-            case WAITING_IN_HUB -> {
-                if (newMaxGames < currentGameNumber - 1) {
-                    sender.sendMessage(Component.text("Can't set the max games for this event to less than ")
-                            .append(Component.text(currentGameNumber - 1)
-                                    .decorate(TextDecoration.BOLD))
-                            .append(Component.text(" because "))
-                            .append(Component.text(currentGameNumber - 1))
-                            .append(Component.text(" game(s) have been played."))
-                            .color(NamedTextColor.RED));
-                    return;
-                }
-                modifyMaxGames(sender, newMaxGames);
-            }
-            case PLAYING_GAME -> {
-                if (newMaxGames < currentGameNumber) {
-                    sender.sendMessage(Component.text("Can't set the max games for this event to less than ")
-                            .append(Component.text(currentGameNumber)
-                                    .decorate(TextDecoration.BOLD))
-                            .append(Component.text(" because "))
-                            .append(Component.text(currentGameNumber))
-                            .append(Component.text(" game(s) have been played."))
-                            .color(NamedTextColor.RED));
-                    return;
-                }
-                modifyMaxGames(sender, newMaxGames);
-            }
-            case VOTING -> {
-                if (newMaxGames < currentGameNumber) {
-                    sender.sendMessage(Component.text("Can't set the max games for this event to less than ")
-                            .append(Component.text(currentGameNumber)
-                                    .decorate(TextDecoration.BOLD))
-                            .append(Component.text(" because "))
-                            .append(Component.text(currentGameNumber - 1))
-                            .append(Component.text(" game(s) have been played and voting is in progress."))
-                            .color(NamedTextColor.RED));
-                    return;
-                }
-                modifyMaxGames(sender, newMaxGames);
-            }
-            case DELAY -> {
-                sender.sendMessage(Component.text("Can't change the max games during transition period.")
-                        .color(NamedTextColor.RED));
-            }
-            case PODIUM -> {
-                sender.sendMessage(Component.text("The event is over, can't change the max games.")
-                        .color(NamedTextColor.RED));
-            }
-        }
+    public void readyUpParticipant(@NotNull Player participant) {
+        state.readyUpParticipant(participant);
     }
     
-    private void modifyMaxGames(@NotNull CommandSender sender, int newMaxGames) {
-        maxGames = newMaxGames;
-        sidebar.updateLine("currentGame", getCurrentGameLine());
-        adminSidebar.updateLine("currentGame", getCurrentGameLine());
-        gameManager.updateGameTitle();
-        sender.sendMessage(Component.text("Max games has been set to ")
-                .append(Component.text(newMaxGames)));
+    public void unReadyParticipant(@NotNull Player participant) {
+        state.unReadyParticipant(participant);
     }
     
-    public void addGameToVotingPool(@NotNull CommandSender sender, @NotNull GameType gameToAdd) {
-        if (currentState == null) {
-            sender.sendMessage(Component.text("There isn't an event going on.")
-                    .color(NamedTextColor.RED));
-            return;
-        }
-        if (!playedGames.contains(gameToAdd)) {
-            sender.sendMessage(Component.text("This game is already in the voting pool.")
-                    .color(NamedTextColor.YELLOW));
-            return;
-        }
-        playedGames.remove(gameToAdd);
-        sender.sendMessage(Component.text(gameToAdd.getTitle())
-                .append(Component.text(" has been added to the voting pool.")));
-    }
-    
-    public void removeGameFromVotingPool(@NotNull CommandSender sender, @NotNull GameType gameToRemove) {
-        if (currentState == null) {
-            sender.sendMessage(Component.text("There isn't an event going on.")
-                    .color(NamedTextColor.RED));
-            return;
-        }
-        playedGames.add(gameToRemove);
-        sender.sendMessage(Component.text(gameToRemove.getTitle())
-                .append(Component.text(" has been removed from the voting pool")));
-    }
-    
-    public boolean colossalCombatIsActive() {
-        return colossalCombatGame.isActive();
-    }
-    
-    public void onParticipantJoin(Player participant) {
-        if (colossalCombatGame.isActive()) {
-            colossalCombatGame.onParticipantJoin(participant);
-            return;
-        }
-        if (currentState == null) {
-            return;
-        }
-        // make sure the participant isn't stuck in whatever location they last logged out from, if they aren't supposed to be
-        switch (currentState) {
-            case WAITING_IN_HUB, VOTING -> {
-                gameManager.returnParticipantToHubInstantly(participant);
-            }
-            case PODIUM -> {
-                if (winningTeam != null) {
-                    String team = gameManager.getTeamName(participant.getUniqueId());
-                    boolean winner = team.equals(winningTeam);
-                    gameManager.returnParticipantToPodium(participant, winner);
-                    if (winner) {
-                        giveCrown(participant);
-                    }
-                } else {
-                    gameManager.returnParticipantToPodium(participant, false);
-                }
-            }
-        }
-        switch (currentState) {
-            case DELAY, WAITING_IN_HUB, PODIUM -> {
-                participants.add(participant);
-                if (sidebar != null) {
-                    sidebar.addPlayer(participant);
-                    updateTeamScores();
-                    sidebar.updateLine(participant.getUniqueId(), "currentGame", getCurrentGameLine());
-                }
-            }
-            case VOTING -> voteManager.onParticipantJoin(participant);
-        }
-    }
-    
-    public void onParticipantQuit(Player participant) {
-        if (colossalCombatGame.isActive()) {
-            colossalCombatGame.onParticipantQuit(participant);
-            return;
-        }
-        if (currentState == null) {
-            return;
-        }
-        participants.remove(participant);
-        switch (currentState) {
-            case DELAY, WAITING_IN_HUB, PODIUM -> {
-                if (sidebar != null) {
-                    sidebar.removePlayer(participant);
-                }
-            }
-            case VOTING -> voteManager.onParticipantQuit(participant);
-        }
-        if (winningTeam != null) {
-            String team = gameManager.getTeamName(participant.getUniqueId());
-            if (team.equals(winningTeam)) {
-                removeCrown(participant);
-            }
-        }
-    }
-    
-    public void onAdminJoin(Player admin) {
-        if (colossalCombatGame.isActive()) {
-            colossalCombatGame.onAdminJoin(admin);
-        }
-        if (currentState == null) {
-            return;
-        }
-        switch (currentState) {
-            case DELAY, WAITING_IN_HUB, PODIUM -> {
-                admins.add(admin);
-                if (adminSidebar != null) {
-                    adminSidebar.addPlayer(admin);
-                    updateTeamScores();
-                    adminSidebar.updateLine(admin.getUniqueId(), "currentGame", getCurrentGameLine());
-                }
-            }
-            case VOTING -> voteManager.onAdminJoin(admin);
-        }
-    }
-    
-    public void onAdminQuit(Player admin) {
-        if (colossalCombatGame.isActive()) {
-            colossalCombatGame.onAdminQuit(admin);
-        }
-        if (currentState == null) {
-            return;
-        }
-        admins.remove(admin);
-        switch (currentState) {
-            case DELAY, WAITING_IN_HUB, PODIUM -> {
-                if (adminSidebar != null) {
-                    adminSidebar.removePlayer(admin);
-                }
-            }
-            case VOTING -> voteManager.onAdminQuit(admin);
-        }
-    }
-    
-    public void cancelAllTasks() {
-        voteManager.cancelVote();
-        timerManager.cancel();
-    }
-    
-    private void startWaitingInHub() {
-        currentState = EventState.WAITING_IN_HUB;
-        gameManager.returnAllParticipantsToHub();
-        double scoreMultiplier = matchProgressPointMultiplier();
-        gameManager.messageOnlineParticipants(Component.text("Score multiplier: ")
-                .append(Component.text(scoreMultiplier))
-                .color(NamedTextColor.GOLD));
-        Component prefix;
-        if (allGamesHaveBeenPlayed()) {
-            prefix = Component.text("Final round: ");
-        } else {
-            prefix = Component.text("Vote starts in: ");
-        }
-        timerManager.start(Timer.builder()
-                .duration(config.getWaitingInHubDuration())
-                .withSidebar(sidebar, "timer")
-                .withSidebar(adminSidebar, "timer")
-                .sidebarPrefix(prefix)
-                .onCompletion(() -> {
-                    if (allGamesHaveBeenPlayed()) {
-                        toColossalCombatDelay();
-                    } else {
-                        startVoting();
-                    }
-                })
-                .build());
-    }
-    
-    private void startHalftimeBreak() {
-        currentState = EventState.WAITING_IN_HUB;
-        gameManager.returnAllParticipantsToHub();
-        timerManager.start(Timer.builder()
-                .duration(config.getHalftimeBreakDuration())
-                .withSidebar(sidebar, "timer")
-                .withSidebar(adminSidebar, "timer")
-                .titleThreshold(20)
-                .titleAudience(Audience.audience(participants))
-                .sidebarPrefix(Component.text("Break: ").color(NamedTextColor.YELLOW))
-                .onCompletion(this::startVoting)
-                .build());
-    }
-    
-    private void toPodiumDelay(@NotNull String winningTeam) {
-        currentState = EventState.DELAY;
-        this.winningTeam = winningTeam;
-        initializeParticipantsAndAdmins();
-        Component teamDisplayName = gameManager.getFormattedTeamDisplayName(winningTeam);
-        Component winner = Component.empty()
-                .append(Component.text("Winner: "))
-                .append(teamDisplayName);
-        timerManager.start(Timer.builder()
-                .duration(config.getBackToHubDuration())
-                .withSidebar(sidebar, "timer")
-                .withSidebar(adminSidebar, "timer")
-                .sidebarPrefix(Component.text("Heading to Podium: "))
-                .onCompletion(() -> {
-                    currentState = EventState.PODIUM;
-                    sidebar.addLine("winner", winner);
-                    adminSidebar.addLine("winner", winner);
-                    sidebar.updateLine("currentGame", getCurrentGameLine());
-                    adminSidebar.updateLine("currentGame", getCurrentGameLine());
-                    gameManager.returnAllParticipantsToPodium(winningTeam);
-                    for (Player participant : participants) {
-                        String team = gameManager.getTeamName(participant.getUniqueId());
-                        if (team.equals(winningTeam)) {
-                            giveCrown(participant);
-                        }
-                    }
-                })
-                .build());
-    }
-    
-    private void giveCrown(Player participant) {
-        participant.getInventory().setHelmet(crown);
-    }
-    
-    private void removeCrown(Player participant) {
-        ItemStack helmet = participant.getInventory().getHelmet();
-        if (helmet != null && helmet.equals(crown)) {
-            participant.getInventory().setHelmet(null);
-        }
-    }
-    
-    private void startVoting() {
-        currentState = EventState.VOTING;
-        List<GameType> votingPool = new ArrayList<>(List.of(GameType.values()));
-        votingPool.removeAll(playedGames);
-        for (Player participant : participants) {
-            sidebar.removePlayer(participant);
-        }
-        for (Player admin : admins) {
-            adminSidebar.removePlayer(admin);
-        }
-        voteManager.startVote(participants, votingPool, config.getVotingDuration(), this::startingGameDelay, admins);
-        participants.clear();
-        admins.clear();
-    }
-    
-    private void startingGameDelay(GameType gameType) {
-        currentState = EventState.DELAY;
-        initializeParticipantsAndAdmins();
-        timerManager.start(Timer.builder()
-                .duration(config.getStartingGameDuration())
-                .withSidebar(sidebar, "timer")
-                .withSidebar(adminSidebar, "timer")
-                .sidebarPrefix(Component.empty()
-                        .append(Component.text(gameType.getTitle()))
-                        .append(Component.text(": ")))
-                .onCompletion(() -> {
-                    currentState = EventState.PLAYING_GAME;
-                    createScoreKeeperForGame(gameType);
-                    for (Player participant : participants) {
-                        sidebar.removePlayer(participant);
-                    }
-                    for (Player admin : admins) {
-                        adminSidebar.removePlayer(admin);
-                    }
-                    participants.clear();
-                    admins.clear();
-                    boolean gameStarted = gameManager.startGame(gameType, Bukkit.getConsoleSender());
-                    if (!gameStarted) {
-                        messageAllAdmins(Component.text("Unable to start the game ")
-                                .append(Component.text(gameType.getTitle()))
-                                .append(Component.text(". Returning to the hub in an effort to try again."))
-                                .color(NamedTextColor.RED));
-                        messageAllAdmins(Component.text("Use ")
-                                .append(Component.text("/mct event pause")
-                                        .clickEvent(ClickEvent.suggestCommand("/mct event pause"))
-                                        .decorate(TextDecoration.BOLD))
-                                .color(NamedTextColor.RED));
-                        initializeParticipantsAndAdmins();
-                        startWaitingInHub();
-                    }
-                })
-                .build());
-    }
-    
-    /**
-     * Adds a ScoreKeeper to track the game's points. If no ScoreKeepers exist for gameType, creates a new list of iterations for the game.
-     * @param gameType the game to add a ScoreKeeper for
-     */
-    private void createScoreKeeperForGame(GameType gameType) {
-        if (!scoreKeepers.containsKey(gameType)) {
-            List<ScoreKeeper> iterationScoreKeepers = new ArrayList<>(List.of(new ScoreKeeper()));
-            scoreKeepers.put(gameType, iterationScoreKeepers);
-        } else {
-            List<ScoreKeeper> iterationScoreKeepers = scoreKeepers.get(gameType);
-            iterationScoreKeepers.add(new ScoreKeeper());
-        }
-    }
-    
-    /**
-     * To be called when a game is over. The GameManager knows when a game ends, 
-     * and thus can call this method if an event is running.
-     * @param finishedGameType The GameType of the game that just ended
-     */
-    public void gameIsOver(GameType finishedGameType) {
-        currentState = EventState.DELAY;
-        initializeParticipantsAndAdmins();
-        playedGames.add(finishedGameType);
-        currentGameNumber += 1;
-        sidebar.updateLine("currentGame", getCurrentGameLine());
-        adminSidebar.updateLine("currentGame", getCurrentGameLine());
-        timerManager.start(Timer.builder()
-                .duration(config.getBackToHubDuration())
-                .withSidebar(sidebar, "timer")
-                .withSidebar(adminSidebar, "timer")
-                .sidebarPrefix(Component.text("Back to Hub: "))
-                .onCompletion(() -> {
-                    if (isItHalfTime()) {
-                        startHalftimeBreak();
-                    } else {
-                        startWaitingInHub();
-                    }
-                })
-                .build());
-    }
-    
-    private void toColossalCombatDelay() {
-        currentState = EventState.DELAY;
-        timerManager.start(Timer.builder()
-                .duration(config.getStartingGameDuration())
-                .withSidebar(sidebar, "timer")
-                .withSidebar(adminSidebar, "timer")
-                .sidebarPrefix(Component.text("Colossal Combat: "))
-                .onCompletion(() -> {
-                    if (identifyWinnersAndStartColossalCombat()) {
-                        currentState = EventState.PLAYING_GAME;
-                    } else {
-                        messageAllAdmins(Component.text("Unable to start Colossal Combat."));
-                    }
-                })
-                .build());
-    }
-    
-    /**
-     * @return true if two teams were picked and Colossal Combat started successfully. False if anything went wrong.
-     */
-    private boolean identifyWinnersAndStartColossalCombat() {
-        Set<String> allTeams = gameManager.getTeamNames();
-        if (allTeams.size() < 2) {
-            messageAllAdmins(Component.empty()
-                    .append(Component.text("There are fewer than two teams online. Use "))
-                    .append(Component.text("/mct game finalgame <first> <second>")
-                            .clickEvent(ClickEvent.suggestCommand("/mct game finalgame "))
-                            .decorate(TextDecoration.BOLD))
-                    .append(Component.text(" to start the final game with the two chosen teams.")));
-            return false;
-        }
-        Map<String, Integer> teamScores = new HashMap<>();
-        for (String teamName : allTeams) {
-            int score = gameManager.getScore(teamName);
-            teamScores.put(teamName, score);
-        }
-        String[] firstPlaces = GameManagerUtils.calculateFirstPlace(teamScores);
-        if (firstPlaces.length == 2) {
-            String firstPlace = firstPlaces[0];
-            String secondPlace = firstPlaces[1];
-            startColossalCombat(Bukkit.getConsoleSender(), firstPlace, secondPlace);
-            return false;
-        }
-        if (firstPlaces.length > 2) {
-            messageAllAdmins(Component.empty()
-                    .append(Component.text("There are more than 2 teams tied for first place. A tie breaker is needed. Use "))
-                    .append(Component.text("/mct game finalgame <first> <second>")
-                            .clickEvent(ClickEvent.suggestCommand("/mct game finalgame "))
-                            .decorate(TextDecoration.BOLD))
-                    .append(Component.text(" to start the final game with the two chosen teams."))
-                    .color(NamedTextColor.RED));
-            return false;
-        }
-        String firstPlace = firstPlaces[0];
-        teamScores.remove(firstPlace);
-        String[] secondPlaces = GameManagerUtils.calculateFirstPlace(teamScores);
-        if (secondPlaces.length > 1) {
-            messageAllAdmins(Component.empty()
-                    .append(Component.text("There is a tie second place. A tie breaker is needed. Use "))
-                    .append(Component.text("/mct game finalgame <first> <second>")
-                            .clickEvent(ClickEvent.suggestCommand("/mct game finalgame "))
-                            .decorate(TextDecoration.BOLD))
-                    .append(Component.text(" to start the final game with the two chosen teams."))
-                    .color(NamedTextColor.RED));
-            return false;
-        }
-        String secondPlace = secondPlaces[0];
-        int onlineFirsts = 0;
-        int onlineSeconds = 0;
-        for (Player participant : participants) {
-            String team = gameManager.getTeamName(participant.getUniqueId());
-            if (team.equals(firstPlace)) {
-                onlineFirsts++;
-            }
-            if (team.equals(secondPlace)) {
-                onlineSeconds++;
-            }
-        }
-        if (onlineFirsts <= 0) {
-            messageAllAdmins(Component.empty()
-                    .append(Component.text("There are no members of the first place team online. Please use "))
-                    .append(Component.text("/mct event finalgame start <first> <second>")
-                            .clickEvent(ClickEvent.suggestCommand(String.format("/mct event finalgame start %s %s", firstPlace, secondPlace)))
-                            .decorate(TextDecoration.BOLD))
-                    .append(Component.text(" to manually start the final game."))
-                    .color(NamedTextColor.RED));
-            return false;
-        }
-    
-        if (onlineSeconds <= 0) {
-            messageAllAdmins(Component.empty()
-                    .append(Component.text("There are no members of the second place team online. Please use "))
-                    .append(Component.text("/mct event finalgame start <first> <second>")
-                            .clickEvent(ClickEvent.suggestCommand(String.format("/mct event finalgame start %s %s", firstPlace, secondPlace)))
-                            .decorate(TextDecoration.BOLD))
-                    .append(Component.text(" to manually start the final game."))
-                    .color(NamedTextColor.RED));
-            return false;
-        }
-        
-        startColossalCombat(Bukkit.getConsoleSender(), firstPlace, secondPlace);
-        return true;
-    }
-    
-    public void startColossalCombat(CommandSender sender, String firstPlaceTeamName, String secondPlaceTeamName) {
-        try {
-            colossalCombatGame.loadConfig();
-        } catch (ConfigException e) {
-            Bukkit.getLogger().severe(e.getMessage());
-            e.printStackTrace();
-            sender.sendMessage(Component.text("Error loading config file. See console for details.")
-                    .color(NamedTextColor.RED));
-            messageAllAdmins(Component.text("Can't start ")
-                    .append(Component.text("Colossal Combat")
-                            .decorate(TextDecoration.BOLD))
-                    .append(Component.text(". Error loading config file. See console for details:\n"))
-                    .append(Component.text(e.getMessage()))
-                    .color(NamedTextColor.RED));
-            return;
-        }
-        if (colossalCombatGame.isActive()) {
-            sender.sendMessage(Component.text("Colossal Combat is already running").color(NamedTextColor.RED));
-            return;
-        }
-        if (firstPlaceTeamName == null || secondPlaceTeamName == null) {
-            sender.sendMessage(Component.text("Please specify the first and second place teams.").color(NamedTextColor.RED));
-            return;
-        }
-        
-        List<Player> firstPlaceParticipants = new ArrayList<>();
-        List<Player> secondPlaceParticipants = new ArrayList<>();
-        List<Player> spectators = new ArrayList<>();
-        List<Player> participantPool;
-        List<Player> adminPool;
-        if (eventIsActive()) {
-            participantPool = new ArrayList<>(participants);
-            adminPool = new ArrayList<>(admins);
-        } else {
-            participantPool = new ArrayList<>(gameManager.getOnlineParticipants());
-            adminPool = new ArrayList<>(gameManager.getOnlineAdmins());
-        }
-        for (Player participant : participantPool) {
-            String teamName = gameManager.getTeamName(participant.getUniqueId());
-            if (teamName.equals(firstPlaceTeamName)) {
-                firstPlaceParticipants.add(participant);
-            } else if (teamName.equals(secondPlaceTeamName)) {
-                secondPlaceParticipants.add(participant);
-            } else {
-                spectators.add(participant);
-            }
-        }
-        
-        if (firstPlaceParticipants.isEmpty()) {
-            sender.sendMessage(Component.empty()
-                    .append(Component.text("There are no members of the first place team online. Please use "))
-                    .append(Component.text("/mct event finalgame start <first> <second>")
-                            .clickEvent(ClickEvent.suggestCommand(String.format("/mct event finalgame start %s %s", firstPlaceTeamName, secondPlaceTeamName)))
-                            .decorate(TextDecoration.BOLD))
-                    .append(Component.text(" to manually start the final game."))
-                    .color(NamedTextColor.RED));
-            return;
-        }
-        
-        if (secondPlaceParticipants.isEmpty()) {
-            sender.sendMessage(Component.empty()
-                            .append(Component.text("There are no members of the second place team online. Please use "))
-                            .append(Component.text("/mct event finalgame start <first> <second>")
-                                    .clickEvent(ClickEvent.suggestCommand(String.format("/mct event finalgame start %s %s", firstPlaceTeamName, secondPlaceTeamName)))
-                                    .decorate(TextDecoration.BOLD))
-                            .append(Component.text(" to manually start the final game."))
-                            .color(NamedTextColor.RED));
-            return;
-        }
-    
-        if (eventIsActive()) {
-            for (Player participant : participants) {
-                sidebar.removePlayer(participant);
-            }
-            for (Player admin : admins) {
-                adminSidebar.removePlayer(admin);
-            }
-        }
-        gameManager.removeParticipantsFromHub(participantPool);
-        colossalCombatGame.start(firstPlaceParticipants, secondPlaceParticipants, spectators, adminPool);
-        if (eventIsActive()) {
-            participants.clear();
-            admins.clear();
-        }
-    }
-    
-    public void stopColossalCombat(CommandSender sender) {
-        if (!colossalCombatGame.isActive()) {
-            sender.sendMessage(Component.text("Colossal Combat is not running")
-                    .color(NamedTextColor.RED));
-            return;
-        }
-        colossalCombatGame.stop(null);
-    }
-    
-    /**
-     * Called when Colossal Combat is over. If the passed in winningTeam name is null,
-     * nothing happens. Otherwise, this initiates the podium process for the winning team.
-     * @param winningTeam The name of the winning team. If this is null and an event is not active, nothing happens. If this is null and an event is active, then it initiates the startWaitingInHub sequence. 
-     */
-    public void colossalCombatIsOver(@Nullable String winningTeam) {
-        if (winningTeam == null) {
-            Component message = Component.text("No winner declared.");
-            messageAllAdmins(message);
-            gameManager.messageOnlineParticipants(message);
-            if (currentState != null) {
-                initializeParticipantsAndAdmins();
-                startWaitingInHub();
-            }
-            return;
-        }
-        NamedTextColor teamColor = gameManager.getTeamNamedTextColor(winningTeam);
-        Component formattedTeamDisplayName = gameManager.getFormattedTeamDisplayName(winningTeam);
-        if (currentState == null) {
-            Component message = Component.empty()
-                    .append(formattedTeamDisplayName)
-                    .append(Component.text(" wins!"))
-                    .color(teamColor)
-                    .decorate(TextDecoration.BOLD);
-            messageAllAdmins(message);
-            gameManager.messageOnlineParticipants(message);
-            Audience.audience(
-                    Audience.audience(admins),
-                    Audience.audience(gameManager.getOnlineParticipants())
-            ).showTitle(Title.title(formattedTeamDisplayName, Component.text("wins!")
-                    .color(teamColor), UIUtils.DEFAULT_TIMES));
-            return;
-        }
-        Component message = Component.empty()
-                .append(formattedTeamDisplayName)
-                .append(Component.text(" wins ")
-                        .append(config.getTitle())
-                        .append(Component.text("!")))
-                .color(teamColor)
-                .decorate(TextDecoration.BOLD);
-        Bukkit.getServer().sendMessage(message);
-        Bukkit.getServer().showTitle(Title.title(
-                formattedTeamDisplayName, 
-                Component.empty()
-                        .append(Component.text("wins "))
-                        .append(config.getTitle())
-                        .append(Component.text("!"))
-                        .color(teamColor), 
-                UIUtils.DEFAULT_TIMES));
-        toPodiumDelay(winningTeam);
+    public void listReady(@NotNull CommandSender sender, @Nullable String teamId) {
+        state.listReady(sender, teamId);
     }
     
     @EventHandler
     public void onPlayerDamage(EntityDamageEvent event) {
-        if (currentState == null) {
-            return;
-        }
-        if (event.getCause().equals(EntityDamageEvent.DamageCause.VOID)) {
+        if (GameManagerUtils.EXCLUDED_CAUSES.contains(event.getCause())) {
             return;
         }
         if (!(event.getEntity() instanceof Player participant)) {
@@ -1040,172 +420,79 @@ public class EventManager implements Listener {
         if (!participants.contains(participant)) {
             return;
         }
-        switch (currentState) {
-            case WAITING_IN_HUB, VOTING, DELAY, PODIUM 
-                    -> event.setCancelled(true);
-        }
+        state.onPlayerDamage(event);
     }
     
-    /**
-     * Stop players from removing their equipment
-     */
     @EventHandler
     public void onClickInventory(InventoryClickEvent event) {
-        if (currentState == null) {
-            return;
-        }
-        if (event.getClickedInventory() == null) {
-            return;
-        }
-        ItemStack currentItem = event.getCurrentItem();
-        if (currentItem == null) {
-            return;
-        }
         Player participant = ((Player) event.getWhoClicked());
         if (!participants.contains(participant)) {
             return;
         }
-        switch (currentState) {
-            case DELAY -> event.setCancelled(true);
-            case PODIUM -> {
-                if (winningTeam == null) {
-                    return;
-                }
-                String team = gameManager.getTeamName(participant.getUniqueId());
-                if (!team.equals(winningTeam)) {
-                    return;
-                }
-                if (!currentItem.equals(crown)) {
-                    return;
-                }
-                event.setCancelled(true);
-            }
-        }
+        state.onClickInventory(event);
     }
     
-    /**
-     * Stop players from dropping items
-     */
     @EventHandler
     public void onDropItem(PlayerDropItemEvent event) {
-        if (currentState == null) {
-            return;
-        }
         Player participant = event.getPlayer();
         if (!participants.contains(participant)) {
             return;
         }
-        switch (currentState) {
-            case DELAY -> event.setCancelled(true);
-            case PODIUM -> {
-                if (winningTeam == null) {
-                    return;
-                }
-                String team = gameManager.getTeamName(participant.getUniqueId());
-                if (!team.equals(winningTeam)) {
-                    return;
-                }
-                if (!event.getItemDrop().getItemStack().equals(crown)) {
-                    return;
-                }
-                event.setCancelled(true);
-            }
-        }
+        state.onDropItem(event);
     }
     
     /**
-     * Track the points earned for the given team in the given game. 
-     * If the event is not active, nothing happens.
-     * @param teamName The team to track points for
-     * @param points the points to add
-     * @param gameType the game that the points came from
+     * To be called when a game is over. The GameManager knows when a game ends, 
+     * and thus can call this method if an event is running.
+     * @param finishedGameType The GameType of the game that just ended
      */
-    public void trackPoints(String teamName, int points, GameType gameType) {
-        if (currentState == null) {
-            return;
-        }
-        List<ScoreKeeper> iterationScoreKeepers = scoreKeepers.get(gameType);
-        ScoreKeeper iteration = iterationScoreKeepers.get(iterationScoreKeepers.size() - 1);
-        iteration.addPoints(teamName, points);
+    public void gameIsOver(GameType finishedGameType) {
+        state.gameIsOver(finishedGameType);
+    }
+    
+    public void colossalCombatIsOver(String winningTeam) {
+        state.colossalCombatIsOver(winningTeam);
+    }
+    
+    public void stopColossalCombat(@NotNull CommandSender sender) {
+        state.stopColossalCombat(sender);
+    }
+    
+    public void startColossalCombat(@NotNull CommandSender sender, @NotNull String firstTeam, @NotNull String secondTeam) {
+        state.startColossalCombat(sender, firstTeam, secondTeam);
+    }
+    
+    public boolean eventIsActive() {
+        return !(state instanceof OffState);
+    }
+    
+    public void cancelAllTasks() {
+        voteManager.cancelVote();
+        timerManager.cancel();
+        state.cancelAllTasks();
     }
     
     /**
-     * Track the points earned for the given participant in the given game. 
-     * If the event is not active, nothing happens.
-     * @param participantUUID The participant to track points for
-     * @param points the points to add 
-     * @param gameType the game that the points came from
+     * @return the event title from the config if the event is active,
+     * or the {@link Sidebar#DEFAULT_TITLE} if not
      */
-    public void trackPoints(UUID participantUUID, int points, GameType gameType) {
-        if (currentState == null) {
-            return;
+    public @NotNull Component getTitle() {
+        if (eventIsActive()) {
+            return config.getTitle();
+        } else {
+            return Sidebar.DEFAULT_TITLE;
         }
-        List<ScoreKeeper> iterationScoreKeepers = scoreKeepers.get(gameType);
-        ScoreKeeper iteration = iterationScoreKeepers.get(iterationScoreKeepers.size() - 1);
-        iteration.addPoints(participantUUID, points);
     }
     
-    private void initializeAdminSidebar() {
-        List<String> sortedTeamNames = sortTeamNames(gameManager.getTeamNames());
-        numberOfTeams = sortedTeamNames.size();
-        KeyLine[] teamLines = new KeyLine[numberOfTeams];
-        for (int i = 0; i < numberOfTeams; i++) {
-            String teamName = sortedTeamNames.get(i);
-            String teamDisplayName = gameManager.getTeamDisplayName(teamName);
-            ChatColor teamChatColor = gameManager.getTeamChatColor(teamName);
-            int teamScore = gameManager.getScore(teamName);
-            teamLines[i] = new KeyLine("team"+i, String.format("%s%s: %s", teamChatColor, teamDisplayName, teamScore));
-        }
-        adminSidebar.addLine("currentGame", getCurrentGameLine());
-        adminSidebar.addLines(teamLines);
-        adminSidebar.addLine("timer", "");
-        adminSidebar.updateTitle(config.getTitle());
+    public void giveCrown(Player participant) {
+        participant.getInventory().setHelmet(crown);
     }
     
-    private void clearAdminSidebar() {
-        adminSidebar.updateTitle(Sidebar.DEFAULT_TITLE);
-        adminSidebar.removeAllPlayers();
-        adminSidebar.deleteAllLines();
-        adminSidebar = null;
-    }
-    
-    private void initializeSidebar() {
-        List<String> sortedTeamNames = sortTeamNames(gameManager.getTeamNames());
-        numberOfTeams = sortedTeamNames.size();
-        KeyLine[] teamLines = new KeyLine[numberOfTeams];
-        for (int i = 0; i < numberOfTeams; i++) {
-            String teamName = sortedTeamNames.get(i);
-            String teamDisplayName = gameManager.getTeamDisplayName(teamName);
-            ChatColor teamChatColor = gameManager.getTeamChatColor(teamName);
-            int teamScore = gameManager.getScore(teamName);
-            teamLines[i] = new KeyLine("team"+i, String.format("%s%s: %s", teamChatColor, teamDisplayName, teamScore));
+    public void removeCrown(Player participant) {
+        ItemStack helmet = participant.getInventory().getHelmet();
+        if (helmet != null && helmet.equals(crown)) {
+            participant.getInventory().setHelmet(null);
         }
-        sidebar.addLine("currentGame", getCurrentGameLine());
-        sidebar.addLines(teamLines);
-        sidebar.addLine("personalScore", "");
-        sidebar.addLine("timer", "");
-        sidebar.updateTitle(config.getTitle());
-        updatePersonalScores();
-    }
-    
-    private void clearSidebar() {
-        sidebar.updateTitle(Sidebar.DEFAULT_TITLE);
-        sidebar.removeAllPlayers();
-        sidebar.deleteAllLines();
-        sidebar = null;
-    }
-    
-    /**
-     * @return a line for sidebars saying what the current game is
-     */
-    private String getCurrentGameLine() {
-        if (currentGameNumber <= maxGames) {
-            return String.format("Game [%d/%d]", currentGameNumber, maxGames);
-        }
-        if (currentState == EventState.PODIUM) {
-            return "Thanks for playing!";
-        }
-        return "Final Round";
     }
     
     /**
@@ -1213,85 +500,6 @@ public class EventManager implements Listener {
      */
     public boolean shouldDisplayGameNumber() {
         return config.shouldDisplayGameNumber();
-    }
-    
-    public void updateTeamScores() {
-        if (sidebar == null) {
-            return;
-        }
-        List<String> sortedTeamNames = sortTeamNames(gameManager.getTeamNames());
-        if (numberOfTeams != sortedTeamNames.size()) {
-            reorderTeamLines(sortedTeamNames);
-            return;
-        }
-        KeyLine[] teamLines = new KeyLine[numberOfTeams];
-        for (int i = 0; i < numberOfTeams; i++) {
-            String teamName = sortedTeamNames.get(i);
-            String teamDisplayName = gameManager.getTeamDisplayName(teamName);
-            ChatColor teamChatColor = gameManager.getTeamChatColor(teamName);
-            int teamScore = gameManager.getScore(teamName);
-            teamLines[i] = new KeyLine("team"+i, String.format("%s%s: %s%s", teamChatColor, teamDisplayName, ChatColor.GOLD, teamScore));
-        }
-        sidebar.updateLines(teamLines);
-        if (adminSidebar == null) {
-            return;
-        }
-        adminSidebar.updateLines(teamLines);
-    }
-    
-    private void reorderTeamLines(List<String> sortedTeamNames) {
-        String[] teamKeys = new String[numberOfTeams];
-        for (int i = 0; i < numberOfTeams; i++) {
-            teamKeys[i] = "team"+i;
-        }
-        sidebar.deleteLines(teamKeys);
-        adminSidebar.deleteLines(teamKeys);
-        
-        numberOfTeams = sortedTeamNames.size();
-        KeyLine[] teamLines = new KeyLine[numberOfTeams];
-        for (int i = 0; i < numberOfTeams; i++) {
-            String teamName = sortedTeamNames.get(i);
-            String teamDisplayName = gameManager.getTeamDisplayName(teamName);
-            ChatColor teamChatColor = gameManager.getTeamChatColor(teamName);
-            int teamScore = gameManager.getScore(teamName);
-            teamLines[i] = new KeyLine("team"+i, String.format("%s%s: %s%s", teamChatColor, teamDisplayName, ChatColor.GOLD, teamScore));
-        }
-        sidebar.addLines(0, teamLines);
-        adminSidebar.addLines(0, teamLines);
-    }
-    
-    private void updatePersonalScores() {
-        for (Player participant : participants) {
-            int score = gameManager.getScore(participant.getUniqueId());
-            String contents = String.format("%sPersonal: %s", ChatColor.GOLD, score);
-            updatePersonalScore(participant, contents);
-        }
-    }
-    
-    
-    public void updatePersonalScore(Player participant, String contents) {
-        if (sidebar == null) {
-            return;
-        }
-        if (!participants.contains(participant)) {
-            return;
-        }
-        sidebar.updateLine(participant.getUniqueId(), "personalScore", contents);
-    }
-    
-    protected List<String> sortTeamNames(Set<String> teamNames) {
-        List<String> sortedTeamNames = new ArrayList<>(teamNames);
-        sortedTeamNames.sort(Comparator.comparing(gameManager::getScore, Comparator.reverseOrder()));
-        sortedTeamNames.sort(Comparator
-                .comparing(teamName -> gameManager.getScore((String) teamName))
-                .reversed()
-                .thenComparing(teamName -> ((String) teamName))
-        );
-        return sortedTeamNames;
-    }
-    
-    public boolean eventIsActive() {
-        return currentState != null;
     }
     
     /**
@@ -1307,20 +515,153 @@ public class EventManager implements Listener {
         return half <= currentGameNumber-1 && currentGameNumber-1 <= Math.ceil(half);
     }
     
-    public boolean allGamesHaveBeenPlayed() {
-        return currentGameNumber >= maxGames + 1;
+    /**
+     * Assigns a value to the {@link #maxGames} field. This should not be used unless you know
+     * what you're doing. Instead, use {@link #modifyMaxGames(CommandSender, int)}
+     * @param maxGames the value to set the maxGames to
+     * @see #modifyMaxGames(CommandSender, int) 
+     */
+    public void setMaxGames(int maxGames) {
+        this.maxGames = maxGames;
     }
     
-    private void messageAllAdmins(Component message) {
+    /**
+     * This is used to change the maxGames of the event. This calls state-specific
+     * behavior and can safely be used at any time without causing any errors. The state
+     * may or may not ignore the value with a message sent to the sender.
+     * @param sender the sender of the modify command
+     * @param newMaxGames the number to set the max games to
+     */
+    public void modifyMaxGames(@NotNull CommandSender sender, int newMaxGames) {
+        state.setMaxGames(sender, newMaxGames);
+    }
+    
+    /**
+     * The nth multiplier is used on the nth game in the event. If there are x multipliers, and we're on game z where z is greater than x, the xth multiplier is used.
+     * @return a multiplier for the score based on the progression in the match.
+     */
+    public double matchProgressPointMultiplier() {
+        if (currentGameNumber <= 0) {
+            return 1;
+        }
+        double[] multipliers = config.getMultipliers();
+        if (currentGameNumber > multipliers.length) {
+            return multipliers[multipliers.length - 1];
+        }
+        return multipliers[currentGameNumber - 1];
+    }
+    
+    public void updateTeamScores() {
+        if (sidebar == null) {
+            return;
+        }
+        List<String> sortedTeamIds = sortTeamIds(gameManager.getTeamIds());
+        if (numberOfTeams != sortedTeamIds.size()) {
+            reorderTeamLines(sortedTeamIds);
+            return;
+        }
+        KeyLine[] teamLines = new KeyLine[numberOfTeams];
+        for (int i = 0; i < numberOfTeams; i++) {
+            String teamId = sortedTeamIds.get(i);
+            Component teamDisplayName = gameManager.getFormattedTeamDisplayName(teamId);
+            int teamScore = gameManager.getScore(teamId);
+            teamLines[i] = new KeyLine("team"+i, Component.empty()
+                    .append(teamDisplayName)
+                    .append(Component.text(": "))
+                    .append(Component.text(teamScore)
+                            .color(NamedTextColor.GOLD))
+            );
+        }
+        sidebar.updateLines(teamLines);
+        if (adminSidebar == null) {
+            return;
+        }
+        adminSidebar.updateLines(teamLines);
+    }
+    
+    public List<String> sortTeamIds(Set<String> teamIds) {
+        List<String> sortedTeamIds = new ArrayList<>(teamIds);
+        sortedTeamIds.sort(Comparator.comparing(gameManager::getScore, Comparator.reverseOrder()));
+        sortedTeamIds.sort(Comparator
+                .comparing(teamId -> gameManager.getScore((String) teamId))
+                .reversed()
+                .thenComparing(teamId -> ((String) teamId))
+        );
+        return sortedTeamIds;
+    }
+    
+    private void reorderTeamLines(List<String> sortedTeamIds) {
+        String[] teamKeys = new String[numberOfTeams];
+        for (int i = 0; i < numberOfTeams; i++) {
+            teamKeys[i] = "team"+i;
+        }
+        sidebar.deleteLines(teamKeys);
+        adminSidebar.deleteLines(teamKeys);
+        
+        numberOfTeams = sortedTeamIds.size();
+        KeyLine[] teamLines = new KeyLine[numberOfTeams];
+        for (int i = 0; i < numberOfTeams; i++) {
+            String teamId = sortedTeamIds.get(i);
+            Component teamDisplayName = gameManager.getFormattedTeamDisplayName(teamId);
+            int teamScore = gameManager.getScore(teamId);
+            teamLines[i] = new KeyLine("team"+i, Component.empty()
+                    .append(teamDisplayName)
+                    .append(Component.text(": "))
+                    .append(Component.text(teamScore)
+                            .color(NamedTextColor.GOLD))
+            );
+        }
+        sidebar.addLines(0, teamLines);
+        adminSidebar.addLines(0, teamLines);
+    }
+    
+    public void updatePersonalScore(Player participant, Component contents) {
+        if (sidebar == null) {
+            return;
+        }
+        if (!participants.contains(participant)) {
+            return;
+        }
+        sidebar.updateLine(participant.getUniqueId(), "personalScore", contents);
+    }
+    
+    /**
+     * Track the points earned for the given team in the given game. 
+     * If the event is not active, nothing happens.
+     * @param teamId The team to track points for
+     * @param points the points to add
+     * @param gameType the game that the points came from
+     */
+    public void trackPoints(String teamId, int points, GameType gameType) {
+        if (state instanceof OffState) {
+            return;
+        }
+        List<ScoreKeeper> iterationScoreKeepers = scoreKeepers.get(gameType);
+        ScoreKeeper iteration = iterationScoreKeepers.getLast();
+        iteration.addPoints(teamId, points);
+    }
+    
+    /**
+     * Track the points earned for the given participant in the given game. 
+     * If the event is not active, nothing happens.
+     * @param participantUUID The participant to track points for
+     * @param points the points to add 
+     * @param gameType the game that the points came from
+     */
+    public void trackPoints(UUID participantUUID, int points, GameType gameType) {
+        if (state instanceof OffState) {
+            return;
+        }
+        List<ScoreKeeper> iterationScoreKeepers = scoreKeepers.get(gameType);
+        ScoreKeeper iteration = iterationScoreKeepers.getLast();
+        iteration.addPoints(participantUUID, points);
+    }
+    
+    public void messageAllAdmins(Component message) {
         gameManager.messageAdmins(message);
     }
     
-    public int getMaxGames() {
-        return maxGames;
+    public boolean allGamesHaveBeenPlayed() {
+        return currentGameNumber >= maxGames + 1;
     }
-    
-    public int getCurrentGameNumber() {
-        return currentGameNumber;
-    }
-    
 }

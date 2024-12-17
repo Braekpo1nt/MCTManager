@@ -42,6 +42,6 @@ public class SoundDTO implements Validatable {
      * @return the key of the NamespacedKeyDTO of this soundDTO
      */
     public String getKey() {
-        return namespacedKey.key();
+        return namespacedKey.getKey();
     }
 }

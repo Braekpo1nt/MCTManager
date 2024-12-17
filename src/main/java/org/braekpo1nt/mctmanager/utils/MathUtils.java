@@ -2,6 +2,8 @@ package org.braekpo1nt.mctmanager.utils;
 
 import com.google.common.base.Preconditions;
 import org.bukkit.Location;
+import org.bukkit.util.BoundingBox;
+import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -119,5 +121,18 @@ public class MathUtils {
     public static int wrapIndex(int index, int size) {
         Preconditions.checkArgument(size > 0, "size must be greater than 0");
         return (index % size + size) % size;
+    }
+    
+    public static double getMinimumDistance(BoundingBox box, Vector point) {
+        // Get the closest point on the bounding box to the given point
+        double closestX = Math.max(box.getMinX(), Math.min(point.getX(), box.getMaxX()));
+        double closestY = Math.max(box.getMinY(), Math.min(point.getY(), box.getMaxY()));
+        double closestZ = Math.max(box.getMinZ(), Math.min(point.getZ(), box.getMaxZ()));
+        
+        // Create a vector for the closest point
+        Vector closestPoint = new Vector(closestX, closestY, closestZ);
+        
+        // Calculate the distance between the point and the closest point on the bounding box
+        return closestPoint.distance(point);
     }
 }

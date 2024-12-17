@@ -24,7 +24,6 @@ import org.braekpo1nt.mctmanager.ui.sidebar.KeyLine;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.utils.EntityUtils;
 import org.braekpo1nt.mctmanager.utils.MathUtils;
-import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -237,7 +236,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
         currentCheckPoints = new HashMap<>(newParticipants.size());
         puzzles = config.getPuzzles();
         displays = new HashMap<>(newParticipants.size());
-        sidebar = gameManager.getSidebarFactory().createSidebar();
+        sidebar = gameManager.createSidebar();
         displayWalls = true;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         for (Player participant : newParticipants) {
@@ -248,7 +247,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
             selectPuzzle(participant, 0, false);
         }
         editorStarted = true;
-        Bukkit.getLogger().info("Starting Parkour Pathway editor");
+        Main.logger().info("Starting Parkour Pathway editor");
     }
     
     public void initializeParticipant(Player participant) {
@@ -258,7 +257,7 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
         currentCheckPoints.put(participant.getUniqueId(), 0);
         displays.put(participant.getUniqueId(), new Display(plugin));
         sidebar.addPlayer(participant);
-        participant.getInventory().clear();
+        ParticipantInitializer.clearInventory(participant);
         participant.teleport(config.getStartingLocation());
         ParticipantInitializer.resetHealthAndHunger(participant);
         ParticipantInitializer.clearStatusEffects(participant);
@@ -279,13 +278,13 @@ public class ParkourPathwayEditor implements GameEditor, Configurable, Listener 
         currentInBounds.clear();
         displays.clear();
         displayWalls = true;
-        Bukkit.getLogger().info("Stopping Parkour Pathway editor");
+        Main.logger().info("Stopping Parkour Pathway editor");
     }
     
     private void resetParticipant(Player participant) {
         ParticipantInitializer.resetHealthAndHunger(participant);
         ParticipantInitializer.clearStatusEffects(participant);
-        participant.getInventory().clear();
+        ParticipantInitializer.clearInventory(participant);
         Display display = displays.get(participant.getUniqueId());
         sidebar.removePlayer(participant);
         if (display != null) {

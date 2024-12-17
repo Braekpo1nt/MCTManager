@@ -4,7 +4,6 @@ import com.google.common.base.Preconditions;
 import lombok.*;
 import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.Main;
-import org.braekpo1nt.mctmanager.config.dto.org.bukkit.util.BoundingBoxDTO;
 import org.braekpo1nt.mctmanager.config.validation.Validatable;
 import org.braekpo1nt.mctmanager.config.validation.Validator;
 import org.braekpo1nt.mctmanager.games.game.parkourpathway.TeamSpawn;
@@ -13,6 +12,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,7 +30,7 @@ class ParkourPathwayConfigDTO implements Validatable {
     /**
      * the larger glass barrier meant to close off all participants from the puzzles until it is time to race. If null, no glass barrier will be created.
      */
-    private @Nullable BoundingBoxDTO glassBarrier;
+    private @Nullable BoundingBox glassBarrier;
     /**
      * The chat message sent to all participants when the glass barrier opens. Null means no message will be sent.
      */
@@ -45,11 +45,53 @@ class ParkourPathwayConfigDTO implements Validatable {
     private @Nullable Component teamSpawnsOpenMessage;
     /** the list of puzzles for this parkour game */
     private List<PuzzleDTO> puzzles;
-    private @Nullable BoundingBoxDTO spectatorArea;
+    private @Nullable BoundingBox spectatorArea;
     private @Nullable List<Material> preventInteractions;
+    /**
+     * Defines the number of skips and the item used to trigger them
+     */
+    private @Nullable Skips skips;
     private Scores scores;
     private Durations durations;
     private Component description;
+    
+    @Data
+    @AllArgsConstructor
+    static class Skips {
+        /** the number of skips each player gets. 0 or negative means no skips. */
+        private int numOfSkips;
+        /** the item that players interact with to use their skips. Defaults to lapis lazuli */
+        private @Nullable Material item;
+        /** the display name of the skip item. Defaults to "Skip Puzzle" */
+        private @Nullable Component itemName;
+        /** the lore of the skip item. Defaults to "Right click to skip the current puzzle" */
+        private @Nullable List<Component> itemLore;
+        /** the number of points to award for unused skips */
+        private int unusedSkipScore;
+        /**
+         * The puzzle after which no skips are allowed, and players
+         * will be given points for their remaining unused skips.
+         * Values less than zero will allow skips to be used the entire
+         * game. Values greater than the number of puzzles will essentially
+         * do the same. 
+         */
+        private int maxSkipPuzzle;
+        
+        public @NotNull Material getItem() {
+            return (item != null) ? item : Material.LAPIS_LAZULI;
+        }
+        
+        public @NotNull Component getItemName() {
+            return (itemName != null) ? itemName : Component.text("Skip Puzzle");
+        }
+        
+        public @NotNull List<Component> getItemLore() {
+            return (itemLore != null) ? itemLore : List.of(
+                    Component.text("Right click to skip"),
+                    Component.text("the current puzzle")
+            );
+        }
+    }
     
     @Override
     public void validate(@NotNull Validator validator) {
@@ -57,7 +99,7 @@ class ParkourPathwayConfigDTO implements Validatable {
         validator.validate(Main.VALID_CONFIG_VERSIONS.contains(this.getVersion()), "invalid config version (%s)", this.getVersion());
         validator.notNull(Bukkit.getWorld(this.getWorld()), "Could not find world \"%s\"", this.getWorld());
         if (spectatorArea != null) {
-            BoundingBox spectatorArea = this.spectatorArea.toBoundingBox();
+            BoundingBox spectatorArea = this.spectatorArea;
             validator.validate(spectatorArea.getVolume() >= 1.0, "spectatorArea (%s) volume (%s) must be at least 1.0", spectatorArea, spectatorArea.getVolume());
         }
         validator.notNull(this.getScores(), "scores");
@@ -90,7 +132,7 @@ class ParkourPathwayConfigDTO implements Validatable {
                 PuzzleDTO previousPuzzle = puzzles.get(i - 1);
                 for (int j = 0 ; j < puzzle.getCheckPoints().size(); j++) {
                     PuzzleDTO.CheckPointDTO checkPoint = puzzle.getCheckPoints().get(j);
-                    validator.validate(previousPuzzle.isInBounds(checkPoint.getDetectionArea().toBoundingBox()), "at least one entry in puzzles[%s].inBounds must contain puzzles[%s].checkPoints[%s].detectionArea", i - 1, i, j);
+                    validator.validate(previousPuzzle.isInBounds(checkPoint.getDetectionArea()), "at least one entry in puzzles[%s].inBounds must contain puzzles[%s].checkPoints[%s].detectionArea", i - 1, i, j);
                 }
             }
         }
@@ -100,13 +142,13 @@ class ParkourPathwayConfigDTO implements Validatable {
         if (this.teamSpawns == null) {
             return;
         }
-        PuzzleDTO firstPuzzle = puzzles.get(0);
+        PuzzleDTO firstPuzzle = puzzles.getFirst();
         validator.validate(!teamSpawns.isEmpty(), "teamSpawns must have at least one entry");
         for (int i = 0; i < teamSpawns.size(); i++) {
             TeamSpawnDTO teamSpawnDTO = teamSpawns.get(i);
             validator.notNull(teamSpawnDTO, "teamSpawns[%s]", i);
             teamSpawnDTO.validate(validator.path("teamSpawns[%d]", i));
-            validator.validate(firstPuzzle.isInBounds(teamSpawnDTO.getBarrierArea().toBoundingBox()), "teamSpawns[%d].barrierArea must be contained in at least one of the inBounds boxes of puzzles[0]", i);
+            validator.validate(firstPuzzle.isInBounds(teamSpawnDTO.getBarrierArea()), "teamSpawns[%d].barrierArea must be contained in at least one of the inBounds boxes of puzzles[0]", i);
             validator.validate(firstPuzzle.isInBounds(teamSpawnDTO.getSpawn().toVector()), "teamSpawns[%d].spawn must be contained in at least one of the inBounds boxes of puzzles[0]", i);
         }
     }
@@ -116,19 +158,19 @@ class ParkourPathwayConfigDTO implements Validatable {
         Preconditions.checkArgument(newWorld != null, "Could not find world \"%s\"", this.getWorld());
         BoundingBox newGlassBarrier = null;
         if (this.getGlassBarrier() != null) {
-            newGlassBarrier = this.getGlassBarrier().toBoundingBox();
+            newGlassBarrier = this.getGlassBarrier();
         }
         List<TeamSpawn> newTeamSpawns = null;
         if (this.getTeamSpawns() != null) {
             newTeamSpawns = TeamSpawnDTO.toTeamSpawns(newWorld, this.getTeamSpawns());
         }
         List<Puzzle> newPuzzles = PuzzleDTO.toPuzzles(newWorld, this.getPuzzles());
-        Location newStartingLocation = newPuzzles.get(0).checkPoints().get(0).respawn();
+        Location newStartingLocation = newPuzzles.getFirst().checkPoints().getFirst().respawn();
         
-        return ParkourPathwayConfig.builder()
+        ParkourPathwayConfig.ParkourPathwayConfigBuilder builder = ParkourPathwayConfig.builder()
                 .world(newWorld)
                 .startingLocation(newStartingLocation)
-                .spectatorArea(this.spectatorArea != null ? this.spectatorArea.toBoundingBox() : null)
+                .spectatorArea(this.spectatorArea)
                 .teamSpawns(newTeamSpawns)
                 .puzzles(newPuzzles)
                 .glassBarrier(newGlassBarrier)
@@ -143,23 +185,54 @@ class ParkourPathwayConfigDTO implements Validatable {
                 .winScore(this.scores.win)
                 .preventInteractions(this.preventInteractions != null ? this.preventInteractions : Collections.emptyList())
                 .descriptionDuration(this.durations.description)
-                .description(this.description)
-                .build();
+                .description(this.description);
+        
+        if (this.skips != null && this.skips.getNumOfSkips() > 0) {
+            ItemStack skipItem = new ItemStack(this.skips.getItem());
+            skipItem.editMeta(meta -> {
+                meta.displayName(this.skips.getItemName());
+                meta.lore(this.skips.getItemLore());
+            });
+            builder
+                    .numOfSkips(this.skips.getNumOfSkips())
+                    .unusedSkipScore(this.skips.getUnusedSkipScore())
+                    .maxSkipPuzzle(this.skips.getMaxSkipPuzzle())
+                    .skipItem(skipItem);
+        } else {
+            builder
+                    .numOfSkips(0)
+                    .unusedSkipScore(0)
+                    .maxSkipPuzzle(0)
+                    .skipItem(new ItemStack(Material.LAPIS_LAZULI));
+        }
+        
+        return builder.build();
     }
     
     public static ParkourPathwayConfigDTO fromConfig(ParkourPathwayConfig config) {
         return ParkourPathwayConfigDTO.builder()
-                .version(Main.VALID_CONFIG_VERSIONS.get(Main.VALID_CONFIG_VERSIONS.size() - 1))
+                .version(Main.VALID_CONFIG_VERSIONS.getLast())
                 .world(config.getWorld().getName())
-                .glassBarrier(config.getGlassBarrier() != null ? BoundingBoxDTO.from(config.getGlassBarrier()) : null)
+                .glassBarrier(config.getGlassBarrier())
                 .glassBarrierOpenMessage(config.getGlassBarrierOpenMessage())
                 .teamSpawns(config.getTeamSpawns() != null ? TeamSpawnDTO.fromTeamSpawns(config.getTeamSpawns()) : null)
                 .teamSpawnsOpenMessage(config.getTeamSpawnsOpenMessage())
                 .puzzles(PuzzleDTO.fromPuzzles(config.getPuzzles()))
-                .spectatorArea(config.getSpectatorArea() != null ? BoundingBoxDTO.from(config.getSpectatorArea()) : null)
+                .spectatorArea(config.getSpectatorArea())
                 .scores(new Scores(config.getCheckpointScore(), config.getWinScore()))
                 .preventInteractions(config.getPreventInteractions())
-                .durations(new Durations(config.getTeamSpawnsDuration(), config.getStartingDuration(), config.getTimeLimitDuration(), config.getMercyRuleDuration(), config.getMercyRuleAlertDuration(), config.getDescriptionDuration()))
+                .skips(new Skips(config.getNumOfSkips(), 
+                        config.getSkipItem().getType(), 
+                        config.getSkipItem().getItemMeta().displayName(), 
+                        config.getSkipItem().getItemMeta().lore(), 
+                        config.getUnusedSkipScore(), 
+                        config.getMaxSkipPuzzle()))
+                .durations(new Durations(config.getTeamSpawnsDuration(), 
+                        config.getStartingDuration(), 
+                        config.getTimeLimitDuration(), 
+                        config.getMercyRuleDuration(), 
+                        config.getMercyRuleAlertDuration(), 
+                        config.getDescriptionDuration()))
                 .description(config.getDescription())
                 .build();
     }

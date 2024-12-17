@@ -41,7 +41,7 @@ public class ScoreTeamSubCommand extends TabSubCommand {
             if (!gameManager.isParticipant(participant.getUniqueId())) {
                 return CommandResult.failure(Component.text("You are not a participant"));
             }
-            team = gameManager.getTeamName(participant.getUniqueId());
+            team = gameManager.getTeamId(participant.getUniqueId());
         } else {
             team = args[0];
             if (team.equals("all")) {
@@ -91,7 +91,7 @@ public class ScoreTeamSubCommand extends TabSubCommand {
             return Collections.emptyList();
         }
         List<String> result = new ArrayList<>(Collections.singletonList("all"));
-        result.addAll(CommandUtils.partialMatchParticipantsTabList(gameManager, args[0]));
-        return result;
+        result.addAll(gameManager.getTeamIds());
+        return CommandUtils.partialMatchTabList(result, args[0]);
     }
 }

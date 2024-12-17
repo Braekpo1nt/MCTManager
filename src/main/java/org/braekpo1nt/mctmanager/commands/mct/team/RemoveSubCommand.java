@@ -1,6 +1,5 @@
 package org.braekpo1nt.mctmanager.commands.mct.team;
 
-import net.kyori.adventure.text.Component;
 import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.games.GameManager;
@@ -25,12 +24,12 @@ public class RemoveSubCommand extends TabSubCommand {
         if (args.length != 1) {
             return CommandResult.failure(getUsage().of("<team>"));
         }
-        String removeTeamName = args[0];
-        return GameManagerUtils.removeTeam(sender, gameManager, removeTeamName);
+        String removeTeamId = args[0];
+        return GameManagerUtils.removeTeam(sender, gameManager, removeTeamId);
     }
     
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        return gameManager.getTeamNames().stream().sorted().toList();
+        return gameManager.getTeamIds().stream().sorted().toList();
     }
 }

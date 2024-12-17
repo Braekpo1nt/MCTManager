@@ -2,6 +2,7 @@ package org.braekpo1nt.mctmanager.commands.mct.team.preset;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.commands.manager.TabSubCommand;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CommandResult;
 import org.braekpo1nt.mctmanager.commands.manager.commandresult.CompositeCommandResult;
@@ -92,7 +93,7 @@ public class PresetApplySubCommand extends TabSubCommand {
             storageUtil.loadPreset();
             preset = storageUtil.getPreset();
         } catch (ConfigException e) {
-            Bukkit.getLogger().severe(String.format("Could not load preset. %s", e.getMessage()));
+            Main.logger().severe(String.format("Could not load preset. %s", e.getMessage()));
             e.printStackTrace();
             return CommandResult.failure(Component.empty()
                     .append(Component.text("Error occurred loading preset. See console for details: "))
@@ -104,7 +105,7 @@ public class PresetApplySubCommand extends TabSubCommand {
         if (override) {
             // remove all existing teams and leave all existing players
             int oldParticipantCount = gameManager.getOfflineParticipants().size();
-            Set<String> teamIds = gameManager.getTeamNames();
+            Set<String> teamIds = gameManager.getTeamIds();
             int oldTeamCount = teamIds.size();
             for (String teamId : teamIds) {
                 CommandResult commandResult = GameManagerUtils.removeTeam(sender, gameManager, teamId);

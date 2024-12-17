@@ -1,6 +1,7 @@
 package org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory;
 
 import com.google.common.base.Preconditions;
+import com.google.gson.annotations.SerializedName;
 import lombok.Data;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.enchantments.EnchantmentDTO;
 import org.braekpo1nt.mctmanager.config.dto.org.bukkit.inventory.meta.ItemMetaDTO;
@@ -19,12 +20,15 @@ import java.util.List;
 public class ItemStackDTO implements Validatable {
     /**
      * The type of the item
+     * TODO: make sure that it makes sense for id to be a possible type here. Look at Recipe format. misode.github.io/recipe/. Same for amount below
      */
+    @SerializedName(value = "type", alternate = {"id"})
     private @Nullable Material type;
     /**
      * the amount of the item in the stack 
      * (values of 0 or less are treated as zero, resulting in no items in the stack)
      */
+    @SerializedName(value = "amount", alternate = {"count"})
     private int amount = 1;
     /**
      * The ItemMeta of the item, can be null
@@ -32,7 +36,6 @@ public class ItemStackDTO implements Validatable {
     private @Nullable ItemMetaDTO itemMeta;
     /**
      * The enchantments on the item. Each NamespacedKey represents an enchantment
-     * @see org.bukkit.enchantments.Enchantment#getByKey(NamespacedKey) 
      */
     private @Nullable List<@Nullable EnchantmentDTO> enchantments;
     
@@ -41,7 +44,8 @@ public class ItemStackDTO implements Validatable {
      */
     public @NotNull ItemStack toItemStack() {
         Preconditions.checkArgument(type != null, "type (Material) cannot be null");
-        ItemStack stack = new ItemStack(type, amount);
+        Preconditions.checkArgument(amount > 0, "amount must be greater than 0");
+        ItemStack stack = ItemStack.of(type, amount);
         if (itemMeta != null) {
             stack.editMeta(meta -> itemMeta.toItemMeta(meta, type));
         }
@@ -54,6 +58,7 @@ public class ItemStackDTO implements Validatable {
     @Override
     public void validate(@NotNull Validator validator) {
         validator.notNull(type, "type");
+        validator.validate(amount > 0, "amount must be greater than 0");
         if (itemMeta != null) {
             itemMeta.validate(validator.path("itemMeta"));
         }

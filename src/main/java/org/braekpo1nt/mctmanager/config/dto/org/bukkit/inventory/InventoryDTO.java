@@ -19,7 +19,7 @@ public class InventoryDTO implements Validatable {
     protected @Nullable Map<@Nullable Integer, @Nullable ItemStackDTO> contents;
     
     /**
-     * @return a list containing the ItemStack values of the contents at their Integer key indexes, with all other indexes being null. The list will be of size of the maximum value of the contents map keyset. Returns null if contents is null.
+     * @return an array containing the ItemStack values of the contents at their Integer key indexes, with all other indexes being null. The list will be of size of the maximum value of the contents map keySet. Returns null if contents is null.
      * @throws IndexOutOfBoundsException if the max index in the contents keyset is negative
      */
     public @NotNull ItemStack[] toInventoryContents() {

@@ -6,12 +6,13 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.GameManager;
 import org.braekpo1nt.mctmanager.games.game.clockwork.config.ClockworkConfig;
+import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
-import org.braekpo1nt.mctmanager.ui.TimeStringUtils;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
+import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -100,13 +101,13 @@ public class ClockworkRound implements Listener {
         startStatusEffectsTask();
         startBreatherDelay();
         chaosManager.start();
-        Bukkit.getLogger().info("Starting Clockwork Round " + roundNumber);
+        Main.logger().info("Starting Clockwork Round " + roundNumber);
     }
     
     private void initializeParticipant(Player participant) {
         participants.add(participant);
         participantsAreAlive.put(participant.getUniqueId(), true);
-        String team = gameManager.getTeamName(participant.getUniqueId());
+        String team = gameManager.getTeamId(participant.getUniqueId());
         if (teamsLivingMembers.containsKey(team)) {
             int livingMembers = teamsLivingMembers.get(team);
             teamsLivingMembers.put(team, livingMembers + 1);
@@ -114,8 +115,8 @@ public class ClockworkRound implements Listener {
             teamsLivingMembers.put(team, 1);
         }
         participant.teleport(config.getStartingLocation());
-        participant.setBedSpawnLocation(config.getStartingLocation(), true);
-        participant.getInventory().clear();
+        participant.setRespawnLocation(config.getStartingLocation(), true);
+        ParticipantInitializer.clearInventory(participant);
         participant.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
@@ -124,8 +125,8 @@ public class ClockworkRound implements Listener {
     private void rejoinParticipant(Player participant) {
         participants.add(participant);
         participant.teleport(config.getStartingLocation());
-        participant.setBedSpawnLocation(config.getStartingLocation(), true);
-        participant.getInventory().clear();
+        participant.setRespawnLocation(config.getStartingLocation(), true);
+        ParticipantInitializer.clearInventory(participant);
         participant.setGameMode(GameMode.SPECTATOR);
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
@@ -139,13 +140,13 @@ public class ClockworkRound implements Listener {
     private void joinParticipantMidRound(Player participant) {
         participants.add(participant);
         participantsAreAlive.put(participant.getUniqueId(), false);
-        String team = gameManager.getTeamName(participant.getUniqueId());
+        String team = gameManager.getTeamId(participant.getUniqueId());
         if (!teamsLivingMembers.containsKey(team)) {
             teamsLivingMembers.put(team, 0);
         }
         participant.teleport(config.getStartingLocation());
-        participant.setBedSpawnLocation(config.getStartingLocation(), true);
-        participant.getInventory().clear();
+        participant.setRespawnLocation(config.getStartingLocation(), true);
+        ParticipantInitializer.clearInventory(participant);
         participant.setGameMode(GameMode.SPECTATOR);
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
@@ -170,8 +171,8 @@ public class ClockworkRound implements Listener {
     
     public void stop() {
         HandlerList.unregisterAll(this);
-        chaosManager.stop();
         cancelAllTasks();
+        chaosManager.stop();
         for (Player participant : participants) {
             resetParticipant(participant);
         }
@@ -179,11 +180,11 @@ public class ClockworkRound implements Listener {
         participantsAreAlive.clear();
         teamsLivingMembers.clear();
         roundActive = false;
-        Bukkit.getLogger().info("Stopping Clockwork round " + roundNumber);
+        Main.logger().info("Stopping Clockwork round " + roundNumber);
     }
     
     private void resetParticipant(Player participant) {
-        participant.getInventory().clear();
+        ParticipantInitializer.clearInventory(participant);
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
     }
@@ -218,6 +219,7 @@ public class ClockworkRound implements Listener {
                 .withSidebar(adminSidebar, "timer")
                 .sidebarPrefix(Component.text("Clock chimes in: "))
                 .onCompletion(this::startClockChime)
+                .name("startBreatherDelay")
                 .build());
     }
     
@@ -270,6 +272,7 @@ public class ClockworkRound implements Listener {
                 .withSidebar(adminSidebar, "timer")
                 .sidebarPrefix(Component.text("Get to wedge! "))
                 .onCompletion(this::startStayOnWedgeDelay)
+                .name("startGetToWedgeDelay")
                 .build());
     }
     
@@ -285,10 +288,12 @@ public class ClockworkRound implements Listener {
                     if (livingTeams.size() == 1) {
                         String winningTeam = livingTeams.get(0);
                         onTeamWinsRound(winningTeam);
+                    } else {
+                        incrementChaos();
+                        startBreatherDelay();
                     }
-                    incrementChaos();
-                    startBreatherDelay();
                 })
+                .name("startStayOnWedgeDelay")
                 .build());
         killParticipantsNotOnWedge();
         mustStayOnWedge = true;
@@ -322,7 +327,7 @@ public class ClockworkRound implements Listener {
         if (!roundActive) {
             return;
         }
-        if (event.getCause().equals(EntityDamageEvent.DamageCause.VOID)) {
+        if (GameManagerUtils.EXCLUDED_CAUSES.contains(event.getCause())) {
             return;
         }
         if (!participants.contains(participant)) {
@@ -333,6 +338,7 @@ public class ClockworkRound implements Listener {
             ParticipantInitializer.resetHealthAndHunger(participant);
             return;
         }
+        Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "ClockworkRound.onPlayerDamage() cancelled");
         event.setCancelled(true);
     }
     
@@ -372,19 +378,23 @@ public class ClockworkRound implements Listener {
             killed.getInventory().clear();
             ParticipantInitializer.clearStatusEffects(killed);
             ParticipantInitializer.resetHealthAndHunger(killed);
-            Bukkit.getServer().sendMessage(Component.text(killed.getName())
+            Bukkit.getServer().sendMessage(Component.empty()
+                    .append(killed.displayName())
                     .append(Component.text(" was claimed by time")));
             participantsAreAlive.put(killed.getUniqueId(), false);
+            String killedTeamId = gameManager.getTeamId(killed.getUniqueId());
             for (Player participant : participants) {
-                if (participantsAreAlive.get(participant.getUniqueId()) && !killedParticipants.contains(participant)) {
+                String teamId = gameManager.getTeamId(participant.getUniqueId());
+                if (participantsAreAlive.get(participant.getUniqueId()) 
+                        && !killedParticipants.contains(participant)
+                        && !teamId.equals(killedTeamId)) {
                     gameManager.awardPointsToParticipant(participant, config.getPlayerEliminationScore());
                 }
             }
-            String team = gameManager.getTeamName(killed.getUniqueId());
-            if (!teamsKilledMembers.containsKey(team)) {
-                teamsKilledMembers.put(team, 1);
+            if (!teamsKilledMembers.containsKey(killedTeamId)) {
+                teamsKilledMembers.put(killedTeamId, 1);
             } else {
-                teamsKilledMembers.put(team, teamsKilledMembers.get(team) + 1);
+                teamsKilledMembers.put(killedTeamId, teamsKilledMembers.get(killedTeamId) + 1);
             }
         }
         List<String> newlyKilledTeams = new ArrayList<>();
@@ -403,11 +413,11 @@ public class ClockworkRound implements Listener {
         if (newlyKilledTeams.isEmpty()) {
             return;
         }
-        List<String> allTeams = gameManager.getTeamNames(participants);
+        List<String> allTeams = gameManager.getTeamIds(participants);
         for (String newlyKilledTeam : newlyKilledTeams) {
             Component teamDisplayName = gameManager.getFormattedTeamDisplayName(newlyKilledTeam);
             for (Player participant : participants) {
-                String team = gameManager.getTeamName(participant.getUniqueId());
+                String team = gameManager.getTeamId(participant.getUniqueId());
                 if (team.equals(newlyKilledTeam)) {
                     participant.sendMessage(Component.empty()
                             .append(teamDisplayName)
@@ -434,7 +444,6 @@ public class ClockworkRound implements Listener {
     
     private @NotNull List<String> getLivingTeams() {
         List<String> livingTeams = new ArrayList<>();
-        Bukkit.getLogger().info(String.format("teamsLivingMembers = %s", teamsLivingMembers.toString()));
         for (Map.Entry<String, Integer> entry : teamsLivingMembers.entrySet()) {
             String team = entry.getKey();
             int livingMembers = entry.getValue();
@@ -455,7 +464,7 @@ public class ClockworkRound implements Listener {
         gameManager.awardPointsToTeam(winningTeam, config.getWinRoundScore());
         Component teamDisplayName = gameManager.getFormattedTeamDisplayName(winningTeam);
         for (Player participant : participants) {
-            String team = gameManager.getTeamName(participant.getUniqueId());
+            String team = gameManager.getTeamId(participant.getUniqueId());
             if (team.equals(winningTeam)) {
                 participant.sendMessage(Component.empty()
                         .append(teamDisplayName)

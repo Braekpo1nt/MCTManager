@@ -66,15 +66,6 @@ class EventCommandTest {
     }
     
     @Test
-    @DisplayName("`/mct event start 6` twice returns event already running message")
-    void startTwiceTest() {
-        Assertions.assertTrue(plugin.getMctCommand().onCommand(server.getConsoleSender(), command, "mct", new String[]{"event", "start", "6"}));
-        Assertions.assertTrue(plugin.getMctCommand().onCommand(server.getConsoleSender(), command, "mct", new String[]{"event", "start", "6"}));
-        Assertions.assertTrue(TestUtils.receivedMessagePlaintext(server.getConsoleSender(), "An event is already running."));
-        
-    }
-    
-    @Test
     @DisplayName("`/mct event start 4` starts the with 4 games")
     void startNumberTest() {
         Assertions.assertTrue(plugin.getMctCommand().onCommand(server.getConsoleSender(), command, "mct", new String[]{"event", "start", "4"}));
