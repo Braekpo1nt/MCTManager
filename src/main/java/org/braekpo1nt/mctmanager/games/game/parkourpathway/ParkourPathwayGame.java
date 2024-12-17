@@ -266,6 +266,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         ParticipantInitializer.resetHealthAndHunger(participant);
         if (parkourHasStarted) {
             Location respawn = config.getPuzzle(currentPuzzles.get(uniqueId)).checkPoints().get(currentPuzzleCheckpoints.get(uniqueId)).respawn();
+            Main.logger().info(String.format("teleported %s to %s", participant.getName(), respawn.toString()));
             participant.teleport(respawn);
             Integer unusedSkips = quitParticipantsSkips.remove(uniqueId);
             if (unusedSkips != null) {
@@ -277,12 +278,17 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
             }
         } else {
             if (teamSpawns == null) {
+                Main.logger().info(String.format("teleported %s to %s", participant.getName(), config.getStartingLocation().toString()));
                 participant.teleport(config.getStartingLocation());
             } else {
                 String team = gameManager.getTeamId(participant.getUniqueId());
                 TeamSpawn teamSpawn = teamSpawns.get(team);
                 if (teamSpawn == null) {
+                    Main.logger().info("re-setup team-spawns");
                     reSetUpTeamSpawns();
+                } else {
+                    Main.logger().info(String.format("teleported %s to %s", participant.getName(), teamSpawn.getSpawnLocation().toString()));
+                    teamSpawn.teleport(participant);
                 }
             }
         }
@@ -292,7 +298,8 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
     }
     
     /**
-     * meant to be called when a new team joins the game while the team spawns countdown is still going on
+     * meant to be called when a new team joins the game while the team spawns 
+     * countdown is still going on
      */
     private void reSetUpTeamSpawns() {
         List<String> teams = gameManager.getTeamIds(participants);
@@ -304,6 +311,7 @@ public class ParkourPathwayGame implements MCTGame, Configurable, Listener, Head
         for (Player participant : participants) {
             String team = gameManager.getTeamId(participant.getUniqueId());
             TeamSpawn teamSpawn = teamSpawns.get(team);
+            Main.logger().info(String.format("teleported %s to %s", participant.getName(), teamSpawn.getSpawnLocation().toString()));
             teamSpawn.teleport(participant);
         }
     }
