@@ -5,18 +5,31 @@ import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.chat.ChatType;
 import net.kyori.adventure.chat.SignedMessage;
 import net.kyori.adventure.inventory.Book;
+import net.kyori.adventure.pointer.Pointer;
+import net.kyori.adventure.pointer.Pointers;
+import net.kyori.adventure.resource.ResourcePackInfoLike;
 import net.kyori.adventure.resource.ResourcePackRequest;
+import net.kyori.adventure.resource.ResourcePackRequestLike;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.sound.SoundStop;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.ComponentLike;
+import net.kyori.adventure.title.Title;
 import net.kyori.adventure.title.TitlePart;
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.*;
 
+import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 /**
- * Used for when a wrapper of an {@link Audience}-implementing class wants to use
- * that field as its delegate for {@link Audience}
+ * <p></p>Used for when a wrapper of an {@link Audience}-implementing class wants to use
+ * that field as its delegate for {@link Audience}. You only need to implement
+ * {@link #getAudience()}, have it return the desired delegate.</p>
+ * 
+ * <p>Note: Does not implement deprecated or static methods from {@link Audience}.</p>
  */
 public abstract class AudienceDelegate implements Audience {
     
@@ -120,4 +133,130 @@ public abstract class AudienceDelegate implements Audience {
     }
     // End: Audience Delegates
     
+    @Override
+    @NotNull
+    public Audience filterAudience(@NotNull Predicate<? super Audience> filter) {
+        return getAudience().filterAudience(filter);
+    }
+    
+    @Override
+    public void forEachAudience(@NotNull Consumer<? super Audience> action) {
+        getAudience().forEachAudience(action);
+    }
+    
+    @Override
+    public void sendMessage(@NotNull ComponentLike message) {
+        getAudience().sendMessage(message);
+    }
+    
+    @Override
+    public void sendMessage(@NotNull ComponentLike message, ChatType.Bound boundChatType) {
+        getAudience().sendMessage(message, boundChatType);
+    }
+    
+    @Override
+    public void deleteMessage(@NotNull SignedMessage signedMessage) {
+        getAudience().deleteMessage(signedMessage);
+    }
+    
+    @Override
+    public void deleteMessage(SignedMessage.Signature signature) {
+        getAudience().deleteMessage(signature);
+    }
+    
+    @Override
+    public void sendActionBar(@NotNull ComponentLike message) {
+        getAudience().sendActionBar(message);
+    }
+    
+    @Override
+    public void sendPlayerListHeader(@NotNull ComponentLike header) {
+        getAudience().sendPlayerListHeader(header);
+    }
+    
+    @Override
+    public void sendPlayerListHeader(@NotNull Component header) {
+        getAudience().sendPlayerListHeader(header);
+    }
+    
+    @Override
+    public void sendPlayerListFooter(@NotNull ComponentLike footer) {
+        getAudience().sendPlayerListFooter(footer);
+    }
+    
+    @Override
+    public void sendPlayerListFooter(@NotNull Component footer) {
+        getAudience().sendPlayerListFooter(footer);
+    }
+    
+    @Override
+    public void sendPlayerListHeaderAndFooter(@NotNull ComponentLike header, @NotNull ComponentLike footer) {
+        getAudience().sendPlayerListHeaderAndFooter(header, footer);
+    }
+    
+    @Override
+    public void showTitle(@NotNull Title title) {
+        getAudience().showTitle(title);
+    }
+    
+    @Override
+    public void resetTitle() {
+        getAudience().resetTitle();
+    }
+    
+    @Override
+    public void stopSound(@NotNull Sound sound) {
+        getAudience().stopSound(sound);
+    }
+    
+    @Override
+    public void sendResourcePacks(@NotNull ResourcePackInfoLike first, @NotNull ResourcePackInfoLike... others) {
+        getAudience().sendResourcePacks(first, others);
+    }
+    
+    @Override
+    public void sendResourcePacks(@NotNull ResourcePackRequestLike request) {
+        getAudience().sendResourcePacks(request);
+    }
+    
+    @Override
+    public void removeResourcePacks(@NotNull ResourcePackRequestLike request) {
+        getAudience().removeResourcePacks(request);
+    }
+    
+    @Override
+    public void removeResourcePacks(@NotNull ResourcePackRequest request) {
+        getAudience().removeResourcePacks(request);
+    }
+    
+    @Override
+    public void removeResourcePacks(@NotNull ResourcePackInfoLike request, @NotNull ResourcePackInfoLike @NotNull ... others) {
+        getAudience().removeResourcePacks(request, others);
+    }
+    
+    @Override
+    public void removeResourcePacks(@NotNull Iterable<UUID> ids) {
+        getAudience().removeResourcePacks(ids);
+    }
+    
+    @Override
+    public @NotNull <T> Optional<T> get(@NotNull Pointer<T> pointer) {
+        return getAudience().get(pointer);
+    }
+    
+    @Override
+    @Contract("_, null -> _; _, !null -> !null")
+    public <T> @Nullable T getOrDefault(@NotNull Pointer<T> pointer, @Nullable T defaultValue) {
+        return getAudience().getOrDefault(pointer, defaultValue);
+    }
+    
+    @Override
+    public <T> @UnknownNullability T getOrDefaultFrom(@NotNull Pointer<T> pointer, @NotNull Supplier<? extends T> defaultValue) {
+        return getAudience().getOrDefaultFrom(pointer, defaultValue);
+    }
+    
+    @Override
+    public @NotNull Pointers pointers() {
+        return getAudience().pointers();
+    }
 }
