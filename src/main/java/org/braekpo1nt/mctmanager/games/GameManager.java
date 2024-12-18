@@ -504,7 +504,7 @@ public class GameManager implements Listener {
         }
         gameStateStorageUtil.setupScoreboard(mctScoreboard);
         for (Player player : Bukkit.getOnlinePlayers()) {
-            player.setScoreboard(mctScoreboard);
+            player.setScoreboard(mctScoreboard); // TODO: this might be redundant because participants and admins are added to the scoreboard in their respective join methods
         }
         onlineParticipants.clear();
         onlineAdmins.clear();
