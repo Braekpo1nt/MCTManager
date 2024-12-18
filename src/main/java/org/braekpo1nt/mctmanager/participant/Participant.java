@@ -9,6 +9,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
+/**
+ * Represents a Participant. A participant is always a member of a {@link Team}.
+ */
 @Data
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = true)
 public class Participant extends AudienceDelegate {
@@ -17,11 +20,11 @@ public class Participant extends AudienceDelegate {
      * The player object that this Participant represents
      */
     @EqualsAndHashCode.Include
-    private final @NotNull Player player;
+    protected final @NotNull Player player;
     /**
      * The teamId of the team this Participant belongs to
      */
-    private final @NotNull String teamId;
+    protected final @NotNull String teamId;
     
     /**
      * @return the UUID of the player this Participant represents
@@ -32,6 +35,7 @@ public class Participant extends AudienceDelegate {
     
     /**
      * {@inheritDoc}
+     * @return this Participant's {@link #player}. 
      */
     @Override
     public @NotNull Audience getAudience() {
