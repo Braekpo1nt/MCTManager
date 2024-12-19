@@ -11,6 +11,7 @@ import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
 import org.braekpo1nt.mctmanager.hub.config.HubConfig;
 import org.braekpo1nt.mctmanager.hub.config.HubConfigController;
 import org.braekpo1nt.mctmanager.hub.leaderboard.LeaderboardManager;
+import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.timer.Timer;
 import org.braekpo1nt.mctmanager.ui.timer.TimerManager;
@@ -31,10 +32,7 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class HubManager implements Listener, Configurable {
     
@@ -45,12 +43,12 @@ public class HubManager implements Listener, Configurable {
     /**
      * Contains a list of the players who are about to be sent to the hub and can see the countdown
      */
-    private final Set<Player> headingToHub = new HashSet<>();
+    private final Map<UUID, Participant> headingToHub = new HashMap<>();
     private boolean boundaryEnabled = true;
     /**
      * A list of the participants who are in the hub
      */
-    private final Set<Player> participants = new HashSet<>();
+    private final Map<UUID, Participant> participants = new HashMap<>();
     private final TimerManager timerManager;
     
     public HubManager(Main plugin, GameManager gameManager) {
@@ -75,8 +73,8 @@ public class HubManager implements Listener, Configurable {
                     leaderboard.getLocation(), 
                     leaderboard.getTopPlayers()
             );
-            for (Player participant : participants) {
-                leaderboardManager.onParticipantJoin(participant);
+            for (Participant participant : participants.values()) {
+                leaderboardManager.onParticipantJoin(participant.getPlayer());
             }
             leaderboardManager.updateScores();
             leaderboardManagers.add(leaderboardManager);
@@ -88,7 +86,7 @@ public class HubManager implements Listener, Configurable {
      * @param newParticipants the participants to send to the hub
      * @param delay false will perform the teleport instantaneously, true will teleport with a delay
      */
-    public void returnParticipantsToHub(List<Player> newParticipants, List<Player> newAdmins, boolean delay) {
+    public void returnParticipantsToHub(List<Participant> newParticipants, List<Player> newAdmins, boolean delay) {
         if (delay) {
             returnParticipantsToHub(new ArrayList<>(newParticipants), new ArrayList<>(newAdmins), config.getTpToHubDuration());
         } else {
@@ -96,11 +94,13 @@ public class HubManager implements Listener, Configurable {
         }
     }
     
-    private void returnParticipantsToHub(List<Player> newParticipants, List<Player> newAdmins, int duration) {
-        headingToHub.addAll(newParticipants);
+    private void returnParticipantsToHub(List<Participant> newParticipants, List<Player> newAdmins, int duration) {
+        for (Participant participant : newParticipants) {
+            headingToHub.put(participant.getUniqueId(), participant);
+        }
         final List<Player> adminsHeadingToHub = new ArrayList<>(newAdmins);
         final Sidebar sidebar = gameManager.createSidebar();
-        sidebar.addPlayers(newParticipants);
+        sidebar.addPlayers(Participant.toPlayersList(newParticipants));
         sidebar.addPlayers(newAdmins);
         sidebar.addLine("backToHub", String.format("Back to Hub: %s", duration));
         timerManager.start(Timer.builder()
@@ -110,15 +110,15 @@ public class HubManager implements Listener, Configurable {
                 .onCompletion(() -> {
                     sidebar.deleteAllLines();
                     sidebar.removeAllPlayers();
-                    returnParticipantsToHubInstantly(new ArrayList<>(headingToHub), adminsHeadingToHub);
+                    returnParticipantsToHubInstantly(new ArrayList<>(headingToHub.values()), adminsHeadingToHub);
                     headingToHub.clear();
                     adminsHeadingToHub.clear();
                 })
                 .build());
     }
     
-    private void returnParticipantsToHubInstantly(List<Player> newParticipants, List<Player> newAdmins) {
-        for (Player participant : newParticipants) {
+    private void returnParticipantsToHubInstantly(List<Participant> newParticipants, List<Player> newAdmins) {
+        for (Participant participant : newParticipants) {
             returnParticipantToHub(participant);
         }
         for (Player admin : newAdmins) {
@@ -127,15 +127,15 @@ public class HubManager implements Listener, Configurable {
         setupTeamOptions();
     }
     
-    private void returnParticipantToHub(Player participant) {
+    private void returnParticipantToHub(Participant participant) {
         participant.sendMessage(Component.text("Returning to hub"));
         participant.teleport(config.getSpawn());
         participant.setRespawnLocation(config.getSpawn(), true);
         initializeParticipant(participant);
     }
     
-    private void initializeParticipant(Player participant) {
-        participants.add(participant);
+    private void initializeParticipant(Participant participant) {
+        participants.put(participant.getUniqueId(), participant);
         ParticipantInitializer.clearInventory(participant);
         participant.setGameMode(GameMode.ADVENTURE);
         ParticipantInitializer.clearStatusEffects(participant);
@@ -152,12 +152,12 @@ public class HubManager implements Listener, Configurable {
         admin.setGameMode(GameMode.SPECTATOR);
     }
     
-    public void sendAllParticipantsToPodium(List<Player> winningTeamParticipants, List<Player> otherParticipants, List<Player> newAdmins) {
+    public void sendAllParticipantsToPodium(List<Participant> winningTeamParticipants, List<Participant> otherParticipants, List<Player> newAdmins) {
         setupTeamOptions();
-        for (Player participant : otherParticipants) {
+        for (Participant participant : otherParticipants) {
             sendParticipantToPodium(participant, false);
         }
-        for (Player winningParticipant : winningTeamParticipants) {
+        for (Participant winningParticipant : winningTeamParticipants) {
             sendParticipantToPodium(winningParticipant, true);
         }
         for (Player admin : newAdmins) {
@@ -165,7 +165,7 @@ public class HubManager implements Listener, Configurable {
         }
     }
     
-    public void sendParticipantToPodium(Player participant, boolean winner) {
+    public void sendParticipantToPodium(Participant participant, boolean winner) {
         participant.sendMessage(Component.text("Returning to hub"));
         if (winner) {
             participant.teleport(config.getPodium());
@@ -185,9 +185,9 @@ public class HubManager implements Listener, Configurable {
      * Removes the given list of participants from the hub.
      * @param participantsToRemove the participants who are leaving the hub
      */
-    public void removeParticipantsFromHub(List<Player> participantsToRemove) {
-        for (Player participant : participantsToRemove) {
-            participants.remove(participant);
+    public void removeParticipantsFromHub(List<Participant> participantsToRemove) {
+        for (Participant participant : participantsToRemove) {
+            participants.remove(participant.getUniqueId());
         }
     }
     
@@ -195,17 +195,17 @@ public class HubManager implements Listener, Configurable {
      * Should be called when the participant who joined should be in the hub
      * @param participant the participant to add
      */
-    public void onParticipantJoin(Player participant) {
-        participants.add(participant);
+    public void onParticipantJoin(Participant participant) {
+        participants.put(participant.getUniqueId(), participant);
         for (LeaderboardManager leaderboardManager : leaderboardManagers) {
-            leaderboardManager.onParticipantJoin(participant);
+            leaderboardManager.onParticipantJoin(participant.getPlayer());
         }
     }
     
-    public void onParticipantQuit(Player participant) {
-        participants.remove(participant);
+    public void onParticipantQuit(Participant participant) {
+        participants.remove(participant.getUniqueId());
         for (LeaderboardManager leaderboardManager : leaderboardManagers) {
-            leaderboardManager.onParticipantQuit(participant);
+            leaderboardManager.onParticipantQuit(participant.getPlayer());
         }
         participant.setRespawnLocation(config.getSpawn(), true);
     }
@@ -253,12 +253,12 @@ public class HubManager implements Listener, Configurable {
         if (!(event.getEntity() instanceof Player participant)) {
             return;
         }
-        if (participants.contains(participant)) {
+        if (participants.containsKey(participant.getUniqueId())) {
             Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "HubManager.onPlayerDamage()->participant contains cancelled");
             event.setCancelled(true);
             return;
         }
-        if (headingToHub.contains(participant)) {
+        if (headingToHub.containsKey(participant.getUniqueId())) {
             Main.debugLog(LogType.CANCEL_ENTITY_DAMAGE_EVENT, "HubManager.onPlayerDamage()->headingToHub contains cancelled");
             event.setCancelled(true);
         }
@@ -271,7 +271,7 @@ public class HubManager implements Listener, Configurable {
             return;
         }
         Player participant = event.getPlayer();
-        if (!participants.contains(participant) && !headingToHub.contains(participant)) {
+        if (!participants.containsKey(participant.getUniqueId()) && !headingToHub.containsKey(participant.getUniqueId())) {
             return;
         }
         Material blockType = clickedBlock.getType();
@@ -296,11 +296,11 @@ public class HubManager implements Listener, Configurable {
             return;
         }
         Player participant = ((Player) event.getWhoClicked());
-        if (participants.contains(participant)) {
+        if (participants.containsKey(participant.getUniqueId())) {
             event.setCancelled(true);
             return;
         }
-        if (headingToHub.contains(participant)) {
+        if (headingToHub.containsKey(participant.getUniqueId())) {
             event.setCancelled(true);
         }
     }
@@ -314,11 +314,11 @@ public class HubManager implements Listener, Configurable {
             return;
         }
         Player participant = event.getPlayer();
-        if (participants.contains(participant)) {
+        if (participants.containsKey(participant.getUniqueId())) {
             event.setCancelled(true);
             return;
         }
-        if (headingToHub.contains(participant)) {
+        if (headingToHub.containsKey(participant.getUniqueId())) {
             event.setCancelled(true);
         }
     }
@@ -328,12 +328,12 @@ public class HubManager implements Listener, Configurable {
         if (!(event.getEntity() instanceof Player participant)) {
             return;
         }
-        if (participants.contains(participant)) {
+        if (participants.containsKey(participant.getUniqueId())) {
             participant.setFoodLevel(20);
             event.setCancelled(true);
             return;
         }
-        if (headingToHub.contains(participant)) {
+        if (headingToHub.containsKey(participant.getUniqueId())) {
             participant.setFoodLevel(20);
             event.setCancelled(true);
         }
@@ -349,7 +349,7 @@ public class HubManager implements Listener, Configurable {
             return;
         }
         Player participant = event.getPlayer();
-        if (!participants.contains(participant)) {
+        if (!participants.containsKey(participant.getUniqueId())) {
             return;
         }
         if (!participant.getWorld().equals(config.getWorld())) {

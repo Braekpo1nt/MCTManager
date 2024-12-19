@@ -17,7 +17,7 @@ import java.util.UUID;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Team {
     /**
-     * The ID of the team
+     * The unique ID of the team
      */
     @EqualsAndHashCode.Include
     protected final @NotNull String teamId;
@@ -25,6 +25,12 @@ public class Team {
      * The display name of the team for chat messages
      */
     protected final @NotNull Component displayName;
+    /**
+     * The color associated with the team
+     */
     protected final @NotNull TextColor color;
+    /**
+     * The UUIDs of the {@link Participant}s on this team
+     */
     protected final @NotNull Set<UUID> members = new HashSet<>();
 }
