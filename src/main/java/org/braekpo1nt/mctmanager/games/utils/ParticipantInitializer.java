@@ -1,11 +1,11 @@
 package org.braekpo1nt.mctmanager.games.utils;
 
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.participant.Participant;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -41,10 +41,16 @@ public class ParticipantInitializer {
         }
         participant.setArrowsInBody(0);
     }
+    public static void clearStatusEffects(Participant participant) {
+        clearStatusEffects(participant.getPlayer());
+    }
     
     private static void extinguishFire(Player participant) {
         participant.setFireTicks(0);
         participant.setVisualFire(false);
+    }
+    private static void extinguishFire(Participant participant) {
+        extinguishFire(participant.getPlayer());
     }
     
     public static void resetHealthAndHunger(Player participant) {
@@ -52,9 +58,15 @@ public class ParticipantInitializer {
         participant.setFoodLevel(20);
         participant.setSaturation(5);
     }
+    public static void resetHealthAndHunger(Participant participant) {
+        resetHealthAndHunger(participant.getPlayer());
+    }
     
     public static void clearInventory(Player participant) {
         participant.getInventory().clear();
         participant.getOpenInventory().setCursor(new ItemStack(Material.AIR));
+    }
+    public static void clearInventory(Participant participant) {
+        clearInventory(participant.getPlayer());
     }
 }
