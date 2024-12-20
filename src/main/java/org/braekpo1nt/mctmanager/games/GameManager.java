@@ -987,7 +987,18 @@ public class GameManager implements Listener {
         hubManager.sendAllParticipantsToPodium(winningTeamParticipants, otherParticipants, onlineAdmins);
     }
     
-    
+    /**
+     * @param player
+     * @param winner
+     * @deprecated in favor of {@link #returnParticipantToPodium(Participant,boolean)}
+     */
+    @Deprecated
+    public void returnParticipantToPodium(Player player, boolean winner) {
+        Participant participant = onlineParticipants.get(player.getUniqueId());
+        if (participant != null) {
+            returnParticipantToPodium(participant, winner);
+        }
+    }
     
     public void returnParticipantToPodium(Participant participant, boolean winner) {
         hubManager.sendParticipantToPodium(participant, winner);
