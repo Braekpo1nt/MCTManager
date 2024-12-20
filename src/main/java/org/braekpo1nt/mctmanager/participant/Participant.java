@@ -30,10 +30,27 @@ public class Participant extends AudienceDelegate {
     }
     
     /**
+     * @param participants the participants list to get the list of teamIds from
+     * @return the teamIds
+     */
+    public static List<String> getTeamIds(Collection<Participant> participants) {
+        return participants.stream().map(Participant::getTeamId).toList();
+    }
+    
+    /**
+     * @param participants the participants to search through
+     * @param teamId the teamId to search for
+     * @return the participants who are on the given team
+     */
+    public static List<Participant> getParticipantsOnTeam(Collection<Participant> participants, String teamId) {
+        return participants.stream().filter(p -> p.getTeamId().equals(teamId)).toList();
+    }
+    /**
      * The player object that this Participant represents
      */
     @EqualsAndHashCode.Include
     protected final @NotNull Player player;
+    
     /**
      * The teamId of the team this Participant belongs to
      */

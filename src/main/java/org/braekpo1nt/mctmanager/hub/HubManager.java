@@ -86,7 +86,7 @@ public class HubManager implements Listener, Configurable {
      * @param newParticipants the participants to send to the hub
      * @param delay false will perform the teleport instantaneously, true will teleport with a delay
      */
-    public void returnParticipantsToHub(List<Participant> newParticipants, List<Player> newAdmins, boolean delay) {
+    public void returnParticipantsToHub(Collection<Participant> newParticipants, List<Player> newAdmins, boolean delay) {
         if (delay) {
             returnParticipantsToHub(new ArrayList<>(newParticipants), new ArrayList<>(newAdmins), config.getTpToHubDuration());
         } else {
@@ -152,7 +152,7 @@ public class HubManager implements Listener, Configurable {
         admin.setGameMode(GameMode.SPECTATOR);
     }
     
-    public void sendAllParticipantsToPodium(List<Participant> winningTeamParticipants, List<Participant> otherParticipants, List<Player> newAdmins) {
+    public void sendAllParticipantsToPodium(Collection<Participant> winningTeamParticipants, Collection<Participant> otherParticipants, List<Player> newAdmins) {
         setupTeamOptions();
         for (Participant participant : otherParticipants) {
             sendParticipantToPodium(participant, false);
@@ -185,7 +185,7 @@ public class HubManager implements Listener, Configurable {
      * Removes the given list of participants from the hub.
      * @param participantsToRemove the participants who are leaving the hub
      */
-    public void removeParticipantsFromHub(List<Participant> participantsToRemove) {
+    public void removeParticipantsFromHub(Collection<Participant> participantsToRemove) {
         for (Participant participant : participantsToRemove) {
             participants.remove(participant.getUniqueId());
         }
