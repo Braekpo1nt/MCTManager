@@ -31,6 +31,7 @@ import org.braekpo1nt.mctmanager.games.gamestate.GameStateStorageUtil;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.voting.VoteManager;
 import org.braekpo1nt.mctmanager.hub.HubManager;
+import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.ui.sidebar.Headerable;
 import org.braekpo1nt.mctmanager.ui.sidebar.Sidebar;
 import org.braekpo1nt.mctmanager.ui.sidebar.SidebarFactory;
@@ -94,7 +95,7 @@ public class GameManager implements Listener {
     /**
      * Contains the list of online participants. Updated when participants are added/removed or quit/join
      */
-    private final List<Player> onlineParticipants = new ArrayList<>();
+    private final Map<UUID, Participant> onlineParticipants = new HashMap<>();
     private final List<Player> onlineAdmins = new ArrayList<>();
     private final TabList tabList;
     
@@ -258,7 +259,7 @@ public class GameManager implements Listener {
     @EventHandler
     public void onParticipantInteract(PlayerInteractEvent event) {
         Player participant = event.getPlayer();
-        if (!onlineParticipants.contains(participant)) {
+        if (!onlineParticipants.containsKey(participant.getUniqueId())) {
             return;
         }
         if (!event.getAction().equals(Action.RIGHT_CLICK_BLOCK)) {
@@ -296,9 +297,10 @@ public class GameManager implements Listener {
             onAdminQuit(player);
             return;
         }
-        if (isParticipant(player.getUniqueId())) {
+        Participant participant = onlineParticipants.get(player.getUniqueId());
+        if (participant != null) {
             event.quitMessage(GameManagerUtils.replaceWithDisplayName(player, event.quitMessage()));
-            onParticipantQuit(player);
+            onParticipantQuit(participant);
         }
     }
     
@@ -326,20 +328,21 @@ public class GameManager implements Listener {
      * @param participant The participant who left the event
      * @see GameManager#leavePlayer(CommandSender, OfflinePlayer, String) 
      */
-    private void onParticipantQuit(@NotNull Player participant) {
-        onlineParticipants.remove(participant);
+    private void onParticipantQuit(@NotNull Participant participant) {
+        onlineParticipants.remove(participant.getUniqueId());
         if (gameIsRunning()) {
-            activeGame.onParticipantQuit(participant);
+            activeGame.onParticipantQuit(participant.getPlayer());
         } else if (eventManager.eventIsActive() || eventManager.colossalCombatIsActive()) {
-            eventManager.onParticipantQuit(participant);
+            eventManager.onParticipantQuit(participant.getPlayer());
         } else if (voteManager.isVoting()) {
-            voteManager.onParticipantQuit(participant);
+            voteManager.onParticipantQuit(participant.getPlayer());
         }
         hubManager.onParticipantQuit(participant);
-        Component displayName = Component.text(participant.getName(), NamedTextColor.WHITE);
-        participant.displayName(displayName);
-        participant.playerListName(displayName);
-        GameManagerUtils.deColorLeatherArmor(participant);
+        Component displayName = Component.text(participant.getPlayer().getName(), 
+                NamedTextColor.WHITE);
+        participant.getPlayer().displayName(displayName);
+        participant.getPlayer().playerListName(displayName);
+        GameManagerUtils.deColorLeatherArmor(participant.getPlayer());
         tabList.hidePlayer(participant.getUniqueId());
         tabList.setParticipantGrey(participant.getUniqueId(), true);
     }
@@ -386,28 +389,30 @@ public class GameManager implements Listener {
     
     /**
      * Handles when a participant joins
-     * @param participant a player (who is an official participant) who joined
+     * @param player a player (who is an official participant according to 
+     * {@link #isParticipant(UUID)}) who joined
      */
-    private void onParticipantJoin(@NotNull Player participant) {
-        onlineParticipants.add(participant);
-        participant.setScoreboard(mctScoreboard);
-        participant.addPotionEffect(Main.NIGHT_VISION);
-        String teamId = getTeamId(participant.getUniqueId());
+    private void onParticipantJoin(@NotNull Player player) {
+        String teamId = getTeamId(player.getUniqueId());
+        Participant participant = new Participant(player, teamId);
+        onlineParticipants.put(participant.getUniqueId(), participant);
+        participant.getPlayer().setScoreboard(mctScoreboard);
+        participant.getPlayer().addPotionEffect(Main.NIGHT_VISION);
         Component displayName = getParticipantDisplayName(participant);
-        participant.displayName(displayName);
-        participant.playerListName(displayName);
+        participant.getPlayer().displayName(displayName);
+        participant.getPlayer().playerListName(displayName);
         hubManager.onParticipantJoin(participant);
         if (gameIsRunning()) {
             hubManager.removeParticipantsFromHub(Collections.singletonList(participant));
-            activeGame.onParticipantJoin(participant);
+            activeGame.onParticipantJoin(participant.getPlayer());
         } else if (eventManager.eventIsActive() || eventManager.colossalCombatIsActive()) {
             hubManager.removeParticipantsFromHub(Collections.singletonList(participant));
-            eventManager.onParticipantJoin(participant);
+            eventManager.onParticipantJoin(participant.getPlayer());
         } else if (voteManager.isVoting()) {
-            voteManager.onParticipantJoin(participant);
+            voteManager.onParticipantJoin(participant.getPlayer());
         }
-        GameManagerUtils.colorLeatherArmor(this, participant);
-        tabList.showPlayer(participant);
+        GameManagerUtils.colorLeatherArmor(this, participant.getPlayer());
+        tabList.showPlayer(participant.getPlayer());
         tabList.setParticipantGrey(participant.getUniqueId(), false);
         updateTeamScore(teamId);
         updatePersonalScore(participant);
@@ -536,10 +541,10 @@ public class GameManager implements Listener {
         }
         // TabList stop
         for (Player player : Bukkit.getOnlinePlayers()) {
-            if (gameStateStorageUtil.isAdmin(player.getUniqueId())) {
+            if (isAdmin(player.getUniqueId())) {
                 onAdminJoin(player);
             }
-            if (gameStateStorageUtil.containsPlayer(player.getUniqueId())) {
+            if (isParticipant(player.getUniqueId())) {
                 onParticipantJoin(player);
             }
         }
@@ -577,7 +582,7 @@ public class GameManager implements Listener {
                             .clickEvent(ClickEvent.suggestCommand("/mct team join "))));
             return;
         }
-        voteManager.startVote(onlineParticipants, votingPool, duration, (gameType) -> startGame(gameType, sender), onlineAdmins);
+        voteManager.startVote(Participant.toPlayersList(onlineParticipants.values()), votingPool, duration, (gameType) -> startGame(gameType, sender), onlineAdmins);
     }
     
     /**
@@ -599,7 +604,24 @@ public class GameManager implements Listener {
         return eventManager;
     }
     
-    public void removeParticipantsFromHub(List<Player> participantsToRemove) {
+    /**
+     * @param playersToRemove the list of players to remove
+     * @deprecated in favor of {@link #removeParticipantsFromHub(Collection)}
+     */
+    @Deprecated
+    public void removeParticipantsFromHub(List<Player> playersToRemove) {
+        // TODO: Participant remove this method
+        List<Participant> participantsToRemove = new ArrayList<>(playersToRemove.size());
+        for (Player player : playersToRemove) {
+            Participant participant = onlineParticipants.get(player.getUniqueId());
+            if (participant != null) {
+                participantsToRemove.add(participant);
+            }
+        }
+        hubManager.removeParticipantsFromHub(participantsToRemove);
+    }
+    
+    public void removeParticipantsFromHub(Collection<Participant> participantsToRemove) {
         hubManager.removeParticipantsFromHub(participantsToRemove);
     }
     
@@ -660,7 +682,7 @@ public class GameManager implements Listener {
             }
         }
         
-        List<String> onlineTeams = getTeamIds(onlineParticipants);
+        List<String> onlineTeams = getTeamIds(onlineParticipants.values());
         // make sure the player and team count requirements are met
         switch (gameType) {
             case SURVIVAL_GAMES -> {
@@ -688,13 +710,13 @@ public class GameManager implements Listener {
             selectedGame.setTitle(newTitle);
         }
         
-        hubManager.removeParticipantsFromHub(onlineParticipants);
-        selectedGame.start(onlineParticipants, onlineAdmins);
+        hubManager.removeParticipantsFromHub(onlineParticipants.values());
+        selectedGame.start(Participant.toPlayersList(onlineParticipants.values()), onlineAdmins);
         activeGame = selectedGame;
-        for (String teamId : getTeamIds(onlineParticipants)) {
+        for (String teamId : Participant.getTeamIds(onlineParticipants.values())) {
             updateTeamScore(teamId);
         }
-        for (Player participant : onlineParticipants) {
+        for (Participant participant : onlineParticipants.values()) {
             updatePersonalScore(participant);
         }
         return true;
@@ -759,7 +781,7 @@ public class GameManager implements Listener {
             shouldTeleportToHub = true;
             return;
         }
-        hubManager.returnParticipantsToHub(onlineParticipants, onlineAdmins, true);
+        hubManager.returnParticipantsToHub(onlineParticipants.values(), onlineAdmins, true);
     }
     
     public void startEditor(GameType gameType, @NotNull CommandSender sender) {
@@ -824,7 +846,7 @@ public class GameManager implements Listener {
             return;
         }
         
-        selectedEditor.start(onlineParticipants);
+        selectedEditor.start(Participant.toPlayersList(onlineParticipants.values()));
         activeEditor = selectedEditor;
     }
     
@@ -930,21 +952,34 @@ public class GameManager implements Listener {
     }
     
     public void returnAllParticipantsToHub() {
-        hubManager.returnParticipantsToHub(onlineParticipants, onlineAdmins, false);
+        hubManager.returnParticipantsToHub(onlineParticipants.values(), onlineAdmins, false);
+    }
+    
+    /**
+     * @param player the player who is a participant
+     * @deprecated in favor of {@link #returnParticipantToHubInstantly(Participant)}
+     */
+    @Deprecated
+    public void returnParticipantToHubInstantly(Player player) {
+        // TODO: Participant remove this method
+        Participant participant = onlineParticipants.get(player.getUniqueId());
+        if (participant != null) {
+            returnParticipantToHubInstantly(participant);
+        }
     }
     
     /**
      * Instantly returns the given participant to the hub
      * @param participant the participant to be returned to the hub
      */
-    public void returnParticipantToHubInstantly(Player participant) {
+    public void returnParticipantToHubInstantly(Participant participant) {
         hubManager.returnParticipantsToHub(Collections.singletonList(participant), Collections.emptyList(), false);
     }
     
     public void returnAllParticipantsToPodium(String winningTeam) {
-        List<Player> winningTeamParticipants = getOnlinePlayersOnTeam(winningTeam);
-        List<Player> otherParticipants = new ArrayList<>();
-        for (Player participant : getOnlineParticipants()) {
+        List<Participant> winningTeamParticipants = getOnlineParticipantsOnTeam(winningTeam);
+        List<Participant> otherParticipants = new ArrayList<>();
+        for (Participant participant : onlineParticipants.values()) {
             if (!winningTeamParticipants.contains(participant)) {
                 otherParticipants.add(participant);
             }
@@ -952,7 +987,9 @@ public class GameManager implements Listener {
         hubManager.sendAllParticipantsToPodium(winningTeamParticipants, otherParticipants, onlineAdmins);
     }
     
-    public void returnParticipantToPodium(Player participant, boolean winner) {
+    
+    
+    public void returnParticipantToPodium(Participant participant, boolean winner) {
         hubManager.sendParticipantToPodium(participant, winner);
     }
     
@@ -1044,10 +1081,11 @@ public class GameManager implements Listener {
      * Gets a list of all unique team names which the given participants belong to.
      * @param participants The list of participants to get the team names of
      * @return A list of all unique team names which the given participants belong to.
+     * @deprecated as of v1.3.0 in favor of {@link Participant#getTeamIds(Collection)}
      */
-    public List<String> getTeamIds(List<Player> participants) {
+    public List<String> getTeamIds(Collection<Participant> participants) {
         List<String> teamIds = new ArrayList<>();
-        for (Player participant : participants) {
+        for (Participant participant : participants) {
             String teamId = getTeamId(participant.getUniqueId());
             if (!teamIds.contains(teamId)){
                 teamIds.add(teamId);
@@ -1057,17 +1095,17 @@ public class GameManager implements Listener {
     }
     
     /**
-     * Gets all available unique teamIds of the given UUIDs. Ignores invalid UUIDs.
-     * @param uuids the UUIDs to get the teamIds of. Each UUID doesn't strictly have to be a valid
-     *              participant UUID, and can be the UUID of an offline player. If a teamId
-     *              is not found for a given UUID, it simply will not be included.
-     * @return A list of all unique teamIds which the given participant UUIDs belong to
+     * Gets a list of all unique team names which the given participants belong to.
+     * @param participants The list of participants to get the team names of
+     * @return A list of all unique team names which the given participants belong to.
+     * @deprecated as of v1.3.0 in favor of {@link org.braekpo1nt.mctmanager.participant.Team}
      */
-    public List<String> getTeamIdsByUUID(List<UUID> uuids) {
+    @Deprecated
+    public List<String> getTeamIds(List<Player> participants) {
         List<String> teamIds = new ArrayList<>();
-        for (UUID uuid : uuids) {
-            String teamId = getTeamId(uuid);
-            if (!teamIds.contains(teamId)) {
+        for (Player participant : participants) {
+            String teamId = getTeamId(participant.getUniqueId());
+            if (!teamIds.contains(teamId)){
                 teamIds.add(teamId);
             }
         }
@@ -1253,12 +1291,24 @@ public class GameManager implements Listener {
     }
     
     /**
+     * @param teamId the teamId 
+     * @return a list of the online participants who are on the given team
+     */
+    public List<Participant> getOnlineParticipantsOnTeam(String teamId) {
+        // TODO: Participant this should be replaced with a call to a Team's members
+        return Participant.getParticipantsOnTeam(onlineParticipants.values(), teamId);
+    }
+    
+    /**
      * Gets the online players who are on the given team. 
      * @param teamId The internal name of the team
      * @return A list of all online players on that team, 
      * or empty list if there are no players on that team or the team doesn't exist.
+     * @deprecated in favor of {@link #getOnlineParticipantsOnTeam(String)}
      */
+    @Deprecated
     public List<Player> getOnlinePlayersOnTeam(String teamId) {
+        // TODO: Participant this should be replaced according to its deprecation
         List<UUID> playerUniqueIds = gameStateStorageUtil.getParticipantUUIDsOnTeam(teamId);
         List<Player> onlinePlayersOnTeam = new ArrayList<>();
         for (UUID playerUniqueId : playerUniqueIds) {
@@ -1296,10 +1346,10 @@ public class GameManager implements Listener {
         }
         Component teamDisplayName = getFormattedTeamDisplayName(teamId);
         if (offlinePlayer.isOnline()) {
-            Player onlinePlayer = offlinePlayer.getPlayer();
-            if (onlinePlayer != null) {
-                onParticipantQuit(onlinePlayer);
-                onlinePlayer.sendMessage(Component.text("You've been removed from ")
+            Participant participant = onlineParticipants.get(offlinePlayer.getUniqueId());
+            if (participant != null) {
+                onParticipantQuit(participant);
+                participant.sendMessage(Component.text("You've been removed from ")
                         .append(teamDisplayName));
             }
         }
@@ -1388,13 +1438,7 @@ public class GameManager implements Listener {
         return gameStateStorageUtil.getOfflineIGN(uniqueId);
     }
     
-    /**
-     * Awards points to the participant and their team and announces to that participant how many points they received. 
-     * If the participant does not exist, nothing happens.
-     * @param participant The participant to award points to
-     * @param points The points to award to the participant
-     */
-    public void awardPointsToParticipant(Player participant, int points) {
+    public void awardPointsToParticipant(Participant participant, int points) {
         UUID participantUUID = participant.getUniqueId();
         if (!gameStateStorageUtil.containsPlayer(participantUUID)) {
             return;
@@ -1413,6 +1457,39 @@ public class GameManager implements Listener {
                 .color(NamedTextColor.GOLD));
         updateTeamScore(teamId);
         updatePersonalScore(participant);
+    }
+    
+    /**
+     * Awards points to the participant and their team and announces to that participant how many points they received. 
+     * If the participant does not exist, nothing happens.
+     * @param player The participant to award points to
+     * @param points The points to award to the participant
+     * @deprecated in favor of {@link #awardPointsToParticipant(Participant, int)}
+     */
+    @Deprecated
+    public void awardPointsToParticipant(Player player, int points) {
+        // TODO: Participant remove this method
+        UUID participantUUID = player.getUniqueId();
+        if (!gameStateStorageUtil.containsPlayer(participantUUID)) {
+            return;
+        }
+        String teamId = gameStateStorageUtil.getPlayerTeamId(participantUUID);
+        double multiplier = eventManager.matchProgressPointMultiplier();
+        int multipliedPoints = (int) (points * multiplier);
+        addScore(participantUUID, points);
+        addScore(teamId, multipliedPoints);
+        eventManager.trackPoints(participantUUID, points, activeGame.getType());
+        eventManager.trackPoints(teamId, multipliedPoints, activeGame.getType());
+        player.sendMessage(Component.text("+")
+                .append(Component.text(multipliedPoints))
+                .append(Component.text(" points"))
+                .decorate(TextDecoration.BOLD)
+                .color(NamedTextColor.GOLD));
+        updateTeamScore(teamId);
+        Participant participant = onlineParticipants.get(participantUUID);
+        if (participant != null) {
+            updatePersonalScore(participant);
+        }
     }
     
     /**
@@ -1455,6 +1532,14 @@ public class GameManager implements Listener {
         String displayName = gameStateStorageUtil.getTeamDisplayName(teamId);
         NamedTextColor teamColor = gameStateStorageUtil.getTeamColor(teamId);
         return Component.text(displayName).color(teamColor).decorate(TextDecoration.BOLD);
+    }
+    
+    /**
+     * @param participant the participant
+     * @return the participant's display name
+     */
+    public Component getParticipantDisplayName(@NotNull Participant participant) {
+        return getParticipantDisplayName(participant.getPlayer());
     }
     
     /**
@@ -1511,9 +1596,15 @@ public class GameManager implements Listener {
     /**
      * @return a copy of the list of online participants. Modifying this will not change
      * the online participants
+     * @deprecated in favor of {@link #getOnlineParticipantsKeep()}
      */
+    @Deprecated
     public List<Player> getOnlineParticipants() {
-        return new ArrayList<>(onlineParticipants);
+        return Participant.toPlayersList(onlineParticipants.values());
+    }
+    
+    public Collection<Participant> getOnlineParticipantsKeep() {
+        return onlineParticipants.values();
     }
     
     /**
@@ -1545,13 +1636,6 @@ public class GameManager implements Listener {
             }
         }
         return playerNames;
-    }
-    
-    /**
-     * @return a list of the names of all the teams in the game state
-     */
-    public List<String> getAllTeamIds() {
-        return new ArrayList<>(gameStateStorageUtil.getTeamIds());
     }
     
     /**
@@ -1600,8 +1684,8 @@ public class GameManager implements Listener {
             plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
                 gameStateStorageUtil.addScore(participantUUID, score);
                 plugin.getServer().getScheduler().runTask(plugin, () -> {
-                    Player participant = Bukkit.getPlayer(participantUUID);
-                    if (participant != null && onlineParticipants.contains(participant)) {
+                    Participant participant = onlineParticipants.get(participantUUID);
+                    if (participant != null) {
                         updatePersonalScore(participant);
                     }
                 });
@@ -1641,8 +1725,8 @@ public class GameManager implements Listener {
                 return;
             }
             gameStateStorageUtil.setScore(participantUUID, score);
-            Player participant = Bukkit.getPlayer(participantUUID);
-            if (participant != null && onlineParticipants.contains(participant)) {
+            Participant participant = onlineParticipants.get(participantUUID);
+            if (participant != null) {
                 updatePersonalScore(participant);
             }
         } catch (ConfigIOException e) {
@@ -1679,7 +1763,7 @@ public class GameManager implements Listener {
                 return;
             }
             gameStateStorageUtil.setAllScores(score);
-            for (Player participant : getOnlineParticipants()) {
+            for (Participant participant : onlineParticipants.values()) {
                 updatePersonalScore(participant);
             }
             for (String teamId : getTeamIds()) {
@@ -1706,13 +1790,6 @@ public class GameManager implements Listener {
      */
     public int getScore(UUID participantUniqueId) {
         return gameStateStorageUtil.getParticipantScore(participantUniqueId);
-    }
-    
-    /**
-     * @return a map of each participant's UUID to their score
-     */
-    public @NotNull Map<UUID, Integer> getParticipantScores() {
-        return gameStateStorageUtil.getParticipantScores();
     }
     
     /**
@@ -1842,9 +1919,7 @@ public class GameManager implements Listener {
     }
     
     public void messageOnlineParticipants(Component message) {
-        for (Player participant : onlineParticipants) {
-            participant.sendMessage(message);
-        }
+        Audience.audience(onlineParticipants.values()).sendMessage(message);
     }
     
     // Test methods
@@ -1900,17 +1975,17 @@ public class GameManager implements Listener {
         tabList.setScore(teamId, teamScore);
     }
     
-    private void updatePersonalScore(Player participant) {
+    private void updatePersonalScore(Participant participant) {
         int score = getScore(participant.getUniqueId());
         Component contents = Component.empty()
                 .append(Component.text("Personal: "))
                 .append(Component.text(score))
                 .color(NamedTextColor.GOLD);
         if (activeGame != null && activeGame instanceof Headerable headerable) {
-            headerable.updatePersonalScore(participant, contents);
+            headerable.updatePersonalScore(participant.getPlayer(), contents);
         }
         if (eventManager.eventIsActive()) {
-            eventManager.updatePersonalScore(participant, contents);
+            eventManager.updatePersonalScore(participant.getPlayer(), contents);
         }
         hubManager.updateLeaderboards();
     }
