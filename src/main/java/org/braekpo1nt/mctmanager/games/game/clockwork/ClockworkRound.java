@@ -378,7 +378,7 @@ public class ClockworkRound implements Listener {
             killed.getInventory().clear();
             ParticipantInitializer.clearStatusEffects(killed);
             ParticipantInitializer.resetHealthAndHunger(killed);
-            Bukkit.getServer().sendMessage(Component.empty()
+            plugin.getServer().sendMessage(Component.empty()
                     .append(killed.displayName())
                     .append(Component.text(" was claimed by time")));
             participantsAreAlive.put(killed.getUniqueId(), false);

@@ -323,7 +323,9 @@ public class SpleefRound implements Listener {
                 aliveCount--;
             }
         }
-        String alive = String.format("Alive: %s", aliveCount);
+        Component alive = Component.empty()
+                        .append(Component.text("Alive: "))
+                        .append(Component.text(aliveCount));
         sidebar.updateLine("alive", alive);
         adminSidebar.updateLine("alive", alive);
         decayManager.setAliveCount(aliveCount);
