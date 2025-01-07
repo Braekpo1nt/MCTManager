@@ -691,9 +691,7 @@ public class GameManager implements Listener {
         hubManager.removeParticipantsFromHub(onlineParticipants);
         selectedGame.start(onlineParticipants, onlineAdmins);
         activeGame = selectedGame;
-        for (String teamId : getTeamIds(onlineParticipants)) {
-            updateTeamScore(teamId);
-        }
+        updateTeamScores(getTeamIds(onlineParticipants));
         for (Player participant : onlineParticipants) {
             updatePersonalScore(participant);
         }
