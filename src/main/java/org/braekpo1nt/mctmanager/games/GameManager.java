@@ -409,7 +409,6 @@ public class GameManager implements Listener {
         GameManagerUtils.colorLeatherArmor(this, participant);
         tabList.showPlayer(participant);
         tabList.setParticipantGrey(participant.getUniqueId(), false);
-        updateTeamScore(teamId);
         updatePersonalScore(participant);
     }
     
@@ -691,10 +690,7 @@ public class GameManager implements Listener {
         hubManager.removeParticipantsFromHub(onlineParticipants);
         selectedGame.start(onlineParticipants, onlineAdmins);
         activeGame = selectedGame;
-        updateTeamScores(getTeamIds(onlineParticipants));
-        for (Player participant : onlineParticipants) {
-            updatePersonalScore(participant);
-        }
+        updatePersonalScores(onlineParticipants);
         return true;
     }
     
@@ -1043,7 +1039,7 @@ public class GameManager implements Listener {
      * @param participants The list of participants to get the team names of
      * @return A list of all unique team names which the given participants belong to.
      */
-    public List<String> getTeamIds(List<Player> participants) {
+    public List<String> getTeamIds(Collection<Player> participants) {
         List<String> teamIds = new ArrayList<>();
         for (Player participant : participants) {
             String teamId = getTeamId(participant.getUniqueId());
@@ -1397,7 +1393,24 @@ public class GameManager implements Listener {
      * @param points the points to award to each participant
      */
     public void awardPointsToParticipants(Collection<Player> participants, int points) {
-        // TODO: implement this
+        int multipliedPoints = (int) (points * eventManager.matchProgressPointMultiplier());
+        for (Player participant : participants) {
+            UUID participantUUID = participant.getUniqueId();
+            if (!gameStateStorageUtil.containsPlayer(participantUUID)) {
+                return;
+            }
+            String teamId = gameStateStorageUtil.getPlayerTeamId(participantUUID);
+            addScore(participantUUID, points);
+            addScore(teamId, multipliedPoints);
+            eventManager.trackPoints(participantUUID, points, activeGame.getType());
+            eventManager.trackPoints(teamId, multipliedPoints, activeGame.getType());
+        }
+        Audience.audience(participants).sendMessage(Component.text("+")
+                .append(Component.text(multipliedPoints))
+                .append(Component.text(" points"))
+                .decorate(TextDecoration.BOLD)
+                .color(NamedTextColor.GOLD));
+        updatePersonalScores(participants);
     }
     
     /**
@@ -1423,7 +1436,6 @@ public class GameManager implements Listener {
                 .append(Component.text(" points"))
                 .decorate(TextDecoration.BOLD)
                 .color(NamedTextColor.GOLD));
-        updateTeamScore(teamId);
         updatePersonalScore(participant);
     }
     
@@ -1743,12 +1755,7 @@ public class GameManager implements Listener {
                 return;
             }
             gameStateStorageUtil.setAllScores(score);
-            for (Player participant : getOnlineParticipants()) {
-                updatePersonalScore(participant);
-            }
-            for (String teamId : getTeamIds()) {
-                updateTeamScore(teamId);
-            }
+            updatePersonalScores(getOnlineParticipants());
         } catch (ConfigIOException e) {
             reportGameStateException("setting all scores", e);
         }
@@ -2005,7 +2012,33 @@ public class GameManager implements Listener {
     }
     
     /**
-     * Update the display of the given participant to reflect their current score
+     * Update the displays of the given participants to reflect their current scores.
+     * Also updates their team scores.
+     * @param participants the participants to update
+     */
+    private void updatePersonalScores(Collection<Player> participants) {
+        // perform this check and cast one time instead of for each teamId
+        Headerable headerable = activeGame instanceof Headerable ? (Headerable) activeGame : null;
+        for (Player participant : participants) {
+            int score = getScore(participant.getUniqueId());
+            Component contents = Component.empty()
+                    .append(Component.text("Personal: "))
+                    .append(Component.text(score))
+                    .color(NamedTextColor.GOLD);
+            if (headerable != null) {
+                headerable.updatePersonalScore(participant, contents);
+            }
+            if (eventManager.eventIsActive()) {
+                eventManager.updatePersonalScore(participant, contents);
+            }
+        }
+        hubManager.updateLeaderboards();
+        updateTeamScores(getTeamIds(participants));
+    }
+    
+    /**
+     * Update the display of the given participant to reflect their current score.
+     * Also updates their team scores.
      * @param participant the participant to update
      */
     private void updatePersonalScore(Player participant) {
@@ -2021,6 +2054,7 @@ public class GameManager implements Listener {
             eventManager.updatePersonalScore(participant, contents);
         }
         hubManager.updateLeaderboards();
+        updateTeamScore(getTeamId(participant.getUniqueId()));
     }
     
     /**

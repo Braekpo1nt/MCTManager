@@ -313,17 +313,19 @@ public class SpleefRound implements Listener {
         participantsAlive.put(killed.getUniqueId(), false);
         powerupManager.removeParticipant(killed);
         String killedTeam = gameManager.getTeamId(killed.getUniqueId());
+        List<Player> awardedParticipants = new ArrayList<>();
         int aliveCount = participants.size();
         for (Player participant : participants) {
             if (participantsAlive.get(participant.getUniqueId())) {
                 String teamId = gameManager.getTeamId(participant.getUniqueId());
                 if (!teamId.equals(killedTeam)) {
-                    gameManager.awardPointsToParticipant(participant, config.getSurviveScore());
+                    awardedParticipants.add(participant);
                 }
             } else {
                 aliveCount--;
             }
         }
+        gameManager.awardPointsToParticipants(awardedParticipants, config.getSurviveScore());
         Component alive = Component.empty()
                         .append(Component.text("Alive: "))
                         .append(Component.text(aliveCount));

@@ -383,14 +383,18 @@ public class ClockworkRound implements Listener {
                     .append(Component.text(" was claimed by time")));
             participantsAreAlive.put(killed.getUniqueId(), false);
             String killedTeamId = gameManager.getTeamId(killed.getUniqueId());
+            
+            List<Player> awardedParticipants = new ArrayList<>();
             for (Player participant : participants) {
                 String teamId = gameManager.getTeamId(participant.getUniqueId());
                 if (participantsAreAlive.get(participant.getUniqueId()) 
                         && !killedParticipants.contains(participant)
                         && !teamId.equals(killedTeamId)) {
-                    gameManager.awardPointsToParticipant(participant, config.getPlayerEliminationScore());
+                    awardedParticipants.add(participant);
                 }
             }
+            gameManager.awardPointsToParticipants(awardedParticipants, config.getPlayerEliminationScore());
+            
             if (!teamsKilledMembers.containsKey(killedTeamId)) {
                 teamsKilledMembers.put(killedTeamId, 1);
             } else {
