@@ -1389,6 +1389,20 @@ public class GameManager implements Listener {
     }
     
     /**
+     * Awards the same number of points to each participant in the collection and their respective teams.
+     * Also announces to the participants how many points they received.
+     * <br>
+     * This is used in replacement of looping through each participant and calling 
+     * {@link #awardPointsToParticipant(Player, int)} to reduce the number of changes to the {@link TabList}
+     * and file writes to the {@link org.braekpo1nt.mctmanager.games.gamestate.GameState} at once.
+     * @param participants must be a list of valid participants
+     * @param points the points to award to each participant
+     */
+    public void awardPointsToParticipants(Collection<Player> participants, int points) {
+        // TODO: implement this
+    }
+    
+    /**
      * Awards points to the participant and their team and announces to that participant how many points they received. 
      * If the participant does not exist, nothing happens.
      * @param participant The participant to award points to
@@ -1413,6 +1427,37 @@ public class GameManager implements Listener {
                 .color(NamedTextColor.GOLD));
         updateTeamScore(teamId);
         updatePersonalScore(participant);
+    }
+    
+    /**
+     * Adds the given points to the given teams, and announces to the teammates how many
+     * points they earned. 
+     * <br>
+     * This is to be used instead of looping through each team and calling
+     * {@link #awardPointsToTeam(String, int)} to reduce the number of modifications to the
+     * {@link TabList} and file writes to the {@link org.braekpo1nt.mctmanager.games.gamestate.GameState} at once.
+     * @param teamIds the teamIds of the teams to give the points to. If this is empty, nothing happens.
+     * @param points the points to give to each team
+     */
+    public void awardPointsToTeams(@NotNull Collection<@NotNull String> teamIds, int points) {
+        if (teamIds.isEmpty()) {
+            return;
+        }
+        int multipliedPoints = (int) (points * eventManager.matchProgressPointMultiplier());
+        addScores(teamIds, multipliedPoints);
+        for (String teamId : teamIds) {
+            eventManager.trackPoints(teamId, multipliedPoints, activeGame.getType());
+            
+            Component displayName = getFormattedTeamDisplayName(teamId);
+            List<Player> playersOnTeam = getOnlinePlayersOnTeam(teamId);
+            Audience.audience(playersOnTeam).sendMessage(Component.text("+")
+                    .append(Component.text(multipliedPoints))
+                    .append(Component.text(" points for "))
+                    .append(displayName)
+                    .decorate(TextDecoration.BOLD)
+                    .color(NamedTextColor.GOLD));
+        }
+        updateTeamScores(teamIds);
     }
     
     /**
@@ -1612,8 +1657,29 @@ public class GameManager implements Listener {
     }
     
     /**
-     * Adds the given score to the team with the given name
-     * @param teamId The name of the team to add the score to
+     * Adds the given score to each of the given teams
+     * <br>
+     * Use this instead of calling {@link #addScore(String, int)} for each teamId because this is more
+     * efficient in that it only writes to the {@link org.braekpo1nt.mctmanager.games.gamestate.GameState} once
+     * @param teamIds the teamIds to add the score to
+     * @param score the score to add. Could be positive or negative.
+     */
+    public void addScores(Collection<String> teamIds, int score) {
+        try {
+            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+                gameStateStorageUtil.addScores(teamIds, score);
+                plugin.getServer().getScheduler().runTask(plugin, () -> {
+                    updateTeamScores(teamIds);
+                });
+            });
+        } catch (ConfigIOException e) {
+            reportGameStateException("adding score to teams", e);
+        }
+    }
+    
+    /**
+     * Adds the given score to the given team
+     * @param teamId The team to add the score to
      * @param score The score to add. Could be positive or negative.
      */
     public void addScore(String teamId, int score) {
@@ -1880,6 +1946,46 @@ public class GameManager implements Listener {
         tabList.setVisibility(uuid, visible);
     }
     
+    /**
+     * Update the displays of team scores to reflect the current 
+     * {@link org.braekpo1nt.mctmanager.games.gamestate.GameState}
+     * <br>
+     * This includes the header of the current active game, the event sidebar in the hub, and the {@link TabList}
+     * @param teamIds the teamIds to update all displays for
+     */
+    private void updateTeamScores(Collection<String> teamIds) {
+        Map<String, Integer> teamIdsToScores = new HashMap<>(teamIds.size());
+        // perform this check and cast one time instead of for each teamId
+        Headerable headerable = activeGame instanceof Headerable ? (Headerable) activeGame : null;
+        for (String teamId : teamIds) {
+            Component teamDisplayName = getFormattedTeamDisplayName(teamId);
+            int teamScore = getScore(teamId);
+            teamIdsToScores.put(teamId, teamScore);
+            if (headerable != null) {
+                for (Player participant : getOnlinePlayersOnTeam(teamId)) {
+                    headerable.updateTeamScore(participant, Component.empty()
+                            .append(teamDisplayName)
+                            .append(Component.text(": "))
+                            .append(Component.text(teamScore)
+                                    .color(NamedTextColor.GOLD))
+                    );
+                }
+            }
+        }
+        if (eventManager.eventIsActive()) {
+            eventManager.updateTeamScores();
+        }
+        hubManager.updateLeaderboards();
+        // update all the scores at once instead of one at a time for each teamId in the above loop
+        tabList.setScores(teamIdsToScores);
+    }
+    
+    /**
+     * Update the displays of the given team to reflect the current score.
+     * <br>
+     * This includes the header of the current active game, the event sidebar in the hub, and the {@link TabList} 
+     * @param teamId the teamId to update in all displays
+     */
     private void updateTeamScore(String teamId) {
         Component teamDisplayName = getFormattedTeamDisplayName(teamId);
         int teamScore = getScore(teamId);
@@ -1900,6 +2006,10 @@ public class GameManager implements Listener {
         tabList.setScore(teamId, teamScore);
     }
     
+    /**
+     * Update the display of the given participant to reflect their current score
+     * @param participant the participant to update
+     */
     private void updatePersonalScore(Player participant) {
         int score = getScore(participant.getUniqueId());
         Component contents = Component.empty()
