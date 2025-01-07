@@ -120,6 +120,7 @@ public class SpleefRound implements Listener {
         ParticipantInitializer.clearInventory(participant);
         ParticipantInitializer.clearStatusEffects(participant);
         ParticipantInitializer.resetHealthAndHunger(participant);
+        participant.setGameMode(GameMode.SPECTATOR);
     }
     
     /**
