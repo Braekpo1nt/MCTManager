@@ -389,6 +389,23 @@ public class GameStateStorageUtil {
         saveGameState();
     }
     
+    /**
+     * Adds the given score to each given teamId, then saves the {@link GameState}.
+     * <br>
+     * This is preferable to using {@link #addScore(String, int)} individually for each teamId
+     * because it makes a single call to {@link #saveGameState()}
+     * @param teamIds the teamIds to add the score to
+     * @param score the score to add
+     * @throws ConfigIOException if there is a problem saving the {@link GameState}
+     */
+    public void addScores(Collection<String> teamIds, int score) throws ConfigIOException {
+        for (String teamId : teamIds) {
+            MCTTeam team = gameState.getTeams().get(teamId);
+            team.setScore(team.getScore() + score);
+        }
+        saveGameState();
+    }
+    
     public void setScore(UUID uniqueId, int score) throws ConfigIOException {
         MCTPlayer player = gameState.getPlayers().get(uniqueId);
         player.setScore(score);
