@@ -282,6 +282,26 @@ public class TabList {
     }
     
     /**
+     * Set the scores of the given teams
+     * @param teamIds the teamIds to update the scores of. Any invalid teamIds not in this TabList will be ignored
+     *                and a log message will announce the error.
+     * @param scores the scores to update the teams to. Must be the same length as the teamIds list.
+     */
+    public void setScores(@NotNull List<@NotNull String> teamIds, @NotNull List<@NotNull Integer> scores) {
+        if (teamIds.size() != scores.size()) {
+            logUIError("Size of teamIds (%d) doesn't match size of scores (%d)", teamIds.size(), scores.size());
+            return;
+        }
+        for (int i = 0; i < teamIds.size(); i++) {
+            TeamData teamData = getTeamData(teamIds.get(i));
+            if (teamData != null) {
+                teamData.setScore(scores.get(i));
+            }
+        }
+        update();
+    }
+    
+    /**
      * Joins the given participant to the given team so that the name is listed under the team
      * in the TabList. Initialized as alive. <br> 
      * This is not the same as {@link #showPlayer(Player)} because it has nothing
