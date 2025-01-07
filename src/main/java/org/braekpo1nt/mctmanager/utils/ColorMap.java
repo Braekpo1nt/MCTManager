@@ -58,7 +58,7 @@ public class ColorMap {
         POWDER_TYPE_MAP.put("light_purple", Material.MAGENTA_CONCRETE_POWDER);
         POWDER_TYPE_MAP.put("red", Material.RED_CONCRETE_POWDER);
         POWDER_TYPE_MAP.put("white", Material.WHITE_CONCRETE_POWDER);
-        POWDER_TYPE_MAP.put("blue", Material.LIGHT_BLUE_CONCRETE_POWDER);
+        POWDER_TYPE_MAP.put("blue", Material.BLUE_CONCRETE_POWDER);
         POWDER_TYPE_MAP.put("yellow", Material.YELLOW_CONCRETE_POWDER);
     }
     
@@ -78,7 +78,7 @@ public class ColorMap {
         CONCRETE_TYPE_MAP.put("light_purple", Material.MAGENTA_CONCRETE);
         CONCRETE_TYPE_MAP.put("red", Material.RED_CONCRETE);
         CONCRETE_TYPE_MAP.put("white", Material.WHITE_CONCRETE);
-        CONCRETE_TYPE_MAP.put("blue", Material.LIGHT_BLUE_CONCRETE);
+        CONCRETE_TYPE_MAP.put("blue", Material.BLUE_CONCRETE);
         CONCRETE_TYPE_MAP.put("yellow", Material.YELLOW_CONCRETE);
     }
     
@@ -98,7 +98,7 @@ public class ColorMap {
         STAINED_GLASS_MAP.put("light_purple", Material.MAGENTA_STAINED_GLASS);
         STAINED_GLASS_MAP.put("red", Material.RED_STAINED_GLASS);
         STAINED_GLASS_MAP.put("white", Material.WHITE_STAINED_GLASS);
-        STAINED_GLASS_MAP.put("blue", Material.LIGHT_BLUE_STAINED_GLASS);
+        STAINED_GLASS_MAP.put("blue", Material.BLUE_STAINED_GLASS);
         STAINED_GLASS_MAP.put("yellow", Material.YELLOW_STAINED_GLASS);
     }
     
@@ -118,7 +118,7 @@ public class ColorMap {
         BANNER_TYPE_MAP.put("light_purple", Material.MAGENTA_BANNER);
         BANNER_TYPE_MAP.put("red", Material.RED_BANNER);
         BANNER_TYPE_MAP.put("white", Material.WHITE_BANNER);
-        BANNER_TYPE_MAP.put("blue", Material.LIGHT_BLUE_BANNER);
+        BANNER_TYPE_MAP.put("blue", Material.BLUE_BANNER);
         BANNER_TYPE_MAP.put("yellow", Material.YELLOW_BANNER);
     }
     
