@@ -413,7 +413,7 @@ public class ClockworkRound implements Listener {
         if (newlyKilledTeams.isEmpty()) {
             return;
         }
-        List<String> allTeams = gameManager.getTeamIds(participants);
+        List<String> allTeamIds = gameManager.getTeamIds(participants);
         for (String newlyKilledTeam : newlyKilledTeams) {
             Component teamDisplayName = gameManager.getFormattedTeamDisplayName(newlyKilledTeam);
             for (Player participant : participants) {
@@ -430,11 +430,13 @@ public class ClockworkRound implements Listener {
                             .color(NamedTextColor.GREEN));
                 }
             }
-            for (String team : allTeams) {
-                if (teamsLivingMembers.get(team) > 0 && !newlyKilledTeams.contains(team)) {
-                    gameManager.awardPointsToTeam(team, config.getTeamEliminationScore());
+            List<String> livingTeamIds = new ArrayList<>();
+            for (String teamId : allTeamIds) {
+                if (teamsLivingMembers.get(teamId) > 0 && !newlyKilledTeams.contains(teamId)) {
+                    livingTeamIds.add(teamId);
                 }
             }
+            gameManager.awardPointsToTeams(livingTeamIds, config.getTeamEliminationScore());
         }
         List<String> livingTeams = getLivingTeams();
         if (livingTeams.isEmpty()) {
