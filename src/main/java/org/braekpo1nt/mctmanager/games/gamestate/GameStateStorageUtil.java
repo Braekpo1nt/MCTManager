@@ -383,6 +383,14 @@ public class GameStateStorageUtil {
         saveGameState();
     }
     
+    public void addScorePlayers(Collection<UUID> uuids, int score) throws ConfigIOException {
+        for (UUID uuid : uuids) {
+            MCTPlayer player = gameState.getPlayers().get(uuid);
+            player.setScore(player.getScore() + score);
+        }
+        saveGameState();
+    }
+    
     public void addScore(String teamId, int score) throws ConfigIOException {
         MCTTeam team = gameState.getTeams().get(teamId);
         team.setScore(team.getScore() + score);
@@ -398,7 +406,7 @@ public class GameStateStorageUtil {
      * @param score the score to add
      * @throws ConfigIOException if there is a problem saving the {@link GameState}
      */
-    public void addScores(Collection<String> teamIds, int score) throws ConfigIOException {
+    public void addScoreTeams(Collection<String> teamIds, int score) throws ConfigIOException {
         for (String teamId : teamIds) {
             MCTTeam team = gameState.getTeams().get(teamId);
             team.setScore(team.getScore() + score);

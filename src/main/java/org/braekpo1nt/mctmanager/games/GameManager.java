@@ -40,6 +40,7 @@ import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -249,11 +250,10 @@ public class GameManager implements Listener {
         }
     }
     
-    @EventHandler
-    public void onBlockDispenseItem(BlockDispenseArmorEvent event) {
-        Main.logger().info(String.format("Entity name: %s, item: %s, equipment slot: %s", event.getTargetEntity().getName(), event.getItem(), event.getItem().getType().getEquipmentSlot()));
-        // TODO: handle block dispensing items
-    }
+//    @EventHandler
+//    public void onBlockDispenseItem(BlockDispenseArmorEvent event) {
+//        // TODO: handle block dispensing items
+//    }
     
     @EventHandler
     public void onParticipantInteract(PlayerInteractEvent event) {
@@ -392,7 +392,6 @@ public class GameManager implements Listener {
         onlineParticipants.add(participant);
         participant.setScoreboard(mctScoreboard);
         participant.addPotionEffect(Main.NIGHT_VISION);
-        String teamId = getTeamId(participant.getUniqueId());
         Component displayName = getParticipantDisplayName(participant);
         participant.displayName(displayName);
         participant.playerListName(displayName);
@@ -409,7 +408,9 @@ public class GameManager implements Listener {
         GameManagerUtils.colorLeatherArmor(this, participant);
         tabList.showPlayer(participant);
         tabList.setParticipantGrey(participant.getUniqueId(), false);
+        String teamId = getTeamId(participant.getUniqueId());
         updatePersonalScore(participant);
+        updateTeamScore(teamId);
     }
     
     /**
@@ -691,6 +692,7 @@ public class GameManager implements Listener {
         selectedGame.start(onlineParticipants, onlineAdmins);
         activeGame = selectedGame;
         updatePersonalScores(onlineParticipants);
+        updateTeamScores(onlineTeams);
         return true;
     }
     
@@ -1394,25 +1396,24 @@ public class GameManager implements Listener {
      */
     public void awardPointsToParticipants(Collection<Player> participants, int points) {
         int multipliedPoints = (int) (points * eventManager.matchProgressPointMultiplier());
+        Set<String> teamIds = new HashSet<>();
         for (Player participant : participants) {
             UUID participantUUID = participant.getUniqueId();
-            if (!gameStateStorageUtil.containsPlayer(participantUUID)) {
-                return;
-            }
             String teamId = gameStateStorageUtil.getPlayerTeamId(participantUUID);
-            addScore(participantUUID, points);
-            addScore(teamId, multipliedPoints);
+            teamIds.add(teamId);
             if (activeGame != null) {
                 eventManager.trackPoints(participantUUID, points, activeGame.getType());
                 eventManager.trackPoints(teamId, multipliedPoints, activeGame.getType());
             }
         }
+        addScoreParticipants(participants, points);
+        addScoreTeams(teamIds, multipliedPoints);
+        
         Audience.audience(participants).sendMessage(Component.text("+")
                 .append(Component.text(multipliedPoints))
                 .append(Component.text(" points"))
                 .decorate(TextDecoration.BOLD)
                 .color(NamedTextColor.GOLD));
-        updatePersonalScores(participants);
     }
     
     /**
@@ -1440,7 +1441,6 @@ public class GameManager implements Listener {
                 .append(Component.text(" points"))
                 .decorate(TextDecoration.BOLD)
                 .color(NamedTextColor.GOLD));
-        updatePersonalScore(participant);
     }
     
     /**
@@ -1458,7 +1458,7 @@ public class GameManager implements Listener {
             return;
         }
         int multipliedPoints = (int) (points * eventManager.matchProgressPointMultiplier());
-        addScores(teamIds, multipliedPoints);
+        addScoreTeams(teamIds, multipliedPoints);
         for (String teamId : teamIds) {
             if (activeGame != null) {
                 eventManager.trackPoints(teamId, multipliedPoints, activeGame.getType());
@@ -1653,6 +1653,19 @@ public class GameManager implements Listener {
         return result;
     }
     
+    public void addScoreParticipants(Collection<Player> participants, int score) {
+        try {
+            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+                gameStateStorageUtil.addScorePlayers(participants.stream().map(Entity::getUniqueId).toList(), score);
+                plugin.getServer().getScheduler().runTask(plugin, () -> {
+                    updatePersonalScores(participants);
+                });
+            });
+        } catch (ConfigIOException e) {
+            reportGameStateException("adding score to players", e);
+        }
+    }
+    
     /**
      * Adds the given score to the participant with the given UUID
      * @param participantUUID The UUID of the participant to add the score to
@@ -1663,7 +1676,7 @@ public class GameManager implements Listener {
             plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
                 gameStateStorageUtil.addScore(participantUUID, score);
                 plugin.getServer().getScheduler().runTask(plugin, () -> {
-                    Player participant = Bukkit.getPlayer(participantUUID);
+                    Player participant = plugin.getServer().getPlayer(participantUUID);
                     if (participant != null && onlineParticipants.contains(participant)) {
                         updatePersonalScore(participant);
                     }
@@ -1682,10 +1695,10 @@ public class GameManager implements Listener {
      * @param teamIds the teamIds to add the score to
      * @param score the score to add. Could be positive or negative.
      */
-    public void addScores(Collection<String> teamIds, int score) {
+    public void addScoreTeams(Collection<String> teamIds, int score) {
         try {
             plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-                gameStateStorageUtil.addScores(teamIds, score);
+                gameStateStorageUtil.addScoreTeams(teamIds, score);
                 plugin.getServer().getScheduler().runTask(plugin, () -> {
                     updateTeamScores(teamIds);
                 });
@@ -1720,15 +1733,20 @@ public class GameManager implements Listener {
      */
     public void setScore(UUID participantUUID, int score) {
         try {
-            if (score < 0) {
-                gameStateStorageUtil.setScore(participantUUID, 0);
-                return;
-            }
-            gameStateStorageUtil.setScore(participantUUID, score);
-            Player participant = Bukkit.getPlayer(participantUUID);
-            if (participant != null && onlineParticipants.contains(participant)) {
-                updatePersonalScore(participant);
-            }
+            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+                if (score < 0) {
+                    gameStateStorageUtil.setScore(participantUUID, 0);
+                    return;
+                }
+                gameStateStorageUtil.setScore(participantUUID, score);
+                plugin.getServer().getScheduler().runTask(plugin, () -> {
+                    Player participant = plugin.getServer().getPlayer(participantUUID);
+                    if (participant != null && onlineParticipants.contains(participant)) {
+                        updatePersonalScore(participant);
+                        updateTeamScore(getTeamId(participantUUID));
+                    }
+                });
+            });
         } catch (ConfigIOException e) {
             reportGameStateException("setting a player's score", e);
         }
@@ -1741,12 +1759,16 @@ public class GameManager implements Listener {
      */
     public void setScore(String teamId, int score) {
         try {
-            if (score < 0) {
-                gameStateStorageUtil.setScore(teamId, 0);
-                return;
-            }
-            gameStateStorageUtil.setScore(teamId, score);
-            updateTeamScore(teamId);
+            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+                if (score < 0) {
+                    gameStateStorageUtil.setScore(teamId, 0);
+                    return;
+                }
+                gameStateStorageUtil.setScore(teamId, score);
+                plugin.getServer().getScheduler().runTask(plugin, () -> {
+                    updateTeamScore(teamId);
+                });
+            });
         } catch (ConfigIOException e) {
             reportGameStateException("adding score to team", e);
         }
@@ -1758,12 +1780,17 @@ public class GameManager implements Listener {
      */
     public void setScoreAll(int score) {
         try {
-            if (score < 0) {
-                gameStateStorageUtil.setAllScores(0);
-                return;
-            }
-            gameStateStorageUtil.setAllScores(score);
-            updatePersonalScores(getOnlineParticipants());
+            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+                if (score < 0) {
+                    gameStateStorageUtil.setAllScores(0);
+                    return;
+                }
+                gameStateStorageUtil.setAllScores(score);
+                plugin.getServer().getScheduler().runTask(plugin, () -> {
+                    updatePersonalScores(getOnlineParticipants());
+                    updateTeamScores(getTeamIds(getOnlineParticipants()));
+                });
+            });
         } catch (ConfigIOException e) {
             reportGameStateException("setting all scores", e);
         }
@@ -2041,7 +2068,6 @@ public class GameManager implements Listener {
             }
         }
         hubManager.updateLeaderboards();
-        updateTeamScores(getTeamIds(participants));
     }
     
     /**
@@ -2062,7 +2088,6 @@ public class GameManager implements Listener {
             eventManager.updatePersonalScore(participant, contents);
         }
         hubManager.updateLeaderboards();
-        updateTeamScore(getTeamId(participant.getUniqueId()));
     }
     
     /**
