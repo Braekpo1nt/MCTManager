@@ -1652,12 +1652,10 @@ public class GameManager implements Listener {
     
     public void addScoreParticipants(Collection<Player> participants, int score) {
         try {
-            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-                gameStateStorageUtil.addScorePlayers(participants.stream().map(Entity::getUniqueId).toList(), score);
-                plugin.getServer().getScheduler().runTask(plugin, () -> {
-                    updatePersonalScores(participants);
-                });
-            });
+            gameStateStorageUtil.addScorePlayers(participants.stream().map(Entity::getUniqueId).toList(), score);
+            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () ->
+                    gameStateStorageUtil.saveGameState());
+            updatePersonalScores(participants);
         } catch (ConfigIOException e) {
             reportGameStateException("adding score to players", e);
         }
@@ -1670,15 +1668,13 @@ public class GameManager implements Listener {
      */
     public void addScore(UUID participantUUID, int score) {
         try {
-            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-                gameStateStorageUtil.addScore(participantUUID, score);
-                plugin.getServer().getScheduler().runTask(plugin, () -> {
-                    Player participant = plugin.getServer().getPlayer(participantUUID);
-                    if (participant != null && onlineParticipants.contains(participant)) {
-                        updatePersonalScore(participant);
-                    }
-                });
-            });
+            gameStateStorageUtil.addScore(participantUUID, score);
+            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () ->
+                    gameStateStorageUtil.saveGameState());
+            Player participant = plugin.getServer().getPlayer(participantUUID);
+            if (participant != null && onlineParticipants.contains(participant)) {
+                updatePersonalScore(participant);
+            }
         } catch (ConfigIOException e) {
             reportGameStateException("adding score to player", e);
         }
@@ -1694,12 +1690,10 @@ public class GameManager implements Listener {
      */
     public void addScoreTeams(Collection<String> teamIds, int score) {
         try {
-            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-                gameStateStorageUtil.addScoreTeams(teamIds, score);
-                plugin.getServer().getScheduler().runTask(plugin, () -> {
-                    updateTeamScores(teamIds);
-                });
-            });
+            gameStateStorageUtil.addScoreTeams(teamIds, score);
+            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () ->
+                    gameStateStorageUtil.saveGameState());
+            updateTeamScores(teamIds);
         } catch (ConfigIOException e) {
             reportGameStateException("adding score to teams", e);
         }
@@ -1712,12 +1706,10 @@ public class GameManager implements Listener {
      */
     public void addScore(String teamId, int score) {
         try {
-            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-                gameStateStorageUtil.addScore(teamId, score);
-                plugin.getServer().getScheduler().runTask(plugin, () -> {
-                    updateTeamScore(teamId);
-                });
-            });
+            gameStateStorageUtil.addScore(teamId, score);
+            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () ->
+                    gameStateStorageUtil.saveGameState());
+            updateTeamScore(teamId);
         } catch (ConfigIOException e) {
             reportGameStateException("adding score to team", e);
         }
@@ -1730,20 +1722,18 @@ public class GameManager implements Listener {
      */
     public void setScore(UUID participantUUID, int score) {
         try {
-            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-                if (score < 0) {
-                    gameStateStorageUtil.setScore(participantUUID, 0);
-                    return;
-                }
-                gameStateStorageUtil.setScore(participantUUID, score);
-                plugin.getServer().getScheduler().runTask(plugin, () -> {
-                    Player participant = plugin.getServer().getPlayer(participantUUID);
-                    if (participant != null && onlineParticipants.contains(participant)) {
-                        updatePersonalScore(participant);
-                        updateTeamScore(getTeamId(participantUUID));
-                    }
-                });
-            });
+            if (score < 0) {
+                gameStateStorageUtil.setScore(participantUUID, 0);
+                return;
+            }
+            gameStateStorageUtil.setScore(participantUUID, score);
+            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () ->
+                    gameStateStorageUtil.saveGameState());
+            Player participant = plugin.getServer().getPlayer(participantUUID);
+            if (participant != null && onlineParticipants.contains(participant)) {
+                updatePersonalScore(participant);
+            }
+            updateTeamScore(getTeamId(participantUUID));
         } catch (ConfigIOException e) {
             reportGameStateException("setting a player's score", e);
         }
@@ -1756,16 +1746,14 @@ public class GameManager implements Listener {
      */
     public void setScore(String teamId, int score) {
         try {
-            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-                if (score < 0) {
-                    gameStateStorageUtil.setScore(teamId, 0);
-                    return;
-                }
-                gameStateStorageUtil.setScore(teamId, score);
-                plugin.getServer().getScheduler().runTask(plugin, () -> {
-                    updateTeamScore(teamId);
-                });
-            });
+            if (score < 0) {
+                gameStateStorageUtil.setScore(teamId, 0);
+                return;
+            }
+            gameStateStorageUtil.setScore(teamId, score);
+            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () ->
+                    gameStateStorageUtil.saveGameState());
+            updateTeamScore(teamId);
         } catch (ConfigIOException e) {
             reportGameStateException("adding score to team", e);
         }
@@ -1777,17 +1765,15 @@ public class GameManager implements Listener {
      */
     public void setScoreAll(int score) {
         try {
-            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-                if (score < 0) {
-                    gameStateStorageUtil.setAllScores(0);
-                    return;
-                }
-                gameStateStorageUtil.setAllScores(score);
-                plugin.getServer().getScheduler().runTask(plugin, () -> {
-                    updatePersonalScores(getOnlineParticipants());
-                    updateTeamScores(getTeamIds(getOnlineParticipants()));
-                });
-            });
+            if (score < 0) {
+                gameStateStorageUtil.setAllScores(0);
+                return;
+            }
+            gameStateStorageUtil.setAllScores(score);
+            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () ->
+                    gameStateStorageUtil.saveGameState());
+            updatePersonalScores(getOnlineParticipants());
+            updateTeamScores(getTeamIds());
         } catch (ConfigIOException e) {
             reportGameStateException("setting all scores", e);
         }

@@ -377,63 +377,88 @@ public class GameStateStorageUtil {
         return gameState.getOfflinePlayers().values().stream().map(OfflineMCTPlayer::getOfflineUniqueId).toList();
     }
     
-    public void addScore(UUID uniqueId, int score) throws ConfigIOException {
-        MCTPlayer player = gameState.getPlayers().get(uniqueId);
+    /**
+     * Add the given score to the given player
+     * <b>Important:</b> This does not save the game state, it must be done manually with {@link #saveGameState()}
+     * @param uuid the uuid of the player to add the score to
+     * @param score the score to add
+     */
+    public void addScore(UUID uuid, int score) {
+        MCTPlayer player = gameState.getPlayers().get(uuid);
         player.setScore(player.getScore() + score);
-        saveGameState();
     }
     
-    public void addScorePlayers(Collection<UUID> uuids, int score) throws ConfigIOException {
+    /**
+     * Add the given score to the given players
+     * <b>Important:</b> This does not save the game state, it must be done manually with {@link #saveGameState()}
+     * @param uuids the uuids of the players to add the score to
+     * @param score the score to add
+     */
+    public void addScorePlayers(Collection<UUID> uuids, int score) {
         for (UUID uuid : uuids) {
             MCTPlayer player = gameState.getPlayers().get(uuid);
             player.setScore(player.getScore() + score);
         }
-        saveGameState();
-    }
-    
-    public void addScore(String teamId, int score) throws ConfigIOException {
-        MCTTeam team = gameState.getTeams().get(teamId);
-        team.setScore(team.getScore() + score);
-        saveGameState();
     }
     
     /**
-     * Adds the given score to each given teamId, then saves the {@link GameState}.
-     * <br>
-     * This is preferable to using {@link #addScore(String, int)} individually for each teamId
-     * because it makes a single call to {@link #saveGameState()}
+     * Add the given score to the given team
+     * <b>Important:</b> This does not save the game state, it must be done manually with {@link #saveGameState()}
+     * @param teamId the teamId of the team to add the score to
+     * @param score the score to add
+     */
+    public void addScore(String teamId, int score) {
+        MCTTeam team = gameState.getTeams().get(teamId);
+        team.setScore(team.getScore() + score);
+    }
+    
+    /**
+     * Adds the given score to each given teamId
+     * <b>Important:</b> This does not save the game state, it must be done manually with {@link #saveGameState()}
      * @param teamIds the teamIds to add the score to
      * @param score the score to add
-     * @throws ConfigIOException if there is a problem saving the {@link GameState}
      */
-    public void addScoreTeams(Collection<String> teamIds, int score) throws ConfigIOException {
+    public void addScoreTeams(Collection<String> teamIds, int score) {
         for (String teamId : teamIds) {
             MCTTeam team = gameState.getTeams().get(teamId);
             team.setScore(team.getScore() + score);
         }
-        saveGameState();
     }
     
-    public void setScore(UUID uniqueId, int score) throws ConfigIOException {
-        MCTPlayer player = gameState.getPlayers().get(uniqueId);
+    /**
+     * Sets the score of the given player to the given value
+     * <b>Important:</b> This does not save the game state, it must be done manually with {@link #saveGameState()}
+     * @param uuid the uuid of the player to set the score of
+     * @param score the score to set to
+     */
+    public void setScore(UUID uuid, int score) {
+        MCTPlayer player = gameState.getPlayers().get(uuid);
         player.setScore(score);
-        saveGameState();
     }
-
-    public void setScore(String teamId, int score) throws ConfigIOException {
+    
+    /**
+     * Sets the score of the given team to the given value
+     * <b>Important:</b> This does not save the game state, it must be done manually with {@link #saveGameState()}
+     * @param teamId the uuid of the team to set the score of
+     * @param score the score to set to
+     */
+    public void setScore(String teamId, int score) {
         MCTTeam team = gameState.getTeams().get(teamId);
         team.setScore(score);
-        saveGameState();
     }
     
-    public void setAllScores(int score) throws ConfigIOException {
+    /**
+     * Sets the score of all teams and players to the given value
+     * <b>Important:</b> This does not save the game state, it must be done manually with {@link #saveGameState()}
+     * @param score the score to set to
+     */
+    public void setAllScores(int score) {
         for (MCTPlayer player : gameState.getPlayers().values()) {
             player.setScore(score);
         }
         for (MCTTeam team : gameState.getTeams().values()) {
             team.setScore(score);
         }
-        saveGameState();
     }
     
     public int getTeamScore(String teamId) {
