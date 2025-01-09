@@ -1402,8 +1402,10 @@ public class GameManager implements Listener {
             String teamId = gameStateStorageUtil.getPlayerTeamId(participantUUID);
             addScore(participantUUID, points);
             addScore(teamId, multipliedPoints);
-            eventManager.trackPoints(participantUUID, points, activeGame.getType());
-            eventManager.trackPoints(teamId, multipliedPoints, activeGame.getType());
+            if (activeGame != null) {
+                eventManager.trackPoints(participantUUID, points, activeGame.getType());
+                eventManager.trackPoints(teamId, multipliedPoints, activeGame.getType());
+            }
         }
         Audience.audience(participants).sendMessage(Component.text("+")
                 .append(Component.text(multipliedPoints))
@@ -1429,8 +1431,10 @@ public class GameManager implements Listener {
         int multipliedPoints = (int) (points * multiplier);
         addScore(participantUUID, points);
         addScore(teamId, multipliedPoints);
-        eventManager.trackPoints(participantUUID, points, activeGame.getType());
-        eventManager.trackPoints(teamId, multipliedPoints, activeGame.getType());
+        if (activeGame != null) {
+            eventManager.trackPoints(participantUUID, points, activeGame.getType());
+            eventManager.trackPoints(teamId, multipliedPoints, activeGame.getType());
+        }
         participant.sendMessage(Component.text("+")
                 .append(Component.text(multipliedPoints))
                 .append(Component.text(" points"))
@@ -1456,7 +1460,9 @@ public class GameManager implements Listener {
         int multipliedPoints = (int) (points * eventManager.matchProgressPointMultiplier());
         addScores(teamIds, multipliedPoints);
         for (String teamId : teamIds) {
-            eventManager.trackPoints(teamId, multipliedPoints, activeGame.getType());
+            if (activeGame != null) {
+                eventManager.trackPoints(teamId, multipliedPoints, activeGame.getType());
+            }
             
             Component displayName = getFormattedTeamDisplayName(teamId);
             List<Player> playersOnTeam = getOnlinePlayersOnTeam(teamId);
@@ -1483,7 +1489,9 @@ public class GameManager implements Listener {
         }
         int multipliedPoints = (int) (points * eventManager.matchProgressPointMultiplier());
         addScore(teamId, multipliedPoints);
-        eventManager.trackPoints(teamId, multipliedPoints, activeGame.getType());
+        if (activeGame != null) {
+            eventManager.trackPoints(teamId, multipliedPoints, activeGame.getType());
+        }
         
         Component displayName = getFormattedTeamDisplayName(teamId);
         List<Player> playersOnTeam = getOnlinePlayersOnTeam(teamId);
