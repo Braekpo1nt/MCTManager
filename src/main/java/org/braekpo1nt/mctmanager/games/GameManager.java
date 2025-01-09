@@ -1395,15 +1395,10 @@ public class GameManager implements Listener {
      */
     public void awardPointsToParticipants(Collection<Player> participants, int points) {
         int multipliedPoints = (int) (points * eventManager.matchProgressPointMultiplier());
-        Set<String> teamIds = new HashSet<>();
-        for (Player participant : participants) {
-            UUID participantUUID = participant.getUniqueId();
-            String teamId = gameStateStorageUtil.getPlayerTeamId(participantUUID);
-            teamIds.add(teamId);
-            if (activeGame != null) {
-                eventManager.trackPoints(participantUUID, points, activeGame.getType());
-                eventManager.trackPoints(teamId, multipliedPoints, activeGame.getType());
-            }
+        List<String> teamIds = getTeamIds(participants);
+        if (activeGame != null) {
+            eventManager.trackPointsParticipants(participants, points, activeGame.getType());
+            eventManager.trackPointsTeams(teamIds, multipliedPoints, activeGame.getType());
         }
         addScoreParticipants(participants, points);
         addScoreTeams(teamIds, multipliedPoints);
@@ -1458,11 +1453,10 @@ public class GameManager implements Listener {
         }
         int multipliedPoints = (int) (points * eventManager.matchProgressPointMultiplier());
         addScoreTeams(teamIds, multipliedPoints);
+        if (activeGame != null) {
+            eventManager.trackPointsTeams(teamIds, multipliedPoints, activeGame.getType());
+        }
         for (String teamId : teamIds) {
-            if (activeGame != null) {
-                eventManager.trackPoints(teamId, multipliedPoints, activeGame.getType());
-            }
-            
             Component displayName = getFormattedTeamDisplayName(teamId);
             List<Player> playersOnTeam = getOnlinePlayersOnTeam(teamId);
             Audience.audience(playersOnTeam).sendMessage(Component.text("+")
