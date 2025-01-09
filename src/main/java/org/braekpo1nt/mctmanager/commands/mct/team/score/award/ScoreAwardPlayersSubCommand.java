@@ -29,7 +29,7 @@ public class ScoreAwardPlayersSubCommand extends TabSubCommand {
     @Override
     public @NotNull CommandResult onSubCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length < 2) {
-            return CommandResult.failure(getUsage().of("[playerName]").of("<score>"));
+            return CommandResult.failure(getUsage().of("[<playerName>]").of("<score>"));
         }
         
         // loop through all the names
@@ -59,10 +59,10 @@ public class ScoreAwardPlayersSubCommand extends TabSubCommand {
         // the last arg should be the score
         String scoreString = args[args.length - 1];
         if (!CommandUtils.isInteger(scoreString)) {
-            return CommandResult.failure(getUsage().of("[playerName]").of("<score>"));
+            return CommandResult.failure(getUsage().of("[<playerName>]").of("<score>"));
         }
         int score = Integer.parseInt(scoreString);
-        if (score < 0) {
+        if (score <= 0) {
             return CommandResult.failure(Component.text("Score value must be positive"));
         }
         if (participants.size() == 1) {

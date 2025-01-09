@@ -35,7 +35,7 @@ public class ScoreSetAllSubCommand extends SubCommand {
         }
         int score = Integer.parseInt(scoreString);
         if (score < 0) {
-            return CommandResult.failure(Component.text("Value must be positive"));
+            return CommandResult.failure(Component.text("Score must be at least 0"));
         }
         gameManager.setScoreAll(score);
         

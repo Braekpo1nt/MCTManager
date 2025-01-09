@@ -59,7 +59,7 @@ public class ScoreSetPlayerSubCommand extends TabSubCommand {
         }
         int score = Integer.parseInt(scoreString);
         if (score < 0) {
-            return CommandResult.failure(Component.text("Value must be positive"));
+            return CommandResult.failure(Component.text("Score must be at least 0"));
         }
         gameManager.setScore(offlinePlayer.getUniqueId(), score);
         int newScore = gameManager.getScore(offlinePlayer.getUniqueId());

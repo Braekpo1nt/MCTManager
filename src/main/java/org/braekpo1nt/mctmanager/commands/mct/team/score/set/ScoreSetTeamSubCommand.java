@@ -43,7 +43,7 @@ public class ScoreSetTeamSubCommand extends TabSubCommand {
         }
         int score = Integer.parseInt(scoreString);
         if (score < 0) {
-            return CommandResult.failure(Component.text("Value must be positive"));
+            return CommandResult.failure(Component.text("Score must be at least 0"));
         }
         gameManager.setScore(teamId, score);
         int newScore = gameManager.getScore(teamId);
@@ -52,11 +52,13 @@ public class ScoreSetTeamSubCommand extends TabSubCommand {
                 .append(Component.text(" score is now "))
                 .append(Component.text(newScore)));
     }
-
+    
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length == 1) {
-            return gameManager.getTeamIds().stream().toList();
+            return CommandUtils.partialMatchTabList(
+                    gameManager.getTeamIds().stream().toList(),
+                    args[0]);
         }
         return Collections.emptyList();
     }
