@@ -46,7 +46,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
-import org.bukkit.event.block.BlockDispenseArmorEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -249,10 +248,10 @@ public class GameManager implements Listener {
             }
         }
     }
-    
+
+        // TODO: handle block dispensing items
 //    @EventHandler
 //    public void onBlockDispenseItem(BlockDispenseArmorEvent event) {
-//        // TODO: handle block dispensing items
 //    }
     
     @EventHandler
@@ -1473,7 +1472,6 @@ public class GameManager implements Listener {
                     .decorate(TextDecoration.BOLD)
                     .color(NamedTextColor.GOLD));
         }
-        updateTeamScores(teamIds);
     }
     
     /**
@@ -1501,7 +1499,6 @@ public class GameManager implements Listener {
                     .append(displayName)
                     .decorate(TextDecoration.BOLD)
                     .color(NamedTextColor.GOLD));
-        updateTeamScore(teamId);
     }
     
     public Color getTeamColor(UUID playerUniqueId) {
