@@ -41,12 +41,12 @@ import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
-import org.bukkit.event.block.BlockDispenseArmorEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -249,12 +249,11 @@ public class GameManager implements Listener {
             }
         }
     }
-    
-    @EventHandler
-    public void onBlockDispenseItem(BlockDispenseArmorEvent event) {
-        Main.logger().info(String.format("Entity name: %s, item: %s, equipment slot: %s", event.getTargetEntity().getName(), event.getItem(), event.getItem().getType().getEquipmentSlot()));
+
         // TODO: handle block dispensing items
-    }
+//    @EventHandler
+//    public void onBlockDispenseItem(BlockDispenseArmorEvent event) {
+//    }
     
     @EventHandler
     public void onParticipantInteract(PlayerInteractEvent event) {
@@ -389,8 +388,7 @@ public class GameManager implements Listener {
     
     /**
      * Handles when a participant joins
-     * @param player a player (who is an official participant according to 
-     * {@link #isParticipant(UUID)}) who joined
+     * @param player a player (who is an official participant) who joined
      */
     private void onParticipantJoin(@NotNull Player player) {
         String teamId = getTeamId(player.getUniqueId());
@@ -414,8 +412,8 @@ public class GameManager implements Listener {
         GameManagerUtils.colorLeatherArmor(this, participant.getPlayer());
         tabList.showPlayer(participant.getPlayer());
         tabList.setParticipantGrey(participant.getUniqueId(), false);
-        updateTeamScore(teamId);
         updatePersonalScore(participant);
+        updateTeamScore(teamId);
     }
     
     /**
@@ -713,12 +711,8 @@ public class GameManager implements Listener {
         hubManager.removeParticipantsFromHub(onlineParticipants.values());
         selectedGame.start(Participant.toPlayersList(onlineParticipants.values()), onlineAdmins);
         activeGame = selectedGame;
-        for (String teamId : Participant.getTeamIds(onlineParticipants.values())) {
-            updateTeamScore(teamId);
-        }
-        for (Participant participant : onlineParticipants.values()) {
-            updatePersonalScore(participant);
-        }
+        updatePersonalScores(onlineParticipants.values());
+        updateTeamScores(onlineTeams);
         return true;
     }
     
@@ -988,8 +982,8 @@ public class GameManager implements Listener {
     }
     
     /**
-     * @param player
-     * @param winner
+     * @param player the player
+     * @param winner whether they are a winner
      * @deprecated in favor of {@link #returnParticipantToPodium(Participant,boolean)}
      */
     @Deprecated
@@ -1095,6 +1089,7 @@ public class GameManager implements Listener {
      * @deprecated as of v1.3.0 in favor of {@link Participant#getTeamIds(Collection)}
      */
     public List<String> getTeamIds(Collection<Participant> participants) {
+        // TODO: resolve teamIds list using Participant class
         List<String> teamIds = new ArrayList<>();
         for (Participant participant : participants) {
             String teamId = getTeamId(participant.getUniqueId());
@@ -1449,25 +1444,43 @@ public class GameManager implements Listener {
         return gameStateStorageUtil.getOfflineIGN(uniqueId);
     }
     
-    public void awardPointsToParticipant(Participant participant, int points) {
-        UUID participantUUID = participant.getUniqueId();
-        if (!gameStateStorageUtil.containsPlayer(participantUUID)) {
-            return;
+    /**
+     * @param players the players (must all be valid, online participants)
+     * @param points the points
+     * @deprecated in favor of {@link #awardPointsToParticipants(Collection, int)}
+     */
+    @Deprecated
+    public void awardPointsToPlayers(Collection<Player> players, int points) {
+        // TODO: Participant remove this method
+        awardPointsToParticipants(players.stream().map(player -> onlineParticipants.get(player.getUniqueId())).toList(), points);
+    }
+    
+    /**
+     * Awards the same number of points to each participant in the collection and their respective teams.
+     * Also announces to the participants how many points they received.
+     * <br>
+     * This is used in replacement of looping through each participant and calling 
+     * {@link #awardPointsToParticipant(Player, int)} to reduce the number of changes to the {@link TabList}
+     * and file writes to the {@link org.braekpo1nt.mctmanager.games.gamestate.GameState} at once.
+     * @param participants must be a list of valid, online participants. For performance reasons, this is not
+     *                     checked. You are relied upon to provide only valid participants.
+     * @param points the points to award to each participant
+     */
+    public void awardPointsToParticipants(Collection<Participant> participants, int points) {
+        int multipliedPoints = (int) (points * eventManager.matchProgressPointMultiplier());
+        List<String> teamIds = getTeamIds(participants);
+        if (activeGame != null) {
+            eventManager.trackPointsParticipants(Participant.toPlayersList(participants), points, activeGame.getType());
+            eventManager.trackPointsTeams(teamIds, multipliedPoints, activeGame.getType());
         }
-        String teamId = gameStateStorageUtil.getPlayerTeamId(participantUUID);
-        double multiplier = eventManager.matchProgressPointMultiplier();
-        int multipliedPoints = (int) (points * multiplier);
-        addScore(participantUUID, points);
-        addScore(teamId, multipliedPoints);
-        eventManager.trackPoints(participantUUID, points, activeGame.getType());
-        eventManager.trackPoints(teamId, multipliedPoints, activeGame.getType());
-        participant.sendMessage(Component.text("+")
+        addScoreParticipants(participants, points);
+        addScoreTeams(teamIds, multipliedPoints);
+        
+        Audience.audience(participants).sendMessage(Component.text("+")
                 .append(Component.text(multipliedPoints))
                 .append(Component.text(" points"))
                 .decorate(TextDecoration.BOLD)
                 .color(NamedTextColor.GOLD));
-        updateTeamScore(teamId);
-        updatePersonalScore(participant);
     }
     
     /**
@@ -1480,26 +1493,64 @@ public class GameManager implements Listener {
     @Deprecated
     public void awardPointsToParticipant(Player player, int points) {
         // TODO: Participant remove this method
-        UUID participantUUID = player.getUniqueId();
-        if (!gameStateStorageUtil.containsPlayer(participantUUID)) {
+        awardPointsToParticipant(onlineParticipants.get(player.getUniqueId()), points);
+    }
+    
+    /**
+     * Awards points to the participant and their team and announces to that participant how many points they received. 
+     * If the participant does not exist, nothing happens.
+     * @param participant The participant to award points to
+     * @param points The points to award to the participant
+     */
+    public void awardPointsToParticipant(Participant participant, int points) {
+        UUID uuid = participant.getUniqueId();
+        if (!gameStateStorageUtil.containsPlayer(uuid)) {
             return;
         }
-        String teamId = gameStateStorageUtil.getPlayerTeamId(participantUUID);
+        String teamId = gameStateStorageUtil.getPlayerTeamId(uuid);
         double multiplier = eventManager.matchProgressPointMultiplier();
         int multipliedPoints = (int) (points * multiplier);
-        addScore(participantUUID, points);
+        addScore(uuid, points);
         addScore(teamId, multipliedPoints);
-        eventManager.trackPoints(participantUUID, points, activeGame.getType());
-        eventManager.trackPoints(teamId, multipliedPoints, activeGame.getType());
-        player.sendMessage(Component.text("+")
+        if (activeGame != null) {
+            eventManager.trackPoints(uuid, points, activeGame.getType());
+            eventManager.trackPoints(teamId, multipliedPoints, activeGame.getType());
+        }
+        participant.sendMessage(Component.text("+")
                 .append(Component.text(multipliedPoints))
                 .append(Component.text(" points"))
                 .decorate(TextDecoration.BOLD)
                 .color(NamedTextColor.GOLD));
-        updateTeamScore(teamId);
-        Participant participant = onlineParticipants.get(participantUUID);
-        if (participant != null) {
-            updatePersonalScore(participant);
+    }
+    
+    /**
+     * Adds the given points to the given teams, and announces to the teammates how many
+     * points they earned. 
+     * <br>
+     * This is to be used instead of looping through each team and calling
+     * {@link #awardPointsToTeam(String, int)} to reduce the number of modifications to the
+     * {@link TabList} and file writes to the {@link org.braekpo1nt.mctmanager.games.gamestate.GameState} at once.
+     * @param teamIds the teamIds of the teams to give the points to. If this is empty, nothing happens.
+     * @param points the points to give to each team
+     */
+    public void awardPointsToTeams(@NotNull Collection<@NotNull String> teamIds, int points) {
+        if (teamIds.isEmpty()) {
+            return;
+        }
+        int multipliedPoints = (int) (points * eventManager.matchProgressPointMultiplier());
+        addScoreTeams(teamIds, multipliedPoints);
+        if (activeGame != null) {
+            eventManager.trackPointsTeams(teamIds, multipliedPoints, activeGame.getType());
+        }
+        for (String teamId : teamIds) {
+            Component displayName = getFormattedTeamDisplayName(teamId);
+            List<Player> playersOnTeam = getOnlinePlayersOnTeam(teamId);
+            Audience.audience(playersOnTeam).sendMessage(Component.text("+")
+                    .append(Component.text(multipliedPoints))
+                    .append(Component.text(" points for "))
+                    .append(displayName)
+                    .decorate(TextDecoration.BOLD)
+                    .color(NamedTextColor.GOLD));
         }
     }
     
@@ -1516,7 +1567,9 @@ public class GameManager implements Listener {
         }
         int multipliedPoints = (int) (points * eventManager.matchProgressPointMultiplier());
         addScore(teamId, multipliedPoints);
-        eventManager.trackPoints(teamId, multipliedPoints, activeGame.getType());
+        if (activeGame != null) {
+            eventManager.trackPoints(teamId, multipliedPoints, activeGame.getType());
+        }
         
         Component displayName = getFormattedTeamDisplayName(teamId);
         List<Player> playersOnTeam = getOnlinePlayersOnTeam(teamId);
@@ -1526,7 +1579,6 @@ public class GameManager implements Listener {
                     .append(displayName)
                     .decorate(TextDecoration.BOLD)
                     .color(NamedTextColor.GOLD));
-        updateTeamScore(teamId);
     }
     
     public Color getTeamColor(UUID playerUniqueId) {
@@ -1614,6 +1666,10 @@ public class GameManager implements Listener {
         return Participant.toPlayersList(onlineParticipants.values());
     }
     
+    /**
+     * @return a copy of the list of online participants. Modifying this will not change
+     *      * the online participants
+     */
     public Collection<Participant> getOnlineParticipantsKeep() {
         return onlineParticipants.values();
     }
@@ -1685,6 +1741,17 @@ public class GameManager implements Listener {
         return result;
     }
     
+    public void addScoreParticipants(Collection<Participant> participants, int score) {
+        try {
+            gameStateStorageUtil.addScorePlayers(participants.stream().map(Participant::getUniqueId).toList(), score);
+            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () ->
+                    gameStateStorageUtil.saveGameState());
+            updatePersonalScores(participants);
+        } catch (ConfigIOException e) {
+            reportGameStateException("adding score to players", e);
+        }
+    }
+    
     /**
      * Adds the given score to the participant with the given UUID
      * @param participantUUID The UUID of the participant to add the score to
@@ -1692,33 +1759,48 @@ public class GameManager implements Listener {
      */
     public void addScore(UUID participantUUID, int score) {
         try {
-            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-                gameStateStorageUtil.addScore(participantUUID, score);
-                plugin.getServer().getScheduler().runTask(plugin, () -> {
-                    Participant participant = onlineParticipants.get(participantUUID);
-                    if (participant != null) {
-                        updatePersonalScore(participant);
-                    }
-                });
-            });
+            gameStateStorageUtil.addScore(participantUUID, score);
+            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () ->
+                    gameStateStorageUtil.saveGameState());
+            Participant participant = onlineParticipants.get(participantUUID);
+            if (participant != null) {
+                updatePersonalScore(participant);
+            }
         } catch (ConfigIOException e) {
             reportGameStateException("adding score to player", e);
         }
     }
     
     /**
-     * Adds the given score to the team with the given name
-     * @param teamId The name of the team to add the score to
+     * Adds the given score to each of the given teams
+     * <br>
+     * Use this instead of calling {@link #addScore(String, int)} for each teamId because this is more
+     * efficient in that it only writes to the {@link org.braekpo1nt.mctmanager.games.gamestate.GameState} once
+     * @param teamIds the teamIds to add the score to
+     * @param score the score to add. Could be positive or negative.
+     */
+    public void addScoreTeams(Collection<String> teamIds, int score) {
+        try {
+            gameStateStorageUtil.addScoreTeams(teamIds, score);
+            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () ->
+                    gameStateStorageUtil.saveGameState());
+            updateTeamScores(teamIds);
+        } catch (ConfigIOException e) {
+            reportGameStateException("adding score to teams", e);
+        }
+    }
+    
+    /**
+     * Adds the given score to the given team
+     * @param teamId The team to add the score to
      * @param score The score to add. Could be positive or negative.
      */
     public void addScore(String teamId, int score) {
         try {
-            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-                gameStateStorageUtil.addScore(teamId, score);
-                plugin.getServer().getScheduler().runTask(plugin, () -> {
-                    updateTeamScore(teamId);
-                });
-            });
+            gameStateStorageUtil.addScore(teamId, score);
+            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () ->
+                    gameStateStorageUtil.saveGameState());
+            updateTeamScore(teamId);
         } catch (ConfigIOException e) {
             reportGameStateException("adding score to team", e);
         }
@@ -1736,10 +1818,13 @@ public class GameManager implements Listener {
                 return;
             }
             gameStateStorageUtil.setScore(participantUUID, score);
+            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () ->
+                    gameStateStorageUtil.saveGameState());
             Participant participant = onlineParticipants.get(participantUUID);
             if (participant != null) {
                 updatePersonalScore(participant);
             }
+            updateTeamScore(getTeamId(participantUUID));
         } catch (ConfigIOException e) {
             reportGameStateException("setting a player's score", e);
         }
@@ -1757,6 +1842,8 @@ public class GameManager implements Listener {
                 return;
             }
             gameStateStorageUtil.setScore(teamId, score);
+            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () ->
+                    gameStateStorageUtil.saveGameState());
             updateTeamScore(teamId);
         } catch (ConfigIOException e) {
             reportGameStateException("adding score to team", e);
@@ -1774,12 +1861,10 @@ public class GameManager implements Listener {
                 return;
             }
             gameStateStorageUtil.setAllScores(score);
-            for (Participant participant : onlineParticipants.values()) {
-                updatePersonalScore(participant);
-            }
-            for (String teamId : getTeamIds()) {
-                updateTeamScore(teamId);
-            }
+            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () ->
+                    gameStateStorageUtil.saveGameState());
+            updatePersonalScores(onlineParticipants.values());
+            updateTeamScores(getTeamIds());
         } catch (ConfigIOException e) {
             reportGameStateException("setting all scores", e);
         }
@@ -1966,6 +2051,46 @@ public class GameManager implements Listener {
         tabList.setVisibility(uuid, visible);
     }
     
+    /**
+     * Update the displays of team scores to reflect the current 
+     * {@link org.braekpo1nt.mctmanager.games.gamestate.GameState}
+     * <br>
+     * This includes the header of the current active game, the event sidebar in the hub, and the {@link TabList}
+     * @param teamIds the teamIds to update all displays for
+     */
+    private void updateTeamScores(Collection<String> teamIds) {
+        Map<String, Integer> teamIdsToScores = new HashMap<>(teamIds.size());
+        // perform this check and cast one time instead of for each teamId
+        Headerable headerable = activeGame instanceof Headerable ? (Headerable) activeGame : null;
+        for (String teamId : teamIds) {
+            Component teamDisplayName = getFormattedTeamDisplayName(teamId);
+            int teamScore = getScore(teamId);
+            teamIdsToScores.put(teamId, teamScore);
+            if (headerable != null) {
+                for (Player participant : getOnlinePlayersOnTeam(teamId)) {
+                    headerable.updateTeamScore(participant, Component.empty()
+                            .append(teamDisplayName)
+                            .append(Component.text(": "))
+                            .append(Component.text(teamScore)
+                                    .color(NamedTextColor.GOLD))
+                    );
+                }
+            }
+        }
+        if (eventManager.eventIsActive()) {
+            eventManager.updateTeamScores();
+        }
+        hubManager.updateLeaderboards();
+        // update all the scores at once instead of one at a time for each teamId in the above loop
+        tabList.setScores(teamIdsToScores);
+    }
+    
+    /**
+     * Update the displays of the given team to reflect the current score.
+     * <br>
+     * This includes the header of the current active game, the event sidebar in the hub, and the {@link TabList} 
+     * @param teamId the teamId to update in all displays
+     */
     private void updateTeamScore(String teamId) {
         Component teamDisplayName = getFormattedTeamDisplayName(teamId);
         int teamScore = getScore(teamId);
@@ -1986,7 +2111,37 @@ public class GameManager implements Listener {
         tabList.setScore(teamId, teamScore);
     }
     
+    /**
+     * Update the displays of the given participants to reflect their current scores.
+     * Also updates their team scores.
+     * @param participants the participants to update
+     */
+    private void updatePersonalScores(Collection<Participant> participants) {
+        // perform this check and cast one time instead of for each player
+        Headerable headerable = activeGame instanceof Headerable ? (Headerable) activeGame : null;
+        for (Participant participant : participants) {
+            int score = getScore(participant.getUniqueId());
+            Component contents = Component.empty()
+                    .append(Component.text("Personal: "))
+                    .append(Component.text(score))
+                    .color(NamedTextColor.GOLD);
+            if (headerable != null) {
+                headerable.updatePersonalScore(participant.getPlayer(), contents);
+            }
+            if (eventManager.eventIsActive()) {
+                eventManager.updatePersonalScore(participant.getPlayer(), contents);
+            }
+        }
+        hubManager.updateLeaderboards();
+    }
+    
+    /**
+     * Update the display of the given participant to reflect their current score.
+     * Also updates their team scores.
+     * @param participant the participant to update
+     */
     private void updatePersonalScore(Participant participant) {
+        // TODO: Participant replace arguments with the Participant class for all related score methods
         int score = getScore(participant.getUniqueId());
         Component contents = Component.empty()
                 .append(Component.text("Personal: "))

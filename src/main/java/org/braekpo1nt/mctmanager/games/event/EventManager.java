@@ -642,6 +642,24 @@ public class EventManager implements Listener {
     }
     
     /**
+     * Track the points earned for the given teams in the given game
+     * If the event is not active, nothing happens.
+     * @param teamIds The teams to track points for
+     * @param points the points to add
+     * @param gameType the game that the points came from
+     */
+    public void trackPointsTeams(Collection<String> teamIds, int points, GameType gameType) {
+        if (state instanceof OffState) {
+            return;
+        }
+        List<ScoreKeeper> iterationScoreKeepers = scoreKeepers.get(gameType);
+        ScoreKeeper iteration = iterationScoreKeepers.getLast();
+        for (String teamId : teamIds) {
+            iteration.addPoints(teamId, points);
+        }
+    }
+    
+    /**
      * Track the points earned for the given participant in the given game. 
      * If the event is not active, nothing happens.
      * @param participantUUID The participant to track points for
@@ -655,6 +673,25 @@ public class EventManager implements Listener {
         List<ScoreKeeper> iterationScoreKeepers = scoreKeepers.get(gameType);
         ScoreKeeper iteration = iterationScoreKeepers.getLast();
         iteration.addPoints(participantUUID, points);
+    }
+    
+    /**
+     * Track the points earned for the given participants in the given game. 
+     * If the event is not active, nothing happens.
+     * @param participants The participants to track points for
+     * @param points the points to add 
+     * @param gameType the game that the points came from
+     */
+    public void trackPointsParticipants(Collection<Player> participants, int points, GameType gameType) {
+        // TODO: Participant change the type from Player to Participant in argument
+        if (state instanceof OffState) {
+            return;
+        }
+        List<ScoreKeeper> iterationScoreKeepers = scoreKeepers.get(gameType);
+        ScoreKeeper iteration = iterationScoreKeepers.getLast();
+        for (Player participant : participants) {
+            iteration.addPoints(participant.getUniqueId(), points);
+        }
     }
     
     public void messageAllAdmins(Component message) {
