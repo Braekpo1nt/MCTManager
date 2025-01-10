@@ -360,9 +360,7 @@ public class ActiveState implements SurvivalGamesState {
                 .append(Component.text(" has been eliminated.")));
         Component displayName = gameManager.getFormattedTeamDisplayName(deadTeam);
         List<String> livingTeams = getLivingTeamIds();
-        for (String teamId : livingTeams) {
-            gameManager.awardPointsToTeam(teamId, config.getSurviveTeamScore());
-        }
+        gameManager.awardPointsToTeams(livingTeams, config.getSurviveTeamScore());
         switch (livingTeams.size()) {
             case 2 -> {
                 plugin.getServer().sendMessage(Component.empty()
