@@ -76,7 +76,6 @@ public class GameManager implements Listener {
     private final Main plugin;
     private MCTGame activeGame = null;
     private GameEditor activeEditor = null;
-    private final Map<GameType, GameEditor> editors;
     private final HubManager hubManager;
     private SidebarFactory sidebarFactory;
     private GameStateStorageUtil gameStateStorageUtil;
@@ -105,9 +104,6 @@ public class GameManager implements Listener {
         this.gameStateStorageUtil = new GameStateStorageUtil(plugin);
         this.voteManager = new VoteManager(this, plugin);
         this.timerManager = new TimerManager(plugin);
-        this.editors = new HashMap<>();
-        addEditor(new ParkourPathwayEditor(plugin, this));
-        addEditor(new FootRaceEditor(plugin, this));
         this.tabList = new TabList(plugin);
         this.sidebarFactory = new SidebarFactory();
         this.hubManager = initializeHubManager(plugin, this);
@@ -125,6 +121,10 @@ public class GameManager implements Listener {
         return new HubManager(plugin, gameManager);
     }
     
+    /**
+     * @param gameType the {@link GameType} to instantiate the {@link MCTGame} for
+     * @return a new {@link MCTGame} instance for the given type. Null if the given type is null. 
+     */
     @Contract("null -> null")
     private MCTGame instantiateGame(GameType gameType) {
         return switch (gameType) {
@@ -140,13 +140,16 @@ public class GameManager implements Listener {
     }
     
     /**
-     * Adds the given editor to the editors map, with the key being the editor's type
-     * @param editor the {@link GameEditor} implementation
-     * @throws IllegalArgumentException if you attempt to add an editor whose {@link GameType} was already added to the editors list
+     * @param gameType the game type to get the {@link GameEditor} for
+     * @return the {@link GameEditor} associated with the given type, or null if there is no editor for the
+     * given type (or if the type is null).
      */
-    private void addEditor(GameEditor editor) {
-        Preconditions.checkArgument(!this.editors.containsKey(editor.getType()), "An editor with type %s already exists in the games map", editor.getType());
-        this.editors.put(editor.getType(), editor);
+    private @Nullable GameEditor instantiateEditor(GameType gameType) {
+        return switch (gameType) {
+            case PARKOUR_PATHWAY -> new ParkourPathwayEditor(plugin, this);
+            case FOOT_RACE -> new FootRaceEditor(plugin, this);
+            default -> null;
+        };
     }
     
     @EventHandler(priority = EventPriority.LOWEST) // happens first
@@ -791,7 +794,7 @@ public class GameManager implements Listener {
             return;
         }
         
-        GameEditor selectedEditor = this.editors.get(gameType);
+        GameEditor selectedEditor = instantiateEditor(gameType);
         if (selectedEditor == null) {
             sender.sendMessage(Component.text("Can't find editor for game type " + gameType)
                     .color(NamedTextColor.RED));
