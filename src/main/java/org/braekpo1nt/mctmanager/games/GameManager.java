@@ -76,7 +76,6 @@ public class GameManager implements Listener {
     private final Main plugin;
     private MCTGame activeGame = null;
     private GameEditor activeEditor = null;
-    private final Map<GameType, MCTGame> games;
     private final Map<GameType, GameEditor> editors;
     private final HubManager hubManager;
     private SidebarFactory sidebarFactory;
@@ -106,14 +105,6 @@ public class GameManager implements Listener {
         this.gameStateStorageUtil = new GameStateStorageUtil(plugin);
         this.voteManager = new VoteManager(this, plugin);
         this.timerManager = new TimerManager(plugin);
-        this.games = new HashMap<>();
-        addGame(new FootRaceGame(plugin, this));
-        addGame(new SurvivalGamesGame(plugin, this));
-        addGame(new SpleefGame(plugin, this));
-        addGame(new ParkourPathwayGame(plugin, this));
-        addGame(new CaptureTheFlagGame(plugin, this));
-        addGame(new ClockworkGame(plugin, this));
-        addGame(new FarmRushGame(plugin, this));
         this.editors = new HashMap<>();
         addEditor(new ParkourPathwayEditor(plugin, this));
         addEditor(new FootRaceEditor(plugin, this));
@@ -134,14 +125,18 @@ public class GameManager implements Listener {
         return new HubManager(plugin, gameManager);
     }
     
-    /**
-     * Adds the given game to the games map, with the key being the game's type
-     * @param mctGame the {@link MCTGame} implementation
-     * @throws IllegalArgumentException if you attempt to add a game whose {@link GameType} was already added to the games list
-     */
-    private void addGame(MCTGame mctGame) {
-        Preconditions.checkArgument(!this.games.containsKey(mctGame.getType()), "A game with type %s already exists in the games map", mctGame.getType());
-        this.games.put(mctGame.getType(), mctGame);
+    @Contract("null -> null")
+    private MCTGame instantiateGame(GameType gameType) {
+        return switch (gameType) {
+            case SPLEEF -> new SpleefGame(plugin, this);
+            case CLOCKWORK -> new ClockworkGame(plugin, this);
+            case SURVIVAL_GAMES -> new SurvivalGamesGame(plugin, this);
+            case FARM_RUSH -> new FarmRushGame(plugin, this);
+            case FOOT_RACE -> new FootRaceGame(plugin, this);
+            case PARKOUR_PATHWAY -> new ParkourPathwayGame(plugin, this);
+            case CAPTURE_THE_FLAG -> new CaptureTheFlagGame(plugin, this);
+            case null -> null;
+        };
     }
     
     /**
@@ -608,7 +603,7 @@ public class GameManager implements Listener {
      * @param sender The sender to send messages and alerts to
      * @return true if the game started successfully, false otherwise
      */
-    public boolean startGame(GameType gameType, @NotNull CommandSender sender) {
+    public boolean startGame(@NotNull GameType gameType, @NotNull CommandSender sender) {
         if (voteManager.isVoting()) {
             sender.sendMessage(Component.text("Can't start a game while a vote is going on.")
                     .color(NamedTextColor.RED));
@@ -635,7 +630,7 @@ public class GameManager implements Listener {
             return false;
         }
         
-        MCTGame selectedGame = this.games.get(gameType);
+        MCTGame selectedGame = instantiateGame(gameType);
         if (selectedGame == null) {
             sender.sendMessage(Component.text("Can't find game for type " + gameType));
             return false;
