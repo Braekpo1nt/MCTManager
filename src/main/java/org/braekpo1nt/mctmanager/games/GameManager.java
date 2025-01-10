@@ -77,8 +77,6 @@ public class GameManager implements Listener {
     private final Main plugin;
     private MCTGame activeGame = null;
     private GameEditor activeEditor = null;
-    private final Map<GameType, MCTGame> games;
-    private final Map<GameType, GameEditor> editors;
     private final HubManager hubManager;
     private SidebarFactory sidebarFactory;
     private GameStateStorageUtil gameStateStorageUtil;
@@ -107,17 +105,6 @@ public class GameManager implements Listener {
         this.gameStateStorageUtil = new GameStateStorageUtil(plugin);
         this.voteManager = new VoteManager(this, plugin);
         this.timerManager = new TimerManager(plugin);
-        this.games = new HashMap<>();
-        addGame(new FootRaceGame(plugin, this));
-        addGame(new SurvivalGamesGame(plugin, this));
-        addGame(new SpleefGame(plugin, this));
-        addGame(new ParkourPathwayGame(plugin, this));
-        addGame(new CaptureTheFlagGame(plugin, this));
-        addGame(new ClockworkGame(plugin, this));
-        addGame(new FarmRushGame(plugin, this));
-        this.editors = new HashMap<>();
-        addEditor(new ParkourPathwayEditor(plugin, this));
-        addEditor(new FootRaceEditor(plugin, this));
         this.tabList = new TabList(plugin);
         this.sidebarFactory = new SidebarFactory();
         this.hubManager = initializeHubManager(plugin, this);
@@ -136,23 +123,34 @@ public class GameManager implements Listener {
     }
     
     /**
-     * Adds the given game to the games map, with the key being the game's type
-     * @param mctGame the {@link MCTGame} implementation
-     * @throws IllegalArgumentException if you attempt to add a game whose {@link GameType} was already added to the games list
+     * @param gameType the {@link GameType} to instantiate the {@link MCTGame} for
+     * @return a new {@link MCTGame} instance for the given type. Null if the given type is null. 
      */
-    private void addGame(MCTGame mctGame) {
-        Preconditions.checkArgument(!this.games.containsKey(mctGame.getType()), "A game with type %s already exists in the games map", mctGame.getType());
-        this.games.put(mctGame.getType(), mctGame);
+    @Contract("null -> null")
+    private MCTGame instantiateGame(GameType gameType) {
+        return switch (gameType) {
+            case SPLEEF -> new SpleefGame(plugin, this);
+            case CLOCKWORK -> new ClockworkGame(plugin, this);
+            case SURVIVAL_GAMES -> new SurvivalGamesGame(plugin, this);
+            case FARM_RUSH -> new FarmRushGame(plugin, this);
+            case FOOT_RACE -> new FootRaceGame(plugin, this);
+            case PARKOUR_PATHWAY -> new ParkourPathwayGame(plugin, this);
+            case CAPTURE_THE_FLAG -> new CaptureTheFlagGame(plugin, this);
+            case null -> null;
+        };
     }
     
     /**
-     * Adds the given editor to the editors map, with the key being the editor's type
-     * @param editor the {@link GameEditor} implementation
-     * @throws IllegalArgumentException if you attempt to add an editor whose {@link GameType} was already added to the editors list
+     * @param gameType the game type to get the {@link GameEditor} for
+     * @return the {@link GameEditor} associated with the given type, or null if there is no editor for the
+     * given type (or if the type is null).
      */
-    private void addEditor(GameEditor editor) {
-        Preconditions.checkArgument(!this.editors.containsKey(editor.getType()), "An editor with type %s already exists in the games map", editor.getType());
-        this.editors.put(editor.getType(), editor);
+    private @Nullable GameEditor instantiateEditor(GameType gameType) {
+        return switch (gameType) {
+            case PARKOUR_PATHWAY -> new ParkourPathwayEditor(plugin, this);
+            case FOOT_RACE -> new FootRaceEditor(plugin, this);
+            default -> null;
+        };
     }
     
     @EventHandler(priority = EventPriority.LOWEST) // happens first
@@ -629,7 +627,7 @@ public class GameManager implements Listener {
      * @param sender The sender to send messages and alerts to
      * @return true if the game started successfully, false otherwise
      */
-    public boolean startGame(GameType gameType, @NotNull CommandSender sender) {
+    public boolean startGame(@NotNull GameType gameType, @NotNull CommandSender sender) {
         if (voteManager.isVoting()) {
             sender.sendMessage(Component.text("Can't start a game while a vote is going on.")
                     .color(NamedTextColor.RED));
@@ -656,7 +654,7 @@ public class GameManager implements Listener {
             return false;
         }
         
-        MCTGame selectedGame = this.games.get(gameType);
+        MCTGame selectedGame = instantiateGame(gameType);
         if (selectedGame == null) {
             sender.sendMessage(Component.text("Can't find game for type " + gameType));
             return false;
@@ -817,7 +815,7 @@ public class GameManager implements Listener {
             return;
         }
         
-        GameEditor selectedEditor = this.editors.get(gameType);
+        GameEditor selectedEditor = instantiateEditor(gameType);
         if (selectedEditor == null) {
             sender.sendMessage(Component.text("Can't find editor for game type " + gameType)
                     .color(NamedTextColor.RED));
