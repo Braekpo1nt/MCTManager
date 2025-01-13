@@ -4,6 +4,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.braekpo1nt.mctmanager.Main;
+import org.braekpo1nt.mctmanager.participant.Participant;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -64,6 +65,17 @@ public class Sidebar {
     }
     
     /**
+     * Adds a participant to this Sidebar. The lines will be empty. 
+     * You'll need to manually update the line contents for the new player using 
+     * {@link Sidebar#updateLine(UUID, String, Component)}.
+     * @param participant the {@link Participant} representing the player to add to this 
+     *                    manager and give a FastBoard
+     */
+    public synchronized void addPlayer(@NotNull Participant participant) {
+        addPlayer(participant.getPlayer());
+    }
+    
+    /**
      * Adds a player to this Sidebar. The lines will be empty. You'll need to manually update the line contents for the new player using {@link Sidebar#updateLine(UUID, String, Component)}.
      * @param player the player to add to this manager and give a FastBoard
      */
@@ -103,6 +115,10 @@ public class Sidebar {
         for (Player player : players) {
             removePlayer(player);
         }
+    }
+    
+    public synchronized void removePlayer(@NotNull Participant participant) {
+        removePlayer(participant.getPlayer());
     }
     
     public synchronized void removePlayer(@NotNull Player player) {
