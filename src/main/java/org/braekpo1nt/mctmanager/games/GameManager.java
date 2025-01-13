@@ -409,7 +409,7 @@ public class GameManager implements Listener {
         updatePersonalScore(participant);
         updateTeamScore(teamId);
     }
-    
+    // this is a change
     /**
      * Handles when a participant who's in-game-name (IGN) matches that of an OfflinePlayer in the GameState,
      * meaning they have joined the server for the first time.
