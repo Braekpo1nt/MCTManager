@@ -7,6 +7,8 @@ import org.braekpo1nt.mctmanager.utils.AudienceDelegate;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryView;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -100,4 +102,22 @@ public class Participant extends AudienceDelegate {
         player.setGameMode(mode);
     }
     
+    /**
+     * Delegate for {@link Player#openInventory(Inventory)}
+     */
+    @SuppressWarnings("UnusedReturnValue")
+    public @Nullable InventoryView openInventory(@NotNull Inventory inventory) {
+        return player.openInventory(inventory);
+    }
+    
+    /**
+     * Delegate for {@link Player#closeInventory()}
+     */
+    public void closeInventory() {
+        player.closeInventory();
+    }
+    
+    public @NotNull Inventory getInventory() {
+        return player.getInventory();
+    }
 }
