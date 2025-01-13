@@ -41,7 +41,6 @@ import org.braekpo1nt.mctmanager.utils.ColorMap;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -332,7 +331,7 @@ public class GameManager implements Listener {
         } else if (eventManager.eventIsActive() || eventManager.colossalCombatIsActive()) {
             eventManager.onParticipantQuit(participant.getPlayer());
         } else if (voteManager.isVoting()) {
-            voteManager.onParticipantQuit(participant.getPlayer());
+            voteManager.onParticipantQuit(participant);
         }
         hubManager.onParticipantQuit(participant);
         Component displayName = Component.text(participant.getPlayer().getName(), 
@@ -405,7 +404,7 @@ public class GameManager implements Listener {
             hubManager.removeParticipantsFromHub(Collections.singletonList(participant));
             eventManager.onParticipantJoin(participant.getPlayer());
         } else if (voteManager.isVoting()) {
-            voteManager.onParticipantJoin(participant.getPlayer());
+            voteManager.onParticipantJoin(participant);
         }
         GameManagerUtils.colorLeatherArmor(this, participant.getPlayer());
         tabList.showPlayer(participant.getPlayer());
@@ -578,7 +577,7 @@ public class GameManager implements Listener {
                             .clickEvent(ClickEvent.suggestCommand("/mct team join "))));
             return;
         }
-        voteManager.startVote(Participant.toPlayersList(onlineParticipants.values()), votingPool, duration, (gameType) -> startGame(gameType, sender), onlineAdmins);
+        voteManager.startVote(onlineParticipants.values(), votingPool, duration, (gameType) -> startGame(gameType, sender), onlineAdmins);
     }
     
     /**
