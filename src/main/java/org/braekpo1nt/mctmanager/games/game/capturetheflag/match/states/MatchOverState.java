@@ -1,11 +1,10 @@
 package org.braekpo1nt.mctmanager.games.game.capturetheflag.match.states;
 
 import io.papermc.paper.entity.LookAnchor;
-import net.kyori.adventure.audience.Audience;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.CaptureTheFlagMatch;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
-import org.braekpo1nt.mctmanager.ui.UIUtils;
+import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.utils.LogType;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -36,7 +35,7 @@ public class MatchOverState implements CaptureTheFlagMatchState {
     }
     
     @Override
-    public void onParticipantJoin(Player participant) {
+    public void onParticipantJoin(Participant participant) {
         context.getParticipantsAreAlive().put(participant.getUniqueId(), false);
         context.initializeParticipant(participant);
         participant.setGameMode(GameMode.ADVENTURE);
@@ -54,7 +53,7 @@ public class MatchOverState implements CaptureTheFlagMatchState {
     }
     
     @Override
-    public void onParticipantQuit(Player participant) {
+    public void onParticipantQuit(Participant participant) {
         context.resetParticipant(participant);
         participant.setGameMode(GameMode.ADVENTURE);
         String teamId = context.getGameManager().getTeamId(participant.getUniqueId());

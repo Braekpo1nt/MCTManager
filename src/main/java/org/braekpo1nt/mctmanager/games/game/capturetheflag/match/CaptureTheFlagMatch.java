@@ -147,14 +147,14 @@ public class CaptureTheFlagMatch {
         ParticipantInitializer.resetHealthAndHunger(participant);
     }
     
-    public void onParticipantJoin(Player participant) {
+    public void onParticipantJoin(Participant participant) {
         if (state == null) {
             return;
         }
         state.onParticipantJoin(participant);
     }
     
-    public void onParticipantQuit(Player participant) {
+    public void onParticipantQuit(Participant participant) {
         if (state == null) {
             return;
         }

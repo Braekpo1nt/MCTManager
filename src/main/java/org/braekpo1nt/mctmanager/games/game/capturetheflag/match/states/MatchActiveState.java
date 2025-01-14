@@ -12,6 +12,7 @@ import org.braekpo1nt.mctmanager.games.game.capturetheflag.MatchPairing;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.CaptureTheFlagMatch;
 import org.braekpo1nt.mctmanager.games.utils.GameManagerUtils;
 import org.braekpo1nt.mctmanager.games.utils.ParticipantInitializer;
+import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.ui.UIUtils;
 import org.braekpo1nt.mctmanager.utils.BlockPlacementUtils;
 import org.braekpo1nt.mctmanager.utils.LogType;
@@ -31,6 +32,7 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -148,7 +150,7 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
     }
     
     @Override
-    public void onParticipantJoin(Player participant) {
+    public void onParticipantJoin(Participant participant) {
         context.getParticipantsAreAlive().put(participant.getUniqueId(), false);
         context.initializeParticipant(participant);
         String teamId = context.getGameManager().getTeamId(participant.getUniqueId());
@@ -165,7 +167,7 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
     }
     
     @Override
-    public void onParticipantQuit(Player participant) {
+    public void onParticipantQuit(Participant participant) {
         String teamId = context.getGameManager().getTeamId(participant.getUniqueId());
         if (context.getParticipantsAreAlive().get(participant.getUniqueId())) {
             Component deathMessage = Component.empty()
@@ -251,17 +253,17 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
         context.getParticipantsAreAlive().put(killed.getUniqueId(), false);
         int alive = 0;
         int dead = 0;
-        if (context.getNorthParticipants().contains(killed)) {
+        if (context.getNorthParticipants().containsKey(killed.getUniqueId())) {
             if (hasSouthFlag(killed)) {
                 dropSouthFlag(killed);
             }
-            alive = countAlive(context.getNorthParticipants());
+            alive = countAlive(context.getNorthParticipants().values());
             dead = context.getNorthParticipants().size() - alive;
-        } else if (context.getSouthParticipants().contains(killed)) {
+        } else if (context.getSouthParticipants().containsKey(killed.getUniqueId())) {
             if (hasNorthFlag(killed)){
                 dropNorthFlag(killed);
             }
-            alive = countAlive(context.getSouthParticipants());
+            alive = countAlive(context.getSouthParticipants().values());
             dead = context.getSouthParticipants().size() - alive;
         }
         
@@ -276,9 +278,14 @@ public class MatchActiveState implements CaptureTheFlagMatchState {
         context.getParentContext().addDeath(killed.getUniqueId());
     }
     
-    private int countAlive(List<Player> participants) {
+    /**
+     * @deprecated soon to be removed in favor of using a custom Participant implementation to track alive status
+     */
+    @Deprecated
+    private int countAlive(Collection<Participant> participants) {
+        // TODO: Participant remove this method
         int living = 0;
-        for (Player participant : participants) {
+        for (Participant participant : participants) {
             if (context.getParticipantsAreAlive().get(participant.getUniqueId())) {
                 living++;
             }

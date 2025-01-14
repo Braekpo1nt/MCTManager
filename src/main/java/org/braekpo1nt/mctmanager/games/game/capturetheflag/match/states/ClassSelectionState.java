@@ -3,8 +3,8 @@ package org.braekpo1nt.mctmanager.games.game.capturetheflag.match.states;
 import org.braekpo1nt.mctmanager.Main;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.ClassPicker;
 import org.braekpo1nt.mctmanager.games.game.capturetheflag.match.CaptureTheFlagMatch;
+import org.braekpo1nt.mctmanager.participant.Participant;
 import org.braekpo1nt.mctmanager.utils.LogType;
-import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
@@ -23,11 +23,11 @@ public class ClassSelectionState implements CaptureTheFlagMatchState {
         this.southClassPicker = context.getSouthClassPicker();
         northClassPicker.start(
                 context.getPlugin(), 
-                context.getNorthParticipants(), 
+                Participant.toPlayersList(context.getNorthParticipants().values()), 
                 context.getConfig().getLoadouts());
         southClassPicker.start(
-                context.getPlugin(), 
-                context.getSouthParticipants(), 
+                context.getPlugin(),
+                Participant.toPlayersList(context.getSouthParticipants().values()), 
                 context.getConfig().getLoadouts());
     }
     
@@ -45,33 +45,33 @@ public class ClassSelectionState implements CaptureTheFlagMatchState {
     }
     
     @Override
-    public void onParticipantJoin(Player participant) {
+    public void onParticipantJoin(Participant participant) {
         context.initializeParticipant(participant);
         String teamId = context.getGameManager().getTeamId(participant.getUniqueId());
         context.getTopbar().linkToTeam(participant.getUniqueId(), teamId);
         if (context.getMatchPairing().northTeam().equals(teamId)) {
-            northClassPicker.addTeamMate(participant);
+            northClassPicker.addTeamMate(participant.getPlayer());
         } else {
-            southClassPicker.addTeamMate(participant);
+            southClassPicker.addTeamMate(participant.getPlayer());
         }
     }
     
     @Override
-    public void onParticipantQuit(Player participant) {
+    public void onParticipantQuit(Participant participant) {
         context.resetParticipant(participant);
-        context.getAllParticipants().remove(participant);
+        context.getAllParticipants().remove(participant.getUniqueId());
         String teamId = context.getGameManager().getTeamId(participant.getUniqueId());
         int alive;
         int dead;
         if (context.getMatchPairing().northTeam().equals(teamId)) {
-            context.getNorthParticipants().remove(participant);
-            context.getNorthClassPicker().removeTeamMate(participant);
-            alive = context.countAlive(context.getNorthParticipants());
+            context.getNorthParticipants().remove(participant.getUniqueId());
+            context.getNorthClassPicker().removeTeamMate(participant.getPlayer());
+            alive = context.countAlive(context.getNorthParticipants().values());
             dead = context.getNorthParticipants().size() - alive;
         } else {
-            context.getSouthParticipants().remove(participant);
-            context.getSouthClassPicker().removeTeamMate(participant);
-            alive = context.countAlive(context.getSouthParticipants());
+            context.getSouthParticipants().remove(participant.getUniqueId());
+            context.getSouthClassPicker().removeTeamMate(participant.getPlayer());
+            alive = context.countAlive(context.getSouthParticipants().values());
             dead = context.getSouthParticipants().size() - alive;
         }
         context.getTopbar().setMembers(teamId, alive, dead);
